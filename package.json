@@ -1,0 +1,36 @@
+{
+  "name": "notsobot-ts",
+  "version": "0.0.1",
+  "description": "notsobot but in ts",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "lib/**/*"
+  ],
+  "dependencies": {
+    "detritus-client": "^0.2.2"
+  },
+  "devDependencies": {
+    "@types/node": "^12.0.10"
+  },
+  "peerDependencies": {},
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cakedan/notsobot.ts.git"
+  },
+  "keywords": [
+    "typescript",
+    "notsobot"
+  ],
+  "author": "cakedan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cakedan/notsobot.ts/issues"
+  },
+  "homepage": "https://github.com/cakedan/notsobot.ts#readme"
+}
