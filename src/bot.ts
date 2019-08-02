@@ -2,6 +2,10 @@ import { NotSoClient } from './client';
 
 const notsoclient = new NotSoClient({
   directory: './commands',
+  gateway: {
+    compress: false,
+    guildSubscriptions: false,
+  },
   prefix: '!!!',
 });
 
