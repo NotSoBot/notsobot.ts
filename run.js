@@ -3,8 +3,7 @@ const { ClusterManager } = require('detritus-client');
 const token = '';
 const manager = new ClusterManager('./lib/bot', token, {
   shardCount: 144,
-  shards: [65, 68],
-  shardsPerCluster: 2,
+  shardsPerCluster: 5,
 });
 
 (async () => {

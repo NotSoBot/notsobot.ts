@@ -1,4 +1,4 @@
-import { Command } from '../../../client/lib';
+import { Command } from 'detritus-client';
 
 
 export default (<Command.CommandOptions> {

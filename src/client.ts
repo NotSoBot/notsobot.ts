@@ -2,7 +2,7 @@ import {
   CommandClient,
   CommandClientOptions,
   CommandClientRunOptions,
-} from '../../client/lib';
+} from 'detritus-client';
 
 
 export interface NotSoClientOptions extends CommandClientOptions {
