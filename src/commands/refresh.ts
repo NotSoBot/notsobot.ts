@@ -20,6 +20,5 @@ export default (<Command.CommandOptions> {
   },
   onError: (context, args, error) => {
     console.error(error);
-    context.reply('an exception occurred: ```${error}```')
   },
 });
