@@ -11,6 +11,7 @@ export default (<Command.CommandOptions> {
   args: [
     {default: false, name: 'noreply', type: 'bool'},
     {default: 2, name: 'jsonspacing', type: 'number'},
+    {default: false, name: 'files.gg', label: 'upload', type: 'bool'},
   ],
   responseOptional: true,
   onBefore: (context) => context.user.isClientOwner,
@@ -35,11 +36,26 @@ export default (<Command.CommandOptions> {
 
     const max = 1990 - language.length;
     if (!args.noreply) {
-      return context.reply([
-        '```' + language,
-        String(message).slice(0, max),
-        '```',
-      ].join('\n'));
+      let content: string;
+      if (args.upload) {
+        try {
+          const upload = await context.rest.request({
+            files: [{filename: `eval.${language}`, data: message, name: 'file'}],
+            method: 'post',
+            url: 'https://api.files.gg/files',
+          });
+          content = upload.urls.main;
+        } catch(error) {
+          content = String(error);
+        }
+      } else {
+        content = [
+          '```' + language,
+          String(message).slice(0, max),
+          '```',
+        ].join('\n');
+      }
+      return context.reply(content);
     }
   },
   onError: (context, args, error) => {

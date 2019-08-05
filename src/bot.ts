@@ -3,10 +3,10 @@ import { NotSoClient } from './client';
 const notsoclient = new NotSoClient({
   directory: './commands',
   gateway: {
-    compress: false,
     guildSubscriptions: false,
   },
-  prefix: '!!!',
+  mentionsEnabled: false,
+  prefix: '..',
 });
 
 const loggingChannelId = '606919138694266890';
