@@ -2,9 +2,6 @@ import { NotSoClient } from './client';
 
 const notsoclient = new NotSoClient({
   directory: './commands',
-  gateway: {
-    guildSubscriptions: false,
-  },
   mentionsEnabled: false,
   prefix: '..',
 });
@@ -14,24 +11,25 @@ const loggingChannelId = '606919138694266890';
   const cluster = await notsoclient.run({applications: false});
   process.title = `S: ${cluster.shards.map((s: any, id: number) => id).join(',')}`;
   for (let [shardId, shard] of cluster.shards) {
-    shard.gateway.on('open', async () => {
-      const message = `shard ${shardId} opened`;
-      console.log(message);
-      await shard.rest.createMessage(loggingChannelId, {
-        content: message,
-      });
+    shard.gateway.on('state', async ({state}: any) => {
+      switch (state) {
+        case 'IDENTIFYING':
+        case 'OPEN':
+        case 'RESUMING':
+        case 'READY': {
+          const content = `Shard #${shardId} - ${state}`;
+          console.log(content);
+          await shard.rest.createMessage(loggingChannelId, {content});
+        }; break;
+      }
     });
-    shard.gateway.on('close', async (payload: {code: number, reason: string}) => {
-      const message = `shard ${shardId} closed with: ${JSON.stringify(payload)}`;
-      console.log(message);
-      await shard.rest.createMessage(loggingChannelId, {
-        content: message,
-      });
+    shard.gateway.on('close', async ({code, reason}: any) => {
+      const content = `Shard #${shardId} - CLOSE - ${JSON.stringify({code, reason})}`;
+      console.log(content);
+      await shard.rest.createMessage(loggingChannelId, {content});
     });
   }
-  const message = `loaded shards: ${cluster.shards.map((s: any, id: number) => id).join(', ')}`;
-  console.log(message);
-  await cluster.rest.createMessage(loggingChannelId, {
-    content: message,
-  });
+  const content = `Shards #(${cluster.shards.map((s: any, id: number) => id).join(', ')}) loaded`;
+  console.log(content);
+  await cluster.rest.createMessage(loggingChannelId, {content});
 })();
