@@ -3,6 +3,8 @@ import {
   Structures,
 } from 'detritus-client';
 
+import GuildMembersChunkStore, { GuildMembersChunk } from '../stores/guildmemberschunk';
+
 
 export async function findMembers(
   context: Command.Context,
@@ -12,22 +14,25 @@ export async function findMembers(
     presences?: boolean,
     timeout?: number,
   } = {},
-): Promise<any> {
+): Promise<GuildMembersChunk | null> {
   if (!context.guildId) {
     throw new Error('Context must be from a guild');
+  }
+  const key = `${context.guildId}:${query}`;
+  if (GuildMembersChunkStore.has(key)) {
+    return <GuildMembersChunk | null> GuildMembersChunkStore.get(key);
   }
   if (!options.timeout) {
     options.timeout = 5000;
   }
   return new Promise((resolve, reject) => {
     let timeout: null | number = null;
-    const listener = (event: any) => {
-      if (event.guildId === context.guildId) {
+    const listener = (event: GuildMembersChunk) => {
+      if (event.guildId === context.guildId && event.members) {
         const matchesQuery = event.members.every((member: Structures.Member) => {
-          return [
-            member.nick,
-            member.username,
-          ].some((name) => name && name.toLowerCase().startsWith(query));
+          return [member.nick, member.username,].some((name) => {
+            return name && name.toLowerCase().startsWith(query);
+          });
         });
         if (matchesQuery) {
           if (timeout !== null) {
@@ -35,6 +40,7 @@ export async function findMembers(
             timeout = null;
           }
           context.client.removeListener('GUILD_MEMBERS_CHUNK', listener);
+          GuildMembersChunkStore.insert(key, event);
           resolve(event);
         }
       }
@@ -49,6 +55,7 @@ export async function findMembers(
       if (timeout !== null) {
         timeout = null;
         context.client.removeListener('GUILD_MEMBERS_CHUNK', listener);
+        GuildMembersChunkStore.insert(key, null);
         reject(new Error(`Search took longer than ${options.timeout}ms`));
       }
     }, options.timeout);

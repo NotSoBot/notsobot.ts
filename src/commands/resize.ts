@@ -1,13 +1,19 @@
 import { Command } from 'detritus-client';
 
-import { NotSoClient } from '../client';
+import { imageResize } from '../api';
 import { Parameters } from '../utils';
 
 
 export default (<Command.CommandOptions> {
   name: 'resize',
+  aliases: ['enlarge', 'rescale'],
   args: [
-    {default: 2, name: 'size', type: 'float'},
+    {
+      aliases: ['size', 's'],
+      default: 2,
+      name: 'scale',
+      type: 'float',
+    },
   ],
   label: 'url',
   type: Parameters.getImageUrl,
@@ -25,10 +31,9 @@ export default (<Command.CommandOptions> {
     }
   },
   run: async (context, args) => {
-    const notsoclient = <NotSoClient> context.commandClient;
     try {
-      const resize = await notsoclient.api.imageResize({
-        size: args.size || 2,
+      const resize = await imageResize(context, {
+        scale: args.scale,
         url: args.url,
         userId: context.user.id,
       });

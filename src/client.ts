@@ -4,8 +4,6 @@ import {
   CommandClientRunOptions,
 } from 'detritus-client';
 
-import { ApiClient } from './rest';
-
 
 export interface NotSoClientOptions extends CommandClientOptions {
   directory: string, 
@@ -18,8 +16,6 @@ export interface NotSoClientRunOptions extends CommandClientRunOptions {
 }
 
 export class NotSoClient extends CommandClient {
-  readonly api: ApiClient;
-
   directory?: string;
   directoryIsAbsolute: boolean = false;
 
@@ -33,8 +29,6 @@ export class NotSoClient extends CommandClient {
       this.directory = options.directory;
       this.directoryIsAbsolute = !!options.directoryIsAbsolute;
     }
-
-    this.api = new ApiClient(this.rest, 'https://beta.notsobot.com/api');
   }
 
   async resetCommands(): Promise<void> {

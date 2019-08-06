@@ -1,6 +1,10 @@
 import { NotSoClient } from './client';
 
 const notsoclient = new NotSoClient({
+  cache: {
+    applications: {enabled: false},
+    members: {enabled: false},
+  },
   directory: './commands',
   mentionsEnabled: false,
   prefix: '..',
