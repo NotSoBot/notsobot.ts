@@ -65,7 +65,7 @@ export async function getImageUrl(
 
 
     const nameParts = value.split('#');
-    const username = (<string> nameParts.shift()).toLowerCase();
+    const username = (<string> nameParts.shift()).toLowerCase().slice(0, 32);
     let discriminator: null | string = null;
     if (nameParts.length) {
       discriminator = (<string> nameParts.shift()).padStart(4, '0');
@@ -73,7 +73,7 @@ export async function getImageUrl(
     if (context.guildId) {
       // members chunk
       try {
-        const event = await findMembers(context, username);
+        const event = await findMembers(context, {query: username});
         if (event && event.members) {
           const found = event.members.find((member: Structures.Member) => {
             return (discriminator) ? member.discriminator === discriminator : true;
@@ -135,6 +135,15 @@ export async function memberOrUser(
           return <Structures.Member> context.members.get(context.guildId, userId);
         } else {
           // fetch it?
+          try {
+            const event = await findMembers(context, {userIds: [userId]});
+            if (event && event.members) {
+              const found = event.members.find((member) => member.id === userId);
+              if (found) {
+                return found;
+              }
+            }
+          } catch(error) {}
         }
       } else {
         if (context.users.has(userId)) {
@@ -142,16 +151,15 @@ export async function memberOrUser(
         } else {
           try {
             return await context.rest.fetchUser(userId);
-          } catch(error) {
-            return null;
-          }
+          } catch(error) {}
         }
       }
+      return null;
     }
 
     // guild member chunk or search cache
     const nameParts = value.split('#');
-    const username = (<string> nameParts.shift()).toLowerCase();
+    const username = (<string> nameParts.shift()).toLowerCase().slice(0, 32);
     let discriminator: null | string = null;
     if (nameParts.length) {
       discriminator = (<string> nameParts.shift()).padStart(4, '0');
@@ -159,7 +167,7 @@ export async function memberOrUser(
     if (context.guildId) {
       // members chunk
       try {
-        const event = await findMembers(context, username);
+        const event = await findMembers(context, {query: username});
         if (event && event.members) {
           const found = event.members.find((member: Structures.Member) => {
             return (discriminator) ? member.discriminator === discriminator : true;

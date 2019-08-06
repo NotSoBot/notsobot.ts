@@ -2,7 +2,6 @@ import { NotSoClient } from './client';
 
 const notsoclient = new NotSoClient({
   cache: {
-    applications: {enabled: false},
     members: {enabled: false},
   },
   directory: './commands',
@@ -12,7 +11,7 @@ const notsoclient = new NotSoClient({
 
 const loggingChannelId = '606919138694266890';
 (async () => {
-  const cluster = await notsoclient.run({applications: false});
+  const cluster = await notsoclient.run();
   process.title = `S: ${cluster.shards.map((s: any, id: number) => id).join(',')}`;
   for (let [shardId, shard] of cluster.shards) {
     shard.gateway.on('state', async ({state}: any) => {

@@ -8,17 +8,18 @@ import GuildMembersChunkStore, { GuildMembersChunk } from '../stores/guildmember
 
 export async function findMembers(
   context: Command.Context,
-  query: string,
   options: {
     limit?: number,
     presences?: boolean,
+    query?: string,
     timeout?: number,
+    userIds?: Array<string>,
   } = {},
 ): Promise<GuildMembersChunk | null> {
   if (!context.guildId) {
     throw new Error('Context must be from a guild');
   }
-  const key = `${context.guildId}:${query}`;
+  const key = `${context.guildId}:${options.query || ''}:${options.userIds && options.userIds.join('.')}`;
   if (GuildMembersChunkStore.has(key)) {
     return <GuildMembersChunk | null> GuildMembersChunkStore.get(key);
   }
@@ -29,12 +30,26 @@ export async function findMembers(
     let timeout: null | number = null;
     const listener = (event: GuildMembersChunk) => {
       if (event.guildId === context.guildId && event.members) {
-        const matchesQuery = event.members.every((member: Structures.Member) => {
-          return [member.nick, member.username,].some((name) => {
-            return name && name.toLowerCase().startsWith(query);
+        let matches = false;
+        if (options.query) {
+          matches = event.members.every((member: Structures.Member) => {
+            return [member.nick, member.username,].some((name) => {
+              return name && name.toLowerCase().startsWith(<string> options.query);
+            });
           });
-        });
-        if (matchesQuery) {
+        } else if (options.userIds) {
+          console.log(event);
+          matches = options.userIds.every((userId) => {
+            if (event.notFound && event.notFound.includes(userId)) {
+              return true;
+            }
+            if (event.members) {
+              return event.members.some((member) => member.id === userId);
+            }
+            return false;
+          });
+        }
+        if (matches) {
           if (timeout !== null) {
             clearTimeout(<any> timeout);
             timeout = null;
@@ -49,7 +64,8 @@ export async function findMembers(
     context.client.gateway.requestGuildMembers(<string> context.guildId, {
       limit: options.limit || 50,
       presences: options.presences,
-      query,
+      query: <string> options.query,
+      userIds: options.userIds,
     });
     timeout = setTimeout(() => {
       if (timeout !== null) {
@@ -60,4 +76,11 @@ export async function findMembers(
       }
     }, options.timeout);
   });
+}
+
+
+export function toTitleCase(value: string): string {
+  return value.replace(/_/g, ' ').split(' ').map((word) => {
+    return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+  }).join(' ');
 }

@@ -8,8 +8,8 @@ import { Parameters } from '../utils';
 
 
 export default (<Command.CommandOptions> {
-  name: 'user',
-  aliases: ['member'],
+  name: 'activity',
+  aliases: ['presence'],
   label: 'user',
   type: Parameters.memberOrUser,
   onBefore: (context) => {
@@ -20,8 +20,6 @@ export default (<Command.CommandOptions> {
   onBeforeRun: (context, args) => !!args.user,
   onCancelRun: (context) => context.reply('⚠ Unable to find that guy.'),
   run: async (context, args) => {
-    const isMember = (args.user instanceof Structures.Member);
-    const member = <Structures.Member> args.user;
     const user = <Structures.User> args.user;
 
     const fields: Array<{
@@ -30,46 +28,8 @@ export default (<Command.CommandOptions> {
       value: string,
     }> = [];
 
-    fields.push({
-      inline: true,
-      name: 'Information',
-      value: [
-        `**Id**: \`${user.id}\``,
-        `**Bot**: ${(user.bot) ? 'Yes' : 'No'}`,
-      ].join('\n'),
-    });
-
-    const dateOptions = {
-      hour12: false,
-      timeZone: 'America/New_York',
-    };
-    fields.push({
-      inline: true,
-      name: 'Joined',
-      value: [
-        `**Discord**: ${user.createdAt.toLocaleString('en-US', dateOptions)}`,
-        (isMember) ? `**Guild**: ${member.joinedAt.toLocaleString('en-US', dateOptions)}` : null,
-      ].filter((v) => v).join('\n'),
-    });
-
-    if (isMember) {
-      const roles = member.roles.map((role, roleId) => {
-        return (role) ? `\`${role.name}\`` : `<@${roleId}>`;
-      });
-      const voiceChannel = member.voiceChannel;
-      fields.push({
-        name: 'Guild Specific',
-        value: [
-          `**Boosting**: ${(member.premiumSince) ? 'Yes' : 'No'}`,
-          (member.nick) ? `**Nickname**: ${member.nick}` : null,
-          (member.isOwner) ? '**Owner**: Yes' : null,
-          `**Roles (${member.roles.length})**: ${roles.join(', ')}`,
-          (voiceChannel) ? `**Voice**: ${voiceChannel.toString()}` : null,
-        ].filter((v) => v).join('\n'),
-      });
-    }
-
-    let color: number | undefined;
+    let color: number = PresenceStatusColors['offline'];
+    let thumbnail: string | undefined;
     const presence = user.presence;
     if (presence) {
       let text = presence.status;
@@ -89,23 +49,63 @@ export default (<Command.CommandOptions> {
       if (presence.status in PresenceStatusColors) {
         color = PresenceStatusColors[presence.status];
       }
+
+      if (activity) {
+        // now do the fields
+        thumbnail = activity.imageUrlFormat(null, {size: 1024}) || undefined;
+
+        if (activity.timestamps) {
+          const elapsed = activity.timestamps.elapsedTime;
+          const total = activity.timestamps.totalTime;
+          fields.push({
+            inline: true,
+            name: 'Time',
+            value: (total) ? `${elapsed}/${total}` : `${elapsed}`,
+          });
+        }
+
+        if (activity.party) {
+          const currentSize = activity.party.currentSize;
+          const maxSize = activity.party.maxSize;
+          const group = activity.party.group.map((user) => {
+            return user.mention;
+          });
+
+          fields.push({
+            name: 'Group',
+            value: [
+              (activity.party.size) ? `${currentSize}/${maxSize}` : null,
+              (group.length) ? `**Members**: ${group.join(', ')}` : null,
+            ].filter((v) => v).join('\n'),
+          });
+        }
+      }
+    } else {
+      fields.push({
+        name: 'Activity',
+        value: PresenceStatusTexts['offline'],
+      });
     }
 
     await context.reply({
       embed: {
         author: {
+          iconUrl: user.avatarUrlFormat(null, {size: 1024}),
           name: user.toString(),
           url: user.jumpLink,
         },
         color,
         fields,
         thumbnail: {
-          url: user.avatarUrlFormat(null, {size: 1024}),
+          url: thumbnail,
         },
       },
     });
   },
   onError: (context, args, error) => {
+    console.error(error);
+  },
+  onTypeError: (context, error) => {
     console.error(error);
   },
 });
