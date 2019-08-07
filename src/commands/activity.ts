@@ -105,6 +105,9 @@ export default (<Command.CommandOptions> {
   onError: (context, args, error) => {
     console.error(error);
   },
+  onRunError: (context, args, error) => {
+    console.error(error);
+  },
   onTypeError: (context, error) => {
     console.error(error);
   },
