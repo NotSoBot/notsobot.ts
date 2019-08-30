@@ -54,4 +54,3 @@ export default (<Command.CommandOptions> {
   onError: (context, args, error) => console.error(error),
   onTypeError: (context, error) => context.reply(error.stack),
 });
-

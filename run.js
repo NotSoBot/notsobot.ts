@@ -1,9 +1,11 @@
 const { ClusterManager } = require('detritus-client');
 
+process.env.NOTSOBOT_API_TOKEN = '';
+
 const token = '';
 const manager = new ClusterManager('./lib/bot', token, {
-  shardCount: 144,
-  shardsPerCluster: 5,
+  shardCount: 192,
+  shardsPerCluster: 6,
 });
 
 (async () => {

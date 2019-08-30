@@ -15,7 +15,6 @@ export default (<Command.CommandOptions> {
   ],
   responseOptional: true,
   onBefore: (context) => context.user.isClientOwner,
-  onCancel: (context) => context.reply(`${context.user.mention}, you're not this bot's owner or part of it's team.`),
   run: async (context, args) => {
     const match = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, args.code);
     if (match !== null) {
@@ -55,7 +54,7 @@ export default (<Command.CommandOptions> {
           '```',
         ].join('\n');
       }
-      return context.reply(content);
+      return context.editOrReply(content);
     }
   },
   onError: (context, args, error) => {

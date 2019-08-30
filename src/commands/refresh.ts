@@ -7,9 +7,9 @@ export default (<Command.CommandOptions> {
   onBefore: (context) => context.user.isClientOwner,
   run: async (context) => {
     if (!context.manager) {
-      return context.reply('no cluster manager found');
+      return context.editOrReply('no cluster manager found');
     }
-    const message = await context.reply('ok, refreshing...');
+    const message = await context.editOrReply('ok, refreshing...');
     const shardIds = await context.manager.broadcastEval(async (cluster: any) => {
       await cluster.commandClient.resetCommands();
       return cluster.shards.map((s: any, id: number) => id);

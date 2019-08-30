@@ -1,38 +1,52 @@
 import { NotSoClient } from './client';
 
-const notsoclient = new NotSoClient({
-  cache: {
-    members: {enabled: false},
-  },
+
+const bot = new NotSoClient({
+  activateOnEdits: true,
   directory: './commands',
   mentionsEnabled: false,
   prefix: '..',
+  rest: {
+    onNotOkResponse: (response) => {
+      console.log(response.request.route, response.headers);
+    },
+  },
 });
 
-const loggingChannelId = '606919138694266890';
-(async () => {
-  const cluster = await notsoclient.run();
-  process.title = `S: ${cluster.shards.map((s: any, id: number) => id).join(',')}`;
-  for (let [shardId, shard] of cluster.shards) {
-    shard.gateway.on('state', async ({state}: any) => {
-      switch (state) {
-        case 'IDENTIFYING':
-        case 'OPEN':
-        case 'RESUMING':
-        case 'READY': {
-          const content = `Shard #${shardId} - ${state}`;
-          console.log(content);
-          await shard.rest.createMessage(loggingChannelId, {content});
-        }; break;
+bot.on('COMMAND_RATELIMIT', async ({command, context, ratelimit, remaining}) => {
+  if (!ratelimit.replied) {
+    if (context.message.canReply) {
+      ratelimit.replied = true;
+      setTimeout(() => {
+        ratelimit.replied = false;
+      }, remaining / 2);
+
+      let noun = 'You';
+      if (command.ratelimit) {
+        switch (command.ratelimit.type) {
+          case 'channel':
+          case 'guild': {
+            noun = "Y'all";
+          }; break;
+        }
       }
-    });
-    shard.gateway.on('close', async ({code, reason}: any) => {
-      const content = `Shard #${shardId} - CLOSE - ${JSON.stringify({code, reason})}`;
-      console.log(content);
-      await shard.rest.createMessage(loggingChannelId, {content});
+      try {
+        await context.reply(`${noun} are using ${command.name} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`);
+      } catch(e) {
+        ratelimit.replied = false;
+      }
+    }
+  }
+});
+
+(async () => {
+  const cluster = await bot.run();
+  process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
+
+  for (let [shardId, shard] of cluster.shards) {
+    shard.gateway.on('state', ({state}: {state: string}) => {
+      console.log(`Shard #${shardId} - ${state}`);
     });
   }
-  const content = `Shards #(${cluster.shards.map((s: any, id: number) => id).join(', ')}) loaded`;
-  console.log(content);
-  await cluster.rest.createMessage(loggingChannelId, {content});
+  console.log(`Shards #(${cluster.shards.map((s: any, id: number) => id).join(', ')}) loaded`);
 })();
