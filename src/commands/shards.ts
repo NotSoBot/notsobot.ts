@@ -22,6 +22,7 @@ export default (<Command.CommandOptions> {
       title.unshift(['Cluster:', String(context.manager.clusterId)]);
 
       const results = await context.manager.broadcastEval((cluster: ClusterClient) => {
+        const usage = process.memoryUsage();
         return cluster.shards.reduce((information, shard) => {
           information.applications += shard.applications.length;
           information.channels += shard.channels.length;
@@ -40,7 +41,7 @@ export default (<Command.CommandOptions> {
           information.voiceStates += shard.voiceStates.length;
           return information;
         }, {
-          usage: process.memoryUsage().rss,
+          usage: Math.max(usage.rss, usage.heapTotal + usage.external),
           applications: 0,
           channels: 0,
           emojis: 0,

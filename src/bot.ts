@@ -40,13 +40,30 @@ bot.on('COMMAND_RATELIMIT', async ({command, context, ratelimit, remaining}) => 
 });
 
 (async () => {
-  const cluster = await bot.run();
+  const cluster = bot.client;
   process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
 
-  for (let [shardId, shard] of cluster.shards) {
-    shard.gateway.on('state', ({state}: {state: string}) => {
+  cluster.on('shard', ({shard}) => {
+    const shardId = shard.shardId;
+    console.log(`Loading up ${shardId}...`);
+    shard.gateway.on('state', ({state}) => {
       console.log(`Shard #${shardId} - ${state}`);
     });
-  }
+    shard.gateway.on('close', ({code, reason}) => {
+      console.log(`Shard #${shardId} closed - ${code}, ${reason}`);
+    });
+
+    const now = Date.now();
+    const send = <any> shard.gateway.send;
+    shard.gateway.send = function () {
+      console.log(Date.now() - now, 'SEND', ...arguments);
+      return send.call(shard.gateway, ...arguments);
+    };
+    shard.gateway.on('packet', (packet) => {
+      console.log(Date.now() - now, 'RECEIVED', packet.s, packet.op, packet.t);
+    });
+  });
+
+  await bot.run();
   console.log(`Shards #(${cluster.shards.map((s: any, id: number) => id).join(', ')}) loaded`);
 })();

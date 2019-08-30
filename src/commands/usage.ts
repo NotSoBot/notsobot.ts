@@ -19,6 +19,7 @@ export default (<Command.CommandOptions> {
       rows.unshift(['Cluster:', String(context.manager.clusterId)]);
 
       const results = await context.manager.broadcastEval((cluster: ClusterClient) => {
+        const usage = process.memoryUsage();
         return cluster.shards.reduce((information, shard) => {
           information.applications += shard.applications.length;
           information.channels += shard.channels.length;
@@ -37,7 +38,7 @@ export default (<Command.CommandOptions> {
           information.voiceStates += shard.voiceStates.length;
           return information;
         }, {
-          usage: process.memoryUsage().rss,
+          usage: Math.max(usage.rss, usage.heapTotal + usage.external),
           applications: 0,
           channels: 0,
           emojis: 0,
@@ -66,10 +67,17 @@ export default (<Command.CommandOptions> {
         return x;
       }, {});
 
-      info.usage = `${Math.round((info.usage / 1024 / 1024) * 100) / 100} MB`;
+      info.usage = `${Math.round(info.usage / 1024 / 1024).toLocaleString()} MB`;
       for (let key in info) {
         const title = key.slice(0, 1).toUpperCase() + key.slice(1);
-        rows.push([`${title}:`, String(info[key])]);
+
+        let value: string;
+        if (typeof(info[key]) === 'number') {
+          value = info[key].toLocaleString();
+        } else {
+          value = info[key];
+        }
+        rows.push([`${title}:`, value]);
       }
     }
 
