@@ -15,7 +15,7 @@ export default (<Command.CommandOptions> {
       ['Shard:', String(context.shardId)],
     ];
     const rows: Array<Array<string>> = [
-      ['C', 'G', 'M', 'RAM'],
+      ['C', 'G', 'P', 'RAM'],
     ];
 
     if (context.manager) {
@@ -29,6 +29,7 @@ export default (<Command.CommandOptions> {
           information.emojis += shard.emojis.length;
           information.guilds += shard.guilds.length;
           information.members += shard.members.length;
+          information.memberCount += shard.guilds.reduce((x, guild) => x + guild.memberCount, 0);
           information.messages += shard.messages.length;
           information.notes += shard.notes.length;
           information.presences += shard.presences.length;
@@ -47,6 +48,7 @@ export default (<Command.CommandOptions> {
           emojis: 0,
           guilds: 0,
           members: 0,
+          memberCount: 0,
           messages: 0,
           notes: 0,
           presences: 0,
@@ -65,7 +67,7 @@ export default (<Command.CommandOptions> {
         rows.push([
           clusterId,
           String(information.guilds),
-          String(information.members),
+          String(information.presences),
           `${Math.round(information.usage / 1024 / 1024)}`,
         ]);
       }
@@ -74,7 +76,7 @@ export default (<Command.CommandOptions> {
       rows.push([
         'T',
         String(results.reduce((x: number, info: any) => x += info.guilds, 0)),
-        String(results.reduce((x: number, info: any) => x += info.members, 0)),
+        String(results.reduce((x: number, info: any) => x += info.presences, 0)),
         `${Math.round(totalUsage / 1024 / 1024)}`,
       ]);
     }

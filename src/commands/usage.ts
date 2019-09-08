@@ -26,6 +26,7 @@ export default (<Command.CommandOptions> {
           information.emojis += shard.emojis.length;
           information.guilds += shard.guilds.length;
           information.members += shard.members.length;
+          information.memberCount += shard.guilds.reduce((x, guild) => x + guild.memberCount, 0);
           information.messages += shard.messages.length;
           information.notes += shard.notes.length;
           information.presences += shard.presences.length;
@@ -44,6 +45,7 @@ export default (<Command.CommandOptions> {
           emojis: 0,
           guilds: 0,
           members: 0,
+          memberCount: 0,
           messages: 0,
           notes: 0,
           presences: 0,

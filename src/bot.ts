@@ -1,9 +1,30 @@
+import { Constants } from 'detritus-client';
+
 import { NotSoClient } from './client';
+
+const { ActivityTypes, PresenceStatuses } = Constants;
 
 
 const bot = new NotSoClient({
   activateOnEdits: true,
+  cache: {
+    emojis: {enabled: false},
+    members: {enabled: false},
+    users: {enabled: false},
+  },
   directory: './commands',
+  gateway: {
+    identifyProperties: {
+      $browser: 'Discord iOS',
+    },
+    presence: {
+      activity: {
+        name: 'for .',
+        type: ActivityTypes.WATCHING,
+      },
+      status: PresenceStatuses.ONLINE,
+    },
+  },
   mentionsEnabled: false,
   prefix: '..',
   rest: {
@@ -53,6 +74,7 @@ bot.on('COMMAND_RATELIMIT', async ({command, context, ratelimit, remaining}) => 
       console.log(`Shard #${shardId} closed - ${code}, ${reason}`);
     });
 
+    /*
     const now = Date.now();
     const send = <any> shard.gateway.send;
     shard.gateway.send = function () {
@@ -62,6 +84,7 @@ bot.on('COMMAND_RATELIMIT', async ({command, context, ratelimit, remaining}) => 
     shard.gateway.on('packet', (packet) => {
       console.log(Date.now() - now, 'RECEIVED', packet.s, packet.op, packet.t);
     });
+    */
   });
 
   await bot.run();
