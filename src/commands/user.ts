@@ -43,6 +43,7 @@ export default (<Command.CommandOptions> {
         const embed = new Utils.Embed();
         embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
         embed.setColor(PresenceStatusColors['offline']);
+        embed.setDescription(member.mention);
         embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
 
         embed.addField('Information', [
@@ -60,17 +61,37 @@ export default (<Command.CommandOptions> {
         ].filter((v) => v).join('\n'), true);
 
         if (isMember) {
+          const description: Array<string> = [];
+
+          if (member.premiumSince) {
+            description.push(`**Boosting Since**: ${member.premiumSince.toLocaleString('en-US', dateOptions)}`);
+          }
+          if (member.nick) {
+            description.push(`**Nickname**: ${member.nick}`);
+          }
+          if (member.isOwner) {
+            description.push('**Owner**: Yes');
+          }
+
           const roles = member.roles.map((role, roleId) => {
-            return (role) ? `\`${role.name}\`` : `<@${roleId}>`;
+            if ((context.guildId !== member.guildId || roleId === context.guildId) && role) {
+              return `\`${role.name}\``;
+            }
+            return `<@&${roleId}>`;
           });
+          let rolesText = `**Roles (${roles.length})**: ${roles.join(', ')}`;
+          if (800 < rolesText.length) {
+            const fromIndex = rolesText.length - ((rolesText.length - 800) + 3);
+            const index = rolesText.lastIndexOf(',', fromIndex);
+            rolesText = rolesText.slice(0, index) + '...';
+          }
+          description.push(rolesText);
+
           const voiceChannel = member.voiceChannel;
-          embed.addField('Guild Specific', [
-            (member.premiumSince) ? `**Boosting Since**: ${member.premiumSince.toLocaleString('en-US', dateOptions)}` : null,
-            (member.nick) ? `**Nickname**: ${member.nick}` : null,
-            (member.isOwner) ? '**Owner**: Yes' : null,
-            `**Roles (${member.roles.length})**: ${roles.join(', ')}`,
-            (voiceChannel) ? `**Voice**: ${voiceChannel.toString()}` : null,
-          ].filter((v) => v).join('\n'));
+          if (voiceChannel) {
+            description.push(`**Voice**: ${voiceChannel.toString()}`);
+          }
+          embed.addField('Guild Specific', description.join('\n'));
         }
 
         if (presence) {
@@ -157,5 +178,8 @@ export default (<Command.CommandOptions> {
       },
     });
     await paginator.start();
+  },
+  onRunError: (context, args, error) => {
+    return context.editOrReply(`⚠ Error: ${error.message}`);
   },
 });

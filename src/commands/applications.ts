@@ -6,6 +6,10 @@ import {
 } from '../utils';
 
 
+export interface CommandArgs {
+  applications: Array<Structures.Application>,
+}
+
 export default (<Command.CommandOptions> {
   name: 'applications',
   aliases: ['application', 'games', 'game', 'applicationinfo', 'gameinfo'],
@@ -30,7 +34,8 @@ export default (<Command.CommandOptions> {
     }
   },
   run: async (context, args) => {
-    const applications: Array<Structures.Application> = args.applications;
+    args = <CommandArgs> <unknown> args;
+    const { applications } = args;
 
     const pageLimit = applications.length;
     const paginator = new Paginator(context, {
@@ -65,7 +70,7 @@ export default (<Command.CommandOptions> {
         }
 
         if (application.publishers && application.publishers.length) {
-          const publishers = application.publishers.map((publisher) => publisher.name);
+          const publishers = application.publishers.map((publisher: Structures.ApplicationPublisher) => publisher.name);
           embed.addField('Publishers', publishers.join(', '));
         }
 

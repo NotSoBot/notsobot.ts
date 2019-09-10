@@ -34,6 +34,7 @@ export default (<Command.CommandOptions> {
           information.notes += shard.notes.length;
           information.presences += shard.presences.length;
           information.relationships += shard.relationships.length;
+          information.roles += shard.roles.length;
           information.sessions += shard.sessions.length;
           information.typing += shard.typing.length;
           information.users += shard.users.length;
@@ -53,6 +54,7 @@ export default (<Command.CommandOptions> {
           notes: 0,
           presences: 0,
           relationships: 0,
+          roles: 0,
           sessions: 0,
           typing: 0,
           users: 0,

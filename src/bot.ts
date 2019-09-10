@@ -1,6 +1,7 @@
 import { Constants } from 'detritus-client';
 
 import { NotSoClient } from './client';
+import GuildStore from './stores/guild';
 
 const { ActivityTypes, PresenceStatuses } = Constants;
 
@@ -8,7 +9,7 @@ const { ActivityTypes, PresenceStatuses } = Constants;
 const bot = new NotSoClient({
   activateOnEdits: true,
   cache: {
-    emojis: {enabled: false},
+    emojis: {expire: (10 * 60) * 1000}, // 10 minutes
     members: {enabled: false},
     users: {enabled: false},
   },
@@ -63,6 +64,10 @@ bot.on('COMMAND_RATELIMIT', async ({command, context, ratelimit, remaining}) => 
 (async () => {
   const cluster = bot.client;
   process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
+
+  cluster.on('GUILD_DELETE', ({guildId}) => {
+    GuildStore.delete(guildId);
+  });
 
   cluster.on('shard', ({shard}) => {
     const shardId = shard.shardId;

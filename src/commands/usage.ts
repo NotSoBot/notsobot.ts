@@ -29,8 +29,11 @@ export default (<Command.CommandOptions> {
           information.memberCount += shard.guilds.reduce((x, guild) => x + guild.memberCount, 0);
           information.messages += shard.messages.length;
           information.notes += shard.notes.length;
+          information.permissionOverwrites += shard.channels.reduce((x, channel) => x + channel.permissionOverwrites.length, 0);
           information.presences += shard.presences.length;
+          information.presenceActivities += shard.presences.reduce((x, presence) => x + presence.activities.length, 0);
           information.relationships += shard.relationships.length;
+          information.roles += shard.roles.length;
           information.sessions += shard.sessions.length;
           information.typing += shard.typing.length;
           information.users += shard.users.length;
@@ -48,8 +51,11 @@ export default (<Command.CommandOptions> {
           memberCount: 0,
           messages: 0,
           notes: 0,
+          permissionOverwrites: 0,
           presences: 0,
+          presenceActivities: 0,
           relationships: 0,
+          roles: 0,
           sessions: 0,
           typing: 0,
           users: 0,

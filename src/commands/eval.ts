@@ -5,26 +5,36 @@ import {
 } from 'detritus-client';
 
 
+export interface CommandArgs {
+  code: string,
+  jsonspacing: number,
+  noreply: boolean,
+  upload: boolean,
+}
+
 export default (<Command.CommandOptions> {
-  label: 'code',
   name: 'eval',
+  label: 'code',
   args: [
-    {default: false, name: 'noreply', type: 'bool'},
     {default: 2, name: 'jsonspacing', type: 'number'},
+    {default: false, name: 'noreply', type: 'bool'},
     {default: false, name: 'files.gg', label: 'upload', type: 'bool'},
   ],
   responseOptional: true,
   onBefore: (context) => context.user.isClientOwner,
   run: async (context, args) => {
-    const match = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, args.code);
+    args = <CommandArgs> <unknown> args;
+
+    let code = args.code;
+    const match = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, code);
     if (match !== null) {
-      args.code = match.text;
+      code = match.text;
     }
 
     let language = 'js';
     let message: any;
     try {
-      message = await Promise.resolve(eval(args.code));
+      message = await Promise.resolve(eval(code));
       if (typeof(message) === 'object') {
         message = JSON.stringify(message, null, args.jsonspacing);
         language = 'json';

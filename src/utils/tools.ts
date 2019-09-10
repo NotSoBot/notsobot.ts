@@ -100,6 +100,12 @@ export function findMemberByUsername(
   });
 }
 
+export function formatMemory(bytes: number, decimals: number = 0): string {
+  const divideBy = 1024;
+  const amount = Math.floor(Math.log(bytes) / Math.log(divideBy));
+  const type = (['B', 'KB', 'MB','GB', 'TB'])[amount];
+  return (bytes / Math.pow(divideBy, amount)).toFixed(decimals) + ' ' + type;
+}
 
 export interface FormatTimeOptions {
   day?: boolean,
@@ -144,12 +150,6 @@ export function isSnowflake(value: string): boolean {
   return Number.MAX_SAFE_INTEGER < parseInt(value);
 }
 
-export function toTitleCase(value: string): string {
-  return value.replace(/_/g, ' ').split(' ').map((word) => {
-    return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
-  }).join(' ');
-}
-
 export function padCodeBlock(
   strings: Array<Array<string>>,
   padding: string = ' ',
@@ -186,4 +186,10 @@ export function padCodeBlock(
     rows.push(row.join(join));
   }
   return rows;
+}
+
+export function toTitleCase(value: string): string {
+  return value.replace(/_/g, ' ').split(' ').map((word) => {
+    return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
+  }).join(' ');
 }

@@ -14,6 +14,11 @@ import {
 } from '../utils';
 
 
+export interface CommandArgs {
+  id: number,
+  user: Structures.Member | Structures.User,
+}
+
 export default (<Command.CommandOptions> {
   name: 'activity',
   aliases: ['presence'],
@@ -33,14 +38,15 @@ export default (<Command.CommandOptions> {
   onBeforeRun: (context, args) => !!args.user,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
   run: async (context, args) => {
-    const user = <Structures.User> args.user;
+    args = <CommandArgs> <unknown> args;
+    const { id, user } = args;
 
     const presence = user.presence;
     const activities = (presence) ? presence.activities.toArray() : [];
     const pageLimit = activities.length || 1;
 
     const paginator = new Paginator(context, {
-      page: Math.max(1, Math.min(args.id, pageLimit)),
+      page: Math.max(1, Math.min(id, pageLimit)),
       pageLimit,
       onPage: (page) => {
         const embed = new Utils.Embed();
@@ -154,7 +160,7 @@ export default (<Command.CommandOptions> {
             if (activity.party) {
               const currentSize = activity.party.currentSize;
               const maxSize = activity.party.maxSize;
-              const group = activity.party.group.map((user) => {
+              const group = activity.party.group.map((user: Structures.User) => {
                 return user.mention;
               });
               const description = [];

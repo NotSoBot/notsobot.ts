@@ -1,15 +1,15 @@
 import {
   Command,
+  Collections,
   Constants,
   Structures,
   Utils,
 } from 'detritus-client';
 import { Endpoints } from 'detritus-client-rest';
 
-const {
-  DiscordRegexNames,
-} = Constants;
+const { DiscordRegexNames } = Constants;
 
+import GuildStore, { GuildStorePayload } from '../stores/guild';
 import {
   findMembers,
   findMemberByUsername,
@@ -58,16 +58,14 @@ export async function getImageUrl(
             if (member) {
               return member.avatarUrlFormat(null, {size: 1024});
             }
-          } else {
-            let user: Structures.User;
-            if (context.users.has(userId)) {
-              user = <Structures.User> context.users.get(userId);
-            } else {
-              user = await context.rest.fetchUser(userId);
-            }
-            return user.avatarUrlFormat(null, {size: 1024});
           }
-          return null;
+          let user: Structures.User;
+          if (context.users.has(userId)) {
+            user = <Structures.User> context.users.get(userId);
+          } else {
+            user = await context.rest.fetchUser(userId);
+          }
+          return user.avatarUrlFormat(null, {size: 1024});
         }
       }
 
@@ -236,6 +234,71 @@ export async function guild(
   return context.guild;
 }
 
+export async function guildAndEmojis(
+  value: string,
+  context: Command.Context,
+): Promise<GuildStorePayload> {
+  const guildId = value.trim() || context.guildId;
+
+  const payload: GuildStorePayload = {
+    channels: null,
+    emojis: null,
+    memberCount: 0,
+    presenceCount: 0,
+    voiceStateCount: 0,
+  };
+  if (!guildId) {
+    return payload;
+  }
+
+  if (GuildStore.has(guildId)) {
+    return <GuildStorePayload> GuildStore.get(guildId);
+  }
+
+  try {
+    if (isSnowflake(guildId)) {
+      try {
+        if (context.guilds.has(guildId)) {
+          payload.guild = await context.rest.fetchGuild(guildId);
+          payload.channels = payload.guild.channels;
+          payload.memberCount = payload.guild.memberCount;
+          payload.presenceCount = payload.guild.presences.length;
+          payload.voiceStateCount = payload.guild.voiceStates.length;
+        } else {
+          payload.guild = await context.rest.fetchGuild(guildId);
+          payload.channels = await payload.guild.fetchChannels();
+
+          if (context.manager) {
+            const results = await context.manager.broadcastEval(`((cluster) => {
+              const id = '${guildId}';
+              const shard = cluster.shards.find((shard) => shard.guilds.has(id));
+              if (shard) {
+                const guild = shard.guilds.get(id);
+                return {
+                  memberCount: guild.memberCount,
+                  presenceCount: guild.presences.length,
+                  voiceStateCount: guild.voiceStates.length,
+                };
+              }
+            })(this)`);
+            const result = results.find((result: any) => result);
+            if (result) {
+              Object.assign(payload, result);
+            }
+          }
+        }
+        payload.emojis = payload.guild.emojis;
+      } catch(error) {
+      }
+      GuildStore.set(guildId, payload);
+    }
+  } catch(error) {
+    console.error(error);
+    payload.guild = null;
+  }
+  return payload;
+}
+
 export async function memberOrUser(
   value: string,
   context: Command.Context,
@@ -274,14 +337,12 @@ export async function memberOrUser(
                 }
               }
             }
-          } else {
-            if (context.users.has(userId)) {
-              return <Structures.User> context.users.get(userId);
-            } else {
-              return await context.rest.fetchUser(userId);
-            }
           }
-          return null;
+          if (context.users.has(userId)) {
+            return <Structures.User> context.users.get(userId);
+          } else {
+            return await context.rest.fetchUser(userId);
+          }
         }
       }
 
