@@ -1,7 +1,9 @@
 import { Constants } from 'detritus-client';
 
 import { NotSoClient } from './client';
-import GuildStore from './stores/guild';
+
+import GuildChannelsStore from './stores/guildchannels';
+import GuildMetadataStore from './stores/guildmetadata';
 
 const { ActivityTypes, PresenceStatuses } = Constants;
 
@@ -61,7 +63,8 @@ bot.on('COMMAND_RATELIMIT', async ({command, context, ratelimit, remaining}) => 
   process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
 
   cluster.on('GUILD_DELETE', ({guildId}) => {
-    GuildStore.delete(guildId);
+    GuildChannelsStore.delete(guildId);
+    GuildMetadataStore.delete(guildId);
   });
 
   cluster.on('shard', ({shard}) => {

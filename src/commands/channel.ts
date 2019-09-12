@@ -5,12 +5,14 @@ import { Snowflake } from 'detritus-utils';
 const { ChannelTypes, Colors } = Constants;
 
 import { ChannelTypesText, DateOptions } from '../constants';
+import { GuildChannelsStored } from '../stores/guildchannels';
 import { Parameters } from '../utils';
 
 
 export interface CommandArgs {
   payload: {
     channel: Structures.Channel,
+    channels: GuildChannelsStored,
   },
 }
 
@@ -33,7 +35,7 @@ export default (<Command.CommandOptions> {
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that channel.'),
   run: async (context, args) => {
     args = <CommandArgs> <unknown> args;
-    const { channel } = args.payload;
+    const { channel, channels } = args.payload;
 
     const embed = new Utils.Embed();
     embed.setAuthor(channel.toString(), channel.iconUrl || undefined, channel.jumpLink);
@@ -119,10 +121,46 @@ export default (<Command.CommandOptions> {
       embed.addField('DM Information', description.join('\n'));
     }
 
+    if (channel.isGuildChannel) {
+      const description: Array<string> = [];
+
+      if (channel.isGuildCategory && channels) {
+        const children = channels.filter((child: Structures.Channel) => child.parentId === channel.id);
+        const newsChannels = children.filter((child: Structures.Channel) => child.isGuildNews).length;
+        const storeChannels = children.filter((child: Structures.Channel) => child.isGuildStore).length;
+        const textChannels = children.filter((child: Structures.Channel) => child.isGuildText).length;
+        const voiceChannels = children.filter((child: Structures.Channel) => child.isGuildVoice).length;
+
+        description.push(`Children: ${children.length}`);
+        if (newsChannels) {
+          description.push(` -[News]: ${newsChannels.toLocaleString()}`);
+        }
+        if (storeChannels) {
+          description.push(` -[Store]: ${storeChannels.toLocaleString()}`);
+        }
+        if (textChannels) {
+          description.push(` -[Text]: ${textChannels.toLocaleString()}`);
+        }
+        if (voiceChannels) {
+          description.push(` -[Voice]: ${voiceChannels.toLocaleString()}`);
+        }
+      }
+      description.push(`Overwrites: ${channel.permissionOverwrites.length.toLocaleString()}`);
+
+      if (description.length) {
+        embed.addField('Counts', [
+          '```css',
+          description.join('\n'),
+          '```',
+        ].join('\n'), true);
+      }
+    }
+
 
     {
       const description: Array<string> = [];
 
+      description.push(`[**Channel**](${channel.jumpLink})`);
       if (channel.guildId) {
         description.push(`[**Guild**](${Endpoints.Routes.URL + Endpoints.Routes.GUILD(channel.guildId)})`);
       }
@@ -130,7 +168,6 @@ export default (<Command.CommandOptions> {
         const route = Endpoints.Routes.MESSAGE(channel.guildId || null, channel.id, channel.lastMessageId);
         description.push(`[**Last Message**](${Endpoints.Routes.URL + route})`)
       }
-      description.push(`[**Jump Link**](${channel.jumpLink})`);
 
       embed.addField('Urls', description.join(', '));
     }

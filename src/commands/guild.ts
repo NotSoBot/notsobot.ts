@@ -1,7 +1,7 @@
 import { Collections, Command, Constants, Structures, Utils } from 'detritus-client';
 import { Endpoints } from 'detritus-client-rest';
 
-const { ChannelTypes, Colors } = Constants;
+const { Colors } = Constants;
 
 import {
   DateOptions,
@@ -157,11 +157,11 @@ export default (<Command.CommandOptions> {
      const description: Array<string> = [];
 
      const animatedEmojis = emojis.filter((emoji: Structures.Emoji) => emoji.animated).length;
-     const categoryChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_CATEGORY).length;
-     const newsChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_NEWS).length;
-     const storeChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_STORE).length;
-     const textChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_TEXT).length;
-     const voiceChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_VOICE).length;
+     const categoryChannels = channels.filter((channel: Structures.Channel) => channel.isGuildCategory).length;
+     const newsChannels = channels.filter((channel: Structures.Channel) => channel.isGuildNews).length;
+     const storeChannels = channels.filter((channel: Structures.Channel) => channel.isGuildStore).length;
+     const textChannels = channels.filter((channel: Structures.Channel) => channel.isGuildText).length;
+     const voiceChannels = channels.filter((channel: Structures.Channel) => channel.isGuildVoice).length;
 
      description.push(`Channels: ${channels.length.toLocaleString()}`);
      if (categoryChannels) {
@@ -260,7 +260,7 @@ export default (<Command.CommandOptions> {
       if (guild.banner) {
         description.push(`[**Banner Image**](${guild.bannerUrlFormat(null, {size: 1024})})`);
       }
-      description.push(`[**Jump Link**](${guild.jumpLink})`);
+      description.push(`[**Guild**](${guild.jumpLink})`);
       if (guild.icon) {
         description.push(`[**Icon Image**](${guild.iconUrlFormat(null, {size: 1024})})`);
       }

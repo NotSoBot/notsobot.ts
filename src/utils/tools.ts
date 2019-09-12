@@ -1,9 +1,10 @@
 import {
   Command,
+  GatewayClientEvents,
   Structures,
 } from 'detritus-client';
 
-import GuildMembersChunkStore, { GuildMembersChunk } from '../stores/guildmemberschunk';
+import GuildMembersChunkStore, { GuildMembersChunkStored } from '../stores/guildmemberschunk';
 
 
 export async function findMembers(
@@ -15,20 +16,20 @@ export async function findMembers(
     timeout?: number,
     userIds?: Array<string>,
   } = {},
-): Promise<GuildMembersChunk | null> {
+): Promise<GuildMembersChunkStored> {
   if (!context.guildId) {
     throw new Error('Context must be from a guild');
   }
   const key = `${context.guildId}:${options.query || ''}:${options.userIds && options.userIds.join('.')}`;
   if (GuildMembersChunkStore.has(key)) {
-    return <GuildMembersChunk | null> GuildMembersChunkStore.get(key);
+    return <GuildMembersChunkStored> GuildMembersChunkStore.get(key);
   }
   if (!options.timeout) {
-    options.timeout = 5000;
+    options.timeout = 1000;
   }
   return new Promise((resolve, reject) => {
     let timeout: null | number = null;
-    const listener = (event: GuildMembersChunk) => {
+    const listener = (event: GatewayClientEvents.GuildMembersChunk) => {
       if (event.guildId === context.guildId && event.members) {
         let matches = false;
         if (options.query) {

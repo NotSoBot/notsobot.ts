@@ -9,7 +9,8 @@ import { Endpoints } from 'detritus-client-rest';
 
 const { DiscordRegexNames } = Constants;
 
-import GuildStore, { GuildStorePayload } from '../stores/guild';
+import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
+import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
 import {
   findMembers,
   findMemberByUsername,
@@ -223,64 +224,76 @@ export async function channel(
 
 export interface ChannelMetadata {
   channel?: Structures.Channel | null,
+  channels: GuildChannelsStored,
 }
 
 export async function channelMetadata(
   value: string,
   context: Command.Context,
 ): Promise<ChannelMetadata> {
-  value = value.trim();
+  const channelId = value.trim() || context.channelId;
 
-  const payload: ChannelMetadata = {};
-  if (value) {
+  const payload: ChannelMetadata = {channels: null};
+  if (!channelId) {
+    return payload;
+  }
+
+  if (channelId === context.channelId) {
+    payload.channel = context.channel;
+  } else {
     payload.channel = null;
-    if (isSnowflake(value)) {
-      if (context.channels.has(value)) {
-        payload.channel = <Structures.Channel> context.channels.get(value);
+
+    if (isSnowflake(channelId)) {
+      if (context.channels.has(channelId)) {
+        payload.channel = <Structures.Channel> context.channels.get(channelId);
       } else {
         try {
-          payload.channel = await context.rest.fetchChannel(value);
+          payload.channel = await context.rest.fetchChannel(channelId);
         } catch(error) {
-          console.error(error);
         }
       }
     } else {
       const guild = context.guild;
       if (guild) {
-        value = value.toLowerCase();
-        payload.channel = guild.channels.find((channel) => {
-          return channel.name.startsWith(value);
-        }) || null;
+        const name = channelId.toLowerCase();
+        payload.channel = guild.channels.find((channel) => channel.name.toLowerCase().startsWith(name)) || null;
       }
     }
-  } else {
-    payload.channel = context.channel;
   }
+
+  if (payload.channel && payload.channel.isGuildChannel) {
+    const guild = payload.channel.guild;
+    if (guild) {
+      payload.channels = guild.channels;
+    } else {
+      const guildId = payload.channel.guildId;
+      if (GuildChannelsStore.has(guildId)) {
+        payload.channels = <GuildChannelsStored> GuildChannelsStore.get(guildId);
+      } else {
+        try {
+          payload.channels = await context.rest.fetchGuildChannels(guildId);
+        } catch(error) {
+        }
+        GuildChannelsStore.set(guildId, payload.channels);
+      }
+    }
+  }
+
   return payload;
 }
 
 
-export async function guild(
-  value: string,
-  context: Command.Context,
-): Promise<null | Structures.Guild | undefined> {
-  value = value.trim();
-  if (value) {
-    if (isSnowflake(value)) {
-      return context.guilds.get(value);
-    }
-    return null;
-  }
-  return context.guild;
+export interface GuildMetadata extends GuildMetadataStored {
+  channels: GuildChannelsStored,
 }
 
 export async function guildMetadata(
   value: string,
   context: Command.Context,
-): Promise<GuildStorePayload> {
+): Promise<GuildMetadata> {
   const guildId = value.trim() || context.guildId;
 
-  const payload: GuildStorePayload = {
+  const payload: GuildMetadata = {
     channels: null,
     emojis: null,
     memberCount: 0,
@@ -291,8 +304,20 @@ export async function guildMetadata(
     return payload;
   }
 
-  if (GuildStore.has(guildId)) {
-    return <GuildStorePayload> GuildStore.get(guildId);
+  if (GuildMetadataStore.has(guildId)) {
+    Object.assign(payload, GuildMetadataStore.get(guildId));
+    if (payload.guild) {
+      if (GuildChannelsStore.has(guildId)) {
+        payload.channels = <GuildChannelsStored> GuildChannelsStore.get(guildId);
+      } else {
+        try {
+          payload.channels = await payload.guild.fetchChannels();
+        } catch(error) { 
+        }
+        GuildChannelsStore.set(guildId, payload.channels);
+      }
+    }
+    return payload;
   }
 
   try {
@@ -304,9 +329,17 @@ export async function guildMetadata(
           payload.memberCount = payload.guild.memberCount;
           payload.presenceCount = payload.guild.presences.length;
           payload.voiceStateCount = payload.guild.voiceStates.length;
+
+          GuildChannelsStore.set(guildId, payload.channels);
         } else {
           payload.guild = await context.rest.fetchGuild(guildId);
-          payload.channels = await payload.guild.fetchChannels();
+
+          if (GuildChannelsStore.has(guildId)) {
+            payload.channels = <GuildChannelsStored> GuildChannelsStore.get(guildId);
+          } else {
+            payload.channels = await payload.guild.fetchChannels();
+            GuildChannelsStore.set(guildId, payload.channels);
+          }
 
           if (context.manager) {
             const results = await context.manager.broadcastEval(`((cluster) => {
@@ -330,7 +363,7 @@ export async function guildMetadata(
         payload.emojis = payload.guild.emojis;
       } catch(error) {
       }
-      GuildStore.set(guildId, payload);
+      GuildMetadataStore.set(guildId, payload);
     }
   } catch(error) {
     console.error(error);
