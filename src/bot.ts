@@ -8,11 +8,6 @@ const { ActivityTypes, PresenceStatuses } = Constants;
 
 const bot = new NotSoClient({
   activateOnEdits: true,
-  cache: {
-    emojis: {expire: (10 * 60) * 1000}, // 10 minutes
-    members: {enabled: false},
-    users: {enabled: false},
-  },
   directory: './commands',
   gateway: {
     identifyProperties: {

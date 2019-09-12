@@ -15,7 +15,7 @@ export default (<Command.CommandOptions> {
       ['Shard:', String(context.shardId)],
     ];
     const rows: Array<Array<string>> = [
-      ['C', 'G', 'P', 'RAM'],
+      ['C', 'G', 'M', 'RAM'],
     ];
 
     if (context.manager) {
@@ -69,16 +69,16 @@ export default (<Command.CommandOptions> {
         rows.push([
           clusterId,
           String(information.guilds),
-          String(information.presences),
+          String(information.members),
           `${Math.round(information.usage / 1024 / 1024)}`,
         ]);
       }
 
-      const totalUsage = results.reduce((x: number, info: any) => x += info.usage, 0);
+      const totalUsage = results.reduce((x: number, info: any) => x + info.usage, 0);
       rows.push([
         'T',
-        String(results.reduce((x: number, info: any) => x += info.guilds, 0)),
-        String(results.reduce((x: number, info: any) => x += info.presences, 0)),
+        String(results.reduce((x: number, info: any) => x + info.guilds, 0)),
+        String(results.reduce((x: number, info: any) => x + info.members, 0)),
         `${Math.round(totalUsage / 1024 / 1024)}`,
       ]);
     }

@@ -11,16 +11,12 @@ export default (<Command.CommandOptions> {
     type: 'guild',
   },
   run: async (context, args) => {
-    const rows: Array<Array<string>> = [
-      ['Shard:', String(context.shardId)],
-    ];
-
+    const rows: Array<Array<string>> = [];
     if (context.manager) {
-      rows.unshift(['Cluster:', String(context.manager.clusterId)]);
-
       const results = await context.manager.broadcastEval((cluster: ClusterClient) => {
         const usage = process.memoryUsage();
         return cluster.shards.reduce((information, shard) => {
+          information.shardsLoaded += 1;
           information.applications += shard.applications.length;
           information.channels += shard.channels.length;
           information.emojis += shard.emojis.length;
@@ -42,6 +38,9 @@ export default (<Command.CommandOptions> {
           information.voiceStates += shard.voiceStates.length;
           return information;
         }, {
+          cluster: 1,
+          shard: 0,
+          shardsLoaded: 0,
           usage: Math.max(usage.rss, usage.heapTotal + usage.external),
           applications: 0,
           channels: 0,
@@ -75,6 +74,9 @@ export default (<Command.CommandOptions> {
         return x;
       }, {});
 
+      info.cluster = `${context.manager.clusterId}/${info.cluster}`;
+      info.shard = `${context.shardId}/${context.shardCount}`;
+      info.shardsLoaded = `${info.shardsLoaded}/${context.shardCount}`;
       info.usage = `${Math.round(info.usage / 1024 / 1024).toLocaleString()} MB`;
       for (let key in info) {
         const title = key.slice(0, 1).toUpperCase() + key.slice(1);

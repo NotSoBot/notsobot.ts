@@ -1,10 +1,13 @@
 import { URLSearchParams } from 'url';
 
-import { Command, Structures, Utils } from 'detritus-client';
+import { Command, Constants, Structures, Utils } from 'detritus-client';
+
+const { DiscordKeys, DetritusKeys } = Constants;
 
 import {
   PresenceStatusColors,
   PresenceStatusTexts,
+  PRESENCE_CLIENT_STATUS_KEYS,
 } from '../constants';
 import {
   formatTime,
@@ -60,12 +63,14 @@ export default (<Command.CommandOptions> {
         if (presence) {
           if (presence.clientStatus) {
             const description = [];
-            for (let key of Object.keys(presence.clientStatus).sort()) {
+            for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
               let status = (<any> presence.clientStatus)[key];
-              if (status in PresenceStatusTexts) {
-                status = PresenceStatusTexts[status];
+              if (status) {
+                if (status in PresenceStatusTexts) {
+                  status = PresenceStatusTexts[status];
+                }
+                description.push(`**${toTitleCase(key)}**: ${status}`);
               }
-              description.push(`**${toTitleCase(key)}**: ${status}`);
             }
             embed.addField('Status', description.join('\n'));
           } else {
@@ -83,7 +88,8 @@ export default (<Command.CommandOptions> {
           const activityId = page - 1;
           if (activityId in activities) {
             const activity = activities[activityId];
-            if (activity) {
+
+            {
               const description = [];
               if (activity.isCustomStatus) {
                 description.push(`Custom Status: ${activity.state}`);

@@ -3,8 +3,10 @@ import { URLSearchParams } from 'url';
 import { Command, Structures, Utils } from 'detritus-client';
 
 import {
+  DateOptions,
   PresenceStatusColors,
   PresenceStatusTexts,
+  PRESENCE_CLIENT_STATUS_KEYS,
 } from '../constants';
 import { Paginator, Parameters, toTitleCase } from '../utils';
 
@@ -46,25 +48,27 @@ export default (<Command.CommandOptions> {
         embed.setDescription(member.mention);
         embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
 
-        embed.addField('Information', [
-          `**Id**: \`${user.id}\``,
-          `**Bot**: ${(user.bot) ? 'Yes' : 'No'}`,
-        ].join('\n'), true);
+        {
+          const description: Array<string> = [];
+          description.push(`**Id**: \`${user.id}\``);
+          description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
+          embed.addField('Information', description.join('\n'), true);
+        }
 
-        const dateOptions = {
-          hour12: false,
-          timeZone: 'America/New_York',
-        };
-        embed.addField('Joined', [
-          `**Discord**: ${user.createdAt.toLocaleString('en-US', dateOptions)}`,
-          (isMember) ? `**Guild**: ${member.joinedAt.toLocaleString('en-US', dateOptions)}` : null,
-        ].filter((v) => v).join('\n'), true);
+        {
+          const description: Array<string> = [];
+          description.push(`**Discord**: ${user.createdAt.toLocaleString('en-US', DateOptions)}`);
+          if (isMember && member.joinedAt) {
+            description.push(`**Guild**: ${member.joinedAt.toLocaleString('en-US', DateOptions)}`);
+          }
+          embed.addField('Joined', description.join('\n'), true);
+        }
 
         if (isMember) {
           const description: Array<string> = [];
 
           if (member.premiumSince) {
-            description.push(`**Boosting Since**: ${member.premiumSince.toLocaleString('en-US', dateOptions)}`);
+            description.push(`**Boosting Since**: ${member.premiumSince.toLocaleString('en-US', DateOptions)}`);
           }
           if (member.nick) {
             description.push(`**Nickname**: ${member.nick}`);
@@ -101,12 +105,14 @@ export default (<Command.CommandOptions> {
 
           if (presence.clientStatus) {
             const description = [];
-            for (let key of Object.keys(presence.clientStatus).sort()) {
+            for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
               let status = (<any> presence.clientStatus)[key];
-              if (status in PresenceStatusTexts) {
-                status = PresenceStatusTexts[status];
+              if (status) {
+                if (status in PresenceStatusTexts) {
+                  status = PresenceStatusTexts[status];
+                }
+                description.push(`**${toTitleCase(key)}**: ${status}`);
               }
-              description.push(`**${toTitleCase(key)}**: ${status}`);
             }
             embed.addField('Status', description.join('\n'));
           } else {
@@ -120,56 +126,55 @@ export default (<Command.CommandOptions> {
           const activityId = page - 1;
           if (activityId in activities) {
             const activity = activities[activityId];
-            if (activity) {
-              const description = [];
-              if (activity.isCustomStatus) {
-                description.push(`Custom Status: ${activity.state}`);
 
-                if (activity.details) {
-                  try {
-                    const details = new URLSearchParams(activity.details);
-                    const channelId = details.get('c') || '';
-                    if (context.channels.has(channelId)) {
-                      const channel = <Structures.Channel> context.channels.get(channelId);
-                      if (channel.isGuildVoice) {
-                        description.push(`In Voice: ${channel.mention} (${channel.id})`);
-                      }
+            const description = [];
+            if (activity.isCustomStatus) {
+              description.push(`Custom Status: ${activity.state}`);
+
+              if (activity.details) {
+                try {
+                  const details = new URLSearchParams(activity.details);
+                  const channelId = details.get('c') || '';
+                  if (context.channels.has(channelId)) {
+                    const channel = <Structures.Channel> context.channels.get(channelId);
+                    if (channel.isGuildVoice) {
+                      description.push(`In Voice: ${channel.mention} (${channel.id})`);
                     }
-                  } catch(error) {
-
                   }
+                } catch(error) {
+
+                }
+              }
+            } else {
+              const text = [activity.typeText, activity.name];
+              description.push(text.filter((v) => v).join(' '));
+              if (activity.isOnSpotify) {
+                if (activity.assets && activity.assets.largeText) {
+                  description.push(`**Album**: ${activity.assets.largeText}`);
+                }
+                if (activity.details) {
+                  description.push(`**Song**: ${activity.details}`);
+                }
+                if (activity.state) {
+                  description.push(`**Artists**: ${activity.state.split('; ').join(', ')}`);
                 }
               } else {
-                const text = [activity.typeText, activity.name];
-                description.push(text.filter((v) => v).join(' '));
-                if (activity.isOnSpotify) {
-                  if (activity.assets && activity.assets.largeText) {
-                    description.push(`**Album**: ${activity.assets.largeText}`);
-                  }
-                  if (activity.details) {
-                    description.push(`**Song**: ${activity.details}`);
-                  }
-                  if (activity.state) {
-                    description.push(`**Artists**: ${activity.state.split('; ').join(', ')}`);
-                  }
-                } else {
-                  if (activity.details) {
-                    description.push(`**Details**: ${activity.details}`);
-                  }
-                  if (activity.state) {
-                    description.push(`**State**: ${activity.state}`);
-                  }
+                if (activity.details) {
+                  description.push(`**Details**: ${activity.details}`);
                 }
-                if (activity.isOnXbox) {
-                  description.push('**On Xbox**');
+                if (activity.state) {
+                  description.push(`**State**: ${activity.state}`);
                 }
               }
-              let name = 'Activity';
-              if (1 < pageLimit) {
-                name = `Activity (${page} of ${pageLimit})`;
+              if (activity.isOnXbox) {
+                description.push('**On Xbox**');
               }
-              embed.addField(name, description.join('\n'), true);
             }
+            let name = 'Activity';
+            if (1 < pageLimit) {
+              name = `Activity (${page} of ${pageLimit})`;
+            }
+            embed.addField(name, description.join('\n'), true);
           }
         } else {
           embed.addField('Activity', PresenceStatusTexts['offline']);

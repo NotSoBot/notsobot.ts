@@ -3,7 +3,11 @@ import { Endpoints } from 'detritus-client-rest';
 
 const { ChannelTypes, Colors } = Constants;
 
-import { GuildExplicitContentFilterTypeTexts, VerificationLevelTexts } from '../constants';
+import {
+  DateOptions,
+  GuildExplicitContentFilterTypeTexts,
+  VerificationLevelTexts,
+} from '../constants';
 import { Parameters, formatMemory } from '../utils';
 
 
@@ -29,7 +33,7 @@ export default (<Command.CommandOptions> {
     limit: 5,
     type: 'guild',
   },
-  type: Parameters.guildAndEmojis,
+  type: Parameters.guildMetadata,
   onBefore: (context) => {
     const channel = context.channel;
     return (channel) ? channel.canEmbedLinks : false;
@@ -41,7 +45,6 @@ export default (<Command.CommandOptions> {
     args = <CommandArgs> <unknown> args;
 
     const { channels, guild, emojis, memberCount, presenceCount, voiceStateCount } = args.payload;
-    console.log(memberCount, voiceStateCount);
 
     const embed = new Utils.Embed();
     embed.setAuthor(guild.name, guild.iconUrlFormat(null, {size: 1024}) || undefined, guild.jumpLink);
@@ -67,15 +70,11 @@ export default (<Command.CommandOptions> {
       embed.setImage(<string> guild.splashUrlFormat(null, {size: 128}));
     }
 
-    const dateOptions = {
-      hour12: false,
-      timeZone: 'America/New_York',
-    };
-    if (guild.id) {
+    {
       const description: Array<string> = [];
 
       description.push(`**Acronym**: ${guild.acronym}`);
-      description.push(`**Created**: ${guild.createdAt.toLocaleString('en-US', dateOptions)}`);
+      description.push(`**Created**: ${guild.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Id**: \`${guild.id}\``);
       description.push(`**Locale**: \`${guild.preferredLocale}\``);
       description.push(`**Owner**: <@!${guild.ownerId}>`);
@@ -89,7 +88,7 @@ export default (<Command.CommandOptions> {
       embed.addField('Information', description.join('\n'), true);
     }
 
-    if (guild.id) {
+    {
       const description: Array<string> = [];
 
       description.push(`**AFK Timeout**: ${guild.afkTimeout} seconds`);
@@ -101,27 +100,39 @@ export default (<Command.CommandOptions> {
       embed.addField('Moderation', description.join('\n'), true);
     }
 
-    if (guild.id) {
+    {
+      function getChannelName(channelId: string): string {
+        if (context.guildId !== guild.id && channels.has(channelId)) {
+          const channel = <Structures.Channel> channels.get(channelId);
+          return `${channel} (${channelId})`;
+        }
+        return `<#${channelId}>`;
+      }
+
       const description: Array<string> = [];
       if (guild.afkChannelId) {
-        description.push(`**AFK**: <#${guild.afkChannelId}>`);
+        const name = getChannelName(guild.afkChannelId);
+        description.push(`**AFK**: ${name}`);
       }
       const defaultChannel = channels.find((channel: Structures.Channel) => channel.position === 0 && channel.type === 0);
       if (defaultChannel) {
-        description.push(`**Default**: <#${defaultChannel.id}>`);
+        const name = (context.guildId === guild.id) ? defaultChannel.mention : `${defaultChannel} (${defaultChannel.id})`;
+        description.push(`**Default**: ${name}`);
       }
       if (guild.systemChannelId) {
-        description.push(`**System**: <#${guild.systemChannelId}>`);
+        const name = getChannelName(guild.systemChannelId);
+        description.push(`**System**: ${name}`);
       }
       if (guild.widgetChannelId) {
-        description.push(`**Widget**: <#${guild.widgetChannelId}>`);
+        const name = getChannelName(guild.widgetChannelId);
+        description.push(`**Widget**: ${name}`);
       }
       if (description.length) {
         embed.addField('Channels', description.join('\n'), false);
       }
     }
 
-    if (guild.id) {
+    {
       /*
       const rows: Array<[string, string]> = [];
 
@@ -146,12 +157,28 @@ export default (<Command.CommandOptions> {
      const description: Array<string> = [];
 
      const animatedEmojis = emojis.filter((emoji: Structures.Emoji) => emoji.animated).length;
+     const categoryChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_CATEGORY).length;
+     const newsChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_NEWS).length;
+     const storeChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_STORE).length;
      const textChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_TEXT).length;
      const voiceChannels = channels.filter((channel: Structures.Channel) => channel.type === ChannelTypes.GUILD_VOICE).length;
 
      description.push(`Channels: ${channels.length.toLocaleString()}`);
-     description.push(`Channels [Text]: ${textChannels.toLocaleString()}`);
-     description.push(`Channels [Voice]: ${voiceChannels.toLocaleString()}`);
+     if (categoryChannels) {
+       description.push(` -[Category]: ${categoryChannels.toLocaleString()}`);
+     }
+     if (newsChannels) {
+       description.push(` -[News]: ${newsChannels.toLocaleString()}`);
+     }
+     if (storeChannels) {
+       description.push(` -[Store]: ${storeChannels.toLocaleString()}`);
+     }
+     if (textChannels) {
+       description.push(` -[Text]: ${textChannels.toLocaleString()}`);
+     }
+     if (voiceChannels) {
+       description.push(` -[Voice]: ${voiceChannels.toLocaleString()}`);
+     }
      description.push(`Emojis [Anim]: ${animatedEmojis.toLocaleString()}`);
      description.push(`Emojis [Regular]: ${(emojis.length - animatedEmojis).toLocaleString()}`);
      description.push(`Members: ${memberCount.toLocaleString()}`);
@@ -176,7 +203,7 @@ export default (<Command.CommandOptions> {
       ].join('\n'), true);
     }
 
-    if (guild.id) {
+    {
       const description: Array<string> = [];
 
       description.push(`Attachment: ${formatMemory(guild.maxAttachmentSize)}`);
@@ -205,7 +232,7 @@ export default (<Command.CommandOptions> {
       */
     }
 
-    if (guild.id) {
+    {
       const description: Array<string> = [];
 
       description.push(`Subscriptions: ${guild.premiumSubscriptionCount.toLocaleString()}`);
@@ -227,7 +254,7 @@ export default (<Command.CommandOptions> {
       */
     }
 
-    if (guild.id) {
+    {
       const description: Array<string> = [];
 
       if (guild.banner) {

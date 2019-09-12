@@ -74,7 +74,7 @@ export default (<Command.CommandOptions> {
           embed.addField('Publishers', publishers.join(', '));
         }
 
-        if (application) {
+        {
           const description = new Set();
           if (application.isOnDiscord) {
             description.add(`[**Discord**](${application.jumpLink})`);

@@ -220,6 +220,46 @@ export async function channel(
   return context.channel;
 }
 
+
+export interface ChannelMetadata {
+  channel?: Structures.Channel | null,
+}
+
+export async function channelMetadata(
+  value: string,
+  context: Command.Context,
+): Promise<ChannelMetadata> {
+  value = value.trim();
+
+  const payload: ChannelMetadata = {};
+  if (value) {
+    payload.channel = null;
+    if (isSnowflake(value)) {
+      if (context.channels.has(value)) {
+        payload.channel = <Structures.Channel> context.channels.get(value);
+      } else {
+        try {
+          payload.channel = await context.rest.fetchChannel(value);
+        } catch(error) {
+          console.error(error);
+        }
+      }
+    } else {
+      const guild = context.guild;
+      if (guild) {
+        value = value.toLowerCase();
+        payload.channel = guild.channels.find((channel) => {
+          return channel.name.startsWith(value);
+        }) || null;
+      }
+    }
+  } else {
+    payload.channel = context.channel;
+  }
+  return payload;
+}
+
+
 export async function guild(
   value: string,
   context: Command.Context,
@@ -234,7 +274,7 @@ export async function guild(
   return context.guild;
 }
 
-export async function guildAndEmojis(
+export async function guildMetadata(
   value: string,
   context: Command.Context,
 ): Promise<GuildStorePayload> {
