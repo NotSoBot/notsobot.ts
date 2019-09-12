@@ -297,6 +297,7 @@ export async function guildMetadata(
     channels: null,
     emojis: null,
     memberCount: 0,
+    owner: null,
     presenceCount: 0,
     voiceStateCount: 0,
   };
@@ -362,6 +363,13 @@ export async function guildMetadata(
         }
         payload.emojis = payload.guild.emojis;
       } catch(error) {
+      }
+
+      if (payload.guild && payload.guild.ownerId) {
+        payload.owner = payload.guild.owner;
+        if (!payload.owner) {
+          payload.owner = await context.rest.fetchUser(payload.guild.ownerId);
+        }
       }
       GuildMetadataStore.set(guildId, payload);
     }

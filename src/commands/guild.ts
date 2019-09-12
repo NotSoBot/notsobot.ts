@@ -19,6 +19,7 @@ export interface CommandArgs {
     emojis: Collections.BaseCollection<string, Structures.Emoji>,
     guild: Structures.Guild,
     memberCount: number,
+    owner: Structures.User,
     presenceCount: number,
     voiceStateCount: number,
   },
@@ -44,7 +45,15 @@ export default (<Command.CommandOptions> {
   run: async (context, args) => {
     args = <CommandArgs> <unknown> args;
 
-    const { channels, guild, emojis, memberCount, presenceCount, voiceStateCount } = args.payload;
+    const {
+      channels,
+      guild,
+      emojis,
+      memberCount,
+      owner,
+      presenceCount,
+      voiceStateCount,
+    } = args.payload;
 
     const embed = new Utils.Embed();
     embed.setAuthor(guild.name, guild.iconUrlFormat(null, {size: 1024}) || undefined, guild.jumpLink);
@@ -77,7 +86,12 @@ export default (<Command.CommandOptions> {
       description.push(`**Created**: ${guild.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Id**: \`${guild.id}\``);
       description.push(`**Locale**: \`${guild.preferredLocale}\``);
-      description.push(`**Owner**: <@!${guild.ownerId}>`);
+      if (guild.id === context.guildId) {
+        description.push(`**Owner**: <@!${guild.ownerId}>`);
+      } else {
+        description.push(`**Owner**: ${owner}`);
+        description.push(`**Owner Id**: \`${owner.id}\``);
+      }
       description.push(`**Region**: \`${guild.region}\``);
 
       // Application Id

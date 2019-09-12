@@ -5,6 +5,7 @@ export interface GuildMetadataStored {
   emojis: Collections.BaseCollection<string, Structures.Emoji> | null,
   guild?: null | Structures.Guild,
   memberCount: number,
+  owner: null | Structures.User,
   presenceCount: number,
   voiceStateCount: number,
 }
