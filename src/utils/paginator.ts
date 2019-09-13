@@ -232,9 +232,7 @@ export class Paginator {
     }
   }
 
-  async onMessageCreate({
-    message,
-  }: GatewayClientEvents.MessageCreate) {
+  async onMessageCreate({message}: GatewayClientEvents.MessageCreate) {
     if (!this.message || message.channelId !== this.message.channelId) {
       return;
     }
@@ -256,9 +254,7 @@ export class Paginator {
     }
   }
 
-  async onMessageDelete({
-    raw,
-  }: GatewayClientEvents.MessageDelete) {
+  async onMessageDelete({raw}: GatewayClientEvents.MessageDelete) {
     if (this.message && this.message.id === raw.id) {
       this.message = null;
       await this.onStop();
@@ -353,9 +349,7 @@ export class Paginator {
     }
   }
 
-  async onMessageReactionRemoveAll({
-    messageId,
-  }: GatewayClientEvents.MessageReactionRemoveAll) {
+  async onMessageReactionRemoveAll({messageId}: GatewayClientEvents.MessageReactionRemoveAll) {
     if (this.message && this.message.id === messageId) {
       await this.onStop();
     }

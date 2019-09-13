@@ -8,7 +8,7 @@ import {
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
 } from '../constants';
-import { Parameters, formatMemory } from '../utils';
+import { Parameters, formatMemory, padCodeBlockFromColumns, toTitleCase } from '../utils';
 
 
 const MAX_CONTENT = 2000;
@@ -27,7 +27,7 @@ export interface CommandArgs {
 
 export default (<Command.CommandOptions> {
   name: 'guild',
-  aliases: ['guildinfo'],
+  aliases: ['guildinfo', 'server', 'serverinfo'],
   label: 'payload',
   ratelimit: {
     duration: 5000,
@@ -86,6 +86,7 @@ export default (<Command.CommandOptions> {
       description.push(`**Created**: ${guild.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Id**: \`${guild.id}\``);
       description.push(`**Locale**: \`${guild.preferredLocale}\``);
+      description.push(`**Nitro Tier**: ${(guild.premiumTier) ? `Level ${guild.premiumTier}` : 'None'}`);
       if (guild.id === context.guildId) {
         description.push(`**Owner**: <@!${guild.ownerId}>`);
       } else {
@@ -147,72 +148,57 @@ export default (<Command.CommandOptions> {
     }
 
     {
-      /*
-      const rows: Array<[string, string]> = [];
+      const columns: Array<Array<string>> = [];
 
       const animatedEmojis = emojis.filter((emoji: Structures.Emoji) => emoji.animated).length;
+      const categoryChannels = channels.filter((channel: Structures.Channel) => channel.isGuildCategory).length;
+      const newsChannels = channels.filter((channel: Structures.Channel) => channel.isGuildNews).length;
+      const storeChannels = channels.filter((channel: Structures.Channel) => channel.isGuildStore).length;
+      const textChannels = channels.filter((channel: Structures.Channel) => channel.isGuildText).length;
+      const voiceChannels = channels.filter((channel: Structures.Channel) => channel.isGuildVoice).length;
 
-      rows.push(['Channels:', `${guild.channels.length.toLocaleString()}`]);
-      rows.push(['Channels (Text):', guild.textChannels.length.toLocaleString()]);
-      rows.push(['Channels (Voice):', guild.voiceChannels.length.toLocaleString()]);
-      rows.push(['Emojis (Animated):', animatedEmojis.toLocaleString()]);
-      rows.push(['Emojis (Regular):', (emojis.length - animatedEmojis).toLocaleString()]);
-      rows.push(['Members:', guild.memberCount.toLocaleString()]);
-      rows.push(['Roles:', guild.roles.length.toLocaleString()]);
-      rows.push(['VoiceStates:', guild.voiceStates.length.toLocaleString()]);
+      {
+        const column: Array<string> = [];
+
+        column.push(`Boosts: ${guild.premiumSubscriptionCount.toLocaleString()}`);
+        column.push(`Channels: ${channels.length.toLocaleString()}`);
+        if (categoryChannels) {
+          column.push(` -[Category]: ${categoryChannels.toLocaleString()}`);
+        }
+        if (newsChannels) {
+          column.push(` -[News]: ${newsChannels.toLocaleString()}`);
+        }
+        if (storeChannels) {
+          column.push(` -[Store]: ${storeChannels.toLocaleString()}`);
+        }
+        if (textChannels) {
+          column.push(` -[Text]: ${textChannels.toLocaleString()}`);
+        }
+        if (voiceChannels) {
+          column.push(` -[Voice]: ${voiceChannels.toLocaleString()}`);
+        }
+        column.push(`Emojis: ${emojis.length.toLocaleString()}`);
+        column.push(` -[Anim]: ${animatedEmojis.toLocaleString()}`);
+        column.push(` -[Regular]: ${(emojis.length - animatedEmojis).toLocaleString()}`);
+
+        columns.push(column);
+      }
+
+      {
+        const column: Array<string> = [];
+
+        column.push(`Members: ${memberCount.toLocaleString()}`);
+        column.push(`Overwrites: ${channels.reduce((x: number, channel: Structures.Channel) => x + channel.permissionOverwrites.length, 0).toLocaleString()}`);
+        column.push(`Presences: ${presenceCount.toLocaleString()}`);
+        column.push(`Roles: ${guild.roles.length.toLocaleString()}`);
+        column.push(`VoiceStates: ${voiceStateCount.toLocaleString()}`);
+
+        columns.push(column);
+      }
 
       embed.addField('Counts', [
-        '```',
-        padCodeBlock(rows).join('\n'),
-        '```',
-      ].join('\n'), true);
-      */
-
-     const description: Array<string> = [];
-
-     const animatedEmojis = emojis.filter((emoji: Structures.Emoji) => emoji.animated).length;
-     const categoryChannels = channels.filter((channel: Structures.Channel) => channel.isGuildCategory).length;
-     const newsChannels = channels.filter((channel: Structures.Channel) => channel.isGuildNews).length;
-     const storeChannels = channels.filter((channel: Structures.Channel) => channel.isGuildStore).length;
-     const textChannels = channels.filter((channel: Structures.Channel) => channel.isGuildText).length;
-     const voiceChannels = channels.filter((channel: Structures.Channel) => channel.isGuildVoice).length;
-
-     description.push(`Channels: ${channels.length.toLocaleString()}`);
-     if (categoryChannels) {
-       description.push(` -[Category]: ${categoryChannels.toLocaleString()}`);
-     }
-     if (newsChannels) {
-       description.push(` -[News]: ${newsChannels.toLocaleString()}`);
-     }
-     if (storeChannels) {
-       description.push(` -[Store]: ${storeChannels.toLocaleString()}`);
-     }
-     if (textChannels) {
-       description.push(` -[Text]: ${textChannels.toLocaleString()}`);
-     }
-     if (voiceChannels) {
-       description.push(` -[Voice]: ${voiceChannels.toLocaleString()}`);
-     }
-     description.push(`Emojis [Anim]: ${animatedEmojis.toLocaleString()}`);
-     description.push(`Emojis [Regular]: ${(emojis.length - animatedEmojis).toLocaleString()}`);
-     description.push(`Members: ${memberCount.toLocaleString()}`);
-     description.push(`Overwrites: ${channels.reduce((x: number, channel: Structures.Channel) => x + channel.permissionOverwrites.length, 0).toLocaleString()}`);
-     description.push(`Presences: ${presenceCount.toLocaleString()}`);
-     description.push(`Roles: ${guild.roles.length.toLocaleString()}`);
-     description.push(`VoiceStates: ${voiceStateCount.toLocaleString()}`);
-
-     embed.addField('Counts', [
-       '```css',
-       description.join('\n'),
-       '```',
-     ].join('\n'), true);
-    }
-
-    if (guild.features.length) {
-      const description = guild.features.toArray().sort();
-      embed.addField('Features', [
-        '```',
-        description.join('\n'),
+        '```css',
+        padCodeBlockFromColumns(columns, {join: ' | ', padFunc: String.prototype.padEnd}).join('\n'),
         '```',
       ].join('\n'), true);
     }
@@ -232,40 +218,15 @@ export default (<Command.CommandOptions> {
         description.join('\n'),
         '```',
       ].join('\n'), true);
-
-      /*
-      const description: Array<string> = [];
-
-      description.push(`**Attachment Size**: ${formatMemory(guild.maxAttachmentSize)}`);
-      description.push(`**Bitrate**: ${(guild.maxBitrate / 1000).toLocaleString()} kbps`);
-      description.push(`**Emojis**: ${guild.maxEmojis * 2} (${guild.maxEmojis.toLocaleString()} Animated)`);
-      description.push(`**Members**: ${guild.maxMembers.toLocaleString()}`);
-      description.push(`**Presences**: ${guild.maxPresences.toLocaleString()}`);
-
-      embed.addField('Limits', description.join('\n'), true);
-      */
     }
 
-    {
-      const description: Array<string> = [];
-
-      description.push(`Subscriptions: ${guild.premiumSubscriptionCount.toLocaleString()}`);
-      description.push(`Tier Level: ${guild.premiumTier}`);
-
-      embed.addField('Nitro Boost', [
-        '```css',
+    if (guild.features.length) {
+      const description = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
+      embed.addField('Features', [
+        '```',
         description.join('\n'),
         '```',
       ].join('\n'), true);
-
-      /*
-      const description: Array<string> = [];
-
-      description.push(`**Subscriptions**: ${guild.premiumSubscriptionCount.toLocaleString()}`);
-      description.push(`**Tier**: ${PremiumGuildTierNames[guild.premiumTier] || 'None'}`);
-
-      embed.addField('Nitro Boost', description.join('\n'), true);
-      */
     }
 
     {

@@ -1,6 +1,6 @@
 import { Command, ClusterClient } from 'detritus-client';
 
-import { padCodeBlock } from '../utils';
+import { padCodeBlockFromRows } from '../utils';
 
 
 export default (<Command.CommandOptions> {
@@ -83,13 +83,13 @@ export default (<Command.CommandOptions> {
       ]);
     }
 
-    const paddedRows = padCodeBlock(rows, ' ', '| ');
+    const paddedRows = padCodeBlockFromRows(rows, {join: '| '});
     const largestRow = paddedRows.reduce((x: number, row: string) => Math.max(x, row.length), 0);
     paddedRows.splice(1, 0, '-'.repeat(largestRow));
 
     return context.editOrReply([
       '```py',
-      padCodeBlock(title).join('\n') + '\n',
+      padCodeBlockFromRows(title).join('\n') + '\n',
       paddedRows.join('\n'),
       '```',
     ].join('\n'));

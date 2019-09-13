@@ -1,6 +1,6 @@
 import { Command, ClusterClient } from 'detritus-client';
 
-import { padCodeBlock } from '../utils';
+import { padCodeBlockFromRows } from '../utils';
 
 
 export default (<Command.CommandOptions> {
@@ -93,7 +93,7 @@ export default (<Command.CommandOptions> {
 
     return context.editOrReply([
       '```py',
-      padCodeBlock(rows).join('\n'),
+      padCodeBlockFromRows(rows).join('\n'),
       '```',
     ].join('\n'));
   },

@@ -1,4 +1,5 @@
 import {
+  ClusterClient,
   Command,
   Collections,
   Constants,
@@ -343,18 +344,18 @@ export async function guildMetadata(
           }
 
           if (context.manager) {
-            const results = await context.manager.broadcastEval(`((cluster) => {
-              const id = '${guildId}';
-              const shard = cluster.shards.find((shard) => shard.guilds.has(id));
-              if (shard) {
-                const guild = shard.guilds.get(id);
-                return {
-                  memberCount: guild.memberCount,
-                  presenceCount: guild.presences.length,
-                  voiceStateCount: guild.voiceStates.length,
-                };
+            const results = await context.manager.broadcastEval((cluster: ClusterClient, gId: string) => {
+              for (let [shardId, shard] of cluster.shards) {
+                if (shard.guilds.has(gId)) {
+                  const guild = <Structures.Guild> shard.guilds.get(gId);
+                  return {
+                    memberCount: guild.memberCount,
+                    presenceCount: guild.presences.length,
+                    voiceStateCount: guild.voiceStates.length,
+                  };
+                }
               }
-            })(this)`);
+            }, guildId);
             const result = results.find((result: any) => result);
             if (result) {
               Object.assign(payload, result);

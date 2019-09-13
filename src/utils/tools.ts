@@ -151,11 +151,57 @@ export function isSnowflake(value: string): boolean {
   return Number.MAX_SAFE_INTEGER < parseInt(value);
 }
 
-export function padCodeBlock(
+export function padCodeBlockFromColumns(
   strings: Array<Array<string>>,
-  padding: string = ' ',
-  join: string = ' ',
+  options: {
+    join?: string,
+    padding?: string,
+    padFunc?: (targetLength: number, padString?: string) => string,
+  } = {},
 ): Array<string> {
+  const padding = (options.padding === undefined) ? ' ' : options.padding;
+  const padFunc = (options.padFunc === undefined) ? String.prototype.padStart : options.padFunc;
+  const join = (options.join === undefined) ? ' ' : options.join;
+
+  const columns: Array<Array<string>> = [];
+  const largestColumn = strings.reduce((x: number, column: Array<string>) => Math.max(x, column.length), 0);
+  for (const column of strings) {
+    const formatted: Array<string> = [];
+    let max = 0;
+    for (const row of column) {
+      max = Math.max(max, row.length);
+    }
+    for (const row of column) {
+      formatted.push(padFunc.call(row, max, padding));
+    }
+    columns.push(formatted);
+  }
+
+  const rows: Array<string> = [];
+  for (let i = 0; i < largestColumn; i++) {
+    const row: Array<string> = [];
+    for (const column of columns) {
+      if (i in column) {
+        row.push(column[i]);
+      }
+    }
+    rows.push(row.join(join));
+  }
+  return rows;
+}
+
+export function padCodeBlockFromRows(
+  strings: Array<Array<string>>,
+  options: {
+    join?: string,
+    padding?: string,
+    padFunc?: (targetLength: number, padString?: string) => string,
+  } = {},
+): Array<string> {
+  const padding = (options.padding === undefined) ? ' ' : options.padding;
+  const padFunc = (options.padFunc === undefined) ? String.prototype.padStart : options.padFunc;
+  const join = (options.join === undefined) ? ' ' : options.join;
+
   const columns: Array<Array<string>> = [];
   const columnsAmount = strings.reduce((x, row) => Math.max(x, row.length), 0);
 
@@ -170,7 +216,7 @@ export function padCodeBlock(
     }
     for (const row of strings) {
       if (i in row) {
-        column.push(row[i].padStart(max, padding));
+        column.push(padFunc.call(row[i], max, padding));
       }
     }
     columns.push(column);

@@ -32,7 +32,7 @@ const bot = new NotSoClient({
   },
 });
 
-bot.on('COMMAND_RATELIMIT', async ({command, context, ratelimit, remaining}) => {
+bot.on('commandRatelimit', async ({command, context, ratelimit, remaining}) => {
   if (!ratelimit.replied) {
     if (context.message.canReply) {
       ratelimit.replied = true;
@@ -62,7 +62,7 @@ bot.on('COMMAND_RATELIMIT', async ({command, context, ratelimit, remaining}) => 
   const cluster = bot.client;
   process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
 
-  cluster.on('GUILD_DELETE', ({guildId}) => {
+  cluster.on('guildDelete', ({guildId}) => {
     GuildChannelsStore.delete(guildId);
     GuildMetadataStore.delete(guildId);
   });
