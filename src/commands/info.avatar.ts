@@ -28,7 +28,7 @@ export default (<Command.CommandOptions> {
       const embed = new Utils.Embed();
       embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 512}), user.jumpLink);
       embed.setColor(PresenceStatusColors['offline']);
-      embed.setDescription(user.avatarUrl);
+      embed.setDescription(`[**Avatar Url**](${user.avatarUrl})`);
       embed.setImage(user.avatarUrlFormat(null, {size: 512}));
 
       const presence = user.presence;

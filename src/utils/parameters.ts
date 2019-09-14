@@ -257,7 +257,7 @@ export async function channelMetadata(
       const guild = context.guild;
       if (guild) {
         const name = channelId.toLowerCase();
-        payload.channel = guild.channels.find((channel) => channel.name.toLowerCase().startsWith(name)) || null;
+        payload.channel = guild.channels.find((channel) => channel.name.toLowerCase().includes(name)) || null;
       }
     }
   }
@@ -326,7 +326,10 @@ export async function guildMetadata(
     if (isSnowflake(guildId)) {
       try {
         if (context.guilds.has(guildId)) {
-          payload.guild = await context.rest.fetchGuild(guildId);
+          payload.guild = <Structures.Guild> context.guilds.get(guildId);
+          if (!payload.guild.hasMetadata) {
+            payload.guild = await context.rest.fetchGuild(guildId);
+          }
           payload.channels = payload.guild.channels;
           payload.memberCount = payload.guild.memberCount;
           payload.presenceCount = payload.guild.presences.length;

@@ -148,19 +148,16 @@ export default (<Command.CommandOptions> {
     }
 
     {
-      const columns: Array<Array<string>> = [];
-
-      const animatedEmojis = emojis.filter((emoji: Structures.Emoji) => emoji.animated).length;
-      const categoryChannels = channels.filter((channel: Structures.Channel) => channel.isGuildCategory).length;
-      const newsChannels = channels.filter((channel: Structures.Channel) => channel.isGuildNews).length;
-      const storeChannels = channels.filter((channel: Structures.Channel) => channel.isGuildStore).length;
-      const textChannels = channels.filter((channel: Structures.Channel) => channel.isGuildText).length;
-      const voiceChannels = channels.filter((channel: Structures.Channel) => channel.isGuildVoice).length;
-
       {
+        const animatedEmojis = emojis.filter((emoji: Structures.Emoji) => emoji.animated).length;
+        const categoryChannels = channels.filter((channel: Structures.Channel) => channel.isGuildCategory).length;
+        const newsChannels = channels.filter((channel: Structures.Channel) => channel.isGuildNews).length;
+        const storeChannels = channels.filter((channel: Structures.Channel) => channel.isGuildStore).length;
+        const textChannels = channels.filter((channel: Structures.Channel) => channel.isGuildText).length;
+        const voiceChannels = channels.filter((channel: Structures.Channel) => channel.isGuildVoice).length;
+
         const column: Array<string> = [];
 
-        column.push(`Boosts: ${guild.premiumSubscriptionCount.toLocaleString()}`);
         column.push(`Channels: ${channels.length.toLocaleString()}`);
         if (categoryChannels) {
           column.push(` -[Category]: ${categoryChannels.toLocaleString()}`);
@@ -181,26 +178,29 @@ export default (<Command.CommandOptions> {
         column.push(` -[Anim]: ${animatedEmojis.toLocaleString()}`);
         column.push(` -[Regular]: ${(emojis.length - animatedEmojis).toLocaleString()}`);
 
-        columns.push(column);
+        embed.addField('Counts', [
+          '```css',
+          column.join('\n'),
+          '```',
+        ].join('\n'), true);
       }
 
       {
         const column: Array<string> = [];
 
+        column.push(`Boosts: ${guild.premiumSubscriptionCount.toLocaleString()}`);
         column.push(`Members: ${memberCount.toLocaleString()}`);
         column.push(`Overwrites: ${channels.reduce((x: number, channel: Structures.Channel) => x + channel.permissionOverwrites.length, 0).toLocaleString()}`);
         column.push(`Presences: ${presenceCount.toLocaleString()}`);
         column.push(`Roles: ${guild.roles.length.toLocaleString()}`);
         column.push(`VoiceStates: ${voiceStateCount.toLocaleString()}`);
 
-        columns.push(column);
+        embed.addField('Counts', [
+          '```css',
+          column.join('\n'),
+          '```',
+        ].join('\n'), true);
       }
-
-      embed.addField('Counts', [
-        '```css',
-        padCodeBlockFromColumns(columns, {join: ' | ', padFunc: String.prototype.padEnd}).join('\n'),
-        '```',
-      ].join('\n'), true);
     }
 
     {

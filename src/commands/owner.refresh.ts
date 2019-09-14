@@ -14,9 +14,12 @@ export default (<Command.CommandOptions> {
       await cluster.commandClient.resetCommands();
       return cluster.shards.map((s: any, id: number) => id);
     });
-    return message.edit({
-      content: `ok, refreshed commands on shards ${JSON.stringify(shardIds)}`,
-    });
+
+    const error = shardIds.find((shardId: any) => shardId instanceof Error);
+    if (error) {
+      return message.edit(`Error: ${error.message}`);
+    }
+    return message.edit(`ok, refreshed commands on ${JSON.stringify(shardIds)}`);
   },
   onError: (context, args, error) => {
     console.error(error);
