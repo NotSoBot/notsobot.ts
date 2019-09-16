@@ -48,6 +48,9 @@ export default (<Command.CommandOptions> {
       const description: Array<string> = [];
 
       description.push(`**Created**: ${channel.createdAt.toLocaleString('en-US', DateOptions)}`);
+      if (channel.guildId) {
+        description.push(`**Guild**: \`${channel.guildId}\``);
+      }
       description.push(`**Id**: \`${channel.id}\``);
       if (channel.isManaged) {
         description.push(`**Managed**: Yes`);

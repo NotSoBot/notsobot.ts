@@ -1,3 +1,5 @@
+import * as os from 'os';
+
 import { Command, ClusterClient } from 'detritus-client';
 
 import { padCodeBlockFromRows } from '../utils';
@@ -31,7 +33,7 @@ export default (<Command.CommandOptions> {
           information.relationships += shard.relationships.length;
           information.roles += shard.roles.length;
           information.sessions += shard.sessions.length;
-          information.typing += shard.typing.length;
+          information.typings += shard.typings.length;
           information.users += shard.users.length;
           information.voiceCalls += shard.voiceCalls.length;
           information.voiceConnections += shard.voiceConnections.length;
@@ -41,7 +43,8 @@ export default (<Command.CommandOptions> {
           cluster: 1,
           shard: 0,
           shardsLoaded: 0,
-          usage: Math.max(usage.rss, usage.heapTotal + usage.external),
+          ramUsage: Math.max(usage.rss, usage.heapTotal + usage.external),
+          ramTotal: 0,
           applications: 0,
           channels: 0,
           emojis: 0,
@@ -56,7 +59,7 @@ export default (<Command.CommandOptions> {
           relationships: 0,
           roles: 0,
           sessions: 0,
-          typing: 0,
+          typings: 0,
           users: 0,
           voiceCalls: 0,
           voiceConnections: 0,
@@ -77,7 +80,8 @@ export default (<Command.CommandOptions> {
       info.cluster = `${context.manager.clusterId}/${info.cluster}`;
       info.shard = `${context.shardId}/${context.shardCount}`;
       info.shardsLoaded = `${info.shardsLoaded}/${context.shardCount}`;
-      info.usage = `${Math.round(info.usage / 1024 / 1024).toLocaleString()} MB`;
+      info.ramUsage = `${Math.round(info.ramUsage / 1024 / 1024).toLocaleString()} MB`;
+      info.ramTotal = `${Math.round(os.totalmem() / 1024 / 1024).toLocaleString()} MB`;
       for (let key in info) {
         const title = key.slice(0, 1).toUpperCase() + key.slice(1);
 

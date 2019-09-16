@@ -8,10 +8,11 @@ import {
 } from 'detritus-client';
 import { Endpoints } from 'detritus-client-rest';
 
-const { DiscordRegexNames } = Constants;
+const { DiscordAbortCodes, DiscordRegexNames } = Constants;
 
 import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
+import MemberOrUserStore, { MemberOrUser } from '../stores/memberoruser';
 import {
   findMembers,
   findMemberByUsername,
@@ -387,15 +388,18 @@ export async function guildMetadata(
 export async function memberOrUser(
   value: string,
   context: Command.Context,
-): Promise<null | Structures.Member | Structures.User> {
+): Promise<MemberOrUser> {
   value = value.trim();
 
+  if (!value) {
+    return context.member || context.user;
+  }
+
   try {
-    if (value) {
-      let match = Utils.regex(DiscordRegexNames.MENTION_USER, value);
+    {
+      const match = Utils.regex(DiscordRegexNames.MENTION_USER, value);
       if (match) {
-        const { id } = match;
-        const userId = <string> id;
+        const { id: userId } = <{id: string}> match;
         if (isSnowflake(userId)) {
           if (context.message.mentions.has(userId)) {
             return <Structures.Member | Structures.User> context.message.mentions.get(userId);
@@ -404,117 +408,132 @@ export async function memberOrUser(
           }
         }
       }
+    }
 
-      match = Utils.regex(DiscordRegexNames.TEXT_SNOWFLAKE, value);
+    {
+      const match = Utils.regex(DiscordRegexNames.TEXT_SNOWFLAKE, value);
       if (match) {
-        const { text } = match;
-        const userId = <string> text;
+        const { text: userId } = <{text: string}> match;
         if (isSnowflake(userId)) {
+          const key = `${context.guildId}.${userId}`;
+          if (MemberOrUserStore.has(key)) {
+            return <MemberOrUser> MemberOrUserStore.get(key);
+          }
+
+          let user: MemberOrUser | undefined;
           if (context.guildId) {
-            if (context.members.has(context.guildId, userId)) {
-              return <Structures.Member> context.members.get(context.guildId, userId);
-            } else {
-              const event = await findMembers(context, {userIds: [userId]});
-              if (event && event.members) {
-                const found = event.members.find((member) => member.id === userId);
-                if (found) {
-                  return found;
+            try {
+              if (context.members.has(context.guildId, userId)) {
+                user = <Structures.Member> context.members.get(context.guildId, userId);
+                if ((<Structures.Member> user).isPartial) {
+                  user = await context.rest.fetchGuildMember(context.guildId, userId);
                 }
+              } else {
+                user = await context.rest.fetchGuildMember(context.guildId, userId);
+              }
+            } catch(error) {
+              // UNKNOWN_MEMBER == userId exists
+              // UNKNOWN_USER == userId doesn't exist
+              if (error.code !== DiscordAbortCodes.UNKNOWN_MEMBER) {
+                user = null;
               }
             }
           }
-          if (context.users.has(userId)) {
-            return <Structures.User> context.users.get(userId);
-          } else {
-            return await context.rest.fetchUser(userId);
-          }
-        }
-      }
-
-      // guild member chunk or search cache
-      const nameParts = value.split('#');
-      const username = (<string> nameParts.shift()).toLowerCase().slice(0, 32);
-      let discriminator: null | string = null;
-      if (nameParts.length) {
-        discriminator = (<string> nameParts.shift()).padStart(4, '0');
-      }
-
-      const voiceChannel = context.voiceChannel;
-      if (voiceChannel) {
-        const members = voiceChannel.members;
-        if (members) {
-          const found = findMemberByUsername(members, username, discriminator);
-          if (found) {
-            return found;
-          }
-        }
-      }
-
-      const channel = context.channel;
-      if (channel) {
-        const messages = channel.messages;
-        if (messages) {
-          for (let [messageId, message] of messages) {
-            const members = [message.member, message.author].filter((v) => v);
-            if (members.length) {
-              const found = findMemberByUsername(members, username, discriminator);
-              if (found) {
-                return found;
-              }
-            }
-            if (message.mentions.length) {
-              const found = findMemberByUsername(message.mentions, username, discriminator);
-              if (found) {
-                return found;
-              }
+          if (user === undefined) {
+            if (context.users.has(userId)) {
+              user = <Structures.User> context.users.get(userId);
+            } else {
+              user = await context.rest.fetchUser(userId);
             }
           }
+          MemberOrUserStore.set(key, user);
+          return user;
         }
-        const members = channel.members;
-        if (members) {
-          const found = findMemberByUsername(members, username, discriminator);
-          if (found) {
-            return found;
+      }
+    }
+
+    // guild member chunk or search cache
+    const nameParts = value.split('#');
+    const username = (<string> nameParts.shift()).toLowerCase().slice(0, 32);
+    let discriminator: null | string = null;
+    if (nameParts.length) {
+      discriminator = (<string> nameParts.shift()).padStart(4, '0');
+    }
+
+    const voiceChannel = context.voiceChannel;
+    if (voiceChannel) {
+      const members = voiceChannel.members;
+      if (members) {
+        const found = findMemberByUsername(members, username, discriminator);
+        if (found) {
+          return found;
+        }
+      }
+    }
+
+    const channel = context.channel;
+    if (channel) {
+      const messages = channel.messages;
+      if (messages) {
+        for (let [messageId, message] of messages) {
+          const members = [message.member, message.author].filter((v) => v);
+          if (members.length) {
+            const found = findMemberByUsername(members, username, discriminator);
+            if (found) {
+              return found;
+            }
+          }
+          if (message.mentions.length) {
+            const found = findMemberByUsername(message.mentions, username, discriminator);
+            if (found) {
+              return found;
+            }
           }
         }
       }
-
-      if (context.guildId) {
-        // members chunk
-        const guild = context.guild;
-        const members = (guild) ? guild.members : null;
-        if (members) {
-          const found = findMemberByUsername(members, username, discriminator);
-          if (found) {
-            return found;
-          }
+      const members = channel.members;
+      if (members) {
+        const found = findMemberByUsername(members, username, discriminator);
+        if (found) {
+          return found;
         }
+      }
+    }
 
-        // fall back to chunk request
-        const event = await findMembers(context, {query: username});
-        if (event && event.members) {
-          const found = event.members.find((member: Structures.Member) => {
-            return (discriminator) ? member.discriminator === discriminator : true;
-          });
-          if (found) {
-            return found;
-          }
+    if (context.guildId) {
+      // find via guild cache
+      const guild = context.guild;
+      const members = (guild) ? guild.members : null;
+      if (members) {
+        const found = findMemberByUsername(members, username, discriminator);
+        // add isPartial check
+        if (found) {
+          return found;
         }
-      } else {
-        // check our users cache since this is from a dm...
-        const found = context.users.find((user) => {
-          const name = user.username.toLowerCase();
-          if (name.startsWith(username)) {
-            return (discriminator) ? user.discriminator === discriminator : true;
-          }
-          return false;
+      }
+
+      // fall back to chunk request
+      const event = await findMembers(context, {query: username});
+      if (event && event.members) {
+        const found = event.members.find((member: Structures.Member) => {
+          return (discriminator) ? member.discriminator === discriminator : true;
         });
         if (found) {
           return found;
         }
       }
     } else {
-      return context.member || context.user;
+      // check our users cache since this is from a dm...
+      const found = context.users.find((user) => {
+        const name = user.username.toLowerCase();
+        if (name.startsWith(username)) {
+          return (discriminator) ? user.discriminator === discriminator : true;
+        }
+        return false;
+      });
+      if (found) {
+        return found;
+      }
     }
   } catch(error) {
     console.error(error);

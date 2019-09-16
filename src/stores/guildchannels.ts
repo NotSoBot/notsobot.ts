@@ -6,7 +6,7 @@ export type GuildChannelsStored = Collections.BaseCollection<string, Structures.
 // Stores if we fetched a guild via the rest api or not
 class GuildChannelsStore extends Collections.BaseCollection<string, GuildChannelsStored> {
   constructor() {
-    super({expire: (60) * 1000});
+    super({expire: (2 * 60) * 1000});
   }
 
   insert(key: string, payload: GuildChannelsStored): void {

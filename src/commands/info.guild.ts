@@ -2,6 +2,7 @@ import { Collections, Command, Constants, Structures, Utils } from 'detritus-cli
 import { Endpoints } from 'detritus-client-rest';
 
 const { Colors } = Constants;
+const { guildIdtoShardId } = Utils;
 
 import {
   DateOptions,
@@ -94,6 +95,10 @@ export default (<Command.CommandOptions> {
         description.push(`**Owner Id**: \`${owner.id}\``);
       }
       description.push(`**Region**: \`${guild.region}\``);
+
+      if (context.shardCount !== 1) {
+        description.push(`**Shard**: ${guildIdtoShardId(guild.id, context.shardCount)}/${context.shardCount}`);
+      }
 
       // Application Id
       // large

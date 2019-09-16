@@ -10,10 +10,10 @@ export interface GuildMetadataStored {
   voiceStateCount: number,
 }
 
-// Stores if we fetched a guild via the rest api or not
+// Stores rest-fetched guilds
 class GuildMetadataStore extends Collections.BaseCollection<string, GuildMetadataStored> {
   constructor() {
-    super({expire: (60) * 1000});
+    super({expire: (2 * 60) * 1000});
   }
 
   insert(key: string, payload: GuildMetadataStored): void {

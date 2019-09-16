@@ -36,7 +36,7 @@ export default (<Command.CommandOptions> {
           information.relationships += shard.relationships.length;
           information.roles += shard.roles.length;
           information.sessions += shard.sessions.length;
-          information.typing += shard.typing.length;
+          information.typings += shard.typings.length;
           information.users += shard.users.length;
           information.voiceCalls += shard.voiceCalls.length;
           information.voiceConnections += shard.voiceConnections.length;
@@ -56,7 +56,7 @@ export default (<Command.CommandOptions> {
           relationships: 0,
           roles: 0,
           sessions: 0,
-          typing: 0,
+          typings: 0,
           users: 0,
           voiceCalls: 0,
           voiceConnections: 0,
