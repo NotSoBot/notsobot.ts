@@ -228,7 +228,7 @@ export class Paginator {
       this.isOnGuide = false;
       this.page = page;
       const embed = await this.getPage(page);
-      await this.message.edit({embed: <any> embed});
+      await this.message.edit({embed});
     }
   }
 
@@ -329,7 +329,7 @@ export class Paginator {
           if (!this.isOnGuide) {
             this.isOnGuide = true;
             const embed = await this.getGuidePage();
-            await this.message.edit({embed: <any> embed});
+            await this.message.edit({embed});
           }
         }; break;
         default: {
@@ -405,9 +405,9 @@ export class Paginator {
       }
       const embed = await this.getPage(this.page);
       if (this.context instanceof Command.Context) {
-        this.message = await this.context.editOrReply({embed: <any> embed});
+        this.message = await this.context.editOrReply({embed});
       } else {
-        this.message = await this.context.reply({embed: <any> embed});
+        this.message = await this.context.reply({embed});
       }
     }
 

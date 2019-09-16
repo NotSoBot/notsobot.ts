@@ -124,7 +124,7 @@ export default (<Command.CommandOptions> {
         ].join('\n'), true);
       }
 
-      return context.editOrReply({content: '', embed: <any> embed});
+      return context.editOrReply({content: '', embed});
     }
   },
   onRunError: (context, args, error) => {

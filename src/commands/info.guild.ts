@@ -270,7 +270,7 @@ export default (<Command.CommandOptions> {
     }
     */
 
-    return context.editOrReply({embed: <any> embed});
+    return context.editOrReply({embed});
   },
   onRunError: (context, args, error) => {
     return context.editOrReply(`⚠ Error: ${error.message}`);

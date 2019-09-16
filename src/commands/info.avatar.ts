@@ -36,7 +36,7 @@ export default (<Command.CommandOptions> {
         embed.setColor(PresenceStatusColors[presence.status]);
       }
 
-      return context.editOrReply({embed: <any> embed});
+      return context.editOrReply({embed});
     }
     return context.editOrReply(user.avatarUrl);
   },

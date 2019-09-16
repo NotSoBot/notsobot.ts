@@ -175,7 +175,7 @@ export default (<Command.CommandOptions> {
       embed.addField('Urls', description.join(', '));
     }
 
-    return context.editOrReply({embed: <any> embed});
+    return context.editOrReply({embed});
   },
   onRunError: (context, args, error) => {
     return context.editOrReply(`⚠ Error: ${error.message}`);
