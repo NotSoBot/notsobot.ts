@@ -196,12 +196,12 @@ export async function applications(
       return [application];
     }
     return context.applications.filter((application) => {
-      if (application.name.toLowerCase().startsWith(value)) {
+      if (application.name.toLowerCase().includes(value)) {
         return true;
       }
       if (application.aliases) {
         return application.aliases.some((name) => {
-          return name.toLowerCase().startsWith(value);
+          return name.toLowerCase().includes(value);
         });
       }
       return false;

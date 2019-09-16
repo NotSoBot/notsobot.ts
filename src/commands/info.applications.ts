@@ -92,6 +92,11 @@ export default (<Command.CommandOptions> {
           }
         }
 
+        if (application.youtubeTrailerVideoId) {
+          const url = <string> application.youtubeTrailerUrl;
+          embed.addField('Trailer', `[**YouTube**](${url})`, true);
+        }
+
         embed.setFooter('Added to Discord');
         embed.setTimestamp(application.createdAt);
 

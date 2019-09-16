@@ -45,9 +45,16 @@ export default (<Command.CommandOptions> {
     const { id, user } = args;
 
     const presence = user.presence;
-    const activities = (presence) ? presence.activities.toArray() : [];
-    const pageLimit = activities.length || 1;
+    let activities: Array<Structures.PresenceActivity>;
+    if (presence) {
+      activities = presence.activities.sort((x: Structures.PresenceActivity, y: Structures.PresenceActivity) => {
+        return x.position - y.position;
+      });
+    } else {
+      activities = [];
+    }
 
+    const pageLimit = activities.length || 1;
     const paginator = new Paginator(context, {
       page: Math.max(1, Math.min(id, pageLimit)),
       pageLimit,
@@ -208,6 +215,11 @@ export default (<Command.CommandOptions> {
                 description.push(<string> activity.spotifyTrackUrl);
               }
               embed.addField('Spotify Track', description.join('\n'), true);
+            }
+
+            if (activity.createdAt) {
+              embed.setFooter('Started');
+              embed.setTimestamp(activity.createdAt);
             }
           }
         } else {
