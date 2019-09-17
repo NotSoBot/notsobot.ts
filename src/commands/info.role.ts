@@ -95,7 +95,7 @@ export default (<Command.CommandOptions> {
     }
 
     if (channel) {
-      const permissions = role.permissionsFor(channel);
+      const permissions = role.permissionsIn(channel);
       if (channel.isText) {
         const rows: Array<Array<string>> = [];
 

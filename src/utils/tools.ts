@@ -1,13 +1,15 @@
 import {
+  Collections,
   Command,
   GatewayClientEvents,
   Structures,
 } from 'detritus-client';
+import { Timers } from 'detritus-utils';
 
 import GuildMembersChunkStore, { GuildMembersChunkStored } from '../stores/guildmemberschunk';
 
 
-export async function findMembers(
+export async function chunkMembers(
   context: Command.Context,
   options: {
     limit?: number,
@@ -24,11 +26,9 @@ export async function findMembers(
   if (GuildMembersChunkStore.has(key)) {
     return <GuildMembersChunkStored> GuildMembersChunkStore.get(key);
   }
-  if (!options.timeout) {
-    options.timeout = 1000;
-  }
+
   return new Promise((resolve, reject) => {
-    let timeout: null | number = null;
+    const timeout = new Timers.Timeout();
     const listener = (event: GatewayClientEvents.GuildMembersChunk) => {
       if (event.guildId === context.guildId && event.members) {
         let matches = false;
@@ -50,37 +50,132 @@ export async function findMembers(
           });
         }
         if (matches) {
-          if (timeout !== null) {
-            clearTimeout(<any> timeout);
-            timeout = null;
-          }
-          context.client.removeListener('GUILD_MEMBERS_CHUNK', listener);
+          timeout.stop();
+          context.client.removeListener('guildMembersChunk', listener);
           GuildMembersChunkStore.insert(key, event);
           resolve(event);
         }
       }
     };
-    context.client.on('GUILD_MEMBERS_CHUNK', listener);
+    context.client.on('guildMembersChunk', listener);
     context.client.gateway.requestGuildMembers(<string> context.guildId, {
       limit: options.limit || 50,
       presences: options.presences,
       query: <string> options.query,
       userIds: options.userIds,
     });
-    timeout = setTimeout(() => {
-      if (timeout !== null) {
-        timeout = null;
-        context.client.removeListener('GUILD_MEMBERS_CHUNK', listener);
-        GuildMembersChunkStore.insert(key, null);
-        reject(new Error(`Search took longer than ${options.timeout}ms`));
-      }
-    }, options.timeout);
+    timeout.start(options.timeout || 500, () => {
+      context.client.removeListener('guildMembersChunk', listener);
+      GuildMembersChunkStore.insert(key, null);
+      reject(new Error(`Search took longer than ${options.timeout}ms`));
+    });
   });
 }
 
 
+export function findImageUrlInMessages(
+  messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
+): null | string {
+  for (const message of messages.values()) {
+    for (let [attachmentId, attachment] of message.attachments) {
+      if (attachment.isImage && attachment.proxyUrl) {
+        return attachment.proxyUrl;
+      }
+    }
+    for (let [embedId, embed] of message.embeds) {
+      if (embed.image && embed.image.proxyUrl) {
+        return embed.image.proxyUrl;
+      }
+      if (embed.thumbnail && embed.thumbnail.proxyUrl) {
+        return embed.thumbnail.proxyUrl;
+      }
+    }
+  }
+  return null;
+}
+
+export async function findMemberByChunk(
+  context: Command.Context,
+  username: string,
+  discriminator?: null | string,
+): Promise<Structures.Member | Structures.User | null> {
+  const voiceChannel = context.voiceChannel;
+  if (voiceChannel) {
+    const members = voiceChannel.members;
+    if (members) {
+      const found = findMemberByUsername(members, username, discriminator);
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  const channel = context.channel;
+  if (channel) {
+    const messages = channel.messages;
+    if (messages) {
+      for (let [messageId, message] of messages) {
+        const members = [message.member, message.author].filter((v) => v);
+        if (members.length) {
+          const found = findMemberByUsername(members, username, discriminator);
+          if (found) {
+            return found;
+          }
+        }
+        if (message.mentions.length) {
+          const found = findMemberByUsername(message.mentions, username, discriminator);
+          if (found) {
+            return found;
+          }
+        }
+      }
+    }
+    const members = channel.members;
+    if (members) {
+      const found = findMemberByUsername(members, username, discriminator);
+      if (found) {
+        return found;
+      }
+    }
+  }
+
+  if (context.guildId) {
+    // find via guild cache
+    const guild = context.guild;
+    const members = (guild) ? guild.members : null;
+    if (members) {
+      const found = findMemberByUsername(members, username, discriminator);
+      // add isPartial check
+      if (found) {
+        return found;
+      }
+    }
+
+    // fall back to chunk request
+    try {
+      const event = await chunkMembers(context, {query: username});
+      if (event && event.members) {
+        const found = event.members.find((member: Structures.Member) => {
+          return (discriminator) ? member.discriminator === discriminator : true;
+        });
+        if (found) {
+          return found;
+        }
+      }
+    } catch(error) {}
+  } else {
+    // check our users cache since this is from a dm...
+    const found = findMemberByUsername(context.users, username, discriminator);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
+}
+
+
 export interface FindMemberByUsernameCache {
-  find: (func: (member: Structures.Member | Structures.User | undefined) => boolean) => Structures.Member | Structures.User | undefined,
+  values(): IterableIterator<Structures.Member | Structures.User | undefined>,
 }
 
 export function findMemberByUsername(
@@ -88,17 +183,15 @@ export function findMemberByUsername(
   username: string,
   discriminator?: null | string,
 ): Structures.Member | Structures.User | undefined {
-  return members.find((member) => {
-    if (member) {
-      const match = member.names.some((name) => {
-        return name.toLowerCase().startsWith(username);
-      });
-      if (match) {
-        return (discriminator) ? member.discriminator === discriminator : true;
+  for (const memberOrUser of members.values()) {
+    if (memberOrUser) {
+      const name = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
+      const discrim = (discriminator) ? memberOrUser.discriminator === discriminator : true;
+      if (name && discrim) {
+        return memberOrUser;
       }
     }
-    return false;
-  });
+  }
 }
 
 export function formatMemory(bytes: number, decimals: number = 0): string {

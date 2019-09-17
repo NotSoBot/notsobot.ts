@@ -15,22 +15,24 @@ export default (<Command.CommandOptions> {
       type: 'float',
     },
   ],
-  label: 'url',
-  type: Parameters.getImageUrl,
+  label: 'urls',
+  type: Parameters.lastImageUrls,
   onBefore: (context) => {
     const channel = context.channel;
     return (channel) ? channel.canAttachFiles : false;
   },
   onCancel: (context) => context.reply('⚠ Unable to send files in this channel.'),
-  onBeforeRun: (context, args) => !!args.url,
+  onBeforeRun: (context, args) => !!args.urls && args.urls.length,
   onCancelRun: (context, args) => {
-    if (args.url === null) {
-      return context.reply('⚠ Unable to find that user or it was an invalid url.');
+    if (!args.urls) {
+      return context.editOrReply('⚠ Unable to find any messages with an image.');
     } else {
-      return context.reply('⚠ An attachment, mention, name, or url is required.');
+      return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
     }
   },
   run: async (context, args) => {
+    return;
+
     try {
       const resize = await imageResize(context, {
         scale: args.scale,

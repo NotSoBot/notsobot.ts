@@ -1,4 +1,6 @@
-import { Command, Structures, Utils } from 'detritus-client';
+import { Command, Constants, Structures, Utils } from 'detritus-client';
+
+const { Colors } = Constants;
 
 import {
   Paginator,
@@ -44,6 +46,8 @@ export default (<Command.CommandOptions> {
         const application = applications[page - 1];
 
         const embed = new Utils.Embed();
+        embed.setColor(Colors.BLURPLE);
+
         if (1 < pageLimit) {
           embed.setTitle(`(${page} of ${pageLimit})`);
         }
