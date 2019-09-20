@@ -1,8 +1,15 @@
-import { Command } from 'detritus-client';
+import { Command, Constants, Utils } from 'detritus-client';
+
+const { Colors } = Constants;
 
 import { imageResize } from '../api';
-import { Parameters } from '../utils';
+import { Parameters, formatMemory } from '../utils';
 
+
+export interface CommandArgs {
+  scale: number,
+  urls: Array<string>,
+}
 
 export default (<Command.CommandOptions> {
   name: 'resize',
@@ -31,26 +38,38 @@ export default (<Command.CommandOptions> {
     }
   },
   run: async (context, args) => {
-    return;
+    await context.triggerTyping();
 
+    args = <CommandArgs> args;
+    const url = <string> args.urls.shift();
     try {
       const resize = await imageResize(context, {
         scale: args.scale,
-        url: args.url,
+        url: url,
         userId: context.user.id,
       });
 
-      return context.reply({
-        content: `height: ${resize.headers['x-dimensions-height']}, width: ${resize.headers['x-dimensions-width']}`,
-        file: {
-          contentType: resize.headers['content-type'],
-          filename: `resized.${resize.headers['x-extension']}`,
-          data: resize.data,
-          name: 'file',
-        },
-      });
+      const {
+        'content-length': size,
+        'content-type': contentType,
+        'x-dimensions-height': height,
+        'x-dimensions-width': width,
+        'x-extension': extension,
+      } = resize.headers;
+
+      const filename = `resized.${extension}`;
+      const embed = new Utils.Embed();
+      embed.setColor(Colors.BLURPLE);
+      embed.setImage(`attachment://${filename}`);
+      embed.setFooter(`${width}x${height}, ${formatMemory(parseInt(size), 2)}`);
+
+      return context.reply({content: '', embed, file: {contentType, filename, data: resize.data}});
     } catch(error) {
-      return context.reply(error.message || error.stack);
+      if (error.response) {
+        const information = await error.response.json();
+        return context.editOrReply(`⚠ ${information.message}`);
+      }
+      return context.editOrReply(`⚠ ${error.message || error.stack}`);
     }
   },
   onError: (context, args, error) => console.error(error),

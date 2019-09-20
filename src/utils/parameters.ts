@@ -262,7 +262,7 @@ export async function lastImageUrls(
     if (match) {
       const { text } = <{text: string}> match;
       if (!context.message.embeds.length) {
-        await Timers.sleep(100);
+        await Timers.sleep(1000);
       }
       const url = findImageUrlInMessages([context.message]);
       return [url || text];

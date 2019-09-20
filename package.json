@@ -8,7 +8,8 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "detritus-client": "^0.6.17"
+    "detritus-client": "^0.6.24",
+    "twemoji": "^12.1.3"
   },
   "devDependencies": {
     "@types/node": "^12.7.5",
