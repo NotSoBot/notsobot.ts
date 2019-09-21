@@ -115,26 +115,36 @@ export async function findMemberByChunk(
     const messages = channel.messages;
     if (messages) {
       for (let [messageId, message] of messages) {
-        const members = [message.member, message.author].filter((v) => v);
-        if (members.length) {
+        {
+          const members = [message.member, message.author].filter((v) => v);
           const found = findMemberByUsername(members, username, discriminator);
           if (found) {
             return found;
           }
         }
-        if (message.mentions.length) {
-          const found = findMemberByUsername(message.mentions, username, discriminator);
+        {
+          const members = message.mentions;
+          const found = findMemberByUsername(members, username, discriminator);
           if (found) {
             return found;
           }
         }
       }
     }
-    const members = channel.members;
-    if (members) {
-      const found = findMemberByUsername(members, username, discriminator);
-      if (found) {
-        return found;
+    {
+      const members = <Array<Structures.Member>> findMembersByUsername(channel.members, username, discriminator);
+      const sorted = members.sort((x, y) => {
+        if (x.hoistedRole && y.hoistedRole) {
+            return y.hoistedRole.position - x.hoistedRole.position;
+        } else if (x.hoistedRole) {
+            return -1;
+        } else if (y.hoistedRole) {
+            return 1;
+        }
+        return 0;
+      });
+      if (sorted.length) {
+        return sorted[0];
       }
     }
   }
@@ -192,6 +202,24 @@ export function findMemberByUsername(
       }
     }
   }
+}
+
+export function findMembersByUsername(
+  members: FindMemberByUsernameCache,
+  username: string,
+  discriminator?: null | string,
+): Array<Structures.Member | Structures.User> {
+  const found: Array<Structures.Member | Structures.User> = [];
+  for (const memberOrUser of members.values()) {
+    if (memberOrUser) {
+      const name = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
+      const discrim = (discriminator) ? memberOrUser.discriminator === discriminator : true;
+      if (name && discrim) {
+        found.push(memberOrUser);
+      }
+    }
+  }
+  return found;
 }
 
 export function formatMemory(bytes: number, decimals: number = 0): string {

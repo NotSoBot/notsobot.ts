@@ -25,11 +25,6 @@ const bot = new NotSoClient({
   },
   mentionsEnabled: false,
   prefix: '..',
-  rest: {
-    onNotOkResponse: (response) => {
-      console.log(response.request.route, response.headers);
-    },
-  },
 });
 
 bot.on('commandRatelimit', async ({command, context, ratelimit, remaining}) => {
@@ -65,6 +60,20 @@ bot.on('commandRatelimit', async ({command, context, ratelimit, remaining}) => {
   cluster.on('guildDelete', ({guildId}) => {
     GuildChannelsStore.delete(guildId);
     GuildMetadataStore.delete(guildId);
+  });
+
+  cluster.on('restResponse', ({response, shard}) => {
+    const route = response.request.route;
+    if (route) {
+      if (response.ok) {
+        console.log(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.url} (${route.path})`);
+      } else {
+        console.log(`Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.url} (${route.path})`);
+        if (response.data) {
+          console.log(String(response.data));
+        }
+      }
+    }
   });
 
   cluster.on('shard', ({shard}) => {
