@@ -159,6 +159,11 @@ export async function findMemberByChunk(
       if (found) {
         return found;
       }
+
+      // we have all the members in cache, just forget about it
+      if (guild && guild.memberCount === members.length) {
+        return null;
+      }
     }
 
     // fall back to chunk request
