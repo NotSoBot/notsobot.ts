@@ -76,7 +76,15 @@ export default (<Command.CommandOptions> {
       description.push(`**Created**: ${role.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Default Role**: ${(role.isDefault) ? 'Yes' : 'No'}`);
 
-      embed.addField('Information', description.join('\n'));
+      embed.addField('Information', description.join('\n'), true);
+    }
+
+    {
+      const description: Array<string> = [];
+
+      description.push(`**Members**: ${role.members.length.toLocaleString()}`);
+
+      embed.addField('Counts', description.join('\n'), true);
     }
 
     {

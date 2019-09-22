@@ -1,3 +1,5 @@
+import { onlyEmoji } from 'emoji-aware';
+
 import {
   ClusterClient,
   Command,
@@ -20,6 +22,7 @@ import {
   findMemberByChunk,
   findMemberByUsername,
   isSnowflake,
+  toCodePoint,
 } from './tools';
 
 
@@ -278,49 +281,62 @@ export async function lastImageUrls(
     const text = values[i];
 
     try {
-      {
-        const match = Utils.regex(DiscordRegexNames.MENTION_USER, text);
-        if (match) {
-          const { id: userId } = <{id: string}> match;
+      if (!text.includes('#')) {
+        {
+          const match = Utils.regex(DiscordRegexNames.MENTION_USER, text);
+          if (match) {
+            const { id: userId } = <{id: string}> match;
 
-          if (isSnowflake(userId)) {
-            let user: Structures.User;
-            if (context.message.mentions.has(userId)) {
-              user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
-            } else {
-              user = await context.rest.fetchUser(userId);
+            if (isSnowflake(userId)) {
+              let user: Structures.User;
+              if (context.message.mentions.has(userId)) {
+                user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+              } else {
+                user = await context.rest.fetchUser(userId);
+              }
+              urls.add(user.avatarUrlFormat(null, {size: 1024}));
+              continue;
             }
-            urls.add(user.avatarUrlFormat(null, {size: 1024}));
+          }
+        }
+
+        {
+          const match = Utils.regex(DiscordRegexNames.TEXT_SNOWFLAKE, text);
+          if (match) {
+            const { text: userId } = <{text: string}> match;
+
+            if (isSnowflake(userId)) {
+              let user: Structures.User;
+              if (context.message.mentions.has(userId)) {
+                user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+              } else {
+                user = await context.rest.fetchUser(userId);
+              }
+              urls.add(user.avatarUrlFormat(null, {size: 1024}));
+              continue;
+            }
+          }
+        }
+
+        {
+          const match = Utils.regex(DiscordRegexNames.EMOJI, text);
+          if (match) {
+            const { animated, id } = <{animated: boolean, id: string}> match;
+            const format = (animated) ? 'gif' : 'png';
+            urls.add(Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format));
             continue;
           }
         }
-      }
 
-      {
-        const match = Utils.regex(DiscordRegexNames.TEXT_SNOWFLAKE, text);
-        if (match) {
-          const { text: userId } = <{text: string}> match;
-
-          if (isSnowflake(userId)) {
-            let user: Structures.User;
-            if (context.message.mentions.has(userId)) {
-              user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
-            } else {
-              user = await context.rest.fetchUser(userId);
+        {
+          const emojis = onlyEmoji(text);
+          if (emojis && emojis.length) {
+            for (let emoji of emojis) {
+              const codepoint = toCodePoint(emoji);
+              urls.add(`https://cdn.notsobot.com/twemoji/512x512/${codepoint}.png`);
             }
-            urls.add(user.avatarUrlFormat(null, {size: 1024}));
             continue;
           }
-        }
-      }
-
-      {
-        const match = Utils.regex(DiscordRegexNames.EMOJI, text);
-        if (match) {
-          const { animated, id } = <{animated: boolean, id: string}> match;
-          const format = (animated) ? 'gif' : 'png';
-          urls.add(Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format));
-          continue;
         }
       }
 
@@ -342,7 +358,7 @@ export async function lastImageUrls(
     } catch(error) {}
   }
 
-  return Array.from(urls);
+  return Array.from(urls).slice(0, 3);
 }
 
 export async function memberOrUser(

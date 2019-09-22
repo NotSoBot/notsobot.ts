@@ -356,6 +356,26 @@ export function padCodeBlockFromRows(
   return rows;
 }
 
+export function toCodePoint(unicodeSurrogates: string, separator: string = '-') {
+  const r: Array<string> = [];
+  let c: number = 0;
+  let p: number = 0;
+  let i: number = 0;
+
+  while (i < unicodeSurrogates.length) {
+    c = unicodeSurrogates.charCodeAt(i++);
+    if (p) {
+      r.push((0x10000 + ((p - 0xD800) << 10) + (c - 0xDC00)).toString(16));
+      p = 0;
+    } else if (0xD800 <= c && c <= 0xDBFF) {
+      p = c;
+    } else {
+      r.push(c.toString(16));
+    }
+  }
+  return r.join(separator);
+}
+
 export function toTitleCase(value: string): string {
   return value.replace(/_/g, ' ').split(' ').map((word) => {
     return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
