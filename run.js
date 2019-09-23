@@ -5,7 +5,7 @@ process.env.NOTSOBOT_API_TOKEN = '';
 const token = '';
 const manager = new ClusterManager('./lib/bot', token, {
   shardCount: 192,
-  shardsPerCluster: 6,
+  shardsPerCluster: 8,
 });
 
 (async () => {

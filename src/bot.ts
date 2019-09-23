@@ -15,7 +15,6 @@ const bot = new NotSoClient({
     identifyProperties: {
       $browser: 'Discord iOS',
     },
-    loadAllMembers: true,
     presence: {
       activity: {
         name: 'for .',

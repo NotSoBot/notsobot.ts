@@ -132,18 +132,25 @@ export async function findMemberByChunk(
       }
     }
     {
+      // incase its a dm
+      const found = findMemberByUsername(channel.recipients, username, discriminator);
+      if (found) {
+        return found;
+      }
+    }
+    {
       const members = <Array<Structures.Member>> findMembersByUsername(channel.members, username, discriminator);
-      const sorted = members.sort((x, y) => {
-        if (x.hoistedRole && y.hoistedRole) {
-            return y.hoistedRole.position - x.hoistedRole.position;
-        } else if (x.hoistedRole) {
-            return -1;
-        } else if (y.hoistedRole) {
-            return 1;
-        }
-        return 0;
-      });
-      if (sorted.length) {
+      if (members.length) {
+        const sorted = members.sort((x, y) => {
+          if (x.hoistedRole && y.hoistedRole) {
+              return y.hoistedRole.position - x.hoistedRole.position;
+          } else if (x.hoistedRole) {
+              return -1;
+          } else if (y.hoistedRole) {
+              return 1;
+          }
+          return 0;
+        });
         return sorted[0];
       }
     }
