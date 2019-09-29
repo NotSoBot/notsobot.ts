@@ -8,6 +8,7 @@ import {
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../constants';
+import PaginatorsStore from '../stores/paginators';
 import { Paginator, Parameters, toTitleCase } from '../utils';
 
 
@@ -29,7 +30,7 @@ export default (<Command.CommandOptions> {
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.user,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
-  run: async (context, args) => {
+  run: async (context, args: {id: number, user: Structures.Member | Structures.User}) => {
     const isMember = (args.user instanceof Structures.Member);
     const member = <Structures.Member> args.user;
     const user = <Structures.User> args.user;
@@ -77,12 +78,24 @@ export default (<Command.CommandOptions> {
             description.push('**Owner**: Yes');
           }
 
-          const roles = member.roles.map((role, roleId) => {
-            if ((context.guildId !== member.guildId || roleId === context.guildId) && role) {
-              return `\`${role.name}\``;
-            }
-            return `<@&${roleId}>`;
-          });
+          const roles = member.roles
+            .map((role, roleId) => role || roleId)
+            .sort((x: Structures.Role | string, y: Structures.Role | string) => {
+              if (x instanceof Structures.Role && y instanceof Structures.Role) {
+                return x.position - y.position;
+              }
+              return 0;
+            })
+            .map((role: Structures.Role | string) => {
+              if (role instanceof Structures.Role) {
+                if ((role.isDefault || context.guildId !== member.guildId) && role) {
+                  return `\`${role.name}\``;
+                }
+                return role.mention;
+              }
+              return `<@&${role}>`;
+            });
+
           let rolesText = `**Roles (${roles.length})**: ${roles.join(', ')}`;
           if (800 < rolesText.length) {
             const fromIndex = rolesText.length - ((rolesText.length - 800) + 3);

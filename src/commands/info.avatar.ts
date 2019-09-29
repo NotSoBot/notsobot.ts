@@ -19,8 +19,7 @@ export default (<Command.CommandOptions> {
   type: Parameters.memberOrUser,
   onBeforeRun: (context, args) => !!args.user,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
-  run: async (context, args) => {
-    args = <CommandArgs> <unknown> args;
+  run: async (context, args: CommandArgs) => {
     const { user } = args;
 
     const channel = context.channel;

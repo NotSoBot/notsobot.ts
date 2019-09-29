@@ -21,7 +21,13 @@ export interface CommandArgs {
 
 export default (<Command.CommandOptions> {
   name: 'role',
-  args: [{name: 'channel', type: (value, context) => context.channel}],
+  args: [
+    {
+      default: (context: any) => context.channelId,
+      name: 'channel',
+      type: (value, context) => context.guild && context.guild.channels.get(value),
+    },
+  ],
   disableDm: true,
   type: (value, context) => {
     value = value.trim();

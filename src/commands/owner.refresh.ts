@@ -11,6 +11,11 @@ export default (<Command.CommandOptions> {
     }
     const message = await context.editOrReply('ok, refreshing...');
     const shardIds = await context.manager.broadcastEval(async (cluster: any) => {
+      for (let key in require.cache) {
+        if (key.includes('notsobot.ts/lib')) {
+          delete require.cache[key];
+        }
+      }
       await cluster.commandClient.resetCommands();
       return cluster.shards.map((s: any, id: number) => id);
     });

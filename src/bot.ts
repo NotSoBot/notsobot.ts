@@ -1,4 +1,5 @@
 import { Constants } from 'detritus-client';
+import { Timers } from 'detritus-utils';
 
 import { NotSoClient } from './client';
 
@@ -15,6 +16,7 @@ const bot = new NotSoClient({
     identifyProperties: {
       $browser: 'Discord iOS',
     },
+    loadAllMembers: true,
     presence: {
       activity: {
         name: 'for .',
@@ -25,29 +27,47 @@ const bot = new NotSoClient({
   },
   mentionsEnabled: false,
   prefix: '..',
+  ratelimits: [
+    {duration: 60000, limit: 50, type: 'guild'},
+    {duration: 5000, limit: 10, type: 'channel'},
+  ],
 });
 
-bot.on('commandRatelimit', async ({command, context, ratelimit, remaining}) => {
-  if (!ratelimit.replied) {
-    if (context.message.canReply) {
-      ratelimit.replied = true;
-      setTimeout(() => {
-        ratelimit.replied = false;
-      }, remaining / 2);
+bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
+  if (context.message.canReply) {
+    let replied: boolean = false;
+    for (const {item, ratelimit, remaining} of ratelimits) {
+      if (replied || item.replied) {
+        item.replied = true;
+        continue;
+      }
+      replied = item.replied = true;
 
       let noun = 'You';
-      if (command.ratelimit) {
-        switch (command.ratelimit.type) {
-          case 'channel':
-          case 'guild': {
-            noun = "Y'all";
-          }; break;
-        }
+      switch (ratelimit.type) {
+        case 'channel':
+        case 'guild': {
+          noun = 'Y\'all';
+        }; break;
       }
+
+      let content: string;
+      if (global) {
+        content = `${noun} are using commands WAY too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+      } else {
+        content = `${noun} are using ${command.name} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+      }
+
       try {
-        await context.reply(`${noun} are using ${command.name} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`);
+        const message = await context.reply(content);
+        setTimeout(async () => {
+          item.replied = false;
+          try {
+            await message.delete();
+          } catch(error) {}
+        }, Math.max(remaining / 2, 1000));
       } catch(e) {
-        ratelimit.replied = false;
+        item.replied = false;
       }
     }
   }
@@ -62,16 +82,16 @@ bot.on('commandRatelimit', async ({command, context, ratelimit, remaining}) => {
     GuildMetadataStore.delete(guildId);
   });
 
-  cluster.on('restResponse', ({response, shard}) => {
+  cluster.on('restResponse', ({response, restRequest, shard}) => {
     const route = response.request.route;
     if (route) {
       if (response.ok) {
         console.log(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.url} (${route.path})`);
       } else {
         console.log(`Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.url} (${route.path})`);
-        if (response.data) {
-          console.log(String(response.data));
-        }
+      }
+      if ('x-ratelimit-bucket' in response.headers) {
+        console.log(`${restRequest.bucketPath} - ${response.headers['x-ratelimit-bucket']} - ${restRequest.bucketKey}`);
       }
     }
   });

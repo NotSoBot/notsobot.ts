@@ -43,9 +43,7 @@ export default (<Command.CommandOptions> {
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.payload.guild,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guild.'),
-  run: async (context, args) => {
-    args = <CommandArgs> <unknown> args;
-
+  run: async (context, args: CommandArgs) => {
     const {
       channels,
       guild,

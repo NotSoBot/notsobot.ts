@@ -33,7 +33,9 @@ export async function request(
 
 
 export interface ImageResize {
-  scale: number,
+  convert?: string,
+  scale?: number,
+  size?: string,
   url: string,
   userId: string,
 }
@@ -42,16 +44,49 @@ export async function imageResize(
   context: Command.Context,
   options: ImageResize,
 ): Promise<Response> {
-  const body = {
+  const query = {
+    convert: options.convert,
     scale: options.scale,
+    size: options.size,
     url: options.url,
   };
   return request(context, {
     dataOnly: false,
-    body,
+    query,
     route: {
       method: RestConstants.HTTPMethods.POST,
       path: '/image/resize',
+    },
+    userId: options.userId,
+  });
+}
+
+
+export interface SearchGoogle {
+  language?: string,
+  maxResults?: number,
+  query: string,
+  safe?: boolean | string,
+  showUnknown?: boolean | string,
+  userId: string,
+}
+
+export async function searchGoogle(
+  context: Command.Context,
+  options: SearchGoogle,
+): Promise<any> {
+  const query = {
+    language: options.language,
+    max_results: options.maxResults,
+    query: options.query,
+    safe: options.safe,
+    show_unknown: options.showUnknown,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/google',
     },
     userId: options.userId,
   });

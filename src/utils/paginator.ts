@@ -12,6 +12,8 @@ const {
   DiscordRegexNames,
 } = Constants;
 
+import PaginatorsStore from '../stores/paginators';
+
 
 export const MAX_PAGE = Number.MAX_SAFE_INTEGER;
 export const MIN_PAGE = 1;
@@ -232,6 +234,15 @@ export class Paginator {
     }
   }
 
+  async onChannelDelete({channel}: GatewayClientEvents.ChannelDelete) {
+    if (this.message && channel.id === this.message.channelId) {
+      this.message = null;
+      this.custom.message = null;
+      await this.clearCustomMessage();
+      await this.onStop();
+    }
+  }
+
   async onMessageCreate({message}: GatewayClientEvents.MessageCreate) {
     if (!this.message || message.channelId !== this.message.channelId) {
       return;
@@ -356,6 +367,13 @@ export class Paginator {
   }
 
   async onStop(error?: any) {
+    if (PaginatorsStore.has(this.context.channelId)) {
+      const paginator = <Paginator> PaginatorsStore.get(this.context.channelId);
+      if (paginator === this) {
+        PaginatorsStore.delete(this.context.channelId);
+      }
+    }
+
     this.reset();
     if (!this.stopped) {
       this.stopped = true;
@@ -413,6 +431,13 @@ export class Paginator {
 
     this.reset();
     if (!this.stopped && this.pageLimit !== MIN_PAGE && this.message.canReact) {
+      if (PaginatorsStore.has(this.context.channelId)) {
+        const paginator = <Paginator> PaginatorsStore.get(this.context.channelId);
+        await paginator.stop();
+      }
+      PaginatorsStore.insert(this);
+
+      this.callbacks[ClientEvents.CHANNEL_DELETE] = this.onChannelDelete.bind(this);
       this.callbacks[ClientEvents.MESSAGE_CREATE] = this.onMessageCreate.bind(this);
       this.callbacks[ClientEvents.MESSAGE_DELETE] = this.onMessageDelete.bind(this);
       this.callbacks[ClientEvents.MESSAGE_REACTION_ADD] = this.onMessageReactionAdd.bind(this);
@@ -427,22 +452,31 @@ export class Paginator {
 
       this.timeout.start(this.expires, this.onStop.bind(this));
       try {
-        if (this.isLarge) {
-          await this.message.react(this.emojis.previousDouble.endpointFormat);
+        const emojis = <Array<Structures.Emoji>> [
+          (this.isLarge) ? this.emojis.previousDouble : null,
+          this.emojis.previous,
+          this.emojis.next,
+          (this.isLarge) ? this.emojis.nextDouble : null,
+          this.emojis.custom,
+          this.emojis.stop,
+          this.emojis.info,
+        ].filter((v) => v);
+
+        for (let emoji of emojis) {
+          if (this.stopped) {
+            break;
+          }
+          await this.message.react(emoji.endpointFormat);
         }
-        await this.message.react(this.emojis.previous.endpointFormat);
-        await this.message.react(this.emojis.next.endpointFormat);
-        if (this.isLarge) {
-          await this.message.react(this.emojis.nextDouble.endpointFormat);
-        }
-        await this.message.react(this.emojis.custom.endpointFormat);
-        await this.message.react(this.emojis.stop.endpointFormat);
-        await this.message.react(this.emojis.info.endpointFormat);
       } catch(error) {
         if (typeof(this.onError) === 'function') {
           this.onError(error, this);
         }
       }
     }
+  }
+
+  stop() {
+    return this.onStop();
   }
 }

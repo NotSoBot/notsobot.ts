@@ -3,6 +3,7 @@ import {
   Command,
   GatewayClientEvents,
   Structures,
+  Utils,
 } from 'detritus-client';
 import { Timers } from 'detritus-utils';
 
@@ -392,4 +393,53 @@ export function toTitleCase(value: string): string {
   return value.replace(/_/g, ' ').split(' ').map((word) => {
     return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
   }).join(' ');
+}
+
+
+
+export async function onRunError(
+  context: Command.Context,
+  args: {[key: string]: any} | any,
+  error: any,
+): Promise<Structures.Message> {
+  const embed = new Utils.Embed();
+  embed.setColor(15746887);
+  embed.setTitle('⚠ Command Error');
+
+  const description: Array<string> = [(error.message || error.stack) + '\n'];
+  if (error.response) {
+    const information = await error.response.json();
+    if ('errors' in information) {
+      for (let key in information.errors) {
+        description.push([
+          `**${key}**:`,
+          information.errors[key],
+        ].join(' '));
+      }
+    }
+  }
+
+  embed.setDescription(description.join('\n'));
+  return context.editOrReply({content: '', embed});
+}
+
+export function onTypeError(
+  context: Command.Context,
+  args: {[key: string]: any} | any,
+  errors: {[key: string]: Error} | any,
+): Promise<Structures.Message> {
+  const embed = new Utils.Embed();
+  embed.setColor(15746887);
+  embed.setTitle('⚠ Command Error');
+
+  const description: Array<string> = ['Invalid Arguments' + '\n'];
+  for (let key in errors) {
+    description.push([
+      `**${key}**:`,
+      errors[key].message,
+    ].join(' '));
+  }
+
+  embed.setDescription(description.join('\n'));
+  return context.editOrReply({content: '', embed});
 }

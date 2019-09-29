@@ -95,6 +95,38 @@ export const VerificationLevelTexts: {[key: string]: string} = Object.freeze({
   [VerificationLevels.VERY_HIGH]: 'Very High',
 });
 
+export const LOCALES = Object.freeze([
+  'bg',
+  'cs',
+  'da',
+  'de',
+  'el',
+  'en-gb',
+  'en-us',
+  'es-es',
+  'fi',
+  'fr',
+  'hr',
+  'hu',
+  'it',
+  'ja',
+  'ko',
+  'lt',
+  'nl',
+  'no',
+  'pl',
+  'pt-br',
+  'ro',
+  'ru',
+  'sv-se',
+  'th',
+  'tr',
+  'uk',
+  'vi',
+  'zh-cn',
+  'zh-tw',
+]);
+
 export const PERMISSIONS_KEYS_ADMIN = Object.freeze([
   PermissionsKeys.ADMINISTRATOR,
   PermissionsKeys.BAN_MEMBERS,
