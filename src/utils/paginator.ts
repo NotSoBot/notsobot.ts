@@ -366,7 +366,7 @@ export class Paginator {
     }
   }
 
-  async onStop(error?: any) {
+  async onStop(error?: any, clearEmojis: boolean = true) {
     if (PaginatorsStore.has(this.context.channelId)) {
       const paginator = <Paginator> PaginatorsStore.get(this.context.channelId);
       if (paginator === this) {
@@ -391,10 +391,12 @@ export class Paginator {
           await Promise.resolve(this.onError(error, this));
         }
       }
-      if (this.message && this.message.canManage) {
-        try {
-          await this.message.deleteReactions();
-        } catch(error) {}
+      if (clearEmojis) {
+        if (this.message && this.message.canManage) {
+          try {
+            await this.message.deleteReactions();
+          } catch(error) {}
+        }
       }
       await this.clearCustomMessage();
     }
@@ -433,7 +435,11 @@ export class Paginator {
     if (!this.stopped && this.pageLimit !== MIN_PAGE && this.message.canReact) {
       if (PaginatorsStore.has(this.context.channelId)) {
         const paginator = <Paginator> PaginatorsStore.get(this.context.channelId);
-        await paginator.stop();
+        if (this.context instanceof Command.Context && this.context.response) {
+          await paginator.stop(false);
+        } else {
+          await paginator.stop();
+        }
       }
       PaginatorsStore.insert(this);
 
@@ -466,6 +472,9 @@ export class Paginator {
           if (this.stopped) {
             break;
           }
+          if (this.message.reactions.has(emoji.id || emoji.name)) {
+            continue;
+          }
           await this.message.react(emoji.endpointFormat);
         }
       } catch(error) {
@@ -474,9 +483,11 @@ export class Paginator {
         }
       }
     }
+
+    return this.message;
   }
 
-  stop() {
-    return this.onStop();
+  stop(clearEmojis: boolean = true) {
+    return this.onStop(null, clearEmojis);
   }
 }

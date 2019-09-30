@@ -19,7 +19,7 @@ export interface CommandArgs {
 
 export default (<Command.CommandOptions> {
   name: 'guildicon',
-  label: 'guild',
+  label: 'payload',
   ratelimit: {
     duration: 5000,
     limit: 5,
@@ -41,7 +41,7 @@ export default (<Command.CommandOptions> {
         embed.setDescription(`[**Icon Url**](${guild.iconUrl})`);
         embed.setImage(url);
 
-        return context.editOrReply({content: '', embed});
+        return context.editOrReply({embed});
       }
       return context.editOrReply(url);
     }

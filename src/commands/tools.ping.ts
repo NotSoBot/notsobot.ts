@@ -1,5 +1,7 @@
 import { Command } from 'detritus-client';
 
+import { onRunError } from '../utils';
+
 
 export default (<Command.CommandOptions> {
   name: 'ping',
@@ -12,7 +14,5 @@ export default (<Command.CommandOptions> {
     const {gateway, rest} = await context.client.ping();
     return context.editOrReply(`pong! (gateway: ${gateway}ms) (rest: ${rest}ms)`);
   },
-  onRunError: (context, args, error) => {
-    return context.editOrReply(`⚠ Error: ${error.message}`);
-  },
+  onRunError,
 });

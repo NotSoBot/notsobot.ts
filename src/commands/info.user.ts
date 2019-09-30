@@ -8,8 +8,7 @@ import {
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../constants';
-import PaginatorsStore from '../stores/paginators';
-import { Paginator, Parameters, toTitleCase } from '../utils';
+import { Paginator, Parameters, onRunError, onTypeError, toTitleCase } from '../utils';
 
 
 export default (<Command.CommandOptions> {
@@ -195,9 +194,8 @@ export default (<Command.CommandOptions> {
         return embed;
       },
     });
-    await paginator.start();
+    return await paginator.start();
   },
-  onRunError: (context, args, error) => {
-    return context.editOrReply(`⚠ Error: ${error.message}`);
-  },
+  onRunError,
+  onTypeError,
 });

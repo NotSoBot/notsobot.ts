@@ -63,7 +63,7 @@ export async function imageResize(
 
 
 export interface SearchGoogle {
-  language?: string,
+  locale?: string,
   maxResults?: number,
   query: string,
   safe?: boolean | string,
@@ -76,7 +76,7 @@ export async function searchGoogle(
   options: SearchGoogle,
 ): Promise<any> {
   const query = {
-    language: options.language,
+    locale: options.locale,
     max_results: options.maxResults,
     query: options.query,
     safe: options.safe,
@@ -87,6 +87,58 @@ export async function searchGoogle(
     route: {
       method: RestConstants.HTTPMethods.GET,
       path: '/search/google',
+    },
+    userId: options.userId,
+  });
+}
+
+
+export interface SearchGoogleImages {
+  locale?: string,
+  maxResults?: number,
+  query: string,
+  safe?: boolean | string,
+  userId: string,
+}
+
+export async function searchGoogleImages(
+  context: Command.Context,
+  options: SearchGoogleImages,
+): Promise<any> {
+  const query = {
+    locale: options.locale,
+    max_results: options.maxResults,
+    query: options.query,
+    safe: options.safe,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/google/images',
+    },
+    userId: options.userId,
+  });
+}
+
+
+export interface SearchGoogleContentVisionOCR {
+  url: string,
+  userId: string,
+}
+
+export async function searchGoogleContentVisionOCR(
+  context: Command.Context,
+  options: SearchGoogleContentVisionOCR,
+): Promise<any> {
+  const body = {
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/search/google/content-vision/ocr',
     },
     userId: options.userId,
   });

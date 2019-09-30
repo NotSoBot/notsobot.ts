@@ -5,6 +5,8 @@ const { Colors } = Constants;
 import {
   Paginator,
   Parameters,
+  onRunError,
+  onTypeError,
 } from '../utils';
 
 
@@ -35,8 +37,7 @@ export default (<Command.CommandOptions> {
       return context.editOrReply('⚠ Provide some kind of game name.');
     }
   },
-  run: async (context, args) => {
-    args = <CommandArgs> <unknown> args;
+  run: async (context, args: CommandArgs) => {
     const { applications } = args;
 
     const pageLimit = applications.length;
@@ -107,9 +108,8 @@ export default (<Command.CommandOptions> {
         return embed;
       },
     });
-    await paginator.start();
+    return await paginator.start();
   },
-  onRunError: (context, args, error) => {
-    console.error(error);
-  },
+  onRunError,
+  onTypeError,
 });

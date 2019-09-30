@@ -1,16 +1,15 @@
-import { Command, Constants, Utils } from 'detritus-client';
-
-const { Colors } = Constants;
+import { Command, Utils } from 'detritus-client';
 
 import { imageResize } from '../api';
-import { Parameters, formatMemory, onRunError, onTypeError, } from '../utils';
+import { EmbedColors } from '../constants';
+import { Parameters, formatMemory, onRunError, onTypeError } from '../utils';
 
 
 export interface CommandArgs {
   convert?: string,
   scale: number,
   size?: string,
-  urls: Array<string>,
+  url: string,
 }
 
 export default (<Command.CommandOptions> {
@@ -21,16 +20,16 @@ export default (<Command.CommandOptions> {
     {default: 2, name: 'scale', type: 'float'},
     {name: 'size'},
   ],
-  label: 'urls',
-  type: Parameters.lastImageUrls,
+  label: 'url',
+  type: Parameters.lastImageUrl,
   onBefore: (context) => {
     const channel = context.channel;
     return (channel) ? channel.canAttachFiles : false;
   },
   onCancel: (context) => context.reply('⚠ Unable to send files in this channel.'),
-  onBeforeRun: (context, args) => !!args.urls && args.urls.length,
+  onBeforeRun: (context, args) => !!args.url,
   onCancelRun: (context, args) => {
-    if (!args.urls) {
+    if (args.url === undefined) {
       return context.editOrReply('⚠ Unable to find any messages with an image.');
     } else {
       return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
@@ -39,12 +38,11 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
-    const url = <string> args.urls.shift();
     const resize = await imageResize(context, {
       convert: args.convert,
       scale: args.scale,
       size: args.size,
-      url: url,
+      url: args.url,
       userId: context.user.id,
     });
 
@@ -60,7 +58,7 @@ export default (<Command.CommandOptions> {
 
     const filename = `resized.${extension}`;
     const embed = new Utils.Embed();
-    embed.setColor(Colors.BLURPLE);
+    embed.setColor(EmbedColors.DEFAULT);
     embed.setImage(`attachment://${filename}`);
 
     let footer = `${width}x${height}`;
@@ -69,9 +67,8 @@ export default (<Command.CommandOptions> {
     }
     embed.setFooter(`${footer}, ${formatMemory(parseInt(size), 2)}`);
 
-    return context.reply({content: '', embed, file: {contentType, filename, data: resize.data}});
+    return context.reply({embed, file: {contentType, filename, data: resize.data}});
   },
-  onError: (context, args, error) => console.error(error),
   onRunError,
   onTypeError,
 });

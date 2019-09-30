@@ -7,6 +7,7 @@ import {
 } from 'detritus-client';
 import { Timers } from 'detritus-utils';
 
+import { EmbedColors } from '../constants';
 import GuildMembersChunkStore, { GuildMembersChunkStored } from '../stores/guildmemberschunk';
 
 
@@ -429,7 +430,7 @@ export function onTypeError(
   errors: {[key: string]: Error} | any,
 ): Promise<Structures.Message> {
   const embed = new Utils.Embed();
-  embed.setColor(15746887);
+  embed.setColor(EmbedColors.ERROR);
   embed.setTitle('⚠ Command Error');
 
   const description: Array<string> = ['Invalid Arguments' + '\n'];

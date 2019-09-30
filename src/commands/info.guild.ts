@@ -84,7 +84,7 @@ export default (<Command.CommandOptions> {
       description.push(`**Acronym**: ${guild.acronym}`);
       description.push(`**Created**: ${guild.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Id**: \`${guild.id}\``);
-      description.push(`**Locale**: \`${guild.preferredLocale}\``);
+      description.push(`**Locale**: \`${guild.preferredLocaleText || guild.preferredLocale}\``);
       description.push(`**Nitro Tier**: ${(guild.premiumTier) ? `Level ${guild.premiumTier}` : 'None'}`);
       if (guild.id === context.guildId) {
         description.push(`**Owner**: <@!${guild.ownerId}>`);

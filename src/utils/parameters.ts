@@ -13,6 +13,7 @@ import { Timers } from 'detritus-utils';
 
 const { DiscordAbortCodes, DiscordRegexNames } = Constants;
 
+import { DiscordToGoogleLocales, GoogleLocales, GOOGLE_LOCALES } from '../constants';
 import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
 import MemberOrUserStore, { MemberOrUser } from '../stores/memberoruser';
@@ -226,6 +227,129 @@ export async function guildMetadata(
   return payload;
 }
 
+export async function lastImageUrl(
+  value: string,
+  context: Command.Context,
+): Promise<null | string | undefined> {
+  value = value.trim();
+  if (!value) {
+    {
+      const url = findImageUrlInMessages([context.message]);
+      if (url) {
+        return url;
+      }
+    }
+
+    const channel = context.channel;
+    if (channel) {
+      {
+        const url = findImageUrlInMessages(channel.messages.toArray().reverse());
+        if (url) {
+          return url;
+        }
+      }
+
+      {
+        const messages = await channel.fetchMessages({limit: 100});
+        const url = findImageUrlInMessages(messages);
+        if (url) {
+          return url;
+        }
+      }
+    }
+
+    return undefined;
+  }
+
+  {
+    const match = Utils.regex(DiscordRegexNames.TEXT_URL, value);
+    if (match) {
+      const { text } = <{text: string}> match;
+      if (!context.message.embeds.length) {
+        await Timers.sleep(1000);
+      }
+      const url = findImageUrlInMessages([context.message]);
+      return url || text;
+    }
+  }
+
+  const text = value;
+  try {
+    if (!text.includes('#')) {
+      {
+        const match = Utils.regex(DiscordRegexNames.MENTION_USER, text);
+        if (match) {
+          const { id: userId } = <{id: string}> match;
+
+          if (isSnowflake(userId)) {
+            let user: Structures.User;
+            if (context.message.mentions.has(userId)) {
+              user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+            } else {
+              user = await context.rest.fetchUser(userId);
+            }
+            return user.avatarUrlFormat(null, {size: 1024});
+          }
+        }
+      }
+
+      {
+        const match = Utils.regex(DiscordRegexNames.TEXT_SNOWFLAKE, text);
+        if (match) {
+          const { text: userId } = <{text: string}> match;
+
+          if (isSnowflake(userId)) {
+            let user: Structures.User;
+            if (context.message.mentions.has(userId)) {
+              user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+            } else {
+              user = await context.rest.fetchUser(userId);
+            }
+            return user.avatarUrlFormat(null, {size: 1024});
+          }
+        }
+      }
+
+      {
+        const match = Utils.regex(DiscordRegexNames.EMOJI, text);
+        if (match) {
+          const { animated, id } = <{animated: boolean, id: string}> match;
+          const format = (animated) ? 'gif' : 'png';
+          return Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format);
+        }
+      }
+
+      {
+        const emojis = onlyEmoji(text);
+        if (emojis && emojis.length) {
+          for (let emoji of emojis) {
+            const codepoint = toCodePoint(emoji);
+            return `https://cdn.notsobot.com/twemoji/512x512/${codepoint}.png`;
+          }
+        }
+      }
+    }
+
+    {
+      // guild member chunk or search cache
+      const parts = text.split('#');
+      const username = (<string> parts.shift()).toLowerCase().slice(0, 32);
+      let discriminator: null | string = null;
+      if (parts.length) {
+        discriminator = (<string> parts.shift()).padStart(4, '0');
+      }
+
+      const found = await findMemberByChunk(context, username, discriminator);
+      if (found) {
+        return found.avatarUrlFormat(null, {size: 1024});
+      }
+    }
+  } catch(error) {
+
+  }
+  return null;
+}
+
 export async function lastImageUrls(
   value: string,
   context: Command.Context,
@@ -355,11 +479,57 @@ export async function lastImageUrls(
           continue;
         }
       }
-    } catch(error) {}
+    } catch(error) {
+
+    }
   }
 
   return Array.from(urls).slice(0, 3);
 }
+
+
+export function locale( 
+  value: string,
+  context: Command.Context,
+) {
+  if (!value) {
+    if (context.guild) {
+      value = context.guild.preferredLocale;
+      if (value in DiscordToGoogleLocales) {
+        return DiscordToGoogleLocales[value];
+      }
+      return value;
+    } else {
+      return GoogleLocales.ENGLISH;
+    }
+  }
+  value = value.toLowerCase().replace(/ /g, '_');
+  for (let key in GoogleLocales) {
+    const locale = (<any> GoogleLocales)[key];
+    if (locale.toLowerCase() === value) {
+      return locale;
+    }
+  }
+  for (let key in GoogleLocales) {
+    const name = key.toLowerCase();
+    if (name.includes(value)) {
+      return (<any> GoogleLocales)[key];
+    }
+  }
+  throw new Error(`Must be one of ${GOOGLE_LOCALES.map((locale) => `\`${locale}\``).join(', ')}`);
+}
+
+export function defaultLocale(context: Command.Context) {
+  if (context.guild) {
+    const value = context.guild.preferredLocale;
+    if (value in DiscordToGoogleLocales) {
+      return DiscordToGoogleLocales[value];
+    }
+    return value;
+  }
+  return GoogleLocales.ENGLISH;
+}
+
 
 export async function memberOrUser(
   value: string,

@@ -2,8 +2,6 @@ import { URLSearchParams } from 'url';
 
 import { Command, Constants, Structures, Utils } from 'detritus-client';
 
-const { DiscordKeys, DetritusKeys } = Constants;
-
 import {
   PresenceStatusColors,
   PresenceStatusTexts,
@@ -13,6 +11,8 @@ import {
   formatTime,
   Paginator,
   Parameters,
+  onRunError,
+  onTypeError,
   toTitleCase,
 } from '../utils';
 
@@ -40,14 +40,13 @@ export default (<Command.CommandOptions> {
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.user,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
-  run: async (context, args) => {
-    args = <CommandArgs> <unknown> args;
+  run: async (context, args: CommandArgs) => {
     const { id, user } = args;
 
     const presence = user.presence;
     let activities: Array<Structures.PresenceActivity>;
     if (presence) {
-      activities = presence.activities.sort((x: Structures.PresenceActivity, y: Structures.PresenceActivity) => {
+      activities = presence.activities.sort((x, y) => {
         return x.position - y.position;
       });
     } else {
@@ -229,15 +228,8 @@ export default (<Command.CommandOptions> {
         return embed;
       },
     });
-    await paginator.start();
+    return await paginator.start();
   },
-  onError: (context, args, error) => {
-    console.error(error);
-  },
-  onRunError: (context, args, error) => {
-    console.error(error);
-  },
-  onTypeError: (context, error) => {
-    console.error(error);
-  },
+  onRunError,
+  onTypeError,
 });
