@@ -138,9 +138,9 @@ export class Paginator {
       if (typeof(value) === 'string') {
         let emoji: Structures.Emoji;
 
-        let match = Utils.regex(DiscordRegexNames.EMOJI, value);
-        if (match) {
-          emoji = new Structures.Emoji(context.client, match);
+        const { matches } = Utils.regex(DiscordRegexNames.EMOJI, value);
+        if (matches.length) {
+          emoji = new Structures.Emoji(context.client, matches[0]);
         } else {
           emoji = new Structures.Emoji(context.client, {name: value});
         }

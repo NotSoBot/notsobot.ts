@@ -282,8 +282,13 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
   return time;
 }
 
+
+// Snowflakes cannot be larger than 9223372036854775807 (according to the api)
 export function isSnowflake(value: string): boolean {
-  return Number.MAX_SAFE_INTEGER < parseInt(value);
+  if (16 <= value.length && value.length <= 21) {
+    return !!parseInt(value);
+  }
+  return false;
 }
 
 export function padCodeBlockFromColumns(

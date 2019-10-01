@@ -1,7 +1,9 @@
-import { Command, Constants, Utils } from 'detritus-client';
+import { Command, Utils } from 'detritus-client';
+
+const { Markup } = Utils;
 
 import { searchGoogle } from '../api';
-import { EmbedColors, GoogleCardTypes, GoogleLocalesText, SUPPORTED_GOOGLE_CARD_TYPES } from '../constants';
+import { EmbedBrands, EmbedColors, GoogleCardTypes, GoogleLocalesText, GOOGLE_CARD_TYPES_SUPPORTED } from '../constants';
 import { Paginator, Parameters, onRunError, onTypeError } from '../utils';
 
 
@@ -35,7 +37,7 @@ export default (<Command.CommandOptions> {
       const pages: Array<any> = [];
 
       for (let card of cards) {
-        if (SUPPORTED_GOOGLE_CARD_TYPES.includes(card.type)) {
+        if (GOOGLE_CARD_TYPES_SUPPORTED.includes(card.type)) {
           pages.push(card);
         }
       }
@@ -57,12 +59,11 @@ export default (<Command.CommandOptions> {
             embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
             embed.setColor(EmbedColors.DEFAULT);
 
-            const footer = `Page ${pageNumber} of ${pageLimit} of Google Search Results`;
+            let footer = `Page ${pageNumber}/${pageLimit} of Google Search Results`;
             if (args.locale in GoogleLocalesText) {
-              embed.setFooter(`${footer} (${GoogleLocalesText[args.locale]})`)
-            } else {
-              embed.setFooter(footer);
+              footer = `${footer} (${GoogleLocalesText[args.locale]})`;
             }
+             embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
             const page = pages[pageNumber - 1];
             if (Array.isArray(page)) {
@@ -70,19 +71,19 @@ export default (<Command.CommandOptions> {
 
               for (let result of page) {
                 const description: Array<string> = [
-                  `[**${result.cite}**](${result.url})`,
-                  (result.description || '').replace('*', '\*'),
+                  `[**${Markup.escape.all(result.cite)}**](${result.url})`,
+                  Markup.escape.all(result.description),
                 ];
                 if (result.suggestions.length) {
                   description.push([
                     `**Suggestions**:`,
-                    result.suggestions.map((suggestion: any) => {
-                      return `[${suggestion.text}](${suggestion.url})`;
+                    result.suggestions.map((suggestion: {text: string, url: string}) => {
+                      return `[${Markup.escape.all(suggestion.text)}](${suggestion.url})`;
                     }).join(', '),
                   ].join(' '));
                 }
-    
-                embed.addField(`**${result.title}**`, description.join('\n'));
+
+                embed.addField(`**${Markup.escape.all(result.title)}**`, description.join('\n'));
               }
             } else {
               // is a card

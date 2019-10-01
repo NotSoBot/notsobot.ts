@@ -1,16 +1,20 @@
-import { Command, Constants, Utils } from 'detritus-client';
+import { Command, Utils } from 'detritus-client';
+
+const { Markup } = Utils;
 
 import { searchGoogleContentVisionOCR } from '../api';
-import { EmbedColors, GoogleLocalesText } from '../constants';
-import { Parameters, formatMemory, onRunError, onTypeError } from '../utils';
+import { EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
+import { Parameters, onRunError, onTypeError } from '../utils';
 
 
 export interface CommandArgs {
+  noembed: boolean,
   url: string,
 }
 
 export default (<Command.CommandOptions> {
   name: 'ocr',
+  args: [{name: 'noembed', type: Boolean}],
   label: 'url',
   type: Parameters.lastImageUrl,
   onBefore: (context) => {
@@ -34,33 +38,49 @@ export default (<Command.CommandOptions> {
       userId: context.user.id,
     });
 
-    const embed = new Utils.Embed();
-    embed.setColor(EmbedColors.DEFAULT);
-
     const [ response ] = ocr.responses;
     const { textAnnotations } = response;
-    if (!textAnnotations.length) {
-      embed.setColor(EmbedColors.ERROR);
-      embed.setTitle('⚠ Command Error');
-      embed.setDescription('No text detected');
+
+    if (args.noembed) {
+      if (!textAnnotations.length) {
+        return context.editOrReply({content: '⚠ No text detect'});
+      }
+
+      const annotation = textAnnotations[0];
+      let title: string;
+      if (annotation.locale in GoogleLocalesText) {
+        title = GoogleLocalesText[annotation.locale];
+      } else {
+        title = annotation.locale;
+      }
+
+      return context.editOrReply([
+        title,
+        Markup.codeblock(annotation.description),
+      ].join('\n'));
+    } else {
+      const embed = new Utils.Embed();
+      embed.setColor(EmbedColors.DEFAULT);
+
+      if (!textAnnotations.length) {
+        embed.setColor(EmbedColors.ERROR);
+        embed.setTitle('⚠ Command Error');
+        embed.setDescription('No text detected');
+
+        return context.editOrReply({embed});
+      }
+
+      const annotation = textAnnotations[0];
+      if (annotation.locale in GoogleLocalesText) {
+        embed.setTitle(GoogleLocalesText[annotation.locale]);
+      } else {
+        embed.setTitle(annotation.locale);
+      }
+      embed.setDescription(Markup.codeblock(annotation.description, {mentions: false}));
+      embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
 
       return context.editOrReply({embed});
     }
-
-    const annotation = textAnnotations[0];
-    if (annotation.locale in GoogleLocalesText) {
-      embed.setTitle(GoogleLocalesText[annotation.locale]);
-    } else {
-      embed.setTitle(annotation.locale);
-    }
-    embed.setDescription([
-      '```',
-      annotation.description.slice(0, 2000),
-      '```',
-    ].join('\n'));
-    embed.setFooter('Optical Character Recognition');
-
-    return context.editOrReply({embed});
   },
   onRunError,
   onTypeError,

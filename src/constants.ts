@@ -33,6 +33,11 @@ export const DateOptions = Object.freeze({
   timeZone: 'America/New_York',
 });
 
+export const EmbedBrands = Object.freeze({
+  GOOGLE_GO: 'https://cdn.notsobot.com/brands/google-go.png',
+  NOTSOBOT: 'https://cdn.notsobot.com/brands/notsobot.png',
+});
+
 export const EmbedColors = Object.freeze({
   DEFAULT: 8684933,
   ERROR: 15746887,
@@ -52,7 +57,7 @@ export const GoogleCardTypes = Tools.normalize({
   WEATHER: null,
 });
 
-export const SUPPORTED_GOOGLE_CARD_TYPES = Object.freeze([
+export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.CALCULATOR,
   GoogleCardTypes.CURRENCY,
   GoogleCardTypes.TIME,
@@ -179,7 +184,7 @@ export const GoogleLocalesText = Object.freeze({
   [GoogleLocales.WELSH]: 'Welsh',
 });
 
-export const DiscordToGoogleLocales = Object.freeze({
+export const GoogleLocaleFromDiscord = Object.freeze({
   [DiscordLocales.ENGLISH_GB]: GoogleLocales.ENGLISH_UK,
   [DiscordLocales.ENGLISH_USA]: GoogleLocales.ENGLISH,
   [DiscordLocales.SPANISH]: GoogleLocales.SPANISH,

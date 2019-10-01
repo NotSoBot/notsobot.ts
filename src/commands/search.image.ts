@@ -1,7 +1,9 @@
-import { Command, Constants, Utils } from 'detritus-client';
+import { Command, Utils } from 'detritus-client';
+
+const { Markup } = Utils;
 
 import { searchGoogleImages } from '../api';
-import { EmbedColors, GoogleLocalesText } from '../constants';
+import { EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
 import { Paginator, Parameters, onRunError, onTypeError } from '../utils';
 
 
@@ -45,14 +47,13 @@ export default (<Command.CommandOptions> {
           } else {
             embed.setTitle(result.footer);
           }
-          const footer = `Page ${page} of ${pageLimit} of Google Image Search Results`;
-          if (args.locale in GoogleLocalesText) {
-            embed.setFooter(`${footer} (${GoogleLocalesText[args.locale]})`)
-          } else {
-            embed.setFooter(footer);
-          }
 
-          embed.setDescription(`[${result.description}](${result.url})`);
+          let footer = `Page ${page}/${pageLimit} of Google Image Search Results`;
+          if (args.locale in GoogleLocalesText) {
+          }
+          embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
+
+          embed.setDescription(`[${Markup.escape.all(result.description)}](${result.url})`);
           embed.setImage(result.image.url);
 
           return embed;

@@ -13,7 +13,7 @@ import { Timers } from 'detritus-utils';
 
 const { DiscordAbortCodes, DiscordRegexNames } = Constants;
 
-import { DiscordToGoogleLocales, GoogleLocales, GOOGLE_LOCALES } from '../constants';
+import { GoogleLocaleFromDiscord, GoogleLocales, GOOGLE_LOCALES } from '../constants';
 import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
 import MemberOrUserStore, { MemberOrUser } from '../stores/memberoruser';
@@ -262,9 +262,9 @@ export async function lastImageUrl(
   }
 
   {
-    const match = Utils.regex(DiscordRegexNames.TEXT_URL, value);
-    if (match) {
-      const { text } = <{text: string}> match;
+    const { matches } = Utils.regex(DiscordRegexNames.TEXT_URL, value);
+    if (matches.length) {
+      const { text } = <{text: string}> matches[0];
       if (!context.message.embeds.length) {
         await Timers.sleep(1000);
       }
@@ -277,9 +277,9 @@ export async function lastImageUrl(
   try {
     if (!text.includes('#')) {
       {
-        const match = Utils.regex(DiscordRegexNames.MENTION_USER, text);
-        if (match) {
-          const { id: userId } = <{id: string}> match;
+        const { matches } = Utils.regex(DiscordRegexNames.MENTION_USER, text);
+        if (matches.length) {
+          const { id: userId } = <{id: string}> matches[0];
 
           if (isSnowflake(userId)) {
             let user: Structures.User;
@@ -293,27 +293,22 @@ export async function lastImageUrl(
         }
       }
 
-      {
-        const match = Utils.regex(DiscordRegexNames.TEXT_SNOWFLAKE, text);
-        if (match) {
-          const { text: userId } = <{text: string}> match;
+      if (isSnowflake(text)) {
+        const userId = text;
 
-          if (isSnowflake(userId)) {
-            let user: Structures.User;
-            if (context.message.mentions.has(userId)) {
-              user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
-            } else {
-              user = await context.rest.fetchUser(userId);
-            }
-            return user.avatarUrlFormat(null, {size: 1024});
-          }
+        let user: Structures.User;
+        if (context.message.mentions.has(userId)) {
+          user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+        } else {
+          user = await context.rest.fetchUser(userId);
         }
+        return user.avatarUrlFormat(null, {size: 1024});
       }
 
       {
-        const match = Utils.regex(DiscordRegexNames.EMOJI, text);
-        if (match) {
-          const { animated, id } = <{animated: boolean, id: string}> match;
+        const { matches } = Utils.regex(DiscordRegexNames.EMOJI, text);
+        if (matches.length) {
+          const { animated, id } = <{animated: boolean, id: string}> matches[0];
           const format = (animated) ? 'gif' : 'png';
           return Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format);
         }
@@ -385,9 +380,9 @@ export async function lastImageUrls(
   }
 
   {
-    const match = Utils.regex(DiscordRegexNames.TEXT_URL, value);
-    if (match) {
-      const { text } = <{text: string}> match;
+    const { matches } = Utils.regex(DiscordRegexNames.TEXT_URL, value);
+    if (matches.length) {
+      const { text } = <{text: string}> matches[0];
       if (!context.message.embeds.length) {
         await Timers.sleep(1000);
       }
@@ -407,9 +402,9 @@ export async function lastImageUrls(
     try {
       if (!text.includes('#')) {
         {
-          const match = Utils.regex(DiscordRegexNames.MENTION_USER, text);
-          if (match) {
-            const { id: userId } = <{id: string}> match;
+          const { matches } = Utils.regex(DiscordRegexNames.MENTION_USER, text);
+          if (matches.length) {
+            const { id: userId } = <{id: string}> matches[0];
 
             if (isSnowflake(userId)) {
               let user: Structures.User;
@@ -424,28 +419,23 @@ export async function lastImageUrls(
           }
         }
 
-        {
-          const match = Utils.regex(DiscordRegexNames.TEXT_SNOWFLAKE, text);
-          if (match) {
-            const { text: userId } = <{text: string}> match;
+        if (isSnowflake(text)) {
+          const userId = text;
 
-            if (isSnowflake(userId)) {
-              let user: Structures.User;
-              if (context.message.mentions.has(userId)) {
-                user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
-              } else {
-                user = await context.rest.fetchUser(userId);
-              }
-              urls.add(user.avatarUrlFormat(null, {size: 1024}));
-              continue;
-            }
+          let user: Structures.User;
+          if (context.message.mentions.has(userId)) {
+            user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+          } else {
+            user = await context.rest.fetchUser(userId);
           }
+          urls.add(user.avatarUrlFormat(null, {size: 1024}));
+          continue;
         }
 
         {
-          const match = Utils.regex(DiscordRegexNames.EMOJI, text);
-          if (match) {
-            const { animated, id } = <{animated: boolean, id: string}> match;
+          const { matches } = Utils.regex(DiscordRegexNames.EMOJI, text);
+          if (matches.length) {
+            const { animated, id } = <{animated: boolean, id: string}> matches[0];
             const format = (animated) ? 'gif' : 'png';
             urls.add(Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format));
             continue;
@@ -495,8 +485,8 @@ export function locale(
   if (!value) {
     if (context.guild) {
       value = context.guild.preferredLocale;
-      if (value in DiscordToGoogleLocales) {
-        return DiscordToGoogleLocales[value];
+      if (value in GoogleLocaleFromDiscord) {
+        return GoogleLocaleFromDiscord[value];
       }
       return value;
     } else {
@@ -522,8 +512,8 @@ export function locale(
 export function defaultLocale(context: Command.Context) {
   if (context.guild) {
     const value = context.guild.preferredLocale;
-    if (value in DiscordToGoogleLocales) {
-      return DiscordToGoogleLocales[value];
+    if (value in GoogleLocaleFromDiscord) {
+      return GoogleLocaleFromDiscord[value];
     }
     return value;
   }
@@ -535,16 +525,15 @@ export async function memberOrUser(
   value: string,
   context: Command.Context,
 ): Promise<MemberOrUser> {
-  value = value.trim();
   if (!value) {
     return context.member || context.user;
   }
 
   try {
     {
-      const match = Utils.regex(DiscordRegexNames.MENTION_USER, value);
-      if (match) {
-        const { id: userId } = <{id: string}> match;
+      const { matches } = Utils.regex(DiscordRegexNames.MENTION_USER, value);
+      if (matches.length) {
+        const { id: userId } = <{id: string}> matches[0];
         if (isSnowflake(userId)) {
           if (context.message.mentions.has(userId)) {
             return <Structures.Member | Structures.User> context.message.mentions.get(userId);
@@ -555,46 +544,42 @@ export async function memberOrUser(
       }
     }
 
-    {
-      const match = Utils.regex(DiscordRegexNames.TEXT_SNOWFLAKE, value);
-      if (match) {
-        const { text: userId } = <{text: string}> match;
-        if (isSnowflake(userId)) {
-          const key = `${context.guildId}.${userId}`;
-          if (MemberOrUserStore.has(key)) {
-            return <MemberOrUser> MemberOrUserStore.get(key);
-          }
+    if (isSnowflake(value)) {
+      const userId = value;
 
-          let user: MemberOrUser | undefined;
-          if (context.guildId) {
-            try {
-              if (context.members.has(context.guildId, userId)) {
-                user = <Structures.Member> context.members.get(context.guildId, userId);
-                if ((<Structures.Member> user).isPartial) {
-                  user = await context.rest.fetchGuildMember(context.guildId, userId);
-                }
-              } else {
-                user = await context.rest.fetchGuildMember(context.guildId, userId);
-              }
-            } catch(error) {
-              // UNKNOWN_MEMBER == userId exists
-              // UNKNOWN_USER == userId doesn't exist
-              if (error.code !== DiscordAbortCodes.UNKNOWN_MEMBER) {
-                user = null;
-              }
+      const key = `${context.guildId}.${userId}`;
+      if (MemberOrUserStore.has(key)) {
+        return <MemberOrUser> MemberOrUserStore.get(key);
+      }
+
+      let user: MemberOrUser | undefined;
+      if (context.guildId) {
+        try {
+          if (context.members.has(context.guildId, userId)) {
+            user = <Structures.Member> context.members.get(context.guildId, userId);
+            if ((<Structures.Member> user).isPartial) {
+              user = await context.rest.fetchGuildMember(context.guildId, userId);
             }
+          } else {
+            user = await context.rest.fetchGuildMember(context.guildId, userId);
           }
-          if (user === undefined) {
-            if (context.users.has(userId)) {
-              user = <Structures.User> context.users.get(userId);
-            } else {
-              user = await context.rest.fetchUser(userId);
-            }
+        } catch(error) {
+          // UNKNOWN_MEMBER == userId exists
+          // UNKNOWN_USER == userId doesn't exist
+          if (error.code !== DiscordAbortCodes.UNKNOWN_MEMBER) {
+            user = null;
           }
-          MemberOrUserStore.set(key, user);
-          return user;
         }
       }
+      if (user === undefined) {
+        if (context.users.has(userId)) {
+          user = <Structures.User> context.users.get(userId);
+        } else {
+          user = await context.rest.fetchUser(userId);
+        }
+      }
+      MemberOrUserStore.set(key, user);
+      return user;
     }
 
     // guild member chunk or search cache

@@ -4,10 +4,15 @@ import {
   Utils,
 } from 'detritus-client';
 
+const { Markup } = Utils;
+
+import { EmbedBrands, EmbedColors } from '../constants';
+
 
 export interface CommandArgs {
   code: string,
   jsonspacing: number,
+  noembed: boolean,
   noreply: boolean,
   upload: boolean,
 }
@@ -15,24 +20,27 @@ export interface CommandArgs {
 export default (<Command.CommandOptions> {
   name: 'eval',
   label: 'code',
+  type: (value) => {
+    const { matches } = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, value);
+    if (matches.length) {
+      return matches[0].text;
+    }
+    return value;
+  },
   args: [
-    {default: 2, name: 'jsonspacing', type: 'number'},
-    {default: false, name: 'noreply', type: 'bool'},
-    {default: false, name: 'files.gg', label: 'upload', type: 'bool'},
+    {default: 2, name: 'jsonspacing', type: Number},
+    {name: 'noembed', type: Boolean},
+    {name: 'noreply', type: Boolean},
+    {name: 'files.gg', label: 'upload', type: Boolean},
   ],
   responseOptional: true,
   onBefore: (context) => context.user.isClientOwner,
-  run: async (context, args) => {
-    args = <CommandArgs> <unknown> args;
-
-    let code = args.code;
-    const match = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, code);
-    if (match !== null) {
-      code = match.text;
-    }
+  run: async (context, args: CommandArgs) => {
+    const { code } = args;
 
     let language = 'js';
     let message: any;
+    let errored: boolean = false;
     try {
       message = await Promise.resolve(eval(code));
       if (typeof(message) === 'object') {
@@ -41,9 +49,9 @@ export default (<Command.CommandOptions> {
       }
     } catch(error) {
       message = (error) ? error.stack || error.message : error;
+      errored = true;
     }
 
-    const max = 1990 - language.length;
     if (!args.noreply) {
       let content: string;
       if (args.upload) {
@@ -53,21 +61,36 @@ export default (<Command.CommandOptions> {
             method: 'post',
             url: 'https://api.files.gg/files',
           });
-          content = upload.urls.main;
+
+          return context.editOrReply(upload.urls.main);
         } catch(error) {
-          content = String(error);
+          content = error.stack || error.message;
+          language = 'js';
+          errored = true;
         }
       } else {
-        content = [
-          '```' + language,
-          String(message).slice(0, max),
-          '```',
-        ].join('\n');
+        content = String(message);
       }
-      return context.editOrReply(content);
+
+      if (!args.noembed) {
+        const channel = context.channel;
+        if (channel && channel.canEmbedLinks) {
+          const embed = new Utils.Embed();
+          if (errored) {
+            embed.setTitle('Eval (Error)');
+            embed.setColor(EmbedColors.ERROR);
+          } else {
+            embed.setTitle('Eval');
+            embed.setColor(EmbedColors.DEFAULT);
+          }
+          embed.setDescription(Markup.codeblock(content, {language, mentions: false}));
+          embed.setFooter('', EmbedBrands.NOTSOBOT);
+
+          return context.editOrReply({embed});
+        }
+      }
+      return context.editOrReply(Markup.codeblock(content, {language}));
     }
   },
-  onError: (context, args, error) => {
-    console.error(error);
-  },
+  onError: (context, args, error) => console.error(error),
 });
