@@ -1,8 +1,17 @@
 import { Command } from 'detritus-client';
 
+import { CommandTypes } from '../constants';
+
 
 export default (<Command.CommandOptions> {
-  name: 'refresh',
+  name: 'reload',
+  aliases: ['refresh'],
+  metadata: {
+    description: 'Reload the bot\'s commands.',
+    examples: ['refresh'],
+    type: CommandTypes.OWNER,
+    usage: 'refresh',
+  },
   responseOptional: true,
   onBefore: (context) => context.user.isClientOwner,
   run: async (context) => {

@@ -3,7 +3,7 @@ import { Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { searchGoogleContentVisionOCR } from '../api';
-import { EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
+import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
 import { Parameters, onRunError, onTypeError } from '../utils';
 
 
@@ -16,6 +16,16 @@ export default (<Command.CommandOptions> {
   name: 'ocr',
   args: [{name: 'noembed', type: Boolean}],
   label: 'url',
+  metadata: {
+    description: 'Read text inside of an image',
+    examples: [
+      'ocr',
+      'ocr cake',
+      'ocr https://cdn.notsobot.com/brands/notsobot.png',
+    ],
+    type: CommandTypes.SEARCH,
+    usage: 'ocr ?<emoji|id|mention|name|url> (-noembed)',
+  },
   type: Parameters.lastImageUrl,
   onBefore: (context) => {
     const channel = context.channel;
@@ -33,11 +43,7 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
-    const ocr = await searchGoogleContentVisionOCR(context, {
-      url: args.url,
-      userId: context.user.id,
-    });
-
+    const ocr = await searchGoogleContentVisionOCR(context, {url: args.url});
     const [ response ] = ocr.responses;
     const { textAnnotations } = response;
 

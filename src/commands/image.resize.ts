@@ -1,7 +1,7 @@
 import { Command, Utils } from 'detritus-client';
 
 import { imageResize } from '../api';
-import { EmbedColors } from '../constants';
+import { CommandTypes, EmbedColors } from '../constants';
 import { Parameters, formatMemory, onRunError, onTypeError } from '../utils';
 
 
@@ -21,6 +21,17 @@ export default (<Command.CommandOptions> {
     {name: 'size'},
   ],
   label: 'url',
+  metadata: {
+    examples: [
+      'resize',
+      'resize cake',
+      'resize <@439205512425504771> -convert jpeg',
+      'resize 👌🏿 -scale 2',
+      'resize https://cdn.notsobot.com/brands/notsobot.png -convert webp -size 2048',
+    ],
+    type: CommandTypes.IMAGE,
+    usage: 'resize ?<emoji|id|mention|name|url> (-convert <format>) (-scale <number>) (-size <number>)',
+  },
   type: Parameters.lastImageUrl,
   onBefore: (context) => {
     const channel = context.channel;
@@ -43,7 +54,6 @@ export default (<Command.CommandOptions> {
       scale: args.scale,
       size: args.size,
       url: args.url,
-      userId: context.user.id,
     });
 
     const {

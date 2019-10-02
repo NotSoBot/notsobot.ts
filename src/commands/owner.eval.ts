@@ -6,7 +6,7 @@ import {
 
 const { Markup } = Utils;
 
-import { EmbedBrands, EmbedColors } from '../constants';
+import { CommandTypes, EmbedBrands, EmbedColors } from '../constants';
 
 
 export interface CommandArgs {
@@ -19,7 +19,21 @@ export interface CommandArgs {
 
 export default (<Command.CommandOptions> {
   name: 'eval',
+  args: [
+    {default: 2, name: 'jsonspacing', type: Number},
+    {name: 'noembed', type: Boolean},
+    {name: 'noreply', type: Boolean},
+    {name: 'files.gg', label: 'upload', type: Boolean},
+  ],
   label: 'code',
+  metadata: {
+    description: 'Eval some code',
+    examples: [
+      'eval context.client.token',
+    ],
+    type: CommandTypes.OWNER,
+    usage: 'eval <code> (-jsonspacing <number>) (-noembed) (-noreply) (-files.gg)',
+  },
   type: (value) => {
     const { matches } = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, value);
     if (matches.length) {
@@ -27,12 +41,6 @@ export default (<Command.CommandOptions> {
     }
     return value;
   },
-  args: [
-    {default: 2, name: 'jsonspacing', type: Number},
-    {name: 'noembed', type: Boolean},
-    {name: 'noreply', type: Boolean},
-    {name: 'files.gg', label: 'upload', type: Boolean},
-  ],
   responseOptional: true,
   onBefore: (context) => context.user.isClientOwner,
   run: async (context, args: CommandArgs) => {
@@ -77,14 +85,12 @@ export default (<Command.CommandOptions> {
         if (channel && channel.canEmbedLinks) {
           const embed = new Utils.Embed();
           if (errored) {
-            embed.setTitle('Eval (Error)');
             embed.setColor(EmbedColors.ERROR);
           } else {
-            embed.setTitle('Eval');
             embed.setColor(EmbedColors.DEFAULT);
           }
           embed.setDescription(Markup.codeblock(content, {language, mentions: false}));
-          embed.setFooter('', EmbedBrands.NOTSOBOT);
+          embed.setFooter('Eval', EmbedBrands.NOTSOBOT);
 
           return context.editOrReply({embed});
         }

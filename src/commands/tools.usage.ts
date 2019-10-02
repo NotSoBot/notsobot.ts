@@ -2,11 +2,20 @@ import * as os from 'os';
 
 import { Command, ClusterClient } from 'detritus-client';
 
-import { padCodeBlockFromRows } from '../utils';
+import { CommandTypes } from '../constants';
+import { onRunError, padCodeBlockFromRows } from '../utils';
 
 
 export default (<Command.CommandOptions> {
   name: 'usage',
+  metadata: {
+    description: 'Show the bot\'s current usage (and Discord object counts)',
+    examples: [
+      'usage',
+    ],
+    type: CommandTypes.TOOLS,
+    usage: 'usage',
+  },
   ratelimit: {
     duration: 5000,
     limit: 3,
@@ -103,4 +112,5 @@ export default (<Command.CommandOptions> {
       '```',
     ].join('\n'));
   },
+  onRunError,
 });

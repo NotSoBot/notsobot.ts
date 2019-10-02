@@ -24,10 +24,8 @@ export async function request(
   if (token) {
     options.headers.authorization = token;
   }
+  options.headers['x-user-id'] = context.userId;
 
-  if (options.userId) {
-    options.headers['x-user-id'] = options.userId;
-  }
   return context.rest.request(options);
 }
 
@@ -37,7 +35,6 @@ export interface ImageResize {
   scale?: number,
   size?: string,
   url: string,
-  userId: string,
 }
 
 export async function imageResize(
@@ -57,7 +54,48 @@ export async function imageResize(
       method: RestConstants.HTTPMethods.POST,
       path: '/image/resize',
     },
-    userId: options.userId,
+  });
+}
+
+
+export interface SearchDuckDuckGo {
+  query: string,
+}
+
+export async function searchDuckDuckGo(
+  context: Command.Context,
+  options: SearchDuckDuckGo,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/duckduckgo',
+    },
+  });
+}
+
+
+export interface SearchDuckDuckGoImages {
+  query: string,
+}
+
+export async function searchDuckDuckGoImages(
+  context: Command.Context,
+  options: SearchDuckDuckGoImages,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/duckduckgo/images',
+    },
   });
 }
 
@@ -68,7 +106,6 @@ export interface SearchGoogle {
   query: string,
   safe?: boolean | string,
   showUnknown?: boolean | string,
-  userId: string,
 }
 
 export async function searchGoogle(
@@ -88,7 +125,6 @@ export async function searchGoogle(
       method: RestConstants.HTTPMethods.GET,
       path: '/search/google',
     },
-    userId: options.userId,
   });
 }
 
@@ -98,7 +134,6 @@ export interface SearchGoogleImages {
   maxResults?: number,
   query: string,
   safe?: boolean | string,
-  userId: string,
 }
 
 export async function searchGoogleImages(
@@ -117,14 +152,12 @@ export async function searchGoogleImages(
       method: RestConstants.HTTPMethods.GET,
       path: '/search/google/images',
     },
-    userId: options.userId,
   });
 }
 
 
 export interface SearchGoogleContentVisionOCR {
   url: string,
-  userId: string,
 }
 
 export async function searchGoogleContentVisionOCR(
@@ -140,6 +173,85 @@ export async function searchGoogleContentVisionOCR(
       method: RestConstants.HTTPMethods.POST,
       path: '/search/google/content-vision/ocr',
     },
-    userId: options.userId,
+  });
+}
+
+
+export interface SearchGoogleYoutube {
+  query: string,
+}
+
+export async function searchGoogleYoutube(
+  context: Command.Context,
+  options: SearchGoogleYoutube,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/google/youtube',
+    },
+  });
+}
+
+
+export interface SearchUrban {
+  query: string,
+}
+
+export async function searchUrban(
+  context: Command.Context,
+  options: SearchUrban,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/urban-dictionary',
+    },
+  });
+}
+
+
+export interface SearchUrbanRandom {
+
+}
+
+export async function searchUrbanRandom(
+  context: Command.Context,
+  options: SearchUrbanRandom = {},
+): Promise<any> {
+  return request(context, {
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/urban-dictionary/random',
+    },
+  });
+}
+
+
+export interface SearchWolframAlpha {
+  query: string,
+}
+
+export async function searchWolframAlpha(
+  context: Command.Context,
+  options: SearchWolframAlpha,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/wolfram-alpha',
+    },
   });
 }

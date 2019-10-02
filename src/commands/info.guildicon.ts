@@ -2,6 +2,7 @@ import { Collections, Command, Constants, Structures, Utils } from 'detritus-cli
 
 const { Colors } = Constants;
 
+import { CommandTypes } from '../constants';
 import { Parameters, onRunError, onTypeError } from '../utils';
 
 
@@ -20,6 +21,15 @@ export interface CommandArgs {
 export default (<Command.CommandOptions> {
   name: 'guildicon',
   label: 'payload',
+  metadata: {
+    description: 'Get the icon for a guild, defaults to the current guild',
+    examples: [
+      'guildicon',
+      'guildicon 178313653177548800',
+    ],
+    type: CommandTypes.INFO,
+    usage: 'guildicon ?<id>',
+  },
   ratelimit: {
     duration: 5000,
     limit: 5,

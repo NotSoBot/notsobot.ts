@@ -1,16 +1,25 @@
 import { Command, ClusterClient } from 'detritus-client';
 
-import { padCodeBlockFromRows } from '../utils';
+import { CommandTypes } from '../constants';
+import { onRunError, padCodeBlockFromRows } from '../utils';
 
 
 export default (<Command.CommandOptions> {
   name: 'shards',
+  metadata: {
+    description: 'Show all of the bot\'s shard information',
+    examples: [
+      'shards',
+    ],
+    type: CommandTypes.TOOLS,
+    usage: 'shards',
+  },
   ratelimit: {
     duration: 5000,
     limit: 3,
     type: 'guild',
   },
-  run: async (context, args) => {
+  run: async (context) => {
     const title: Array<Array<string>> = [
       ['Shard:', String(context.shardId)],
     ];
@@ -94,4 +103,5 @@ export default (<Command.CommandOptions> {
       '```',
     ].join('\n'));
   },
+  onRunError,
 });

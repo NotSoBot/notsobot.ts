@@ -1,6 +1,6 @@
 import { Command, Structures, Utils } from 'detritus-client';
 
-import { PresenceStatusColors } from '../constants';
+import { CommandTypes, PresenceStatusColors } from '../constants';
 import { Parameters } from '../utils';
 
 
@@ -11,6 +11,15 @@ export interface CommandArgs {
 export default (<Command.CommandOptions> {
   name: 'avatar',
   label: 'user',
+  metadata: {
+    description: 'Get the avatar for a user, defaults to self',
+    examples: [
+      'user',
+      'user notsobot',
+    ],
+    type: CommandTypes.INFO,
+    usage: 'user ?<id|mention|name>',
+  },
   ratelimit: {
     duration: 5000,
     limit: 5,

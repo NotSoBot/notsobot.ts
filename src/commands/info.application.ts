@@ -2,6 +2,7 @@ import { Command, Constants, Structures, Utils } from 'detritus-client';
 
 const { Colors } = Constants;
 
+import { CommandTypes } from '../constants';
 import {
   Paginator,
   Parameters,
@@ -15,9 +16,18 @@ export interface CommandArgs {
 }
 
 export default (<Command.CommandOptions> {
-  name: 'applications',
-  aliases: ['application', 'games', 'game', 'applicationinfo', 'gameinfo'],
+  name: 'application',
+  aliases: ['applications', 'games', 'game', 'applicationinfo', 'gameinfo'],
   label: 'applications',
+  metadata: {
+    description: 'Get information about an application (Uses the same list Discord does)',
+    examples: [
+      'application rust',
+      'application 356888738724446208',
+    ],
+    type: CommandTypes.INFO,
+    usage: 'application <id|name>',
+  },
   ratelimit: {
     duration: 4000,
     limit: 5,

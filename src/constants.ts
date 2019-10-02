@@ -29,13 +29,25 @@ export const ChannelTypesText: {[key: number]: string} = Object.freeze({
   [ChannelTypes.GUILD_LFG_LISTINGS]: 'Guild LFG Listings',
 });
 
+export const CommandTypes = Tools.normalize({
+  IMAGE: null,
+  INFO: null,
+  OWNER: null,
+  SEARCH: null,
+  TOOLS: null,
+});
+
 export const DateOptions = Object.freeze({
   timeZone: 'America/New_York',
 });
 
 export const EmbedBrands = Object.freeze({
+  DUCK_DUCK_GO: 'https://cdn.notsobot.com/brands/duck-duck-go.png',
   GOOGLE_GO: 'https://cdn.notsobot.com/brands/google-go.png',
-  NOTSOBOT: 'https://cdn.notsobot.com/brands/notsobot.png',
+  NOTSOBOT: 'https://cdn.notsobot.com/brands/notsobot.png?cache-bust-this-di',
+  URBAN: 'https://cdn.notsobot.com/brands/urban-dictionary.png?cache-bust-this-di',
+  WOLFRAM_ALPHA: 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
+  YOUTUBE: 'https://cdn.notsobot.com/brands/youtube.png',
 });
 
 export const EmbedColors = Object.freeze({
@@ -252,6 +264,11 @@ export const VerificationLevelTexts: {[key: string]: string} = Object.freeze({
   [VerificationLevels.MEDIUM]: 'Medium',
   [VerificationLevels.HIGH]: 'High',
   [VerificationLevels.VERY_HIGH]: 'Very High',
+});
+
+export const YoutubeResultTypes = Object.freeze({
+  CHANNEL: 0,
+  VIDEO: 1,
 });
 
 export const PERMISSIONS_KEYS_ADMIN = Object.freeze([

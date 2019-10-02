@@ -3,6 +3,7 @@ import { URLSearchParams } from 'url';
 import { Command, Structures, Utils } from 'detritus-client';
 
 import {
+  CommandTypes,
   DateOptions,
   PresenceStatusColors,
   PresenceStatusTexts,
@@ -11,11 +12,25 @@ import {
 import { Paginator, Parameters, onRunError, onTypeError, toTitleCase } from '../utils';
 
 
+export interface CommandArgs {
+  user: Structures.Member | Structures.User,
+}
+
 export default (<Command.CommandOptions> {
   name: 'user',
   aliases: ['userinfo', 'member', 'memberinfo'],
-  args: [{default: 1, name: 'id', type: 'number'}],
   label: 'user',
+  metadata: {
+    description: 'Get information about a user, defaults to self',
+    examples: [
+      'user',
+      'user cake',
+      'user cake#1',
+      'user <@439205512425504771>',
+    ],
+    type: CommandTypes.INFO,
+    usage: 'user ?<id|mention|name>',
+  },
   ratelimit: {
     duration: 5000,
     limit: 5,
@@ -29,7 +44,7 @@ export default (<Command.CommandOptions> {
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.user,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
-  run: async (context, args: {id: number, user: Structures.Member | Structures.User}) => {
+  run: async (context, args: CommandArgs) => {
     const isMember = (args.user instanceof Structures.Member);
     const member = <Structures.Member> args.user;
     const user = <Structures.User> args.user;
@@ -39,7 +54,6 @@ export default (<Command.CommandOptions> {
     const pageLimit = activities.length || 1;
 
     const paginator = new Paginator(context, {
-      page: Math.max(1, Math.min(args.id, pageLimit)),
       pageLimit,
       onPage: (page) => {
         const embed = new Utils.Embed();

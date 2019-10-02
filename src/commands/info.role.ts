@@ -5,6 +5,7 @@ const { PermissionTools } = Utils;
 
 import {
   BooleanEmojis,
+  CommandTypes,
   DateOptions,
   PermissionsText,
   PERMISSIONS_KEYS_ADMIN,
@@ -29,6 +30,20 @@ export default (<Command.CommandOptions> {
     },
   ],
   disableDm: true,
+  metadata: {
+    description: 'Get information for a role, defaults to the @everyone role',
+    examples: [
+      'role',
+      'role everyone',
+    ],
+    type: CommandTypes.INFO,
+    usage: 'role ?<id|mention|name> (-channel <id>)',
+  },
+  ratelimit: {
+    duration: 5000,
+    limit: 5,
+    type: 'guild',
+  },
   type: (value, context) => {
     value = value.trim();
     const guild = context.guild;
@@ -49,11 +64,6 @@ export default (<Command.CommandOptions> {
       }
     }
     return role || null;
-  },
-  ratelimit: {
-    duration: 5000,
-    limit: 5,
-    type: 'guild',
   },
   onBeforeRun: (context, args) => !!args.channel && !!args.role,
   onCancelRun: (context, args) => {

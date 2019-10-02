@@ -1,5 +1,6 @@
-import { Constants } from 'detritus-client';
-import { Timers } from 'detritus-utils';
+import './bootstrap';
+
+import { Constants, ShardClient } from 'detritus-client';
 
 import { NotSoClient } from './client';
 
@@ -37,7 +38,7 @@ bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
   if (context.message.canReply) {
     let replied: boolean = false;
     for (const {item, ratelimit, remaining} of ratelimits) {
-      if (replied || item.replied) {
+      if (remaining < 1000 || replied || item.replied) {
         item.replied = true;
         continue;
       }
@@ -119,6 +120,11 @@ bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
     */
   });
 
-  await bot.run();
-  console.log(`Shards #(${cluster.shards.map((s: any, id: number) => id).join(', ')}) loaded`);
+  try {
+    await bot.run();
+    console.log(`Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')}) loaded`);
+  } catch(error) {
+    console.log(error);
+    console.log(error.errors);
+  }
 })();

@@ -13,7 +13,6 @@ import { Timers } from 'detritus-utils';
 
 const { DiscordAbortCodes, DiscordRegexNames } = Constants;
 
-import { GoogleLocaleFromDiscord, GoogleLocales, GOOGLE_LOCALES } from '../constants';
 import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
 import MemberOrUserStore, { MemberOrUser } from '../stores/memberoruser';
@@ -475,49 +474,6 @@ export async function lastImageUrls(
   }
 
   return Array.from(urls).slice(0, 3);
-}
-
-
-export function locale( 
-  value: string,
-  context: Command.Context,
-) {
-  if (!value) {
-    if (context.guild) {
-      value = context.guild.preferredLocale;
-      if (value in GoogleLocaleFromDiscord) {
-        return GoogleLocaleFromDiscord[value];
-      }
-      return value;
-    } else {
-      return GoogleLocales.ENGLISH;
-    }
-  }
-  value = value.toLowerCase().replace(/ /g, '_');
-  for (let key in GoogleLocales) {
-    const locale = (<any> GoogleLocales)[key];
-    if (locale.toLowerCase() === value) {
-      return locale;
-    }
-  }
-  for (let key in GoogleLocales) {
-    const name = key.toLowerCase();
-    if (name.includes(value)) {
-      return (<any> GoogleLocales)[key];
-    }
-  }
-  throw new Error(`Must be one of ${GOOGLE_LOCALES.map((locale) => `\`${locale}\``).join(', ')}`);
-}
-
-export function defaultLocale(context: Command.Context) {
-  if (context.guild) {
-    const value = context.guild.preferredLocale;
-    if (value in GoogleLocaleFromDiscord) {
-      return GoogleLocaleFromDiscord[value];
-    }
-    return value;
-  }
-  return GoogleLocales.ENGLISH;
 }
 
 

@@ -1,8 +1,9 @@
 import { URLSearchParams } from 'url';
 
-import { Command, Constants, Structures, Utils } from 'detritus-client';
+import { Command, Structures, Utils } from 'detritus-client';
 
 import {
+  CommandTypes,
   PresenceStatusColors,
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
@@ -18,15 +19,22 @@ import {
 
 
 export interface CommandArgs {
-  id: number,
   user: Structures.Member | Structures.User,
 }
 
 export default (<Command.CommandOptions> {
   name: 'activity',
   aliases: ['presence'],
-  args: [{default: 1, name: 'id', type: 'number'}],
   label: 'user',
+  metadata: {
+    description: 'Get a user\'s current activity, defaults to self',
+    examples: [
+      'activity',
+      'activity notsobot',
+    ],
+    type: CommandTypes.INFO,
+    usage: 'activity ?<id|mention|name>',
+  },
   ratelimit: {
     duration: 5000,
     limit: 5,
@@ -41,7 +49,7 @@ export default (<Command.CommandOptions> {
   onBeforeRun: (context, args) => !!args.user,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
   run: async (context, args: CommandArgs) => {
-    const { id, user } = args;
+    const { user } = args;
 
     const presence = user.presence;
     let activities: Array<Structures.PresenceActivity>;
@@ -55,7 +63,6 @@ export default (<Command.CommandOptions> {
 
     const pageLimit = activities.length || 1;
     const paginator = new Paginator(context, {
-      page: Math.max(1, Math.min(id, pageLimit)),
       pageLimit,
       onPage: (page) => {
         const embed = new Utils.Embed();

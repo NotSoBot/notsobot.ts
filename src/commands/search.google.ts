@@ -3,20 +3,40 @@ import { Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { searchGoogle } from '../api';
-import { EmbedBrands, EmbedColors, GoogleCardTypes, GoogleLocalesText, GOOGLE_CARD_TYPES_SUPPORTED } from '../constants';
-import { Paginator, Parameters, onRunError, onTypeError } from '../utils';
+import {
+  CommandTypes,
+  EmbedBrands,
+  EmbedColors,
+  GoogleCardTypes,
+  GoogleLocalesText,
+  GOOGLE_CARD_TYPES_SUPPORTED,
+} from '../constants';
+import { Arguments, Paginator, onRunError, onTypeError } from '../utils';
 
 
 const RESULTS_PER_PAGE = 3;
 
+export interface CommandArgs {
+  locale: string,
+  query: string,
+  safe: boolean,
+}
+
 export default (<Command.CommandOptions> {
   name: 'google',
   aliases: ['g'],
-  args: [
-    {name: 'safe', type: 'bool'},
-    {name: 'locale', aliases: ['language'], default: Parameters.defaultLocale, type: Parameters.locale},
-  ],
+  args: [Arguments.Locale, Arguments.Safe],
   label: 'query',
+  metadata: {
+    description: 'Search google',
+    examples: [
+      'google notsobot',
+      'google notsobot -locale russian',
+      'google something nsfw -safe',
+    ],
+    type: CommandTypes.SEARCH,
+    usage: 'google <query> (-locale <language>) (-safe)',
+  },
   ratelimit: {
     duration: 5000,
     limit: 5,
@@ -29,7 +49,7 @@ export default (<Command.CommandOptions> {
   onCancel: (context) => context.reply('⚠ Unable to embed in this channel.'),
   onBeforeRun: (context, args) => !!args.query,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args) => {
+  run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
     const { cards, results } = await searchGoogle(context, args);

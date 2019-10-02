@@ -3,18 +3,25 @@ import { Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { searchGoogleImages } from '../api';
-import { EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
-import { Paginator, Parameters, onRunError, onTypeError } from '../utils';
+import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
+import { Arguments, Paginator, onRunError, onTypeError } from '../utils';
 
 
 export default (<Command.CommandOptions> {
   name: 'image',
   aliases: ['img'],
-  args: [
-    {name: 'safe', type: 'bool'},
-    {name: 'locale', aliases: ['language'], default: Parameters.defaultLocale, type: Parameters.locale},
-  ],
+  args: [Arguments.Locale, Arguments.Safe],
   label: 'query',
+  metadata: {
+    description: 'Search google images',
+    examples: [
+      'image notsobot',
+      'image notsobot -locale russian',
+      'image something nsfw -safe',
+    ],
+    type: CommandTypes.SEARCH,
+    usage: 'image <query> (-locale <language>) (-safe)',
+  },
   ratelimit: {
     duration: 5000,
     limit: 5,
@@ -37,11 +44,11 @@ export default (<Command.CommandOptions> {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const result = results[page - 1];
-
           const embed = new Utils.Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
+
+          const result = results[page - 1];
           if (result.header) {
             embed.setTitle(`${result.header} (${result.footer})`);
           } else {
@@ -50,6 +57,7 @@ export default (<Command.CommandOptions> {
 
           let footer = `Page ${page}/${pageLimit} of Google Image Search Results`;
           if (args.locale in GoogleLocalesText) {
+            footer = `${footer} (${GoogleLocalesText[args.locale]})`;
           }
           embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 

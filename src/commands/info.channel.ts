@@ -1,10 +1,10 @@
-import { Collections, Command, Constants, Structures, Utils } from 'detritus-client';
+import { Command, Constants, Structures, Utils } from 'detritus-client';
 import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
 
-const { ChannelTypes, Colors } = Constants;
+const { Colors } = Constants;
 
-import { ChannelTypesText, DateOptions } from '../constants';
+import { ChannelTypesText, CommandTypes, DateOptions } from '../constants';
 import { GuildChannelsStored } from '../stores/guildchannels';
 import { Parameters } from '../utils';
 
@@ -20,6 +20,15 @@ export default (<Command.CommandOptions> {
   name: 'channel',
   aliases: ['channelinfo'],
   label: 'payload',
+  metadata: {
+    description: 'Get information for a channel, defaults to the current channel',
+    examples: [
+      'channel',
+      'channel 585639594574217232',
+    ],
+    type: CommandTypes.INFO,
+    usage: 'channel ?<id|mention|name>',
+  },
   ratelimit: {
     duration: 5000,
     limit: 5,

@@ -5,6 +5,7 @@ const { Colors } = Constants;
 const { guildIdToShardId } = Utils;
 
 import {
+  CommandTypes,
   DateOptions,
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
@@ -30,6 +31,15 @@ export default (<Command.CommandOptions> {
   name: 'guild',
   aliases: ['guildinfo', 'server', 'serverinfo'],
   label: 'payload',
+  metadata: {
+    description: 'Get information for a guild, defaults to the current guild',
+    examples: [
+      'guild',
+      'guild 178313653177548800',
+    ],
+    type: CommandTypes.INFO,
+    usage: 'guild ?<id>',
+  },
   ratelimit: {
     duration: 5000,
     limit: 5,
