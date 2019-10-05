@@ -35,11 +35,18 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.TOOLS,
     usage: 'google <text> (-to <language>) (-from <language>)',
   },
-  ratelimit: {
-    duration: 1000,
-    limit: 1,
-    type: 'channel',
-  },
+  ratelimits: [
+    {
+      duration: 5000,
+      limit: 5,
+      type: 'guild',
+    },
+    {
+      duration: 1000,
+      limit: 1,
+      type: 'channel',
+    },
+  ],
   onBefore: (context) => {
     const channel = context.channel;
     return (channel) ? channel.canEmbedLinks : false;

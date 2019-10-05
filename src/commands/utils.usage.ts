@@ -16,11 +16,18 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.UTILS,
     usage: 'usage',
   },
-  ratelimit: {
-    duration: 5000,
-    limit: 3,
-    type: 'guild',
-  },
+  ratelimits: [
+    {
+      duration: 5000,
+      limit: 5,
+      type: 'guild',
+    },
+    {
+      duration: 1000,
+      limit: 1,
+      type: 'channel',
+    },
+  ],
   run: async (context, args) => {
     const rows: Array<Array<string>> = [];
     if (context.manager) {

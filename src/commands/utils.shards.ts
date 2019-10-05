@@ -14,11 +14,18 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.UTILS,
     usage: 'shards',
   },
-  ratelimit: {
-    duration: 5000,
-    limit: 3,
-    type: 'guild',
-  },
+  ratelimits: [
+    {
+      duration: 5000,
+      limit: 5,
+      type: 'guild',
+    },
+    {
+      duration: 1000,
+      limit: 1,
+      type: 'channel',
+    },
+  ],
   run: async (context) => {
     const title: Array<Array<string>> = [
       ['Shard:', String(context.shardId)],

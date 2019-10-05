@@ -14,11 +14,18 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.UTILS,
     usage: 'ping',
   },
-  ratelimit: {
-    duration: 5000,
-    limit: 5,
-    type: 'guild',
-  },
+  ratelimits: [
+    {
+      duration: 5000,
+      limit: 5,
+      type: 'guild',
+    },
+    {
+      duration: 1000,
+      limit: 1,
+      type: 'channel',
+    },
+  ],
   run: async (context) => {
     const {gateway, rest} = await context.client.ping();
     return context.editOrReply(`pong! (gateway: ${gateway}ms) (rest: ${rest}ms)`);

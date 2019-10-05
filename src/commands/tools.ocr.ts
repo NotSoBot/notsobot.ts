@@ -26,6 +26,18 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.TOOLS,
     usage: 'ocr ?<emoji|id|mention|name|url> (-noembed)',
   },
+  ratelimits: [
+    {
+      duration: 5000,
+      limit: 5,
+      type: 'guild',
+    },
+    {
+      duration: 1000,
+      limit: 1,
+      type: 'channel',
+    },
+  ],
   type: Parameters.lastImageUrl,
   onBefore: (context) => {
     const channel = context.channel;
@@ -63,23 +75,22 @@ export default (<Command.CommandOptions> {
       ].join('\n'));
     } else {
       const embed = new Utils.Embed();
+      embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
       embed.setColor(EmbedColors.DEFAULT);
+      embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
 
-      if (!annotation) {
+      if (annotation) {
+        let language = annotation.locale;
+        if (annotation.locale in GoogleLocalesText) {
+          language = GoogleLocalesText[annotation.locale];
+        }
+        embed.setTitle(language);
+        embed.setDescription(Markup.codeblock(annotation.description));
+      } else {
         embed.setColor(EmbedColors.ERROR);
         embed.setTitle('⚠ Command Error');
         embed.setDescription('No text detected');
-
-        return context.editOrReply({embed});
       }
-
-      if (annotation.locale in GoogleLocalesText) {
-        embed.setTitle(GoogleLocalesText[annotation.locale]);
-      } else {
-        embed.setTitle(annotation.locale);
-      }
-      embed.setDescription(Markup.codeblock(annotation.description));
-      embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
 
       return context.editOrReply({embed});
     }

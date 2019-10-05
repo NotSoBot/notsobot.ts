@@ -30,6 +30,27 @@ export async function request(
 }
 
 
+export interface GoogleContentVisionOCR {
+  url: string,
+}
+
+export async function googleContentVisionOCR(
+  context: Command.Context,
+  options: GoogleContentVisionOCR,
+): Promise<any> {
+  const body = {
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/google/content-vision/ocr',
+    },
+  });
+}
+
+
 export interface GoogleSearch {
   locale?: string,
   maxResults?: number,
@@ -80,28 +101,7 @@ export async function googleSearchImages(
     query,
     route: {
       method: RestConstants.HTTPMethods.GET,
-      path: '/google/images',
-    },
-  });
-}
-
-
-export interface GoogleSearchContentVisionOCR {
-  url: string,
-}
-
-export async function googleContentVisionOCR(
-  context: Command.Context,
-  options: GoogleSearchContentVisionOCR,
-): Promise<any> {
-  const body = {
-    url: options.url,
-  };
-  return request(context, {
-    body,
-    route: {
-      method: RestConstants.HTTPMethods.POST,
-      path: '/google/content-vision/ocr',
+      path: '/google/search/images',
     },
   });
 }
@@ -127,6 +127,7 @@ export async function googleSearchYoutube(
   });
 }
 
+
 export interface GoogleTranslate {
   from?: string,
   text: string,
@@ -150,6 +151,7 @@ export async function googleTranslate(
     },
   });
 }
+
 
 
 export interface ImageResize {
@@ -178,6 +180,7 @@ export async function imageResize(
     },
   });
 }
+
 
 
 export interface SearchDuckDuckGo {
