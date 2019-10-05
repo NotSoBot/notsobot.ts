@@ -10,10 +10,10 @@ import { Arguments, Paginator, onRunError, onTypeError } from '../utils';
 export default (<Command.CommandOptions> {
   name: 'image',
   aliases: ['img'],
-  args: [Arguments.Locale, Arguments.Safe],
+  args: [Arguments.GoogleLocale, Arguments.Safe],
   label: 'query',
   metadata: {
-    description: 'Search google images',
+    description: 'Search Google Images',
     examples: [
       'image notsobot',
       'image notsobot -locale russian',
@@ -31,7 +31,7 @@ export default (<Command.CommandOptions> {
     const channel = context.channel;
     return (channel) ? channel.canEmbedLinks : false;
   },
-  onCancel: (context) => context.reply('⚠ Unable to embed in this channel.'),
+  onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
   onBeforeRun: (context, args) => !!args.query,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
   run: async (context, args) => {
@@ -40,7 +40,6 @@ export default (<Command.CommandOptions> {
     const results = await searchGoogleImages(context, args);
     if (results.length) {
       const pageLimit = results.length;
-
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
@@ -61,7 +60,7 @@ export default (<Command.CommandOptions> {
           }
           embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
-          embed.setDescription(`[${Markup.escape.all(result.description)}](${result.url})`);
+          embed.setDescription(Markup.url(Markup.escape.all(result.description), result.url));
           embed.setImage(result.image.url);
 
           return embed;

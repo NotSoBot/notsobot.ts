@@ -61,7 +61,7 @@ export default (<Command.CommandOptions> {
 
           const definition = result.definition.replace(ReplacementRegex, (found: string, word: string) => {
             const url = addQuery(UrbanUrl, {term: word});
-            return `[${word}](${url})`;
+            return Markup.url(word, url);
           });
           embed.setDescription([
             `Created by ${Markup.escape.all(result.author)} on ${created.toLocaleString('en-US', DateOptions)}`,
@@ -71,7 +71,7 @@ export default (<Command.CommandOptions> {
 
           const example = result.example.replace(ReplacementRegex, (found: string, word: string) => {
             const url = addQuery(UrbanUrl, {term: word});
-            return `[${word}](${url})`;
+            return Markup.url(word, url);
           });
           embed.addField('Example', Markup.escape.all(example));
           embed.setFooter(`Page ${page}/${pageLimit} of Urban Dictionary Results`, EmbedBrands.URBAN);

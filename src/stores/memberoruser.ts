@@ -1,10 +1,12 @@
-import { Collections, Structures } from 'detritus-client';
+import { Structures } from 'detritus-client';
+
+import { Store } from './store';
 
 
 export type MemberOrUser = Structures.Member | Structures.User | null;
 
 // Stores if we fetched a guild via the rest api or not
-class MemberOrUserStore extends Collections.BaseCollection<string, MemberOrUser> {
+class MemberOrUserStore extends Store<string, MemberOrUser> {
   constructor() {
     super({expire: (2 * 60) * 1000});
   }

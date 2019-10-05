@@ -25,10 +25,10 @@ export interface CommandArgs {
 export default (<Command.CommandOptions> {
   name: 'google',
   aliases: ['g'],
-  args: [Arguments.Locale, Arguments.Safe],
+  args: [Arguments.GoogleLocale, Arguments.Safe],
   label: 'query',
   metadata: {
-    description: 'Search google',
+    description: 'Search Google',
     examples: [
       'google notsobot',
       'google notsobot -locale russian',
@@ -46,7 +46,7 @@ export default (<Command.CommandOptions> {
     const channel = context.channel;
     return (channel) ? channel.canEmbedLinks : false;
   },
-  onCancel: (context) => context.reply('⚠ Unable to embed in this channel.'),
+  onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
   onBeforeRun: (context, args) => !!args.query,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
   run: async (context, args: CommandArgs) => {
@@ -65,9 +65,14 @@ export default (<Command.CommandOptions> {
       for (let i = 0; i < results.length; i += RESULTS_PER_PAGE) {
         const page: Array<any> = [];
         for (let x = 0; x < RESULTS_PER_PAGE; x++) {
-          page.push(results[i + x]);
+          const result = results[i + x];
+          if (result) {
+            page.push(result);
+          }
         }
-        pages.push(page);
+        if (page.length) {
+          pages.push(page);
+        }
       }
 
       if (pages.length) {
@@ -91,14 +96,14 @@ export default (<Command.CommandOptions> {
 
               for (let result of page) {
                 const description: Array<string> = [
-                  `[**${Markup.escape.all(result.cite)}**](${result.url})`,
+                  Markup.url(`**${Markup.escape.all(result.cite)}**`, result.url),
                   Markup.escape.all(result.description),
                 ];
                 if (result.suggestions.length) {
                   description.push([
                     `**Suggestions**:`,
                     result.suggestions.map((suggestion: {text: string, url: string}) => {
-                      return `[${Markup.escape.all(suggestion.text)}](${suggestion.url})`;
+                      return Markup.url(Markup.escape.all(suggestion.text), suggestion.url);
                     }).join(', '),
                   ].join(' '));
                 }

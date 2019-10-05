@@ -1,12 +1,11 @@
-import {
-  GatewayClientEvents,
-  Collections,
-} from 'detritus-client';
+import { GatewayClientEvents } from 'detritus-client';
+
+import { Store } from './store';
 
 
 export type GuildMembersChunkStored = GatewayClientEvents.GuildMembersChunk | null;
 
-class GuildMembersChunkStore extends Collections.BaseCollection<string, GuildMembersChunkStored> {
+class GuildMembersChunkStore extends Store<string, GuildMembersChunkStored> {
   constructor() {
     super({expire: (60) * 1000});
   }

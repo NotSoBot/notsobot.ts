@@ -12,6 +12,8 @@ const {
   VerificationLevels,
 } = Constants;
 
+export { DiscordLocales };
+
 
 export const BooleanEmojis = Object.freeze({
   NO: '❌',
@@ -34,6 +36,7 @@ export const CommandTypes = Tools.normalize({
   INFO: null,
   OWNER: null,
   SEARCH: null,
+  SETTINGS: null,
   TOOLS: null,
 });
 

@@ -2,10 +2,39 @@ import { Command, Constants } from 'detritus-client';
 
 const { GuildExplicitContentFilterTypes } = Constants;
 
-import { GoogleLocaleFromDiscord, GoogleLocales, GOOGLE_LOCALES } from '../constants';
+import {
+  DiscordLocales,
+  GoogleLocaleFromDiscord,
+  GoogleLocales,
+  GOOGLE_LOCALES,
+} from '../constants';
 
 
-export const Locale: Command.ArgumentOptions = Object.freeze({
+export const DiscordLocale: Command.ArgumentOptions = Object.freeze({
+  aliases: ['language'],
+  name: 'locale',
+  type: (value) => {
+    if (value) {
+      value = value.toLowerCase().replace(/ /g, '_');
+      for (let key in DiscordLocales) {
+        const locale = (<any> DiscordLocales)[key];
+        if (locale.toLowerCase() === value) {
+          return locale;
+        }
+      }
+      for (let key in DiscordLocales) {
+        const name = key.toLowerCase();
+        if (name.includes(value)) {
+          return (<any> DiscordLocales)[key];
+        }
+      }
+      throw new Error(`Must be one of ${Object.values(DiscordLocales).map((locale) => `\`${locale}\``).join(', ')}`);
+    }
+    return null;
+  },
+});
+
+export const GoogleLocale: Command.ArgumentOptions = Object.freeze({
   aliases: ['language'],
   name: 'locale',
   default: (context: Command.Context) => {

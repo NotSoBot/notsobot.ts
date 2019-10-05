@@ -44,12 +44,11 @@ export default (<Command.CommandOptions> {
     await context.triggerTyping();
 
     const ocr = await searchGoogleContentVisionOCR(context, {url: args.url});
-    const [ response ] = ocr.responses;
-    const { textAnnotations } = response;
+    const { text_annotations: textAnnotations } = ocr;
 
     if (args.noembed) {
       if (!textAnnotations.length) {
-        return context.editOrReply({content: '⚠ No text detect'});
+        return context.editOrReply({content: '⚠ No text detected'});
       }
 
       const annotation = textAnnotations[0];

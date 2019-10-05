@@ -68,7 +68,10 @@ export default (<Command.CommandOptions> {
         } else {
           embed.setAuthor(application.name);
         }
-        embed.setDescription(application.description);
+        embed.setDescription([
+          `**Id**: \`${application.id}\`\n`,
+          application.description,
+        ].join('\n'));
 
         if (application.splash) {
           const thumbnail = <string> application.splashUrlFormat(null, {size: 1024});

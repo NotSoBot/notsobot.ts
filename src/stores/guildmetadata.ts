@@ -1,4 +1,7 @@
-import { Collections, Structures } from 'detritus-client';
+import { Collections, Constants, GatewayClientEvents, Structures } from 'detritus-client';
+const { ClientEvents } = Constants;
+
+import { Store } from './store';
 
 
 export interface GuildMetadataStored {
@@ -11,13 +14,21 @@ export interface GuildMetadataStored {
 }
 
 // Stores rest-fetched guilds
-class GuildMetadataStore extends Collections.BaseCollection<string, GuildMetadataStored> {
+class GuildMetadataStore extends Store<string, GuildMetadataStored> {
   constructor() {
     super({expire: (2 * 60) * 1000});
   }
 
   insert(key: string, payload: GuildMetadataStored): void {
     this.set(key, payload);
+  }
+
+  create() {
+    this.listeners[ClientEvents.GUILD_DELETE] = async (event: GatewayClientEvents.GuildDelete) => {
+      const { guildId } = event;
+
+      this.delete(guildId);
+    };
   }
 }
 

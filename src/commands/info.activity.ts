@@ -2,6 +2,8 @@ import { URLSearchParams } from 'url';
 
 import { Command, Structures, Utils } from 'detritus-client';
 
+const { Markup } = Utils;
+
 import {
   CommandTypes,
   PresenceStatusColors,
@@ -105,7 +107,7 @@ export default (<Command.CommandOptions> {
             {
               const description = [];
               if (activity.isCustomStatus) {
-                description.push(`Custom Status: ${activity.state}`);
+                description.push(`Custom Status: ${Markup.escape.all(activity.state || '')}`);
   
                 if (activity.details) {
                   try {
@@ -122,7 +124,7 @@ export default (<Command.CommandOptions> {
                   }
                 }
               } else {
-                const text = [activity.typeText, activity.name];
+                const text = [activity.typeText, Markup.escape.all(activity.name || '')];
                 description.push(text.filter((v) => v).join(' '));
                 if (activity.isOnSpotify) {
                   if (activity.assets && activity.assets.largeText) {
@@ -136,10 +138,10 @@ export default (<Command.CommandOptions> {
                   }
                 } else {
                   if (activity.details) {
-                    description.push(`**Details**: ${activity.details}`);
+                    description.push(`**Details**: ${Markup.escape.all(activity.details)}`);
                   }
                   if (activity.state) {
-                    description.push(`**State**: ${activity.state}`);
+                    description.push(`**State**: ${Markup.escape.all(activity.state)}`);
                   }
                 }
                 if (activity.isOnXbox) {

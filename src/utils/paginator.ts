@@ -58,7 +58,6 @@ export interface PaginatorOptions {
 }
 
 export class Paginator {
-  readonly callbacks: {[key: string]: Function | null};
   readonly context: Command.Context | Structures.Message;
   readonly custom: {
     expire: number,
@@ -151,14 +150,12 @@ export class Paginator {
       }
     }
 
-    this.callbacks = {};
     this.onError = options.onError;
     this.onExpire = options.onExpire;
     this.onPage = options.onPage;
     this.onPageNumber = options.onPageNumber;
 
     Object.defineProperties(this, {
-      callbacks: {enumerable: false},
       context: {enumerable: false},
       custom: {enumerable: false},
       emojis: {enumerable: false},
@@ -234,53 +231,7 @@ export class Paginator {
     }
   }
 
-  async onChannelDelete({channel}: GatewayClientEvents.ChannelDelete) {
-    if (this.message && channel.id === this.message.channelId) {
-      this.message = null;
-      this.custom.message = null;
-      await this.clearCustomMessage();
-      await this.onStop();
-    }
-  }
-
-  async onMessageCreate({message}: GatewayClientEvents.MessageCreate) {
-    if (!this.message || message.channelId !== this.message.channelId) {
-      return;
-    }
-    if (this.custom.message) {
-      if (message.author.id !== this.custom.userId && !message.author.isClientOwner) {
-        return;
-      }
-      let page = parseInt(message.content);
-      if (!isNaN(page)) {
-        page = Math.max(MIN_PAGE, Math.min(page, this.pageLimit));
-        await this.clearCustomMessage();
-        if (message.canDelete) {
-          try {
-            await message.delete();
-          } catch(error) {}
-        }
-        await this.setPage(page);
-      }
-    }
-  }
-
-  async onMessageDelete({raw}: GatewayClientEvents.MessageDelete) {
-    if (this.message && this.message.id === raw.id) {
-      this.message = null;
-      await this.onStop();
-    }
-    if (this.custom.message && this.custom.message.id === raw.id) {
-      this.custom.message = null;
-      await this.clearCustomMessage();
-    }
-  }
-
-  async onMessageReactionAdd({
-    messageId,
-    reaction,
-    userId,
-  }: GatewayClientEvents.MessageReactionAdd) {
+  async onMessageReactionAdd({messageId, reaction, userId}: GatewayClientEvents.MessageReactionAdd) {
     if (this.stopped) {
       return;
     }
@@ -360,12 +311,6 @@ export class Paginator {
     }
   }
 
-  async onMessageReactionRemoveAll({messageId}: GatewayClientEvents.MessageReactionRemoveAll) {
-    if (this.message && this.message.id === messageId) {
-      await this.onStop();
-    }
-  }
-
   async onStop(error?: any, clearEmojis: boolean = true) {
     if (PaginatorsStore.has(this.context.channelId)) {
       const paginator = <Paginator> PaginatorsStore.get(this.context.channelId);
@@ -403,13 +348,6 @@ export class Paginator {
   }
 
   reset() {
-    for (let callback in this.callbacks) {
-      const func = this.callbacks[callback];
-      if (func !== null) {
-        this.context.client.removeListener(callback, func);
-        this.callbacks[callback] = null;
-      }
-    }
     this.timeout.stop();
     this.custom.timeout.stop();
     this.ratelimitTimeout.stop();
@@ -442,19 +380,6 @@ export class Paginator {
         }
       }
       PaginatorsStore.insert(this);
-
-      this.callbacks[ClientEvents.CHANNEL_DELETE] = this.onChannelDelete.bind(this);
-      this.callbacks[ClientEvents.MESSAGE_CREATE] = this.onMessageCreate.bind(this);
-      this.callbacks[ClientEvents.MESSAGE_DELETE] = this.onMessageDelete.bind(this);
-      this.callbacks[ClientEvents.MESSAGE_REACTION_ADD] = this.onMessageReactionAdd.bind(this);
-      this.callbacks[ClientEvents.MESSAGE_REACTION_REMOVE_ALL] = this.onMessageReactionRemoveAll.bind(this);
-
-      for (let callback in this.callbacks) {
-        const func = this.callbacks[callback];
-        if (func !== null) {
-          this.context.client.addListener(callback, func);
-        }
-      }
 
       this.timeout.start(this.expires, this.onStop.bind(this));
       try {

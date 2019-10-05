@@ -51,7 +51,7 @@ export default (<Command.CommandOptions> {
 
           const result = results[page - 1];
           embed.setTitle(`Found from ${result.source}`);
-          embed.setDescription(`[${Markup.escape.all(result.title)}](${result.url})`);
+          embed.setDescription(Markup.url(Markup.escape.all(result.title), result.url));
           embed.setImage(result.image);
 
           return embed;

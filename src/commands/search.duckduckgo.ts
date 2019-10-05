@@ -65,7 +65,7 @@ export default (<Command.CommandOptions> {
           const page = pages[pageNumber - 1];
           for (let result of page) {
             const description: Array<string> = [
-              `[**${Markup.escape.all(result.cite)}**](${result.url})`,
+              Markup.url(`**${Markup.escape.all(result.cite)}**`, result.url),
               Markup.escape.all(result.description),
             ];
             embed.addField(`**${Markup.escape.all(result.title)}**`, description.join('\n'));

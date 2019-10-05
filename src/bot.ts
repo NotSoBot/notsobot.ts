@@ -3,9 +3,11 @@ import './bootstrap';
 import { Constants, ShardClient } from 'detritus-client';
 
 import { NotSoClient } from './client';
+import { Paginator } from './utils';
 
 import GuildChannelsStore from './stores/guildchannels';
 import GuildMetadataStore from './stores/guildmetadata';
+import PaginatorsStore from './stores/paginators';
 
 const { ActivityTypes, PresenceStatuses } = Constants;
 
@@ -78,10 +80,9 @@ bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
   const cluster = bot.client;
   process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
 
-  cluster.on('guildDelete', ({guildId}) => {
-    GuildChannelsStore.delete(guildId);
-    GuildMetadataStore.delete(guildId);
-  });
+  GuildChannelsStore.connect(cluster);
+  GuildMetadataStore.connect(cluster);
+  PaginatorsStore.connect(cluster);
 
   cluster.on('restResponse', ({response, restRequest, shard}) => {
     const route = response.request.route;
