@@ -200,8 +200,7 @@ export const GoogleLocalesText = Object.freeze({
 });
 
 export const GoogleLocaleFromDiscord = Object.freeze({
-  [DiscordLocales.ENGLISH_GB]: GoogleLocales.ENGLISH_UK,
-  [DiscordLocales.ENGLISH_USA]: GoogleLocales.ENGLISH,
+  [DiscordLocales.ENGLISH_US]: GoogleLocales.ENGLISH,
   [DiscordLocales.SPANISH]: GoogleLocales.SPANISH,
   [DiscordLocales.SWEDISH]: GoogleLocales.SWEDISH,
 });
