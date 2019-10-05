@@ -4,7 +4,7 @@ import { Command, Utils } from 'detritus-client';
 
 const { Markup } = Utils;
 
-import { searchGoogleYoutube } from '../api';
+import { googleSearchYoutube } from '../api';
 import { CommandTypes, EmbedBrands, EmbedColors, YoutubeResultTypes } from '../constants';
 import { Paginator, onRunError, onTypeError } from '../utils';
 
@@ -40,7 +40,7 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
-    const results = await searchGoogleYoutube(context, args);
+    const results = await googleSearchYoutube(context, args);
     if (results.length) {
       const pageLimit = results.length;
       const paginator = new Paginator(context, {

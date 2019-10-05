@@ -30,6 +30,128 @@ export async function request(
 }
 
 
+export interface GoogleSearch {
+  locale?: string,
+  maxResults?: number,
+  query: string,
+  safe?: boolean | string,
+  showUnknown?: boolean | string,
+}
+
+export async function googleSearch(
+  context: Command.Context,
+  options: GoogleSearch,
+): Promise<any> {
+  const query = {
+    locale: options.locale,
+    max_results: options.maxResults,
+    query: options.query,
+    safe: options.safe,
+    show_unknown: options.showUnknown,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/google/search',
+    },
+  });
+}
+
+
+export interface GoogleSearchImages {
+  locale?: string,
+  maxResults?: number,
+  query: string,
+  safe?: boolean | string,
+}
+
+export async function googleSearchImages(
+  context: Command.Context,
+  options: GoogleSearchImages,
+): Promise<any> {
+  const query = {
+    locale: options.locale,
+    max_results: options.maxResults,
+    query: options.query,
+    safe: options.safe,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/google/images',
+    },
+  });
+}
+
+
+export interface GoogleSearchContentVisionOCR {
+  url: string,
+}
+
+export async function googleContentVisionOCR(
+  context: Command.Context,
+  options: GoogleSearchContentVisionOCR,
+): Promise<any> {
+  const body = {
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/google/content-vision/ocr',
+    },
+  });
+}
+
+
+export interface GoogleSearchYoutube {
+  query: string,
+}
+
+export async function googleSearchYoutube(
+  context: Command.Context,
+  options: GoogleSearchYoutube,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/google/search/youtube',
+    },
+  });
+}
+
+export interface GoogleTranslate {
+  from?: string,
+  text: string,
+  to?: string,
+}
+
+export async function googleTranslate(
+  context: Command.Context,
+  options: GoogleTranslate,
+): Promise<any> {
+  const query = {
+    from: options.from,
+    text: options.text,
+    to: options.to,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/google/translate',
+    },
+  });
+}
+
+
 export interface ImageResize {
   convert?: string,
   scale?: number,
@@ -95,104 +217,6 @@ export async function searchDuckDuckGoImages(
     route: {
       method: RestConstants.HTTPMethods.GET,
       path: '/search/duckduckgo/images',
-    },
-  });
-}
-
-
-export interface SearchGoogle {
-  locale?: string,
-  maxResults?: number,
-  query: string,
-  safe?: boolean | string,
-  showUnknown?: boolean | string,
-}
-
-export async function searchGoogle(
-  context: Command.Context,
-  options: SearchGoogle,
-): Promise<any> {
-  const query = {
-    locale: options.locale,
-    max_results: options.maxResults,
-    query: options.query,
-    safe: options.safe,
-    show_unknown: options.showUnknown,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: RestConstants.HTTPMethods.GET,
-      path: '/search/google',
-    },
-  });
-}
-
-
-export interface SearchGoogleImages {
-  locale?: string,
-  maxResults?: number,
-  query: string,
-  safe?: boolean | string,
-}
-
-export async function searchGoogleImages(
-  context: Command.Context,
-  options: SearchGoogleImages,
-): Promise<any> {
-  const query = {
-    locale: options.locale,
-    max_results: options.maxResults,
-    query: options.query,
-    safe: options.safe,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: RestConstants.HTTPMethods.GET,
-      path: '/search/google/images',
-    },
-  });
-}
-
-
-export interface SearchGoogleContentVisionOCR {
-  url: string,
-}
-
-export async function searchGoogleContentVisionOCR(
-  context: Command.Context,
-  options: SearchGoogleContentVisionOCR,
-): Promise<any> {
-  const body = {
-    url: options.url,
-  };
-  return request(context, {
-    body,
-    route: {
-      method: RestConstants.HTTPMethods.POST,
-      path: '/search/google/content-vision/ocr',
-    },
-  });
-}
-
-
-export interface SearchGoogleYoutube {
-  query: string,
-}
-
-export async function searchGoogleYoutube(
-  context: Command.Context,
-  options: SearchGoogleYoutube,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: RestConstants.HTTPMethods.GET,
-      path: '/search/google/youtube',
     },
   });
 }

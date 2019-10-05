@@ -13,7 +13,7 @@ export default (<Command.CommandOptions> {
     examples: [
       'usage',
     ],
-    type: CommandTypes.TOOLS,
+    type: CommandTypes.UTILS,
     usage: 'usage',
   },
   ratelimit: {

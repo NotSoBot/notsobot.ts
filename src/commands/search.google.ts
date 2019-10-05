@@ -2,7 +2,7 @@ import { Command, Utils } from 'detritus-client';
 
 const { Markup } = Utils;
 
-import { searchGoogle } from '../api';
+import { googleSearch } from '../api';
 import {
   CommandTypes,
   EmbedBrands,
@@ -52,7 +52,7 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
-    const { cards, results } = await searchGoogle(context, args);
+    const { cards, results } = await googleSearch(context, args);
     if (cards.length || results.length) {
       const pages: Array<any> = [];
 
@@ -88,7 +88,7 @@ export default (<Command.CommandOptions> {
             if (args.locale in GoogleLocalesText) {
               footer = `${footer} (${GoogleLocalesText[args.locale]})`;
             }
-             embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
+            embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
             const page = pages[pageNumber - 1];
             if (Array.isArray(page)) {

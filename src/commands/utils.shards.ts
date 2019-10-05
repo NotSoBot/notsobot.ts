@@ -11,7 +11,7 @@ export default (<Command.CommandOptions> {
     examples: [
       'shards',
     ],
-    type: CommandTypes.TOOLS,
+    type: CommandTypes.UTILS,
     usage: 'shards',
   },
   ratelimit: {

@@ -2,7 +2,7 @@ import { Command, Utils } from 'detritus-client';
 
 const { Markup } = Utils;
 
-import { searchGoogleContentVisionOCR } from '../api';
+import { googleContentVisionOCR } from '../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
 import { Parameters, onRunError, onTypeError } from '../utils';
 
@@ -23,7 +23,7 @@ export default (<Command.CommandOptions> {
       'ocr cake',
       'ocr https://cdn.notsobot.com/brands/notsobot.png',
     ],
-    type: CommandTypes.SEARCH,
+    type: CommandTypes.TOOLS,
     usage: 'ocr ?<emoji|id|mention|name|url> (-noembed)',
   },
   type: Parameters.lastImageUrl,
@@ -43,15 +43,13 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
-    const ocr = await searchGoogleContentVisionOCR(context, {url: args.url});
-    const { text_annotations: textAnnotations } = ocr;
+    const { annotation } = await googleContentVisionOCR(context, {url: args.url});
 
     if (args.noembed) {
-      if (!textAnnotations.length) {
+      if (!annotation) {
         return context.editOrReply({content: '⚠ No text detected'});
       }
 
-      const annotation = textAnnotations[0];
       let title: string;
       if (annotation.locale in GoogleLocalesText) {
         title = GoogleLocalesText[annotation.locale];
@@ -67,7 +65,7 @@ export default (<Command.CommandOptions> {
       const embed = new Utils.Embed();
       embed.setColor(EmbedColors.DEFAULT);
 
-      if (!textAnnotations.length) {
+      if (!annotation) {
         embed.setColor(EmbedColors.ERROR);
         embed.setTitle('⚠ Command Error');
         embed.setDescription('No text detected');
@@ -75,13 +73,12 @@ export default (<Command.CommandOptions> {
         return context.editOrReply({embed});
       }
 
-      const annotation = textAnnotations[0];
       if (annotation.locale in GoogleLocalesText) {
         embed.setTitle(GoogleLocalesText[annotation.locale]);
       } else {
         embed.setTitle(annotation.locale);
       }
-      embed.setDescription(Markup.codeblock(annotation.description, {mentions: false}));
+      embed.setDescription(Markup.codeblock(annotation.description));
       embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
 
       return context.editOrReply({embed});

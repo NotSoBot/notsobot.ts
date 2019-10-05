@@ -11,7 +11,7 @@ export default (<Command.CommandOptions> {
     examples: [
       'ping',
     ],
-    type: CommandTypes.TOOLS,
+    type: CommandTypes.UTILS,
     usage: 'ping',
   },
   ratelimit: {

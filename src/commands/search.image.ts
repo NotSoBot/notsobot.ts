@@ -2,7 +2,7 @@ import { Command, Utils } from 'detritus-client';
 
 const { Markup } = Utils;
 
-import { searchGoogleImages } from '../api';
+import { googleSearchImages } from '../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
 import { Arguments, Paginator, onRunError, onTypeError } from '../utils';
 
@@ -37,7 +37,7 @@ export default (<Command.CommandOptions> {
   run: async (context, args) => {
     await context.triggerTyping();
 
-    const results = await searchGoogleImages(context, args);
+    const results = await googleSearchImages(context, args);
     if (results.length) {
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
