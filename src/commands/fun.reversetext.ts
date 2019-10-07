@@ -23,7 +23,7 @@ export default (<Command.CommandOptions> {
   onBeforeRun: (context, args) => !!args.text,
   onCancelRun: (context) => context.editOrReply('Provide some text.'),
   run: async (context) => {
-    const content = context.message.convertContent().split('').reverse().join();
+    const content = context.message.convertContent().split('').shift().reverse().join();
     return context.editOrReply(Markup.escape.all(content));
   },
 });
