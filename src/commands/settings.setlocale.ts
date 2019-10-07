@@ -29,7 +29,7 @@ export default (<Command.CommandOptions> {
     if (!context.channel || !context.channel.canEmbedLinks) {
       return false;
     }
-    if (!context.guild || !context.guild.me || !context.guild.me.canManageGuild) {
+    if (!context.me || !context.me.canManageGuild) {
       return false;
     }
     if (!context.member || !context.member.canManageGuild) {
@@ -41,7 +41,7 @@ export default (<Command.CommandOptions> {
     if (!context.channel || !context.channel.canEmbedLinks) {
       return context.editOrReply('⚠ Unable to embed in this channel.');
     }
-    if (!context.guild || !context.guild.me || !context.guild.me.canManageGuild) {
+    if (!context.me || !context.me.canManageGuild) {
       return context.editOrReply('⚠ I need to have Manage Guild permissions.');
     }
     if (!context.member || !context.member.canManageGuild) {

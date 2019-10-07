@@ -3,7 +3,7 @@ import { Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { googleContentVisionOCR, googleTranslate } from '../api';
-import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocalesText } from '../constants';
+import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../constants';
 import { Arguments, Parameters, onRunError, onTypeError } from '../utils';
 
 
@@ -65,13 +65,18 @@ export default (<Command.CommandOptions> {
     embed.setFooter('Google Translate from OCR', EmbedBrands.GOOGLE_GO);
 
     if (annotation) {
+      let locale: string | undefined;
+      if (annotation.locale in GoogleLocales) {
+        locale = annotation.locale;
+      }
+
       const {
         from_text: fromText,
         from_language: fromLanguage,
         translated_language: translatedLanguage,
         translated_text: translatedText,
       } = await googleTranslate(context, {
-        from: annotation.locale,
+        from: locale,
         text: annotation.description,
         to: args.to || undefined,
       });

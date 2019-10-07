@@ -38,16 +38,8 @@ export default (<Command.CommandOptions> {
     usage: 'google <query> (-locale <language>) (-safe)',
   },
   ratelimits: [
-    {
-      duration: 5000,
-      limit: 5,
-      type: 'guild',
-    },
-    {
-      duration: 1000,
-      limit: 1,
-      type: 'channel',
-    },
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
   ],
   onBefore: (context) => {
     const channel = context.channel;
@@ -104,7 +96,7 @@ export default (<Command.CommandOptions> {
               for (let result of page) {
                 const description: Array<string> = [
                   Markup.url(`**${Markup.escape.all(result.cite)}**`, result.url),
-                  Markup.escape.all(result.description),
+                  (result.description) ? Markup.escape.all(result.description) : '',
                 ];
                 if (result.suggestions.length) {
                   description.push([

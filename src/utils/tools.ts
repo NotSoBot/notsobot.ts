@@ -426,7 +426,7 @@ export async function onRunError(
   }
 
   embed.setDescription(description.join('\n'));
-  return context.editOrReply({content: '', embed});
+  return context.editOrReply({embed});
 }
 
 export function onTypeError(
@@ -447,5 +447,5 @@ export function onTypeError(
   }
 
   embed.setDescription(description.join('\n'));
-  return context.editOrReply({content: '', embed});
+  return context.editOrReply({embed});
 }

@@ -261,6 +261,13 @@ export async function lastImageUrl(
   }
 
   {
+    const url = findImageUrlInMessages([context.message]);
+    if (url) {
+      return url;
+    }
+  }
+
+  {
     const { matches } = Utils.regex(DiscordRegexNames.TEXT_URL, value);
     if (matches.length) {
       const { text } = <{text: string}> matches[0];
@@ -378,6 +385,15 @@ export async function lastImageUrls(
     return null;
   }
 
+  const urls = new Set<string>();
+
+  {
+    const url = findImageUrlInMessages([context.message]);
+    if (url) {
+      urls.add(url);
+    }
+  }
+
   {
     const { matches } = Utils.regex(DiscordRegexNames.TEXT_URL, value);
     if (matches.length) {
@@ -386,11 +402,14 @@ export async function lastImageUrls(
         await Timers.sleep(1000);
       }
       const url = findImageUrlInMessages([context.message]);
-      return [url || text];
+      urls.add(url || text);
     }
   }
 
-  const urls = new Set<string>();
+  if (urls.size) {
+    return Array.from(urls);
+  }
+
   const values = Array.from(new Set(value.split(' ')));
   for (let i = 0; i < Math.min(5, values.length); i++) {
     if (3 <= urls.size) {

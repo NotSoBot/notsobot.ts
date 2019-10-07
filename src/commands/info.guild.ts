@@ -142,7 +142,7 @@ export default (<Command.CommandOptions> {
         const name = getChannelName(guild.afkChannelId);
         description.push(`**AFK**: ${name}`);
       }
-      const defaultChannel = channels.find((channel: Structures.Channel) => channel.position === 0 && channel.type === 0);
+      const defaultChannel = channels.find((channel: Structures.Channel) => channel.position === 0 && channel.isGuildText);
       if (defaultChannel) {
         const name = (context.guildId === guild.id) ? defaultChannel.mention : `${defaultChannel} (${defaultChannel.id})`;
         description.push(`**Default**: ${name}`);
@@ -205,7 +205,11 @@ export default (<Command.CommandOptions> {
         column.push(`Members: ${memberCount.toLocaleString()}`);
         column.push(`Overwrites: ${channels.reduce((x: number, channel: Structures.Channel) => x + channel.permissionOverwrites.length, 0).toLocaleString()}`);
         column.push(`Presences: ${presenceCount.toLocaleString()}`);
+
+        const managedRoles = guild.roles.filter((role) => role.managed).length;
         column.push(`Roles: ${guild.roles.length.toLocaleString()}`);
+        column.push(` -[Managed]: ${managedRoles.toLocaleString()}`);
+        column.push(` -[Regular]: ${(guild.roles.length - managedRoles).toLocaleString()}`);
         column.push(`VoiceStates: ${voiceStateCount.toLocaleString()}`);
 
         embed.addField('Counts', [

@@ -79,7 +79,7 @@ export default (<Command.CommandOptions> {
               description.push(`**Duration**: ${duration}`);
 
               description.push(`**Family Friendly**: ${(video.is_family_friendly) ? 'Yes' : 'No'}`)
-              description.push(`**Monetized**: ${(video.is_monetized) ? 'Yes' : 'No'}`);
+              description.push(`**Monetized**: ${(video.is_paid) ? 'Yes' : 'No'}`);
               if (video.published) {
                 const date = moment(video.published);
                 description.push(`**Published**: ${date.format('MMMM Do YYYY')}`);

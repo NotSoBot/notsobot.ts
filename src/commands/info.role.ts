@@ -91,6 +91,7 @@ export default (<Command.CommandOptions> {
 
       description.push(`**Created**: ${role.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Default Role**: ${(role.isDefault) ? 'Yes' : 'No'}`);
+      description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
 
       embed.addField('Information', description.join('\n'), true);
     }
