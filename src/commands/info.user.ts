@@ -163,23 +163,16 @@ export default (<Command.CommandOptions> {
             const activity = activities[activityId];
 
             const description = [];
+
+            if (activity.emoji) {
+              if (activity.emoji.id) {
+                description.push(`Emoji: [${activity.emoji.format}](${activity.emoji.url})`);
+              } else {
+                description.push(`Emoji: ${activity.emoji.format}`);
+              }
+            }
             if (activity.isCustomStatus) {
               description.push(`Custom Status: ${Markup.escape.all(activity.state || '')}`);
-
-              if (activity.details) {
-                try {
-                  const details = new URLSearchParams(activity.details);
-                  const channelId = details.get('c') || '';
-                  if (context.channels.has(channelId)) {
-                    const channel = <Structures.Channel> context.channels.get(channelId);
-                    if (channel.isGuildVoice) {
-                      description.push(`In Voice: ${channel.mention} (${channel.id})`);
-                    }
-                  }
-                } catch(error) {
-
-                }
-              }
             } else {
               const text = [activity.typeText, Markup.escape.all(activity.name || '')];
               description.push(text.filter((v) => v).join(' '));
