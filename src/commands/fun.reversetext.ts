@@ -20,6 +20,6 @@ export default (<Command.CommandOptions> {
   },
   onCancelRun: (context) => context.editOrReply('Provide some text.'),
   run: async (context) => {
-    return context.editOrReply(context.message.toString().split('').reverse().join())
+    return context.editOrReply(context.message.convertContent().split('').reverse().join())
   },
 });
