@@ -4,6 +4,10 @@ const { Markup } = Utils;
 import { CommandTypes } from '../constants';
 
 
+export interface CommandArgs {
+  text: string,
+}
+
 export default (<Command.CommandOptions> {
   name: 'reversetext',
   aliases: ['reverse', 'r'],
@@ -22,8 +26,9 @@ export default (<Command.CommandOptions> {
   ],
   onBeforeRun: (context, args) => !!args.text,
   onCancelRun: (context) => context.editOrReply('Provide some text.'),
-  run: async (context) => {
-    const content = context.message.convertContent().split('').shift().reverse().join();
-    return context.editOrReply(Markup.escape.all(content));
+  run: async (context, args: CommandArgs) => {
+    const text = context.message.convertContent({text: args.text});
+    const reversed = text.split('').reverse().join('');
+    return context.editOrReply(Markup.escape.all(reversed));
   },
 });
