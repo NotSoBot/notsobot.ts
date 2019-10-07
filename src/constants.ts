@@ -32,6 +32,7 @@ export const ChannelTypesText: {[key: number]: string} = Object.freeze({
 });
 
 export const CommandTypes = Tools.normalize({
+  FUN: null,
   IMAGE: null,
   INFO: null,
   OWNER: null,
