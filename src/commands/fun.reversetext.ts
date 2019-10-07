@@ -1,4 +1,5 @@
 import { Command } from 'detritus-client';
+import { CommandTypes } from '../constants';
 
 
 export default (<Command.CommandOptions> {
@@ -10,7 +11,15 @@ export default (<Command.CommandOptions> {
     limit: 5,
     type: 'guild',
   },
+  metadata: {
+    description: 'Reverse text',
+    examples: [
+        'r NotSoBot'
+    ],
+    type: CommandTypes.FUN,
+  },
+  onCancelRun: (context) => context.editOrReply('Provide some text.'),
   run: async (context) => {
-
+    return context.editOrReply(context.message.toString().split('').reverse().join())
   },
 });
