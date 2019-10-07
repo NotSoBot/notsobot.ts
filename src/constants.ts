@@ -39,6 +39,7 @@ export const CommandTypes = Tools.normalize({
   SETTINGS: null,
   TOOLS: null,
   UTILS: null,
+  FUN: null,
 });
 
 export const DateOptions = Object.freeze({

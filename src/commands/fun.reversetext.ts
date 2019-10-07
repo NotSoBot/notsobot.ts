@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, Utils } from 'detritus-client';
 import { CommandTypes } from '../constants';
 
 
@@ -20,6 +20,7 @@ export default (<Command.CommandOptions> {
   },
   onCancelRun: (context) => context.editOrReply('Provide some text.'),
   run: async (context) => {
-    return context.editOrReply(context.message.convertContent().split('').reverse().join())
+    const { Markup } = Utils;
+    return Markup.escape.all(context.editOrReply(context.message.convertContent().split('').reverse().join()))
   },
 });
