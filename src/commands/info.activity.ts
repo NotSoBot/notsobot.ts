@@ -105,17 +105,21 @@ export default (<Command.CommandOptions> {
             const activity = activities[activityId];
 
             {
-              const description = [];
-
+              const description: Array<string> = [];
               if (activity.emoji) {
+                let emoji: string;
                 if (activity.emoji.id) {
-                  description.push(`Emoji: [${activity.emoji.format}](${activity.emoji.url})`);
+                  emoji = `[${activity.emoji.format}](${activity.emoji.url})`;
                 } else {
-                  description.push(`Emoji: ${activity.emoji.format}`);
+                  emoji = activity.emoji.format;
                 }
+                description.push(`**Emoji**: ${emoji}`);
               }
               if (activity.isCustomStatus) {
-                description.push(`Custom Status: ${Markup.escape.all(activity.state || '')}`);
+                description.push(`**Custom Status**: ${Markup.escape.all(activity.state || '')}`);
+                if (activity.name !== 'Custom Status') {
+                  description.push(`**Hidden Message**: ${Markup.escape.all(activity.name || '')}`);
+                }
               } else {
                 const text = [activity.typeText, Markup.escape.all(activity.name || '')];
                 description.push(text.filter((v) => v).join(' '));

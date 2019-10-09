@@ -417,10 +417,14 @@ export async function onRunError(
     const information = await error.response.json();
     if ('errors' in information) {
       for (let key in information.errors) {
-        description.push([
-          `**${key}**:`,
-          information.errors[key],
-        ].join(' '));
+        const value = information.errors[key];
+        let message: string;
+        if (typeof(value) === 'object') {
+          message = JSON.stringify(value);
+        } else {
+          message = String(value);
+        }
+        description.push(`**${key}**: ${message}`);
       }
     }
   }
@@ -440,10 +444,7 @@ export function onTypeError(
 
   const description: Array<string> = ['Invalid Arguments' + '\n'];
   for (let key in errors) {
-    description.push([
-      `**${key}**:`,
-      errors[key].message,
-    ].join(' '));
+    description.push(`**${key}**: ${errors[key].message}`);
   }
 
   embed.setDescription(description.join('\n'));

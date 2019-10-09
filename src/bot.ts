@@ -65,9 +65,11 @@ bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
         const message = await context.reply(content);
         setTimeout(async () => {
           item.replied = false;
-          try {
-            await message.delete();
-          } catch(error) {}
+          if (!message.deleted) {
+            try {
+              await message.delete();
+            } catch(error) {}
+          }
         }, Math.max(remaining / 2, 1000));
       } catch(e) {
         item.replied = false;

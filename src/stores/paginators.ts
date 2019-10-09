@@ -47,7 +47,7 @@ class PaginatorsStore extends Store<string, Paginator> {
       if (this.has(message.channelId)) {
         const paginator = <Paginator> this.get(message.channelId);
 
-        if (paginator.custom.message && (paginator.custom.userId === message.author.id || message.author.isClientOwner)) {
+        if (paginator.custom.message && (paginator.targets.includes(message.author.id) || message.author.isClientOwner)) {
           let page = parseInt(message.content);
           if (!isNaN(page)) {
             page = Math.max(MIN_PAGE, Math.min(page, paginator.pageLimit));

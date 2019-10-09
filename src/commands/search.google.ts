@@ -96,15 +96,17 @@ export default (<Command.CommandOptions> {
               for (let result of page) {
                 const description: Array<string> = [
                   Markup.url(`**${Markup.escape.all(result.cite)}**`, result.url),
-                  (result.description) ? Markup.escape.all(result.description) : '',
+                  Markup.escape.all(result.description),
                 ];
                 if (result.suggestions.length) {
-                  description.push([
-                    `**Suggestions**:`,
-                    result.suggestions.map((suggestion: {text: string, url: string}) => {
+                  const suggestions = result.suggestions.map((suggestion: {text: string, url: string}) => {
+                    if (suggestion.url.length < 100) {
                       return Markup.url(Markup.escape.all(suggestion.text), suggestion.url);
-                    }).join(', '),
-                  ].join(' '));
+                    }
+                  }).filter((v: string | undefined) => v);
+                  if (suggestions.length) {
+                    description.push(`**Suggestions**: ${suggestions.join(', ')}`);
+                  }
                 }
 
                 embed.addField(`**${Markup.escape.all(result.title)}**`, description.join('\n'));
