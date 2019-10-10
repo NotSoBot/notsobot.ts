@@ -1,6 +1,6 @@
 import './bootstrap';
 
-import { Constants, ShardClient } from 'detritus-client';
+import { ClusterClient, Constants, ShardClient } from 'detritus-client';
 
 import { NotSoClient } from './client';
 import { Paginator } from './utils';
@@ -34,6 +34,7 @@ const bot = new NotSoClient({
     {duration: 60000, limit: 50, type: 'guild'},
     {duration: 5000, limit: 10, type: 'channel'},
   ],
+  useClusterClient: true,
 });
 
 bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
@@ -79,8 +80,12 @@ bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
 });
 
 (async () => {
-  const cluster = bot.client;
-  process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
+  const cluster = <ClusterClient> bot.client;
+  if (cluster.manager) {
+    process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
+  } else {
+    process.title = `S:(${cluster.shardStart}-${cluster.shardEnd})`;
+  }
 
   GuildChannelsStore.connect(cluster);
   GuildMetadataStore.connect(cluster);

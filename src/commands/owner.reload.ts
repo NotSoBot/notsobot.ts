@@ -1,5 +1,6 @@
 import { ClusterClient, Command, ShardClient } from 'detritus-client';
 
+import { NotSoClient } from '../client';
 import { CommandTypes } from '../constants';
 
 
@@ -32,7 +33,8 @@ export default (<Command.CommandOptions> {
         }
       }
       if (cluster.commandClient) {
-        await cluster.commandClient.resetCommands();
+        const commandClient = <NotSoClient> cluster.commandClient;
+        await commandClient.resetCommands();
       }
       for (let key in require.cache) {
         if (key.includes('notsobot.ts/lib')) {
