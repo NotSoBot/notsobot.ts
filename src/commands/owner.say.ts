@@ -1,7 +1,7 @@
 import { Command } from 'detritus-client';
 
 import { CommandTypes } from '../constants';
-import { onRunError, Parameters } from '../utils';
+import { onRunError } from '../utils';
 
 export interface CommandArgs {
   text: string,
