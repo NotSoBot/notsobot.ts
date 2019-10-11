@@ -4,7 +4,7 @@ import { Command, Utils } from 'detritus-client';
 
 const { Markup } = Utils;
 
-import { googleSearchYoutube } from '../api';
+import { youtubeSearch } from '../api';
 import { CommandTypes, EmbedBrands, EmbedColors, YoutubeResultTypes } from '../constants';
 import { Paginator, onRunError, onTypeError } from '../utils';
 
@@ -40,7 +40,7 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
-    const results = await googleSearchYoutube(context, args);
+    const { results, total_result_count: totalResultCount } = await youtubeSearch(context, args);
     if (results.length) {
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
@@ -51,7 +51,7 @@ export default (<Command.CommandOptions> {
           const embed = new Utils.Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
-          embed.setFooter(`Page ${page}/${pageLimit} of Youtube Search Results`, EmbedBrands.YOUTUBE);
+          embed.setFooter(`Page ${page}/${pageLimit} of Youtube Search Results (${totalResultCount.toLocaleString()} Total Results)`, EmbedBrands.YOUTUBE);
 
           embed.setTitle(result.title);
           embed.setUrl(result.url);
@@ -60,37 +60,73 @@ export default (<Command.CommandOptions> {
             embed.setDescription(Markup.escape.all(result.description));
           }
           if (result.thumbnail) {
-            embed.setThumbnail(result.thumbnail);
+            embed.setThumbnail(result.thumbnail.url);
           }
 
           switch (result.type) {
             case YoutubeResultTypes.CHANNEL: {
-              // we already set the embed with all the data provided lol
-            }; break;
-            case YoutubeResultTypes.VIDEO: {
-              const video = result.metadata;
+              const channel = result.metadata;
 
               const description: Array<string> = [];
-              description.push(`[Channel](${video.channel_url})`);
+              if (channel.badges.length) {
+                description.push(`**Badges**: ${channel.badges.join(', ')}`);
+              }
+              description.push(`**Id**: ${channel.id}`);
+              description.push(`**Subscribers**: ${channel.subscriber_count}`);
+              description.push(`**Videos**: ${channel.video_count.toLocaleString()}`);
 
-              const duration = moment.duration(video.duration).format('y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]', {
+              embed.addField('Channel Information', description.join('\n'));
+            }; break;
+            case YoutubeResultTypes.MOVIE: {
+              const movie = result.metadata;
+
+              const description: Array<string> = [];
+              description.push(`Uploaded by ${Markup.url(Markup.escape.all(movie.channel.name), movie.channel.url)}`);
+
+              const duration = moment.duration(movie.duration).format('y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]', {
                 trim: 'both mid',
               });
               description.push(`**Duration**: ${duration}`);
+              description.push(`**Genre**: ${movie.genre}`);
+              description.push(`${Markup.url(movie.price, result.url)}`);
 
-              description.push(`**Family Friendly**: ${(video.is_family_friendly) ? 'Yes' : 'No'}`);
+              embed.addField('Movie Information', description.join('\n'));
+
+              for (let field of movie.fields) {
+                embed.addField(Markup.escape.all(field.name), Markup.escape.all(field.value), true);
+              }
+            }; break;
+            case YoutubeResultTypes.VIDEO: {
+              const video = result.metadata;
+              const isLive = video.badges.includes('LIVE NOW');
+
+              const description: Array<string> = [];
+              description.push(`Uploaded by ${Markup.url(Markup.escape.all(video.channel.name), video.channel.url)}`);
+
+              if (video.badges.length) {
+                description.push(`**Badges**: ${video.badges.join(', ')}`);
+              }
+              if (video.duration) {
+                const duration = moment.duration(video.duration).format('y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]', {
+                  trim: 'both mid',
+                });
+                description.push(`**Duration**: ${duration}`);
+              } else {
+                if (isLive) {
+                  description.push(`**Duration**: Currently Live`);
+                }
+              }
+              description.push(`**Id**: ${video.id}`);
               if (video.published) {
-                const date = moment(video.published);
-                description.push(`**Published**: ${date.format('MMMM Do YYYY')}`);
+                description.push(`**Published**: ${video.published}`);
               }
-              description.push(`**Unlisted**: ${(video.is_unlisted) ? 'Yes': 'No'}`);
-              if (video.uploaded) {
-                const date = moment(video.uploaded);
-                description.push(`**Uploaded**: ${date.format('MMMM Do YYYY')}`);
+              if (isLive) {
+                description.push(`**Viewers**: ${video.view_count.toLocaleString()}`);
+              } else {
+                description.push(`**Views**: ${video.view_count.toLocaleString()}`);
               }
-              description.push(`**Views**: ${video.views.toLocaleString()}`);
 
-              embed.addField('Information', description.join('\n'));
+              embed.addField('Video Information', description.join('\n'));
             }; break;
           }
 

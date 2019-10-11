@@ -10,6 +10,7 @@ export interface CommandArgs {
 
 export default (<Command.CommandOptions> {
   name: 'say',
+  label: 'text',
   metadata: {
     description: 'Have the bot say something (owner only bc exploits)',
     examples: [

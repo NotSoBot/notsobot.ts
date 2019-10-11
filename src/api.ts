@@ -107,27 +107,6 @@ export async function googleSearchImages(
 }
 
 
-export interface GoogleSearchYoutube {
-  query: string,
-}
-
-export async function googleSearchYoutube(
-  context: Command.Context,
-  options: GoogleSearchYoutube,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: RestConstants.HTTPMethods.GET,
-      path: '/google/search/youtube',
-    },
-  });
-}
-
-
 export interface GoogleTranslate {
   from?: string,
   text: string,
@@ -279,6 +258,27 @@ export async function searchWolframAlpha(
     route: {
       method: RestConstants.HTTPMethods.GET,
       path: '/search/wolfram-alpha',
+    },
+  });
+}
+
+
+export interface YoutubeSearch {
+  query: string,
+}
+
+export async function youtubeSearch(
+  context: Command.Context,
+  options: YoutubeSearch,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/youtube/search',
     },
   });
 }

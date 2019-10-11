@@ -273,6 +273,7 @@ export const VerificationLevelTexts: {[key: string]: string} = Object.freeze({
 export const YoutubeResultTypes = Object.freeze({
   CHANNEL: 0,
   VIDEO: 1,
+  MOVIE: 2,
 });
 
 export const PERMISSIONS_KEYS_ADMIN = Object.freeze([
