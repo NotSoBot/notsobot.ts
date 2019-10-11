@@ -65,7 +65,7 @@ export default (<Command.CommandOptions> {
 
           switch (result.type) {
             case YoutubeResultTypes.CHANNEL: {
-
+              // we already set the embed with all the data provided lol
             }; break;
             case YoutubeResultTypes.VIDEO: {
               const video = result.metadata;
@@ -78,8 +78,7 @@ export default (<Command.CommandOptions> {
               });
               description.push(`**Duration**: ${duration}`);
 
-              description.push(`**Family Friendly**: ${(video.is_family_friendly) ? 'Yes' : 'No'}`)
-              description.push(`**Monetized**: ${(video.is_paid) ? 'Yes' : 'No'}`);
+              description.push(`**Family Friendly**: ${(video.is_family_friendly) ? 'Yes' : 'No'}`);
               if (video.published) {
                 const date = moment(video.published);
                 description.push(`**Published**: ${date.format('MMMM Do YYYY')}`);
