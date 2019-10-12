@@ -88,6 +88,7 @@ export default (<Command.CommandOptions> {
               });
               description.push(`**Duration**: ${duration}`);
               description.push(`**Genre**: ${movie.genre}`);
+              description.push(`**Id**: ${movie.id}`);
               description.push(`${Markup.url(movie.price, result.url)}`);
 
               embed.addField('Movie Information', description.join('\n'));
