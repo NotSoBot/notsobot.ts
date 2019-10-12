@@ -3,7 +3,6 @@ import './bootstrap';
 import { ClusterClient, Constants, ShardClient } from 'detritus-client';
 
 import { NotSoClient } from './client';
-import { Paginator } from './utils';
 
 import GuildChannelsStore from './stores/guildchannels';
 import GuildMetadataStore from './stores/guildmetadata';

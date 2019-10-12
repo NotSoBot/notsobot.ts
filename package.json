@@ -8,10 +8,11 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "detritus-client": "^0.9.3",
+    "detritus-client": "^0.9.4",
     "emoji-aware": "^3.0.5",
     "moment": "^2.24.0",
-    "moment-duration-format": "^2.3.2"
+    "moment-duration-format": "^2.3.2",
+    "zucc": "^0.2.0"
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.2",
