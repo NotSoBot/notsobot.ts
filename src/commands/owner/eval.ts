@@ -9,7 +9,11 @@ const { Markup } = Utils;
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
 
 
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+
+
 export interface CommandArgs {
+  async: boolean,
   code: string,
   jsonspacing: number,
   noembed: boolean,
@@ -20,7 +24,8 @@ export interface CommandArgs {
 export default (<Command.CommandOptions> {
   name: 'eval',
   args: [
-    {default: 2, name: 'jsonspacing', type: Number},
+    {name: 'async', type: Boolean},
+    {name: 'jsonspacing', type: Number, default: 2},
     {name: 'noembed', type: Boolean},
     {name: 'noreply', type: Boolean},
     {name: 'files.gg', label: 'upload', type: Boolean},
@@ -50,7 +55,12 @@ export default (<Command.CommandOptions> {
     let message: any;
     let errored: boolean = false;
     try {
-      message = await Promise.resolve(eval(code));
+      if (args.async) {
+        const func = new AsyncFunction('context', code);
+        message = await func(context);
+      } else {
+        message = await Promise.resolve(eval(code));
+      }
       if (typeof(message) === 'object') {
         message = JSON.stringify(message, null, args.jsonspacing);
         language = 'json';
