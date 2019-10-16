@@ -15,6 +15,7 @@ const bot = new NotSoClient({
   activateOnEdits: true,
   directory: './commands',
   gateway: {
+    compress: false,
     identifyProperties: {
       $browser: 'Discord iOS',
     },
@@ -76,6 +77,14 @@ bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
       }
     }
   }
+});
+
+bot.on('commandRan', async ({command, context}) => {
+  // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
+});
+
+bot.on('commandRunError', async ({command, context}) => {
+  // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
 });
 
 (async () => {

@@ -4,9 +4,10 @@ const { GuildExplicitContentFilterTypes } = Constants;
 
 import {
   DiscordLocales,
+  DiscordLocalesText,
   GoogleLocaleFromDiscord,
   GoogleLocales,
-  GOOGLE_LOCALES,
+  GoogleLocalesText,
 } from '../constants';
 
 
@@ -28,7 +29,14 @@ export const DiscordLocale: Command.ArgumentOptions = Object.freeze({
           return (<any> DiscordLocales)[key];
         }
       }
-      throw new Error(`Must be one of ${Object.values(DiscordLocales).map((locale) => `\`${locale}\``).join(', ')}`);
+      for (let key in DiscordLocalesText) {
+        const name = DiscordLocalesText[key].toLowerCase();
+        if (name.includes(value)) {
+          return key;
+        }
+      }
+      const locales = Object.values(DiscordLocalesText);
+      throw new Error(`Must be one of ${locales.map((locale) => `\`${locale}\``).join(', ')}`);
     }
     return null;
   },
@@ -72,7 +80,14 @@ export const GoogleLocale: Command.ArgumentOptions = Object.freeze({
         return (<any> GoogleLocales)[key];
       }
     }
-    throw new Error(`Must be one of ${GOOGLE_LOCALES.map((locale) => `\`${locale}\``).join(', ')}`);
+    for (let key in GoogleLocalesText) {
+      const name = GoogleLocalesText[key].toLowerCase();
+      if (name.includes(value)) {
+        return key;
+      }
+    }
+    const locales = Object.values(GoogleLocalesText);
+    throw new Error(`Must be one of ${locales.map((locale) => `\`${locale}\``).join(', ')}`);
   },
 });
 

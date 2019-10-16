@@ -174,13 +174,13 @@ export default (<Command.CommandOptions> {
             }
 
             if (activity.party) {
-              const group = activity.party.group.map((user: Structures.User) => {
+              const group = activity.group.map((user: Structures.User) => {
                 return user.mention;
               });
 
               const description = [];
               if (activity.party.size) {
-                description.push(`${activity.party.currentSize}/${activity.party.maxSize} members`);
+                description.push(`${activity.partySize}/${activity.partyMaxSize} members`);
               }
               if (group.length) {
                 description.push(`**Group (${group.length})**: ${group.join(', ')}`);

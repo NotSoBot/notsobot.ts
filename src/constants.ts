@@ -7,12 +7,13 @@ const {
   DiscordKeys,
   GuildExplicitContentFilterTypes,
   Locales: DiscordLocales,
+  LocalesText: DiscordLocalesText,
   Permissions,
   PresenceStatuses: Statuses,
   VerificationLevels,
 } = Constants;
 
-export { DiscordLocales };
+export { DiscordLocales, DiscordLocalesText };
 
 
 export const BooleanEmojis = Object.freeze({

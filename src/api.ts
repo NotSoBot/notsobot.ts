@@ -24,6 +24,10 @@ export async function request(
   if (token) {
     options.headers.authorization = token;
   }
+  options.headers['x-channel-id'] = context.channelId;
+  if (context.guildId) {
+    options.headers['x-guild-id'] = context.guildId;
+  }
   options.headers['x-user-id'] = context.userId;
 
   return context.rest.request(options);
