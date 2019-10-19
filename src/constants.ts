@@ -322,3 +322,10 @@ export const PRESENCE_CLIENT_STATUS_KEYS = Object.freeze([
   DetritusKeys[DiscordKeys.MOBILE],
   DetritusKeys[DiscordKeys.WEB],
 ]);
+
+export const TRUSTED_URLS = Object.freeze([
+  'cdn.discordapp.com',
+  'images-ext-1.discordapp.net',
+  'images-ext-2.discordapp.net',
+  'media.discordapp.net',
+]);

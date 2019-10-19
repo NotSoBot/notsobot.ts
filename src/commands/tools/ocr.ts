@@ -78,6 +78,7 @@ export default (<Command.CommandOptions> {
       embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
       embed.setColor(EmbedColors.DEFAULT);
       embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
+      embed.setThumbnail(args.url);
 
       if (annotation) {
         let language = annotation.locale;
@@ -88,7 +89,6 @@ export default (<Command.CommandOptions> {
         embed.setDescription(Markup.codeblock(annotation.description));
       } else {
         embed.setColor(EmbedColors.ERROR);
-        embed.setTitle('⚠ Command Error');
         embed.setDescription('No text detected');
       }
 

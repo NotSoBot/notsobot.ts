@@ -35,8 +35,13 @@ export const DiscordLocale: Command.ArgumentOptions = Object.freeze({
           return key;
         }
       }
-      const locales = Object.values(DiscordLocalesText);
-      throw new Error(`Must be one of ${locales.map((locale) => `\`${locale}\``).join(', ')}`);
+      const locales = Object.values(DiscordLocalesText).map((locale) => {
+        if (locale.includes(',')) {
+          return `(\`${locale}\`)`;
+        }
+        return `\`${locale}\``;
+      });
+      throw new Error(`Must be one of ${locales.join(', ')}`);
     }
     return null;
   },
@@ -86,8 +91,13 @@ export const GoogleLocale: Command.ArgumentOptions = Object.freeze({
         return key;
       }
     }
-    const locales = Object.values(GoogleLocalesText);
-    throw new Error(`Must be one of ${locales.map((locale) => `\`${locale}\``).join(', ')}`);
+    const locales = Object.values(GoogleLocalesText).map((locale) => {
+      if (locale.includes(',')) {
+        return `(\`${locale}\`)`;
+      }
+      return `\`${locale}\``;
+    });
+    throw new Error(`Must be one of ${locales.join(', ')}`);
   },
 });
 

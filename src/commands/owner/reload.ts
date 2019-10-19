@@ -51,6 +51,9 @@ export default (<Command.CommandOptions> {
 
     const error = shardIds.find((shardId: any) => shardId instanceof Error);
     if (error) {
+      if (error.errors) {
+        return message.edit(`${error.message} (${JSON.stringify(error.errors)})`);
+      }
       return message.edit(`Error: ${error.message}`);
     }
     return message.edit(`ok, refreshed commands on ${JSON.stringify(shardIds)}`);

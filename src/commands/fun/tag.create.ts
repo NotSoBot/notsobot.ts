@@ -5,22 +5,22 @@ import { onRunError } from '../../utils';
 
 
 export default (<Command.CommandOptions> {
-  name: 'ping',
+  prefixes: ['tag', 't'],
+  prefixSpace: true,
+  name: 'create',
   metadata: {
-    description: 'Ping Discord\'s Gateway and Rest api',
+    description: 'Create a tag',
     examples: [
-      'ping',
+      'tag create test im a tag',
     ],
-    type: CommandTypes.UTILS,
-    usage: 'ping',
+    type: CommandTypes.FUN,
+    usage: 'tag create <tagname|"tag name"> <...body>',
   },
+  priority: 1,
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},
     {duration: 1000, limit: 1, type: 'channel'},
   ],
-  run: async (context) => {
-    const {gateway, rest} = await context.client.ping();
-    return context.editOrReply(`pong! (gateway: ${gateway}ms) (rest: ${rest}ms)`);
-  },
+  run: async (context) => context.reply('maybe'),
   onRunError,
 });

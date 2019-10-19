@@ -1,3 +1,5 @@
+import { URL } from 'url';
+
 import {
   Collections,
   Command,
@@ -7,7 +9,7 @@ import {
 } from 'detritus-client';
 import { Timers } from 'detritus-utils';
 
-import { EmbedColors } from '../constants';
+import { EmbedColors, TRUSTED_URLS } from '../constants';
 import GuildMembersChunkStore, { GuildMembersChunkStored } from '../stores/guildmemberschunk';
 
 
@@ -81,14 +83,32 @@ export function findImageUrlInMessages(
   for (const message of messages.values()) {
     for (let [attachmentId, attachment] of message.attachments) {
       if (attachment.isImage && attachment.proxyUrl) {
+        if (attachment.url) {
+          const url = new URL(attachment.url);
+          if (TRUSTED_URLS.includes(url.host)) {
+            return attachment.url;
+          }
+        }
         return attachment.proxyUrl;
       }
     }
     for (let [embedId, embed] of message.embeds) {
       if (embed.image && embed.image.proxyUrl) {
+        if (embed.image.url) {
+          const url = new URL(embed.image.url);
+          if (TRUSTED_URLS.includes(url.host)) {
+            return embed.image.url;
+          }
+        }
         return embed.image.proxyUrl;
       }
       if (embed.thumbnail && embed.thumbnail.proxyUrl) {
+        if (embed.thumbnail.url) {
+          const url = new URL(embed.thumbnail.url);
+          if (TRUSTED_URLS.includes(url.host)) {
+            return embed.thumbnail.url;
+          }
+        }
         return embed.thumbnail.proxyUrl;
       }
     }

@@ -1,4 +1,6 @@
-import { Command, ClusterClient } from 'detritus-client';
+import { Command, ClusterClient, Utils } from 'detritus-client';
+
+const { Markup } = Utils;
 
 import { CommandTypes } from '../../constants';
 import { onRunError, padCodeBlockFromRows } from '../../utils';
@@ -15,16 +17,8 @@ export default (<Command.CommandOptions> {
     usage: 'shards',
   },
   ratelimits: [
-    {
-      duration: 5000,
-      limit: 5,
-      type: 'guild',
-    },
-    {
-      duration: 1000,
-      limit: 1,
-      type: 'channel',
-    },
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
   ],
   run: async (context) => {
     const title: Array<Array<string>> = [
@@ -103,12 +97,11 @@ export default (<Command.CommandOptions> {
     const largestRow = paddedRows.reduce((x: number, row: string) => Math.max(x, row.length), 0);
     paddedRows.splice(1, 0, '-'.repeat(largestRow));
 
-    return context.editOrReply([
-      '```py',
+    const content = [
       padCodeBlockFromRows(title).join('\n') + '\n',
       paddedRows.join('\n'),
-      '```',
-    ].join('\n'));
+    ].join('\n');
+    return context.editOrReply(Markup.codeblock(content, {language: 'py'}));
   },
   onRunError,
 });
