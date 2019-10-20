@@ -51,7 +51,7 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
-    const { cards, results } = await googleSearch(context, args);
+    const { cards, results, suggestion } = await googleSearch(context, args);
     if (cards.length || results.length) {
       const pages: Array<any> = [];
 
@@ -83,7 +83,12 @@ export default (<Command.CommandOptions> {
             embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
             embed.setColor(EmbedColors.DEFAULT);
 
-            let footer = `Page ${pageNumber}/${pageLimit} of Google Search Results`;
+            let footer: string;
+            if (pageLimit === 1) {
+              footer = 'Google Search Results';
+            } else {
+              footer = `Page ${pageNumber}/${pageLimit} of Google Search Results`;
+            }
             if (args.locale in GoogleLocalesText) {
               footer = `${footer} (${GoogleLocalesText[args.locale]})`;
             }
@@ -151,7 +156,23 @@ export default (<Command.CommandOptions> {
         return await paginator.start();
       }
     }
-    return context.editOrReply('Unable to find any results for that search term');
+
+    const embed = new Utils.Embed();
+    embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+    embed.setColor(EmbedColors.DEFAULT);
+
+    let footer: string = 'Google Search Results';
+    if (args.locale in GoogleLocalesText) {
+      footer = `${footer} (${GoogleLocalesText[args.locale]})`;
+    }
+    embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
+
+    embed.setTitle('Unable to find any results');
+    if (suggestion) {
+      embed.setDescription(`Did you mean: ${Markup.url(Markup.escape.all(suggestion.text), suggestion.url)}?`);
+    }
+
+    return context.editOrReply({embed});
   },
   onRunError,
   onTypeError,
