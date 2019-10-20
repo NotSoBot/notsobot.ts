@@ -22,7 +22,7 @@ export async function request(
 
   const token = process.env.NOTSOBOT_API_TOKEN;
   if (token) {
-    options.headers.authorization = token;
+    options.headers.authorization = `Bot ${token}`;
   }
   options.headers['x-channel-id'] = context.channelId;
   if (context.guildId) {
@@ -31,6 +31,81 @@ export async function request(
   options.headers['x-user-id'] = context.userId;
 
   return context.rest.request(options);
+}
+
+
+export async function createGuildPrefix(
+  context: Command.Context,
+  guildId: string,
+  prefix: string,
+): Promise<any> {
+  const body = {prefix};
+  const params = {guildId};
+  return request(context, {
+    body,
+    route: {
+      method: RestConstants.HTTPMethods.PUT,
+      path: '/guilds/:guildId/prefixes',
+      params,
+    },
+  });
+}
+
+
+export async function deleteGuildPrefix(
+  context: Command.Context,
+  guildId: string,
+  prefix: string,
+): Promise<any> {
+  const body = {prefix};
+  const params = {guildId};
+  return request(context, {
+    body,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/guilds/:guildId/prefixes/delete',
+      params,
+    },
+  });
+}
+
+
+export interface EditGuildSettings {
+  prefixes?: Array<string>,
+}
+
+export async function editGuildSettings(
+  context: Command.Context,
+  guildId: string,
+  options: EditGuildSettings = {},
+): Promise<any> {
+  const body = {
+    prefixes: options.prefixes,
+  };
+  const params = {guildId};
+  return request(context, {
+    body,
+    route: {
+      method: RestConstants.HTTPMethods.PATCH,
+      path: '/guilds/:guildId',
+      params,
+    },
+  });
+}
+
+
+export async function fetchGuildSettings(
+  context: Command.Context,
+  guildId: string,
+): Promise<any> {
+  const params = {guildId};
+  return request(context, {
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/guilds/:guildId',
+      params,
+    },
+  });
 }
 
 

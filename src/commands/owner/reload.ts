@@ -7,23 +7,27 @@ import { CommandTypes } from '../../constants';
 export default (<Command.CommandOptions> {
   name: 'reload',
   aliases: ['refresh'],
+  args: [{name: 'stores', type: Boolean}],
   metadata: {
     description: 'Reload the bot\'s commands.',
-    examples: ['refresh'],
+    examples: ['refresh', 'refresh -stores'],
     type: CommandTypes.OWNER,
     usage: 'refresh',
   },
   responseOptional: true,
   onBefore: (context) => context.user.isClientOwner,
-  run: async (context) => {
+  run: async (context, args) => {
     if (!context.manager) {
       return context.editOrReply('no cluster manager found');
     }
     const message = await context.editOrReply('ok, refreshing...');
-    const shardIds = await context.manager.broadcastEval(async (cluster: ClusterClient) => {
+    const shardIds = await context.manager.broadcastEval(async (cluster: ClusterClient, refreshStores: boolean) => {
       for (let key in require.cache) {
         if (key.includes('notsobot.ts/lib')) {
           if (key.includes('/stores/')) {
+            if (!refreshStores) {
+              continue;
+            }
             const store = require(key);
             if (store.default) {
               store.default.stop(cluster);
@@ -39,6 +43,9 @@ export default (<Command.CommandOptions> {
       for (let key in require.cache) {
         if (key.includes('notsobot.ts/lib')) {
           if (key.includes('/stores/')) {
+            if (!refreshStores) {
+              continue;
+            }
             const store = require(key);
             if (store.default) {
               store.default.connect(cluster);
@@ -47,7 +54,7 @@ export default (<Command.CommandOptions> {
         }
       }
       return cluster.shards.map((shard: ShardClient) => shard.shardId);
-    });
+    }, args.stores);
 
     const error = shardIds.find((shardId: any) => shardId instanceof Error);
     if (error) {

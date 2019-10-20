@@ -2,10 +2,12 @@ import './bootstrap';
 
 import { ClusterClient, Constants, ShardClient } from 'detritus-client';
 
+import { fetchGuildSettings } from './api';
 import { NotSoClient } from './client';
 
 import GuildChannelsStore from './stores/guildchannels';
 import GuildMetadataStore from './stores/guildmetadata';
+import GuildSettingsStore, { GuildSettingsPromise, GuildSettingsPromisesStore, GuildSettingsStored } from './stores/guildsettings';
 import PaginatorsStore from './stores/paginators';
 
 const { ActivityTypes, PresenceStatuses } = Constants;
@@ -36,6 +38,40 @@ const bot = new NotSoClient({
   ],
   useClusterClient: true,
 });
+
+
+bot.onPrefixCheck = async (context) => {
+  if (!context.user.bot && context.guildId) {
+    const guildId: string = context.guildId;
+
+    let settings: GuildSettingsStored | null = null;
+    if (GuildSettingsPromisesStore.has(guildId)) {
+      settings = await (<GuildSettingsPromise> GuildSettingsPromisesStore.get(guildId));
+    } else {
+      if (GuildSettingsStore.has(guildId)) {
+        settings = <GuildSettingsStored> GuildSettingsStore.get(guildId);
+      } else {
+        const promise: GuildSettingsPromise = new Promise(async (resolve) => {
+          try {
+            const settings: GuildSettingsStored = await fetchGuildSettings(context, guildId);
+            GuildSettingsStore.set(guildId, settings);
+            resolve(settings);
+          } catch(error) {
+            resolve(null);
+          }
+          GuildSettingsPromisesStore.delete(guildId);
+        });
+        GuildSettingsPromisesStore.set(guildId, promise);
+        settings = await promise;
+      }
+    }
+    if (settings && settings.prefixes.length) {
+      return settings.prefixes.map(({prefix}) => prefix);
+    }
+  }
+  return bot.prefixes.custom;
+};
+
 
 bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
   if (context.message.canReply) {

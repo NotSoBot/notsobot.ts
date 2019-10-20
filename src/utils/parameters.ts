@@ -585,3 +585,28 @@ export function percentage(
   }
   return Math.max(0, Math.min(percentage / 100));
 }
+
+
+export interface StringOptions {
+  maxLength?: number,
+  minLength?: number,
+}
+
+export function string(options: StringOptions = {}) {
+  return (value: string): string => {
+    if (options.maxLength !== undefined && options.minLength !== undefined) {
+      if (value.length < options.minLength || options.maxLength < value.length) {
+        throw new Error(`Value must be between ${options.minLength} and ${options.maxLength} characters`);
+      }
+    } else if (options.maxLength !== undefined) {
+      if (options.maxLength < value.length) {
+        throw new Error(`Value must be less than ${options.maxLength} characters`);
+      }
+    } else if (options.minLength !== undefined) {
+      if (value.length < options.minLength) {
+        throw new Error(`Value must be more than ${options.minLength} characters`);
+      }
+    }
+    return value;
+  };
+}
