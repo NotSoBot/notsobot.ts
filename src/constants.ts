@@ -16,6 +16,8 @@ const {
 export { DiscordLocales, DiscordLocalesText };
 
 
+export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
+
 export const BooleanEmojis = Object.freeze({
   NO: '❌',
   YES: '✅',
@@ -41,6 +43,10 @@ export const CommandTypes = Tools.normalize({
   SETTINGS: null,
   TOOLS: null,
   UTILS: null,
+});
+
+export const DateMomentOptions = Object.freeze({
+  trim: 'both mid',
 });
 
 export const DateOptions = Object.freeze({

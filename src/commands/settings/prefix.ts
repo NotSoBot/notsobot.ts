@@ -1,3 +1,5 @@
+import * as moment from 'moment';
+
 import { Command, Utils } from 'detritus-client';
 
 const { Markup } = Utils;
@@ -10,8 +12,9 @@ import {
 } from '../../api';
 import {
   CommandTypes,
-  EmbedBrands,
+  DateMomentOptions,
   EmbedColors,
+  MOMENT_FORMAT,
 } from '../../constants';
 import { Parameters, onRunError, onTypeError } from '../../utils';
 
@@ -83,7 +86,8 @@ export default (<Command.CommandOptions> {
       GuildSettingsStore.set(guildId, settings);
       if (settings.prefixes.length) {
         const description = settings.prefixes.map((prefix, i) => {
-          return `${i + 1}. **${Markup.escape.all(prefix.prefix)}** added on ${prefix.added}`;
+          const added = moment(prefix.added).fromNow();
+          return `${i + 1}. **${Markup.escape.all(prefix.prefix)}** added ${added}`;
         });
         embed.setDescription(description.join('\n'));
       } else {

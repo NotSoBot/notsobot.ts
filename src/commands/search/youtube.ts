@@ -5,7 +5,14 @@ import { Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { youtubeSearch } from '../../api';
-import { CommandTypes, EmbedBrands, EmbedColors, YoutubeResultTypes } from '../../constants';
+import {
+  CommandTypes,
+  DateMomentOptions,
+  EmbedBrands,
+  EmbedColors,
+  YoutubeResultTypes,
+  MOMENT_FORMAT,
+} from '../../constants';
 import { Paginator, onRunError, onTypeError } from '../../utils';
 
 
@@ -83,9 +90,7 @@ export default (<Command.CommandOptions> {
               const description: Array<string> = [];
               description.push(`Uploaded by ${Markup.url(Markup.escape.all(movie.channel.name), movie.channel.url)}`);
 
-              const duration = moment.duration(movie.duration).format('y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]', {
-                trim: 'both mid',
-              });
+              const duration = moment.duration(movie.duration).format(MOMENT_FORMAT, DateMomentOptions);
               description.push(`**Duration**: ${duration}`);
               description.push(`**Genre**: ${movie.genre}`);
               description.push(`**Id**: ${movie.id}`);
@@ -108,9 +113,7 @@ export default (<Command.CommandOptions> {
                 description.push(`**Badges**: ${video.badges.join(', ')}`);
               }
               if (video.duration) {
-                const duration = moment.duration(video.duration).format('y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]', {
-                  trim: 'both mid',
-                });
+                const duration = moment.duration(video.duration).format(MOMENT_FORMAT, DateMomentOptions);
                 description.push(`**Duration**: ${duration}`);
               } else {
                 if (isLive) {

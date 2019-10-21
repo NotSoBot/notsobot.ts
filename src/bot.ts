@@ -17,7 +17,6 @@ const bot = new NotSoClient({
   activateOnEdits: true,
   directory: './commands',
   gateway: {
-    compress: false,
     identifyProperties: {
       $browser: 'Discord iOS',
     },
