@@ -3,6 +3,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
 
 const { Colors } = Constants;
+const { Markup } = Utils;
 
 import { ChannelTypesText, CommandTypes, DateOptions } from '../../constants';
 import { GuildChannelsStored } from '../../stores/guildchannels';
@@ -42,8 +43,7 @@ export default (<Command.CommandOptions> {
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.payload.channel,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that channel.'),
-  run: async (context, args) => {
-    args = <CommandArgs> <unknown> args;
+  run: async (context, args: CommandArgs) => {
     const { channel, channels } = args.payload;
 
     const embed = new Utils.Embed();
@@ -57,6 +57,10 @@ export default (<Command.CommandOptions> {
       const description: Array<string> = [];
 
       description.push(`**Created**: ${channel.createdAt.toLocaleString('en-US', DateOptions)}`);
+      if (channels) {
+        const position = channels.sort((x, y) => parseInt(x.id) - parseInt(y.id)).findIndex((c) => c.id === channel.id) + 1;
+        description.push(`**Created Position**: ${position}/${channels.length}`);
+      }
       if (channel.guildId) {
         description.push(`**Guild**: \`${channel.guildId}\``);
       }
@@ -112,11 +116,7 @@ export default (<Command.CommandOptions> {
         description.push('Error fetching store data...');
       }
 
-      embed.addField('Store', [
-        '```css',
-        description.join('\n'),
-        '```',
-      ].join('\n'));
+      embed.addField('Store', Markup.codeblock(description.join('\n'), {language: 'css'}));
     }
 
     if (channel.isDm) {
@@ -159,15 +159,14 @@ export default (<Command.CommandOptions> {
       }
       description.push(`Overwrites: ${channel.permissionOverwrites.length.toLocaleString()}`);
 
+      if (channel.isVoice) {
+        description.push(`Members: ${channel.voiceStates.length.toLocaleString()}`);
+      }
+
       if (description.length) {
-        embed.addField('Counts', [
-          '```css',
-          description.join('\n'),
-          '```',
-        ].join('\n'), true);
+        embed.addField('Counts', Markup.codeblock(description.join('\n'), {language: 'css'}));
       }
     }
-
 
     {
       const description: Array<string> = [];

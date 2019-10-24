@@ -3,7 +3,6 @@ import { onlyEmoji } from 'emoji-aware';
 import {
   ClusterClient,
   Command,
-  Collections,
   Constants,
   Structures,
   Utils,
@@ -17,10 +16,9 @@ import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
 import MemberOrUserStore, { MemberOrUser } from '../stores/memberoruser';
 import {
-  chunkMembers,
   findImageUrlInMessages,
   findMemberByChunk,
-  findMemberByUsername,
+  findMembersByChunk,
   isSnowflake,
   toCodePoint,
 } from './tools';
@@ -99,7 +97,20 @@ export async function channelMetadata(
       const guild = context.guild;
       if (guild) {
         const name = channelId.toLowerCase();
-        payload.channel = guild.channels.find((channel) => channel.name.toLowerCase().includes(name)) || null;
+        for (let [channelId, channel] of guild.channels) {
+          if (channel.name.toLowerCase().startsWith(name)) {
+            payload.channel = channel;
+            break;
+          }
+        }
+        if (!payload.channel) {
+          for (let [channelId, channel] of guild.channels) {
+            if (channel.name.toLowerCase().includes(name)) {
+              payload.channel = channel;
+              break;
+            }
+          }
+        }
       }
     }
   }
@@ -572,6 +583,92 @@ export async function memberOrUser(
     console.error(error);
   }
   return null;
+}
+
+export async function memberOrUsers(
+  value: string,
+  context: Command.Context,
+): Promise<Array<MemberOrUser>> {
+  if (!value) {
+    if (context.guild) {
+      return Array.from(context.guild.members.values());
+    } else {
+      return [context.user];
+    }
+  }
+
+  try {
+    {
+      const { matches } = Utils.regex(DiscordRegexNames.MENTION_USER, value);
+      if (matches.length) {
+        const { id: userId } = <{id: string}> matches[0];
+        if (isSnowflake(userId)) {
+          let user: Structures.Member | Structures.User;
+          if (context.message.mentions.has(userId)) {
+            user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+          } else {
+            user = await context.rest.fetchUser(userId);
+          }
+          return [user];
+        }
+      }
+    }
+
+    if (isSnowflake(value)) {
+      const userId = value;
+
+      const key = `${context.guildId}.${userId}`;
+      if (MemberOrUserStore.has(key)) {
+        const user = <MemberOrUser> MemberOrUserStore.get(key);
+        return [user];
+      }
+
+      let user: MemberOrUser | undefined;
+      if (context.guildId) {
+        try {
+          if (context.members.has(context.guildId, userId)) {
+            user = <Structures.Member> context.members.get(context.guildId, userId);
+            if ((<Structures.Member> user).isPartial) {
+              user = await context.rest.fetchGuildMember(context.guildId, userId);
+            }
+          } else {
+            user = await context.rest.fetchGuildMember(context.guildId, userId);
+          }
+        } catch(error) {
+          // UNKNOWN_MEMBER == userId exists
+          // UNKNOWN_USER == userId doesn't exist
+          if (error.code !== DiscordAbortCodes.UNKNOWN_MEMBER) {
+            user = null;
+          }
+        }
+      }
+      if (user === undefined) {
+        if (context.users.has(userId)) {
+          user = <Structures.User> context.users.get(userId);
+        } else {
+          user = await context.rest.fetchUser(userId);
+        }
+      }
+      MemberOrUserStore.set(key, user);
+      if (user) {
+        return [user];
+      } else {
+        return [];
+      }
+    }
+
+    // guild member chunk or search cache
+    const nameParts = value.split('#');
+    const username = (<string> nameParts.shift()).toLowerCase().slice(0, 32);
+    let discriminator: null | string = null;
+    if (nameParts.length) {
+      discriminator = (<string> nameParts.shift()).padStart(4, '0');
+    }
+    return findMembersByChunk(context, username, discriminator);
+  } catch(error) {
+    console.error(error);
+  }
+  return [];
 }
 
 export function percentage(

@@ -342,6 +342,37 @@ export async function searchWolframAlpha(
 }
 
 
+export interface UploadCommands {
+  commands: Array<{
+    aliases: Array<string>,
+    args: Array<{aliases: Array<string>, name: string, prefix: string}>,
+    description: string,
+    dmable: boolean,
+    examples: Array<string>,
+    name: string,
+    ratelimits: Array<{duration: number, limit: number, type: string}>,
+    type: string,
+    usage: string,
+  }>,
+}
+
+export async function uploadCommands(
+  context: Command.Context,
+  options: UploadCommands,
+): Promise<any> {
+  const body = {
+    commands: options.commands,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: RestConstants.HTTPMethods.PUT,
+      path: '/commands',
+    },
+  });
+}
+
+
 export interface YoutubeSearch {
   query: string,
 }

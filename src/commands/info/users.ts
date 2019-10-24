@@ -13,61 +13,70 @@ import { Paginator, Parameters, onRunError, onTypeError, toTitleCase } from '../
 
 
 export interface CommandArgs {
-  user: Structures.Member | Structures.User,
+  users: Array<Structures.Member | Structures.User>,
 }
 
 export default (<Command.CommandOptions> {
-  name: 'user',
-  aliases: ['userinfo', 'member', 'memberinfo'],
-  label: 'user',
+  name: 'users',
+  aliases: ['members'],
+  label: 'users',
   metadata: {
-    description: 'Get information about a user, defaults to self',
+    description: 'Get information about multiple members/users',
     examples: [
-      'user',
-      'user cake',
-      'user cake#1',
-      'user <@439205512425504771>',
+      'users',
+      'users cake',
+      'users cake#1',
+      'users <@300505364032389122> <@439205512425504771>',
     ],
     type: CommandTypes.INFO,
-    usage: 'user ?<id|mention|name>',
+    usage: 'users ...?<id|mention|name>',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},
     {duration: 1000, limit: 1, type: 'channel'},
   ],
-  type: Parameters.memberOrUser,
+  type: Parameters.memberOrUsers,
   onBefore: (context) => {
     const channel = context.channel;
     return (channel) ? channel.canEmbedLinks : false;
   },
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!args.user,
-  onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
+  onBeforeRun: (context, args) => !!args.users.length,
+  onCancelRun: (context) => context.editOrReply('⚠ Unable to find any members matching that.'),
   run: async (context, args: CommandArgs) => {
-    const isMember = (args.user instanceof Structures.Member);
-    const member = <Structures.Member> args.user;
-    const user = <Structures.User> args.user;
+    const { users } = args;
 
-    const presence = user.presence;
-    let activities: Array<Structures.PresenceActivity>;
-    if (presence) {
-      activities = presence.activities.sort((x, y) => {
-        return x.position - y.position;
-      });
-    } else {
-      activities = [];
-    }
-    const pageLimit = activities.length || 1;
+    const membersOrUsers = users.sort((x, y) => {
+      if (x instanceof Structures.Member && y instanceof Structures.Member) {
+        return x.joinedAtUnix - y.joinedAtUnix;
+      } else if (x instanceof Structures.Member) {
+        return x.joinedAtUnix - 0;
+      } else if (y instanceof Structures.Member) {
+        return 0 - y.joinedAtUnix;
+      }
+      return 0;
+    });
 
+    const pageLimit = membersOrUsers.length;
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
+        const position = page - 1;
+        if (!(position in membersOrUsers)) {
+          throw new Error('lol');
+        }
+
+        const isMember = (membersOrUsers[position] instanceof Structures.Member);
+        const member = <Structures.Member> membersOrUsers[position];
+        const user = <Structures.User> membersOrUsers[position];
+
         const embed = new Utils.Embed();
         embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
         embed.setColor(PresenceStatusColors['offline']);
         embed.setDescription(member.mention);
         embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
 
+        embed.setTitle(`User ${page} of ${pageLimit}`);
         {
           const description: Array<string> = [];
           description.push(`**Id**: \`${user.id}\``);
@@ -134,6 +143,7 @@ export default (<Command.CommandOptions> {
           embed.addField('Guild Specific', description.join('\n'));
         }
 
+        const presence = user.presence;
         if (presence) {
           if (presence.status in PresenceStatusColors) {
             embed.setColor(PresenceStatusColors[presence.status]);
@@ -159,10 +169,8 @@ export default (<Command.CommandOptions> {
             embed.addField('Status', status, true);
           }
 
-          const activityId = page - 1;
-          if (activityId in activities) {
-            const activity = activities[activityId];
-
+          const activity = presence.activity;
+          if (activity) {
             const description: Array<string> = [];
             if (activity.emoji) {
               let emoji: string;
@@ -203,9 +211,10 @@ export default (<Command.CommandOptions> {
                 description.push('**On Xbox**');
               }
             }
+
             let name = 'Activity';
-            if (1 < pageLimit) {
-              name = `Activity (${page} of ${pageLimit})`;
+            if (presence.activities.length !== 1) {
+              name = `Activity (1 of ${presence.activities.length})`;
             }
             embed.addField(name, description.join('\n'), true);
           }

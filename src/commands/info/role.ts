@@ -1,7 +1,7 @@
 import { Command, Constants, Structures, Utils } from 'detritus-client';
 
 const { Permissions } = Constants;
-const { PermissionTools } = Utils;
+const { Markup, PermissionTools } = Utils;
 
 import {
   BooleanEmojis,
@@ -73,8 +73,7 @@ export default (<Command.CommandOptions> {
       return context.editOrReply('Unknown Role');
     }
   },
-  run: async (context, args) => {
-    args = <CommandArgs> <unknown> args;
+  run: async (context, args: CommandArgs) => {
     const { channel, role } = args;
 
     const embed = new Utils.Embed();
@@ -89,9 +88,18 @@ export default (<Command.CommandOptions> {
     {
       const description: Array<string> = [];
 
+      description.push(`**Color**: ${(role.color) ? `\`${Utils.intToHex(role.color, true)}\`` : 'No Color'}`);
       description.push(`**Created**: ${role.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Default Role**: ${(role.isDefault) ? 'Yes' : 'No'}`);
+      description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
       description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
+      description.push(`**Mentionable**: ${(role.mentionable) ? 'Yes' : 'No'}`);
+      if (role.guild) {
+        const position = role.guild.roles.sort((x, y) => x.position - y.position).findIndex((r) => r.id === role.id) + 1;
+        description.push(`**Position**: ${role.position} (${position}/${role.guild.roles.length})`);
+      } else {
+        description.push(`**Position**: ${role.position}`);
+      }
 
       embed.addField('Information', description.join('\n'), true);
     }
@@ -99,9 +107,11 @@ export default (<Command.CommandOptions> {
     {
       const description: Array<string> = [];
 
-      description.push(`**Members**: ${role.members.length.toLocaleString()}`);
+      description.push(`Members: ${role.members.length.toLocaleString()}`);
 
-      embed.addField('Counts', description.join('\n'), true);
+      if (description.length) {
+        embed.addField('Counts', Markup.codeblock(description.join('\n'), {language: 'css'}), true);
+      }
     }
 
     {
@@ -112,11 +122,7 @@ export default (<Command.CommandOptions> {
         rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
       }
 
-      embed.addField('Moderation', [
-        '```css',
-        padCodeBlockFromRows(rows).join('\n'),
-        '```',
-      ].join('\n'), true);
+      embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
     }
 
     if (channel) {
@@ -129,11 +135,7 @@ export default (<Command.CommandOptions> {
           rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
-        embed.addField('Text', [
-          '```css',
-          padCodeBlockFromRows(rows).join('\n'),
-          '```',
-        ].join('\n'), true);
+        embed.addField('Text', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
       } else if (channel.isVoice) {
         const rows: Array<Array<string>> = [];
 
@@ -142,11 +144,7 @@ export default (<Command.CommandOptions> {
           rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
-        embed.addField('Voice', [
-          '```css',
-          padCodeBlockFromRows(rows).join('\n'),
-          '```',
-        ].join('\n'), true);
+        embed.addField('Voice', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
       }
 
       return context.editOrReply({content: '', embed});

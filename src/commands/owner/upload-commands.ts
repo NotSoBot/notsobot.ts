@@ -1,5 +1,6 @@
 import { Command } from 'detritus-client';
 
+import { uploadCommands } from '../../api';
 import { CommandTypes } from '../../constants';
 import { onRunError } from '../../utils';
 
@@ -19,19 +20,22 @@ export default (<Command.CommandOptions> {
     }).map((command) => {
       const { args } = command.args;
       const metadata = command.metadata;
+
+      const names = command.names;
+      const name = <string> names.shift();
       return {
-        aliases: command.aliases,
+        aliases: names,
         args: args.map((arg) => {
           return {
             aliases: arg.aliases,
             name: arg.name,
-            prefixes: Array.from(arg.prefixes),
+            prefix: Array.from(arg.prefixes).shift() || '',
           };
         }),
-        description: metadata.description || null,
-        disableDm: command.disableDm,
+        description: metadata.description || '',
+        dmable: !command.disableDm,
         examples: metadata.examples,
-        name: command.name,
+        name,
         ratelimits: command.ratelimits.map((ratelimit) => {
           return {
             duration: ratelimit.duration,
@@ -43,15 +47,9 @@ export default (<Command.CommandOptions> {
         usage: metadata.usage,
       };
     });
+    await uploadCommands(context, {commands});
 
-    const data = JSON.stringify(commands, null, 2);
-    const upload = await context.rest.request({
-      files: [{data, filename: 'commands.json', name: 'file'}],
-      method: 'post',
-      url: 'https://api.files.gg/files',
-    });
-
-    return context.editOrReply(upload.urls.main);
+    return context.editOrReply('ok');
   },
   onError: (context, args, error) => console.error(error),
   onRunError,

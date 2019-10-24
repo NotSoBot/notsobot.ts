@@ -344,6 +344,11 @@ export class Paginator {
         }
       }
       await this.clearCustomMessage();
+
+      this.onError = undefined;
+      this.onExpire = undefined;
+      this.onPage = undefined;
+      this.onPageNumber = undefined;
     }
   }
 
@@ -357,6 +362,7 @@ export class Paginator {
     if (typeof(this.onPage) !== 'function' && !(this.pages && this.pages.length)) {
       throw new Error('Paginator needs an onPage function or at least one page added to it');
     }
+
     if (!this.message) {
       if (!this.context.canReply) {
         throw new Error('Cannot create messages in this channel');
@@ -373,7 +379,7 @@ export class Paginator {
     if (!this.stopped && this.pageLimit !== MIN_PAGE && this.message.canReact) {
       if (PaginatorsStore.has(this.context.channelId)) {
         const paginator = <Paginator> PaginatorsStore.get(this.context.channelId);
-        if (this.context instanceof Command.Context && this.context.response) {
+        if (this.message === paginator.message) {
           await paginator.stop(false);
         } else {
           await paginator.stop();

@@ -35,11 +35,10 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.INFO,
     usage: 'activity ?<id|mention|name>',
   },
-  ratelimit: {
-    duration: 5000,
-    limit: 5,
-    type: 'guild',
-  },
+  ratelimits: [
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
+  ],
   type: Parameters.memberOrUser,
   onBefore: (context) => {
     const channel = context.channel;

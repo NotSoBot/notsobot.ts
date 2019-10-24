@@ -217,6 +217,44 @@ export async function findMemberByChunk(
   return null;
 }
 
+export async function findMembersByChunk(
+  context: Command.Context,
+  username: string,
+  discriminator?: null | string,
+): Promise<Array<Structures.Member | Structures.User>> {
+  if (context.guildId) {
+    // find via guild cache
+    const guild = context.guild;
+    const members = (guild) ? guild.members : null;
+    if (members) {
+      const found = findMembersByUsername(members, username, discriminator);
+      // add isPartial check
+      if (found.length) {
+        return found;
+      }
+
+      // we have all the members in cache, just forget about it
+      if (guild && guild.memberCount === members.length) {
+        return [];
+      }
+    }
+
+    // fall back to chunk request
+    try {
+      const event = await chunkMembers(context, {query: username});
+      if (event && event.members) {
+        return event.members.filter((member: Structures.Member) => {
+          return (discriminator) ? member.discriminator === discriminator : true;
+        });
+      }
+    } catch(error) {}
+  } else {
+    // check our users cache since this is from a dm...
+    return findMembersByUsername(context.users, username, discriminator);
+  }
+  return [];
+}
+
 
 export interface FindMemberByUsernameCache {
   values(): IterableIterator<Structures.Member | Structures.User | undefined>,
