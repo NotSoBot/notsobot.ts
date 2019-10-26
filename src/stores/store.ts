@@ -1,31 +1,42 @@
 import { ClusterClient, Collections, ShardClient } from 'detritus-client';
+import { EventSubscription } from 'detritus-utils';
+
+import RedisClient, { RedisSpewer } from '../redis';
 
 
 export class Store<K, V> extends Collections.BaseCollection<K, V> {
-  listeners: {[key: string]: ((...args: any[]) => any) | null} = {};
+  subscriptions: Array<EventSubscription> = [];
 
   connect(cluster: ClusterClient | ShardClient) {
-    this.create();
-    for (let key in this.listeners) {
-      const listener = this.listeners[key];
-      if (listener) {
-        cluster.addListener(key, listener);
-      }
+    const subscriptions = this.create(cluster, RedisClient);
+    for (let subscription of subscriptions) {
+      this.subscriptions.push(subscription);
     }
   }
 
-  create() {
-
+  create(cluster: ClusterClient | ShardClient, redis: RedisSpewer): Array<EventSubscription> {
+    return [];
   }
 
   stop(cluster: ClusterClient | ShardClient) {
-    for (let key in this.listeners) {
-      const listener = this.listeners[key];
-      if (listener) {
-        cluster.removeListener(key, listener);
-        this.listeners[key] = null;
+    while (this.subscriptions.length) {
+      const subscription = this.subscriptions.shift();
+      if (subscription) {
+        subscription.remove();
       }
     }
     this.clear();
+  }
+}
+
+
+export function connectAllStores(cluster: ClusterClient): void {
+  for (let key in require.cache) {
+    if (key.includes('notsobot.ts/lib/stores/')) {
+      const store = require(key);
+      if (store && store.default) {
+        store.default.connect(cluster);
+      }
+    }
   }
 }

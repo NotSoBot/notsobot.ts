@@ -26,8 +26,8 @@ export default (<Command.CommandOptions> {
   aliases: ['prefixes', 'setprefix'],
   args: [
     {name: 'clear', type: Boolean},
-    {name: 'delete', type: Boolean},
-    {name: 'replace', type: Boolean},
+    {name: 'delete', aliases: ['remove'], type: Boolean},
+    {name: 'replace', aliases: ['set'], type: Boolean},
   ],
   disableDm: true,
   metadata: {

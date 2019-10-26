@@ -1,5 +1,5 @@
-import { Collections, Constants, GatewayClientEvents, Structures } from 'detritus-client';
-const { ClientEvents } = Constants;
+import { ClusterClient, Collections, GatewayClientEvents, Structures } from 'detritus-client';
+import { EventSubscription } from 'detritus-utils';
 
 import { Store } from './store';
 
@@ -16,12 +16,16 @@ class GuildChannelsStore extends Store<string, GuildChannelsStored> {
     this.set(key, payload);
   }
 
-  create() {
-    this.listeners[ClientEvents.GUILD_DELETE] = async (event: GatewayClientEvents.GuildDelete) => {
-      const { guildId } = event;
-
-      this.delete(guildId);
-    };
+  create(cluster: ClusterClient) {
+    const subscriptions: Array<EventSubscription> = [];
+    {
+      const subscription = cluster.subscribe('guildDelete', (event: GatewayClientEvents.GuildDelete) => {
+        const { guildId } = event;
+        this.delete(guildId);
+      });
+      subscriptions.push(subscription);
+    }
+    return subscriptions;
   }
 }
 

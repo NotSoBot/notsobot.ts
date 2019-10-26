@@ -431,6 +431,10 @@ export const PRESENCE_CLIENT_STATUS_KEYS = Object.freeze([
   DetritusKeys[DiscordKeys.WEB],
 ]);
 
+export const RedisChannels = Tools.normalize({
+  GUILD_SETTINGS_UPDATE: null,
+});
+
 export const TRUSTED_URLS = Object.freeze([
   'cdn.discordapp.com',
   'images-ext-1.discordapp.net',

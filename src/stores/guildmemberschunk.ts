@@ -7,7 +7,7 @@ export type GuildMembersChunkStored = GatewayClientEvents.GuildMembersChunk | nu
 
 class GuildMembersChunkStore extends Store<string, GuildMembersChunkStored> {
   constructor() {
-    super({expire: (60) * 1000});
+    super({expire: (60 * 1000)});
   }
 
   insert(key: string, event: GuildMembersChunkStored): void {

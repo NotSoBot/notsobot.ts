@@ -5,10 +5,8 @@ import { ClusterClient, Constants, ShardClient } from 'detritus-client';
 import { fetchGuildSettings } from './api';
 import { NotSoClient } from './client';
 
-import GuildChannelsStore from './stores/guildchannels';
-import GuildMetadataStore from './stores/guildmetadata';
+import { connectAllStores } from './stores';
 import GuildSettingsStore, { GuildSettingsPromise, GuildSettingsPromisesStore, GuildSettingsStored } from './stores/guildsettings';
-import PaginatorsStore from './stores/paginators';
 
 const { ActivityTypes, PresenceStatuses } = Constants;
 
@@ -130,10 +128,7 @@ bot.on('commandRunError', async ({command, context}) => {
   } else {
     process.title = `S:(${cluster.shardStart}-${cluster.shardEnd})`;
   }
-
-  GuildChannelsStore.connect(cluster);
-  GuildMetadataStore.connect(cluster);
-  PaginatorsStore.connect(cluster);
+  connectAllStores(cluster);
 
   cluster.on('restResponse', ({response, restRequest, shard}) => {
     const route = response.request.route;

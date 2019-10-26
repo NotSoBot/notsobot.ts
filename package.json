@@ -8,14 +8,16 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "detritus-client": "^0.9.19",
+    "detritus-client": "^0.9.22",
     "emoji-aware": "^3.0.5",
     "moment": "^2.24.0",
-    "moment-duration-format": "^2.3.2"
+    "moment-duration-format": "^2.3.2",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.2",
     "@types/node": "^12.11.7",
+    "@types/redis": "^2.8.14",
     "tsc": "^1.20150623.0",
     "typescript": "^3.6.4"
   },

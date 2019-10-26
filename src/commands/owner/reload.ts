@@ -3,7 +3,6 @@ import { ClusterClient, Command, ShardClient } from 'detritus-client';
 import { NotSoClient } from '../../client';
 import { CommandTypes } from '../../constants';
 
-
 export default (<Command.CommandOptions> {
   name: 'reload',
   aliases: ['refresh'],
@@ -22,34 +21,46 @@ export default (<Command.CommandOptions> {
     }
     const message = await context.editOrReply('ok, refreshing...');
     const shardIds = await context.manager.broadcastEval(async (cluster: ClusterClient, refreshStores: boolean) => {
+      const LIB_PATH = 'notsobot.ts/lib';
+      const STORE_PATH = '/stores/';
+
+      const IGNORE = ['/bot.', '/redis.'];
+
       for (let key in require.cache) {
-        if (key.includes('notsobot.ts/lib')) {
-          if (key.includes('/stores/')) {
-            if (!refreshStores) {
-              continue;
-            }
-            const store = require(key);
-            if (store.default) {
-              store.default.stop(cluster);
-            }
-          }
-          delete require.cache[key];
+        if (!key.includes(LIB_PATH)) {
+          continue;
         }
+        if (IGNORE.some((file) => key.includes(file))) {
+          continue;
+        }
+
+        if (key.includes(STORE_PATH)) {
+          if (!refreshStores) {
+            continue;
+          }
+          const store = require(key);
+          if (store && store.default) {
+            store.default.stop(cluster);
+          }
+        }
+        delete require.cache[key];
       }
       if (cluster.commandClient) {
         const commandClient = <NotSoClient> cluster.commandClient;
         await commandClient.resetCommands();
       }
       for (let key in require.cache) {
-        if (key.includes('notsobot.ts/lib')) {
-          if (key.includes('/stores/')) {
-            if (!refreshStores) {
-              continue;
-            }
-            const store = require(key);
-            if (store.default) {
-              store.default.connect(cluster);
-            }
+        if (!key.includes(LIB_PATH)) {
+          continue;
+        }
+
+        if (key.includes(STORE_PATH)) {
+          if (!refreshStores) {
+            continue;
+          }
+          const store = require(key);
+          if (store.default) {
+            store.default.connect(cluster);
           }
         }
       }
