@@ -20,11 +20,10 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.INFO,
     usage: 'user ?<id|mention|name>',
   },
-  ratelimit: {
-    duration: 5000,
-    limit: 5,
-    type: 'guild',
-  },
+  ratelimits: [
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
+  ],
   type: Parameters.memberOrUser,
   onBeforeRun: (context, args) => !!args.user,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),

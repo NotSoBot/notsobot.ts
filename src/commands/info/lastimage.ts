@@ -7,15 +7,11 @@ export default (<Command.CommandOptions> {
   name: 'lastimage',
   label: 'urls',
   type: Parameters.lastImageUrls,
-  ratelimit: {
-    duration: 5000,
-    limit: 2,
-    type: 'channel',
-  },
-  onBefore: (context) => {
-    const channel = context.channel;
-    return (channel) ? channel.canEmbedLinks : false;
-  },
+  ratelimits: [
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
+  ],
+  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.urls && args.urls.length,
   onCancelRun: (context, args) => {

@@ -33,10 +33,7 @@ export default (<Command.CommandOptions> {
     usage: 'resize ?<emoji|id|mention|name|url> (-convert <format>) (-scale <number>) (-size <number>)',
   },
   type: Parameters.lastImageUrl,
-  onBefore: (context) => {
-    const channel = context.channel;
-    return (channel) ? channel.canAttachFiles : false;
-  },
+  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
   onCancel: (context) => context.reply('⚠ Unable to send files in this channel.'),
   onBeforeRun: (context, args) => !!args.url,
   onCancelRun: (context, args) => {

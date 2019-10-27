@@ -32,10 +32,7 @@ export default (<Command.CommandOptions> {
     {duration: 1000, limit: 1, type: 'channel'},
   ],
   type: Parameters.applications,
-  onBefore: (context) => {
-    const channel = context.channel;
-    return (channel) ? channel.canEmbedLinks : false;
-  },
+  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.applications.length,
   onCancelRun: (context, args) => context.editOrReply('⚠ Unable to find that game.'),

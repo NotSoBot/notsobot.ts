@@ -26,7 +26,7 @@ export default (<Command.CommandOptions> {
   args: [
     {name: 'async', type: Boolean},
     {name: 'jsonspacing', type: Number, default: 2},
-    {name: 'noembed', default: (context: Command.Context) => !context.channel || !context.channel.canEmbedLinks, type: () => true},
+    {name: 'noembed', default: (context: Command.Context) => !!(context.channel && !context.channel.canEmbedLinks), type: () => true},
     {name: 'noreply', type: Boolean},
     {name: 'files.gg', label: 'upload', type: Boolean},
   ],

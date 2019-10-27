@@ -39,10 +39,7 @@ export default (<Command.CommandOptions> {
     {duration: 5000, limit: 5, type: 'guild'},
     {duration: 1000, limit: 1, type: 'channel'},
   ],
-  onBefore: (context) => {
-    const channel = context.channel;
-    return (channel) ? channel.canEmbedLinks : false;
-  },
+  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
   onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
   onBeforeRun: (context, args) => !!args.text,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of text.'),

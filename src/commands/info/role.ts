@@ -39,11 +39,10 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.INFO,
     usage: 'role ?<id|mention|name> (-channel <id>)',
   },
-  ratelimit: {
-    duration: 5000,
-    limit: 5,
-    type: 'guild',
-  },
+  ratelimits: [
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
+  ],
   type: (value, context) => {
     value = value.trim();
     const guild = context.guild;
@@ -65,6 +64,8 @@ export default (<Command.CommandOptions> {
     }
     return role || null;
   },
+  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
+  onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.channel && !!args.role,
   onCancelRun: (context, args) => {
     if (!args.channel) {

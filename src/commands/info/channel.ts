@@ -30,16 +30,12 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.INFO,
     usage: 'channel ?<id|mention|name>',
   },
-  ratelimit: {
-    duration: 5000,
-    limit: 5,
-    type: 'guild',
-  },
+  ratelimits: [
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
+  ],
   type: Parameters.channelMetadata,
-  onBefore: (context) => {
-    const channel = context.channel;
-    return (channel) ? channel.canEmbedLinks : false;
-  },
+  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
   onBeforeRun: (context, args) => !!args.payload.channel,
   onCancelRun: (context) => context.editOrReply('⚠ Unable to find that channel.'),

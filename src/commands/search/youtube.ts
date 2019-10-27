@@ -32,15 +32,11 @@ export default (<Command.CommandOptions> {
     type: CommandTypes.SEARCH,
     usage: 'youtube <query>',
   },
-  ratelimit: {
-    duration: 5000,
-    limit: 5,
-    type: 'guild',
-  },
-  onBefore: (context) => {
-    const channel = context.channel;
-    return (channel) ? channel.canEmbedLinks : false;
-  },
+  ratelimits: [
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
+  ],
+  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
   onCancel: (context) => context.reply('⚠ Unable to embed in this channel.'),
   onBeforeRun: (context, args) => !!args.query || !!args.random,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),

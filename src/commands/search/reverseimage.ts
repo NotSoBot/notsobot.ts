@@ -38,21 +38,10 @@ export default (<Command.CommandOptions> {
     usage: 'google <query> (-locale <language>) (-safe)',
   },
   ratelimits: [
-    {
-      duration: 5000,
-      limit: 5,
-      type: 'guild',
-    },
-    {
-      duration: 1000,
-      limit: 1,
-      type: 'channel',
-    },
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
   ],
-  onBefore: (context) => {
-    const channel = context.channel;
-    return (channel) ? channel.canEmbedLinks : false;
-  },
+  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
   onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
   onBeforeRun: (context, args) => !!args.query,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
