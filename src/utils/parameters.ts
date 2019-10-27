@@ -46,6 +46,7 @@ export async function applications(
       return false;
     });
   }
+  return Array.from(context.applications.values());
 }
 
 export async function channel(

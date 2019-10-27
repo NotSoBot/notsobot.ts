@@ -16,37 +16,29 @@ export interface CommandArgs {
 }
 
 export default (<Command.CommandOptions> {
-  name: 'application',
-  aliases: ['applications', 'games', 'game', 'applicationinfo', 'gameinfo'],
-  label: 'applications',
+  name: 'applications',
+  aliases: ['application', 'games', 'game', 'applicationinfo', 'gameinfo'],
   metadata: {
-    description: 'Get information about an application (Uses the same list Discord does)',
+    description: 'Get information about multiple (or one) application (Uses the same list Discord does)',
     examples: [
-      'application rust',
-      'application 356888738724446208',
+      'applications rust',
+      'applications 356888738724446208',
     ],
     type: CommandTypes.INFO,
-    usage: 'application <id|name>',
+    usage: 'applications ?<id|name>',
   },
-  ratelimit: {
-    duration: 4000,
-    limit: 5,
-    type: 'guild',
-  },
+  ratelimits: [
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
+  ],
   type: Parameters.applications,
   onBefore: (context) => {
     const channel = context.channel;
     return (channel) ? channel.canEmbedLinks : false;
   },
   onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!(args.applications && args.applications.length),
-  onCancelRun: (context, args) => {
-    if (args.applications) {
-      return context.editOrReply('⚠ Unable to find that game.');
-    } else {
-      return context.editOrReply('⚠ Provide some kind of game name.');
-    }
-  },
+  onBeforeRun: (context, args) => !!args.applications.length,
+  onCancelRun: (context, args) => context.editOrReply('⚠ Unable to find that game.'),
   run: async (context, args: CommandArgs) => {
     const { applications } = args;
 
