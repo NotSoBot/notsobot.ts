@@ -5,23 +5,21 @@ import { onRunError } from '../../utils';
 
 
 export interface CommandArgs {
-  url: string,
+  text: string,
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
-  args: [
-    {name: 'type'},
-  ],
-  label: 'url',
+  name: 'hash',
+  args: [{name: 'use'}],
+  label: 'text',
   metadata: {
+    description: 'Hash some text',
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'hash lolol',
+      'hash lolol -use sha256',
     ],
-    type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    type: CommandTypes.TOOLS,
+    usage: 'hash <text> (-use <hash-type>)',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},

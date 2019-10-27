@@ -27,16 +27,8 @@ export default (<Command.CommandOptions> {
     usage: 'ocr ?<emoji|id|mention|name|url> (-noembed)',
   },
   ratelimits: [
-    {
-      duration: 5000,
-      limit: 5,
-      type: 'guild',
-    },
-    {
-      duration: 1000,
-      limit: 1,
-      type: 'channel',
-    },
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
   ],
   type: Parameters.lastImageUrl,
   onBefore: (context) => {

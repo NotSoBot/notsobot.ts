@@ -5,23 +5,20 @@ import { onRunError } from '../../utils';
 
 
 export interface CommandArgs {
-  url: string,
+  text: string,
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
-  args: [
-    {name: 'type'},
-  ],
-  label: 'url',
+  name: 'moofasasay',
+  aliases: ['moofasa'],
+  label: 'text',
   metadata: {
+    description: '',
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'moofasasay lol',
     ],
-    type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    type: CommandTypes.SAY,
+    usage: 'moofasasay <text>',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},
@@ -29,7 +26,7 @@ export default (<Command.CommandOptions> {
   ],
   onBefore: (context) => context.user.isClientOwner,
   run: async (context, args: CommandArgs) => {
-    return context.reply('ok');
+    return context.reply(args.text);
   },
   onRunError,
 });

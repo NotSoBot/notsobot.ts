@@ -39,6 +39,7 @@ export const CommandTypes = Tools.normalize({
   IMAGE: null,
   INFO: null,
   OWNER: null,
+  SAY: null,
   SEARCH: null,
   SETTINGS: null,
   TOOLS: null,

@@ -9,19 +9,17 @@ export interface CommandArgs {
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
-  args: [
-    {name: 'type'},
-  ],
+  name: 'screenshot',
+  aliases: ['ss'],
   label: 'url',
   metadata: {
+    description: 'Take a screenshot of a website',
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'hash lolol',
+      'hash lolol -use sha256',
     ],
-    type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    type: CommandTypes.TOOLS,
+    usage: 'screenshot <url>',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},

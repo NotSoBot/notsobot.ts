@@ -9,19 +9,20 @@ export interface CommandArgs {
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
+  name: 'pixel',
   args: [
-    {name: 'type'},
+    {name: 'amount', type: Number},
   ],
   label: 'url',
   metadata: {
+    description: 'Pixelate?',
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'pixel',
+      'pixel cake',
+      'pixel cake -amount 2',
     ],
     type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    usage: 'pixel ?<emoji|id|mention|name|url> (-amount <number>)',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},

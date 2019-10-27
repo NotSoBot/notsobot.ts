@@ -36,16 +36,8 @@ export default (<Command.CommandOptions> {
     usage: 'google <text> (-to <language>) (-from <language>)',
   },
   ratelimits: [
-    {
-      duration: 5000,
-      limit: 5,
-      type: 'guild',
-    },
-    {
-      duration: 1000,
-      limit: 1,
-      type: 'channel',
-    },
+    {duration: 5000, limit: 5, type: 'guild'},
+    {duration: 1000, limit: 1, type: 'channel'},
   ],
   onBefore: (context) => {
     const channel = context.channel;

@@ -5,23 +5,20 @@ import { onRunError } from '../../utils';
 
 
 export interface CommandArgs {
-  url: string,
+  query: string,
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
-  args: [
-    {name: 'type'},
-  ],
-  label: 'url',
+  name: 'giphy',
+  aliases: ['gif'],
+  label: 'query',
   metadata: {
+    description: 'Search Giphy',
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'giphy dancing',
     ],
-    type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    type: CommandTypes.SEARCH,
+    usage: 'giphy <query>',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},

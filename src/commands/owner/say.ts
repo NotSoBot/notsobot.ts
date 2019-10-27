@@ -17,7 +17,7 @@ export default (<Command.CommandOptions> {
       'say :spider:',
     ],
     type: CommandTypes.OWNER,
-    usage: 'say <text>'
+    usage: 'say <text>',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},

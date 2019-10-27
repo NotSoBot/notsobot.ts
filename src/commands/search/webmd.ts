@@ -4,22 +4,28 @@ import { CommandTypes } from '../../constants';
 import { onRunError } from '../../utils';
 
 
+export interface CommandArgs {
+  query: string,
+}
+
 export default (<Command.CommandOptions> {
-  name: 'tag create',
-  aliases: ['t create'],
+  name: 'webmd',
+  label: 'query',
   metadata: {
-    description: 'Create a tag',
+    description: 'Search WebMD',
     examples: [
-      'tag create test im a tag',
+      'webmd red spot on finger',
     ],
-    type: CommandTypes.FUN,
-    usage: 'tag create <tagname|"tag name"> <...body>',
+    type: CommandTypes.SEARCH,
+    usage: 'webmd <query>',
   },
-  priority: 1,
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},
     {duration: 1000, limit: 1, type: 'channel'},
   ],
-  run: async (context) => context.reply('maybe'),
+  onBefore: (context) => context.user.isClientOwner,
+  run: async (context, args: CommandArgs) => {
+    return context.reply('ok');
+  },
   onRunError,
 });

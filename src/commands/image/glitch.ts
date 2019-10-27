@@ -9,19 +9,23 @@ export interface CommandArgs {
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
+  name: 'glitch',
   args: [
+    {name: 'amount', type: Number},
+    {name: 'iterations', type: Number},
+    {name: 'seed', type: Number},
     {name: 'type'},
   ],
   label: 'url',
   metadata: {
+    description: 'Glitch an Image',
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'glitch',
+      'glitch cake',
+      'glitch cake -type 2',
     ],
     type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    usage: 'glitch ?<emoji|id|mention|name|url> (-amount <number>) (-iterations <number>) (-seed <number>) (-type <glitch-type>)',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},

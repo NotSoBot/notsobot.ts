@@ -9,19 +9,19 @@ export interface CommandArgs {
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
+  name: 'retro',
   args: [
     {name: 'type'},
   ],
   label: 'url',
   metadata: {
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'retro',
+      'retro cake',
+      'retro cake -type 2',
     ],
     type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    usage: 'retro ?<emoji|id|mention|name|url> (-type <retro-type>)',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},

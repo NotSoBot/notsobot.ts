@@ -9,19 +9,17 @@ export interface CommandArgs {
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
-  args: [
-    {name: 'type'},
-  ],
+  name: 'mirror bottom',
+  aliases: ['hooh'],
   label: 'url',
   metadata: {
+    description: 'Mirror bottom of image',
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'hooh',
+      'hooh cake',
     ],
     type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    usage: 'hooh ?<emoji|id|mention|name|url>',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},

@@ -9,19 +9,16 @@ export interface CommandArgs {
 }
 
 export default (<Command.CommandOptions> {
-  name: 'triggered',
-  args: [
-    {name: 'type'},
-  ],
+  name: 'jpeg',
   label: 'url',
   metadata: {
+    description: 'Needs More Jpeg',
     examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
+      'jpeg',
+      'jpeg cake',
     ],
     type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
+    usage: 'jpeg ?<emoji|id|mention|name|url>',
   },
   ratelimits: [
     {duration: 5000, limit: 5, type: 'guild'},
