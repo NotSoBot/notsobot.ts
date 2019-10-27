@@ -46,33 +46,20 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
 
-    const resize = await imageResize(context, {
-      convert: args.convert,
-      scale: args.scale,
-      size: args.size,
-      url: args.url,
-    });
-
+    const resize = await imageResize(context, {url: args.url});
     const {
       'content-length': size,
       'content-type': contentType,
       'x-dimensions-height': height,
       'x-dimensions-width': width,
       'x-extension': extension,
-      'x-frames-new': newFrames,
-      'x-frames-old': oldFrames,
     } = resize.headers;
 
     const filename = `resized.${extension}`;
     const embed = new Utils.Embed();
     embed.setColor(EmbedColors.DEFAULT);
     embed.setImage(`attachment://${filename}`);
-
-    let footer = `${width}x${height}`;
-    if (contentType === 'image/gif') {
-      footer = `${footer}, ${newFrames} frames`;
-    }
-    embed.setFooter(`${footer}, ${formatMemory(parseInt(size), 2)}`);
+    embed.setFooter(`${width}x${height}, ${formatMemory(parseInt(size), 2)}`);
 
     return context.reply({embed, file: {contentType, filename, data: resize.data}});
   },

@@ -467,23 +467,28 @@ export async function onRunError(
   error: any,
 ): Promise<Structures.Message> {
   const embed = new Utils.Embed();
-  embed.setColor(15746887);
+  embed.setColor(EmbedColors.ERROR);
   embed.setTitle('⚠ Command Error');
 
   const description: Array<string> = [(error.message || error.stack) + '\n'];
   if (error.response) {
-    const information = await error.response.json();
-    if ('errors' in information) {
-      for (let key in information.errors) {
-        const value = information.errors[key];
-        let message: string;
-        if (typeof(value) === 'object') {
-          message = JSON.stringify(value);
-        } else {
-          message = String(value);
+    try {
+      const information = await error.response.json();
+      if ('errors' in information) {
+        for (let key in information.errors) {
+          const value = information.errors[key];
+          let message: string;
+          if (typeof(value) === 'object') {
+            message = JSON.stringify(value);
+          } else {
+            message = String(value);
+          }
+          description.push(`**${key}**: ${message}`);
         }
-        description.push(`**${key}**: ${message}`);
       }
+    } catch(e) {
+      description.push('Could not parse');
+      description.push(`**Mimetype**: ${error.response.contentType}`);
     }
   }
 
@@ -498,7 +503,7 @@ export function onTypeError(
 ): Promise<Structures.Message> {
   const embed = new Utils.Embed();
   embed.setColor(EmbedColors.ERROR);
-  embed.setTitle('⚠ Command Error');
+  embed.setTitle('⚠ Command Argument Error');
 
   const description: Array<string> = ['Invalid Arguments' + '\n'];
   for (let key in errors) {

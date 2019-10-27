@@ -212,6 +212,50 @@ export async function googleTranslate(
 
 
 
+export interface ImageMagik {
+  url: string,
+}
+
+export async function imageMagik(
+  context: Command.Context,
+  options: ImageMagik,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/image/magik',
+    },
+  });
+}
+
+
+export interface ImageMagikGif {
+  url: string,
+}
+
+export async function imageMagikGif(
+  context: Command.Context,
+  options: ImageMagikGif,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/image/magik-gif',
+    },
+  });
+}
+
+
 export interface ImageResize {
   convert?: string,
   scale?: number,
@@ -278,6 +322,27 @@ export async function searchDuckDuckGoImages(
     route: {
       method: RestConstants.HTTPMethods.GET,
       path: '/search/duckduckgo/images',
+    },
+  });
+}
+
+
+export interface SearchRule34 {
+  query: string,
+}
+
+export async function searchRule34(
+  context: Command.Context,
+  options: SearchRule34,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/rule34',
     },
   });
 }
