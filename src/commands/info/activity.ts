@@ -135,6 +135,9 @@ export default (<Command.CommandOptions> {
                     description.push(`**State**: ${Markup.escape.all(activity.state)}`);
                   }
                 }
+                if (activity.isOnSamsung) {
+                  description.push(`**On Samsung Galaxy**`);
+                }
                 if (activity.isOnXbox) {
                   description.push('**On Xbox**');
                 }
