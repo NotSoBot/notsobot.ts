@@ -348,6 +348,27 @@ export async function searchRule34(
 }
 
 
+export interface SearchRule34Paheal {
+  query: string,
+}
+
+export async function searchRule34Paheal(
+  context: Command.Context,
+  options: SearchRule34Paheal,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/rule34-paheal',
+    },
+  });
+}
+
+
 export interface SearchUrban {
   query: string,
 }
