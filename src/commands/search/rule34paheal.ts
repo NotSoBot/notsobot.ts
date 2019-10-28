@@ -78,6 +78,9 @@ export default (<Command.CommandOptions> {
               description.push(`**Source**: ${result.source}`);
             }
           }
+          if (result.tags.length) {
+            description.push(`**Tags**: ${result.tags.sort().join(', ')}`);
+          }
           embed.setDescription(description.join('\n'));
 
           let imageUrl: string;
