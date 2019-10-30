@@ -34,6 +34,41 @@ export async function request(
 }
 
 
+export async function createGuildBlacklist(
+  context: Command.Context,
+  guildId: string,
+  blacklistId: string,
+  type: string,
+): Promise<any> {
+  return request(context, {
+    body: {type},
+    route: {
+      method: RestConstants.HTTPMethods.PUT,
+      path: '/guilds/:guildId/blacklist/:blacklistId',
+      params: {blacklistId, guildId},
+    },
+  });
+}
+
+
+export async function createGuildDisabledCommand(
+  context: Command.Context,
+  guildId: string,
+  command: string,
+  disabledId: string,
+  type: string,
+): Promise<any> {
+  return request(context, {
+    body: {type},
+    route: {
+      method: RestConstants.HTTPMethods.PUT,
+      path: '/guilds/:guildId/disabled-commands/:command/:disabledId',
+      params: {command, disabledId, guildId},
+    },
+  });
+}
+
+
 export async function createGuildPrefix(
   context: Command.Context,
   guildId: string,
@@ -47,6 +82,37 @@ export async function createGuildPrefix(
       method: RestConstants.HTTPMethods.PUT,
       path: '/guilds/:guildId/prefixes',
       params,
+    },
+  });
+}
+
+
+export async function deleteGuildBlacklist(
+  context: Command.Context,
+  guildId: string,
+  blacklistId: string,
+): Promise<any> {
+  return request(context, {
+    route: {
+      method: RestConstants.HTTPMethods.DELETE,
+      path: '/guilds/:guildId/blacklist/:blacklistId',
+      params: {blacklistId, guildId},
+    },
+  });
+}
+
+
+export async function deleteGuildDisabledCommand(
+  context: Command.Context,
+  guildId: string,
+  command: string,
+  disabledId: string,
+): Promise<any> {
+  return request(context, {
+    route: {
+      method: RestConstants.HTTPMethods.DELETE,
+      path: '/guilds/:guildId/disabled-commands/:command/:disabledId',
+      params: {command, disabledId, guildId},
     },
   });
 }

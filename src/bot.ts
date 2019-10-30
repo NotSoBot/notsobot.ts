@@ -1,12 +1,10 @@
 import './bootstrap';
 
 import { ClusterClient, Constants, ShardClient } from 'detritus-client';
+import { Timers } from 'detritus-utils';
 
-import { fetchGuildSettings } from './api';
 import { NotSoClient } from './client';
-
 import { connectAllStores } from './stores';
-import GuildSettingsStore, { GuildSettingsPromise, GuildSettingsPromisesStore, GuildSettingsStored } from './stores/guildsettings';
 
 const { ActivityTypes, PresenceStatuses } = Constants;
 
@@ -38,39 +36,6 @@ const bot = new NotSoClient({
 });
 
 
-bot.onPrefixCheck = async (context) => {
-  if (!context.user.bot && context.guildId) {
-    const guildId: string = context.guildId;
-
-    let settings: GuildSettingsStored | null = null;
-    if (GuildSettingsPromisesStore.has(guildId)) {
-      settings = await (<GuildSettingsPromise> GuildSettingsPromisesStore.get(guildId));
-    } else {
-      if (GuildSettingsStore.has(guildId)) {
-        settings = <GuildSettingsStored> GuildSettingsStore.get(guildId);
-      } else {
-        const promise: GuildSettingsPromise = new Promise(async (resolve) => {
-          try {
-            const settings: GuildSettingsStored = await fetchGuildSettings(context, guildId);
-            GuildSettingsStore.set(guildId, settings);
-            resolve(settings);
-          } catch(error) {
-            resolve(null);
-          }
-          GuildSettingsPromisesStore.delete(guildId);
-        });
-        GuildSettingsPromisesStore.set(guildId, promise);
-        settings = await promise;
-      }
-    }
-    if (settings && settings.prefixes.length) {
-      return settings.prefixes.map(({prefix}) => prefix);
-    }
-  }
-  return bot.prefixes.custom;
-};
-
-
 bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
   if (context.message.canReply) {
     let replied: boolean = false;
@@ -81,31 +46,33 @@ bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
       }
       replied = item.replied = true;
 
-      let noun = 'You';
+      let noun: string = 'You idiots are';
       switch (ratelimit.type) {
-        case 'channel':
+        case 'channel': {
+          noun = 'This guild is';
+        }; break;
         case 'guild': {
-          noun = 'Y\'all';
+          noun = 'This channel is';
+        }; break;
+        case 'user': {
+          noun = 'You are';
         }; break;
       }
 
       let content: string;
       if (global) {
-        content = `${noun} are using commands WAY too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+        content = `${noun} using commands WAY too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
       } else {
-        content = `${noun} are using ${command.name} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+        content = `${noun} using ${command.name} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
       }
 
       try {
         const message = await context.reply(content);
-        setTimeout(async () => {
-          item.replied = false;
-          if (!message.deleted) {
-            try {
-              await message.delete();
-            } catch(error) {}
-          }
-        }, Math.max(remaining / 2, 1000));
+        await Timers.sleep(Math.max(remaining / 2, 1000));
+        item.replied = false;
+        if (!message.deleted) {
+          await message.delete();
+        }
       } catch(e) {
         item.replied = false;
       }

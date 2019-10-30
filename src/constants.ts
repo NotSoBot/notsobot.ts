@@ -38,6 +38,8 @@ export const CommandTypes = Tools.normalize({
   FUN: null,
   IMAGE: null,
   INFO: null,
+  MODERATION: null,
+  MODERATION_COMMAND: null,
   OWNER: null,
   SAY: null,
   SEARCH: null,
@@ -317,6 +319,19 @@ export const GoogleLocaleFromDiscord = Object.freeze({
   [DiscordLocales.SWEDISH]: GoogleLocales.SWEDISH,
 });
 
+export const GuildBlacklistTypes = Object.freeze({
+  CHANNEL: 'channel',
+  MEMBER: 'member',
+  ROLE: 'role',
+});
+
+export const GuildDisableCommandsTypes = Object.freeze({
+  CHANNEL: 'channel',
+  GUILD: 'guild',
+  MEMBER: 'member',
+  ROLE: 'role',
+});
+
 export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Object.freeze({
   [GuildExplicitContentFilterTypes.DISABLED]: 'Disabled',
   [GuildExplicitContentFilterTypes.MEMBERS_WITHOUT_ROLES]: 'No Roles',
@@ -433,6 +448,9 @@ export const PRESENCE_CLIENT_STATUS_KEYS = Object.freeze([
 ]);
 
 export const RedisChannels = Tools.normalize({
+  GUILD_BLACKLIST_UPDATE: null,
+  GUILD_DISABLED_COMMAND_UPDATE: null,
+  GUILD_PREFIX_UPDATE: null,
   GUILD_SETTINGS_UPDATE: null,
 });
 

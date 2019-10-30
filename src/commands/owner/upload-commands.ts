@@ -26,12 +26,15 @@ export default (<Command.CommandOptions> {
       return {
         aliases: names,
         args: args.map((arg) => {
+          const argMetadata = arg.metadata || {};
           return {
             aliases: arg.aliases,
+            description: argMetadata.description || '',
             name: arg.name,
             prefix: Array.from(arg.prefixes).shift() || '',
           };
         }),
+        enabled: true,
         description: metadata.description || '',
         dmable: !command.disableDm,
         examples: metadata.examples,
