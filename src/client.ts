@@ -90,6 +90,7 @@ export class NotSoClient extends CommandClient {
           }
         }
       }
+      return true;
     }
     return false;
   }
