@@ -51,8 +51,8 @@ export class NotSoClient extends CommandClient {
     if (context.user.isClientOwner) {
       return true;
     }
-    if (command.disableDm && context.inDm) {
-      return false;
+    if (context.inDm) {
+      return !command.disableDm;
     }
     const guildId = <string> context.guildId;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
@@ -91,6 +91,8 @@ export class NotSoClient extends CommandClient {
         }
       }
       return true;
+    } else {
+      // Failed to fetch, got null, just block it lol
     }
     return false;
   }
