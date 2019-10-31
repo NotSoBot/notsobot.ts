@@ -513,3 +513,22 @@ export function onTypeError(
   embed.setDescription(description.join('\n'));
   return context.editOrReply({embed});
 }
+
+export async function triggerTypingAfter(
+  context: Command.Context,
+  milliseconds?: number,
+): Promise<Timers.Timeout> {
+  const timeout = new Timers.Timeout();
+  if (!context.response) {
+    if (milliseconds) {
+      timeout.start(milliseconds, async () => {
+        try {
+          await context.triggerTyping();
+        } catch(error) {}
+      });
+    } else {
+      await context.triggerTyping();
+    }
+  }
+  return timeout;
+}

@@ -1,10 +1,8 @@
 import { Command, Constants } from 'detritus-client';
 
-const { GuildExplicitContentFilterTypes } = Constants;
+const { Locales, LocalesText, GuildExplicitContentFilterTypes } = Constants;
 
 import {
-  DiscordLocales,
-  DiscordLocalesText,
   GoogleLocaleFromDiscord,
   GoogleLocales,
   GoogleLocalesText,
@@ -17,25 +15,25 @@ export const DiscordLocale: Command.ArgumentOptions = Object.freeze({
   type: (value) => {
     if (value) {
       value = value.toLowerCase().replace(/ /g, '_');
-      for (let key in DiscordLocales) {
-        const locale = (<any> DiscordLocales)[key];
+      for (let key in Locales) {
+        const locale = (<any> Locales)[key];
         if (locale.toLowerCase() === value) {
           return locale;
         }
       }
-      for (let key in DiscordLocales) {
+      for (let key in Locales) {
         const name = key.toLowerCase();
         if (name.includes(value)) {
-          return (<any> DiscordLocales)[key];
+          return (<any> Locales)[key];
         }
       }
-      for (let key in DiscordLocalesText) {
-        const name = DiscordLocalesText[key].toLowerCase();
+      for (let key in LocalesText) {
+        const name = (<any> LocalesText)[key].toLowerCase();
         if (name.includes(value)) {
           return key;
         }
       }
-      const locales = Object.values(DiscordLocalesText).map((locale) => {
+      const locales = Object.values(LocalesText).map((locale) => {
         if (locale.includes(',')) {
           return `(\`${locale}\`)`;
         }
@@ -54,7 +52,7 @@ export const GoogleLocale: Command.ArgumentOptions = Object.freeze({
     if (context.guild) {
       const value = context.guild.preferredLocale;
       if (value in GoogleLocaleFromDiscord) {
-        return GoogleLocaleFromDiscord[value];
+        return (<any> GoogleLocaleFromDiscord)[value];
       }
       return value;
     }
@@ -65,7 +63,7 @@ export const GoogleLocale: Command.ArgumentOptions = Object.freeze({
       if (context.guild) {
         value = context.guild.preferredLocale;
         if (value in GoogleLocaleFromDiscord) {
-          return GoogleLocaleFromDiscord[value];
+          return (<any> GoogleLocaleFromDiscord)[value];
         }
         return value;
       } else {
@@ -86,7 +84,7 @@ export const GoogleLocale: Command.ArgumentOptions = Object.freeze({
       }
     }
     for (let key in GoogleLocalesText) {
-      const name = GoogleLocalesText[key].toLowerCase();
+      const name = (<any> GoogleLocalesText)[key].toLowerCase();
       if (name.includes(value)) {
         return key;
       }

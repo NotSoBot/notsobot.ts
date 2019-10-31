@@ -6,7 +6,7 @@ import { Arguments, onRunError, onTypeError } from '../../utils';
 
 
 export interface CommandArgs {
-  locale: string,
+  locale: Constants.Locales,
 }
 
 export default (<Command.CommandOptions> {

@@ -3,9 +3,14 @@ import { Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { googleSearchImages } from '../../api';
-import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocalesText } from '../../constants';
-import { Arguments, Paginator, onRunError, onTypeError } from '../../utils';
+import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
+import { Arguments, Paginator, onRunError, onTypeError, triggerTypingAfter } from '../../utils';
 
+
+export interface CommandArgs {
+  locale: GoogleLocales,
+  query: string,
+}
 
 export default (<Command.CommandOptions> {
   name: 'image',
@@ -30,8 +35,8 @@ export default (<Command.CommandOptions> {
   onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
   onBeforeRun: (context, args) => !!args.query,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args) => {
-    await context.triggerTyping();
+  run: async (context, args: CommandArgs) => {
+    await triggerTypingAfter(context);
 
     const results = await googleSearchImages(context, args);
     if (results.length) {

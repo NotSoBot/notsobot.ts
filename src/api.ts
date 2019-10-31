@@ -5,6 +5,12 @@ import {
   Response,
 } from 'detritus-rest';
 
+import {
+  GoogleLocales,
+  GuildBlacklistTypes,
+  GuildDisableCommandsTypes,
+} from './constants';
+
 
 export const API_URL = 'https://beta.notsobot.com/api';
 
@@ -38,7 +44,7 @@ export async function createGuildBlacklist(
   context: Command.Context,
   guildId: string,
   blacklistId: string,
-  type: string,
+  type: GuildBlacklistTypes,
 ): Promise<any> {
   return request(context, {
     body: {type},
@@ -56,7 +62,7 @@ export async function createGuildDisabledCommand(
   guildId: string,
   command: string,
   disabledId: string,
-  type: string,
+  type: GuildDisableCommandsTypes,
 ): Promise<any> {
   return request(context, {
     body: {type},
@@ -182,7 +188,9 @@ export interface GoogleContentVisionOCR {
 export async function googleContentVisionOCR(
   context: Command.Context,
   options: GoogleContentVisionOCR,
-): Promise<any> {
+): Promise<{
+  annotation: null | {description: string, locale: GoogleLocales},
+}> {
   const body = {
     url: options.url,
   };
@@ -197,7 +205,7 @@ export async function googleContentVisionOCR(
 
 
 export interface GoogleSearch {
-  locale?: string,
+  locale?: GoogleLocales,
   maxResults?: number,
   query: string,
   safe?: boolean | string,
@@ -226,7 +234,7 @@ export async function googleSearch(
 
 
 export interface GoogleSearchImages {
-  locale?: string,
+  locale?: GoogleLocales,
   maxResults?: number,
   query: string,
   safe?: boolean | string,
@@ -253,15 +261,20 @@ export async function googleSearchImages(
 
 
 export interface GoogleTranslate {
-  from?: string,
+  from?: GoogleLocales,
   text: string,
-  to?: string,
+  to?: GoogleLocales,
 }
 
 export async function googleTranslate(
   context: Command.Context,
   options: GoogleTranslate,
-): Promise<any> {
+): Promise<{
+  from_language: GoogleLocales,
+  from_text: string,
+  translated_language: GoogleLocales,
+  translated_text: string,
+}> {
   const query = {
     from: options.from,
     text: options.text,

@@ -3,7 +3,7 @@ import { Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { googleContentVisionOCR } from '../../api';
-import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocalesText } from '../../constants';
+import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
 import { Parameters, onRunError, onTypeError } from '../../utils';
 
 
@@ -70,7 +70,7 @@ export default (<Command.CommandOptions> {
       embed.setThumbnail(args.url);
 
       if (annotation) {
-        let language = annotation.locale;
+        let language: string = annotation.locale;
         if (annotation.locale in GoogleLocalesText) {
           language = GoogleLocalesText[annotation.locale];
         }

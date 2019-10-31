@@ -110,7 +110,11 @@ export default (<Command.CommandOptions> {
                 description.push(`**Emoji**: ${emoji}`);
               }
               if (activity.isCustomStatus) {
-                description.push(`**Custom Status**: ${Markup.escape.all(activity.state || '')}`);
+                if (activity.state) {
+                  description.push(`**Custom Status**: ${Markup.escape.all(activity.state)}`);
+                } else {
+                  description.push(`**Custom Status**`);
+                }
                 if (activity.name !== 'Custom Status') {
                   description.push(`**Hidden Message**: ${Markup.escape.all(activity.name || '')}`);
                 }

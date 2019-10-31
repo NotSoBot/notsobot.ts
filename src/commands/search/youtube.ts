@@ -13,7 +13,7 @@ import {
   YoutubeResultTypes,
   MOMENT_FORMAT,
 } from '../../constants';
-import { Paginator, onRunError, onTypeError } from '../../utils';
+import { Paginator, onRunError, onTypeError, triggerTypingAfter } from '../../utils';
 
 
 export interface CommandArgs {
@@ -41,7 +41,7 @@ export default (<Command.CommandOptions> {
   onBeforeRun: (context, args) => !!args.query || !!args.random,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
   run: async (context, args: CommandArgs) => {
-    await context.triggerTyping();
+    await triggerTypingAfter(context);
 
     const { results, total_result_count: totalResultCount } = await youtubeSearch(context, args);
     if (results.length) {

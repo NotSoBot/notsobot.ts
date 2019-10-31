@@ -8,7 +8,7 @@ import { Arguments, Parameters, onRunError, onTypeError } from '../../utils';
 
 
 export interface CommandArgs {
-  to: null | string,
+  to: null | GoogleLocales,
   url: string,
 }
 
@@ -55,13 +55,12 @@ export default (<Command.CommandOptions> {
     embed.setThumbnail(args.url);
 
     if (annotation) {
-      let locale: string | undefined;
+      let locale: GoogleLocales | undefined;
       if (annotation.locale in GoogleLocales) {
         locale = annotation.locale;
       }
 
       const {
-        from_text: fromText,
         from_language: fromLanguage,
         translated_language: translatedLanguage,
         translated_text: translatedText,
@@ -77,7 +76,7 @@ export default (<Command.CommandOptions> {
       }
       let translatedLanguageText: string = translatedLanguage;
       if (translatedLanguage in GoogleLocalesText) {
-        translatedLanguageText = GoogleLocalesText[translatedLanguageText];
+        translatedLanguageText = GoogleLocalesText[translatedLanguage];
       }
       embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
       embed.setDescription(Markup.codeblock(translatedText));

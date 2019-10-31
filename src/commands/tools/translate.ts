@@ -7,15 +7,16 @@ import {
   CommandTypes,
   EmbedBrands,
   EmbedColors,
+  GoogleLocales,
   GoogleLocalesText,
 } from '../../constants';
 import { Arguments, onRunError, onTypeError } from '../../utils';
 
 
 export interface CommandArgs {
-  from: null | string,
+  from: GoogleLocales | null,
   text: string,
-  to: null | string,
+  to: GoogleLocales | null,
 }
 
 export default (<Command.CommandOptions> {
@@ -46,7 +47,6 @@ export default (<Command.CommandOptions> {
   run: async (context, args: CommandArgs) => {
     await context.triggerTyping();
     const {
-      from_text: fromText,
       from_language: fromLanguage,
       translated_language: translatedLanguage,
       translated_text: translatedText,
@@ -67,7 +67,7 @@ export default (<Command.CommandOptions> {
     }
     let translatedLanguageText: string = translatedLanguage;
     if (translatedLanguage in GoogleLocalesText) {
-      translatedLanguageText = GoogleLocalesText[translatedLanguageText];
+      translatedLanguageText = GoogleLocalesText[translatedLanguage];
     }
     embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
     embed.setDescription(Markup.codeblock(translatedText));

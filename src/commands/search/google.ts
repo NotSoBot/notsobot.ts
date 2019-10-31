@@ -8,16 +8,17 @@ import {
   EmbedBrands,
   EmbedColors,
   GoogleCardTypes,
+  GoogleLocales,
   GoogleLocalesText,
   GOOGLE_CARD_TYPES_SUPPORTED,
 } from '../../constants';
-import { Arguments, Paginator, onRunError, onTypeError } from '../../utils';
+import { Arguments, Paginator, onRunError, onTypeError, triggerTypingAfter } from '../../utils';
 
 
 const RESULTS_PER_PAGE = 3;
 
 export interface CommandArgs {
-  locale: string,
+  locale: GoogleLocales,
   query: string,
   safe: boolean,
 }
@@ -46,7 +47,7 @@ export default (<Command.CommandOptions> {
   onBeforeRun: (context, args) => !!args.query,
   onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
   run: async (context, args: CommandArgs) => {
-    await context.triggerTyping();
+    await triggerTypingAfter(context);
 
     const { cards, results, suggestion } = await googleSearch(context, args);
     if (cards.length || results.length) {
