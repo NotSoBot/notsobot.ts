@@ -2,48 +2,58 @@ import * as moment from 'moment';
 
 import { Command, Utils } from 'detritus-client';
 
-const { Markup } = Utils;
+const { Embed, Markup } = Utils;
 
 import { searchRule34 } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, onRunError, onTypeError } from '../../utils';
+import { Paginator } from '../../utils';
+
+import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgs {
   query: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'rule34',
-  aliases: ['r34'],
-  label: 'query',
-  metadata: {
+export default class Rule34Command extends BaseCommand {
+  name = 'rule34';
+  aliases = ['r34'];
+
+  label = 'query';
+  metadata = {
     description: 'Search https://rule34.xxx',
     examples: [
       'rule34 some anime chick',
     ],
     type: CommandTypes.SEARCH,
     usage: 'rule34 <query>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => {
-    if (context.channel) {
-      return context.channel.canEmbedLinks && context.channel.nsfw;
+  };
+
+  onBefore(context: Command.Context) {
+    const canEmbed = super.onBefore(context);
+    if (canEmbed) {
+      return !!(context.channel && context.channel.nsfw);
     }
-    return false;
-  },
-  onCancel: (context) => {
-    if (context.channel && !context.channel.nsfw) {
+    return canEmbed;
+  }
+
+  onCancel(context: Command.Context) {
+    const promise = super.onCancel(context);
+    if (promise === false) {
       return context.editOrReply('⚠ Not a NSFW channel.');
     }
-    return context.editOrReply('⚠ Unable to embed in this channel.');
-  },
-  onBeforeRun: (context, args) => !!args.query,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args: CommandArgs) => {
+    return promise;
+  }
+
+  onBeforeRun(context: Command.Context, args: CommandArgs) {
+    return !!args.query;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgs) {
+    return context.editOrReply('⚠ Provide some kind of search term.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     await context.triggerTyping();
 
     const results = await searchRule34(context, args);
@@ -52,7 +62,7 @@ export default (<Command.CommandOptions> {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
 
@@ -79,7 +89,7 @@ export default (<Command.CommandOptions> {
             }
           }
           if (result.tags.length) {
-            description.push(`**Tags**: ${result.tags.sort().join(', ')}`);
+            description.push(`**Tags**: ${Markup.escape.all(result.tags.sort().join(', '))}`);
           }
           embed.setDescription(description.join('\n'));
 
@@ -98,7 +108,5 @@ export default (<Command.CommandOptions> {
     } else {
       return context.editOrReply('Couldn\'t find any images for that search term');
     }
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

@@ -1,28 +1,26 @@
 import * as os from 'os';
 
-import { Command, ClusterClient, Utils } from 'detritus-client';
 
+import { ClusterClient, Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { CommandTypes } from '../../constants';
-import { onRunError, padCodeBlockFromRows } from '../../utils';
+import { BaseCommand } from '../basecommand';
+import { padCodeBlockFromRows } from '../../utils';
 
-
-export default (<Command.CommandOptions> {
-  name: 'usage',
-  metadata: {
+export default class UsageCommand extends BaseCommand {
+  name = 'usage';
+  metadata = {
     description: 'Show the bot\'s current usage (and Discord object counts)',
     examples: [
       'usage',
     ],
     type: CommandTypes.UTILS,
     usage: 'usage',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  run: async (context) => {
+  };
+
+
+  async run(context: Command.Context) {
     const rows: Array<Array<string>> = [];
     if (context.manager) {
       const results = await context.manager.broadcastEval((cluster: ClusterClient) => {
@@ -109,6 +107,5 @@ export default (<Command.CommandOptions> {
 
     const content = padCodeBlockFromRows(rows).join('\n');
     return context.editOrReply(Markup.codeblock(content, {language: 'py'}));
-  },
-  onRunError,
-});
+  }
+}

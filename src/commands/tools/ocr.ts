@@ -1,22 +1,29 @@
-import { Command, Utils } from 'detritus-client';
+import { Command, CommandClient, Utils } from 'detritus-client';
 
-const { Markup } = Utils;
+const { Embed, Markup } = Utils;
 
 import { googleContentVisionOCR } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
-import { Parameters, onRunError, onTypeError } from '../../utils';
+import { Parameters } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  noembed: boolean,
+  url?: null | string,
+}
 
 export interface CommandArgs {
   noembed: boolean,
   url: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'ocr',
-  args: [{name: 'noembed', type: Boolean}],
-  label: 'url',
-  metadata: {
+export default class OCRCommand extends BaseCommand<CommandArgs> {
+  name = 'ocr';
+
+  label = 'url';
+  metadata = {
     description: 'Read text inside of an image',
     examples: [
       'ocr',
@@ -25,23 +32,28 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.TOOLS,
     usage: 'ocr ?<emoji|id|mention|name|url> (-noembed)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.lastImageUrl,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.reply('⚠ Unable to send files in this channel.'),
-  onBeforeRun: (context, args) => !!args.url,
-  onCancelRun: (context, args) => {
+  };
+  type = Parameters.lastImageUrl;
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [{name: 'noembed', type: Boolean}],
+    });
+  }
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.url;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.url === undefined) {
       return context.editOrReply('⚠ Unable to find any messages with an image.');
-    } else {
-      return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
     }
-  },
-  run: async (context, args: CommandArgs) => {
+    return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     await context.triggerTyping();
 
     const { annotation } = await googleContentVisionOCR(context, {url: args.url});
@@ -63,7 +75,7 @@ export default (<Command.CommandOptions> {
         Markup.codeblock(annotation.description),
       ].join('\n'));
     } else {
-      const embed = new Utils.Embed();
+      const embed = new Embed();
       embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
       embed.setColor(EmbedColors.DEFAULT);
       embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
@@ -83,7 +95,5 @@ export default (<Command.CommandOptions> {
 
       return context.editOrReply({embed});
     }
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

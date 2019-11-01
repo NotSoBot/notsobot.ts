@@ -79,7 +79,7 @@ export default (<Command.CommandOptions> {
             }
           }
           if (result.tags.length) {
-            description.push(`**Tags**: ${result.tags.sort().join(', ')}`);
+            description.push(`**Tags**: ${Markup.escape.all(result.tags.sort().join(', '))}`);
           }
           embed.setDescription(description.join('\n'));
 

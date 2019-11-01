@@ -1,26 +1,23 @@
-import { ClusterClient, Command, Utils } from 'detritus-client';
-
+import { Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { CommandTypes } from '../../constants';
-import { onRunError, padCodeBlockFromRows } from '../../utils';
+import { BaseCommand } from '../basecommand';
+import { padCodeBlockFromRows } from '../../utils';
 
 
-export default (<Command.CommandOptions> {
-  name: 'memoryusage',
-  metadata: {
+export default class MemoryUsageCommand extends BaseCommand {
+  name = 'memoryusage';
+  metadata = {
     description: 'Show the bot\'s current memory usage',
     examples: [
       'memoryusage',
     ],
     type: CommandTypes.UTILS,
     usage: 'memoryusage',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  run: async (context) => {
+  };
+
+  async run(context: Command.Context) {
     const title: Array<Array<string>> = [
       ['Shard:', String(context.shardId)],
     ];
@@ -72,6 +69,5 @@ export default (<Command.CommandOptions> {
       paddedRows.join('\n'),
     ].join('\n');
     return context.editOrReply(Markup.codeblock(content, {language: 'py'}));
-  },
-  onRunError,
-});
+  }
+}

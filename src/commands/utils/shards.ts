@@ -1,26 +1,23 @@
-import { Command, ClusterClient, Utils } from 'detritus-client';
-
+import { ClusterClient, Command, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { CommandTypes } from '../../constants';
-import { onRunError, padCodeBlockFromRows } from '../../utils';
+import { BaseCommand } from '../basecommand';
+import { padCodeBlockFromRows } from '../../utils';
 
 
-export default (<Command.CommandOptions> {
-  name: 'shards',
-  metadata: {
+export default class ShardCommand extends BaseCommand {
+  name = 'shards';
+  metadata = {
     description: 'Show all of the bot\'s shard information',
     examples: [
       'shards',
     ],
     type: CommandTypes.UTILS,
     usage: 'shards',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  run: async (context) => {
+  };
+
+  async run(context: Command.Context) {
     const title: Array<Array<string>> = [
       ['Shard:', String(context.shardId)],
     ];
@@ -102,6 +99,5 @@ export default (<Command.CommandOptions> {
       paddedRows.join('\n'),
     ].join('\n');
     return context.editOrReply(Markup.codeblock(content, {language: 'py'}));
-  },
-  onRunError,
-});
+  }
+}

@@ -1,18 +1,18 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
-import { onRunError } from '../../utils';
+import { BaseCommand } from '../basecommand';
 
 
-export interface CommandArgs {
-  text: string,
+export interface HashArgs {
+  text: string;
 }
 
-export default (<Command.CommandOptions> {
-  name: 'hash',
-  args: [{name: 'use'}],
-  label: 'text',
-  metadata: {
+export default class HashCommand extends BaseCommand<HashArgs> {
+  name = 'hash';
+
+  label = 'text';
+  metadata = {
     description: 'Hash some text',
     examples: [
       'hash lolol',
@@ -20,14 +20,20 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.TOOLS,
     usage: 'hash <text> (-use <hash-type>)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => context.user.isClientOwner,
-  run: async (context, args: CommandArgs) => {
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [{name: 'use'}],
+    });
+  }
+
+  onBefore(context: Command.Context) {
+    return context.user.isClientOwner;
+  }
+
+  run(context: Command.Context, args: HashArgs) {
     return context.reply('ok');
-  },
-  onRunError,
-});
+  }
+}
