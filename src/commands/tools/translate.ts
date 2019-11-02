@@ -24,7 +24,7 @@ export default (<Command.CommandOptions> {
   aliases: ['tr'],
   args: [
     {name: 'from', default: null, type: Arguments.GoogleLocale.type},
-    {name: 'to', default: null, type: Arguments.GoogleLocale.type},
+    {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
   ],
   label: 'text',
   metadata: {

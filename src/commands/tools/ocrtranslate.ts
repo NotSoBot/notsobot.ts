@@ -16,7 +16,7 @@ export default (<Command.CommandOptions> {
   name: 'ocrtranslate',
   aliases: ['ocrtr', 'trocr', 'translateocr'],
   args: [
-    {name: 'to', default: null, type: Arguments.GoogleLocale.type},
+    {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
   ],
   label: 'url',
   metadata: {
