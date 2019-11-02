@@ -1,7 +1,7 @@
-import { Command, Constants, Structures, Utils } from 'detritus-client';
+import { Command, CommandClient, Constants, Structures, Utils } from 'detritus-client';
 
 const { Permissions } = Constants;
-const { Markup, PermissionTools } = Utils;
+const { Embed, Markup, PermissionTools, intToHex } = Utils;
 
 import {
   BooleanEmojis,
@@ -14,23 +14,53 @@ import {
 } from '../../constants';
 import { isSnowflake, padCodeBlockFromRows } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export function getChannel(value: string, context: Command.Context) {
+  if (value) {
+    const guild = context.guild;
+    if (guild) {
+      return guild.channels.get(value);
+    }
+  }
+  return context.channel;
+}
+
+export function getRole(value: string, context: Command.Context) {
+  const guild = context.guild;
+
+  if (guild) {
+    if (value) {
+      if (isSnowflake(value)) {
+        return guild.roles.get(value);
+      } else {
+        const name = value.toLowerCase();
+        return guild.roles.find((role) => {
+          return role.name.toLowerCase().includes(name);
+        });
+      }
+    }
+    return guild.defaultRole;
+  }
+};
+
+
+export interface CommandArgsBefore {
+  channel: Structures.Channel | undefined,
+  role: Structures.Role | undefined,
+}
 
 export interface CommandArgs {
   channel: Structures.Channel,
   role: Structures.Role,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'role',
-  args: [
-    {
-      default: (context: any) => context.channelId,
-      name: 'channel',
-      type: (value, context) => context.guild && context.guild.channels.get(value),
-    },
-  ],
-  disableDm: true,
-  metadata: {
+export default class RoleCommand extends BaseCommand {
+  name = 'role';
+
+  disableDm = true;
+  metadata = {
     description: 'Get information for a role, defaults to the @everyone role',
     examples: [
       'role',
@@ -38,46 +68,32 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.INFO,
     usage: 'role ?<id|mention|name> (-channel <id>)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: (value, context) => {
-    value = value.trim();
-    const guild = context.guild;
+  };
+  type = getRole;
 
-    let role: null | Structures.Role | undefined;
-    if (guild) {
-      if (value) {
-        if (isSnowflake(value)) {
-          role = guild.roles.get(value);
-        } else {
-          const name = value.toLowerCase();
-          role = guild.roles.find((role) => {
-            return role.name.toLowerCase().includes(name);
-          });
-        }
-      } else {
-        role = guild.defaultRole;
-      }
-    }
-    return role || null;
-  },
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!args.channel && !!args.role,
-  onCancelRun: (context, args) => {
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [{default: (context: Command.Context) => context.channel, name: 'channel', type: getChannel}],
+    });
+  }
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.channel && !!args.role;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (!args.channel) {
       return context.editOrReply('Unknown Channel');
     } else if (!args.role) {
       return context.editOrReply('Unknown Role');
     }
-  },
-  run: async (context, args: CommandArgs) => {
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const { channel, role } = args;
 
-    const embed = new Utils.Embed();
+    const embed = new Embed();
 
     embed.setAuthor(role.name);
     embed.setDescription(`Showing channel permissions for ${role.mention} in ${channel.mention}`);
@@ -89,10 +105,11 @@ export default (<Command.CommandOptions> {
     {
       const description: Array<string> = [];
 
-      description.push(`**Color**: ${(role.color) ? `\`${Utils.intToHex(role.color, true)}\`` : 'No Color'}`);
+      description.push(`**Color**: ${(role.color) ? `\`${intToHex(role.color, true)}\`` : 'No Color'}`);
       description.push(`**Created**: ${role.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Default Role**: ${(role.isDefault) ? 'Yes' : 'No'}`);
       description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
+      description.push(`**Id**: \`${role.id}\``);
       description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
       description.push(`**Mentionable**: ${(role.mentionable) ? 'Yes' : 'No'}`);
       if (role.guild) {
@@ -115,19 +132,20 @@ export default (<Command.CommandOptions> {
       }
     }
 
-    {
-      const rows: Array<Array<string>> = [];
-
-      for (const key of PERMISSIONS_KEYS_ADMIN) {
-        const can = PermissionTools.checkPermissions(role.permissions, (<any> Permissions)[key]);
-        rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
-      }
-
-      embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
-    }
-
     if (channel) {
       const permissions = role.permissionsIn(channel);
+
+      {
+        const rows: Array<Array<string>> = [];
+  
+        for (const key of PERMISSIONS_KEYS_ADMIN) {
+          const can = PermissionTools.checkPermissions(permissions, (<any> Permissions)[key]);
+          rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+        }
+  
+        embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
+      }
+
       if (channel.isText) {
         const rows: Array<Array<string>> = [];
 
@@ -150,8 +168,5 @@ export default (<Command.CommandOptions> {
 
       return context.editOrReply({content: '', embed});
     }
-  },
-  onRunError: (context, args, error) => {
-    console.log(error);
-  },
-});
+  }
+}
