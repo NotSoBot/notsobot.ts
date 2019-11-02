@@ -8,7 +8,7 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "detritus-client": "^0.9.31",
+    "detritus-client": "^0.9.32",
     "emoji-aware": "^3.0.5",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.2",
-    "@types/node": "^12.12.3",
+    "@types/node": "^12.12.5",
     "@types/redis": "^2.8.14",
     "tsc": "^1.20150623.0",
     "typescript": "^3.6.4"

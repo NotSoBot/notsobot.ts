@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 
-import { Command, Utils } from 'detritus-client';
-
+import { Command, Constants, Utils } from 'detritus-client';
+const { Permissions } = Constants;
 const { Embed, Markup } = Utils;
 
 import { searchRule34 } from '../../api';
@@ -16,8 +16,8 @@ export interface CommandArgs {
 }
 
 export default class Rule34Command extends BaseCommand {
-  name = 'rule34';
   aliases = ['r34'];
+  name = 'rule34';
 
   label = 'query';
   metadata = {
@@ -28,21 +28,17 @@ export default class Rule34Command extends BaseCommand {
     type: CommandTypes.SEARCH,
     usage: 'rule34 <query>',
   };
+  permissionsClient = [Permissions.EMBED_LINKS];
 
   onBefore(context: Command.Context) {
-    const canEmbed = super.onBefore(context);
-    if (canEmbed) {
-      return !!(context.channel && context.channel.nsfw);
+    if (context.channel) {
+      return context.channel.isDm || context.channel.nsfw;
     }
-    return canEmbed;
+    return false;
   }
 
   onCancel(context: Command.Context) {
-    const promise = super.onCancel(context);
-    if (promise === false) {
-      return context.editOrReply('⚠ Not a NSFW channel.');
-    }
-    return promise;
+    return context.editOrReply('⚠ Not a NSFW channel.');
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgs) {

@@ -1,9 +1,12 @@
-import { Command, CommandClient, Utils } from 'detritus-client';
+import { Command, CommandClient, Constants, Utils } from 'detritus-client';
+const { Permissions } = Constants;
 
-import { EmbedColors } from '../constants';
+import { EmbedColors, PermissionsText } from '../constants';
 
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
+  permissionsClient = [Permissions.EMBED_LINKS];
+
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, Object.assign({
       name: '',
@@ -14,22 +17,30 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }, options));
   }
 
-  onBefore(context: Command.Context) {
-    if (context.channel) {
-      return context.channel.canEmbedLinks;
+  onPermissionsFail(context: Command.Context, failed: Command.FailedPermissions) {
+    const permissions: Array<string> = [];
+    for (let permission of failed) {
+      if (permission in PermissionsText) {
+        permissions.push(`\`${PermissionsText[permission]}\``);
+      } else {
+        permissions.push(`\`(Unknown: ${permission})\``);
+      }
     }
-    return false;
+
+    return context.editOrReply(`⚠ This command requires you to have ${permissions.join(', ')}.`);
   }
 
-  onCancel(context: Command.Context) {
-    if (context.channel) {
-      if (!context.channel.canEmbedLinks) {
-        return context.editOrReply('⚠ I require Embed Links to work properly');
+  onPermissionsFailClient(context: Command.Context, failed: Command.FailedPermissions) {
+    const permissions: Array<string> = [];
+    for (let permission of failed) {
+      if (permission in PermissionsText) {
+        permissions.push(`\`${PermissionsText[permission]}\``);
+      } else {
+        permissions.push(`\`(Unknown: ${permission})\``);
       }
-    } else {
-      return context.editOrReply('⚠ lol some error happened, report it');
     }
-    return false;
+
+    return context.editOrReply(`⚠ This command requires the bot to have ${permissions.join(', ')} to work.`);
   }
 
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {

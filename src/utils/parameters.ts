@@ -24,17 +24,17 @@ import {
 } from './tools';
 
 
-export async function applications(
-  value: string,
-  context: Command.Context,
-): Promise<Array<Structures.Application> | undefined> {
-  value = value.trim().toLowerCase();
+export async function getApplications(value: string, context: Command.Context): Promise<Array<Structures.Application>> {
   if (value) {
-    if (isSnowflake(value) && context.applications.has(value)) {
-      const application = <Structures.Application> context.applications.get(value);
-      return [application];
+    if (isSnowflake(value)) {
+      if (context.applications.has(value)) {
+        const application = <Structures.Application> context.applications.get(value);
+        return [application];
+      }
+      // maybe use rest api?
+      return [];
     }
-    return context.applications.filter((application) => {
+    const applications = context.applications.filter((application) => {
       if (application.name.toLowerCase().includes(value)) {
         return true;
       }
@@ -45,9 +45,11 @@ export async function applications(
       }
       return false;
     });
+    return applications;
   }
   return Array.from(context.applications.values());
 }
+
 
 export async function channel(
   value: string,

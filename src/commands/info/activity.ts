@@ -1,6 +1,5 @@
 import { Command, Structures, Utils } from 'detritus-client';
-
-const { Markup } = Utils;
+const { Embed, Markup } = Utils;
 
 import {
   CommandTypes,
@@ -12,21 +11,26 @@ import {
   formatTime,
   Paginator,
   Parameters,
-  onRunError,
-  onTypeError,
   toTitleCase,
 } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  user: Structures.Member | Structures.User | null,
+}
 
 export interface CommandArgs {
   user: Structures.Member | Structures.User,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'activity',
-  aliases: ['presence'],
-  label: 'user',
-  metadata: {
+export default class ActivityCommand extends BaseCommand {
+  aliases = ['presence'];
+  name = 'activity';
+
+  label = 'user';
+  metadata = {
     description: 'Get a user\'s current activity, defaults to self',
     examples: [
       'activity',
@@ -34,17 +38,18 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.INFO,
     usage: 'activity ?<id|mention|name>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.memberOrUser,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!args.user,
-  onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
-  run: async (context, args: CommandArgs) => {
+  };
+  type = Parameters.memberOrUser;
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.user;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    return context.editOrReply('⚠ Unable to find that guy.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const { user } = args;
 
     const presence = user.presence;
@@ -61,7 +66,7 @@ export default (<Command.CommandOptions> {
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = new Utils.Embed();
+        const embed = new Embed();
         embed.setAuthor(
           user.toString(),
           user.avatarUrlFormat(null, {size: 1024}),
@@ -235,7 +240,5 @@ export default (<Command.CommandOptions> {
       },
     });
     return await paginator.start();
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

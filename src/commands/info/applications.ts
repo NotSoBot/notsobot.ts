@@ -1,24 +1,26 @@
 import { Command, Constants, Structures, Utils } from 'detritus-client';
-
 const { Colors } = Constants;
+const { Embed } = Utils;
 
 import { CommandTypes } from '../../constants';
-import {
-  Paginator,
-  Parameters,
-  onRunError,
-  onTypeError,
-} from '../../utils';
+import { Paginator, Parameters } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  applications: Array<Structures.Application>,
+}
 
 export interface CommandArgs {
   applications: Array<Structures.Application>,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'applications',
-  aliases: ['application', 'games', 'game', 'applicationinfo', 'gameinfo'],
-  metadata: {
+export default class ApplicationsCommand extends BaseCommand {
+  aliases = ['application', 'games', 'game', 'applicationinfo', 'gameinfo'];
+  name = 'applications';
+
+  metadata = {
     description: 'Get information about multiple (or one) application (Uses the same list Discord does)',
     examples: [
       'applications rust',
@@ -26,17 +28,18 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.INFO,
     usage: 'applications ?<id|name>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.applications,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!args.applications.length,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Unable to find that game.'),
-  run: async (context, args: CommandArgs) => {
+  };
+  type = Parameters.getApplications;
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.applications.length;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    return context.editOrReply('⚠ Unable to find that game.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const { applications } = args;
 
     const pageLimit = applications.length;
@@ -45,7 +48,7 @@ export default (<Command.CommandOptions> {
       onPage: (page) => {
         const application = applications[page - 1];
 
-        const embed = new Utils.Embed();
+        const embed = new Embed();
         embed.setColor(Colors.BLURPLE);
 
         if (1 < pageLimit) {
@@ -111,7 +114,5 @@ export default (<Command.CommandOptions> {
       },
     });
     return await paginator.start();
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}
