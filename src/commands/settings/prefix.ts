@@ -1,36 +1,31 @@
 import * as moment from 'moment';
 
-import { Command, Utils } from 'detritus-client';
+import { Command, CommandClient, Constants, Utils } from 'detritus-client';
+const { Permissions } = Constants;
+const { Embed, Markup } = Utils;
 
-const { Markup } = Utils;
-
-import {
-  createGuildPrefix,
-  deleteGuildPrefix,
-  editGuildSettings,
-  fetchGuildSettings,
-} from '../../api';
-import {
-  CommandTypes,
-  DateMomentOptions,
-  EmbedColors,
-  MOMENT_FORMAT,
-} from '../../constants';
-import { Parameters, onRunError, onTypeError } from '../../utils';
-
+import { createGuildPrefix, deleteGuildPrefix, editGuildSettings, fetchGuildSettings } from '../../api';
+import { CommandTypes, EmbedColors } from '../../constants';
 import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
+import { RestResponses } from '../../types';
+import { Parameters } from '../../utils';
+
+import { BaseCommand } from '../basecommand';
 
 
-export default (<Command.CommandOptions> {
-  name: 'prefix',
-  aliases: ['prefixes', 'setprefix'],
-  args: [
-    {name: 'clear', type: Boolean},
-    {name: 'delete', aliases: ['remove'], type: Boolean},
-    {name: 'replace', aliases: ['set'], type: Boolean},
-  ],
-  disableDm: true,
-  metadata: {
+export interface CommandArgs {
+  clear: boolean,
+  delete: boolean,
+  prefix: string,
+  replace: boolean,
+}
+
+export default class PrefixCommand extends BaseCommand {
+  aliases = ['prefixes', 'setprefix'];
+  name = 'prefix';
+
+  disableDm = true;
+  metadata = {
     description: 'Set the prefix for this bot on a guild (Bot Mentions will always override this)',
     examples: [
       'prefix ..',
@@ -40,21 +35,26 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.SETTINGS,
     usage: 'prefix <prefix> (-clear) (-delete) (-replace)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.string({maxLength: 128}),
-  onBefore: (context) => {
-    const channel = context.channel;
-    return (channel) ? channel.canEmbedLinks : false;
-  },
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
-  run: async (context, args) => {
+  };
+  permissionsClient = [Permissions.EMBED_LINKS];
+  permissions = [Permissions.MANAGE_GUILD];
+  type = Parameters.string({maxLength: 128});
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [
+        {name: 'clear', type: Boolean},
+        {name: 'delete', aliases: ['remove'], type: Boolean},
+        {name: 'replace', aliases: ['set'], type: Boolean},
+      ],
+    });
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const guildId = <string> context.guildId;
 
-    const embed = new Utils.Embed();
+    const embed = new Embed();
     embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
     embed.setColor(EmbedColors.DEFAULT);
 
@@ -62,28 +62,37 @@ export default (<Command.CommandOptions> {
     if ((args.clear || args.prefix) && context.member && (context.member.isClientOwner || context.member.canManageGuild)) {
       if (args.clear) {
         embed.setTitle('Cleared prefixes');
-        settings = <GuildSettingsStored> await editGuildSettings(context, guildId, {prefixes: []});
-      } else if (args.delete) {
-        embed.setTitle(`Deleted prefix: **${Markup.escape.all(args.prefix)}**`);
-        settings = <GuildSettingsStored> await deleteGuildPrefix(context, guildId, args.prefix);
+        settings = await editGuildSettings(context, guildId, {prefixes: []});
+        GuildSettingsStore.set(guildId, settings);
       } else if (args.replace) {
         embed.setTitle(`Replaced prefixes with **${Markup.escape.all(args.prefix)}**`);
-        settings = <GuildSettingsStored> await editGuildSettings(context, guildId, {prefixes: [args.prefix]});
+        settings = await editGuildSettings(context, guildId, {prefixes: [args.prefix]});
+        GuildSettingsStore.set(guildId, settings);
       } else {
-        embed.setTitle(`Created prefix: **${Markup.escape.all(args.prefix)}**`);
-        settings = <GuildSettingsStored> await createGuildPrefix(context, guildId, args.prefix);
+        let prefixes: Array<RestResponses.GuildPrefix>;
+        if (args.delete) {
+          embed.setTitle(`Deleted prefix: **${Markup.escape.all(args.prefix)}**`);
+          prefixes = await deleteGuildPrefix(context, guildId, args.prefix);
+        } else {
+          embed.setTitle(`Created prefix: **${Markup.escape.all(args.prefix)}**`);
+          prefixes = await createGuildPrefix(context, guildId, args.prefix);
+        }
+        if (GuildSettingsStore.has(guildId)) {
+          settings = <GuildSettingsStored> GuildSettingsStore.get(guildId);
+          settings.prefixes = prefixes;
+        }
       }
     } else {
       embed.setTitle('Showing prefixes');
       if (GuildSettingsStore.has(guildId)) {
         settings = <GuildSettingsStored> GuildSettingsStore.get(guildId);
       } else {
-        settings = <GuildSettingsStored> await fetchGuildSettings(context, guildId);
+        settings = await fetchGuildSettings(context, guildId);
+        GuildSettingsStore.set(guildId, settings);
       }
     }
 
     if (settings) {
-      GuildSettingsStore.set(guildId, settings);
       if (settings.prefixes.length) {
         const description = settings.prefixes.map((prefix, i) => {
           const added = moment(prefix.added).fromNow();
@@ -103,7 +112,5 @@ export default (<Command.CommandOptions> {
     }
 
     return context.editOrReply({embed});
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

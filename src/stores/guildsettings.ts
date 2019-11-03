@@ -6,38 +6,10 @@ import { Store } from './store';
 import { fetchGuildSettings } from '../api';
 import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
+import { RestResponses } from '../types';
 
 
-export interface GuildBlacklist {
-  added: string,
-  id: string,
-  type: string,
-  user_id: string,
-}
-
-export interface GuildDisabledCommand {
-  added: string,
-  command: string,
-  id: string,
-  type: string,
-  user_id: string,
-}
-
-export interface GuildPrefix {
-  added: string,
-  guild_id: string,
-  prefix: string,
-  user_id: string,
-}
-
-export interface GuildSettingsStored {
-  blacklist: Array<GuildBlacklist>,
-  disabled_commands: Array<GuildDisabledCommand>,
-  icon: null | string,
-  id: string,
-  name: string,
-  prefixes: Array<GuildPrefix>,
-}
+export type GuildSettingsStored = RestResponses.GuildSettings;
 
 // Stores guild settings
 class GuildSettings extends Store<string, GuildSettingsStored> {
@@ -86,7 +58,7 @@ class GuildSettings extends Store<string, GuildSettingsStored> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_BLACKLIST_UPDATE, (payload: {blacklist: Array<GuildBlacklist>, id: string}) => {
+      const subscription = redis.subscribe(RedisChannels.GUILD_BLACKLIST_UPDATE, (payload: {blacklist: Array<RestResponses.GuildBlacklist>, id: string}) => {
         if (this.has(payload.id)) {
           const settings = <GuildSettingsStored> this.get(payload.id);
           Object.assign(settings, payload);
@@ -95,7 +67,7 @@ class GuildSettings extends Store<string, GuildSettingsStored> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_DISABLED_COMMAND_UPDATE, (payload: {disabled_commands: Array<GuildDisabledCommand>, id: string}) => {
+      const subscription = redis.subscribe(RedisChannels.GUILD_DISABLED_COMMAND_UPDATE, (payload: {disabled_commands: Array<RestResponses.GuildDisabledCommand>, id: string}) => {
         if (this.has(payload.id)) {
           const settings = <GuildSettingsStored> this.get(payload.id);
           Object.assign(settings, payload);
@@ -104,7 +76,7 @@ class GuildSettings extends Store<string, GuildSettingsStored> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_PREFIX_UPDATE, (payload: {id: string, prefixes: Array<GuildPrefix>}) => {
+      const subscription = redis.subscribe(RedisChannels.GUILD_PREFIX_UPDATE, (payload: {id: string, prefixes: Array<RestResponses.GuildPrefix>}) => {
         if (this.has(payload.id)) {
           const settings = <GuildSettingsStored> this.get(payload.id);
           Object.assign(settings, payload);

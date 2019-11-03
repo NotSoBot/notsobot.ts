@@ -11,17 +11,15 @@ import {
   GuildDisableCommandsTypes,
 } from './constants';
 
+import { RestOptions, RestResponses } from './types';
+
 
 export const API_URL = 'https://beta.notsobot.com/api';
-
-export interface ApiRequestOptions extends RequestTypes.RequestOptions {
-  userId?: string,
-}
 
 
 export async function request(
   context: Command.Context,
-  options: ApiRequestOptions,
+  options: RequestTypes.RequestOptions,
 ): Promise<any> {
   options.url = API_URL;
   options.headers = Object.assign({}, options.headers);
@@ -45,7 +43,7 @@ export async function createGuildBlacklist(
   guildId: string,
   blacklistId: string,
   type: GuildBlacklistTypes,
-): Promise<any> {
+): Promise<RestResponses.CreateGuildBlacklist> {
   return request(context, {
     body: {type},
     route: {
@@ -63,7 +61,7 @@ export async function createGuildDisabledCommand(
   command: string,
   disabledId: string,
   type: GuildDisableCommandsTypes,
-): Promise<any> {
+): Promise<RestResponses.CreateGuildDisabledCommand> {
   return request(context, {
     body: {type},
     route: {
@@ -79,7 +77,7 @@ export async function createGuildPrefix(
   context: Command.Context,
   guildId: string,
   prefix: string,
-): Promise<any> {
+): Promise<RestResponses.CreateGuildPrefix> {
   const body = {prefix};
   const params = {guildId};
   return request(context, {
@@ -97,7 +95,7 @@ export async function deleteGuildBlacklist(
   context: Command.Context,
   guildId: string,
   blacklistId: string,
-): Promise<any> {
+): Promise<RestResponses.DeleteGuildBlacklist> {
   return request(context, {
     route: {
       method: RestConstants.HTTPMethods.DELETE,
@@ -113,7 +111,7 @@ export async function deleteGuildDisabledCommand(
   guildId: string,
   command: string,
   disabledId: string,
-): Promise<any> {
+): Promise<RestResponses.DeleteGuildDisabledCommand> {
   return request(context, {
     route: {
       method: RestConstants.HTTPMethods.DELETE,
@@ -128,7 +126,7 @@ export async function deleteGuildPrefix(
   context: Command.Context,
   guildId: string,
   prefix: string,
-): Promise<any> {
+): Promise<RestResponses.DeleteGuildPrefix> {
   const body = {prefix};
   const params = {guildId};
   return request(context, {
@@ -142,15 +140,11 @@ export async function deleteGuildPrefix(
 }
 
 
-export interface EditGuildSettings {
-  prefixes?: Array<string>,
-}
-
 export async function editGuildSettings(
   context: Command.Context,
   guildId: string,
-  options: EditGuildSettings = {},
-): Promise<any> {
+  options: RestOptions.EditGuildSettings = {},
+): Promise<RestResponses.EditGuildSettings> {
   const body = {
     prefixes: options.prefixes,
   };
@@ -169,7 +163,7 @@ export async function editGuildSettings(
 export async function fetchGuildSettings(
   context: Command.Context,
   guildId: string,
-): Promise<any> {
+): Promise<RestResponses.EditGuildSettings> {
   const params = {guildId};
   return request(context, {
     route: {
@@ -181,16 +175,10 @@ export async function fetchGuildSettings(
 }
 
 
-export interface GoogleContentVisionOCR {
-  url: string,
-}
-
 export async function googleContentVisionOCR(
   context: Command.Context,
-  options: GoogleContentVisionOCR,
-): Promise<{
-  annotation: null | {description: string, locale: GoogleLocales},
-}> {
+  options: RestOptions.GoogleContentVisionOCR,
+): Promise<RestResponses.GoogleContentVisionOCR> {
   const body = {
     url: options.url,
   };
@@ -204,18 +192,10 @@ export async function googleContentVisionOCR(
 }
 
 
-export interface GoogleSearch {
-  locale?: GoogleLocales,
-  maxResults?: number,
-  query: string,
-  safe?: boolean | string,
-  showUnknown?: boolean | string,
-}
-
 export async function googleSearch(
   context: Command.Context,
-  options: GoogleSearch,
-): Promise<any> {
+  options: RestOptions.GoogleSearch,
+): Promise<RestResponses.GoogleSearch> {
   const query = {
     locale: options.locale,
     max_results: options.maxResults,

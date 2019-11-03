@@ -70,19 +70,19 @@ export enum EmbedColors {
   ERROR = 15746887,
 };
 
-export const GoogleCardTypes = Tools.normalize({
-  CALCULATOR: null,
-  COMPLEMENTARY_RESULTS: null,
-  CURRENCY: null,
-  DEFINITION: null,
-  KNOWLEDGE_RESULT: null,
-  PEOPLE_ALSO_ASK: null,
-  TIME: null,
-  TRANSLATION: null,
-  UNITS: null,
-  UNKNOWN: null,
-  WEATHER: null,
-});
+export enum GoogleCardTypes {
+  CALCULATOR = 'CALCULATOR',
+  COMPLEMENTARY_RESULTS = 'COMPLEMENTARY_RESULTS',
+  CURRENCY = 'CURRENCY',
+  DEFINITION = 'DEFINITION',
+  KNOWLEDGE_RESULT = 'KNOWLEDGE_RESULT',
+  PEOPLE_ALSO_ASK = 'PEOPLE_ALSO_ASK',
+  TIME = 'TIME',
+  TRANSLATION = 'TRANSLATION',
+  UNITS = 'UNITS',
+  UNKNOWN = 'UNKNOWN',
+  WEATHER = 'WEATHER',
+}
 
 export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.CALCULATOR,
