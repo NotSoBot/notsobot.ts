@@ -35,18 +35,18 @@ export const ChannelTypesText: {[key in Constants.ChannelTypes]: string} = Objec
   [ChannelTypes.LFG_GROUP_DM]: 'LFG Direct Message Group',
 });
 
-export const CommandTypes = Tools.normalize({
-  FUN: null,
-  IMAGE: null,
-  INFO: null,
-  MODERATION: null,
-  OWNER: null,
-  SAY: null,
-  SEARCH: null,
-  SETTINGS: null,
-  TOOLS: null,
-  UTILS: null,
-});
+export enum CommandTypes {
+  FUN = 'FUN',
+  IMAGE = 'IMAGE',
+  INFO = 'INFO',
+  MODERATION = 'MODERATION',
+  OWNER = 'OWNER',
+  SAY = 'SAY',
+  SEARCH = 'SEARCH',
+  SETTINGS = 'SETTINGS',
+  TOOLS = 'TOOLS',
+  UTILS = 'UTILS',
+}
 
 export const DateMomentOptions = Object.freeze({
   trim: 'both mid',
@@ -386,12 +386,12 @@ export const PresenceStatusTexts: {[key: string]: string} = Object.freeze({
   [Statuses.OFFLINE]: 'Offline',
 });
 
-export const RedisChannels = Tools.normalize({
-  GUILD_BLACKLIST_UPDATE: null,
-  GUILD_DISABLED_COMMAND_UPDATE: null,
-  GUILD_PREFIX_UPDATE: null,
-  GUILD_SETTINGS_UPDATE: null,
-});
+export enum RedisChannels {
+  GUILD_BLACKLIST_UPDATE = 'GUILD_BLACKLIST_UPDATE',
+  GUILD_DISABLED_COMMAND_UPDATE = 'GUILD_DISABLED_COMMAND_UPDATE',
+  GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
+  GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
+}
 
 export const VerificationLevelTexts: {[key: string]: string} = Object.freeze({
   [VerificationLevels.NONE]: 'None',

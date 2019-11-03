@@ -84,12 +84,7 @@ export default class PrefixCommand extends BaseCommand {
       }
     } else {
       embed.setTitle('Showing prefixes');
-      if (GuildSettingsStore.has(guildId)) {
-        settings = <GuildSettingsStored> GuildSettingsStore.get(guildId);
-      } else {
-        settings = await fetchGuildSettings(context, guildId);
-        GuildSettingsStore.set(guildId, settings);
-      }
+      settings = <GuildSettingsStored> await GuildSettingsStore.getOrFetch(context, guildId);
     }
 
     if (settings) {
