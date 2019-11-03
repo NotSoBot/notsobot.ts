@@ -1,6 +1,6 @@
-import { Command, Structures, Utils } from 'detritus-client';
-
-const { Markup } = Utils;
+import { Command, Constants, Structures, Utils } from 'detritus-client';
+const { Permissions } = Constants;
+const { Embed, Markup } = Utils;
 
 import {
   CommandTypes,
@@ -9,18 +9,25 @@ import {
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
-import { Paginator, Parameters, onRunError, onTypeError, toTitleCase } from '../../utils';
+import { Paginator, Parameters, toTitleCase } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  user: Structures.Member | Structures.User | null,
+}
 
 export interface CommandArgs {
   user: Structures.Member | Structures.User,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'user',
-  aliases: ['userinfo', 'member', 'memberinfo'],
-  label: 'user',
-  metadata: {
+export default class UserCommand extends BaseCommand {
+  aliases = ['userinfo', 'member', 'memberinfo'];
+  name = 'user';
+
+  label = 'user';
+  metadata = {
     description: 'Get information about a user, defaults to self',
     examples: [
       'user',
@@ -30,17 +37,19 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.INFO,
     usage: 'user ?<id|mention|name>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.memberOrUser,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!args.user,
-  onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guy.'),
-  run: async (context, args: CommandArgs) => {
+  };
+  permissionsClient = [Permissions.EMBED_LINKS];
+  type = Parameters.memberOrUser;
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.user;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    return context.editOrReply('⚠ Unable to find that user.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const isMember = (args.user instanceof Structures.Member);
     const member = <Structures.Member> args.user;
     const user = <Structures.User> args.user;
@@ -59,10 +68,10 @@ export default (<Command.CommandOptions> {
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = new Utils.Embed();
+        const embed = new Embed();
         embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
         embed.setColor(PresenceStatusColors['offline']);
-        embed.setDescription(member.mention);
+        embed.setDescription(user.mention);
         embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
 
         {
@@ -220,7 +229,5 @@ export default (<Command.CommandOptions> {
       },
     });
     return await paginator.start();
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

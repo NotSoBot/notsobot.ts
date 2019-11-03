@@ -1,21 +1,39 @@
-import { ClusterClient, Command, ShardClient } from 'detritus-client';
+import { ClusterClient, Command, CommandClient, ShardClient } from 'detritus-client';
 
 import { NotSoClient } from '../../client';
 import { CommandTypes } from '../../constants';
 
-export default (<Command.CommandOptions> {
-  name: 'reload',
-  aliases: ['refresh'],
-  args: [{name: 'stores', type: Boolean}],
-  metadata: {
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgs {
+  stores: boolean,
+}
+
+export default class ReloadCommand extends BaseCommand {
+  aliases = ['refresh'];
+  name = 'reload';
+
+  metadata = {
     description: 'Reload the bot\'s commands.',
     examples: ['refresh', 'refresh -stores'],
     type: CommandTypes.OWNER,
     usage: 'refresh',
-  },
-  responseOptional: true,
-  onBefore: (context) => context.user.isClientOwner,
-  run: async (context, args) => {
+  };
+  responseOptional = true;
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [{name: 'stores', type: Boolean}],
+    });
+  }
+
+  onBefore(context: Command.Context) {
+    return context.user.isClientOwner;
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     if (!context.manager) {
       return context.editOrReply('no cluster manager found');
     }
@@ -75,8 +93,5 @@ export default (<Command.CommandOptions> {
       return message.edit(`Error: ${error.message}`);
     }
     return message.edit(`ok, refreshed commands on ${JSON.stringify(shardIds)}`);
-  },
-  onError: (context, args, error) => {
-    console.error(error);
-  },
-});
+  }
+}

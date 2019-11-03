@@ -1,5 +1,5 @@
 import { Command, Constants, Structures, Utils } from 'detritus-client';
-const { Colors } = Constants;
+const { Colors, Permissions } = Constants;
 const { Embed } = Utils;
 
 import { CommandTypes } from '../../constants';
@@ -29,6 +29,7 @@ export default class ApplicationsCommand extends BaseCommand {
     type: CommandTypes.INFO,
     usage: 'applications ?<id|name>',
   };
+  permissionsClient = [Permissions.EMBED_LINKS];
   type = Parameters.getApplications;
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {

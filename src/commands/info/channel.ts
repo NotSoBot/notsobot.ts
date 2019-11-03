@@ -1,14 +1,22 @@
 import { Command, Constants, Structures, Utils } from 'detritus-client';
 import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
-
-const { Colors } = Constants;
-const { Markup } = Utils;
+const { Colors, Permissions } = Constants;
+const { Embed, Markup } = Utils;
 
 import { ChannelTypesText, CommandTypes, DateOptions } from '../../constants';
 import { GuildChannelsStored } from '../../stores/guildchannels';
 import { Parameters } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  payload: {
+    channel: Structures.Channel | null,
+    channels?: GuildChannelsStored,
+  },
+}
 
 export interface CommandArgs {
   payload: {
@@ -17,11 +25,12 @@ export interface CommandArgs {
   },
 }
 
-export default (<Command.CommandOptions> {
-  name: 'channel',
-  aliases: ['channelinfo'],
-  label: 'payload',
-  metadata: {
+export default class ChannelCommand extends BaseCommand {
+  aliases = ['channelinfo'];
+  name = 'channel';
+
+  label = 'payload';
+  metadata = {
     description: 'Get information for a channel, defaults to the current channel',
     examples: [
       'channel',
@@ -29,20 +38,22 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.INFO,
     usage: 'channel ?<id|mention|name>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.channelMetadata,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!args.payload.channel,
-  onCancelRun: (context) => context.editOrReply('⚠ Unable to find that channel.'),
-  run: async (context, args: CommandArgs) => {
+  };
+  permissionsClient = [Permissions.EMBED_LINKS];
+  type = Parameters.channelMetadata;
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.payload.channel;
+  }
+
+  onBeforeCancel(context: Command.Context, args: CommandArgsBefore) {
+    return context.editOrReply('⚠ Unable to find that channel.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const { channel, channels } = args.payload;
 
-    const embed = new Utils.Embed();
+    const embed = new Embed();
     embed.setAuthor(channel.toString(), channel.iconUrl || undefined, channel.jumpLink);
     embed.setColor(Colors.BLURPLE);
     if (channel.topic) {
@@ -180,8 +191,5 @@ export default (<Command.CommandOptions> {
     }
 
     return context.editOrReply({embed});
-  },
-  onRunError: (context, args, error) => {
-    return context.editOrReply(`⚠ Error: ${error.message}`);
-  },
-});
+  }
+}

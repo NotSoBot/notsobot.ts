@@ -1,6 +1,6 @@
-import { Command, Structures, Utils } from 'detritus-client';
-
-const { Markup } = Utils;
+import { Command, Constants, Structures, Utils } from 'detritus-client';
+const { Permissions } = Constants;
+const { Embed, Markup } = Utils;
 
 import {
   CommandTypes,
@@ -9,18 +9,25 @@ import {
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
-import { Paginator, Parameters, onRunError, onTypeError, toTitleCase } from '../../utils';
+import { Paginator, Parameters, toTitleCase } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  users: Array<Structures.Member | Structures.User>,
+}
 
 export interface CommandArgs {
   users: Array<Structures.Member | Structures.User>,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'users',
-  aliases: ['members'],
-  label: 'users',
-  metadata: {
+export default class UsersCommand extends BaseCommand {
+  aliases = ['members'];
+  name = 'users';
+
+  label = 'users';
+  metadata = {
     description: 'Get information about multiple members/users',
     examples: [
       'users',
@@ -30,17 +37,19 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.INFO,
     usage: 'users ...?<id|mention|name>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.memberOrUsers,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!args.users.length,
-  onCancelRun: (context) => context.editOrReply('⚠ Unable to find any members matching that.'),
-  run: async (context, args: CommandArgs) => {
+  };
+  permissionsClient = [Permissions.EMBED_LINKS];
+  type = Parameters.memberOrUsers;
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.users.length;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    return context.editOrReply('⚠ Unable to find any members matching that.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const { users } = args;
 
     const membersOrUsers = users.sort((x, y) => {
@@ -67,7 +76,7 @@ export default (<Command.CommandOptions> {
         const member = <Structures.Member> membersOrUsers[position];
         const user = <Structures.User> membersOrUsers[position];
 
-        const embed = new Utils.Embed();
+        const embed = new Embed();
         embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
         embed.setColor(PresenceStatusColors['offline']);
         embed.setDescription(member.mention);
@@ -229,7 +238,5 @@ export default (<Command.CommandOptions> {
       },
     });
     return await paginator.start();
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

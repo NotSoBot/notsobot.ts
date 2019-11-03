@@ -1,4 +1,5 @@
-import { Command, Structures, Utils } from 'detritus-client';
+import { Command, Constants, Structures, Utils } from 'detritus-client';
+const { Permissions } = Constants;
 const { Embed, Markup } = Utils;
 
 import {
@@ -39,6 +40,7 @@ export default class ActivityCommand extends BaseCommand {
     type: CommandTypes.INFO,
     usage: 'activity ?<id|mention|name>',
   };
+  permissionsClient = [Permissions.EMBED_LINKS];
   type = Parameters.memberOrUser;
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
@@ -46,7 +48,7 @@ export default class ActivityCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that guy.');
+    return context.editOrReply('⚠ Unable to find that user.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {

@@ -5,8 +5,6 @@ import { EmbedColors, PermissionsText } from '../constants';
 
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
-  permissionsClient = [Permissions.EMBED_LINKS];
-
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, Object.assign({
       name: '',
@@ -88,3 +86,19 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     return context.editOrReply({embed});
   }
 }
+
+
+/*
+
+onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+
+}
+
+onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+
+}
+
+async run(context: Command.Context, args: CommandArgs) {
+
+}
+*/

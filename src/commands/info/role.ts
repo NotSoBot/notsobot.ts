@@ -68,6 +68,7 @@ export default class RoleCommand extends BaseCommand {
     type: CommandTypes.INFO,
     usage: 'role ?<id|mention|name> (-channel <id>)',
   };
+  permissionClient = [Permissions.EMBED_LINKS];
   type = getRole;
 
   constructor(client: CommandClient, options: Command.CommandOptions) {

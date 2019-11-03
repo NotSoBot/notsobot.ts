@@ -1,12 +1,9 @@
-import {
-  Command,
-  Constants,
-  Utils,
-} from 'detritus-client';
-
-const { Markup } = Utils;
+import { Command, CommandClient, Constants, Utils } from 'detritus-client';
+const { Embed, Markup } = Utils;
 
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
+
+import { BaseCommand } from '../basecommand';
 
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
@@ -21,34 +18,45 @@ export interface CommandArgs {
   upload: boolean,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'eval',
-  args: [
-    {name: 'async', type: Boolean},
-    {name: 'jsonspacing', type: Number, default: 2},
-    {name: 'noembed', default: (context: Command.Context) => !!(context.channel && !context.channel.canEmbedLinks), type: () => true},
-    {name: 'noreply', type: Boolean},
-    {name: 'files.gg', label: 'upload', type: Boolean},
-  ],
-  label: 'code',
-  metadata: {
+export default class EvalCommand extends BaseCommand {
+  name = 'eval';
+
+  label = 'code';
+  metadata = {
     description: 'Eval some code',
     examples: [
       'eval context.client.token',
     ],
     type: CommandTypes.OWNER,
     usage: 'eval <code> (-jsonspacing <number>) (-noembed) (-noreply) (-files.gg)',
-  },
-  type: (value) => {
+  };
+  responseOptional = true;
+  type = (value: string) => {
     const { matches } = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, value);
     if (matches.length) {
       return matches[0].text;
     }
     return value;
-  },
-  responseOptional: true,
-  onBefore: (context) => context.user.isClientOwner,
-  run: async (context, args: CommandArgs) => {
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [
+        {name: 'async', type: Boolean},
+        {name: 'jsonspacing', type: Number, default: 2},
+        {name: 'noembed', default: (context: Command.Context) => !!(context.channel && !context.channel.canEmbedLinks), type: () => true},
+        {name: 'noreply', type: Boolean},
+        {name: 'files.gg', label: 'upload', type: Boolean},
+      ],
+    });
+  }
+
+  onBefore(context: Command.Context) {
+    return context.user.isClientOwner;
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const { code } = args;
 
     let language = 'js';
@@ -93,7 +101,7 @@ export default (<Command.CommandOptions> {
       if (!args.noembed) {
         const channel = context.channel;
         if (channel && channel.canEmbedLinks) {
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           if (errored) {
             embed.setColor(EmbedColors.ERROR);
           } else {
@@ -107,6 +115,5 @@ export default (<Command.CommandOptions> {
       }
       return context.editOrReply(Markup.codeblock(content, {language}));
     }
-  },
-  onError: (context, args, error) => console.error(error),
-});
+  }
+}

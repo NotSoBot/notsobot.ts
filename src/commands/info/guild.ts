@@ -1,8 +1,7 @@
 import { Collections, Command, Constants, Structures, Utils } from 'detritus-client';
 import { Endpoints } from 'detritus-client-rest';
-
-const { Colors } = Constants;
-const { guildIdToShardId } = Utils;
+const { Colors, Permissions } = Constants;
+const { Embed, Markup, guildIdToShardId } = Utils;
 
 import {
   CommandTypes,
@@ -10,10 +9,22 @@ import {
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
 } from '../../constants';
-import { Parameters, formatMemory, padCodeBlockFromColumns, toTitleCase } from '../../utils';
+import { Parameters, formatMemory, toTitleCase } from '../../utils';
+
+import { BaseCommand } from '../basecommand';
 
 
-const MAX_CONTENT = 2000;
+export interface CommandArgsBefore {
+  payload: {
+    channels?: Collections.BaseCollection<string, Structures.Channel>,
+    emojis?: Collections.BaseCollection<string, Structures.Emoji>,
+    guild: Structures.Guild | null,
+    memberCount?: number,
+    owner?: Structures.User,
+    presenceCount?: number,
+    voiceStateCount?: number,
+  },
+}
 
 export interface CommandArgs {
   payload: {
@@ -27,11 +38,12 @@ export interface CommandArgs {
   },
 }
 
-export default (<Command.CommandOptions> {
-  name: 'guild',
-  aliases: ['guildinfo', 'server', 'serverinfo'],
-  label: 'payload',
-  metadata: {
+export default class GuildCommand extends BaseCommand {
+  aliases = ['guildinfo', 'server', 'serverinfo'];
+  name = 'guild';
+
+  label = 'payload';
+  metadata = {
     description: 'Get information for a guild, defaults to the current guild',
     examples: [
       'guild',
@@ -39,17 +51,19 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.INFO,
     usage: 'guild ?<id>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.guildMetadata,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed information in this channel.'),
-  onBeforeRun: (context, args) => !!args.payload.guild,
-  onCancelRun: (context) => context.editOrReply('⚠ Unable to find that guild.'),
-  run: async (context, args: CommandArgs) => {
+  };
+  permissionsClient = [Permissions.EMBED_LINKS];
+  type = Parameters.guildMetadata;
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.payload.guild;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    return context.editOrReply('⚠ Unable to find that guild.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const {
       channels,
       guild,
@@ -60,7 +74,7 @@ export default (<Command.CommandOptions> {
       voiceStateCount,
     } = args.payload;
 
-    const embed = new Utils.Embed();
+    const embed = new Embed();
     embed.setAuthor(guild.name, guild.iconUrlFormat(null, {size: 1024}) || undefined, guild.jumpLink);
     embed.setColor(Colors.BLURPLE);
 
@@ -187,11 +201,7 @@ export default (<Command.CommandOptions> {
         column.push(` -[Anim]: ${animatedEmojis.toLocaleString()}`);
         column.push(` -[Regular]: ${(emojis.length - animatedEmojis).toLocaleString()}`);
 
-        embed.addField('Counts', [
-          '```css',
-          column.join('\n'),
-          '```',
-        ].join('\n'), true);
+        embed.addField('Counts', Markup.codeblock(column.join('\n'), {language: 'css'}), true);
       }
 
       {
@@ -208,11 +218,7 @@ export default (<Command.CommandOptions> {
         column.push(` -[Regular]: ${(guild.roles.length - managedRoles).toLocaleString()}`);
         column.push(`VoiceStates: ${voiceStateCount.toLocaleString()}`);
 
-        embed.addField('Counts', [
-          '```css',
-          column.join('\n'),
-          '```',
-        ].join('\n'), true);
+        embed.addField('Counts', Markup.codeblock(column.join('\n'), {language: 'css'}), true);
       }
     }
 
@@ -226,20 +232,12 @@ export default (<Command.CommandOptions> {
       description.push(`Members: ${guild.maxMembers.toLocaleString()}`);
       description.push(`Presences: ${guild.maxPresences.toLocaleString()}`);
 
-      embed.addField('Limits', [
-        '```css',
-        description.join('\n'),
-        '```',
-      ].join('\n'), true);
+      embed.addField('Limits', Markup.codeblock(description.join('\n'), {language: 'css'}), true);
     }
 
     if (guild.features.length) {
       const description = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
-      embed.addField('Features', [
-        '```',
-        description.join('\n'),
-        '```',
-      ].join('\n'), true);
+      embed.addField('Features', Markup.codeblock(description.join('\n')), true);
     }
 
     {
@@ -279,8 +277,5 @@ export default (<Command.CommandOptions> {
     */
 
     return context.editOrReply({embed});
-  },
-  onRunError: (context, args, error) => {
-    return context.editOrReply(`⚠ Error: ${error.message}`);
-  },
-});
+  }
+}

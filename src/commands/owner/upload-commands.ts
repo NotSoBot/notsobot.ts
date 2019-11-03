@@ -2,19 +2,25 @@ import { Command } from 'detritus-client';
 
 import { uploadCommands } from '../../api';
 import { CommandTypes } from '../../constants';
-import { onRunError } from '../../utils';
+
+import { BaseCommand } from '../basecommand';
 
 
-export default (<Command.CommandOptions> {
-  name: 'upload-commands',
-  metadata: {
+export default class UploadCommandsCommand extends BaseCommand {
+  name = 'upload-commands';
+
+  metadata = {
     description: 'Upload the bot\'s command information to the website',
     examples: ['upload-commands'],
     type: CommandTypes.OWNER,
     usage: 'upload-commands',
-  },
-  onBefore: (context) => context.user.isClientOwner,
-  run: async (context) => {
+  };
+
+  onBefore(context: Command.Context) {
+    return context.user.isClientOwner;
+  }
+
+  async run(context: Command.Context) {
     const commands = context.commandClient.commands.filter((command) => {
       return !!command.metadata && !!command.metadata.type;
     }).map((command) => {
@@ -53,7 +59,5 @@ export default (<Command.CommandOptions> {
     await uploadCommands(context, {commands});
 
     return context.editOrReply('ok');
-  },
-  onError: (context, args, error) => console.error(error),
-  onRunError,
-});
+  }
+}
