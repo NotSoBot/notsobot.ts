@@ -1,5 +1,4 @@
 import { Command, CommandClient, Constants, Structures, Utils } from 'detritus-client';
-
 const { Permissions } = Constants;
 const { Embed, Markup, PermissionTools, intToHex } = Utils;
 
@@ -8,9 +7,9 @@ import {
   CommandTypes,
   DateOptions,
   PermissionsText,
-  PERMISSIONS_KEYS_ADMIN,
-  PERMISSIONS_KEYS_TEXT,
-  PERMISSIONS_KEYS_VOICE,
+  PERMISSIONS_ADMIN,
+  PERMISSIONS_TEXT,
+  PERMISSIONS_VOICE,
 } from '../../constants';
 import { isSnowflake, padCodeBlockFromRows } from '../../utils';
 
@@ -138,9 +137,9 @@ export default class RoleCommand extends BaseCommand {
       {
         const rows: Array<Array<string>> = [];
   
-        for (const key of PERMISSIONS_KEYS_ADMIN) {
-          const can = PermissionTools.checkPermissions(permissions, (<any> Permissions)[key]);
-          rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+        for (const permission of PERMISSIONS_ADMIN) {
+          const can = PermissionTools.checkPermissions(permissions, permission);
+          rows.push([`${PermissionsText[permission]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
   
         embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -149,18 +148,18 @@ export default class RoleCommand extends BaseCommand {
       if (channel.isText) {
         const rows: Array<Array<string>> = [];
 
-        for (const key of PERMISSIONS_KEYS_TEXT) {
-          const can = PermissionTools.checkPermissions(permissions, (<any> Permissions)[key]);
-          rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+        for (const permission of PERMISSIONS_TEXT) {
+          const can = PermissionTools.checkPermissions(permissions, permission);
+          rows.push([`${PermissionsText[permission]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
         embed.addField('Text', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
       } else if (channel.isVoice) {
         const rows: Array<Array<string>> = [];
 
-        for (const key of PERMISSIONS_KEYS_VOICE) {
-          const can = PermissionTools.checkPermissions(permissions, (<any> Permissions)[key]);
-          rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+        for (const permission of PERMISSIONS_VOICE) {
+          const can = PermissionTools.checkPermissions(permissions, permission);
+          rows.push([`${PermissionsText[permission]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
         embed.addField('Voice', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);

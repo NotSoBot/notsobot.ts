@@ -1,49 +1,59 @@
 import * as moment from 'moment';
 
-import { Command, Utils } from 'detritus-client';
-
-const { Markup } = Utils;
+import { Command, Constants, Utils } from 'detritus-client';
+const { Permissions } = Constants;
+const { Embed, Markup } = Utils;
 
 import { searchRule34Paheal } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, onRunError, onTypeError } from '../../utils';
+import { Paginator } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  query: string,
+}
 
 export interface CommandArgs {
   query: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'rule34paheal',
-  aliases: ['r34paheal', 'r34p', 'paheal', 'pahe'],
-  label: 'query',
-  metadata: {
+export default class Rule34PahealCommand extends BaseCommand {
+  aliases = ['r34paheal', 'r34p', 'paheal', 'pahe'];
+  name = 'rule34paheal';
+
+  label = 'query';
+  metadata = {
     description: 'Search https://rule34.paheal.net',
     examples: [
       'rule34paheal overwatch',
     ],
     type: CommandTypes.SEARCH,
     usage: 'rule34paheal <query>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => {
+  };
+  permissionsClient = [Permissions.EMBED_LINKS];
+
+  onBefore(context: Command.Context) {
     if (context.channel) {
-      return context.channel.canEmbedLinks && context.channel.nsfw;
+      return context.channel.isDm || context.channel.nsfw;
     }
     return false;
-  },
-  onCancel: (context) => {
-    if (context.channel && !context.channel.nsfw) {
-      return context.editOrReply('⚠ Not a NSFW channel.');
-    }
-    return context.editOrReply('⚠ Unable to embed in this channel.');
-  },
-  onBeforeRun: (context, args) => !!args.query,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args: CommandArgs) => {
+  }
+
+  onCancel(context: Command.Context) {
+    return context.editOrReply('⚠ Not a NSFW channel.');
+  }
+
+  onBeforeRun(context: Command.Context, args: CommandArgs) {
+    return !!args.query;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgs) {
+    return context.editOrReply('⚠ Provide some kind of search term.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     await context.triggerTyping();
 
     const results = await searchRule34Paheal(context, args);
@@ -52,7 +62,7 @@ export default (<Command.CommandOptions> {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
 
@@ -99,7 +109,5 @@ export default (<Command.CommandOptions> {
     } else {
       return context.editOrReply('Couldn\'t find any images for that search term');
     }
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

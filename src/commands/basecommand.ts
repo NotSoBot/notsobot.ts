@@ -17,7 +17,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }, options));
   }
 
-  onPermissionsFail(context: Command.Context, failed: Command.FailedPermissions) {
+  onPermissionsFailClient(context: Command.Context, failed: Array<Constants.Permissions>) {
     const permissions: Array<string> = [];
     for (let permission of failed) {
       if (permission in PermissionsText) {
@@ -26,11 +26,11 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         permissions.push(`\`(Unknown: ${permission})\``);
       }
     }
-
-    return context.editOrReply(`⚠ This command requires you to have ${permissions.join(', ')}.`);
+    const command = (context.command) ? `\`${context.command.name}\`` : 'This command';
+    return context.editOrReply(`⚠ ${command} requires the bot to have ${permissions.join(', ')} to work.`);
   }
 
-  onPermissionsFailClient(context: Command.Context, failed: Command.FailedPermissions) {
+  onPermissionsFail(context: Command.Context, failed: Array<Constants.Permissions>) {
     const permissions: Array<string> = [];
     for (let permission of failed) {
       if (permission in PermissionsText) {
@@ -39,8 +39,8 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         permissions.push(`\`(Unknown: ${permission})\``);
       }
     }
-
-    return context.editOrReply(`⚠ This command requires the bot to have ${permissions.join(', ')} to work.`);
+    const command = (context.command) ? `\`${context.command.name}\`` : 'This command';
+    return context.editOrReply(`⚠ ${command} requires you to have ${permissions.join(', ')}.`);
   }
 
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {

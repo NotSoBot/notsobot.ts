@@ -11,6 +11,7 @@ const {
   VerificationLevels,
 } = Constants;
 
+type Permissions = Constants.Permissions;
 type ChannelTypes = Constants.ChannelTypes;
 
 
@@ -338,39 +339,38 @@ export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Obje
   [GuildExplicitContentFilterTypes.ALL_MEMBERS]: 'Everyone',
 });
 
-export const PermissionsKeys = Object.freeze(Tools.normalize(Object.assign({}, Permissions)));
-
-export const PermissionsText = Object.freeze({
-  [PermissionsKeys.ADD_REACTIONS]: 'Add Reactions',
-  [PermissionsKeys.ADMINISTRATOR]: 'Administrator',
-  [PermissionsKeys.ATTACH_FILES]: 'Attach Files',
-  [PermissionsKeys.BAN_MEMBERS]: 'Ban Members',
-  [PermissionsKeys.CHANGE_NICKNAME]: 'Change Nickname',
-  [PermissionsKeys.CHANGE_NICKNAMES]: 'Change Nicknames',
-  [PermissionsKeys.CONNECT]: 'Connect',
-  [PermissionsKeys.CREATE_INSTANT_INVITE]: 'Create Instant Invite',
-  [PermissionsKeys.DEAFEN_MEMBERS]: 'Deafen Members',
-  [PermissionsKeys.EMBED_LINKS]: 'Embed Links',
-  [PermissionsKeys.KICK_MEMBERS]: 'Kick Members',
-  [PermissionsKeys.MANAGE_CHANNELS]: 'Manage Channels',
-  [PermissionsKeys.MANAGE_EMOJIS]: 'Manage Emojis',
-  [PermissionsKeys.MANAGE_GUILD]: 'Manage Guild',
-  [PermissionsKeys.MANAGE_MESSAGES]: 'Manage Messages',
-  [PermissionsKeys.MANAGE_ROLES]: 'Manage Roles',
-  [PermissionsKeys.MANAGE_WEBHOOKS]: 'Manage Webhooks',
-  [PermissionsKeys.MENTION_EVERYONE]: 'Mention Everyone',
-  [PermissionsKeys.MOVE_MEMBERS]: 'Move Members',
-  [PermissionsKeys.MUTE_MEMBERS]: 'Mute Members',
-  [PermissionsKeys.PRIORITY_SPEAKER]: 'Priority Speaker',
-  [PermissionsKeys.READ_MESSAGE_HISTORY]: 'Read Message History',
-  [PermissionsKeys.SEND_MESSAGES]: 'Send Messages',
-  [PermissionsKeys.SEND_TTS_MESSAGES]: 'Text-To-Speech',
-  [PermissionsKeys.SPEAK]: 'Speak',
-  [PermissionsKeys.STREAM]: 'Go Live',
-  [PermissionsKeys.USE_EXTERNAL_EMOJIS]: 'Use External Emojis',
-  [PermissionsKeys.USE_VAD]: 'Voice Auto Detect',
-  [PermissionsKeys.VIEW_AUDIT_LOG]: 'View Audit Logs',
-  [PermissionsKeys.VIEW_CHANNEL]: 'View Channel',
+export const PermissionsText: {[key in Constants.Permissions]: string} = Object.freeze({
+  [Permissions.ADD_REACTIONS]: 'Add Reactions',
+  [Permissions.ADMINISTRATOR]: 'Administrator',
+  [Permissions.ATTACH_FILES]: 'Attach Files',
+  [Permissions.BAN_MEMBERS]: 'Ban Members',
+  [Permissions.CHANGE_NICKNAME]: 'Change Nickname',
+  [Permissions.CHANGE_NICKNAMES]: 'Change Nicknames',
+  [Permissions.CONNECT]: 'Connect',
+  [Permissions.CREATE_INSTANT_INVITE]: 'Create Instant Invite',
+  [Permissions.DEAFEN_MEMBERS]: 'Deafen Members',
+  [Permissions.EMBED_LINKS]: 'Embed Links',
+  [Permissions.KICK_MEMBERS]: 'Kick Members',
+  [Permissions.MANAGE_CHANNELS]: 'Manage Channels',
+  [Permissions.MANAGE_EMOJIS]: 'Manage Emojis',
+  [Permissions.MANAGE_GUILD]: 'Manage Guild',
+  [Permissions.MANAGE_MESSAGES]: 'Manage Messages',
+  [Permissions.MANAGE_ROLES]: 'Manage Roles',
+  [Permissions.MANAGE_WEBHOOKS]: 'Manage Webhooks',
+  [Permissions.MENTION_EVERYONE]: 'Mention Everyone',
+  [Permissions.MOVE_MEMBERS]: 'Move Members',
+  [Permissions.MUTE_MEMBERS]: 'Mute Members',
+  [Permissions.NONE]: 'None',
+  [Permissions.PRIORITY_SPEAKER]: 'Priority Speaker',
+  [Permissions.READ_MESSAGE_HISTORY]: 'Read Message History',
+  [Permissions.SEND_MESSAGES]: 'Send Messages',
+  [Permissions.SEND_TTS_MESSAGES]: 'Text-To-Speech',
+  [Permissions.SPEAK]: 'Speak',
+  [Permissions.STREAM]: 'Go Live',
+  [Permissions.USE_EXTERNAL_EMOJIS]: 'Use External Emojis',
+  [Permissions.USE_VAD]: 'Voice Auto Detect',
+  [Permissions.VIEW_AUDIT_LOG]: 'View Audit Logs',
+  [Permissions.VIEW_CHANNEL]: 'View Channel',
 });
 
 export const PresenceStatusColors: {[key: string]: number} = Object.freeze({
@@ -387,6 +387,13 @@ export const PresenceStatusTexts: {[key: string]: string} = Object.freeze({
   [Statuses.OFFLINE]: 'Offline',
 });
 
+export const RedisChannels = Tools.normalize({
+  GUILD_BLACKLIST_UPDATE: null,
+  GUILD_DISABLED_COMMAND_UPDATE: null,
+  GUILD_PREFIX_UPDATE: null,
+  GUILD_SETTINGS_UPDATE: null,
+});
+
 export const VerificationLevelTexts: {[key: string]: string} = Object.freeze({
   [VerificationLevels.NONE]: 'None',
   [VerificationLevels.LOW]: 'Low',
@@ -395,50 +402,51 @@ export const VerificationLevelTexts: {[key: string]: string} = Object.freeze({
   [VerificationLevels.VERY_HIGH]: 'Very High',
 });
 
-export const YoutubeResultTypes = Object.freeze({
-  CHANNEL: 0,
-  VIDEO: 1,
-  MOVIE: 2,
-});
+export enum YoutubeResultTypes {
+  CHANNEL = 0,
+  VIDEO = 1,
+  MOVIE = 2,
+}
 
-export const PERMISSIONS_KEYS_ADMIN = Object.freeze([
-  PermissionsKeys.ADMINISTRATOR,
-  PermissionsKeys.BAN_MEMBERS,
-  PermissionsKeys.CHANGE_NICKNAMES,
-  PermissionsKeys.KICK_MEMBERS,
-  PermissionsKeys.MANAGE_CHANNELS,
-  PermissionsKeys.MANAGE_EMOJIS,
-  PermissionsKeys.MANAGE_GUILD,
-  PermissionsKeys.MANAGE_MESSAGES,
-  PermissionsKeys.MANAGE_ROLES,
-  PermissionsKeys.MANAGE_WEBHOOKS,
-  PermissionsKeys.VIEW_AUDIT_LOG,
+
+export const PERMISSIONS_ADMIN = Object.freeze([
+  Permissions.ADMINISTRATOR,
+  Permissions.BAN_MEMBERS,
+  Permissions.CHANGE_NICKNAMES,
+  Permissions.KICK_MEMBERS,
+  Permissions.MANAGE_CHANNELS,
+  Permissions.MANAGE_EMOJIS,
+  Permissions.MANAGE_GUILD,
+  Permissions.MANAGE_MESSAGES,
+  Permissions.MANAGE_ROLES,
+  Permissions.MANAGE_WEBHOOKS,
+  Permissions.VIEW_AUDIT_LOG,
 ]);
 
-export const PERMISSIONS_KEYS_TEXT = Object.freeze([
-  PermissionsKeys.ADD_REACTIONS,
-  PermissionsKeys.ATTACH_FILES,
-  PermissionsKeys.CREATE_INSTANT_INVITE,
-  PermissionsKeys.EMBED_LINKS,
-  PermissionsKeys.MENTION_EVERYONE,
-  PermissionsKeys.READ_MESSAGE_HISTORY,
-  PermissionsKeys.SEND_MESSAGES,
-  PermissionsKeys.SEND_TTS_MESSAGES,
-  PermissionsKeys.USE_EXTERNAL_EMOJIS,
-  PermissionsKeys.VIEW_CHANNEL,
+export const PERMISSIONS_TEXT = Object.freeze([
+  Permissions.ADD_REACTIONS,
+  Permissions.ATTACH_FILES,
+  Permissions.CREATE_INSTANT_INVITE,
+  Permissions.EMBED_LINKS,
+  Permissions.MENTION_EVERYONE,
+  Permissions.READ_MESSAGE_HISTORY,
+  Permissions.SEND_MESSAGES,
+  Permissions.SEND_TTS_MESSAGES,
+  Permissions.USE_EXTERNAL_EMOJIS,
+  Permissions.VIEW_CHANNEL,
 ]);
 
-export const PERMISSIONS_KEYS_VOICE = Object.freeze([
-  PermissionsKeys.CONNECT,
-  PermissionsKeys.CREATE_INSTANT_INVITE,
-  PermissionsKeys.DEAFEN_MEMBERS,
-  PermissionsKeys.MOVE_MEMBERS,
-  PermissionsKeys.MUTE_MEMBERS,
-  PermissionsKeys.PRIORITY_SPEAKER,
-  PermissionsKeys.SPEAK,
-  PermissionsKeys.STREAM,
-  PermissionsKeys.USE_VAD,
-  PermissionsKeys.VIEW_CHANNEL,
+export const PERMISSIONS_VOICE = Object.freeze([
+  Permissions.CONNECT,
+  Permissions.CREATE_INSTANT_INVITE,
+  Permissions.DEAFEN_MEMBERS,
+  Permissions.MOVE_MEMBERS,
+  Permissions.MUTE_MEMBERS,
+  Permissions.PRIORITY_SPEAKER,
+  Permissions.SPEAK,
+  Permissions.STREAM,
+  Permissions.USE_VAD,
+  Permissions.VIEW_CHANNEL,
 ]);
 
 export const PRESENCE_CLIENT_STATUS_KEYS = Object.freeze([
@@ -446,13 +454,6 @@ export const PRESENCE_CLIENT_STATUS_KEYS = Object.freeze([
   DetritusKeys[DiscordKeys.MOBILE],
   DetritusKeys[DiscordKeys.WEB],
 ]);
-
-export const RedisChannels = Tools.normalize({
-  GUILD_BLACKLIST_UPDATE: null,
-  GUILD_DISABLED_COMMAND_UPDATE: null,
-  GUILD_PREFIX_UPDATE: null,
-  GUILD_SETTINGS_UPDATE: null,
-});
 
 export const TRUSTED_URLS = Object.freeze([
   'cdn.discordapp.com',

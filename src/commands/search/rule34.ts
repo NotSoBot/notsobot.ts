@@ -11,6 +11,10 @@ import { Paginator } from '../../utils';
 import { BaseCommand } from '../basecommand';
 
 
+export interface CommandArgsBefore {
+  query: string,
+}
+
 export interface CommandArgs {
   query: string,
 }

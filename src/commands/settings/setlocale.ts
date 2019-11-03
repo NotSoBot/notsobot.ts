@@ -1,20 +1,27 @@
 import { Command, Constants } from 'detritus-client';
-const { LocalesText: DiscordLocalesText } = Constants;
+const { LocalesText, Permissions } = Constants;
 
 import { CommandTypes } from '../../constants';
-import { Arguments, onRunError, onTypeError } from '../../utils';
+import { Arguments } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  locale: Constants.Locales | undefined,
+}
 
 export interface CommandArgs {
   locale: Constants.Locales,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'setlocale',
-  aliases: ['setlanguage'],
-  disableDm: true,
-  label: 'locale',
-  metadata: {
+export default class SetLocaleCommand extends BaseCommand {
+  aliases = ['setlanguage'];
+  name = 'setlocale';
+
+  disableDm = true;
+  label = 'locale';
+  metadata = {
     description: 'Set the guild\'s locale preference.',
     examples: [
       'setlocale en-us',
@@ -22,49 +29,31 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.SETTINGS,
     usage: 'setlocale <locale>',
-  },
-  responseOptional: true,
-  type: Arguments.DiscordLocale.type,
-  onBefore: (context) => {
-    if (!context.channel || !context.channel.canEmbedLinks) {
-      return false;
-    }
-    if (!context.me || !context.me.canManageGuild) {
-      return false;
-    }
-    if (!context.member || !context.member.canManageGuild) {
-      return false;
-    }
-    return true;
-  },
-  onCancel: (context) => {
-    if (!context.channel || !context.channel.canEmbedLinks) {
-      return context.editOrReply('⚠ Unable to embed in this channel.');
-    }
-    if (!context.me || !context.me.canManageGuild) {
-      return context.editOrReply('⚠ I need to have Manage Guild permissions.');
-    }
-    if (!context.member || !context.member.canManageGuild) {
-      return context.editOrReply('⚠ You need to have Manage Guild permissions to use this.');
-    }
-    return context.editOrReply('⚠ unknown.');
-  },
-  onBeforeRun: (context, args) => !!args.locale,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of locale'),
-  run: async (context, args: CommandArgs) => {
+  };
+  permissionsClient = [Permissions.MANAGE_GUILD];
+  permissions = [Permissions.MANAGE_GUILD];
+  type = Arguments.DiscordLocale.type!;
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.locale;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    return context.editOrReply('⚠ Provide some kind of locale');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     const guild = context.guild;
     if (guild) {
       await guild.edit({preferredLocale: args.locale});
 
       let locale: string;
-      if (args.locale in DiscordLocalesText) {
-        locale = DiscordLocalesText[args.locale];
+      if (args.locale in LocalesText) {
+        locale = LocalesText[args.locale];
       } else {
         locale = args.locale;
       }
-      return context.editOrReply(`Successfully edited the guild to ${locale}`);
+      return context.editOrReply(`Successfully changed the guild\'s locale to ${locale}`);
     }
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}
