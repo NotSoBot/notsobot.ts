@@ -113,6 +113,7 @@ export default class GuildCommand extends BaseCommand {
         description.push(`**Owner Id**: \`${owner.id}\``);
       }
       description.push(`**Region**: \`${guild.region}\``);
+      description.push(`**Server Type**: ${(guild.isPublic) ? 'Public' : 'Private'}`);
 
       if (context.shardCount !== 1) {
         description.push(`**Shard**: ${guildIdToShardId(guild.id, context.shardCount)}/${context.shardCount}`);
@@ -156,6 +157,10 @@ export default class GuildCommand extends BaseCommand {
       if (defaultChannel) {
         const name = (context.guildId === guild.id) ? defaultChannel.mention : `${defaultChannel} (${defaultChannel.id})`;
         description.push(`**Default**: ${name}`);
+      }
+      if (guild.rulesChannelId) {
+        const name = getChannelName(guild.rulesChannelId);
+        description.push(`**Rules**: ${name}`);
       }
       if (guild.systemChannelId) {
         const name = getChannelName(guild.systemChannelId);
@@ -222,13 +227,15 @@ export default class GuildCommand extends BaseCommand {
       }
     }
 
+    embed.addField('\u200b', '\u200b');
     {
       const description: Array<string> = [];
 
       description.push(`Attachment: ${formatMemory(guild.maxAttachmentSize)}`);
       description.push(`Bitrate: ${(guild.maxBitrate / 1000).toLocaleString()} kbps`);
-      description.push(`Emojis [Anim]: ${guild.maxEmojis}`);
-      description.push(`Emojis [Regular]: ${guild.maxEmojis}`);
+      description.push(`Emojis: ${guild.maxEmojis * 2}`);
+      description.push(` -[Anim]: ${guild.maxEmojis}`);
+      description.push(` -[Regular]: ${guild.maxEmojis}`);
       description.push(`Members: ${guild.maxMembers.toLocaleString()}`);
       description.push(`Presences: ${guild.maxPresences.toLocaleString()}`);
 
@@ -245,6 +252,9 @@ export default class GuildCommand extends BaseCommand {
 
       if (guild.banner) {
         description.push(`[**Banner Image**](${guild.bannerUrlFormat(null, {size: 1024})})`);
+      }
+      if (guild.discoverySplash) {
+        description.push(`[**Discovery Splash**](${guild.discoverySplashUrlFormat(null, {size: 1024})})`);
       }
       description.push(`[**Guild**](${guild.jumpLink})`);
       if (guild.icon) {

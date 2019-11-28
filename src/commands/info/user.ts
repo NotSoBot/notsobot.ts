@@ -78,6 +78,14 @@ export default class UserCommand extends BaseCommand {
           const description: Array<string> = [];
           description.push(`**Id**: \`${user.id}\``);
           description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
+          if (user.system) {
+            description.push(`**System**: Yes`);
+          }
+          if (user.system) {
+            description.push('**Tag**: <:system1:649406724960157708><:system2:649406733613269002>');
+          } else if (user.bot) {
+            description.push('**Tag**: <:bot1:649407239060455426><:bot2:649407247033565215>');
+          }
           embed.addField('Information', description.join('\n'), true);
         }
 
