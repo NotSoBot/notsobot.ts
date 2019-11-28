@@ -77,9 +77,17 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Argument Error');
   
+    const store: {[key: string]: string} = {};
+
     const description: Array<string> = ['Invalid Arguments' + '\n'];
     for (let key in errors) {
-      description.push(`**${key}**: ${errors[key].message}`);
+      const message = errors[key].message;
+      if (message in store) {
+        description.push(`**${key}**: Same error as **${store[message]}**`);
+      } else {
+        description.push(`**${key}**: ${message}`);
+      }
+      store[message] = key;
     }
   
     embed.setDescription(description.join('\n'));

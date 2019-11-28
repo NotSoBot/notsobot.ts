@@ -1,5 +1,5 @@
-import { Command, Utils } from 'detritus-client';
-
+import { Command, CommandClient, Constants, Utils } from 'detritus-client';
+const { Permissions } = Constants;
 const { Markup } = Utils;
 
 import { googleTranslate } from '../../api';
@@ -10,8 +10,16 @@ import {
   GoogleLocales,
   GoogleLocalesText,
 } from '../../constants';
-import { Arguments, onRunError, onTypeError } from '../../utils';
+import { Arguments } from '../../utils';
 
+import { BaseCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  from: GoogleLocales | null,
+  text: string,
+  to: GoogleLocales | null,
+}
 
 export interface CommandArgs {
   from: GoogleLocales | null,
@@ -19,15 +27,12 @@ export interface CommandArgs {
   to: GoogleLocales | null,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'translate',
-  aliases: ['tr'],
-  args: [
-    {name: 'from', default: null, type: Arguments.GoogleLocale.type},
-    {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
-  ],
-  label: 'text',
-  metadata: {
+export default class TranslateCommand extends BaseCommand {
+  aliases = ['tr'];
+  name = 'translate';
+
+  label = 'text';
+  metadata = {
     description: 'Translate some text',
     examples: [
       'translate не так бот',
@@ -35,16 +40,28 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.TOOLS,
     usage: 'google <text> (-to <language>) (-from <language>)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
-  onBeforeRun: (context, args) => !!args.text,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of text.'),
-  run: async (context, args: CommandArgs) => {
+  };
+  permissionsClient = [Permissions.EMBED_LINKS];
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [
+        {name: 'from', default: null, type: Arguments.GoogleLocale.type},
+        {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
+      ],
+    });
+  }
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.text;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    return context.editOrReply('⚠ Provide some kind of text.');
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     await context.triggerTyping();
     const {
       from_language: fromLanguage,
@@ -73,7 +90,5 @@ export default (<Command.CommandOptions> {
     embed.setDescription(Markup.codeblock(translatedText));
 
     return context.editOrReply({embed});
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}
