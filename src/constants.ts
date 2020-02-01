@@ -31,8 +31,6 @@ export const ChannelTypesText: {[key in Constants.ChannelTypes]: string} = Objec
   [ChannelTypes.GUILD_CATEGORY]: 'Guild Category',
   [ChannelTypes.GUILD_NEWS]: 'Guild News',
   [ChannelTypes.GUILD_STORE]: 'Guild Store',
-  [ChannelTypes.GUILD_LFG_LISTINGS]: 'Guild LFG Listings',
-  [ChannelTypes.LFG_GROUP_DM]: 'LFG Direct Message Group',
 });
 
 export enum CommandTypes {

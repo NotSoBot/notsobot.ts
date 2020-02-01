@@ -6,7 +6,7 @@ import { googleContentVisionOCR } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
 import { Parameters } from '../../utils';
 
-import { BaseCommand } from '../basecommand';
+import { BaseImageCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
@@ -19,7 +19,7 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class OCRCommand extends BaseCommand<CommandArgs> {
+export default class OCRCommand extends BaseImageCommand<CommandArgs> {
   name = 'ocr';
 
   label = 'url';
@@ -40,17 +40,6 @@ export default class OCRCommand extends BaseCommand<CommandArgs> {
       ...options,
       args: [{name: 'noembed', type: Boolean}],
     });
-  }
-
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return !!args.url;
-  }
-
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    if (args.url === undefined) {
-      return context.editOrReply('⚠ Unable to find any messages with an image.');
-    }
-    return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {

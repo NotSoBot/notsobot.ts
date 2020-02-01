@@ -44,6 +44,6 @@ export default class MagikCommand extends BaseImageCommand<CommandArgs> {
     embed.setImage(`attachment://${filename}`);
     embed.setFooter(`${width}x${height}, ${formatMemory(parseInt(size), 2)}`);
 
-    return context.reply({embed, file: {contentType, filename, data: response.data}});
+    return context.editOrReply({embed, file: {contentType, filename, data: response.data}});
   }
 }
