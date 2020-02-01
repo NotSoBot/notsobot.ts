@@ -370,6 +370,7 @@ export const PermissionsText: {[key in Constants.Permissions]: string} = Object.
   [Permissions.USE_VAD]: 'Voice Auto Detect',
   [Permissions.VIEW_AUDIT_LOG]: 'View Audit Logs',
   [Permissions.VIEW_CHANNEL]: 'View Channel',
+  [Permissions.VIEW_GUILD_ANALYTICS]: 'View Guild Analytics',
 });
 
 export const PresenceStatusColors: {[key: string]: number} = Object.freeze({
@@ -420,6 +421,7 @@ export const PERMISSIONS_ADMIN = Object.freeze([
   Permissions.MANAGE_ROLES,
   Permissions.MANAGE_WEBHOOKS,
   Permissions.VIEW_AUDIT_LOG,
+  Permissions.VIEW_GUILD_ANALYTICS,
 ]);
 
 export const PERMISSIONS_TEXT = Object.freeze([

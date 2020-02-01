@@ -61,8 +61,60 @@ export default (<Command.CommandOptions> {
           }
           embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
-          embed.setDescription(Markup.url(Markup.escape.all(result.description), result.url));
-          embed.setImage(result.image.url);
+          const description: Array<string> = [Markup.url(Markup.escape.all(result.description), result.url)];
+          if (result.product) {
+            const product = result.product;
+
+            const productDetails: Array<string> = [];
+            if (product.stars) {
+              if (product.stars_amount) {
+                productDetails.push(`${product.stars} ⭐ (${product.stars_amount} reviews)`);
+              } else {
+                productDetails.push(`${product.stars} ⭐`);
+              }
+            }
+            if (product.in_stock !== null) {
+              productDetails.push((product.in_stock) ? 'In Stock' : 'Not In Stock');
+            }
+            if (product.price) {
+              productDetails.push(`${product.price} (${product.currency})`);
+            }
+            description.push(productDetails.join(' | '));
+            if (product.description) {
+              description.push(Markup.escape.all(product.description));
+            }
+          }
+          if (result.video) {
+            const video = result.video;
+
+            const videoDetails: Array<string> = [];
+            if (video.duration) {
+              videoDetails.push(video.duration);
+            }
+            if (video.likes) {
+              videoDetails.push(`${video.likes} Likes`);
+            }
+            if (video.views !== null) {
+              videoDetails.push(`${video.views.toLocaleString()} Views`);
+            }
+            description.push(videoDetails.join(' | '));
+            if (video.channel) {
+              description.push(`Uploaded By **${Markup.escape.all(video.channel)}**`);
+            }
+            if (video.description) {
+              description.push('');
+              description.push(Markup.escape.all(video.description));
+            }
+          }
+
+          if (result.image.extension === 'svg') {
+            embed.setImage(result.thumbnail.url);
+            description.push(Markup.url('**Image URL**', result.image.url));
+          } else {
+            embed.setImage(result.image.url);
+          }
+
+          embed.setDescription(description.join('\n'));
 
           return embed;
         },

@@ -132,6 +132,7 @@ export default class RoleCommand extends BaseCommand {
       }
     }
 
+    embed.addField('\u200b', '\u200b');
     if (channel) {
       const permissions = role.permissionsIn(channel);
 
