@@ -2,6 +2,7 @@ import { Command, CommandClient, Constants, Utils } from 'detritus-client';
 const { Permissions } = Constants;
 
 import { EmbedColors, PermissionsText } from '../constants';
+import { Parameters } from '../utils';
 
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
@@ -92,6 +93,23 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   
     embed.setDescription(description.join('\n'));
     return context.editOrReply({embed});
+  }
+}
+
+export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
+  label = 'url';
+  permissionsClient = [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS];
+  type = Parameters.lastImageUrl;
+
+  onBeforeRun(context: Command.Context, args: {url?: null | string}) {
+    return !!args.url;
+  }
+
+  onCancelRun(context: Command.Context, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return context.editOrReply('⚠ Unable to find any messages with an image.');
+    }
+    return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
   }
 }
 

@@ -315,6 +315,94 @@ export async function imageMagikGif(
 }
 
 
+export interface ImageMirrorBottom {
+  url: string,
+}
+
+export async function imageMirrorBottom(
+  context: Command.Context,
+  options: ImageMirrorBottom,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/image/mirror-bottom',
+    },
+  });
+}
+
+
+export interface ImageMirrorLeft {
+  url: string,
+}
+
+export async function imageMirrorLeft(
+  context: Command.Context,
+  options: ImageMirrorLeft,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/image/mirror-left',
+    },
+  });
+}
+
+
+export interface ImageMirrorRight {
+  url: string,
+}
+
+export async function imageMirrorRight(
+  context: Command.Context,
+  options: ImageMirrorRight,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/image/mirror-right',
+    },
+  });
+}
+
+
+export interface ImageMirrorTop {
+  url: string,
+}
+
+export async function imageMirrorTop(
+  context: Command.Context,
+  options: ImageMirrorTop,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/image/mirror-top',
+    },
+  });
+}
+
+
 export interface ImageResize {
   convert?: string,
   scale?: number,

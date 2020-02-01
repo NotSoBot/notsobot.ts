@@ -1,18 +1,25 @@
-import { Command } from 'detritus-client';
+import { Command, Utils } from 'detritus-client';
 
-import { CommandTypes } from '../../constants';
-import { onRunError } from '../../utils';
+import { imageMirrorTop } from '../../api';
+import { CommandTypes, EmbedColors } from '../../constants';
+import { formatMemory } from '../../utils';
 
+import { BaseImageCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  url?: null | string,
+}
 
 export interface CommandArgs {
   url: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'mirror top',
-  aliases: ['woow'],
-  label: 'url',
-  metadata: {
+export default class MirrorTopCommand extends BaseImageCommand<CommandArgs> {
+  name = 'mirror top';
+
+  aliases = ['woow'];
+  metadata = {
     description: 'Mirror top of image',
     examples: [
       'woow',
@@ -20,14 +27,26 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.IMAGE,
     usage: 'woow ?<emoji|id|mention|name|url>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => context.user.isClientOwner,
-  run: async (context, args: CommandArgs) => {
-    return context.reply('ok');
-  },
-  onRunError,
-});
+  };
+
+  async run(context: Command.Context, args: CommandArgs) {
+    await context.triggerTyping();
+
+    const response = await imageMirrorTop(context, {url: args.url});
+    const {
+      'content-length': size,
+      'content-type': contentType,
+      'x-dimensions-height': height,
+      'x-dimensions-width': width,
+      'x-extension': extension,
+    } = response.headers;
+
+    const filename = `mirror-top.${extension}`;
+    const embed = new Utils.Embed();
+    embed.setColor(EmbedColors.DEFAULT);
+    embed.setImage(`attachment://${filename}`);
+    embed.setFooter(`${width}x${height}, ${formatMemory(parseInt(size), 2)}`);
+
+    return context.reply({embed, file: {contentType, filename, data: response.data}});
+  }
+}
