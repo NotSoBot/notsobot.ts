@@ -310,6 +310,18 @@ export const GoogleLocalesText = Object.freeze({
   [GoogleLocales.ZULU]: 'Zulu',
 });
 
+export enum LanguageCodes {
+  MULTIPLE_LANGUAGES = 'mul',
+  PORTUGUESE_PORTUGAL_OTHER = 'pt',
+  UNDEFINED = 'und',
+}
+
+export const LanguageCodesText = Object.freeze({
+  [LanguageCodes.MULTIPLE_LANGUAGES]: 'Multiple Languages',
+  [LanguageCodes.PORTUGUESE_PORTUGAL_OTHER]: 'Portuguese, Portugal',
+  [LanguageCodes.UNDEFINED]: 'Undetermined Language',
+});
+
 export const GoogleLocaleFromDiscord = Object.freeze({
   [Constants.Locales.ENGLISH_US]: GoogleLocales.ENGLISH,
   [Constants.Locales.ENGLISH_GB]: GoogleLocales.ENGLISH,

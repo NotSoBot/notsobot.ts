@@ -1,25 +1,29 @@
-import { Command, Utils } from 'detritus-client';
-
-const { Markup } = Utils;
+import { Command, CommandClient, Utils } from 'detritus-client';
+const { Embed, Markup } = Utils;
 
 import { googleContentVisionOCR, googleTranslate } from '../../api';
-import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
-import { Arguments, Parameters, onRunError, onTypeError } from '../../utils';
+import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales } from '../../constants';
+import { Arguments, Parameters, languageCodeToText } from '../../utils';
 
+import { BaseImageCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  to: null | GoogleLocales,
+  url?: null | string,
+}
 
 export interface CommandArgs {
   to: null | GoogleLocales,
   url: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'ocrtranslate',
-  aliases: ['ocrtr', 'trocr', 'translateocr'],
-  args: [
-    {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
-  ],
-  label: 'url',
-  metadata: {
+export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
+  name = 'ocrtranslate';
+
+  aliases = ['ocrtr', 'trocr', 'translateocr'];
+  label = 'url';
+  metadata = {
     description: 'Read text inside of an image and translate it',
     examples: [
       'ocrtranslate',
@@ -28,23 +32,17 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.TOOLS,
     usage: 'ocrtranslate ?<emoji|id|mention|name|url> (-to <language>)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  type: Parameters.lastImageUrl,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.reply('⚠ Unable to send files in this channel.'),
-  onBeforeRun: (context, args) => !!args.url,
-  onCancelRun: (context, args) => {
-    if (args.url === undefined) {
-      return context.editOrReply('⚠ Unable to find any messages with an image.');
-    } else {
-      return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
-    }
-  },
-  run: async (context, args: CommandArgs) => {
+  };
+  type = Parameters.lastImageUrl;
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [{name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type}],
+    });
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     await context.triggerTyping();
 
     const { annotation } = await googleContentVisionOCR(context, {url: args.url});
@@ -70,14 +68,8 @@ export default (<Command.CommandOptions> {
         to: args.to || undefined,
       });
 
-      let fromLanguageText: string = fromLanguage;
-      if (fromLanguage in GoogleLocalesText) {
-        fromLanguageText = GoogleLocalesText[fromLanguage];
-      }
-      let translatedLanguageText: string = translatedLanguage;
-      if (translatedLanguage in GoogleLocalesText) {
-        translatedLanguageText = GoogleLocalesText[translatedLanguage];
-      }
+      const fromLanguageText = languageCodeToText(fromLanguage);
+      const translatedLanguageText = languageCodeToText(translatedLanguage);
       embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
       embed.setDescription(Markup.codeblock(translatedText));
     } else {
@@ -86,7 +78,5 @@ export default (<Command.CommandOptions> {
     }
 
     return context.editOrReply({embed});
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

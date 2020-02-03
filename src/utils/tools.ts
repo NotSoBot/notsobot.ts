@@ -9,7 +9,12 @@ import {
 } from 'detritus-client';
 import { Timers } from 'detritus-utils';
 
-import { EmbedColors, TRUSTED_URLS } from '../constants';
+import {
+  EmbedColors,
+  GoogleLocalesText,
+  LanguageCodesText,
+  TRUSTED_URLS,
+} from '../constants';
 import GuildMembersChunkStore, { GuildMembersChunkStored } from '../stores/guildmemberschunk';
 
 
@@ -348,6 +353,18 @@ export function isSnowflake(value: string): boolean {
   }
   return false;
 }
+
+
+export function languageCodeToText(code: string): string {
+  if (code in GoogleLocalesText) {
+    return (<any> GoogleLocalesText)[code];
+  }
+  if (code in LanguageCodesText) {
+    return (<any> LanguageCodesText)[code];
+  }
+  return code;
+}
+
 
 export function padCodeBlockFromColumns(
   strings: Array<Array<string>>,

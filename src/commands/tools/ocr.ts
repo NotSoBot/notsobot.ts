@@ -3,8 +3,8 @@ import { Command, CommandClient, Utils } from 'detritus-client';
 const { Embed, Markup } = Utils;
 
 import { googleContentVisionOCR } from '../../api';
-import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
-import { Parameters } from '../../utils';
+import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
+import { Parameters, languageCodeToText } from '../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -52,13 +52,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
         return context.editOrReply({content: '⚠ No text detected'});
       }
 
-      let title: string;
-      if (annotation.locale in GoogleLocalesText) {
-        title = GoogleLocalesText[annotation.locale];
-      } else {
-        title = annotation.locale;
-      }
-
+      const title = languageCodeToText(annotation.locale);
       return context.editOrReply([
         title,
         Markup.codeblock(annotation.description),
@@ -71,10 +65,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
       embed.setThumbnail(args.url);
 
       if (annotation) {
-        let language: string = annotation.locale;
-        if (annotation.locale in GoogleLocalesText) {
-          language = GoogleLocalesText[annotation.locale];
-        }
+        const language = languageCodeToText(annotation.locale);
         embed.setTitle(language);
         embed.setDescription(Markup.codeblock(annotation.description));
       } else {
