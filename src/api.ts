@@ -175,6 +175,30 @@ export async function fetchGuildSettings(
 }
 
 
+export interface ImageJPEG {
+  quality?: number,
+  url: string,
+}
+
+export async function imageJPEG(
+  context: Command.Context,
+  options: ImageJPEG,
+): Promise<Response> {
+  const query = {
+    quality: options.quality,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/image/jpeg',
+    },
+  });
+}
+
+
 export async function googleContentVisionOCR(
   context: Command.Context,
   options: RestOptions.GoogleContentVisionOCR,
@@ -272,6 +296,7 @@ export async function googleTranslate(
 
 
 export interface ImageMagik {
+  scale?: number,
   url: string,
 }
 
@@ -280,6 +305,7 @@ export async function imageMagik(
   options: ImageMagik,
 ): Promise<Response> {
   const query = {
+    scale: options.scale,
     url: options.url,
   };
   return request(context, {
