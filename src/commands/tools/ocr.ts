@@ -11,11 +11,13 @@ import { BaseImageCommand } from '../basecommand';
 
 export interface CommandArgsBefore {
   noembed: boolean,
+  upload: boolean,
   url?: null | string,
 }
 
 export interface CommandArgs {
   noembed: boolean,
+  upload: boolean,
   url: string,
 }
 
@@ -31,14 +33,17 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
       'ocr https://cdn.notsobot.com/brands/notsobot.png',
     ],
     type: CommandTypes.TOOLS,
-    usage: 'ocr ?<emoji|id|mention|name|url> (-noembed)',
+    usage: 'ocr ?<emoji|id|mention|name|url> (-noembed) (-files.gg)',
   };
   type = Parameters.lastImageUrl;
 
   constructor(client: CommandClient, options: Command.CommandOptions) {
     super(client, {
       ...options,
-      args: [{name: 'noembed', type: Boolean}],
+      args: [
+        {name: 'noembed', type: Boolean},
+        {name: 'files.gg', label: 'upload', type: Boolean},
+      ],
     });
   }
 
@@ -47,16 +52,31 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
 
     const { annotation } = await googleContentVisionOCR(context, {url: args.url});
 
+    let description: string = '';
+    if (annotation) {
+      if (2000 < annotation.description.length && args.upload) {
+        try {
+          const upload = await context.rest.request({
+            files: [{filename: 'ocr.txt', data: annotation.description, name: 'file'}],
+            method: 'post',
+            url: 'https://api.files.gg/files',
+          });
+          description = upload.urls.main;
+        } catch(error) {
+          description = Markup.codeblock(annotation.description);
+        }
+      } else {
+        description = Markup.codeblock(annotation.description);
+      }
+    }
+
     if (args.noembed) {
       if (!annotation) {
         return context.editOrReply({content: '⚠ No text detected'});
       }
 
       const title = languageCodeToText(annotation.locale);
-      return context.editOrReply([
-        title,
-        Markup.codeblock(annotation.description),
-      ].join('\n'));
+      return context.editOrReply([title, description].join('\n'));
     } else {
       const embed = new Embed();
       embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
@@ -67,7 +87,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
       if (annotation) {
         const language = languageCodeToText(annotation.locale);
         embed.setTitle(language);
-        embed.setDescription(Markup.codeblock(annotation.description));
+        embed.setDescription(description);
       } else {
         embed.setColor(EmbedColors.ERROR);
         embed.setDescription('No text detected');
