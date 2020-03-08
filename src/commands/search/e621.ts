@@ -60,8 +60,8 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
           embed.setUrl(result.url);
 
           const description: Array<string> = [];
-          if (!result.file.url && (result.rating === E621Rating.EXPLICIT || result.rating === E621Rating.QUESTIONABLE)) {
-            description.push('**Unable to show thumbnail due to explicit/questionable rating, idk lol**');
+          if (!result.file.url) {
+            description.push('**Unable to show thumbnail due to needing to be logged in to view.**');
           }
           if (!result.updated_at || result.created_at === result.updated_at) {
             description.push(`Uploaded ${moment(result.created_at).fromNow()}`);
@@ -75,6 +75,7 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
           }
 
           description.push(`**Comments**: ${result.comment_count.toLocaleString()}`);
+          description.push(`**Favorites**: ${result.fav_count.toLocaleString()}`);
 
           {
             const rating = (result.rating in E621RatingText) ? (<any> E621RatingText)[result.rating] : `Unknown Rating (${result.rating})`;

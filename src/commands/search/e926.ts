@@ -74,6 +74,7 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
           }
 
           description.push(`**Comments**: ${result.comment_count.toLocaleString()}`);
+          description.push(`**Favorites**: ${result.fav_count.toLocaleString()}`);
 
           {
             const rating = (result.rating in E621RatingText) ? (<any> E621RatingText)[result.rating] : `Unknown Rating (${result.rating})`;
