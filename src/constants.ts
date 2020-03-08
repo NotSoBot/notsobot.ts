@@ -102,6 +102,11 @@ export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.WEATHER,
 ]);
 
+export enum GoogleImageVideoTypes {
+  OTHER = 'other',
+  YOUTUBE = 'youtube',
+}
+
 export enum GoogleLocales {
   AFRIKAANS = 'af',
   ALBANIAN = 'sq',

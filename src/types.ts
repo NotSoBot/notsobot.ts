@@ -1,4 +1,4 @@
-import { GoogleCardTypes, GoogleLocales } from './constants';
+import { GoogleCardTypes, GoogleImageVideoTypes, GoogleLocales } from './constants';
 
 
 export namespace RestOptions {
@@ -208,13 +208,14 @@ export namespace RestResponses {
     },
     url: string,
     video: null | {
-      channel: string,
+      channel: null | string,
       description: string,
-      duration: string,
-      likes: string,
+      duration: null | string,
+      likes: null | string,
       title: string,
-      uploaded_at: string,
-      views: number,
+      type: GoogleImageVideoTypes,
+      uploaded_at: null | number,
+      views: null | number,
     },
   }
 

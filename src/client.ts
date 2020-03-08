@@ -54,6 +54,13 @@ export class NotSoClient extends CommandClient {
     if (context.inDm) {
       return !command.disableDm;
     }
+    // might bite me later, maybe i should check if it's 'command' or starts with 'command ' (with a space)
+    if (command.name.startsWith('command')) {
+      return true;
+    }
+    if (context.member && context.member.isOwner) {
+      return true;
+    }
     const guildId = <string> context.guildId;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {

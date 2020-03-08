@@ -37,7 +37,6 @@ export default class PrefixCommand extends BaseCommand {
     usage: 'prefix <prefix> (-clear) (-delete) (-replace)',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
   type = Parameters.string({maxLength: 128});
 
   constructor(client: CommandClient, options: Command.CommandOptions) {

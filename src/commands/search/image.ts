@@ -1,8 +1,10 @@
+import * as moment from 'moment';
+
 import { Command, CommandClient, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { googleSearchImages } from '../../api';
-import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
+import { CommandTypes, EmbedBrands, EmbedColors, GoogleImageVideoTypes, GoogleLocales, GoogleLocalesText } from '../../constants';
 import { Arguments, Paginator, triggerTypingAfter } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -100,10 +102,21 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
             }
             description.push(videoDetails.join(' | '));
             if (video.channel) {
-              description.push(`Uploaded By **${Markup.escape.all(video.channel)}**`);
+              let text = `Uploaded By **${Markup.escape.all(video.channel)}**`;
+              if (video.uploaded_at) {
+                text = `${text} (${moment(video.uploaded_at).fromNow()})`;
+              }
+              description.push(text);
+            } else {
+              if (video.uploaded_at) {
+                description.push(`Uploaded ${moment(video.uploaded_at).fromNow()}`);
+              }
             }
             if (video.description) {
-              description.push('');
+              if (video.type === GoogleImageVideoTypes.YOUTUBE) {
+                // just a spacer
+                description.push('');
+              }
               description.push(Markup.escape.all(video.description));
             }
           }
