@@ -71,7 +71,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
             const productDetails: Array<string> = [];
             if (product.stars) {
               if (product.stars_amount) {
-                productDetails.push(`${product.stars} ⭐ (${product.stars_amount} reviews)`);
+                productDetails.push(`${product.stars} ⭐ (${product.stars_amount.toLocaleString()} reviews)`);
               } else {
                 productDetails.push(`${product.stars} ⭐`);
               }
@@ -92,7 +92,11 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
 
             const videoDetails: Array<string> = [];
             if (video.duration) {
-              videoDetails.push(video.duration);
+              if (video.type === GoogleImageVideoTypes.YOUTUBE) {
+                videoDetails.push(video.duration);
+              } else {
+                videoDetails.push(`${video.duration} Duration`);
+              }
             }
             if (video.likes) {
               videoDetails.push(`${video.likes} Likes`);
@@ -113,7 +117,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
               }
             }
             if (video.description) {
-              if (video.type === GoogleImageVideoTypes.YOUTUBE) {
+              if (videoDetails.length) {
                 // just a spacer
                 description.push('');
               }
