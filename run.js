@@ -1,7 +1,7 @@
 const { ClusterManager } = require('detritus-client');
 
 process.env.NOTSOBOT_API_TOKEN = '';
-process.env.REDIS_URL = 'redis://localhost:6379/0';
+process.env.REDIS_URL = 'redis://:password@localhost:6379/0';
 
 const token = '';
 const manager = new ClusterManager('./lib/bot', token, {
