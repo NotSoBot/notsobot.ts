@@ -1,23 +1,24 @@
-import { Command, Utils } from 'detritus-client';
-
+import { Command, CommandClient, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { googleSearchImages } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
-import { Arguments, Paginator, onRunError, onTypeError, triggerTypingAfter } from '../../utils';
+import { Arguments, Paginator, triggerTypingAfter } from '../../utils';
+
+import { BaseSearchCommand } from '../basecommand';
 
 
 export interface CommandArgs {
   locale: GoogleLocales,
   query: string,
+  safe: boolean,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'image',
-  aliases: ['img'],
-  args: [Arguments.GoogleLocale, Arguments.Safe],
-  label: 'query',
-  metadata: {
+export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
+  aliases = ['img'];
+  name = 'image';
+
+  metadata = {
     description: 'Search Google Images',
     examples: [
       'image notsobot',
@@ -26,16 +27,16 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.SEARCH,
     usage: 'image <query> (-locale <language>) (-safe)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
-  onBeforeRun: (context, args) => !!args.query,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args: CommandArgs) => {
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [Arguments.GoogleLocale, Arguments.Safe],
+    });
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     await triggerTypingAfter(context);
 
     const results = await googleSearchImages(context, args);
@@ -123,7 +124,5 @@ export default (<Command.CommandOptions> {
     } else {
       return context.editOrReply('Couldn\'t find any images for that search term');
     }
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

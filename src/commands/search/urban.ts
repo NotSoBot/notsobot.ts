@@ -1,20 +1,31 @@
-import { Command, Utils } from 'detritus-client';
-
+import { Command, CommandClient, Utils } from 'detritus-client';
 const { Markup, addQuery } = Utils;
 
 import { searchUrban, searchUrbanRandom } from '../../api';
 import { CommandTypes, DateOptions, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, onRunError, onTypeError } from '../../utils';
+import { Paginator, triggerTypingAfter } from '../../utils';
+
+import { BaseSearchCommand } from '../basecommand';
 
 
 const ReplacementRegex = /\[([\s\S]+?)\]/g;
 const UrbanUrl = 'https://www.urbandictionary.com/define.php';
 
-export default (<Command.CommandOptions> {
-  name: 'urban',
-  args: [{name: 'random', type: Boolean}],
-  label: 'query',
-  metadata: {
+
+export interface CommandArgsBefore {
+  query: string,
+  random: boolean,
+}
+
+export interface CommandArgs {
+  query: string,
+  random: boolean,
+}
+
+export default class UrbanCommand extends BaseSearchCommand<CommandArgs> {
+  name = 'urban';
+
+  metadata = {
     description: 'Search Urban Dictionary',
     examples: [
       'urban notsobot',
@@ -22,17 +33,21 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.SEARCH,
     usage: 'urban <query> (-random)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.reply('⚠ Unable to embed in this channel.'),
-  onBeforeRun: (context, args) => !!args.query || !!args.random,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args) => {
-    await context.triggerTyping();
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [{name: 'random', type: Boolean}],
+    });
+  }
+
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.query || !!args.random;
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
+    await triggerTypingAfter(context);
 
     let results: any;
     if (args.random) {
@@ -79,7 +94,5 @@ export default (<Command.CommandOptions> {
     } else {
       return context.editOrReply('Couldn\'t find any definitions for that search term');
     }
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

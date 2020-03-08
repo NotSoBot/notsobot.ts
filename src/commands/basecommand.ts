@@ -114,6 +114,41 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 }
 
 
+export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
+  label = 'query';
+  nsfw = false;
+  permissionsClient = [Permissions.EMBED_LINKS];
+
+  constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
+    super(commandClient, options);
+    if (this.metadata) {
+      this.metadata.nsfw = this.nsfw;
+    }
+  }
+
+  onBefore(context: Command.Context) {
+    if (this.nsfw) {
+      if (context.channel) {
+        return context.channel.isDm || context.channel.nsfw;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  onCancel(context: Command.Context) {
+    return context.editOrReply('⚠ Not a NSFW channel.');
+  }
+
+  onBeforeRun(context: Command.Context, args: {query: string}) {
+    return !!args.query;
+  }
+
+  onCancelRun(context: Command.Context, args: {query: string}) {
+    return context.editOrReply('⚠ Provide some kind of search term.');
+  }
+}
+
 /*
 
 onBeforeRun(context: Command.Context, args: CommandArgsBefore) {

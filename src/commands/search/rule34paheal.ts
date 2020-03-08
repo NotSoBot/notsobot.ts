@@ -1,29 +1,23 @@
 import * as moment from 'moment';
 
-import { Command, Constants, Utils } from 'detritus-client';
-const { Permissions } = Constants;
+import { Command, Utils } from 'detritus-client';
 const { Embed, Markup } = Utils;
 
 import { searchRule34Paheal } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator } from '../../utils';
+import { Paginator, triggerTypingAfter } from '../../utils';
 
-import { BaseCommand } from '../basecommand';
+import { BaseSearchCommand } from '../basecommand';
 
-
-export interface CommandArgsBefore {
-  query: string,
-}
 
 export interface CommandArgs {
   query: string,
 }
 
-export default class Rule34PahealCommand extends BaseCommand {
+export default class Rule34PahealCommand extends BaseSearchCommand {
   aliases = ['r34paheal', 'r34p', 'paheal', 'pahe'];
   name = 'rule34paheal';
 
-  label = 'query';
   metadata = {
     description: 'Search https://rule34.paheal.net',
     examples: [
@@ -32,29 +26,10 @@ export default class Rule34PahealCommand extends BaseCommand {
     type: CommandTypes.SEARCH,
     usage: 'rule34paheal <query>',
   };
-  permissionsClient = [Permissions.EMBED_LINKS];
-
-  onBefore(context: Command.Context) {
-    if (context.channel) {
-      return context.channel.isDm || context.channel.nsfw;
-    }
-    return false;
-  }
-
-  onCancel(context: Command.Context) {
-    return context.editOrReply('⚠ Not a NSFW channel.');
-  }
-
-  onBeforeRun(context: Command.Context, args: CommandArgs) {
-    return !!args.query;
-  }
-
-  onCancelRun(context: Command.Context, args: CommandArgs) {
-    return context.editOrReply('⚠ Provide some kind of search term.');
-  }
+  nsfw = true;
 
   async run(context: Command.Context, args: CommandArgs) {
-    await context.triggerTyping();
+    await triggerTypingAfter(context);
 
     const results = await searchRule34Paheal(context, args);
     if (results.length) {

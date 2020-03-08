@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 
 import { Command, Utils } from 'detritus-client';
-
 const { Markup } = Utils;
 
 import { youtubeSearch } from '../../api';
@@ -13,34 +12,33 @@ import {
   YoutubeResultTypes,
   MOMENT_FORMAT,
 } from '../../constants';
-import { Paginator, onRunError, onTypeError, triggerTypingAfter } from '../../utils';
+import { Paginator, triggerTypingAfter } from '../../utils';
 
+import { BaseSearchCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  query: string,
+}
 
 export interface CommandArgs {
   query: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'youtube',
-  aliases: ['yt'],
-  label: 'query',
-  metadata: {
+export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
+  aliases = ['yt'];
+  name = 'youtube';
+
+  metadata = {
     description: 'Search Youtube',
     examples: [
       'youtube notsobot',
     ],
     type: CommandTypes.SEARCH,
     usage: 'youtube <query>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.reply('⚠ Unable to embed in this channel.'),
-  onBeforeRun: (context, args) => !!args.query || !!args.random,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args: CommandArgs) => {
+  };
+
+  async run(context: Command.Context, args: CommandArgs) {
     await triggerTypingAfter(context);
 
     const { results, total_result_count: totalResultCount } = await youtubeSearch(context, args);
@@ -137,7 +135,5 @@ export default (<Command.CommandOptions> {
     } else {
       return context.editOrReply('Couldn\'t find any videos for that search term');
     }
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

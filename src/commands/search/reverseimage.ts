@@ -1,20 +1,10 @@
-import { Command, Utils } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
-const { Markup } = Utils;
+import { CommandTypes } from '../../constants';
+import { Arguments, Paginator } from '../../utils';
 
-import { googleSearch } from '../../api';
-import {
-  CommandTypes,
-  EmbedBrands,
-  EmbedColors,
-  GoogleCardTypes,
-  GoogleLocalesText,
-  GOOGLE_CARD_TYPES_SUPPORTED,
-} from '../../constants';
-import { Arguments, Paginator, onRunError, onTypeError } from '../../utils';
+import { BaseSearchCommand } from '../basecommand';
 
-
-const RESULTS_PER_PAGE = 3;
 
 export interface CommandArgs {
   locale: string,
@@ -22,33 +12,30 @@ export interface CommandArgs {
   safe: boolean,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'reversesearch',
-  aliases: ['imgs'],
-  args: [Arguments.GoogleLocale, Arguments.Safe],
-  label: 'query',
-  metadata: {
-    description: 'Search Google',
+// use Parameters.lastImageUrl
+
+export default class ReverseSearchCommand extends BaseSearchCommand<CommandArgs> {
+  aliases = ['images', 'imgs'];
+  name = 'reversesearch';
+
+  metadata = {
+    description: 'Reverse Search an image using Google',
     examples: [
-      'google notsobot',
-      'google notsobot -locale russian',
-      'google something nsfw -safe',
+      'reversesearch',
+      'reversesearch notsobot',
     ],
     type: CommandTypes.SEARCH,
-    usage: 'google <query> (-locale <language>) (-safe)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
-  onBeforeRun: (context, args) => !!args.query,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args: CommandArgs) => {
-    await context.triggerTyping();
+    usage: 'reversesearch ?<emoji|id|mention|name|url> (-locale <language>) (-safe)',
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [Arguments.GoogleLocale, Arguments.Safe],
+    });
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     return context.editOrReply('yeet');
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

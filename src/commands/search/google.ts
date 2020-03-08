@@ -1,5 +1,4 @@
-import { Command, Utils } from 'detritus-client';
-
+import { Command, CommandClient, Utils } from 'detritus-client';
 const { Markup } = Utils;
 
 import { googleSearch } from '../../api';
@@ -12,7 +11,9 @@ import {
   GoogleLocalesText,
   GOOGLE_CARD_TYPES_SUPPORTED,
 } from '../../constants';
-import { Arguments, Paginator, onRunError, onTypeError, triggerTypingAfter } from '../../utils';
+import { Arguments, Paginator,  triggerTypingAfter } from '../../utils';
+
+import { BaseSearchCommand } from '../basecommand';
 
 
 const RESULTS_PER_PAGE = 3;
@@ -23,12 +24,11 @@ export interface CommandArgs {
   safe: boolean,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'google',
-  aliases: ['g'],
-  args: [Arguments.GoogleLocale, Arguments.Safe],
-  label: 'query',
-  metadata: {
+export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
+  aliases = ['g'];
+  name = 'google';
+
+  metadata = {
     description: 'Search Google',
     examples: [
       'google notsobot',
@@ -37,16 +37,16 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.SEARCH,
     usage: 'google <query> (-locale <language>) (-safe)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.editOrReply('⚠ Unable to embed in this channel.'),
-  onBeforeRun: (context, args) => !!args.query,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args: CommandArgs) => {
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [Arguments.GoogleLocale, Arguments.Safe],
+    });
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     await triggerTypingAfter(context);
 
     const { cards, results, suggestion } = await googleSearch(context, args);
@@ -171,7 +171,5 @@ export default (<Command.CommandOptions> {
     }
 
     return context.editOrReply({embed});
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

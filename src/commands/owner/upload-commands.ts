@@ -45,6 +45,7 @@ export default class UploadCommandsCommand extends BaseCommand {
         dmable: !command.disableDm,
         examples: metadata.examples,
         name,
+        nsfw: !!metadata.nsfw,
         ratelimits: command.ratelimits.map((ratelimit) => {
           return {
             duration: ratelimit.duration,

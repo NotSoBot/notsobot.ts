@@ -536,7 +536,11 @@ export async function triggerTypingAfter(
   milliseconds?: number,
 ): Promise<Timers.Timeout> {
   const timeout = new Timers.Timeout();
-  if (!context.response) {
+
+  const response = context.response;
+  // just a small check to see if we're gonna delete the old message and reply with a new one
+  // can't really tell without passing in what we're gonna send to discord tho
+  if (!response || response.hasAttachment) {
     if (milliseconds) {
       timeout.start(milliseconds, async () => {
         try {

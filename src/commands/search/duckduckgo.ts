@@ -1,10 +1,11 @@
 import { Command, Utils } from 'detritus-client';
-
 const { Markup } = Utils;
 
 import { searchDuckDuckGo } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, onRunError, onTypeError } from '../../utils';
+import { Paginator, triggerTypingAfter } from '../../utils';
+
+import { BaseSearchCommand } from '../basecommand';
 
 
 const RESULTS_PER_PAGE = 3;
@@ -13,28 +14,21 @@ export interface CommandArgs {
   query: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'duckduckgo',
-  aliases: ['ddg'],
-  label: 'query',
-  metadata: {
+export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
+  aliases = ['ddg'];
+  name = 'duckduckgo';
+
+  metadata = {
     description: 'Search DuckDuckGo',
     examples: [
       'duckduckgo notsobot',
     ],
     type: CommandTypes.SEARCH,
     usage: 'duckduckgo <query>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.reply('⚠ Unable to embed in this channel.'),
-  onBeforeRun: (context, args) => !!args.query,
-  onCancelRun: (context, args) => context.editOrReply('⚠ Provide some kind of search term.'),
-  run: async (context, args: CommandArgs) => {
-    await context.triggerTyping();
+  };
+
+  async run(context: Command.Context, args: CommandArgs) {
+    await triggerTypingAfter(context);
 
     const results = await searchDuckDuckGo(context, args);
 
@@ -74,7 +68,5 @@ export default (<Command.CommandOptions> {
     } else {
       return context.editOrReply('Couldn\'t find any results for that search term');
     }
-  },
-  onRunError,
-  onTypeError,
-});
+  }
+}

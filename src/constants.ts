@@ -54,6 +54,18 @@ export const DateOptions = Object.freeze({
   timeZone: 'America/New_York',
 });
 
+export enum E621Rating {
+  EXPLICIT = 'e',
+  QUESTIONABLE = 'q',
+  SAFE = 's',
+}
+
+export const E621RatingText = Object.freeze({
+  [E621Rating.EXPLICIT]: 'Explicit',
+  [E621Rating.QUESTIONABLE]: 'Questionable',
+  [E621Rating.SAFE]: 'Safe',
+});
+
 export enum EmbedBrands {
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
   GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',

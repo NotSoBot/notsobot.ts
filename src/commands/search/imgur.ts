@@ -1,31 +1,27 @@
 import { Command } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
-import { onRunError } from '../../utils';
+
+import { BaseSearchCommand } from '../basecommand';
 
 
 export interface CommandArgs {
   query: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'imgur',
-  label: 'query',
-  metadata: {
+export default class ImgurCommand extends BaseSearchCommand<CommandArgs> {
+  name = 'imgur';
+
+  metadata = {
     description: 'Search Imgur',
     examples: [
       'imgur cat',
     ],
     type: CommandTypes.SEARCH,
     usage: 'imgur <query>',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => context.user.isClientOwner,
-  run: async (context, args: CommandArgs) => {
-    return context.reply('ok');
-  },
-  onRunError,
-});
+  };
+
+  async run(context: Command.Context, args: CommandArgs) {
+    
+  }
+}

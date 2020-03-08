@@ -175,30 +175,6 @@ export async function fetchGuildSettings(
 }
 
 
-export interface ImageJPEG {
-  quality?: number,
-  url: string,
-}
-
-export async function imageJPEG(
-  context: Command.Context,
-  options: ImageJPEG,
-): Promise<Response> {
-  const query = {
-    quality: options.quality,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: RestConstants.HTTPMethods.POST,
-      path: '/image/jpeg',
-    },
-  });
-}
-
-
 export async function googleContentVisionOCR(
   context: Command.Context,
   options: RestOptions.GoogleContentVisionOCR,
@@ -237,17 +213,10 @@ export async function googleSearch(
 }
 
 
-export interface GoogleSearchImages {
-  locale?: GoogleLocales,
-  maxResults?: number,
-  query: string,
-  safe?: boolean | string,
-}
-
 export async function googleSearchImages(
   context: Command.Context,
-  options: GoogleSearchImages,
-): Promise<any> {
+  options: RestOptions.GoogleSearchImages,
+): Promise<RestResponses.GoogleSearchImages> {
   const query = {
     locale: options.locale,
     max_results: options.maxResults,
@@ -264,21 +233,10 @@ export async function googleSearchImages(
 }
 
 
-export interface GoogleTranslate {
-  from?: GoogleLocales,
-  text: string,
-  to?: GoogleLocales,
-}
-
 export async function googleTranslate(
   context: Command.Context,
-  options: GoogleTranslate,
-): Promise<{
-  from_language: GoogleLocales,
-  from_text: string,
-  translated_language: GoogleLocales,
-  translated_text: string,
-}> {
+  options: RestOptions.GoogleTranslate,
+): Promise<RestResponses.GoogleTranslate> {
   const query = {
     from: options.from,
     text: options.text,
@@ -294,15 +252,28 @@ export async function googleTranslate(
 }
 
 
-
-export interface ImageMagik {
-  scale?: number,
-  url: string,
+export async function imageJPEG(
+  context: Command.Context,
+  options: RestOptions.ImageJPEG,
+): Promise<Response> {
+  const query = {
+    quality: options.quality,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.POST,
+      path: '/image/jpeg',
+    },
+  });
 }
+
 
 export async function imageMagik(
   context: Command.Context,
-  options: ImageMagik,
+  options: RestOptions.ImageMagik,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -319,13 +290,9 @@ export async function imageMagik(
 }
 
 
-export interface ImageMagikGif {
-  url: string,
-}
-
 export async function imageMagikGif(
   context: Command.Context,
-  options: ImageMagikGif,
+  options: RestOptions.ImageMagikGif,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -341,13 +308,9 @@ export async function imageMagikGif(
 }
 
 
-export interface ImageMirrorBottom {
-  url: string,
-}
-
 export async function imageMirrorBottom(
   context: Command.Context,
-  options: ImageMirrorBottom,
+  options: RestOptions.ImageMirrorBottom,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -363,13 +326,9 @@ export async function imageMirrorBottom(
 }
 
 
-export interface ImageMirrorLeft {
-  url: string,
-}
-
 export async function imageMirrorLeft(
   context: Command.Context,
-  options: ImageMirrorLeft,
+  options: RestOptions.ImageMirrorLeft,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -385,13 +344,9 @@ export async function imageMirrorLeft(
 }
 
 
-export interface ImageMirrorRight {
-  url: string,
-}
-
 export async function imageMirrorRight(
   context: Command.Context,
-  options: ImageMirrorRight,
+  options: RestOptions.ImageMirrorRight,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -407,13 +362,9 @@ export async function imageMirrorRight(
 }
 
 
-export interface ImageMirrorTop {
-  url: string,
-}
-
 export async function imageMirrorTop(
   context: Command.Context,
-  options: ImageMirrorTop,
+  options: RestOptions.ImageMirrorTop,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -429,16 +380,9 @@ export async function imageMirrorTop(
 }
 
 
-export interface ImageResize {
-  convert?: string,
-  scale?: number,
-  size?: string,
-  url: string,
-}
-
 export async function imageResize(
   context: Command.Context,
-  options: ImageResize,
+  options: RestOptions.ImageResize,
 ): Promise<Response> {
   const query = {
     convert: options.convert,
@@ -457,14 +401,9 @@ export async function imageResize(
 }
 
 
-
-export interface SearchDuckDuckGo {
-  query: string,
-}
-
 export async function searchDuckDuckGo(
   context: Command.Context,
-  options: SearchDuckDuckGo,
+  options: RestOptions.SearchDuckDuckGo,
 ): Promise<any> {
   const query = {
     query: options.query,
@@ -479,13 +418,9 @@ export async function searchDuckDuckGo(
 }
 
 
-export interface SearchDuckDuckGoImages {
-  query: string,
-}
-
 export async function searchDuckDuckGoImages(
   context: Command.Context,
-  options: SearchDuckDuckGoImages,
+  options: RestOptions.SearchDuckDuckGoImages,
 ): Promise<any> {
   const query = {
     query: options.query,
@@ -500,13 +435,43 @@ export async function searchDuckDuckGoImages(
 }
 
 
-export interface SearchRule34 {
-  query: string,
+export async function searchE621(
+  context: Command.Context,
+  options: RestOptions.SearchE621,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/e621',
+    },
+  });
 }
+
+
+export async function searchE926(
+  context: Command.Context,
+  options: RestOptions.SearchE926,
+): Promise<any> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: RestConstants.HTTPMethods.GET,
+      path: '/search/e926',
+    },
+  });
+}
+
 
 export async function searchRule34(
   context: Command.Context,
-  options: SearchRule34,
+  options: RestOptions.SearchRule34,
 ): Promise<any> {
   const query = {
     query: options.query,
@@ -521,13 +486,9 @@ export async function searchRule34(
 }
 
 
-export interface SearchRule34Paheal {
-  query: string,
-}
-
 export async function searchRule34Paheal(
   context: Command.Context,
-  options: SearchRule34Paheal,
+  options: RestOptions.SearchRule34Paheal,
 ): Promise<any> {
   const query = {
     query: options.query,
@@ -542,13 +503,9 @@ export async function searchRule34Paheal(
 }
 
 
-export interface SearchUrban {
-  query: string,
-}
-
 export async function searchUrban(
   context: Command.Context,
-  options: SearchUrban,
+  options: RestOptions.SearchUrban,
 ): Promise<any> {
   const query = {
     query: options.query,
@@ -563,13 +520,9 @@ export async function searchUrban(
 }
 
 
-export interface SearchUrbanRandom {
-
-}
-
 export async function searchUrbanRandom(
   context: Command.Context,
-  options: SearchUrbanRandom = {},
+  options: RestOptions.SearchUrbanRandom = {},
 ): Promise<any> {
   return request(context, {
     route: {
@@ -580,13 +533,9 @@ export async function searchUrbanRandom(
 }
 
 
-export interface SearchWolframAlpha {
-  query: string,
-}
-
 export async function searchWolframAlpha(
   context: Command.Context,
-  options: SearchWolframAlpha,
+  options: RestOptions.SearchWolframAlpha,
 ): Promise<any> {
   const query = {
     query: options.query,
@@ -601,23 +550,9 @@ export async function searchWolframAlpha(
 }
 
 
-export interface UploadCommands {
-  commands: Array<{
-    aliases: Array<string>,
-    args: Array<{aliases: Array<string>, name: string, prefix: string}>,
-    description: string,
-    dmable: boolean,
-    examples: Array<string>,
-    name: string,
-    ratelimits: Array<{duration: number, limit: number, type: string}>,
-    type: string,
-    usage: string,
-  }>,
-}
-
 export async function uploadCommands(
   context: Command.Context,
-  options: UploadCommands,
+  options: RestOptions.UploadCommands,
 ): Promise<any> {
   const body = {
     commands: options.commands,
@@ -632,13 +567,9 @@ export async function uploadCommands(
 }
 
 
-export interface YoutubeSearch {
-  query: string,
-}
-
 export async function youtubeSearch(
   context: Command.Context,
-  options: YoutubeSearch,
+  options: RestOptions.YoutubeSearch,
 ): Promise<any> {
   const query = {
     query: options.query,
