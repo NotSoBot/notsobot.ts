@@ -129,11 +129,9 @@ export class Paginator {
       throw new Error('A userId must be specified in the targets array');
     }
 
-    const emojis: {
-      [key: string]: string | Structures.Emoji,
-    } = Object.assign({}, PageEmojis, options.emojis);
+    const emojis: PaginatorEmojis = Object.assign({}, PageEmojis, options.emojis);
     for (let key in PageEmojis) {
-      const value = emojis[key];
+      const value = (<any> emojis)[key];
       if (typeof(value) === 'string') {
         let emoji: Structures.Emoji;
 

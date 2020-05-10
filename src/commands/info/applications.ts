@@ -61,10 +61,20 @@ export default class ApplicationsCommand extends BaseCommand {
         } else {
           embed.setAuthor(application.name);
         }
-        embed.setDescription([
-          `**Id**: \`${application.id}\`\n`,
-          application.description,
-        ].join('\n'));
+
+        {
+          const description: Array<string> = [];
+          description.push(`**Id**: \`${application.id}\``);
+
+          if (context.guild) {
+            const presences = context.guild.presences.filter((presence) => presence.activities.some((activity) => activity.applicationId === application.id || activity.name === application.name));
+            description.push(`**Members Playing**: ${presences.length.toLocaleString()}`);
+          }
+
+          description.push('');
+          description.push(application.description);
+          embed.setDescription(description.join('\n'));
+        }
 
         if (application.splash) {
           const thumbnail = <string> application.splashUrlFormat(null, {size: 1024});

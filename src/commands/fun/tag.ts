@@ -1,24 +1,31 @@
 import { Command } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
-import { onRunError } from '../../utils';
+import { BaseCommand } from '../basecommand';
 
 
-export default (<Command.CommandOptions> {
-  name: 'tag',
-  metadata: {
+export interface CommandArgsBefore {
+  
+}
+
+export interface CommandArgs {
+
+}
+
+export default class TagCommand extends BaseCommand {
+  name = 'tag';
+
+  metadata = {
     description: 'Show a tag',
     examples: [
       'tag some tag',
     ],
     type: CommandTypes.FUN,
     usage: 'tag <...tagname>',
-  },
-  priority: 1,
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  run: async (context) => context.reply('maybe some day'),
-  onRunError,
-});
+  };
+  priority = -1;
+
+  run(context: Command.Context, args: CommandArgs) {
+
+  }
+}

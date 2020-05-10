@@ -1,26 +1,41 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
-import { onRunError } from '../../utils';
+import { BaseCommand } from '../basecommand';
 
 
-export default (<Command.CommandOptions> {
-  name: 'tts',
-  aliases: ['text-to-speech'],
-  args: [{name: 'use'}],
-  metadata: {
+export interface CommandArgsBefore {
+  use: string,
+}
+
+export interface CommandArgs {
+  use: string,
+}
+
+export default class TTSCommand extends BaseCommand {
+  name = 'tts';
+
+  aliases = ['text-to-speech'];
+  metadata = {
     description: 'Text to Speech',
     examples: [
-      'tts i love cake',
-      'tts i love cake -use spanish',
+      'tts give me a table',
+      'tts give me a table -use spanish',
     ],
     type: CommandTypes.FUN,
     usage: 'tts <text> (-use <language/type>)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  run: async (context) => context.reply('maybe some day'),
-  onRunError,
-});
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [
+        {name: 'use'},
+      ],
+    });
+  }
+
+  run(context: Command.Context, args: CommandArgs) {
+
+  }
+}
