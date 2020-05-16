@@ -7,6 +7,7 @@ import {
   Structures,
   Utils,
 } from 'detritus-client';
+import { Response } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
 
 import {
@@ -38,35 +39,35 @@ export async function chunkMembers(
 
   return new Promise((resolve, reject) => {
     const timeout = new Timers.Timeout();
-    const listener = (event: GatewayClientEvents.GuildMembersChunk) => {
-      if (event.guildId === context.guildId && event.members) {
-        let matches = false;
-        if (options.query) {
-          matches = event.members.every((member: Structures.Member) => {
-            return member.names.some((name) => {
-              return name.toLowerCase().startsWith(<string> options.query);
-            });
-          });
-        } else if (options.userIds) {
-          matches = options.userIds.every((userId) => {
-            if (event.notFound && event.notFound.includes(userId)) {
-              return true;
-            }
-            if (event.members) {
-              return event.members.some((member) => member.id === userId);
-            }
-            return false;
-          });
-        }
-        if (matches) {
-          timeout.stop();
-          context.client.removeListener('guildMembersChunk', listener);
-          GuildMembersChunkStore.insert(key, event);
-          resolve(event);
-        }
+    const subscription = context.client.subscribe('guildMembersChunk', (event: GatewayClientEvents.GuildMembersChunk) => {
+      if (event.guildId !== context.guildId || !event.members) {
+        return;
       }
-    };
-    context.client.on('guildMembersChunk', listener);
+      let matches = false;
+      if (options.query) {
+        matches = event.members.every((member: Structures.Member) => {
+          return member.names.some((name) => {
+            return name.toLowerCase().startsWith(<string> options.query);
+          });
+        });
+      } else if (options.userIds) {
+        matches = options.userIds.every((userId) => {
+          if (event.notFound && event.notFound.includes(userId)) {
+            return true;
+          }
+          if (event.members) {
+            return event.members.some((member) => member.id === userId);
+          }
+          return false;
+        });
+      }
+      if (matches) {
+        timeout.stop();
+        subscription.remove();
+        GuildMembersChunkStore.insert(key, event);
+        resolve(event);
+      }
+    });
     context.client.gateway.requestGuildMembers(<string> context.guildId, {
       limit: options.limit || 50,
       presences: options.presences,
@@ -74,7 +75,7 @@ export async function chunkMembers(
       userIds: options.userIds,
     });
     timeout.start(options.timeout || 500, () => {
-      context.client.removeListener('guildMembersChunk', listener);
+      subscription.remove();
       GuildMembersChunkStore.insert(key, null);
       reject(new Error(`Search took longer than ${options.timeout}ms`));
     });
@@ -343,6 +344,36 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
     time = `${daysStr} ${time}`;
   }
   return time;
+}
+
+
+export async function imageReply(
+  context: Command.Context,
+  response: Response,
+  filename: string = 'edited-image',
+): Promise<Structures.Message> {
+  const {
+    'content-length': size,
+    'content-type': contentType,
+    'x-dimensions-height': height,
+    'x-dimensions-width': width,
+    'x-extension': extension,
+    'x-frames-new': newFrames,
+    'x-frames-old': oldFrames,
+  } = response.headers;
+  filename = `${filename}.${extension}`;
+
+  const embed = new Utils.Embed();
+  embed.setColor(EmbedColors.DEFAULT);
+  embed.setImage(`attachment://${filename}`);
+
+  let footer = `${width}x${height}`;
+  if (contentType === 'image/gif') {
+    footer = `${footer}, ${newFrames} frames`;
+  }
+  embed.setFooter(`${footer}, ${formatMemory(parseInt(size), 2)}`);
+
+  return context.editOrReply({embed, file: {contentType, filename, data: response.data}});
 }
 
 

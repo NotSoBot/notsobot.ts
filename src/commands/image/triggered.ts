@@ -1,20 +1,24 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
-import { onRunError } from '../../utils';
 
+import { BaseImageCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  type?: string,
+  url?: null | string,
+}
 
 export interface CommandArgs {
+  type?: string,
   url: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'triggered',
-  args: [
-    {name: 'type'},
-  ],
-  label: 'url',
-  metadata: {
+export default class TriggeredCommand extends BaseImageCommand<CommandArgs> {
+  name = 'triggered';
+
+  metadata = {
     examples: [
       'triggered',
       'triggered cake',
@@ -22,14 +26,18 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.IMAGE,
     usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => context.user.isClientOwner,
-  run: async (context, args: CommandArgs) => {
-    return context.reply('ok');
-  },
-  onRunError,
-});
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [
+        {name: 'type'},
+      ],
+    });
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
+
+  }
+}

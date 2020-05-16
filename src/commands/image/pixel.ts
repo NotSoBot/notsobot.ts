@@ -1,20 +1,24 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
-import { onRunError } from '../../utils';
 
+import { BaseImageCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  amount: number,
+  url?: null | string,
+}
 
 export interface CommandArgs {
+  amount: number,
   url: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'pixel',
-  args: [
-    {name: 'amount', type: Number},
-  ],
-  label: 'url',
-  metadata: {
+export default class PixelCommand extends BaseImageCommand<CommandArgs> {
+  name = 'pixel';
+
+  metadata = {
     description: 'Pixelate?',
     examples: [
       'pixel',
@@ -23,14 +27,18 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.IMAGE,
     usage: 'pixel ?<emoji|id|mention|name|url> (-amount <number>)',
-  },
-  ratelimits: [
-    {duration: 5000, limit: 5, type: 'guild'},
-    {duration: 1000, limit: 1, type: 'channel'},
-  ],
-  onBefore: (context) => context.user.isClientOwner,
-  run: async (context, args: CommandArgs) => {
-    return context.reply('ok');
-  },
-  onRunError,
-});
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [
+        {name: 'amount', type: Number},
+      ],
+    });
+  }
+
+  run(context: Command.Context, args: CommandArgs) {
+
+  }
+}

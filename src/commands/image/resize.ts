@@ -1,9 +1,18 @@
-import { Command, Utils } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageResize } from '../../api';
-import { CommandTypes, EmbedColors } from '../../constants';
-import { Parameters, formatMemory, onRunError, onTypeError } from '../../utils';
+import { CommandTypes } from '../../constants';
+import { imageReply } from '../../utils';
 
+import { BaseImageCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  convert?: string,
+  scale: number,
+  size?: string,
+  url?: null | string,
+}
 
 export interface CommandArgs {
   convert?: string,
@@ -12,16 +21,11 @@ export interface CommandArgs {
   url: string,
 }
 
-export default (<Command.CommandOptions> {
-  name: 'resize',
-  aliases: ['enlarge', 'rescale'],
-  args: [
-    {name: 'convert'},
-    {default: 2, name: 'scale', type: 'float'},
-    {name: 'size'},
-  ],
-  label: 'url',
-  metadata: {
+export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
+  name = 'resize';
+
+  aliases = ['enlarge', 'rescale'];
+  metadata = {
     examples: [
       'resize',
       'resize cake',
@@ -31,50 +35,28 @@ export default (<Command.CommandOptions> {
     ],
     type: CommandTypes.IMAGE,
     usage: 'resize ?<emoji|id|mention|name|url> (-convert <format>) (-scale <number>) (-size <number>)',
-  },
-  type: Parameters.lastImageUrl,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.reply('⚠ Unable to send files in this channel.'),
-  onBeforeRun: (context, args) => !!args.url,
-  onCancelRun: (context, args) => {
-    if (args.url === undefined) {
-      return context.editOrReply('⚠ Unable to find any messages with an image.');
-    } else {
-      return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
-    }
-  },
-  run: async (context, args: CommandArgs) => {
+  };
+
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      ...options,
+      args: [
+        {name: 'convert'},
+        {default: 2, name: 'scale', type: 'float'},
+        {name: 'size'},
+      ],
+    });
+  }
+
+  async run(context: Command.Context, args: CommandArgs) {
     await context.triggerTyping();
 
-    const resize = await imageResize(context, {
+    const response = await imageResize(context, {
       convert: args.convert,
       scale: args.scale,
       size: args.size,
       url: args.url,
     });
-    const {
-      'content-length': size,
-      'content-type': contentType,
-      'x-dimensions-height': height,
-      'x-dimensions-width': width,
-      'x-extension': extension,
-      'x-frames-new': newFrames,
-      'x-frames-old': oldFrames,
-    } = resize.headers;
-
-    const filename = `resized.${extension}`;
-    const embed = new Utils.Embed();
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setImage(`attachment://${filename}`);
-
-    let footer = `${width}x${height}`;
-    if (contentType === 'image/gif') {
-      footer = `${footer}, ${newFrames} frames`;
-    }
-    embed.setFooter(`${footer}, ${formatMemory(parseInt(size), 2)}`);
-
-    return context.reply({embed, file: {contentType, filename, data: resize.data}});
-  },
-  onRunError,
-  onTypeError,
-});
+    return imageReply(context, response, 'magik');
+  }
+}

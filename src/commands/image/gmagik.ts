@@ -1,9 +1,15 @@
 import { Command, Utils } from 'detritus-client';
 
-import { imageMagikGif} from '../../api';
-import { CommandTypes, EmbedColors } from '../../constants';
-import { Parameters, formatMemory, onRunError, onTypeError } from '../../utils';
+import { imageMagikGif } from '../../api';
+import { CommandTypes } from '../../constants';
+import { imageReply } from '../../utils';
 
+import { BaseImageCommand } from '../basecommand';
+
+
+export interface CommandArgsBefore {
+  url?: null | string,
+}
 
 export interface CommandArgs {
   convert?: string,
@@ -12,47 +18,21 @@ export interface CommandArgs {
   url: string,
 }
 
+export default class GMagikCommand extends BaseImageCommand<CommandArgs> {
+  name = 'gmagik';
 
-export default (<Command.CommandOptions> {
-  name: 'gifmagik',
-  aliases: ['gifmagic', 'gmagik', 'gmagic'],
-  label: 'url',
-  metadata: {
+  aliases = ['gifmagic', 'gmagik', 'gmagic'];
+  label = 'url';
+  metadata = {
     examples: ['gifmagik', 'gifmagik notsobot'],
     type: CommandTypes.IMAGE,
     usage: 'gifmagik ?<emoji|id|mention|name|url>',
-  },
-  type: Parameters.lastImageUrl,
-  onBefore: (context) => !!(context.channel && context.channel.canEmbedLinks),
-  onCancel: (context) => context.reply('⚠ Unable to send files in this channel.'),
-  onBeforeRun: (context, args) => !!args.url,
-  onCancelRun: (context, args) => {
-    if (args.url === undefined) {
-      return context.editOrReply('⚠ Unable to find any messages with an image.');
-    } else {
-      return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
-    }
-  },
-  run: async (context, args: CommandArgs) => {
+  };
+
+  async run(context: Command.Context, args: CommandArgs) {
     await context.triggerTyping();
 
-    const resize = await imageMagikGif(context, {url: args.url});
-    const {
-      'content-length': size,
-      'content-type': contentType,
-      'x-dimensions-height': height,
-      'x-dimensions-width': width,
-      'x-extension': extension,
-    } = resize.headers;
-
-    const filename = `resized.${extension}`;
-    const embed = new Utils.Embed();
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setImage(`attachment://${filename}`);
-    embed.setFooter(`${width}x${height}, ${formatMemory(parseInt(size), 2)}`);
-
-    return context.reply({embed, file: {contentType, filename, data: resize.data}});
-  },
-  onRunError,
-  onTypeError,
-});
+    const response = await imageMagikGif(context, args);
+    return imageReply(context, response, 'gifmagik');
+  }
+}
