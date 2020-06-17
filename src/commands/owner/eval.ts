@@ -83,7 +83,7 @@ export default class EvalCommand extends BaseCommand {
       if (args.upload) {
         try {
           const upload = await context.rest.request({
-            files: [{filename: `eval.${language}`, data: message, name: 'file'}],
+            files: [{filename: `eval.${language}`, key: 'file', value: message}],
             method: 'post',
             url: 'https://api.files.gg/files',
           });

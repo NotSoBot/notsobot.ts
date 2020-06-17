@@ -352,15 +352,14 @@ export async function imageReply(
   response: Response,
   filename: string = 'edited-image',
 ): Promise<Structures.Message> {
-  const {
-    'content-length': size,
-    'content-type': contentType,
-    'x-dimensions-height': height,
-    'x-dimensions-width': width,
-    'x-extension': extension,
-    'x-frames-new': newFrames,
-    'x-frames-old': oldFrames,
-  } = response.headers;
+  const size = response.headers.get('content-length') || '';
+  const contentType = response.headers.get('content-type') || undefined;
+  const height = response.headers.get('x-dimensions-height');
+  const width = response.headers.get('x-dimensions-width');
+  const extension = response.headers.get('x-extension');
+  const newFrames = response.headers.get('x-frames-new');
+  const oldFrames = response.headers.get('x-frames-old');
+
   filename = `${filename}.${extension}`;
 
   const embed = new Utils.Embed();
@@ -373,7 +372,10 @@ export async function imageReply(
   }
   embed.setFooter(`${footer}, ${formatMemory(parseInt(size), 2)}`);
 
-  return context.editOrReply({embed, file: {contentType, filename, data: response.data}});
+  return context.editOrReply({
+    embed,
+    file: {contentType, filename, value: response.body},
+  });
 }
 
 

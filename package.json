@@ -8,19 +8,22 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "detritus-client": "^0.10.5",
+    "@sentry/node": "^5.17.0",
+    "detritus-client": "^0.11.0-beta.0",
+    "detritus-rest": "^0.5.0-beta.6",
     "emoji-aware": "^3.0.5",
     "heapdump": "^0.3.15",
-    "moment": "^2.25.3",
+    "moment": "^2.26.0",
     "moment-duration-format": "^2.3.2",
     "redis": "^2.8.0"
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.2",
-    "@types/node": "^12.12.38",
-    "@types/redis": "^2.8.20",
+    "@types/node": "^12.12.47",
+    "@types/node-fetch": "^2.5.7",
+    "@types/redis": "^2.8.22",
     "tsc": "^1.20150623.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.5"
   },
   "peerDependencies": {},
   "scripts": {

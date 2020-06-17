@@ -1,4 +1,5 @@
 import './bootstrap';
+import * as Sentry from '@sentry/node';
 
 import { ClusterClient, Constants, ShardClient } from 'detritus-client';
 import { Timers } from 'detritus-utils';
@@ -8,6 +9,12 @@ import { connectAllStores } from './stores';
 
 const { ActivityTypes, PresenceStatuses } = Constants;
 
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+  });
+}
 
 const bot = new NotSoClient({
   activateOnEdits: true,
@@ -97,16 +104,19 @@ bot.on('commandRunError', async ({command, context}) => {
   }
   connectAllStores(cluster);
 
-  cluster.on('restResponse', ({response, restRequest, shard}) => {
+  cluster.on('restResponse', async ({response, restRequest, shard}) => {
     const route = response.request.route;
     if (route) {
       if (response.ok) {
-        console.log(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.url} (${route.path})`);
+        console.log(`Shard #${shard.shardId}: (OK) ${response.statusCode} ${response.request.method}-${response.request.url} (${route.path})`);
       } else {
-        console.log(`Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.url} (${route.path})`);
+        const message = `Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.method}-${response.request.url} (${route.path})`;
+        console.log(message);
+        console.log(await response.text());
+        Sentry.captureException(new Error(message));
       }
-      if ('x-ratelimit-bucket' in response.headers) {
-        console.log(`${restRequest.bucketPath} - ${response.headers['x-ratelimit-bucket']} - ${restRequest.bucketKey}`);
+      if (response.headers.has('x-ratelimit-bucket')) {
+        console.log(`${restRequest.bucketPath} - ${response.headers.get('x-ratelimit-bucket')} - ${restRequest.bucketKey}`)
       }
     }
   });
@@ -118,7 +128,9 @@ bot.on('commandRunError', async ({command, context}) => {
       console.log(`Shard #${shardId} - ${state}`);
     });
     shard.gateway.on('close', ({code, reason}) => {
-      console.log(`Shard #${shardId} closed - ${code}, ${reason}`);
+      const message = `Shard #${shardId} closed - ${code}, ${reason}`;
+      console.log(message);
+      Sentry.captureException(new Error(message));
     });
 
     /*

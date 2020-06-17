@@ -70,6 +70,10 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface PutGuildSettings {
+    icon: null | string,
+    name: string,
+  }
 
   export interface SearchDuckDuckGo {
     query: string,

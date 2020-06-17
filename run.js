@@ -1,7 +1,17 @@
 const { ClusterManager } = require('detritus-client');
+const Sentry = require('@sentry/node');
 
-process.env.NOTSOBOT_API_TOKEN = '';
-process.env.REDIS_URL = 'redis://:password@localhost:6379/0';
+Object.assign(process.env, {
+  NOTSOBOT_API_TOKEN: '',
+  REDIS_URL: 'redis://:password@localhost:6379/0',
+  SENTRY_DSN: '',
+});
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+  });
+}
 
 const token = '';
 const manager = new ClusterManager('./lib/bot', token, {

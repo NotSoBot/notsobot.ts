@@ -57,7 +57,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
       if (2000 < annotation.description.length && args.upload) {
         try {
           const upload = await context.rest.request({
-            files: [{filename: 'ocr.txt', data: annotation.description, name: 'file'}],
+            files: [{filename: 'ocr.txt', key: 'file', value: annotation.description}],
             method: 'post',
             url: 'https://api.files.gg/files',
           });

@@ -3,10 +3,10 @@ import { EventSubscription } from 'detritus-utils';
 
 import { Store } from './store';
 
-import { fetchGuildSettings } from '../api';
+import { putGuildSettings } from '../api';
 import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
-import { RestResponses } from '../types';
+import { RestOptions, RestResponses } from '../types';
 
 
 export type GuildSettingsStored = RestResponses.GuildSettings;
@@ -32,8 +32,17 @@ class GuildSettings extends Store<string, GuildSettingsStored> {
         settings = <GuildSettingsStored> this.get(guildId);
       } else {
         const promise: GuildSettingsPromise = new Promise(async (resolve) => {
+          const options: RestOptions.PutGuildSettings = {
+            icon: null,
+            name: '',
+          };
+          const guild = context.guild;
+          if (guild) {
+            options.icon = guild.icon;
+            options.name = guild.name;
+          }
           try {
-            const settings: GuildSettingsStored = await fetchGuildSettings(context, guildId);
+            const settings: GuildSettingsStored = await putGuildSettings(context, guildId, options);
             this.set(guildId, settings);
             resolve(settings);
           } catch(error) {

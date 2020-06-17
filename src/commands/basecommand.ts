@@ -1,4 +1,5 @@
 import { Command, CommandClient, Constants, Utils } from 'detritus-client';
+import { Response } from 'detritus-rest';
 const { Permissions } = Constants;
 
 import { EmbedColors, PermissionsText } from '../constants';
@@ -46,11 +47,12 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     const embed = new Utils.Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Error');
-  
+
     const description: Array<string> = [(error.message || error.stack) + '\n'];
     if (error.response) {
+      const response: Response = error.response;
       try {
-        const information = await error.response.json();
+        const information = await response.json() as any;
         if ('errors' in information) {
           for (let key in information.errors) {
             const value = information.errors[key];
@@ -65,10 +67,10 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         }
       } catch(e) {
         description.push('Could not parse');
-        description.push(`**Mimetype**: ${error.response.contentType}`);
+        description.push(`**Mimetype**: ${response.headers.get('content-type')}`);
       }
     }
-  
+
     embed.setDescription(description.join('\n'));
     return context.editOrReply({embed});
   }
@@ -77,7 +79,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     const embed = new Utils.Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Argument Error');
-  
+
     const store: {[key: string]: string} = {};
 
     const description: Array<string> = ['Invalid Arguments' + '\n'];

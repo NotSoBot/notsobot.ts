@@ -3,6 +3,7 @@ import { RequestTypes } from 'detritus-client-rest';
 import {
   Constants as RestConstants,
   Response,
+  createHeaders,
 } from 'detritus-rest';
 
 import {
@@ -19,20 +20,29 @@ export const API_URL = 'https://beta.notsobot.com/api';
 
 export async function request(
   context: Command.Context,
-  options: RequestTypes.RequestOptions,
+  options: RequestTypes.Options,
 ): Promise<any> {
   options.url = API_URL;
-  options.headers = Object.assign({}, options.headers);
+  options.headers = createHeaders(options.headers);
 
   const token = process.env.NOTSOBOT_API_TOKEN;
   if (token) {
-    options.headers.authorization = `Bot ${token}`;
+    options.headers.set('authorization', `Bot ${token}`);
   }
-  options.headers['x-channel-id'] = context.channelId;
+  options.headers.set('x-channel-id', context.channelId);
   if (context.guildId) {
-    options.headers['x-guild-id'] = context.guildId;
+    options.headers.set('x-guild-id', context.guildId);
   }
-  options.headers['x-user-id'] = context.userId;
+  options.headers.set('x-user-id', context.userId);
+
+  const user = JSON.stringify({
+    avatar: context.user.avatar,
+    discriminator: context.user.discriminator,
+    bot: context.user.bot,
+    id: context.user.id,
+    username: context.user.username,
+  });
+  options.headers.set('x-user', Buffer.from(user).toString('base64'));
 
   return context.rest.request(options);
 }
@@ -396,6 +406,23 @@ export async function imageResize(
     route: {
       method: RestConstants.HTTPMethods.POST,
       path: '/image/resize',
+    },
+  });
+}
+
+
+export async function putGuildSettings(
+  context: Command.Context,
+  guildId: string,
+  options: RestOptions.PutGuildSettings,
+): Promise<RestResponses.EditGuildSettings> {
+  const params = {guildId};
+  return request(context, {
+    body: options,
+    route: {
+      method: RestConstants.HTTPMethods.PUT,
+      path: '/guilds/:guildId',
+      params,
     },
   });
 }
