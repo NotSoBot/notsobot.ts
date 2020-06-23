@@ -372,9 +372,10 @@ export async function imageReply(
   }
   embed.setFooter(`${footer}, ${formatMemory(parseInt(size), 2)}`);
 
+  const value = await response.buffer();
   return context.editOrReply({
     embed,
-    file: {contentType, filename, value: response.body},
+    file: {contentType, filename, value},
   });
 }
 

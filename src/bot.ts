@@ -20,7 +20,6 @@ const bot = new NotSoClient({
   activateOnEdits: true,
   directory: './commands',
   gateway: {
-    compress: false,
     identifyProperties: {
       $browser: 'Discord iOS',
     },
@@ -115,9 +114,6 @@ bot.on('commandRunError', async ({command, context}) => {
         console.log(await response.text());
         Sentry.captureException(new Error(message));
       }
-      if (response.headers.has('x-ratelimit-bucket')) {
-        console.log(`${restRequest.bucketPath} - ${response.headers.get('x-ratelimit-bucket')} - ${restRequest.bucketKey}`)
-      }
     }
   });
 
@@ -144,6 +140,10 @@ bot.on('commandRunError', async ({command, context}) => {
       console.log(Date.now() - now, 'RECEIVED', packet.s, packet.op, packet.t);
     });
     */
+  });
+
+  cluster.on('warn', ({error}) => {
+    Sentry.captureException(error);
   });
 
   try {
