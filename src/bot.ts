@@ -1,13 +1,12 @@
 import './bootstrap';
 import * as Sentry from '@sentry/node';
 
-import { ClusterClient, Constants, ShardClient } from 'detritus-client';
+import { ClusterClient, ShardClient } from 'detritus-client';
+import { ActivityTypes, PresenceStatuses, SocketStates } from 'detritus-client/lib/constants';
 import { Timers } from 'detritus-utils';
 
 import { NotSoClient } from './client';
 import { connectAllStores } from './stores';
-
-const { ActivityTypes, PresenceStatuses } = Constants;
 
 
 if (process.env.SENTRY_DSN) {
@@ -121,12 +120,16 @@ bot.on('commandRunError', async ({command, context}) => {
     const shardId = shard.shardId;
     console.log(`Loading up ${shardId}...`);
     shard.gateway.on('state', ({state}) => {
-      console.log(`Shard #${shardId} - ${state}`);
+      const message = `Shard #${shardId} - ${state}`;
+      console.log(message);
+      if (state === SocketStates.IDENTIFYING) {
+        Sentry.captureMessage(message, Sentry.Severity.Log);
+      }
     });
     shard.gateway.on('close', ({code, reason}) => {
       const message = `Shard #${shardId} closed - ${code}, ${reason}`;
       console.log(message);
-      Sentry.captureException(new Error(message));
+      Sentry.captureMessage(message, Sentry.Severity.Debug);
     });
 
     /*

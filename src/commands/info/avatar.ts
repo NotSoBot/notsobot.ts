@@ -28,7 +28,7 @@ export default class AvatarCommand extends BaseCommand {
     type: CommandTypes.INFO,
     usage: 'user ?<id|mention|name>',
   };
-  type = Parameters.memberOrUser;
+  type = Parameters.memberOrUser();
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.user;

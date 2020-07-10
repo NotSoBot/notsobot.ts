@@ -1,21 +1,33 @@
 import { Command } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
+import { Paginator, toTitleCase } from '../../utils';
+
 import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  command: Command.Command | null | undefined,
+  commands: Array<Command.Command> | null,
 }
 
 export interface CommandArgs {
-  command: Command.Command | undefined,
+  commands: Array<Command.Command>,
+}
+
+export interface CommandMetadata {
+  description: string,
+  examples?: Array<string>,
+  nsfw?: boolean,
+  type: CommandTypes,
+  usage: string,
 }
 
 export default class HelpCommand extends BaseCommand {
   name = 'help';
 
-  label = 'command';
+  label = 'commands';
   metadata = {
     description: 'HELP!',
     examples: [
@@ -25,25 +37,84 @@ export default class HelpCommand extends BaseCommand {
     type: CommandTypes.UTILS,
     usage: 'help ?<command>',
   };
+  permissionsClient = [Permissions.EMBED_LINKS];
   type = (content: string, context: Command.Context) => {
     if (content) {
-      return context.commandClient.getCommand({content, prefix: ''});
+      const commands: Array<Command.Command> = [];
+
+      const insensitive = content.toLowerCase().replace(/\s\s+/g, ' ');
+      for (let command of context.commandClient.commands) {
+        for (let name of command.names) {
+          if (name.startsWith(insensitive)) {
+            commands.push(command);
+            break;
+          }
+        }
+      }
+      return commands.sort((x, y) => {
+        return x.name.localeCompare(y.name);
+      });
     }
-    return undefined;
+    return null;
   };
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return args.command !== null;
+    return !!args.commands && !!args.commands.length;
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unknown Command');
-  }
-
-  run(context: Command.Context, args: CommandArgs) {
-    if (args.command) {
-      return context.editOrReply(`${args.command.name}`);
+    if (args.commands) {
+      return context.editOrReply('⚠ Unknown Command');
     }
     return context.editOrReply(`${context.user.mention}, this is our rewrite bot. <https://beta.notsobot.com/commands> (We are moving from python to typescript because ya)`);
+  }
+
+  // add client permission labels
+  // add user permission labels
+  // add ratelimits
+  // sort commands by name
+  async run(context: Command.Context, args: CommandArgs) {
+    const { commands } = args;
+
+    const pageLimit = commands.length || 1;
+    const paginator = new Paginator(context, {
+      pageLimit,
+      onPage: (page) => {
+        const embed = new Embed();
+        embed.setAuthor(
+          context.user.toString(),
+          context.user.avatarUrlFormat(null, {size: 1024}),
+          context.user.jumpLink,
+        );
+
+        const resultNumber = page - 1;
+        if (resultNumber in commands) {
+          const command = commands[resultNumber];
+          const metadata = command.metadata as CommandMetadata;
+
+          embed.setTitle(command.name);
+          embed.setDescription(metadata.description);
+
+          if (command.aliases.length) {
+            embed.addField('Aliases', command.aliases.join('\n'), true);
+          }
+          if (metadata.examples && metadata.examples.length) {
+            embed.addField('Examples', Markup.escape.mentions(metadata.examples.join('\n')), true);
+          }
+          {
+            const description: Array<string> = [];
+
+            description.push(`**NSFW**: ${(metadata.nsfw) ? 'Yes' : 'No'}`);
+            description.push(`**Type**: ${toTitleCase(metadata.type)}`);
+
+            embed.addField('Information', description.join('\n'));
+          }
+          embed.addField('Usage', metadata.usage);
+        }
+        embed.setFooter(`Command ${page} of ${pageLimit} Found`);
+        return embed;
+      },
+    });
+    return await paginator.start();
   }
 }

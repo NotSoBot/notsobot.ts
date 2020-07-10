@@ -41,7 +41,7 @@ export default class ActivityCommand extends BaseCommand {
     usage: 'activity ?<id|mention|name>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.memberOrUser;
+  type = Parameters.memberOrUser();
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.user;

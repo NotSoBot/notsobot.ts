@@ -38,7 +38,7 @@ export default class PlayingCommand extends BaseCommand {
     usage: 'playing ?<id|name>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.getApplications;
+  type = Parameters.applications;
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.applications.length;

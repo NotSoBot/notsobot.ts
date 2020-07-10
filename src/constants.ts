@@ -1,18 +1,14 @@
-import { Constants } from 'detritus-client';
-import { Tools } from 'detritus-utils';
-
-const {
+import {
   ChannelTypes,
   DetritusKeys,
   DiscordKeys,
   GuildExplicitContentFilterTypes,
+  Locales as DiscordLocales,
   Permissions,
-  PresenceStatuses: Statuses,
+  PresenceStatuses as Statuses,
   VerificationLevels,
-} = Constants;
-
-type Permissions = Constants.Permissions;
-type ChannelTypes = Constants.ChannelTypes;
+} from 'detritus-client/lib/constants';
+import { Tools } from 'detritus-utils';
 
 
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
@@ -22,7 +18,7 @@ export enum BooleanEmojis {
   YES = '✅',
 };
 
-export const ChannelTypesText: {[key in Constants.ChannelTypes]: string} = Object.freeze({
+export const ChannelTypesText: {[key in ChannelTypes]: string} = Object.freeze({
   [ChannelTypes.BASE]: 'Base Channel',
   [ChannelTypes.GUILD_TEXT]: 'Guild Text',
   [ChannelTypes.DM]: 'Direct Message',
@@ -340,23 +336,29 @@ export const LanguageCodesText = Object.freeze({
 });
 
 export const GoogleLocaleFromDiscord = Object.freeze({
-  [Constants.Locales.ENGLISH_US]: GoogleLocales.ENGLISH,
-  [Constants.Locales.ENGLISH_GB]: GoogleLocales.ENGLISH,
-  [Constants.Locales.SPANISH]: GoogleLocales.SPANISH,
-  [Constants.Locales.SWEDISH]: GoogleLocales.SWEDISH,
+  [DiscordLocales.ENGLISH_US]: GoogleLocales.ENGLISH,
+  [DiscordLocales.ENGLISH_GB]: GoogleLocales.ENGLISH,
+  [DiscordLocales.SPANISH]: GoogleLocales.SPANISH,
+  [DiscordLocales.SWEDISH]: GoogleLocales.SWEDISH,
 });
 
-export enum GuildBlacklistTypes {
+export enum GuildAllowlistTypes {
   CHANNEL = 'channel',
-  MEMBER = 'member',
   ROLE = 'role',
+  USER = 'user',
+};
+
+export enum GuildBlocklistTypes {
+  CHANNEL = 'channel',
+  ROLE = 'role',
+  USER = 'user',
 };
 
 export enum GuildDisableCommandsTypes {
   CHANNEL = 'channel',
   GUILD = 'guild',
-  MEMBER = 'member',
   ROLE = 'role',
+  USER = 'user',
 };
 
 export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Object.freeze({
@@ -365,7 +367,7 @@ export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Obje
   [GuildExplicitContentFilterTypes.ALL_MEMBERS]: 'Everyone',
 });
 
-export const PermissionsText: {[key in Constants.Permissions]: string} = Object.freeze({
+export const PermissionsText: {[key in Permissions]: string} = Object.freeze({
   [Permissions.ADD_REACTIONS]: 'Add Reactions',
   [Permissions.ADMINISTRATOR]: 'Administrator',
   [Permissions.ATTACH_FILES]: 'Attach Files',
@@ -415,7 +417,7 @@ export const PresenceStatusTexts: {[key: string]: string} = Object.freeze({
 });
 
 export enum RedisChannels {
-  GUILD_BLACKLIST_UPDATE = 'GUILD_BLACKLIST_UPDATE',
+  GUILD_BLOCKLIST_UPDATE = 'GUILD_BLOCKLIST_UPDATE',
   GUILD_DISABLED_COMMAND_UPDATE = 'GUILD_DISABLED_COMMAND_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',

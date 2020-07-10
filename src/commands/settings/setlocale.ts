@@ -1,5 +1,5 @@
 import { Command, Constants } from 'detritus-client';
-const { LocalesText, Permissions } = Constants;
+import { LocalesText, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes } from '../../constants';
 import { Arguments } from '../../utils';

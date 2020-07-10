@@ -1,7 +1,9 @@
-import { Collections, Command, Constants, Structures, Utils } from 'detritus-client';
+import { Collections, Command, Structures } from 'detritus-client';
+import { Colors, Permissions } from 'detritus-client/lib/constants';
+import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
+
 import { Endpoints } from 'detritus-client-rest';
-const { Colors, Permissions } = Constants;
-const { Embed, Markup, guildIdToShardId } = Utils;
+
 
 import {
   CommandTypes,

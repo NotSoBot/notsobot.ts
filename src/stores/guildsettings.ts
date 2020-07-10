@@ -67,7 +67,7 @@ class GuildSettings extends Store<string, GuildSettingsStored> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_BLACKLIST_UPDATE, (payload: {blacklist: Array<RestResponses.GuildBlacklist>, id: string}) => {
+      const subscription = redis.subscribe(RedisChannels.GUILD_BLOCKLIST_UPDATE, (payload: {blocklist: Array<RestResponses.GuildBlocklist>, id: string}) => {
         if (this.has(payload.id)) {
           const settings = <GuildSettingsStored> this.get(payload.id);
           Object.assign(settings, payload);

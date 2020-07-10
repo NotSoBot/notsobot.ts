@@ -3,6 +3,10 @@ import { GoogleCardTypes, GoogleImageVideoTypes, GoogleLocales } from './constan
 
 export namespace RestOptions {
   export interface EditGuildSettings {
+    blocklist?: Array<{
+      id: string,
+      type: string,
+    }>,
     prefixes?: Array<string>,
   }
 
@@ -138,11 +142,11 @@ export namespace RestOptions {
 
 export namespace RestResponses {
 
-  export type CreateGuildBlacklist = null;
+  export type CreateGuildBlocklist = null;
   export type CreateGuildDisabledCommand = null;
   export type CreateGuildPrefix = Array<GuildPrefix>;
 
-  export type DeleteGuildBlacklist = null;
+  export type DeleteGuildBlocklist = null;
   export type DeleteGuildDisabledCommand = null;
   export type DeleteGuildPrefix = Array<GuildPrefix>;
 
@@ -233,7 +237,7 @@ export namespace RestResponses {
   }
 
   export interface GuildSettings {
-    blacklist: Array<GuildBlacklist>,
+    blocklist: Array<GuildBlocklist>,
     disabled_commands: Array<GuildDisabledCommand>,
     icon: string | null,
     id: string,
@@ -241,7 +245,7 @@ export namespace RestResponses {
     prefixes: Array<GuildPrefix>,
   }
 
-  export interface GuildBlacklist {
+  export interface GuildBlocklist {
     added: string,
     id: string,
     type: string,

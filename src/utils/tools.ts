@@ -138,9 +138,9 @@ export async function findMemberByChunk(
     }
   }
 
-  const channel = context.channel;
+  const { channel } = context;
   if (channel) {
-    const messages = channel.messages;
+    const { messages } = channel;
     if (messages) {
       for (let [messageId, message] of messages) {
         {
@@ -167,7 +167,7 @@ export async function findMemberByChunk(
       }
     }
     {
-      const members = <Array<Structures.Member>> findMembersByUsername(channel.members, username, discriminator);
+      const members = findMembersByUsername(channel.members, username, discriminator) as Array<Structures.Member>;
       if (members.length) {
         const sorted = members.sort((x, y) => {
           if (x.hoistedRole && y.hoistedRole) {
@@ -187,30 +187,28 @@ export async function findMemberByChunk(
   if (context.guildId) {
     // find via guild cache
     const guild = context.guild;
-    const members = (guild) ? guild.members : null;
-    if (members) {
-      const found = findMemberByUsername(members, username, discriminator);
+    if (guild) {
+      const found = findMemberByUsername(guild.members, username, discriminator);
       // add isPartial check
       if (found) {
         return found;
       }
 
       // we have all the members in cache, just forget about it
-      if (guild && guild.memberCount === members.length) {
+      if (guild.memberCount === guild.members.length) {
         return null;
       }
     }
 
-    // fall back to chunk request
+    // fall back to search request
     try {
-      const event = await chunkMembers(context, {query: username});
-      if (event && event.members) {
-        const found = event.members.find((member: Structures.Member) => {
-          return (discriminator) ? member.discriminator === discriminator : true;
-        });
-        if (found) {
-          return found;
-        }
+      const members = await context.rest.fetchGuildMembersSearch(context.guildId, {
+        limit: 100,
+        query: username,
+      });
+      const found = findMemberByUsername(members, username, discriminator);
+      if (found) {
+        return found;
       }
     } catch(error) {}
   } else {
@@ -223,6 +221,7 @@ export async function findMemberByChunk(
   return null;
 }
 
+
 export async function findMembersByChunk(
   context: Command.Context,
   username: string,
@@ -231,27 +230,25 @@ export async function findMembersByChunk(
   if (context.guildId) {
     // find via guild cache
     const guild = context.guild;
-    const members = (guild) ? guild.members : null;
-    if (members) {
-      const found = findMembersByUsername(members, username, discriminator);
-      // add isPartial check
+    if (guild) {
+      const found = findMembersByUsername(guild.members, username, discriminator);
       if (found.length) {
         return found;
       }
-
-      // we have all the members in cache, just forget about it
-      if (guild && guild.memberCount === members.length) {
+      if (guild.memberCount === guild.members.length) {
         return [];
       }
     }
 
-    // fall back to chunk request
+    // fall back to search request
     try {
-      const event = await chunkMembers(context, {query: username});
-      if (event && event.members) {
-        return event.members.filter((member: Structures.Member) => {
-          return (discriminator) ? member.discriminator === discriminator : true;
-        });
+      const members = await context.rest.fetchGuildMembersSearch(context.guildId, {
+        limit: 100,
+        query: username,
+      });
+      const found = findMembersByUsername(members, username, discriminator);
+      if (found.length) {
+        return found;
       }
     } catch(error) {}
   } else {
@@ -273,10 +270,15 @@ export function findMemberByUsername(
 ): Structures.Member | Structures.User | undefined {
   for (const memberOrUser of members.values()) {
     if (memberOrUser) {
-      const name = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
-      const discrim = (discriminator) ? memberOrUser.discriminator === discriminator : true;
-      if (name && discrim) {
-        return memberOrUser;
+      if (discriminator) {
+        if (memberOrUser.username.toLowerCase().startsWith(username)) {
+          return memberOrUser;
+        }
+      } else {
+        const nameMatches = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
+        if (nameMatches) {
+          return memberOrUser;
+        }
       }
     }
   }
@@ -290,10 +292,15 @@ export function findMembersByUsername(
   const found: Array<Structures.Member | Structures.User> = [];
   for (const memberOrUser of members.values()) {
     if (memberOrUser) {
-      const name = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
-      const discrim = (discriminator) ? memberOrUser.discriminator === discriminator : true;
-      if (name && discrim) {
-        found.push(memberOrUser);
+      if (discriminator) {
+        if (memberOrUser.username.toLowerCase().startsWith(username)) {
+          found.push(memberOrUser);
+        }
+      } else {
+        const nameMatches = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
+        if (nameMatches) {
+          found.push(memberOrUser);
+        }
       }
     }
   }

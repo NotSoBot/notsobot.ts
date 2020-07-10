@@ -105,6 +105,16 @@ class PaginatorsStore extends Store<string, Paginator> {
       subscriptions.push(subscription);
     }
     {
+      const subscription = cluster.subscribe('messageReactionRemove', async (event: GatewayClientEvents.MessageReactionRemove) => {
+        const { channelId } = event;
+        if (this.has(channelId)) {
+          const paginator = <Paginator> this.get(channelId);
+          await paginator.onMessageReactionAdd(<GatewayClientEvents.MessageReactionAdd> event);
+        }
+      });
+      subscriptions.push(subscription);
+    }
+    {
       const subscription = cluster.subscribe('messageReactionRemoveAll', async (event: GatewayClientEvents.MessageReactionRemoveAll) => {
         const { channelId, messageId } = event;
         if (this.has(channelId)) {

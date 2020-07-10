@@ -299,9 +299,11 @@ export class Paginator {
 
       this.timeout.start(this.expires, this.onStop.bind(this));
       this.ratelimitTimeout.start(this.ratelimit, () => {});
+      /*
       if (this.message.canManage) {
         await reaction.delete(userId);
       }
+      */
     } catch(error) {
       if (typeof(this.onError) === 'function') {
         await Promise.resolve(this.onError(error, this));

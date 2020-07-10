@@ -1,5 +1,5 @@
-import { Command, CommandClient, Constants, Structures } from 'detritus-client';
-const { Permissions } = Constants;
+import { Command, CommandClient, Structures } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { createGuildDisabledCommand, deleteGuildDisabledCommand } from '../../api';
 import { CommandTypes, GuildDisableCommandsTypes } from '../../constants';

@@ -71,7 +71,7 @@ export default class CommandListCommand extends BaseCommand {
                 case GuildDisableCommandsTypes.GUILD: {
                   type = 'Guild Disable';
                 }; break;
-                case GuildDisableCommandsTypes.MEMBER: {
+                case GuildDisableCommandsTypes.USER: {
                   type = `Member Disable (<@${disabledCommand.id}>)`;
                 }; break;
                 case GuildDisableCommandsTypes.ROLE: {

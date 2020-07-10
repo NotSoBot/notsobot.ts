@@ -8,7 +8,7 @@ import {
 
 import {
   GoogleLocales,
-  GuildBlacklistTypes,
+  GuildBlocklistTypes,
   GuildDisableCommandsTypes,
 } from './constants';
 
@@ -48,18 +48,18 @@ export async function request(
 }
 
 
-export async function createGuildBlacklist(
+export async function createGuildBlocklist(
   context: Command.Context,
   guildId: string,
-  blacklistId: string,
-  type: GuildBlacklistTypes,
-): Promise<RestResponses.CreateGuildBlacklist> {
+  blocklistId: string,
+  type: GuildBlocklistTypes,
+): Promise<RestResponses.CreateGuildBlocklist> {
   return request(context, {
     body: {type},
     route: {
       method: RestConstants.HTTPMethods.PUT,
-      path: '/guilds/:guildId/blacklist/:blacklistId',
-      params: {blacklistId, guildId},
+      path: '/guilds/:guildId/blocklist/:blocklistId',
+      params: {blocklistId, guildId},
     },
   });
 }
@@ -101,16 +101,16 @@ export async function createGuildPrefix(
 }
 
 
-export async function deleteGuildBlacklist(
+export async function deleteGuildBlocklist(
   context: Command.Context,
   guildId: string,
-  blacklistId: string,
-): Promise<RestResponses.DeleteGuildBlacklist> {
+  blocklistId: string,
+): Promise<RestResponses.DeleteGuildBlocklist> {
   return request(context, {
     route: {
       method: RestConstants.HTTPMethods.DELETE,
-      path: '/guilds/:guildId/blacklist/:blacklistId',
-      params: {blacklistId, guildId},
+      path: '/guilds/:guildId/blocklist/:blocklistId',
+      params: {blocklistId, guildId},
     },
   });
 }
@@ -156,6 +156,7 @@ export async function editGuildSettings(
   options: RestOptions.EditGuildSettings = {},
 ): Promise<RestResponses.EditGuildSettings> {
   const body = {
+    blocklist: options.blocklist,
     prefixes: options.prefixes,
   };
   const params = {guildId};

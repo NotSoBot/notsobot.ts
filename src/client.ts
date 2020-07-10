@@ -5,7 +5,7 @@ import {
   CommandClientRunOptions,
 } from 'detritus-client';
 
-import { GuildBlacklistTypes, GuildDisableCommandsTypes } from './constants';
+import { GuildBlocklistTypes, GuildDisableCommandsTypes } from './constants';
 import GuildSettingsStore from './stores/guildsettings';
 
 
@@ -54,47 +54,70 @@ export class NotSoClient extends CommandClient {
     if (context.inDm) {
       return !command.disableDm;
     }
-    // might bite me later, maybe i should check if it's 'command' or starts with 'command ' (with a space)
-    if (command.name.startsWith('command')) {
-      return true;
-    }
     if (context.member && context.member.isOwner) {
       return true;
     }
+    // maybe add admin permission as an override too?
     const guildId = <string> context.guildId;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {
+      const { member } = context;
+
       const disabledCommands = settings.disabled_commands.filter((disabled) => disabled.command === command.name);
       if (disabledCommands.length) {
-        if (disabledCommands.some((disabled) => disabled.type === GuildDisableCommandsTypes.GUILD)) {
-          return false;
-        }
-        if (disabledCommands.some((disabled) => disabled.type === GuildDisableCommandsTypes.CHANNEL && disabled.id === context.channelId)) {
-          return false;
-        }
-        if (disabledCommands.some((disabled) => disabled.type === GuildDisableCommandsTypes.MEMBER && disabled.id === context.userId)) {
-          return false;
-        }
-        const { member } = context;
-        if (member) {
-          if (disabledCommands.some((disabled) => disabled.type === GuildDisableCommandsTypes.ROLE && member.roles.has(disabled.id))) {
-            return false;
+        const shouldIgnore = disabledCommands.some((disabled) => {
+          switch (disabled.type) {
+            case GuildDisableCommandsTypes.CHANNEL: {
+              if (disabled.id === context.channelId) {
+                return true;
+              }
+              if (context.channel && context.channel.parentId === disabled.id) {
+                return true;
+              }
+            };
+            case GuildDisableCommandsTypes.GUILD: {
+              return true;
+            };
+            case GuildDisableCommandsTypes.ROLE: {
+              if (member) {
+                return member.roles.has(disabled.id);
+              }
+            };
+            case GuildDisableCommandsTypes.USER: {
+              return disabled.id === context.userId;
+            };
           }
+          return false;
+        });
+        if (shouldIgnore) {
+          return false;
         }
       }
-      const { blacklist } = settings;
-      if (blacklist.length) {
-        if (blacklist.some((blacklisted) => blacklisted.type === GuildBlacklistTypes.CHANNEL && blacklisted.id === context.channelId)) {
-          return false;
-        }
-        if (blacklist.some((blacklisted) => blacklisted.type === GuildBlacklistTypes.MEMBER && blacklisted.id === context.userId)) {
-          return false;
-        }
-        const { member } = context;
-        if (member) {
-          if (blacklist.some((blacklisted) => blacklisted.type === GuildBlacklistTypes.ROLE && member.roles.has(blacklisted.id))) {
-            return false;
+      const { blocklist } = settings;
+      if (blocklist.length) {
+        const shouldIgnore = blocklist.some((blocked) => {
+          switch (blocked.type) {
+            case GuildBlocklistTypes.CHANNEL: {
+              if (blocked.id === context.channelId) {
+                return true;
+              }
+              if (context.channel && context.channel.parentId === blocked.id) {
+                return true;
+              }
+            };
+            case GuildBlocklistTypes.ROLE: {
+              if (member) {
+                return member.roles.has(blocked.id);
+              }
+            };
+            case GuildBlocklistTypes.USER: {
+              return blocked.id === context.userId;
+            };
           }
+          return false;
+        });
+        if (shouldIgnore) {
+          return false;
         }
       }
       return true;
