@@ -8,7 +8,6 @@ import { Timers } from 'detritus-utils';
 
 import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
-import MemberOrUserStore, { MemberOrUser } from '../stores/memberoruser';
 import {
   findImageUrlInMessages,
   findMemberByChunk,
@@ -695,9 +694,9 @@ export function membersOrUsers(
   const findMemberOrUser = memberOrUser(options);
   return async (value: string, context: Command.Context): Promise<Array<Structures.Member | Structures.User> | null> => {
     if (value) {
-      const args = stringArguments(value);
-      if (5 <= args.length) {
-        throw new Error('Cannot specify more than 5 users.');
+      const args = new Set<string>(stringArguments(value));
+      if (5 <= args.size) {
+        throw new Error('Cannot specify more than 5 different users.');
       }
 
       const membersOrUsers: Array<Structures.Member | Structures.User> = [];
@@ -840,27 +839,28 @@ export function string(options: StringOptions = {}) {
 }
 
 
-const QuotesAll = [
-  ['"', '"'],
-  ['’', '’'],
-  ['‚', '‛'],
-  ['“', '”'],
-  ['„', '‟'],
-  ['「', '」'],
-  ['『', '』'],
-  ['〝', '〞'],
-  ['﹁', '﹂'],
-  ['﹃', '﹄'],
-  ['＂', '＂'],
-  ['｢', '｣'],
-  ['«', '»'],
-  ['《', '》'],
-  ['〈', '〉'],
-];
+const QuotesAll = {
+  '"': '"',
+  '\'': '\'',
+  '’': '’',
+  '‚': '‛',
+  '“': '”',
+  '„': '‟',
+  '「': '」',
+  '『': '』',
+  '〝': '〞',
+  '﹁': '﹂',
+  '﹃': '﹄',
+  '＂': '＂',
+  '｢': '｣',
+  '«': '»',
+  '《': '》',
+  '〈': '〉',
+};
 
 const Quotes = {
-  END: QuotesAll.map(([start, end]) => end),
-  START: QuotesAll.map(([start]) => start),
+  END: Object.keys(QuotesAll),
+  START: Object.values(QuotesAll),
 };
 
 export function stringArguments(value: string) {
@@ -868,7 +868,13 @@ export function stringArguments(value: string) {
   while (value.length) {
     let result = value.slice(0, 1);
     if (Quotes.END.includes(result)) {
-
+      let index = value.indexOf((QuotesAll as any)[result], 1);
+      if (index === -1) {
+        value = value.slice(1);
+      } else {
+        result = value.slice(0, index);
+        value = value.slice(index);
+      }
     } else {
       let index = value.indexOf(' ');
       if (index === -1) {

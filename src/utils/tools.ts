@@ -3,7 +3,6 @@ import { URL } from 'url';
 import {
   Collections,
   Command,
-  GatewayClientEvents,
   Structures,
   Utils,
 } from 'detritus-client';
@@ -16,71 +15,6 @@ import {
   LanguageCodesText,
   TRUSTED_URLS,
 } from '../constants';
-import GuildMembersChunkStore, { GuildMembersChunkStored } from '../stores/guildmemberschunk';
-
-
-export async function chunkMembers(
-  context: Command.Context,
-  options: {
-    limit?: number,
-    presences?: boolean,
-    query?: string,
-    timeout?: number,
-    userIds?: Array<string>,
-  } = {},
-): Promise<GuildMembersChunkStored> {
-  if (!context.guildId) {
-    throw new Error('Context must be from a guild');
-  }
-  const key = `${context.guildId}:${options.query || ''}:${options.userIds && options.userIds.join('.')}`;
-  if (GuildMembersChunkStore.has(key)) {
-    return <GuildMembersChunkStored> GuildMembersChunkStore.get(key);
-  }
-
-  return new Promise((resolve, reject) => {
-    const timeout = new Timers.Timeout();
-    const subscription = context.client.subscribe('guildMembersChunk', (event: GatewayClientEvents.GuildMembersChunk) => {
-      if (event.guildId !== context.guildId || !event.members) {
-        return;
-      }
-      let matches = false;
-      if (options.query) {
-        matches = event.members.every((member: Structures.Member) => {
-          return member.names.some((name) => {
-            return name.toLowerCase().startsWith(<string> options.query);
-          });
-        });
-      } else if (options.userIds) {
-        matches = options.userIds.every((userId) => {
-          if (event.notFound && event.notFound.includes(userId)) {
-            return true;
-          }
-          if (event.members) {
-            return event.members.some((member) => member.id === userId);
-          }
-          return false;
-        });
-      }
-      if (matches) {
-        timeout.stop();
-        subscription.remove();
-        GuildMembersChunkStore.insert(key, event);
-        resolve(event);
-      }
-    });
-    context.client.gateway.requestGuildMembers(<string> context.guildId, {
-      limit: options.limit || 50,
-      presences: options.presences,
-      query: <string> options.query,
-      userIds: options.userIds,
-    });
-    timeout.start(options.timeout || 500, () => {
-      subscription.remove();
-      GuildMembersChunkStore.insert(key, null);
-      reject(new Error(`Search took longer than ${options.timeout}ms`));
-    });
-  });
-}
 
 
 export function findImageUrlInMessages(
@@ -138,6 +72,11 @@ export async function findMemberByChunk(
     }
   }
 
+  const guild = context.guild;
+  if (guild && !guild.isReady) {
+    await context.client.requestGuildMembers(guild.id, {query: '', timeout: 10000});
+  }
+
   const { channel } = context;
   if (channel) {
     const { messages } = channel;
@@ -184,33 +123,13 @@ export async function findMemberByChunk(
     }
   }
 
-  if (context.guildId) {
+  if (guild) {
     // find via guild cache
-    const guild = context.guild;
-    if (guild) {
-      const found = findMemberByUsername(guild.members, username, discriminator);
-      // add isPartial check
-      if (found) {
-        return found;
-      }
-
-      // we have all the members in cache, just forget about it
-      if (guild.memberCount === guild.members.length) {
-        return null;
-      }
+    const found = findMemberByUsername(guild.members, username, discriminator);
+    // add isPartial check (for joinedAt value?)
+    if (found) {
+      return found;
     }
-
-    // fall back to search request
-    try {
-      const members = await context.rest.fetchGuildMembersSearch(context.guildId, {
-        limit: 100,
-        query: username,
-      });
-      const found = findMemberByUsername(members, username, discriminator);
-      if (found) {
-        return found;
-      }
-    } catch(error) {}
   } else {
     // check our users cache since this is from a dm...
     const found = findMemberByUsername(context.users, username, discriminator);
@@ -227,30 +146,16 @@ export async function findMembersByChunk(
   username: string,
   discriminator?: null | string,
 ): Promise<Array<Structures.Member | Structures.User>> {
-  if (context.guildId) {
-    // find via guild cache
-    const guild = context.guild;
-    if (guild) {
-      const found = findMembersByUsername(guild.members, username, discriminator);
-      if (found.length) {
-        return found;
-      }
-      if (guild.memberCount === guild.members.length) {
-        return [];
-      }
+  const guild = context.guild;
+  if (guild) {
+    if (!guild.isReady) {
+      await context.client.requestGuildMembers(guild.id, {query: '', timeout: 10000});
     }
-
-    // fall back to search request
-    try {
-      const members = await context.rest.fetchGuildMembersSearch(context.guildId, {
-        limit: 100,
-        query: username,
-      });
-      const found = findMembersByUsername(members, username, discriminator);
-      if (found.length) {
-        return found;
-      }
-    } catch(error) {}
+    // find via guild cache
+    const found = findMembersByUsername(guild.members, username, discriminator);
+    if (found.length) {
+      return found;
+    }
   } else {
     // check our users cache since this is from a dm...
     return findMembersByUsername(context.users, username, discriminator);
@@ -518,59 +423,23 @@ export function toTitleCase(value: string): string {
 }
 
 
-
-export async function onRunError(
-  context: Command.Context,
-  args: {[key: string]: any} | any,
-  error: any,
-): Promise<Structures.Message> {
-  const embed = new Utils.Embed();
-  embed.setColor(EmbedColors.ERROR);
-  embed.setTitle('⚠ Command Error');
-
-  const description: Array<string> = [(error.message || error.stack) + '\n'];
-  if (error.response) {
-    try {
-      const information = await error.response.json();
-      if ('errors' in information) {
-        for (let key in information.errors) {
-          const value = information.errors[key];
-          let message: string;
-          if (typeof(value) === 'object') {
-            message = JSON.stringify(value);
-          } else {
-            message = String(value);
-          }
-          description.push(`**${key}**: ${message}`);
-        }
-      }
-    } catch(e) {
-      description.push('Could not parse');
-      description.push(`**Mimetype**: ${error.response.contentType}`);
+export function splitArray<T>(
+  array: Array<T>,
+  amount: number,
+): Array<Array<T>> {
+  const pages: Array<Array<T>> = [];
+  for (let i = 0; i < array.length; i += amount) {
+    const page: Array<T> = [];
+    for (let disabled of array.slice(i, i + amount)) {
+      page.push(disabled);
+    }
+    if (page.length) {
+      pages.push(page);
     }
   }
-
-  embed.setDescription(description.join('\n'));
-  return context.editOrReply({embed});
+  return pages;
 }
 
-export function onTypeError(
-  context: Command.Context,
-  args: {[key: string]: any} | any,
-  errors: {[key: string]: Error} | any,
-): Promise<Structures.Message> {
-  const embed = new Utils.Embed();
-  embed.setColor(EmbedColors.ERROR);
-  embed.setTitle('⚠ Command Argument Error');
-
-  const description: Array<string> = ['Invalid Arguments' + '\n'];
-  for (let key in errors) {
-    description.push(`**${key}**: ${errors[key].message}`);
-  }
-
-  embed.setDescription(description.join('\n'));
-  return context.editOrReply({embed});
-}
 
 export async function triggerTypingAfter(
   context: Command.Context,

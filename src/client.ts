@@ -58,7 +58,7 @@ export class NotSoClient extends CommandClient {
       return true;
     }
     // maybe add admin permission as an override too?
-    const guildId = <string> context.guildId;
+    const guildId = context.guildId as string;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {
       const { member } = context;

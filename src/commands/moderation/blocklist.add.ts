@@ -175,12 +175,19 @@ export default class BlocklistAddCommand extends BaseCommand {
   priority = -1;
   type = getItemsFromMention;
 
+  // maybe add owner check?
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return !!args.payloads && !!args.payloads.length;
+    const { payloads } = args;
+    return !!payloads && !!payloads.length && !payloads.some((payload) => {
+      return payload.type === GuildBlocklistTypes.USER && payload.item.id === context.userId;
+    });
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.payloads) {
+      if (args.payloads.length) {
+        return context.editOrReply('⚠ Don\'t block yourself dummy');
+      }
       return context.editOrReply('⚠ Unable to find any valid Text Channels, Roles, or Users');
     }
     return context.editOrReply('⚠ Provide some kind of mention');

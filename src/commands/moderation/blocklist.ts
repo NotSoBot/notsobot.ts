@@ -7,7 +7,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
 import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
 import { RestResponses } from '../../types';
-import { Paginator, Parameters, toTitleCase } from '../../utils';
+import { Paginator, Parameters, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -28,16 +28,7 @@ export async function createBlocklistEmbed(
   });
   // maybe compare dates?
 
-  const pages: Array<Array<RestResponses.GuildBlocklist>> = [];
-  for (let i = 0; i < sorted.length; i += ELEMENTS_PER_PAGE) {
-    const page: Array<RestResponses.GuildBlocklist> = [];
-    for (let blocked of sorted.slice(i, i + ELEMENTS_PER_PAGE)) {
-      page.push(blocked);
-    }
-    if (page.length) {
-      pages.push(page);
-    }
-  }
+  const pages = splitArray<RestResponses.GuildBlocklist>(sorted, ELEMENTS_PER_PAGE);
 
   let title = options.title || 'Blocklist';
   let footer = 'Blocklist';
@@ -115,8 +106,15 @@ export async function createBlocklistEmbed(
   }
 }
 
-const insideGuildBlocklistTypes = Parameters.inside(Object.values(GuildBlocklistTypes));
 
+const insideGuildBlocklistTypes = Parameters.inside(Object.values(GuildBlocklistTypes));
+export const guildBlocklistType = (value: string) => {
+  value = value.toLowerCase();
+  if (value.endsWith('s')) {
+    value = value.slice(0, -1);
+  }
+  return insideGuildBlocklistTypes(value);
+};
 
 export interface CommandArgs {
   only?: GuildBlocklistTypes,
@@ -127,26 +125,19 @@ export default class BlocklistCommand extends BaseCommand {
   name = 'blocklist';
 
   disableDm = true;
+  label = 'only';
   metadata = {
     description: 'List all channels/roles/users part of the server\'s blocklist.',
     examples: [
       'blocklist',
-      'blocklist list',
+      'blocklist list channels',
     ],
     type: CommandTypes.MODERATION,
-    usage: 'blocklist (-only <GuildBlocklistType>)',
+    usage: 'blocklist ?<GuildBlocklistType>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   priority = -2;
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {name: 'only', type: (value: string) => insideGuildBlocklistTypes(value.toLowerCase())},
-      ],
-    });
-  }
+  type = guildBlocklistType;
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;

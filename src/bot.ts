@@ -22,7 +22,6 @@ const bot = new NotSoClient({
     identifyProperties: {
       $browser: 'Discord iOS',
     },
-    loadAllMembers: true,
     presence: {
       activity: {
         name: 'for .',
@@ -37,7 +36,6 @@ const bot = new NotSoClient({
     {duration: 60000, limit: 50, type: 'guild'},
     {duration: 5000, limit: 10, type: 'channel'},
   ],
-  useClusterClient: true,
 });
 
 
@@ -94,7 +92,7 @@ bot.on('commandRunError', async ({command, context}) => {
 });
 
 (async () => {
-  const cluster = <ClusterClient> bot.client;
+  const cluster = bot.client as ClusterClient;
   if (cluster.manager) {
     process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
   } else {
