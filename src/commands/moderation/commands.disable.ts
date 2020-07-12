@@ -36,7 +36,7 @@ export default class CommandsDisable extends BaseCommand {
       'commands disable rule34 -roles admin everyone',
     ],
     type: CommandTypes.MODERATION,
-    usage: 'commands disable <command-name> (-channels ...<channel mention/name>) (-roles ...<role mention/name>) (-users ...<user mention/name>)',
+    usage: 'commands disable <command-name> (-channels ...<channel-name>) (-roles ...<role-name>) (-users ...<user-name>)',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   permissions = [Permissions.MANAGE_GUILD];

@@ -118,10 +118,12 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
               if (video.published) {
                 description.push(`**Published**: ${video.published}`);
               }
+
+              let viewCount = (video.view_count === -1) ? 'Disabled' : video.view_count.toLocaleString();
               if (isLive) {
-                description.push(`**Viewers**: ${video.view_count.toLocaleString()}`);
+                description.push(`**Viewers**: ${viewCount}`);
               } else {
-                description.push(`**Views**: ${video.view_count.toLocaleString()}`);
+                description.push(`**Views**: ${viewCount}`);
               }
 
               embed.addField('Video Information', description.join('\n'));

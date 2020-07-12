@@ -17,7 +17,7 @@ const ELEMENTS_PER_PAGE = 15;
 export async function createDisabledCommandsEmbed(
   context: Command.Context,
   disabledCommands: Array<RestResponses.GuildDisabledCommand>,
-  options: {only?: GuildDisableCommandsTypes, title?: string} = {},
+  options: {only?: GuildDisableCommandsTypes | null, title?: string} = {},
 ) {
   let sorted = disabledCommands.slice();
   if (options.only) {
@@ -95,16 +95,19 @@ export async function createDisabledCommandsEmbed(
 
 const insideGuildDisableCommandsTypes = Parameters.inside(Object.values(GuildDisableCommandsTypes));
 export const guildDisableCommandsType = (value: string) => {
-  value = value.toLowerCase();
-  if (value.endsWith('s')) {
-    value = value.slice(0, -1);
+  if (value) {
+    value = value.toLowerCase();
+    if (value.endsWith('s')) {
+      value = value.slice(0, -1);
+    }
+    return insideGuildDisableCommandsTypes(value);
   }
-  return insideGuildDisableCommandsTypes(value);
+  return null;
 };
 
 
 export interface CommandArgs {
-  only?: GuildDisableCommandsTypes,
+  only: GuildDisableCommandsTypes | null,
 }
 
 export default class CommandsCommand extends BaseCommand {

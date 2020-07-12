@@ -74,7 +74,12 @@ export async function findMemberByChunk(
 
   const guild = context.guild;
   if (guild && !guild.isReady) {
-    await context.client.requestGuildMembers(guild.id, {query: '', timeout: 10000});
+    await guild.requestMembers({
+      limit: 0,
+      presences: true,
+      query: '',
+      timeout: 10000,
+    });
   }
 
   const { channel } = context;
@@ -149,7 +154,12 @@ export async function findMembersByChunk(
   const guild = context.guild;
   if (guild) {
     if (!guild.isReady) {
-      await context.client.requestGuildMembers(guild.id, {query: '', timeout: 10000});
+      await guild.requestMembers({
+        limit: 0,
+        presences: true,
+        query: '',
+        timeout: 10000,
+      });
     }
     // find via guild cache
     const found = findMembersByUsername(guild.members, username, discriminator);

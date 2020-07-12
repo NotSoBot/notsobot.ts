@@ -1,12 +1,23 @@
-import { Command, CommandClient, Constants, Utils } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
+import { Embed } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
-const { Permissions } = Constants;
 
-import { EmbedColors, PermissionsText } from '../constants';
+import { CommandTypes, EmbedColors, PermissionsText } from '../constants';
 import { Parameters } from '../utils';
 
+// description and usage shouldnt be optional, temporary for now
+export interface CommandMetadata {
+  description?: string,
+  examples?: Array<string>,
+  nsfw?: boolean,
+  type: CommandTypes,
+  usage?: string,
+}
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
+  metadata!: CommandMetadata;
+
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, Object.assign({
       name: '',
@@ -17,7 +28,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }, options));
   }
 
-  onPermissionsFailClient(context: Command.Context, failed: Array<Constants.Permissions>) {
+  onPermissionsFailClient(context: Command.Context, failed: Array<Permissions>) {
     const permissions: Array<string> = [];
     for (let permission of failed) {
       if (permission in PermissionsText) {
@@ -30,7 +41,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     return context.editOrReply(`⚠ ${command} requires the bot to have ${permissions.join(', ')} to work.`);
   }
 
-  onPermissionsFail(context: Command.Context, failed: Array<Constants.Permissions>) {
+  onPermissionsFail(context: Command.Context, failed: Array<Permissions>) {
     const permissions: Array<string> = [];
     for (let permission of failed) {
       if (permission in PermissionsText) {
@@ -44,7 +55,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
-    const embed = new Utils.Embed();
+    const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Error');
 
@@ -76,7 +87,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
-    const embed = new Utils.Embed();
+    const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Argument Error');
 

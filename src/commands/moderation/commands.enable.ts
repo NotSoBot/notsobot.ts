@@ -29,14 +29,14 @@ export default class CommandsEnable extends BaseCommand {
   disableDm = true;
   label = 'command';
   metadata = {
-    description: 'Disable a command for a Channel/Role/User or Server-Wide',
+    description: 'Re-enable a command for a Channel/Role/User or Server-Wide',
     examples: [
-      'commands disable rule34',
-      'commands disable rule34 -channels lobby',
-      'commands disable rule34 -roles admin everyone',
+      'commands enable rule34',
+      'commands enable rule34 -channels lobby',
+      'commands enable rule34 -roles admin everyone',
     ],
     type: CommandTypes.MODERATION,
-    usage: 'commands disable <command-name> (-channels ...<channel mention/name>) (-roles ...<role mention/name>) (-users ...<user mention/name>)',
+    usage: 'commands enable <command-name> (-channels ...<channel-name>) (-roles ...<role-name>) (-users ...<user-name>)',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   permissions = [Permissions.MANAGE_GUILD];
@@ -103,7 +103,7 @@ export default class CommandsEnable extends BaseCommand {
     const isServerWide = !args.channels && !args.roles && !args.users;
     if (isServerWide) {
       await deleteGuildDisabledCommand(context, guildId, command.name, guildId);
-      return context.reply(`Ok, disabled ${command.name} server-wide.`);
+      return context.reply(`Ok, enabled ${command.name} server-wide.`);
     }
   }
 }

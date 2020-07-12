@@ -17,7 +17,7 @@ const ELEMENTS_PER_PAGE = 15;
 export async function createBlocklistEmbed(
   context: Command.Context,
   blocklist: Array<RestResponses.GuildBlocklist>,
-  options: {only?: GuildBlocklistTypes, title?: string} = {},
+  options: {only?: GuildBlocklistTypes | null, title?: string} = {},
 ) {
   let sorted = blocklist.slice();
   if (options.only) {
@@ -109,15 +109,18 @@ export async function createBlocklistEmbed(
 
 const insideGuildBlocklistTypes = Parameters.inside(Object.values(GuildBlocklistTypes));
 export const guildBlocklistType = (value: string) => {
-  value = value.toLowerCase();
-  if (value.endsWith('s')) {
-    value = value.slice(0, -1);
+  if (value) {
+    value = value.toLowerCase();
+    if (value.endsWith('s')) {
+      value = value.slice(0, -1);
+    }
+    return insideGuildBlocklistTypes(value);
   }
-  return insideGuildBlocklistTypes(value);
+  return null;
 };
 
 export interface CommandArgs {
-  only?: GuildBlocklistTypes,
+  only: GuildBlocklistTypes | null,
 }
 
 export default class BlocklistCommand extends BaseCommand {

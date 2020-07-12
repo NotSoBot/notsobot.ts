@@ -3,7 +3,7 @@ import { Command } from 'detritus-client';
 import { uploadCommands } from '../../api';
 import { CommandTypes } from '../../constants';
 
-import { BaseCommand } from '../basecommand';
+import { BaseCommand, CommandMetadata } from '../basecommand';
 
 
 export default class UploadCommandsCommand extends BaseCommand {
@@ -25,7 +25,7 @@ export default class UploadCommandsCommand extends BaseCommand {
       return !!command.metadata && !!command.metadata.type;
     }).map((command) => {
       const { args } = command.args;
-      const metadata = command.metadata;
+      const metadata = command.metadata as CommandMetadata;
 
       const names = command.names;
       const name = <string> names.shift();
@@ -43,7 +43,7 @@ export default class UploadCommandsCommand extends BaseCommand {
         enabled: true,
         description: metadata.description || '',
         dmable: !command.disableDm,
-        examples: metadata.examples,
+        examples: metadata.examples || [],
         name,
         nsfw: !!metadata.nsfw,
         ratelimits: command.ratelimits.map((ratelimit) => {
@@ -54,7 +54,7 @@ export default class UploadCommandsCommand extends BaseCommand {
           };
         }),
         type: metadata.type,
-        usage: metadata.usage,
+        usage: metadata.usage || '',
       };
     });
     await uploadCommands(context, {commands});
