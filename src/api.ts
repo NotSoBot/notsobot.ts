@@ -8,6 +8,7 @@ import {
 
 import {
   GoogleLocales,
+  GuildAllowlistTypes,
   GuildBlocklistTypes,
   GuildDisableCommandsTypes,
 } from './constants';
@@ -48,6 +49,22 @@ export async function request(
 }
 
 
+export async function createGuildAllowlist(
+  context: Command.Context,
+  guildId: string,
+  allowlistId: string,
+  type: GuildAllowlistTypes,
+): Promise<RestResponses.CreateGuildAllowlist> {
+  return request(context, {
+    route: {
+      method: RestConstants.HTTPMethods.PUT,
+      path: '/guilds/:guildId/allowlist/:allowlistId/:type',
+      params: {allowlistId, guildId, type},
+    },
+  });
+}
+
+
 export async function createGuildBlocklist(
   context: Command.Context,
   guildId: string,
@@ -55,11 +72,10 @@ export async function createGuildBlocklist(
   type: GuildBlocklistTypes,
 ): Promise<RestResponses.CreateGuildBlocklist> {
   return request(context, {
-    body: {type},
     route: {
       method: RestConstants.HTTPMethods.PUT,
-      path: '/guilds/:guildId/blocklist/:blocklistId',
-      params: {blocklistId, guildId},
+      path: '/guilds/:guildId/blocklist/:blocklistId/:type',
+      params: {blocklistId, guildId, type},
     },
   });
 }
@@ -73,11 +89,10 @@ export async function createGuildDisabledCommand(
   type: GuildDisableCommandsTypes,
 ): Promise<RestResponses.CreateGuildDisabledCommand> {
   return request(context, {
-    body: {type},
     route: {
       method: RestConstants.HTTPMethods.PUT,
-      path: '/guilds/:guildId/disabled-commands/:command/:disabledId',
-      params: {command, disabledId, guildId},
+      path: '/guilds/:guildId/disabled-commands/:command/:disabledId/:type',
+      params: {command, disabledId, guildId, type},
     },
   });
 }
@@ -101,16 +116,33 @@ export async function createGuildPrefix(
 }
 
 
+export async function deleteGuildAllowlist(
+  context: Command.Context,
+  guildId: string,
+  allowlistId: string,
+  type: GuildAllowlistTypes,
+): Promise<RestResponses.DeleteGuildAllowlist> {
+  return request(context, {
+    route: {
+      method: RestConstants.HTTPMethods.DELETE,
+      path: '/guilds/:guildId/allowlist/:allowlistId/:type',
+      params: {allowlistId, guildId, type},
+    },
+  });
+}
+
+
 export async function deleteGuildBlocklist(
   context: Command.Context,
   guildId: string,
   blocklistId: string,
+  type: GuildBlocklistTypes,
 ): Promise<RestResponses.DeleteGuildBlocklist> {
   return request(context, {
     route: {
       method: RestConstants.HTTPMethods.DELETE,
-      path: '/guilds/:guildId/blocklist/:blocklistId',
-      params: {blocklistId, guildId},
+      path: '/guilds/:guildId/blocklist/:blocklistId/:type',
+      params: {blocklistId, guildId, type},
     },
   });
 }
@@ -121,12 +153,13 @@ export async function deleteGuildDisabledCommand(
   guildId: string,
   command: string,
   disabledId: string,
+  type: GuildDisableCommandsTypes,
 ): Promise<RestResponses.DeleteGuildDisabledCommand> {
   return request(context, {
     route: {
       method: RestConstants.HTTPMethods.DELETE,
-      path: '/guilds/:guildId/disabled-commands/:command/:disabledId',
-      params: {command, disabledId, guildId},
+      path: '/guilds/:guildId/disabled-commands/:command/:disabledId/:type',
+      params: {command, disabledId, guildId, type},
     },
   });
 }

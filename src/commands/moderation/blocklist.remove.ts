@@ -23,20 +23,20 @@ export async function removeBlocklist(
     switch (payload.type) {
       case GuildBlocklistTypes.CHANNEL: {
         const { item: channel } = payload;
-        title = `Removed Channel (${channel.mention}) from Blocklist`;
+        title = `Removed Channel (${channel.id}) from Blocklist`;
       }; break;
       case GuildBlocklistTypes.ROLE: {
         const { item: role } = payload;
-        title = `Removed Role (${role.mention}) from Blocklist`;
+        title = `Removed Role (${role.id}) from Blocklist`;
       }; break;
       case GuildBlocklistTypes.USER: {
         const { item: user } = payload;
-        title = `Removed User (${user.mention}) from Blocklist`;
+        title = `Removed User (${user.id}) from Blocklist`;
       }; break;
     }
 
-    await deleteGuildBlocklist(context, guildId, payload.item.id);
-    settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettingsStored;
+    await deleteGuildBlocklist(context, guildId, payload.item.id, payload.type);
+    settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettingsStored;
     // update settings
   } else {
     let channels = 0,
@@ -92,7 +92,7 @@ export default class BlocklistRemoveCommand extends BlocklistAddCommand {
     usage: 'blocklist remove ...<channel|role|user mention>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
+  permissions = [Permissions.ADMINISTRATOR];
   priority = -1;
   type = getItemsFromMention;
 

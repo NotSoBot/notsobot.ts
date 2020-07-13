@@ -39,7 +39,7 @@ export default class UserCommand extends BaseCommand {
     usage: 'user ?<id|mention|name>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.memberOrUser();
+  type = Parameters.memberOrUserOrCurrent();
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.user;

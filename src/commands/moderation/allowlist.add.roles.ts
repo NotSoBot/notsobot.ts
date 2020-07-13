@@ -1,13 +1,13 @@
 import { Command, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
+import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
 import { Parameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { createBlocklistEmbed } from './blocklist';
-import { removeBlocklist } from './blocklist.remove';
+import { createAllowlistEmbed } from './allowlist';
+import { createAllowlist } from './allowlist.add';
 
 
 export interface CommandArgsBefore {
@@ -19,27 +19,23 @@ export interface CommandArgs {
 }
 
 
-export default class BlocklistRemoveRolesCommand extends BaseCommand {
-  aliases = [
-    'blocklist remove role',
-    'blocklist delete role',
-    'blocklist delete roles',
-  ];
-  name = 'blocklist remove roles';
+export default class AllowlistAddRolesCommand extends BaseCommand {
+  aliases = ['allowlist add role'];
+  name = 'allowlist add roles';
 
   disableDm = true;
   label = 'roles';
   metadata = {
-    description: 'Remove roles from the blocklist.',
+    description: 'Add roles to the allowlist.',
     examples: [
-      'blocklist remove role everyone',
-      'blocklist remove roles <@&668258873546637322> <@&178897437082124288>',
+      'allowlist add role everyone',
+      'allowlist add roles <@&668258873546637322> <@&178897437082124288>',
     ],
     type: CommandTypes.MODERATION,
-    usage: 'blocklist remove roles ...<role mention|name>',
+    usage: 'allowlist add roles ...<role mention|name>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
+  permissions = [Permissions.MANAGE_GUILD];
   type = Parameters.roles;
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
@@ -57,9 +53,9 @@ export default class BlocklistRemoveRolesCommand extends BaseCommand {
     const { roles } = args;
     const payloads: Array<{
       item: Structures.Role,
-      type: GuildBlocklistTypes.ROLE,
-    }> = roles.map((role) => ({item: role, type: GuildBlocklistTypes.ROLE}));
-    const { settings, title } = await removeBlocklist(context, payloads);
-    return createBlocklistEmbed(context, settings.blocklist, {title});
+      type: GuildAllowlistTypes.ROLE,
+    }> = roles.map((role) => ({item: role, type: GuildAllowlistTypes.ROLE}));
+    const { settings, title } = await createAllowlist(context, payloads);
+    return createAllowlistEmbed(context, settings.allowlist, {title});
   }
 }

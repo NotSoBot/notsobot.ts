@@ -2,32 +2,32 @@ import { Collections, Command, Structures } from 'detritus-client';
 import { DiscordRegexNames, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 
-import { createGuildBlocklist, editGuildSettings } from '../../api';
-import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
+import { createGuildAllowlist, editGuildSettings } from '../../api';
+import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
 import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
 
 import { BaseCommand } from '../basecommand';
 
-import { createBlocklistEmbed } from './blocklist';
+import { createAllowlistEmbed } from './allowlist';
 
 
 export interface CommandArgsBefore {
-  payloads: Array<BlocklistPayload> | null,
+  payloads: Array<AllowlistPayload> | null,
 }
 
 export interface CommandArgs {
-  payloads: Array<BlocklistPayload>,
+  payloads: Array<AllowlistPayload>,
 }
 
-export type BlocklistPayload = {
+export type AllowlistPayload = {
   item: Structures.Channel,
-  type: GuildBlocklistTypes.CHANNEL,
+  type: GuildAllowlistTypes.CHANNEL,
 } | {
   item: Structures.Role,
-  type: GuildBlocklistTypes.ROLE,
+  type: GuildAllowlistTypes.ROLE,
 } | {
   item: Structures.User,
-  type: GuildBlocklistTypes.USER,
+  type: GuildAllowlistTypes.USER,
 };
 
 export async function getItemsFromMention(
@@ -37,7 +37,7 @@ export async function getItemsFromMention(
   if (!value) {
     return null;
   }
-  const payloads: Array<BlocklistPayload> = [];
+  const payloads: Array<AllowlistPayload> = [];
   if (context.guild) {
     {
       const { matches } = discordRegex(DiscordRegexNames.MENTION_CHANNEL, value) as {matches: Array<{id: string}>};
@@ -47,7 +47,7 @@ export async function getItemsFromMention(
         if (channel && (channel.isGuildCategory || channel.isGuildNews || channel.isGuildText)) {
           payloads.push({
             item: channel,
-            type: GuildBlocklistTypes.CHANNEL,
+            type: GuildAllowlistTypes.CHANNEL,
           });
         }
       }
@@ -60,7 +60,7 @@ export async function getItemsFromMention(
         if (role) {
           payloads.push({
             item: role,
-            type: GuildBlocklistTypes.ROLE,
+            type: GuildAllowlistTypes.ROLE,
           });
         }
       }
@@ -81,7 +81,7 @@ export async function getItemsFromMention(
         if (user && !user.bot) {
           payloads.push({
             item: user,
-            type: GuildBlocklistTypes.USER,
+            type: GuildAllowlistTypes.USER,
           });
         }
       }
@@ -91,32 +91,32 @@ export async function getItemsFromMention(
 }
 
 
-export async function createBlocklist(
+export async function createAllowlist(
   context: Command.Context,
-  payloads: Array<BlocklistPayload>,
+  payloads: Array<AllowlistPayload>,
 ) {
   const guildId = context.guildId as string;
 
-  let title = 'Blocklist';
+  let title = 'Allowlist';
   let settings: GuildSettingsStored;
   if (payloads.length === 1) {
     const [ payload ] = payloads;
     switch (payload.type) {
-      case GuildBlocklistTypes.CHANNEL: {
+      case GuildAllowlistTypes.CHANNEL: {
         const { item: channel } = payload;
-        title = `Added Channel (${channel.id}) to Blocklist`;
+        title = `Added Channel (${channel.id}) to Allowlist`;
       }; break;
-      case GuildBlocklistTypes.ROLE: {
+      case GuildAllowlistTypes.ROLE: {
         const { item: role } = payload;
-        title = `Added Role (${(role.isDefault) ? role.name : role.id}) to Blocklist`;
+        title = `Added Role (${(role.isDefault) ? role.name : role.id}) to Allowlist`;
       }; break;
-      case GuildBlocklistTypes.USER: {
+      case GuildAllowlistTypes.USER: {
         const { item: user } = payload;
-        title = `Added User (${user.id}) to Blocklist`;
+        title = `Added User (${user.id}) to Allowlist`;
       }; break;
     }
 
-    await createGuildBlocklist(context, guildId, payload.item.id, payload.type);
+    await createGuildAllowlist(context, guildId, payload.item.id, payload.type);
     settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettingsStored;
     // update settings
   } else {
@@ -125,9 +125,9 @@ export async function createBlocklist(
       users = 0;
     for (let payload of payloads) {
       switch (payload.type) {
-        case GuildBlocklistTypes.CHANNEL: channels++; break;
-        case GuildBlocklistTypes.ROLE: roles++; break;
-        case GuildBlocklistTypes.USER: users++; break;
+        case GuildAllowlistTypes.CHANNEL: channels++; break;
+        case GuildAllowlistTypes.ROLE: roles++; break;
+        case GuildAllowlistTypes.USER: users++; break;
       }
     }
     const comments: Array<string> = [];
@@ -140,13 +140,13 @@ export async function createBlocklist(
     if (users) {
       comments.push(`${users} Users`);
     }
-    title = `Added ${comments.join(', ')} to Blocklist`;
+    title = `Added ${comments.join(', ')} to Allowlist`;
 
     settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettingsStored;
     settings = await editGuildSettings(context, guildId, {
-      blocklist: [
+      allowlist: [
         ...payloads.map((payload) => ({id: payload.item.id, type: payload.type})),
-        ...settings.blocklist.map((blocked) => ({id: blocked.id, type: blocked.type})),
+        ...settings.allowlist.map((allowed) => ({id: allowed.id, type: allowed.type})),
       ],
     });
   }
@@ -156,19 +156,19 @@ export async function createBlocklist(
 
 
 // make this support multiple
-export default class BlocklistAddCommand extends BaseCommand {
-  name = 'blocklist add';
+export default class AllowlistAddCommand extends BaseCommand {
+  name = 'allowlist add';
 
   disableDm = true;
   label = 'payloads';
   metadata = {
-    description: 'Block an item based on mention type.',
+    description: 'Allow an item based on mention type.',
     examples: [
-      'blocklist add <#585639594574217232>',
-      'blocklist add <@300505364032389122> <@&178314191524855808>',
+      'allowlist add <#585639594574217232>',
+      'allowlist add <@300505364032389122> <@&178314191524855808>',
     ],
     type: CommandTypes.MODERATION,
-    usage: 'blocklist add ...<channel|role|user mention>',
+    usage: 'allowlist add ...<channel|role|user mention>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   permissions = [Permissions.ADMINISTRATOR];
@@ -178,16 +178,11 @@ export default class BlocklistAddCommand extends BaseCommand {
   // maybe add owner check?
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     const { payloads } = args;
-    return !!payloads && !!payloads.length && !payloads.some((payload) => {
-      return payload.type === GuildBlocklistTypes.USER && payload.item.id === context.userId;
-    });
+    return !!payloads && !!payloads.length;
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.payloads) {
-      if (args.payloads.length) {
-        return context.editOrReply('⚠ Don\'t block yourself dummy');
-      }
       return context.editOrReply('⚠ Unable to find any valid Text Channels, Roles, or Users');
     }
     return context.editOrReply('⚠ Provide some kind of mention');
@@ -195,7 +190,7 @@ export default class BlocklistAddCommand extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     const { payloads } = args;
-    const { settings, title } = await createBlocklist(context, payloads);
-    return createBlocklistEmbed(context, settings.blocklist, {title});
+    const { settings, title } = await createAllowlist(context, payloads);
+    return createAllowlistEmbed(context, settings.allowlist, {title});
   }
 }

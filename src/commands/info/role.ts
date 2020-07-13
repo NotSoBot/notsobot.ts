@@ -11,7 +11,7 @@ import {
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
 } from '../../constants';
-import { isSnowflake, padCodeBlockFromRows } from '../../utils';
+import { Parameters, isSnowflake, padCodeBlockFromRows } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -26,28 +26,10 @@ export function getChannel(value: string, context: Command.Context) {
   return context.channel;
 }
 
-export function getRole(value: string, context: Command.Context) {
-  const guild = context.guild;
-
-  if (guild) {
-    if (value) {
-      if (isSnowflake(value)) {
-        return guild.roles.get(value);
-      } else {
-        const name = value.toLowerCase();
-        return guild.roles.find((role) => {
-          return role.name.toLowerCase().includes(name);
-        });
-      }
-    }
-    return guild.defaultRole;
-  }
-};
-
 
 export interface CommandArgsBefore {
-  channel: Structures.Channel | undefined,
-  role: Structures.Role | undefined,
+  channel: Structures.Channel | null | undefined,
+  role: Structures.Role | null | undefined,
 }
 
 export interface CommandArgs {
@@ -58,6 +40,7 @@ export interface CommandArgs {
 export default class RoleCommand extends BaseCommand {
   name = 'role';
 
+  default = (context: Command.Context) => context.guild && context.guild.defaultRole;
   disableDm = true;
   metadata = {
     description: 'Get information for a role, defaults to the @everyone role',
@@ -69,12 +52,14 @@ export default class RoleCommand extends BaseCommand {
     usage: 'role ?<id|mention|name> (-channel <id>)',
   };
   permissionClient = [Permissions.EMBED_LINKS];
-  type = getRole;
+  type = Parameters.role;
 
   constructor(client: CommandClient, options: Command.CommandOptions) {
     super(client, {
       ...options,
-      args: [{default: (context: Command.Context) => context.channel, name: 'channel', type: getChannel}],
+      args: [
+        {default: (context: Command.Context) => context.channel, name: 'channel', type: Parameters.channel()},
+      ],
     });
   }
 

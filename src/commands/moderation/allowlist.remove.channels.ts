@@ -1,13 +1,13 @@
 import { Command, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
+import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
 import { Parameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { createBlocklistEmbed } from './blocklist';
-import { removeBlocklist } from './blocklist.remove';
+import { createAllowlistEmbed } from './allowlist';
+import { removeAllowlist } from './allowlist.remove';
 
 
 export interface CommandArgsBefore {
@@ -19,24 +19,24 @@ export interface CommandArgs {
 }
 
 
-export default class BlocklistRemoveChannelsCommand extends BaseCommand {
+export default class AllowlistRemoveChannelsCommand extends BaseCommand {
   aliases = [
-    'blocklist remove channel',
-    'blocklist delete channel',
-    'blocklist delete channels',
+    'allowlist remove channel',
+    'allowlist delete channel',
+    'allowlist delete channels',
   ];
-  name = 'blocklist remove channels';
+  name = 'allowlist remove channels';
 
   disableDm = true;
   label = 'channels';
   metadata = {
-    description: 'Remove channels from the blocklist.',
+    description: 'Remove channels from the allowlist.',
     examples: [
-      'blocklist remove channel lobby',
-      'blocklist remove channels <#585639594574217232> <#560595518129045504>',
+      'allowlist remove channel lobby',
+      'allowlist remove channels <#585639594574217232> <#560595518129045504>',
     ],
     type: CommandTypes.MODERATION,
-    usage: 'blocklist remove channels ...<channel mention|name>',
+    usage: 'allowlist remove channels ...<channel mention|name>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   permissions = [Permissions.ADMINISTRATOR];
@@ -63,9 +63,9 @@ export default class BlocklistRemoveChannelsCommand extends BaseCommand {
     const { channels } = args;
     const payloads: Array<{
       item: Structures.Channel,
-      type: GuildBlocklistTypes.CHANNEL,
-    }> = channels.map((channel) => ({item: channel, type: GuildBlocklistTypes.CHANNEL}));
-    const { settings, title } = await removeBlocklist(context, payloads);
-    return createBlocklistEmbed(context, settings.blocklist, {title});
+      type: GuildAllowlistTypes.CHANNEL,
+    }> = channels.map((channel) => ({item: channel, type: GuildAllowlistTypes.CHANNEL}));
+    const { settings, title } = await removeAllowlist(context, payloads);
+    return createAllowlistEmbed(context, settings.allowlist, {title});
   }
 }

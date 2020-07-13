@@ -1,8 +1,37 @@
 import { GoogleCardTypes, GoogleImageVideoTypes, GoogleLocales } from './constants';
 
 
+export namespace RedisPayloads {
+  export interface GuildAllowlistUpdate {
+    allowlist: Array<RestResponses.GuildAllowlist>,
+    id: string,
+  }
+
+  export interface GuildBlocklistUpdate {
+    allowlist: Array<RestResponses.GuildBlocklist>,
+    id: string,
+  }
+
+  export interface GuildDisabledCommandUpdate {
+    disabled_commands: Array<RestResponses.GuildDisabledCommand>,
+    id: string,
+  }
+
+  export interface GuildPrefixUpdate {
+    id: string,
+    prefixes: Array<RestResponses.GuildPrefix>,
+  }
+
+  export type GuildSettingsUpdate = RestResponses.GuildSettings;
+}
+
+
 export namespace RestOptions {
   export interface EditGuildSettings {
+    allowlist?: Array<{
+      id: string,
+      type: string,
+    }>,
     blocklist?: Array<{
       id: string,
       type: string,
@@ -142,10 +171,12 @@ export namespace RestOptions {
 
 export namespace RestResponses {
 
+  export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;
   export type CreateGuildDisabledCommand = null;
   export type CreateGuildPrefix = Array<GuildPrefix>;
 
+  export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
   export type DeleteGuildDisabledCommand = null;
   export type DeleteGuildPrefix = Array<GuildPrefix>;
@@ -237,12 +268,20 @@ export namespace RestResponses {
   }
 
   export interface GuildSettings {
+    allowlist: Array<GuildAllowlist>,
     blocklist: Array<GuildBlocklist>,
     disabled_commands: Array<GuildDisabledCommand>,
     icon: string | null,
     id: string,
     name: string,
     prefixes: Array<GuildPrefix>,
+  }
+
+  export interface GuildAllowlist {
+    added: string,
+    id: string,
+    type: string,
+    user_id: string,
   }
 
   export interface GuildBlocklist {

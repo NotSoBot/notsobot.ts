@@ -593,7 +593,10 @@ export interface MemberOrUserOptions {
 export function memberOrUser(
   options: MemberOrUserOptions = {},
 ) {
-  return async (value: string, context: Command.Context): Promise<Structures.Member | Structures.User | null> => {
+  return async (value: string, context: Command.Context): Promise<Structures.Member | Structures.User | null | undefined> => {
+    if (!value) {
+      return undefined;
+    }
     return Promise.resolve((async () => {
       try {
         let matched = false;

@@ -102,7 +102,7 @@ export default class CommandsEnable extends BaseCommand {
 
     const isServerWide = !args.channels && !args.roles && !args.users;
     if (isServerWide) {
-      await deleteGuildDisabledCommand(context, guildId, command.name, guildId);
+      await deleteGuildDisabledCommand(context, guildId, command.name, guildId, GuildDisableCommandsTypes.GUILD);
       return context.reply(`Ok, enabled ${command.name} server-wide.`);
     }
   }

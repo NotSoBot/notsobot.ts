@@ -39,7 +39,7 @@ export default class BlocklistRemoveUsersCommand extends BaseCommand {
     usage: 'blocklist remove users ...<user mention|name>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
+  permissions = [Permissions.ADMINISTRATOR];
   type = Parameters.membersOrUsers({allowBots: false});
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {

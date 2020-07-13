@@ -5,7 +5,7 @@ import {
   CommandClientRunOptions,
 } from 'detritus-client';
 
-import { GuildBlocklistTypes, GuildDisableCommandsTypes } from './constants';
+import { GuildAllowlistTypes, GuildBlocklistTypes, GuildDisableCommandsTypes } from './constants';
 import GuildSettingsStore from './stores/guildsettings';
 
 
@@ -54,15 +54,13 @@ export class NotSoClient extends CommandClient {
     if (context.inDm) {
       return !command.disableDm;
     }
-    if (context.member && context.member.isOwner) {
+    const { member } = context;
+    if (member && (member.isOwner || member.canAdministrator)) {
       return true;
     }
-    // maybe add admin permission as an override too?
     const guildId = context.guildId as string;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {
-      const { member } = context;
-
       const disabledCommands = settings.disabled_commands.filter((disabled) => disabled.command === command.name);
       if (disabledCommands.length) {
         const shouldIgnore = disabledCommands.some((disabled) => {
@@ -93,31 +91,57 @@ export class NotSoClient extends CommandClient {
           return false;
         }
       }
-      const { blocklist } = settings;
-      if (blocklist.length) {
-        const shouldIgnore = blocklist.some((blocked) => {
-          switch (blocked.type) {
-            case GuildBlocklistTypes.CHANNEL: {
-              if (blocked.id === context.channelId) {
+      const { allowlist } = settings;
+      if (allowlist.length) {
+        const shouldAllow = allowlist.some((allow) => {
+          switch (allow.type) {
+            case GuildAllowlistTypes.CHANNEL: {
+              if (allow.id === context.channelId) {
                 return true;
               }
-              if (context.channel && context.channel.parentId === blocked.id) {
+              if (context.channel && context.channel.parentId === allow.id) {
                 return true;
               }
-            };
-            case GuildBlocklistTypes.ROLE: {
+            }; break;
+            case GuildAllowlistTypes.ROLE: {
               if (member) {
-                return member.roles.has(blocked.id);
+                return member.roles.has(allow.id);
               }
-            };
-            case GuildBlocklistTypes.USER: {
-              return blocked.id === context.userId;
+            }; break;
+            case GuildAllowlistTypes.USER: {
+              return allow.id === context.userId;
             };
           }
           return false;
         });
-        if (shouldIgnore) {
-          return false;
+        return shouldAllow;
+      } else {
+        const { blocklist } = settings;
+        if (blocklist.length) {
+          const shouldIgnore = blocklist.some((blocked) => {
+            switch (blocked.type) {
+              case GuildBlocklistTypes.CHANNEL: {
+                if (blocked.id === context.channelId) {
+                  return true;
+                }
+                if (context.channel && context.channel.parentId === blocked.id) {
+                  return true;
+                }
+              };
+              case GuildBlocklistTypes.ROLE: {
+                if (member) {
+                  return member.roles.has(blocked.id);
+                }
+              };
+              case GuildBlocklistTypes.USER: {
+                return blocked.id === context.userId;
+              };
+            }
+            return false;
+          });
+          if (shouldIgnore) {
+            return false;
+          }
         }
       }
       return true;

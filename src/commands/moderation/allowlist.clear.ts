@@ -3,36 +3,36 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../api';
-import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
+import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
 
 import { BaseCommand } from '../basecommand';
 
-import { guildBlocklistType } from './blocklist';
+import { guildAllowlistType } from './allowlist';
 
 
 export interface CommandArgs {
-  only?: GuildBlocklistTypes,
+  only?: GuildAllowlistTypes,
 }
 
-export default class BlocklistClearCommand extends BaseCommand {
-  name = 'blocklist clear';
+export default class AllowlistClearCommand extends BaseCommand {
+  name = 'allowlist clear';
 
   disableDm = true;
   label = 'only';
   metadata = {
-    description: 'Clear out Channels/Roles/Users/Server-Wide blocklist.',
+    description: 'Clear out Channels/Roles/Users/Server-Wide allowlist.',
     examples: [
-      'blocklist clear',
-      'blocklist clear channels',
+      'allowlist clear',
+      'allowlist clear channels',
     ],
     type: CommandTypes.MODERATION,
-    usage: 'blocklist clear ?<GuildDisableCommandsType>',
+    usage: 'allowlist clear ?<GuildDisableCommandsType>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   permissions = [Permissions.ADMINISTRATOR];
   priority = -1;
-  type = guildBlocklistType;
+  type = guildAllowlistType;
 
   // add only variable (to only clear that type)
   async run(context: Command.Context, args: CommandArgs) {
@@ -45,11 +45,11 @@ export default class BlocklistClearCommand extends BaseCommand {
       embed.setTitle('WIP');
       embed.setDescription(args.only);
     } else {
-      embed.setTitle('Cleared Blocklist');
-      embed.setDescription('Cleared out the entire Blocklist of this guild.');
-      embed.setFooter('Blocklist');
+      embed.setTitle('Cleared Allowlist');
+      embed.setDescription('Cleared out the entire Allowlist of this guild.');
+      embed.setFooter('Allowlist');
 
-      const settings = await editGuildSettings(context, guildId, {blocklist: []});
+      const settings = await editGuildSettings(context, guildId, {allowlist: []});
       GuildSettingsStore.set(guildId, settings);
     }
 

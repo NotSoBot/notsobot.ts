@@ -36,7 +36,7 @@ export interface SharedGuildPayload {
   user: Structures.Member | Structures.User | null,
 }
 
-const findMemberOrUser = Parameters.memberOrUser();
+const findMemberOrUser = Parameters.memberOrUserOrCurrent();
 async function getSharedGuilds(value: string, context: Command.Context): Promise<SharedGuildPayload> {
   const user = await findMemberOrUser(value, context);
 
