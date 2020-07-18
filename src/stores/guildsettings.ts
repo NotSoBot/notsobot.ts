@@ -3,7 +3,7 @@ import { EventSubscription } from 'detritus-utils';
 
 import { Store } from './store';
 
-import { putGuildSettings } from '../api';
+import { fetchGuildSettings, putGuildSettings } from '../api';
 import { GuildSettings } from '../api/structures/guildsettings';
 import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
@@ -37,18 +37,22 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
   }
 
   async fetch(context: Command.Context, guildId: string): Promise<GuildSettings | null> {
-    let settings: GuildSettings | null = null;
+    let promise: GuildSettingsPromise;
     if (GuildSettingsPromisesStore.has(guildId)) {
-      const promise = GuildSettingsPromisesStore.get(guildId) as GuildSettingsPromise;
-      settings = await promise;
+      promise = GuildSettingsPromisesStore.get(guildId) as GuildSettingsPromise;
     } else {
-      const promise: GuildSettingsPromise = new Promise(async (resolve) => {
-        const guild = context.guild;
+      promise = new Promise(async (resolve) => {
+        const guild = context.guilds.get(guildId);
         try {
-          const settings = await putGuildSettings(context, guildId, {
-            icon: (guild) ? guild.icon : null,
-            name: (guild) ? guild.name : '',
-          });
+          let settings: GuildSettings;
+          if (guild) {
+            settings = await putGuildSettings(context, guildId, {
+              icon: guild.icon,
+              name: guild.name,
+            });
+          } else {
+            settings = await fetchGuildSettings(context, guildId);
+          }
           resolve(settings);
         } catch(error) {
           resolve(null);
@@ -56,9 +60,8 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         GuildSettingsPromisesStore.delete(guildId);
       });
       GuildSettingsPromisesStore.set(guildId, promise);
-      settings = await promise;
     }
-    return settings;
+    return promise;
   }
 
   create(cluster: ClusterClient, redis: RedisSpewer) {

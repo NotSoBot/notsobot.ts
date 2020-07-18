@@ -1,9 +1,10 @@
-import { Collections } from 'detritus-client';
+import { Collections, Structures } from 'detritus-client';
 
 import {
   GuildAllowlistTypes,
   GuildBlocklistTypes,
   GuildDisableCommandsTypes,
+  GuildPremiumTypes,
   NotSoApiKeys,
 } from '../../constants';
 
@@ -18,6 +19,7 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.ID,
   NotSoApiKeys.NAME,
   NotSoApiKeys.PREFIXES,
+  NotSoApiKeys.PREMIUM_TYPE,
 ]);
 
 export class GuildSettings extends BaseStructure {
@@ -30,6 +32,12 @@ export class GuildSettings extends BaseStructure {
   icon: string | null = null;
   id: string = '';
   name: string = '';
+  premiumType: GuildPremiumTypes = GuildPremiumTypes.NONE;
+
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
+  }
 
   get allowlist(): Collections.BaseCollection<string, GuildSettingsAllowlist> {
     if (this._allowlist) {
@@ -153,6 +161,11 @@ export class GuildSettingsAllowlist extends BaseStructure {
   type!: GuildAllowlistTypes;
   userId: string = '';
 
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
+  }
+
   get key(): string {
     return `${this.id}.${this.type}`;
   }
@@ -166,6 +179,11 @@ export class GuildSettingsBlocklist extends BaseStructure {
   id: string = '';
   type!: GuildBlocklistTypes;
   userId: string = '';
+
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
+  }
 
   get key(): string {
     return `${this.id}.${this.type}`;
@@ -190,6 +208,11 @@ export class GuildSettingsDisabledCommand extends BaseStructure {
   type!: GuildDisableCommandsTypes;
   userId: string = '';
 
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
+  }
+
   get key(): string {
     return `${this.command}.${this.id}.${this.type}`;
   }
@@ -210,4 +233,9 @@ export class GuildSettingsPrefix extends BaseStructure {
   guildId: string = '';
   prefix: string = '';
   userId: string = '';
+
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
+  }
 }

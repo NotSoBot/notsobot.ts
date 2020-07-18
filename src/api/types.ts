@@ -285,6 +285,7 @@ export namespace RestResponsesRaw {
     id: string,
     name: string,
     prefixes: Array<GuildPrefix>,
+    premium_type: number,
   }
 
   export interface GuildAllowlist {

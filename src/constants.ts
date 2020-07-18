@@ -367,6 +367,10 @@ export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Obje
   [GuildExplicitContentFilterTypes.ALL_MEMBERS]: 'Everyone',
 });
 
+export enum GuildPremiumTypes {
+  NONE = 0,
+}
+
 export const PermissionsText: {[key in Permissions]: string} = Object.freeze({
   [Permissions.ADD_REACTIONS]: 'Add Reactions',
   [Permissions.ADMINISTRATOR]: 'Administrator',
@@ -514,6 +518,7 @@ export const NotSoApiKeys = Object.freeze({
   NAME: 'name',
   PREFIX: 'prefix',
   PREFIXES: 'prefixes',
+  PREMIUM_TYPE: 'premium_type',
   TYPE: 'type',
   USER_ID: 'user_id',
 });
@@ -530,6 +535,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.NAME]: 'name',
   [NotSoApiKeys.PREFIX]: 'prefix',
   [NotSoApiKeys.PREFIXES]: 'prefixes',
+  [NotSoApiKeys.PREMIUM_TYPE]: 'premiumType',
   [NotSoApiKeys.TYPE]: 'type',
   [NotSoApiKeys.USER_ID]: 'userId',
 });

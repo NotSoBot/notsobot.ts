@@ -13,11 +13,6 @@ export function convertKey(snake: string): string {
 
 
 export class BaseStructure extends Structures.Structure {
-  constructor(data: Structures.BaseStructureData) {
-    super();
-    this.merge(data);
-  }
-
   _getFromSnake(key: string): any {
     return (this as any)[convertKey(key)];
   }
