@@ -2,11 +2,14 @@ import * as os from 'os';
 
 
 import { ClusterClient, Command, Utils } from 'detritus-client';
-const { Markup } = Utils;
+import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
 import { padCodeBlockFromRows } from '../../utils';
+
+import { ClusterInformation, getClusterInformation } from './shards';
+
 
 export default class UsageCommand extends BaseCommand {
   name = 'usage';
@@ -23,85 +26,58 @@ export default class UsageCommand extends BaseCommand {
   async run(context: Command.Context) {
     const rows: Array<Array<string>> = [];
     if (context.manager) {
-      const results = await context.manager.broadcastEval((cluster: ClusterClient) => {
-        const usage = process.memoryUsage();
-        return cluster.shards.reduce((information, shard) => {
-          information.shardsLoaded += 1;
-          information.applications += shard.applications.length;
-          information.channels += shard.channels.length;
-          information.emojis += shard.emojis.length;
-          information.events += shard.gateway.sequence;
-          information.guilds += shard.guilds.length;
-          information.members += shard.members.length;
-          information.memberCount += shard.guilds.reduce((x, guild) => x + guild.memberCount, 0);
-          information.messages += shard.messages.length;
-          information.notes += shard.notes.length;
-          information.permissionOverwrites += shard.channels.reduce((x, channel) => x + channel.permissionOverwrites.length, 0);
-          information.presences += shard.presences.length;
-          information.presenceActivities += shard.presences.reduce((x, presence) => x + presence.activities.length, 0);
-          information.relationships += shard.relationships.length;
-          information.roles += shard.roles.length;
-          information.sessions += shard.sessions.length;
-          information.typings += shard.typings.length;
-          information.users += shard.users.length;
-          information.voiceCalls += shard.voiceCalls.length;
-          information.voiceConnections += shard.voiceConnections.length;
-          information.voiceStates += shard.voiceStates.length;
-          return information;
-        }, {
-          cluster: 1,
-          shard: 0,
-          shardsLoaded: 0,
-          ramUsage: Math.max(usage.rss, usage.heapTotal + usage.external),
-          ramTotal: 0,
-          applications: 0,
-          channels: 0,
-          emojis: 0,
-          events: 0,
-          guilds: 0,
-          members: 0,
-          memberCount: 0,
-          messages: 0,
-          notes: 0,
-          permissionOverwrites: 0,
-          presences: 0,
-          presenceActivities: 0,
-          relationships: 0,
-          roles: 0,
-          sessions: 0,
-          typings: 0,
-          users: 0,
-          voiceCalls: 0,
-          voiceConnections: 0,
-          voiceStates: 0,
-        });
-      });
-
-      const info: any = results.reduce((x: any, information: any) => {
+      const results = await getClusterInformation(context);
+      const info = results.reduce((x: ClusterInformation, information) => {
         for (let key in information) {
-          if (!(key in x)) {
-            x[key] = 0;
+          const value = (information as any)[key];
+          switch (typeof(value)) {
+            case 'object': {
+              for (let childKey in value) {
+                const childValue = (value as any)[childKey];
+                const cache = (x as any)[key];
+                if (childKey in cache) {
+                  cache[childKey] += childValue;
+                } else {
+                  cache[childKey] = childValue;
+                }
+              }
+            }; break;
+            case 'number': {
+              if (key in x) {
+                (x as any)[key] += value;
+              } else {
+                (x as any)[key] = value;
+              }
+            }; break;
           }
-          x[key] += information[key];
         }
         return x;
-      }, {});
+      }, {
+        memory: {},
+        objects: {},
+        ramUsage: 0,
+        shardsIdentified: 0,
+      } as ClusterInformation);
 
-      info.cluster = `${context.manager.clusterId}/${info.cluster}`;
-      info.shard = `${context.shardId}/${context.shardCount}`;
-      info.shardsLoaded = `${info.shardsLoaded}/${context.shardCount}`;
-      info.ramUsage = `${Math.round(info.ramUsage / 1024 / 1024).toLocaleString()} MB`;
-      info.ramTotal = `${Math.round(os.totalmem() / 1024 / 1024).toLocaleString()} MB`;
-      for (let key in info) {
+      rows.push(['Cluster:', `${context.manager.clusterId}/${context.manager.clusterCount}`]);
+      rows.push(['ShardsIdentified:', `${info.shardsIdentified} of ${context.shardCount}`]);
+      rows.push(['RamUsage:', `${Math.round(info.ramUsage / 1024 / 1024).toLocaleString()} MB`]);
+      rows.push(['RamTotal:', `${Math.round(os.totalmem() / 1024 / 1024).toLocaleString()} MB`]);
+      for (let key in info.objects) {
         const title = key.slice(0, 1).toUpperCase() + key.slice(1);
 
-        let value: string;
-        if (typeof(info[key]) === 'number') {
-          value = info[key].toLocaleString();
-        } else {
-          value = info[key];
+        let text: string;
+        const value = (info.objects as any)[key];
+        switch (typeof(value)) {
+          case 'number': {
+            text = value.toLocaleString();
+          }; break;
+          case 'string': {
+            text = value;
+          }; break;
+          default: continue;
         }
-        rows.push([`${title}:`, value]);
+        rows.push([`${title}:`, text]);
       }
     }
 

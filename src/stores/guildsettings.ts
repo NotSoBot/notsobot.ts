@@ -4,9 +4,10 @@ import { EventSubscription } from 'detritus-utils';
 import { Store } from './store';
 
 import { putGuildSettings } from '../api';
+import { RestOptions } from '../api/types';
 import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
-import { RestOptions, RedisPayloads, RestResponses } from '../types';
+import { RedisPayloads, RestResponses } from '../types';
 
 
 export type GuildSettingsStored = RestResponses.GuildSettings;

@@ -146,6 +146,20 @@ export async function findMemberByChunk(
 }
 
 
+export async function findMemberByChunkText(
+  context: Command.Context,
+  text: string,
+) {
+  const parts = text.split('#');
+  const username = (parts.shift() as string).toLowerCase().slice(0, 32);
+  let discriminator: null | string = null;
+  if (parts.length) {
+    discriminator = (parts.shift() as string).padStart(4, '0');
+  }
+  return await findMemberByChunk(context, username, discriminator);
+}
+
+
 export async function findMembersByChunk(
   context: Command.Context,
   username: string,
@@ -313,10 +327,10 @@ export function isSnowflake(value: string): boolean {
 
 export function languageCodeToText(code: string): string {
   if (code in GoogleLocalesText) {
-    return (<any> GoogleLocalesText)[code];
+    return (GoogleLocalesText as any)[code];
   }
   if (code in LanguageCodesText) {
-    return (<any> LanguageCodesText)[code];
+    return (LanguageCodesText as any)[code];
   }
   return code;
 }

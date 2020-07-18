@@ -151,6 +151,18 @@ export class NotSoClient extends CommandClient {
     return false;
   }
 
+  async onMessageCheck(context: Command.Context) {
+    // ignore bots for automod
+    if (context.user.bot) {
+      return false;
+    }
+    // do automod checks
+    if (context.guildId) {
+
+    }
+    return true;
+  }
+
   async onPrefixCheck(context: Command.Context) {
     if (!context.user.bot && context.guildId) {
       const guildId: string = context.guildId;

@@ -492,3 +492,20 @@ export const TRUSTED_URLS = Object.freeze([
   'images-ext-2.discordapp.net',
   'media.discordapp.net',
 ]);
+
+
+export enum NotSoHeaders {
+  AUTHORIZATION = 'authorization',
+  CHANNEL_ID = 'x-channel-id',
+  GUILD_ID = 'x-guild-id',
+  USER = 'x-user',
+  USER_ID = 'x-user-id',
+}
+
+export const NotSoApiKeys = Object.freeze({
+  ID: 'id',
+});
+
+export const NotSoBotKeys = Object.freeze({
+  [NotSoApiKeys.ID]: 'id',
+});

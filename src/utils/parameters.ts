@@ -11,6 +11,7 @@ import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata
 import {
   findImageUrlInMessages,
   findMemberByChunk,
+  findMemberByChunkText,
   findMembersByChunk,
   isSnowflake,
   toCodePoint,
@@ -40,7 +41,7 @@ export async function channelMetadata(
 
     if (isSnowflake(channelId)) {
       if (context.channels.has(channelId)) {
-        payload.channel = <Structures.Channel> context.channels.get(channelId);
+        payload.channel = context.channels.get(channelId) as Structures.Channel;
       } else {
         try {
           payload.channel = await context.rest.fetchChannel(channelId);
@@ -76,7 +77,7 @@ export async function channelMetadata(
     } else {
       const guildId = payload.channel.guildId;
       if (GuildChannelsStore.has(guildId)) {
-        payload.channels = <GuildChannelsStored> GuildChannelsStore.get(guildId);
+        payload.channels = GuildChannelsStore.get(guildId) as GuildChannelsStored;
       } else {
         try {
           payload.channels = await context.rest.fetchGuildChannels(guildId);
@@ -117,7 +118,7 @@ export async function guildMetadata(
     Object.assign(payload, GuildMetadataStore.get(guildId));
     if (payload.guild) {
       if (GuildChannelsStore.has(guildId)) {
-        payload.channels = <GuildChannelsStored> GuildChannelsStore.get(guildId);
+        payload.channels = GuildChannelsStore.get(guildId) as GuildChannelsStored;
       } else {
         try {
           payload.channels = await payload.guild.fetchChannels();
@@ -133,7 +134,7 @@ export async function guildMetadata(
     if (isSnowflake(guildId)) {
       try {
         if (context.guilds.has(guildId)) {
-          payload.guild = <Structures.Guild> context.guilds.get(guildId);
+          payload.guild = context.guilds.get(guildId) as Structures.Guild;
           if (!payload.guild.hasMetadata) {
             payload.guild = await context.rest.fetchGuild(guildId);
           }
@@ -147,7 +148,7 @@ export async function guildMetadata(
           payload.guild = await context.rest.fetchGuild(guildId);
 
           if (GuildChannelsStore.has(guildId)) {
-            payload.channels = <GuildChannelsStored> GuildChannelsStore.get(guildId);
+            payload.channels = GuildChannelsStore.get(guildId) as GuildChannelsStored;
           } else {
             payload.channels = await payload.guild.fetchChannels();
             GuildChannelsStore.set(guildId, payload.channels);
@@ -157,7 +158,7 @@ export async function guildMetadata(
             const results = await context.manager.broadcastEval((cluster: ClusterClient, gId: string) => {
               for (let [shardId, shard] of cluster.shards) {
                 if (shard.guilds.has(gId)) {
-                  const guild = <Structures.Guild> shard.guilds.get(gId);
+                  const guild = shard.guilds.get(gId) as Structures.Guild;
                   return {
                     memberCount: guild.memberCount,
                     presenceCount: guild.presences.length,
@@ -191,20 +192,91 @@ export async function guildMetadata(
   return payload;
 }
 
+
 export async function lastImageUrl(
   value: string,
   context: Command.Context,
 ): Promise<null | string | undefined> {
   value = value.trim();
-  if (!value) {
+  {
+    const url = findImageUrlInMessages([context.message]);
+    if (url) {
+      return url;
+    }
+  }
+  if (value) {
     {
-      const url = findImageUrlInMessages([context.message]);
-      if (url) {
-        return url;
+      const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+      if (matches.length) {
+        const [ { text } ] = matches;
+        if (!context.message.embeds.length) {
+          await Timers.sleep(1000);
+        }
+        const url = findImageUrlInMessages([context.message]);
+        return url || text;
       }
     }
 
-    const channel = context.channel;
+    let text = value;
+    try {
+      if (!text.includes('#')) {
+        {
+          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, text) as {matches: Array<{id: string}>};
+          if (matches.length) {
+            const [ { id: userId } ] = matches;
+
+            // pass it onto the next statement
+            if (isSnowflake(userId)) {
+              text = userId;
+            }
+          }
+        }
+
+        if (isSnowflake(text)) {
+          const userId = text;
+
+          let user: Structures.User;
+          if (context.message.mentions.has(userId)) {
+            user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+          } else {
+            user = await context.rest.fetchUser(userId);
+          }
+          return user.avatarUrlFormat(null, {size: 1024});
+        }
+
+        {
+          const { matches } = discordRegex(DiscordRegexNames.EMOJI, text) as {matches: Array<{animated: boolean, id: string}>};
+          if (matches.length) {
+            const [ { animated, id } ] = matches;
+            const format = (animated) ? 'gif' : 'png';
+            return Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format);
+          }
+        }
+
+        {
+          const emojis = onlyEmoji(text);
+          if (emojis && emojis.length) {
+            for (let emoji of emojis) {
+              const codepoint = toCodePoint(emoji);
+              return `https://cdn.notsobot.com/twemoji/512x512/${codepoint}.png`;
+            }
+          }
+        }
+      }
+
+      {
+        const found = await findMemberByChunkText(context, value);
+        if (found) {
+          return found.avatarUrlFormat(null, {size: 1024});
+        }
+      }
+    } catch(error) {
+
+    }
+
+    return null;
+  } else {
+    const { channel } = context;
     if (channel) {
       {
         const url = findImageUrlInMessages(channel.messages.toArray().reverse());
@@ -221,99 +293,8 @@ export async function lastImageUrl(
         }
       }
     }
-
     return undefined;
   }
-
-  {
-    const url = findImageUrlInMessages([context.message]);
-    if (url) {
-      return url;
-    }
-  }
-
-  {
-    const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value);
-    if (matches.length) {
-      const { text } = <{text: string}> matches[0];
-      if (!context.message.embeds.length) {
-        await Timers.sleep(1000);
-      }
-      const url = findImageUrlInMessages([context.message]);
-      return url || text;
-    }
-  }
-
-  const text = value;
-  try {
-    if (!text.includes('#')) {
-      {
-        const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, text);
-        if (matches.length) {
-          const { id: userId } = <{id: string}> matches[0];
-
-          if (isSnowflake(userId)) {
-            let user: Structures.User;
-            if (context.message.mentions.has(userId)) {
-              user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
-            } else {
-              user = await context.rest.fetchUser(userId);
-            }
-            return user.avatarUrlFormat(null, {size: 1024});
-          }
-        }
-      }
-
-      if (isSnowflake(text)) {
-        const userId = text;
-
-        let user: Structures.User;
-        if (context.message.mentions.has(userId)) {
-          user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
-        } else {
-          user = await context.rest.fetchUser(userId);
-        }
-        return user.avatarUrlFormat(null, {size: 1024});
-      }
-
-      {
-        const { matches } = discordRegex(DiscordRegexNames.EMOJI, text);
-        if (matches.length) {
-          const { animated, id } = <{animated: boolean, id: string}> matches[0];
-          const format = (animated) ? 'gif' : 'png';
-          return Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format);
-        }
-      }
-
-      {
-        const emojis = onlyEmoji(text);
-        if (emojis && emojis.length) {
-          for (let emoji of emojis) {
-            const codepoint = toCodePoint(emoji);
-            return `https://cdn.notsobot.com/twemoji/512x512/${codepoint}.png`;
-          }
-        }
-      }
-    }
-
-    {
-      // guild member chunk or search cache
-      const parts = text.split('#');
-      const username = (<string> parts.shift()).toLowerCase().slice(0, 32);
-      let discriminator: null | string = null;
-      if (parts.length) {
-        discriminator = (<string> parts.shift()).padStart(4, '0');
-      }
-
-      const found = await findMemberByChunk(context, username, discriminator);
-      if (found) {
-        return found.avatarUrlFormat(null, {size: 1024});
-      }
-    }
-  } catch(error) {
-
-  }
-  return null;
 }
 
 export async function lastImageUrls(
@@ -360,9 +341,9 @@ export async function lastImageUrls(
   }
 
   {
-    const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value);
+    const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
     if (matches.length) {
-      const { text } = <{text: string}> matches[0];
+      const [ { text } ] = matches;
       if (!context.message.embeds.length) {
         await Timers.sleep(1000);
       }
@@ -385,14 +366,14 @@ export async function lastImageUrls(
     try {
       if (!text.includes('#')) {
         {
-          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, text);
+          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, text) as {matches: Array<{id: string}>};
           if (matches.length) {
-            const { id: userId } = <{id: string}> matches[0];
+            const [ { id: userId } ] = matches;
 
             if (isSnowflake(userId)) {
               let user: Structures.User;
               if (context.message.mentions.has(userId)) {
-                user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+                user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
               } else {
                 user = await context.rest.fetchUser(userId);
               }
@@ -407,7 +388,7 @@ export async function lastImageUrls(
 
           let user: Structures.User;
           if (context.message.mentions.has(userId)) {
-            user = <Structures.Member | Structures.User> context.message.mentions.get(userId);
+            user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
           } else {
             user = await context.rest.fetchUser(userId);
           }
@@ -416,9 +397,9 @@ export async function lastImageUrls(
         }
 
         {
-          const { matches } = discordRegex(DiscordRegexNames.EMOJI, text);
+          const { matches } = discordRegex(DiscordRegexNames.EMOJI, text) as {matches: Array<{animated: boolean, id: string}>};
           if (matches.length) {
-            const { animated, id } = <{animated: boolean, id: string}> matches[0];
+            const [ { animated, id } ] = matches;
             const format = (animated) ? 'gif' : 'png';
             urls.add(Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format));
             continue;
@@ -438,15 +419,7 @@ export async function lastImageUrls(
       }
 
       {
-        // guild member chunk or search cache
-        const parts = text.split('#');
-        const username = (<string> parts.shift()).toLowerCase().slice(0, 32);
-        let discriminator: null | string = null;
-        if (parts.length) {
-          discriminator = (<string> parts.shift()).padStart(4, '0');
-        }
-
-        const found = await findMemberByChunk(context, username, discriminator);
+        const found = await findMemberByChunkText(context, text);
         if (found) {
           urls.add(found.avatarUrlFormat(null, {size: 1024}));
           continue;
@@ -599,12 +572,13 @@ export function memberOrUser(
     }
     return Promise.resolve((async () => {
       try {
-        let matched = false;
         {
           const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
           if (matches.length) {
-            value = matches[0].id;
-            matched = true;
+            const { id: userId } = matches[0];
+            if (isSnowflake(userId)) {
+              value = userId;
+            }
           }
         }
   
@@ -648,18 +622,7 @@ export function memberOrUser(
           }
         }
   
-        if (matched) {
-          return null;
-        }
-  
-        // guild member chunk or search cache
-        const nameParts = value.split('#');
-        const username = (nameParts.shift() as string).toLowerCase().slice(0, 32);
-        let discriminator: null | string = null;
-        if (nameParts.length) {
-          discriminator = (nameParts.shift() as string).padStart(4, '0');
-        }
-        const found = await findMemberByChunk(context, username, discriminator);
+        const found = await findMemberByChunkText(context, value);
         if (found) {
           return found;
         }
@@ -691,15 +654,21 @@ export function memberOrUserOrCurrent(
   }
 }
 
+
+export interface MembersOrUsersOptions extends MemberOrUserOptions {
+  max?: number,
+}
+
 export function membersOrUsers(
-  options: MemberOrUserOptions = {},
+  options: MembersOrUsersOptions = {},
 ) {
+  options = Object.assign({max: 5}, options);
   const findMemberOrUser = memberOrUser(options);
   return async (value: string, context: Command.Context): Promise<Array<Structures.Member | Structures.User> | null> => {
     if (value) {
       const args = new Set<string>(stringArguments(value));
-      if (5 <= args.size) {
-        throw new Error('Cannot specify more than 5 different users.');
+      if ((options.max as number) < args.size) {
+        throw new Error(`Cannot specify more than ${options.max} different users.`);
       }
 
       const membersOrUsers: Array<Structures.Member | Structures.User> = [];
@@ -716,7 +685,7 @@ export function membersOrUsers(
 }
 
 export function membersOrUsersOrAll(
-  options: MemberOrUserOptions = {},
+  options: MembersOrUsersOptions = {},
 ) {
   const findMembersOrUsers = membersOrUsers(options);
   return async (value: string, context: Command.Context): Promise<Array<Structures.Member | Structures.User>> => {
@@ -913,9 +882,8 @@ export function stringArguments(value: string) {
       value = '';
     } else {
       result += value.slice(0, index);
-      value = value.slice(index);
+      value = value.slice(index).trim();
     }
-    value = value.trim();
     results.push(result);
   }
   return results;

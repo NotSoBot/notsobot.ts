@@ -17,6 +17,7 @@ export interface CommandMetadata {
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
   metadata!: CommandMetadata;
+  permissionsIgnoreClientOwner = true;
 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, Object.assign({
