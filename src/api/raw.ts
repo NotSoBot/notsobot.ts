@@ -189,6 +189,7 @@ export async function editGuildSettings(
   options: RestOptions.EditGuildSettings = {},
 ): Promise<RestResponsesRaw.EditGuildSettings> {
   const body = {
+    allowlist: options.allowlist,
     blocklist: options.blocklist,
     prefixes: options.prefixes,
   };
