@@ -2,7 +2,7 @@ import { EventSpewer, Timers } from 'detritus-utils';
 import { createClient, RedisClient } from 'redis';
 
 import { RedisChannels } from './constants';
-import { GuildSettingsStored } from './stores/guildsettings';
+import { RedisPayloads } from './types';
 
 
 export class RedisSpewer extends EventSpewer {
@@ -43,7 +43,7 @@ export class RedisSpewer extends EventSpewer {
   }
 
   on(event: string | symbol, listener: (...args: any[]) => void): this;
-  on(event: 'GUILD_SETTINGS_UPDATE', listener: (payload: GuildSettingsStored) => any): this;
+  on(event: RedisChannels.GUILD_SETTINGS_UPDATE, listener: (payload: RedisPayloads.GuildSettingsUpdate) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;

@@ -1,50 +1,24 @@
-import { Command } from 'detritus-client';
-import { RequestTypes } from 'detritus-client-rest';
-import { Response, createHeaders } from 'detritus-rest';
+import { Collections, Command } from 'detritus-client';
+import { Response } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
-import { Api } from './endpoints';
-import { RestOptions } from './types';
+import * as raw from './raw';
+import {
+  GuildSettings,
+  GuildSettingsPrefix,
+} from './structures/guildsettings';
+import { RestOptions, RestResponses } from './types';
 
 import {
-  GoogleLocales,
   GuildAllowlistTypes,
   GuildBlocklistTypes,
   GuildDisableCommandsTypes,
-  NotSoHeaders,
 } from '../constants';
+import GuildSettingsStore from '../stores/guildsettings';
 
-import { RestResponses } from '../types';
 
-
-export async function request(
-  context: Command.Context,
-  options: RequestTypes.Options,
-): Promise<any> {
-  options.url = Api.URL + Api.PATH;
-  options.headers = createHeaders(options.headers);
-
-  const token = process.env.NOTSOBOT_API_TOKEN;
-  if (token) {
-    options.headers.set(NotSoHeaders.AUTHORIZATION, `Bot ${token}`);
-  }
-  options.headers.set(NotSoHeaders.CHANNEL_ID, context.channelId);
-  if (context.guildId) {
-    options.headers.set(NotSoHeaders.GUILD_ID, context.guildId);
-  }
-  options.headers.set(NotSoHeaders.USER_ID, context.userId);
-
-  const user = JSON.stringify({
-    avatar: context.user.avatar,
-    discriminator: context.user.discriminator,
-    bot: context.user.bot,
-    id: context.user.id,
-    username: context.user.username,
-  });
-  options.headers.set(NotSoHeaders.USER, Buffer.from(user).toString('base64'));
-
-  return context.rest.request(options);
-}
+export { request } from './raw';
+export { raw };
 
 
 export async function createGuildAllowlist(
@@ -53,13 +27,7 @@ export async function createGuildAllowlist(
   allowlistId: string,
   type: GuildAllowlistTypes,
 ): Promise<RestResponses.CreateGuildAllowlist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD_ALLOWLIST,
-      params: {allowlistId, guildId, type},
-    },
-  });
+  return raw.createGuildAllowlist(context, guildId, allowlistId, type);
 }
 
 
@@ -69,13 +37,7 @@ export async function createGuildBlocklist(
   blocklistId: string,
   type: GuildBlocklistTypes,
 ): Promise<RestResponses.CreateGuildBlocklist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD_BLOCKLIST,
-      params: {blocklistId, guildId, type},
-    },
-  });
+  return raw.createGuildBlocklist(context, guildId, blocklistId, type);
 }
 
 
@@ -86,13 +48,7 @@ export async function createGuildDisabledCommand(
   disabledId: string,
   type: GuildDisableCommandsTypes,
 ): Promise<RestResponses.CreateGuildDisabledCommand> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD_DISABLED_COMMAND,
-      params: {command, disabledId, guildId, type},
-    },
-  });
+  return raw.createGuildDisabledCommand(context, guildId, command, disabledId, type);
 }
 
 
@@ -101,16 +57,17 @@ export async function createGuildPrefix(
   guildId: string,
   prefix: string,
 ): Promise<RestResponses.CreateGuildPrefix> {
-  const body = {prefix};
-  const params = {guildId};
-  return request(context, {
-    body,
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD_PREFIXES,
-      params,
-    },
-  });
+  const data = await raw.createGuildPrefix(context, guildId, prefix);
+  const collection = new Collections.BaseCollection<string, GuildSettingsPrefix>();
+  for (let raw of data) {
+    const item = new GuildSettingsPrefix(raw);
+    collection.set(item.prefix, item);
+  }
+  if (GuildSettingsStore.has(guildId)) {
+    const settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings.merge({prefixes: data});
+  }
+  return collection;
 }
 
 
@@ -120,13 +77,7 @@ export async function deleteGuildAllowlist(
   allowlistId: string,
   type: GuildAllowlistTypes,
 ): Promise<RestResponses.DeleteGuildAllowlist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.DELETE,
-      path: Api.GUILD_ALLOWLIST,
-      params: {allowlistId, guildId, type},
-    },
-  });
+  return raw.deleteGuildAllowlist(context, guildId, allowlistId, type);
 }
 
 
@@ -136,13 +87,7 @@ export async function deleteGuildBlocklist(
   blocklistId: string,
   type: GuildBlocklistTypes,
 ): Promise<RestResponses.DeleteGuildBlocklist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.DELETE,
-      path: Api.GUILD_BLOCKLIST,
-      params: {blocklistId, guildId, type},
-    },
-  });
+  return raw.deleteGuildBlocklist(context, guildId, blocklistId, type);
 }
 
 
@@ -153,13 +98,7 @@ export async function deleteGuildDisabledCommand(
   disabledId: string,
   type: GuildDisableCommandsTypes,
 ): Promise<RestResponses.DeleteGuildDisabledCommand> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.DELETE,
-      path: Api.GUILD_DISABLED_COMMAND,
-      params: {command, disabledId, guildId, type},
-    },
-  });
+  return raw.deleteGuildDisabledCommand(context, guildId, command, disabledId, type);
 }
 
 
@@ -168,16 +107,17 @@ export async function deleteGuildPrefix(
   guildId: string,
   prefix: string,
 ): Promise<RestResponses.DeleteGuildPrefix> {
-  const body = {prefix};
-  const params = {guildId};
-  return request(context, {
-    body,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.GUILD_PREFIXES_DELETE,
-      params,
-    },
-  });
+  const data = await raw.deleteGuildPrefix(context, guildId, prefix);
+  const collection = new Collections.BaseCollection<string, GuildSettingsPrefix>();
+  for (let raw of data) {
+    const item = new GuildSettingsPrefix(raw);
+    collection.set(item.prefix, item);
+  }
+  if (GuildSettingsStore.has(guildId)) {
+    const settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings.merge({prefixes: data});
+  }
+  return collection;
 }
 
 
@@ -186,260 +126,129 @@ export async function editGuildSettings(
   guildId: string,
   options: RestOptions.EditGuildSettings = {},
 ): Promise<RestResponses.EditGuildSettings> {
-  const body = {
-    blocklist: options.blocklist,
-    prefixes: options.prefixes,
-  };
-  const params = {guildId};
-  return request(context, {
-    body,
-    route: {
-      method: HTTPMethods.PATCH,
-      path: Api.GUILD,
-      params,
-    },
-  });
+  const data = await raw.editGuildSettings(context, guildId, options);
+  let settings: GuildSettings;
+  if (GuildSettingsStore.has(guildId)) {
+    settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings.merge(data);
+  } else {
+    settings = new GuildSettings(data);
+    GuildSettingsStore.set(settings.id, settings);
+  }
+  return settings;
 }
 
 
 export async function fetchGuildSettings(
   context: Command.Context,
   guildId: string,
-): Promise<RestResponses.EditGuildSettings> {
-  const params = {guildId};
-  return request(context, {
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.GUILD,
-      params,
-    },
-  });
+): Promise<RestResponses.FetchGuildSettings> {
+  const data = await raw.fetchGuildSettings(context, guildId);
+  let settings: GuildSettings;
+  if (GuildSettingsStore.has(guildId)) {
+    settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings.merge(data);
+  } else {
+    settings = new GuildSettings(data);
+    GuildSettingsStore.set(settings.id, settings);
+  }
+  return settings;
 }
 
 
 export async function googleContentVisionOCR(
   context: Command.Context,
   options: RestOptions.GoogleContentVisionOCR,
-): Promise<RestResponses.GoogleContentVisionOCR> {
-  const body = {
-    url: options.url,
-  };
-  return request(context, {
-    body,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.GOOGLE_CONTENT_VISION_OCR,
-    },
-  });
+) {
+  return raw.googleContentVisionOCR(context, options);
 }
 
 
 export async function googleSearch(
   context: Command.Context,
   options: RestOptions.GoogleSearch,
-): Promise<RestResponses.GoogleSearch> {
-  const query = {
-    locale: options.locale,
-    max_results: options.maxResults,
-    query: options.query,
-    safe: options.safe,
-    show_unknown: options.showUnknown,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.GOOGLE_SEARCH,
-    },
-  });
+) {
+  return raw.googleSearch(context, options);
 }
 
 
 export async function googleSearchImages(
   context: Command.Context,
   options: RestOptions.GoogleSearchImages,
-): Promise<RestResponses.GoogleSearchImages> {
-  const query = {
-    locale: options.locale,
-    max_results: options.maxResults,
-    query: options.query,
-    safe: options.safe,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.GOOGLE_SEARCH_IMAGES,
-    },
-  });
+) {
+  return raw.googleSearchImages(context, options);
 }
 
 
 export async function googleTranslate(
   context: Command.Context,
   options: RestOptions.GoogleTranslate,
-): Promise<RestResponses.GoogleTranslate> {
-  const query = {
-    from: options.from,
-    text: options.text,
-    to: options.to,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.GOOGLE_TRANSLATE,
-    },
-  });
+) {
+  return raw.googleTranslate(context, options);
 }
 
 
 export async function imageJPEG(
   context: Command.Context,
   options: RestOptions.ImageJPEG,
-): Promise<Response> {
-  const query = {
-    quality: options.quality,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_JPEG,
-    },
-  });
+) {
+  return raw.imageJPEG(context, options);
 }
 
 
 export async function imageMagik(
   context: Command.Context,
   options: RestOptions.ImageMagik,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MAGIK,
-    },
-  });
+) {
+  return raw.imageMagik(context, options);
 }
 
 
 export async function imageMagikGif(
   context: Command.Context,
   options: RestOptions.ImageMagikGif,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MAGIK_GIF,
-    },
-  });
+) {
+  return raw.imageMagikGif(context, options);
 }
 
 
 export async function imageMirrorBottom(
   context: Command.Context,
   options: RestOptions.ImageMirrorBottom,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MIRROR_BOTTOM,
-    },
-  });
+) {
+  return raw.imageMirrorBottom(context, options);
 }
 
 
 export async function imageMirrorLeft(
   context: Command.Context,
   options: RestOptions.ImageMirrorLeft,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MIRROR_LEFT,
-    },
-  });
+) {
+  return raw.imageMirrorLeft(context, options);
 }
 
 
 export async function imageMirrorRight(
   context: Command.Context,
   options: RestOptions.ImageMirrorRight,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MIRROR_RIGHT,
-    },
-  });
+) {
+  return raw.imageMirrorLeft(context, options);
 }
 
 
 export async function imageMirrorTop(
   context: Command.Context,
   options: RestOptions.ImageMirrorTop,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MIRROR_TOP,
-    },
-  });
+) {
+  return raw.imageMirrorTop(context, options);
 }
 
 
 export async function imageResize(
   context: Command.Context,
   options: RestOptions.ImageResize,
-): Promise<Response> {
-  const query = {
-    convert: options.convert,
-    scale: options.scale,
-    size: options.size,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_RESIZE,
-    },
-  });
+) {
+  return raw.imageResize(context, options);
 }
 
 
@@ -447,197 +256,103 @@ export async function putGuildSettings(
   context: Command.Context,
   guildId: string,
   options: RestOptions.PutGuildSettings,
-): Promise<RestResponses.EditGuildSettings> {
-  const params = {guildId};
-  return request(context, {
-    body: options,
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD,
-      params,
-    },
-  });
+): Promise<RestResponses.PutGuildSettings> {
+  const data = await raw.putGuildSettings(context, guildId, options);
+  let settings: GuildSettings;
+  if (GuildSettingsStore.has(guildId)) {
+    settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings.merge(data);
+  } else {
+    settings = new GuildSettings(data);
+    GuildSettingsStore.set(settings.id, settings);
+  }
+  return settings;
 }
 
 
 export async function searchDuckDuckGo(
   context: Command.Context,
   options: RestOptions.SearchDuckDuckGo,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_DUCKDUCKGO,
-    },
-  });
+) {
+  return raw.searchDuckDuckGo(context, options);
 }
 
 
 export async function searchDuckDuckGoImages(
   context: Command.Context,
   options: RestOptions.SearchDuckDuckGoImages,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_DUCKDUCKGO_IMAGES,
-    },
-  });
+) {
+  return raw.searchDuckDuckGoImages(context, options);
 }
 
 
 export async function searchE621(
   context: Command.Context,
   options: RestOptions.SearchE621,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_E621,
-    },
-  });
+) {
+  return raw.searchE621(context, options);
 }
 
 
 export async function searchE926(
   context: Command.Context,
   options: RestOptions.SearchE926,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_E926,
-    },
-  });
+) {
+  return raw.searchE926(context, options);
 }
 
 
 export async function searchRule34(
   context: Command.Context,
   options: RestOptions.SearchRule34,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_RULE34,
-    },
-  });
+) {
+  return raw.searchRule34(context, options);
 }
 
 
 export async function searchRule34Paheal(
   context: Command.Context,
   options: RestOptions.SearchRule34Paheal,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_RULE34_PAHEAL,
-    },
-  });
+) {
+  return raw.searchRule34Paheal(context, options);
 }
 
 
 export async function searchUrban(
   context: Command.Context,
   options: RestOptions.SearchUrban,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_URBAN_DICTIONARY,
-    },
-  });
+) {
+  return raw.searchUrban(context, options);
 }
 
 
 export async function searchUrbanRandom(
   context: Command.Context,
   options: RestOptions.SearchUrbanRandom = {},
-): Promise<any> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_URBAN_DICTIONARY_RANDOM,
-    },
-  });
+) {
+  return raw.searchUrbanRandom(context, options);
 }
 
 
 export async function searchWolframAlpha(
   context: Command.Context,
   options: RestOptions.SearchWolframAlpha,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.SEARCH_WOLFRAM_ALPHA,
-    },
-  });
+) {
+  return raw.searchWolframAlpha(context, options);
 }
 
 
 export async function uploadCommands(
   context: Command.Context,
   options: RestOptions.UploadCommands,
-): Promise<any> {
-  const body = {
-    commands: options.commands,
-  };
-  return request(context, {
-    body,
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.COMMANDS,
-    },
-  });
+) {
+  return raw.uploadCommands(context, options);
 }
 
 
 export async function youtubeSearch(
   context: Command.Context,
   options: RestOptions.YoutubeSearch,
-): Promise<any> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.YOUTUBE_SEARCH,
-    },
-  });
+) {
+  return raw.youtubeSearch(context, options);
 }

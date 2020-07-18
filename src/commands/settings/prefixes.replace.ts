@@ -4,7 +4,6 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../api';
 import { CommandTypes, EmbedColors } from '../../constants';
-import GuildSettingsStore from '../../stores/guildsettings';
 import { Parameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -55,9 +54,8 @@ export default class PrefixesReplaceCommand extends BaseCommand {
     embed.setColor(EmbedColors.DEFAULT);
     embed.setTitle(`Replaced prefixes with **${Markup.escape.all(args.prefix)}**`);
 
-    const settings = await editGuildSettings(context, guildId, {prefixes: [args.prefix]});
-    GuildSettingsStore.set(guildId, settings);
-    formatPrefixes(context, settings, embed);
+    const { prefixes } = await editGuildSettings(context, guildId, {prefixes: [args.prefix]});
+    formatPrefixes(context, prefixes, embed);
 
     return context.editOrReply({embed});
   }

@@ -140,11 +140,11 @@ export default class ShardCommand extends BaseCommand {
         ]);
       }
 
-      const totalUsage = results.reduce((x: number, info: any) => x + info.usage, 0);
+      const totalUsage = results.reduce((x: number, info: any) => x + info.ramUsage, 0);
       rows.push([
         'T',
-        String(results.reduce((x: number, info: any) => x + info.guilds, 0)),
-        String(results.reduce((x: number, info: any) => x + info.members, 0)),
+        String(results.reduce((x: number, info: any) => x + info.objects.guilds, 0)),
+        String(results.reduce((x: number, info: any) => x + info.objects.members, 0)),
         `${Math.round(totalUsage / 1024 / 1024)}`,
       ]);
     }

@@ -503,9 +503,33 @@ export enum NotSoHeaders {
 }
 
 export const NotSoApiKeys = Object.freeze({
+  ADDED: 'added',
+  ALLOWLIST: 'allowlist',
+  BLOCKLIST: 'blocklist',
+  COMMAND: 'command',
+  DISABLED_COMMANDS: 'disabled_commands',
+  GUILD_ID: 'guild_id',
+  ICON: 'icon',
   ID: 'id',
+  NAME: 'name',
+  PREFIX: 'prefix',
+  PREFIXES: 'prefixes',
+  TYPE: 'type',
+  USER_ID: 'user_id',
 });
 
 export const NotSoBotKeys = Object.freeze({
+  [NotSoApiKeys.ADDED]: 'added',
+  [NotSoApiKeys.ALLOWLIST]: 'allowlist',
+  [NotSoApiKeys.BLOCKLIST]: 'blocklist',
+  [NotSoApiKeys.COMMAND]: 'command',
+  [NotSoApiKeys.DISABLED_COMMANDS]: 'disabledCommands',
+  [NotSoApiKeys.GUILD_ID]: 'guildId',
+  [NotSoApiKeys.ICON]: 'icon',
   [NotSoApiKeys.ID]: 'id',
+  [NotSoApiKeys.NAME]: 'name',
+  [NotSoApiKeys.PREFIX]: 'prefix',
+  [NotSoApiKeys.PREFIXES]: 'prefixes',
+  [NotSoApiKeys.TYPE]: 'type',
+  [NotSoApiKeys.USER_ID]: 'userId',
 });

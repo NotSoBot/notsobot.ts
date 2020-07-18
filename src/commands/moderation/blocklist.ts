@@ -1,12 +1,12 @@
 import * as moment from 'moment';
 
-import { Command, CommandClient } from 'detritus-client';
+import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
+import { GuildSettings, GuildSettingsBlocklist } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
-import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
-import { RestResponses } from '../../types';
+import GuildSettingsStore from '../../stores/guildsettings';
 import { Paginator, Parameters, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -16,10 +16,10 @@ const ELEMENTS_PER_PAGE = 15;
 
 export async function createBlocklistEmbed(
   context: Command.Context,
-  blocklist: Array<RestResponses.GuildBlocklist>,
+  blocklist: Collections.BaseCollection<string, GuildSettingsBlocklist>,
   options: {only?: GuildBlocklistTypes | null, title?: string} = {},
 ) {
-  let sorted = blocklist.slice();
+  let sorted = blocklist.toArray();
   if (options.only) {
     sorted = sorted.filter((blocked) => blocked.type === options.only);
   }
@@ -28,7 +28,7 @@ export async function createBlocklistEmbed(
   });
   // maybe compare dates?
 
-  const pages = splitArray<RestResponses.GuildBlocklist>(sorted, ELEMENTS_PER_PAGE);
+  const pages = splitArray<GuildSettingsBlocklist>(sorted, ELEMENTS_PER_PAGE);
 
   let title = options.title || 'Blocklist';
   let footer = 'Blocklist';
@@ -51,7 +51,7 @@ export async function createBlocklistEmbed(
         {
           const description: Array<string> = page.map((blocked, i) => {
             let description = 'Unknown';
-            let type = blocked.type;
+            let type: string = blocked.type;
             switch (blocked.type) {
               case GuildBlocklistTypes.CHANNEL: {
                 const channel = context.channels.get(blocked.id);
@@ -145,7 +145,7 @@ export default class BlocklistCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;
 
-    const { blocklist } = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettingsStored;
+    const { blocklist } = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
     return createBlocklistEmbed(context, blocklist, {only: args.only});
   }
 }

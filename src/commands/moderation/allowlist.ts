@@ -1,12 +1,12 @@
 import * as moment from 'moment';
 
-import { Command, CommandClient } from 'detritus-client';
+import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
+import { GuildSettings, GuildSettingsAllowlist } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
-import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
-import { RestResponses } from '../../types';
+import GuildSettingsStore from '../../stores/guildsettings';
 import { Paginator, Parameters, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -16,10 +16,10 @@ const ELEMENTS_PER_PAGE = 15;
 
 export async function createAllowlistEmbed(
   context: Command.Context,
-  allowlist: Array<RestResponses.GuildAllowlist>,
+  allowlist: Collections.BaseCollection<string, GuildSettingsAllowlist>,
   options: {only?: GuildAllowlistTypes | null, title?: string} = {},
 ) {
-  let sorted = allowlist.slice();
+  let sorted = allowlist.toArray();
   if (options.only) {
     sorted = sorted.filter((allowed) => allowed.type === options.only);
   }
@@ -28,7 +28,7 @@ export async function createAllowlistEmbed(
   });
   // maybe compare dates?
 
-  const pages = splitArray<RestResponses.GuildAllowlist>(sorted, ELEMENTS_PER_PAGE);
+  const pages = splitArray<GuildSettingsAllowlist>(sorted, ELEMENTS_PER_PAGE);
 
   let title = options.title || 'Allowlist';
   let footer = 'Allowlist';
@@ -51,7 +51,7 @@ export async function createAllowlistEmbed(
         {
           const description: Array<string> = page.map((allowed, i) => {
             let description = 'Unknown';
-            let type = allowed.type;
+            let type: string = allowed.type;
             switch (allowed.type) {
               case GuildAllowlistTypes.CHANNEL: {
                 const channel = context.channels.get(allowed.id);
@@ -145,7 +145,7 @@ export default class AllowlistCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;
 
-    const { allowlist } = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettingsStored;
+    const { allowlist } = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
     return createAllowlistEmbed(context, allowlist, {only: args.only});
   }
 }

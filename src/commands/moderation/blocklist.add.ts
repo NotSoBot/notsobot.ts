@@ -3,8 +3,9 @@ import { DiscordRegexNames, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 
 import { createGuildBlocklist, editGuildSettings } from '../../api';
+import { GuildSettings } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
-import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
+import GuildSettingsStore from '../../stores/guildsettings';
 
 import { BaseCommand } from '../basecommand';
 
@@ -98,7 +99,7 @@ export async function createBlocklist(
   const guildId = context.guildId as string;
 
   let title = 'Blocklist';
-  let settings: GuildSettingsStored;
+  let settings: GuildSettings;
   if (payloads.length === 1) {
     const [ payload ] = payloads;
     switch (payload.type) {
@@ -117,7 +118,7 @@ export async function createBlocklist(
     }
 
     await createGuildBlocklist(context, guildId, payload.item.id, payload.type);
-    settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettingsStored;
+    settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettings;
     // update settings
   } else {
     let channels = 0,
@@ -142,7 +143,7 @@ export async function createBlocklist(
     }
     title = `Added ${comments.join(', ')} to Blocklist`;
 
-    settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettingsStored;
+    settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
     settings = await editGuildSettings(context, guildId, {
       blocklist: [
         ...payloads.map((payload) => ({id: payload.item.id, type: payload.type})),
@@ -150,7 +151,6 @@ export async function createBlocklist(
       ],
     });
   }
-  GuildSettingsStore.set(guildId, settings);
   return {settings, title};
 }
 

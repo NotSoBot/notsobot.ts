@@ -56,11 +56,7 @@ export default class PrefixesAddCommand extends BaseCommand {
     embed.setTitle(`Created prefix: **${Markup.escape.all(args.prefix)}**`);
 
     const prefixes = await createGuildPrefix(context, guildId, args.prefix);
-    const settings = GuildSettingsStore.get(guildId);
-    if (settings) {
-      settings.prefixes = prefixes;
-      formatPrefixes(context, settings, embed);
-    }
+    formatPrefixes(context, prefixes, embed);
 
     return context.editOrReply({embed});
   }

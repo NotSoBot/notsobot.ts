@@ -1,10 +1,11 @@
-import { Command } from 'detritus-client';
+import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildBlocklist, editGuildSettings } from '../../api';
+import { GuildSettings } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
-import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
+import GuildSettingsStore from '../../stores/guildsettings';
 
 import BlocklistAddCommand, { BlocklistPayload, CommandArgs, getItemsFromMention } from './blocklist.add';
 import { createBlocklistEmbed } from './blocklist';
@@ -17,7 +18,7 @@ export async function removeBlocklist(
   const guildId = context.guildId as string;
 
   let title = 'Blocklist';
-  let settings: GuildSettingsStored;
+  let settings: GuildSettings;
   if (payloads.length === 1) {
     const [ payload ] = payloads;
     switch (payload.type) {
@@ -36,7 +37,7 @@ export async function removeBlocklist(
     }
 
     await deleteGuildBlocklist(context, guildId, payload.item.id, payload.type);
-    settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettingsStored;
+    settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettings;
     // update settings
   } else {
     let channels = 0,
@@ -61,17 +62,20 @@ export async function removeBlocklist(
     }
     title = `Removed ${comments.join(', ')} from Blocklist`;
 
-    settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettingsStored;
+    settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
 
-    const blocklist: Array<{id: string, type: string}> = [];
-    for (let blocked of settings.blocklist) {
-      if (!payloads.some(({item}) => item.id === blocked.id)) {
-        blocklist.push({id: blocked.id, type: blocked.type});
-      }
+    const blocklist = new Collections.BaseCollection<string, {id: string, type: string}>();
+    for (let [key, blocked] of settings.blocklist) {
+      blocklist.set(key, {id: blocked.id, type: blocked.type});
     }
-    settings = await editGuildSettings(context, guildId, {blocklist});
+    for (let {item, type} of payloads) {
+      const key = `${item.id}.${type}`;
+      blocklist.delete(key);
+    }
+    settings = await editGuildSettings(context, guildId, {
+      blocklist: blocklist.toArray(),
+    });
   }
-  GuildSettingsStore.set(guildId, settings);
   return {settings, title};
 }
 

@@ -61,7 +61,7 @@ export class NotSoClient extends CommandClient {
     const guildId = context.guildId as string;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {
-      const disabledCommands = settings.disabled_commands.filter((disabled) => disabled.command === command.name);
+      const disabledCommands = settings.disabledCommands.filter((disabled) => disabled.command === command.name);
       if (disabledCommands.length) {
         const shouldIgnore = disabledCommands.some((disabled) => {
           switch (disabled.type) {

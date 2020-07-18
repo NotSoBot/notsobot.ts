@@ -50,7 +50,6 @@ export default class BlocklistClearCommand extends BaseCommand {
       embed.setFooter('Blocklist');
 
       const settings = await editGuildSettings(context, guildId, {blocklist: []});
-      GuildSettingsStore.set(guildId, settings);
     }
 
     return context.editOrReply({embed});

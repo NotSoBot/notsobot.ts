@@ -1,10 +1,11 @@
-import { Command } from 'detritus-client';
+import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildAllowlist, editGuildSettings } from '../../api';
+import { GuildSettings } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
-import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
+import GuildSettingsStore from '../../stores/guildsettings';
 
 import AllowlistAddCommand, { AllowlistPayload, CommandArgs, getItemsFromMention } from './allowlist.add';
 import { createAllowlistEmbed } from './allowlist';
@@ -17,7 +18,7 @@ export async function removeAllowlist(
   const guildId = context.guildId as string;
 
   let title = 'Allowlist';
-  let settings: GuildSettingsStored;
+  let settings: GuildSettings;
   if (payloads.length === 1) {
     const [ payload ] = payloads;
     switch (payload.type) {
@@ -36,7 +37,7 @@ export async function removeAllowlist(
     }
 
     await deleteGuildAllowlist(context, guildId, payload.item.id, payload.type);
-    settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettingsStored;
+    settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettings;
     // update settings
   } else {
     let channels = 0,
@@ -61,17 +62,20 @@ export async function removeAllowlist(
     }
     title = `Removed ${comments.join(', ')} from Allowlist`;
 
-    settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettingsStored;
+    settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
 
-    const allowlist: Array<{id: string, type: string}> = [];
-    for (let allowed of settings.allowlist) {
-      if (!payloads.some(({item}) => item.id === allowed.id)) {
-        allowlist.push({id: allowed.id, type: allowed.type});
-      }
+    const allowlist = new Collections.BaseCollection<string, {id: string, type: string}>();
+    for (let [key, allowed] of settings.allowlist) {
+      allowlist.set(key, {id: allowed.id, type: allowed.type});
     }
-    settings = await editGuildSettings(context, guildId, {allowlist});
+    for (let {item, type} of payloads) {
+      const key = `${item.id}.${type}`;
+      allowlist.delete(key);
+    }
+    settings = await editGuildSettings(context, guildId, {
+      allowlist: allowlist.toArray(),
+    });
   }
-  GuildSettingsStore.set(guildId, settings);
   return {settings, title};
 }
 

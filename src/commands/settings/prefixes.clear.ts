@@ -35,9 +35,8 @@ export default class PrefixesClearCommand extends BaseCommand {
     embed.setColor(EmbedColors.DEFAULT);
     embed.setTitle('Cleared prefixes');
 
-    const settings = await editGuildSettings(context, guildId, {prefixes: []});
-    GuildSettingsStore.set(guildId, settings);
-    formatPrefixes(context, settings, embed);
+    const { prefixes } = await editGuildSettings(context, guildId, {prefixes: []});
+    formatPrefixes(context, prefixes, embed);
 
     return context.editOrReply({embed});
   }

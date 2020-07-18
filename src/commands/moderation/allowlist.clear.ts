@@ -50,7 +50,6 @@ export default class AllowlistClearCommand extends BaseCommand {
       embed.setFooter('Allowlist');
 
       const settings = await editGuildSettings(context, guildId, {allowlist: []});
-      GuildSettingsStore.set(guildId, settings);
     }
 
     return context.editOrReply({embed});

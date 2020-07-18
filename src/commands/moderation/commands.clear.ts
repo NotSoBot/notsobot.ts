@@ -3,9 +3,6 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, EmbedColors, GuildDisableCommandsTypes } from '../../constants';
-import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
-import { RestResponses } from '../../types';
-import { Paginator, Parameters, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 

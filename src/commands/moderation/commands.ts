@@ -1,12 +1,12 @@
 import * as moment from 'moment';
 
-import { Command, CommandClient } from 'detritus-client';
+import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
+import { GuildSettings, GuildSettingsDisabledCommand } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildDisableCommandsTypes } from '../../constants';
-import GuildSettingsStore, { GuildSettingsStored } from '../../stores/guildsettings';
-import { RestResponses } from '../../types';
+import GuildSettingsStore from '../../stores/guildsettings';
 import { Paginator, Parameters, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -16,10 +16,10 @@ const ELEMENTS_PER_PAGE = 15;
 
 export async function createDisabledCommandsEmbed(
   context: Command.Context,
-  disabledCommands: Array<RestResponses.GuildDisabledCommand>,
+  disabledCommands: Collections.BaseCollection<string, GuildSettingsDisabledCommand>,
   options: {only?: GuildDisableCommandsTypes | null, title?: string} = {},
 ) {
-  let sorted = disabledCommands.slice();
+  let sorted = disabledCommands.toArray();
   if (options.only) {
     sorted = sorted.filter((disabled) => disabled.type === options.only);
   }
@@ -27,7 +27,7 @@ export async function createDisabledCommandsEmbed(
     return y.added.localeCompare(x.added);
   });
 
-  const pages = splitArray<RestResponses.GuildDisabledCommand>(sorted, ELEMENTS_PER_PAGE);
+  const pages = splitArray<GuildSettingsDisabledCommand>(sorted, ELEMENTS_PER_PAGE);
 
   let title = options.title || 'Disabled Commands';
   let footer = 'Disabled Commands List';
@@ -133,9 +133,7 @@ export default class CommandsCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;
 
-    const {
-      disabled_commands: disabledCommands,
-    } = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettingsStored;
+    const { disabledCommands } = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
     return createDisabledCommandsEmbed(context, disabledCommands, {only: args.only});
   }
 }
