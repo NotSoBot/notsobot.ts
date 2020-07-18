@@ -1,10 +1,12 @@
+export const LOCALHOST_API = 'http://localhost';
+
 export enum Domains {
   BETA = 'https://beta.notsobot.com/',
   STABLE = 'https://notsobot.com/',
 }
 
 export const Api = Object.freeze({
-  URL: Domains.BETA.slice(0, -1),
+  URL: LOCALHOST_API,
   PATH: '/api',
 
   COMMANDS:
