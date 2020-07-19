@@ -1,5 +1,3 @@
-import * as moment from 'moment';
-
 import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
@@ -64,9 +62,8 @@ export async function createDisabledCommandsEmbed(
                 type = `User Disable (<@${disabled.id}>)`;
               }; break;
             }
-            const added = moment(disabled.added).fromNow();
             return [
-              `${(i * pageNumber) + 1}. **${disabled.command}** added ${added}`,
+              `${(i * pageNumber) + 1}. **${disabled.command}** added ${disabled.addedAtText}`,
               `-. ${type}`,
             ].join('\n');
           });

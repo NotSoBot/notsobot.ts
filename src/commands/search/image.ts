@@ -1,7 +1,5 @@
-import * as moment from 'moment';
-
-import { Command, CommandClient, Utils } from 'detritus-client';
-const { Markup } = Utils;
+import { Command, CommandClient } from 'detritus-client';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { googleSearchImages } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleImageVideoTypes, GoogleLocales, GoogleLocalesText } from '../../constants';
@@ -47,7 +45,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
 
@@ -66,18 +64,18 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
 
           const description: Array<string> = [Markup.url(Markup.escape.all(result.description), result.url)];
           if (result.product) {
-            const product = result.product;
+            const { product } = result;
 
             const productDetails: Array<string> = [];
             if (product.stars) {
-              if (product.stars_amount) {
-                productDetails.push(`${product.stars} ⭐ (${product.stars_amount.toLocaleString()} reviews)`);
+              if (product.starsAmount) {
+                productDetails.push(`${product.stars} ⭐ (${product.starsAmount.toLocaleString()} reviews)`);
               } else {
                 productDetails.push(`${product.stars} ⭐`);
               }
             }
-            if (product.in_stock !== null) {
-              productDetails.push((product.in_stock) ? 'In Stock' : 'Not In Stock');
+            if (product.inStock !== null) {
+              productDetails.push((product.inStock) ? 'In Stock' : 'Not In Stock');
             }
             if (product.price) {
               productDetails.push(`${product.price} (${product.currency})`);
@@ -88,7 +86,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
             }
           }
           if (result.video) {
-            const video = result.video;
+            const { video } = result;
 
             const videoDetails: Array<string> = [];
             if (video.duration) {
@@ -107,13 +105,13 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
             description.push(videoDetails.join(' | '));
             if (video.channel) {
               let text = `Uploaded By **${Markup.escape.all(video.channel)}**`;
-              if (video.uploaded_at) {
-                text = `${text} (${moment(video.uploaded_at).fromNow()})`;
+              if (video.uploadedAt) {
+                text = `${text} (${video.uploadedAtText})`;
               }
               description.push(text);
             } else {
-              if (video.uploaded_at) {
-                description.push(`Uploaded ${moment(video.uploaded_at).fromNow()}`);
+              if (video.uploadedAt) {
+                description.push(`Uploaded ${video.uploadedAtText}`);
               }
             }
             if (video.description) {
@@ -125,7 +123,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
             }
           }
 
-          if (result.image.extension === 'svg') {
+          if (result.image.isSVG) {
             embed.setImage(result.thumbnail.url);
             description.push(Markup.url('**Image URL**', result.image.url));
           } else {

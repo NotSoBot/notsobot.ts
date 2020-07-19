@@ -3,6 +3,7 @@ import { Response } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
 import * as raw from './raw';
+import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
 import {
   GuildSettings,
   GuildSettingsPrefix,
@@ -175,8 +176,14 @@ export async function googleSearch(
 export async function googleSearchImages(
   context: Command.Context,
   options: RestOptions.GoogleSearchImages,
-) {
-  return raw.googleSearchImages(context, options);
+): Promise<RestResponses.GoogleSearchImages> {
+  const data = await raw.googleSearchImages(context, options);
+  const collection = [];
+  for (let raw of data) {
+    const result = new GoogleSearchImageResult(raw);
+    collection.push(result);
+  }
+  return collection;
 }
 
 

@@ -4,7 +4,7 @@ import { Embed } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { CommandTypes, EmbedColors, PermissionsText } from '../constants';
-import { Parameters } from '../utils';
+import { Parameters, triggerTypingAfter } from '../utils';
 
 // description and usage shouldnt be optional, temporary for now
 export interface CommandMetadata {
@@ -55,7 +55,19 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     return context.editOrReply(`⚠ ${command} requires you to have ${permissions.join(', ')}.`);
   }
 
+  async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
+    if (context.metadata && context.metadata.timeout) {
+      context.metadata.timeout.stop();
+    }
+
+    // log command
+  }
+
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
+    if (context.metadata && context.metadata.timeout) {
+      context.metadata.timeout.stop();
+    }
+
     const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Error');
@@ -162,18 +174,3 @@ export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
     return context.editOrReply('⚠ Provide some kind of search term.');
   }
 }
-
-/*
-
-onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-
-}
-
-onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-
-}
-
-async run(context: Command.Context, args: CommandArgs) {
-
-}
-*/

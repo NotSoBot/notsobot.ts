@@ -1,5 +1,3 @@
-import * as moment from 'moment';
-
 import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
@@ -22,8 +20,7 @@ export function formatPrefixes(
   if (prefixes.length) {
     let i = 1;
     const description = prefixes.map((prefix) => {
-      const added = moment(prefix.added).fromNow();
-      return `${i++}. **${Markup.escape.all(prefix.prefix)}** added ${added}`;
+      return `${i++}. **${Markup.escape.all(prefix.prefix)}** added ${prefix.addedAtText}`;
     });
     embed.setDescription(description.join('\n'));
   } else {

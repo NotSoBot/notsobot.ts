@@ -467,11 +467,11 @@ export function splitArray<T>(
 
 export async function triggerTypingAfter(
   context: Command.Context,
-  milliseconds?: number,
+  milliseconds: number = 1000,
 ): Promise<Timers.Timeout> {
   const timeout = new Timers.Timeout();
 
-  const response = context.response;
+  const { response } = context;
   // just a small check to see if we're gonna delete the old message and reply with a new one
   // can't really tell without passing in what we're gonna send to discord tho
   if (!response || response.hasAttachment) {
@@ -481,6 +481,7 @@ export async function triggerTypingAfter(
           await context.triggerTyping();
         } catch(error) {}
       });
+      context.metadata = Object.assign({}, context.metadata, {timeout});
     } else {
       await context.triggerTyping();
     }

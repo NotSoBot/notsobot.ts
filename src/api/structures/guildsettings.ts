@@ -1,3 +1,5 @@
+import * as moment from 'moment';
+
 import { Collections, Structures } from 'detritus-client';
 
 import {
@@ -141,7 +143,7 @@ export class GuildSettings extends BaseStructure {
         }; return;
       }
     }
-    super.mergeValue(key, value);
+    return super.mergeValue(key, value);
   }
 }
 
@@ -166,6 +168,10 @@ export class GuildSettingsAllowlist extends BaseStructure {
     this.merge(data);
   }
 
+  get addedAtText(): string {
+    return moment(this.added).fromNow();
+  }
+
   get key(): string {
     return `${this.id}.${this.type}`;
   }
@@ -183,6 +189,10 @@ export class GuildSettingsBlocklist extends BaseStructure {
   constructor(data: Structures.BaseStructureData) {
     super();
     this.merge(data);
+  }
+
+  get addedAtText(): string {
+    return moment(this.added).fromNow();
   }
 
   get key(): string {
@@ -213,6 +223,10 @@ export class GuildSettingsDisabledCommand extends BaseStructure {
     this.merge(data);
   }
 
+  get addedAtText(): string {
+    return moment(this.added).fromNow();
+  }
+
   get key(): string {
     return `${this.command}.${this.id}.${this.type}`;
   }
@@ -237,5 +251,9 @@ export class GuildSettingsPrefix extends BaseStructure {
   constructor(data: Structures.BaseStructureData) {
     super();
     this.merge(data);
+  }
+
+  get addedAtText(): string {
+    return moment(this.added).fromNow();
   }
 }

@@ -6,6 +6,7 @@ import {
   GoogleLocales,
 } from '../constants';
 
+import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
 import {
   GuildSettings,
   GuildSettingsAllowlist,
@@ -172,6 +173,8 @@ export namespace RestResponses {
   export type EditGuildSettings = GuildSettings;
 
   export type FetchGuildSettings = GuildSettings;
+
+  export type GoogleSearchImages = Array<GoogleSearchImageResult>;
 
   export type PutGuildSettings = GuildSettings;
 }

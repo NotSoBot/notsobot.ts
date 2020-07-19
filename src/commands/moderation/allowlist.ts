@@ -1,5 +1,3 @@
-import * as moment from 'moment';
-
 import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
@@ -77,9 +75,8 @@ export async function createAllowlistEmbed(
             }
             description = `${description} ||(${allowed.id})||`;
 
-            const added = moment(allowed.added).fromNow();
             return [
-              `${(i * pageNumber) + 1}. **${type}** added ${added}`,
+              `${(i * pageNumber) + 1}. **${type}** added ${allowed.addedAtText}`,
               `-> ${description}`,
             ].join('\n');
           });
