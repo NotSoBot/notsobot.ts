@@ -53,6 +53,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
           } else {
             settings = await fetchGuildSettings(context, guildId);
           }
+          this.insert(settings);
           resolve(settings);
         } catch(error) {
           resolve(null);
