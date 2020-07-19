@@ -632,7 +632,7 @@ export async function uploadCommands(
 export async function youtubeSearch(
   context: Command.Context,
   options: RestOptions.YoutubeSearch,
-): Promise<any> {
+): Promise<RestResponsesRaw.YoutubeSearch> {
   const query = {
     query: options.query,
   };

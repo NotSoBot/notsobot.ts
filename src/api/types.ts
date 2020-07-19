@@ -319,4 +319,62 @@ export namespace RestResponsesRaw {
     prefix: string,
     user_id: string,
   }
+
+  export interface YoutubeSearch {
+    response: any,
+    results: Array<YoutubeSearchResult>,
+    suggestions: Array<string>,
+    total_result_count: number,
+  }
+
+  export interface YoutubeSearchResult {
+    description: string,
+    metadata: any,
+    thumbnail: {
+      height: number,
+      url: string,
+      width: number,
+    },
+    title: string,
+    type: number,
+    url: string,
+  }
+
+  export interface YoutubeSearchResultMetadataChannel {
+    badges: Array<string>,
+    id: string,
+    subscriber_count: string,
+    vanity: null | string,
+    video_count: number,
+  }
+
+  export interface YoutubeSearchResultMetadataMovie {
+    channel: {
+      badges: Array<string>,
+      id: string,
+      name: string,
+      url: string,
+      vanity: null | string,
+    },
+    duration: string,
+    fields: Array<{name: string, value: string}>,
+    genre: string,
+    id: string,
+    price: string,
+  }
+
+  export interface YoutubeSearchResultMetadataVideo {
+    badges: Array<string>,
+    channel: {
+      badges: Array<string>,
+      id: string,
+      name: string,
+      url: string,
+      vanity: null | string,
+    },
+    duration: string,
+    id: string,
+    published: string,
+    view_count: number,
+  }
 }
