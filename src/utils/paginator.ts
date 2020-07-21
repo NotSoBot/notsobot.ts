@@ -363,59 +363,64 @@ export class Paginator {
       throw new Error('Paginator needs an onPage function or at least one page added to it');
     }
 
-    if (!this.message) {
+    let message: Structures.Message;
+    if (this.message) {
+      message = this.message;
+    } else {
       if (!this.context.canReply) {
         throw new Error('Cannot create messages in this channel');
       }
       const embed = await this.getPage(this.page);
       if (this.context instanceof Command.Context) {
-        this.message = await this.context.editOrReply({embed});
+        message = this.message = await this.context.editOrReply({embed});
       } else {
-        this.message = await this.context.reply({embed});
+        message = this.message = await this.context.reply({embed});
       }
     }
 
     this.reset();
-    if (!this.stopped && this.pageLimit !== MIN_PAGE && this.message.canReact) {
-      if (PaginatorsStore.has(this.context.channelId)) {
-        const paginator = <Paginator> PaginatorsStore.get(this.context.channelId);
-        if (this.message === paginator.message) {
-          await paginator.stop(false);
-        } else {
-          await paginator.stop();
-        }
-      }
-      PaginatorsStore.insert(this);
-
-      this.timeout.start(this.expires, this.onStop.bind(this));
-      try {
-        const emojis = <Array<Structures.Emoji>> [
-          (this.isLarge) ? this.emojis.previousDouble : null,
-          this.emojis.previous,
-          this.emojis.next,
-          (this.isLarge) ? this.emojis.nextDouble : null,
-          this.emojis.custom,
-          this.emojis.stop,
-          this.emojis.info,
-        ].filter((v) => v);
-
-        for (let emoji of emojis) {
-          if (this.stopped) {
-            break;
+    if (!this.stopped && this.pageLimit !== MIN_PAGE && message.canReact) {
+      setImmediate(async () => {
+        try {
+          if (PaginatorsStore.has(this.context.channelId)) {
+            const paginator = PaginatorsStore.get(this.context.channelId) as Paginator;
+            if (message === paginator.message) {
+              await paginator.stop(false);
+            } else {
+              await paginator.stop();
+            }
           }
-          if (this.message.reactions.has(emoji.id || emoji.name)) {
-            continue;
+          PaginatorsStore.insert(this);
+
+          this.timeout.start(this.expires, this.onStop.bind(this));
+          const emojis = <Array<Structures.Emoji>> [
+            (this.isLarge) ? this.emojis.previousDouble : null,
+            this.emojis.previous,
+            this.emojis.next,
+            (this.isLarge) ? this.emojis.nextDouble : null,
+            this.emojis.custom,
+            this.emojis.stop,
+            this.emojis.info,
+          ].filter((v) => v);
+
+          for (let emoji of emojis) {
+            if (this.stopped || message.deleted) {
+              break;
+            }
+            if (message.reactions.has(emoji.id || emoji.name)) {
+              continue;
+            }
+            await message.react(emoji.endpointFormat);
           }
-          await this.message.react(emoji.endpointFormat);
+        } catch(error) {
+          if (typeof(this.onError) === 'function') {
+            this.onError(error, this);
+          }
         }
-      } catch(error) {
-        if (typeof(this.onError) === 'function') {
-          this.onError(error, this);
-        }
-      }
+      });
     }
 
-    return this.message;
+    return message;
   }
 
   stop(clearEmojis: boolean = true) {
