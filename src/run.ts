@@ -1,24 +1,30 @@
-const { ClusterManager } = require('detritus-client');
-const Sentry = require('@sentry/node');
+import { ClusterManager } from 'detritus-client';
+import * as Sentry from '@sentry/node';
+
+import {
+  NOTSOBOT_API_TOKEN,
+  NOTSOBOT_DISCORD_TOKEN,
+  REDIS_URL,
+  SENTRY_DSN,
+} from '../config.json';
+
 
 Object.assign(process.env, {
-  NOTSOBOT_API_TOKEN: '',
-  REDIS_URL: 'redis://:password@localhost:6379/0',
-  SENTRY_DSN: '',
+  NOTSOBOT_API_TOKEN,
+  NOTSOBOT_DISCORD_TOKEN,
+  REDIS_URL,
+  SENTRY_DSN,
 });
 
-if (process.env.SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-  });
+if (SENTRY_DSN) {
+  Sentry.init({dsn: SENTRY_DSN});
 }
 
-const token = '';
-const manager = new ClusterManager('./lib/bot', token, {
-  shardCount: 16 * 16,
+// since we're on the thicc bot system, we need to have the shard count divisible by 16
+const manager = new ClusterManager('./lib/bot', NOTSOBOT_DISCORD_TOKEN, {
+  shardCount: 20 * 16,
   shardsPerCluster: 8,
 });
-// since we're on the thicc bot system, we need to have the shard count divisible by 16
 
 (async () => {
   manager.on('clusterProcess', ({clusterProcess}) => {

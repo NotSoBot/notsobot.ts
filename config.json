@@ -1,0 +1,6 @@
+{
+  "NOTSOBOT_API_TOKEN": "",
+  "NOTSOBOT_DISCORD_TOKEN": "",
+  "REDIS_URL": "redis://:password@localhost:6379/0",
+  "SENTRY_DSN": ""
+}

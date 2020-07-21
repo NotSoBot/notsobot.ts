@@ -29,7 +29,7 @@
   "peerDependencies": {},
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "launch": "nodejs run ./lib/run",
     "prepare": "npm run build"
   },
   "repository": {
