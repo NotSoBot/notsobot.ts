@@ -1,9 +1,9 @@
-import { Command, Utils } from 'detritus-client';
-const { Markup } = Utils;
+import { Command } from 'detritus-client';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGoImages } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, triggerTypingAfter } from '../../utils';
+import { Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -26,15 +26,13 @@ export default class DuckDuckGoImageCommand extends BaseSearchCommand<CommandArg
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     const results = await searchDuckDuckGoImages(context, args);
     if (results.length) {
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setFooter(`Page ${page}/${pageLimit} of Duck Duck Go Image Results`, EmbedBrands.DUCK_DUCK_GO);

@@ -1,9 +1,9 @@
-import { Command, CommandClient, Utils } from 'detritus-client';
-const { Markup, addQuery } = Utils;
+import { Command, CommandClient } from 'detritus-client';
+import { Embed, Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchUrban, searchUrbanRandom } from '../../api';
 import { CommandTypes, DateOptions, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, triggerTypingAfter } from '../../utils';
+import { Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -47,8 +47,6 @@ export default class UrbanCommand extends BaseSearchCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     let results: any;
     if (args.random) {
       results = await searchUrbanRandom(context);
@@ -64,7 +62,7 @@ export default class UrbanCommand extends BaseSearchCommand<CommandArgs> {
 
           const created = new Date(result.written_on);
 
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setTitle(result.word);

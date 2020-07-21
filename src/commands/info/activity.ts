@@ -1,6 +1,6 @@
 import { Command, Constants, Structures, Utils } from 'detritus-client';
-const { Permissions } = Constants;
-const { Embed, Markup } = Utils;
+import { Permissions } from 'detritus-client/lib/constants';
+import { Markup } from 'detritus-client/lib/utils';
 
 import {
   CommandTypes,
@@ -9,9 +9,10 @@ import {
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
 import {
-  formatTime,
   Paginator,
   Parameters,
+  createUserEmbed,
+  formatTime,
   toTitleCase,
 } from '../../utils';
 
@@ -68,12 +69,7 @@ export default class ActivityCommand extends BaseCommand {
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = new Embed();
-        embed.setAuthor(
-          user.toString(),
-          user.avatarUrlFormat(null, {size: 1024}),
-          user.jumpLink,
-        );
+        const embed = createUserEmbed(user);
         embed.setColor(PresenceStatusColors['offline']);
 
         if (presence) {

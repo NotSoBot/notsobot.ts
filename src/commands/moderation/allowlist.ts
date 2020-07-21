@@ -5,7 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { GuildSettings, GuildSettingsAllowlist } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { Paginator, Parameters, splitArray, toTitleCase } from '../../utils';
+import { Paginator, Parameters, createUserEmbed, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -38,8 +38,7 @@ export async function createAllowlistEmbed(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = new Embed();
-        embed.setAuthor(String(context.user), context.user.avatarUrl, context.user.jumpLink);
+        const embed = createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
 
         embed.setTitle(title);

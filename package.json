@@ -9,7 +9,7 @@
   ],
   "dependencies": {
     "@sentry/node": "^5.19.2",
-    "detritus-client": "^0.11.0-beta.11",
+    "detritus-client": "^0.11.0-beta.12",
     "detritus-client-rest": "^0.8.0-beta.9",
     "detritus-rest": "^0.6.0-beta.4",
     "emoji-aware": "^3.0.5",
@@ -20,7 +20,7 @@
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.2",
-    "@types/node": "^12.12.50",
+    "@types/node": "^12.12.51",
     "@types/node-fetch": "^2.5.7",
     "@types/redis": "^2.8.25",
     "tsc": "^1.20150623.0",

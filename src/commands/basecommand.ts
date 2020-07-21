@@ -4,7 +4,7 @@ import { Embed } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { CommandTypes, EmbedColors, PermissionsText } from '../constants';
-import { Parameters, triggerTypingAfter } from '../utils';
+import { Parameters } from '../utils';
 
 // description and usage shouldnt be optional, temporary for now
 export interface CommandMetadata {
@@ -18,6 +18,7 @@ export interface CommandMetadata {
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
   metadata!: CommandMetadata;
   permissionsIgnoreClientOwner = true;
+  triggerTypingAfter = 1000;
 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, Object.assign({
@@ -56,18 +57,10 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
-    if (context.metadata && context.metadata.timeout) {
-      context.metadata.timeout.stop();
-    }
-
     // log command
   }
 
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
-    if (context.metadata && context.metadata.timeout) {
-      context.metadata.timeout.stop();
-    }
-
     const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Error');

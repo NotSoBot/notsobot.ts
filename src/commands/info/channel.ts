@@ -1,8 +1,8 @@
 import { Command, Constants, Structures, Utils } from 'detritus-client';
+import { Colors, Permissions } from 'detritus-client/lib/constants';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
-const { Colors, Permissions } = Constants;
-const { Embed, Markup } = Utils;
 
 import { ChannelTypesText, CommandTypes, DateOptions } from '../../constants';
 import { GuildChannelsStored } from '../../stores/guildchannels';
@@ -46,7 +46,7 @@ export default class ChannelCommand extends BaseCommand {
     return !!args.payload.channel;
   }
 
-  onBeforeCancel(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     return context.editOrReply('⚠ Unable to find that channel.');
   }
 
@@ -54,7 +54,7 @@ export default class ChannelCommand extends BaseCommand {
     const { channel, channels } = args.payload;
 
     const embed = new Embed();
-    embed.setAuthor(channel.toString(), channel.iconUrl || undefined, channel.jumpLink);
+    embed.setAuthor(`${channel}`, channel.iconUrl || undefined, channel.jumpLink);
     embed.setColor(Colors.BLURPLE);
     if (channel.topic) {
       embed.setDescription(channel.topic);
@@ -113,17 +113,6 @@ export default class ChannelCommand extends BaseCommand {
       description.push(`**User Limit**: ${(channel.userLimit) ? channel.userLimit.toLocaleString() : 'Unlimited'}`);
 
       embed.addField('Voice Information', description.join('\n'), true);
-    } else if (channel.isGuildStore) {
-      const description: Array<string> = [];
-
-      try {
-        const store = await channel.fetchStoreListing();
-        description.push(`Sku: ${store.sku.name}`);
-      } catch(error) {
-        description.push('Error fetching store data...');
-      }
-
-      embed.addField('Store', Markup.codeblock(description.join('\n'), {language: 'css'}));
     }
 
     if (channel.isDm) {

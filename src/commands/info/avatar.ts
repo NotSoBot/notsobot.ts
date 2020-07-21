@@ -1,8 +1,7 @@
-import { Command, Constants, Structures, Utils } from 'detritus-client';
-const { Embed } = Utils;
+import { Command, Structures } from 'detritus-client';
 
 import { CommandTypes, PresenceStatusColors } from '../../constants';
-import { Parameters } from '../../utils';
+import { Parameters, createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -41,10 +40,9 @@ export default class AvatarCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const { user } = args;
 
-    const channel = context.channel;
+    const { channel } = context;
     if (channel && channel.canEmbedLinks) {
-      const embed = new Embed();
-      embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 512}), user.jumpLink);
+      const embed = createUserEmbed(user);
       embed.setColor(PresenceStatusColors['offline']);
       embed.setDescription(`[**Avatar Url**](${user.avatarUrl})`);
       embed.setImage(user.avatarUrlFormat(null, {size: 512}));

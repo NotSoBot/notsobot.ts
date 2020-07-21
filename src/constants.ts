@@ -72,6 +72,7 @@ export enum EmbedBrands {
 };
 
 export enum EmbedColors {
+  DARK_MESSAGE_BACKGROUND = 3092790,
   DEFAULT = 8684933,
   ERROR = 15746887,
 };
@@ -346,26 +347,41 @@ export enum GuildAllowlistTypes {
   CHANNEL = 'channel',
   ROLE = 'role',
   USER = 'user',
-};
+}
 
 export enum GuildBlocklistTypes {
   CHANNEL = 'channel',
   ROLE = 'role',
   USER = 'user',
-};
+}
 
 export enum GuildDisableCommandsTypes {
   CHANNEL = 'channel',
   GUILD = 'guild',
   ROLE = 'role',
   USER = 'user',
-};
+}
 
 export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Object.freeze({
   [GuildExplicitContentFilterTypes.DISABLED]: 'Disabled',
   [GuildExplicitContentFilterTypes.MEMBERS_WITHOUT_ROLES]: 'No Roles',
   [GuildExplicitContentFilterTypes.ALL_MEMBERS]: 'Everyone',
 });
+
+export enum GuildLogTypes {
+  CHANNEL_DELETE = 0,
+  CHANNEL_UPDATE = 0,
+  COMMAND_USE = 0,
+  GUILD_UPDATE = 0,
+  MEMBER_BAN = 0,
+  MEMBER_JOIN = 0,
+  MEMBER_LEAVE = 0,
+  MEMBER_STRIKE = 0,
+  MEMBER_UPDATE = 0,
+  MESSAGE_DELETE = 0,
+  MESSAGE_UPDATE = 0,
+  USER_UPDATE = 0,
+}
 
 export enum GuildPremiumTypes {
   NONE = 0,

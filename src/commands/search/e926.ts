@@ -1,11 +1,11 @@
 import * as moment from 'moment';
 
-import { Command, Utils } from 'detritus-client';
-const { Embed, Markup } = Utils;
+import { Command } from 'detritus-client';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchE926 } from '../../api';
 import { CommandTypes, E621Rating, E621RatingText, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, triggerTypingAfter } from '../../utils';
+import { Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -33,8 +33,6 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     const results = await searchE926(context, args);
     if (results.length) {
       const pageLimit = results.length;

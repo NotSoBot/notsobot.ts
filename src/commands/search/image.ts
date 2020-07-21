@@ -3,7 +3,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { googleSearchImages } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleImageVideoTypes, GoogleLocales, GoogleLocalesText } from '../../constants';
-import { Arguments, Paginator, triggerTypingAfter } from '../../utils';
+import { Arguments, Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -37,8 +37,6 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     const results = await googleSearchImages(context, args);
     if (results.length) {
       const pageLimit = results.length;

@@ -37,8 +37,6 @@ export default class MagikCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    await context.triggerTyping();
-
     const response = await imageMagik(context, args);
     return imageReply(context, response, 'magik');
   }

@@ -1,11 +1,7 @@
 import { URL } from 'url';
 
-import {
-  Collections,
-  Command,
-  Structures,
-  Utils,
-} from 'detritus-client';
+import { Collections, Command, Structures } from 'detritus-client';
+import { Embed } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
 
@@ -16,6 +12,16 @@ import {
   TRUSTED_URLS,
 } from '../constants';
 
+
+export function createUserEmbed(user: Structures.User) {
+  const embed = new Embed();
+  embed.setAuthor(
+    user.toString(),
+    user.avatarUrlFormat(null, {size: 1024}),
+    user.jumpLink,
+  );
+  return embed;
+}
 
 export function findImageUrlInMessages(
   messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
@@ -298,7 +304,7 @@ export async function imageReply(
 
   filename = `${filename}.${extension}`;
 
-  const embed = new Utils.Embed();
+  const embed = new Embed();
   embed.setColor(EmbedColors.DEFAULT);
   embed.setImage(`attachment://${filename}`);
 
@@ -462,29 +468,4 @@ export function splitArray<T>(
     }
   }
   return pages;
-}
-
-
-export async function triggerTypingAfter(
-  context: Command.Context,
-  milliseconds: number = 1000,
-): Promise<Timers.Timeout> {
-  const timeout = new Timers.Timeout();
-
-  const { response } = context;
-  // just a small check to see if we're gonna delete the old message and reply with a new one
-  // can't really tell without passing in what we're gonna send to discord tho
-  if (!response || response.hasAttachment) {
-    if (milliseconds) {
-      timeout.start(milliseconds, async () => {
-        try {
-          await context.triggerTyping();
-        } catch(error) {}
-      });
-      context.metadata = Object.assign({}, context.metadata, {timeout});
-    } else {
-      await context.triggerTyping();
-    }
-  }
-  return timeout;
 }

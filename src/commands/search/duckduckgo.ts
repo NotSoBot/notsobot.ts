@@ -1,9 +1,9 @@
-import { Command, Utils } from 'detritus-client';
-const { Markup } = Utils;
+import { Command } from 'detritus-client';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGo } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, triggerTypingAfter } from '../../utils';
+import { Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -28,8 +28,6 @@ export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     const results = await searchDuckDuckGo(context, args);
 
     const pages: Array<any> = [];
@@ -46,7 +44,7 @@ export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (pageNumber) => {
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setFooter(`Page ${pageNumber}/${pageLimit} of Duck Duck Go Results`, EmbedBrands.DUCK_DUCK_GO);

@@ -1,8 +1,9 @@
-import { Command, Utils } from 'detritus-client';
+import { Command } from 'detritus-client';
+import { Embed } from 'detritus-client/lib/utils';
 
 import { searchWolframAlpha } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, triggerTypingAfter } from '../../utils';
+import { Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -25,15 +26,13 @@ export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     const { images, fields, url } = await searchWolframAlpha(context, args);
     if (images.length || fields.length) {
       const pageLimit = images.length || 1;
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setTitle('Wolfram Alpha Results');

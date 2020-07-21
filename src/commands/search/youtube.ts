@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 
-import { Command, Utils } from 'detritus-client';
-const { Markup } = Utils;
+import { Command } from 'detritus-client';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { youtubeSearch } from '../../api';
 import {
@@ -12,7 +12,7 @@ import {
   YoutubeResultTypes,
   MOMENT_FORMAT,
 } from '../../constants';
-import { Paginator, triggerTypingAfter } from '../../utils';
+import { Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -39,8 +39,6 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     const { results, total_result_count: totalResultCount } = await youtubeSearch(context, args);
     if (results.length) {
       const pageLimit = results.length;
@@ -49,7 +47,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
         onPage: (page) => {
           const result = results[page - 1];
 
-          const embed = new Utils.Embed();
+          const embed = new Embed();
           embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setFooter(`Page ${page}/${pageLimit} of Youtube Search Results (${totalResultCount.toLocaleString()} Total Results)`, EmbedBrands.YOUTUBE);

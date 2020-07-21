@@ -1,11 +1,11 @@
 import * as moment from 'moment';
 
-import { Command, Utils } from 'detritus-client';
-const { Embed, Markup } = Utils;
+import { Command } from 'detritus-client';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34Paheal } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, triggerTypingAfter } from '../../utils';
+import { Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -29,8 +29,6 @@ export default class Rule34PahealCommand extends BaseSearchCommand {
   nsfw = true;
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     const results = await searchRule34Paheal(context, args);
     if (results.length) {
       const pageLimit = results.length;

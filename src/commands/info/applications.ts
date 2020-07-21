@@ -56,7 +56,7 @@ export default class ApplicationsCommand extends BaseCommand {
           embed.setTitle(`(${page} of ${pageLimit})`);
         }
         if (application.icon) {
-          const iconUrl = <string> application.iconUrlFormat(null, {size: 1024});
+          const iconUrl = application.iconUrlFormat(null, {size: 1024}) as string;
           embed.setAuthor(application.name, iconUrl);
         } else {
           embed.setAuthor(application.name);
@@ -77,12 +77,12 @@ export default class ApplicationsCommand extends BaseCommand {
         }
 
         if (application.splash) {
-          const thumbnail = <string> application.splashUrlFormat(null, {size: 1024});
+          const thumbnail = application.splashUrlFormat(null, {size: 1024}) as string;
           embed.setThumbnail(thumbnail);
         }
 
         if (application.coverImage) {
-          const image = <string> application.coverImageUrlFormat(null, {size: 128});
+          const image = application.coverImageUrlFormat(null, {size: 128}) as string;
           embed.setImage(image);
         }
 
@@ -114,7 +114,7 @@ export default class ApplicationsCommand extends BaseCommand {
         }
 
         if (application.youtubeTrailerVideoId) {
-          const url = <string> application.youtubeTrailerUrl;
+          const url = application.youtubeTrailerUrl as string;
           embed.addField('Trailer', `[**YouTube**](${url})`, true);
         }
 

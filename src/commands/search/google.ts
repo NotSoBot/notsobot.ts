@@ -1,5 +1,5 @@
-import { Command, CommandClient, Utils } from 'detritus-client';
-const { Markup } = Utils;
+import { Command, CommandClient } from 'detritus-client';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { googleSearch } from '../../api';
 import {
@@ -11,7 +11,7 @@ import {
   GoogleLocalesText,
   GOOGLE_CARD_TYPES_SUPPORTED,
 } from '../../constants';
-import { Arguments, Paginator,  triggerTypingAfter } from '../../utils';
+import { Arguments, Paginator } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -47,8 +47,6 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    await triggerTypingAfter(context);
-
     const { cards, results, suggestion } = await googleSearch(context, args);
     if (cards.length || results.length) {
       const pages: Array<any> = [];
@@ -77,7 +75,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
         const paginator = new Paginator(context, {
           pageLimit,
           onPage: (pageNumber) => {
-            const embed = new Utils.Embed();
+            const embed = new Embed();
             embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
             embed.setColor(EmbedColors.DEFAULT);
 
@@ -155,7 +153,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
       }
     }
 
-    const embed = new Utils.Embed();
+    const embed = new Embed();
     embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
     embed.setColor(EmbedColors.DEFAULT);
 
