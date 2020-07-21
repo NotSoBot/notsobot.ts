@@ -73,7 +73,7 @@ export const Api = Object.freeze({
   USER_COMMANDS:
     '/users/:userId/commands',
   USER_COMMAND:
-    '/users/:userId/:command',
+    '/users/:userId/commands/:command',
 
   YOUTUBE_SEARCH:
     '/youtube/search',

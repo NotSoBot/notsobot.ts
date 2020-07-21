@@ -116,6 +116,35 @@ export async function createGuildPrefix(
 }
 
 
+export async function createUserCommand(
+  context: Command.Context,
+  userId: string,
+  command: string,
+  options: RestOptions.CreateUserCommand,
+): Promise<RestResponsesRaw.CreateUserCommand> {
+  const body = {
+    channel_id: options.channelId,
+    content: options.content,
+    content_url: options.contentUrl,
+    edited_timestamp: options.editedTimestamp,
+    failed_reason: options.failedReason,
+    guild_id: options.guildId,
+    message_id: options.messageId,
+    response_id: options.responseId,
+    response_url: options.responseUrl,
+  };
+  const params = {userId, command};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.USER_COMMAND,
+      params,
+    },
+  });
+}
+
+
 export async function deleteGuildAllowlist(
   context: Command.Context,
   guildId: string,

@@ -72,6 +72,16 @@ export async function createGuildPrefix(
 }
 
 
+export async function createUserCommand(
+  context: Command.Context,
+  userId: string,
+  command: string,
+  options: RestOptions.CreateUserCommand,
+) {
+  return raw.createUserCommand(context, userId, command, options);
+}
+
+
 export async function deleteGuildAllowlist(
   context: Command.Context,
   guildId: string,

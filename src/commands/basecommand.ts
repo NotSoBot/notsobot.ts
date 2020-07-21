@@ -3,8 +3,9 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
+import { createUserCommand } from '../api';
 import { CommandTypes, EmbedColors, PermissionsText } from '../constants';
-import { Parameters } from '../utils';
+import { Parameters, findImageUrlInMessages } from '../utils';
 
 // description and usage shouldnt be optional, temporary for now
 export interface CommandMetadata {
@@ -14,6 +15,12 @@ export interface CommandMetadata {
   type: CommandTypes,
   usage?: string,
 }
+
+export interface ContextMetadata {
+  contentUrl?: string,
+  responseUrl?: string,
+}
+
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
   metadata!: CommandMetadata;
@@ -58,6 +65,29 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 
   async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
     // log command
+    if (context.command) {
+      let contentUrl: string | undefined;
+      let responseUrl: string | undefined;
+      if (context.metadata) {
+        ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
+      }
+
+      await createUserCommand(
+        context,
+        context.userId,
+        context.command.name,
+        {
+          channelId: context.channelId,
+          content: context.message.content,
+          contentUrl,
+          editedTimestamp: context.message.editedAtUnix,
+          guildId: context.guildId,
+          messageId: context.messageId,
+          responseId: (context.response) ? context.response.id : undefined,
+          responseUrl,
+        },
+      );
+    }
   }
 
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
@@ -89,7 +119,34 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
 
     embed.setDescription(description.join('\n'));
-    return context.editOrReply({embed});
+    const message = await context.editOrReply({embed});
+
+    if (context.command) {
+      let contentUrl: string | undefined;
+      let responseUrl: string | undefined;
+      if (context.metadata) {
+        ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
+      }
+
+      await createUserCommand(
+        context,
+        context.userId,
+        context.command.name,
+        {
+          channelId: context.channelId,
+          content: context.message.content,
+          contentUrl,
+          editedTimestamp: context.message.editedAtUnix,
+          failedReason: String(error.message || error.stack),
+          guildId: context.guildId,
+          messageId: context.messageId,
+          responseId: message.id,
+          responseUrl,
+        },
+      );
+    }
+
+    return message;
   }
 
   onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
@@ -121,6 +178,9 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
   type = Parameters.lastImageUrl;
 
   onBeforeRun(context: Command.Context, args: {url?: null | string}) {
+    if (args.url) {
+      context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});
+    }
     return !!args.url;
   }
 
@@ -129,6 +189,16 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
       return context.editOrReply('⚠ Unable to find any messages with an image.');
     }
     return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
+  }
+
+  onSuccess(context: Command.Context, args: ParsedArgsFinished) {
+    if (context.response) {
+      const responseUrl = findImageUrlInMessages([context.response]);
+      if (responseUrl) {
+        context.metadata = Object.assign({}, context.metadata, {responseUrl});
+      }
+    }
+    return super.onSuccess(context, args);
   }
 }
 

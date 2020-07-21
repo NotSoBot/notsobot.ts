@@ -17,6 +17,18 @@ import {
 
 
 export namespace RestOptions {
+  export interface CreateUserCommand {
+    channelId: string,
+    content: string,
+    contentUrl?: string,
+    editedTimestamp?: null | number,
+    failedReason?: string,
+    guildId?: string,
+    messageId: string,
+    responseId?: string,
+    responseUrl?: string,
+  }
+
   export interface EditGuildSettings {
     allowlist?: Array<{
       id: string,
@@ -186,6 +198,10 @@ export namespace RestResponsesRaw {
   export type CreateGuildBlocklist = null;
   export type CreateGuildDisabledCommand = null;
   export type CreateGuildPrefix = Array<GuildPrefix>;
+
+  export interface CreateUserCommand {
+    
+  }
 
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
