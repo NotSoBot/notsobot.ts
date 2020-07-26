@@ -205,6 +205,22 @@ export async function googleTranslate(
 }
 
 
+export async function imageDeepfry(
+  context: Command.Context,
+  options: RestOptions.ImageDeepfry,
+) {
+  return raw.imageDeepfry(context, options);
+}
+
+
+export async function imageExplode(
+  context: Command.Context,
+  options: RestOptions.ImageExplode,
+) {
+  return raw.imageExplode(context, options);
+}
+
+
 export async function imageJPEG(
   context: Command.Context,
   options: RestOptions.ImageJPEG,
@@ -226,6 +242,14 @@ export async function imageMagikGif(
   options: RestOptions.ImageMagikGif,
 ) {
   return raw.imageMagikGif(context, options);
+}
+
+
+export async function imageMeme(
+  context: Command.Context,
+  options: RestOptions.ImageMeme,
+) {
+  return raw.imageMeme(context, options);
 }
 
 

@@ -103,18 +103,6 @@ export async function createAllowlistEmbed(
 }
 
 
-const insideGuildAllowlistTypes = Parameters.inside(Object.values(GuildAllowlistTypes));
-export const guildAllowlistType = (value: string) => {
-  if (value) {
-    value = value.toLowerCase();
-    if (value.endsWith('s')) {
-      value = value.slice(0, -1);
-    }
-    return insideGuildAllowlistTypes(value);
-  }
-  return null;
-};
-
 export interface CommandArgs {
   only: GuildAllowlistTypes | null,
 }
@@ -123,7 +111,10 @@ export default class AllowlistCommand extends BaseCommand {
   aliases = ['allowlist list'];
   name = 'allowlist';
 
+  choices = Object.values(GuildAllowlistTypes);
+  default = null;
   disableDm = true;
+  help = `Must be one of (${Object.values(GuildAllowlistTypes).join(', ')})`;
   label = 'only';
   metadata = {
     description: 'List all channels/roles/users part of the server\'s allowlist.',
@@ -136,7 +127,7 @@ export default class AllowlistCommand extends BaseCommand {
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   priority = -2;
-  type = guildAllowlistType;
+  type = (value: string) => value.toLowerCase();
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;

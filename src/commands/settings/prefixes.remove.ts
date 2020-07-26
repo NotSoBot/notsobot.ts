@@ -1,11 +1,10 @@
 import { Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildPrefix } from '../../api';
 import { CommandTypes, EmbedColors } from '../../constants';
-import GuildSettingsStore from '../../stores/guildsettings';
-import { Parameters } from '../../utils';
+import { Parameters, createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -48,10 +47,9 @@ export default class PrefixesRemoveCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const guildId = <string> context.guildId;
+    const guildId = context.guildId as string;
 
-    const embed = new Embed();
-    embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
     embed.setTitle(`Remove prefix: **${Markup.escape.all(args.prefix)}**`);
 

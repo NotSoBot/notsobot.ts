@@ -5,6 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { GuildSettingsPrefix } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
+import { createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -50,10 +51,9 @@ export default class PrefixesCommand extends BaseCommand {
   priority = -1;
 
   async run(context: Command.Context) {
-    const guildId = <string> context.guildId;
+    const guildId = context.guildId as string;
 
-    const embed = new Embed();
-    embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
     embed.setTitle('Showing prefixes');
 

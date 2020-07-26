@@ -1,4 +1,4 @@
-export { connectAllStores } from './store';
+export { Store, connectAllStores } from './store';
 
 export { default as GuildChannelsStore } from './guildchannels';
 export { default as GuildMetadataStore } from './guildmetadata';

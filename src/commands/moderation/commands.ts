@@ -1,11 +1,11 @@
 import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsDisabledCommand } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildDisableCommandsTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { Paginator, Parameters, splitArray, toTitleCase } from '../../utils';
+import { Paginator, createUserEmbed, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -37,8 +37,7 @@ export async function createDisabledCommandsEmbed(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = new Embed();
-        embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+        const embed = createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
 
         embed.setTitle(title);
@@ -74,8 +73,7 @@ export async function createDisabledCommandsEmbed(
     });
     return await paginator.start();
   } else {
-    const embed = new Embed();
-    embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
 
     embed.setTitle(title);
@@ -90,19 +88,6 @@ export async function createDisabledCommandsEmbed(
 }
 
 
-const insideGuildDisableCommandsTypes = Parameters.inside(Object.values(GuildDisableCommandsTypes));
-export const guildDisableCommandsType = (value: string) => {
-  if (value) {
-    value = value.toLowerCase();
-    if (value.endsWith('s')) {
-      value = value.slice(0, -1);
-    }
-    return insideGuildDisableCommandsTypes(value);
-  }
-  return null;
-};
-
-
 export interface CommandArgs {
   only: GuildDisableCommandsTypes | null,
 }
@@ -111,7 +96,10 @@ export default class CommandsCommand extends BaseCommand {
   aliases = ['commands list', 'cmds', 'cmds list'];
   name = 'commands';
 
+  choices = Object.values(GuildDisableCommandsTypes);
+  default = null;
   disableDm = true;
+  help = `Must be one of (${Object.values(GuildDisableCommandsTypes).join(', ')})`;
   label = 'only';
   metadata = {
     description: 'List all disabled commands (and their associated type)',
@@ -125,7 +113,7 @@ export default class CommandsCommand extends BaseCommand {
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   priority = -1;
-  type = guildDisableCommandsType;
+  type = (value: string) => value.toLowerCase();
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;

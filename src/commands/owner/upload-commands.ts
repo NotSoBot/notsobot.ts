@@ -24,7 +24,7 @@ export default class UploadCommandsCommand extends BaseCommand {
     const commands = context.commandClient.commands.filter((command) => {
       return !!command.metadata && !!command.metadata.type;
     }).map((command) => {
-      const { args } = command.args;
+      const { args } = command.argParser;
       const metadata = command.metadata as CommandMetadata;
 
       const names = command.names;

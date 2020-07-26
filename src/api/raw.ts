@@ -325,6 +325,42 @@ export async function googleTranslate(
   });
 }
 
+export async function imageDeepfry(
+  context: Command.Context,
+  options: RestOptions.ImageDeepfry,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_DEEPFRY,
+    },
+  });
+}
+
+
+export async function imageExplode(
+  context: Command.Context,
+  options: RestOptions.ImageExplode,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_EXPLODE,
+    },
+  });
+}
+
 
 export async function imageJPEG(
   context: Command.Context,
@@ -377,6 +413,26 @@ export async function imageMagikGif(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_MAGIK_GIF,
+    },
+  });
+}
+
+
+export async function imageMeme(
+  context: Command.Context,
+  options: RestOptions.ImageMeme,
+): Promise<Response> {
+  const query = {
+    bottom: options.bottom,
+    top: options.top,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MEME,
     },
   });
 }

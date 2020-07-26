@@ -1,4 +1,4 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command } from 'detritus-client';
 
 import { imageResize } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -25,6 +25,11 @@ export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
   name = 'resize';
 
   aliases = ['enlarge', 'rescale'];
+  args = [
+    {name: 'convert'},
+    {default: 2, name: 'scale', type: 'float'},
+    {name: 'size'},
+  ];
   metadata = {
     examples: [
       'resize',
@@ -37,26 +42,10 @@ export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
     usage: 'resize ?<emoji|id|mention|name|url> (-convert <format>) (-scale <number>) (-size <number>)',
   };
 
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {name: 'convert'},
-        {default: 2, name: 'scale', type: 'float'},
-        {name: 'size'},
-      ],
-    });
-  }
-
   async run(context: Command.Context, args: CommandArgs) {
     await context.triggerTyping();
 
-    const response = await imageResize(context, {
-      convert: args.convert,
-      scale: args.scale,
-      size: args.size,
-      url: args.url,
-    });
-    return imageReply(context, response, 'magik');
+    const response = await imageResize(context, args);
+    return imageReply(context, response, 'resize');
   }
 }

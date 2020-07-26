@@ -292,7 +292,7 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 export async function imageReply(
   context: Command.Context,
   response: Response,
-  filename: string = 'edited-image',
+  filename: string = '',
 ): Promise<Structures.Message> {
   const size = response.headers.get('content-length') || '';
   const contentType = response.headers.get('content-type') || undefined;
@@ -302,10 +302,17 @@ export async function imageReply(
   const newFrames = response.headers.get('x-frames-new');
   const oldFrames = response.headers.get('x-frames-old');
 
+  if (!filename) {
+    if (context.command) {
+      filename = context.command.name.replace(' ', '-');
+    } else {
+      filename = 'edited-image';
+    }
+  }
   filename = `${filename}.${extension}`;
 
   const embed = new Embed();
-  embed.setColor(EmbedColors.DEFAULT);
+  embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
   embed.setImage(`attachment://${filename}`);
 
   let footer = `${width}x${height}`;

@@ -1,6 +1,6 @@
-import { Command, Constants, Structures, Utils } from 'detritus-client';
-const { Permissions } = Constants;
-const { Embed, Markup } = Utils;
+import { Command, Structures } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
   CommandTypes,

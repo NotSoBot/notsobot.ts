@@ -1,10 +1,64 @@
 import { ClusterClient, Command, CommandClient, ShardClient } from 'detritus-client';
 
+import { DIRECTORY } from '../../../config.json';
+
 import { NotSoClient } from '../../client';
 import { CommandTypes } from '../../constants';
+import { Store } from '../../stores';
 
 import { BaseCommand } from '../basecommand';
 
+
+
+async function reloadCommands(
+  cluster: ClusterClient,
+  refreshStores: boolean,
+  LIB_PATH: string,
+): Promise<Array<number>> {
+  const STORE_PATH = '/stores/';
+
+  const IGNORE = ['/bot.', '/redis.'];
+
+  for (let key in require.cache) {
+    if (!key.includes(LIB_PATH)) {
+      continue;
+    }
+    if (IGNORE.some((file) => key.includes(file))) {
+      continue;
+    }
+
+    if (key.includes(STORE_PATH)) {
+      if (!refreshStores) {
+        continue;
+      }
+      const { default: store }: { default?: Store<any, any> } = require(key);
+      if (store) {
+        store.stop(cluster);
+      }
+    }
+    delete require.cache[key];
+  }
+  if (cluster.commandClient) {
+    const commandClient = cluster.commandClient as NotSoClient;
+    await commandClient.resetCommands();
+  }
+  for (let key in require.cache) {
+    if (!key.includes(LIB_PATH)) {
+      continue;
+    }
+
+    if (key.includes(STORE_PATH)) {
+      if (!refreshStores) {
+        continue;
+      }
+      const { default: store }: { default?: Store<any, any> } = require(key);
+      if (store) {
+        store.stop(cluster);
+      }
+    }
+  }
+  return cluster.shards.map((shard: ShardClient) => shard.shardId);
+}
 
 export interface CommandArgs {
   stores: boolean,
@@ -38,52 +92,7 @@ export default class ReloadCommand extends BaseCommand {
       return context.editOrReply('no cluster manager found');
     }
     const message = await context.editOrReply('ok, refreshing...');
-    const shardIds = await context.manager.broadcastEval(async (cluster: ClusterClient, refreshStores: boolean) => {
-      const LIB_PATH = 'notsobot.ts/lib';
-      const STORE_PATH = '/stores/';
-
-      const IGNORE = ['/bot.', '/redis.'];
-
-      for (let key in require.cache) {
-        if (!key.includes(LIB_PATH)) {
-          continue;
-        }
-        if (IGNORE.some((file) => key.includes(file))) {
-          continue;
-        }
-
-        if (key.includes(STORE_PATH)) {
-          if (!refreshStores) {
-            continue;
-          }
-          const store = require(key);
-          if (store && store.default) {
-            store.default.stop(cluster);
-          }
-        }
-        delete require.cache[key];
-      }
-      if (cluster.commandClient) {
-        const commandClient = <NotSoClient> cluster.commandClient;
-        await commandClient.resetCommands();
-      }
-      for (let key in require.cache) {
-        if (!key.includes(LIB_PATH)) {
-          continue;
-        }
-
-        if (key.includes(STORE_PATH)) {
-          if (!refreshStores) {
-            continue;
-          }
-          const store = require(key);
-          if (store.default) {
-            store.default.connect(cluster);
-          }
-        }
-      }
-      return cluster.shards.map((shard: ShardClient) => shard.shardId);
-    }, args.stores);
+    const shardIds = await context.manager.broadcastEval(reloadCommands, args.stores, DIRECTORY);
 
     const error = shardIds.find((shardId: any) => shardId instanceof Error);
     if (error) {
@@ -92,6 +101,6 @@ export default class ReloadCommand extends BaseCommand {
       }
       return message.edit(`Error: ${error.message}`);
     }
-    return message.edit(`ok, refreshed commands on ${JSON.stringify(shardIds)}`);
+    return message.edit(`ok, refreshed commands on ${shardIds.flat().length} shards.`);
   }
 }

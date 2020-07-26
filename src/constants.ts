@@ -8,7 +8,6 @@ import {
   PresenceStatuses as Statuses,
   VerificationLevels,
 } from 'detritus-client/lib/constants';
-import { Tools } from 'detritus-utils';
 
 
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';

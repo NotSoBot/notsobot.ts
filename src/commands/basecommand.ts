@@ -25,7 +25,7 @@ export interface ContextMetadata {
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
   metadata!: CommandMetadata;
   permissionsIgnoreClientOwner = true;
-  triggerTypingAfter = 1000;
+  triggerTypingAfter = 2000;
 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, Object.assign({
@@ -72,21 +72,25 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
       }
 
-      await createUserCommand(
-        context,
-        context.userId,
-        context.command.name,
-        {
-          channelId: context.channelId,
-          content: context.message.content,
-          contentUrl,
-          editedTimestamp: context.message.editedAtUnix,
-          guildId: context.guildId,
-          messageId: context.messageId,
-          responseId: (context.response) ? context.response.id : undefined,
-          responseUrl,
-        },
-      );
+      try {
+        await createUserCommand(
+          context,
+          context.userId,
+          context.command.name,
+          {
+            channelId: context.channelId,
+            content: context.message.content,
+            contentUrl,
+            editedTimestamp: context.message.editedAtUnix,
+            guildId: context.guildId,
+            messageId: context.messageId,
+            responseId: (context.response) ? context.response.id : undefined,
+            responseUrl,
+          },
+        );
+      } catch(error) {
+        // do something?
+      }
     }
   }
 
@@ -175,7 +179,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
   label = 'url';
   permissionsClient = [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS];
-  type = Parameters.lastImageUrl;
+  type: Command.ArgumentType = Parameters.lastImageUrl;
 
   onBeforeRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url) {

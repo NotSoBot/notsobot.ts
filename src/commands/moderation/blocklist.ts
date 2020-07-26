@@ -1,11 +1,11 @@
 import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsBlocklist } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { Paginator, Parameters, splitArray, toTitleCase } from '../../utils';
+import { Paginator, Parameters, createUserEmbed, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -38,8 +38,7 @@ export async function createBlocklistEmbed(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = new Embed();
-        embed.setAuthor(String(context.user), context.user.avatarUrl, context.user.jumpLink);
+        const embed = createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
 
         embed.setTitle(title);
@@ -88,8 +87,7 @@ export async function createBlocklistEmbed(
     });
     return await paginator.start();
   } else {
-    const embed = new Embed();
-    embed.setAuthor(String(context.user), context.user.avatarUrl, context.user.jumpLink);
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
 
     embed.setTitle(title);
@@ -104,18 +102,6 @@ export async function createBlocklistEmbed(
 }
 
 
-const insideGuildBlocklistTypes = Parameters.inside(Object.values(GuildBlocklistTypes));
-export const guildBlocklistType = (value: string) => {
-  if (value) {
-    value = value.toLowerCase();
-    if (value.endsWith('s')) {
-      value = value.slice(0, -1);
-    }
-    return insideGuildBlocklistTypes(value);
-  }
-  return null;
-};
-
 export interface CommandArgs {
   only: GuildBlocklistTypes | null,
 }
@@ -124,7 +110,10 @@ export default class BlocklistCommand extends BaseCommand {
   aliases = ['blocklist list'];
   name = 'blocklist';
 
+  choices = Object.values(GuildBlocklistTypes);
+  default = null;
   disableDm = true;
+  help = `Must be one of (${Object.values(GuildBlocklistTypes).join(', ')})`;
   label = 'only';
   metadata = {
     description: 'List all channels/roles/users part of the server\'s blocklist.',
@@ -137,7 +126,7 @@ export default class BlocklistCommand extends BaseCommand {
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   priority = -2;
-  type = guildBlocklistType;
+  type = (value: string) => value.toLowerCase();
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;

@@ -68,6 +68,16 @@ export namespace RestOptions {
   }
 
 
+  export interface ImageDeepfry {
+    scale?: number,
+    url: string,
+  }
+
+  export interface ImageExplode {
+    scale?: number,
+    url: string,
+  }
+
   export interface ImageJPEG {
     quality?: number,
     url: string,
@@ -79,6 +89,12 @@ export namespace RestOptions {
   }
 
   export interface ImageMagikGif {
+    url: string,
+  }
+
+  export interface ImageMeme {
+    bottom?: string,
+    top: string,
     url: string,
   }
 

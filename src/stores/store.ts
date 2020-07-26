@@ -1,6 +1,8 @@
 import { ClusterClient, Collections, ShardClient } from 'detritus-client';
 import { EventSubscription } from 'detritus-utils';
 
+import { DIRECTORY } from '../../config.json';
+
 import RedisClient, { RedisSpewer } from '../redis';
 
 
@@ -32,10 +34,10 @@ export class Store<K, V> extends Collections.BaseCollection<K, V> {
 
 export function connectAllStores(cluster: ClusterClient): void {
   for (let key in require.cache) {
-    if (key.includes('notsobot.ts/lib/stores/')) {
-      const store = require(key);
-      if (store && store.default) {
-        store.default.connect(cluster);
+    if (key.includes(`${DIRECTORY}/stores/`)) {
+      const { default: store }: { default?: Store<any, any> } = require(key) || {};
+      if (store && store instanceof Store) {
+        store.connect(cluster);
       }
     }
   }

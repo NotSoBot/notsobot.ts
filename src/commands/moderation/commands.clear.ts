@@ -1,23 +1,24 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, EmbedColors, GuildDisableCommandsTypes } from '../../constants';
+import { createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { guildDisableCommandsType } from './commands';
-
 
 export interface CommandArgs {
-  only?: GuildDisableCommandsTypes,
+  only: GuildDisableCommandsTypes | null,
 }
 
 export default class CommandsCommand extends BaseCommand {
   aliases = ['cmds clear'];
   name = 'commands clear';
 
+  choices = Object.values(GuildDisableCommandsTypes);
+  default = null;
   disableDm = true;
+  help = `Must be one of (${Object.values(GuildDisableCommandsTypes).join(', ')})`;
   label = 'only';
   metadata = {
     description: 'Clear out Channels/Roles/Users/Server-Wide disabled commands.',
@@ -30,13 +31,12 @@ export default class CommandsCommand extends BaseCommand {
   };
   permissionsClient = [Permissions.EMBED_LINKS];
   permissions = [Permissions.MANAGE_GUILD];
-  type = guildDisableCommandsType;
+  type = (value: string) => value.toLowerCase();
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;
 
-    const embed = new Embed();
-    embed.setAuthor(String(context.user), context.user.avatarUrl, context.user.jumpLink);
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
     if (args.only) {
       embed.setTitle('WIP');

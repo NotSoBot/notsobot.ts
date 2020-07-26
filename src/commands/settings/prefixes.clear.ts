@@ -1,10 +1,9 @@
 import { Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../api';
 import { CommandTypes, EmbedColors } from '../../constants';
-import GuildSettingsStore from '../../stores/guildsettings';
+import { createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -30,8 +29,7 @@ export default class PrefixesClearCommand extends BaseCommand {
   async run(context: Command.Context) {
     const guildId = context.guildId as string;
 
-    const embed = new Embed();
-    embed.setAuthor(String(context.user), context.user.avatarUrl, context.user.jumpLink);
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
     embed.setTitle('Cleared prefixes');
 

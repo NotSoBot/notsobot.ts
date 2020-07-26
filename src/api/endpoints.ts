@@ -34,12 +34,18 @@ export const Api = Object.freeze({
   GUILD_PREFIXES_DELETE:
     '/guilds/:guildId/prefixes/delete',
 
+  IMAGE_DEEPFRY:
+    '/image/deepfry',
+  IMAGE_EXPLODE:
+    '/image/explode',
   IMAGE_JPEG:
     '/image/jpeg',
   IMAGE_MAGIK:
     '/image/magik',
   IMAGE_MAGIK_GIF:
     '/image/magik-gif',
+  IMAGE_MEME:
+    '/image/meme',
   IMAGE_MIRROR_BOTTOM:
     '/image/mirror-bottom',
   IMAGE_MIRROR_LEFT:
