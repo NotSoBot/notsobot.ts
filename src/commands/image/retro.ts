@@ -1,4 +1,4 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 
@@ -18,6 +18,9 @@ export interface CommandArgs {
 export default class RetroCommand extends BaseImageCommand<CommandArgs> {
   name = 'retro';
 
+  args = [
+    {name: 'type'},
+  ];
   metadata = {
     examples: [
       'retro',
@@ -27,15 +30,6 @@ export default class RetroCommand extends BaseImageCommand<CommandArgs> {
     type: CommandTypes.IMAGE,
     usage: 'retro ?<emoji|id|mention|name|url> (-type <retro-type>)',
   };
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {name: 'type'},
-      ],
-    });
-  }
 
   async run(context: Command.Context, args: CommandArgs) {
 

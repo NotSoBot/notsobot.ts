@@ -11,6 +11,9 @@ export interface HashArgs {
 export default class HashCommand extends BaseCommand<HashArgs> {
   name = 'hash';
 
+  args = [
+    {name: 'use'},
+  ];
   label = 'text';
   metadata = {
     description: 'Hash some text',
@@ -21,13 +24,6 @@ export default class HashCommand extends BaseCommand<HashArgs> {
     type: CommandTypes.TOOLS,
     usage: 'hash <text> (-use <hash-type>)',
   };
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [{name: 'use'}],
-    });
-  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

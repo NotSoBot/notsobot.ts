@@ -27,6 +27,7 @@ export default class BlocklistRemoveRolesCommand extends BaseCommand {
   ];
   name = 'blocklist remove roles';
 
+  default = null;
   disableDm = true;
   label = 'roles';
   metadata = {

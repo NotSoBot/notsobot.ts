@@ -1,4 +1,4 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
+import { Command, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { createGuildDisabledCommand } from '../../api';
@@ -26,6 +26,29 @@ export default class CommandsDisable extends BaseCommand {
   aliases = ['cmds disable'];
   name = 'commands disable';
 
+  args = [
+    {
+      aliases: ['channel'],
+      name: 'channels',
+      type: Parameters.channels({
+        types: [
+          ChannelTypes.GUILD_CATEGORY,
+          ChannelTypes.GUILD_NEWS,
+          ChannelTypes.GUILD_TEXT,
+        ],
+      }),
+    },
+    {
+      aliases: ['role'],
+      name: 'roles',
+      type: Parameters.roles,
+    },
+    {
+      aliases: ['user'],
+      name: 'users',
+      type: Parameters.membersOrUsers({allowBots: false}),
+    },
+  ];
   disableDm = true;
   label = 'command';
   metadata = {
@@ -33,7 +56,7 @@ export default class CommandsDisable extends BaseCommand {
     examples: [
       'commands disable rule34',
       'commands disable rule34 -channels lobby',
-      'commands disable rule34 -roles admin everyone',
+      'commands disable rule34 -roles members everyone',
     ],
     type: CommandTypes.MODERATION,
     usage: 'commands disable <command-name> (-channels ...<channel-name>) (-roles ...<role-name>) (-users ...<user-name>)',
@@ -41,43 +64,6 @@ export default class CommandsDisable extends BaseCommand {
   permissionsClient = [Permissions.EMBED_LINKS];
   permissions = [Permissions.MANAGE_GUILD];
   type = (content: string, context: Command.Context) => context.commandClient.getCommand({content, prefix: ''});
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {
-          aliases: ['channel'],
-          name: 'channels',
-          type: Parameters.channels({
-            types: [
-              ChannelTypes.GUILD_CATEGORY,
-              ChannelTypes.GUILD_NEWS,
-              ChannelTypes.GUILD_TEXT,
-            ],
-          }),
-        },
-        {aliases: ['role'], name: 'roles', type: Parameters.roles},
-        {aliases: ['user'], name: 'users', type: Parameters.membersOrUsers({allowBots: false})},
-      ],
-    });
-  }
-
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    if (!args.command) {
-      return false;
-    }
-    if (args.channels && !args.channels.length) {
-      return false;
-    }
-    if (args.roles && !args.roles.length) {
-      return false;
-    }
-    if (args.users && !args.users.length) {
-      return false;
-    }
-    return true;
-  }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.command) {

@@ -1,6 +1,6 @@
-import { Command, Constants, Structures, Utils } from 'detritus-client';
-const { Permissions } = Constants;
-const { Embed, Markup } = Utils;
+import { Command, Structures } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
+import { Markup } from 'detritus-client/lib/utils';
 
 import {
   CommandTypes,
@@ -9,7 +9,7 @@ import {
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
-import { Paginator, Parameters, toTitleCase } from '../../utils';
+import { Paginator, Parameters, createUserEmbed, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -50,14 +50,16 @@ export default class PlayingCommand extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     const { applications } = args;
-    const [ application ] = <[Structures.Application]> applications;
-    const guild = <Structures.Guild> context.guild;
+    const [ application ] = applications as [Structures.Application];
+    const guild =  context.guild as Structures.Guild;
 
-    const presences = guild.presences.filter((presence) => presence.activities.some((activity) => activity.applicationId === application.id || activity.name === application.name));
+    const presences = guild.presences.filter((presence) => {
+      return presence.activities.some((activity) => activity.applicationId === application.id || activity.name === application.name);
+    });
     if (presences.length) {
-      const members = (<Array<Structures.Member>> presences
+      const members = (presences
         .map((presence) => guild.members.get(presence.user.id))
-        .filter((member) => member))
+        .filter((member) => member) as Array<Structures.Member>)
         .sort((x, y) => x.joinedAtUnix - y.joinedAtUnix);
 
       const pageLimit = members.length;
@@ -67,8 +69,7 @@ export default class PlayingCommand extends BaseCommand {
           const member = members[page - 1];
           const user = member;
 
-          const embed = new Embed();
-          embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
+          const embed = createUserEmbed(user);
           embed.setColor(PresenceStatusColors['offline']);
           embed.setDescription(member.mention);
           embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
@@ -157,7 +158,7 @@ export default class PlayingCommand extends BaseCommand {
             if (presence.clientStatus) {
               const description = [];
               for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
-                let status = (<any> presence.clientStatus)[key];
+                let status = (presence.clientStatus as any)[key];
                 if (status) {
                   if (status in PresenceStatusTexts) {
                     status = PresenceStatusTexts[status];

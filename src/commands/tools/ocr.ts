@@ -24,6 +24,10 @@ export interface CommandArgs {
 export default class OCRCommand extends BaseImageCommand<CommandArgs> {
   name = 'ocr';
 
+  args = [
+    {name: 'noembed', type: Boolean},
+    {name: 'files.gg', label: 'upload', type: Boolean},
+  ];
   label = 'url';
   metadata = {
     description: 'Read text inside of an image',
@@ -37,19 +41,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
   };
   type = Parameters.lastImageUrl;
 
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {name: 'noembed', type: Boolean},
-        {name: 'files.gg', label: 'upload', type: Boolean},
-      ],
-    });
-  }
-
   async run(context: Command.Context, args: CommandArgs) {
-    await context.triggerTyping();
-
     const { annotation } = await googleContentVisionOCR(context, {url: args.url});
 
     let description: string = '';

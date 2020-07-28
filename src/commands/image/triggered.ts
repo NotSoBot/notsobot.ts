@@ -18,6 +18,9 @@ export interface CommandArgs {
 export default class TriggeredCommand extends BaseImageCommand<CommandArgs> {
   name = 'triggered';
 
+  args = [
+    {name: 'type'},
+  ];
   metadata = {
     examples: [
       'triggered',
@@ -27,15 +30,6 @@ export default class TriggeredCommand extends BaseImageCommand<CommandArgs> {
     type: CommandTypes.IMAGE,
     usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
   };
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {name: 'type'},
-      ],
-    });
-  }
 
   async run(context: Command.Context, args: CommandArgs) {
 

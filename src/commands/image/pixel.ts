@@ -1,4 +1,4 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 
@@ -18,6 +18,9 @@ export interface CommandArgs {
 export default class PixelCommand extends BaseImageCommand<CommandArgs> {
   name = 'pixel';
 
+  args = [
+    {name: 'amount', type: Number},
+  ];
   metadata = {
     description: 'Pixelate?',
     examples: [
@@ -28,15 +31,6 @@ export default class PixelCommand extends BaseImageCommand<CommandArgs> {
     type: CommandTypes.IMAGE,
     usage: 'pixel ?<emoji|id|mention|name|url> (-amount <number>)',
   };
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {name: 'amount', type: Number},
-      ],
-    });
-  }
 
   run(context: Command.Context, args: CommandArgs) {
 

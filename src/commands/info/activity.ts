@@ -9,6 +9,7 @@ import {
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
 import {
+  DefaultParameters,
   Paginator,
   Parameters,
   createUserEmbed,
@@ -31,6 +32,7 @@ export default class ActivityCommand extends BaseCommand {
   aliases = ['presence'];
   name = 'activity';
 
+  default = DefaultParameters.author;
   label = 'user';
   metadata = {
     description: 'Get a user\'s current activity, defaults to self',
@@ -42,7 +44,7 @@ export default class ActivityCommand extends BaseCommand {
     usage: 'activity ?<id|mention|name>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.memberOrUserOrCurrent();
+  type = Parameters.memberOrUser();
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.user;

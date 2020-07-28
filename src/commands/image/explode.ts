@@ -24,6 +24,7 @@ export default class ExplodeCommand extends BaseImageCommand<CommandArgs> {
     {aliases: ['s'], name: 'scale', type: 'float'},
   ];
   metadata = {
+    description: 'Explode an image from the center',
     examples: ['explode', 'explode notsobot', 'explode notsobot -scale 5'],
     type: CommandTypes.IMAGE,
     usage: 'explode ?<emoji|id|mention|name|url> (-scale <float>)',

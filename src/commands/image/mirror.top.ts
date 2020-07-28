@@ -30,8 +30,6 @@ export default class MirrorTopCommand extends BaseImageCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    await context.triggerTyping();
-
     const response = await imageMirrorTop(context, {url: args.url});
     return imageReply(context, response, 'mirror-top');
   }

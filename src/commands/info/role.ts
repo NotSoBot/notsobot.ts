@@ -1,6 +1,7 @@
-import { Command, CommandClient, Constants, Structures, Utils } from 'detritus-client';
-const { Permissions } = Constants;
-const { Embed, Markup, PermissionTools, intToHex } = Utils;
+import { Command, Structures } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
+import { Embed, Markup, PermissionTools, intToHex } from 'detritus-client/lib/utils';
+
 
 import {
   BooleanEmojis,
@@ -11,25 +12,14 @@ import {
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
 } from '../../constants';
-import { Parameters, isSnowflake, padCodeBlockFromRows } from '../../utils';
+import { DefaultParameters, Parameters, padCodeBlockFromRows } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
 
-export function getChannel(value: string, context: Command.Context) {
-  if (value) {
-    const guild = context.guild;
-    if (guild) {
-      return guild.channels.get(value);
-    }
-  }
-  return context.channel;
-}
-
-
 export interface CommandArgsBefore {
-  channel: Structures.Channel | null | undefined,
-  role: Structures.Role | null | undefined,
+  channel: Structures.Channel | null,
+  role: Structures.Role | null,
 }
 
 export interface CommandArgs {
@@ -40,7 +30,10 @@ export interface CommandArgs {
 export default class RoleCommand extends BaseCommand {
   name = 'role';
 
-  default = (context: Command.Context) => context.guild && context.guild.defaultRole;
+  args = [
+    {name: 'channel', default: DefaultParameters.channel, type: Parameters.channel()},
+  ];
+  default = DefaultParameters.defaultRole;
   disableDm = true;
   metadata = {
     description: 'Get information for a role, defaults to the @everyone role',
@@ -53,15 +46,6 @@ export default class RoleCommand extends BaseCommand {
   };
   permissionClient = [Permissions.EMBED_LINKS];
   type = Parameters.role;
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {default: (context: Command.Context) => context.channel, name: 'channel', type: Parameters.channel()},
-      ],
-    });
-  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.channel && !!args.role;
@@ -79,7 +63,6 @@ export default class RoleCommand extends BaseCommand {
     const { channel, role } = args;
 
     const embed = new Embed();
-
     embed.setAuthor(role.name);
     embed.setDescription(`Showing channel permissions for ${role.mention} in ${channel.mention}`);
 

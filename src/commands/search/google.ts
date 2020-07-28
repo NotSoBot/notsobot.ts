@@ -1,4 +1,4 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { googleSearch } from '../../api';
@@ -11,7 +11,7 @@ import {
   GoogleLocalesText,
   GOOGLE_CARD_TYPES_SUPPORTED,
 } from '../../constants';
-import { Arguments, Paginator } from '../../utils';
+import { Arguments, Paginator, splitArray } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -28,6 +28,10 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
   aliases = ['g'];
   name = 'google';
 
+  args = [
+    Arguments.GoogleLocale,
+    Arguments.Safe,
+  ];
   metadata = {
     description: 'Search Google',
     examples: [
@@ -38,13 +42,6 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
     type: CommandTypes.SEARCH,
     usage: 'google <query> (-locale <language>) (-safe)',
   };
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [Arguments.GoogleLocale, Arguments.Safe],
-    });
-  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { cards, results, suggestion } = await googleSearch(context, args);

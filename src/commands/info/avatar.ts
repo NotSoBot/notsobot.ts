@@ -1,7 +1,7 @@
 import { Command, Structures } from 'detritus-client';
 
 import { CommandTypes, PresenceStatusColors } from '../../constants';
-import { Parameters, createUserEmbed } from '../../utils';
+import { DefaultParameters, Parameters, createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -17,6 +17,7 @@ export interface CommandArgs {
 export default class AvatarCommand extends BaseCommand {
   name = 'avatar';
 
+  default = DefaultParameters.author;
   label = 'user';
   metadata = {
     description: 'Get the avatar for a user, defaults to self',
@@ -27,7 +28,7 @@ export default class AvatarCommand extends BaseCommand {
     type: CommandTypes.INFO,
     usage: 'user ?<id|mention|name>',
   };
-  type = Parameters.memberOrUserOrCurrent();
+  type = Parameters.memberOrUser();
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.user;

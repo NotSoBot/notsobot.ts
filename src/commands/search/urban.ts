@@ -1,4 +1,4 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command } from 'detritus-client';
 import { Embed, Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchUrban, searchUrbanRandom } from '../../api';
@@ -25,6 +25,9 @@ export interface CommandArgs {
 export default class UrbanCommand extends BaseSearchCommand<CommandArgs> {
   name = 'urban';
 
+  args = [
+    {name: 'random', type: Boolean},
+  ];
   metadata = {
     description: 'Search Urban Dictionary',
     examples: [
@@ -34,13 +37,6 @@ export default class UrbanCommand extends BaseSearchCommand<CommandArgs> {
     type: CommandTypes.SEARCH,
     usage: 'urban <query> (-random)',
   };
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [{name: 'random', type: Boolean}],
-    });
-  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.query || !!args.random;

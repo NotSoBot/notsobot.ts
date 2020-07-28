@@ -23,40 +23,79 @@ export function createUserEmbed(user: Structures.User) {
   return embed;
 }
 
+
+export function findImageUrlInAttachment(
+  attachment: Structures.Attachment,
+): null | string {
+  if (attachment.isImage && attachment.proxyUrl) {
+    if (attachment.url) {
+      const url = new URL(attachment.url);
+      if (TRUSTED_URLS.includes(url.host)) {
+        return attachment.url;
+      }
+    }
+    return attachment.proxyUrl;
+  }
+  return null;
+}
+
+export function findImageUrlInEmbed(
+  embed: Structures.MessageEmbed,
+): null | string {
+  if (embed.image && embed.image.proxyUrl) {
+    if (embed.image.url) {
+      const url = new URL(embed.image.url);
+      if (TRUSTED_URLS.includes(url.host)) {
+        return embed.image.url;
+      }
+    }
+    return embed.image.proxyUrl;
+  }
+  if (embed.thumbnail && embed.thumbnail.proxyUrl) {
+    if (embed.thumbnail.url) {
+      const url = new URL(embed.thumbnail.url);
+      if (TRUSTED_URLS.includes(url.host)) {
+        return embed.thumbnail.url;
+      }
+    }
+    return embed.thumbnail.proxyUrl;
+  }
+  return null;
+}
+
+export function findImageUrlInMessage(
+  message: Structures.Message,
+  url?: string,
+): null | string {
+  if (url) {
+    for (let [embedId, embed] of message.embeds) {
+      if (embed.url === url) {
+        return findImageUrlInEmbed(embed);
+      }
+    }
+  }
+  for (let [attachmentId, attachment] of message.attachments) {
+    const url = findImageUrlInAttachment(attachment);
+    if (url) {
+      return url;
+    }
+  }
+  for (let [embedId, embed] of message.embeds) {
+    const url = findImageUrlInEmbed(embed);
+    if (url) {
+      return url;
+    }
+  }
+  return null;
+}
+
 export function findImageUrlInMessages(
   messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
 ): null | string {
   for (const message of messages.values()) {
-    for (let [attachmentId, attachment] of message.attachments) {
-      if (attachment.isImage && attachment.proxyUrl) {
-        if (attachment.url) {
-          const url = new URL(attachment.url);
-          if (TRUSTED_URLS.includes(url.host)) {
-            return attachment.url;
-          }
-        }
-        return attachment.proxyUrl;
-      }
-    }
-    for (let [embedId, embed] of message.embeds) {
-      if (embed.image && embed.image.proxyUrl) {
-        if (embed.image.url) {
-          const url = new URL(embed.image.url);
-          if (TRUSTED_URLS.includes(url.host)) {
-            return embed.image.url;
-          }
-        }
-        return embed.image.proxyUrl;
-      }
-      if (embed.thumbnail && embed.thumbnail.proxyUrl) {
-        if (embed.thumbnail.url) {
-          const url = new URL(embed.thumbnail.url);
-          if (TRUSTED_URLS.includes(url.host)) {
-            return embed.thumbnail.url;
-          }
-        }
-        return embed.thumbnail.proxyUrl;
-      }
+    const url = findImageUrlInMessage(message);
+    if (url) {
+      return url;
     }
   }
   return null;
@@ -157,7 +196,7 @@ export async function findMemberByChunkText(
   text: string,
 ) {
   const parts = text.split('#');
-  const username = (parts.shift() as string).toLowerCase().slice(0, 32);
+  const username = (parts.shift() as string).slice(0, 32).toLowerCase();
   let discriminator: null | string = null;
   if (parts.length) {
     discriminator = (parts.shift() as string).padStart(4, '0');

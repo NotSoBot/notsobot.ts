@@ -1,9 +1,9 @@
-import { Command, CommandClient, Utils } from 'detritus-client';
-const { Embed, Markup } = Utils;
+import { Command } from 'detritus-client';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR, googleTranslate } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales } from '../../constants';
-import { Arguments, Parameters, languageCodeToText } from '../../utils';
+import { Arguments, Parameters, createUserEmbed, languageCodeToText } from '../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -19,9 +19,12 @@ export interface CommandArgs {
 }
 
 export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
+  aliases = ['ocrtr', 'trocr', 'translateocr'];
   name = 'ocrtranslate';
 
-  aliases = ['ocrtr', 'trocr', 'translateocr'];
+  args = [
+    {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
+  ];
   label = 'url';
   metadata = {
     description: 'Read text inside of an image and translate it',
@@ -35,19 +38,10 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
   };
   type = Parameters.lastImageUrl;
 
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [{name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type}],
-    });
-  }
-
   async run(context: Command.Context, args: CommandArgs) {
-    await context.triggerTyping();
-
     const { annotation } = await googleContentVisionOCR(context, {url: args.url});
-    const embed = new Utils.Embed();
-    embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
     embed.setFooter('Google Translate from OCR', EmbedBrands.GOOGLE_GO);
     embed.setThumbnail(args.url);

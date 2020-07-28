@@ -1,6 +1,6 @@
-import { Command, Constants, Utils } from 'detritus-client';
-const { Permissions } = Constants;
-const { Embed } = Utils;
+import { Command } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { Parameters } from '../../utils';
 
@@ -39,18 +39,17 @@ export default class LastImageCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    console.log(args);
     const embed = new Embed();
 
     {
       const description: Array<string> = [];
       for (let url of args.urls) {
-        description.push(`[**URL**](${url})`);
+        description.push(Markup.url('URL', url));
       }
       embed.setDescription(description.join(', '));
     }
 
-    const image = args.urls[0];
+    const [ image ] = args.urls;
     if (image) {
       embed.setImage(image);
     }

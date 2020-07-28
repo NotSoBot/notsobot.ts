@@ -3,9 +3,10 @@ import { onlyEmoji } from 'emoji-aware';
 import { ClusterClient, Command, Structures } from 'detritus-client';
 import { ChannelTypes, DiscordAbortCodes, DiscordRegexNames } from 'detritus-client/lib/constants';
 import { regex as discordRegex } from 'detritus-client/lib/utils';
-import { Endpoints } from 'detritus-client-rest';
+import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
+import { CDN } from '../api/endpoints';
 import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
 import {
@@ -193,88 +194,101 @@ export async function guildMetadata(
 }
 
 
+export async function imageUrl(
+  value: string,
+  context: Command.Context,
+): Promise<string | null> {
+  if (value) {
+    try {
+      // if it's a url
+      {
+        const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+        if (matches.length) {
+          const [ { text } ] = matches;
+          if (!context.message.embeds.length) {
+            await Timers.sleep(1000);
+          }
+          const url = findImageUrlInMessages([context.message]);
+          return url || text;
+        }
+      }
+
+      // it's in the form of username#discriminator
+      if (value.includes('#')) {
+        const found = await findMemberByChunkText(context, value);
+        if (found) {
+          return found.avatarUrlFormat(null, {size: 1024});
+        }
+        return null;
+      }
+
+      // it's in the form of <@123>
+      {
+        const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
+        if (matches.length) {
+          const [ { id: userId } ] = matches;
+
+          // pass it onto the next statement
+          if (isSnowflake(userId)) {
+            value = userId;
+          }
+        }
+      }
+
+      // it's just the snowflake of a user
+      if (isSnowflake(value)) {
+        const userId = value;
+
+        let user: Structures.User;
+        if (context.message.mentions.has(userId)) {
+          user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+        } else {
+          user = await context.rest.fetchUser(userId);
+        }
+        return user.avatarUrlFormat(null, {size: 1024});
+      }
+
+      // it's <a:emoji:id>
+      {
+        const { matches } = discordRegex(DiscordRegexNames.EMOJI, value) as {matches: Array<{animated: boolean, id: string}>};
+        if (matches.length) {
+          const [ { animated, id } ] = matches;
+          const format = (animated) ? 'gif' : 'png';
+          return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format);
+        }
+      }
+
+      // it's an unicode emoji
+      {
+        const emojis = onlyEmoji(value);
+        if (emojis && emojis.length) {
+          for (let emoji of emojis) {
+            const codepoint = toCodePoint(emoji);
+            return CDN.URL + CDN.TWEMOJI_512(codepoint);
+          }
+        }
+      }
+    } catch(error) {
+      return null;
+    }
+  }
+  return null;
+}
+
+
 export async function lastImageUrl(
   value: string,
   context: Command.Context,
 ): Promise<null | string | undefined> {
-  value = value.trim();
   {
     const url = findImageUrlInMessages([context.message]);
     if (url) {
       return url;
     }
   }
+
   if (value) {
-    {
-      const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
-      if (matches.length) {
-        const [ { text } ] = matches;
-        if (!context.message.embeds.length) {
-          await Timers.sleep(1000);
-        }
-        const url = findImageUrlInMessages([context.message]);
-        return url || text;
-      }
-    }
-
-    let text = value;
-    try {
-      if (!text.includes('#')) {
-        {
-          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, text) as {matches: Array<{id: string}>};
-          if (matches.length) {
-            const [ { id: userId } ] = matches;
-
-            // pass it onto the next statement
-            if (isSnowflake(userId)) {
-              text = userId;
-            }
-          }
-        }
-
-        if (isSnowflake(text)) {
-          const userId = text;
-
-          let user: Structures.User;
-          if (context.message.mentions.has(userId)) {
-            user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
-          } else {
-            user = await context.rest.fetchUser(userId);
-          }
-          return user.avatarUrlFormat(null, {size: 1024});
-        }
-
-        {
-          const { matches } = discordRegex(DiscordRegexNames.EMOJI, text) as {matches: Array<{animated: boolean, id: string}>};
-          if (matches.length) {
-            const [ { animated, id } ] = matches;
-            const format = (animated) ? 'gif' : 'png';
-            return Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format);
-          }
-        }
-
-        {
-          const emojis = onlyEmoji(text);
-          if (emojis && emojis.length) {
-            for (let emoji of emojis) {
-              const codepoint = toCodePoint(emoji);
-              return `https://cdn.notsobot.com/twemoji/512x512/${codepoint}.png`;
-            }
-          }
-        }
-      }
-
-      {
-        const found = await findMemberByChunkText(context, value);
-        if (found) {
-          return found.avatarUrlFormat(null, {size: 1024});
-        }
-      }
-    } catch(error) {
-
-    }
-
-    return null;
+    return imageUrl(value, context);
   } else {
     const { channel } = context;
     if (channel) {
@@ -301,7 +315,6 @@ export async function lastImageUrls(
   value: string,
   context: Command.Context,
 ): Promise<Array<string> | null> {
-  value = value.trim();
   if (!value) {
     {
       const url = findImageUrlInMessages([context.message]);
@@ -320,7 +333,7 @@ export async function lastImageUrls(
       }
 
       {
-        const messages = await channel.fetchMessages({limit: 100});
+        const messages = await channel.fetchMessages({limit: 50});
         const url = findImageUrlInMessages(messages);
         if (url) {
           return [url];
@@ -332,7 +345,6 @@ export async function lastImageUrls(
   }
 
   const urls = new Set<string>();
-
   {
     const url = findImageUrlInMessages([context.message]);
     if (url) {
@@ -343,10 +355,11 @@ export async function lastImageUrls(
   {
     const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
     if (matches.length) {
-      const [ { text } ] = matches;
       if (!context.message.embeds.length) {
         await Timers.sleep(1000);
       }
+      // match the url with the embed?
+      const [ { text } ] = matches;
       const url = findImageUrlInMessages([context.message]);
       urls.add(url || text);
     }
@@ -361,72 +374,10 @@ export async function lastImageUrls(
     if (3 <= urls.size) {
       break;
     }
-    const text = values[i];
 
-    try {
-      if (!text.includes('#')) {
-        {
-          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, text) as {matches: Array<{id: string}>};
-          if (matches.length) {
-            const [ { id: userId } ] = matches;
-
-            if (isSnowflake(userId)) {
-              let user: Structures.User;
-              if (context.message.mentions.has(userId)) {
-                user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
-              } else {
-                user = await context.rest.fetchUser(userId);
-              }
-              urls.add(user.avatarUrlFormat(null, {size: 1024}));
-              continue;
-            }
-          }
-        }
-
-        if (isSnowflake(text)) {
-          const userId = text;
-
-          let user: Structures.User;
-          if (context.message.mentions.has(userId)) {
-            user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
-          } else {
-            user = await context.rest.fetchUser(userId);
-          }
-          urls.add(user.avatarUrlFormat(null, {size: 1024}));
-          continue;
-        }
-
-        {
-          const { matches } = discordRegex(DiscordRegexNames.EMOJI, text) as {matches: Array<{animated: boolean, id: string}>};
-          if (matches.length) {
-            const [ { animated, id } ] = matches;
-            const format = (animated) ? 'gif' : 'png';
-            urls.add(Endpoints.CDN.URL + Endpoints.CDN.EMOJI(id, format));
-            continue;
-          }
-        }
-
-        {
-          const emojis = onlyEmoji(text);
-          if (emojis && emojis.length) {
-            for (let emoji of emojis) {
-              const codepoint = toCodePoint(emoji);
-              urls.add(`https://cdn.notsobot.com/twemoji/512x512/${codepoint}.png`);
-            }
-            continue;
-          }
-        }
-      }
-
-      {
-        const found = await findMemberByChunkText(context, text);
-        if (found) {
-          urls.add(found.avatarUrlFormat(null, {size: 1024}));
-          continue;
-        }
-      }
-    } catch(error) {
-
+    const url = await imageUrl(values[i], context);
+    if (url) {
+      urls.add(url);
     }
   }
 
@@ -463,7 +414,7 @@ export async function applications(
       return false;
     });
   }
-  return Array.from(context.applications.values());
+  return [];
 }
 
 
@@ -472,7 +423,7 @@ export interface ChannelOptions {
 }
 
 export function channel(options: ChannelOptions = {}) {
-  return (value: string, context: Command.Context): Structures.Channel | null | undefined => {
+  return (value: string, context: Command.Context): Structures.Channel | null => {
     if (value) {
       {
         const { matches } = discordRegex(DiscordRegexNames.MENTION_CHANNEL, value) as {matches: Array<{id: string}>};
@@ -490,14 +441,15 @@ export function channel(options: ChannelOptions = {}) {
           return channel;
         }
       }
-      if (context.guild) {
+      const { guild } = context;
+      if (guild) {
         let channels: Array<Structures.Channel>;
 
         const { types: channelTypes } = options;
         if (channelTypes) {
-          channels = context.guild.channels.filter((channel) => channelTypes.includes(channel.type));
+          channels = guild.channels.filter((channel) => channelTypes.includes(channel.type));
         } else {
-          channels = context.guild.channels.toArray();
+          channels = guild.channels.toArray();
         }
         channels = channels.sort((x, y) => x.position - y.position);
         for (let channel of channels) {
@@ -511,27 +463,15 @@ export function channel(options: ChannelOptions = {}) {
           }
         }
       }
-      return null;
     }
-    return undefined;
-  };
-}
-
-
-export function channelOrCurrent(options: ChannelOptions = {}) {
-  const findChannel = channel(options);
-  return (value: string, context: Command.Context): Structures.Channel | null | undefined => {
-    if (value) {
-      return findChannel(value, context) || null;
-    }
-    return context.channel;
+    return null;
   };
 }
 
 
 export function channels(options: ChannelOptions = {}) {
   const findChannel = channel(options);
-  return (value: string, context: Command.Context): Array<Structures.Channel> | null => {
+  return (value: string, context: Command.Context): Array<Structures.Channel> => {
     if (value) {
       const channels: Array<Structures.Channel> = [];
       for (let arg of stringArguments(value)) {
@@ -542,20 +482,8 @@ export function channels(options: ChannelOptions = {}) {
       }
       return channels;
     }
-    return null;
+    return [];
   }
-}
-
-
-export function channelsOrCurrent(options: ChannelOptions = {}) {
-  const findChannels = channels(options);
-  return (value: string, context: Command.Context): Array<Structures.Channel> => {
-    const found = findChannels(value, context);
-    if (found) {
-      return found;
-    }
-    return (context.channel) ? [context.channel] : [];
-  };
 }
 
 
@@ -566,41 +494,39 @@ export interface MemberOrUserOptions {
 export function memberOrUser(
   options: MemberOrUserOptions = {},
 ) {
-  return async (value: string, context: Command.Context): Promise<Structures.Member | Structures.User | null | undefined> => {
-    if (!value) {
-      return undefined;
-    }
-    return Promise.resolve((async () => {
-      try {
-        {
-          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
-          if (matches.length) {
-            const { id: userId } = matches[0];
-            if (isSnowflake(userId)) {
-              value = userId;
+  return async (value: string, context: Command.Context): Promise<Structures.Member | Structures.User | null> => {
+    if (value) {
+      return Promise.resolve((async () => {
+        try {
+          {
+            const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
+            if (matches.length) {
+              const { id: userId } = matches[0];
+              if (isSnowflake(userId)) {
+                value = userId;
+              }
             }
           }
-        }
-  
-        if (isSnowflake(value)) {
-          const userId = value;
-  
-          const mention = context.message.mentions.get(userId);
-          if (mention) {
-            return mention;
-          } else {
-            if (context.guildId) {
+    
+          if (isSnowflake(value)) {
+            const userId = value;
+    
+            const mention = context.message.mentions.get(userId);
+            if (mention) {
+              return mention;
+            }
+
+            const { guild } = context;
+            if (guild) {
               try {
-                const member = context.members.get(context.guildId, userId);
+                const member = guild.members.get(userId);
                 if (member) {
                   if (member.isPartial) {
-                    return await context.rest.fetchGuildMember(context.guildId, userId);
-                  } else {
-                    return member;
+                    return await guild.fetchMember(userId);
                   }
-                } else {
-                  return await context.rest.fetchGuildMember(context.guildId, userId);
+                  return member;
                 }
+                return await guild.fetchMember(userId);
               } catch(error) {
                 // UNKNOWN_MEMBER == userId exists
                 // UNKNOWN_USER == userId doesn't exist
@@ -616,41 +542,31 @@ export function memberOrUser(
                   };
                 }
               }
-            } else {
-              return await context.rest.fetchUser(userId);
             }
+            if (context.users.has(userId)) {
+              return context.users.get(userId) as Structures.User;
+            }
+            return await context.rest.fetchUser(userId);
           }
-        }
-  
-        const found = await findMemberByChunkText(context, value);
-        if (found) {
-          return found;
-        }
-      } catch(error) {}
+    
+          const found = await findMemberByChunkText(context, value);
+          if (found) {
+            return found;
+          }
+        } catch(error) {}
 
-      return null;
-    })()).then((memberOrUser) => {
-      if (memberOrUser && memberOrUser.bot) {
-        if (options.allowBots || options.allowBots === undefined) {
-          return memberOrUser;
-        }
         return null;
-      }
-      return memberOrUser;
-    });
-  }
-}
-
-export function memberOrUserOrCurrent(
-  options: MemberOrUserOptions = {},
-) {
-  const findMemberOrUser = memberOrUser(options);
-  return async (value: string, context: Command.Context): Promise<Structures.Member | Structures.User | null> => {
-    const found = await findMemberOrUser(value, context);
-    if (found) {
-      return found;
+      })()).then((memberOrUser) => {
+        if (memberOrUser && memberOrUser.bot) {
+          if (options.allowBots || options.allowBots === undefined) {
+            return memberOrUser;
+          }
+          return null;
+        }
+        return memberOrUser;
+      });
     }
-    return context.member || context.user;
+    return null;
   }
 }
 
@@ -684,51 +600,11 @@ export function membersOrUsers(
   }
 }
 
-export function membersOrUsersOrAll(
-  options: MembersOrUsersOptions = {},
-) {
-  const findMembersOrUsers = membersOrUsers(options);
-  return async (value: string, context: Command.Context): Promise<Array<Structures.Member | Structures.User>> => {
-    const found = await findMembersOrUsers(value, context);
-    if (found) {
-      return found;
-    }
-    const guild = context.guild;
-    if (guild) {
-      let all: Array<Structures.Member>;
-      if (guild.isReady) {
-        all = guild.members.toArray();
-      } else {
-        const { members } = await guild.requestMembers({
-          limit: 0,
-          presences: true,
-          query: '',
-          timeout: 10000,
-        });
-        all = members.toArray();
-      }
-      if (options.allowBots || options.allowBots === undefined) {
-        return all;
-      } else {
-        return all.filter((member) => !member.bot);
-      }
-    } else {
-      return [context.member || context.user];
-    }
-  };
-}
-
-export function membersOrUsersSearch(
-  options: MemberOrUserOptions = {},
-) {
-
-}
-
 
 export function role(
   value: string,
   context: Command.Context,
-): Structures.Role | null | undefined {
+): Structures.Role | null {
   if (value) {
     const { guild } = context;
     if (guild) {
@@ -748,6 +624,7 @@ export function role(
           return role;
         }
       }
+      value = value.toLowerCase();
       for (let [roleId, role] of guild.roles) {
         if (role.name.toLowerCase().startsWith(value)) {
           return role;
@@ -759,15 +636,14 @@ export function role(
         }
       }
     }
-    return null;
   }
-  return undefined;
+  return null;
 }
 
 export function roles(
   value: string,
   context: Command.Context,
-): Array<Structures.Role> | null {
+): Array<Structures.Role> {
   if (value) {
     const roles: Array<Structures.Role> = [];
     for (let arg of stringArguments(value)) {
@@ -778,23 +654,11 @@ export function roles(
     }
     return roles;
   }
-  return null;
+  return [];
 }
 
 
 /* ----- Values ----- */
-
-
-export function inside(
-  values: Array<string>,
-) {
-  return (value: string): string => {
-    if (!values.includes(value)) {
-      throw new Error(`Value must be one of (${values.join(', ')})`);
-    }
-    return value;
-  }
-}
 
 export function percentage(
   value: string,

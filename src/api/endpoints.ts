@@ -1,6 +1,10 @@
+import { Tools } from 'detritus-utils';
+
+
 export const LOCALHOST_API = 'http://localhost';
 
 export enum Domains {
+  CDN = 'https://cdn.notsobot.com/',
   BETA = 'https://beta.notsobot.com/',
   STABLE = 'https://notsobot.com/',
 }
@@ -83,4 +87,12 @@ export const Api = Object.freeze({
 
   YOUTUBE_SEARCH:
     '/youtube/search',
+});
+
+
+export const CDN = Tools.URIEncodeWrap({
+  URL: Domains.CDN.slice(0, -1),
+
+  TWEMOJI_512: (codepoint: string): string =>
+    `/twemoji/512x512/${codepoint}.png`,
 });

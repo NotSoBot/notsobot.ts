@@ -9,7 +9,7 @@ import {
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
-import { Paginator, Parameters, toTitleCase } from '../../utils';
+import { DefaultParameters, Paginator, Parameters, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -26,6 +26,7 @@ export default class UsersCommand extends BaseCommand {
   aliases = ['members'];
   name = 'users';
 
+  default = DefaultParameters.members;
   label = 'users';
   metadata = {
     description: 'Get information about multiple members/users',
@@ -39,7 +40,7 @@ export default class UsersCommand extends BaseCommand {
     usage: 'users ...?<id|mention|name>',
   };
   permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.membersOrUsersOrAll();
+  type = Parameters.membersOrUsers();
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.users.length;

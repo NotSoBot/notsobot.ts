@@ -1,6 +1,6 @@
-import { Collections, Command, Constants, Structures, Utils } from 'detritus-client';
-const { Colors } = Constants;
-const { Embed } = Utils;
+import { Collections, Command, Structures } from 'detritus-client';
+import { Colors } from 'detritus-client/lib/constants';
+import { Embed } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
 import { Parameters } from '../../utils';
@@ -58,7 +58,7 @@ export default class GuildIconCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const { guild } = args.payload;
     if (guild.icon) {
-      const url = <string> guild.iconUrlFormat(null, {size: 512});
+      const url = guild.iconUrlFormat(null, {size: 512}) as string;
 
       const channel = context.channel;
       if (channel && channel.canEmbedLinks) {

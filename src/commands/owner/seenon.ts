@@ -8,7 +8,7 @@ import {
   CommandTypes,
   DateOptions,
 } from '../../constants';
-import { Paginator, Parameters, toTitleCase } from '../../utils';
+import { DefaultParameters, Paginator, Parameters, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -36,8 +36,9 @@ export interface SharedGuildPayload {
   user: Structures.Member | Structures.User | null,
 }
 
-const findMemberOrUser = Parameters.memberOrUserOrCurrent();
+const findMemberOrUser = Parameters.memberOrUser();
 async function getSharedGuilds(value: string, context: Command.Context): Promise<SharedGuildPayload> {
+  // value will be our userId if they didnt send anything in
   const user = await findMemberOrUser(value, context);
 
   let results: Array<GuildResult>;
@@ -90,6 +91,7 @@ async function getSharedGuilds(value: string, context: Command.Context): Promise
 export default class SeenOnCommand extends BaseCommand {
   name = 'seenon';
 
+  default = (context: Command.Context) => context.userId;
   label = 'payload';
   metadata = {
     description: 'Get guilds a user shares with NotSoBot.',

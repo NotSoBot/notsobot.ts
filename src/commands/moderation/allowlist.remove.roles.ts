@@ -27,6 +27,7 @@ export default class AllowlistRemoveRolesCommand extends BaseCommand {
   ];
   name = 'allowlist remove roles';
 
+  default = null;
   disableDm = true;
   label = 'roles';
   metadata = {

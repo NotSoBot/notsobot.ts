@@ -1,16 +1,11 @@
 import {
   Command,
-  Constants,
   GatewayClientEvents,
   Structures,
   Utils,
 } from 'detritus-client';
+import { DiscordRegexNames } from 'detritus-client/lib/constants';
 import { Timers } from 'detritus-utils';
-
-const {
-  ClientEvents,
-  DiscordRegexNames,
-} = Constants;
 
 import PaginatorsStore from '../stores/paginators';
 

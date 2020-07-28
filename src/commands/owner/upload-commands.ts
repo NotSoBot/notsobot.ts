@@ -28,7 +28,7 @@ export default class UploadCommandsCommand extends BaseCommand {
       const metadata = command.metadata as CommandMetadata;
 
       const names = command.names;
-      const name = <string> names.shift();
+      const name = names.shift() as string;
       return {
         aliases: names,
         args: args.map((arg) => {

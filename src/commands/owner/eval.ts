@@ -1,5 +1,5 @@
-import { Command, CommandClient, Constants, Utils } from 'detritus-client';
-const { Embed, Markup } = Utils;
+import { Command, Constants, Utils } from 'detritus-client';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
 
@@ -21,6 +21,13 @@ export interface CommandArgs {
 export default class EvalCommand extends BaseCommand {
   name = 'eval';
 
+  args = [
+    {name: 'async', type: Boolean},
+    {name: 'jsonspacing', default: 2, type: Number},
+    {name: 'noembed', default: (context: Command.Context) => !!(context.channel && !context.channel.canEmbedLinks), type: () => true},
+    {name: 'noreply', type: Boolean},
+    {name: 'files.gg', label: 'upload', type: Boolean},
+  ];
   label = 'code';
   metadata = {
     description: 'Eval some code',
@@ -32,25 +39,12 @@ export default class EvalCommand extends BaseCommand {
   };
   responseOptional = true;
   type = (value: string) => {
-    const { matches } = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, value);
+    const { matches } = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, value) as {matches: Array<{text: string}>};
     if (matches.length) {
       return matches[0].text;
     }
     return value;
   };
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {name: 'async', type: Boolean},
-        {name: 'jsonspacing', type: Number, default: 2},
-        {name: 'noembed', default: (context: Command.Context) => !!(context.channel && !context.channel.canEmbedLinks), type: () => true},
-        {name: 'noreply', type: Boolean},
-        {name: 'files.gg', label: 'upload', type: Boolean},
-      ],
-    });
-  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

@@ -30,8 +30,6 @@ export default class MirrorLeftCommand extends BaseImageCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    await context.triggerTyping();
-
     const response = await imageMirrorLeft(context, {url: args.url});
     return imageReply(context, response, 'mirror-left');
   }

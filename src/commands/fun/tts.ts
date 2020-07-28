@@ -1,4 +1,4 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
@@ -16,6 +16,9 @@ export default class TTSCommand extends BaseCommand {
   name = 'tts';
 
   aliases = ['text-to-speech'];
+  args = [
+    {name: 'use'},
+  ];
   metadata = {
     description: 'Text to Speech',
     examples: [
@@ -25,15 +28,6 @@ export default class TTSCommand extends BaseCommand {
     type: CommandTypes.FUN,
     usage: 'tts <text> (-use <language/type>)',
   };
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {name: 'use'},
-      ],
-    });
-  }
 
   run(context: Command.Context, args: CommandArgs) {
 

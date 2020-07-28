@@ -68,6 +68,9 @@ export default class ReloadCommand extends BaseCommand {
   aliases = ['refresh'];
   name = 'reload';
 
+  args = [
+    {name: 'stores', type: Boolean},
+  ];
   metadata = {
     description: 'Reload the bot\'s commands.',
     examples: ['refresh', 'refresh -stores'],
@@ -75,13 +78,6 @@ export default class ReloadCommand extends BaseCommand {
     usage: 'refresh',
   };
   responseOptional = true;
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [{name: 'stores', type: Boolean}],
-    });
-  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

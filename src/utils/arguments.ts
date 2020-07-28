@@ -1,6 +1,5 @@
-import { Command, Constants } from 'detritus-client';
-
-const { Locales, LocalesText, GuildExplicitContentFilterTypes } = Constants;
+import { Command } from 'detritus-client';
+import { Locales, LocalesText, GuildExplicitContentFilterTypes } from 'detritus-client/lib/constants';
 
 import {
   GoogleLocaleFromDiscord,
@@ -16,7 +15,7 @@ export const DiscordLocale: Command.ArgumentOptions = Object.freeze({
     if (value) {
       value = value.toLowerCase().replace(/ /g, '_');
       for (let key in Locales) {
-        const locale = (<any> Locales)[key];
+        const locale = (Locales as any)[key];
         if (locale.toLowerCase() === value) {
           return locale;
         }
@@ -24,11 +23,11 @@ export const DiscordLocale: Command.ArgumentOptions = Object.freeze({
       for (let key in Locales) {
         const name = key.toLowerCase();
         if (name.includes(value)) {
-          return (<any> Locales)[key];
+          return (Locales as any)[key];
         }
       }
       for (let key in LocalesText) {
-        const name = (<any> LocalesText)[key].toLowerCase();
+        const name = (LocalesText as any)[key].toLowerCase();
         if (name.includes(value)) {
           return key;
         }
@@ -103,17 +102,20 @@ export const GoogleLocale: Command.ArgumentOptions = Object.freeze({
 export const Safe: Command.ArgumentOptions = Object.freeze({
   name: 'safe',
   default: (context: Command.Context) => {
-    const channel = context.channel;
-    if (channel && !channel.isDm) {
+    const { channel } = context;
+    if (channel) {
+      if (channel.isDm) {
+        return false;
+      }
       if (channel.nsfw) {
         return false;
       }
 
-      const guild = channel.guild;
+      const { guild } = channel;
       if (guild) {
         switch (guild.explicitContentFilter) {
           case GuildExplicitContentFilterTypes.MEMBERS_WITHOUT_ROLES: {
-            const member = context.member;
+            const { member } = context;
             if (member && member.roles.length === 1) {
               return true;
             }
@@ -124,6 +126,7 @@ export const Safe: Command.ArgumentOptions = Object.freeze({
         }
       }
     }
+    // default to safe filter being off
     return false;
   },
   type: () => true,

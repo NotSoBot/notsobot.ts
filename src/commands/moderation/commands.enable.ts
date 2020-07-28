@@ -1,4 +1,4 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
+import { Command, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { deleteGuildDisabledCommand } from '../../api';
@@ -26,6 +26,29 @@ export default class CommandsEnable extends BaseCommand {
   aliases = ['cmds enable'];
   name = 'commands enable';
 
+  args = [
+    {
+      aliases: ['channel'],
+      name: 'channels',
+      type: Parameters.channels({
+        types: [
+          ChannelTypes.GUILD_CATEGORY,
+          ChannelTypes.GUILD_NEWS,
+          ChannelTypes.GUILD_TEXT,
+        ],
+      }),
+    },
+    {
+      aliases: ['role'],
+      name: 'roles',
+      type: Parameters.roles,
+    },
+    {
+      aliases: ['user'],
+      name: 'users',
+      type: Parameters.membersOrUsers({allowBots: false}),
+    },
+  ];
   disableDm = true;
   label = 'command';
   metadata = {
@@ -41,27 +64,6 @@ export default class CommandsEnable extends BaseCommand {
   permissionsClient = [Permissions.EMBED_LINKS];
   permissions = [Permissions.MANAGE_GUILD];
   type = (content: string, context: Command.Context) => context.commandClient.getCommand({content, prefix: ''});
-
-  constructor(client: CommandClient, options: Command.CommandOptions) {
-    super(client, {
-      ...options,
-      args: [
-        {
-          aliases: ['channel'],
-          name: 'channels',
-          type: Parameters.channels({
-            types: [
-              ChannelTypes.GUILD_CATEGORY,
-              ChannelTypes.GUILD_NEWS,
-              ChannelTypes.GUILD_TEXT,
-            ],
-          }),
-        },
-        {aliases: ['role'], name: 'roles', type: Parameters.roles},
-        {aliases: ['user'], name: 'users', type: Parameters.membersOrUsers({allowBots: false})},
-      ],
-    });
-  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     if (!args.command) {

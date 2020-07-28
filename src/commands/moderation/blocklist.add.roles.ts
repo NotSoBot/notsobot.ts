@@ -23,6 +23,7 @@ export default class BlocklistAddRolesCommand extends BaseCommand {
   aliases = ['blocklist add role'];
   name = 'blocklist add roles';
 
+  default = null;
   disableDm = true;
   label = 'roles';
   metadata = {

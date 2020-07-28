@@ -27,7 +27,7 @@ export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
   aliases = ['enlarge', 'rescale'];
   args = [
     {name: 'convert'},
-    {default: 2, name: 'scale', type: 'float'},
+    {name: 'scale', default: 2, type: 'float'},
     {name: 'size'},
   ];
   metadata = {
@@ -43,8 +43,6 @@ export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    await context.triggerTyping();
-
     const response = await imageResize(context, args);
     return imageReply(context, response, 'resize');
   }

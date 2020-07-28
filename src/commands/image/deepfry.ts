@@ -24,6 +24,7 @@ export default class DeepfryCommand extends BaseImageCommand<CommandArgs> {
     {aliases: ['s'], name: 'scale', type: 'float'},
   ];
   metadata = {
+    description: 'Deep fry an image',
     examples: ['deepfry', 'deepfry notsobot', 'deepfry notsobot -scale 5'],
     type: CommandTypes.IMAGE,
     usage: 'deepfry ?<emoji|id|mention|name|url> (-scale <float>)',

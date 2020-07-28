@@ -2,7 +2,7 @@ import { Command, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
-import { Parameters } from '../../utils';
+import { Parameters, DefaultParameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -23,6 +23,7 @@ export default class AllowlistAddRolesCommand extends BaseCommand {
   aliases = ['allowlist add role'];
   name = 'allowlist add roles';
 
+  default = null;
   disableDm = true;
   label = 'roles';
   metadata = {
