@@ -1,9 +1,9 @@
 import { Command } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { googleSearchImages } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleImageVideoTypes, GoogleLocales, GoogleLocalesText } from '../../constants';
-import { Arguments, Paginator } from '../../utils';
+import { Arguments, Paginator, createUserEmbed } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -40,8 +40,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = new Embed();
-          embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+          const embed = createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];

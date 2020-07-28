@@ -1,9 +1,9 @@
 import { Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
-import { Paginator, toTitleCase } from '../../utils';
+import { Paginator, createUserEmbed, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -80,13 +80,7 @@ export default class HelpCommand extends BaseCommand {
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = new Embed();
-        embed.setAuthor(
-          context.user.toString(),
-          context.user.avatarUrlFormat(null, {size: 1024}),
-          context.user.jumpLink,
-        );
-
+        const embed = createUserEmbed(context.user);
         const resultNumber = page - 1;
         if (resultNumber in commands) {
           const command = commands[resultNumber];

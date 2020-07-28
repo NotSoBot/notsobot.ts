@@ -3,7 +3,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGo } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator } from '../../utils';
+import { Paginator, createUserEmbed } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -44,8 +44,7 @@ export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (pageNumber) => {
-          const embed = new Embed();
-          embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+          const embed = createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setFooter(`Page ${pageNumber}/${pageLimit} of Duck Duck Go Results`, EmbedBrands.DUCK_DUCK_GO);
           embed.setTitle('Search Results');

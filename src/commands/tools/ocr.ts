@@ -1,10 +1,9 @@
-import { Command, CommandClient, Utils } from 'detritus-client';
-
-const { Embed, Markup } = Utils;
+import { Command } from 'detritus-client';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Parameters, languageCodeToText } from '../../utils';
+import { Parameters, createUserEmbed, languageCodeToText } from '../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -70,8 +69,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
       const title = languageCodeToText(annotation.locale);
       return context.editOrReply([title, description].join('\n'));
     } else {
-      const embed = new Embed();
-      embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+      const embed = createUserEmbed(context.user);
       embed.setColor(EmbedColors.DEFAULT);
       embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
       embed.setThumbnail(args.url);

@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 
 import { Command } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { youtubeSearch } from '../../api';
 import {
@@ -12,7 +12,7 @@ import {
   YoutubeResultTypes,
   MOMENT_FORMAT,
 } from '../../constants';
-import { Paginator } from '../../utils';
+import { Paginator, createUserEmbed } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -47,8 +47,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
         onPage: (page) => {
           const result = results[page - 1];
 
-          const embed = new Embed();
-          embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+          const embed = createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setFooter(`Page ${page}/${pageLimit} of Youtube Search Results (${totalResultCount.toLocaleString()} Total Results)`, EmbedBrands.YOUTUBE);
 

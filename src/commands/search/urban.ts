@@ -1,9 +1,9 @@
 import { Command } from 'detritus-client';
-import { Embed, Markup, addQuery } from 'detritus-client/lib/utils';
+import { Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchUrban, searchUrbanRandom } from '../../api';
 import { CommandTypes, DateOptions, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator } from '../../utils';
+import { Paginator, createUserEmbed } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -58,8 +58,7 @@ export default class UrbanCommand extends BaseSearchCommand<CommandArgs> {
 
           const created = new Date(result.written_on);
 
-          const embed = new Embed();
-          embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+          const embed = createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setTitle(result.word);
           embed.setUrl(result.permalink);

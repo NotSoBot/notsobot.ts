@@ -1,5 +1,5 @@
 import { Command } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { googleSearch } from '../../api';
 import {
@@ -11,7 +11,7 @@ import {
   GoogleLocalesText,
   GOOGLE_CARD_TYPES_SUPPORTED,
 } from '../../constants';
-import { Arguments, Paginator, splitArray } from '../../utils';
+import { Arguments, Paginator, createUserEmbed, splitArray } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -72,8 +72,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
         const paginator = new Paginator(context, {
           pageLimit,
           onPage: (pageNumber) => {
-            const embed = new Embed();
-            embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+            const embed = createUserEmbed(context.user);
             embed.setColor(EmbedColors.DEFAULT);
 
             let footer: string;
@@ -150,8 +149,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
       }
     }
 
-    const embed = new Embed();
-    embed.setAuthor(context.user.toString(), context.user.avatarUrlFormat(null, {size: 1024}), context.user.jumpLink);
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
 
     let footer: string = 'Google Search Results';

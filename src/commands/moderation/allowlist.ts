@@ -1,11 +1,11 @@
 import { Collections, Command } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsAllowlist } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { Paginator, Parameters, createUserEmbed, splitArray, toTitleCase } from '../../utils';
+import { Paginator, createUserEmbed, splitArray, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -87,8 +87,7 @@ export async function createAllowlistEmbed(
     });
     return await paginator.start();
   } else {
-    const embed = new Embed();
-    embed.setAuthor(String(context.user), context.user.avatarUrl, context.user.jumpLink);
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
 
     embed.setTitle(title);

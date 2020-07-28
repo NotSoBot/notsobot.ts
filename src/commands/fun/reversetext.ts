@@ -1,5 +1,5 @@
-import { Command, Utils } from 'detritus-client';
-const { Markup } = Utils;
+import { Command } from 'detritus-client';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
