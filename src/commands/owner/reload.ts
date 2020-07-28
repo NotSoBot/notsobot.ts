@@ -31,31 +31,40 @@ async function reloadCommands(
       if (!refreshStores) {
         continue;
       }
-      const { default: store }: { default?: Store<any, any> } = require(key);
-      if (store) {
-        store.stop(cluster);
+      // get the old store and stop it
+      const oldStoreModule = require(key);
+      if (oldStoreModule.default) {
+        const { default: oldStore } = oldStoreModule;
+        oldStore.stop(cluster);
+
+        // delete old store module
+        delete require.cache[key];
+
+        // re-fetch the new store object
+        const newStoreModule = require(key);
+        const { default: newStore } = newStoreModule;
+
+        // set the cache back to the old store
+        require.cache[key].exports = oldStoreModule;
+
+        // set the old store's functions to the new store's
+        for (let key of Object.getOwnPropertyNames(newStore.constructor.prototype)) {
+          if (key !== 'constructor' && typeof(newStore[key]) === 'function') {
+            oldStore[key] = newStore.constructor.prototype[key].bind(oldStore);
+          }
+        }
+
+        // reconnect it
+        oldStore.connect(cluster);
       }
+      // do nothing since it's just /index.ts and /store.ts
+    } else {
+      delete require.cache[key];
     }
-    delete require.cache[key];
   }
   if (cluster.commandClient) {
     const commandClient = cluster.commandClient as NotSoClient;
     await commandClient.resetCommands();
-  }
-  for (let key in require.cache) {
-    if (!key.includes(LIB_PATH)) {
-      continue;
-    }
-
-    if (key.includes(STORE_PATH)) {
-      if (!refreshStores) {
-        continue;
-      }
-      const { default: store }: { default?: Store<any, any> } = require(key);
-      if (store) {
-        store.stop(cluster);
-      }
-    }
   }
   return cluster.shards.map((shard: ShardClient) => shard.shardId);
 }

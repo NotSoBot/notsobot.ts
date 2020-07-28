@@ -7,6 +7,7 @@ import {
 
 import { GuildAllowlistTypes, GuildBlocklistTypes, GuildDisableCommandsTypes } from './constants';
 import GuildSettingsStore from './stores/guildsettings';
+import UserStore from './stores/users';
 
 
 export interface NotSoClientOptions extends CommandClientOptions {
@@ -50,6 +51,10 @@ export class NotSoClient extends CommandClient {
   async onCommandCheck(context: Command.Context, command: Command.Command) {
     if (context.user.isClientOwner) {
       return true;
+    }
+    const user = await UserStore.getOrFetch(context, context.userId);
+    if (!user || user.blocked) {
+      return false;
     }
     if (context.inDm) {
       return !command.disableDm;

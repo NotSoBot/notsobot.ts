@@ -33,6 +33,10 @@ export const Api = Object.freeze({
     '/guilds/:guildId/blocklist/:blocklistId/:type',
   GUILD_DISABLED_COMMAND:
     '/guilds/:guildId/disabled-commands/:command/:disabledId/:type',
+  GUILD_LOGGERS:
+    '/guilds/:guildId/loggers',
+  GUILD_LOGGERS_DELETE:
+    '/guilds/:guildId/loggers/delete',
   GUILD_PREFIXES:
     '/guilds/:guildId/prefixes',
   GUILD_PREFIXES_DELETE:
@@ -61,6 +65,9 @@ export const Api = Object.freeze({
   IMAGE_RESIZE:
     '/image/resize',
 
+  ME:
+    '/users/@me',
+
   SEARCH_DUCKDUCKGO:
     '/search/duckduckgo',
   SEARCH_DUCKDUCKGO_IMAGES:
@@ -80,6 +87,8 @@ export const Api = Object.freeze({
   SEARCH_WOLFRAM_ALPHA:
     '/search/wolfram-alpha',
 
+  USER:
+    '/users/:userId',
   USER_COMMANDS:
     '/users/:userId/commands',
   USER_COMMAND:

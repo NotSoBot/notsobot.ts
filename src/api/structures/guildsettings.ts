@@ -1,11 +1,14 @@
 import * as moment from 'moment';
 
-import { Collections, Structures } from 'detritus-client';
+import { Collections, ShardClient, Structures } from 'detritus-client';
+import { RequestTypes } from 'detritus-client-rest';
 
 import {
   GuildAllowlistTypes,
   GuildBlocklistTypes,
   GuildDisableCommandsTypes,
+  GuildLoggerFlags,
+  GuildLoggerTypes,
   GuildPremiumTypes,
   NotSoApiKeys,
 } from '../../constants';
@@ -19,6 +22,8 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.DISABLED_COMMANDS,
   NotSoApiKeys.ICON,
   NotSoApiKeys.ID,
+  NotSoApiKeys.LOGGER_FLAGS,
+  NotSoApiKeys.LOGGERS,
   NotSoApiKeys.NAME,
   NotSoApiKeys.PREFIXES,
   NotSoApiKeys.PREMIUM_TYPE,
@@ -29,10 +34,12 @@ export class GuildSettings extends BaseStructure {
   _allowlist?: Collections.BaseCollection<string, GuildSettingsAllowlist>;
   _blocklist?: Collections.BaseCollection<string, GuildSettingsBlocklist>;
   _disabledCommands?: Collections.BaseCollection<string, GuildSettingsDisabledCommand>;
+  _loggers?: Collections.BaseCollection<string, GuildSettingsLogger>;
   _prefixes?: Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   icon: string | null = null;
   id: string = '';
+  loggerFlags: number = 0;
   name: string = '';
   premiumType: GuildPremiumTypes = GuildPremiumTypes.NONE;
 
@@ -62,6 +69,13 @@ export class GuildSettings extends BaseStructure {
     return Collections.emptyBaseCollection;
   }
 
+  get loggers(): Collections.BaseCollection<string, GuildSettingsLogger> {
+    if (this._loggers) {
+      return this._loggers;
+    }
+    return Collections.emptyBaseCollection;
+  }
+
   get prefixes(): Collections.BaseCollection<string, GuildSettingsPrefix> {
     if (this._prefixes) {
       return this._prefixes;
@@ -69,6 +83,21 @@ export class GuildSettings extends BaseStructure {
     return Collections.emptyBaseCollection;
   }
 
+  get shouldLogMessageCreate(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.MESSAGE_CREATE);
+  }
+
+  get shouldLogMessageDelete(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.MESSAGE_DELETE);
+  }
+
+  get shouldLogMessageUpdate(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.MESSAGE_UPDATE);
+  }
+
+  hasLoggerFlag(flag: number): boolean {
+    return (this.loggerFlags & flag) === flag;
+  }
 
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
@@ -121,6 +150,23 @@ export class GuildSettings extends BaseStructure {
             if (this._disabledCommands) {
               this._disabledCommands.clear();
               this._disabledCommands = undefined;
+            }
+          }
+        }; return;
+        case NotSoApiKeys.LOGGERS: {
+          if (value.length) {
+            if (!this._loggers) {
+              this._loggers = new Collections.BaseCollection<string, GuildSettingsLogger>();
+            }
+            this._loggers.clear();
+            for (let raw of value) {
+              const item = new GuildSettingsLogger(raw);
+              this._loggers.set(item.key, item);
+            }
+          } else {
+            if (this._loggers) {
+              this._loggers.clear();
+              this._loggers = undefined;
             }
           }
         }; return;
@@ -229,6 +275,47 @@ export class GuildSettingsDisabledCommand extends BaseStructure {
 
   get key(): string {
     return `${this.command}.${this.id}.${this.type}`;
+  }
+}
+
+
+const keysGuildSettingsLogger = new Collections.BaseSet<string>([
+  NotSoApiKeys.CHANNEL_ID,
+  NotSoApiKeys.LOGGER_TYPE,
+  NotSoApiKeys.WEBHOOK_ID,
+  NotSoApiKeys.WEBHOOK_TOKEN,
+]);
+
+export class GuildSettingsLogger extends BaseStructure {
+  readonly _keys = keysGuildSettingsLogger;
+
+  channelId: string = '';
+  loggerType!: GuildLoggerTypes;
+  webhookId?: string;
+  webhookToken?: string;
+
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
+  }
+
+  get key(): string {
+    return `${this.loggerType}.${this.channelId}`;
+  }
+
+  get isMessageType(): boolean {
+    return this.loggerType === GuildLoggerTypes.MESSAGES;
+  }
+
+  async execute(
+    shard: ShardClient,
+    options: RequestTypes.ExecuteWebhook | string = {},
+    compatibleType?: string,
+  ) {
+    if (!this.webhookId || !this.webhookToken) {
+      throw new Error('Webhook ID or Webhook Token missing');
+    }
+    return shard.rest.executeWebhook(this.webhookId, this.webhookToken, options, compatibleType);
   }
 }
 

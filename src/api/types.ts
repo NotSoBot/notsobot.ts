@@ -4,6 +4,7 @@ import {
   GoogleCardTypes,
   GoogleImageVideoTypes,
   GoogleLocales,
+  GuildLoggerTypes,
 } from '../constants';
 
 import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
@@ -12,11 +13,20 @@ import {
   GuildSettingsAllowlist,
   GuildSettingsBlocklist,
   GuildSettingsDisabledCommand,
+  GuildSettingsLogger,
   GuildSettingsPrefix,
 } from './structures/guildsettings';
+import { User } from './structures/user';
 
 
 export namespace RestOptions {
+  export interface CreateGuildLogger {
+    channelId: string,
+    loggerType: GuildLoggerTypes,
+    webhookId: string,
+    webhookToken: string,
+  }
+
   export interface CreateUserCommand {
     channelId: string,
     content: string,
@@ -27,6 +37,11 @@ export namespace RestOptions {
     messageId: string,
     responseId?: string,
     responseUrl?: string,
+  }
+
+  export interface DeleteGuildLogger {
+    channelId: string,
+    loggerType: GuildLoggerTypes,
   }
 
   export interface EditGuildSettings {
@@ -121,10 +136,19 @@ export namespace RestOptions {
     url: string,
   }
 
+
   export interface PutGuildSettings {
     icon: null | string,
     name: string,
   }
+
+  export interface PutUser {
+    avatar: null | string,
+    bot: boolean,
+    discriminator: string,
+    username: string,
+  }
+
 
   export interface SearchDuckDuckGo {
     query: string,
@@ -191,20 +215,24 @@ export namespace RestResponses {
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;
   export type CreateGuildDisabledCommand = null;
+  export type CreateGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type CreateGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
   export type DeleteGuildDisabledCommand = null;
+  export type DeleteGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   export type EditGuildSettings = GuildSettings;
 
   export type FetchGuildSettings = GuildSettings;
+  export type FetchUser = User;
 
   export type GoogleSearchImages = Array<GoogleSearchImageResult>;
 
   export type PutGuildSettings = GuildSettings;
+  export type PutUser = User;
 }
 
 
@@ -213,6 +241,7 @@ export namespace RestResponsesRaw {
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;
   export type CreateGuildDisabledCommand = null;
+  export type CreateGuildLogger = Array<GuildLogger>;
   export type CreateGuildPrefix = Array<GuildPrefix>;
 
   export interface CreateUserCommand {
@@ -222,11 +251,15 @@ export namespace RestResponsesRaw {
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
   export type DeleteGuildDisabledCommand = null;
+  export type DeleteGuildLogger = Array<GuildLogger>;
   export type DeleteGuildPrefix = Array<GuildPrefix>;
 
   export type EditGuildSettings = GuildSettings;
 
   export type FetchGuildSettings = GuildSettings;
+  export type FetchUser = User;
+
+  export type PutUser = User;
 
   export interface GoogleContentVisionOCR {
     annotation: null | {description: string, locale: GoogleLocales},
@@ -345,11 +378,29 @@ export namespace RestResponsesRaw {
     user_id: string,
   }
 
+  export interface GuildLogger {
+    channel_id: string,
+    logger_type: number,
+    webhook_id?: string,
+    webhook_token?: string,
+  }
+
   export interface GuildPrefix {
     added: string,
     guild_id: string,
     prefix: string,
     user_id: string,
+  }
+
+  export interface User {
+    avatar: null | string,
+    blocked: boolean,
+    bot: boolean,
+    discriminator: string,
+    id: string,
+    flags: number,
+    username: string,
+    premium_type: number,
   }
 
   export interface YoutubeSearch {

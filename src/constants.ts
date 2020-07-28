@@ -74,6 +74,9 @@ export enum EmbedColors {
   DARK_MESSAGE_BACKGROUND = 3092790,
   DEFAULT = 8684933,
   ERROR = 15746887,
+  LOG_CREATION = 4437377,
+  LOG_DELETION = 15746887,
+  LOG_UPDATE = 16426522,
 };
 
 export enum GoogleCardTypes {
@@ -367,19 +370,14 @@ export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Obje
   [GuildExplicitContentFilterTypes.ALL_MEMBERS]: 'Everyone',
 });
 
-export enum GuildLogTypes {
-  CHANNEL_DELETE = 0,
-  CHANNEL_UPDATE = 0,
-  COMMAND_USE = 0,
-  GUILD_UPDATE = 0,
-  MEMBER_BAN = 0,
-  MEMBER_JOIN = 0,
-  MEMBER_LEAVE = 0,
-  MEMBER_STRIKE = 0,
-  MEMBER_UPDATE = 0,
-  MESSAGE_DELETE = 0,
-  MESSAGE_UPDATE = 0,
-  USER_UPDATE = 0,
+export enum GuildLoggerFlags {
+  MESSAGE_CREATE = 1 << 0,
+  MESSAGE_DELETE = 1 << 1,
+  MESSAGE_UPDATE = 1 << 2,
+}
+
+export enum GuildLoggerTypes {
+  MESSAGES = 0,
 }
 
 export enum GuildPremiumTypes {
@@ -441,6 +439,16 @@ export enum RedisChannels {
   GUILD_DISABLED_COMMAND_UPDATE = 'GUILD_DISABLED_COMMAND_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
+  USER_UPDATE = 'USER_UPDATE',
+}
+
+export enum UserFlags {
+  NONE = 0,
+  OWNER = 1 << 0,
+}
+
+export enum UserPremiumTypes {
+  NONE = 0,
 }
 
 export const VerificationLevelTexts: {[key: string]: string} = Object.freeze({
@@ -524,16 +532,22 @@ export enum NotSoHeaders {
 export const NotSoApiKeys = Object.freeze({
   ADDED: 'added',
   ALLOWLIST: 'allowlist',
+  AVATAR: 'avatar',
+  BLOCKED: 'blocked',
   BLOCKLIST: 'blocklist',
+  BOT: 'bot',
   BRAND: 'brand',
   CHANNEL: 'channel',
+  CHANNEL_ID: 'channel_id',
   COMMAND: 'command',
   CREATED: 'created',
   CURRENCY: 'currency',
   DESCRIPTION: 'description',
   DISABLED_COMMANDS: 'disabled_commands',
+  DISCRIMINATOR: 'discriminator',
   DURATION: 'duration',
   EXTENSION: 'extension',
+  FLAGS: 'flags',
   FOOTER: 'footer',
   GUILD_ID: 'guild_id',
   HEADER: 'header',
@@ -543,6 +557,9 @@ export const NotSoApiKeys = Object.freeze({
   IMAGE: 'image',
   IN_STOCK: 'in_stock',
   LIKES: 'likes',
+  LOGGER_FLAGS: 'logger_flags',
+  LOGGER_TYPE: 'logger_type',
+  LOGGERS: 'loggers',
   NAME: 'name',
   PREFIX: 'prefix',
   PREFIXES: 'prefixes',
@@ -559,24 +576,33 @@ export const NotSoApiKeys = Object.freeze({
   UPLOADED_AT: 'uploaded_at',
   URL: 'url',
   USER_ID: 'user_id',
+  USERNAME: 'username',
   VIDEO: 'video',
   VIEWS: 'views',
+  WEBHOOK_ID: 'webhook_id',
+  WEBHOOK_TOKEN: 'webhook_token',
   WIDTH: 'width',
 });
 
 export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ADDED]: 'added',
   [NotSoApiKeys.ALLOWLIST]: 'allowlist',
+  [NotSoApiKeys.AVATAR]: 'avatar',
+  [NotSoApiKeys.BLOCKED]: 'blocked',
   [NotSoApiKeys.BLOCKLIST]: 'blocklist',
+  [NotSoApiKeys.BOT]: 'bot',
   [NotSoApiKeys.BRAND]: 'brand',
   [NotSoApiKeys.CHANNEL]: 'channel',
+  [NotSoApiKeys.CHANNEL_ID]: 'channelId',
   [NotSoApiKeys.COMMAND]: 'command',
   [NotSoApiKeys.CREATED]: 'created',
   [NotSoApiKeys.CURRENCY]: 'currency',
   [NotSoApiKeys.DESCRIPTION]: 'description',
   [NotSoApiKeys.DISABLED_COMMANDS]: 'disabledCommands',
+  [NotSoApiKeys.DISCRIMINATOR]: 'discriminator',
   [NotSoApiKeys.DURATION]: 'duration',
   [NotSoApiKeys.EXTENSION]: 'extension',
+  [NotSoApiKeys.FLAGS]: 'flags',
   [NotSoApiKeys.FOOTER]: 'footer',
   [NotSoApiKeys.GUILD_ID]: 'guildId',
   [NotSoApiKeys.HEADER]: 'header',
@@ -586,6 +612,9 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.IMAGE]: 'image',
   [NotSoApiKeys.IN_STOCK]: 'inStock',
   [NotSoApiKeys.LIKES]: 'likes',
+  [NotSoApiKeys.LOGGER_FLAGS]: 'loggerFlags',
+  [NotSoApiKeys.LOGGER_TYPE]: 'loggerType',
+  [NotSoApiKeys.LOGGERS]: 'loggers',
   [NotSoApiKeys.NAME]: 'name',
   [NotSoApiKeys.PREFIX]: 'prefix',
   [NotSoApiKeys.PREFIXES]: 'prefixes',
@@ -602,7 +631,10 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.UPLOADED_AT]: 'uploadedAt',
   [NotSoApiKeys.URL]: 'url',
   [NotSoApiKeys.USER_ID]: 'userId',
+  [NotSoApiKeys.USERNAME]: 'username',
   [NotSoApiKeys.VIDEO]: 'video',
   [NotSoApiKeys.VIEWS]: 'views',
+  [NotSoApiKeys.WEBHOOK_ID]: 'webhookId',
+  [NotSoApiKeys.WEBHOOK_TOKEN]: 'webhookToken',
   [NotSoApiKeys.WIDTH]: 'width'
 });

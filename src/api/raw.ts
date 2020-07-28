@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { ShardClient, Structures } from 'detritus-client';
 import { RequestTypes } from 'detritus-client-rest';
 import { Response, createHeaders } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
@@ -15,8 +15,16 @@ import {
 } from '../constants';
 
 
+
+export interface RequestContext {
+  channelId?: string,
+  client: ShardClient,
+  guildId?: string,
+  user?: Structures.User,
+}
+
 export async function request(
-  context: Command.Context,
+  context: RequestContext,
   options: RequestTypes.Options,
 ): Promise<any> {
   options.url = Api.URL + Api.PATH;
@@ -30,27 +38,32 @@ export async function request(
   if (token) {
     options.headers.set(NotSoHeaders.AUTHORIZATION, `Bot ${token}`);
   }
-  options.headers.set(NotSoHeaders.CHANNEL_ID, context.channelId);
-  if (context.guildId) {
-    options.headers.set(NotSoHeaders.GUILD_ID, context.guildId);
+
+  const { channelId, client, guildId, user } = context;
+  if (channelId) {
+    options.headers.set(NotSoHeaders.CHANNEL_ID, channelId);
   }
-  options.headers.set(NotSoHeaders.USER_ID, context.userId);
+  if (guildId) {
+    options.headers.set(NotSoHeaders.GUILD_ID, guildId);
+  }
+  if (user) {
+    options.headers.set(NotSoHeaders.USER_ID, user.id);
+    const bareUser = JSON.stringify({
+      avatar: user.avatar,
+      discriminator: user.discriminator,
+      bot: user.bot,
+      id: user.id,
+      username: user.username,
+    });
+    options.headers.set(NotSoHeaders.USER, Buffer.from(bareUser).toString('base64'));
+  }
 
-  const user = JSON.stringify({
-    avatar: context.user.avatar,
-    discriminator: context.user.discriminator,
-    bot: context.user.bot,
-    id: context.user.id,
-    username: context.user.username,
-  });
-  options.headers.set(NotSoHeaders.USER, Buffer.from(user).toString('base64'));
-
-  return context.rest.request(options);
+  return client.rest.request(options);
 }
 
 
 export async function createGuildAllowlist(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   allowlistId: string,
   type: GuildAllowlistTypes,
@@ -66,7 +79,7 @@ export async function createGuildAllowlist(
 
 
 export async function createGuildBlocklist(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   blocklistId: string,
   type: GuildBlocklistTypes,
@@ -82,7 +95,7 @@ export async function createGuildBlocklist(
 
 
 export async function createGuildDisabledCommand(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   command: string,
   disabledId: string,
@@ -98,8 +111,31 @@ export async function createGuildDisabledCommand(
 }
 
 
+export async function createGuildLogger(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.CreateGuildLogger,
+): Promise<RestResponsesRaw.CreateGuildLogger> {
+  const body = {
+    channel_id: options.channelId,
+    logger_type: options.loggerType,
+    webhook_id: options.webhookId,
+    webhook_token: options.webhookToken,
+  };
+  const params = {guildId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_LOGGERS,
+      params,
+    },
+  });
+}
+
+
 export async function createGuildPrefix(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   prefix: string,
 ): Promise<RestResponsesRaw.CreateGuildPrefix> {
@@ -117,7 +153,7 @@ export async function createGuildPrefix(
 
 
 export async function createUserCommand(
-  context: Command.Context,
+  context: RequestContext,
   userId: string,
   command: string,
   options: RestOptions.CreateUserCommand,
@@ -146,7 +182,7 @@ export async function createUserCommand(
 
 
 export async function deleteGuildAllowlist(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   allowlistId: string,
   type: GuildAllowlistTypes,
@@ -162,7 +198,7 @@ export async function deleteGuildAllowlist(
 
 
 export async function deleteGuildBlocklist(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   blocklistId: string,
   type: GuildBlocklistTypes,
@@ -178,7 +214,7 @@ export async function deleteGuildBlocklist(
 
 
 export async function deleteGuildDisabledCommand(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   command: string,
   disabledId: string,
@@ -194,8 +230,29 @@ export async function deleteGuildDisabledCommand(
 }
 
 
+export async function deleteGuildLogger(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildLogger,
+): Promise<RestResponsesRaw.DeleteGuildLogger> {
+  const body = {
+    channel_id: options.channelId,
+    logger_type: options.loggerType,
+  };
+  const params = {guildId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.GUILD_LOGGERS_DELETE,
+      params,
+    },
+  });
+}
+
+
 export async function deleteGuildPrefix(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   prefix: string,
 ): Promise<RestResponsesRaw.DeleteGuildPrefix> {
@@ -213,7 +270,7 @@ export async function deleteGuildPrefix(
 
 
 export async function editGuildSettings(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   options: RestOptions.EditGuildSettings = {},
 ): Promise<RestResponsesRaw.EditGuildSettings> {
@@ -235,7 +292,7 @@ export async function editGuildSettings(
 
 
 export async function fetchGuildSettings(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
 ): Promise<RestResponsesRaw.FetchGuildSettings> {
   const params = {guildId};
@@ -249,8 +306,23 @@ export async function fetchGuildSettings(
 }
 
 
+export async function fetchUser(
+  context: RequestContext,
+  userId: string,
+): Promise<RestResponsesRaw.FetchUser> {
+  const params = {userId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.USER,
+      params,
+    },
+  });
+}
+
+
 export async function googleContentVisionOCR(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.GoogleContentVisionOCR,
 ): Promise<RestResponsesRaw.GoogleContentVisionOCR> {
   const body = {
@@ -267,7 +339,7 @@ export async function googleContentVisionOCR(
 
 
 export async function googleSearch(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.GoogleSearch,
 ): Promise<RestResponsesRaw.GoogleSearch> {
   const query = {
@@ -288,7 +360,7 @@ export async function googleSearch(
 
 
 export async function googleSearchImages(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.GoogleSearchImages,
 ): Promise<RestResponsesRaw.GoogleSearchImages> {
   const query = {
@@ -308,7 +380,7 @@ export async function googleSearchImages(
 
 
 export async function googleTranslate(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.GoogleTranslate,
 ): Promise<RestResponsesRaw.GoogleTranslate> {
   const query = {
@@ -326,7 +398,7 @@ export async function googleTranslate(
 }
 
 export async function imageDeepfry(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageDeepfry,
 ): Promise<Response> {
   const query = {
@@ -344,7 +416,7 @@ export async function imageDeepfry(
 
 
 export async function imageExplode(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageExplode,
 ): Promise<Response> {
   const query = {
@@ -363,7 +435,7 @@ export async function imageExplode(
 
 
 export async function imageJPEG(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageJPEG,
 ): Promise<Response> {
   const query = {
@@ -382,7 +454,7 @@ export async function imageJPEG(
 
 
 export async function imageMagik(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMagik,
 ): Promise<Response> {
   const query = {
@@ -401,7 +473,7 @@ export async function imageMagik(
 
 
 export async function imageMagikGif(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMagikGif,
 ): Promise<Response> {
   const query = {
@@ -419,7 +491,7 @@ export async function imageMagikGif(
 
 
 export async function imageMeme(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMeme,
 ): Promise<Response> {
   const query = {
@@ -439,7 +511,7 @@ export async function imageMeme(
 
 
 export async function imageMirrorBottom(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMirrorBottom,
 ): Promise<Response> {
   const query = {
@@ -457,7 +529,7 @@ export async function imageMirrorBottom(
 
 
 export async function imageMirrorLeft(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMirrorLeft,
 ): Promise<Response> {
   const query = {
@@ -475,7 +547,7 @@ export async function imageMirrorLeft(
 
 
 export async function imageMirrorRight(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMirrorRight,
 ): Promise<Response> {
   const query = {
@@ -493,7 +565,7 @@ export async function imageMirrorRight(
 
 
 export async function imageMirrorTop(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMirrorTop,
 ): Promise<Response> {
   const query = {
@@ -511,7 +583,7 @@ export async function imageMirrorTop(
 
 
 export async function imageResize(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageResize,
 ): Promise<Response> {
   const query = {
@@ -532,13 +604,17 @@ export async function imageResize(
 
 
 export async function putGuildSettings(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   options: RestOptions.PutGuildSettings,
 ): Promise<RestResponsesRaw.EditGuildSettings> {
+  const body = {
+    icon: options.icon,
+    name: options.name,
+  };
   const params = {guildId};
   return request(context, {
-    body: options,
+    body,
     route: {
       method: HTTPMethods.PUT,
       path: Api.GUILD,
@@ -547,9 +623,31 @@ export async function putGuildSettings(
   });
 }
 
+export async function putUser(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.PutUser,
+): Promise<RestResponsesRaw.PutUser> {
+  const body = {
+    avatar: options.avatar,
+    bot: options.bot,
+    discriminator: options.discriminator,
+    username: options.username,
+  };
+  const params = {userId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.USER,
+      params,
+    },
+  });
+}
+
 
 export async function searchDuckDuckGo(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchDuckDuckGo,
 ): Promise<any> {
   const query = {
@@ -566,7 +664,7 @@ export async function searchDuckDuckGo(
 
 
 export async function searchDuckDuckGoImages(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchDuckDuckGoImages,
 ): Promise<any> {
   const query = {
@@ -583,7 +681,7 @@ export async function searchDuckDuckGoImages(
 
 
 export async function searchE621(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchE621,
 ): Promise<any> {
   const query = {
@@ -600,7 +698,7 @@ export async function searchE621(
 
 
 export async function searchE926(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchE926,
 ): Promise<any> {
   const query = {
@@ -617,7 +715,7 @@ export async function searchE926(
 
 
 export async function searchRule34(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchRule34,
 ): Promise<any> {
   const query = {
@@ -634,7 +732,7 @@ export async function searchRule34(
 
 
 export async function searchRule34Paheal(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchRule34Paheal,
 ): Promise<any> {
   const query = {
@@ -651,7 +749,7 @@ export async function searchRule34Paheal(
 
 
 export async function searchUrban(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchUrban,
 ): Promise<any> {
   const query = {
@@ -668,7 +766,7 @@ export async function searchUrban(
 
 
 export async function searchUrbanRandom(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchUrbanRandom = {},
 ): Promise<any> {
   return request(context, {
@@ -681,7 +779,7 @@ export async function searchUrbanRandom(
 
 
 export async function searchWolframAlpha(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchWolframAlpha,
 ): Promise<any> {
   const query = {
@@ -698,7 +796,7 @@ export async function searchWolframAlpha(
 
 
 export async function uploadCommands(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.UploadCommands,
 ): Promise<any> {
   const body = {
@@ -715,7 +813,7 @@ export async function uploadCommands(
 
 
 export async function youtubeSearch(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.YoutubeSearch,
 ): Promise<RestResponsesRaw.YoutubeSearch> {
   const query = {

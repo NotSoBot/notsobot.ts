@@ -2,28 +2,31 @@ import { Collections, Command } from 'detritus-client';
 import { Response } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
-import * as raw from './raw';
-import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
-import {
-  GuildSettings,
-  GuildSettingsPrefix,
-} from './structures/guildsettings';
-import { RestOptions, RestResponses } from './types';
-
 import {
   GuildAllowlistTypes,
   GuildBlocklistTypes,
   GuildDisableCommandsTypes,
 } from '../constants';
 import GuildSettingsStore from '../stores/guildsettings';
+import UserStore from '../stores/users';
 
+import * as raw from './raw';
+import { RequestContext } from './raw';
+import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
+import {
+  GuildSettings,
+  GuildSettingsLogger,
+  GuildSettingsPrefix,
+} from './structures/guildsettings';
+import { User } from './structures/user';
+import { RestOptions, RestResponses } from './types';
 
 export { request } from './raw';
-export { raw };
+export { RequestContext, raw };
 
 
 export async function createGuildAllowlist(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   allowlistId: string,
   type: GuildAllowlistTypes,
@@ -33,7 +36,7 @@ export async function createGuildAllowlist(
 
 
 export async function createGuildBlocklist(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   blocklistId: string,
   type: GuildBlocklistTypes,
@@ -43,7 +46,7 @@ export async function createGuildBlocklist(
 
 
 export async function createGuildDisabledCommand(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   command: string,
   disabledId: string,
@@ -53,8 +56,27 @@ export async function createGuildDisabledCommand(
 }
 
 
+export async function createGuildLogger(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.CreateGuildLogger,
+): Promise<RestResponses.CreateGuildLogger> {
+  const data = await raw.createGuildLogger(context, guildId, options);
+  const collection = new Collections.BaseCollection<string, GuildSettingsLogger>();
+  for (let raw of data) {
+    const item = new GuildSettingsLogger(raw);
+    collection.set(item.key, item);
+  }
+  if (GuildSettingsStore.has(guildId)) {
+    const settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings.merge({loggers: data});
+  }
+  return collection;
+}
+
+
 export async function createGuildPrefix(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   prefix: string,
 ): Promise<RestResponses.CreateGuildPrefix> {
@@ -73,7 +95,7 @@ export async function createGuildPrefix(
 
 
 export async function createUserCommand(
-  context: Command.Context,
+  context: RequestContext,
   userId: string,
   command: string,
   options: RestOptions.CreateUserCommand,
@@ -83,7 +105,7 @@ export async function createUserCommand(
 
 
 export async function deleteGuildAllowlist(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   allowlistId: string,
   type: GuildAllowlistTypes,
@@ -93,7 +115,7 @@ export async function deleteGuildAllowlist(
 
 
 export async function deleteGuildBlocklist(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   blocklistId: string,
   type: GuildBlocklistTypes,
@@ -103,7 +125,7 @@ export async function deleteGuildBlocklist(
 
 
 export async function deleteGuildDisabledCommand(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   command: string,
   disabledId: string,
@@ -113,8 +135,27 @@ export async function deleteGuildDisabledCommand(
 }
 
 
+export async function deleteGuildLogger(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildLogger,
+): Promise<RestResponses.DeleteGuildLogger> {
+  const data = await raw.deleteGuildLogger(context, guildId, options);
+  const collection = new Collections.BaseCollection<string, GuildSettingsLogger>();
+  for (let raw of data) {
+    const item = new GuildSettingsLogger(raw);
+    collection.set(item.key, item);
+  }
+  if (GuildSettingsStore.has(guildId)) {
+    const settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings.merge({loggers: data});
+  }
+  return collection;
+}
+
+
 export async function deleteGuildPrefix(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   prefix: string,
 ): Promise<RestResponses.DeleteGuildPrefix> {
@@ -133,7 +174,7 @@ export async function deleteGuildPrefix(
 
 
 export async function editGuildSettings(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   options: RestOptions.EditGuildSettings = {},
 ): Promise<RestResponses.EditGuildSettings> {
@@ -151,7 +192,7 @@ export async function editGuildSettings(
 
 
 export async function fetchGuildSettings(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
 ): Promise<RestResponses.FetchGuildSettings> {
   const data = await raw.fetchGuildSettings(context, guildId);
@@ -167,8 +208,25 @@ export async function fetchGuildSettings(
 }
 
 
+export async function fetchUser(
+  context: RequestContext,
+  userId: string,
+): Promise<RestResponses.FetchUser> {
+  const data = await raw.fetchUser(context, userId);
+  let user: User;
+  if (UserStore.has(userId)) {
+    user = UserStore.get(userId) as User;
+    user.merge(data);
+  } else {
+    user = new User(data);
+    UserStore.set(user.id, user);
+  }
+  return user;
+}
+
+
 export async function googleContentVisionOCR(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.GoogleContentVisionOCR,
 ) {
   return raw.googleContentVisionOCR(context, options);
@@ -176,7 +234,7 @@ export async function googleContentVisionOCR(
 
 
 export async function googleSearch(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.GoogleSearch,
 ) {
   return raw.googleSearch(context, options);
@@ -184,7 +242,7 @@ export async function googleSearch(
 
 
 export async function googleSearchImages(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.GoogleSearchImages,
 ): Promise<RestResponses.GoogleSearchImages> {
   const data = await raw.googleSearchImages(context, options);
@@ -198,7 +256,7 @@ export async function googleSearchImages(
 
 
 export async function googleTranslate(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.GoogleTranslate,
 ) {
   return raw.googleTranslate(context, options);
@@ -206,7 +264,7 @@ export async function googleTranslate(
 
 
 export async function imageDeepfry(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageDeepfry,
 ) {
   return raw.imageDeepfry(context, options);
@@ -214,7 +272,7 @@ export async function imageDeepfry(
 
 
 export async function imageExplode(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageExplode,
 ) {
   return raw.imageExplode(context, options);
@@ -222,7 +280,7 @@ export async function imageExplode(
 
 
 export async function imageJPEG(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageJPEG,
 ) {
   return raw.imageJPEG(context, options);
@@ -230,7 +288,7 @@ export async function imageJPEG(
 
 
 export async function imageMagik(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMagik,
 ) {
   return raw.imageMagik(context, options);
@@ -238,7 +296,7 @@ export async function imageMagik(
 
 
 export async function imageMagikGif(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMagikGif,
 ) {
   return raw.imageMagikGif(context, options);
@@ -246,7 +304,7 @@ export async function imageMagikGif(
 
 
 export async function imageMeme(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMeme,
 ) {
   return raw.imageMeme(context, options);
@@ -254,7 +312,7 @@ export async function imageMeme(
 
 
 export async function imageMirrorBottom(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMirrorBottom,
 ) {
   return raw.imageMirrorBottom(context, options);
@@ -262,7 +320,7 @@ export async function imageMirrorBottom(
 
 
 export async function imageMirrorLeft(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMirrorLeft,
 ) {
   return raw.imageMirrorLeft(context, options);
@@ -270,7 +328,7 @@ export async function imageMirrorLeft(
 
 
 export async function imageMirrorRight(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMirrorRight,
 ) {
   return raw.imageMirrorLeft(context, options);
@@ -278,7 +336,7 @@ export async function imageMirrorRight(
 
 
 export async function imageMirrorTop(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageMirrorTop,
 ) {
   return raw.imageMirrorTop(context, options);
@@ -286,7 +344,7 @@ export async function imageMirrorTop(
 
 
 export async function imageResize(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.ImageResize,
 ) {
   return raw.imageResize(context, options);
@@ -294,7 +352,7 @@ export async function imageResize(
 
 
 export async function putGuildSettings(
-  context: Command.Context,
+  context: RequestContext,
   guildId: string,
   options: RestOptions.PutGuildSettings,
 ): Promise<RestResponses.PutGuildSettings> {
@@ -310,9 +368,26 @@ export async function putGuildSettings(
   return settings;
 }
 
+export async function putUser(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.PutUser,
+): Promise<RestResponses.PutUser> {
+  const data = await raw.putUser(context, userId, options);
+  let user: User;
+  if (UserStore.has(userId)) {
+    user = UserStore.get(userId) as User;
+    user.merge(data);
+  } else {
+    user = new User(data);
+    UserStore.set(user.id, user);
+  }
+  return user;
+}
+
 
 export async function searchDuckDuckGo(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchDuckDuckGo,
 ) {
   return raw.searchDuckDuckGo(context, options);
@@ -320,7 +395,7 @@ export async function searchDuckDuckGo(
 
 
 export async function searchDuckDuckGoImages(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchDuckDuckGoImages,
 ) {
   return raw.searchDuckDuckGoImages(context, options);
@@ -328,7 +403,7 @@ export async function searchDuckDuckGoImages(
 
 
 export async function searchE621(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchE621,
 ) {
   return raw.searchE621(context, options);
@@ -336,7 +411,7 @@ export async function searchE621(
 
 
 export async function searchE926(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchE926,
 ) {
   return raw.searchE926(context, options);
@@ -344,7 +419,7 @@ export async function searchE926(
 
 
 export async function searchRule34(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchRule34,
 ) {
   return raw.searchRule34(context, options);
@@ -352,7 +427,7 @@ export async function searchRule34(
 
 
 export async function searchRule34Paheal(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchRule34Paheal,
 ) {
   return raw.searchRule34Paheal(context, options);
@@ -360,7 +435,7 @@ export async function searchRule34Paheal(
 
 
 export async function searchUrban(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchUrban,
 ) {
   return raw.searchUrban(context, options);
@@ -368,7 +443,7 @@ export async function searchUrban(
 
 
 export async function searchUrbanRandom(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchUrbanRandom = {},
 ) {
   return raw.searchUrbanRandom(context, options);
@@ -376,7 +451,7 @@ export async function searchUrbanRandom(
 
 
 export async function searchWolframAlpha(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.SearchWolframAlpha,
 ) {
   return raw.searchWolframAlpha(context, options);
@@ -384,7 +459,7 @@ export async function searchWolframAlpha(
 
 
 export async function uploadCommands(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.UploadCommands,
 ) {
   return raw.uploadCommands(context, options);
@@ -392,7 +467,7 @@ export async function uploadCommands(
 
 
 export async function youtubeSearch(
-  context: Command.Context,
+  context: RequestContext,
   options: RestOptions.YoutubeSearch,
 ) {
   return raw.youtubeSearch(context, options);
