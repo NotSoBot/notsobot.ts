@@ -83,6 +83,22 @@ export class GuildSettings extends BaseStructure {
     return Collections.emptyBaseCollection;
   }
 
+  get shouldLogGuildMemberAdd(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.GUILD_MEMBER_ADD);
+  }
+
+  get shouldLogGuildMemberRemove(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.GUILD_MEMBER_REMOVE);
+  }
+
+  get shouldLogGuildMemberUpdate(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.GUILD_MEMBER_UPDATE);
+  }
+
+  get shouldLogUserUpdate(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.USER_UPDATE);
+  }
+
   get shouldLogMessageCreate(): boolean {
     return this.hasLoggerFlag(GuildLoggerFlags.MESSAGE_CREATE);
   }
@@ -281,7 +297,8 @@ export class GuildSettingsDisabledCommand extends BaseStructure {
 
 const keysGuildSettingsLogger = new Collections.BaseSet<string>([
   NotSoApiKeys.CHANNEL_ID,
-  NotSoApiKeys.LOGGER_TYPE,
+  NotSoApiKeys.GUILD_ID,
+  NotSoApiKeys.TYPE,
   NotSoApiKeys.WEBHOOK_ID,
   NotSoApiKeys.WEBHOOK_TOKEN,
 ]);
@@ -290,7 +307,8 @@ export class GuildSettingsLogger extends BaseStructure {
   readonly _keys = keysGuildSettingsLogger;
 
   channelId: string = '';
-  loggerType!: GuildLoggerTypes;
+  guildId: string = '';
+  type!: GuildLoggerTypes;
   webhookId?: string;
   webhookToken?: string;
 
@@ -300,11 +318,19 @@ export class GuildSettingsLogger extends BaseStructure {
   }
 
   get key(): string {
-    return `${this.loggerType}.${this.channelId}`;
+    return `${this.type}.${this.channelId}`;
+  }
+
+  get isGuildMemberType(): boolean {
+    return this.type === GuildLoggerTypes.GUILD_MEMBERS;
   }
 
   get isMessageType(): boolean {
-    return this.loggerType === GuildLoggerTypes.MESSAGES;
+    return this.type === GuildLoggerTypes.MESSAGES;
+  }
+
+  get logKey(): string {
+    return `${this.guildId}.${this.channelId}.${this.type}`;
   }
 
   async execute(

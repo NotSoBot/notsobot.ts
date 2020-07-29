@@ -1,5 +1,7 @@
-import { ClusterClient, Command, GatewayClientEvents, Structures } from 'detritus-client';
+import { ClusterClient, Structures } from 'detritus-client';
+import { ClientEvents } from 'detritus-client/lib/constants';
 import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
+import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { EventSubscription } from 'detritus-utils';
 
 import { Store } from './store';
@@ -71,14 +73,14 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
   create(cluster: ClusterClient, redis: RedisSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
-      const subscription = cluster.subscribe('guildDelete', (event: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildDelete) => {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_DELETE, (event) => {
         const { guildId } = event;
         this.delete(guildId);
       });
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe('webhooksUpdate', async (event: GatewayClientEvents.ClusterEvent & GatewayClientEvents.WebhooksUpdate) => {
+      const subscription = cluster.subscribe(ClientEvents.WEBHOOKS_UPDATE, async (event) => {
         const { channelId, guildId, shard } = event;
         if (this.has(guildId)) {
           const settings = this.get(guildId) as GuildSettings;
@@ -141,240 +143,6 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id) as GuildSettings;
           settings.merge(payload);
-        }
-      });
-      subscriptions.push(subscription);
-    }
-
-    // LOGGING STUFF
-    {
-      const subscription = cluster.subscribe('messageCreate', async (event: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageCreate) => {
-        const { message, shard } = event;
-        const { author, guildId } = message;
-        if (author.bot || !guildId) {
-          return;
-        }
-
-        const settings = await this.getOrFetch({client: shard}, guildId);
-        if (!settings || !settings.shouldLogMessageCreate) {
-          return;
-        }
-        const loggers = settings.loggers.filter((logger) => logger.isMessageType);
-        if (loggers.length) {
-          const embed = createUserEmbed(message.author);
-          embed.setColor(EmbedColors.LOG_CREATION);
-          embed.setFooter('Created');
-          embed.setTimestamp(message.createdAt);
-  
-          embed.setDescription([
-            `**Channel**: <#${message.channelId}>`,
-            `**Message ID**: || ${message.id} ||`,
-          ].join('\n'));
-          if (message.attachments.length) {
-            const urls = message.attachments.filter((attachment) => {
-              return !!attachment.url;
-            }).map((attachment) => {
-              return Markup.url(attachment.filename, attachment.url as string);
-            });
-            embed.addField('Attachments', urls.join(', '));
-          }
-          if (message.embeds.length) {
-            embed.addField('Embeds', `${message.embeds.length} Embeds`);
-          }
-          if (message.content) {
-            if (1024 <= message.content.length) {
-              const contentOne = message.content.slice(0, 1014);
-              const contentTwo = message.content.slice(1014);
-              embed.addField('Content One', Markup.codeblock(contentOne));
-              embed.addField('Content Two', Markup.codeblock(contentTwo));
-            } else {
-              embed.addField('Content', Markup.codeblock(message.content));
-            }
-          }
-          for (let logger of loggers) {
-            await logger.execute(shard, {embed});
-          }
-        }
-      });
-      subscriptions.push(subscription);
-    }
-
-    {
-      const subscription = cluster.subscribe('messageDelete', async (event: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageDelete) => {
-        const { message, raw, shard } = event;
-        const { guild_id: guildId, channel_id: channelId, id: messageId } = raw;
-        if (!guildId) {
-          return;
-        }
-
-        const settings = await this.getOrFetch({client: shard}, guildId);
-        if (!settings || !settings.shouldLogMessageDelete) {
-          return;
-        }
-        const loggers = settings.loggers.filter((logger) => logger.isMessageType);
-        if (loggers.length) {
-          let embed: Embed;
-          if (message) {
-            embed = createUserEmbed(message.author);
-          } else {
-            embed = new Embed();
-            embed.setAuthor('Unknown Author');
-          }
-          embed.setColor(EmbedColors.LOG_DELETION);
-          embed.setFooter('Deleted');
-          embed.setTimestamp();
-  
-          embed.setDescription([
-            `**Channel**: <#${channelId}>`,
-            `**Created**: ${(new Date(Snowflake.timestamp(messageId))).toLocaleString('en-US', DateOptions)}`,
-            `**Message ID**: || ${messageId} ||`,
-          ].join('\n'));
-          if (message) {
-            if (message.attachments.length) {
-              const urls = message.attachments.filter((attachment) => {
-                return !!attachment.url;
-              }).map((attachment) => {
-                return Markup.url(attachment.filename, attachment.url as string);
-              });
-              embed.addField('Attachments', urls.join(', '));
-            }
-            if (message.embeds.length) {
-              embed.addField('Embeds', `${message.embeds.length} Embeds`);
-            }
-            if (message.content) {
-              if (1024 <= message.content.length) {
-                const contentOne = message.content.slice(0, 1014);
-                const contentTwo = message.content.slice(1014);
-                embed.addField('Content One', Markup.codeblock(contentOne));
-                embed.addField('Content Two', Markup.codeblock(contentTwo));
-              } else {
-                embed.addField('Content', Markup.codeblock(message.content));
-              }
-            }
-          } else {
-            // message not in cache, old deletion
-          }
-          for (let logger of loggers) {
-            await logger.execute(shard, {embed});
-          }
-        }
-      });
-      subscriptions.push(subscription);
-    }
-
-    {
-      const subscription = cluster.subscribe('messageUpdate', async (event: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageUpdate) => {
-        const { channelId, differences, guildId, isEmbedUpdate, message, messageId, shard } = event;
-        if (isEmbedUpdate || !guildId || (message && message.author.bot)) {
-          return;
-        }
-
-        const settings = await this.getOrFetch({client: shard}, guildId);
-        if (!settings || !settings.shouldLogMessageUpdate) {
-          return;
-        }
-        const loggers = settings.loggers.filter((logger) => logger.isMessageType);
-        if (loggers.length) {
-          let embed: Embed;
-          if (message) {
-            embed = createUserEmbed(message.author);
-          } else {
-            embed = new Embed();
-            embed.setAuthor('Unknown Author');
-          }
-          embed.setColor(EmbedColors.LOG_UPDATE);
-          embed.setFooter('Updated');
-          embed.setTimestamp((message) ? message.editedAt || undefined : undefined);
-  
-          embed.setDescription([
-            `**Channel**: <#${channelId}>`,
-            `**Created**: ${(new Date(Snowflake.timestamp(messageId))).toLocaleString('en-US', DateOptions)}`,
-            `**Message ID**: || ${messageId} ||`,
-          ].join('\n'));
-          if (message) {
-            if (differences) {
-              if (differences.attachments) {
-                const oldUrls: Array<string> = differences.attachments.filter((attachment: Structures.Attachment) => {
-                  return !!attachment.url;
-                }).map((attachment: Structures.Attachment) => {
-                  return Markup.url(attachment.filename, attachment.url as string);
-                });
-
-                const newUrls = message.attachments.filter((attachment) => {
-                  return !!attachment.url;
-                }).map((attachment) => {
-                  return Markup.url(attachment.filename, attachment.url as string);
-                });
-                embed.addField('Attachments', [
-                  `- ${oldUrls.join(', ') || 'None'}`,
-                  `+ ${newUrls.join(', ') || 'None'}`,
-                ].join('\n'));
-              }
-              if (differences.embeds) {
-                embed.addField('Embeds', [
-                  `- ${differences.embeds.length} Embeds`,
-                  `+ ${message.embeds.length} Embeds`,
-                ].join('\n'));
-              }
-              if (differences.content) {
-                {
-                  if (1024 <= differences.content.length) {
-                    const contentOne = differences.content.slice(0, 1014);
-                    const contentTwo = differences.content.slice(1014);
-                    embed.addField('Old Content One', Markup.codeblock(contentOne));
-                    embed.addField('Old Content Two', Markup.codeblock(contentTwo));
-                  } else {
-                    embed.addField('Old Content', Markup.codeblock(message.content));
-                  }
-                }
-                {
-                  if (1024 <= message.content.length) {
-                    const contentOne = message.content.slice(0, 1014);
-                    const contentTwo = message.content.slice(1014);
-                    embed.addField('New Content One', Markup.codeblock(contentOne));
-                    embed.addField('New Content Two', Markup.codeblock(contentTwo));
-                  } else {
-                    embed.addField('New Content', Markup.codeblock(message.content));
-                  }
-                }
-              }
-              /*
-              import * as Diff from 'diff';
-              if (differences.content) {
-                let contentOne: string = '';
-                let contentTwo: string = '';
-                Diff.diffChars(differences.content, message.content).forEach((part) => {
-                  console.log(part);
-                  let value: string;
-                  if (part.added) {
-                    value = Markup.bold(Markup.escape.all(part.value));
-                  } else if (part.removed) {
-                    value = Markup.strike(Markup.escape.all(part.value));
-                  } else {
-                    value = Markup.escape.all(part.value);
-                  }
-                  if (1024 <= contentOne.length || 1024 <= contentOne.length + value.length) {
-                    contentTwo += value;
-                  } else {
-                    contentOne += value;
-                  }
-                });
-                if (contentTwo) {
-                  embed.addField('Content One Differences', contentOne);
-                  embed.addField('Content Two Differences', contentTwo);
-                } else {
-                  embed.addField('Content Differences', contentOne);
-                }
-              }
-              */
-              // message flag check?
-            }
-          } else {
-            // message not in cache, old message updated
-          }
-          for (let logger of loggers) {
-            await logger.execute(shard, {embed});
-          }
         }
       });
       subscriptions.push(subscription);

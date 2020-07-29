@@ -2,7 +2,7 @@ import './bootstrap';
 import * as Sentry from '@sentry/node';
 
 import { ClusterClient, ShardClient } from 'detritus-client';
-import { ActivityTypes, PresenceStatuses, SocketStates } from 'detritus-client/lib/constants';
+import { ActivityTypes, ClientEvents, PresenceStatuses, SocketStates } from 'detritus-client/lib/constants';
 import { Timers } from 'detritus-utils';
 
 import { NotSoClient } from './client';
@@ -17,6 +17,11 @@ if (process.env.SENTRY_DSN) {
 
 const bot = new NotSoClient({
   activateOnEdits: true,
+  cache: {
+    messages: {
+      expire: 60 * 60 * 1000, // 1 hour
+    },
+  },
   directory: './commands',
   gateway: {
     compress: false,
@@ -40,7 +45,7 @@ const bot = new NotSoClient({
 });
 
 
-bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
+bot.on(ClientEvents.COMMAND_RATELIMIT, async ({command, context, global, ratelimits}) => {
   if (context.message.canReply) {
     let replied: boolean = false;
     for (const {item, ratelimit, remaining} of ratelimits) {
@@ -84,11 +89,11 @@ bot.on('commandRatelimit', async ({command, context, global, ratelimits}) => {
   }
 });
 
-bot.on('commandRan', async ({command, context}) => {
+bot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
   // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
 });
 
-bot.on('commandRunError', async ({command, context}) => {
+bot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
   // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
 });
 
@@ -101,7 +106,7 @@ bot.on('commandRunError', async ({command, context}) => {
   }
   connectAllStores(cluster);
 
-  cluster.on('restResponse', async ({response, restRequest, shard}) => {
+  cluster.on(ClientEvents.REST_RESPONSE, async ({response, restRequest, shard}) => {
     const route = response.request.route;
     if (route) {
       if (response.ok) {
@@ -115,7 +120,7 @@ bot.on('commandRunError', async ({command, context}) => {
     }
   });
 
-  cluster.on('shard', ({shard}) => {
+  cluster.on(ClientEvents.SHARD, ({shard}) => {
     const shardId = shard.shardId;
     console.log(`Loading up ${shardId}...`);
     shard.gateway.on('state', ({state}) => {
@@ -144,7 +149,7 @@ bot.on('commandRunError', async ({command, context}) => {
     */
   });
 
-  cluster.on('warn', ({error}) => {
+  cluster.on(ClientEvents.WARN, ({error}) => {
     Sentry.captureException(error);
   });
 

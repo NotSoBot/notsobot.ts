@@ -9,7 +9,7 @@
   ],
   "dependencies": {
     "@sentry/node": "^5.20.1",
-    "detritus-client": "^0.11.1-beta.2",
+    "detritus-client": "^0.11.1-beta.3",
     "diff": "^4.0.2",
     "emoji-aware": "^3.0.5",
     "heapdump": "^0.3.15",

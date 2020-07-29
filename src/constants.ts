@@ -374,10 +374,15 @@ export enum GuildLoggerFlags {
   MESSAGE_CREATE = 1 << 0,
   MESSAGE_DELETE = 1 << 1,
   MESSAGE_UPDATE = 1 << 2,
+  GUILD_MEMBER_ADD = 1 << 3,
+  GUILD_MEMBER_REMOVE = 1 << 4,
+  GUILD_MEMBER_UPDATE = 1 << 5,
+  USER_UPDATE = 1 << 6,
 }
 
 export enum GuildLoggerTypes {
   MESSAGES = 0,
+  GUILD_MEMBERS = 1,
 }
 
 export enum GuildPremiumTypes {

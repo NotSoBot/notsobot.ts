@@ -13,8 +13,7 @@ import {
 } from '../constants';
 
 
-export function createUserEmbed(user: Structures.User) {
-  const embed = new Embed();
+export function createUserEmbed(user: Structures.User, embed: Embed = new Embed()) {
   embed.setAuthor(
     user.toString(),
     user.avatarUrlFormat(null, {size: 1024}),

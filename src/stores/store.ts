@@ -27,7 +27,6 @@ export class Store<K, V> extends Collections.BaseCollection<K, V> {
         subscription.remove();
       }
     }
-    this.clear();
   }
 }
 
