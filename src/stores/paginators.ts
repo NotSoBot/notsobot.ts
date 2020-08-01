@@ -1,4 +1,5 @@
 import { ClusterClient, GatewayClientEvents } from 'detritus-client';
+import { ClientEvents } from 'detritus-client/lib/constants';
 import { EventSubscription } from 'detritus-utils';
 
 import { Paginator, MIN_PAGE } from '../utils/paginator';
@@ -15,10 +16,10 @@ class PaginatorsStore extends Store<string, Paginator> {
   create(cluster: ClusterClient) {
     const subscriptions: Array<EventSubscription> = [];
     {
-      const subscription = cluster.subscribe('channelDelete', async (event: GatewayClientEvents.ChannelDelete) => {
+      const subscription = cluster.subscribe(ClientEvents.CHANNEL_DELETE, async (event) => {
         const { channel } = event;
         if (this.has(channel.id)) {
-          const paginator = <Paginator> this.get(channel.id);
+          const paginator = this.get(channel.id) as Paginator;
           this.delete(channel.id);
 
           paginator.message = null;
@@ -29,12 +30,12 @@ class PaginatorsStore extends Store<string, Paginator> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe('guildDelete', async (event: GatewayClientEvents.GuildDelete) => {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_DELETE, async (event) => {
         const { channels } = event;
         if (channels) {
           for (let [channelId, channel] of channels) {
             if (this.has(channel.id)) {
-              const paginator = <Paginator> this.get(channel.id);
+              const paginator = this.get(channel.id) as Paginator;
               this.delete(channel.id);
   
               paginator.message = null;
@@ -47,10 +48,10 @@ class PaginatorsStore extends Store<string, Paginator> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe('messageCreate', async (event: GatewayClientEvents.MessageCreate) => {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_CREATE, async (event) => {
         const { message } = event;
         if (this.has(message.channelId)) {
-          const paginator = <Paginator> this.get(message.channelId);
+          const paginator = this.get(message.channelId) as Paginator;
 
           if (paginator.custom.message && (paginator.targets.includes(message.author.id) || message.author.isClientOwner)) {
             let page = parseInt(message.content);
@@ -70,12 +71,10 @@ class PaginatorsStore extends Store<string, Paginator> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe('messageDelete', async (event: GatewayClientEvents.MessageDelete) => {
-        const { raw } = event;
-        const { channel_id: channelId, id: messageId } = raw;
-  
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE, async (event) => {
+        const { channelId, messageId } = event;
         if (this.has(channelId)) {
-          const paginator = <Paginator> this.get(channelId);
+          const paginator = this.get(channelId) as Paginator;
           if (paginator.message) {
             if (paginator.message.id === messageId) {
               this.delete(channelId);
@@ -95,30 +94,30 @@ class PaginatorsStore extends Store<string, Paginator> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe('messageReactionAdd', async (event: GatewayClientEvents.MessageReactionAdd) => {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_REACTION_ADD, async (event) => {
         const { channelId } = event;
         if (this.has(channelId)) {
-          const paginator = <Paginator> this.get(channelId);
+          const paginator = this.get(channelId) as Paginator;
           await paginator.onMessageReactionAdd(event);
         }
       });
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe('messageReactionRemove', async (event: GatewayClientEvents.MessageReactionRemove) => {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_REACTION_REMOVE, async (event) => {
         const { channelId } = event;
         if (this.has(channelId)) {
-          const paginator = <Paginator> this.get(channelId);
-          await paginator.onMessageReactionAdd(<GatewayClientEvents.MessageReactionAdd> event);
+          const paginator = this.get(channelId) as Paginator;
+          await paginator.onMessageReactionAdd(event);
         }
       });
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe('messageReactionRemoveAll', async (event: GatewayClientEvents.MessageReactionRemoveAll) => {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_REACTION_REMOVE_ALL, async (event) => {
         const { channelId, messageId } = event;
         if (this.has(channelId)) {
-          const paginator = <Paginator> this.get(channelId);
+          const paginator = this.get(channelId) as Paginator;
           if (paginator.message && paginator.message.id === messageId) {
             await paginator.stop(false);
           }

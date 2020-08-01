@@ -111,6 +111,18 @@ export class GuildSettings extends BaseStructure {
     return this.hasLoggerFlag(GuildLoggerFlags.MESSAGE_UPDATE);
   }
 
+  get shouldLogVoiceChannelConnection(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.VOICE_CHANNEL_CONNECTION);
+  }
+
+  get shouldLogVoiceChannelModify(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.VOICE_CHANNEL_MODIFY);
+  }
+
+  get shouldLogVoiceChannelMove(): boolean {
+    return this.hasLoggerFlag(GuildLoggerFlags.VOICE_CHANNEL_MOVE);
+  }
+
   hasLoggerFlag(flag: number): boolean {
     return (this.loggerFlags & flag) === flag;
   }
@@ -327,6 +339,14 @@ export class GuildSettingsLogger extends BaseStructure {
 
   get isMessageType(): boolean {
     return this.type === GuildLoggerTypes.MESSAGES;
+  }
+
+  get isUserType(): boolean {
+    return this.type === GuildLoggerTypes.USERS;
+  }
+
+  get isVoiceType(): boolean {
+    return this.type === GuildLoggerTypes.VOICE;
   }
 
   get logKey(): string {

@@ -224,7 +224,9 @@ export class Paginator {
     }
   }
 
-  async onMessageReactionAdd({messageId, reaction, userId}: GatewayClientEvents.MessageReactionAdd) {
+  async onMessageReactionAdd(
+    {messageId, reaction, userId}: {messageId: string, reaction: Structures.Reaction, userId: string},
+  ) {
     if (this.stopped) {
       return;
     }

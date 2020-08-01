@@ -17,6 +17,11 @@ export namespace RedisPayloads {
     id: string,
   }
 
+  export interface GuildLoggerUpdate {
+    id: string,
+    loggers: Array<RestResponsesRaw.GuildLogger>,
+  }
+
   export interface GuildPrefixUpdate {
     id: string,
     prefixes: Array<RestResponsesRaw.GuildPrefix>,

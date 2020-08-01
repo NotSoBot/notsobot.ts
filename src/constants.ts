@@ -6,6 +6,7 @@ import {
   Locales as DiscordLocales,
   Permissions,
   PresenceStatuses as Statuses,
+  UserFlags as DiscordUserFlags,
   VerificationLevels,
 } from 'detritus-client/lib/constants';
 
@@ -41,6 +42,8 @@ export enum CommandTypes {
   UTILS = 'UTILS',
 }
 
+export const DateMomentLogFormat = 'MM/DD/YY, h:mm:ss a z';
+
 export const DateMomentOptions = Object.freeze({
   trim: 'both mid',
 });
@@ -48,6 +51,27 @@ export const DateMomentOptions = Object.freeze({
 export const DateOptions = Object.freeze({
   timeZone: 'America/New_York',
 });
+
+
+export const DiscordUserFlagsText: {[key in DiscordUserFlags]: string} = Object.freeze({
+  [DiscordUserFlags.STAFF]: 'Discord Staff',
+  [DiscordUserFlags.PARTNER]: 'Discord Partner',
+  [DiscordUserFlags.HYPESQUAD]: 'HypeSquad Events',
+  [DiscordUserFlags.BUG_HUNTER_LEVEL_1]: 'Discord Bug Hunter',
+  [DiscordUserFlags.MFA_SMS]: 'MFA SMS?',
+  [DiscordUserFlags.PREMIUM_PROMO_DISMISSED]: 'Nitro Promotion Dismissed',
+  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_1]: 'HypeSquad Bravery',
+  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_2]: 'HypeSquad Brilliance',
+  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_3]: 'HypeSquad Balance',
+  [DiscordUserFlags.PREMIUM_EARLY_SUPPORTER]: 'Early Nitro Supporter',
+  [DiscordUserFlags.TEAM_USER]: 'Team Owner Bot',
+  [DiscordUserFlags.SYSTEM]: 'System User',
+  [DiscordUserFlags.HAS_UNREAD_URGENT_MESSAGES]: 'Unread Urgent Message',
+  [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: 'Discord Bug Hunter 2',
+  [DiscordUserFlags.VERIFIED_BOT]: 'Verified Bot',
+  [DiscordUserFlags.VERIFIED_DEVELOPER]: 'Verified Bot Developer',
+});
+
 
 export enum E621Rating {
   EXPLICIT = 'e',
@@ -374,15 +398,20 @@ export enum GuildLoggerFlags {
   MESSAGE_CREATE = 1 << 0,
   MESSAGE_DELETE = 1 << 1,
   MESSAGE_UPDATE = 1 << 2,
-  GUILD_MEMBER_ADD = 1 << 3,
-  GUILD_MEMBER_REMOVE = 1 << 4,
-  GUILD_MEMBER_UPDATE = 1 << 5,
-  USER_UPDATE = 1 << 6,
+  USER_UPDATE = 1 << 3,
+  GUILD_MEMBER_ADD = 1 << 4,
+  GUILD_MEMBER_REMOVE = 1 << 5,
+  GUILD_MEMBER_UPDATE = 1 << 6,
+  VOICE_CHANNEL_CONNECTION = 1 << 7,
+  VOICE_CHANNEL_MODIFY = 1 << 8,
+  VOICE_CHANNEL_MOVE = 1 << 9,
 }
 
 export enum GuildLoggerTypes {
   MESSAGES = 0,
-  GUILD_MEMBERS = 1,
+  USERS = 1,
+  GUILD_MEMBERS = 2,
+  VOICE = 3,
 }
 
 export enum GuildPremiumTypes {
@@ -442,6 +471,7 @@ export enum RedisChannels {
   GUILD_ALLOWLIST_UPDATE = 'GUILD_ALLOWLIST_UPDATE',
   GUILD_BLOCKLIST_UPDATE = 'GUILD_BLOCKLIST_UPDATE',
   GUILD_DISABLED_COMMAND_UPDATE = 'GUILD_DISABLED_COMMAND_UPDATE',
+  GUILD_LOGGER_UPDATE = 'GUILD_LOGGER_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
   USER_UPDATE = 'USER_UPDATE',

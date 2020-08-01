@@ -380,6 +380,7 @@ export namespace RestResponsesRaw {
 
   export interface GuildLogger {
     channel_id: string,
+    guild_id: string,
     logger_type: number,
     webhook_id?: string,
     webhook_token?: string,

@@ -9,12 +9,13 @@
   ],
   "dependencies": {
     "@sentry/node": "^5.20.1",
-    "detritus-client": "^0.11.1-beta.3",
+    "detritus-client": "^0.11.1-beta.8",
     "diff": "^4.0.2",
     "emoji-aware": "^3.0.5",
     "heapdump": "^0.3.15",
     "moment": "^2.27.0",
     "moment-duration-format": "^2.3.2",
+    "moment-timezone": "^0.5.31",
     "redis": "^2.8.0"
   },
   "devDependencies": {

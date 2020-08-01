@@ -130,6 +130,15 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
+      const subscription = redis.subscribe(RedisChannels.GUILD_LOGGER_UPDATE, (payload: RedisPayloads.GuildLoggerUpdate) => {
+        if (this.has(payload.id)) {
+          const settings = this.get(payload.id) as GuildSettings;
+          settings.merge(payload);
+        }
+      });
+      subscriptions.push(subscription);
+    }
+    {
       const subscription = redis.subscribe(RedisChannels.GUILD_PREFIX_UPDATE, (payload: RedisPayloads.GuildPrefixUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id) as GuildSettings;
