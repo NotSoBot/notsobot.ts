@@ -243,7 +243,7 @@ export async function deleteGuildLogger(
   return request(context, {
     body,
     route: {
-      method: HTTPMethods.DELETE,
+      method: HTTPMethods.POST,
       path: Api.GUILD_LOGGERS_DELETE,
       params,
     },
@@ -316,6 +316,23 @@ export async function fetchUser(
       method: HTTPMethods.GET,
       path: Api.USER,
       params,
+    },
+  });
+}
+
+
+export async function funASCII(
+  context: RequestContext,
+  options: RestOptions.FunASCII,
+): Promise<RestResponsesRaw.FunAscii> {
+  const query = {
+    text: options.text,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.FUN_ASCII,
     },
   });
 }
@@ -397,6 +414,7 @@ export async function googleTranslate(
   });
 }
 
+
 export async function imageDeepfry(
   context: RequestContext,
   options: RestOptions.ImageDeepfry,
@@ -434,6 +452,62 @@ export async function imageExplode(
 }
 
 
+export async function imageEyes(
+  context: RequestContext,
+  options: RestOptions.ImageEyes,
+): Promise<Response> {
+  const query = {
+    type: options.type,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_EYES,
+    },
+  });
+}
+
+
+export async function imageImplode(
+  context: RequestContext,
+  options: RestOptions.ImageImplode,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_IMPLODE,
+    },
+  });
+}
+
+
+export async function imageInvert(
+  context: RequestContext,
+  options: RestOptions.ImageInvert,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_INVERT,
+    },
+  });
+}
+
+
 export async function imageJPEG(
   context: RequestContext,
   options: RestOptions.ImageJPEG,
@@ -448,6 +522,26 @@ export async function imageJPEG(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_JPEG,
+    },
+  });
+}
+
+
+export async function imageLegofy(
+  context: RequestContext,
+  options: RestOptions.ImageLegofy,
+): Promise<Response> {
+  const query = {
+    dither: options.dither,
+    palette: options.palette,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_LEGOFY,
     },
   });
 }

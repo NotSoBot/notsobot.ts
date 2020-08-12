@@ -16,7 +16,6 @@ export interface CommandArgs {
 export default class ReverseTextCommand extends BaseCommand {
   name = 'reversetext';
 
-  aliases = ['reverse', 'r'];
   label = 'text';
   metadata = {
     description: 'Reverse text',

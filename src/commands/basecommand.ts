@@ -181,6 +181,16 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
   permissionsClient = [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS];
   type: Command.ArgumentType = Parameters.lastImageUrl;
 
+  constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
+    super(commandClient, Object.assign({
+      name: '',
+      ratelimits: [
+        {duration: 5000, limit: 2, type: 'guild'},
+        {duration: 1000, limit: 1, type: 'channel'},
+      ],
+    }, options));
+  }
+
   onBeforeRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url) {
       context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});

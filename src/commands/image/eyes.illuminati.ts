@@ -16,22 +16,22 @@ export interface CommandArgs {
 }
 
 export default class EyesCommand extends BaseImageCommand<CommandArgs> {
-  aliases = ['eye'];
-  name = 'eyes';
+  aliases = ['triangle'];
+  name = 'illuminati';
+  prefixes = ['eyes ', 'eye '];
 
-  args = [
-    {name: 'type', choices: Object.values(ImageEyeTypes), help: `Must be one of: (${Object.values(ImageEyeTypes).join(', ')})`},
-  ];
   metadata = {
-    description: 'Attach eyes to an image',
-    examples: ['eyes', 'eyes https://i.imgur.com/WwiO7Bx.jpg', 'eyes https://i.imgur.com/WwiO7Bx.jpg -type spongebob'],
+    description: 'Attach illuminati eyes to people\'s faces in an image',
+    examples: ['eyes illuminati', 'eyes illuminati https://i.imgur.com/WwiO7Bx.jpg'],
     type: CommandTypes.IMAGE,
-    usage: 'eyes ?<emoji|id|mention|name|url> (-type <ImageEyeType>)',
+    usage: 'eyes illuminati ?<emoji|id|mention|name|url>',
   };
-  priority = -1;
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageEyes(context, args);
+    const response = await imageEyes(context, {
+      type: ImageEyeTypes.ILLUMINATI,
+      url: args.url,
+    });
     return imageReply(context, response);
   }
 }

@@ -16,22 +16,21 @@ export interface CommandArgs {
 }
 
 export default class EyesCommand extends BaseImageCommand<CommandArgs> {
-  aliases = ['eye'];
-  name = 'eyes';
+  name = 'spinner';
+  prefixes = ['eyes ', 'eye '];
 
-  args = [
-    {name: 'type', choices: Object.values(ImageEyeTypes), help: `Must be one of: (${Object.values(ImageEyeTypes).join(', ')})`},
-  ];
   metadata = {
-    description: 'Attach eyes to an image',
-    examples: ['eyes', 'eyes https://i.imgur.com/WwiO7Bx.jpg', 'eyes https://i.imgur.com/WwiO7Bx.jpg -type spongebob'],
+    description: 'Attach fidget spinner to people\'s eyes in an image',
+    examples: ['eyes spinner', 'eyes spinner https://i.imgur.com/WwiO7Bx.jpg'],
     type: CommandTypes.IMAGE,
-    usage: 'eyes ?<emoji|id|mention|name|url> (-type <ImageEyeType>)',
+    usage: 'eyes spinner ?<emoji|id|mention|name|url>',
   };
-  priority = -1;
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageEyes(context, args);
+    const response = await imageEyes(context, {
+      type: ImageEyeTypes.SPINNER,
+      url: args.url,
+    });
     return imageReply(context, response);
   }
 }

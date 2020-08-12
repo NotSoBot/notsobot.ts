@@ -31,7 +31,6 @@ async function emojisSearch(value: string, context: Command.Context) {
 
   let chunks: Array<Array<Structures.Emoji>>;
   if (context.manager) {
-    const snowflake = isSnowflake(value);
     chunks = await context.manager.broadcastEval((cluster: ClusterClient, name: string, isSnowflake: boolean) => {
       const emojis: Array<Structures.Emoji> = [];
       for (let [shardId, shard] of cluster.shards) {
@@ -49,13 +48,13 @@ async function emojisSearch(value: string, context: Command.Context) {
         }
       }
       return emojis;
-    }, value, snowflake);
+    }, value, isSnowflake(value));
   } else {
     chunks = [];
   }
   return chunks.flat().map((raw) => {
     return new Structures.Emoji(context.client, raw);
-  }).sort((x, y) => (x.createdAtUnix as number) - (y.createdAtUnix as number));
+  }).sort((x, y) => (y.createdAtUnix as number) - (x.createdAtUnix as number));
 }
 
 export default class EmojisCommand extends BaseCommand {

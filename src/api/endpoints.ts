@@ -16,6 +16,9 @@ export const Api = Object.freeze({
   COMMANDS:
     '/commands',
 
+  FUN_ASCII:
+    '/fun/ascii',
+
   GOOGLE_CONTENT_VISION_OCR:
     '/google/content-vision/ocr',
   GOOGLE_SEARCH:
@@ -46,8 +49,16 @@ export const Api = Object.freeze({
     '/image/deepfry',
   IMAGE_EXPLODE:
     '/image/explode',
+  IMAGE_EYES:
+    '/image/eyes',
+  IMAGE_IMPLODE:
+    '/image/implode',
+  IMAGE_INVERT:
+    '/image/invert',
   IMAGE_JPEG:
     '/image/jpeg',
+  IMAGE_LEGOFY:
+    '/image/legofy',
   IMAGE_MAGIK:
     '/image/magik',
   IMAGE_MAGIK_GIF:

@@ -5,6 +5,8 @@ import {
   GoogleImageVideoTypes,
   GoogleLocales,
   GuildLoggerTypes,
+  ImageEyeTypes,
+  ImageLegofyPalettes,
 } from '../constants';
 
 import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
@@ -57,6 +59,11 @@ export namespace RestOptions {
   }
 
 
+  export interface FunASCII {
+    text: string,
+  }
+
+
   export interface GoogleContentVisionOCR {
     url: string,
   }
@@ -93,8 +100,28 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface ImageEyes {
+    type?: ImageEyeTypes,
+    url: string,
+  }
+
+  export interface ImageImplode {
+    scale?: number,
+    url: string,
+  }
+
+  export interface ImageInvert {
+    url: string,
+  }
+
   export interface ImageJPEG {
     quality?: number,
+    url: string,
+  }
+
+  export interface ImageLegofy {
+    dither?: boolean,
+    palette?: ImageLegofyPalettes,
     url: string,
   }
 
@@ -260,6 +287,22 @@ export namespace RestResponsesRaw {
   export type FetchUser = User;
 
   export type PutUser = User;
+
+
+  export interface FunAscii {
+    image: {
+      data: string,
+      details: {
+        extension: string,
+        filename: string,
+        height: number,
+        mimetype: string,
+        width: number,
+      },
+    },
+    text: string,
+  }
+
 
   export interface GoogleContentVisionOCR {
     annotation: null | {description: string, locale: GoogleLocales},

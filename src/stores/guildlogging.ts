@@ -2,15 +2,15 @@ import * as moment from 'moment';
 
 import { ClusterClient, Collections, GatewayClientEvents, ShardClient, Structures } from 'detritus-client';
 import {
+  ActivityActionTypes,
   AuditLogActions,
   AuditLogChangeKeys,
   ClientEvents,
-  DetritusKeys,
-  DiscordKeys,
+  MessageFlags,
   UserFlags as DiscordUserFlags,
 } from 'detritus-client/lib/constants';
 import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
-import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
+import { Endpoints as DiscordEndpoints, RequestTypes } from 'detritus-client-rest';
 import { EventSubscription, Timers } from 'detritus-utils';
 
 import GuildSettingsStore from './guildsettings';
@@ -21,6 +21,7 @@ import {
   DateMomentLogFormat,
   DiscordUserFlagsText,
   EmbedColors,
+  GuildLoggerFlags,
   GuildLoggerTypes,
   RedisChannels,
 } from '../constants';
@@ -28,11 +29,13 @@ import { RedisSpewer } from '../redis';
 import { RedisPayloads } from '../types';
 import { createUserEmbed } from '../utils';
 
+type ClientStatusType = 'desktop' | 'mobile' | 'web';
 
 export type GuildLoggingEventItemAudits = [Structures.AuditLog, ...Array<Structures.AuditLog>];
 
 export type GuildLoggingEventItem = {
   audits?: GuildLoggingEventItemAudits,
+  from?: ClientStatusType,
   happened: number,
   name: ClientEvents.GUILD_MEMBER_ADD,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberAdd,
@@ -44,11 +47,12 @@ export type GuildLoggingEventItem = {
 } | {
   audits?: GuildLoggingEventItemAudits,
   cached: {
-    deaf?: boolean,
-    mute?: boolean,
-    nick?: string,
-    premiumSince?: Date | null,
-    roles?: Array<string>,
+    deaf: boolean,
+    hoistedRole: null | string,
+    mute: boolean,
+    nick: null | string,
+    premiumSince: Date | null,
+    roles: Array<string>,
   },
   happened: number,
   name: ClientEvents.GUILD_MEMBER_UPDATE,
@@ -72,12 +76,19 @@ export type GuildLoggingEventItem = {
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageDelete,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  happened: number,
+  name: ClientEvents.MESSAGE_DELETE_BULK,
+  payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageDeleteBulk,
+} | {
+  audits?: GuildLoggingEventItemAudits,
   cached: {
-    attachments?: Collections.BaseCollection<string, Structures.Attachment>,
-    content?: string,
-    embeds?: Collections.BaseCollection<number, Structures.MessageEmbed>,
-    flags?: number,
-    mentions?: Collections.BaseCollection<string, Structures.User>,
+    attachments: Collections.BaseCollection<string, Structures.Attachment>,
+    content: string,
+    embeds: Collections.BaseCollection<number, Structures.MessageEmbed>,
+    flags: number,
+    mentionEveryone: boolean,
+    mentionRoles: Collections.BaseCollection<string, null | Structures.Role>,
+    mentions: Collections.BaseCollection<string, Structures.User>,
   },
   happened: number,
   name: ClientEvents.MESSAGE_UPDATE,
@@ -107,6 +118,8 @@ export const AUDITLOG_EVENTS = [
   ClientEvents.GUILD_MEMBER_ADD,
   ClientEvents.GUILD_MEMBER_REMOVE,
   ClientEvents.GUILD_MEMBER_UPDATE,
+  ClientEvents.MESSAGE_DELETE,
+  ClientEvents.MESSAGE_DELETE_BULK,
   ClientEvents.VOICE_STATE_UPDATE,
 ];
 
@@ -116,11 +129,11 @@ export const AUDIT_LEEWAY_TIME = 2000;
 export const COLLECTION_TIME = 1000;
 
 export const MAX_EMBED_SIZE = 6000;
+export const MAX_MENTIONS = 10;
 
 // <guildId, GuildLogStorage>
 class GuildLoggingStore extends Store<string, GuildLogStorage> {
   add(logger: GuildSettingsLogger, shard: ShardClient, event: GuildLoggingEventItem): void {
-    event.happened -= AUDIT_LEEWAY_TIME;
     const storage = this.getOrCreate(logger.guildId, shard);
 
     let queue: Array<GuildLoggingEventItem>;
@@ -171,6 +184,14 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
                 const { member } = event.payload;
                 return member.bot;
               };
+              case ClientEvents.MESSAGE_DELETE: {
+                const { message } = event.payload;
+                return !!message;
+              };
+              case ClientEvents.MESSAGE_DELETE_BULK: {
+                const { messages } = event.payload;
+                return messages.every((message) => (message) ? !!message.author.id : true);
+              };
               case ClientEvents.VOICE_STATE_UPDATE: {
                 const { differences } = event.payload;
                 if (differences) {
@@ -187,200 +208,39 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       if (shouldFetchAuditLogs) {
         // populate the items audit log
         const auditLogs = await shard.rest.fetchGuildAuditLogs(guildId, {limit: 50});
-        console.log(Date.now() - (auditLogs.first() as any).createdAtUnix);
         for (let [auditLogId, auditLog] of auditLogs) {
+          let events: Array<GuildLoggingEventItem> | undefined;
           switch (auditLog.actionType) {
             case AuditLogActions.BOT_ADD: {
-              const queue = queues.get(GuildLoggerTypes.GUILD_MEMBERS);
-              if (queue) {
-                const items = queue.filter((item) => {
-                  if (item.name !== ClientEvents.GUILD_MEMBER_ADD) {
-                    return false;
-                  }
-                  // if audit log was created before our event, ignore
-                  if (auditLog.createdAtUnix <= item.happened) {
-                    return false;
-                  }
-                  return item.payload.userId === auditLog.targetId;
-                });
-                for (let item of items) {
-                  if (item.audits) {
-                    item.audits.push(auditLog);
-                  } else {
-                    item.audits = [auditLog];
-                  }
-                }
-              }
+              events = findEventsForBotAdd(auditLog, storage);
             }; break;
-            case AuditLogActions.MEMBER_BAN_ADD:
+            case AuditLogActions.MEMBER_BAN_ADD: {
+              events = findEventsForMemberBanAdd(auditLog, storage);
+            }; break;
             case AuditLogActions.MEMBER_KICK: {
-              const queue = queues.get(GuildLoggerTypes.GUILD_MEMBERS);
-              if (queue) {
-                const items = queue.filter((item) => {
-                  if (item.name !== ClientEvents.GUILD_MEMBER_REMOVE) {
-                    return false;
-                  }
-                  // if audit log was created before our event, ignore
-                  if (auditLog.createdAtUnix <= item.happened) {
-                    return false;
-                  }
-                  return item.payload.userId === auditLog.targetId;
-                });
-                for (let item of items) {
-                  if (item.audits) {
-                    item.audits.push(auditLog);
-                  } else {
-                    item.audits = [auditLog];
-                  }
-                }
-              }
+              events = findEventsForMemberKick(auditLog, storage);
             }; break;
             case AuditLogActions.MEMBER_ROLE_UPDATE: {
-              const queue = queues.get(GuildLoggerTypes.GUILD_MEMBERS);
-              if (queue) {
-                const items = queue.filter((item) => {
-                  if (item.name !== ClientEvents.GUILD_MEMBER_UPDATE) {
-                    return false;
-                  }
-                  // if audit log was created before our event, ignore
-                  if (auditLog.createdAtUnix <= item.happened) {
-                    return false;
-                  }
-                  const { differences, member } = item.payload;
-                  if (auditLog.targetId !== member.id) {
-                    return false;
-                  }
-                  if (item.audits) {
-                    const alreadyHas = item.audits.some(({changes}) => {
-                      if (changes.length !== auditLog.changes.length) {
-                        return false;
-                      }
-                      return changes.every((change) => {
-                        const currentChange = auditLog.changes.get(change.key);
-                        if (currentChange) {
-                          switch (change.key) {
-                            case AuditLogChangeKeys.ROLES_ADD:
-                            case AuditLogChangeKeys.ROLES_REMOVE: {
-                              if (change.newValue.length !== currentChange.newValue.length) {
-                                return true;
-                              }
-                              return change.newValue.every((value: {id: string, name: string}) => {
-                                return currentChange.newValue.some((currentValue: {id: string, name: string}) => value.id === currentValue.id);
-                              });
-                            };
-                          }
-                        }
-                        return false;
-                      });
-                    });
-                    if (alreadyHas) {
-                      return false;
-                    }
-                  }
-                  // check to see if the differences and member match up to the audit log
-                  const cachedRoles = item.cached.roles;
-                  return differences && differences.roles && cachedRoles && auditLog.changes.every((change) => {
-                    switch (change.key) {
-                      case AuditLogChangeKeys.ROLES_ADD: {
-                        return change.newValue.every((raw: {id: string, name: string}) => {
-                          return !differences.roles.includes(raw.id) && cachedRoles.includes(raw.id);
-                        });
-                      };
-                      case AuditLogChangeKeys.ROLES_REMOVE: {
-                        return change.newValue.every((raw: {id: string, name: string}) => {
-                          return differences.roles.includes(raw.id) && !cachedRoles.includes(raw.id);
-                        });
-                      };
-                    }
-                  });
-                });
-                for (let item of items) {
-                  if (item.audits) {
-                    item.audits.push(auditLog);
-                  } else {
-                    item.audits = [auditLog];
-                  }
-                }
-              }
+              events = findEventsForMemberRoleUpdate(auditLog, storage);
             }; break;
             case AuditLogActions.MEMBER_UPDATE: {
-              const queuesToPopulate = [
-                queues.get(GuildLoggerTypes.GUILD_MEMBERS),
-                queues.get(GuildLoggerTypes.VOICE),
-              ]
-              for (let queue of queuesToPopulate) {
-                if (!queue) {
-                  continue;
-                }
-                const items = queue.filter((item) => {
-                  // if audit log was created before our event, ignore
-                  if (auditLog.createdAtUnix <= item.happened) {
-                    return false;
-                  }
-                  switch (item.name) {
-                    case ClientEvents.GUILD_MEMBER_UPDATE: {
-                      const { member } = item.payload;
-                      if (auditLog.targetId !== member.id) {
-                        return false;
-                      }
-                    }; break;
-                    case ClientEvents.VOICE_STATE_UPDATE: {
-                      const { voiceState } = item.payload;
-                      if (auditLog.targetId !== voiceState.userId) {
-                        return false;
-                      }
-                    }; break;
-                    default: {
-                      return false;
-                    };
-                  }
-                  if (item.audits) {
-                    // filter out any matching audit logs
-                    // incase someone is spamming mute/unmute or some kind of role changes
-                    const alreadyHas = item.audits.some(({changes}) => {
-                      if (changes.length !== auditLog.changes.length) {
-                        return false;
-                      }
-                      return changes.every((change) => {
-                        const currentChange = auditLog.changes.get(change.key);
-                        if (currentChange) {
-                          return change.newValue === currentChange.newValue;
-                        }
-                        return false;
-                      });
-                    });
-                    if (alreadyHas) {
-                      return false;
-                    }
-                  }
-                  // this doesnt work with some voice mute/deafens since a nick change could be grouped up with it..
-                  const { differences } = item.payload;
-                  return differences && auditLog.changes.every((change) => {
-                    if (!(change.key in differences)) {
-                      return false;
-                    }
-                    // check differences[key] to the change old value
-                    if (change.oldValue !== undefined && change.oldValue !== differences[change.key]) {
-                      return false;
-                    }
-                    // nick clear
-                    if (change.newValue === undefined) {
-                      return !(item.cached as any)[change.key];
-                    }
-                    // check the member[key] to the change new value
-                    // newValue can be undefined, like a nick clear
-                    return (item.cached as any)[change.key] === change.newValue;
-                  });
-                });
-                for (let item of items) {
-                  if (item.audits) {
-                    item.audits.push(auditLog);
-                  } else {
-                    item.audits = [auditLog];
-                  }
-                }
-              }
+              events = findEventsForMemberUpdate(auditLog, storage);
             }; break;
+            case AuditLogActions.MESSAGE_DELETE: {
+              events = findEventsForMessageDelete(auditLog, storage);
+            }; break;
+            case AuditLogActions.MESSAGE_BULK_DELETE: {
+              events = findEventsForMessageBulkDelete(auditLog, storage);
+            }; break;
+          }
+          if (events) {
+            for (let event of events) {
+              if (event.audits) {
+                event.audits.push(auditLog);
+              } else {
+                event.audits = [auditLog];
+              }
+            }
           }
         }
       }
@@ -390,11 +250,40 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         const promises: Array<Promise<any>> = [];
         for (let [loggerType, queue] of queues) {
           // add embed length checks since the max character amount of 6000 is spread through all 10 embeds
-          const embeds = queue.splice(0, 5).map((event) => createLogEmbed(event)).flat();
-          if (embeds.length) {
+          const unfilteredPayloads = queue.splice(0, 10).map((event) => createLogPayload(event));
+          const payloads: Array<RequestTypes.ExecuteWebhook> = [];
+          while (unfilteredPayloads.length) {
+            const embeds: Array<Embed> = [];
+            const payload: RequestTypes.ExecuteWebhook = {embeds};
+
+            let total = 0;
+            for (let {embed, files} of unfilteredPayloads) {
+              // if it has files, dont let it have other embeds attached to it
+              if (files.length) {
+                // if we have any other embeds in the payload, then put this in the next payload
+                if (!embeds.length) {
+                  embeds.push(embed);
+                  payload.files = files;
+                }
+                break;
+              }
+              // we are safe, this embed wont go over the size limit for the whole body
+              if (total + embed.length <= MAX_EMBED_SIZE) {
+                total += embed.length;
+                embeds.push(embed);
+              } else {
+                break;
+              }
+            }
+            unfilteredPayloads.splice(0, embeds.length);
+            payloads.push(payload);
+          }
+          if (payloads.length) {
             const loggers = settings.loggers.filter((logger) => logger.type === loggerType);
             for (let logger of loggers) {
-              promises.push(logger.execute(shard, {embeds}));
+              for (let payload of payloads) {
+                promises.push(logger.execute(shard, payload));
+              }
             }
           } else {
             queues.delete(loggerType);
@@ -422,26 +311,28 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
 
     let shouldLog = false;
     switch (event.name) {
-      case ClientEvents.GUILD_MEMBER_ADD: shouldLog = settings.shouldLogGuildMemberAdd; break;
-      case ClientEvents.GUILD_MEMBER_REMOVE: shouldLog = settings.shouldLogGuildMemberRemove; break;
-      case ClientEvents.GUILD_MEMBER_UPDATE: shouldLog = settings.shouldLogGuildMemberUpdate; break;
+      case ClientEvents.GUILD_MEMBER_ADD: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_ADD); break;
+      case ClientEvents.GUILD_MEMBER_REMOVE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_REMOVE); break;
+      case ClientEvents.GUILD_MEMBER_UPDATE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_UPDATE); break;
       /* case ClientEvents.MESSAGE_CREATE: shouldLog = settings.shouldLogMessageCreate; break; */
-      case ClientEvents.MESSAGE_DELETE: shouldLog = settings.shouldLogMessageDelete; break;
-      case ClientEvents.MESSAGE_UPDATE: shouldLog = settings.shouldLogMessageUpdate; break;
-      case ClientEvents.USERS_UPDATE: shouldLog = settings.shouldLogUserUpdate; break;
+      case ClientEvents.MESSAGE_DELETE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_DELETE); break;
+      case ClientEvents.MESSAGE_DELETE_BULK: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_DELETE_BULK); break;
+      case ClientEvents.MESSAGE_UPDATE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_UPDATE); break;
+      case ClientEvents.USERS_UPDATE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.USER_UPDATE); break;
       case ClientEvents.VOICE_STATE_UPDATE: {
         const { differences, leftChannel } = event.payload;
         if (!differences || leftChannel) {
-          shouldLog = settings.shouldLogVoiceChannelConnection;
+          shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_CONNECTION);
         } else {
           if (differences.channelId) {
-            shouldLog = settings.shouldLogVoiceChannelMove;
+            shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_MOVE);
           } else {
-            shouldLog = settings.shouldLogVoiceChannelModify;
+            shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_MODIFY);
           }
         }
       }; break;
     }
+    // add support for the logger disabled events
     if (shouldLog) {
       let loggers: Array<GuildSettingsLogger>;
       switch (event.name) {
@@ -452,6 +343,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         }; break;
         /*case ClientEvents.MESSAGE_CREATE: */
         case ClientEvents.MESSAGE_DELETE:
+        case ClientEvents.MESSAGE_DELETE_BULK:
         case ClientEvents.MESSAGE_UPDATE: {
           loggers = settings.loggers.filter((logger) => logger.isMessageType);
         }; break;
@@ -479,9 +371,14 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       const subscription = cluster.subscribe(ClientEvents.GUILD_MEMBER_ADD, async (payload) => {
         const { guildId, isDuplicate, member, shard, userId } = payload;
         if (!isDuplicate) {
+          let from: ClientStatusType = 'desktop';
+          if (member.presence && member.presence.clientStatus) {
+            const { clientStatus } = member.presence;
+            from = (clientStatus.mobile || clientStatus.desktop || clientStatus.web || from) as ClientStatusType;
+          }
           const happened = Date.now();
           const name = ClientEvents.GUILD_MEMBER_ADD;
-          return this.tryAdd(shard, guildId, {happened, name, payload});
+          return this.tryAdd(shard, guildId, {from, happened, name, payload});
         }
       });
       subscriptions.push(subscription);
@@ -500,24 +397,26 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
+      const keys = ['deaf', 'hoistedRole', 'mute', 'premiumSince', 'roles'];
       const subscription = cluster.subscribe(ClientEvents.GUILD_MEMBER_UPDATE, async (payload) => {
         const { differences, guildId, member, shard } = payload;
         // if differences is not null and its not just {joinedAt}
-        if (differences && (Object.keys(differences).length !== 1 || !('joinedAt' in differences))) {
-          const cached: any = {};
-          for (let key in differences) {
-            switch (key) {
-              case DetritusKeys[DiscordKeys.ROLES]: {
-                cached[key] = member._roles || [];
-              }; break;
-              default: {
-                cached[key] = (member as any)[key];
-              };
-            }
-          }
+        if (differences && Object.keys(differences).some((key) => keys.includes(key))) {
           const happened = Date.now();
           const name = ClientEvents.GUILD_MEMBER_UPDATE;
-          return this.tryAdd(shard, guildId, {cached, happened, name, payload});
+          return this.tryAdd(shard, guildId, {
+            cached: {
+              deaf: member.deaf,
+              hoistedRole: member.hoistedRoleId,
+              mute: member.mute,
+              nick: member.nick,
+              premiumSince: member.premiumSince,
+              roles: member._roles || [],
+            },
+            happened,
+            name,
+            payload,
+          });
         }
       });
       subscriptions.push(subscription);
@@ -563,21 +462,38 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE_BULK, async (payload) => {
+        const { guildId, shard } = payload;
+        // log if the message isnt in cache, so it's at least logged
+        if (guildId) {
+          const happened = Date.now();
+          const name = ClientEvents.MESSAGE_DELETE_BULK;
+          return this.tryAdd(shard, guildId, {happened, name, payload});
+        }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
       const subscription = cluster.subscribe(ClientEvents.MESSAGE_UPDATE, async (payload) => {
-        const { channelId, differences, guildId, isEmbedUpdate, message, messageId, shard } = payload;
+        const { guildId, isEmbedUpdate, message, shard } = payload;
         if (!isEmbedUpdate && guildId && message && !message.author.bot) {
-          const cached: any = {};
-          for (let key in differences) {
-            const value = (message as any)[key];
-            if (value instanceof Collections.BaseCollection) {
-              cached[key] = value.clone();
-            } else {
-              cached[key] = value;
-            }
-          }
           const happened = Date.now();
           const name = ClientEvents.MESSAGE_UPDATE;
-          return this.tryAdd(shard, guildId, {cached, happened, name, payload});
+          return this.tryAdd(shard, guildId, {
+            cached: {
+              attachments: message.attachments.clone(),
+              content: message.content,
+              embeds: message.embeds.clone(),
+              flags: message.flags,
+              mentionEveryone: message.mentionEveryone,
+              mentionRoles: message.mentionRoles.clone(),
+              mentions: message.mentions.clone(),
+            },
+            happened,
+            name,
+            payload,
+          });
         }
       });
       subscriptions.push(subscription);
@@ -623,18 +539,23 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
 export default new GuildLoggingStore();
 
 
-export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
+export function createLogPayload(
+  event: GuildLoggingEventItem,
+): {
+  embed: Embed,
+  files: Array<{filename: string, value: any}>,
+} {
   const { audits, happened } = event;
-  if (audits) {
-    console.log(audits);
-  }
 
-  const embeds: Array<Embed> = [];
+  const embed = new Embed();
+  const files: Array<{filename: string, value: any}> = [];
   switch (event.name) {
     case ClientEvents.GUILD_MEMBER_ADD: {
+      const { from } = event;
       const { member } = event.payload;
+      const { guild } = member;
 
-      const embed = createUserEmbed(member);
+      createUserEmbed(member, embed);
       embed.setColor(EmbedColors.LOG_CREATION);
       embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
       embed.setTimestamp(member.joinedAt || happened);
@@ -642,7 +563,17 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
       if (audits) {
         embed.setFooter('Added');
       } else {
-        embed.setFooter('Joined');
+        let text = 'Joined';
+        /*
+        if (from) {
+          switch (from) {
+            case 'desktop': text = 'Joined from Desktop'; break;
+            case 'mobile': text = 'Joined from Mobile'; break;
+            case 'web': text = 'Joined from Web'; break;
+          }
+        }
+        */
+        embed.setFooter(text);
       }
       if (audits) {
         const [ audit ] = audits;
@@ -654,6 +585,10 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
         const description: Array<string> = [];
         description.push(`**Id**: ${Markup.codestring(member.id)}`);
         description.push(`**Bot**: ${(member.bot) ? 'Yes' : 'No'}`);
+        if (guild) {
+          const { memberCount } = guild;
+          description.push(`**Members**: ${(memberCount - 1).toLocaleString()} -> ${memberCount.toLocaleString()}`);
+        }
         embed.addField('Information', description.join('\n'), true);
       }
       {
@@ -663,14 +598,8 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
           description.push(`**Discord**: ${timestamp.fromNow()}`);
           description.push(`**->** ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`);
         }
-        if (member.guild) {
-          const memberCount = member.guild.memberCount;
-          description.push(`**Join Position**: ${memberCount.toLocaleString()}`);
-        }
         embed.addField('Joined', description.join('\n'), true);
       }
-
-      embeds.push(embed);
     }; break;
     case ClientEvents.GUILD_MEMBER_REMOVE: {
       const { guildId, member, shard, userId } = event.payload;
@@ -684,7 +613,6 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
         }
       }
 
-      const embed = new Embed();
       if (user) {
         createUserEmbed(user, embed);
         embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
@@ -728,7 +656,8 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
           description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
         }
         if (guild) {
-          description.push(`**Members**: ${(guild.memberCount + 1).toLocaleString()} -> ${guild.memberCount.toLocaleString()}`);
+          const { memberCount } = guild;
+          description.push(`**Members**: ${(memberCount + 1).toLocaleString()} -> ${memberCount.toLocaleString()}`);
         }
         embed.addField('Information', description.join('\n'), true);
       }
@@ -749,13 +678,12 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
         }
         embed.addField('Joined', description.join('\n'), true);
       }
-
-      embeds.push(embed);
     }; break;
     case ClientEvents.GUILD_MEMBER_UPDATE: {
+      const { cached } = event;
       const { differences, member } = event.payload;
 
-      const embed = createUserEmbed(member);
+      createUserEmbed(member, embed);
       embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
       embed.setColor(EmbedColors.LOG_UPDATE);
       embed.setFooter('Updated');
@@ -804,11 +732,17 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
                 }; break;
                 case AuditLogChangeKeys.ROLES_ADD: {
                   description.push(`- Added Roles`);
-                  description.push(`-> ${change.newValue.map((raw: {name: string, id: string}) => `<@&${raw.id}>`).join(', ')}`);
+                  const roles = change.newValue.map((raw: {name: string, id: string}) => {
+                    return `<@&${raw.id}> (${Markup.escape.all(raw.name)})`;
+                  });
+                  description.push(`-> ${roles.join(', ')}`);
                 }; break;
                 case AuditLogChangeKeys.ROLES_REMOVE: {
                   description.push(`- Removed Roles`);
-                  description.push(`-> ${change.newValue.map((raw: {name: string, id: string}) => `<@&${raw.id}>`).join(', ')}`);
+                  const roles = change.newValue.map((raw: {name: string, id: string}) => {
+                    return `<@&${raw.id}> (${Markup.escape.all(raw.name)})`;
+                  });
+                  description.push(`-> ${roles.join(', ')}`);
                 }; break;
                 default: {
                   description.push(`- ${change.key} Changed`);
@@ -827,18 +761,106 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
             embed.addField('Moderation Action', description.join('\n'));
           }
         }
-        if (differences.premiumSince !== undefined) {
+        {
           const description: Array<string> = [];
-          if (differences.premiumSince) {
-            description.push('**Removed Boost**');
-          } else {
-            description.push('**Boosted**');
+          // for non-premium guilds and when someone unboosts/boosts
+          const { guild } = member;
+          if (!audits) {
+            if (differences.deaf !== undefined || differences.mute !== undefined) {
+              const text: Array<string> = [];
+              if (differences.deaf !== undefined) {
+                text.push((cached.deaf) ? 'Deafened' : 'Undeafened');
+              }
+              if (differences.mute !== undefined) {
+                text.push((cached.mute) ? 'Muted' : 'Unmuted');
+              }
+              if (text.length) {
+                description.push(`- Server ${text.join(' and ')}`);
+              }
+            }
+            if (differences.nick !== undefined) {
+              description.push(`- Nickname Change`);
+              if (differences.nick) {
+                if (cached.nick) {
+                  description.push(`-> **${Markup.codestring(differences.nick)}** to **${Markup.codestring(cached.nick)}**`);
+                } else {
+                  description.push(`-> Cleared **${Markup.codestring(differences.nick)}**`);
+                }
+              } else {
+                description.push(`-> Set to **${Markup.codestring(cached.nick || '')}**`);
+              }
+            }
+            if (differences.roles !== undefined) {
+              const additions: Array<string> = [];
+              const removals: Array<string> = [];
+              for (let roleId of differences.roles) {
+                if (!cached.roles.includes(roleId)) {
+                  const role = (guild) ? guild.roles.get(roleId) : null;
+                  if (role) {
+                    removals.push(`<@&${roleId}> (${Markup.escape.all(role.name)})`);
+                  } else {
+                    removals.push(`<@&${roleId}>`);
+                  }
+                }
+              }
+              for (let roleId of cached.roles) {
+                if (!differences.roles.includes(roleId)) {
+                  const role = (guild) ? guild.roles.get(roleId) : null;
+                  if (role) {
+                    additions.push(`<@&${roleId}> (${Markup.escape.all(role.name)})`);
+                  } else {
+                    additions.push(`<@&${roleId}>`);
+                  }
+                }
+              }
+              if (removals.length) {
+                description.push(`- Removed Roles`);
+                description.push(`-> ${removals.join(', ')}`);
+              }
+              if (additions.length) {
+                description.push(`- Added Roles`);
+                description.push(`-> ${additions.join(', ')}`);
+              }
+            }
           }
-          embed.addField('Boost Change', description.join('\n'));
+          if (differences.hoistedRole !== undefined) {
+            differences.push('- Hoisted Role Change');
+            let newText = '';
+            if (cached.hoistedRole) {
+              newText = `<@&${cached.hoistedRole}>`;
+              if (guild && guild.roles.has(cached.hoistedRole)) {
+                const role = guild.roles.get(cached.hoistedRole) as Structures.Role;
+                newText = `${newText} (${Markup.escape.all(role.name)})`;
+              }
+            }
+            if (differences.hoistedRole) {
+              let oldText = `<@&${differences.hoistedRole}>`;
+              if (guild && guild.roles.has(differences.hoistedRole)) {
+                const role = guild.roles.get(differences.hoistedRole) as Structures.Role;
+                oldText = `${oldText} (${Markup.escape.all(role.name)})`;
+              }
+              if (cached.hoistedRole) {
+                differences.push(`-> ${oldText} to ${newText}`);
+              } else {
+                differences.push(`-> Removed ${oldText}`);
+              }
+            } else {
+              differences.push(`-> Added ${newText}`);
+            }
+          }
+          if (differences.premiumSince !== undefined) {
+            description.push('- Boost Change');
+            if (differences.premiumSince) {
+              description.push('-> Unboosted');
+            } else {
+              description.push('-> Boosted');
+            }
+          }
+          if (description.length) {
+            embed.addField('Changes', description.join('\n'));
+          }
         }
       }
-
-      embeds.push(embed);
     }; break;
     /*
     case ClientEvents.MESSAGE_CREATE: {
@@ -877,7 +899,6 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
     case ClientEvents.MESSAGE_DELETE: {
       const { channelId, guildId, message, messageId } = event.payload;
 
-      const embed = new Embed();
       if (message) {
         createUserEmbed(message.author, embed);
       } else {
@@ -887,11 +908,30 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
       embed.setFooter('Deleted');
       embed.setTimestamp(happened);
 
+      if (audits) {
+        const [ audit ] = audits;
+
+        const description: Array<string> = [];
+        description.push(`By <@!${audit.userId}> (${Markup.escape.all(String(audit.user))})`);
+        if (audit.reason) {
+          description.push(`**Reason**: ${Markup.codeblock(audit.reason)}`);
+        }
+        embed.addField('Moderation Action', description.join('\n'));
+      }
+
       if (message) {
         if (message.fromSystem) {
           embed.setDescription(Markup.codeblock(message.systemContent));
         } else if (message.content) {
           embed.setDescription(Markup.codeblock(message.content));
+        }
+        if (message.activity) {
+          // JOIN, SPECTATE, WATCH, JOIN_REQUEST
+          switch (message.activity.type) {
+            case ActivityActionTypes.LISTEN: {
+
+            }; break;
+          }
         }
         if (message.attachments.length) {
           const urls = message.attachments.filter((attachment) => {
@@ -900,13 +940,40 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
             return Markup.url(attachment.filename, attachment.url as string);
           });
           embed.addField('Attachments', urls.join(', '));
+          const imageAttachment = message.attachments.find((attachment) => attachment.isImage);
+          if (imageAttachment && imageAttachment.url) {
+            embed.setThumbnail(imageAttachment.url);
+          }
         }
         if (message.embeds.length) {
           embed.addField('Embeds', `${message.embeds.length} Embeds`);
         }
+        if (message.mentionEveryone || message.mentions.length) {
+          const text: Array<string> = [];
+          if (message.mentionEveryone) {
+            text.push('Everyone');
+          }
+          if (message.mentions.length) {
+            if (MAX_MENTIONS <= message.mentions.length) {
+              text.push(`${message.mentions.length.toLocaleString()} Users`);
+            } else {
+              text.push(message.mentions.map((user) => `**${Markup.codestring(String(user))}**`).join(', '));
+            }
+          }
+          embed.addField('Mentions', `- ${text.join(', ')}`);
+        }
+        if (message.mentionRoles.length) {
+          const description: Array<string> = [];
+          if (MAX_MENTIONS <= message.mentionRoles.length) {
+            description.push(`- ${message.mentionRoles.length.toLocaleString()} Roles`);
+          } else {
+            description.push(`- ${message.mentionRoles.map((role, roleId) => (role) ? `**${Markup.codestring(String(role))}**` : `<@&${roleId}>`).join(', ')}`);
+          }
+          embed.addField('Role Mentions', description.join('\n'));
+        }
       } else {
         // message not in cache, old deletion
-        embed.setDescription('Content not Available');
+        embed.setDescription('Content not available');
       }
 
       let timestamp: moment.Moment;
@@ -920,14 +987,53 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
         `**Created**: ${timestamp.fromNow()} ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`,
         `**Link**: ${Markup.url(messageId, DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(guildId, channelId, messageId))}`,
       ].join('\n'));
+    }; break;
+    case ClientEvents.MESSAGE_DELETE_BULK: {
+      const { amount, channelId, messages } = event.payload;
 
-      embeds.push(embed);
+      embed.setAuthor(`${amount.toLocaleString()} Messages Deleted`);
+      embed.setColor(EmbedColors.LOG_DELETION);
+      embed.setFooter('Bulk Deletion');
+      embed.setTimestamp(happened);
+
+      {
+        const description: Array<string> = [
+          `**Amount**: ${amount.toLocaleString()}` + '\n',
+        ];
+        if (audits) {
+          const [ audit ] = audits;
+          switch (audit.actionType) {
+            case AuditLogActions.MEMBER_BAN_ADD: {
+              if (audit.target) {
+                createUserEmbed(audit.target as Structures.User, embed);
+              }
+              description.push(`Bulk Deletion of <@!${audit.targetId}> (${Markup.escape.all(String(audit.target))})'s Messages`);
+              description.push(`Banned By <@!${audit.userId}> (${Markup.escape.all(String(audit.user))})`);
+            }; break;
+            case AuditLogActions.MESSAGE_BULK_DELETE: {
+              description.push(`By <@!${audit.userId}> (${Markup.escape.all(String(audit.user))})`);
+            }; break;
+          }
+          if (audit.reason) {
+            description.push(`**Reason**: ${Markup.codeblock(audit.reason)}`);
+          }
+        }
+        embed.setDescription(description.join('\n'));
+      }
+
+      const value = JSON.stringify({
+        messages: messages.map((message, id) => message || {id}),
+      }, null, 2);
+      files.push({filename: 'messages.json', value});
+
+      embed.addField('Information', [
+        `**Channel**: <#${channelId}>`,
+      ].join('\n'));
     }; break;
     case ClientEvents.MESSAGE_UPDATE: {
       const { cached } = event;
       const { channelId, differences, guildId, message, messageId } = event.payload;
 
-      const embed = new Embed();
       if (message) {
         createUserEmbed(message.author, embed);
       } else {
@@ -939,7 +1045,7 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
 
       if (message) {
         if (differences) {
-          if (differences.content !== undefined && cached.content !== undefined) {
+          if (differences.content !== undefined) {
             if (differences.content) {
               embed.setDescription(Markup.codeblock(differences.content));
             } else {
@@ -958,7 +1064,7 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
               embed.addField('New Content', 'Empty Message');
             }
           }
-          if (differences.attachments && cached.attachments) {
+          if (differences.attachments) {
             const oldUrls: Array<string> = differences.attachments.filter((attachment: Structures.Attachment) => {
               return !!attachment.url;
             }).map((attachment: Structures.Attachment) => {
@@ -978,12 +1084,53 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
             }
           }
           if (differences.embeds) {
-            embed.addField('Embeds', [
-              `- ${differences.embeds.length} Embeds`,
-              `+ ${(cached.embeds) ? cached.embeds.length : 0} Embeds`,
+            embed.addField('Embeds', `- ${differences.embeds.length} Embeds to ${cached.embeds.length} Embeds`, true);
+          }
+          if (differences.flags !== undefined) {
+            // assume its the embed hiding since that's the only one that can be updated by users
+            // bot messages (a webhook message) can have a flag update though
+            let text: string;
+
+            const hadSuppressEmbeds = (differences.flags & MessageFlags.SUPPRESS_EMBEDS) === MessageFlags.SUPPRESS_EMBEDS;
+            const hasSuppressEmbeds = (cached.flags & MessageFlags.SUPPRESS_EMBEDS) === MessageFlags.SUPPRESS_EMBEDS;
+            if (hadSuppressEmbeds && !hasSuppressEmbeds) {
+              text = '- Unsuppressed Embeds';
+            } else if (!hadSuppressEmbeds && hasSuppressEmbeds) {
+              text = '- Suppressed Embeds';
+            } else {
+              text = `${differences.flags} -> ${cached.flags}`;
+            }
+            embed.addField('Flags', text, true);
+          }
+          if (differences.mentionEveryone !== undefined || differences.mentions) {
+            const removedText: Array<string> = [];
+            const addedText: Array<string> = [];
+            if (differences.mentionEveryone !== undefined) {
+              if (differences.mentionEveryone) {
+                removedText.push('Everyone');
+              } else {
+                addedText.push('Everyone');
+              }
+            }
+            if (differences.mentions) {
+              const removed = differences.mentions.filter((raw: any) => !cached.mentions.has(raw.id));
+              const added = cached.mentions.filter((user) => !differences.mentions.has(user.id));
+              if (MAX_MENTIONS <= removed.length) {
+                removedText.push(`${removed.length.toLocaleString()} Users`);
+              } else {
+                removedText.push(removed.map((user: Structures.User) => `**${Markup.codestring(String(user))}**`).join(', '));
+              }
+              if (MAX_MENTIONS <= added.length) {
+                addedText.push(`${added.length.toLocaleString()} Users`);
+              } else {
+                addedText.push(added.map((user) => `**${Markup.codestring(String(user))}**`).join(', '));
+              }
+            }
+            embed.addField('Mentions', [
+              `- ${removedText.join(', ') || 'None'}`,
+              `+ ${addedText.join(', ') || 'None'}`,
             ].join('\n'));
           }
-          // message flag check?
         } else {
           embed.setDescription('No Changes');
         }
@@ -1003,16 +1150,12 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
         `**Created**: ${timestamp.fromNow()} ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`,
         `**Link**: ${Markup.url(messageId, DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(guildId, channelId, messageId))}`,
       ].join('\n'));
-
-      embeds.push(embed);
     }; break;
     case ClientEvents.USERS_UPDATE: {
       const { cached: user } = event;
       const { differences, shard } = event.payload;
 
-      const embed = createUserEmbed(user);
-      embeds.push(embed);
-
+      createUserEmbed(user, embed);
       embed.setColor(EmbedColors.LOG_UPDATE);
       embed.setFooter('User Updated');
       embed.setTimestamp(happened);
@@ -1075,7 +1218,7 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
       const { cached } = event;
       const { differences, leftChannel, shard, voiceState } = event.payload;
 
-      const embed = createUserEmbed(voiceState.member);
+      createUserEmbed(voiceState.member, embed);
       embed.setColor(EmbedColors.LOG_UPDATE);
       if (leftChannel) {
         embed.setColor(EmbedColors.LOG_DELETION);
@@ -1083,11 +1226,11 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
       } else if (differences) {
         embed.setColor(EmbedColors.LOG_UPDATE);
         if (differences.channelId && differences.sessionId) {
-          embed.setFooter('Changed Channels from a different Device');
+          embed.setFooter('Changed Channels from a different device');
         } else if (differences.channelId) {
           embed.setFooter('Changed Channels');
         } else if (differences.sessionId) {
-          embed.setFooter('Joined Voice from a different Device');
+          embed.setFooter('Rejoined Voice from a different device');
         } else {
           embed.setFooter('Voice State Updated');
         }
@@ -1175,7 +1318,19 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
               // disconnected
             }
           } else if (differences.sessionId) {
-            description.push('- Rejoined on a different device');
+            if (cached.channelId) {
+              let channelName: string;
+              if (shard.channels.has(cached.channelId)) {
+                const channel = shard.channels.get(cached.channelId) as Structures.Channel;
+                channelName = `**${Markup.codestring(channel.toString())}**`;
+              } else {
+                channelName = `<#${cached.channelId}>`;
+              }
+
+              description.push(`- Rejoined ${channelName} on a different device`);
+            } else {
+              description.push('- Rejoined on a different device');
+            }
           }
 
           if (shouldLogMuteDeaf) {
@@ -1237,7 +1392,7 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
         let channelName: string;
         if (shard.channels.has(cached.channelId)) {
           const channel = shard.channels.get(cached.channelId) as Structures.Channel;
-          channelName = `**${Markup.escape.all(channel.toString())}**`;
+          channelName = `**${Markup.codestring(channel.toString())}**`;
         } else {
           channelName = `<#${cached.channelId}>`;
         }
@@ -1263,9 +1418,306 @@ export function createLogEmbed(event: GuildLoggingEventItem): Array<Embed> {
         }
         embed.setDescription(description.join('\n'));
       }
-
-      embeds.push(embed);
     }; break;
   }
-  return embeds;
+  return {embed, files};
+}
+
+
+
+export function findEventsForBotAdd(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queue = storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS);
+  if (queue) {
+    return queue.filter((event) => {
+      if (event.name !== ClientEvents.GUILD_MEMBER_ADD) {
+        return false;
+      }
+      // if audit log was created before our event, ignore
+      if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+        return false;
+      }
+      return event.payload.userId === auditLog.targetId;
+    });
+  }
+  return [];
+}
+
+export function findEventsForMemberBanAdd(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queues = [
+    storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS),
+    storage.queues.get(GuildLoggerTypes.MESSAGES),
+  ];
+  const events: Array<GuildLoggingEventItem> = [];
+  for (let queue of queues) {
+    if (!queue) {
+      continue;
+    }
+    for (let event of queue) {
+      switch (event.name) {
+        case ClientEvents.GUILD_MEMBER_REMOVE: {
+          // if audit log was created before our event, ignore
+          if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+            continue;
+          }
+          if (event.payload.userId === auditLog.targetId) {
+            events.push(event);
+          }
+        }; break;
+        case ClientEvents.MESSAGE_DELETE_BULK: {
+          // give a 1 second more leeway for this one since it might happen afterwards
+          if (auditLog.createdAtUnix <= ((event.happened - AUDIT_LEEWAY_TIME) - 1000)) {
+            continue;
+          }
+          const { messages } = event.payload;
+          if (messages.every((message) => (message) ? message.author.id === auditLog.targetId : true)) {
+            events.push(event);
+          }
+        }; break;
+      }
+    }
+  }
+  return events;
+}
+
+export function findEventsForMemberKick(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queue = storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS);
+  if (queue) {
+    return queue.filter((event) => {
+      // if audit log was created before our event, ignore
+      if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+        return false;
+      }
+      if (event.name !== ClientEvents.GUILD_MEMBER_REMOVE) {
+        return false;
+      }
+      return event.payload.userId === auditLog.targetId;
+    });
+  }
+  return [];
+}
+
+export function findEventsForMemberRoleUpdate(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queue = storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS);
+  if (queue) {
+    return queue.filter((event) => {
+      if (event.name !== ClientEvents.GUILD_MEMBER_UPDATE) {
+        return false;
+      }
+      // if audit log was created before our event, ignore
+      if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+        return false;
+      }
+      const { differences, member } = event.payload;
+      if (auditLog.targetId !== member.id) {
+        return false;
+      }
+      if (event.audits) {
+        const alreadyHas = event.audits.some(({changes}) => {
+          if (changes.length !== auditLog.changes.length) {
+            return false;
+          }
+          return changes.every((change) => {
+            const currentChange = auditLog.changes.get(change.key);
+            if (currentChange) {
+              switch (change.key) {
+                case AuditLogChangeKeys.ROLES_ADD:
+                case AuditLogChangeKeys.ROLES_REMOVE: {
+                  if (change.newValue.length !== currentChange.newValue.length) {
+                    return true;
+                  }
+                  return change.newValue.every((value: {id: string, name: string}) => {
+                    return currentChange.newValue.some((currentValue: {id: string, name: string}) => value.id === currentValue.id);
+                  });
+                };
+              }
+            }
+            return false;
+          });
+        });
+        if (alreadyHas) {
+          return false;
+        }
+      }
+      // check to see if the differences and member match up to the audit log
+      const cachedRoles = event.cached.roles;
+      return differences && differences.roles && cachedRoles && auditLog.changes.every((change) => {
+        switch (change.key) {
+          case AuditLogChangeKeys.ROLES_ADD: {
+            return change.newValue.every((raw: {id: string, name: string}) => {
+              return !differences.roles.includes(raw.id) && cachedRoles.includes(raw.id);
+            });
+          };
+          case AuditLogChangeKeys.ROLES_REMOVE: {
+            return change.newValue.every((raw: {id: string, name: string}) => {
+              return differences.roles.includes(raw.id) && !cachedRoles.includes(raw.id);
+            });
+          };
+        }
+      });
+    });
+  }
+  return [];
+}
+
+export function findEventsForMemberUpdate(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queues = [
+    storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS),
+    storage.queues.get(GuildLoggerTypes.VOICE),
+  ];
+  const events: Array<GuildLoggingEventItem> = [];
+  for (let queue of queues) {
+    if (!queue) {
+      continue;
+    }
+    for (let event of queue) {
+      if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+        continue;
+      }
+      // only guild member update and voice state update
+      switch (event.name) {
+        case ClientEvents.GUILD_MEMBER_UPDATE: {
+          const { member } = event.payload;
+          if (auditLog.targetId !== member.id) {
+            continue;
+          }
+        }; break;
+        case ClientEvents.VOICE_STATE_UPDATE: {
+          const { voiceState } = event.payload;
+          if (auditLog.targetId !== voiceState.userId) {
+            continue;
+          }
+        }; break;
+        default: {
+          continue;
+        };
+      }
+
+      if (event.audits) {
+        // filter out any matching audit logs
+        // incase someone is spamming mute/unmute or some kind of role changes
+        const alreadyHas = event.audits.some(({changes}) => {
+          if (changes.length !== auditLog.changes.length) {
+            return false;
+          }
+          return changes.every((change) => {
+            const currentChange = auditLog.changes.get(change.key);
+            if (currentChange) {
+              return change.newValue === currentChange.newValue;
+            }
+            return false;
+          });
+        });
+        if (alreadyHas) {
+          continue;
+        }
+      }
+
+      // putting it in a switch statement to please typescript
+      switch (event.name) {
+        case ClientEvents.GUILD_MEMBER_UPDATE:
+        case ClientEvents.VOICE_STATE_UPDATE: {
+          const { cached } = event;
+          const { differences } = event.payload;
+          if (differences) {
+            // this doesnt work with some voice mute/deafens since a nick change could be grouped up with it..
+            const matchesChanges = auditLog.changes.every((change) => {
+              if (!(change.key in differences)) {
+                return false;
+              }
+              // check differences[key] to the change old value
+              if (change.oldValue !== undefined && change.oldValue !== differences[change.key]) {
+                return false;
+              }
+              // nick clear
+              if (change.newValue === undefined) {
+                return !(cached as any)[change.key];
+              }
+              // check the member[key] to the change new value
+              // newValue can be undefined, like a nick clear
+              return (cached as any)[change.key] === change.newValue;
+            });
+            if (matchesChanges) {
+              events.push(event);
+            }
+          }
+        }; break;
+      }
+    }
+  }
+  return events;
+}
+
+
+export function findEventsForMessageDelete(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  // targetId is the userId
+  // {options: {channel_id, count}}
+  // audit log will add onto the count for message deletes, so dont check timestamps
+  // get the first delete
+  const queue = storage.queues.get(GuildLoggerTypes.MESSAGES);
+  if (queue) {
+    return queue.filter((event) => {
+      if (event.name !== ClientEvents.MESSAGE_DELETE) {
+        return false;
+      }
+      if (event.audits) {
+        return false;
+      }
+      // audit log will add onto the count for message deletes, so dont check timestamps
+      // get the first bulk delete
+      const { channelId, message } = event.payload;
+      if (message && auditLog.options && auditLog.options.channelId === channelId) {
+        // amount to options
+        return message.author.id === auditLog.targetId;
+      }
+      return false;
+    });
+  }
+  return [];
+}
+
+
+export function findEventsForMessageBulkDelete(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  // targetId is the channelId
+  // {options: {count}}
+  const queue = storage.queues.get(GuildLoggerTypes.MESSAGES);
+  if (queue) {
+    return queue.filter((event) => {
+      if (event.name !== ClientEvents.MESSAGE_DELETE_BULK) {
+        return false;
+      }
+      if (event.audits) {
+        return false;
+      }
+      // audit log will add onto the count for message deletes, so dont check timestamps
+      // get the first bulk delete
+      const { amount, channelId } = event.payload;
+      if (channelId === auditLog.targetId && auditLog.options && auditLog.options.count) {
+        // amount to options
+        return amount <= auditLog.options.count;
+      }
+      return false;
+    });
+  }
+  return [];
 }

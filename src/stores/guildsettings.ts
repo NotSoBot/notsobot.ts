@@ -73,6 +73,50 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
   create(cluster: ClusterClient, redis: RedisSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
+      const subscription = cluster.subscribe(ClientEvents.CHANNEL_DELETE, async (event) => {
+        const { channel, shard } = event;
+        const { guildId } = channel;
+        if (guildId && this.has(guildId)) {
+          const settings = this.get(guildId) as GuildSettings;
+          {
+            const loggers = settings.loggers.filter((logger) => logger.channelId === channel.id);
+            for (let logger of loggers) {
+              await logger.delete(shard);
+            }
+          }
+          {
+            const disabledCommands = settings.disabledCommands.filter((disabledCommand) => disabledCommand.id === channel.id);
+            for (let disabledCommand of disabledCommands) {
+              //await disabledCommand.delete(shard);
+            }
+          }
+          {
+            const allowlist = settings.allowlist.filter((allowed) => allowed.id === channel.id);
+            for (let allowed of allowlist) {
+              //await allowed.delete(shard);
+            }
+          }
+          {
+            const blocklist = settings.blocklist.filter((blocked) => blocked.id === channel.id);
+            for (let blocked of blocklist) {
+              //await blocked.delete(shard);
+            }
+          }
+        }
+      });
+      subscriptions.push(subscription);
+    }
+    // add role delete
+    /*
+    // compare this guild object's channels/roles to its settings and delete the ones missing
+    {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_CREATE, (event) => {
+        const { guild } = event;
+      });
+      subscriptions.push(subscription);
+    }
+    */
+    {
       const subscription = cluster.subscribe(ClientEvents.GUILD_DELETE, (event) => {
         const { guildId } = event;
         this.delete(guildId);
@@ -91,7 +135,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
               for (let logger of loggers) {
                 if (logger.webhookId && !webhooks.has(logger.webhookId)) {
                   settings.loggers.delete(logger.key);
-                  // delete from rest too
+                  await logger.delete(shard);
                 }
               }
             } catch(error) {

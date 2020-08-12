@@ -16,19 +16,19 @@ export interface CommandArgs {
 }
 
 export default class SetLocaleCommand extends BaseCommand {
-  aliases = ['setlanguage'];
-  name = 'setlocale';
+  aliases = ['set language'];
+  name = 'set locale';
 
   disableDm = true;
   label = 'locale';
   metadata = {
     description: 'Set the guild\'s locale preference.',
     examples: [
-      'setlocale en-us',
-      'setlocale english',
+      'set locale en-us',
+      'set locale english',
     ],
     type: CommandTypes.SETTINGS,
-    usage: 'setlocale <locale>',
+    usage: 'set locale <locale>',
   };
   permissionsClient = [Permissions.MANAGE_GUILD];
   permissions = [Permissions.MANAGE_GUILD];

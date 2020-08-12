@@ -225,6 +225,14 @@ export async function fetchUser(
 }
 
 
+export async function funASCII(
+  context: RequestContext,
+  options: RestOptions.FunASCII,
+) {
+  return raw.funASCII(context, options);
+}
+
+
 export async function googleContentVisionOCR(
   context: RequestContext,
   options: RestOptions.GoogleContentVisionOCR,
@@ -279,11 +287,43 @@ export async function imageExplode(
 }
 
 
+export async function imageEyes(
+  context: RequestContext,
+  options: RestOptions.ImageEyes,
+) {
+  return raw.imageEyes(context, options);
+}
+
+
+export async function imageImplode(
+  context: RequestContext,
+  options: RestOptions.ImageImplode,
+) {
+  return raw.imageImplode(context, options);
+}
+
+
+export async function imageInvert(
+  context: RequestContext,
+  options: RestOptions.ImageInvert,
+) {
+  return raw.imageInvert(context, options);
+}
+
+
 export async function imageJPEG(
   context: RequestContext,
   options: RestOptions.ImageJPEG,
 ) {
   return raw.imageJPEG(context, options);
+}
+
+
+export async function imageLegofy(
+  context: RequestContext,
+  options: RestOptions.ImageLegofy,
+) {
+  return raw.imageLegofy(context, options);
 }
 
 

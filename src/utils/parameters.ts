@@ -268,6 +268,14 @@ export async function imageUrl(
           }
         }
       }
+
+      // try user search (without the discriminator)
+      {
+        const found = await findMemberByChunkText(context, value);
+        if (found) {
+          return found.avatarUrlFormat(null, {size: 1024});
+        }
+      }
     } catch(error) {
       return null;
     }

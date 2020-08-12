@@ -397,14 +397,22 @@ export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Obje
 export enum GuildLoggerFlags {
   MESSAGE_CREATE = 1 << 0,
   MESSAGE_DELETE = 1 << 1,
-  MESSAGE_UPDATE = 1 << 2,
-  USER_UPDATE = 1 << 3,
-  GUILD_MEMBER_ADD = 1 << 4,
-  GUILD_MEMBER_REMOVE = 1 << 5,
-  GUILD_MEMBER_UPDATE = 1 << 6,
-  VOICE_CHANNEL_CONNECTION = 1 << 7,
-  VOICE_CHANNEL_MODIFY = 1 << 8,
-  VOICE_CHANNEL_MOVE = 1 << 9,
+  MESSAGE_DELETE_BULK = 1 << 2,
+  MESSAGE_UPDATE = 1 << 3,
+  USER_UPDATE = 1 << 4,
+  GUILD_MEMBER_ADD = 1 << 5,
+  GUILD_MEMBER_REMOVE = 1 << 6,
+  GUILD_MEMBER_UPDATE = 1 << 7,
+  VOICE_CHANNEL_CONNECTION = 1 << 8,
+  VOICE_CHANNEL_MODIFY = 1 << 9,
+  VOICE_CHANNEL_MOVE = 1 << 10,
+  CHANNEL_CREATE = 1 << 11,
+  CHANNEL_DELETE = 1 << 12,
+  CHANNEL_UPDATE = 1 << 13,
+
+  ROLE_CREATE = 1 << 14,
+  ROLE_DELETE = 1 << 15,
+  ROLE_UPDATE = 1 << 16,
 }
 
 export enum GuildLoggerTypes {
@@ -412,10 +420,42 @@ export enum GuildLoggerTypes {
   USERS = 1,
   GUILD_MEMBERS = 2,
   VOICE = 3,
+  CHANNELS = 4,
+
+  ROLES = 5,
 }
 
 export enum GuildPremiumTypes {
   NONE = 0,
+  LEVEL_1 = 1,
+}
+
+export enum ImageEyeTypes {
+  BIG = 'BIG',
+  BLOODSHOT = 'BLOODSHOT',
+  CENTER = 'CENTER',
+  EYE = 'EYE',
+  FLARE_BLACK = 'FLARE_BLACK',
+  FLARE_BLUE = 'FLARE_BLUE',
+  FLARE_GREEN = 'FLARE_GREEN',
+  FLARE_PINK = 'FLARE_PINK',
+  FLARE_RED = 'FLARE_RED',
+  FLARE_WHITE = 'FLARE_WHITE',
+  FLARE_YELLOW = 'FLARE_YELLOW',
+  GOOGLY = 'GOOGLY',
+  ILLUMINATI = 'ILLUMINATI',
+  MONEY = 'MONEY',
+  RED = 'RED',
+  SMALL = 'SMALL',
+  SPINNER = 'SPINNER',
+  SPONGEBOB = 'SPONGEBOB',
+}
+
+export enum ImageLegofyPalettes {
+  ALL = 'all',
+  EFFECTS = 'effects',
+  MONO = 'mono',
+  TRANSPARENT = 'transparent',
 }
 
 export const PermissionsText: {[key in Permissions]: string} = Object.freeze({
@@ -579,6 +619,7 @@ export const NotSoApiKeys = Object.freeze({
   CURRENCY: 'currency',
   DESCRIPTION: 'description',
   DISABLED_COMMANDS: 'disabled_commands',
+  DISABLED_LOGGER_EVENTS: 'disabled_logger_events',
   DISCRIMINATOR: 'discriminator',
   DURATION: 'duration',
   EXTENSION: 'extension',
@@ -634,6 +675,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.CURRENCY]: 'currency',
   [NotSoApiKeys.DESCRIPTION]: 'description',
   [NotSoApiKeys.DISABLED_COMMANDS]: 'disabledCommands',
+  [NotSoApiKeys.DISABLED_LOGGER_EVENTS]: 'disabledLoggerEvents',
   [NotSoApiKeys.DISCRIMINATOR]: 'discriminator',
   [NotSoApiKeys.DURATION]: 'duration',
   [NotSoApiKeys.EXTENSION]: 'extension',

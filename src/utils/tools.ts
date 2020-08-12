@@ -330,39 +330,69 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 export async function imageReply(
   context: Command.Context,
   response: Response,
-  filename: string = '',
+  options: {
+    content?: string,
+    filename?: string,
+  } | string = {},
 ): Promise<Structures.Message> {
-  const size = response.headers.get('content-length') || '';
-  const contentType = response.headers.get('content-type') || undefined;
-  const height = response.headers.get('x-dimensions-height');
-  const width = response.headers.get('x-dimensions-width');
-  const extension = response.headers.get('x-extension');
-  const newFrames = response.headers.get('x-frames-new');
-  const oldFrames = response.headers.get('x-frames-old');
+  if (typeof(options) === 'string') {
+    options = {filename: options};
+  }
+  return imageReplyFromOptions(context, await response.buffer(), {
+    content: options.content,
+    extension: response.headers.get('x-extension') || undefined,
+    filename: options.filename,
+    framesNew: +(response.headers.get('x-frames-new') || 0),
+    framesOld: +(response.headers.get('x-frames-old') || 0),
+    height: +(response.headers.get('x-dimensions-height') || 0),
+    mimetype: response.headers.get('content-type') || undefined,
+    size: +(response.headers.get('content-length') || 0),
+    width: +(response.headers.get('x-dimensions-width') || 0),
+  });
+}
 
-  if (!filename) {
+
+export async function imageReplyFromOptions(
+  context: Command.Context,
+  value: any,
+  options: {
+    content?: string,
+    extension?: string,
+    filename?: string,
+    framesNew?: number,
+    framesOld?: number,
+    height: number,
+    mimetype?: string,
+    size: number,
+    width: number,
+  },
+): Promise<Structures.Message> {
+  let filename: string = '';
+  if (options.filename) {
+    filename = options.filename;
+  } else {
     if (context.command) {
       filename = context.command.name.replace(' ', '-');
     } else {
       filename = 'edited-image';
     }
   }
-  filename = `${filename}.${extension}`;
+  filename = `${filename}.${options.extension || 'png'}`;
 
   const embed = new Embed();
   embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
   embed.setImage(`attachment://${filename}`);
 
-  let footer = `${width}x${height}`;
-  if (contentType === 'image/gif') {
-    footer = `${footer}, ${newFrames} frames`;
+  let footer = `${options.width.toLocaleString()}x${options.height.toLocaleString()}`;
+  if (options.mimetype === 'image/gif' && options.framesNew) {
+    footer = `${footer}, ${options.framesNew.toLocaleString()} frames`;
   }
-  embed.setFooter(`${footer}, ${formatMemory(parseInt(size), 2)}`);
+  embed.setFooter(`${footer}, ${formatMemory(options.size, 2)}`);
 
-  const value = await response.buffer();
   return context.editOrReply({
+    content: options.content,
     embed,
-    file: {contentType, filename, value},
+    file: {contentType: options.mimetype, filename, value},
   });
 }
 

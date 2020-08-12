@@ -1,9 +1,12 @@
 import * as moment from 'moment';
 
 import { Collections, ShardClient, Structures } from 'detritus-client';
+import { DiscordAbortCodes } from 'detritus-client/lib/constants';
 import { RequestTypes } from 'detritus-client-rest';
 
+import { deleteGuildDisabledCommand, deleteGuildLogger } from '../../api';
 import {
+  EmbedBrands,
   GuildAllowlistTypes,
   GuildBlocklistTypes,
   GuildDisableCommandsTypes,
@@ -20,6 +23,7 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.ALLOWLIST,
   NotSoApiKeys.BLOCKLIST,
   NotSoApiKeys.DISABLED_COMMANDS,
+  NotSoApiKeys.DISABLED_LOGGER_EVENTS,
   NotSoApiKeys.ICON,
   NotSoApiKeys.ID,
   NotSoApiKeys.LOGGER_FLAGS,
@@ -37,9 +41,9 @@ export class GuildSettings extends BaseStructure {
   _loggers?: Collections.BaseCollection<string, GuildSettingsLogger>;
   _prefixes?: Collections.BaseCollection<string, GuildSettingsPrefix>;
 
+  disabledLoggerEvents: number = 0;
   icon: string | null = null;
   id: string = '';
-  loggerFlags: number = 0;
   name: string = '';
   premiumType: GuildPremiumTypes = GuildPremiumTypes.NONE;
 
@@ -84,47 +88,47 @@ export class GuildSettings extends BaseStructure {
   }
 
   get shouldLogGuildMemberAdd(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.GUILD_MEMBER_ADD);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_ADD);
   }
 
   get shouldLogGuildMemberRemove(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.GUILD_MEMBER_REMOVE);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_REMOVE);
   }
 
   get shouldLogGuildMemberUpdate(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.GUILD_MEMBER_UPDATE);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_UPDATE);
   }
 
   get shouldLogUserUpdate(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.USER_UPDATE);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.USER_UPDATE);
   }
 
   get shouldLogMessageCreate(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.MESSAGE_CREATE);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_CREATE);
   }
 
   get shouldLogMessageDelete(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.MESSAGE_DELETE);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_DELETE);
   }
 
   get shouldLogMessageUpdate(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.MESSAGE_UPDATE);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_UPDATE);
   }
 
   get shouldLogVoiceChannelConnection(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.VOICE_CHANNEL_CONNECTION);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_CONNECTION);
   }
 
   get shouldLogVoiceChannelModify(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.VOICE_CHANNEL_MODIFY);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_MODIFY);
   }
 
   get shouldLogVoiceChannelMove(): boolean {
-    return this.hasLoggerFlag(GuildLoggerFlags.VOICE_CHANNEL_MOVE);
+    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_MOVE);
   }
 
-  hasLoggerFlag(flag: number): boolean {
-    return (this.loggerFlags & flag) === flag;
+  hasDisabledLoggerEventFlag(flag: number): boolean {
+    return (this.disabledLoggerEvents & flag) === flag;
   }
 
   mergeValue(key: string, value: any): void {
@@ -304,6 +308,15 @@ export class GuildSettingsDisabledCommand extends BaseStructure {
   get key(): string {
     return `${this.command}.${this.id}.${this.type}`;
   }
+
+  /*
+  async delete(shard: ShardClient) {
+    return deleteGuildDisabledCommand({client: shard}, this.guildId, {
+      channelId: this.channelId,
+      loggerType: this.type,
+    });
+  }
+  */
 }
 
 
@@ -319,6 +332,7 @@ export class GuildSettingsLogger extends BaseStructure {
   readonly _keys = keysGuildSettingsLogger;
 
   channelId: string = '';
+  disabledEvents: number = 0;
   guildId: string = '';
   type!: GuildLoggerTypes;
   webhookId?: string;
@@ -331,6 +345,10 @@ export class GuildSettingsLogger extends BaseStructure {
 
   get key(): string {
     return `${this.type}.${this.channelId}`;
+  }
+
+  hasDisabledEventFlag(flag: number): boolean {
+    return (this.disabledEvents & flag) === flag;
   }
 
   get isGuildMemberType(): boolean {
@@ -349,8 +367,11 @@ export class GuildSettingsLogger extends BaseStructure {
     return this.type === GuildLoggerTypes.VOICE;
   }
 
-  get logKey(): string {
-    return `${this.guildId}.${this.channelId}.${this.type}`;
+  async delete(shard: ShardClient) {
+    return deleteGuildLogger({client: shard}, this.guildId, {
+      channelId: this.channelId,
+      loggerType: this.type,
+    });
   }
 
   async execute(
@@ -361,7 +382,24 @@ export class GuildSettingsLogger extends BaseStructure {
     if (!this.webhookId || !this.webhookToken) {
       throw new Error('Webhook ID or Webhook Token missing');
     }
-    return shard.rest.executeWebhook(this.webhookId, this.webhookToken, options, compatibleType);
+    // add checks that if this fails because it got deleted, delete it from the server
+    options = Object.assign({
+      avatarUrl: EmbedBrands.NOTSOBOT,
+      username: 'NotSoBot',
+    }, options);
+    try {
+      return await shard.rest.executeWebhook(this.webhookId, this.webhookToken, options, compatibleType);
+    } catch(error) {
+      switch (error.code) {
+        case DiscordAbortCodes.INVALID_WEBHOOK_TOKEN:
+        case DiscordAbortCodes.UNKNOWN_WEBHOOK: {
+          return this.delete(shard);
+        };
+        default: {
+          throw error;
+        };
+      }
+    }
   }
 }
 

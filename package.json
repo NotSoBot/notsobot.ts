@@ -9,7 +9,7 @@
   ],
   "dependencies": {
     "@sentry/node": "^5.20.1",
-    "detritus-client": "^0.11.1-beta.8",
+    "detritus-client": "^0.11.1-beta.12",
     "diff": "^4.0.2",
     "emoji-aware": "^3.0.5",
     "heapdump": "^0.3.15",
@@ -21,7 +21,7 @@
   "devDependencies": {
     "@types/diff": "^4.0.2",
     "@types/moment-duration-format": "^2.2.2",
-    "@types/node": "^12.12.53",
+    "@types/node": "^12.12.54",
     "@types/node-fetch": "^2.5.7",
     "@types/redis": "^2.8.25",
     "tsc": "^1.20150623.0",
