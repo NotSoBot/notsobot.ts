@@ -77,6 +77,7 @@ export async function createBlocklistEmbed(
             return [
               `${(i * pageNumber) + 1}. **${type}** added ${blocked.addedAtText}`,
               `-> ${description}`,
+              `-> By <@${blocked.userId}>`,
             ].join('\n');
           });
 

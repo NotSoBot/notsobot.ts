@@ -88,8 +88,8 @@ export const E621RatingText = Object.freeze({
 export enum EmbedBrands {
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
   GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
-  NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png?cache-bust-this-di',
-  URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png?cache-bust-this-di',
+  NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
+  URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png',
   WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
   YOUTUBE = 'https://cdn.notsobot.com/brands/youtube.png',
 };
@@ -409,20 +409,21 @@ export enum GuildLoggerFlags {
   CHANNEL_CREATE = 1 << 11,
   CHANNEL_DELETE = 1 << 12,
   CHANNEL_UPDATE = 1 << 13,
-
-  ROLE_CREATE = 1 << 14,
-  ROLE_DELETE = 1 << 15,
-  ROLE_UPDATE = 1 << 16,
+  GUILD_BAN_ADD = 1 << 14,
+  GUILD_BAN_REMOVE = 1 << 15,
+  GUILD_ROLE_CREATE = 1 << 16,
+  GUILD_ROLE_DELETE = 1 << 17,
+  GUILD_ROLE_UPDATE = 1 << 18,
 }
 
 export enum GuildLoggerTypes {
   MESSAGES = 0,
   USERS = 1,
-  GUILD_MEMBERS = 2,
+  MEMBERS = 2,
   VOICE = 3,
   CHANNELS = 4,
-
-  ROLES = 5,
+  BANS = 5,
+  ROLES = 6,
 }
 
 export enum GuildPremiumTypes {
@@ -605,6 +606,7 @@ export enum NotSoHeaders {
 }
 
 export const NotSoApiKeys = Object.freeze({
+  ABOUT: 'about',
   ADDED: 'added',
   ALLOWLIST: 'allowlist',
   AVATAR: 'avatar',
@@ -614,6 +616,7 @@ export const NotSoApiKeys = Object.freeze({
   BRAND: 'brand',
   CHANNEL: 'channel',
   CHANNEL_ID: 'channel_id',
+  COLOR: 'color',
   COMMAND: 'command',
   CREATED: 'created',
   CURRENCY: 'currency',
@@ -632,10 +635,13 @@ export const NotSoApiKeys = Object.freeze({
   ID: 'id',
   IMAGE: 'image',
   IN_STOCK: 'in_stock',
+  INGREDIENTS: 'ingredients',
+  LICENSABLE: 'licensable',
   LIKES: 'likes',
   LOGGER_FLAGS: 'logger_flags',
   LOGGER_TYPE: 'logger_type',
   LOGGERS: 'loggers',
+  METADATA: 'metadata',
   NAME: 'name',
   PREFIX: 'prefix',
   PREFIXES: 'prefixes',
@@ -643,8 +649,11 @@ export const NotSoApiKeys = Object.freeze({
   PRICE: 'price',
   PRODUCT: 'product',
   PROXY_URL: 'proxy_url',
+  RECIPE: 'recipe',
+  SERVINGS: 'servings',
   STARS: 'stars',
   STARS_AMOUNT: 'stars_amount',
+  TEXT: 'text',
   THUMBNAIL: 'thumbnail',
   TITLE: 'title',
   TRUSTED: 'trusted',
@@ -661,6 +670,7 @@ export const NotSoApiKeys = Object.freeze({
 });
 
 export const NotSoBotKeys = Object.freeze({
+  [NotSoApiKeys.ABOUT]: 'about',
   [NotSoApiKeys.ADDED]: 'added',
   [NotSoApiKeys.ALLOWLIST]: 'allowlist',
   [NotSoApiKeys.AVATAR]: 'avatar',
@@ -670,6 +680,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.BRAND]: 'brand',
   [NotSoApiKeys.CHANNEL]: 'channel',
   [NotSoApiKeys.CHANNEL_ID]: 'channelId',
+  [NotSoApiKeys.COLOR]: 'color',
   [NotSoApiKeys.COMMAND]: 'command',
   [NotSoApiKeys.CREATED]: 'created',
   [NotSoApiKeys.CURRENCY]: 'currency',
@@ -688,10 +699,13 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ID]: 'id',
   [NotSoApiKeys.IMAGE]: 'image',
   [NotSoApiKeys.IN_STOCK]: 'inStock',
+  [NotSoApiKeys.INGREDIENTS]: 'ingredients',
+  [NotSoApiKeys.LICENSABLE]: 'licensable',
   [NotSoApiKeys.LIKES]: 'likes',
   [NotSoApiKeys.LOGGER_FLAGS]: 'loggerFlags',
   [NotSoApiKeys.LOGGER_TYPE]: 'loggerType',
   [NotSoApiKeys.LOGGERS]: 'loggers',
+  [NotSoApiKeys.METADATA]: 'metadata',
   [NotSoApiKeys.NAME]: 'name',
   [NotSoApiKeys.PREFIX]: 'prefix',
   [NotSoApiKeys.PREFIXES]: 'prefixes',
@@ -699,8 +713,11 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.PRICE]: 'price',
   [NotSoApiKeys.PRODUCT]: 'product',
   [NotSoApiKeys.PROXY_URL]: 'proxyUrl',
+  [NotSoApiKeys.RECIPE]: 'recipe',
+  [NotSoApiKeys.SERVINGS]: 'servings',
   [NotSoApiKeys.STARS]: 'stars',
   [NotSoApiKeys.STARS_AMOUNT]: 'starsAmount',
+  [NotSoApiKeys.TEXT]: 'text',
   [NotSoApiKeys.THUMBNAIL]: 'thumbnail',
   [NotSoApiKeys.TITLE]: 'title',
   [NotSoApiKeys.TRUSTED]: 'trusted',

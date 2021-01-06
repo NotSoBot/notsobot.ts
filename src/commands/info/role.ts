@@ -1,7 +1,6 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup, PermissionTools, intToHex } from 'detritus-client/lib/utils';
-
+import { Embed, Markup, PermissionTools, intToHex, intToRGB } from 'detritus-client/lib/utils';
 
 import {
   BooleanEmojis,
@@ -12,7 +11,7 @@ import {
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
 } from '../../constants';
-import { DefaultParameters, Parameters, padCodeBlockFromRows } from '../../utils';
+import { DefaultParameters, Parameters, createColorUrl, padCodeBlockFromRows } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -68,12 +67,22 @@ export default class RoleCommand extends BaseCommand {
 
     if (role.color) {
       embed.setColor(role.color);
+
+      const url = createColorUrl(role.color);
+      embed.setAuthor(role.name, url);
     }
 
     {
       const description: Array<string> = [];
 
-      description.push(`**Color**: ${(role.color) ? `\`${intToHex(role.color, true)}\`` : 'No Color'}`);
+      if (role.color) {
+        const color = intToRGB(role.color);
+        const hex = Markup.codestring(intToHex(role.color, true));
+        const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
+        description.push(`**Color**: ${hex} ${rgb}`);
+      } else {
+        description.push(`**Color**: No Color`);
+      }
       description.push(`**Created**: ${role.createdAt.toLocaleString('en-US', DateOptions)}`);
       description.push(`**Default Role**: ${(role.isDefault) ? 'Yes' : 'No'}`);
       description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
@@ -86,6 +95,17 @@ export default class RoleCommand extends BaseCommand {
       } else {
         description.push(`**Position**: ${role.position}`);
       }
+      if (role.tags) {
+        if (role.isBoosterRole) {
+          description.push('**Type**: Booster Role');
+        } else if (role.botId) {
+          description.push(`**Type**: Bot Role (for <@${role.botId}>)`);
+        } else if (role.integrationId) {
+          description.push(`**Type**: Integration Role (${role.integrationId})`);
+        } else {
+          description.push(`**Type**: Unknown (${JSON.stringify(role.tags)})`);
+        }
+      }
 
       embed.addField('Information', description.join('\n'), true);
     }
@@ -94,7 +114,6 @@ export default class RoleCommand extends BaseCommand {
       const description: Array<string> = [];
 
       description.push(`Members: ${role.members.length.toLocaleString()}`);
-
       if (description.length) {
         embed.addField('Counts', Markup.codeblock(description.join('\n'), {language: 'css'}), true);
       }
@@ -106,12 +125,12 @@ export default class RoleCommand extends BaseCommand {
 
       {
         const rows: Array<Array<string>> = [];
-  
+
         for (const permission of PERMISSIONS_ADMIN) {
           const can = PermissionTools.checkPermissions(permissions, permission);
           rows.push([`${PermissionsText[permission]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
-  
+
         embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
       }
 

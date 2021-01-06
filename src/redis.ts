@@ -1,5 +1,6 @@
 import { EventSpewer, Timers } from 'detritus-utils';
 import { createClient, RedisClient } from 'redis';
+import * as Sentry from '@sentry/node';
 
 import { RedisChannels } from './constants';
 import { RedisPayloads } from './types';
@@ -8,28 +9,19 @@ import { RedisPayloads } from './types';
 export class RedisSpewer extends EventSpewer {
   client!: RedisClient;
   ended: boolean = false;
+  url: string;
 
   constructor(url: string) {
     super();
-    this.initialize(url);
-  }
-
-  initialize(url: string): void {
-    this.client = createClient(url);
-    this.ended = false;
-
-    this.client.on('error', async (error) => {
-      if (this.ended) {
-        return;
-      }
-
-      this.client.end(true);
-      this.client.removeAllListeners();
-      this.ended = true;
-      await Timers.sleep(5000);
-      this.initialize(url);
+    this.url = url;
+    this.client = createClient(this.url, {
+      retry_strategy: (options) => {
+        return Math.min(options.attempt * 1000, 3000);
+      },
     });
-
+    this.client.on('error', (error) => {
+      Sentry.captureException(error);
+    });
     this.client.on('message', (channel: string, message: string) => {
       if (channel in RedisChannels) {
         const data = JSON.parse(message);
@@ -39,6 +31,14 @@ export class RedisSpewer extends EventSpewer {
 
     for (let channel of Object.values(RedisChannels)) {
       this.client.subscribe(channel);
+    }
+  }
+
+  end(): void {
+    if (!this.ended && this.client) {
+      this.client.end(true);
+      this.client.removeAllListeners();
+      this.ended = true;
     }
   }
 

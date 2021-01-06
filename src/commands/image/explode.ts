@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageExplode } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -17,18 +17,28 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class ExplodeCommand extends BaseImageCommand<CommandArgs> {
-  name = 'explode';
+export const COMMAND_NAME = 'explode';
 
-  args = [
-    {aliases: ['s'], name: 'scale', type: 'float'},
-  ];
-  metadata = {
-    description: 'Explode an image from the center',
-    examples: ['explode', 'explode notsobot', 'explode notsobot -scale 5'],
-    type: CommandTypes.IMAGE,
-    usage: 'explode ?<emoji|id|mention|name|url> (-scale <float>)',
-  };
+export default class ExplodeCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {aliases: ['s'], name: 'scale', type: 'float'},
+      ],
+      metadata: {
+        description: 'Explode an image from the center',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -scale 5`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-scale <float>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageExplode(context, args);

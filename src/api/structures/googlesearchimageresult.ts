@@ -11,31 +11,36 @@ import { BaseStructure } from './basestructure';
 
 
 const keysGoogleSearchImageResult = new Collections.BaseSet<string>([
+  NotSoApiKeys.COLOR,
   NotSoApiKeys.CREATED,
   NotSoApiKeys.DESCRIPTION,
   NotSoApiKeys.HEADER,
   NotSoApiKeys.FOOTER,
   NotSoApiKeys.ID,
   NotSoApiKeys.IMAGE,
-  NotSoApiKeys.PRODUCT,
+  NotSoApiKeys.METADATA,
   NotSoApiKeys.THUMBNAIL,
   NotSoApiKeys.URL,
-  NotSoApiKeys.VIDEO,
 ]);
 
 export class GoogleSearchImageResult extends BaseStructure {
   readonly _keys = keysGoogleSearchImageResult;
 
+  color: number = 0;
   created: null | string = null;
   description: string = '';
   header: string = '';
   footer: string = '';
   id: string = '';
   image!: GoogleSearchImage;
-  product: null | GoogleSearchImageProduct = null;
+  metadata!: {
+    license: null | GoogleSearchImageLicense,
+    product: null | GoogleSearchImageProduct,
+    recipe: null | GoogleSearchImageRecipe,
+    video: null | GoogleSearchImageVideo,
+  }
   thumbnail!: GoogleSearchImageThumbnail;
   url: string = '';
-  video: null | GoogleSearchImageVideo = null;
 
   constructor(data: Structures.BaseStructureData) {
     super();
@@ -48,18 +53,16 @@ export class GoogleSearchImageResult extends BaseStructure {
         case NotSoApiKeys.IMAGE: {
           value = new GoogleSearchImage(this, value);
         }; break;
-        case NotSoApiKeys.PRODUCT: {
-          if (value) {
-            value = new GoogleSearchImageProduct(this, value);
-          }
+        case NotSoApiKeys.METADATA: {
+          value = {
+            license: value.license && new GoogleSearchImageLicense(this, value.license),
+            product: value.product && new GoogleSearchImageProduct(this, value.product),
+            recipe: value.recipe && new GoogleSearchImageRecipe(this, value.recipe),
+            video: value.video && new GoogleSearchImageVideo(this, value.video),
+          };
         }; break;
         case NotSoApiKeys.THUMBNAIL: {
           value = new GoogleSearchImageThumbnail(this, value);
-        }; break;
-        case NotSoApiKeys.VIDEO: {
-          if (value) {
-            value = new GoogleSearchImageVideo(this, value);
-          }
         }; break;
       }
     }
@@ -100,6 +103,30 @@ export class GoogleSearchImage extends BaseStructure {
 }
 
 
+const keysGoogleSearchImageLicense = new Collections.BaseSet<string>([
+  NotSoApiKeys.ABOUT,
+  NotSoApiKeys.LICENSABLE,
+  NotSoApiKeys.TEXT,
+  NotSoApiKeys.URL,
+]);
+
+export class GoogleSearchImageLicense extends BaseStructure {
+  readonly _keys = keysGoogleSearchImageLicense;
+  readonly result: GoogleSearchImageResult;
+
+  about: string = '';
+  licensable: boolean = false;
+  text: string = '';
+  url: string = '';
+
+  constructor(result: GoogleSearchImageResult, data: Structures.BaseStructureData) {
+    super();
+    this.result = result;
+    this.merge(data);
+  }
+}
+
+
 const keysGoogleSearchImageProduct = new Collections.BaseSet<string>([
   NotSoApiKeys.BRAND,
   NotSoApiKeys.CURRENCY,
@@ -120,6 +147,36 @@ export class GoogleSearchImageProduct extends BaseStructure {
   description: string = '';
   inStock: null | boolean = null;
   price: null | number = null;
+  stars: null | number = null;
+  starsAmount: null | number = null;
+  title: string = '';
+
+  constructor(result: GoogleSearchImageResult, data: Structures.BaseStructureData) {
+    super();
+    this.result = result;
+    this.merge(data);
+  }
+}
+
+
+const keysGoogleSearchImageRecipe = new Collections.BaseSet<string>([
+  NotSoApiKeys.DESCRIPTION,
+  NotSoApiKeys.DURATION,
+  NotSoApiKeys.INGREDIENTS,
+  NotSoApiKeys.SERVINGS,
+  NotSoApiKeys.STARS,
+  NotSoApiKeys.STARS_AMOUNT,
+  NotSoApiKeys.TITLE,
+]);
+
+export class GoogleSearchImageRecipe extends BaseStructure {
+  readonly _keys = keysGoogleSearchImageRecipe;
+  readonly result: GoogleSearchImageResult;
+
+  description: string = '';
+  duration: string = '';
+  ingredients: Array<string> = [];
+  servings: null | string = null;
   stars: null | number = null;
   starsAmount: null | number = null;
   title: string = '';
@@ -176,7 +233,7 @@ export class GoogleSearchImageVideo extends BaseStructure {
   channel: null | string = null;
   description: string = '';
   duration: null | string = null;
-  likes: null | string = null;
+  likes: null | number = null;
   title: string = '';
   type!: GoogleImageVideoTypes;
   uploadedAt: null | number = null;

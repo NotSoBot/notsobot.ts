@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
@@ -15,10 +15,12 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
+  botsonly: boolean,
   users: Array<Structures.Member | Structures.User>,
 }
 
 export interface CommandArgs {
+  botsonly: boolean,
   users: Array<Structures.Member | Structures.User>,
 }
 
@@ -26,12 +28,16 @@ export default class UsersCommand extends BaseCommand {
   aliases = ['members'];
   name = 'users';
 
+  args = [
+    {name: 'botsonly', type: Boolean},
+  ];
   default = DefaultParameters.members;
   label = 'users';
   metadata = {
     description: 'Get information about multiple members/users',
     examples: [
       'users',
+      'users -botsonly',
       'users cake',
       'users cake#1',
       'users <@300505364032389122> <@439205512425504771>',
@@ -53,7 +59,11 @@ export default class UsersCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const { users } = args;
 
-    const membersOrUsers = users.sort((x, y) => {
+    let membersOrUsers = users;
+    if (args.botsonly) {
+      membersOrUsers = membersOrUsers.filter((memberOrUser) => memberOrUser.bot);
+    }
+    membersOrUsers = membersOrUsers.sort((x, y) => {
       if (x instanceof Structures.Member && y instanceof Structures.Member) {
         return x.joinedAtUnix - y.joinedAtUnix;
       } else if (x instanceof Structures.Member) {

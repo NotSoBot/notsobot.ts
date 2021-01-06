@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageMirrorTop } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -15,19 +15,25 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class MirrorTopCommand extends BaseImageCommand<CommandArgs> {
-  name = 'mirror top';
+export const COMMAND_NAME = 'mirror top';
 
-  aliases = ['woow'];
-  metadata = {
-    description: 'Mirror top of image',
-    examples: [
-      'woow',
-      'woow cake',
-    ],
-    type: CommandTypes.IMAGE,
-    usage: 'woow ?<emoji|id|mention|name|url>',
-  };
+export default class MirrorTopCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['woow'],
+      metadata: {
+        description: 'Mirror top half of image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageMirrorTop(context, {url: args.url});

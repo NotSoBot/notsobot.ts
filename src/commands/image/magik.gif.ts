@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageMagikGif } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -18,16 +18,24 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class GifMagikCommand extends BaseImageCommand<CommandArgs> {
-  name = 'gifmagik';
+export const COMMAND_NAME = 'magik gif';
 
-  aliases = ['gifmagic', 'gmagik', 'gmagic'];
-  label = 'url';
-  metadata = {
-    examples: ['gifmagik', 'gifmagik notsobot'],
-    type: CommandTypes.IMAGE,
-    usage: 'gifmagik ?<emoji|id|mention|name|url>',
-  };
+export default class MagikGifCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      aliases: ['magic gif'],
+      name: COMMAND_NAME,
+
+      metadata: {
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageMagikGif(context, args);

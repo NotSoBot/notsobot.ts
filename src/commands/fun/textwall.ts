@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
@@ -13,13 +13,17 @@ export interface CommandArgs {
 }
 
 export default class TextWallCommand extends BaseCommand {
-  name = 'textwall';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: 'textwall',
 
-  aliases = ['twall'];
-  label = 'text';
-  metadata = {
-    type: CommandTypes.FUN,
-  };
+      aliases: ['twall'],
+      label: 'text',
+      metadata: {
+        type: CommandTypes.FUN,
+      },
+    });
+  }
 
   run(context: Command.Context, args: CommandArgs) {
 

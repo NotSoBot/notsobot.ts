@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
@@ -12,12 +12,18 @@ export interface CommandArgs {
 
 }
 
-export default class GasciiCommand extends BaseCommand {
-  name = 'identity';
+export const COMMAND_NAME = 'identity';
 
-  metadata = {
-    type: CommandTypes.IMAGE,
-  };
+export default class IdentityCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        type: CommandTypes.IMAGE,
+      },
+    });
+  }
 
   run(context: Command.Context, args: CommandArgs) {
 

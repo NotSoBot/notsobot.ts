@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageEyes } from '../../api';
 import { CommandTypes, ImageEyeTypes } from '../../constants';
@@ -15,17 +15,26 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class EyesCommand extends BaseImageCommand<CommandArgs> {
-  aliases = ['blood'];
-  name = 'bloodshot';
-  prefixes = ['eyes ', 'eye '];
+export const COMMAND_NAME = 'eyes bloodshot';
 
-  metadata = {
-    description: 'Attach bloodshot eyes to people\'s faces in an image',
-    examples: ['eyes bloodshot', 'eyes bloodshot https://i.imgur.com/WwiO7Bx.jpg'],
-    type: CommandTypes.IMAGE,
-    usage: 'eyes bloodshot ?<emoji|id|mention|name|url>',
-  };
+export default class EyesCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      aliases: ['blood'],
+      name: 'bloodshot',
+      prefixes: ['eyes ', 'eye '],
+
+      metadata: {
+        description: 'Attach bloodshot eyes to people\'s faces in an image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageEyes(context, {

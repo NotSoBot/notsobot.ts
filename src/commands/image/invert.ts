@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageInvert } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -15,15 +15,24 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class InvertCommand extends BaseImageCommand<CommandArgs> {
-  name = 'invert';
+export const COMMAND_NAME = 'invert';
 
-  metadata = {
-    description: 'Invert an image',
-    examples: ['invert', 'invert notsobot'],
-    type: CommandTypes.IMAGE,
-    usage: 'invert ?<emoji|id|mention|name|url>',
-  };
+export default class InvertCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Invert an image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageInvert(context, args);

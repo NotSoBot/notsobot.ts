@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 
 import { CommandTypes, PresenceStatusColors } from '../../constants';
 import { DefaultParameters, Parameters, createUserEmbed } from '../../utils';

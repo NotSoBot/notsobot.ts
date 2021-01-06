@@ -1,10 +1,12 @@
 import { URL } from 'url';
 
 import { Collections, Command, Structures } from 'detritus-client';
-import { Embed } from 'detritus-client/lib/utils';
-import { Response } from 'detritus-rest';
+import { DiscordAbortCodes } from 'detritus-client/lib/constants';
+import { Embed, Markup, intToHex } from 'detritus-client/lib/utils';
+import { Response, replacePathParameters } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
 
+import { Endpoints } from '../api';
 import {
   EmbedColors,
   GoogleLocalesText,
@@ -13,6 +15,16 @@ import {
 } from '../constants';
 
 
+export function createColorUrl(color: number): string {
+  return replacePathParameters(
+    Endpoints.Api.URL_PUBLIC + Endpoints.Api.PATH + Endpoints.Api.IMAGE_CREATE_COLOR_HEX, {
+    format: 'png',
+    height: 1,
+    hex: intToHex(color),
+    width: 1,
+  });
+}
+
 export function createUserEmbed(user: Structures.User, embed: Embed = new Embed()) {
   embed.setAuthor(
     user.toString(),
@@ -20,6 +32,61 @@ export function createUserEmbed(user: Structures.User, embed: Embed = new Embed(
     user.jumpLink,
   );
   return embed;
+}
+
+export function createUserString(userId: string = '1', user?: Structures.User | null): string {
+  return `<@!${userId}> ${Markup.spoiler(`(${Markup.escape.all(String(user || 'Unknown?'))})`)}`;
+}
+
+
+export async function fetchMemberOrUserById(
+  context: Command.Context,
+  userId: string,
+  memberOnly: boolean = false,
+): Promise<Structures.Member | Structures.User | null> {
+  const mention = context.message.mentions.get(userId);
+  if (mention) {
+    return mention;
+  }
+
+  try {
+    const { guild } = context;
+    if (guild) {
+      const member = guild.members.get(userId);
+      if (member) {
+        if (member.isPartial) {
+          return await guild.fetchMember(userId);
+        }
+        return member;
+      }
+      return await guild.fetchMember(userId);
+    }
+    if (memberOnly) {
+      return null;
+    }
+    if (context.users.has(userId)) {
+      return context.users.get(userId) as Structures.User;
+    }
+    return await context.rest.fetchUser(userId);
+  } catch(error) {
+    // UNKNOWN_MEMBER == userId exists
+    // UNKNOWN_USER == userId doesn't exist
+    switch (error.code) {
+      case DiscordAbortCodes.UNKNOWN_MEMBER: {
+        if (memberOnly) {
+          return null;
+        }
+        return await context.rest.fetchUser(userId);
+      };
+      case DiscordAbortCodes.UNKNOWN_USER: {
+        return null;
+      };
+      default: {
+        throw error;
+      };
+    }
+  }
+  return null;
 }
 
 
@@ -338,8 +405,27 @@ export async function imageReply(
   if (typeof(options) === 'string') {
     options = {filename: options};
   }
+  const embed = new Embed();
+  if (response.headers.has('x-args')) {
+    const args = JSON.parse(Buffer.from(response.headers.get('x-args') || '', 'base64').toString());
+
+    const description: Array<string> = [];
+    for (let key in args) {
+      if (args[key]) {
+        const title = toTitleCase(key);
+
+        let text: string = args[key];
+        if (!isNaN(parseInt(text))) {
+          text = parseInt(text).toLocaleString();
+        }
+        description.push(`${title}: ${text}`);
+      }
+    }
+    embed.setDescription(description.join(' | '));
+  }
   return imageReplyFromOptions(context, await response.buffer(), {
     content: options.content,
+    embed,
     extension: response.headers.get('x-extension') || undefined,
     filename: options.filename,
     framesNew: +(response.headers.get('x-frames-new') || 0),
@@ -347,6 +433,7 @@ export async function imageReply(
     height: +(response.headers.get('x-dimensions-height') || 0),
     mimetype: response.headers.get('content-type') || undefined,
     size: +(response.headers.get('content-length') || 0),
+    took: +(response.headers.get('x-took') || 0),
     width: +(response.headers.get('x-dimensions-width') || 0),
   });
 }
@@ -357,6 +444,7 @@ export async function imageReplyFromOptions(
   value: any,
   options: {
     content?: string,
+    embed?: Embed,
     extension?: string,
     filename?: string,
     framesNew?: number,
@@ -364,6 +452,7 @@ export async function imageReplyFromOptions(
     height: number,
     mimetype?: string,
     size: number,
+    took?: number,
     width: number,
   },
 ): Promise<Structures.Message> {
@@ -379,15 +468,25 @@ export async function imageReplyFromOptions(
   }
   filename = `${filename}.${options.extension || 'png'}`;
 
-  const embed = new Embed();
+  let embed: Embed;
+  if (options.embed) {
+    embed = options.embed;
+  } else {
+    embed = new Embed();
+  }
   embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
   embed.setImage(`attachment://${filename}`);
 
-  let footer = `${options.width.toLocaleString()}x${options.height.toLocaleString()}`;
+  let footer = `${options.width}x${options.height}`;
   if (options.mimetype === 'image/gif' && options.framesNew) {
     footer = `${footer}, ${options.framesNew.toLocaleString()} frames`;
   }
-  embed.setFooter(`${footer}, ${formatMemory(options.size, 2)}`);
+  footer = `${footer}, ${formatMemory(options.size, 2)}`;
+  if (options.took && 2000 <= options.took) {
+    const seconds = (options.took / 1000).toFixed(1);
+    footer = `${footer}, took ${seconds} seconds`;
+  }
+  embed.setFooter(footer);
 
   return context.editOrReply({
     content: options.content,

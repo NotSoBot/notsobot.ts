@@ -21,7 +21,10 @@ export function formatPrefixes(
   if (prefixes.length) {
     let i = 1;
     const description = prefixes.map((prefix) => {
-      return `${i++}. **${Markup.escape.all(prefix.prefix)}** added ${prefix.addedAtText}`;
+      return [
+        `${i++}. **${Markup.escape.all(prefix.prefix)}** added ${prefix.addedAtText}`,
+        `-> By <@${prefix.userId}>`,
+      ].join('\n');
     });
     embed.setDescription(description.join('\n'));
   } else {

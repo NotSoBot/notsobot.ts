@@ -10,7 +10,7 @@ import { Paginator, createUserEmbed, splitArray, toTitleCase } from '../../utils
 import { BaseCommand } from '../basecommand';
 
 
-const ELEMENTS_PER_PAGE = 15;
+const ELEMENTS_PER_PAGE = 10;
 
 export async function createDisabledCommandsEmbed(
   context: Command.Context,
@@ -63,7 +63,8 @@ export async function createDisabledCommandsEmbed(
             }
             return [
               `${(i * pageNumber) + 1}. **${disabled.command}** added ${disabled.addedAtText}`,
-              `-. ${type}`,
+              `-> ${type}`,
+              `-> By <@${disabled.userId}>`,
             ].join('\n');
           });
           embed.setDescription(description.join('\n'));

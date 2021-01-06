@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageDeepfry } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -17,18 +17,28 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class DeepfryCommand extends BaseImageCommand<CommandArgs> {
-  name = 'deepfry';
+export const COMMAND_NAME = 'deepfry';
 
-  args = [
-    {aliases: ['s'], name: 'scale', type: 'float'},
-  ];
-  metadata = {
-    description: 'Deep fry an image',
-    examples: ['deepfry', 'deepfry notsobot', 'deepfry notsobot -scale 5'],
-    type: CommandTypes.IMAGE,
-    usage: 'deepfry ?<emoji|id|mention|name|url> (-scale <float>)',
-  };
+export default class DeepfryCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {aliases: ['s'], name: 'scale', type: 'float'},
+      ],
+      metadata: {
+        description: 'Deep fry an image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -scale 5`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-scale <float>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageDeepfry(context, args);

@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageMeme } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -17,21 +17,28 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class MemeCommand extends BaseImageCommand<CommandArgs> {
-  name = 'meme';
+export const COMMAND_NAME = 'meme';
 
-  metadata = {
-    examples: [
-      'meme notsobot what an idiot',
-      'meme notsobot what an idiot | lmao',
-    ],
-    type: CommandTypes.IMAGE,
-    usage: 'meme <emoji|id|mention|name|url> <...text>',
-  };
-  type = [
-    {name: 'url', required: true, type: Parameters.lastImageUrl},
-    {name: 'text', consume: true},
-  ];
+export default class MemeCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot what an idiot`,
+          `${COMMAND_NAME} notsobot what an idiot | lmao`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} <emoji|id|mention|name|url> <...text>`,
+      },
+      type: [
+        {name: 'url', required: true, type: Parameters.lastImageUrl},
+        {name: 'text', consume: true},
+      ],
+    });
+  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

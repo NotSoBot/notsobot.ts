@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-import { ClusterClient, Command, Structures } from 'detritus-client';
+import { ClusterClient, Command, CommandClient, Structures } from 'detritus-client';
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 

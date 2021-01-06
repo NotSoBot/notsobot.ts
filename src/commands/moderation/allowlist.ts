@@ -77,6 +77,7 @@ export async function createAllowlistEmbed(
             return [
               `${(i * pageNumber) + 1}. **${type}** added ${allowed.addedAtText}`,
               `-> ${description}`,
+              `-> By <@${allowed.userId}>`,
             ].join('\n');
           });
 

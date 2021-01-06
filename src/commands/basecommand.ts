@@ -21,7 +21,6 @@ export interface ContextMetadata {
   responseUrl?: string,
 }
 
-
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
   metadata!: CommandMetadata;
   permissionsIgnoreClientOwner = true;
@@ -177,18 +176,18 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 }
 
 export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
-  label = 'url';
-  permissionsClient = [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS];
-  type: Command.ArgumentType = Parameters.lastImageUrl;
-
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
-    super(commandClient, Object.assign({
+    super(commandClient, {
+      label: 'url',
       name: '',
+      permissionsClient: [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS],
       ratelimits: [
         {duration: 5000, limit: 2, type: 'guild'},
         {duration: 1000, limit: 1, type: 'channel'},
       ],
-    }, options));
+      type: Parameters.lastImageUrl,
+      ...options,
+    });
   }
 
   onBeforeRun(context: Command.Context, args: {url?: null | string}) {
@@ -218,12 +217,14 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 
 
 export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
-  label = 'query';
   nsfw = false;
-  permissionsClient = [Permissions.EMBED_LINKS];
 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
-    super(commandClient, options);
+    super(commandClient, {
+      label: 'query',
+      permissionsClient: [Permissions.EMBED_LINKS],
+      ...options,
+    });
     if (this.metadata) {
       this.metadata.nsfw = this.nsfw;
     }

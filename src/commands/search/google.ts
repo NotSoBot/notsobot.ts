@@ -1,7 +1,7 @@
 import { Command } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { googleSearch } from '../../api';
+import { searchGoogle } from '../../api';
 import {
   CommandTypes,
   EmbedBrands,
@@ -44,7 +44,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { cards, results, suggestion } = await googleSearch(context, args);
+    const { cards, results, suggestion } = await searchGoogle(context, args);
     if (cards.length || results.length) {
       const pages: Array<any> = [];
 

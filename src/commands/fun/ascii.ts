@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { funASCII } from '../../api';
@@ -16,18 +16,24 @@ export interface CommandArgs {
   text: string,
 }
 
-export default class AsciiCommand extends BaseCommand {
-  name = 'ascii';
+export const COMMAND_NAME = 'ascii';
 
-  label = 'text';
-  metadata = {
-    description: 'Convert text to an ASCII Image',
-    examples: [
-      'ascii NotSoBot',
-    ],
-    type: CommandTypes.FUN,
-    usage: 'ascii <text>',
-  };
+export default class AsciiCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      label: 'text',
+      metadata: {
+        description: 'Convert text to an ASCII Image',
+        examples: [
+          `${COMMAND_NAME} NotSoBot`,
+        ],
+        type: CommandTypes.FUN,
+        usage: `${COMMAND_NAME} <text>`,
+      },
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.text;

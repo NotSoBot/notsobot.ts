@@ -29,23 +29,7 @@ const bot = new NotSoClient({
     identifyProperties: {
       $browser: 'Discord iOS',
     },
-    intents: [
-      GatewayIntents.GUILDS,
-      GatewayIntents.GUILD_MEMBERS,
-      GatewayIntents.GUILD_BANS,
-      GatewayIntents.GUILD_EMOJIS,
-      GatewayIntents.GUILD_INTEGRATIONS,
-      GatewayIntents.GUILD_WEBHOOKS,
-      GatewayIntents.GUILD_INVITES,
-      GatewayIntents.GUILD_VOICE_STATES,
-      GatewayIntents.GUILD_PRESENCES,
-      GatewayIntents.GUILD_MESSAGES,
-      GatewayIntents.GUILD_MESSAGE_REACTIONS,
-      GatewayIntents.GUILD_MESSAGE_TYPING,
-      GatewayIntents.DIRECT_MESSAGES,
-      GatewayIntents.DIRECT_MESSAGE_REACTIONS,
-      GatewayIntents.DIRECT_MESSAGE_TYPING,
-    ],
+    intents: 'ALL',
     presence: {
       activity: {
         name: 'for .',

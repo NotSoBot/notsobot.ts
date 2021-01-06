@@ -11,6 +11,7 @@ export enum Domains {
 
 export const Api = Object.freeze({
   URL: LOCALHOST_API,
+  URL_PUBLIC: Domains.BETA.slice(0, -1),
   PATH: '/api',
 
   COMMANDS:
@@ -21,10 +22,6 @@ export const Api = Object.freeze({
 
   GOOGLE_CONTENT_VISION_OCR:
     '/google/content-vision/ocr',
-  GOOGLE_SEARCH:
-    '/google/search',
-  GOOGLE_SEARCH_IMAGES:
-    '/google/search/images',
   GOOGLE_TRANSLATE:
     '/google/translate',
 
@@ -45,12 +42,23 @@ export const Api = Object.freeze({
   GUILD_PREFIXES_DELETE:
     '/guilds/:guildId/prefixes/delete',
 
+  IMAGE_CREATE_COLOR_HEX:
+    '/image/create/:height:x:width:/colors/:hex:.:format:',
+  IMAGE_CREATE_COLOR_RGB:
+    '/image/create/:height:x:width:/colors/:red:.:green:.:blue:.:format:',
+
   IMAGE_DEEPFRY:
     '/image/deepfry',
+  IMAGE_DEEPFRY_GIF:
+    '/image/deepfry/gif',
   IMAGE_EXPLODE:
     '/image/explode',
   IMAGE_EYES:
     '/image/eyes',
+  IMAGE_GLITCH:
+    '/image/glitch',
+  IMAGE_GLITCH_GIF:
+    '/image/glitch/gif',
   IMAGE_IMPLODE:
     '/image/implode',
   IMAGE_INVERT:
@@ -62,7 +70,7 @@ export const Api = Object.freeze({
   IMAGE_MAGIK:
     '/image/magik',
   IMAGE_MAGIK_GIF:
-    '/image/magik-gif',
+    '/image/magik/gif',
   IMAGE_MEME:
     '/image/meme',
   IMAGE_MIRROR_BOTTOM:
@@ -73,8 +81,18 @@ export const Api = Object.freeze({
     '/image/mirror-right',
   IMAGE_MIRROR_TOP:
     '/image/mirror-top',
+  IMAGE_OVERLAY_GAY:
+    '/image/overlay/gay',
+  IMAGE_PIXELATE:
+    '/image/pixelate',
   IMAGE_RESIZE:
     '/image/resize',
+  IMAGE_SHARPEN:
+    '/image/sharpen',
+  IMAGE_SPIN:
+    '/image/spin',
+  IMAGE_WALL:
+    '/image/wall',
 
   ME:
     '/users/@me',
@@ -87,6 +105,10 @@ export const Api = Object.freeze({
     '/search/e621',
   SEARCH_E926:
     '/search/e926',
+  SEARCH_GOOGLE:
+    '/search/google',
+  SEARCH_GOOGLE_IMAGES:
+    '/search/google/images',
   SEARCH_RULE34:
     '/search/rule34',
   SEARCH_RULE34_PAHEAL:
@@ -95,8 +117,14 @@ export const Api = Object.freeze({
     '/search/urban-dictionary',
   SEARCH_URBAN_DICTIONARY_RANDOM:
     '/search/urban-dictionary/random',
+  SEARCH_WIKIHOW:
+    '/search/wikihow',
+  SEARCH_WIKIHOW_RANDOM:
+    '/search/wikihow/random',
   SEARCH_WOLFRAM_ALPHA:
     '/search/wolfram-alpha',
+  SEARCH_YOUTUBE:
+    '/search/youtube',
 
   USER:
     '/users/:userId',
@@ -104,9 +132,6 @@ export const Api = Object.freeze({
     '/users/:userId/commands',
   USER_COMMAND:
     '/users/:userId/commands/:command',
-
-  YOUTUBE_SEARCH:
-    '/youtube/search',
 });
 
 

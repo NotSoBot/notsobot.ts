@@ -87,46 +87,6 @@ export class GuildSettings extends BaseStructure {
     return Collections.emptyBaseCollection;
   }
 
-  get shouldLogGuildMemberAdd(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_ADD);
-  }
-
-  get shouldLogGuildMemberRemove(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_REMOVE);
-  }
-
-  get shouldLogGuildMemberUpdate(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_UPDATE);
-  }
-
-  get shouldLogUserUpdate(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.USER_UPDATE);
-  }
-
-  get shouldLogMessageCreate(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_CREATE);
-  }
-
-  get shouldLogMessageDelete(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_DELETE);
-  }
-
-  get shouldLogMessageUpdate(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_UPDATE);
-  }
-
-  get shouldLogVoiceChannelConnection(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_CONNECTION);
-  }
-
-  get shouldLogVoiceChannelModify(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_MODIFY);
-  }
-
-  get shouldLogVoiceChannelMove(): boolean {
-    return !this.hasDisabledLoggerEventFlag(GuildLoggerFlags.VOICE_CHANNEL_MOVE);
-  }
-
   hasDisabledLoggerEventFlag(flag: number): boolean {
     return (this.disabledLoggerEvents & flag) === flag;
   }
@@ -321,9 +281,11 @@ export class GuildSettingsDisabledCommand extends BaseStructure {
 
 
 const keysGuildSettingsLogger = new Collections.BaseSet<string>([
+  NotSoApiKeys.ADDED,
   NotSoApiKeys.CHANNEL_ID,
   NotSoApiKeys.GUILD_ID,
   NotSoApiKeys.TYPE,
+  NotSoApiKeys.USER_ID,
   NotSoApiKeys.WEBHOOK_ID,
   NotSoApiKeys.WEBHOOK_TOKEN,
 ]);
@@ -331,16 +293,22 @@ const keysGuildSettingsLogger = new Collections.BaseSet<string>([
 export class GuildSettingsLogger extends BaseStructure {
   readonly _keys = keysGuildSettingsLogger;
 
+  added: string = '';
   channelId: string = '';
   disabledEvents: number = 0;
   guildId: string = '';
   type!: GuildLoggerTypes;
+  userId: string = '';
   webhookId?: string;
   webhookToken?: string;
 
   constructor(data: Structures.BaseStructureData) {
     super();
     this.merge(data);
+  }
+
+  get addedAtText(): string {
+    return moment(this.added).fromNow();
   }
 
   get key(): string {
@@ -351,26 +319,10 @@ export class GuildSettingsLogger extends BaseStructure {
     return (this.disabledEvents & flag) === flag;
   }
 
-  get isGuildMemberType(): boolean {
-    return this.type === GuildLoggerTypes.GUILD_MEMBERS;
-  }
-
-  get isMessageType(): boolean {
-    return this.type === GuildLoggerTypes.MESSAGES;
-  }
-
-  get isUserType(): boolean {
-    return this.type === GuildLoggerTypes.USERS;
-  }
-
-  get isVoiceType(): boolean {
-    return this.type === GuildLoggerTypes.VOICE;
-  }
-
   async delete(shard: ShardClient) {
     return deleteGuildLogger({client: shard}, this.guildId, {
       channelId: this.channelId,
-      loggerType: this.type,
+      type: this.type,
     });
   }
 

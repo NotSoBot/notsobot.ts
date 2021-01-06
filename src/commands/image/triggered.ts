@@ -15,21 +15,27 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class TriggeredCommand extends BaseImageCommand<CommandArgs> {
-  name = 'triggered';
+export const COMMAND_NAME = 'triggered';
 
-  args = [
-    {name: 'type'},
-  ];
-  metadata = {
-    examples: [
-      'triggered',
-      'triggered cake',
-      'triggered cake -type 2',
-    ],
-    type: CommandTypes.IMAGE,
-    usage: 'triggered ?<emoji|id|mention|name|url> (-type <triggered-type>)',
-  };
+export default class TriggeredCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {name: 'type'},
+      ],
+      metadata: {
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -type 2`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-type <triggered-type>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
 

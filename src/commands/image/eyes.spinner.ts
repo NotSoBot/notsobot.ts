@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageEyes } from '../../api';
 import { CommandTypes, ImageEyeTypes } from '../../constants';
@@ -15,16 +15,24 @@ export interface CommandArgs {
   url: string,
 }
 
+export const COMMAND_NAME = 'eyes spinner';
 export default class EyesCommand extends BaseImageCommand<CommandArgs> {
-  name = 'spinner';
-  prefixes = ['eyes ', 'eye '];
+  constructor(client: CommandClient) {
+    super(client, {
+      name: 'spinner',
+      prefixes: ['eyes ', 'eye '],
 
-  metadata = {
-    description: 'Attach fidget spinner to people\'s eyes in an image',
-    examples: ['eyes spinner', 'eyes spinner https://i.imgur.com/WwiO7Bx.jpg'],
-    type: CommandTypes.IMAGE,
-    usage: 'eyes spinner ?<emoji|id|mention|name|url>',
-  };
+      metadata: {
+        description: 'Attach spinner eyes to people\'s faces in an image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageEyes(context, {

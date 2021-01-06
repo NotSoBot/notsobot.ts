@@ -10,6 +10,7 @@ import {
 import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 
+import * as Endpoints from './endpoints';
 import * as raw from './raw';
 import { RequestContext } from './raw';
 import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
@@ -22,7 +23,7 @@ import { User } from './structures/user';
 import { RestOptions, RestResponses } from './types';
 
 export { request } from './raw';
-export { RequestContext, raw };
+export { Endpoints, RequestContext, raw };
 
 
 export async function createGuildAllowlist(
@@ -241,28 +242,6 @@ export async function googleContentVisionOCR(
 }
 
 
-export async function googleSearch(
-  context: RequestContext,
-  options: RestOptions.GoogleSearch,
-) {
-  return raw.googleSearch(context, options);
-}
-
-
-export async function googleSearchImages(
-  context: RequestContext,
-  options: RestOptions.GoogleSearchImages,
-): Promise<RestResponses.GoogleSearchImages> {
-  const data = await raw.googleSearchImages(context, options);
-  const collection = [];
-  for (let raw of data) {
-    const result = new GoogleSearchImageResult(raw);
-    collection.push(result);
-  }
-  return collection;
-}
-
-
 export async function googleTranslate(
   context: RequestContext,
   options: RestOptions.GoogleTranslate,
@@ -276,6 +255,14 @@ export async function imageDeepfry(
   options: RestOptions.ImageDeepfry,
 ) {
   return raw.imageDeepfry(context, options);
+}
+
+
+export async function imageDeepfryGif(
+  context: RequestContext,
+  options: RestOptions.ImageDeepfry,
+) {
+  return raw.imageDeepfryGif(context, options);
 }
 
 
@@ -295,6 +282,22 @@ export async function imageEyes(
 }
 
 
+export async function imageGlitch(
+  context: RequestContext,
+  options: RestOptions.ImageGlitch,
+) {
+  return raw.imageGlitch(context, options);
+}
+
+
+export async function imageGlitchGif(
+  context: RequestContext,
+  options: RestOptions.ImageGlitch,
+) {
+  return raw.imageGlitchGif(context, options);
+}
+
+
 export async function imageImplode(
   context: RequestContext,
   options: RestOptions.ImageImplode,
@@ -305,7 +308,7 @@ export async function imageImplode(
 
 export async function imageInvert(
   context: RequestContext,
-  options: RestOptions.ImageInvert,
+  options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageInvert(context, options);
 }
@@ -337,7 +340,7 @@ export async function imageMagik(
 
 export async function imageMagikGif(
   context: RequestContext,
-  options: RestOptions.ImageMagikGif,
+  options: RestOptions.ImageMagik,
 ) {
   return raw.imageMagikGif(context, options);
 }
@@ -353,7 +356,7 @@ export async function imageMeme(
 
 export async function imageMirrorBottom(
   context: RequestContext,
-  options: RestOptions.ImageMirrorBottom,
+  options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageMirrorBottom(context, options);
 }
@@ -361,7 +364,7 @@ export async function imageMirrorBottom(
 
 export async function imageMirrorLeft(
   context: RequestContext,
-  options: RestOptions.ImageMirrorLeft,
+  options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageMirrorLeft(context, options);
 }
@@ -369,7 +372,7 @@ export async function imageMirrorLeft(
 
 export async function imageMirrorRight(
   context: RequestContext,
-  options: RestOptions.ImageMirrorRight,
+  options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageMirrorLeft(context, options);
 }
@@ -377,9 +380,25 @@ export async function imageMirrorRight(
 
 export async function imageMirrorTop(
   context: RequestContext,
-  options: RestOptions.ImageMirrorTop,
+  options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageMirrorTop(context, options);
+}
+
+
+export async function imageOverlayGay(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayGay(context, options);
+}
+
+
+export async function imagePixelate(
+  context: RequestContext,
+  options: RestOptions.ImagePixelate,
+) {
+  return raw.imagePixelate(context, options);
 }
 
 
@@ -388,6 +407,30 @@ export async function imageResize(
   options: RestOptions.ImageResize,
 ) {
   return raw.imageResize(context, options);
+}
+
+
+export async function imageSharpen(
+  context: RequestContext,
+  options: RestOptions.ImageSharpen,
+) {
+  return raw.imageSharpen(context, options);
+}
+
+
+export async function imageSpin(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageSpin(context, options);
+}
+
+
+export async function imageWall(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageWall(context, options);
 }
 
 
@@ -458,6 +501,28 @@ export async function searchE926(
 }
 
 
+export async function searchGoogle(
+  context: RequestContext,
+  options: RestOptions.SearchGoogle,
+) {
+  return raw.searchGoogle(context, options);
+}
+
+
+export async function searchGoogleImages(
+  context: RequestContext,
+  options: RestOptions.SearchGoogleImages,
+): Promise<RestResponses.SearchGoogleImages> {
+  const data = await raw.searchGoogleImages(context, options);
+  const collection = [];
+  for (let raw of data) {
+    const result = new GoogleSearchImageResult(raw);
+    collection.push(result);
+  }
+  return collection;
+}
+
+
 export async function searchRule34(
   context: RequestContext,
   options: RestOptions.SearchRule34,
@@ -490,6 +555,22 @@ export async function searchUrbanRandom(
 }
 
 
+export async function searchWikihow(
+  context: RequestContext,
+  options: RestOptions.SearchWikihow,
+) {
+  return raw.searchWikihow(context, options);
+}
+
+
+export async function searchWikihowRandom(
+  context: RequestContext,
+  options: RestOptions.SearchWikihowRandom = {},
+) {
+  return raw.searchWikihowRandom(context, options);
+}
+
+
 export async function searchWolframAlpha(
   context: RequestContext,
   options: RestOptions.SearchWolframAlpha,
@@ -498,17 +579,17 @@ export async function searchWolframAlpha(
 }
 
 
+export async function searchYoutube(
+  context: RequestContext,
+  options: RestOptions.SearchYoutube,
+) {
+  return raw.searchYoutube(context, options);
+}
+
+
 export async function uploadCommands(
   context: RequestContext,
   options: RestOptions.UploadCommands,
 ) {
   return raw.uploadCommands(context, options);
-}
-
-
-export async function youtubeSearch(
-  context: RequestContext,
-  options: RestOptions.YoutubeSearch,
-) {
-  return raw.youtubeSearch(context, options);
 }

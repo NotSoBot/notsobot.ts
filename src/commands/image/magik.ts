@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageMagik } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -17,18 +17,28 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class MagikCommand extends BaseImageCommand<CommandArgs> {
-  name = 'magik';
+export const COMMAND_NAME = 'magik';
 
-  aliases = ['magic'];
-  args = [
-    {aliases: ['s'], name: 'scale', type: 'float'},
-  ];
-  metadata = {
-    examples: ['magik', 'magik notsobot', 'magik notsobot -scale 5'],
-    type: CommandTypes.IMAGE,
-    usage: 'magik ?<emoji|id|mention|name|url> (-scale <float>)',
-  };
+export default class MagikCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['magic'],
+      args: [
+        {aliases: ['s'], name: 'scale', type: 'float'},
+      ],
+      metadata: {
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -scale 5`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-scale <float>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageMagik(context, args);

@@ -1,4 +1,4 @@
-import { Command, Constants, Structures, Utils } from 'detritus-client';
+import { Command, CommandClient, Constants, Structures, Utils } from 'detritus-client';
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';

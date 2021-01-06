@@ -1,7 +1,7 @@
 import { Command } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { googleSearchImages } from '../../api';
+import { searchGoogleImages } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleImageVideoTypes, GoogleLocales, GoogleLocalesText } from '../../constants';
 import { Arguments, Paginator, createUserEmbed } from '../../utils';
 
@@ -34,7 +34,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    const results = await googleSearchImages(context, args);
+    const results = await searchGoogleImages(context, args);
     if (results.length) {
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
@@ -44,6 +44,9 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];
+          if (result.color) {
+            embed.setColor(result.color);
+          }
           if (result.header) {
             embed.setTitle(`${result.header} (${result.footer})`);
           } else {
@@ -57,59 +60,80 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
           embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
           const description: Array<string> = [Markup.url(Markup.escape.all(result.description), result.url)];
-          if (result.product) {
-            const { product } = result;
+          if (result.metadata.product) {
+            const { product } = result.metadata;
 
-            const productDetails: Array<string> = [];
+            const details: Array<string> = [];
             if (product.stars) {
               if (product.starsAmount) {
-                productDetails.push(`${product.stars} ⭐ (${product.starsAmount.toLocaleString()} reviews)`);
+                details.push(`${product.stars} Stars (${product.starsAmount.toLocaleString()} reviews)`);
               } else {
-                productDetails.push(`${product.stars} ⭐`);
+                details.push(`${product.stars} Stars`);
               }
             }
             if (product.inStock !== null) {
-              productDetails.push((product.inStock) ? 'In Stock' : 'Not In Stock');
+              details.push((product.inStock) ? 'In Stock' : 'Not In Stock');
             }
             if (product.price) {
-              productDetails.push(`${product.price} (${product.currency})`);
+              details.push(`${product.price} (${product.currency})`);
             }
-            description.push(productDetails.join(' | '));
+            description.push(details.join(' · '));
             if (product.description) {
               description.push(Markup.escape.all(product.description));
             }
           }
-          if (result.video) {
-            const { video } = result;
+          if (result.metadata.recipe) {
+            const { recipe } = result.metadata;
 
-            const videoDetails: Array<string> = [];
-            if (video.duration) {
-              if (video.type === GoogleImageVideoTypes.YOUTUBE) {
-                videoDetails.push(video.duration);
+            const details: Array<string> = [];
+            if (recipe.stars) {
+              if (recipe.starsAmount) {
+                details.push(`${recipe.stars} Stars (${recipe.starsAmount.toLocaleString()} reviews)`);
               } else {
-                videoDetails.push(`${video.duration} Duration`);
+                details.push(`${recipe.stars} Stars`);
               }
             }
-            if (video.likes) {
-              videoDetails.push(`${video.likes} Likes`);
+            if (recipe.duration) {
+              details.push(recipe.duration);
+            }
+            if (recipe.servings) {
+              details.push(`Yields: ${recipe.servings}`);
+            }
+            description.push(details.join(' · '));
+            if (recipe.description) {
+              description.push(Markup.escape.all(recipe.description));
+            }
+            if (recipe.ingredients.length) {
+              embed.addField('Ingredients', recipe.ingredients.join('\n'));
+            }
+          }
+          if (result.metadata.video) {
+            const { video } = result.metadata;
+
+            const details: Array<string> = [];
+            if (video.duration) {
+              details.push(`${video.duration} Duration`);
+            }
+            if (video.likes !== null) {
+              details.push(`${video.likes.toLocaleString()} Likes`);
             }
             if (video.views !== null) {
-              videoDetails.push(`${video.views.toLocaleString()} Views`);
+              details.push(`${video.views.toLocaleString()} Views`);
             }
-            description.push(videoDetails.join(' | '));
-            if (video.channel) {
-              let text = `Uploaded By **${Markup.escape.all(video.channel)}**`;
-              if (video.uploadedAt) {
-                text = `${text} (${video.uploadedAtText})`;
+            description.push(details.join(' · '));
+            if (video.uploadedAt) {
+              let text = `Uploaded ${video.uploadedAtText}`;
+              if (video.channel) {
+                text = `${text} by **${Markup.escape.all(video.channel)}**`;
               }
               description.push(text);
             } else {
-              if (video.uploadedAt) {
-                description.push(`Uploaded ${video.uploadedAtText}`);
+              if (video.channel) {
+                description.push(`Uploaded by **${Markup.escape.all(video.channel)}**`);
               }
             }
             if (video.description) {
-              if (videoDetails.length) {
+              if (details.length) {
                 // just a spacer
                 description.push('');
               }

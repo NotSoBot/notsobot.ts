@@ -1,8 +1,10 @@
 import { onlyEmoji } from 'emoji-aware';
+import * as moment from 'moment';
+import * as juration from 'juration';
 
-import { ClusterClient, Command, Structures } from 'detritus-client';
+import { ClusterClient, Collections, Command, Structures } from 'detritus-client';
 import { ChannelTypes, DiscordAbortCodes, DiscordRegexNames } from 'detritus-client/lib/constants';
-import { regex as discordRegex } from 'detritus-client/lib/utils';
+import { Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
@@ -10,6 +12,7 @@ import { CDN } from '../api/endpoints';
 import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
 import {
+  fetchMemberOrUserById,
   findImageUrlInMessages,
   findMemberByChunk,
   findMemberByChunkText,
@@ -90,6 +93,71 @@ export async function channelMetadata(
   }
 
   return payload;
+}
+
+
+
+export interface BanPayloadOptions {
+  membersOnly?: boolean,
+}
+
+export interface BanPayload {
+  membersOrUsers: Array<Structures.Member | Structures.User>,
+  notFound: Array<string>,
+  text: string,
+}
+
+export interface BanPayloadMembersOnly {
+  membersOrUsers: Array<Structures.Member>,
+  notFound: Array<string>,
+  text: string,
+}
+
+export function banPayload(
+  options: BanPayloadOptions = {},
+) {
+  return async (value: string, context: Command.Context): Promise<BanPayload> => {
+    const membersOrUsers = new Collections.BaseCollection<string, Structures.Member | Structures.User>();
+    const notFound: Array<string> = [];
+    if (value) {
+      let stillSearching = true;
+      while (stillSearching) {
+        const index = value.indexOf(' ');
+        const text = value.slice(0, (index === -1) ? value.length : index);
+        value = value.slice(text.length);
+
+        let searchValue = text;
+        {
+          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, searchValue) as {matches: Array<{id: string}>};
+          if (matches.length) {
+            const { id: userId } = matches[0];
+            if (isSnowflake(userId)) {
+              searchValue = userId;
+            }
+          }
+        }
+
+        if (isSnowflake(searchValue)) {
+          value = value.trim();
+          if (membersOrUsers.has(searchValue)) {
+            continue;
+          }
+
+          const member = await fetchMemberOrUserById(context, searchValue, options.membersOnly);
+          if (member) {
+            membersOrUsers.set(member.id, member);
+          } else {
+            notFound.push(text);
+          }
+        } else {
+          // stop the search since we got to a non-mention or non-id
+          stillSearching = false;
+          value = text + value;
+        }
+      }
+    }
+    return {membersOrUsers: membersOrUsers.toArray(), notFound, text: value};
+  }
 }
 
 
@@ -497,6 +565,11 @@ export function channels(options: ChannelOptions = {}) {
 
 export interface MemberOrUserOptions {
   allowBots?: boolean,
+  allowMe?: boolean,
+  clientCanEdit?: boolean,
+  memberOnly?: boolean,
+  permissions?: Array<number>,
+  userCanEdit?: boolean,
 }
 
 export function memberOrUser(
@@ -515,48 +588,11 @@ export function memberOrUser(
               }
             }
           }
-    
-          if (isSnowflake(value)) {
-            const userId = value;
-    
-            const mention = context.message.mentions.get(userId);
-            if (mention) {
-              return mention;
-            }
 
-            const { guild } = context;
-            if (guild) {
-              try {
-                const member = guild.members.get(userId);
-                if (member) {
-                  if (member.isPartial) {
-                    return await guild.fetchMember(userId);
-                  }
-                  return member;
-                }
-                return await guild.fetchMember(userId);
-              } catch(error) {
-                // UNKNOWN_MEMBER == userId exists
-                // UNKNOWN_USER == userId doesn't exist
-                switch (error.code) {
-                  case DiscordAbortCodes.UNKNOWN_MEMBER: {
-                    return await context.rest.fetchUser(userId);
-                  };
-                  case DiscordAbortCodes.UNKNOWN_USER: {
-                    return null;
-                  };
-                  default: {
-                    throw error;
-                  };
-                }
-              }
-            }
-            if (context.users.has(userId)) {
-              return context.users.get(userId) as Structures.User;
-            }
-            return await context.rest.fetchUser(userId);
+          if (isSnowflake(value)) {
+            return await fetchMemberOrUserById(context, value, options.memberOnly);
           }
-    
+
           const found = await findMemberByChunkText(context, value);
           if (found) {
             return found;
@@ -565,11 +601,28 @@ export function memberOrUser(
 
         return null;
       })()).then((memberOrUser) => {
-        if (memberOrUser && memberOrUser.bot) {
-          if (options.allowBots || options.allowBots === undefined) {
-            return memberOrUser;
+        if (memberOrUser) {
+          if (memberOrUser.bot && (!options.allowBots && options.allowBots !== undefined)) {
+            return null;
           }
-          return null;
+          if (memberOrUser.isMe && (!options.allowMe && options.allowMe !== undefined)) {
+            return null;
+          }
+          if (memberOrUser instanceof Structures.Member) {
+            if (options.clientCanEdit && !(context.me && context.me.canEdit(memberOrUser))) {
+              return null;
+            }
+            if (options.userCanEdit && !(context.member && context.member.canEdit(memberOrUser))) {
+              return null;
+            }
+            if (options.permissions && !memberOrUser.can(options.permissions)) {
+              return null;
+            }
+          } else {
+            if (options.memberOnly) {
+              return null;
+            }
+          }
         }
         return memberOrUser;
       });
@@ -668,11 +721,45 @@ export function roles(
 
 /* ----- Values ----- */
 
+export function days(
+  value: string,
+  context: Command.Context,
+): number {
+  let days: number;
+  if (isNaN(value as any)) {
+    days = Math.round(moment.duration(seconds(value, context), 'seconds').asDays());
+  } else {
+    days = parseInt(value);
+  }
+  return days;
+}
+
+export function seconds(
+  value: string,
+  context: Command.Context,
+): number {
+  try {
+    return juration.parse(value);
+  } catch(error) {
+    if (typeof(error) === 'string') {
+      let text = error.slice(error.indexOf(':', error.indexOf(':') + 1) + 1).trim();
+      if (text === 'a falsey value') {
+        throw new Error('Unable to parse');
+      }
+      if (25 < text.length) {
+        text = text.slice(0, 22) + '...';
+      }
+      throw new Error(`Unable to parse time format ${Markup.codestring(text)}`);
+    }
+    throw error;
+  }
+}
+
 export function percentage(
   value: string,
   context: Command.Context,
 ): number {
-  value = value.trim().replace(/%/g, '');
+  value = value.replace(/%/g, '');
   const percentage = parseFloat(value);
   if (isNaN(percentage)) {
     return percentage;

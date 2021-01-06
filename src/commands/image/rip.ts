@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
@@ -12,12 +12,18 @@ export interface CommandArgs {
 
 }
 
-export default class RipCommand extends BaseCommand {
-  name = 'rip';
+export const COMMAND_NAME = 'rip';
 
-  metadata = {
-    type: CommandTypes.IMAGE,
-  };
+export default class RipCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        type: CommandTypes.IMAGE,
+      },
+    });
+  }
 
   run(context: Command.Context, args: CommandArgs) {
 

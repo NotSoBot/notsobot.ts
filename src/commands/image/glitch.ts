@@ -1,39 +1,54 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
+import { imageGlitch } from '../../api';
 import { CommandTypes } from '../../constants';
-import { BaseCommand } from '../basecommand';
+import { imageReply } from '../../utils';
+
+import { BaseImageCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  url: string,
+  amount?: number,
+  iterations?: number,
+  seed?: number,
+  url?: null | string,
 }
 
 export interface CommandArgs {
+  amount?: number,
+  iterations?: number,
+  seed?: number,
   url: string,
 }
 
-export default class GlitchCommand extends BaseCommand {
-  name = 'glitch';
+export const COMMAND_NAME = 'glitch';
 
-  args = [
-    {name: 'amount', type: Number},
-    {name: 'iterations', type: Number},
-    {name: 'seed', type: Number},
-    {name: 'type'},
-  ];
-  label = 'url';
-  metadata = {
-    description: 'Glitch an Image',
-    examples: [
-      'glitch',
-      'glitch cake',
-      'glitch cake -type 2',
-    ],
-    type: CommandTypes.IMAGE,
-    usage: 'glitch ?<emoji|id|mention|name|url> (-amount <number>) (-iterations <number>) (-seed <number>) (-type <glitch-type>)',
-  };
+export default class GlitchCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  run(context: Command.Context, args: CommandArgs) {
+      args: [
+        {name: 'amount', type: Number},
+        {name: 'iterations', type: Number},
+        {name: 'seed', type: Number},
+        //{name: 'type'}, // theres glitch2, but maybe get rid of it?
+      ],
+      metadata: {
+        description: 'Glitch an Image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -seed 68`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-amount <number>) (-iterations <number>) (-seed <number>)`, // (-type <glitch-type>)
+      },
+    });
+  }
 
+  async run(context: Command.Context, args: CommandArgs) {
+    const response = await imageGlitch(context, args);
+    return imageReply(context, response);
   }
 }

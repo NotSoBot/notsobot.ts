@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
@@ -13,11 +13,15 @@ export interface CommandArgs {
 }
 
 export default class AestheticsCommand extends BaseCommand {
-  name = 'aesthetics';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: 'aesthetics',
 
-  metadata = {
-    type: CommandTypes.FUN,
-  };
+      metadata: {
+        type: CommandTypes.FUN,
+      },
+    });
+  }
 
   run(context: Command.Context, args: CommandArgs) {
 

@@ -1,7 +1,7 @@
 import * as os from 'os';
 
 
-import { ClusterClient, Command, Utils } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
@@ -11,17 +11,23 @@ import { padCodeBlockFromRows } from '../../utils';
 import { ClusterInformation, getClusterInformation } from './shards';
 
 
-export default class UsageCommand extends BaseCommand {
-  name = 'usage';
-  metadata = {
-    description: 'Show the bot\'s current usage (and Discord object counts)',
-    examples: [
-      'usage',
-    ],
-    type: CommandTypes.UTILS,
-    usage: 'usage',
-  };
+export const COMMAND_NAME = 'usage';
 
+export default class UsageCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Show the bot\'s current usage (and Discord object counts)',
+        examples: [
+          COMMAND_NAME,
+        ],
+        type: CommandTypes.UTILS,
+        usage: COMMAND_NAME,
+      },
+    });
+  }
 
   async run(context: Command.Context) {
     const rows: Array<Array<string>> = [];

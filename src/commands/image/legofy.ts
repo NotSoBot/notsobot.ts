@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageLegofy } from '../../api';
 import { CommandTypes, ImageLegofyPalettes } from '../../constants';
@@ -19,25 +19,31 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class LegofyCommand extends BaseImageCommand<CommandArgs> {
-  aliases = ['lego'];
-  name = 'legofy';
+export const COMMAND_NAME = 'legofy';
 
-  args = [
-    {name: 'dither', type: Boolean},
-    {name: 'palette', choices: Object.values(ImageLegofyPalettes), help: `Must be one of: (${Object.values(ImageLegofyPalettes).join(', ')})`},
-  ];
-  metadata = {
-    description: 'Legofy an image',
-    examples: [
-      'legofy',
-      'legofy notsobot',
-      'legofy notsobot -palette mono',
-      'legofy notsobot -dither',
-    ],
-    type: CommandTypes.IMAGE,
-    usage: 'legofy ?<emoji|id|mention|name|url> (-dither) (-palette <ImageLegofyPalettes>)',
-  };
+export default class LegofyCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['lego'],
+      args: [
+        {name: 'dither', type: Boolean},
+        {name: 'palette', choices: Object.values(ImageLegofyPalettes), help: `Must be one of: (${Object.values(ImageLegofyPalettes).join(', ')})`},
+      ],
+      metadata: {
+        description: 'Legofy an image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -palette mono`,
+          `${COMMAND_NAME} notsobot -dither`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-dither) (-palette <ImageLegofyPalettes>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageLegofy(context, args);

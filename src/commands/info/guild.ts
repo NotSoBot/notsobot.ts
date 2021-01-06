@@ -1,4 +1,4 @@
-import { Collections, Command, Structures } from 'detritus-client';
+import { Collections, Command, CommandClient, Structures } from 'detritus-client';
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 

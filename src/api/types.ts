@@ -24,7 +24,7 @@ import { User } from './structures/user';
 export namespace RestOptions {
   export interface CreateGuildLogger {
     channelId: string,
-    loggerType: GuildLoggerTypes,
+    type: GuildLoggerTypes,
     webhookId: string,
     webhookToken: string,
   }
@@ -43,7 +43,7 @@ export namespace RestOptions {
 
   export interface DeleteGuildLogger {
     channelId: string,
-    loggerType: GuildLoggerTypes,
+    type: GuildLoggerTypes,
   }
 
   export interface EditGuildSettings {
@@ -68,99 +68,68 @@ export namespace RestOptions {
     url: string,
   }
 
-  export interface GoogleSearch {
-    locale?: GoogleLocales,
-    maxResults?: number,
-    query: string,
-    safe?: boolean | string,
-    showUnknown?: boolean | string,
-  }
-
-  export interface GoogleSearchImages {
-    locale?: GoogleLocales,
-    maxResults?: number,
-    query: string,
-    safe?: boolean | string,
-  }
-
   export interface GoogleTranslate {
     from?: GoogleLocales,
     text: string,
     to?: GoogleLocales,
   }
 
-
-  export interface ImageDeepfry {
-    scale?: number,
+  export interface ImageBaseOptions {
     url: string,
   }
 
-  export interface ImageExplode {
+  export interface ImageDeepfry extends ImageBaseOptions {
     scale?: number,
-    url: string,
   }
 
-  export interface ImageEyes {
+  export interface ImageExplode extends ImageBaseOptions {
+    scale?: number,
+  }
+
+  export interface ImageEyes extends ImageBaseOptions {
     type?: ImageEyeTypes,
-    url: string,
   }
 
-  export interface ImageImplode {
+  export interface ImageGlitch extends ImageBaseOptions {
+    amount?: number,
+    iterations?: number,
+    seed?: number,
+  }
+
+  export interface ImageImplode extends ImageBaseOptions {
     scale?: number,
-    url: string,
   }
 
-  export interface ImageInvert {
-    url: string,
-  }
-
-  export interface ImageJPEG {
+  export interface ImageJPEG extends ImageBaseOptions {
     quality?: number,
-    url: string,
   }
 
-  export interface ImageLegofy {
+  export interface ImageLegofy extends ImageBaseOptions {
     dither?: boolean,
     palette?: ImageLegofyPalettes,
-    url: string,
   }
 
-  export interface ImageMagik {
+  export interface ImageMagik extends ImageBaseOptions {
     scale?: number,
-    url: string,
   }
 
-  export interface ImageMagikGif {
-    url: string,
-  }
-
-  export interface ImageMeme {
+  export interface ImageMeme extends ImageBaseOptions {
     bottom?: string,
     top: string,
-    url: string,
   }
 
-  export interface ImageMirrorBottom {
-    url: string,
+  export interface ImagePixelate extends ImageBaseOptions {
+    pixelWidth?: number,
   }
 
-  export interface ImageMirrorLeft {
-    url: string,
-  }
-
-  export interface ImageMirrorRight {
-    url: string,
-  }
-
-  export interface ImageMirrorTop {
-    url: string,
-  }
-
-  export interface ImageResize {
+  export interface ImageResize extends ImageBaseOptions {
     convert?: string,
     scale?: number,
     size?: string,
-    url: string,
+  }
+
+  export interface ImageSharpen  extends ImageBaseOptions {
+    scale?: number,
   }
 
 
@@ -195,6 +164,21 @@ export namespace RestOptions {
     query: string,
   }
 
+  export interface SearchGoogle {
+    locale?: GoogleLocales,
+    maxResults?: number,
+    query: string,
+    safe?: boolean | string,
+    showUnknown?: boolean | string,
+  }
+
+  export interface SearchGoogleImages {
+    locale?: GoogleLocales,
+    maxResults?: number,
+    query: string,
+    safe?: boolean | string,
+  }
+
   export interface SearchRule34 {
     query: string,
   }
@@ -211,7 +195,19 @@ export namespace RestOptions {
 
   }
 
+  export interface SearchWikihow {
+    query: string,
+  }
+
+  export interface SearchWikihowRandom {
+
+  }
+
   export interface SearchWolframAlpha {
+    query: string,
+  }
+
+  export interface SearchYoutube {
     query: string,
   }
 
@@ -229,12 +225,6 @@ export namespace RestOptions {
       usage: string,
     }>,
   }
-
-
-  export interface YoutubeSearch {
-    query: string,
-  }
-  
 }
 
 
@@ -256,7 +246,7 @@ export namespace RestResponses {
   export type FetchGuildSettings = GuildSettings;
   export type FetchUser = User;
 
-  export type GoogleSearchImages = Array<GoogleSearchImageResult>;
+  export type SearchGoogleImages = Array<GoogleSearchImageResult>;
 
   export type PutGuildSettings = GuildSettings;
   export type PutUser = User;
@@ -308,84 +298,11 @@ export namespace RestResponsesRaw {
     annotation: null | {description: string, locale: GoogleLocales},
   }
 
-  export interface GoogleSearch {
-    cards: Array<GoogleSearchCard>,
-    results: Array<GoogleSearchResult>,
-    suggestion: null | {text: string, url: string},
-  }
-
-  export type GoogleSearchImages = Array<GoogleSearchImage>;
-
   export interface GoogleTranslate {
     from_language: GoogleLocales,
     from_text: string,
     translated_language: GoogleLocales,
     translated_text: string,
-  }
-
-
-  export interface GoogleSearchCard {
-    description: null | string,
-    fields: Array<{description: string, title: string}>,
-    footer: null | string,
-    header: null | string,
-    image: null | string,
-    thumbnail: null | string,
-    title: string,
-    type: GoogleCardTypes,
-  }
-
-  export interface GoogleSearchImage {
-    created: null | string,
-    description: string,
-    header: string,
-    footer: string,
-    id: string,
-    image: {
-      extension: null | string,
-      height: number,
-      proxy_url: string,
-      trusted: boolean,
-      url: string,
-      width: number,
-    },
-    product: null | {
-      brand: null | string,
-      currency: null | string,
-      description: string,
-      in_stock: null | boolean,
-      price: null | number,
-      stars: null | number,
-      stars_amount: null | number,
-      title: string,
-    },
-    thumbnail: {
-      height: number,
-      proxy_url: string,
-      trusted: boolean,
-      url: string,
-      width: number,
-    },
-    url: string,
-    video: null | {
-      channel: null | string,
-      description: string,
-      duration: null | string,
-      likes: null | string,
-      title: string,
-      type: GoogleImageVideoTypes,
-      uploaded_at: null | number,
-      views: null | number,
-    },
-  }
-
-  export interface GoogleSearchResult {
-    description: string,
-    cite: string,
-    suggestions: Array<{text: string, url: string}>,
-    title: string,
-    url: string,
-    urls: Array<{text: string, url: string}>,
   }
 
   export interface GuildSettings {
@@ -436,6 +353,162 @@ export namespace RestResponsesRaw {
     user_id: string,
   }
 
+
+  export interface SearchGoogle {
+    cards: Array<SearchGoogleCard>,
+    results: Array<SearchGoogleResult>,
+    suggestion: null | {text: string, url: string},
+  }
+
+  export type SearchGoogleImages = Array<SearchGoogleImage>;
+
+  export interface SearchGoogleCard {
+    description: null | string,
+    fields: Array<{description: string, title: string}>,
+    footer: null | string,
+    header: null | string,
+    image: null | string,
+    thumbnail: null | string,
+    title: string,
+    type: GoogleCardTypes,
+  }
+
+  export interface SearchGoogleImage {
+    color: number,
+    created: null | string,
+    description: string,
+    header: string,
+    footer: string,
+    id: string,
+    image: {
+      extension: null | string,
+      height: number,
+      proxy_url: string,
+      trusted: boolean,
+      url: string,
+      width: number,
+    },
+    metadata: {
+      license: null | {
+        about: string,
+        licensable: boolean,
+        text: string,
+        url: string,
+      },
+      product: null | {
+        brand: null | string,
+        currency: null | string,
+        description: string,
+        in_stock: null | boolean,
+        price: null | number,
+        stars: null | number,
+        stars_amount: null | number,
+        title: string,
+      },
+      recipe: null | {
+        description: string,
+        duration: null | string,
+        ingredients: Array<string>,
+        servings: null | string,
+        stars: null | number,
+        stars_amount: null | number,
+        title: string,
+      },
+      video: null | {
+        channel: null | string,
+        description: string,
+        duration: null | string,
+        likes: null | number,
+        title: string,
+        type: GoogleImageVideoTypes,
+        uploaded_at: null | number,
+        views: null | number,
+      },
+    },
+    thumbnail: {
+      height: number,
+      proxy_url: string,
+      trusted: boolean,
+      url: string,
+      width: number,
+    },
+    url: string,
+  }
+
+  export interface SearchGoogleResult {
+    description: string,
+    cite: string,
+    suggestions: Array<{text: string, url: string}>,
+    title: string,
+    url: string,
+    urls: Array<{text: string, url: string}>,
+  }
+
+  export type SearchWikihow = Array<SearchWikihowResult>;
+  export interface SearchWikihowResult {
+    badge: null | string,
+    id: number,
+    id_vanity: string,
+    thumbnail: null | string,
+    title: string,
+    updated: string,
+    url: string,
+    views: number,
+  }
+
+  export interface SearchYoutube {
+    _body: any,
+    results: Array<YoutubeSearchResult>,
+    suggestions: Array<string>,
+    total_result_count: number,
+  }
+
+
+  export interface SearchWikihowRandom {
+    author: null | {
+      avatar: {
+        height: number,
+        url: string,
+        width: number,
+      },
+      name: string,
+      type: string,
+    },
+    contributor: null | {
+      name: string,
+      type: string,
+    },
+    created: string,
+    description: string,
+    image: null | {
+      height: number,
+      url: string,
+      width: number,
+    },
+    methods: Array<{
+      steps: Array<{
+        image: string,
+        text: string,
+        url: string,
+      }>,
+      title: string,
+    }>,
+    rating: {
+      best: number,
+      count: number,
+      value: number,
+    },
+    title: string,
+    updated: null | string,
+    url: string,
+    video: null | {
+      description: string,
+      thumbnail: string,
+      uploaded: string,
+      url: string,
+    },
+  }
+
   export interface User {
     avatar: null | string,
     blocked: boolean,
@@ -445,13 +518,6 @@ export namespace RestResponsesRaw {
     flags: number,
     username: string,
     premium_type: number,
-  }
-
-  export interface YoutubeSearch {
-    response: any,
-    results: Array<YoutubeSearchResult>,
-    suggestions: Array<string>,
-    total_result_count: number,
   }
 
   export interface YoutubeSearchResult {

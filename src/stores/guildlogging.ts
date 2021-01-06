@@ -9,14 +9,13 @@ import {
   MessageFlags,
   UserFlags as DiscordUserFlags,
 } from 'detritus-client/lib/constants';
-import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
+import { Embed, Markup, Snowflake, intToHex, intToRGB } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints, RequestTypes } from 'detritus-client-rest';
 import { EventSubscription, Timers } from 'detritus-utils';
 
 import GuildSettingsStore from './guildsettings';
 import { Store } from './store';
 
-import { GuildSettingsLogger } from '../api/structures/guildsettings';
 import {
   DateMomentLogFormat,
   DiscordUserFlagsText,
@@ -26,14 +25,24 @@ import {
   RedisChannels,
 } from '../constants';
 import { RedisSpewer } from '../redis';
-import { RedisPayloads } from '../types';
-import { createUserEmbed } from '../utils';
+import { createColorUrl, createUserEmbed, createUserString } from '../utils';
+
 
 type ClientStatusType = 'desktop' | 'mobile' | 'web';
 
 export type GuildLoggingEventItemAudits = [Structures.AuditLog, ...Array<Structures.AuditLog>];
 
 export type GuildLoggingEventItem = {
+  audits?: GuildLoggingEventItemAudits,
+  happened: number,
+  name: ClientEvents.GUILD_BAN_ADD,
+  payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildBanAdd,
+} | {
+  audits?: GuildLoggingEventItemAudits,
+  happened: number,
+  name: ClientEvents.GUILD_BAN_REMOVE,
+  payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildBanRemove,
+} | {
   audits?: GuildLoggingEventItemAudits,
   from?: ClientStatusType,
   happened: number,
@@ -105,6 +114,37 @@ export type GuildLoggingEventItem = {
   happened: number,
   name: ClientEvents.VOICE_STATE_UPDATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.VoiceStateUpdate,
+} | {
+  audits?: GuildLoggingEventItemAudits,
+  cached: {
+    color: number,
+    hoist: boolean,
+    mentionable: boolean,
+    name: string,
+    permissions: number,
+    position: number,
+  },
+  happened: number,
+  name: ClientEvents.GUILD_ROLE_CREATE,
+  payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleCreate,
+} | {
+  audits?: GuildLoggingEventItemAudits,
+  happened: number,
+  name: ClientEvents.GUILD_ROLE_DELETE,
+  payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete,
+} | {
+  audits?: GuildLoggingEventItemAudits,
+  cached: {
+    color: number,
+    hoist: boolean,
+    mentionable: boolean,
+    name: string,
+    permissions: number,
+    position: number,
+  },
+  happened: number,
+  name: ClientEvents.GUILD_ROLE_UPDATE,
+  payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate,
 };
 
 export interface GuildLogStorage {
@@ -115,6 +155,8 @@ export interface GuildLogStorage {
 
 
 export const AUDITLOG_EVENTS = [
+  ClientEvents.GUILD_BAN_ADD,
+  ClientEvents.GUILD_BAN_REMOVE,
   ClientEvents.GUILD_MEMBER_ADD,
   ClientEvents.GUILD_MEMBER_REMOVE,
   ClientEvents.GUILD_MEMBER_UPDATE,
@@ -133,18 +175,18 @@ export const MAX_MENTIONS = 10;
 
 // <guildId, GuildLogStorage>
 class GuildLoggingStore extends Store<string, GuildLogStorage> {
-  add(logger: GuildSettingsLogger, shard: ShardClient, event: GuildLoggingEventItem): void {
-    const storage = this.getOrCreate(logger.guildId, shard);
+  add(guildId: string, type: GuildLoggerTypes, shard: ShardClient, event: GuildLoggingEventItem): void {
+    const storage = this.getOrCreate(guildId, shard);
 
     let queue: Array<GuildLoggingEventItem>;
-    if (storage.queues.has(logger.type)) {
-      queue = storage.queues.get(logger.type) as Array<GuildLoggingEventItem>;
+    if (storage.queues.has(type)) {
+      queue = storage.queues.get(type) as Array<GuildLoggingEventItem>;
     } else {
       queue = [];
-      storage.queues.set(logger.type, queue);
+      storage.queues.set(type, queue);
     }
     queue.push(event);
-    this.startTimeout(logger.guildId);
+    this.startTimeout(guildId);
   }
 
   getOrCreate(guildId: string, shard: ShardClient): GuildLogStorage {
@@ -170,7 +212,10 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
 
     const { queues, shard, timeout } = storage;
     timeout.start(COLLECTION_TIME, async () => {
-      let shouldFetchAuditLogs = queues.some((queue) => {
+      const guild = shard.guilds.get(guildId);
+      const canViewAuditLogs = (guild) ? !!(guild.me && guild.me.canViewAuditLogs) : false;
+
+      let shouldFetchAuditLogs = canViewAuditLogs && queues.some((queue) => {
         return queue.some((event) => {
           // it already got populated from a previous fetch
           if (event.audits) {
@@ -216,6 +261,9 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
             }; break;
             case AuditLogActions.MEMBER_BAN_ADD: {
               events = findEventsForMemberBanAdd(auditLog, storage);
+            }; break;
+            case AuditLogActions.MEMBER_BAN_REMOVE: {
+              events = findEventsForMemberBanRemove(auditLog, storage);
             }; break;
             case AuditLogActions.MEMBER_KICK: {
               events = findEventsForMemberKick(auditLog, storage);
@@ -311,9 +359,14 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
 
     let shouldLog = false;
     switch (event.name) {
+      case ClientEvents.GUILD_BAN_ADD: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_BAN_ADD); break;
+      case ClientEvents.GUILD_BAN_REMOVE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_BAN_REMOVE); break;
       case ClientEvents.GUILD_MEMBER_ADD: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_ADD); break;
       case ClientEvents.GUILD_MEMBER_REMOVE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_REMOVE); break;
       case ClientEvents.GUILD_MEMBER_UPDATE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_MEMBER_UPDATE); break;
+      case ClientEvents.GUILD_ROLE_CREATE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_ROLE_CREATE); break;
+      case ClientEvents.GUILD_ROLE_DELETE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_ROLE_DELETE); break;
+      case ClientEvents.GUILD_ROLE_UPDATE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.GUILD_ROLE_UPDATE); break;
       /* case ClientEvents.MESSAGE_CREATE: shouldLog = settings.shouldLogMessageCreate; break; */
       case ClientEvents.MESSAGE_DELETE: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_DELETE); break;
       case ClientEvents.MESSAGE_DELETE_BULK: shouldLog = !settings.hasDisabledLoggerEventFlag(GuildLoggerFlags.MESSAGE_DELETE_BULK); break;
@@ -334,31 +387,37 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
     // add support for the logger disabled events
     if (shouldLog) {
-      let loggers: Array<GuildSettingsLogger>;
+      let loggerType: GuildLoggerTypes | null = null;
       switch (event.name) {
+        case ClientEvents.GUILD_BAN_ADD:
+        case ClientEvents.GUILD_BAN_REMOVE: {
+          loggerType = GuildLoggerTypes.BANS;
+        }; break;
+        case ClientEvents.GUILD_ROLE_CREATE:
+        case ClientEvents.GUILD_ROLE_DELETE:
+        case ClientEvents.GUILD_ROLE_UPDATE: {
+          loggerType = GuildLoggerTypes.ROLES;
+        }; break;
         case ClientEvents.GUILD_MEMBER_ADD:
         case ClientEvents.GUILD_MEMBER_REMOVE:
         case ClientEvents.GUILD_MEMBER_UPDATE: {
-          loggers = settings.loggers.filter((logger) => logger.isGuildMemberType);
+          loggerType = GuildLoggerTypes.MEMBERS;
         }; break;
         /*case ClientEvents.MESSAGE_CREATE: */
         case ClientEvents.MESSAGE_DELETE:
         case ClientEvents.MESSAGE_DELETE_BULK:
         case ClientEvents.MESSAGE_UPDATE: {
-          loggers = settings.loggers.filter((logger) => logger.isMessageType);
+          loggerType = GuildLoggerTypes.MESSAGES;
         }; break;
         case ClientEvents.USERS_UPDATE: {
-          loggers = settings.loggers.filter((logger) => logger.isUserType);
+          loggerType = GuildLoggerTypes.USERS;
         }; break;
         case ClientEvents.VOICE_STATE_UPDATE: {
-          loggers = settings.loggers.filter((logger) => logger.isVoiceType);
+          loggerType = GuildLoggerTypes.VOICE;
         }; break;
-        default: {
-          loggers = [];
-        };
       }
-      for (let logger of loggers) {
-        this.add(logger, shard, event);
+      if (loggerType !== null && settings.loggers.some((logger) => logger.type === loggerType)) {
+        this.add(guildId, loggerType, shard, event);
       }
     }
   }
@@ -366,6 +425,28 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
   // theres a race condition because the member/message might get updated in between the create and update event while we collect events over the second
   create(cluster: ClusterClient, redis: RedisSpewer) {
     const subscriptions: Array<EventSubscription> = [];
+
+    {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_BAN_ADD, async (payload) => {
+        const { guildId, shard } = payload;
+
+        const happened = Date.now();
+        const name = ClientEvents.GUILD_BAN_ADD;
+        return this.tryAdd(shard, guildId, {happened, name, payload});
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_BAN_REMOVE, async (payload) => {
+        const { guildId, shard } = payload;
+
+        const happened = Date.now();
+        const name = ClientEvents.GUILD_BAN_REMOVE;
+        return this.tryAdd(shard, guildId, {happened, name, payload});
+      });
+      subscriptions.push(subscription);
+    }
 
     {
       const subscription = cluster.subscribe(ClientEvents.GUILD_MEMBER_ADD, async (payload) => {
@@ -418,6 +499,56 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
             payload,
           });
         }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_ROLE_CREATE, async (payload) => {
+        const { guildId, role, shard } = payload;
+        return this.tryAdd(shard, guildId, {
+          cached: {
+            color: role.color,
+            hoist: role.hoist,
+            mentionable: role.mentionable,
+            name: role.name,
+            permissions: role.permissions,
+            position: role.position,
+          },
+          happened: Date.now(),
+          name: ClientEvents.GUILD_ROLE_CREATE,
+          payload,
+        })
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_ROLE_DELETE, async (payload) => {
+        const { guildId, role, shard } = payload;
+        return this.tryAdd(shard, guildId, {
+          happened: Date.now(),
+          name: ClientEvents.GUILD_ROLE_DELETE,
+          payload,
+        })
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_ROLE_UPDATE, async (payload) => {
+        const { guildId, role, shard } = payload;
+        return this.tryAdd(shard, guildId, {
+          cached: {
+            color: role.color,
+            hoist: role.hoist,
+            mentionable: role.mentionable,
+            name: role.name,
+            permissions: role.permissions,
+            position: role.position,
+          },
+          happened: Date.now(),
+          name: ClientEvents.GUILD_ROLE_UPDATE,
+          payload,
+        })
       });
       subscriptions.push(subscription);
     }
@@ -550,6 +681,54 @@ export function createLogPayload(
   const embed = new Embed();
   const files: Array<{filename: string, value: any}> = [];
   switch (event.name) {
+    case ClientEvents.GUILD_BAN_ADD: {
+      const { user } = event.payload;
+
+      createUserEmbed(user, embed);
+      embed.setColor(EmbedColors.LOG_DELETION);
+      embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
+      embed.setDescription(user.mention);
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`Banned • ${timestamp}`);
+      }
+
+      if (audits) {
+        const [ audit ] = audits;
+        const description: Array<string> = [];
+
+        description.push(`**Banned By**: ${createUserString(audit.userId, audit.user as Structures.User)}`);
+        if (audit.reason) {
+          description.push(`**Reason**: ${Markup.codeblock(audit.reason)}`);
+        }
+        embed.addField('Moderation Action', description.join('\n'));
+      }
+    }; break;
+    case ClientEvents.GUILD_BAN_REMOVE: {
+      const { user } = event.payload;
+
+      createUserEmbed(user, embed);
+      embed.setColor(EmbedColors.LOG_CREATION);
+      embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
+      embed.setDescription(user.mention);
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`Unbanned • ${timestamp}`);
+      }
+
+      if (audits) {
+        const [ audit ] = audits;
+        const description: Array<string> = [];
+
+        description.push(`**Unbanned By**: ${createUserString(audit.userId, audit.user as Structures.User)}`);
+        if (audit.reason) {
+          description.push(`**Reason**: ${Markup.codeblock(audit.reason)}`);
+        }
+        embed.addField('Moderation Action', description.join('\n'));
+      }
+    }; break;
     case ClientEvents.GUILD_MEMBER_ADD: {
       const { from } = event;
       const { member } = event.payload;
@@ -558,27 +737,31 @@ export function createLogPayload(
       createUserEmbed(member, embed);
       embed.setColor(EmbedColors.LOG_CREATION);
       embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
-      embed.setTimestamp(member.joinedAt || happened);
       embed.setDescription(member.mention);
-      if (audits) {
-        embed.setFooter('Added');
-      } else {
-        let text = 'Joined';
-        /*
-        if (from) {
-          switch (from) {
-            case 'desktop': text = 'Joined from Desktop'; break;
-            case 'mobile': text = 'Joined from Mobile'; break;
-            case 'web': text = 'Joined from Web'; break;
+
+      {
+        let footer: string;
+        if (audits) {
+          footer = 'Added';
+        } else {
+          footer = 'Joined';
+          /*
+          if (from) {
+            switch (from) {
+              case 'desktop': text = 'Joined from Desktop'; break;
+              case 'mobile': text = 'Joined from Mobile'; break;
+              case 'web': text = 'Joined from Web'; break;
+            }
           }
+          */
         }
-        */
-        embed.setFooter(text);
+        const timestamp = moment(member.joinedAtUnix || happened).format(DateMomentLogFormat);
+        embed.setFooter(`${footer} | ${timestamp}`);
       }
       if (audits) {
         const [ audit ] = audits;
         const description: Array<string> = [];
-        description.push(`**Added By**: <@!${audit.userId}> (@${Markup.escape.all(String(audit.user))})`);
+        description.push(`**Added By**: ${createUserString(audit.userId, audit.user as Structures.User)}`);
         embed.addField('Moderation Action', description.join('\n'));
       }
       {
@@ -620,35 +803,43 @@ export function createLogPayload(
         embed.setAuthor('Unknown User');
       }
       embed.setColor(EmbedColors.LOG_DELETION);
-      embed.setTimestamp(happened);
       embed.setDescription(`<@!${userId}>`);
 
-      if (audits) {
-        const [ audit ] = audits;
-        const description: Array<string> = [];
+      {
+        let text: string;
+        if (audits) {
+          const [ audit ] = audits;
+          const description: Array<string> = [];
 
-        let userText = `<@!${audit.userId}> (@${Markup.escape.all(String(audit.user))})`;
-        switch (audit.actionType) {
-          case AuditLogActions.MEMBER_BAN_ADD: {
-            description.push(`**Banned By**: ${userText}`);
-            embed.setFooter('Banned');
-          }; break;
-          case AuditLogActions.MEMBER_KICK: {
-            description.push(`**Kicked By**: ${userText}`);
-            embed.setFooter('Kicked');
-          }; break;
-          default: {
-            description.push(`**Unknown Reason**: ${userText}`);
-            embed.setFooter(`Left (Unknown Reason: ${audit.actionType})`);
-          };
+          let userText = createUserString(audit.userId, audit.user as Structures.User);
+          switch (audit.actionType) {
+            case AuditLogActions.MEMBER_BAN_ADD: {
+              description.push(`**Banned By**: ${userText}`);
+              text = 'Banned';
+            }; break;
+            case AuditLogActions.MEMBER_KICK: {
+              description.push(`**Kicked By**: ${userText}`);
+              text = 'Kicked';
+            }; break;
+            default: {
+              description.push(`**Unknown Reason**: ${userText}`);
+              text = `Left (Unknown Reason: ${audit.actionType})`;
+            };
+          }
+          if (audit.reason) {
+            description.push(`**Reason**: ${Markup.codeblock(audit.reason)}`);
+          }
+          embed.addField('Moderation Action', description.join('\n'));
+        } else {
+          text = 'Left';
         }
-        if (audit.reason) {
-          description.push(`**Reason**: ${Markup.codeblock(audit.reason)}`);
+
+        {
+          const timestamp = moment(happened).format(DateMomentLogFormat);
+          embed.setFooter(`${text} • ${timestamp}`);
         }
-        embed.addField('Moderation Action', description.join('\n'));
-      } else {
-        embed.setFooter('Left');
       }
+
       {
         const description: Array<string> = [];
         description.push(`**Id**: ${Markup.codestring(userId)}`);
@@ -686,9 +877,12 @@ export function createLogPayload(
       createUserEmbed(member, embed);
       embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
       embed.setColor(EmbedColors.LOG_UPDATE);
-      embed.setFooter('Updated');
-      embed.setTimestamp(happened);
       embed.setDescription(member.mention);
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`Member Updated • ${timestamp}`);
+      }
 
       if (differences) {
         if (audits) {
@@ -697,7 +891,7 @@ export function createLogPayload(
 
           const description: Array<string> = [];
           if (!isSelf) {
-            description.push(`By <@!${moderator.id}> (${Markup.escape.all(String(moderator))})`);
+            description.push(`By ${createUserString(moderator.id, moderator)}`);
           }
 
           let reason: string | undefined;
@@ -862,6 +1056,159 @@ export function createLogPayload(
         }
       }
     }; break;
+    case ClientEvents.GUILD_ROLE_CREATE: {
+      const { cached } = event;
+      const { role } = event.payload;
+
+      embed.setColor(EmbedColors.LOG_CREATION);
+      embed.setDescription(role.mention);
+
+      embed.setAuthor(role.name);
+      if (role.color) {
+        const url = createColorUrl(role.color);
+        embed.setAuthor(role.name, url);
+      }
+
+      {
+        const description: Array<string> = [];
+
+        if (role.color) {
+          const color = intToRGB(role.color);
+          const hex = Markup.codestring(intToHex(role.color, true));
+          const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
+          description.push(`**Color**: ${hex} ${rgb}`);
+        } else {
+          description.push(`**Color**: No Color`);
+        }
+        description.push(`**Created**: ${moment(role.createdAtUnix).format(DateMomentLogFormat)}`);
+        description.push(`**Hoisted**: ${(cached.hoist) ? 'Yes' : 'No'}`);
+        description.push(`**Id**: \`${role.id}\``);
+        description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
+        description.push(`**Mentionable**: ${(cached.mentionable) ? 'Yes' : 'No'}`);
+        description.push(`**Position**: ${cached.position}`);
+
+        if (role.tags) {
+          if (role.isBoosterRole) {
+            description.push('**Type**: Booster Role');
+          } else if (role.botId) {
+            description.push(`**Type**: Bot Role (for <@${role.botId}>)`);
+          } else if (role.integrationId) {
+            description.push(`**Type**: Integration Role (${role.integrationId})`);
+          } else {
+            description.push(`**Type**: Unknown (${JSON.stringify(role.tags)})`);
+          }
+        }
+
+        embed.addField('Information', description.join('\n'));
+      }
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`Role Created • ${timestamp}`);
+      }
+    }; break;
+    case ClientEvents.GUILD_ROLE_DELETE: {
+      const { role, roleId } = event.payload;
+
+      embed.setColor(EmbedColors.LOG_DELETION);
+      embed.setDescription(`<@&${roleId}>`);
+
+      if (role) {
+        embed.setAuthor(role.name);
+        if (role.color) {
+          const url = createColorUrl(role.color);
+          embed.setAuthor(role.name, url);
+        }
+
+        {
+          const description: Array<string> = [];
+
+          if (role.color) {
+            const color = intToRGB(role.color);
+            const hex = Markup.codestring(intToHex(role.color, true));
+            const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
+            description.push(`**Color**: ${hex} ${rgb}`);
+          } else {
+            description.push(`**Color**: No Color`);
+          }
+          description.push(`**Created**: ${moment(role.createdAtUnix).format(DateMomentLogFormat)}`);
+          description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
+          description.push(`**Id**: \`${role.id}\``);
+          description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
+          description.push(`**Mentionable**: ${(role.mentionable) ? 'Yes' : 'No'}`);
+          description.push(`**Position**: ${role.position}`);
+
+          if (role.tags) {
+            if (role.isBoosterRole) {
+              description.push('**Type**: Booster Role');
+            } else if (role.botId) {
+              description.push(`**Type**: Bot Role (for <@${role.botId}>)`);
+            } else if (role.integrationId) {
+              description.push(`**Type**: Integration Role (${role.integrationId})`);
+            } else {
+              description.push(`**Type**: Unknown (${JSON.stringify(role.tags)})`);
+            }
+          }
+
+          embed.addField('Information', description.join('\n'));
+        }
+      }
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`Role Deleted • ${timestamp}`);
+      }
+    }; break;
+    case ClientEvents.GUILD_ROLE_UPDATE: {
+      const { differences, role } = event.payload;
+
+      embed.setColor(EmbedColors.LOG_UPDATE);
+      embed.setDescription(role.mention);
+
+      embed.setAuthor(role.name);
+      if (role.color) {
+        const url = createColorUrl(role.color);
+        embed.setAuthor(role.name, url);
+      }
+
+      {
+        const description: Array<string> = [];
+
+        if (role.color) {
+          const color = intToRGB(role.color);
+          const hex = Markup.codestring(intToHex(role.color, true));
+          const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
+          description.push(`**Color**: ${hex} ${rgb}`);
+        } else {
+          description.push(`**Color**: No Color`);
+        }
+        description.push(`**Created**: ${moment(role.createdAtUnix).format(DateMomentLogFormat)}`);
+        description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
+        description.push(`**Id**: \`${role.id}\``);
+        description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
+        description.push(`**Mentionable**: ${(role.mentionable) ? 'Yes' : 'No'}`);
+        description.push(`**Position**: ${role.position}`);
+
+        if (role.tags) {
+          if (role.isBoosterRole) {
+            description.push('**Type**: Booster Role');
+          } else if (role.botId) {
+            description.push(`**Type**: Bot Role (for <@${role.botId}>)`);
+          } else if (role.integrationId) {
+            description.push(`**Type**: Integration Role (${role.integrationId})`);
+          } else {
+            description.push(`**Type**: Unknown (${JSON.stringify(role.tags)})`);
+          }
+        }
+
+        embed.addField('Information', description.join('\n'));
+      }
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`Role Updated • ${timestamp}`);
+      }
+    }; break;
     /*
     case ClientEvents.MESSAGE_CREATE: {
       const { cached } = event;
@@ -905,14 +1252,17 @@ export function createLogPayload(
         embed.setAuthor('Unknown Author');
       }
       embed.setColor(EmbedColors.LOG_DELETION);
-      embed.setFooter('Deleted');
-      embed.setTimestamp(happened);
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`Deleted • ${timestamp}`);
+      }
 
       if (audits) {
         const [ audit ] = audits;
 
         const description: Array<string> = [];
-        description.push(`By <@!${audit.userId}> (${Markup.escape.all(String(audit.user))})`);
+        description.push(`By ${createUserString(audit.userId, audit.user as Structures.User)}`);
         if (audit.reason) {
           description.push(`**Reason**: ${Markup.codeblock(audit.reason)}`);
         }
@@ -993,8 +1343,11 @@ export function createLogPayload(
 
       embed.setAuthor(`${amount.toLocaleString()} Messages Deleted`);
       embed.setColor(EmbedColors.LOG_DELETION);
-      embed.setFooter('Bulk Deletion');
-      embed.setTimestamp(happened);
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`Bulk Deletion • ${timestamp}`);
+      }
 
       {
         const description: Array<string> = [
@@ -1004,14 +1357,13 @@ export function createLogPayload(
           const [ audit ] = audits;
           switch (audit.actionType) {
             case AuditLogActions.MEMBER_BAN_ADD: {
-              if (audit.target) {
-                createUserEmbed(audit.target as Structures.User, embed);
-              }
-              description.push(`Bulk Deletion of <@!${audit.targetId}> (${Markup.escape.all(String(audit.target))})'s Messages`);
-              description.push(`Banned By <@!${audit.userId}> (${Markup.escape.all(String(audit.user))})`);
+              const target = audit.target as Structures.User;
+              createUserEmbed(target, embed);
+              description.push(`Bulk Deletion of ${createUserString(audit.targetId, target)}'s Messages`);
+              description.push(`Banned By ${createUserString(audit.userId, audit.user as Structures.User)}`);
             }; break;
             case AuditLogActions.MESSAGE_BULK_DELETE: {
-              description.push(`By <@!${audit.userId}> (${Markup.escape.all(String(audit.user))})`);
+              description.push(`By ${createUserString(audit.userId, audit.user as Structures.User)}`);
             }; break;
           }
           if (audit.reason) {
@@ -1040,8 +1392,11 @@ export function createLogPayload(
         embed.setAuthor('Unknown Author');
       }
       embed.setColor(EmbedColors.LOG_UPDATE);
-      embed.setFooter('Updated');
-      embed.setTimestamp((message) ? message.editedAt || happened : happened);
+
+      {
+        const timestamp = moment(((message) ? message.editedAtUnix : happened) || happened).format(DateMomentLogFormat);
+        embed.setFooter(`Updated • ${timestamp}`);
+      }
 
       if (message) {
         if (differences) {
@@ -1090,7 +1445,6 @@ export function createLogPayload(
             // assume its the embed hiding since that's the only one that can be updated by users
             // bot messages (a webhook message) can have a flag update though
             let text: string;
-
             const hadSuppressEmbeds = (differences.flags & MessageFlags.SUPPRESS_EMBEDS) === MessageFlags.SUPPRESS_EMBEDS;
             const hasSuppressEmbeds = (cached.flags & MessageFlags.SUPPRESS_EMBEDS) === MessageFlags.SUPPRESS_EMBEDS;
             if (hadSuppressEmbeds && !hasSuppressEmbeds) {
@@ -1157,8 +1511,11 @@ export function createLogPayload(
 
       createUserEmbed(user, embed);
       embed.setColor(EmbedColors.LOG_UPDATE);
-      embed.setFooter('User Updated');
-      embed.setTimestamp(happened);
+
+      {
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`User Updated • ${timestamp}`);
+      }
 
       embed.setDescription(user.mention);
       if (differences) {
@@ -1219,27 +1576,32 @@ export function createLogPayload(
       const { differences, leftChannel, shard, voiceState } = event.payload;
 
       createUserEmbed(voiceState.member, embed);
-      embed.setColor(EmbedColors.LOG_UPDATE);
-      if (leftChannel) {
-        embed.setColor(EmbedColors.LOG_DELETION);
-        embed.setFooter('Left Voice');
-      } else if (differences) {
-        embed.setColor(EmbedColors.LOG_UPDATE);
-        if (differences.channelId && differences.sessionId) {
-          embed.setFooter('Changed Channels from a different device');
-        } else if (differences.channelId) {
-          embed.setFooter('Changed Channels');
-        } else if (differences.sessionId) {
-          embed.setFooter('Rejoined Voice from a different device');
-        } else {
-          embed.setFooter('Voice State Updated');
-        }
-      } else {
-        embed.setColor(EmbedColors.LOG_CREATION);
-        embed.setFooter('Joined Voice');
-      }
-      embed.setTimestamp(happened);
       embed.setDescription(voiceState.member.mention);
+
+      {
+        let text: string;
+        if (leftChannel) {
+          embed.setColor(EmbedColors.LOG_DELETION);
+          text = 'Left Voice';
+        } else if (differences) {
+          embed.setColor(EmbedColors.LOG_UPDATE);
+          if (differences.channelId && differences.sessionId) {
+            text = 'Changed Channels from a different device';
+          } else if (differences.channelId) {
+            text = 'Changed Channels';
+          } else if (differences.sessionId) {
+            text = 'Rejoined Voice from a different device';
+          } else {
+            text = 'Voice State Updated';
+          }
+        } else {
+          embed.setColor(EmbedColors.LOG_CREATION);
+          text = 'Joined Voice';
+        }
+
+        const timestamp = moment(happened).format(DateMomentLogFormat);
+        embed.setFooter(`${text} • ${timestamp}`);
+      }
 
       let shouldLogMuteDeaf: boolean = true;
       if (audits) {
@@ -1249,7 +1611,7 @@ export function createLogPayload(
 
         const description: Array<string> = [];
         if (!isSelf) {
-          description.push(`By <@!${audit.userId}> (${Markup.escape.all(String(audit.user))})`);
+          description.push(`By ${createUserString(audit.userId, audit.user as Structures.User)}`);
         }
         for (let [x, change] of audit.changes) {
           switch (change.key) {
@@ -1429,7 +1791,7 @@ export function findEventsForBotAdd(
   auditLog: Structures.AuditLog,
   storage: GuildLogStorage,
 ): Array<GuildLoggingEventItem> {
-  const queue = storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS);
+  const queue = storage.queues.get(GuildLoggerTypes.MEMBERS);
   if (queue) {
     return queue.filter((event) => {
       if (event.name !== ClientEvents.GUILD_MEMBER_ADD) {
@@ -1450,7 +1812,8 @@ export function findEventsForMemberBanAdd(
   storage: GuildLogStorage,
 ): Array<GuildLoggingEventItem> {
   const queues = [
-    storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS),
+    storage.queues.get(GuildLoggerTypes.BANS),
+    storage.queues.get(GuildLoggerTypes.MEMBERS),
     storage.queues.get(GuildLoggerTypes.MESSAGES),
   ];
   const events: Array<GuildLoggingEventItem> = [];
@@ -1460,6 +1823,15 @@ export function findEventsForMemberBanAdd(
     }
     for (let event of queue) {
       switch (event.name) {
+        case ClientEvents.GUILD_BAN_ADD: {
+          // if audit log was created before our event, ignore
+          if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+            continue;
+          }
+          if (event.payload.user.id === auditLog.targetId) {
+            events.push(event);
+          }
+        }; break;
         case ClientEvents.GUILD_MEMBER_REMOVE: {
           // if audit log was created before our event, ignore
           if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
@@ -1485,11 +1857,31 @@ export function findEventsForMemberBanAdd(
   return events;
 }
 
+export function findEventsForMemberBanRemove(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queue = storage.queues.get(GuildLoggerTypes.BANS);
+  if (queue) {
+    return queue.filter((event) => {
+      // if audit log was created before our event, ignore
+      if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+        return false;
+      }
+      if (event.name !== ClientEvents.GUILD_BAN_REMOVE) {
+        return false;
+      }
+      return event.payload.user.id === auditLog.targetId;
+    });
+  }
+  return [];
+}
+
 export function findEventsForMemberKick(
   auditLog: Structures.AuditLog,
   storage: GuildLogStorage,
 ): Array<GuildLoggingEventItem> {
-  const queue = storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS);
+  const queue = storage.queues.get(GuildLoggerTypes.MEMBERS);
   if (queue) {
     return queue.filter((event) => {
       // if audit log was created before our event, ignore
@@ -1509,7 +1901,7 @@ export function findEventsForMemberRoleUpdate(
   auditLog: Structures.AuditLog,
   storage: GuildLogStorage,
 ): Array<GuildLoggingEventItem> {
-  const queue = storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS);
+  const queue = storage.queues.get(GuildLoggerTypes.MEMBERS);
   if (queue) {
     return queue.filter((event) => {
       if (event.name !== ClientEvents.GUILD_MEMBER_UPDATE) {
@@ -1576,7 +1968,7 @@ export function findEventsForMemberUpdate(
   storage: GuildLogStorage,
 ): Array<GuildLoggingEventItem> {
   const queues = [
-    storage.queues.get(GuildLoggerTypes.GUILD_MEMBERS),
+    storage.queues.get(GuildLoggerTypes.MEMBERS),
     storage.queues.get(GuildLoggerTypes.VOICE),
   ];
   const events: Array<GuildLoggingEventItem> = [];

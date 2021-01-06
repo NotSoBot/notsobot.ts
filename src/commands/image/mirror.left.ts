@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageMirrorLeft } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -15,19 +15,25 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class MirrorLeftCommand extends BaseImageCommand<CommandArgs> {
-  name = 'mirror left';
+export const COMMAND_NAME = 'mirror left';
 
-  aliases = ['waaw'];
-  metadata = {
-    description: 'Mirror left half of image',
-    examples: [
-      'waaw',
-      'waaw cake',
-    ],
-    type: CommandTypes.IMAGE,
-    usage: 'waaw ?<emoji|id|mention|name|url>',
-  };
+export default class MirrorLeftCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['waaw'],
+      metadata: {
+        description: 'Mirror left half of image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageMirrorLeft(context, {url: args.url});

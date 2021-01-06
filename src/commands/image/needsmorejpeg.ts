@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageJPEG } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -17,23 +17,29 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class NeedsMoreJPEGCommand extends BaseImageCommand<CommandArgs> {
-  name = 'needsmorejpeg';
+export const COMMAND_NAME = 'needsmorejpeg';
 
-  aliases = ['nmj', 'jpeg'];
-  args = [
-    {aliases: ['q'], name: 'quality', type: Number},
-  ];
-  metadata = {
-    description: 'Needs More JPEG',
-    examples: [
-      'needsmorejpeg',
-      'needsmorejpeg cake',
-      'needsmorejpeg cake -quality 20',
-    ],
-    type: CommandTypes.IMAGE,
-    usage: 'needsmorejpeg ?<emoji|id|mention|name|url> (-quality <number>)',
-  };
+export default class NeedsMoreJPEGCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['nmj', 'jpeg'],
+      args: [
+        {aliases: ['q'], name: 'quality', type: Number},
+      ],
+      metadata: {
+        description: 'Needs More JPEG',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -quality 20`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-quality <number>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageJPEG(context, args);

@@ -3,7 +3,7 @@ import * as moment from 'moment';
 import { Command } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { youtubeSearch } from '../../api';
+import { searchYoutube } from '../../api';
 import {
   CommandTypes,
   DateMomentOptions,
@@ -39,7 +39,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { results, total_result_count: totalResultCount } = await youtubeSearch(context, args);
+    const { results, total_result_count: totalResultCount } = await searchYoutube(context, args);
     if (results.length) {
       const pageLimit = results.length;
       const paginator = new Paginator(context, {

@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
@@ -12,18 +12,26 @@ export interface CommandArgs {
 
 }
 
-export default class TagCommand extends BaseCommand {
-  name = 'tag';
+export const COMMAND_NAME = 'tag';
 
-  metadata = {
-    description: 'Show a tag',
-    examples: [
-      'tag some tag',
-    ],
-    type: CommandTypes.FUN,
-    usage: 'tag <...tagname>',
-  };
-  priority = -1;
+export default class TagCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['t'],
+      metadata: {
+        description: 'Show a tag',
+        examples: [
+          `${COMMAND_NAME} something`,
+          `${COMMAND_NAME} "some tag"`,
+        ],
+        type: CommandTypes.FUN,
+        usage: `${COMMAND_NAME} <...tagname>`,
+      },
+      priority: -1,
+    });
+  }
 
   run(context: Command.Context, args: CommandArgs) {
 

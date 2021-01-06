@@ -10,7 +10,7 @@ import { BaseCommand } from '../basecommand';
 
 
 
-async function reloadCommands(
+async function refreshCommands(
   cluster: ClusterClient,
   refreshStores: boolean,
   LIB_PATH: string,
@@ -45,7 +45,10 @@ async function reloadCommands(
         const { default: newStore } = newStoreModule;
 
         // set the cache back to the old store
-        require.cache[key].exports = oldStoreModule;
+        const oldCache = require.cache[key];
+        if (oldCache) {
+          oldCache.exports = oldStoreModule;
+        }
 
         // set the old store's functions to the new store's
         for (let key of Object.getOwnPropertyNames(newStore.constructor.prototype)) {
@@ -73,20 +76,29 @@ export interface CommandArgs {
   stores: boolean,
 }
 
-export default class ReloadCommand extends BaseCommand {
-  aliases = ['refresh'];
-  name = 'reload';
+export const COMMAND_NAME = 'refresh';
 
-  args = [
-    {name: 'stores', type: Boolean},
-  ];
-  metadata = {
-    description: 'Reload the bot\'s commands.',
-    examples: ['refresh', 'refresh -stores'],
-    type: CommandTypes.OWNER,
-    usage: 'refresh',
-  };
-  responseOptional = true;
+export default class RefreshCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['reload'],
+      args: [
+        {name: 'stores', type: Boolean},
+      ],
+      metadata: {
+        description: 'Reload the bot\'s commands.',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} -stores`,
+        ],
+        type: CommandTypes.OWNER,
+        usage: COMMAND_NAME,
+      },
+      responseOptional: true,
+    });
+  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;
@@ -97,7 +109,7 @@ export default class ReloadCommand extends BaseCommand {
       return context.editOrReply('no cluster manager found');
     }
     const message = await context.editOrReply('ok, refreshing...');
-    const shardIds = await context.manager.broadcastEval(reloadCommands, args.stores, DIRECTORY);
+    const shardIds = await context.manager.broadcastEval(refreshCommands, args.stores, DIRECTORY);
 
     const error = shardIds.find((shardId: any) => shardId instanceof Error);
     if (error) {

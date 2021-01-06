@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
@@ -12,18 +12,24 @@ export interface CommandArgs {
   text: string,
 }
 
-export default class RegionalCommand extends BaseCommand {
-  name = 'regional';
+export const COMMAND_NAME = 'regional';
 
-  label = 'text';
-  metadata = {
-    description: 'Convert text to regional emojis',
-    examples: [
-      'regional lol',
-    ],
-    type: CommandTypes.FUN,
-    usage: 'regional <text>',
-  };
+export default class RegionalCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      label: 'text',
+      metadata: {
+        description: 'Convert text to regional emojis',
+        examples: [
+          `${COMMAND_NAME} lol`,
+        ],
+        type: CommandTypes.FUN,
+        usage: `${COMMAND_NAME} <text>`,
+      },
+    });
+  }
 
   run(context: Command.Context, args: CommandArgs) {
 

@@ -22,8 +22,8 @@ if (SENTRY_DSN) {
 
 // since we're on the thicc bot system, we need to have the shard count divisible by 16
 const manager = new ClusterManager('./bot', NOTSOBOT_DISCORD_TOKEN, {
-  shardCount: 20 * 16,
-  shardsPerCluster: 8,
+  shardCount: 24 * 16,
+  shardsPerCluster: 12,
 //  shards: [145, 145],
 });
 

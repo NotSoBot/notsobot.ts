@@ -63,21 +63,21 @@ export default class UrbanCommand extends BaseSearchCommand<CommandArgs> {
           embed.setTitle(result.word);
           embed.setUrl(result.permalink);
 
-          const definition = result.definition.replace(ReplacementRegex, (found: string, word: string) => {
+          const definition = Markup.escape.all(result.definition).replace(ReplacementRegex, (found: string, word: string) => {
             const url = addQuery(UrbanUrl, {term: word});
             return Markup.url(word, url);
           });
           embed.setDescription([
             `Created by ${Markup.escape.all(result.author)} on ${created.toLocaleString('en-US', DateOptions)}`,
             `${result.thumbs_up.toLocaleString()} Likes, ${result.thumbs_down.toLocaleString()} Dislikes`,
-            '\n' + Markup.escape.all(definition),
+            '\n' + definition,
           ].join('\n'));
 
-          const example = result.example.replace(ReplacementRegex, (found: string, word: string) => {
+          const example = Markup.escape.all(result.example).replace(ReplacementRegex, (found: string, word: string) => {
             const url = addQuery(UrbanUrl, {term: word});
             return Markup.url(word, url);
           });
-          embed.addField('Example', Markup.escape.all(example));
+          embed.addField('Example', example);
           embed.setFooter(`Page ${page}/${pageLimit} of Urban Dictionary Results`, EmbedBrands.URBAN);
 
           return embed;

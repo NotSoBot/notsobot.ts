@@ -118,7 +118,7 @@ export async function createGuildLogger(
 ): Promise<RestResponsesRaw.CreateGuildLogger> {
   const body = {
     channel_id: options.channelId,
-    logger_type: options.loggerType,
+    type: options.type,
     webhook_id: options.webhookId,
     webhook_token: options.webhookToken,
   };
@@ -237,7 +237,7 @@ export async function deleteGuildLogger(
 ): Promise<RestResponsesRaw.DeleteGuildLogger> {
   const body = {
     channel_id: options.channelId,
-    logger_type: options.loggerType,
+    type: options.type,
   };
   const params = {guildId};
   return request(context, {
@@ -355,47 +355,6 @@ export async function googleContentVisionOCR(
 }
 
 
-export async function googleSearch(
-  context: RequestContext,
-  options: RestOptions.GoogleSearch,
-): Promise<RestResponsesRaw.GoogleSearch> {
-  const query = {
-    locale: options.locale,
-    max_results: options.maxResults,
-    query: options.query,
-    safe: options.safe,
-    show_unknown: options.showUnknown,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.GOOGLE_SEARCH,
-    },
-  });
-}
-
-
-export async function googleSearchImages(
-  context: RequestContext,
-  options: RestOptions.GoogleSearchImages,
-): Promise<RestResponsesRaw.GoogleSearchImages> {
-  const query = {
-    locale: options.locale,
-    max_results: options.maxResults,
-    query: options.query,
-    safe: options.safe,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.GOOGLE_SEARCH_IMAGES,
-    },
-  });
-}
-
-
 export async function googleTranslate(
   context: RequestContext,
   options: RestOptions.GoogleTranslate,
@@ -420,6 +379,7 @@ export async function imageDeepfry(
   options: RestOptions.ImageDeepfry,
 ): Promise<Response> {
   const query = {
+    scale: options.scale,
     url: options.url,
   };
   return request(context, {
@@ -428,6 +388,25 @@ export async function imageDeepfry(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_DEEPFRY,
+    },
+  });
+}
+
+
+export async function imageDeepfryGif(
+  context: RequestContext,
+  options: RestOptions.ImageDeepfry,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_DEEPFRY_GIF,
     },
   });
 }
@@ -471,6 +450,48 @@ export async function imageEyes(
 }
 
 
+export async function imageGlitch(
+  context: RequestContext,
+  options: RestOptions.ImageGlitch,
+): Promise<Response> {
+  const query = {
+    amount: options.amount,
+    iterations: options.iterations,
+    seed: options.seed,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_GLITCH,
+    },
+  });
+}
+
+
+export async function imageGlitchGif(
+  context: RequestContext,
+  options: RestOptions.ImageGlitch,
+): Promise<Response> {
+  const query = {
+    amount: options.amount,
+    iterations: options.iterations,
+    seed: options.seed,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_GLITCH_GIF,
+    },
+  });
+}
+
+
 export async function imageImplode(
   context: RequestContext,
   options: RestOptions.ImageImplode,
@@ -492,7 +513,7 @@ export async function imageImplode(
 
 export async function imageInvert(
   context: RequestContext,
-  options: RestOptions.ImageInvert,
+  options: RestOptions.ImageBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -568,9 +589,10 @@ export async function imageMagik(
 
 export async function imageMagikGif(
   context: RequestContext,
-  options: RestOptions.ImageMagikGif,
+  options: RestOptions.ImageMagik,
 ): Promise<Response> {
   const query = {
+    scale: options.scale,
     url: options.url,
   };
   return request(context, {
@@ -606,7 +628,7 @@ export async function imageMeme(
 
 export async function imageMirrorBottom(
   context: RequestContext,
-  options: RestOptions.ImageMirrorBottom,
+  options: RestOptions.ImageBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -624,7 +646,7 @@ export async function imageMirrorBottom(
 
 export async function imageMirrorLeft(
   context: RequestContext,
-  options: RestOptions.ImageMirrorLeft,
+  options: RestOptions.ImageBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -642,7 +664,7 @@ export async function imageMirrorLeft(
 
 export async function imageMirrorRight(
   context: RequestContext,
-  options: RestOptions.ImageMirrorRight,
+  options: RestOptions.ImageBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -660,7 +682,7 @@ export async function imageMirrorRight(
 
 export async function imageMirrorTop(
   context: RequestContext,
-  options: RestOptions.ImageMirrorTop,
+  options: RestOptions.ImageBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -671,6 +693,43 @@ export async function imageMirrorTop(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_MIRROR_TOP,
+    },
+  });
+}
+
+
+export async function imageOverlayGay(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_GAY,
+    },
+  });
+}
+
+
+export async function imagePixelate(
+  context: RequestContext,
+  options: RestOptions.ImagePixelate,
+): Promise<Response> {
+  const query = {
+    pixel_width: options.pixelWidth,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_PIXELATE,
     },
   });
 }
@@ -692,6 +751,61 @@ export async function imageResize(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_RESIZE,
+    },
+  });
+}
+
+
+export async function imageSharpen(
+  context: RequestContext,
+  options: RestOptions.ImageSharpen,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_SHARPEN,
+    },
+  });
+}
+
+
+export async function imageSpin(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_SPIN,
+    },
+  });
+}
+
+
+export async function imageWall(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_WALL,
     },
   });
 }
@@ -808,6 +922,47 @@ export async function searchE926(
 }
 
 
+export async function searchGoogle(
+  context: RequestContext,
+  options: RestOptions.SearchGoogle,
+): Promise<RestResponsesRaw.SearchGoogle> {
+  const query = {
+    locale: options.locale,
+    max_results: options.maxResults,
+    query: options.query,
+    safe: options.safe,
+    show_unknown: options.showUnknown,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_GOOGLE,
+    },
+  });
+}
+
+
+export async function searchGoogleImages(
+  context: RequestContext,
+  options: RestOptions.SearchGoogleImages,
+): Promise<RestResponsesRaw.SearchGoogleImages> {
+  const query = {
+    locale: options.locale,
+    max_results: options.maxResults,
+    query: options.query,
+    safe: options.safe,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_GOOGLE_IMAGES,
+    },
+  });
+}
+
+
 export async function searchRule34(
   context: RequestContext,
   options: RestOptions.SearchRule34,
@@ -872,6 +1027,36 @@ export async function searchUrbanRandom(
 }
 
 
+export async function searchWikihow(
+  context: RequestContext,
+  options: RestOptions.SearchWikihow,
+): Promise<RestResponsesRaw.SearchWikihow> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_WIKIHOW,
+    },
+  });
+}
+
+
+export async function searchWikihowRandom(
+  context: RequestContext,
+  options: RestOptions.SearchWikihowRandom = {},
+): Promise<RestResponsesRaw.SearchWikihowRandom> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_WIKIHOW_RANDOM,
+    },
+  });
+}
+
+
 export async function searchWolframAlpha(
   context: RequestContext,
   options: RestOptions.SearchWolframAlpha,
@@ -889,6 +1074,23 @@ export async function searchWolframAlpha(
 }
 
 
+export async function searchYoutube(
+  context: RequestContext,
+  options: RestOptions.SearchYoutube,
+): Promise<RestResponsesRaw.SearchYoutube> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_YOUTUBE,
+    },
+  });
+}
+
+
 export async function uploadCommands(
   context: RequestContext,
   options: RestOptions.UploadCommands,
@@ -901,23 +1103,6 @@ export async function uploadCommands(
     route: {
       method: HTTPMethods.PUT,
       path: Api.COMMANDS,
-    },
-  });
-}
-
-
-export async function youtubeSearch(
-  context: RequestContext,
-  options: RestOptions.YoutubeSearch,
-): Promise<RestResponsesRaw.YoutubeSearch> {
-  const query = {
-    query: options.query,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.YOUTUBE_SEARCH,
     },
   });
 }

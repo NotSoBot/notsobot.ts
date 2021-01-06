@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { imageResize } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -21,26 +21,33 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
-  name = 'resize';
+export const COMMAND_NAME = 'resize';
 
-  aliases = ['enlarge', 'rescale'];
-  args = [
-    {name: 'convert'},
-    {name: 'scale', default: 2, type: 'float'},
-    {name: 'size'},
-  ];
-  metadata = {
-    examples: [
-      'resize',
-      'resize cake',
-      'resize <@439205512425504771> -convert jpeg',
-      'resize 👌🏿 -scale 2',
-      'resize https://cdn.notsobot.com/brands/notsobot.png -convert webp -size 2048',
-    ],
-    type: CommandTypes.IMAGE,
-    usage: 'resize ?<emoji|id|mention|name|url> (-convert <format>) (-scale <number>) (-size <number>)',
-  };
+export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['enlarge', 'rescale'],
+      args: [
+        {name: 'convert'},
+        {name: 'scale', default: 2, type: 'float'},
+        {name: 'size'},
+      ],
+      metadata: {
+        description: 'Resize an image',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -convert jpeg`,
+          `${COMMAND_NAME} 👌🏿 -scale 2`,
+          `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -convert webp -size 2048`,
+        ],
+        type: CommandTypes.IMAGE,
+        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-convert <format>) (-scale <number>) (-size <number>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageResize(context, args);
