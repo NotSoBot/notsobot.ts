@@ -24,29 +24,36 @@ export interface CommandArgs {
   users: Array<Structures.Member | Structures.User>,
 }
 
-export default class UsersCommand extends BaseCommand {
-  aliases = ['members'];
-  name = 'users';
 
-  args = [
-    {name: 'botsonly', type: Boolean},
-  ];
-  default = DefaultParameters.members;
-  label = 'users';
-  metadata = {
-    description: 'Get information about multiple members/users',
-    examples: [
-      'users',
-      'users -botsonly',
-      'users cake',
-      'users cake#1',
-      'users <@300505364032389122> <@439205512425504771>',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'users ...?<id|mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.membersOrUsers();
+export const COMMAND_NAME = 'users';
+
+export default class UsersCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['members'],
+      args: [
+        {name: 'botsonly', type: Boolean},
+      ],
+      default: DefaultParameters.members,
+      label: 'users',
+      metadata: {
+        description: 'Get information about multiple members/users',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} -botsonly`,
+          `${COMMAND_NAME} cake`,
+          `${COMMAND_NAME} cake#1`,
+          `${COMMAND_NAME} <@300505364032389122> <@439205512425504771>`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ...?<user:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.memberOrUser(),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.users.length;

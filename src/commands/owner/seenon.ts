@@ -1,13 +1,10 @@
-import { ClusterClient, Command, Structures } from 'detritus-client';
+import { ClusterClient, Command, CommandClient, Structures } from 'detritus-client';
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 
 import { Endpoints } from 'detritus-client-rest';
 
-import {
-  CommandTypes,
-  DateOptions,
-} from '../../constants';
+import { CommandTypes, DateOptions } from '../../constants';
 import { DefaultParameters, Paginator, Parameters, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -88,24 +85,31 @@ async function getSharedGuilds(value: string, context: Command.Context): Promise
   return {results, user};
 }
 
-export default class SeenOnCommand extends BaseCommand {
-  name = 'seenon';
 
-  default = (context: Command.Context) => context.userId;
-  label = 'payload';
-  metadata = {
-    description: 'Get guilds a user shares with NotSoBot.',
-    examples: [
-      'seenon',
-      'seeon cake',
-      'seeon cake#1',
-      'seeon <@439205512425504771>',
-    ],
-    type: CommandTypes.OWNER,
-    usage: 'seenon ?<id|mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  type = getSharedGuilds;
+export const COMMAND_NAME = 'seenon';
+
+export default class SeenOnCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      default: (context: Command.Context) => context.userId,
+      label: 'payload',
+      metadata: {
+        description: 'Get guilds a user shares with NotSoBot',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} cake`,
+          `${COMMAND_NAME} cake#1`,
+          `${COMMAND_NAME} <@439205512425504771>`,
+        ],
+        type: CommandTypes.OWNER,
+        usage: `${COMMAND_NAME} ?<user:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: getSharedGuilds,
+    });
+  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

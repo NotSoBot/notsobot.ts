@@ -1,4 +1,5 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, PresenceStatusColors } from '../../constants';
 import { DefaultParameters, Parameters, createUserEmbed } from '../../utils';
@@ -14,21 +15,29 @@ export interface CommandArgs {
   user: Structures.Member | Structures.User,
 }
 
-export default class AvatarCommand extends BaseCommand {
-  name = 'avatar';
 
-  default = DefaultParameters.author;
-  label = 'user';
-  metadata = {
-    description: 'Get the avatar for a user, defaults to self',
-    examples: [
-      'user',
-      'user notsobot',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'user ?<id|mention|name>',
-  };
-  type = Parameters.memberOrUser();
+export const COMMAND_NAME = 'avatar';
+
+export default class AvatarCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      default: DefaultParameters.author,
+      label: 'user',
+      metadata: {
+        description: 'Get the avatar for a user, defaults to self',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ?<user:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.memberOrUser(),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.user;

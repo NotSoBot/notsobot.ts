@@ -29,7 +29,7 @@ export default class ReverseSearchCommand extends BaseSearchCommand<CommandArgs>
       'reversesearch notsobot',
     ],
     type: CommandTypes.SEARCH,
-    usage: 'reversesearch ?<emoji|id|mention|name|url> (-locale <language>) (-safe)',
+    usage: 'reversesearch ?<emoji,user:id|mention|name,url> (-locale <language>) (-safe)',
   };
 
   async run(context: Command.Context, args: CommandArgs) {

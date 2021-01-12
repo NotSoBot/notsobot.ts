@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { uploadCommands } from '../../api';
 import { CommandTypes } from '../../constants';
@@ -6,15 +6,23 @@ import { CommandTypes } from '../../constants';
 import { BaseCommand, CommandMetadata } from '../basecommand';
 
 
-export default class UploadCommandsCommand extends BaseCommand {
-  name = 'upload-commands';
+export const COMMAND_NAME = 'upload-commands';
 
-  metadata = {
-    description: 'Upload the bot\'s command information to the website',
-    examples: ['upload-commands'],
-    type: CommandTypes.OWNER,
-    usage: 'upload-commands',
-  };
+export default class UploadCommandsCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Upload the bot\'s command information to the website',
+        examples: [
+          COMMAND_NAME,
+        ],
+        type: CommandTypes.OWNER,
+        usage: `${COMMAND_NAME}`,
+      },
+    });
+  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

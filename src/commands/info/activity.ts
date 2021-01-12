@@ -28,23 +28,30 @@ export interface CommandArgs {
   user: Structures.Member | Structures.User,
 }
 
-export default class ActivityCommand extends BaseCommand {
-  aliases = ['presence'];
-  name = 'activity';
 
-  default = DefaultParameters.author;
-  label = 'user';
-  metadata = {
-    description: 'Get a user\'s current activity, defaults to self',
-    examples: [
-      'activity',
-      'activity notsobot',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'activity ?<id|mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.memberOrUser();
+export const COMMAND_NAME = 'activity';
+
+export default class ActivityCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['presence'],
+      default: DefaultParameters.author,
+      label: 'user',
+      metadata: {
+        description: 'Get a user\'s current activity, defaults to self',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ?<user:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.memberOrUser(),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.user;

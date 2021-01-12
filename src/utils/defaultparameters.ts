@@ -34,3 +34,11 @@ export async function members(context: Context) {
   }
   return [context.member || context.user];
 }
+
+
+export function noEmbed(context: Context) {
+  if (context.channel) {
+    return !context.channel.canEmbedLinks;
+  }
+  return true;
+}

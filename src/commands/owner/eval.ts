@@ -1,7 +1,8 @@
-import { Command, Constants, Utils } from 'detritus-client';
+import { Command, CommandClient, Constants, Utils } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
+import { DefaultParameters, Parameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -18,33 +19,34 @@ export interface CommandArgs {
   upload: boolean,
 }
 
-export default class EvalCommand extends BaseCommand {
-  name = 'eval';
 
-  args = [
-    {name: 'async', type: Boolean},
-    {name: 'jsonspacing', default: 2, type: Number},
-    {name: 'noembed', default: (context: Command.Context) => !!(context.channel && !context.channel.canEmbedLinks), type: () => true},
-    {name: 'noreply', type: Boolean},
-    {name: 'files.gg', label: 'upload', type: Boolean},
-  ];
-  label = 'code';
-  metadata = {
-    description: 'Eval some code',
-    examples: [
-      'eval context.client.token',
-    ],
-    type: CommandTypes.OWNER,
-    usage: 'eval <code> (-jsonspacing <number>) (-noembed) (-noreply) (-files.gg)',
-  };
-  responseOptional = true;
-  type = (value: string) => {
-    const { matches } = Utils.regex(Constants.DiscordRegexNames.TEXT_CODEBLOCK, value) as {matches: Array<{text: string}>};
-    if (matches.length) {
-      return matches[0].text;
-    }
-    return value;
-  };
+export const COMMAND_NAME = 'eval';
+
+export default class EvalCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {name: 'async', type: Boolean},
+        {name: 'jsonspacing', default: 2, type: Number},
+        {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
+        {name: 'noreply', type: Boolean},
+        {name: 'upload', aliases: ['files.gg'], type: Boolean},
+      ],
+      label: 'code',
+      metadata: {
+        description: 'Eval some code ;)',
+        examples: [
+          `${COMMAND_NAME} context.client.token`,
+        ],
+        type: CommandTypes.OWNER,
+        usage: `${COMMAND_NAME} <code> (-async) (-jsonspacing <number>) (-noembed) (-noreply) (-upload)`,
+      },
+      responseOptional: true,
+      type: Parameters.codeblock,
+    });
+  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

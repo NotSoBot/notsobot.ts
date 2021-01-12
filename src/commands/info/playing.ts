@@ -22,23 +22,30 @@ export interface CommandArgs {
   applications: Array<Structures.Application>,
 }
 
-export default class PlayingCommand extends BaseCommand {
-  aliases = ['membersplaying'];
-  name = 'playing';
 
-  disableDm = true;
-  label = 'applications';
-  metadata = {
-    description: 'List users in the current server that is playing a certain game.',
-    examples: [
-      'playing rust',
-      'playing 356888738724446208',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'playing ?<id|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.applications;
+export const COMMAND_NAME = 'playing';
+
+export default class PlayingCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['membersplaying'],
+      disableDm: true,
+      label: 'applications',
+      metadata: {
+        description: 'List users in the current server that is playing a certain game.',
+        examples: [
+          `${COMMAND_NAME} rust`,
+          `${COMMAND_NAME} 356888738724446208`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ?<application:id|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.applications,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.applications.length;

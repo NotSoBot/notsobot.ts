@@ -22,6 +22,70 @@ import {
 } from './tools';
 
 
+export interface BanPayloadOptions {
+  membersOnly?: boolean,
+}
+
+export interface BanPayload {
+  membersOrUsers: Array<Structures.Member | Structures.User>,
+  notFound: Array<string>,
+  text: string,
+}
+
+export interface BanPayloadMembersOnly {
+  membersOrUsers: Array<Structures.Member>,
+  notFound: Array<string>,
+  text: string,
+}
+
+export function banPayload(
+  options: BanPayloadOptions = {},
+) {
+  return async (value: string, context: Command.Context): Promise<BanPayload> => {
+    const membersOrUsers = new Collections.BaseCollection<string, Structures.Member | Structures.User>();
+    const notFound: Array<string> = [];
+    if (value) {
+      let stillSearching = true;
+      while (stillSearching) {
+        const index = value.indexOf(' ');
+        const text = value.slice(0, (index === -1) ? value.length : index);
+        value = value.slice(text.length);
+
+        let searchValue = text;
+        {
+          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, searchValue) as {matches: Array<{id: string}>};
+          if (matches.length) {
+            const { id: userId } = matches[0];
+            if (isSnowflake(userId)) {
+              searchValue = userId;
+            }
+          }
+        }
+
+        if (isSnowflake(searchValue)) {
+          value = value.trim();
+          if (membersOrUsers.has(searchValue)) {
+            continue;
+          }
+
+          const member = await fetchMemberOrUserById(context, searchValue, options.membersOnly);
+          if (member) {
+            membersOrUsers.set(member.id, member);
+          } else {
+            notFound.push(text);
+          }
+        } else {
+          // stop the search since we got to a non-mention or non-id
+          stillSearching = false;
+          value = text + value;
+        }
+      }
+    }
+    return {membersOrUsers: membersOrUsers.toArray(), notFound, text: value};
+  }
+}
+
+
 export interface ChannelMetadata {
   channel?: Structures.Channel | null,
   channels: GuildChannelsStored,
@@ -93,71 +157,6 @@ export async function channelMetadata(
   }
 
   return payload;
-}
-
-
-
-export interface BanPayloadOptions {
-  membersOnly?: boolean,
-}
-
-export interface BanPayload {
-  membersOrUsers: Array<Structures.Member | Structures.User>,
-  notFound: Array<string>,
-  text: string,
-}
-
-export interface BanPayloadMembersOnly {
-  membersOrUsers: Array<Structures.Member>,
-  notFound: Array<string>,
-  text: string,
-}
-
-export function banPayload(
-  options: BanPayloadOptions = {},
-) {
-  return async (value: string, context: Command.Context): Promise<BanPayload> => {
-    const membersOrUsers = new Collections.BaseCollection<string, Structures.Member | Structures.User>();
-    const notFound: Array<string> = [];
-    if (value) {
-      let stillSearching = true;
-      while (stillSearching) {
-        const index = value.indexOf(' ');
-        const text = value.slice(0, (index === -1) ? value.length : index);
-        value = value.slice(text.length);
-
-        let searchValue = text;
-        {
-          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, searchValue) as {matches: Array<{id: string}>};
-          if (matches.length) {
-            const { id: userId } = matches[0];
-            if (isSnowflake(userId)) {
-              searchValue = userId;
-            }
-          }
-        }
-
-        if (isSnowflake(searchValue)) {
-          value = value.trim();
-          if (membersOrUsers.has(searchValue)) {
-            continue;
-          }
-
-          const member = await fetchMemberOrUserById(context, searchValue, options.membersOnly);
-          if (member) {
-            membersOrUsers.set(member.id, member);
-          } else {
-            notFound.push(text);
-          }
-        } else {
-          // stop the search since we got to a non-mention or non-id
-          stillSearching = false;
-          value = text + value;
-        }
-      }
-    }
-    return {membersOrUsers: membersOrUsers.toArray(), notFound, text: value};
-  }
 }
 
 
@@ -721,6 +720,18 @@ export function roles(
 
 /* ----- Values ----- */
 
+
+export function codeblock(
+  value: string,
+): string {
+  const { matches } = discordRegex(DiscordRegexNames.TEXT_CODEBLOCK, value) as {matches: Array<{text: string}>};
+  if (matches.length) {
+    return matches[0].text;
+  }
+  return value;
+}
+
+
 export function days(
   value: string,
   context: Command.Context,
@@ -733,6 +744,19 @@ export function days(
   }
   return days;
 }
+
+export function percentage(
+  value: string,
+  context: Command.Context,
+): number {
+  value = value.replace(/%/g, '');
+  const percentage = parseFloat(value);
+  if (isNaN(percentage)) {
+    return percentage;
+  }
+  return Math.max(0, Math.min(percentage / 100));
+}
+
 
 export function seconds(
   value: string,
@@ -753,18 +777,6 @@ export function seconds(
     }
     throw error;
   }
-}
-
-export function percentage(
-  value: string,
-  context: Command.Context,
-): number {
-  value = value.replace(/%/g, '');
-  const percentage = parseFloat(value);
-  if (isNaN(percentage)) {
-    return percentage;
-  }
-  return Math.max(0, Math.min(percentage / 100));
 }
 
 

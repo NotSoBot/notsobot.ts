@@ -35,7 +35,7 @@ export default class SharpenCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-scale <float>)`,
+        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url> (-scale <float>)`,
       },
     });
   }

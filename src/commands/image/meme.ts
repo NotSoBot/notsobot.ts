@@ -31,7 +31,7 @@ export default class MemeCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot what an idiot | lmao`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} <emoji|id|mention|name|url> <...text>`,
+        usage: `${COMMAND_NAME} <emoji,user:id|mention|name,url> <...text>`,
       },
       type: [
         {name: 'url', required: true, type: Parameters.lastImageUrl},

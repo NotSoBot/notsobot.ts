@@ -1,5 +1,5 @@
 import { Collections, Command, CommandClient, Structures } from 'detritus-client';
-import { Colors } from 'detritus-client/lib/constants';
+import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
@@ -32,20 +32,28 @@ export interface CommandArgs {
   },
 }
 
-export default class GuildIconCommand extends BaseCommand {
-  name = 'guildicon';
 
-  label = 'payload';
-  metadata = {
-    description: 'Get the icon for a guild, defaults to the current guild',
-    examples: [
-      'guildicon',
-      'guildicon 178313653177548800',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'guildicon ?<id>',
-  };
-  type = Parameters.guildMetadata;
+export const COMMAND_NAME = 'guildicon';
+
+export default class GuildIconCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      label: 'payload',
+      metadata: {
+        description: 'Get the icon for a guild, defaults to the current guild',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} 178313653177548800`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ?<guild:id>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.guildMetadata,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.payload.guild;

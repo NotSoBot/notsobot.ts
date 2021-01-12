@@ -40,22 +40,29 @@ export interface CommandArgs {
   },
 }
 
-export default class GuildCommand extends BaseCommand {
-  aliases = ['guildinfo', 'server', 'serverinfo'];
-  name = 'guild';
 
-  label = 'payload';
-  metadata = {
-    description: 'Get information for a guild, defaults to the current guild',
-    examples: [
-      'guild',
-      'guild 178313653177548800',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'guild ?<id>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.guildMetadata;
+export const COMMAND_NAME = 'guild';
+
+export default class GuildCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['guildinfo', 'server', 'serverinfo'],
+      label: 'payload',
+      metadata: {
+        description: 'Get information for a guild, defaults to the current guild',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} 178313653177548800`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ?<guild:id>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.guildMetadata,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.payload.guild;

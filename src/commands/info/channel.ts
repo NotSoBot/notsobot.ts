@@ -1,4 +1,4 @@
-import { Command, CommandClient, Constants, Structures, Utils } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
@@ -25,22 +25,30 @@ export interface CommandArgs {
   },
 }
 
-export default class ChannelCommand extends BaseCommand {
-  aliases = ['channelinfo'];
-  name = 'channel';
 
-  label = 'payload';
-  metadata = {
-    description: 'Get information for a channel, defaults to the current channel',
-    examples: [
-      'channel',
-      'channel 585639594574217232',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'channel ?<id|mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.channelMetadata;
+export const COMMAND_NAME = 'channel';
+
+export default class ChannelCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['channelinfo'],
+      label: 'payload',
+      metadata: {
+        description: 'Get information for a channel, defaults to the current channel',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} lobby`,
+          `${COMMAND_NAME} 585639594574217232`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ?<channel:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.channelMetadata,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.payload.channel;

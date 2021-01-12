@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
@@ -24,39 +24,47 @@ export interface CommandMetadata {
   usage: string,
 }
 
+
+export const COMMAND_NAME = 'help';
+
 export default class HelpCommand extends BaseCommand {
-  name = 'help';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  label = 'commands';
-  metadata = {
-    description: 'HELP!',
-    examples: [
-      'help',
-      'help google',
-    ],
-    type: CommandTypes.UTILS,
-    usage: 'help ?<command>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  type = (content: string, context: Command.Context) => {
-    if (content) {
-      const commands: Array<Command.Command> = [];
-
-      const insensitive = content.toLowerCase().replace(/\s\s+/g, ' ');
-      for (let command of context.commandClient.commands) {
-        for (let name of command.names) {
-          if (name.startsWith(insensitive)) {
-            commands.push(command);
-            break;
+      label: 'commands',
+      metadata: {
+        description: 'Help!',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} google`,
+          `${COMMAND_NAME} loggers`,
+        ],
+        type: CommandTypes.UTILS,
+        usage: `${COMMAND_NAME} ?<command:name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: (content: string, context: Command.Context) => {
+        if (content) {
+          const commands: Array<Command.Command> = [];
+    
+          const insensitive = content.toLowerCase().replace(/\s\s+/g, ' ');
+          for (let command of context.commandClient.commands) {
+            for (let name of command.names) {
+              if (name.startsWith(insensitive)) {
+                commands.push(command);
+                break;
+              }
+            }
           }
+          return commands.sort((x, y) => {
+            return x.name.localeCompare(y.name);
+          });
         }
-      }
-      return commands.sort((x, y) => {
-        return x.name.localeCompare(y.name);
-      });
-    }
-    return null;
-  };
+        return null;
+      },
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.commands && !!args.commands.length;

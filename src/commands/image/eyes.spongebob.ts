@@ -31,7 +31,7 @@ export default class EyesCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url>`,
+        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url>`,
       },
     });
   }

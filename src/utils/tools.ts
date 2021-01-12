@@ -432,7 +432,7 @@ export async function imageReply(
     framesOld: +(response.headers.get('x-frames-old') || 0),
     height: +(response.headers.get('x-dimensions-height') || 0),
     mimetype: response.headers.get('content-type') || undefined,
-    size: +(response.headers.get('content-length') || 0),
+    size: +(response.headers.get('x-file-size') || 0),
     took: +(response.headers.get('x-took') || 0),
     width: +(response.headers.get('x-dimensions-width') || 0),
   });

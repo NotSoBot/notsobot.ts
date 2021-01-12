@@ -2,7 +2,7 @@ import * as moment from 'moment';
 
 import { ClusterClient, Command, CommandClient, Structures } from 'detritus-client';
 import { Colors, Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, DateOptions } from '../../constants';
 import { Paginator, createUserEmbed, isSnowflake, splitArray } from '../../utils';
@@ -57,18 +57,26 @@ async function emojisSearch(value: string, context: Command.Context) {
   }).sort((x, y) => (y.createdAtUnix as number) - (x.createdAtUnix as number));
 }
 
-export default class EmojisCommand extends BaseCommand {
-  name = 'emojis';
 
-  metadata = {
-    description: 'Search through all emoji\'s that NotSoBot sees.',
-    examples: [
-      'emojis pepe',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'emojis <id|name>',
-  };
-  type = emojisSearch;
+export const COMMAND_NAME = 'emojis';
+
+export default class EmojisCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Search through all emoji\'s that NotSoBot sees.',
+        examples: [
+          `${COMMAND_NAME} pepe`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} <emoji:id|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: emojisSearch,
+    });
+  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

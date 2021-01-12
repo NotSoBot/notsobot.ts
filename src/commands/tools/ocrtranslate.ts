@@ -34,7 +34,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
       'ocrtranslate https://cdn.notsobot.com/brands/notsobot.png',
     ],
     type: CommandTypes.TOOLS,
-    usage: 'ocrtranslate ?<emoji|id|mention|name|url> (-to <language>)',
+    usage: 'ocrtranslate ?<emoji,user:id|mention|name,url> (-to <language>)',
   };
   type = Parameters.lastImageUrl;
 

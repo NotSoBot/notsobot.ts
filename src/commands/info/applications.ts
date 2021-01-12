@@ -16,21 +16,29 @@ export interface CommandArgs {
   applications: Array<Structures.Application>,
 }
 
-export default class ApplicationsCommand extends BaseCommand {
-  aliases = ['application', 'games', 'game', 'applicationinfo', 'gameinfo'];
-  name = 'applications';
 
-  metadata = {
-    description: 'Get information about multiple (or one) application (Uses the same list Discord does)',
-    examples: [
-      'applications rust',
-      'applications 356888738724446208',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'applications ?<id|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  type = Parameters.applications;
+export const COMMAND_NAME = 'applications';
+
+export default class ApplicationsCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['application', 'games', 'game', 'applicationinfo', 'gameinfo'],
+      label: 'applications',
+      metadata: {
+        description: 'Get information about multiple (or one) application (Uses the same list Discord does)',
+        examples: [
+          `${COMMAND_NAME} rust`,
+          `${COMMAND_NAME} 356888738724446208`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ?<application:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.applications,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.applications.length;

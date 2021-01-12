@@ -1,4 +1,4 @@
-import { ClusterClient, Command } from 'detritus-client';
+import { ClusterClient, Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 import { SocketStates } from 'detritus-client-socket/lib/constants';
 
@@ -106,17 +106,23 @@ export async function getClusterInformation(context: Command.Context): Promise<A
 }
 
 
-export default class ShardCommand extends BaseCommand {
-  name = 'shards';
+export const COMMAND_NAME = 'shards';
 
-  metadata = {
-    description: 'Show all of the bot\'s shard information',
-    examples: [
-      'shards',
-    ],
-    type: CommandTypes.UTILS,
-    usage: 'shards',
-  };
+export default class ShardCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Show all of the bot\'s shard information',
+        examples: [
+          COMMAND_NAME,
+        ],
+        type: CommandTypes.UTILS,
+        usage: `${COMMAND_NAME}`,
+      },
+    });
+  }
 
   async run(context: Command.Context) {
     const title: Array<Array<string>> = [

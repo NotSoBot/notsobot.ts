@@ -26,25 +26,33 @@ export interface CommandArgs {
   role: Structures.Role,
 }
 
-export default class RoleCommand extends BaseCommand {
-  name = 'role';
 
-  args = [
-    {name: 'channel', default: DefaultParameters.channel, type: Parameters.channel()},
-  ];
-  default = DefaultParameters.defaultRole;
-  disableDm = true;
-  metadata = {
-    description: 'Get information for a role, defaults to the @everyone role',
-    examples: [
-      'role',
-      'role everyone',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'role ?<id|mention|name> (-channel <id>)',
-  };
-  permissionClient = [Permissions.EMBED_LINKS];
-  type = Parameters.role;
+export const COMMAND_NAME = 'role';
+
+export default class RoleCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {name: 'channel', default: DefaultParameters.channel, type: Parameters.channel()},
+      ],
+      default: DefaultParameters.defaultRole,
+      disableDm: true,
+      metadata: {
+        description: 'Get information for a role, defaults to the @everyone role',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} everyone`,
+          `${COMMAND_NAME} everyone -channel lobby`,
+        ],
+        type: CommandTypes.INFO,
+        usage: `${COMMAND_NAME} ?<role:id|mention|name> (-channel ?<channel:id|mention|name>)`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.role,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.channel && !!args.role;

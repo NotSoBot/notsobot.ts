@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 
@@ -9,18 +9,25 @@ export interface CommandArgs {
   text: string,
 }
 
-export default class SayCommand extends BaseCommand {
-  name = 'say';
 
-  label = 'text';
-  metadata = {
-    description: 'Have the bot say something (owner only bc exploits)',
-    examples: [
-      'say :spider:',
-    ],
-    type: CommandTypes.OWNER,
-    usage: 'say <text>',
-  };
+export const COMMAND_NAME = 'say';
+
+export default class SayCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      label: 'text',
+      metadata: {
+        description: 'Have the bot say something (owner only because exploits)',
+        examples: [
+          `${COMMAND_NAME} :spider:`,
+        ],
+        type: CommandTypes.OWNER,
+        usage: `${COMMAND_NAME} <text>`,
+      },
+    });
+  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

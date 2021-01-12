@@ -30,7 +30,7 @@ export default class MirrorBottomCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url>`,
+        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url>`,
       },
     });
   }

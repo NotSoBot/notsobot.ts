@@ -36,7 +36,7 @@ export default class PixelateCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -width 2`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-width <number>)`,
+        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url> (-width <number>)`,
       },
     });
   }

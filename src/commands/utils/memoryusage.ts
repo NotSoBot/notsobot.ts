@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
@@ -8,16 +8,23 @@ import { padCodeBlockFromRows } from '../../utils';
 import { getClusterInformation } from './shards';
 
 
+export const COMMAND_NAME = 'memoryusage';
+
 export default class MemoryUsageCommand extends BaseCommand {
-  name = 'memoryusage';
-  metadata = {
-    description: 'Show the bot\'s current memory usage',
-    examples: [
-      'memoryusage',
-    ],
-    type: CommandTypes.UTILS,
-    usage: 'memoryusage',
-  };
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Show the bot\'s current memory usage',
+        examples: [
+          COMMAND_NAME,
+        ],
+        type: CommandTypes.UTILS,
+        usage: `${COMMAND_NAME}`,
+      },
+    });
+  }
 
   async run(context: Command.Context) {
     const title: Array<Array<string>> = [

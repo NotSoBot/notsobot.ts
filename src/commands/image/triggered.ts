@@ -32,7 +32,7 @@ export default class TriggeredCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -type 2`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} ?<emoji|id|mention|name|url> (-type <triggered-type>)`,
+        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url> (-type <triggered-type>)`,
       },
     });
   }
