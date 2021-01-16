@@ -113,7 +113,7 @@ export default class WikihowCommand extends BaseSearchCommand<CommandArgs> {
               embed.setDescription(description.join('\n'));
             }
   
-            embed.setFooter(`Page ${page}/${pageLimit} of Wikihow Results`, EmbedBrands.NOTSOBOT);
+            embed.setFooter(`Page ${page}/${pageLimit} of Wikihow Results`, EmbedBrands.WIKIHOW);
   
             return embed;
           },

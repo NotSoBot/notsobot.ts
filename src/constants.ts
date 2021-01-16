@@ -90,6 +90,7 @@ export enum EmbedBrands {
   GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
   NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
   URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png',
+  WIKIHOW = 'https://cdn.notsobot.com/brands/wikihow.png',
   WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
   YOUTUBE = 'https://cdn.notsobot.com/brands/youtube.png',
 };
