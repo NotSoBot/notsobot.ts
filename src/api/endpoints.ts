@@ -109,6 +109,8 @@ export const Api = Object.freeze({
     '/search/google',
   SEARCH_GOOGLE_IMAGES:
     '/search/google/images',
+  SEARCH_REDDIT:
+    '/search/reddit',
   SEARCH_RULE34:
     '/search/rule34',
   SEARCH_RULE34_PAHEAL:

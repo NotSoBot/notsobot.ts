@@ -7,6 +7,8 @@ import {
   GuildLoggerTypes,
   ImageEyeTypes,
   ImageLegofyPalettes,
+  RedditSortTypes,
+  RedditTimeTypes,
   YoutubeResultTypes,
 } from '../constants';
 
@@ -178,6 +180,15 @@ export namespace RestOptions {
     maxResults?: number,
     query: string,
     safe?: boolean | string,
+  }
+
+  export interface SearchReddit {
+    maxResults?: number,
+    query: string,
+    safe?: boolean | string,
+    sort?: RedditSortTypes,
+    subreddit?: string,
+    time?: RedditTimeTypes,
   }
 
   export interface SearchRule34 {

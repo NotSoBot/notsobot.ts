@@ -509,6 +509,32 @@ export const PresenceStatusTexts: {[key: string]: string} = Object.freeze({
   [Statuses.OFFLINE]: 'Offline',
 });
 
+export enum RedditKindTypes {
+  COMMENT = 't1',
+  ACCOUNT = 't2',
+  LINK = 't3',
+  MESSAGE = 't4',
+  SUBREDDIT = 't5',
+  AWARD = 't6',
+}
+
+export enum RedditSortTypes {
+  COMMENTS = 'COMMENTS',
+  HOT = 'HOT',
+  NEW = 'NEW',
+  RELEVANCE = 'RELEVANCE',
+  TOP = 'TOP',
+}
+
+export enum RedditTimeTypes {
+  HOUR = 'HOUR',
+  DAY = 'DAY',
+  WEEK = 'WEEK',
+  MONTH = 'MONTH',
+  YEAR = 'YEAR',
+  ALL = 'ALL',
+}
+
 export enum RedisChannels {
   GUILD_ALLOWLIST_UPDATE = 'GUILD_ALLOWLIST_UPDATE',
   GUILD_BLOCKLIST_UPDATE = 'GUILD_BLOCKLIST_UPDATE',

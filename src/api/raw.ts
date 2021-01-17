@@ -963,6 +963,27 @@ export async function searchGoogleImages(
 }
 
 
+export async function searchReddit(
+  context: RequestContext,
+  options: RestOptions.SearchReddit,
+): Promise<any> {
+  const query = {
+    query: options.query,
+    safe: options.safe,
+    sort: options.sort,
+    subreddit: options.subreddit,
+    time: options.time,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_REDDIT,
+    },
+  });
+}
+
+
 export async function searchRule34(
   context: RequestContext,
   options: RestOptions.SearchRule34,

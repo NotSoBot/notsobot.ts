@@ -394,6 +394,16 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 }
 
 
+export function htmlDecode(value: string): string {
+  return value
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"');
+}
+
+
 export async function imageReply(
   context: Command.Context,
   response: Response,

@@ -523,6 +523,14 @@ export async function searchGoogleImages(
 }
 
 
+export async function searchReddit(
+  context: RequestContext,
+  options: RestOptions.SearchReddit,
+) {
+  return raw.searchReddit(context, options);
+}
+
+
 export async function searchRule34(
   context: RequestContext,
   options: RestOptions.SearchRule34,
