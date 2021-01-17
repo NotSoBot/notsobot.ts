@@ -540,6 +540,7 @@ export enum YoutubeResultTypes {
   CHANNEL = 0,
   VIDEO = 1,
   MOVIE = 2,
+  PLAYLIST = 3,
 }
 
 

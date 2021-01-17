@@ -44,7 +44,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
   };
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { cards, results, suggestion } = await searchGoogle(context, args);
+    const { cards, results, suggestion, total_result_count: totalResultCount } = await searchGoogle(context, args);
     if (cards.length || results.length) {
       const pages: Array<any> = [];
 
@@ -79,7 +79,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
             if (pageLimit === 1) {
               footer = 'Google Search Results';
             } else {
-              footer = `Page ${pageNumber}/${pageLimit} of Google Search Results`;
+              footer = `Page ${pageNumber}/${pageLimit} of Google Search Results (${totalResultCount.toLocaleString()} Total Results)`;
             }
             if (args.locale in GoogleLocalesText) {
               footer = `${footer} (${GoogleLocalesText[args.locale]})`;

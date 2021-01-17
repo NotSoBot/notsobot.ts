@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchYoutube } from '../../api';
@@ -19,24 +19,33 @@ import { BaseSearchCommand } from '../basecommand';
 
 export interface CommandArgsBefore {
   query: string,
+  sp: string,
 }
 
 export interface CommandArgs {
   query: string,
+  sp: string,
 }
 
-export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
-  aliases = ['yt'];
-  name = 'youtube';
+export const COMMAND_NAME = 'youtube';
 
-  metadata = {
-    description: 'Search Youtube',
-    examples: [
-      'youtube notsobot',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'youtube <query>',
-  };
+export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['yt'],
+      args: [{name: 'sp'}],
+      metadata: {
+        description: 'Search Youtube',
+        examples: [
+          `${COMMAND_NAME} notsobot`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query> (-sp <string>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { results, total_result_count: totalResultCount } = await searchYoutube(context, args);
@@ -66,11 +75,18 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
               const channel = result.metadata;
 
               const description: Array<string> = [];
+              if (channel.is_show) {
+                description.push('Is Show');
+                description.push('');
+              }
+
               if (channel.badges.length) {
                 description.push(`**Badges**: ${channel.badges.join(', ')}`);
               }
               description.push(`**Id**: ${channel.id}`);
-              description.push(`**Subscribers**: ${channel.subscriber_count}`);
+              if (!channel.is_show) {
+                description.push(`**Subscribers**: ${channel.subscriber_count.toLocaleString()}`);
+              }
               description.push(`**Videos**: ${channel.video_count.toLocaleString()}`);
 
               embed.addField('Channel Information', description.join('\n'));
@@ -81,7 +97,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
               const description: Array<string> = [];
               description.push(`Uploaded by ${Markup.url(Markup.escape.all(movie.channel.name), movie.channel.url)}`);
 
-              const duration = moment.duration(movie.duration).format(MOMENT_FORMAT, DateMomentOptions);
+              const duration = moment.duration(movie.duration, 'seconds').format(MOMENT_FORMAT, DateMomentOptions);
               description.push(`**Duration**: ${duration}`);
               description.push(`**Genre**: ${movie.genre}`);
               description.push(`**Id**: ${movie.id}`);
@@ -92,6 +108,30 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
               for (let field of movie.fields) {
                 embed.addField(Markup.escape.all(field.name), Markup.escape.all(field.value), true);
               }
+            }; break;
+            case YoutubeResultTypes.PLAYLIST: {
+              const playlist = result.metadata;
+
+              const description: Array<string> = [];
+              description.push(`Created by ${Markup.url(Markup.escape.all(playlist.channel.name), playlist.channel.url)}`);
+
+              description.push(`**Id**: ${playlist.id}`);
+              if (playlist.updated) {
+                description.push(`**Updated**: ${playlist.updated}`);
+              }
+              description.push(`**Videos**: ${playlist.video_count.toLocaleString()}`);
+
+              embed.addField('Playlist Information', description.join('\n'));
+
+              const videos: Array<string> = [];
+              for (let video of playlist.videos) {
+                const duration = moment.duration(video.duration, 'seconds').format(MOMENT_FORMAT, DateMomentOptions);
+                videos.push(Markup.url(Markup.escape.all(video.title), video.url));
+                videos.push(`-> ${duration}`);
+              }
+              videos.push('');
+              videos.push(Markup.url(`View all ${playlist.video_count.toLocaleString()} videos`, result.url));
+              embed.addField('Playlist Videos', videos.join('\n'));
             }; break;
             case YoutubeResultTypes.VIDEO: {
               const video = result.metadata;
@@ -104,7 +144,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
                 description.push(`**Badges**: ${video.badges.join(', ')}`);
               }
               if (video.duration) {
-                const duration = moment.duration(video.duration).format(MOMENT_FORMAT, DateMomentOptions);
+                const duration = moment.duration(video.duration, 'seconds').format(MOMENT_FORMAT, DateMomentOptions);
                 description.push(`**Duration**: ${duration}`);
               } else {
                 if (isLive) {
@@ -113,10 +153,14 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
               }
               description.push(`**Id**: ${video.id}`);
               if (video.published) {
-                description.push(`**Published**: ${video.published}`);
+                if (video.streamed) {
+                  description.push(`**Streamed**: ${video.published}`);
+                } else {
+                  description.push(`**Published**: ${video.published}`);
+                }
               }
 
-              let viewCount = (video.view_count === -1) ? 'Disabled' : video.view_count.toLocaleString();
+              let viewCount = (video.view_count === null) ? 'None' : video.view_count.toLocaleString();
               if (isLive) {
                 description.push(`**Viewers**: ${viewCount}`);
               } else {

@@ -1080,6 +1080,7 @@ export async function searchYoutube(
 ): Promise<RestResponsesRaw.SearchYoutube> {
   const query = {
     query: options.query,
+    sp: options.sp,
   };
   return request(context, {
     query,

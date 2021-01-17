@@ -7,6 +7,7 @@ import {
   GuildLoggerTypes,
   ImageEyeTypes,
   ImageLegofyPalettes,
+  YoutubeResultTypes,
 } from '../constants';
 
 import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
@@ -209,6 +210,7 @@ export namespace RestOptions {
 
   export interface SearchYoutube {
     query: string,
+    sp?: string,
   }
 
 
@@ -358,6 +360,7 @@ export namespace RestResponsesRaw {
     cards: Array<SearchGoogleCard>,
     results: Array<SearchGoogleResult>,
     suggestion: null | {text: string, url: string},
+    total_result_count: number,
   }
 
   export type SearchGoogleImages = Array<SearchGoogleImage>;
@@ -520,54 +523,98 @@ export namespace RestResponsesRaw {
     premium_type: number,
   }
 
-  export interface YoutubeSearchResult {
+
+  export type YoutubeSearchResult =
+    YoutubeSearchResultChannel |
+    YoutubeSearchResultMovie |
+    YoutubeSearchResultPlaylist |
+    YoutubeSearchResultVideo;
+
+  export interface YoutubeSearchResultBase {
     description: string,
-    metadata: any,
     thumbnail: {
       height: number,
       url: string,
       width: number,
     },
     title: string,
-    type: number,
     url: string,
   }
 
-  export interface YoutubeSearchResultMetadataChannel {
-    badges: Array<string>,
-    id: string,
-    subscriber_count: string,
-    vanity: null | string,
-    video_count: number,
-  }
-
-  export interface YoutubeSearchResultMetadataMovie {
-    channel: {
+  export interface YoutubeSearchResultChannel extends YoutubeSearchResultBase {
+    metadata: {
       badges: Array<string>,
       id: string,
-      name: string,
+      is_show: boolean,
+      subscriber_count: number,
       url: string,
       vanity: null | string,
+      video_count: number,
     },
-    duration: string,
-    fields: Array<{name: string, value: string}>,
-    genre: string,
-    id: string,
-    price: string,
+    type: YoutubeResultTypes.CHANNEL,
   }
 
-  export interface YoutubeSearchResultMetadataVideo {
-    badges: Array<string>,
-    channel: {
-      badges: Array<string>,
+  export interface YoutubeSearchResultMovie extends YoutubeSearchResultBase {
+    metadata: {
+      channel: {
+        badges: Array<string>,
+        id: string,
+        name: string,
+        url: string,
+        vanity: null | string,
+      },
+      duration: number,
+      fields: Array<{name: string, value: string}>,
+      genre: string,
       id: string,
-      name: string,
-      url: string,
-      vanity: null | string,
+      price: string,
     },
-    duration: string,
-    id: string,
-    published: string,
-    view_count: number,
+    type: YoutubeResultTypes.MOVIE,
+  }
+
+  export interface YoutubeSearchResultPlaylist extends YoutubeSearchResultBase {
+    metadata: {
+      channel: {
+        badges: Array<string>,
+        id: string,
+        name: string,
+        url: string,
+        vanity: null | string,
+      },
+      id: string,
+      updated: null | string,
+      video_count: number,
+      videos: Array<{
+        duration: number,
+        id: string,
+        title: string,
+        url: string,
+      }>,
+    },
+    type: YoutubeResultTypes.PLAYLIST;
+  }
+
+  export interface YoutubeSearchResultVideo extends YoutubeSearchResultBase {
+    metadata: {
+      badges: Array<string>,
+      channel: {
+        badges: Array<string>,
+        id: string,
+        name: string,
+        thumbnail: {
+          height: number,
+          url: string,
+          width: number,
+        } | null,
+        url: string,
+        vanity: null | string,
+      },
+      duration: number,
+      id: string,
+      published: string,
+      streamed: boolean,
+      view_count: number,
+    },
+    type: YoutubeResultTypes.VIDEO,
   }
 }
