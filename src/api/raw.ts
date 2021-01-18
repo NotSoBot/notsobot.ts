@@ -492,6 +492,42 @@ export async function imageGlitchGif(
 }
 
 
+export async function imageGrayscale(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_GRAYSCALE,
+    },
+  });
+}
+
+
+export async function imageGrayscaleGif(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_GRAYSCALE_GIF,
+    },
+  });
+}
+
+
 export async function imageImplode(
   context: RequestContext,
   options: RestOptions.ImageImplode,
@@ -555,6 +591,7 @@ export async function imageLegofy(
   const query = {
     dither: options.dither,
     palette: options.palette,
+    size: options.size,
     url: options.url,
   };
   return request(context, {
@@ -735,27 +772,6 @@ export async function imagePixelate(
 }
 
 
-export async function imageResize(
-  context: RequestContext,
-  options: RestOptions.ImageResize,
-): Promise<Response> {
-  const query = {
-    convert: options.convert,
-    scale: options.scale,
-    size: options.size,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_RESIZE,
-    },
-  });
-}
-
-
 export async function imageSharpen(
   context: RequestContext,
   options: RestOptions.ImageSharpen,
@@ -788,6 +804,64 @@ export async function imageSpin(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_SPIN,
+    },
+  });
+}
+
+
+export async function imageToolsResize(
+  context: RequestContext,
+  options: RestOptions.ImageToolsResize,
+): Promise<Response> {
+  const query = {
+    convert: options.convert,
+    scale: options.scale,
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_RESIZE,
+    },
+  });
+}
+
+
+export async function imageToolsBackgroundRemove(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_BACKGROUND_REMOVE,
+    },
+  });
+}
+
+
+export async function imageToolsRotate(
+  context: RequestContext,
+  options: RestOptions.ImageToolsRotate,
+): Promise<Response> {
+  const query = {
+    degrees: options.degrees,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_ROTATE,
     },
   });
 }

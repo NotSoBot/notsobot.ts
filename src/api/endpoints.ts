@@ -59,6 +59,10 @@ export const Api = Object.freeze({
     '/image/glitch',
   IMAGE_GLITCH_GIF:
     '/image/glitch/gif',
+  IMAGE_GRAYSCALE:
+    '/image/grayscale',
+  IMAGE_GRAYSCALE_GIF:
+    '/image/grayscale/gif',
   IMAGE_IMPLODE:
     '/image/implode',
   IMAGE_INVERT:
@@ -85,12 +89,16 @@ export const Api = Object.freeze({
     '/image/overlay/gay',
   IMAGE_PIXELATE:
     '/image/pixelate',
-  IMAGE_RESIZE:
-    '/image/resize',
   IMAGE_SHARPEN:
     '/image/sharpen',
   IMAGE_SPIN:
     '/image/spin',
+  IMAGE_TOOLS_BACKGROUND_REMOVE:
+    '/image/tools/background/remove',
+  IMAGE_TOOLS_RESIZE:
+    '/image/tools/resize',
+  IMAGE_TOOLS_ROTATE:
+    '/image/tools/rotate',
   IMAGE_WALL:
     '/image/wall',
 

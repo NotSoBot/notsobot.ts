@@ -10,12 +10,14 @@ import { BaseImageCommand } from '../basecommand';
 export interface CommandArgsBefore {
   dither: boolean,
   palette?: ImageLegofyPalettes,
+  size?: number,
   url?: null | string,
 }
 
 export interface CommandArgs {
   dither: boolean,
   palette?: ImageLegofyPalettes,
+  size?: number,
   url: string,
 }
 
@@ -30,6 +32,7 @@ export default class LegofyCommand extends BaseImageCommand<CommandArgs> {
       args: [
         {name: 'dither', type: Boolean},
         {name: 'palette', choices: Object.values(ImageLegofyPalettes), help: `Must be one of: (${Object.values(ImageLegofyPalettes).join(', ')})`},
+        {name: 'size', type: Number},
       ],
       metadata: {
         description: 'Legofy an image',
@@ -40,7 +43,7 @@ export default class LegofyCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -dither`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url> (-dither) (-palette <ImageLegofyPalettes>)`,
+        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url> (-dither) (-palette <ImageLegofyPalettes>) (-size <number>)`,
       },
     });
   }

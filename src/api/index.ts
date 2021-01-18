@@ -298,6 +298,22 @@ export async function imageGlitchGif(
 }
 
 
+export async function imageGrayscale(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageGrayscale(context, options);
+}
+
+
+export async function imageGrayscaleGif(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageGrayscaleGif(context, options);
+}
+
+
 export async function imageImplode(
   context: RequestContext,
   options: RestOptions.ImageImplode,
@@ -402,14 +418,6 @@ export async function imagePixelate(
 }
 
 
-export async function imageResize(
-  context: RequestContext,
-  options: RestOptions.ImageResize,
-) {
-  return raw.imageResize(context, options);
-}
-
-
 export async function imageSharpen(
   context: RequestContext,
   options: RestOptions.ImageSharpen,
@@ -423,6 +431,30 @@ export async function imageSpin(
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageSpin(context, options);
+}
+
+
+export async function imageToolsBackgroundRemove(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageToolsBackgroundRemove(context, options);
+}
+
+
+export async function imageToolsResize(
+  context: RequestContext,
+  options: RestOptions.ImageToolsResize,
+) {
+  return raw.imageToolsResize(context, options);
+}
+
+
+export async function imageToolsRotate(
+  context: RequestContext,
+  options: RestOptions.ImageToolsRotate,
+) {
+  return raw.imageToolsRotate(context, options);
 }
 
 

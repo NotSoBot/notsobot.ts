@@ -110,6 +110,7 @@ export namespace RestOptions {
   export interface ImageLegofy extends ImageBaseOptions {
     dither?: boolean,
     palette?: ImageLegofyPalettes,
+    size?: number,
   }
 
   export interface ImageMagik extends ImageBaseOptions {
@@ -125,14 +126,18 @@ export namespace RestOptions {
     pixelWidth?: number,
   }
 
-  export interface ImageResize extends ImageBaseOptions {
+  export interface ImageSharpen extends ImageBaseOptions {
+    scale?: number,
+  }
+
+  export interface ImageToolsResize extends ImageBaseOptions {
     convert?: string,
     scale?: number,
     size?: string,
   }
 
-  export interface ImageSharpen  extends ImageBaseOptions {
-    scale?: number,
+  export interface ImageToolsRotate extends ImageBaseOptions {
+    degrees?: number,
   }
 
 
