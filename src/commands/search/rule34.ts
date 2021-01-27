@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34 } from '../../api';
@@ -18,19 +18,27 @@ export interface CommandArgs {
   query: string,
 }
 
-export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
-  aliases = ['r34'];
-  name = 'rule34';
+export const COMMAND_NAME = 'rule34';
 
-  metadata = {
-    description: 'Search https://rule34.xxx',
-    examples: [
-      'rule34 some anime chick',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'rule34 <query>',
-  };
+export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
   nsfw = true;
+
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['r34'],
+      metadata: {
+        description: 'Search https://rule34.xxx',
+        examples: [
+          `${COMMAND_NAME} some anime chick`,
+          `${COMMAND_NAME} overwatch`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchRule34(context, args);
@@ -43,11 +51,6 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];
-          if (result.header) {
-            embed.setTitle(`${result.header} (${result.footer})`);
-          } else {
-            embed.setTitle(result.footer);
-          }
           embed.setFooter(`Page ${page}/${pageLimit} of https://rule34.xxx Results`);
 
           embed.setTitle((result.is_video) ? 'Video Post' : 'Image Post');
@@ -58,7 +61,7 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
           description.push(`**Score**: ${result.score.toLocaleString()}`);
           if (result.source) {
             if (result.source.startsWith('https://') || result.source.startsWith('http://')) {
-              const cite = <string> (<string> result.source.split('://')[1]).split('/').shift();
+              const cite = (result.source.split('://')[1] as string).split('/').shift() as string;
               description.push(`**Source**: ${Markup.url(Markup.escape.all(cite), result.source)}`);
             } else {
               description.push(`**Source**: ${result.source}`);

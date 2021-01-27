@@ -235,7 +235,7 @@ export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
       if (context.channel) {
         return context.channel.isDm || context.channel.nsfw;
       }
-      return false;
+      return context.inDm;
     }
     return true;
   }

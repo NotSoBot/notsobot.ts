@@ -212,6 +212,15 @@ export namespace RestOptions {
     query: string,
   }
 
+  export interface SearchSteam {
+    query: string,
+    steamId?: string,
+  }
+
+  export interface SearchSteamProfile {
+    query: string,
+  }
+
   export interface SearchUrban {
     query: string,
   }
@@ -514,6 +523,127 @@ export namespace RestResponsesRaw {
     urls: Array<{text: string, url: string}>,
   }
 
+  export type SearchRule34 = Array<SearchRule34Result>;
+  export interface SearchRule34Result {
+    created_at: string,
+    creator_id: string,
+    file_url: string,
+    has_comments: boolean,
+    has_notes: boolean,
+    id: string,
+    is_video: boolean,
+    rating: string,
+    score: number,
+    source: string | null,
+    status: string,
+    tags: Array<string>,
+    thumbnail_url: string,
+    url: string,
+  }
+
+  export type SearchRule34Paheal = Array<SearchRule34PahealResult>;
+  export interface SearchRule34PahealResult {
+    author: {
+      id: string,
+      url: string,
+    } | null,
+    created_at: string,
+    file_name: string,
+    file_url: string,
+    id: string,
+    is_video: boolean,
+    rating: string,
+    score: number,
+    source: string | null,
+    tags: Array<string>,
+    thumbnail_url: string,
+    url: string,
+  }
+
+  export interface SearchSteam {
+    count: number,
+    results: Array<SearchSteamResult>,
+  }
+
+  export interface SearchSteamResult {
+    avatar_url: string,
+    country: string | null,
+    country_flag_url: string | null,
+    custom_url: string | null,
+    in_common: Array<string>,
+    past_names: Array<string>,
+    real_name: string | null,
+    steam_id: string | null,
+    steam_id_64: string | null,
+    url: string,
+    username: string,
+  }
+
+  export interface SearchSteamProfile {
+    avatar: {
+      full: string,
+      icon: string,
+      medium: string,
+    },
+    custom_url: string | null,
+    groups: Array<{
+      avatar: {
+        full: string | null,
+        icon: string | null,
+        medium: string | null,
+      },
+      headline: string | null,
+      id_64: string,
+      is_primary: boolean,
+      member_count: number,
+      members_in_chat: number,
+      members_in_game: number,
+      members_online: number,
+      name: string | null,
+      summary: string,
+      url: string | null,
+    }>,
+    id: string,
+    id_64: string,
+    in_game: {
+      join_link: string | null,
+      icon: string,
+      logo: string,
+      name: string,
+      url: string,
+    } | null,
+    in_game_ip: string | null,
+    is_limited_account: boolean,
+    is_vac_banned: boolean,
+    location: string | null,
+    member_since: string,
+    most_played_games: Array<{
+      hours_played_last_2_weeks: number,
+      hours_played: number,
+      icon: string,
+      logo: string,
+      name: string,
+      url: string,
+    }>,
+    past_names: Array<{name: string, timestamp: string}>,
+    privacy: string,
+    real_name: string | null,
+    state: string,
+    state_message: string,
+    steam_rating: null,
+    summary: string | null,
+    trade_ban_state: string,
+    username: string,
+    visibility_state: number,
+  }
+
+  export interface SearchYoutube {
+    _body: any,
+    results: Array<YoutubeSearchResult>,
+    suggestions: Array<string>,
+    total_result_count: number,
+  }
+
   export type SearchWikihow = Array<SearchWikihowResult>;
   export interface SearchWikihowResult {
     badge: null | string,
@@ -525,14 +655,6 @@ export namespace RestResponsesRaw {
     url: string,
     views: number,
   }
-
-  export interface SearchYoutube {
-    _body: any,
-    results: Array<YoutubeSearchResult>,
-    suggestions: Array<string>,
-    total_result_count: number,
-  }
-
 
   export interface SearchWikihowRandom {
     author: null | {

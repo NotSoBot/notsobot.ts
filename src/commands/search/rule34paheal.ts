@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34Paheal } from '../../api';
@@ -14,19 +14,26 @@ export interface CommandArgs {
   query: string,
 }
 
-export default class Rule34PahealCommand extends BaseSearchCommand {
-  aliases = ['r34paheal', 'r34p', 'paheal', 'pahe'];
-  name = 'rule34paheal';
+export const COMMAND_NAME = 'rule34paheal';
 
-  metadata = {
-    description: 'Search https://rule34.paheal.net',
-    examples: [
-      'rule34paheal overwatch',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'rule34paheal <query>',
-  };
+export default class Rule34PahealCommand extends BaseSearchCommand {
   nsfw = true;
+
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['r34paheal', 'r34p', 'paheal', 'pahe'],
+      metadata: {
+        description: 'Search https://rule34.paheal.net',
+        examples: [
+          `${COMMAND_NAME} overwatch`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchRule34Paheal(context, args);
@@ -39,18 +46,15 @@ export default class Rule34PahealCommand extends BaseSearchCommand {
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];
-          if (result.header) {
-            embed.setTitle(`${result.header} (${result.footer})`);
-          } else {
-            embed.setTitle(result.footer);
-          }
           embed.setFooter(`Page ${page}/${pageLimit} of Paheal Rule34 Results`);
 
           embed.setTitle((result.is_video) ? `${result.file_name} (Video)` : result.file_name);
           embed.setUrl(result.url);
 
           const description: Array<string> = [];
-          description.push(`Created by ${Markup.url(Markup.escape.all(result.author.id), result.author.url)}`);
+          if (result.author) {
+            description.push(`Created by ${Markup.url(Markup.escape.all(result.author.id), result.author.url)}`);
+          }
           description.push(`Uploaded ${moment(result.created_at).fromNow()}`);
           description.push(`**Score**: ${result.score.toLocaleString()}`);
           if (result.source) {

@@ -72,7 +72,7 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
 
           const embed = createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
-          embed.setFooter(`Page ${page}/${pageLimit} of Reddit Results`, EmbedBrands.NOTSOBOT);
+          embed.setFooter(`Page ${page}/${pageLimit} of Reddit Results`, EmbedBrands.REDDIT);
 
           embed.setTitle(data.title.slice(0, 256));
           embed.setUrl('https://reddit.com' + data.permalink);

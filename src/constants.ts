@@ -89,6 +89,8 @@ export enum EmbedBrands {
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
   GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
   NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
+  REDDIT = 'https://cdn.notsobot.com/brands/notsobot.png',
+  STEAM = 'https://cdn.notsobot.com/brands/notsobot.png',
   URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png',
   WIKIHOW = 'https://cdn.notsobot.com/brands/wikihow.png',
   WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
@@ -102,6 +104,9 @@ export enum EmbedColors {
   LOG_CREATION = 4437377,
   LOG_DELETION = 15746887,
   LOG_UPDATE = 16426522,
+  STEAM_IN_GAME = 9484860,
+  STEAM_OFFLINE = 9013641,
+  STEAM_ONLINE = 5753822,
 };
 
 export enum GoogleCardTypes {

@@ -595,6 +595,22 @@ export async function searchRule34Paheal(
 }
 
 
+export async function searchSteam(
+  context: RequestContext,
+  options: RestOptions.SearchSteam,
+) {
+  return raw.searchSteam(context, options);
+}
+
+
+export async function searchSteamProfile(
+  context: RequestContext,
+  options: RestOptions.SearchSteamProfile,
+) {
+  return raw.searchSteamProfile(context, options);
+}
+
+
 export async function searchUrban(
   context: RequestContext,
   options: RestOptions.SearchUrban,

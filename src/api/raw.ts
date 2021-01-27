@@ -1126,6 +1126,41 @@ export async function searchRule34Paheal(
 }
 
 
+export async function searchSteam(
+  context: RequestContext,
+  options: RestOptions.SearchSteam,
+): Promise<RestResponsesRaw.SearchSteam> {
+  const query = {
+    query: options.query,
+    steam_id: options.steamId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_STEAM,
+    },
+  });
+}
+
+
+export async function searchSteamProfile(
+  context: RequestContext,
+  options: RestOptions.SearchSteamProfile,
+): Promise<RestResponsesRaw.SearchSteamProfile> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_STEAM_PROFILE,
+    },
+  });
+}
+
+
 export async function searchUrban(
   context: RequestContext,
   options: RestOptions.SearchUrban,

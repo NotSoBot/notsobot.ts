@@ -127,6 +127,10 @@ export const Api = Object.freeze({
     '/search/rule34',
   SEARCH_RULE34_PAHEAL:
     '/search/rule34-paheal',
+  SEARCH_STEAM:
+    '/search/steam',
+  SEARCH_STEAM_PROFILE:
+    '/search/steam/profile',
   SEARCH_URBAN_DICTIONARY:
     '/search/urban-dictionary',
   SEARCH_URBAN_DICTIONARY_RANDOM:
