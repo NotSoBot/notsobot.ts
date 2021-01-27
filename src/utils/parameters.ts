@@ -355,31 +355,28 @@ export async function lastImageUrl(
   value: string,
   context: Command.Context,
 ): Promise<null | string | undefined> {
-  {
-    const url = findImageUrlInMessages([context.message]);
-    if (url) {
-      return url;
-    }
-  }
-
   if (value) {
     return imageUrl(value, context);
   } else {
-    const { channel } = context;
-    if (channel) {
-      {
-        const url = findImageUrlInMessages(channel.messages.toArray().reverse());
-        if (url) {
-          return url;
-        }
+    {
+      const url = findImageUrlInMessages([context.message]);
+      if (url) {
+        return url;
       }
-
-      if (channel.canReadHistory) {
-        const messages = await channel.fetchMessages({limit: 100});
-        const url = findImageUrlInMessages(messages);
-        if (url) {
-          return url;
-        }
+    }
+    {
+      // we dont get DM channels anymore so we must manually find messages now
+      const messages = context.messages.filter((message) => message.channelId === context.channelId).reverse();
+      const url = findImageUrlInMessages(messages);
+      if (url) {
+        return url;
+      }
+    }
+    if (context.inDm || (context.channel && context.channel.canReadHistory)) {
+      const messages = await context.rest.fetchMessages(context.channelId, {limit: 50});
+      const url = findImageUrlInMessages(messages);
+      if (url) {
+        return url;
       }
     }
     return undefined;
@@ -398,21 +395,20 @@ export async function lastImageUrls(
       }
     }
 
-    const channel = context.channel;
-    if (channel) {
-      {
-        const url = findImageUrlInMessages(channel.messages.toArray().reverse());
-        if (url) {
-          return [url];
-        }
+    {
+      // we dont get DM channels anymore so we must manually find messages now
+      const messages = context.messages.filter((message) => message.channelId === context.channelId).reverse();
+      const url = findImageUrlInMessages(messages);
+      if (url) {
+        return [url];
       }
+    }
 
-      if (channel.canReadHistory) {
-        const messages = await channel.fetchMessages({limit: 50});
-        const url = findImageUrlInMessages(messages);
-        if (url) {
-          return [url];
-        }
+    if (context.inDm || (context.channel && context.channel.canReadHistory)) {
+      const messages = await context.rest.fetchMessages(context.channelId, {limit: 50});
+      const url = findImageUrlInMessages(messages);
+      if (url) {
+        return [url];
       }
     }
 

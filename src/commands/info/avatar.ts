@@ -8,10 +8,12 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
+  noembed: boolean,
   user: Structures.Member | Structures.User | null,
 }
 
 export interface CommandArgs {
+  noembed: boolean,
   user: Structures.Member | Structures.User,
 }
 
@@ -23,6 +25,9 @@ export default class AvatarCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
+      ],
       default: DefaultParameters.author,
       label: 'user',
       metadata: {
@@ -32,7 +37,7 @@ export default class AvatarCommand extends BaseCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.INFO,
-        usage: `${COMMAND_NAME} ?<user:id|mention|name>`,
+        usage: `${COMMAND_NAME} ?<user:id|mention|name> (-noembed)`,
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.memberOrUser(),
@@ -49,9 +54,7 @@ export default class AvatarCommand extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     const { user } = args;
-
-    const { channel } = context;
-    if (channel && channel.canEmbedLinks) {
+    if (!args.noembed) {
       const embed = createUserEmbed(user);
       embed.setColor(PresenceStatusColors['offline']);
       embed.setDescription(`[**Avatar Url**](${user.avatarUrl})`);

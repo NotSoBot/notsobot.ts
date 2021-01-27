@@ -40,5 +40,5 @@ export function noEmbed(context: Context) {
   if (context.channel) {
     return !context.channel.canEmbedLinks;
   }
-  return true;
+  return !context.inDm;
 }
