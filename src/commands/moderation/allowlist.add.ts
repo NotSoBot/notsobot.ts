@@ -162,7 +162,6 @@ export default class AllowlistAddCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['allowlist add role'],
       disableDm: true,
       label: 'payloads',
       metadata: {

@@ -9,7 +9,7 @@ export interface CommandArgs {
   url: string,
 }
 
-export const COMMAND_NAME = 'hash';
+export const COMMAND_NAME = 'screenshot';
 
 export default class ScreenshotCommand extends BaseCommand<CommandArgs> {
   constructor(client: CommandClient) {
