@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 
@@ -9,17 +9,23 @@ export interface CommandArgs {
   query: string,
 }
 
-export default class ImgurCommand extends BaseSearchCommand<CommandArgs> {
-  name = 'imgur';
+export const COMMAND_NAME = 'imgur';
 
-  metadata = {
-    description: 'Search Imgur',
-    examples: [
-      'imgur cat',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'imgur <query>',
-  };
+export default class ImgurCommand extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Search Imgur',
+        examples: [
+          `${COMMAND_NAME} cat`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     

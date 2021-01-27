@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchE926 } from '../../api';
@@ -20,17 +20,23 @@ export interface CommandArgs {
   query: string,
 }
 
-export default class E621Command extends BaseSearchCommand<CommandArgs> {
-  name = 'e926';
+export const COMMAND_NAME = 'e926';
 
-  metadata = {
-    description: 'Search e926, a furry (apparently NON-PORN) imageboard',
-    examples: [
-      'e926 discord',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'e926 <query>',
-  };
+export default class E926Command extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Search e621, a furry (apparently NON-PORN) imageboard',
+        examples: [
+          `${COMMAND_NAME} discord`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchE926(context, args);

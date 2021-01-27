@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
@@ -19,24 +19,29 @@ export interface CommandArgs {
   prefix: string,
 }
 
-export default class PrefixesRemoveCommand extends BaseCommand {
-  aliases = ['prefix remove', 'prefixes delete', 'prefix delete'];
-  name = 'prefixes remove';
+export const COMMAND_NAME = 'prefixes remove';
 
-  disableDm = true;
-  label = 'prefix';
-  metadata = {
-    description: 'Remove a custom prefix from the guild. (Bot Mentions will always override this)',
-    examples: [
-      'prefixes remove ..',
-      'prefix delete ..',
-    ],
-    type: CommandTypes.SETTINGS,
-    usage: 'prefixes remove <prefix>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
-  type = Parameters.string({maxLength: 128});
+export default class PrefixesRemoveCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['prefix remove', 'prefixes delete', 'prefix delete'],
+      disableDm: true,
+      label: 'prefix',
+      metadata: {
+        description: 'Remove a custom prefix from the guild. (Bot Mentions will always override this)',
+        examples: [
+          `${COMMAND_NAME} ..`,
+        ],
+        type: CommandTypes.SETTINGS,
+        usage: `${COMMAND_NAME} <prefix>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.MANAGE_GUILD],
+      type: Parameters.string({maxLength: 128}),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.prefix;

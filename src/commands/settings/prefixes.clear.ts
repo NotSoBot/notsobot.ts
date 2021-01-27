@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { editGuildSettings } from '../../api';
@@ -10,21 +10,27 @@ import { BaseCommand } from '../basecommand';
 import { formatPrefixes } from './prefixes';
 
 
-export default class PrefixesClearCommand extends BaseCommand {
-  aliases = ['prefix clear'];
-  name = 'prefixes clear';
+export const COMMAND_NAME = 'prefixes clear';
 
-  disableDm = true;
-  metadata = {
-    description: 'Clear all custom prefixes from the guild. (Bot Mentions will always override this)',
-    examples: [
-      'prefixes clear',
-    ],
-    type: CommandTypes.SETTINGS,
-    usage: 'prefixes clear',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
+export default class PrefixesClearCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['prefix clear'],
+      disableDm: true,
+      metadata: {
+        description: 'Clear all custom prefixes from the guild. (Bot Mentions will always override this)',
+        examples: [
+          COMMAND_NAME,
+        ],
+        type: CommandTypes.SETTINGS,
+        usage: `${COMMAND_NAME}`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.MANAGE_GUILD],
+    });
+  }
 
   async run(context: Command.Context) {
     const guildId = context.guildId as string;

@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
@@ -27,25 +27,31 @@ export interface CommandArgs {
   to: GoogleLocales | null,
 }
 
-export default class TranslateCommand extends BaseCommand {
-  aliases = ['tr'];
-  name = 'translate';
+export const COMMAND_NAME = 'translate';
 
-  args = [
-    {name: 'from', default: null, type: Arguments.GoogleLocale.type},
-    {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
-  ];
-  label = 'text';
-  metadata = {
-    description: 'Translate some text',
-    examples: [
-      'translate не так бот',
-      'translate not so bot -to russian',
-    ],
-    type: CommandTypes.TOOLS,
-    usage: 'google <text> (-to <language>) (-from <language>)',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
+export default class TranslateCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['tr'],
+      args: [
+        {name: 'from', default: null, type: Arguments.GoogleLocale.type},
+        {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
+      ],
+      label: 'text',
+      metadata: {
+        description: 'Translate text to a different language',
+        examples: [
+          `${COMMAND_NAME} не так бот`,
+          `${COMMAND_NAME} not so bot -to russian`,
+        ],
+        type: CommandTypes.TOOLS,
+        usage: `${COMMAND_NAME} <text> (-to <language>) (-from <language>)`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.text;

@@ -1,4 +1,4 @@
-import { Collections, Command, Structures } from 'detritus-client';
+import { Collections, Command, CommandClient, Structures } from 'detritus-client';
 import { DiscordRegexNames, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 
@@ -155,25 +155,31 @@ export async function createAllowlist(
 }
 
 
-// make this support multiple
-export default class AllowlistAddCommand extends BaseCommand {
-  name = 'allowlist add';
+export const COMMAND_NAME = 'allowlist add';
 
-  disableDm = true;
-  label = 'payloads';
-  metadata = {
-    description: 'Allow an item based on mention type.',
-    examples: [
-      'allowlist add <#585639594574217232>',
-      'allowlist add <@300505364032389122> <@&178314191524855808>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'allowlist add ...<channel|role|user mention>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  priority = -1;
-  type = getItemsFromMention;
+export default class AllowlistAddCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['allowlist add role'],
+      disableDm: true,
+      label: 'payloads',
+      metadata: {
+        description: 'Add an item based on mention type to the allowlist.',
+        examples: [
+          `${COMMAND_NAME} <#585639594574217232>`,
+          `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<channel:mention,role:mention,user:mention>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.MANAGE_GUILD],
+      priority: -1,
+      type: getItemsFromMention,
+    });
+  }
 
   // maybe add owner check?
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {

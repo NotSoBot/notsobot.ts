@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
 
@@ -9,17 +9,26 @@ export interface CommandArgs {
   query: string,
 }
 
-export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
-  name = 'webmd';
+export const COMMAND_NAME = 'webmd';
 
-  metadata = {
-    description: 'Search WebMD',
-    examples: [
-      'webmd red spot on finger',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'webmd <query>',
-  };
+export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {name: 'random', type: Boolean},
+      ],
+      metadata: {
+        description: 'Search WebMD',
+        examples: [
+          `${COMMAND_NAME} red spot on finger`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     

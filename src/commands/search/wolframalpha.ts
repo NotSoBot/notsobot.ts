@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { searchWolframAlpha } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
@@ -11,18 +11,24 @@ export interface CommandArgs {
   query: string,
 }
 
-export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
-  aliases = ['wa'];
-  name = 'wolframalpha';
+export const COMMAND_NAME = 'wolframalpha';
 
-  metadata = {
-    description: 'Search Wolfram Alpha',
-    examples: [
-      'wolframalpha 5 plus 5',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'wolframalpha <query>',
-  };
+export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['wa'],
+      metadata: {
+        description: 'Search Wolfram Alpha',
+        examples: [
+          `${COMMAND_NAME} 5 plus 5`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { images, fields, url } = await searchWolframAlpha(context, args);

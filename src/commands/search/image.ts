@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogleImages } from '../../api';
@@ -14,24 +14,30 @@ export interface CommandArgs {
   safe: boolean,
 }
 
-export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
-  aliases = ['img'];
-  name = 'image';
+export const COMMAND_NAME = 'image';
 
-  args = [
-    Arguments.GoogleLocale,
-    Arguments.Safe,
-  ];
-  metadata = {
-    description: 'Search Google Images',
-    examples: [
-      'image notsobot',
-      'image notsobot -locale russian',
-      'image something nsfw -safe',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'image <query> (-locale <language>) (-safe)',
-  };
+export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['img'],
+      args: [
+        Arguments.GoogleLocale,
+        Arguments.Safe,
+      ],
+      metadata: {
+        description: 'Search Google Images',
+        examples: [
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -locale russian`,
+          `${COMMAND_NAME} something nsfw -safe`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query> (-locale <language>) (-safe)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchGoogleImages(context, args);

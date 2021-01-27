@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchE621 } from '../../api';
@@ -20,18 +20,25 @@ export interface CommandArgs {
   query: string,
 }
 
-export default class E621Command extends BaseSearchCommand<CommandArgs> {
-  name = 'e621';
+export const COMMAND_NAME = 'e621';
 
-  metadata = {
-    description: 'Search e621, a furry porn imageboard',
-    examples: [
-      'e621 discord',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'e621 <query>',
-  };
+export default class E621Command extends BaseSearchCommand<CommandArgs> {
   nsfw = true;
+
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Search e621, a furry porn imageboard',
+        examples: [
+          `${COMMAND_NAME} discord`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchE621(context, args);

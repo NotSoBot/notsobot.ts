@@ -8,22 +8,28 @@ export interface HashArgs {
   text: string;
 }
 
-export default class HashCommand extends BaseCommand<HashArgs> {
-  name = 'hash';
+export const COMMAND_NAME = 'hash';
 
-  args = [
-    {name: 'use'},
-  ];
-  label = 'text';
-  metadata = {
-    description: 'Hash some text',
-    examples: [
-      'hash lolol',
-      'hash lolol -use sha256',
-    ],
-    type: CommandTypes.TOOLS,
-    usage: 'hash <text> (-use <hash-type>)',
-  };
+export default class HashCommand extends BaseCommand<HashArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {name: 'use'},
+      ],
+      label: 'text',
+      metadata: {
+        description: 'Hash some text',
+        examples: [
+          `${COMMAND_NAME} Discord Bots`,
+          `${COMMAND_NAME} Discord Bots -use sha256`,
+        ],
+        type: CommandTypes.TOOLS,
+        usage: `${COMMAND_NAME} <text> (-use <hash-type>)`,
+      },
+    });
+  }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;

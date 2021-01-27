@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
@@ -18,31 +18,36 @@ export interface CommandArgs {
   channels: Array<Structures.Channel>,
 }
 
+export const COMMAND_NAME = 'allowlist add channels';
 
 export default class AllowlistAddChannelsCommand extends BaseCommand {
-  aliases = ['allowlist add channel'];
-  name = 'allowlist add channels';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  disableDm = true;
-  label = 'channels';
-  metadata = {
-    description: 'Add channels to the allowlist.',
-    examples: [
-      'allowlist add channel lobby',
-      'allowlist add channels <#585639594574217232> <#560595518129045504>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'allowlist add channels ...<channel mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
-  type = Parameters.channels({
-    types: [
-      ChannelTypes.GUILD_CATEGORY,
-      ChannelTypes.GUILD_NEWS,
-      ChannelTypes.GUILD_TEXT,
-    ],
-  });
+      aliases: ['allowlist add channel'],
+      disableDm: true,
+      label: 'channels',
+      metadata: {
+        description: 'Add channels to the allowlist.',
+        examples: [
+          `${COMMAND_NAME} lobby`,
+          `${COMMAND_NAME} <#585639594574217232> <#560595518129045504>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<channel:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.MANAGE_GUILD],
+      type: Parameters.channels({
+        types: [
+          ChannelTypes.GUILD_CATEGORY,
+          ChannelTypes.GUILD_NEWS,
+          ChannelTypes.GUILD_TEXT,
+        ],
+      }),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.channels && !!args.channels.length;

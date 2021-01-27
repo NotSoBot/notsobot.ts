@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR, googleTranslate } from '../../api';
@@ -18,25 +18,29 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
-  aliases = ['ocrtr', 'trocr', 'translateocr'];
-  name = 'ocrtranslate';
+export const COMMAND_NAME = 'ocrtranslate';
 
-  args = [
-    {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
-  ];
-  label = 'url';
-  metadata = {
-    description: 'Read text inside of an image and translate it',
-    examples: [
-      'ocrtranslate',
-      'ocrtranslate cake',
-      'ocrtranslate https://cdn.notsobot.com/brands/notsobot.png',
-    ],
-    type: CommandTypes.TOOLS,
-    usage: 'ocrtranslate ?<emoji,user:id|mention|name,url> (-to <language>)',
-  };
-  type = Parameters.lastImageUrl;
+export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['ocrtr', 'trocr', 'translateocr'],
+      args: [
+        {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
+      ],
+      metadata: {
+        description: 'Read text inside of an image and translate it',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} cake`,
+          `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
+        ],
+        type: CommandTypes.TOOLS,
+        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url> (-to <language>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { annotation } = await googleContentVisionOCR(context, {url: args.url});

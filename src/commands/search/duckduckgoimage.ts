@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGoImages } from '../../api';
@@ -12,18 +12,24 @@ export interface CommandArgs {
   query: string,
 }
 
-export default class DuckDuckGoImageCommand extends BaseSearchCommand<CommandArgs> {
-  aliases = ['ddgimg'];
-  name = 'duckduckgoimage';
+export const COMMAND_NAME = 'duckduckgoimage';
 
-  metadata = {
-    description: 'Search DuckDuckGo Images',
-    examples: [
-      'duckduckgoimage notsobot',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'duckduckgoimage <query>',
-  };
+export default class DuckDuckGoImageCommand extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['ddgimg'],
+      metadata: {
+        description: 'Search DuckDuckGo Images',
+        examples: [
+          `${COMMAND_NAME} notsobot`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query>`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchDuckDuckGoImages(context, args);

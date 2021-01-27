@@ -1,4 +1,4 @@
-import { Command, Constants } from 'detritus-client';
+import { Command, CommandClient, Constants } from 'detritus-client';
 import { LocalesText, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes } from '../../constants';
@@ -15,24 +15,30 @@ export interface CommandArgs {
   locale: Constants.Locales,
 }
 
-export default class SetLocaleCommand extends BaseCommand {
-  aliases = ['set language'];
-  name = 'set locale';
+export const COMMAND_NAME = 'set locale';
 
-  disableDm = true;
-  label = 'locale';
-  metadata = {
-    description: 'Set the guild\'s locale preference.',
-    examples: [
-      'set locale en-us',
-      'set locale english',
-    ],
-    type: CommandTypes.SETTINGS,
-    usage: 'set locale <locale>',
-  };
-  permissionsClient = [Permissions.MANAGE_GUILD];
-  permissions = [Permissions.MANAGE_GUILD];
-  type = Arguments.DiscordLocale.type!;
+export default class SetLocaleCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['set language'],
+      disableDm: true,
+      label: 'locale',
+      metadata: {
+        description: 'Set the guild\'s locale preference.',
+        examples: [
+          `${COMMAND_NAME} en-us`,
+          `${COMMAND_NAME} english`,
+        ],
+        type: CommandTypes.SETTINGS,
+        usage: `${COMMAND_NAME} <locale>`,
+      },
+      permissionsClient: [Permissions.MANAGE_GUILD],
+      permissions: [Permissions.MANAGE_GUILD],
+      type: Arguments.DiscordLocale.type!,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.locale;

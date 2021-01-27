@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR } from '../../api';
@@ -20,25 +20,30 @@ export interface CommandArgs {
   url: string,
 }
 
-export default class OCRCommand extends BaseImageCommand<CommandArgs> {
-  name = 'ocr';
+export const COMMAND_NAME = 'ocr';
 
-  args = [
-    {name: 'noembed', type: Boolean},
-    {name: 'files.gg', label: 'upload', type: Boolean},
-  ];
-  label = 'url';
-  metadata = {
-    description: 'Read text inside of an image',
-    examples: [
-      'ocr',
-      'ocr cake',
-      'ocr https://cdn.notsobot.com/brands/notsobot.png',
-    ],
-    type: CommandTypes.TOOLS,
-    usage: 'ocr ?<emoji,user:id|mention|name,url> (-noembed) (-files.gg)',
-  };
-  type = Parameters.lastImageUrl;
+export default class OCRCommand extends BaseImageCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {name: 'noembed', type: Boolean},
+        {name: 'files.gg', label: 'upload', type: Boolean},
+      ],
+      metadata: {
+        description: 'Read text inside of an image (Optical Character Recognition)',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} cake`,
+          `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
+        ],
+        type: CommandTypes.TOOLS,
+        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url> (-noembed) (-files.gg)`,
+      },
+      type: Parameters.lastImageUrl,
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { annotation } = await googleContentVisionOCR(context, {url: args.url});

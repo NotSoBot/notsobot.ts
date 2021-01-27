@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
@@ -19,24 +19,29 @@ export interface CommandArgs {
   prefix: string,
 }
 
-export default class PrefixesReplaceCommand extends BaseCommand {
-  aliases = ['prefix replace', 'prefixes set', 'prefix set'];
-  name = 'prefixes replace';
+export const COMMAND_NAME = 'prefixes replace';
 
-  disableDm = true;
-  label = 'prefix';
-  metadata = {
-    description: 'Replace all custom prefixes in the guild. (Bot Mentions will always override this)',
-    examples: [
-      'prefixes replace ..',
-      'prefixes set ..',
-    ],
-    type: CommandTypes.SETTINGS,
-    usage: 'prefixes replace <prefix>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
-  type = Parameters.string({maxLength: 128});
+export default class PrefixesReplaceCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['prefix replace', 'prefixes set', 'prefix set'],
+      disableDm: true,
+      label: 'prefix',
+      metadata: {
+        description: 'Replace all custom prefixes in the guild. (Bot Mentions will always override this)',
+        examples: [
+          `${COMMAND_NAME} ..`,
+        ],
+        type: CommandTypes.SETTINGS,
+        usage: `${COMMAND_NAME} <prefix>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.MANAGE_GUILD],
+      type: Parameters.string({maxLength: 128}),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.prefix;

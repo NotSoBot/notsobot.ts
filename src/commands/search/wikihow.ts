@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchWikihow, searchWikihowRandom } from '../../api';
@@ -18,22 +18,28 @@ export interface CommandArgs {
   random: boolean,
 }
 
-export default class WikihowCommand extends BaseSearchCommand<CommandArgs> {
-  aliases = ['wiki', 'how'];
-  name = 'wikihow';
+export const COMMAND_NAME = 'wikihow';
 
-  args = [
-    {name: 'random', type: Boolean},
-  ];
-  metadata = {
-    description: 'Search Wikihow',
-    examples: [
-      'wikihow cut tree',
-      'wikihow -random',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'wikihow <query> (-random)',
-  };
+export default class WikihowCommand extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['wiki', 'how'],
+      args: [
+        {name: 'random', type: Boolean},
+      ],
+      metadata: {
+        description: 'Search WikiHow',
+        examples: [
+          `${COMMAND_NAME} cut tree`,
+          `${COMMAND_NAME} -random`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query> (-random)`,
+      },
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.query || !!args.random;

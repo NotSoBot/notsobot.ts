@@ -1,4 +1,4 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogle } from '../../api';
@@ -24,24 +24,30 @@ export interface CommandArgs {
   safe: boolean,
 }
 
-export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
-  aliases = ['g'];
-  name = 'google';
+export const COMMAND_NAME = 'google';
 
-  args = [
-    Arguments.GoogleLocale,
-    Arguments.Safe,
-  ];
-  metadata = {
-    description: 'Search Google',
-    examples: [
-      'google notsobot',
-      'google notsobot -locale russian',
-      'google something nsfw -safe',
-    ],
-    type: CommandTypes.SEARCH,
-    usage: 'google <query> (-locale <language>) (-safe)',
-  };
+export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['g'],
+      args: [
+        Arguments.GoogleLocale,
+        Arguments.Safe,
+      ],
+      metadata: {
+        description: 'Search Google',
+        examples: [
+          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -locale russian`,
+          `${COMMAND_NAME} something nsfw -safe`,
+        ],
+        type: CommandTypes.SEARCH,
+        usage: `${COMMAND_NAME} <query> (-locale <language>) (-safe)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { cards, results, suggestion, total_result_count: totalResultCount } = await searchGoogle(context, args);

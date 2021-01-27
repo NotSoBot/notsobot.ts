@@ -1,4 +1,4 @@
-import { Collections, Command } from 'detritus-client';
+import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
@@ -40,18 +40,27 @@ export function formatPrefixes(
   return embed;
 }
 
-export default class PrefixesCommand extends BaseCommand {
-  aliases = ['prefix'];
-  name = 'prefixes';
+export const COMMAND_NAME = 'prefixes';
 
-  disableDm = true;
-  metadata = {
-    description: 'Show all current prefixes in the server.',
-    type: CommandTypes.SETTINGS,
-    usage: 'prefixes',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  priority = -1;
+export default class PrefixesCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['prefix'],
+      disableDm: true,
+      metadata: {
+        description: 'Show all current prefixes in the server.',
+        examples: [
+          COMMAND_NAME,
+        ],
+        type: CommandTypes.SETTINGS,
+        usage: `${COMMAND_NAME}`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      priority: -1,
+    });
+  }
 
   async run(context: Command.Context) {
     const guildId = context.guildId as string;

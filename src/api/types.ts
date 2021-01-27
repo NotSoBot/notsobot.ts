@@ -633,6 +633,7 @@ export namespace RestResponsesRaw {
     steam_rating: null,
     summary: string | null,
     trade_ban_state: string,
+    url: string,
     username: string,
     visibility_state: number,
   }
