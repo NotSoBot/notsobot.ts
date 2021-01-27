@@ -242,6 +242,14 @@ export async function googleContentVisionOCR(
 }
 
 
+export async function googleContentVisionWebDetection(
+  context: RequestContext,
+  options: RestOptions.GoogleContentVisionWebDetection,
+) {
+  return raw.googleContentVisionWebDetection(context, options);
+}
+
+
 export async function googleTranslate(
   context: RequestContext,
   options: RestOptions.GoogleTranslate,
@@ -552,6 +560,14 @@ export async function searchGoogleImages(
     collection.push(result);
   }
   return collection;
+}
+
+
+export async function searchGoogleReverseImages(
+  context: RequestContext,
+  options: RestOptions.SearchGoogleReverseImages,
+) {
+  return raw.searchGoogleReverseImages(context, options);
 }
 
 

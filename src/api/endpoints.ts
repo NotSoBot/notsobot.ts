@@ -22,6 +22,8 @@ export const Api = Object.freeze({
 
   GOOGLE_CONTENT_VISION_OCR:
     '/google/content-vision/ocr',
+  GOOGLE_CONTENT_VISION_WEB_DETECTION:
+    '/google/content-vision/web-detection',
   GOOGLE_TRANSLATE:
     '/google/translate',
 
@@ -117,6 +119,8 @@ export const Api = Object.freeze({
     '/search/google',
   SEARCH_GOOGLE_IMAGES:
     '/search/google/images',
+  SEARCH_GOOGLE_REVERSE_IMAGES:
+    '/search/google/reverse-images',
   SEARCH_REDDIT:
     '/search/reddit',
   SEARCH_RULE34:

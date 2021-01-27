@@ -374,7 +374,7 @@ export async function lastImageUrl(
         }
       }
 
-      {
+      if (channel.canReadHistory) {
         const messages = await channel.fetchMessages({limit: 100});
         const url = findImageUrlInMessages(messages);
         if (url) {
@@ -407,7 +407,7 @@ export async function lastImageUrls(
         }
       }
 
-      {
+      if (channel.canReadHistory) {
         const messages = await channel.fetchMessages({limit: 50});
         const url = findImageUrlInMessages(messages);
         if (url) {
@@ -744,6 +744,36 @@ export function days(
   }
   return days;
 }
+
+
+export interface NumberOptions {
+  max?: number,
+  min?: number,
+}
+
+export function number(options: NumberOptions = {}) {
+  return (valueStr: string): number => {
+    const value = parseInt(valueStr);
+    if (isNaN(value)) {
+      throw new Error('Value must be a number.');
+    }
+    if (options.max !== undefined && options.min !== undefined) {
+      if (value < options.min || options.max < value) {
+        throw new Error(`Value must be between ${options.min} and ${options.max}`);
+      }
+    } else if (options.max !== undefined) {
+      if (options.max < value) {
+        throw new Error(`Value must be less than ${options.max}`);
+      }
+    } else if (options.min !== undefined) {
+      if (value < options.min) {
+        throw new Error(`Value must be more than ${options.min}`);
+      }
+    }
+    return value;
+  };
+}
+
 
 export function percentage(
   value: string,

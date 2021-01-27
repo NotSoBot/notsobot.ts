@@ -355,6 +355,23 @@ export async function googleContentVisionOCR(
 }
 
 
+export async function googleContentVisionWebDetection(
+  context: RequestContext,
+  options: RestOptions.GoogleContentVisionWebDetection,
+): Promise<RestResponsesRaw.GoogleContentVisionWebDetection> {
+  const body = {
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GOOGLE_CONTENT_VISION_WEB_DETECTION,
+    },
+  });
+}
+
+
 export async function googleTranslate(
   context: RequestContext,
   options: RestOptions.GoogleTranslate,
@@ -1032,6 +1049,23 @@ export async function searchGoogleImages(
     route: {
       method: HTTPMethods.GET,
       path: Api.SEARCH_GOOGLE_IMAGES,
+    },
+  });
+}
+
+
+export async function searchGoogleReverseImages(
+  context: RequestContext,
+  options: RestOptions.SearchGoogleReverseImages,
+): Promise<RestResponsesRaw.SearchGoogleReverseImages> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.SEARCH_GOOGLE_REVERSE_IMAGES,
     },
   });
 }

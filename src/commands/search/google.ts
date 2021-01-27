@@ -75,15 +75,14 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
             const embed = createUserEmbed(context.user);
             embed.setColor(EmbedColors.DEFAULT);
 
-            let footer: string;
-            if (pageLimit === 1) {
-              footer = 'Google Search Results';
-            } else {
-              footer = `Page ${pageNumber}/${pageLimit} of Google Search Results (${totalResultCount.toLocaleString()} Total Results)`;
+            let footer = 'Google Search Results';
+            if (pageLimit !== 1) {
+              footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
             }
             if (args.locale in GoogleLocalesText) {
               footer = `${footer} (${GoogleLocalesText[args.locale]})`;
             }
+            footer = `${footer} (${totalResultCount.toLocaleString()} Total Results)`;
             embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
             const page = pages[pageNumber - 1];
@@ -95,6 +94,9 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                   Markup.url(`**${Markup.escape.all(result.cite)}**`, result.url),
                   Markup.escape.all(result.description),
                 ];
+                if (result.footer) {
+                  description.push(result.footer);
+                }
                 if (result.suggestions.length) {
                   const suggestions = result.suggestions.map((suggestion: {text: string, url: string}) => {
                     if (suggestion.url.length < 100) {

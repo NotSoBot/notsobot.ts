@@ -71,6 +71,10 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface GoogleContentVisionWebDetection {
+    url: string,
+  }
+
   export interface GoogleTranslate {
     from?: GoogleLocales,
     text: string,
@@ -185,6 +189,10 @@ export namespace RestOptions {
     maxResults?: number,
     query: string,
     safe?: boolean | string,
+  }
+
+  export interface SearchGoogleReverseImages {
+    url: string,
   }
 
   export interface SearchReddit {
@@ -316,6 +324,23 @@ export namespace RestResponsesRaw {
     annotation: null | {description: string, locale: GoogleLocales},
   }
 
+  export interface GoogleContentVisionWebDetection {
+    bestGuessLabels: Array<{label: string}>,
+    fullMatchingImages?: Array<{url: string}>,
+    pagesWithMatchingImages?: Array<{
+      pageTitle: string,
+      partialMatchingImages: Array<{url: string}>,
+      url: string,
+    }>,
+    partialMatchingImages?: Array<{url: string}>,
+    visuallySimilarImages?: Array<{url: string}>,
+    webEntities: Array<{
+      description: string,
+      entityId: string,
+      score: number,
+    }>,
+  }
+
   export interface GoogleTranslate {
     from_language: GoogleLocales,
     from_text: string,
@@ -377,6 +402,22 @@ export namespace RestResponsesRaw {
     results: Array<SearchGoogleResult>,
     suggestion: null | {text: string, url: string},
     total_result_count: number,
+  }
+
+  export interface SearchGoogleReverseImages {
+    related_search: {
+      results: Array<SearchGoogleResult>,
+      text: string,
+      url: string,
+    },
+    similar_images: {
+      results: Array<{search_url: string, url: string}>,
+      url: string,
+    },
+    similar_results: Array<SearchGoogleResult>,
+    thumbnail: string,
+    total_result_count: number,
+    url: string,
   }
 
   export type SearchGoogleImages = Array<SearchGoogleImage>;
@@ -457,7 +498,17 @@ export namespace RestResponsesRaw {
   export interface SearchGoogleResult {
     description: string,
     cite: string,
+    fields: Array<{name: string, url: string, value: string}>,
+    footer: string,
     suggestions: Array<{text: string, url: string}>,
+    thumbnail: {
+      description: string,
+      height: number,
+      proxy_url: string | null,
+      reference_url: string | null,
+      url: string | null,
+      width: number,
+    } | null,
     title: string,
     url: string,
     urls: Array<{text: string, url: string}>,
