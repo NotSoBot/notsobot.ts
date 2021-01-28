@@ -355,6 +355,14 @@ export async function imageInvert(
 }
 
 
+export async function imageInvertGif(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageInvertGif(context, options);
+}
+
+
 export async function imageJPEG(
   context: RequestContext,
   options: RestOptions.ImageJPEG,

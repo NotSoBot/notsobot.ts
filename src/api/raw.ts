@@ -620,6 +620,24 @@ export async function imageInvert(
 }
 
 
+export async function imageInvertGif(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_INVERT_GIF,
+    },
+  });
+}
+
+
 export async function imageJPEG(
   context: RequestContext,
   options: RestOptions.ImageJPEG,

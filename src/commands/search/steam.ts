@@ -50,7 +50,7 @@ export default class SteamCommand extends BaseSearchCommand<CommandArgs> {
 
           const result = results[page - 1];
           embed.setFooter(`Page ${page}/${pageLimit} of Steam Community Results (${count.toLocaleString()} Total Results)`, EmbedBrands.STEAM);
-          embed.setImage(result.avatar_url);
+          embed.setThumbnail(result.avatar_url);
 
           embed.setTitle(result.username);
           embed.setUrl(result.url);

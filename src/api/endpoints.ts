@@ -73,6 +73,8 @@ export const Api = Object.freeze({
     '/image/implode',
   IMAGE_INVERT:
     '/image/invert',
+  IMAGE_INVERT_GIF:
+    '/image/invert/gif',
   IMAGE_JPEG:
     '/image/jpeg',
   IMAGE_LEGOFY:

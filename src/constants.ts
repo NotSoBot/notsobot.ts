@@ -89,8 +89,8 @@ export enum EmbedBrands {
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
   GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
   NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
-  REDDIT = 'https://cdn.notsobot.com/brands/notsobot.png',
-  STEAM = 'https://cdn.notsobot.com/brands/notsobot.png',
+  REDDIT = 'https://cdn.notsobot.com/brands/reddit.png',
+  STEAM = 'https://cdn.notsobot.com/brands/steam.png',
   URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png',
   WIKIHOW = 'https://cdn.notsobot.com/brands/wikihow.png',
   WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
@@ -121,6 +121,7 @@ export enum GoogleCardTypes {
   UNITS = 'UNITS',
   UNKNOWN = 'UNKNOWN',
   WEATHER = 'WEATHER',
+  WEB_SNIPPET = 'WEB_SNIPPET',
 }
 
 export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
@@ -132,6 +133,7 @@ export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.TRANSLATION,
   GoogleCardTypes.UNITS,
   GoogleCardTypes.WEATHER,
+  GoogleCardTypes.WEB_SNIPPET,
 ]);
 
 export enum GoogleImageVideoTypes {

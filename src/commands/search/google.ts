@@ -51,6 +51,8 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
 
   async run(context: Command.Context, args: CommandArgs) {
     const { cards, results, suggestion, total_result_count: totalResultCount } = await searchGoogle(context, args);
+
+    const suggestionText = (suggestion) ? `Did you mean: ${Markup.bold(Markup.url(Markup.escape.all(suggestion.text), suggestion.url))}?` : null;
     if (cards.length || results.length) {
       const pages: Array<any> = [];
 
@@ -94,6 +96,9 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
             const page = pages[pageNumber - 1];
             if (Array.isArray(page)) {
               embed.setTitle('Search Results');
+              if (suggestionText) {
+                embed.setDescription(suggestionText);
+              }
 
               for (let result of page) {
                 const description: Array<string> = [
@@ -130,10 +135,11 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                 }; break;
                 case GoogleCardTypes.DEFINITION: {
                   embed.setTitle(`Definition of ${page.header}`);
-                  embed.setDescription([
-                    `Pronounced ${Markup.codestring(page.description)}`,
-                    // page.footer,
-                  ].join('\n'));
+                  if (page.description) {
+                    const pronunciation = (page.url) ? Markup.bold(Markup.url(page.description, page.url)) : Markup.codestring(page.description);
+                    embed.setDescription(`Pronounced ${pronunciation}`);
+                    // maybe put `page.footer` in here for credits?
+                  }
 
                   page.sections.length = Math.min(page.sections.length, 2);
                   for (let section of page.sections) {
@@ -166,6 +172,9 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                   }
                   if (page.thumbnail) {
                     embed.setThumbnail(page.thumbnail);
+                  }
+                  for (let field of page.fields) {
+                    embed.addField(field.name, field.value);
                   }
                 }; break;
                 case GoogleCardTypes.TIME: {
@@ -202,6 +211,17 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                     embed.addField(`**${field.name}**`, field.value, true);
                   }
                 }; break;
+                case GoogleCardTypes.WEB_SNIPPET: {
+                  if (page.header) {
+                    embed.addField(`**${Markup.escape.all(page.header as string)}**`, [
+                      Markup.url(`**${Markup.escape.all(page.footer as string)}**`, page.url as string),
+                      Markup.escape.all(page.description as string),
+                    ].join('\n'));
+                  }
+                }; break;
+              }
+              if (suggestionText) {
+                embed.addField('\u200b', suggestionText);
               }
             }
             return embed;
@@ -221,8 +241,8 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
     embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
     embed.setTitle('Unable to find any results');
-    if (suggestion) {
-      embed.setDescription(`Did you mean: ${Markup.url(Markup.escape.all(suggestion.text), suggestion.url)}?`);
+    if (suggestionText) {
+      embed.setDescription(suggestionText);
     }
 
     return context.editOrReply({embed});
