@@ -433,13 +433,18 @@ export namespace RestResponsesRaw {
 
   export interface SearchGoogleCard {
     description: null | string,
-    fields: Array<{description: string, title: string}>,
+    fields: Array<{name: string, value: string}>,
     footer: null | string,
     header: null | string,
     image: null | string,
+    sections: Array<{
+      fields: Array<{name: string, value: null | string, values?: Array<string>}>,
+      title: string,
+    }>,
     thumbnail: null | string,
     title: string,
     type: GoogleCardTypes,
+    url: null | string,
   }
 
   export interface SearchGoogleImage {

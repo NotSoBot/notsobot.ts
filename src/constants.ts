@@ -126,7 +126,10 @@ export enum GoogleCardTypes {
 export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.CALCULATOR,
   GoogleCardTypes.CURRENCY,
+  GoogleCardTypes.DEFINITION,
+  GoogleCardTypes.KNOWLEDGE_RESULT,
   GoogleCardTypes.TIME,
+  GoogleCardTypes.TRANSLATION,
   GoogleCardTypes.UNITS,
   GoogleCardTypes.WEATHER,
 ]);

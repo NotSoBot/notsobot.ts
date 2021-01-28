@@ -125,27 +125,81 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                 }; break;
                 case GoogleCardTypes.CURRENCY: {
                   for (let field of page.fields) {
-                    embed.addField(field.title, field.description, true);
+                    embed.addField(field.name, field.value, true);
+                  }
+                }; break;
+                case GoogleCardTypes.DEFINITION: {
+                  embed.setTitle(`Definition of ${page.header}`);
+                  embed.setDescription([
+                    `Pronounced ${Markup.codestring(page.description)}`,
+                    // page.footer,
+                  ].join('\n'));
+
+                  page.sections.length = Math.min(page.sections.length, 2);
+                  for (let section of page.sections) {
+                    if (section.fields.length) {
+                      const description: Array<string> = [];
+                      for (let field of section.fields) {
+                        description.push(`- ${field.name}`);
+                        if (field.value) {
+                          description.push(`-> ${Markup.italics(field.value)}`);
+                        }
+                        if (field.values && field.values.length) {
+                          description.push(`-> Similar Words: ${field.values.map((value: string) => Markup.codestring(value)).join(', ')}`);
+                        }
+                        description.push('');
+                      }
+                      embed.addField(section.title, description.join('\n'));
+                    }
+                  }
+                }; break;
+                case GoogleCardTypes.KNOWLEDGE_RESULT: {
+                  if (page.header) {
+                    embed.setTitle(page.header);
+                  }
+                  if (page.description) {
+                    if (page.footer) {
+                      embed.addField(page.footer, page.description, true);
+                    } else {
+                      embed.setDescription(page.description);
+                    }
+                  }
+                  if (page.thumbnail) {
+                    embed.setThumbnail(page.thumbnail);
                   }
                 }; break;
                 case GoogleCardTypes.TIME: {
                   embed.setTitle(page.footer);
                   embed.setDescription(`${page.header} on ${page.description}`);
                 }; break;
+                case GoogleCardTypes.TRANSLATION: {
+                  for (let section of page.sections) {
+                    const description: Array<string> = [];
+                    for (let field of section.fields) {
+                      description.push(field.name);
+                      if (field.value) {
+                        description.push(`-> ${field.value}`);
+                      }
+                    }
+                    embed.addField(section.title, description.join('\n'));
+                  }
+                }; break;
                 case GoogleCardTypes.UNITS: {
                   embed.setDescription(page.footer);
                   for (let field of page.fields) {
-                    embed.addField(field.title, field.description, true);
+                    embed.addField(field.name, field.value, true);
                   }
                 }; break;
                 case GoogleCardTypes.WEATHER: {
                   embed.setTitle(`Weather for ${page.header}`);
                   embed.setDescription(page.footer);
-                  embed.setThumbnail(page.thumbnail);
+                  if (page.thumbnail) {
+                    embed.setThumbnail(page.thumbnail);
+                  }
 
-                  embed.addField('**Temperature**', page.description, true);
+                  embed.addField('**Temperature**', page.description);
                   for (let field of page.fields) {
-                    embed.addField(`**${field.title}**`, field.description, true);
+                    embed.addField(`**${field.name}**`, field.value, true);
                   }
                 }; break;
               }
