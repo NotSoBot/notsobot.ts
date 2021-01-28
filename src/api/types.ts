@@ -134,6 +134,14 @@ export namespace RestOptions {
     scale?: number,
   }
 
+  export interface ImageTombstone {
+    line1?: string,
+    line2?: string,
+    line3?: string,
+    line4?: string,
+    line5?: string,
+  }
+
   export interface ImageToolsResize extends ImageBaseOptions {
     convert?: string,
     scale?: number,

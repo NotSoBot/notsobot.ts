@@ -49,6 +49,10 @@ export const Api = Object.freeze({
   IMAGE_CREATE_COLOR_RGB:
     '/image/create/:height:x:width:/colors/:red:.:green:.:blue:.:format:',
 
+  IMAGE_ASCII:
+    '/image/ascii',
+  IMAGE_ASCII_GIF:
+    '/image/ascii/gif',
   IMAGE_DEEPFRY:
     '/image/deepfry',
   IMAGE_DEEPFRY_GIF:
@@ -95,6 +99,8 @@ export const Api = Object.freeze({
     '/image/sharpen',
   IMAGE_SPIN:
     '/image/spin',
+  IMAGE_TOMBSTONE:
+    '/image/tombstone',
   IMAGE_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',
   IMAGE_TOOLS_RESIZE:

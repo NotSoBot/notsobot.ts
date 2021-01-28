@@ -247,10 +247,29 @@ export async function findMemberByChunk(
       return found;
     }
   } else {
-    // check our users cache since this is from a dm...
-    const found = findMemberByUsername(context.users, username, discriminator);
-    if (found) {
+    // we are in a DM, check our channel's recipients first
+    /*
+    const channel = (context.channel) ? context.channel : await context.rest.fetchChannel(context.channelId);
+    const found = findMembersByUsername(channel.recipients, username, discriminator);
+    if (found.length) {
       return found;
+    }
+    */
+
+    // assume this is a 1 on 1 DM since bots are not supported in Group DMs
+    {
+      const found = findMemberByUsername([context.user, context.client.user || undefined], username, discriminator);
+      if (found) {
+        return found;
+      }
+    }
+
+    // check our users cache since this is from a dm...
+    {
+      const found = findMemberByUsername(context.users, username, discriminator);
+      if (found) {
+        return found;
+      }
     }
   }
   return null;
@@ -292,6 +311,21 @@ export async function findMembersByChunk(
       return found;
     }
   } else {
+    // we are in a DM, check our channel's recipients first
+    /*
+    const channel = (context.channel) ? context.channel : await context.rest.fetchChannel(context.channelId);
+    const found = findMembersByUsername(channel.recipients, username, discriminator);
+    if (found.length) {
+      return found;
+    }
+    */
+
+    // assume this is a 1 on 1 DM since bots are not supported in Group DMs
+    const found = findMembersByUsername([context.user, context.client.user || undefined], username, discriminator);
+    if (found.length) {
+      return found;
+    }
+
     // check our users cache since this is from a dm...
     return findMembersByUsername(context.users, username, discriminator);
   }
@@ -311,7 +345,7 @@ export function findMemberByUsername(
   for (const memberOrUser of members.values()) {
     if (memberOrUser) {
       if (discriminator) {
-        if (memberOrUser.username.toLowerCase().startsWith(username)) {
+        if (memberOrUser.username.toLowerCase().startsWith(username) && memberOrUser.discriminator === discriminator) {
           return memberOrUser;
         }
       } else {
@@ -333,7 +367,7 @@ export function findMembersByUsername(
   for (const memberOrUser of members.values()) {
     if (memberOrUser) {
       if (discriminator) {
-        if (memberOrUser.username.toLowerCase().startsWith(username)) {
+        if (memberOrUser.username.toLowerCase().startsWith(username) && memberOrUser.discriminator === discriminator) {
           found.push(memberOrUser);
         }
       } else {

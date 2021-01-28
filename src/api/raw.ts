@@ -391,6 +391,44 @@ export async function googleTranslate(
 }
 
 
+
+
+export async function imageAscii(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_ASCII,
+    },
+  });
+}
+
+
+export async function imageAsciiGif(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_ASCII_GIF,
+    },
+  });
+}
+
+
 export async function imageDeepfry(
   context: RequestContext,
   options: RestOptions.ImageDeepfry,
@@ -821,6 +859,28 @@ export async function imageSpin(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_SPIN,
+    },
+  });
+}
+
+
+export async function imageTombstone(
+  context: RequestContext,
+  options: RestOptions.ImageTombstone,
+) {
+  const query = {
+    line_1: options.line1,
+    line_2: options.line2,
+    line_3: options.line3,
+    line_4: options.line4,
+    line_5: options.line5,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOMBSTONE,
     },
   });
 }

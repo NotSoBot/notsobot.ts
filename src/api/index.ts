@@ -258,6 +258,23 @@ export async function googleTranslate(
 }
 
 
+
+export async function imageAscii(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageAscii(context, options);
+}
+
+
+export async function imageAsciiGif(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageAsciiGif(context, options);
+}
+
+
 export async function imageDeepfry(
   context: RequestContext,
   options: RestOptions.ImageDeepfry,
@@ -439,6 +456,14 @@ export async function imageSpin(
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageSpin(context, options);
+}
+
+
+export async function imageTombstone(
+  context: RequestContext,
+  options: RestOptions.ImageTombstone,
+) {
+  return raw.imageTombstone(context, options);
 }
 
 

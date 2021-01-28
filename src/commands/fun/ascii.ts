@@ -32,6 +32,7 @@ export default class AsciiCommand extends BaseCommand {
         type: CommandTypes.FUN,
         usage: `${COMMAND_NAME} <text>`,
       },
+      priority: -1,
     });
   }
 
