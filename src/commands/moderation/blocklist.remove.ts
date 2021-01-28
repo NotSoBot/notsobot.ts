@@ -1,13 +1,14 @@
-import { Collections, Command } from 'detritus-client';
+import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildBlocklist, editGuildSettings } from '../../api';
 import { GuildSettings } from '../../api/structures/guildsettings';
-import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
+import { CommandTypes, GuildBlocklistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
 
-import BlocklistAddCommand, { BlocklistPayload, CommandArgs, getItemsFromMention } from './blocklist.add';
+import { BaseCommand } from '../basecommand';
+
+import { BlocklistPayload, CommandArgs, CommandArgsBefore, getItemsFromMention } from './blocklist.add';
 import { createBlocklistEmbed } from './blocklist';
 
 
@@ -79,26 +80,46 @@ export async function removeBlocklist(
   return {settings, title};
 }
 
+export const COMMAND_NAME = 'blocklist remove';
 
-export default class BlocklistRemoveCommand extends BlocklistAddCommand {
-  aliases = ['blocklist delete'];
-  name = 'blocklist remove';
+export default class BlocklistRemoveCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  disableDm = true;
-  label = 'payloads';
-  metadata = {
-    description: 'Remove a blocked item based on the mention type.',
-    examples: [
-      'blocklist remove <#585639594574217232>',
-      'blocklist remove <@300505364032389122> <@&178314191524855808>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'blocklist remove ...<channel|role|user mention>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  priority = -1;
-  type = getItemsFromMention;
+      aliases: [
+        'blocklist delete',
+      ],
+      disableDm: true,
+      label: 'payloads',
+      metadata: {
+        description: 'Remove blocklist items based on the mention type.',
+        examples: [
+          `${COMMAND_NAME} <#585639594574217232>`,
+          `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<channel:mention,role:mention,user:mention>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      priority: -1,
+      type: getItemsFromMention,
+    });
+  }
+
+  // maybe add owner check?
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    const { payloads } = args;
+    return !!payloads && !!payloads.length;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    if (args.payloads) {
+      return context.editOrReply('⚠ Unable to find any valid Text Channels, Roles, or Users');
+    }
+    return context.editOrReply('⚠ Provide some kind of mention');
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { payloads } = args;

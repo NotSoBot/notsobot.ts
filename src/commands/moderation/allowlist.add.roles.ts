@@ -39,7 +39,7 @@ export default class AllowlistAddRolesCommand extends BaseCommand {
         usage: `${COMMAND_NAME} ...<role:id|mention|name>`,
       },
       permissionsClient: [Permissions.EMBED_LINKS],
-      permissions: [Permissions.MANAGE_GUILD],
+      permissions: [Permissions.ADMINISTRATOR],
       type: Parameters.roles,
     });
   }

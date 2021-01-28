@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes } from 'detritus-client/lib/constants';
 
 import { createGuildLogger } from '../../api';
@@ -8,19 +8,25 @@ import { createLoggersEmbed } from './loggers';
 import { LoggersAddBaseCommand, CommandArgs } from './loggers.add.base';
 
 
-export default class LoggersAddBansCommand extends LoggersAddBaseCommand {
-  name = 'loggers add bans';
+export const COMMAND_NAME = 'loggers add bans';
 
-  metadata = {
-    description: 'Create a logger for ban events.',
-    examples: [
-      'loggers add bans',
-      'loggers add bans -channel ban-logs',
-      'loggers add bans -in logs',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'loggers add bans (-channel <text-channel mention|name>) (-in <category-channel mention|name>)',
-  };
+export default class LoggersAddBansCommand extends LoggersAddBaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      metadata: {
+        description: 'Create a logger for ban events.',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} -channel ban-logs`,
+          `${COMMAND_NAME} -in logs`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} (-channel <text-channel:id|mention|name>) (-in <category-channel:idmention|name>)`,
+      },
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const guild = context.guild as Structures.Guild;

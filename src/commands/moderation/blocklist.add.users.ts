@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
@@ -18,25 +18,30 @@ export interface CommandArgs {
   users: Array<Structures.Member | Structures.User>,
 }
 
+export const COMMAND_NAME = 'blocklist add users';
 
 export default class BlocklistAddUsersCommand extends BaseCommand {
-  aliases = ['blocklist add user'];
-  name = 'blocklist add users';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  disableDm = true;
-  label = 'users';
-  metadata = {
-    description: 'Add users to the blocklist.',
-    examples: [
-      'blocklist add user notsobot',
-      'blocklist add users <@300505364032389122> <@61189081970774016>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'blocklist add users ...<user mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  type = Parameters.membersOrUsers({allowBots: false});
+      aliases: ['blocklist add user'],
+      disableDm: true,
+      label: 'users',
+      metadata: {
+        description: 'Add users to the blocklist.',
+        examples: [
+          `${COMMAND_NAME} cake`,
+          `${COMMAND_NAME} <@300505364032389122> <@61189081970774016>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<user:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      type: Parameters.membersOrUsers({allowBots: false}),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     const { users } = args;

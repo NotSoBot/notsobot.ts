@@ -38,7 +38,7 @@ export default class AllowlistAddChannelsCommand extends BaseCommand {
         usage: `${COMMAND_NAME} ...<channel:id|mention|name>`,
       },
       permissionsClient: [Permissions.EMBED_LINKS],
-      permissions: [Permissions.MANAGE_GUILD],
+      permissions: [Permissions.ADMINISTRATOR],
       type: Parameters.channels({
         types: [
           ChannelTypes.GUILD_CATEGORY,

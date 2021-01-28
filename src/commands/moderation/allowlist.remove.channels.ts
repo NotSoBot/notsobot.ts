@@ -1,7 +1,7 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
+import { CommandTypes, GuildAllowlistTypes } from '../../constants';
 import { Parameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -18,35 +18,40 @@ export interface CommandArgs {
   channels: Array<Structures.Channel>,
 }
 
+export const COMMAND_NAME = 'allowlist remove channels';
 
 export default class AllowlistRemoveChannelsCommand extends BaseCommand {
-  aliases = [
-    'allowlist remove channel',
-    'allowlist delete channel',
-    'allowlist delete channels',
-  ];
-  name = 'allowlist remove channels';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  disableDm = true;
-  label = 'channels';
-  metadata = {
-    description: 'Remove channels from the allowlist.',
-    examples: [
-      'allowlist remove channel lobby',
-      'allowlist remove channels <#585639594574217232> <#560595518129045504>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'allowlist remove channels ...<channel mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  type = Parameters.channels({
-    types: [
-      ChannelTypes.GUILD_CATEGORY,
-      ChannelTypes.GUILD_NEWS,
-      ChannelTypes.GUILD_TEXT,
-    ],
-  });
+      aliases: [
+        'allowlist remove channel',
+        'allowlist delete channel',
+        'allowlist delete channels',
+      ],
+      disableDm: true,
+      label: 'channels',
+      metadata: {
+        description: 'Remove channels from the allowlist.',
+        examples: [
+          `${COMMAND_NAME} lobby`,
+          `${COMMAND_NAME} <#585639594574217232> <#560595518129045504>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<channel:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      type: Parameters.channels({
+        types: [
+          ChannelTypes.GUILD_CATEGORY,
+          ChannelTypes.GUILD_NEWS,
+          ChannelTypes.GUILD_TEXT,
+        ],
+      }),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.channels && !!args.channels.length;

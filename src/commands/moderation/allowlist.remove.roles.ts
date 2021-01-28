@@ -1,7 +1,7 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
+import { CommandTypes, GuildAllowlistTypes } from '../../constants';
 import { Parameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -18,30 +18,35 @@ export interface CommandArgs {
   roles: Array<Structures.Role>,
 }
 
+export const COMMAND_NAME = 'allowlist remove roles';
 
 export default class AllowlistRemoveRolesCommand extends BaseCommand {
-  aliases = [
-    'allowlist remove role',
-    'allowlist delete role',
-    'allowlist delete roles',
-  ];
-  name = 'allowlist remove roles';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  default = null;
-  disableDm = true;
-  label = 'roles';
-  metadata = {
-    description: 'Remove roles from the allowlist.',
-    examples: [
-      'allowlist remove role everyone',
-      'allowlist remove roles <@&668258873546637322> <@&178897437082124288>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'allowlist remove roles ...<role mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  type = Parameters.roles;
+      aliases: [
+        'allowlist remove role',
+        'allowlist delete role',
+        'allowlist delete roles',
+      ],
+      default: null,
+      disableDm: true,
+      label: 'roles',
+      metadata: {
+        description: 'Remove roles from the allowlist.',
+        examples: [
+          `${COMMAND_NAME} everyone`,
+          `${COMMAND_NAME} <@&668258873546637322> <@&178897437082124288>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<role:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      type: Parameters.roles,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.roles && !!args.roles.length;

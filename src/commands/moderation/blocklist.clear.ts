@@ -1,10 +1,8 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../api';
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
-import GuildSettingsStore from '../../stores/guildsettings';
 import { createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -14,27 +12,33 @@ export interface CommandArgs {
   only: GuildBlocklistTypes | null,
 }
 
-export default class BlocklistClearCommand extends BaseCommand {
-  name = 'blocklist clear';
+export const COMMAND_NAME = 'blocklist clear';
 
-  choices = Object.values(GuildBlocklistTypes);
-  default = null;
-  disableDm = true;
-  help = `Must be one of (${Object.values(GuildBlocklistTypes).join(', ')})`;
-  label = 'only';
-  metadata = {
-    description: 'Clear out Channels/Roles/Users/Server-Wide blocklist.',
-    examples: [
-      'blocklist clear',
-      'blocklist clear channels',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'blocklist clear ?<GuildDisableCommandsType>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  priority = -1;
-  type = (value: string) => value.toLowerCase();
+export default class BlocklistClearCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      choices: Object.values(GuildBlocklistTypes),
+      default: null,
+      disableDm: true,
+      help: `Must be one of (${Object.values(GuildBlocklistTypes).join(', ')})`,
+      label: 'only',
+      metadata: {
+        description: 'Clear out Channels/Roles/Users/Server-Wide blocklist.',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} channels`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ?<GuildDisableCommandsType>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      priority: -1,
+      type: (value: string) => value.toLowerCase(),
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;

@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { createGuildDisabledCommand } from '../../api';
@@ -22,48 +22,56 @@ export interface CommandArgs {
   users: Array<Structures.Member | Structures.User> | null,
 }
 
-export default class CommandsDisable extends BaseCommand {
-  aliases = ['cmds disable'];
-  name = 'commands disable';
+export const COMMAND_NAME = 'commands disable';
 
-  args = [
-    {
-      aliases: ['channel'],
-      name: 'channels',
-      type: Parameters.channels({
-        types: [
-          ChannelTypes.GUILD_CATEGORY,
-          ChannelTypes.GUILD_NEWS,
-          ChannelTypes.GUILD_TEXT,
+export default class CommandsDisable extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['cmds disable'],
+      args: [
+        {
+          aliases: ['channel'],
+          name: 'channels',
+          type: Parameters.channels({
+            types: [
+              ChannelTypes.GUILD_CATEGORY,
+              ChannelTypes.GUILD_NEWS,
+              ChannelTypes.GUILD_TEXT,
+            ],
+          }),
+        },
+        {
+          aliases: ['role'],
+          name: 'roles',
+          type: Parameters.roles,
+        },
+        {
+          aliases: ['user'],
+          name: 'users',
+          type: Parameters.membersOrUsers({allowBots: false}),
+        },
+      ],
+      disableDm: true,
+      label: 'command',
+      metadata: {
+        description: 'Disable a command for a Channel/Role/User or Server-Wide',
+        examples: [
+          `${COMMAND_NAME} rule34`,
+          `${COMMAND_NAME} rule34 -channels lobby`,
+          `${COMMAND_NAME} rule34 -roles members everyone`,
         ],
-      }),
-    },
-    {
-      aliases: ['role'],
-      name: 'roles',
-      type: Parameters.roles,
-    },
-    {
-      aliases: ['user'],
-      name: 'users',
-      type: Parameters.membersOrUsers({allowBots: false}),
-    },
-  ];
-  disableDm = true;
-  label = 'command';
-  metadata = {
-    description: 'Disable a command for a Channel/Role/User or Server-Wide',
-    examples: [
-      'commands disable rule34',
-      'commands disable rule34 -channels lobby',
-      'commands disable rule34 -roles members everyone',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'commands disable <command-name> (-channels ...<channel-name>) (-roles ...<role-name>) (-users ...<user-name>)',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
-  type = (content: string, context: Command.Context) => context.commandClient.getCommand({content, prefix: ''});
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} <command-name> (-channels ...<channel:id|mention|name>) (-roles ...<role:id|mention|name>) (-users ...<user:id|mention|name>)`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.MANAGE_GUILD],
+      type: (content: string, context: Command.Context) => {
+        return context.commandClient.getCommand({content, prefix: ''});
+      },
+    });
+  }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.command) {

@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
@@ -18,26 +18,31 @@ export interface CommandArgs {
   roles: Array<Structures.Role>,
 }
 
+export const COMMAND_NAME = 'blocklist add roles';
 
 export default class BlocklistAddRolesCommand extends BaseCommand {
-  aliases = ['blocklist add role'];
-  name = 'blocklist add roles';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  default = null;
-  disableDm = true;
-  label = 'roles';
-  metadata = {
-    description: 'Add roles to the blocklist.',
-    examples: [
-      'blocklist add role everyone',
-      'blocklist add roles <@&668258873546637322> <@&178897437082124288>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'blocklist add roles ...<role mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
-  type = Parameters.roles;
+      aliases: ['blocklist add role'],
+      default: null,
+      disableDm: true,
+      label: 'roles',
+      metadata: {
+        description: 'Add roles to the blocklist.',
+        examples: [
+          `${COMMAND_NAME} everyone`,
+          `${COMMAND_NAME} <@&668258873546637322> <@&178897437082124288>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<role:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      type: Parameters.roles,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.roles && !!args.roles.length;

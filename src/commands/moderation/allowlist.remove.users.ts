@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
@@ -18,29 +18,34 @@ export interface CommandArgs {
   users: Array<Structures.Member | Structures.User>,
 }
 
+export const COMMAND_NAME = 'allowlist remove users';
 
 export default class AllowlistRemoveUsersCommand extends BaseCommand {
-  aliases = [
-    'allowlist remove user',
-    'allowlist delete user',
-    'allowlist delete users',
-  ];
-  name = 'allowlist remove users';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  disableDm = true;
-  label = 'users';
-  metadata = {
-    description: 'Remove users from the allowlist.',
-    examples: [
-      'allowlist remove user notsobot',
-      'allowlist remove users <@300505364032389122> <@61189081970774016>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'allowlist remove users ...<user mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  type = Parameters.membersOrUsers({allowBots: false});
+      aliases: [
+        'allowlist remove user',
+        'allowlist delete user',
+        'allowlist delete users',
+      ],
+      disableDm: true,
+      label: 'users',
+      metadata: {
+        description: 'Remove users from the allowlist.',
+        examples: [
+          `${COMMAND_NAME} cake`,
+          `${COMMAND_NAME} <@300505364032389122> <@61189081970774016>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<user:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      type: Parameters.membersOrUsers({allowBots: false}),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.users && !!args.users.length;

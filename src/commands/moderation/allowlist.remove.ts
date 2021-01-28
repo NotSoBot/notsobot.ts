@@ -1,13 +1,14 @@
-import { Collections, Command } from 'detritus-client';
+import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildAllowlist, editGuildSettings } from '../../api';
 import { GuildSettings } from '../../api/structures/guildsettings';
-import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
+import { CommandTypes, GuildAllowlistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
 
-import AllowlistAddCommand, { AllowlistPayload, CommandArgs, getItemsFromMention } from './allowlist.add';
+import { BaseCommand } from '../basecommand';
+
+import { AllowlistPayload, CommandArgs, CommandArgsBefore, getItemsFromMention } from './allowlist.add';
 import { createAllowlistEmbed } from './allowlist';
 
 
@@ -80,25 +81,46 @@ export async function removeAllowlist(
 }
 
 
-export default class AllowlistRemoveCommand extends AllowlistAddCommand {
-  aliases = ['allowlist delete'];
-  name = 'allowlist remove';
+export const COMMAND_NAME = 'allowlist remove';
 
-  disableDm = true;
-  label = 'payloads';
-  metadata = {
-    description: 'Remove an allowlist item based on the mention type.',
-    examples: [
-      'allowlist remove <#585639594574217232>',
-      'allowlist remove <@300505364032389122> <@&178314191524855808>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'allowlist remove ...<channel|role|user mention>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  priority = -1;
-  type = getItemsFromMention;
+export default class AllowlistRemoveCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: [
+        'allowlist delete',
+      ],
+      disableDm: true,
+      label: 'payloads',
+      metadata: {
+        description: 'Remove allowlist items based on the mention type.',
+        examples: [
+          `${COMMAND_NAME} <#585639594574217232>`,
+          `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<channel:mention,role:mention,user:mention>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      priority: -1,
+      type: getItemsFromMention,
+    });
+  }
+
+  // maybe add owner check?
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    const { payloads } = args;
+    return !!payloads && !!payloads.length;
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    if (args.payloads) {
+      return context.editOrReply('⚠ Unable to find any valid Text Channels, Roles, or Users');
+    }
+    return context.editOrReply('⚠ Provide some kind of mention');
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { payloads } = args;

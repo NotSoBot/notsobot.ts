@@ -1,6 +1,5 @@
-import { Collections, Command } from 'detritus-client';
+import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsAllowlist } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
@@ -107,27 +106,32 @@ export interface CommandArgs {
   only: GuildAllowlistTypes | null,
 }
 
-export default class AllowlistCommand extends BaseCommand {
-  aliases = ['allowlist list'];
-  name = 'allowlist';
+export const COMMAND_NAME = 'allowlist';
 
-  choices = Object.values(GuildAllowlistTypes);
-  default = null;
-  disableDm = true;
-  help = `Must be one of (${Object.values(GuildAllowlistTypes).join(', ')})`;
-  label = 'only';
-  metadata = {
-    description: 'List all channels/roles/users part of the server\'s allowlist.',
-    examples: [
-      'allowlist',
-      'allowlist list channels',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'allowlist ?<GuildAllowlistType>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  priority = -2;
-  type = (value: string) => value.toLowerCase();
+export default class AllowlistCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      choices: Object.values(GuildAllowlistTypes),
+      default: null,
+      disableDm: true,
+      help: `Must be one of (${Object.values(GuildAllowlistTypes).join(', ')})`,
+      label: 'only',
+      metadata: {
+        description: 'List all channels/roles/users part of the server\'s allowlist.',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} channels`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ?<GuildAllowlistType>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      priority: -2,
+      type: (value: string) => value.toLowerCase(),
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;

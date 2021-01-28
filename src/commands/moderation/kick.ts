@@ -1,6 +1,6 @@
 import * as moment from 'moment';
 
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
@@ -20,30 +20,35 @@ export interface CommandArgs {
   payload: Parameters.BanPayloadMembersOnly,
 }
 
-export default class KickCommand extends BaseCommand {
-  name = 'kick';
+export const COMMAND_NAME = 'kick';
 
-  args = [
-    {name: 'clean', type: Parameters.days},
-  ];
-  default = null;
-  disableDm = true;
-  label = 'payload';
-  metadata = {
-    description: 'Kick multiple members, add a reason, and clean their messages.',
-    examples: [
-      'kick 300505364032389122',
-      'kick 300505364032389122 -clean 1 day',
-      'kick 300505364032389122 <@439205512425504771>',
-      'kick <@300505364032389122> <@439205512425504771> some reason here',
-    ],
-    type: CommandTypes.INFO,
-    usage: 'kick ...?<id|mention> <reason (string)> (-clean <days>)',
-  };
-  permissionsClient = [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS, Permissions.KICK_MEMBERS];
-  permissions = [Permissions.KICK_MEMBERS];
-  priority = -1;
-  type = Parameters.banPayload({membersOnly: true});
+export default class KickCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      args: [
+        {name: 'clean', type: Parameters.days},
+      ],
+      default: null,
+      disableDm: true,
+      label: 'payload',
+      metadata: {
+        description: 'Kick multiple members, add a reason, and clean their messages.',
+        examples: [
+          `${COMMAND_NAME} 300505364032389122`,
+          `${COMMAND_NAME} 300505364032389122 -clean 1 day`,
+          `${COMMAND_NAME} 300505364032389122 <@439205512425504771>`,
+          `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...?<user:id|mention> <reason (string)> (-clean <days>)`,
+      },
+      permissionsClient: [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS, Permissions.KICK_MEMBERS],
+      permissions: [Permissions.KICK_MEMBERS],
+      type: Parameters.banPayload({membersOnly: true}),
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.payload && !!args.payload.membersOrUsers.length;

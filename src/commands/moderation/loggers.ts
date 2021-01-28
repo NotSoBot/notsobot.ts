@@ -1,4 +1,4 @@
-import { Collections, Command } from 'detritus-client';
+import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
@@ -102,28 +102,33 @@ export interface CommandArgs {
   only: GuildLoggerTypes | null,
 }
 
-export default class LoggersCommand extends BaseCommand {
-  aliases = ['loggers list'];
-  name = 'loggers';
+export const COMMAND_NAME = 'loggers';
 
-  choices = Object.values(GuildLoggerTypes);
-  default = null;
-  disableDm = true;
-  help = `Must be one of (${Object.keys(GuildLoggerTypes).join(', ')})`;
-  label = 'only';
-  metadata = {
-    description: 'List all loggers inside of the server.',
-    examples: [
-      'loggers',
-      'loggers list members',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'loggers ?<GuildLoggerTypes>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.MANAGE_GUILD];
-  priority = -2;
-  type = (value: string) => (GuildLoggerTypes as any)[value.toUpperCase()];
+export default class LoggersCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      choices: Object.values(GuildLoggerTypes),
+      default: null,
+      disableDm: true,
+      help: `Must be one of (${Object.values(GuildLoggerTypes).join(', ')})`,
+      label: 'only',
+      metadata: {
+        description: 'List all loggers inside of the server.',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} members`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ?<GuildLoggerTypes>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.MANAGE_GUILD],
+      priority: -2,
+      type: (value: string) => (GuildLoggerTypes as any)[value.toUpperCase()],
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;

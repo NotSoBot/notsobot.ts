@@ -1,4 +1,4 @@
-import { Collections, Command } from 'detritus-client';
+import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
@@ -107,27 +107,32 @@ export interface CommandArgs {
   only: GuildBlocklistTypes | null,
 }
 
-export default class BlocklistCommand extends BaseCommand {
-  aliases = ['blocklist list'];
-  name = 'blocklist';
+export const COMMAND_NAME = 'blocklist';
 
-  choices = Object.values(GuildBlocklistTypes);
-  default = null;
-  disableDm = true;
-  help = `Must be one of (${Object.values(GuildBlocklistTypes).join(', ')})`;
-  label = 'only';
-  metadata = {
-    description: 'List all channels/roles/users part of the server\'s blocklist.',
-    examples: [
-      'blocklist',
-      'blocklist list channels',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'blocklist ?<GuildBlocklistType>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  priority = -2;
-  type = (value: string) => value.toLowerCase();
+export default class BlocklistCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      choices: Object.values(GuildBlocklistTypes),
+      default: null,
+      disableDm: true,
+      help: `Must be one of (${Object.values(GuildBlocklistTypes).join(', ')})`,
+      label: 'only',
+      metadata: {
+        description: 'List all channels/roles/users part of the server\'s blocklist.',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} channels`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ?<GuildBlocklistType>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      priority: -2,
+      type: (value: string) => value.toLowerCase(),
+    });
+  }
 
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;

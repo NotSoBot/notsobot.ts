@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
@@ -18,30 +18,35 @@ export interface CommandArgs {
   roles: Array<Structures.Role>,
 }
 
+export const COMMAND_NAME = 'blocklist remove roles';
 
 export default class BlocklistRemoveRolesCommand extends BaseCommand {
-  aliases = [
-    'blocklist remove role',
-    'blocklist delete role',
-    'blocklist delete roles',
-  ];
-  name = 'blocklist remove roles';
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
 
-  default = null;
-  disableDm = true;
-  label = 'roles';
-  metadata = {
-    description: 'Remove roles from the blocklist.',
-    examples: [
-      'blocklist remove role everyone',
-      'blocklist remove roles <@&668258873546637322> <@&178897437082124288>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'blocklist remove roles ...<role mention|name>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  type = Parameters.roles;
+      aliases: [
+        'blocklist remove role',
+        'blocklist delete role',
+        'blocklist delete roles',
+      ],
+      default: null,
+      disableDm: true,
+      label: 'roles',
+      metadata: {
+        description: 'Remove roles from the blocklist.',
+        examples: [
+          `${COMMAND_NAME} everyone`,
+          `${COMMAND_NAME} <@&668258873546637322> <@&178897437082124288>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<role:id|mention|name>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      type: Parameters.roles,
+    });
+  }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.roles && !!args.roles.length;

@@ -1,4 +1,4 @@
-import { Collections, Command, Structures } from 'detritus-client';
+import { Collections, Command, CommandClient, Structures } from 'detritus-client';
 import { DiscordRegexNames, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 
@@ -155,25 +155,30 @@ export async function createBlocklist(
 }
 
 
-// make this support multiple
-export default class BlocklistAddCommand extends BaseCommand {
-  name = 'blocklist add';
+export const COMMAND_NAME = 'blocklist add';
 
-  disableDm = true;
-  label = 'payloads';
-  metadata = {
-    description: 'Block an item based on mention type.',
-    examples: [
-      'blocklist add <#585639594574217232>',
-      'blocklist add <@300505364032389122> <@&178314191524855808>',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'blocklist add ...<channel|role|user mention>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  priority = -1;
-  type = getItemsFromMention;
+export default class BlocklistAddCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      disableDm: true,
+      label: 'payloads',
+      metadata: {
+        description: 'Add an item based on mention type to the blocklist.',
+        examples: [
+          `${COMMAND_NAME} <#585639594574217232>`,
+          `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ...<channel:mention,role:mention,user:mention>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      priority: -1,
+      type: getItemsFromMention,
+    });
+  }
 
   // maybe add owner check?
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {

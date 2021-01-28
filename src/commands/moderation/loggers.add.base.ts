@@ -1,4 +1,4 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import GuildSettingsStore from '../../stores/guildsettings';
@@ -20,24 +20,29 @@ export interface CommandArgs {
 }
 
 export class LoggersAddBaseCommand extends BaseCommand {
-  args = [
-    {
-      name: 'channel',
-      type: Parameters.channel({
-        types: [
-          ChannelTypes.GUILD_NEWS,
-          ChannelTypes.GUILD_TEXT,
-        ],
-      }),
-    },
-    {
-      name: 'in',
-      type: Parameters.channel({types: [ChannelTypes.GUILD_CATEGORY]}),
-    },
-  ];
-  disableDm = true;
-  permissionsClient = [Permissions.MANAGE_CHANNELS, Permissions.MANAGE_WEBHOOKS];
-  permissions = [Permissions.MANAGE_GUILD];
+  constructor(client: CommandClient, options: Command.CommandOptions) {
+    super(client, {
+      args: [
+        {
+          name: 'channel',
+          type: Parameters.channel({
+            types: [
+              ChannelTypes.GUILD_NEWS,
+              ChannelTypes.GUILD_TEXT,
+            ],
+          }),
+        },
+        {
+          name: 'in',
+          type: Parameters.channel({types: [ChannelTypes.GUILD_CATEGORY]}),
+        },
+      ],
+      disableDm: true,
+      permissionsClient: [Permissions.MANAGE_CHANNELS, Permissions.MANAGE_WEBHOOKS],
+      permissions: [Permissions.MANAGE_GUILD],
+      ...options,
+    });
+  }
 
   async onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.channel !== undefined && args.in !== undefined) {

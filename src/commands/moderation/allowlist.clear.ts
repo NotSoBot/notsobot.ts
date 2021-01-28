@@ -1,10 +1,8 @@
-import { Command } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../api';
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
-import GuildSettingsStore from '../../stores/guildsettings';
 import { createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -14,27 +12,33 @@ export interface CommandArgs {
   only?: GuildAllowlistTypes,
 }
 
-export default class AllowlistClearCommand extends BaseCommand {
-  name = 'allowlist clear';
+export const COMMAND_NAME = 'allowlist clear';
 
-  choices = Object.values(GuildAllowlistTypes);
-  default = null;
-  disableDm = true;
-  help = `Must be one of (${Object.values(GuildAllowlistTypes).join(', ')})`;
-  label = 'only';
-  metadata = {
-    description: 'Clear out Channels/Roles/Users/Server-Wide allowlist.',
-    examples: [
-      'allowlist clear',
-      'allowlist clear channels',
-    ],
-    type: CommandTypes.MODERATION,
-    usage: 'allowlist clear ?<GuildDisableCommandsType>',
-  };
-  permissionsClient = [Permissions.EMBED_LINKS];
-  permissions = [Permissions.ADMINISTRATOR];
-  priority = -1;
-  type = (value: string) => value.toLowerCase();
+export default class AllowlistClearCommand extends BaseCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      choices: Object.values(GuildAllowlistTypes),
+      default: null,
+      disableDm: true,
+      help: `Must be one of (${Object.values(GuildAllowlistTypes).join(', ')})`,
+      label: 'only',
+      metadata: {
+        description: 'Clear out Channels/Roles/Users/Server-Wide allowlist.',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} channels`,
+        ],
+        type: CommandTypes.MODERATION,
+        usage: `${COMMAND_NAME} ?<GuildDisableCommandsType>`,
+      },
+      permissionsClient: [Permissions.EMBED_LINKS],
+      permissions: [Permissions.ADMINISTRATOR],
+      priority: -1,
+      type: (value: string) => value.toLowerCase(),
+    });
+  }
 
   // add only variable (to only clear that type)
   async run(context: Command.Context, args: CommandArgs) {

@@ -1,10 +1,10 @@
 import { Collections, Command, CommandClient, Structures } from 'detritus-client';
 import { DiscordRegexNames, Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup, regex as discordRegex } from 'detritus-client/lib/utils';
+import { regex as discordRegex } from 'detritus-client/lib/utils';
 
 import { createGuildAllowlist, editGuildSettings } from '../../api';
 import { GuildSettings } from '../../api/structures/guildsettings';
-import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
+import { CommandTypes, GuildAllowlistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
 
 import { BaseCommand } from '../basecommand';
@@ -174,7 +174,7 @@ export default class AllowlistAddCommand extends BaseCommand {
         usage: `${COMMAND_NAME} ...<channel:mention,role:mention,user:mention>`,
       },
       permissionsClient: [Permissions.EMBED_LINKS],
-      permissions: [Permissions.MANAGE_GUILD],
+      permissions: [Permissions.ADMINISTRATOR],
       priority: -1,
       type: getItemsFromMention,
     });
