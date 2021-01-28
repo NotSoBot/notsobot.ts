@@ -1,11 +1,11 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command, CommandClient, Structures } from 'detritus-client';
 import { DiscordRegexNames } from 'detritus-client/lib/constants';
 import { regex as discordRegex } from 'detritus-client/lib/utils';
 
 import { imageTombstone } from '../../api';
 import { RestOptions } from '../../api/types';
 import { CommandTypes } from '../../constants';
-import { imageReply, isSnowflake } from '../../utils';
+import { imageReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -45,10 +45,10 @@ export default class RipCommand extends BaseCommand {
 
     let username: string;
     const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, mention) as {matches: Array<{id: string}>};
-    if (matches.length && isSnowflake(matches[0].id)) {
-      username = matches[0].id;
+    if (matches.length && context.message.mentions.has(matches[0].id)) {
+      username = (context.message.mentions.get(matches[0].id) as Structures.User).username;
     } else {
-      username = String(context.user);
+      username = context.user.username;
       parts.unshift(mention);
     }
     const text = parts.join(' ');
