@@ -51,30 +51,24 @@ export const Api = Object.freeze({
 
   IMAGE_ASCII:
     '/image/ascii',
-  IMAGE_ASCII_GIF:
-    '/image/ascii/gif',
   IMAGE_DEEPFRY:
     '/image/deepfry',
-  IMAGE_DEEPFRY_GIF:
-    '/image/deepfry/gif',
   IMAGE_EXPLODE:
     '/image/explode',
   IMAGE_EYES:
     '/image/eyes',
+  IMAGE_FLIP:
+    '/image/flip',
+  IMAGE_FLOP:
+    '/image/flop',
   IMAGE_GLITCH:
     '/image/glitch',
-  IMAGE_GLITCH_GIF:
-    '/image/glitch/gif',
   IMAGE_GRAYSCALE:
     '/image/grayscale',
-  IMAGE_GRAYSCALE_GIF:
-    '/image/grayscale/gif',
   IMAGE_IMPLODE:
     '/image/implode',
   IMAGE_INVERT:
     '/image/invert',
-  IMAGE_INVERT_GIF:
-    '/image/invert/gif',
   IMAGE_JPEG:
     '/image/jpeg',
   IMAGE_LEGOFY:

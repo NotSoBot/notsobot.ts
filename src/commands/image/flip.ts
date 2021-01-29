@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageAsciiGif } from '../../api';
+import { imageFlip } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -15,15 +15,15 @@ export interface CommandArgs {
   url: string,
 }
 
-export const COMMAND_NAME = 'ascii gif';
+export const COMMAND_NAME = 'flip';
 
-export default class AsciiGifCommand extends BaseImageCommand<CommandArgs> {
+export default class FlipCommand extends BaseImageCommand<CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Ascii-fy an Animated Image',
+        description: 'Flip an image (Vertical Flip)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
@@ -35,7 +35,7 @@ export default class AsciiGifCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageAsciiGif(context, args);
+    const response = await imageFlip(context, args);
     return imageReply(context, response);
   }
 }

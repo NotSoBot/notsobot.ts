@@ -411,24 +411,6 @@ export async function imageAscii(
 }
 
 
-export async function imageAsciiGif(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_ASCII_GIF,
-    },
-  });
-}
-
-
 export async function imageDeepfry(
   context: RequestContext,
   options: RestOptions.ImageDeepfry,
@@ -443,25 +425,6 @@ export async function imageDeepfry(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_DEEPFRY,
-    },
-  });
-}
-
-
-export async function imageDeepfryGif(
-  context: RequestContext,
-  options: RestOptions.ImageDeepfry,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_DEEPFRY_GIF,
     },
   });
 }
@@ -505,6 +468,42 @@ export async function imageEyes(
 }
 
 
+export async function imageFlip(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_FLIP,
+    },
+  });
+}
+
+
+export async function imageFlop(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_FLOP,
+    },
+  });
+}
+
+
 export async function imageGlitch(
   context: RequestContext,
   options: RestOptions.ImageGlitch,
@@ -526,27 +525,6 @@ export async function imageGlitch(
 }
 
 
-export async function imageGlitchGif(
-  context: RequestContext,
-  options: RestOptions.ImageGlitch,
-): Promise<Response> {
-  const query = {
-    amount: options.amount,
-    iterations: options.iterations,
-    seed: options.seed,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_GLITCH_GIF,
-    },
-  });
-}
-
-
 export async function imageGrayscale(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -560,24 +538,6 @@ export async function imageGrayscale(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_GRAYSCALE,
-    },
-  });
-}
-
-
-export async function imageGrayscaleGif(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_GRAYSCALE_GIF,
     },
   });
 }
@@ -615,24 +575,6 @@ export async function imageInvert(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_INVERT,
-    },
-  });
-}
-
-
-export async function imageInvertGif(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_INVERT_GIF,
     },
   });
 }

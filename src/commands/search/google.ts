@@ -159,6 +159,31 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                     }
                   }
                 }; break;
+                case GoogleCardTypes.FINANCE: {
+                  // title already set
+                  embed.setDescription([
+                    page.header,
+                    '',
+                    page.description,
+                  ].join('\n'));
+
+                  for (let field of page.fields) {
+                    embed.addField(field.name, field.value, true);
+                  }
+
+                  for (let section of page.sections) {
+                    const half = Math.round(section.fields.length / 2);
+                    for (let fields of [section.fields.slice(0, half), section.fields.slice(half)]) {
+                      const description: Array<string> = [];
+
+                      for (let field of fields) {
+                        description.push(`${Markup.bold(field.name)}: ${field.value}`);
+                      }
+
+                      embed.addField('\u200b', description.join('\n'), true);
+                    }
+                  }
+                }; break;
                 case GoogleCardTypes.KNOWLEDGE_RESULT: {
                   if (page.header) {
                     embed.setTitle(page.header);

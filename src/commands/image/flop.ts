@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageGrayscaleGif } from '../../api';
+import { imageFlop } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -15,16 +15,15 @@ export interface CommandArgs {
   url: string,
 }
 
-export const COMMAND_NAME = 'grayscale gif';
+export const COMMAND_NAME = 'flop';
 
-export default class GrayscaleGifCommand extends BaseImageCommand<CommandArgs> {
+export default class FlopCommand extends BaseImageCommand<CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['greyscale gif'],
       metadata: {
-        description: 'Grayscale an Animated Image',
+        description: 'Flop an image (Horizontal Flip)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
@@ -36,7 +35,7 @@ export default class GrayscaleGifCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageGrayscaleGif(context, args);
+    const response = await imageFlop(context, args);
     return imageReply(context, response);
   }
 }

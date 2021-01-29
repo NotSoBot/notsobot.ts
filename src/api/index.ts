@@ -267,27 +267,11 @@ export async function imageAscii(
 }
 
 
-export async function imageAsciiGif(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageAsciiGif(context, options);
-}
-
-
 export async function imageDeepfry(
   context: RequestContext,
   options: RestOptions.ImageDeepfry,
 ) {
   return raw.imageDeepfry(context, options);
-}
-
-
-export async function imageDeepfryGif(
-  context: RequestContext,
-  options: RestOptions.ImageDeepfry,
-) {
-  return raw.imageDeepfryGif(context, options);
 }
 
 
@@ -307,6 +291,22 @@ export async function imageEyes(
 }
 
 
+export async function imageFlip(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageFlip(context, options);
+}
+
+
+export async function imageFlop(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageFlop(context, options);
+}
+
+
 export async function imageGlitch(
   context: RequestContext,
   options: RestOptions.ImageGlitch,
@@ -315,27 +315,11 @@ export async function imageGlitch(
 }
 
 
-export async function imageGlitchGif(
-  context: RequestContext,
-  options: RestOptions.ImageGlitch,
-) {
-  return raw.imageGlitchGif(context, options);
-}
-
-
 export async function imageGrayscale(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageGrayscale(context, options);
-}
-
-
-export async function imageGrayscaleGif(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageGrayscaleGif(context, options);
 }
 
 
@@ -352,14 +336,6 @@ export async function imageInvert(
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageInvert(context, options);
-}
-
-
-export async function imageInvertGif(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageInvertGif(context, options);
 }
 
 
