@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { DiscordRegexNames } from 'detritus-client/lib/constants';
 import { regex as discordRegex } from 'detritus-client/lib/utils';
 
-import { imageTombstone } from '../../api';
+import { imageCreateTombstone } from '../../api';
 import { RestOptions } from '../../api/types';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
@@ -53,7 +53,7 @@ export default class RipCommand extends BaseCommand {
     }
     const text = parts.join(' ');
 
-    const query: RestOptions.ImageTombstone = {line1: 'R.I.P'};
+    const query: RestOptions.ImageCreateTombstone = {line1: 'R.I.P'};
     if (text) {
       if (22 < text.length) {
         query.line4 = text.slice(0, 22);
@@ -69,7 +69,7 @@ export default class RipCommand extends BaseCommand {
     }
     query.line2 = username;
 
-    const response = await imageTombstone(context, query);
+    const response = await imageCreateTombstone(context, query);
     return imageReply(context, response);
   }
 }

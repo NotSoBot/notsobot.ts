@@ -48,63 +48,73 @@ export const Api = Object.freeze({
     '/image/create/:height:x:width:/colors/:hex:.:format:',
   IMAGE_CREATE_COLOR_RGB:
     '/image/create/:height:x:width:/colors/:red:.:green:.:blue:.:format:',
+  IMAGE_CREATE_TOMBSTONE:
+    '/image/create/tombstone',
 
-  IMAGE_ASCII:
-    '/image/ascii',
-  IMAGE_DEEPFRY:
-    '/image/deepfry',
-  IMAGE_EXPLODE:
-    '/image/explode',
-  IMAGE_EYES:
-    '/image/eyes',
-  IMAGE_FLIP:
-    '/image/flip',
-  IMAGE_FLOP:
-    '/image/flop',
-  IMAGE_GLITCH:
-    '/image/glitch',
-  IMAGE_GRAYSCALE:
-    '/image/grayscale',
-  IMAGE_IMPLODE:
-    '/image/implode',
-  IMAGE_INVERT:
-    '/image/invert',
-  IMAGE_JPEG:
-    '/image/jpeg',
-  IMAGE_LEGOFY:
-    '/image/legofy',
-  IMAGE_MAGIK:
-    '/image/magik',
-  IMAGE_MAGIK_GIF:
-    '/image/magik/gif',
-  IMAGE_MEME:
-    '/image/meme',
-  IMAGE_MIRROR_BOTTOM:
-    '/image/mirror-bottom',
-  IMAGE_MIRROR_LEFT:
-    '/image/mirror-left',
-  IMAGE_MIRROR_RIGHT:
-    '/image/mirror-right',
-  IMAGE_MIRROR_TOP:
-    '/image/mirror-top',
+  IMAGE_MANIPULATION_ASCII:
+    '/image/manipulation/ascii',
+  IMAGE_MANIPULATION_BLUR:
+    '/image/manipulation/blur',
+  IMAGE_MANIPULATION_DEEPFRY:
+    '/image/manipulation/deepfry',
+  IMAGE_MANIPULATION_EXPLODE:
+    '/image/manipulation/explode',
+  IMAGE_MANIPULATION_EYES:
+    '/image/manipulation/eyes',
+  IMAGE_MANIPULATION_FLIP:
+    '/image/manipulation/flip',
+  IMAGE_MANIPULATION_FLOP:
+    '/image/manipulation/flop',
+  IMAGE_MANIPULATION_GLITCH:
+    '/image/manipulation/glitch',
+  IMAGE_MANIPULATION_GOLD:
+    '/image/manipulation/gold',
+  IMAGE_MANIPULATION_GRAYSCALE:
+    '/image/manipulation/grayscale',
+  IMAGE_MANIPULATION_IMPLODE:
+    '/image/manipulation/implode',
+  IMAGE_MANIPULATION_INVERT:
+    '/image/manipulation/invert',
+  IMAGE_MANIPULATION_JPEG:
+    '/image/manipulation/jpeg',
+  IMAGE_MANIPULATION_LEGOFY:
+    '/image/manipulation/legofy',
+  IMAGE_MANIPULATION_MAGIK:
+    '/image/manipulation/magik',
+  IMAGE_MANIPULATION_MAGIK_GIF:
+    '/image/manipulation/magik/gif',
+  IMAGE_MANIPULATION_MEME:
+    '/image/manipulation/meme',
+  IMAGE_MANIPULATION_MIRROR_BOTTOM:
+    '/image/manipulation/mirror-bottom',
+  IMAGE_MANIPULATION_MIRROR_LEFT:
+    '/image/manipulation/mirror-left',
+  IMAGE_MANIPULATION_MIRROR_RIGHT:
+    '/image/manipulation/mirror-right',
+  IMAGE_MANIPULATION_MIRROR_TOP:
+    '/image/manipulation/mirror-top',
+  IMAGE_MANIPULATION_PIXELATE:
+    '/image/manipulation/pixelate',
+  IMAGE_MANIPULATION_RAIN:
+    '/image/manipulation/rain',
+  IMAGE_MANIPULATION_RAIN_GOLD:
+    '/image/manipulation/rain/gold',
+  IMAGE_MANIPULATION_SHARPEN:
+    '/image/manipulation/sharpen',
+  IMAGE_MANIPULATION_SPIN:
+    '/image/manipulation/spin',
+  IMAGE_MANIPULATION_WALL:
+    '/image/manipulation/wall',
+  
   IMAGE_OVERLAY_GAY:
     '/image/overlay/gay',
-  IMAGE_PIXELATE:
-    '/image/pixelate',
-  IMAGE_SHARPEN:
-    '/image/sharpen',
-  IMAGE_SPIN:
-    '/image/spin',
-  IMAGE_TOMBSTONE:
-    '/image/tombstone',
+
   IMAGE_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',
   IMAGE_TOOLS_RESIZE:
     '/image/tools/resize',
   IMAGE_TOOLS_ROTATE:
     '/image/tools/rotate',
-  IMAGE_WALL:
-    '/image/wall',
 
   ME:
     '/users/@me',

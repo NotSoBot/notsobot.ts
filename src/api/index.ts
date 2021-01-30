@@ -258,7 +258,80 @@ export async function googleTranslate(
 }
 
 
+export async function imageCreateTombstone(
+  context: RequestContext,
+  options: RestOptions.ImageCreateTombstone,
+) {
+  return raw.imageCreateTombstone(context, options);
+}
 
+
+export async function imageManipulationBlur(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationBlur,
+) {
+  return raw.imageManipulationBlur(context, options);
+}
+
+
+export async function imageManipulationGold(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationGold(context, options);
+}
+
+
+export async function imageManipulationRain(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationRain(context, options);
+}
+
+
+export async function imageManipulationRainGold(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationRainGold(context, options);
+}
+
+
+export async function imageOverlayGay(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayGay(context, options);
+}
+
+
+export async function imageToolsBackgroundRemove(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageToolsBackgroundRemove(context, options);
+}
+
+
+export async function imageToolsResize(
+  context: RequestContext,
+  options: RestOptions.ImageToolsResize,
+) {
+  return raw.imageToolsResize(context, options);
+}
+
+
+export async function imageToolsRotate(
+  context: RequestContext,
+  options: RestOptions.ImageToolsRotate,
+) {
+  return raw.imageToolsRotate(context, options);
+}
+
+
+
+// To-do change these
 export async function imageAscii(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -411,14 +484,6 @@ export async function imageMirrorTop(
 }
 
 
-export async function imageOverlayGay(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageOverlayGay(context, options);
-}
-
-
 export async function imagePixelate(
   context: RequestContext,
   options: RestOptions.ImagePixelate,
@@ -440,38 +505,6 @@ export async function imageSpin(
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageSpin(context, options);
-}
-
-
-export async function imageTombstone(
-  context: RequestContext,
-  options: RestOptions.ImageTombstone,
-) {
-  return raw.imageTombstone(context, options);
-}
-
-
-export async function imageToolsBackgroundRemove(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageToolsBackgroundRemove(context, options);
-}
-
-
-export async function imageToolsResize(
-  context: RequestContext,
-  options: RestOptions.ImageToolsResize,
-) {
-  return raw.imageToolsResize(context, options);
-}
-
-
-export async function imageToolsRotate(
-  context: RequestContext,
-  options: RestOptions.ImageToolsRotate,
-) {
-  return raw.imageToolsRotate(context, options);
 }
 
 

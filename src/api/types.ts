@@ -85,6 +85,20 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface ImageCreateTombstone {
+    line1?: string,
+    line2?: string,
+    line3?: string,
+    line4?: string,
+    line5?: string,
+  }
+
+  export interface ImageManipulationBlur extends ImageBaseOptions {
+    scale?: number,
+  }
+
+
+  // To-do, change these to `Manipulation`
   export interface ImageDeepfry extends ImageBaseOptions {
     scale?: number,
   }
@@ -132,14 +146,6 @@ export namespace RestOptions {
 
   export interface ImageSharpen extends ImageBaseOptions {
     scale?: number,
-  }
-
-  export interface ImageTombstone {
-    line1?: string,
-    line2?: string,
-    line3?: string,
-    line4?: string,
-    line5?: string,
   }
 
   export interface ImageToolsResize extends ImageBaseOptions {
