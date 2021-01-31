@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageFlop } from '../../api';
+import { imageManipulationFlop } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -35,7 +35,7 @@ export default class FlopCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageFlop(context, args);
+    const response = await imageManipulationFlop(context, args);
     return imageReply(context, response);
   }
 }

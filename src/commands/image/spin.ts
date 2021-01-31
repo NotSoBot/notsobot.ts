@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageSpin } from '../../api';
+import { imageManipulationSpin } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -35,7 +35,7 @@ export default class SpinCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageSpin(context, args);
+    const response = await imageManipulationSpin(context, args);
     return imageReply(context, response);
   }
 }

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageDeepfry } from '../../api';
+import { imageManipulationDeepfry } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -41,7 +41,7 @@ export default class DeepfryCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageDeepfry(context, args);
+    const response = await imageManipulationDeepfry(context, args);
     return imageReply(context, response);
   }
 }

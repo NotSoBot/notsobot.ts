@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageWall } from '../../api';
+import { imageManipulationWall } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -35,7 +35,7 @@ export default class WallCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageWall(context, args);
+    const response = await imageManipulationWall(context, args);
     return imageReply(context, response);
   }
 }

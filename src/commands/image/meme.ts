@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageMeme } from '../../api';
+import { imageManipulationMeme } from '../../api';
 import { CommandTypes } from '../../constants';
 import { Parameters, imageReply } from '../../utils';
 
@@ -40,10 +40,6 @@ export default class MemeCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  onBefore(context: Command.Context) {
-    return context.user.isClientOwner;
-  }
-
   async run(context: Command.Context, args: CommandArgs) {
     const { text, url } = args;
 
@@ -58,7 +54,7 @@ export default class MemeCommand extends BaseImageCommand<CommandArgs> {
       bottom = split.slice(half).join(' ');
     }
 
-    const response = await imageMeme(context, {bottom, top, url});
+    const response = await imageManipulationMeme(context, {bottom, top, url});
     return imageReply(context, response);
   }
 }

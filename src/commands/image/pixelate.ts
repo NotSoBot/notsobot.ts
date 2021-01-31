@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imagePixelate } from '../../api';
+import { imageManipulationPixelate } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -42,7 +42,7 @@ export default class PixelateCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imagePixelate(context, {
+    const response = await imageManipulationPixelate(context, {
       pixelWidth: args.width,
       url: args.url,
     });

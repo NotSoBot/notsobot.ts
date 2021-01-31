@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageMagik } from '../../api';
+import { imageManipulationMagik } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -41,7 +41,7 @@ export default class MagikCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageMagik(context, args);
+    const response = await imageManipulationMagik(context, args);
     return imageReply(context, response);
   }
 }

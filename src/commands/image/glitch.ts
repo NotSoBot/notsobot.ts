@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageGlitch } from '../../api';
+import { imageManipulationGlitch } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -48,7 +48,7 @@ export default class GlitchCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageGlitch(context, args);
+    const response = await imageManipulationGlitch(context, args);
     return imageReply(context, response);
   }
 }

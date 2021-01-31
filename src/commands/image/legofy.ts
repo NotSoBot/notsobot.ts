@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageLegofy } from '../../api';
+import { imageManipulationLegofy } from '../../api';
 import { CommandTypes, ImageLegofyPalettes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -49,7 +49,7 @@ export default class LegofyCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageLegofy(context, args);
+    const response = await imageManipulationLegofy(context, args);
     return imageReply(context, response);
   }
 }

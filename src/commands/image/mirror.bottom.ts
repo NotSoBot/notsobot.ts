@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageMirrorBottom } from '../../api';
+import { imageManipulationMirrorBottom } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -36,7 +36,7 @@ export default class MirrorBottomCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageMirrorBottom(context, {url: args.url});
+    const response = await imageManipulationMirrorBottom(context, {url: args.url});
     return imageReply(context, response, 'mirror-bottom');
   }
 }

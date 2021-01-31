@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageFlip } from '../../api';
+import { imageManipulationFlip } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -35,7 +35,7 @@ export default class FlipCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageFlip(context, args);
+    const response = await imageManipulationFlip(context, args);
     return imageReply(context, response);
   }
 }

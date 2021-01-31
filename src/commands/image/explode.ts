@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageExplode } from '../../api';
+import { imageManipulationExplode } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -41,7 +41,7 @@ export default class ExplodeCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageExplode(context, args);
+    const response = await imageManipulationExplode(context, args);
     return imageReply(context, response);
   }
 }

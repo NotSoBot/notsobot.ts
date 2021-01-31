@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageInvert } from '../../api';
+import { imageManipulationInvert } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -35,7 +35,7 @@ export default class InvertCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageInvert(context, args);
+    const response = await imageManipulationInvert(context, args);
     return imageReply(context, response);
   }
 }

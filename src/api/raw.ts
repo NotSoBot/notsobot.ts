@@ -413,6 +413,24 @@ export async function imageCreateTombstone(
 }
 
 
+export async function imageManipulationAscii(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_ASCII,
+    },
+  });
+}
+
+
 export async function imageManipulationBlur(
   context: RequestContext,
   options: RestOptions.ImageManipulationBlur,
@@ -432,6 +450,156 @@ export async function imageManipulationBlur(
 }
 
 
+export async function imageManipulationBlurple(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_BLURPLE,
+    },
+  });
+}
+
+
+export async function imageManipulationCircle(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_CIRCLE,
+    },
+  });
+}
+
+
+export async function imageManipulationDeepfry(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationDeepfry,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_DEEPFRY,
+    },
+  });
+}
+
+
+export async function imageManipulationExplode(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationExplode,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_EXPLODE,
+    },
+  });
+}
+
+
+export async function imageManipulationEyes(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationEyes,
+): Promise<Response> {
+  const query = {
+    type: options.type,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_EYES,
+    },
+  });
+}
+
+
+export async function imageManipulationFlip(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_FLIP,
+    },
+  });
+}
+
+
+export async function imageManipulationFlop(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_FLOP,
+    },
+  });
+}
+
+
+export async function imageManipulationGlitch(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationGlitch,
+): Promise<Response> {
+  const query = {
+    amount: options.amount,
+    iterations: options.iterations,
+    seed: options.seed,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_GLITCH,
+    },
+  });
+}
+
+
 export async function imageManipulationGold(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -445,6 +613,251 @@ export async function imageManipulationGold(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_MANIPULATION_GOLD,
+    },
+  });
+}
+
+
+export async function imageManipulationGrayscale(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_GRAYSCALE,
+    },
+  });
+}
+
+
+export async function imageManipulationImplode(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationImplode,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_IMPLODE,
+    },
+  });
+}
+
+
+export async function imageManipulationInvert(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_INVERT,
+    },
+  });
+}
+
+
+export async function imageManipulationJPEG(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationJPEG,
+): Promise<Response> {
+  const query = {
+    quality: options.quality,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_JPEG,
+    },
+  });
+}
+
+
+export async function imageManipulationLegofy(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationLegofy,
+): Promise<Response> {
+  const query = {
+    dither: options.dither,
+    palette: options.palette,
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_LEGOFY,
+    },
+  });
+}
+
+
+export async function imageManipulationMagik(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationMagik,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_MAGIK,
+    },
+  });
+}
+
+
+
+export async function imageManipulationMagikGif(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationMagik,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_MAGIK_GIF,
+    },
+  });
+}
+
+
+export async function imageManipulationMeme(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationMeme,
+): Promise<Response> {
+  const query = {
+    bottom: options.bottom,
+    top: options.top,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_MEME,
+    },
+  });
+}
+
+
+export async function imageManipulationMirrorBottom(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_MIRROR_BOTTOM,
+    },
+  });
+}
+
+
+export async function imageManipulationMirrorLeft(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_MIRROR_LEFT,
+    },
+  });
+}
+
+
+export async function imageManipulationMirrorRight(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_MIRROR_RIGHT,
+    },
+  });
+}
+
+
+export async function imageManipulationMirrorTop(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_MIRROR_TOP,
+    },
+  });
+}
+
+
+export async function imageManipulationPixelate(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationPixelate,
+): Promise<Response> {
+  const query = {
+    pixel_width: options.pixelWidth,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_PIXELATE,
     },
   });
 }
@@ -481,6 +894,61 @@ export async function imageManipulationRainGold(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_MANIPULATION_RAIN_GOLD,
+    },
+  });
+}
+
+
+export async function imageManipulationSharpen(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationSharpen,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_SHARPEN,
+    },
+  });
+}
+
+
+export async function imageManipulationSpin(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_SPIN,
+    },
+  });
+}
+
+
+export async function imageManipulationWall(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_WALL,
     },
   });
 }
@@ -557,438 +1025,6 @@ export async function imageToolsRotate(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_TOOLS_ROTATE,
-    },
-  });
-}
-
-
-
-export async function imageAscii(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_ASCII,
-    },
-  });
-}
-
-
-export async function imageDeepfry(
-  context: RequestContext,
-  options: RestOptions.ImageDeepfry,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_DEEPFRY,
-    },
-  });
-}
-
-
-export async function imageExplode(
-  context: RequestContext,
-  options: RestOptions.ImageExplode,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_EXPLODE,
-    },
-  });
-}
-
-
-export async function imageEyes(
-  context: RequestContext,
-  options: RestOptions.ImageEyes,
-): Promise<Response> {
-  const query = {
-    type: options.type,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_EYES,
-    },
-  });
-}
-
-
-export async function imageFlip(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_FLIP,
-    },
-  });
-}
-
-
-export async function imageFlop(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_FLOP,
-    },
-  });
-}
-
-
-export async function imageGlitch(
-  context: RequestContext,
-  options: RestOptions.ImageGlitch,
-): Promise<Response> {
-  const query = {
-    amount: options.amount,
-    iterations: options.iterations,
-    seed: options.seed,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_GLITCH,
-    },
-  });
-}
-
-
-export async function imageGrayscale(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_GRAYSCALE,
-    },
-  });
-}
-
-
-export async function imageImplode(
-  context: RequestContext,
-  options: RestOptions.ImageImplode,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_IMPLODE,
-    },
-  });
-}
-
-
-export async function imageInvert(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_INVERT,
-    },
-  });
-}
-
-
-export async function imageJPEG(
-  context: RequestContext,
-  options: RestOptions.ImageJPEG,
-): Promise<Response> {
-  const query = {
-    quality: options.quality,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_JPEG,
-    },
-  });
-}
-
-
-export async function imageLegofy(
-  context: RequestContext,
-  options: RestOptions.ImageLegofy,
-): Promise<Response> {
-  const query = {
-    dither: options.dither,
-    palette: options.palette,
-    size: options.size,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_LEGOFY,
-    },
-  });
-}
-
-
-export async function imageMagik(
-  context: RequestContext,
-  options: RestOptions.ImageMagik,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MAGIK,
-    },
-  });
-}
-
-
-export async function imageMagikGif(
-  context: RequestContext,
-  options: RestOptions.ImageMagik,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MAGIK_GIF,
-    },
-  });
-}
-
-
-export async function imageMeme(
-  context: RequestContext,
-  options: RestOptions.ImageMeme,
-): Promise<Response> {
-  const query = {
-    bottom: options.bottom,
-    top: options.top,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MEME,
-    },
-  });
-}
-
-
-export async function imageMirrorBottom(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MIRROR_BOTTOM,
-    },
-  });
-}
-
-
-export async function imageMirrorLeft(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MIRROR_LEFT,
-    },
-  });
-}
-
-
-export async function imageMirrorRight(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MIRROR_RIGHT,
-    },
-  });
-}
-
-
-export async function imageMirrorTop(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MIRROR_TOP,
-    },
-  });
-}
-
-
-export async function imagePixelate(
-  context: RequestContext,
-  options: RestOptions.ImagePixelate,
-): Promise<Response> {
-  const query = {
-    pixel_width: options.pixelWidth,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_PIXELATE,
-    },
-  });
-}
-
-
-export async function imageSharpen(
-  context: RequestContext,
-  options: RestOptions.ImageSharpen,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_SHARPEN,
-    },
-  });
-}
-
-
-export async function imageSpin(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_SPIN,
-    },
-  });
-}
-
-
-export async function imageWall(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_WALL,
     },
   });
 }

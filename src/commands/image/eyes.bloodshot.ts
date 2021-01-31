@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageEyes } from '../../api';
+import { imageManipulationEyes } from '../../api';
 import { CommandTypes, ImageEyeTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -37,7 +37,7 @@ export default class EyesCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageEyes(context, {
+    const response = await imageManipulationEyes(context, {
       type: ImageEyeTypes.BLOODSHOT,
       url: args.url,
     });

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageGrayscale } from '../../api';
+import { imageManipulationGrayscale } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -36,7 +36,7 @@ export default class GrayscaleCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageGrayscale(context, args);
+    const response = await imageManipulationGrayscale(context, args);
     return imageReply(context, response);
   }
 }

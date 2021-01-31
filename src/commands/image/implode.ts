@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageImplode } from '../../api';
+import { imageManipulationImplode } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -41,7 +41,7 @@ export default class ImplodeCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageImplode(context, args);
+    const response = await imageManipulationImplode(context, args);
     return imageReply(context, response);
   }
 }

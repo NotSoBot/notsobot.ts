@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageAscii } from '../../api';
+import { imageManipulationAscii } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -36,7 +36,7 @@ export default class AsciiImageCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageAscii(context, args);
+    const response = await imageManipulationAscii(context, args);
     return imageReply(context, response);
   }
 }

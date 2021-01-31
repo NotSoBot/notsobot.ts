@@ -97,54 +97,52 @@ export namespace RestOptions {
     scale?: number,
   }
 
-
-  // To-do, change these to `Manipulation`
-  export interface ImageDeepfry extends ImageBaseOptions {
+  export interface ImageManipulationDeepfry extends ImageBaseOptions {
     scale?: number,
   }
 
-  export interface ImageExplode extends ImageBaseOptions {
+  export interface ImageManipulationExplode extends ImageBaseOptions {
     scale?: number,
   }
 
-  export interface ImageEyes extends ImageBaseOptions {
+  export interface ImageManipulationEyes extends ImageBaseOptions {
     type?: ImageEyeTypes,
   }
 
-  export interface ImageGlitch extends ImageBaseOptions {
+  export interface ImageManipulationGlitch extends ImageBaseOptions {
     amount?: number,
     iterations?: number,
     seed?: number,
   }
 
-  export interface ImageImplode extends ImageBaseOptions {
+  export interface ImageManipulationImplode extends ImageBaseOptions {
     scale?: number,
   }
 
-  export interface ImageJPEG extends ImageBaseOptions {
+  export interface ImageManipulationJPEG extends ImageBaseOptions {
     quality?: number,
   }
 
-  export interface ImageLegofy extends ImageBaseOptions {
+  export interface ImageManipulationLegofy extends ImageBaseOptions {
     dither?: boolean,
     palette?: ImageLegofyPalettes,
     size?: number,
   }
 
-  export interface ImageMagik extends ImageBaseOptions {
+  export interface ImageManipulationMagik extends ImageBaseOptions {
     scale?: number,
   }
 
-  export interface ImageMeme extends ImageBaseOptions {
+  export interface ImageManipulationMeme extends ImageBaseOptions {
     bottom?: string,
     top: string,
   }
 
-  export interface ImagePixelate extends ImageBaseOptions {
+  export interface ImageManipulationPixelate extends ImageBaseOptions {
     pixelWidth?: number,
   }
 
-  export interface ImageSharpen extends ImageBaseOptions {
+  export interface ImageManipulationSharpen extends ImageBaseOptions {
     scale?: number,
   }
 

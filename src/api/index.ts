@@ -266,6 +266,14 @@ export async function imageCreateTombstone(
 }
 
 
+export async function imageManipulationAscii(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationAscii(context, options);
+}
+
+
 export async function imageManipulationBlur(
   context: RequestContext,
   options: RestOptions.ImageManipulationBlur,
@@ -274,11 +282,179 @@ export async function imageManipulationBlur(
 }
 
 
+export async function imageManipulationBlurple(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationBlurple(context, options);
+}
+
+
+export async function imageManipulationCircle(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationCircle(context, options);
+}
+
+
+export async function imageManipulationDeepfry(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationDeepfry,
+) {
+  return raw.imageManipulationDeepfry(context, options);
+}
+
+
+export async function imageManipulationExplode(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationExplode,
+) {
+  return raw.imageManipulationExplode(context, options);
+}
+
+
+export async function imageManipulationEyes(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationEyes,
+) {
+  return raw.imageManipulationEyes(context, options);
+}
+
+
+export async function imageManipulationFlip(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationFlip(context, options);
+}
+
+
+export async function imageManipulationFlop(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationFlop(context, options);
+}
+
+
+export async function imageManipulationGlitch(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationGlitch,
+) {
+  return raw.imageManipulationGlitch(context, options);
+}
+
+
 export async function imageManipulationGold(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageManipulationGold(context, options);
+}
+
+
+export async function imageManipulationGrayscale(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationGrayscale(context, options);
+}
+
+
+export async function imageManipulationImplode(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationImplode,
+) {
+  return raw.imageManipulationImplode(context, options);
+}
+
+
+export async function imageManipulationInvert(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationInvert(context, options);
+}
+
+
+export async function imageManipulationJPEG(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationJPEG,
+) {
+  return raw.imageManipulationJPEG(context, options);
+}
+
+
+export async function imageManipulationLegofy(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationLegofy,
+) {
+  return raw.imageManipulationLegofy(context, options);
+}
+
+
+export async function imageManipulationMagik(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationMagik,
+) {
+  return raw.imageManipulationMagik(context, options);
+}
+
+
+export async function imageManipulationMagikGif(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationMagik,
+) {
+  return raw.imageManipulationMagikGif(context, options);
+}
+
+
+export async function imageManipulationMeme(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationMeme,
+) {
+  return raw.imageManipulationMeme(context, options);
+}
+
+
+export async function imageManipulationMirrorBottom(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationMirrorBottom(context, options);
+}
+
+
+export async function imageManipulationMirrorLeft(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationMirrorLeft(context, options);
+}
+
+
+export async function imageManipulationMirrorRight(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationMirrorLeft(context, options);
+}
+
+
+export async function imageManipulationMirrorTop(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationMirrorTop(context, options);
+}
+
+
+export async function imageManipulationPixelate(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationPixelate,
+) {
+  return raw.imageManipulationPixelate(context, options);
 }
 
 
@@ -295,6 +471,30 @@ export async function imageManipulationRainGold(
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageManipulationRainGold(context, options);
+}
+
+
+export async function imageManipulationSharpen(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationSharpen,
+) {
+  return raw.imageManipulationSharpen(context, options);
+}
+
+
+export async function imageManipulationSpin(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationSpin(context, options);
+}
+
+
+export async function imageManipulationWall(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationWall(context, options);
 }
 
 
@@ -329,191 +529,6 @@ export async function imageToolsRotate(
   return raw.imageToolsRotate(context, options);
 }
 
-
-
-// To-do change these
-export async function imageAscii(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageAscii(context, options);
-}
-
-
-export async function imageDeepfry(
-  context: RequestContext,
-  options: RestOptions.ImageDeepfry,
-) {
-  return raw.imageDeepfry(context, options);
-}
-
-
-export async function imageExplode(
-  context: RequestContext,
-  options: RestOptions.ImageExplode,
-) {
-  return raw.imageExplode(context, options);
-}
-
-
-export async function imageEyes(
-  context: RequestContext,
-  options: RestOptions.ImageEyes,
-) {
-  return raw.imageEyes(context, options);
-}
-
-
-export async function imageFlip(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageFlip(context, options);
-}
-
-
-export async function imageFlop(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageFlop(context, options);
-}
-
-
-export async function imageGlitch(
-  context: RequestContext,
-  options: RestOptions.ImageGlitch,
-) {
-  return raw.imageGlitch(context, options);
-}
-
-
-export async function imageGrayscale(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageGrayscale(context, options);
-}
-
-
-export async function imageImplode(
-  context: RequestContext,
-  options: RestOptions.ImageImplode,
-) {
-  return raw.imageImplode(context, options);
-}
-
-
-export async function imageInvert(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageInvert(context, options);
-}
-
-
-export async function imageJPEG(
-  context: RequestContext,
-  options: RestOptions.ImageJPEG,
-) {
-  return raw.imageJPEG(context, options);
-}
-
-
-export async function imageLegofy(
-  context: RequestContext,
-  options: RestOptions.ImageLegofy,
-) {
-  return raw.imageLegofy(context, options);
-}
-
-
-export async function imageMagik(
-  context: RequestContext,
-  options: RestOptions.ImageMagik,
-) {
-  return raw.imageMagik(context, options);
-}
-
-
-export async function imageMagikGif(
-  context: RequestContext,
-  options: RestOptions.ImageMagik,
-) {
-  return raw.imageMagikGif(context, options);
-}
-
-
-export async function imageMeme(
-  context: RequestContext,
-  options: RestOptions.ImageMeme,
-) {
-  return raw.imageMeme(context, options);
-}
-
-
-export async function imageMirrorBottom(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageMirrorBottom(context, options);
-}
-
-
-export async function imageMirrorLeft(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageMirrorLeft(context, options);
-}
-
-
-export async function imageMirrorRight(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageMirrorLeft(context, options);
-}
-
-
-export async function imageMirrorTop(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageMirrorTop(context, options);
-}
-
-
-export async function imagePixelate(
-  context: RequestContext,
-  options: RestOptions.ImagePixelate,
-) {
-  return raw.imagePixelate(context, options);
-}
-
-
-export async function imageSharpen(
-  context: RequestContext,
-  options: RestOptions.ImageSharpen,
-) {
-  return raw.imageSharpen(context, options);
-}
-
-
-export async function imageSpin(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageSpin(context, options);
-}
-
-
-export async function imageWall(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  return raw.imageWall(context, options);
-}
 
 
 export async function putGuildSettings(

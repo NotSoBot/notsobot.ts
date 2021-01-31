@@ -55,6 +55,10 @@ export const Api = Object.freeze({
     '/image/manipulation/ascii',
   IMAGE_MANIPULATION_BLUR:
     '/image/manipulation/blur',
+  IMAGE_MANIPULATION_BLURPLE:
+    '/image/manipulation/blurple',
+  IMAGE_MANIPULATION_CIRCLE:
+    '/image/manipulation/circle',
   IMAGE_MANIPULATION_DEEPFRY:
     '/image/manipulation/deepfry',
   IMAGE_MANIPULATION_EXPLODE:

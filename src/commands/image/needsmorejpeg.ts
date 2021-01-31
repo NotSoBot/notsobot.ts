@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageJPEG } from '../../api';
+import { imageManipulationJPEG } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -42,7 +42,7 @@ export default class NeedsMoreJPEGCommand extends BaseImageCommand<CommandArgs> 
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageJPEG(context, args);
+    const response = await imageManipulationJPEG(context, args);
     return imageReply(context, response);
   }
 }
