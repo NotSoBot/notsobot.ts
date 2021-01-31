@@ -170,6 +170,12 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                   for (let field of page.fields) {
                     embed.addField(field.name, field.value, true);
                   }
+                  if (page.fields.length < 3) {
+                    const fillAmount = 3 - page.fields.length;
+                    for (let i = 0; i < fillAmount; i++) {
+                      embed.addField('\u200b', '\u200b', true);
+                    }
+                  }
 
                   for (let section of page.sections) {
                     const half = Math.round(section.fields.length / 2);

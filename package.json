@@ -9,7 +9,7 @@
   ],
   "dependencies": {
     "@sentry/node": "^5.30.0",
-    "detritus-client": "^0.12.1",
+    "detritus-client": "^0.13.0",
     "emoji-aware": "^3.0.5",
     "juration": "^0.1.1",
     "moment": "^2.29.1",
@@ -23,7 +23,6 @@
     "@types/node-fetch": "^2.5.8",
     "@types/redis": "^2.8.28"
   },
-  "peerDependencies": {},
   "scripts": {
     "build": "tsc",
     "launch": "node ./lib/src/run",

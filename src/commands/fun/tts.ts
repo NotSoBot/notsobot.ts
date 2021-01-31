@@ -80,7 +80,7 @@ export default class TTSCommand extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await funTextToSpeech(context, {text: args.text, voice: (TTSVoices as any)[args.use]});
-    const filename = response.headers.get('x-filename') || 'tts.mp3';
+    const filename = response.headers.get('x-file-name') || 'tts.mp3';
     return context.editOrReply({file: {filename, value: await response.buffer()}});
   }
 }

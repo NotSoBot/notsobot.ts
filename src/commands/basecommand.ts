@@ -36,11 +36,12 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }, options));
   }
 
-  onPermissionsFailClient(context: Command.Context, failed: Array<Permissions>) {
+  onPermissionsFailClient(context: Command.Context, failed: Array<bigint>) {
     const permissions: Array<string> = [];
     for (let permission of failed) {
-      if (permission in PermissionsText) {
-        permissions.push(`\`${PermissionsText[permission]}\``);
+      const key = String(permission);
+      if (key in PermissionsText) {
+        permissions.push(`\`${PermissionsText[key]}\``);
       } else {
         permissions.push(`\`(Unknown: ${permission})\``);
       }
@@ -49,11 +50,12 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     return context.editOrReply(`⚠ ${command} requires the bot to have ${permissions.join(', ')} to work.`);
   }
 
-  onPermissionsFail(context: Command.Context, failed: Array<Permissions>) {
+  onPermissionsFail(context: Command.Context, failed: Array<bigint>) {
     const permissions: Array<string> = [];
     for (let permission of failed) {
-      if (permission in PermissionsText) {
-        permissions.push(`\`${PermissionsText[permission]}\``);
+      const key = String(permission);
+      if (key in PermissionsText) {
+        permissions.push(`\`${PermissionsText[key]}\``);
       } else {
         permissions.push(`\`(Unknown: ${permission})\``);
       }

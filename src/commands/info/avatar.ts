@@ -8,11 +8,13 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
+  default: boolean,
   noembed: boolean,
   user: Structures.Member | Structures.User | null,
 }
 
 export interface CommandArgs {
+  default: boolean,
   noembed: boolean,
   user: Structures.Member | Structures.User,
 }
@@ -26,6 +28,7 @@ export default class AvatarCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
+        {name: 'default', type: Boolean},
         {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
       ],
       default: DefaultParameters.author,
@@ -37,7 +40,7 @@ export default class AvatarCommand extends BaseCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.INFO,
-        usage: `${COMMAND_NAME} ?<user:id|mention|name> (-noembed)`,
+        usage: `${COMMAND_NAME} ?<user:id|mention|name> (-default) (-noembed)`,
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.memberOrUser(),
@@ -54,11 +57,17 @@ export default class AvatarCommand extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     const { user } = args;
+    const avatarUrl = (args.default) ? user.defaultAvatarUrl : user.avatarUrl;
     if (!args.noembed) {
       const embed = createUserEmbed(user);
       embed.setColor(PresenceStatusColors['offline']);
-      embed.setDescription(`[**Avatar Url**](${user.avatarUrl})`);
-      embed.setImage(user.avatarUrlFormat(null, {size: 512}));
+      embed.setDescription(`[**Avatar Url**](${avatarUrl})`);
+
+      if (args.default) {
+        embed.setImage(avatarUrl);
+      } else {
+        embed.setImage(user.avatarUrlFormat(null, {size: 512}));
+      }
 
       const presence = user.presence;
       if (presence && presence.status in PresenceStatusColors) {
@@ -67,6 +76,6 @@ export default class AvatarCommand extends BaseCommand {
 
       return context.editOrReply({embed});
     }
-    return context.editOrReply(user.avatarUrl);
+    return context.editOrReply(avatarUrl);
   }
 }

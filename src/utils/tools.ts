@@ -486,18 +486,21 @@ export async function imageReply(
     }
     embed.setDescription(description.join(' | '));
   }
+
+  const [ width, height ]: [number, number] = JSON.parse(response.headers.get('x-dimensions') || '[0, 0]');
+  const [ framesOld, framesNew ]: [number, number] = JSON.parse(response.headers.get('x-frames') || '[0, 0]');
   return imageReplyFromOptions(context, await response.buffer(), {
     content: options.content,
     embed,
-    extension: response.headers.get('x-extension') || undefined,
-    filename: options.filename,
-    framesNew: +(response.headers.get('x-frames-new') || 0),
-    framesOld: +(response.headers.get('x-frames-old') || 0),
-    height: +(response.headers.get('x-dimensions-height') || 0),
+    extension: response.headers.get('x-file-extension') || undefined,
+    filename: options.filename, // we will get the filename based off the command name
+    framesNew,
+    framesOld,
+    height,
     mimetype: response.headers.get('content-type') || undefined,
     size: +(response.headers.get('x-file-size') || 0),
     took: +(response.headers.get('x-took') || 0),
-    width: +(response.headers.get('x-dimensions-width') || 0),
+    width,
   });
 }
 

@@ -136,7 +136,7 @@ export default class RoleCommand extends BaseCommand {
 
         for (const permission of PERMISSIONS_ADMIN) {
           const can = PermissionTools.checkPermissions(permissions, permission);
-          rows.push([`${PermissionsText[permission]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+          rows.push([`${PermissionsText[String(permission)]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
         embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -147,7 +147,7 @@ export default class RoleCommand extends BaseCommand {
 
         for (const permission of PERMISSIONS_TEXT) {
           const can = PermissionTools.checkPermissions(permissions, permission);
-          rows.push([`${PermissionsText[permission]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+          rows.push([`${PermissionsText[String(permission)]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
         embed.addField('Text', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -156,7 +156,7 @@ export default class RoleCommand extends BaseCommand {
 
         for (const permission of PERMISSIONS_VOICE) {
           const can = PermissionTools.checkPermissions(permissions, permission);
-          rows.push([`${PermissionsText[permission]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+          rows.push([`${PermissionsText[String(permission)]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
         embed.addField('Voice', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
