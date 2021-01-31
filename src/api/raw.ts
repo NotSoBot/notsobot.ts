@@ -338,9 +338,46 @@ export async function funASCII(
 }
 
 
+export async function funTextToSpeech(
+  context: RequestContext,
+  options: RestOptions.FunTextToSpeech,
+): Promise<Response> {
+  const query = {
+    text: options.text,
+    voice: options.voice,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.FUN_TEXT_TO_SPEECH,
+    },
+  });
+}
+
+
+
+export async function googleContentVisionLabels(
+  context: RequestContext,
+  options: RestOptions.GoogleContentVisionBase,
+): Promise<RestResponsesRaw.GoogleContentVisionLabels> {
+  const body = {
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GOOGLE_CONTENT_VISION_LABELS,
+    },
+  });
+}
+
+
 export async function googleContentVisionOCR(
   context: RequestContext,
-  options: RestOptions.GoogleContentVisionOCR,
+  options: RestOptions.GoogleContentVisionBase,
 ): Promise<RestResponsesRaw.GoogleContentVisionOCR> {
   const body = {
     url: options.url,
@@ -355,9 +392,26 @@ export async function googleContentVisionOCR(
 }
 
 
+export async function googleContentVisionSafeSearch(
+  context: RequestContext,
+  options: RestOptions.GoogleContentVisionBase,
+): Promise<RestResponsesRaw.GoogleContentVisionSafeSearch> {
+  const body = {
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GOOGLE_CONTENT_VISION_SAFE_SEARCH,
+    },
+  });
+}
+
+
 export async function googleContentVisionWebDetection(
   context: RequestContext,
-  options: RestOptions.GoogleContentVisionWebDetection,
+  options: RestOptions.GoogleContentVisionBase,
 ): Promise<RestResponsesRaw.GoogleContentVisionWebDetection> {
   const body = {
     url: options.url,

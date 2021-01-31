@@ -66,12 +66,13 @@ export namespace RestOptions {
     text: string,
   }
 
-
-  export interface GoogleContentVisionOCR {
-    url: string,
+  export interface FunTextToSpeech {
+    text: string,
+    voice?: string,
   }
 
-  export interface GoogleContentVisionWebDetection {
+
+  export interface GoogleContentVisionBase {
     url: string,
   }
 
@@ -341,8 +342,27 @@ export namespace RestResponsesRaw {
   }
 
 
+  export interface GoogleContentVisionLabels {
+    label_annotations: Array<{
+      description: string,
+      mid: string,
+      score: number,
+      topicality: number,
+    }>,
+  }
+
   export interface GoogleContentVisionOCR {
     annotation: null | {description: string, locale: GoogleLocales},
+  }
+
+  export interface GoogleContentVisionSafeSearch {
+    safe_search_annotation: {
+      adult: string,
+      spoof: string,
+      medical: string,
+      violence: string,
+      racy: string,
+    },
   }
 
   export interface GoogleContentVisionWebDetection {

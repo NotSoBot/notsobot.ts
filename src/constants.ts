@@ -87,6 +87,7 @@ export const E621RatingText = Object.freeze({
 
 export enum EmbedBrands {
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
+  GOOGLE_CONTENT_VISION_SAFETY = 'https://cloud.google.com/images/products/vision/detect-explicit-content.png',
   GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
   NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
   REDDIT = 'https://cdn.notsobot.com/brands/reddit.png',
@@ -137,6 +138,25 @@ export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.WEATHER,
   GoogleCardTypes.WEB_SNIPPET,
 ]);
+
+
+export enum GoogleContentVisionSafeSearchAttributes {
+  UNKNOWN = 'UNKNOWN',
+  VERY_UNLIKELY = 'VERY_UNLIKELY',
+  UNLIKELY = 'UNLIKELY',
+  POSSIBLE = 'POSSIBLE',
+  LIKELY = 'LIKELY',
+  VERY_LIKELY = 'VERY_LIKELY',
+}
+
+export const GoogleContentVisionSafeSearchAttributeValues = Object.freeze({
+  [GoogleContentVisionSafeSearchAttributes.UNKNOWN]:       0,
+  [GoogleContentVisionSafeSearchAttributes.VERY_UNLIKELY]: 0,
+  [GoogleContentVisionSafeSearchAttributes.UNLIKELY]:    0.25,
+  [GoogleContentVisionSafeSearchAttributes.POSSIBLE]:    0.50,
+  [GoogleContentVisionSafeSearchAttributes.LIKELY]:      0.75,
+  [GoogleContentVisionSafeSearchAttributes.VERY_LIKELY]: 1.00,
+});
 
 export enum GoogleImageVideoTypes {
   OTHER = 'other',

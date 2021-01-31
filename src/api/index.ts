@@ -234,17 +234,41 @@ export async function funASCII(
 }
 
 
+export async function funTextToSpeech(
+  context: RequestContext,
+  options: RestOptions.FunTextToSpeech,
+) {
+  return raw.funTextToSpeech(context, options);
+}
+
+
+export async function googleContentVisionLabels(
+  context: RequestContext,
+  options: RestOptions.GoogleContentVisionBase,
+) {
+  return raw.googleContentVisionLabels(context, options);
+}
+
+
 export async function googleContentVisionOCR(
   context: RequestContext,
-  options: RestOptions.GoogleContentVisionOCR,
+  options: RestOptions.GoogleContentVisionBase,
 ) {
   return raw.googleContentVisionOCR(context, options);
 }
 
 
+export async function googleContentVisionSafeSearch(
+  context: RequestContext,
+  options: RestOptions.GoogleContentVisionBase,
+) {
+  return raw.googleContentVisionSafeSearch(context, options);
+}
+
+
 export async function googleContentVisionWebDetection(
   context: RequestContext,
-  options: RestOptions.GoogleContentVisionWebDetection,
+  options: RestOptions.GoogleContentVisionBase,
 ) {
   return raw.googleContentVisionWebDetection(context, options);
 }

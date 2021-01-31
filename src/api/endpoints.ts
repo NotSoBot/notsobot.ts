@@ -19,9 +19,15 @@ export const Api = Object.freeze({
 
   FUN_ASCII:
     '/fun/ascii',
+  FUN_TEXT_TO_SPEECH:
+    '/fun/text-to-speech',
 
+  GOOGLE_CONTENT_VISION_LABELS:
+    '/google/content-vision/labels',
   GOOGLE_CONTENT_VISION_OCR:
     '/google/content-vision/ocr',
+  GOOGLE_CONTENT_VISION_SAFE_SEARCH:
+    '/google/content-vision/safe-search',
   GOOGLE_CONTENT_VISION_WEB_DETECTION:
     '/google/content-vision/web-detection',
   GOOGLE_TRANSLATE:
@@ -166,6 +172,9 @@ export const Api = Object.freeze({
     '/users/:userId/commands',
   USER_COMMAND:
     '/users/:userId/commands/:command',
+
+  UTILITIES_SCREENSHOT:
+    '/utilities/screenshot',
 });
 
 

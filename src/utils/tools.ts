@@ -381,12 +381,31 @@ export function findMembersByUsername(
   return found;
 }
 
+
 export function formatMemory(bytes: number, decimals: number = 0): string {
   const divideBy = 1024;
   const amount = Math.floor(Math.log(bytes) / Math.log(divideBy));
   const type = (['B', 'KB', 'MB','GB', 'TB'])[amount];
   return (bytes / Math.pow(divideBy, amount)).toFixed(decimals) + ' ' + type;
 }
+
+
+export interface FormatPercentageAsBarOptions {
+  bars?: number,
+  total?: number,
+}
+
+export function formatPercentageAsBar(percentage: number, options: FormatPercentageAsBarOptions = {}): string {
+  const bars = options.bars || 30;
+  const total = options.total || 100;
+
+  const fraction = Math.round(percentage) / total;
+  const amount = Math.floor(fraction * bars);
+
+  const bar = '#'.repeat(amount);
+  return (bar + ' '.repeat(Math.max(bars - amount, 0))).slice(0, bars);
+}
+
 
 export interface FormatTimeOptions {
   day?: boolean,
