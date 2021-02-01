@@ -57,6 +57,9 @@ export const Api = Object.freeze({
   IMAGE_CREATE_TOMBSTONE:
     '/image/create/tombstone',
 
+  IMAGE_INFORMATION_EXIF:
+    '/image/information/exif',
+
   IMAGE_MANIPULATION_ASCII:
     '/image/manipulation/ascii',
   IMAGE_MANIPULATION_BLUR:
@@ -121,6 +124,8 @@ export const Api = Object.freeze({
 
   IMAGE_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',
+  IMAGE_TOOLS_GIF_REVERSE:
+    '/image/tools/gif/reverse',
   IMAGE_TOOLS_RESIZE:
     '/image/tools/resize',
   IMAGE_TOOLS_ROTATE:

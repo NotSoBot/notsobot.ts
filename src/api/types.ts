@@ -438,6 +438,48 @@ export namespace RestResponsesRaw {
   }
 
 
+  export interface ImageInformationExif {
+    exif: Array<{
+      bytes: number,
+      description: null | string,
+      components: number,
+      name: string,
+      raw: string,
+      type: string,
+      value: string,
+    }>,
+    information: {
+      bands: number,
+      delay: number,
+      format: string,
+      frames: number,
+      height: number,
+      interpretation: string,
+      loop: boolean,
+      mimetype: string,
+      size: number,
+      width: number,
+    },
+    metadata: {
+      bands: number,
+      coding: string,
+      filename: string,
+      format: string,
+      'gif-comment'?: string,
+      interpretation: string,
+      height: number,
+      'vips-loader': string,
+      width: number,
+      xoffset: number,
+      xres: number,
+      yoffset: number,
+      yres: number,
+      [key: string]: any,
+    },
+    url: null | string,
+  }
+
+
   export interface SearchGoogle {
     cards: Array<SearchGoogleCard>,
     results: Array<SearchGoogleResult>,

@@ -1,7 +1,7 @@
 import { URL } from 'url';
 
 import { Collections, Command, Structures } from 'detritus-client';
-import { DiscordAbortCodes } from 'detritus-client/lib/constants';
+import { DiscordAbortCodes, MessageEmbedTypes, StickerFormats } from 'detritus-client/lib/constants';
 import { Embed, Markup, intToHex } from 'detritus-client/lib/utils';
 import { Response, replacePathParameters } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
@@ -93,7 +93,7 @@ export async function fetchMemberOrUserById(
 export function findImageUrlInAttachment(
   attachment: Structures.Attachment,
 ): null | string {
-  if (attachment.isImage && attachment.proxyUrl) {
+  if (attachment.isImage && attachment.proxyUrl && (attachment.height || attachment.width)) {
     if (attachment.url) {
       const url = new URL(attachment.url);
       if (TRUSTED_URLS.includes(url.host)) {
@@ -108,23 +108,31 @@ export function findImageUrlInAttachment(
 export function findImageUrlInEmbed(
   embed: Structures.MessageEmbed,
 ): null | string {
-  if (embed.image && embed.image.proxyUrl) {
-    if (embed.image.url) {
-      const url = new URL(embed.image.url);
-      if (TRUSTED_URLS.includes(url.host)) {
-        return embed.image.url;
-      }
+  if (embed.type === MessageEmbedTypes.GIFV) {
+    // try to use our own unfurler for the url since it'll use the thumbnail
+    if (embed.url) {
+      return embed.url;
     }
-    return embed.image.proxyUrl;
   }
-  if (embed.thumbnail && embed.thumbnail.proxyUrl) {
-    if (embed.thumbnail.url) {
-      const url = new URL(embed.thumbnail.url);
+  const { image } = embed;
+  if (image && image.proxyUrl && (image.height || image.width)) {
+    if (image.url) {
+      const url = new URL(image.url);
       if (TRUSTED_URLS.includes(url.host)) {
-        return embed.thumbnail.url;
+        return image.url;
       }
     }
-    return embed.thumbnail.proxyUrl;
+    return image.proxyUrl;
+  }
+  const { thumbnail } = embed;
+  if (thumbnail && thumbnail.proxyUrl && (thumbnail.height || thumbnail.width)) {
+    if (thumbnail.url) {
+      const url = new URL(thumbnail.url);
+      if (TRUSTED_URLS.includes(url.host)) {
+        return thumbnail.url;
+      }
+    }
+    return thumbnail.proxyUrl;
   }
   return null;
 }
@@ -151,6 +159,9 @@ export function findImageUrlInMessage(
     if (url) {
       return url;
     }
+  }
+  for (let [stickerId, sticker] of message.stickers) {
+    return sticker.assetUrl;
   }
   return null;
 }
@@ -693,6 +704,24 @@ export function toTitleCase(value: string): string {
 }
 
 
+export function chunkArray<T>(
+  array: Array<T>,
+  amount: number,
+): Array<Array<T>> {
+  const pages: Array<Array<T>> = [];
+  for (let i = 0; i < array.length; i += amount) {
+    const page: Array<T> = [];
+    for (let disabled of array.slice(i, i + amount)) {
+      page.push(disabled);
+    }
+    if (page.length) {
+      pages.push(page);
+    }
+  }
+  return pages;
+}
+
+
 export function splitArray<T>(
   array: Array<T>,
   amount: number,
@@ -706,6 +735,21 @@ export function splitArray<T>(
     if (page.length) {
       pages.push(page);
     }
+  }
+  return pages;
+}
+
+
+export function splitArray2<T>(
+  array: Array<T>,
+  amount: number,
+): Array<Array<T>> {
+  const pages: Array<Array<T>> = [];
+
+  const chunkAmount = Math.max(Math.round(array.length / amount), 1);
+  for (let i = 0; i < amount; i++) {
+    const position = i * chunkAmount;
+    pages.push(array.slice(position, position + chunkAmount));
   }
   return pages;
 }

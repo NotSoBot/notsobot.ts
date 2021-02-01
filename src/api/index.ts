@@ -290,6 +290,14 @@ export async function imageCreateTombstone(
 }
 
 
+export async function imageInformationExif(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageInformationExif(context, options);
+}
+
+
 export async function imageManipulationAscii(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -535,6 +543,14 @@ export async function imageToolsBackgroundRemove(
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageToolsBackgroundRemove(context, options);
+}
+
+
+export async function imageToolsGifReverse(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageToolsGifReverse(context, options);
 }
 
 

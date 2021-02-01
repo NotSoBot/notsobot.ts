@@ -467,6 +467,23 @@ export async function imageCreateTombstone(
 }
 
 
+export async function imageInformationExif(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<RestResponsesRaw.ImageInformationExif> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_INFORMATION_EXIF,
+    },
+  });
+}
+
+
 export async function imageManipulationAscii(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -1021,6 +1038,24 @@ export async function imageOverlayGay(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_OVERLAY_GAY,
+    },
+  });
+}
+
+
+export async function imageToolsGifReverse(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_GIF_REVERSE,
     },
   });
 }

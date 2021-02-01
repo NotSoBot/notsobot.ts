@@ -111,7 +111,7 @@ export default class HelpCommand extends BaseCommand {
 
             embed.addField('Information', description.join('\n'));
           }
-          embed.addField('Usage', metadata.usage);
+          embed.addField('Usage', (metadata.usage) ? metadata.usage : 'good luck, not finished');
         }
         embed.setFooter(`Command ${page} of ${pageLimit} Found`);
         return embed;
