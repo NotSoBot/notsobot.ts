@@ -5,7 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchE621 } from '../../api';
 import { CommandTypes, E621Rating, E621RatingText, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -56,7 +56,7 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
           } else {
             embed.setTitle(result.footer);
           }
-          embed.setFooter(`Page ${page}/${pageLimit} of https://e621.net Results`);
+          embed.setFooter(`Page ${page}/${pageLimit} of https://e621.net Results`, EmbedBrands.E621);
 
 
           const isVideo = VIDEO_EXTENSIONS.includes(result.file.ext);
@@ -117,8 +117,7 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
         },
       });
       return await paginator.start();
-    } else {
-      return context.editOrReply('Couldn\'t find any images for that search term');
     }
+    return editOrReply(context, 'Couldn\'t find any images for that search term');
   }
 }

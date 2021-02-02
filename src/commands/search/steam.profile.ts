@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchSteamProfile } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -99,6 +99,6 @@ export default class SteamProfileCommand extends BaseSearchCommand<CommandArgs> 
       embed.addField('**Past Names**', description.join('\n'));
     }
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

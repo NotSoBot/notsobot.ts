@@ -3,7 +3,7 @@ import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
-import { Paginator, Parameters } from '../../utils';
+import { Paginator, Parameters, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -45,7 +45,7 @@ export default class ApplicationsCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that game.');
+    return editOrReply(context, '⚠ Unable to find that game.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {

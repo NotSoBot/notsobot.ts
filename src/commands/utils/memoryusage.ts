@@ -2,8 +2,9 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
+import { editOrReply, padCodeBlockFromRows } from '../../utils';
+
 import { BaseCommand } from '../basecommand';
-import { padCodeBlockFromRows } from '../../utils';
 
 import { getClusterInformation } from './shards';
 
@@ -77,6 +78,6 @@ export default class MemoryUsageCommand extends BaseCommand {
       padCodeBlockFromRows(title).join('\n') + '\n',
       paddedRows.join('\n'),
     ].join('\n');
-    return context.editOrReply(Markup.codeblock(content, {language: 'py'}));
+    return editOrReply(context, Markup.codeblock(content, {language: 'py'}));
   }
 }

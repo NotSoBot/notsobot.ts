@@ -5,7 +5,7 @@ import { Embed } from 'detritus-client/lib/utils';
 import { GuildSettings, GuildSettingsLogger } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildLoggerTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { Paginator, Parameters, createUserEmbed, splitArray, toTitleCase } from '../../utils';
+import { Paginator, Parameters, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -26,7 +26,7 @@ export async function createLoggersEmbed(
   });
   // maybe compare dates?
 
-  const pages = splitArray<GuildSettingsLogger>(sorted, ELEMENTS_PER_PAGE);
+  const pages = chunkArray<GuildSettingsLogger>(sorted, ELEMENTS_PER_PAGE);
 
   let title = options.title || 'Loggers';
   let footer = 'Loggers';
@@ -93,7 +93,7 @@ export async function createLoggersEmbed(
       embed.setDescription('Currently no loggers are in this guild.');
     }
     embed.setFooter(footer);
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }
 

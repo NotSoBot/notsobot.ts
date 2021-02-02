@@ -4,7 +4,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { GuildSettings, GuildSettingsDisabledCommand } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildDisableCommandsTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { Paginator, createUserEmbed, splitArray, toTitleCase } from '../../utils';
+import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -24,7 +24,7 @@ export async function createDisabledCommandsEmbed(
     return y.added.localeCompare(x.added);
   });
 
-  const pages = splitArray<GuildSettingsDisabledCommand>(sorted, ELEMENTS_PER_PAGE);
+  const pages = chunkArray<GuildSettingsDisabledCommand>(sorted, ELEMENTS_PER_PAGE);
 
   let title = options.title || 'Disabled Commands';
   let footer = 'Disabled Commands List';
@@ -83,7 +83,7 @@ export async function createDisabledCommandsEmbed(
       embed.setDescription('Currently no commands are disabled in this guild.');
     }
     embed.setFooter(footer);
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }
 

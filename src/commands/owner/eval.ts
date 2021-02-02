@@ -1,8 +1,8 @@
-import { Command, CommandClient, Constants, Utils } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { DefaultParameters, Parameters } from '../../utils';
+import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -84,7 +84,7 @@ export default class EvalCommand extends BaseCommand {
             url: 'https://api.files.gg/files',
           });
 
-          return context.editOrReply(upload.urls.main);
+          return editOrReply(context, upload.urls.main);
         } catch(error) {
           content = error.stack || error.message;
           language = 'js';
@@ -106,10 +106,10 @@ export default class EvalCommand extends BaseCommand {
           embed.setDescription(Markup.codeblock(content, {language, mentions: false}));
           embed.setFooter('Eval', EmbedBrands.NOTSOBOT);
 
-          return context.editOrReply({embed});
+          return editOrReply(context, {embed});
         }
       }
-      return context.editOrReply(Markup.codeblock(content, {language}));
+      return editOrReply(context, Markup.codeblock(content, {language}));
     }
   }
 }

@@ -38,6 +38,21 @@ export function createUserString(userId: string = '1', user?: Structures.User | 
   return `<@!${userId}> ${Markup.spoiler(`(${Markup.escape.all(String(user || 'Unknown?'))})`)}`;
 }
 
+export function editOrReply(context: Command.Context, options: Command.EditOrReply | string = {}) {
+  if (typeof(options) === 'string') {
+    options = {content: options};
+  }
+  return context.editOrReply({
+    ...options,
+    allowedMentions: {repliedUser: false},
+    messageReference: {
+      channelId: context.channelId,
+      guildId: context.guildId,
+      messageId: context.messageId,
+    },
+  });
+}
+
 
 export async function fetchMemberOrUserById(
   context: Command.Context,
@@ -565,7 +580,7 @@ export async function imageReplyFromOptions(
   }
   embed.setFooter(footer);
 
-  return context.editOrReply({
+  return editOrReply(context, {
     content: options.content,
     embed,
     file: {contentType: options.mimetype, filename, value},
@@ -723,24 +738,6 @@ export function chunkArray<T>(
 
 
 export function splitArray<T>(
-  array: Array<T>,
-  amount: number,
-): Array<Array<T>> {
-  const pages: Array<Array<T>> = [];
-  for (let i = 0; i < array.length; i += amount) {
-    const page: Array<T> = [];
-    for (let disabled of array.slice(i, i + amount)) {
-      page.push(disabled);
-    }
-    if (page.length) {
-      pages.push(page);
-    }
-  }
-  return pages;
-}
-
-
-export function splitArray2<T>(
   array: Array<T>,
   amount: number,
 ): Array<Array<T>> {

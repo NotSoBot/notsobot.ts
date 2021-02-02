@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
-import { Paginator, createUserEmbed, toTitleCase } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -72,9 +72,9 @@ export default class HelpCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.commands) {
-      return context.editOrReply('⚠ Unknown Command');
+      return editOrReply(context, '⚠ Unknown Command');
     }
-    return context.editOrReply(`${context.user.mention}, this is our rewrite bot. <https://beta.notsobot.com/commands> (We are moving from python to typescript because ya)`);
+    return editOrReply(context, `${context.user.mention}, this is our rewrite bot. <https://beta.notsobot.com/commands> (We are moving from python to typescript because ya)`);
   }
 
   // add client permission labels

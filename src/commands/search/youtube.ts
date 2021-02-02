@@ -12,7 +12,7 @@ import {
   YoutubeResultTypes,
   MOMENT_FORMAT,
 } from '../../constants';
-import { Paginator, createUserEmbed } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -67,7 +67,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
             embed.setDescription(Markup.escape.all(result.description));
           }
           if (result.thumbnail) {
-            embed.setThumbnail(result.thumbnail.url);
+            embed.setImage(result.thumbnail.url);
           }
 
           switch (result.type) {
@@ -176,7 +176,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
       });
       return await paginator.start();
     } else {
-      return context.editOrReply('Couldn\'t find any videos for that search term');
+      return editOrReply(context, 'Couldn\'t find any videos for that search term');
     }
   }
 }

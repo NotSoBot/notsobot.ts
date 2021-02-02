@@ -3,6 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { funTextToSpeech } from '../../api';
 import { CommandTypes } from '../../constants';
+import { editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -78,9 +79,13 @@ export default class TTSCommand extends BaseCommand {
     });
   }
 
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    return !!args.text;
+  }
+
   async run(context: Command.Context, args: CommandArgs) {
     const response = await funTextToSpeech(context, {text: args.text, voice: (TTSVoices as any)[args.use]});
     const filename = response.headers.get('x-file-name') || 'tts.mp3';
-    return context.editOrReply({file: {filename, value: await response.buffer()}});
+    return editOrReply(context, {file: {filename, value: await response.buffer()}});
   }
 }

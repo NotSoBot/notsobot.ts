@@ -11,7 +11,7 @@ import {
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
 } from '../../constants';
-import { Parameters, formatMemory, toTitleCase } from '../../utils';
+import { Parameters, editOrReply, formatMemory, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -69,7 +69,7 @@ export default class GuildCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that guild.');
+    return editOrReply(context, '⚠ Unable to find that guild.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -295,6 +295,6 @@ export default class GuildCommand extends BaseCommand {
     }
     */
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

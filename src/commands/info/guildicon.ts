@@ -3,7 +3,7 @@ import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
-import { Parameters } from '../../utils';
+import { Parameters, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -60,7 +60,7 @@ export default class GuildIconCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that guild.');
+    return editOrReply(context, '⚠ Unable to find that guild.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -76,10 +76,10 @@ export default class GuildIconCommand extends BaseCommand {
         embed.setDescription(`[**Icon Url**](${guild.iconUrl})`);
         embed.setImage(url);
 
-        return context.editOrReply({embed});
+        return editOrReply(context, {embed});
       }
-      return context.editOrReply(url);
+      return editOrReply(context, url);
     }
-    return context.editOrReply('Guild doesn\'t have an icon.');
+    return editOrReply(context, 'Guild doesn\'t have an icon.');
   }
 }

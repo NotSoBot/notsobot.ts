@@ -14,7 +14,7 @@ import {
   RedditTimeTypes,
   MOMENT_FORMAT,
 } from '../../constants';
-import { Arguments, Paginator, createUserEmbed, htmlDecode } from '../../utils';
+import { Arguments, Paginator, createUserEmbed, editOrReply, htmlDecode } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -127,7 +127,7 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
       });
       return await paginator.start();
     } else {
-      return context.editOrReply('Couldn\'t find any results for that search term');
+      return editOrReply(context, 'Couldn\'t find any results for that search term');
     }
   }
 }

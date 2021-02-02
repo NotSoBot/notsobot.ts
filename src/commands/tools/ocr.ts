@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Parameters, createUserEmbed, languageCodeToText } from '../../utils';
+import { Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -68,11 +68,11 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
 
     if (args.noembed) {
       if (!annotation) {
-        return context.editOrReply({content: '⚠ No text detected'});
+        return editOrReply(context, {content: '⚠ No text detected'});
       }
 
       const title = languageCodeToText(annotation.locale);
-      return context.editOrReply([title, description].join('\n'));
+      return editOrReply(context, [title, description].join('\n'));
     } else {
       const embed = createUserEmbed(context.user);
       embed.setColor(EmbedColors.DEFAULT);
@@ -88,7 +88,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
         embed.setDescription('No text detected');
       }
 
-      return context.editOrReply({embed});
+      return editOrReply(context, {embed});
     }
   }
 }

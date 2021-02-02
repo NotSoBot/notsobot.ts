@@ -10,7 +10,7 @@ import {
   GoogleContentVisionSafeSearchAttributes,
   GoogleContentVisionSafeSearchAttributeValues,
 } from '../../constants';
-import { createUserEmbed, toTitleCase } from '../../utils';
+import { createUserEmbed, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -75,6 +75,6 @@ export default class SafetyLabelsCommand extends BaseImageCommand<CommandArgs> {
       embed.setColor(color);
     }
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

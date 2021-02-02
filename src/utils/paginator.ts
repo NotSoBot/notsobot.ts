@@ -9,6 +9,8 @@ import { Timers } from 'detritus-utils';
 
 import PaginatorsStore from '../stores/paginators';
 
+import { editOrReply } from './tools';
+
 
 export const MAX_PAGE = Number.MAX_SAFE_INTEGER;
 export const MIN_PAGE = 1;
@@ -369,7 +371,7 @@ export class Paginator {
       }
       const embed = await this.getPage(this.page);
       if (this.context instanceof Command.Context) {
-        message = this.message = await this.context.editOrReply({embed});
+        message = this.message = await editOrReply(this.context, {embed});
       } else {
         message = this.message = await this.context.reply({embed});
       }

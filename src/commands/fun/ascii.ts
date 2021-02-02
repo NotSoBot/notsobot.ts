@@ -3,7 +3,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { funASCII } from '../../api';
 import { CommandTypes } from '../../constants';
-import { imageReplyFromOptions } from '../../utils';
+import { editOrReply, imageReplyFromOptions } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -38,10 +38,6 @@ export default class AsciiCommand extends BaseCommand {
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.text;
-  }
-
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('Provide some text.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {

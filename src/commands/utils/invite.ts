@@ -1,6 +1,8 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
+import { editOrReply } from '../../utils';
+
 import { BaseCommand } from '../basecommand';
 
 
@@ -20,6 +22,6 @@ export default class InviteCommand extends BaseCommand {
   }
 
   run(context: Command.Context) {
-    return context.reply(`${context.user.mention}, <https://beta.notsobot.com/invite>`);
+    return editOrReply(context, '<https://beta.notsobot.com/invite');
   }
 }

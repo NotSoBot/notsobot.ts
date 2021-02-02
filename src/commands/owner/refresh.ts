@@ -5,6 +5,7 @@ import { DIRECTORY } from '../../../config.json';
 import { NotSoClient } from '../../client';
 import { CommandTypes } from '../../constants';
 import { Store } from '../../stores';
+import { editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -106,9 +107,9 @@ export default class RefreshCommand extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     if (!context.manager) {
-      return context.editOrReply('no cluster manager found');
+      return editOrReply(context, 'no cluster manager found');
     }
-    const message = await context.editOrReply('ok, refreshing...');
+    const message = await editOrReply(context, 'ok, refreshing...');
     const shardIds = await context.manager.broadcastEval(refreshCommands, args.stores, DIRECTORY);
 
     const error = shardIds.find((shardId: any) => shardId instanceof Error);

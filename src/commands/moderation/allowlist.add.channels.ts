@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
-import { Parameters } from '../../utils';
+import { Parameters, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -26,6 +26,7 @@ export default class AllowlistAddChannelsCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['allowlist add channel'],
+      default: null,
       disableDm: true,
       label: 'channels',
       metadata: {
@@ -55,9 +56,9 @@ export default class AllowlistAddChannelsCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.channels) {
-      return context.editOrReply('⚠ Unable to find any valid Text Channels.');
+      return editOrReply(context, '⚠ Unable to find any valid Text Channels.');
     }
-    return context.editOrReply('⚠ Provide some kind of query.');
+    return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

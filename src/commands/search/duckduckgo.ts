@@ -3,12 +3,13 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGo } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed } from '../../utils';
+import { Paginator, chunkArray, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
 
 const RESULTS_PER_PAGE = 3;
+
 
 export interface CommandArgs {
   query: string,
@@ -21,7 +22,7 @@ export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['ddg'],
+      aliases: ['ddg', 'duckduckgo search', 'ddg search'],
       metadata: {
         description: 'Search DuckDuckGo',
         examples: [
@@ -36,15 +37,7 @@ export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchDuckDuckGo(context, args);
 
-    const pages: Array<any> = [];
-    for (let i = 0; i < results.length; i += RESULTS_PER_PAGE) {
-      const page: Array<any> = [];
-      for (let x = 0; x < RESULTS_PER_PAGE; x++) {
-        page.push(results[i + x]);
-      }
-      pages.push(page);
-    }
-
+    const pages = chunkArray<any>(results, RESULTS_PER_PAGE);
     if (pages.length) {
       const pageLimit = pages.length;
       const paginator = new Paginator(context, {
@@ -68,8 +61,7 @@ export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
         },
       });
       return await paginator.start();
-    } else {
-      return context.editOrReply('Couldn\'t find any results for that search term');
     }
+    return editOrReply(context, 'Couldn\'t find any results for that search term');
   }
 }

@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 
 import { searchWolframAlpha } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -63,7 +63,7 @@ export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
       });
       return await paginator.start();
     } else {
-      return context.editOrReply('Couldn\'t find any results for that search term');
+      return editOrReply(context, 'Couldn\'t find any results for that search term');
     }
   }
 }

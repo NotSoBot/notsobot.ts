@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { imageInformationExif } from '../../api';
 import { RestResponsesRaw } from '../../api/types';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { createUserEmbed, formatMemory, splitArray2 } from '../../utils';
+import { createUserEmbed, editOrReply, formatMemory, splitArray } from '../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -73,7 +73,7 @@ export default class ExifCommand extends BaseImageCommand<CommandArgs> {
         return field;
       }).sort((x, y) => x.name.localeCompare(y.name));
 
-      const split = splitArray2<any>(exif, 3);
+      const split = splitArray<any>(exif, 3);
       for (let i = 0; i < split.length; i++) {
         const fields = split[i];
         const description: Array<string> = [];
@@ -103,6 +103,6 @@ export default class ExifCommand extends BaseImageCommand<CommandArgs> {
       }
     }
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

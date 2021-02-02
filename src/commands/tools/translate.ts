@@ -10,7 +10,7 @@ import {
   GoogleLocales,
   GoogleLocalesText,
 } from '../../constants';
-import { Arguments, createUserEmbed } from '../../utils';
+import { Arguments, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -58,7 +58,7 @@ export default class TranslateCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Provide some kind of text.');
+    return editOrReply(context, '⚠ Provide some kind of text.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -87,6 +87,6 @@ export default class TranslateCommand extends BaseCommand {
     embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
     embed.setDescription(Markup.codeblock(translatedText));
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

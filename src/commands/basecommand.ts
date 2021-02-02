@@ -1,11 +1,11 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { createUserCommand } from '../api';
 import { CommandTypes, EmbedColors, PermissionsText } from '../constants';
-import { Parameters, findImageUrlInMessages } from '../utils';
+import { Parameters, editOrReply, findImageUrlInMessages } from '../utils';
 
 // description and usage shouldnt be optional, temporary for now
 export interface CommandMetadata {
@@ -36,6 +36,14 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }, options));
   }
 
+  get commandDescription(): string {
+    return Markup.codeblock((this.metadata.usage) ? this.metadata.usage : 'lol idk');
+  }
+
+  onCancelRun(context: Command.Context, args: unknown) {
+    return editOrReply(context, this.commandDescription);
+  }
+
   onPermissionsFailClient(context: Command.Context, failed: Array<bigint>) {
     const permissions: Array<string> = [];
     for (let permission of failed) {
@@ -47,7 +55,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       }
     }
     const command = (context.command) ? `\`${context.command.name}\`` : 'This command';
-    return context.editOrReply(`⚠ ${command} requires the bot to have ${permissions.join(', ')} to work.`);
+    return editOrReply(context, `⚠ ${command} requires the bot to have ${permissions.join(', ')} to work.`);
   }
 
   onPermissionsFail(context: Command.Context, failed: Array<bigint>) {
@@ -61,7 +69,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       }
     }
     const command = (context.command) ? `\`${context.command.name}\`` : 'This command';
-    return context.editOrReply(`⚠ ${command} requires you to have ${permissions.join(', ')}.`);
+    return editOrReply(context, `⚠ ${command} requires you to have ${permissions.join(', ')}.`);
   }
 
   async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
@@ -124,7 +132,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
 
     embed.setDescription(description.join('\n'));
-    const message = await context.editOrReply({embed});
+    const message = await editOrReply(context, {embed});
 
     if (context.command) {
       let contentUrl: string | undefined;
@@ -173,7 +181,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
   
     embed.setDescription(description.join('\n'));
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }
 
@@ -201,9 +209,9 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return context.editOrReply('⚠ Unable to find any messages with an image.');
+      return editOrReply(context, '⚠ Unable to find any messages with an image.');
     }
-    return context.editOrReply('⚠ Unable to find that user or it was an invalid url.');
+    return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
   }
 
   onSuccess(context: Command.Context, args: ParsedArgsFinished) {
@@ -243,14 +251,10 @@ export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
   }
 
   onCancel(context: Command.Context) {
-    return context.editOrReply('⚠ Not a NSFW channel.');
+    return editOrReply(context, '⚠ Not a NSFW channel.');
   }
 
   onBeforeRun(context: Command.Context, args: {query: string}) {
     return !!args.query;
-  }
-
-  onCancelRun(context: Command.Context, args: {query: string}) {
-    return context.editOrReply('⚠ Provide some kind of search term.');
   }
 }

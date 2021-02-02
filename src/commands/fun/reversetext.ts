@@ -2,6 +2,8 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
+import { editOrReply } from '../../utils';
+
 import { BaseCommand } from '../basecommand';
 
 
@@ -37,13 +39,9 @@ export default class ReverseTextCommand extends BaseCommand {
     return !!args.text;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('Provide some text.');
-  }
-
   run(context: Command.Context, args: CommandArgs) {
     const text = context.message.convertContent({text: args.text});
     const reversed = text.split('').reverse().join('');
-    return context.editOrReply(Markup.escape.all(reversed));
+    return editOrReply(context, Markup.escape.all(reversed));
   }
 }

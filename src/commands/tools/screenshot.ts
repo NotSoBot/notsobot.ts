@@ -1,6 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../constants';
+import { editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 

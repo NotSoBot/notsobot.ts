@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, PresenceStatusColors } from '../../constants';
-import { DefaultParameters, Parameters, createUserEmbed } from '../../utils';
+import { DefaultParameters, Parameters, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -52,7 +52,7 @@ export default class AvatarCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that user.');
+    return editOrReply(context, '⚠ Unable to find that user.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -74,8 +74,8 @@ export default class AvatarCommand extends BaseCommand {
         embed.setColor(PresenceStatusColors[presence.status]);
       }
 
-      return context.editOrReply({embed});
+      return editOrReply(context, {embed});
     }
-    return context.editOrReply(avatarUrl);
+    return editOrReply(context, avatarUrl);
   }
 }

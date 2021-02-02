@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34 } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -51,7 +51,7 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];
-          embed.setFooter(`Page ${page}/${pageLimit} of https://rule34.xxx Results`);
+          embed.setFooter(`Page ${page}/${pageLimit} of https://rule34.xxx Results`, EmbedBrands.RULE34);
 
           embed.setTitle((result.is_video) ? 'Video Post' : 'Image Post');
           embed.setUrl(result.url);
@@ -85,7 +85,7 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
       });
       return await paginator.start();
     } else {
-      return context.editOrReply('Couldn\'t find any images for that search term');
+      return editOrReply(context, 'Couldn\'t find any images for that search term');
     }
   }
 }

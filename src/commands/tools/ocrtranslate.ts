@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR, googleTranslate } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales } from '../../constants';
-import { Arguments, Parameters, createUserEmbed, languageCodeToText } from '../../utils';
+import { Arguments, Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -75,6 +75,6 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
       embed.setDescription('No text detected');
     }
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

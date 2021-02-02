@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { GuildSettings, GuildSettingsBlocklist } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { Paginator, Parameters, createUserEmbed, splitArray, toTitleCase } from '../../utils';
+import { Paginator, Parameters, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -26,7 +26,7 @@ export async function createBlocklistEmbed(
   });
   // maybe compare dates?
 
-  const pages = splitArray<GuildSettingsBlocklist>(sorted, ELEMENTS_PER_PAGE);
+  const pages = chunkArray<GuildSettingsBlocklist>(sorted, ELEMENTS_PER_PAGE);
 
   let title = options.title || 'Blocklist';
   let footer = 'Blocklist';
@@ -98,7 +98,7 @@ export async function createBlocklistEmbed(
       embed.setDescription('Currently nothing is blocked in this guild.');
     }
     embed.setFooter(footer);
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }
 

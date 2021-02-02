@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchSteam } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -94,7 +94,7 @@ export default class SteamCommand extends BaseSearchCommand<CommandArgs> {
       });
       return await paginator.start();
     } else {
-      return context.editOrReply('Couldn\'t find any steam accounts matching that search term');
+      return editOrReply(context, 'Couldn\'t find any steam accounts matching that search term');
     }
   }
 }

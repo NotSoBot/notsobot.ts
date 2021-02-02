@@ -2,6 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 
 import { uploadCommands } from '../../api';
 import { CommandTypes } from '../../constants';
+import { editOrReply } from '../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
 
@@ -36,7 +37,18 @@ export default class UploadCommandsCommand extends BaseCommand {
       const metadata = command.metadata as CommandMetadata;
 
       const names = [...command.names];
-      const name = names.shift() as string;
+      let name: string;
+      if (command.arg.prefixes.size) {
+        name = names.shift() as string;
+      } else {
+        name = command.name;
+        for (let i = 0; i < names.length; i++) {
+          if (names[i] === name) {
+            names.splice(i, 1);
+            break;
+          }
+        }
+      }
       return {
         aliases: names,
         args: args.map((arg) => {
@@ -67,6 +79,6 @@ export default class UploadCommandsCommand extends BaseCommand {
     });
     await uploadCommands(context, {commands});
 
-    return context.editOrReply('ok');
+    return editOrReply(context, 'ok');
   }
 }

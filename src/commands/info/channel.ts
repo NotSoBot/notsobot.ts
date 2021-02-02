@@ -6,7 +6,7 @@ import { Snowflake } from 'detritus-utils';
 
 import { ChannelTypesText, CommandTypes, DateOptions } from '../../constants';
 import { GuildChannelsStored } from '../../stores/guildchannels';
-import { Parameters } from '../../utils';
+import { Parameters, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -55,7 +55,7 @@ export default class ChannelCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that channel.');
+    return editOrReply(context, '⚠ Unable to find that channel.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -187,6 +187,6 @@ export default class ChannelCommand extends BaseCommand {
       embed.addField('Urls', description.join(', '));
     }
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

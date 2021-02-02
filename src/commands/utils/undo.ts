@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes } from '../../constants';
-import { Parameters } from '../../utils';
+import { Parameters, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -73,9 +73,9 @@ export default class UndoCommand extends BaseCommand {
           await context.rest.bulkDeleteMessages(context.channelId, messageIds);
         }
       }
-      message = await context.editOrReply(`Successfully deleted ${found} commands.`);
+      message = await editOrReply(context, `Successfully deleted ${found} commands.`);
     } else {
-      message = await context.editOrReply(`Could not find any of your last commands.`);
+      message = await editOrReply(context, `Could not find any of your last commands.`);
     }
     setTimeout(async () => {
       if (!message.deleted) {

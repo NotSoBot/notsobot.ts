@@ -11,7 +11,7 @@ import {
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
 } from '../../constants';
-import { DefaultParameters, Parameters, createColorUrl, padCodeBlockFromRows } from '../../utils';
+import { DefaultParameters, Parameters, createColorUrl, editOrReply, padCodeBlockFromRows } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -60,9 +60,11 @@ export default class RoleCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (!args.channel) {
-      return context.editOrReply('Unknown Channel');
+      return editOrReply(context, 'Unknown Channel');
     } else if (!args.role) {
-      return context.editOrReply('Unknown Role');
+      return editOrReply(context, 'Unknown Role');
+    } else {
+      return super.onCancelRun(context, args);
     }
   }
 
@@ -162,7 +164,7 @@ export default class RoleCommand extends BaseCommand {
         embed.addField('Voice', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
       }
 
-      return context.editOrReply({content: '', embed});
+      return editOrReply(context, {embed});
     }
   }
 }

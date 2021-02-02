@@ -9,7 +9,7 @@ import {
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
-import { DefaultParameters, Paginator, Parameters, toTitleCase } from '../../utils';
+import { DefaultParameters, Paginator, Parameters, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -54,7 +54,7 @@ export default class UserCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that user.');
+    return editOrReply(context, '⚠ Unable to find that user.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {

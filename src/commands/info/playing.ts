@@ -9,7 +9,7 @@ import {
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
-import { Paginator, Parameters, createUserEmbed, toTitleCase } from '../../utils';
+import { Paginator, Parameters, createUserEmbed, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -52,7 +52,7 @@ export default class PlayingCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that game.');
+    return editOrReply(context, '⚠ Unable to find that game.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -247,6 +247,6 @@ export default class PlayingCommand extends BaseCommand {
       });
       return await paginator.start();
     }
-    return context.editOrReply('⚠ Unable to find any members playing that game.');
+    return editOrReply(context, '⚠ Unable to find any members playing that game.');
   }
 }

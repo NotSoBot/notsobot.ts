@@ -5,7 +5,7 @@ import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { CommandTypes, DateOptions } from '../../constants';
-import { DefaultParameters, Paginator, Parameters, toTitleCase } from '../../utils';
+import { DefaultParameters, Paginator, Parameters, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -121,11 +121,11 @@ export default class SeenOnCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (!args.payload.user) {
-      return context.editOrReply('⚠ Unable to find that user.');
+      return editOrReply(context, '⚠ Unable to find that user.');
     } else if (args.payload.user.bot) {
-      return context.editOrReply('⚠ Bots cannot be used with this command.');
+      return editOrReply(context, '⚠ Bots cannot be used with this command.');
     }
-    return context.editOrReply('⚠ User shares no guilds.');
+    return editOrReply(context, '⚠ User shares no guilds.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {

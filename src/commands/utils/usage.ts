@@ -6,7 +6,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes } from '../../constants';
 import { BaseCommand } from '../basecommand';
-import { padCodeBlockFromRows } from '../../utils';
+import { editOrReply, padCodeBlockFromRows } from '../../utils';
 
 import { ClusterInformation, getClusterInformation } from './shards';
 
@@ -88,6 +88,6 @@ export default class UsageCommand extends BaseCommand {
     }
 
     const content = padCodeBlockFromRows(rows).join('\n');
-    return context.editOrReply(Markup.codeblock(content, {language: 'py'}));
+    return editOrReply(context, Markup.codeblock(content, {language: 'py'}));
   }
 }

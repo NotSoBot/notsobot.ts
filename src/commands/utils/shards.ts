@@ -3,8 +3,9 @@ import { Markup } from 'detritus-client/lib/utils';
 import { SocketStates } from 'detritus-client-socket/lib/constants';
 
 import { CommandTypes } from '../../constants';
+import { editOrReply, padCodeBlockFromRows } from '../../utils';
+
 import { BaseCommand } from '../basecommand';
-import { padCodeBlockFromRows } from '../../utils';
 
 
 export interface ClusterInformation {
@@ -163,6 +164,6 @@ export default class ShardCommand extends BaseCommand {
       padCodeBlockFromRows(title).join('\n') + '\n',
       paddedRows.join('\n'),
     ].join('\n');
-    return context.editOrReply(Markup.codeblock(content, {language: 'py'}));
+    return editOrReply(context, Markup.codeblock(content, {language: 'py'}));
   }
 }

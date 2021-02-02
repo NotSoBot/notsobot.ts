@@ -4,7 +4,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { GuildSettings, GuildSettingsAllowlist } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { Paginator, createUserEmbed, splitArray, toTitleCase } from '../../utils';
+import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -25,7 +25,7 @@ export async function createAllowlistEmbed(
   });
   // maybe compare dates?
 
-  const pages = splitArray<GuildSettingsAllowlist>(sorted, ELEMENTS_PER_PAGE);
+  const pages = chunkArray<GuildSettingsAllowlist>(sorted, ELEMENTS_PER_PAGE);
 
   let title = options.title || 'Allowlist';
   let footer = 'Allowlist';
@@ -97,7 +97,7 @@ export async function createAllowlistEmbed(
       embed.setDescription('Currently nothing is inside of the allowlist in this guild.');
     }
     embed.setFooter(footer);
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }
 

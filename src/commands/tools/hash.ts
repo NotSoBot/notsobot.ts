@@ -5,7 +5,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { createUserEmbed } from '../../utils';
+import { createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -85,6 +85,6 @@ export default class HashCommand extends BaseCommand<CommandArgs> {
     }
     embed.addField('Result', Markup.codeblock(digest));
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

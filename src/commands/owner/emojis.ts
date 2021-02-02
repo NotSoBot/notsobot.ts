@@ -5,7 +5,7 @@ import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, DateOptions } from '../../constants';
-import { Paginator, createUserEmbed, isSnowflake, splitArray } from '../../utils';
+import { Paginator, chunkArray, createUserEmbed, editOrReply, isSnowflake } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -87,13 +87,13 @@ export default class EmojisCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Couldn\'t find any emojis matching that.');
+    return editOrReply(context, '⚠ Couldn\'t find any emojis matching that.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { emojis } = args;
 
-    const pages = splitArray<Structures.Emoji>(emojis, ELEMENTS_PER_PAGE);
+    const pages = chunkArray<Structures.Emoji>(emojis, ELEMENTS_PER_PAGE);
     const pageLimit = pages.length;
     const paginator = new Paginator(context, {
       pageLimit,

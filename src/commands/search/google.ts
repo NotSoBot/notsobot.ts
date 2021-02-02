@@ -2,6 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogle } from '../../api';
+import { RestResponsesRaw } from '../../api/types';
 import {
   CommandTypes,
   EmbedBrands,
@@ -11,7 +12,7 @@ import {
   GoogleLocalesText,
   GOOGLE_CARD_TYPES_SUPPORTED,
 } from '../../constants';
-import { Arguments, Paginator, createUserEmbed, splitArray } from '../../utils';
+import { Arguments, Paginator, chunkArray, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -31,7 +32,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['g'],
+      aliases: ['g', 'google search', 'g search'],
       args: [
         Arguments.GoogleLocale,
         Arguments.Safe,
@@ -46,6 +47,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
         type: CommandTypes.SEARCH,
         usage: `${COMMAND_NAME} <query> (-locale <language>) (-safe)`,
       },
+      priority: -1,
     });
   }
 
@@ -54,27 +56,9 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
 
     const suggestionText = (suggestion) ? `Did you mean: ${Markup.bold(Markup.url(Markup.escape.all(suggestion.text), suggestion.url))}?` : null;
     if (cards.length || results.length) {
-      const pages: Array<any> = [];
-
-      for (let card of cards) {
-        if (GOOGLE_CARD_TYPES_SUPPORTED.includes(card.type)) {
-          pages.push(card);
-        }
-      }
-
-      for (let i = 0; i < results.length; i += RESULTS_PER_PAGE) {
-        const page: Array<any> = [];
-        for (let x = 0; x < RESULTS_PER_PAGE; x++) {
-          const result = results[i + x];
-          if (result) {
-            page.push(result);
-          }
-        }
-        if (page.length) {
-          pages.push(page);
-        }
-      }
-
+      const filteredCards = cards.filter((card) => GOOGLE_CARD_TYPES_SUPPORTED.includes(card.type));
+      const chunkedResults = chunkArray<RestResponsesRaw.SearchGoogleResult>(results, RESULTS_PER_PAGE);
+      const pages = [...filteredCards, ...chunkedResults];
       if (pages.length) {
         const pageLimit = pages.length;
         const paginator = new Paginator(context, {
@@ -209,7 +193,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                   }
                 }; break;
                 case GoogleCardTypes.TIME: {
-                  embed.setTitle(page.footer);
+                  embed.setTitle(page.footer as string);
                   embed.setDescription(`${page.header} on ${page.description}`);
                 }; break;
                 case GoogleCardTypes.TRANSLATION: {
@@ -237,7 +221,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                     embed.setThumbnail(page.thumbnail);
                   }
 
-                  embed.addField('**Temperature**', page.description);
+                  embed.addField('**Temperature**', page.description as string);
                   for (let field of page.fields) {
                     embed.addField(`**${field.name}**`, field.value, true);
                   }
@@ -276,6 +260,6 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
       embed.setDescription(suggestionText);
     }
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

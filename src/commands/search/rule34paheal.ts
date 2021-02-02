@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34Paheal } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -46,7 +46,7 @@ export default class Rule34PahealCommand extends BaseSearchCommand {
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];
-          embed.setFooter(`Page ${page}/${pageLimit} of Paheal Rule34 Results`);
+          embed.setFooter(`Page ${page}/${pageLimit} of Paheal Rule34 Results`, EmbedBrands.RULE34_PAHEAL);
 
           embed.setTitle((result.is_video) ? `${result.file_name} (Video)` : result.file_name);
           embed.setUrl(result.url);
@@ -83,7 +83,7 @@ export default class Rule34PahealCommand extends BaseSearchCommand {
       });
       return await paginator.start();
     } else {
-      return context.editOrReply('Couldn\'t find any images for that search term');
+      return editOrReply(context, 'Couldn\'t find any images for that search term');
     }
   }
 }

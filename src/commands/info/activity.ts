@@ -13,6 +13,7 @@ import {
   Paginator,
   Parameters,
   createUserEmbed,
+  editOrReply,
   formatTime,
   toTitleCase,
 } from '../../utils';
@@ -58,7 +59,7 @@ export default class ActivityCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find that user.');
+    return editOrReply(context, '⚠ Unable to find that user.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
