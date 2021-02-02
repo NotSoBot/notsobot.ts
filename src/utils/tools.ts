@@ -42,14 +42,16 @@ export function editOrReply(context: Command.Context, options: Command.EditOrRep
   if (typeof(options) === 'string') {
     options = {content: options};
   }
-  return context.editOrReply({
-    ...options,
-    allowedMentions: {repliedUser: false},
-    messageReference: {
+  if (!context.message.deleted) {
+    options.messageReference = {
       channelId: context.channelId,
       guildId: context.guildId,
       messageId: context.messageId,
-    },
+    };
+  }
+  return context.editOrReply({
+    ...options,
+    allowedMentions: {repliedUser: false},,
   });
 }
 
