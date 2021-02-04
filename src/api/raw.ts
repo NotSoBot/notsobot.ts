@@ -1043,6 +1043,44 @@ export async function imageOverlayGay(
 }
 
 
+export async function imageToolsBackgroundRemove(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_BACKGROUND_REMOVE,
+    },
+  });
+}
+
+
+export async function imageToolsConvert(
+  context: RequestContext,
+  options: RestOptions.ImageToolsConvert,
+) {
+  const query = {
+    size: options.size,
+    to: options.to,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_CONVERT,
+    },
+  });
+}
+
+
 export async function imageToolsGifReverse(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -1095,24 +1133,6 @@ export async function imageToolsResize(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_TOOLS_RESIZE,
-    },
-  });
-}
-
-
-export async function imageToolsBackgroundRemove(
-  context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
-) {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_BACKGROUND_REMOVE,
     },
   });
 }

@@ -124,6 +124,8 @@ export const Api = Object.freeze({
 
   IMAGE_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',
+  IMAGE_TOOLS_CONVERT:
+    '/image/tools/convert',
   IMAGE_TOOLS_GIF_REVERSE:
     '/image/tools/gif/reverse',
   IMAGE_TOOLS_GIF_SEE_SAW:

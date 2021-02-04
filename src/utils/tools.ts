@@ -11,6 +11,8 @@ import {
   EmbedColors,
   GoogleLocalesText,
   LanguageCodesText,
+  Mimetypes,
+  MIMETYPES_SAFE_EMBED,
   TRUSTED_URLS,
 } from '../constants';
 
@@ -569,10 +571,13 @@ export async function imageReplyFromOptions(
     embed = new Embed();
   }
   embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
-  embed.setImage(`attachment://${filename}`);
+
+  if (!options.mimetype || MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes)) {
+    embed.setImage(`attachment://${filename}`);
+  }
 
   let footer = `${options.width}x${options.height}`;
-  if (options.mimetype === 'image/gif' && options.framesNew) {
+  if (options.mimetype === Mimetypes.IMAGE_GIF && options.framesNew) {
     footer = `${footer}, ${options.framesNew.toLocaleString()} frames`;
   }
   footer = `${footer}, ${formatMemory(options.size, 2)}`;

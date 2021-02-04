@@ -51,6 +51,6 @@ export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageToolsResize(context, args);
-    return imageReply(context, response, 'resize');
+    return imageReply(context, response);
   }
 }

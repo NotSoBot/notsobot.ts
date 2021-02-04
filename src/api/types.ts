@@ -147,6 +147,11 @@ export namespace RestOptions {
     scale?: number,
   }
 
+  export interface ImageToolsConvert extends ImageBaseOptions {
+    size?: string,
+    to: string,
+  }
+
   export interface ImageToolsResize extends ImageBaseOptions {
     convert?: string,
     scale?: number,

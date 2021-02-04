@@ -546,6 +546,14 @@ export async function imageToolsBackgroundRemove(
 }
 
 
+export async function imageToolsConvert(
+  context: RequestContext,
+  options: RestOptions.ImageToolsConvert,
+) {
+  return raw.imageToolsConvert(context, options);
+}
+
+
 export async function imageToolsGifReverse(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,

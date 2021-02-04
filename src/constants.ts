@@ -495,6 +495,20 @@ export enum ImageLegofyPalettes {
   TRANSPARENT = 'transparent',
 }
 
+export enum Mimetypes {
+  IMAGE_GIF = 'image/gif',
+  IMAGE_JPEG = 'image/jpeg',
+  IMAGE_PNG = 'image/png',
+  IMAGE_WEBP = 'image/webp',
+}
+
+export const MIMETYPES_SAFE_EMBED = Object.freeze([
+  Mimetypes.IMAGE_GIF,
+  Mimetypes.IMAGE_JPEG,
+  Mimetypes.IMAGE_PNG,
+  Mimetypes.IMAGE_WEBP,
+]);
+
 export const PermissionsText = Object.freeze({
   [String(Permissions.ADD_REACTIONS)]: 'Add Reactions',
   [String(Permissions.ADMINISTRATOR)]: 'Administrator',
