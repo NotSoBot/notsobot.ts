@@ -6,7 +6,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { searchReddit } from '../../api';
 import {
   CommandTypes,
-  DateMomentOptions,
+  DateOptions,
   EmbedBrands,
   EmbedColors,
   RedditKindTypes,
@@ -61,14 +61,15 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await searchReddit(context, args);
-    const { children: results } = response.data;
+    const { results } = await searchReddit(context, args);
     if (results.length) {
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const { data, kind } = results[page - 1];
+          const data = results[page - 1];
+
+          const created = new Date(data.created * 1000);
 
           const embed = createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
@@ -91,6 +92,13 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
 
             description.push(`**Awards**: ${data.total_awards_received.toLocaleString()}`);
             description.push(`**Comments**: ${data.num_comments.toLocaleString()}`);
+            description.push(`**Created**: ${created.toLocaleString('en-US', DateOptions)}`);
+            description.push(`**NSFW**: ${(data.over_18) ? 'Yes' : 'No'}`);
+
+            description.push('');
+            description.push(`**Downvotes**: ${data.downs.toLocaleString()}`);
+            description.push(`**Upvotes**: ${data.ups.toLocaleString()}`);
+            description.push(`**Ratio**: ${data.upvote_ratio * 100}% Upvotes`);
 
             if (data.is_video) {
               description.push('');
@@ -101,7 +109,7 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
           }
 
           if (data.preview) {
-            const image = data.preview.images[0];
+            const [ image ] = data.preview.images;
             if (image) {
               embed.setImage(htmlDecode(image.source.url));
             }

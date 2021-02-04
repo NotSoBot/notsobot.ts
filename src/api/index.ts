@@ -554,6 +554,14 @@ export async function imageToolsGifReverse(
 }
 
 
+export async function imageToolsGifSeeSaw(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageToolsGifSeeSaw(context, options);
+}
+
+
 export async function imageToolsResize(
   context: RequestContext,
   options: RestOptions.ImageToolsResize,

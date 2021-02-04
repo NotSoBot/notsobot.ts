@@ -1061,6 +1061,24 @@ export async function imageToolsGifReverse(
 }
 
 
+export async function imageToolsGifSeeSaw(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_GIF_SEE_SAW,
+    },
+  });
+}
+
+
 export async function imageToolsResize(
   context: RequestContext,
   options: RestOptions.ImageToolsResize,
@@ -1291,7 +1309,7 @@ export async function searchGoogleReverseImages(
 export async function searchReddit(
   context: RequestContext,
   options: RestOptions.SearchReddit,
-): Promise<any> {
+): Promise<RestResponsesRaw.SearchReddit> {
   const query = {
     query: options.query,
     safe: options.safe,
