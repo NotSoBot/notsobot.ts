@@ -36,7 +36,7 @@ export default class NeedsMoreJPEGCommand extends BaseImageCommand<CommandArgs> 
           `${COMMAND_NAME} notsobot -quality 20`,
         ],
         type: CommandTypes.IMAGE,
-        usage:  '?<emoji,user:id|mention|name,url> (-quality <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-quality <number>)',
       },
     });
   }

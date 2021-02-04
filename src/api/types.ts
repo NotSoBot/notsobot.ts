@@ -230,6 +230,11 @@ export namespace RestOptions {
     steamId?: string,
   }
 
+  export interface SearchSteamEmojis {
+    maxResults?: number,
+    query: string,
+  }
+
   export interface SearchSteamProfile {
     query: string,
   }
@@ -656,6 +661,51 @@ export namespace RestResponsesRaw {
     steam_id_64: string | null,
     url: string,
     username: string,
+  }
+
+  export interface SearchSteamEmoji {
+    description: string,
+    image: {
+      data: string,
+      details: {
+        extension: string,
+        filename: string,
+        height: number,
+        mimetype: string,
+        width: number,
+      },
+      url: string,
+    },
+    name: string,
+  }
+
+  export interface SearchSteamEmojis {
+    count: number,
+    results: Array<{
+      app: {
+        id: number,
+        icon: string,
+        name: string,
+      },
+      icon: string,
+      icon_hash: string,
+      id: string,
+      name: string,
+      metadata: {
+        background_color: string,
+        class_id: string,
+        commodity: boolean,
+        instance_id: string,
+        name_color: string,
+        tradable: boolean,
+        type: string,
+      },
+      sale_price_text: string,
+      sell_listings: string,
+      sell_price: string,
+      sell_price_text: string,
+      url: string,
+    }>,
   }
 
   export interface SearchSteamProfile {

@@ -30,7 +30,7 @@ export default class ReverseTextCommand extends BaseCommand {
           `${COMMAND_NAME} NotSoBot`,
         ],
         type: CommandTypes.FUN,
-        usage:  '<text>',
+        usage: '<text>',
       },
     });
   }

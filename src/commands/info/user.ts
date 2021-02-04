@@ -42,7 +42,7 @@ export default class UserCommand extends BaseCommand {
           `${COMMAND_NAME} <@439205512425504771>`,
         ],
         type: CommandTypes.INFO,
-        usage:  '?<user:id|mention|name>',
+        usage: '?<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.memberOrUser(),

@@ -26,7 +26,7 @@ export default class SteamProfileCommand extends BaseSearchCommand<CommandArgs> 
           `${COMMAND_NAME} 76561198000146360`,
         ],
         type: CommandTypes.SEARCH,
-        usage:  '<steam-id|steam-vanity>',
+        usage: '<steam-id|steam-vanity>',
       },
     });
   }

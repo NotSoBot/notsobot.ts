@@ -28,7 +28,7 @@ export default class LabelsCommand extends BaseImageCommand<CommandArgs> {
         ],
         permissionsClient: [Permissions.EMBED_LINKS],
         type: CommandTypes.TOOLS,
-        usage:  '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }

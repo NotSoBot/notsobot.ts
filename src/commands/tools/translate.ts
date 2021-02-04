@@ -47,7 +47,7 @@ export default class TranslateCommand extends BaseCommand {
           `${COMMAND_NAME} not so bot -to russian`,
         ],
         type: CommandTypes.TOOLS,
-        usage:  '<text> (-to <language>) (-from <language>)',
+        usage: '<text> (-to <language>) (-from <language>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
     });

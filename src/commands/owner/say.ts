@@ -24,7 +24,7 @@ export default class SayCommand extends BaseCommand {
           `${COMMAND_NAME} :spider:`,
         ],
         type: CommandTypes.OWNER,
-        usage:  '<text>',
+        usage: '<text>',
       },
     });
   }

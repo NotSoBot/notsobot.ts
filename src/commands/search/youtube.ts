@@ -42,7 +42,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.SEARCH,
-        usage:  '<query> (-sp <string>)',
+        usage: '<query> (-sp <string>)',
       },
     });
   }

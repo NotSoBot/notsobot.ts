@@ -32,7 +32,7 @@ export default class MagikGifCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.IMAGE,
-        usage:  '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }

@@ -26,7 +26,7 @@ export default class DuckDuckGoImageCommand extends BaseSearchCommand<CommandArg
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.SEARCH,
-        usage:  '<query>',
+        usage: '<query>',
       },
     });
   }

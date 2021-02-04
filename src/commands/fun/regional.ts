@@ -26,7 +26,7 @@ export default class RegionalCommand extends BaseCommand {
           `${COMMAND_NAME} lol`,
         ],
         type: CommandTypes.FUN,
-        usage:  '<text>',
+        usage: '<text>',
       },
     });
   }

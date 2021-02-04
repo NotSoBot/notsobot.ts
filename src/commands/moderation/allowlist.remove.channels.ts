@@ -39,7 +39,7 @@ export default class AllowlistRemoveChannelsCommand extends BaseCommand {
           `${COMMAND_NAME} <#585639594574217232> <#560595518129045504>`,
         ],
         type: CommandTypes.MODERATION,
-        usage:  '...<channel:id|mention|name>',
+        usage: '...<channel:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.ADMINISTRATOR],

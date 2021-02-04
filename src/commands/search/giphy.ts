@@ -23,7 +23,7 @@ export default class GiphyCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} dancing`,
         ],
         type: CommandTypes.SEARCH,
-        usage:  '<query>',
+        usage: '<query>',
       },
     });
   }

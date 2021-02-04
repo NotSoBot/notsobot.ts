@@ -27,7 +27,7 @@ export default class TagCommand extends BaseCommand {
           `${COMMAND_NAME} "some tag"`,
         ],
         type: CommandTypes.FUN,
-        usage:  '<...tagname>',
+        usage: '<...tagname>',
       },
       priority: -1,
     });

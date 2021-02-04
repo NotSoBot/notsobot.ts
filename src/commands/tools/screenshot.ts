@@ -25,7 +25,7 @@ export default class ScreenshotCommand extends BaseCommand<CommandArgs> {
           `${COMMAND_NAME} https://discordapp.com`,
         ],
         type: CommandTypes.TOOLS,
-        usage:  '<url>',
+        usage: '<url>',
       },
     });
   }

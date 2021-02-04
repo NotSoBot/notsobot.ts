@@ -35,7 +35,7 @@ export default class BlurCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
         type: CommandTypes.IMAGE,
-        usage:  '?<emoji,user:id|mention|name,url> (-scale <float>)',
+        usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });
   }

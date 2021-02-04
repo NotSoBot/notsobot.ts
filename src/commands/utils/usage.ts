@@ -24,7 +24,7 @@ export default class UsageCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         type: CommandTypes.UTILS,
-        usage:  '',
+        usage: '',
       },
     });
   }
@@ -61,7 +61,7 @@ export default class UsageCommand extends BaseCommand {
       }, {
         memory: {},
         objects: {},
-        ramUsage: 0,
+        ramusage: 0,
         shardsIdentified: 0,
       } as ClusterInformation);
 

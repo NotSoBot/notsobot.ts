@@ -171,7 +171,7 @@ export default class AllowlistAddCommand extends BaseCommand {
           `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
         ],
         type: CommandTypes.MODERATION,
-        usage:  '...<channel:mention,role:mention,user:mention>',
+        usage: '...<channel:mention,role:mention,user:mention>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.ADMINISTRATOR],

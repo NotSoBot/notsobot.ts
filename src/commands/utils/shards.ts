@@ -16,7 +16,7 @@ export interface ClusterInformation {
     rss: number,
   },
   objects: ClusterObjectInformation,
-  ramUsage: number,
+  ramusage: number,
   shardsIdentified: number,
 }
 
@@ -71,7 +71,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           voiceConnections: 0,
           voiceStates: 0,
         },
-        ramUsage: usage.heapUsed + usage.external +  Math.max(0, usage.rss - usage.heapTotal),
+        ramusage: usage.heapUsed + usage.external +  Math.max(0, usage.rss - usage.heapTotal),
         shardsIdentified: 0,
       };
       for (let [shardId, shard] of cluster.shards) {

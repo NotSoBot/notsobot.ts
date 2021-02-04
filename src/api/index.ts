@@ -700,6 +700,22 @@ export async function searchSteam(
 }
 
 
+export async function searchSteamEmoji(
+  context: RequestContext,
+  emoji: string,
+) {
+  return raw.searchSteamEmoji(context, emoji);
+}
+
+
+export async function searchSteamEmojis(
+  context: RequestContext,
+  options: RestOptions.SearchSteamEmojis,
+) {
+  return raw.searchSteamEmojis(context, options);
+}
+
+
 export async function searchSteamProfile(
   context: RequestContext,
   options: RestOptions.SearchSteamProfile,

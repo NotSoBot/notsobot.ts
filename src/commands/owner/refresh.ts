@@ -95,7 +95,7 @@ export default class RefreshCommand extends BaseCommand {
           `${COMMAND_NAME} -stores`,
         ],
         type: CommandTypes.OWNER,
-        usage:  '',
+        usage: '',
       },
       responseOptional: true,
     });

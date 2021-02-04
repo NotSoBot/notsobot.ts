@@ -125,7 +125,7 @@ export default class AllowlistCommand extends BaseCommand {
           `${COMMAND_NAME} channels`,
         ],
         type: CommandTypes.MODERATION,
-        usage:  '?<GuildAllowlistType>',
+        usage: '?<GuildAllowlistType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       priority: -2,

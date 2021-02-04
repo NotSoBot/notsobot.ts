@@ -104,7 +104,7 @@ export default class SeenOnCommand extends BaseCommand {
           `${COMMAND_NAME} <@439205512425504771>`,
         ],
         type: CommandTypes.OWNER,
-        usage:  '?<user:id|mention|name>',
+        usage: '?<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: getSharedGuilds,

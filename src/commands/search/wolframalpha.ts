@@ -25,7 +25,7 @@ export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} 5 plus 5`,
         ],
         type: CommandTypes.SEARCH,
-        usage:  '<query>',
+        usage: '<query>',
       },
     });
   }

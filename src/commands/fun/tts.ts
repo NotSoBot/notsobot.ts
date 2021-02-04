@@ -74,7 +74,7 @@ export default class TTSCommand extends BaseCommand {
           `${COMMAND_NAME} give me a table -use spanish`,
         ],
         type: CommandTypes.FUN,
-        usage:  '<text> (-use <language/type>)',
+        usage: '<text> (-use <language/type>)',
       },
     });
   }

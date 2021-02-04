@@ -44,7 +44,7 @@ export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -convert webp -size 2048`,
         ],
         type: CommandTypes.IMAGE,
-        usage:  '?<emoji,user:id|mention|name,url> (-convert <format>) (-scale <number>) (-size <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-convert <format>) (-scale <number>) (-size <number>)',
       },
     });
   }

@@ -40,7 +40,7 @@ export default class PlayingCommand extends BaseCommand {
           `${COMMAND_NAME} 356888738724446208`,
         ],
         type: CommandTypes.INFO,
-        usage:  '?<application:id|name>',
+        usage: '?<application:id|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.applications,

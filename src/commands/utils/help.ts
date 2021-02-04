@@ -41,7 +41,7 @@ export default class HelpCommand extends BaseCommand {
           `${COMMAND_NAME} loggers`,
         ],
         type: CommandTypes.UTILS,
-        usage:  '?<command:name>',
+        usage: '?<command:name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: (content: string, context: Command.Context) => {

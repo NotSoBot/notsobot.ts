@@ -35,7 +35,7 @@ export default class PrefixesReplaceCommand extends BaseCommand {
           `${COMMAND_NAME} ..`,
         ],
         type: CommandTypes.SETTINGS,
-        usage:  '<prefix>',
+        usage: '<prefix>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],

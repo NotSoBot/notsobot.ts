@@ -30,8 +30,8 @@ export default class SteamCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} NotSoSuper -as 76561198000146360`,
         ],
         type: CommandTypes.SEARCH,
-        usage:  '<query>',
-        // usage:  '<query> (-as <steam-id>)',
+        usage: '<query>',
+        // usage: '<query> (-as <steam-id>)',
       },
       priority: -1,
     });

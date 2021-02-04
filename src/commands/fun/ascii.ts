@@ -30,7 +30,7 @@ export default class AsciiCommand extends BaseCommand {
           `${COMMAND_NAME} NotSoBot`,
         ],
         type: CommandTypes.FUN,
-        usage:  '<text>',
+        usage: '<text>',
       },
       priority: -1,
     });

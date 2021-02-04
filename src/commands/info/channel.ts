@@ -43,7 +43,7 @@ export default class ChannelCommand extends BaseCommand {
           `${COMMAND_NAME} 585639594574217232`,
         ],
         type: CommandTypes.INFO,
-        usage:  '?<channel:id|mention|name>',
+        usage: '?<channel:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.channelMetadata,

@@ -40,7 +40,7 @@ export default class BlocklistRemoveRolesCommand extends BaseCommand {
           `${COMMAND_NAME} <@&668258873546637322> <@&178897437082124288>`,
         ],
         type: CommandTypes.MODERATION,
-        usage:  '...<role:id|mention|name>',
+        usage: '...<role:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.ADMINISTRATOR],

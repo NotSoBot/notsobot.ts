@@ -35,7 +35,7 @@ export default class RotateCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -degrees 90`
         ],
         type: CommandTypes.IMAGE,
-        usage:  '?<emoji,user:id|mention|name,url> (-degrees <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-degrees <number>)',
       },
     });
   }

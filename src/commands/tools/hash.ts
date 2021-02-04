@@ -55,7 +55,7 @@ export default class HashCommand extends BaseCommand<CommandArgs> {
           `${COMMAND_NAME} Discord Bots -use sha256`,
         ],
         type: CommandTypes.TOOLS,
-        usage:  '<text> (-use <HashTypes>) (-secret <string>)',
+        usage: '<text> (-use <HashTypes>) (-secret <string>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
     });

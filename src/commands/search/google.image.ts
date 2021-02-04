@@ -34,7 +34,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} something nsfw -safe`,
         ],
         type: CommandTypes.SEARCH,
-        usage:  '<query> (-locale <language>) (-safe)',
+        usage: '<query> (-locale <language>) (-safe)',
       },
     });
   }

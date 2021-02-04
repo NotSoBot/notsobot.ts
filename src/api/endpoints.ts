@@ -156,6 +156,10 @@ export const Api = Object.freeze({
     '/search/rule34-paheal',
   SEARCH_STEAM:
     '/search/steam',
+  SEARCH_STEAM_EMOJIS:
+    '/search/steam/emojis',
+  SEARCH_STEAM_EMOJIS_EMOJI:
+    '/search/steam/emojis/:emoji',
   SEARCH_STEAM_PROFILE:
     '/search/steam/profile',
   SEARCH_URBAN_DICTIONARY:

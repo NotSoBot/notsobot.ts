@@ -1361,6 +1361,38 @@ export async function searchSteam(
 }
 
 
+export async function searchSteamEmoji(
+  context: RequestContext,
+  emoji: string,
+): Promise<RestResponsesRaw.SearchSteamEmoji> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_STEAM_EMOJIS_EMOJI,
+      params: {emoji},
+    },
+  });
+}
+
+
+export async function searchSteamEmojis(
+  context: RequestContext,
+  options: RestOptions.SearchSteamEmojis,
+): Promise<RestResponsesRaw.SearchSteamEmojis> {
+  const query = {
+    max_results: options.maxResults,
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_STEAM_EMOJIS,
+    },
+  });
+}
+
+
 export async function searchSteamProfile(
   context: RequestContext,
   options: RestOptions.SearchSteamProfile,
