@@ -32,7 +32,7 @@ export default class RetroCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -type 2`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} ?<emoji,user:id|mention|name,url> (-type <retro-type>)`,
+        usage:  '?<emoji,user:id|mention|name,url> (-type <retro-type>)',
       },
     });
   }

@@ -42,7 +42,7 @@ export default class KickCommand extends BaseCommand {
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
         ],
         type: CommandTypes.MODERATION,
-        usage: `${COMMAND_NAME} ...?<user:id|mention> <reason (string)> (-clean <days>)`,
+        usage:  '...?<user:id|mention> <reason (string)> (-clean <days>)',
       },
       permissionsClient: [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS, Permissions.KICK_MEMBERS],
       permissions: [Permissions.KICK_MEMBERS],

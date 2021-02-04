@@ -22,7 +22,7 @@ export default class UrbanRandomCommand extends BaseSearchCommand {
           COMMAND_NAME,
         ],
         type: CommandTypes.SEARCH,
-        usage: COMMAND_NAME,
+        usage:  '',
       },
     });
   }

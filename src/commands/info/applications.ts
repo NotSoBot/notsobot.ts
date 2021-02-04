@@ -33,7 +33,7 @@ export default class ApplicationsCommand extends BaseCommand {
           `${COMMAND_NAME} 356888738724446208`,
         ],
         type: CommandTypes.INFO,
-        usage: `${COMMAND_NAME} ?<application:id|mention|name>`,
+        usage:  '?<application:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.applications,

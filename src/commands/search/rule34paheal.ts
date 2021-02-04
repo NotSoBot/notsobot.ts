@@ -30,7 +30,7 @@ export default class Rule34PahealCommand extends BaseSearchCommand {
           `${COMMAND_NAME} overwatch`,
         ],
         type: CommandTypes.SEARCH,
-        usage: `${COMMAND_NAME} <query>`,
+        usage:  '<query>',
       },
     });
   }

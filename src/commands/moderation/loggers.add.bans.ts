@@ -23,7 +23,7 @@ export default class LoggersAddBansCommand extends LoggersAddBaseCommand {
           `${COMMAND_NAME} -in logs`,
         ],
         type: CommandTypes.MODERATION,
-        usage: `${COMMAND_NAME} (-channel <text-channel:id|mention|name>) (-in <category-channel:idmention|name>)`,
+        usage:  '(-channel <text-channel:id|mention|name>) (-in <category-channel:idmention|name>)',
       },
     });
   }

@@ -32,7 +32,7 @@ export default class SetLocaleCommand extends BaseCommand {
           `${COMMAND_NAME} english`,
         ],
         type: CommandTypes.SETTINGS,
-        usage: `${COMMAND_NAME} <locale>`,
+        usage:  '<locale>',
       },
       permissionsClient: [Permissions.MANAGE_GUILD],
       permissions: [Permissions.MANAGE_GUILD],

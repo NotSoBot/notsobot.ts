@@ -35,7 +35,7 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} overwatch`,
         ],
         type: CommandTypes.SEARCH,
-        usage: `${COMMAND_NAME} <query>`,
+        usage:  '<query>',
       },
     });
   }

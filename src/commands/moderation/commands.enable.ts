@@ -63,7 +63,7 @@ export default class CommandsEnable extends BaseCommand {
           `${COMMAND_NAME} rule34 -roles admin everyone`,
         ],
         type: CommandTypes.MODERATION,
-        usage: `${COMMAND_NAME} <command-name> (-channels ...<channel:id|mention|name>) (-roles ...<role:id|mention|name>) (-users ...<user:id|mention|name>)`,
+        usage:  '<command-name> (-channels ...<channel:id|mention|name>) (-roles ...<role:id|mention|name>) (-users ...<user:id|mention|name>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],

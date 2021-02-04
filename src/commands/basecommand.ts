@@ -37,11 +37,18 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   get commandDescription(): string {
-    return Markup.codeblock((this.metadata.usage) ? this.metadata.usage : 'lol idk');
+    if (typeof(this.metadata.usage) === 'string') {
+      return `${this.name} ${this.metadata.usage}`.trim();
+    }
+    return '';
   }
 
   onCancelRun(context: Command.Context, args: unknown) {
-    return editOrReply(context, this.commandDescription);
+    const description = this.commandDescription;
+    if (description) {
+      return editOrReply(context, Markup.codeblock(`${context.prefix}${description}`));
+    }
+    return editOrReply(context, 'lol idk how to use this command');
   }
 
   onPermissionsFailClient(context: Command.Context, failed: Array<bigint>) {
@@ -209,9 +216,11 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any messages with an image.');
+      return editOrReply(context, '⚠ Unable to find any images in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
     }
-    return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+    return super.onCancelRun(context, args);
   }
 
   onSuccess(context: Command.Context, args: ParsedArgsFinished) {

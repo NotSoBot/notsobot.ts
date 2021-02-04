@@ -71,7 +71,7 @@ export default class EmojisCommand extends BaseCommand {
           `${COMMAND_NAME} pepe`,
         ],
         type: CommandTypes.OWNER,
-        usage: `${COMMAND_NAME} <emoji:id|name>`,
+        usage:  '<emoji:id|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: emojisSearch,

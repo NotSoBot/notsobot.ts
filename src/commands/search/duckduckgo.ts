@@ -29,7 +29,7 @@ export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.SEARCH,
-        usage: `${COMMAND_NAME} <query>`,
+        usage:  '<query>',
       },
     });
   }

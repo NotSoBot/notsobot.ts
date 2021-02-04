@@ -22,7 +22,7 @@ export default class ImgurCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} cat`,
         ],
         type: CommandTypes.SEARCH,
-        usage: `${COMMAND_NAME} <query>`,
+        usage:  '<query>',
       },
     });
   }

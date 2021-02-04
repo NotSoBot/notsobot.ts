@@ -41,7 +41,7 @@ export default class HelpCommand extends BaseCommand {
           `${COMMAND_NAME} loggers`,
         ],
         type: CommandTypes.UTILS,
-        usage: `${COMMAND_NAME} ?<command:name>`,
+        usage:  '?<command:name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: (content: string, context: Command.Context) => {
@@ -111,7 +111,15 @@ export default class HelpCommand extends BaseCommand {
 
             embed.addField('Information', description.join('\n'));
           }
-          embed.addField('Usage', (metadata.usage) ? metadata.usage : 'good luck, not finished');
+          {
+            let text: string;
+            if (typeof(metadata.usage) === 'string') {
+              text = Markup.codeblock(`${context.prefix}${command.name} ${metadata.usage}`.trim());
+            } else {
+              text = 'good luck, this ain\'t finished.';
+            }
+            embed.addField('Usage', text);
+          }
         }
         embed.setFooter(`Command ${page} of ${pageLimit} Found`);
         return embed;

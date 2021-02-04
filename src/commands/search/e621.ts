@@ -35,7 +35,7 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} discord`,
         ],
         type: CommandTypes.SEARCH,
-        usage: `${COMMAND_NAME} <query>`,
+        usage:  '<query>',
       },
     });
   }

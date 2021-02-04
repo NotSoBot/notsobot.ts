@@ -41,7 +41,7 @@ export default class EvalCommand extends BaseCommand {
           `${COMMAND_NAME} context.client.token`,
         ],
         type: CommandTypes.OWNER,
-        usage: `${COMMAND_NAME} <code> (-async) (-jsonspacing <number>) (-noembed) (-noreply) (-upload)`,
+        usage:  '<code> (-async) (-jsonspacing <number>) (-noembed) (-noreply) (-upload)',
       },
       responseOptional: true,
       type: Parameters.codeblock,

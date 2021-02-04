@@ -36,7 +36,7 @@ export default class WikihowCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} -random`,
         ],
         type: CommandTypes.SEARCH,
-        usage: `${COMMAND_NAME} <query> (-random)`,
+        usage:  '<query> (-random)',
       },
     });
   }

@@ -47,7 +47,7 @@ export default class RoleCommand extends BaseCommand {
           `${COMMAND_NAME} everyone -channel lobby`,
         ],
         type: CommandTypes.INFO,
-        usage: `${COMMAND_NAME} ?<role:id|mention|name> (-channel ?<channel:id|mention|name>)`,
+        usage:  '?<role:id|mention|name> (-channel ?<channel:id|mention|name>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.role,

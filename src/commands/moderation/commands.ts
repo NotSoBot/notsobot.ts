@@ -112,7 +112,7 @@ export default class CommandsCommand extends BaseCommand {
           `${COMMAND_NAME} channels`,
         ],
         type: CommandTypes.MODERATION,
-        usage: `${COMMAND_NAME} ?<GuildDisableCommandsType>`,
+        usage:  '?<GuildDisableCommandsType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       priority: -1,

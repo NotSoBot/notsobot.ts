@@ -51,7 +51,7 @@ export function editOrReply(context: Command.Context, options: Command.EditOrRep
   }
   return context.editOrReply({
     ...options,
-    allowedMentions: {repliedUser: false},,
+    allowedMentions: {repliedUser: false},
   });
 }
 

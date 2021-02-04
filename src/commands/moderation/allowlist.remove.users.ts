@@ -39,7 +39,7 @@ export default class AllowlistRemoveUsersCommand extends BaseCommand {
           `${COMMAND_NAME} <@300505364032389122> <@61189081970774016>`,
         ],
         type: CommandTypes.MODERATION,
-        usage: `${COMMAND_NAME} ...<user:id|mention|name>`,
+        usage:  '...<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.ADMINISTRATOR],

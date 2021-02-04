@@ -62,7 +62,7 @@ export default class UrbanCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.SEARCH,
-        usage: `${COMMAND_NAME} <query>`,
+        usage:  '<query>',
       },
       priority: -1,
     });

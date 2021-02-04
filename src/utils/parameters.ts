@@ -264,9 +264,14 @@ export async function guildMetadata(
 export async function imageUrl(
   value: string,
   context: Command.Context,
-): Promise<string | null> {
+): Promise<string | null | undefined> {
   if (value) {
     try {
+      // get last image then
+      if (value === '^') {
+        return await lastImageUrl('', context);
+      }
+
       // if it's a url
       {
         const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
@@ -351,6 +356,8 @@ export async function imageUrl(
 }
 
 
+// returns undefined if it couldn't find any messages in the past
+// returns null if a value was provided
 export async function lastImageUrl(
   value: string,
   context: Command.Context,
@@ -383,76 +390,57 @@ export async function lastImageUrl(
   }
 }
 
+// returns null if the no value provided and there was no last image
 export async function lastImageUrls(
   value: string,
   context: Command.Context,
 ): Promise<Array<string> | null> {
-  if (!value) {
+  if (value) {
+    const urls = new Set<string>();
     {
       const url = findImageUrlInMessages([context.message]);
       if (url) {
-        return [url];
+        urls.add(url);
       }
     }
 
     {
-      // we dont get DM channels anymore so we must manually find messages now
-      const messages = context.messages.filter((message) => message.channelId === context.channelId).reverse();
-      const url = findImageUrlInMessages(messages);
-      if (url) {
-        return [url];
+      const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+      if (matches.length) {
+        if (!context.message.embeds.length) {
+          await Timers.sleep(1000);
+        }
+        // match the url with the embed?
+        const [ { text } ] = matches;
+        const url = findImageUrlInMessages([context.message]);
+        urls.add(url || text);
       }
     }
 
-    if (context.inDm || (context.channel && context.channel.canReadHistory)) {
-      const messages = await context.rest.fetchMessages(context.channelId, {limit: 50});
-      const url = findImageUrlInMessages(messages);
+    if (urls.size) {
+      return Array.from(urls);
+    }
+
+    const values = Array.from(new Set(value.split(' ')));
+    for (let i = 0; i < Math.min(5, values.length); i++) {
+      if (3 <= urls.size) {
+        break;
+      }
+
+      const url = await imageUrl(values[i], context);
       if (url) {
-        return [url];
+        urls.add(url);
       }
     }
 
+    return Array.from(urls).slice(0, 3);
+  } else {
+    const url = await lastImageUrl('', context);
+    if (url) {
+      return [url];
+    }
     return null;
   }
-
-  const urls = new Set<string>();
-  {
-    const url = findImageUrlInMessages([context.message]);
-    if (url) {
-      urls.add(url);
-    }
-  }
-
-  {
-    const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
-    if (matches.length) {
-      if (!context.message.embeds.length) {
-        await Timers.sleep(1000);
-      }
-      // match the url with the embed?
-      const [ { text } ] = matches;
-      const url = findImageUrlInMessages([context.message]);
-      urls.add(url || text);
-    }
-  }
-
-  if (urls.size) {
-    return Array.from(urls);
-  }
-
-  const values = Array.from(new Set(value.split(' ')));
-  for (let i = 0; i < Math.min(5, values.length); i++) {
-    if (3 <= urls.size) {
-      break;
-    }
-
-    const url = await imageUrl(values[i], context);
-    if (url) {
-      urls.add(url);
-    }
-  }
-
-  return Array.from(urls).slice(0, 3);
 }
 
 

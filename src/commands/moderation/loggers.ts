@@ -121,7 +121,7 @@ export default class LoggersCommand extends BaseCommand {
           `${COMMAND_NAME} members`,
         ],
         type: CommandTypes.MODERATION,
-        usage: `${COMMAND_NAME} ?<GuildLoggerTypes>`,
+        usage:  '?<GuildLoggerTypes>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],

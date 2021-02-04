@@ -34,7 +34,7 @@ export default class RipCommand extends BaseCommand {
           `${COMMAND_NAME} yup he dead`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} ?<user:mention> ...?<text>`,
+        usage:  '?<user:mention> ...?<text>',
       },
     });
   }

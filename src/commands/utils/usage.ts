@@ -24,7 +24,7 @@ export default class UsageCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         type: CommandTypes.UTILS,
-        usage: COMMAND_NAME,
+        usage:  '',
       },
     });
   }

@@ -4,7 +4,7 @@ import { imageManipulationMeme } from '../../api';
 import { CommandTypes } from '../../constants';
 import { Parameters, imageReply } from '../../utils';
 
-import { BaseImageCommand } from '../basecommand';
+import { BaseCommand, BaseImageCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
@@ -31,13 +31,24 @@ export default class MemeCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot what an idiot | lmao`,
         ],
         type: CommandTypes.IMAGE,
-        usage: `${COMMAND_NAME} <emoji,user:id|mention|name,url> <...text>`,
+        usage: '<emoji,user:id|mention|name,url> <...text>',
       },
       type: [
-        {name: 'url', required: true, type: Parameters.lastImageUrl},
+        {name: 'url', type: Parameters.imageUrl},
         {name: 'text', consume: true},
       ],
     });
+  }
+
+  onBeforeRun(context: Command.Context, args: CommandArgs) {
+    return !!args.text && super.onBeforeRun(context, args);
+  }
+
+  onCancelRun(context: Command.Context, args: CommandArgs) {
+    if (!args.text) {
+      return BaseCommand.prototype.onCancelRun.call(this, context, args);
+    }
+    return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

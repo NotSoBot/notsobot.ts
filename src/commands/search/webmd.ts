@@ -25,7 +25,7 @@ export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} red spot on finger`,
         ],
         type: CommandTypes.SEARCH,
-        usage: `${COMMAND_NAME} <query>`,
+        usage:  '<query>',
       },
     });
   }

@@ -35,7 +35,7 @@ export default class PrefixesAddCommand extends BaseCommand {
           `${COMMAND_NAME} ..`,
         ],
         type: CommandTypes.SETTINGS,
-        usage: `${COMMAND_NAME} <prefix>`,
+        usage:  '<prefix>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],

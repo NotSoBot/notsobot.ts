@@ -126,7 +126,7 @@ export default class BlocklistCommand extends BaseCommand {
           `${COMMAND_NAME} channels`,
         ],
         type: CommandTypes.MODERATION,
-        usage: `${COMMAND_NAME} ?<GuildBlocklistType>`,
+        usage:  '?<GuildBlocklistType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       priority: -2,

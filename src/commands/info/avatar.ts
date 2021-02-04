@@ -40,7 +40,7 @@ export default class AvatarCommand extends BaseCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.INFO,
-        usage: `${COMMAND_NAME} ?<user:id|mention|name> (-default) (-noembed)`,
+        usage:  '?<user:id|mention|name> (-default) (-noembed)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.memberOrUser(),

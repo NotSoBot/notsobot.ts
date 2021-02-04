@@ -57,7 +57,7 @@ export default class GuildCommand extends BaseCommand {
           `${COMMAND_NAME} 178313653177548800`,
         ],
         type: CommandTypes.INFO,
-        usage: `${COMMAND_NAME} ?<guild:id>`,
+        usage:  '?<guild:id>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.guildMetadata,

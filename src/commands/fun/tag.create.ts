@@ -26,7 +26,7 @@ export default class TagCreateCommand extends BaseCommand {
           `${COMMAND_NAME} test im a tag`,
         ],
         type: CommandTypes.FUN,
-        usage: `${COMMAND_NAME} <tagname|"tag name"> <...body>`,
+        usage:  '<tagname|"tag name"> <...body>',
       },
     });
   }

@@ -47,7 +47,7 @@ export default class ActivityCommand extends BaseCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         type: CommandTypes.INFO,
-        usage: `${COMMAND_NAME} ?<user:id|mention|name>`,
+        usage:  '?<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.memberOrUser(),
