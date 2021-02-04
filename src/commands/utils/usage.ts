@@ -61,7 +61,7 @@ export default class UsageCommand extends BaseCommand {
       }, {
         memory: {},
         objects: {},
-        ramusage: 0,
+        ramUsage: 0,
         shardsIdentified: 0,
       } as ClusterInformation);
 
