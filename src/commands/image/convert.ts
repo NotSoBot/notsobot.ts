@@ -8,11 +8,13 @@ import { BaseImageCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
+  size?: string,
   to: string,
   url?: null | string,
 }
 
 export interface CommandArgs {
+  size?: string,
   to: string,
   url: string,
 }
@@ -24,6 +26,9 @@ export default class ConvertCommand extends BaseImageCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'size'},
+      ],
       metadata: {
         description: 'Convert an image',
         examples: [
