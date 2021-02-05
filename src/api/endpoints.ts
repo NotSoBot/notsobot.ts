@@ -118,15 +118,35 @@ export const Api = Object.freeze({
     '/image/manipulation/spin',
   IMAGE_MANIPULATION_WALL:
     '/image/manipulation/wall',
-  
+
+  IMAGE_OVERLAY_FLAG_ISIS:
+    '/image/overlay/flag-isis',
+  IMAGE_OVERLAY_FLAG_ISRAEL:
+    '/image/overlay/flag-israel',
   IMAGE_OVERLAY_FLAG_LGBT:
     '/image/overlay/flag-lgbt',
+  IMAGE_OVERLAY_FLAG_NORTH_KOREA:
+    '/image/overlay/flag-north-korea',
+  IMAGE_OVERLAY_FLAG_RUSSIA:
+    '/image/overlay/flag-russia',
   IMAGE_OVERLAY_FLAG_TRANS:
     '/image/overlay/flag-trans',
+  IMAGE_OVERLAY_FLAG_UK:
+    '/image/overlay/flag-uk',
+  IMAGE_OVERLAY_FLAG_USA:
+    '/image/overlay/flag-usa',
   IMAGE_OVERLAY_FLAG_USSR:
     '/image/overlay/flag-ussr',
+  IMAGE_OVERLAY_GOLDSTAR:
+    '/image/overlay/goldstar',
   IMAGE_OVERLAY_HALF_LIFE_PISTOL:
     '/image/overlay/half-life-pistol',
+  IMAGE_OVERLAY_HALF_LIFE_SHOTGUN:
+    '/image/overlay/half-life-shotgun',
+  IMAGE_OVERLAY_HALF_LIFE_SMG:
+    '/image/overlay/half-life-smg',
+  IMAGE_OVERLAY_SHUTTERSTOCK:
+    '/image/overlay/shutterstock',
 
   IMAGE_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',

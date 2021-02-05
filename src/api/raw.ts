@@ -1025,6 +1025,24 @@ export async function imageManipulationWall(
 }
 
 
+export async function imageOverlayFlagIsrael(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_FLAG_ISRAEL,
+    },
+  });
+}
+
+
 export async function imageOverlayFlagLGBT(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -1043,6 +1061,132 @@ export async function imageOverlayFlagLGBT(
 }
 
 
+export async function imageOverlayFlagNorthKorea(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_FLAG_NORTH_KOREA,
+    },
+  });
+}
+
+
+export async function imageOverlayFlagTrans(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_FLAG_TRANS,
+    },
+  });
+}
+
+
+export async function imageOverlayFlagRussia(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_FLAG_RUSSIA,
+    },
+  });
+}
+
+
+export async function imageOverlayFlagUK(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_FLAG_UK,
+    },
+  });
+}
+
+
+export async function imageOverlayFlagUSA(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_FLAG_USA,
+    },
+  });
+}
+
+
+export async function imageOverlayFlagUSSR(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_FLAG_USSR,
+    },
+  });
+}
+
+
+export async function imageOverlayGoldstar(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_GOLDSTAR,
+    },
+  });
+}
+
+
 export async function imageOverlayHalfLifePistol(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -1056,6 +1200,60 @@ export async function imageOverlayHalfLifePistol(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_OVERLAY_HALF_LIFE_PISTOL,
+    },
+  });
+}
+
+
+export async function imageOverlayHalfLifeShotgun(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_HALF_LIFE_SHOTGUN,
+    },
+  });
+}
+
+
+export async function imageOverlayHalfLifeSMG(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_HALF_LIFE_SMG,
+    },
+  });
+}
+
+
+export async function imageOverlayShutterstock(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_SHUTTERSTOCK,
     },
   });
 }

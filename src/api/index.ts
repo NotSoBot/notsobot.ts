@@ -530,6 +530,14 @@ export async function imageManipulationWall(
 }
 
 
+export async function imageOverlayFlagIsrael(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayFlagIsrael(context, options);
+}
+
+
 export async function imageOverlayFlagLGBT(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -538,11 +546,83 @@ export async function imageOverlayFlagLGBT(
 }
 
 
+export async function imageOverlayFlagNorthKorea(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayFlagNorthKorea(context, options);
+}
+
+
+export async function imageOverlayFlagRussia(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayFlagRussia(context, options);
+}
+
+
+export async function imageOverlayFlagTrans(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayFlagTrans(context, options);
+}
+
+
+export async function imageOverlayFlagUK(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayFlagUK(context, options);
+}
+
+
+export async function imageOverlayFlagUSA(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayFlagUSA(context, options);
+}
+
+
+export async function imageOverlayFlagUSSR(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayFlagUSSR(context, options);
+}
+
+
 export async function imageOverlayHalfLifePistol(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageOverlayHalfLifePistol(context, options);
+}
+
+
+export async function imageOverlayHalfLifeShotgun(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayHalfLifeShotgun(context, options);
+}
+
+
+export async function imageOverlayHalfLifeSMG(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayHalfLifeSMG(context, options);
+}
+
+
+export async function imageOverlayShutterstock(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayShutterstock(context, options);
 }
 
 
