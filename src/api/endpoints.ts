@@ -119,8 +119,14 @@ export const Api = Object.freeze({
   IMAGE_MANIPULATION_WALL:
     '/image/manipulation/wall',
   
-  IMAGE_OVERLAY_GAY:
-    '/image/overlay/gay',
+  IMAGE_OVERLAY_FLAG_LGBT:
+    '/image/overlay/flag-lgbt',
+  IMAGE_OVERLAY_FLAG_TRANS:
+    '/image/overlay/flag-trans',
+  IMAGE_OVERLAY_FLAG_USSR:
+    '/image/overlay/flag-ussr',
+  IMAGE_OVERLAY_HALF_LIFE_PISTOL:
+    '/image/overlay/half-life-pistol',
 
   IMAGE_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',

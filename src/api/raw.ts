@@ -1025,7 +1025,7 @@ export async function imageManipulationWall(
 }
 
 
-export async function imageOverlayGay(
+export async function imageOverlayFlagLGBT(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
 ): Promise<Response> {
@@ -1037,7 +1037,25 @@ export async function imageOverlayGay(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_GAY,
+      path: Api.IMAGE_OVERLAY_FLAG_LGBT,
+    },
+  });
+}
+
+
+export async function imageOverlayHalfLifePistol(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_OVERLAY_HALF_LIFE_PISTOL,
     },
   });
 }

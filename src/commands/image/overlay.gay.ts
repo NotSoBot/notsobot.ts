@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationWall } from '../../api';
+import { imageOverlayFlagLGBT } from '../../api';
 import { CommandTypes } from '../../constants';
 import { imageReply } from '../../utils';
 
@@ -15,15 +15,16 @@ export interface CommandArgs {
   url: string,
 }
 
-export const COMMAND_NAME = 'wall';
+export const COMMAND_NAME = 'overlay gay';
 
-export default class WallCommand extends BaseImageCommand<CommandArgs> {
+export default class OverlayGayCommand extends BaseImageCommand<CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
+      aliases: ['o gay', 'gay'],
       metadata: {
-        description: 'Create a wall with an image',
+        description: 'Overlay a LGBT flag over an image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
@@ -35,7 +36,7 @@ export default class WallCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationWall(context, args);
+    const response = await imageOverlayFlagLGBT(context, args);
     return imageReply(context, response);
   }
 }

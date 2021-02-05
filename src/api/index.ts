@@ -530,11 +530,19 @@ export async function imageManipulationWall(
 }
 
 
-export async function imageOverlayGay(
+export async function imageOverlayFlagLGBT(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
 ) {
-  return raw.imageOverlayGay(context, options);
+  return raw.imageOverlayFlagLGBT(context, options);
+}
+
+
+export async function imageOverlayHalfLifePistol(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageOverlayHalfLifePistol(context, options);
 }
 
 
