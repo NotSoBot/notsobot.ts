@@ -1,5 +1,6 @@
 import { ClusterClient, Command, CommandClient } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { Permissions } from 'detritus-client/lib/constants';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 import { SocketStates } from 'detritus-client-socket/lib/constants';
 
 import { CommandTypes } from '../../constants';
@@ -164,6 +165,29 @@ export default class ShardCommand extends BaseCommand {
       padCodeBlockFromRows(title).join('\n') + '\n',
       paddedRows.join('\n'),
     ].join('\n');
-    return editOrReply(context, Markup.codeblock(content, {language: 'py'}));
+
+    const embed = new Embed();
+    {
+      const parts = content.split('\n');
+
+      // put this into a function and reuse it below
+      let description = '';
+      while (description.length < 1988 && parts.length) {
+        const part = parts.shift() as string;
+        const newDescription = description + part + '\n';
+        if (1988 < newDescription.length) {
+          parts.unshift(part);
+          break;
+        }
+        description = newDescription;
+      }
+
+      embed.setDescription(Markup.codeblock(description, {language: 'py'}));
+      if (parts.length) {
+        // split these up into 1024
+        embed.addField('\u200b', Markup.codeblock(parts.join('\n'), {language: 'py'}));
+      }
+    }
+    return editOrReply(context, {embed});
   }
 }

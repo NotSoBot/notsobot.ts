@@ -1,11 +1,9 @@
-import * as moment from 'moment';
-
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../constants';
-import { Parameters, createUserEmbed } from '../../utils';
+import { Parameters, createTimestampMomentFromGuild, createUserEmbed } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -90,7 +88,10 @@ export default class KickCommand extends BaseCommand {
       const description: Array<string> = [];
       description.push(`Admin: ${context.user} (${context.user.id})`);
       description.push(`Reason: ${(payload.text) ? Markup.escape.all(payload.text) : '[Unspecified Reason]'}`);
-      description.push(`Timestamp: ${moment().format(DateMomentLogFormat)}`);
+      {
+        const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
+        description.push(`Timestamp: ${timestamp.format(DateMomentLogFormat)}`);
+      }
       if (args.clean) {
         description.push(`Type: Kick w/ Message Cleaning of ${Math.min(args.clean, 7)} days`);
       }
@@ -110,6 +111,7 @@ export default class KickCommand extends BaseCommand {
     }
 
     const embed = createUserEmbed(context.user);
+    embed.setColor(EmbedColors.DEFAULT);
     {
       const description: Array<string> = [];
       if (canEdit.length) {

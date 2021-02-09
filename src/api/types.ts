@@ -59,6 +59,7 @@ export namespace RestOptions {
       type: string,
     }>,
     prefixes?: Array<string>,
+    timezone?: string,
   }
 
 
@@ -152,6 +153,11 @@ export namespace RestOptions {
     to: string,
   }
 
+  export interface ImageToolsGifSpeed extends ImageBaseOptions {
+    loop?: boolean,
+    speed: number,
+  }
+
   export interface ImageToolsResize extends ImageBaseOptions {
     convert?: string,
     scale?: number,
@@ -159,6 +165,7 @@ export namespace RestOptions {
   }
 
   export interface ImageToolsRotate extends ImageBaseOptions {
+    crop?: boolean,
     degrees?: number,
   }
 
@@ -904,11 +911,20 @@ export namespace RestResponsesRaw {
     visibility_state: number,
   }
 
-  export interface SearchYoutube {
-    _body: any,
-    results: Array<YoutubeSearchResult>,
-    suggestions: Array<string>,
-    total_result_count: number,
+
+  export type SearchUrbanDictionary = Array<SearchUrbanDictionaryResult>;
+  export interface SearchUrbanDictionaryResult {
+    author: string,
+    current_vote: string,
+    defid: number,
+    definition: string,
+    example: string,
+    permalink: string,
+    sound_urls: Array<string>,
+    thumbs_down: number,
+    thumbs_up: number,
+    word: string,
+    written_on: string,
   }
 
   export type SearchWikihow = Array<SearchWikihowResult>;
@@ -968,25 +984,20 @@ export namespace RestResponsesRaw {
     },
   }
 
-  export interface User {
-    avatar: null | string,
-    blocked: boolean,
-    bot: boolean,
-    discriminator: string,
-    id: string,
-    flags: number,
-    username: string,
-    premium_type: number,
+  export interface SearchYoutube {
+    _body: any,
+    results: Array<SearchYoutubeResult>,
+    suggestions: Array<string>,
+    total_result_count: number,
   }
 
+  export type SearchYoutubeResult =
+    SearchYoutubeResultChannel |
+    SearchYoutubeResultMovie |
+    SearchYoutubeResultPlaylist |
+    SearchYoutubeResultVideo;
 
-  export type YoutubeSearchResult =
-    YoutubeSearchResultChannel |
-    YoutubeSearchResultMovie |
-    YoutubeSearchResultPlaylist |
-    YoutubeSearchResultVideo;
-
-  export interface YoutubeSearchResultBase {
+  export interface SearchYoutubeResultBase {
     description: string,
     thumbnail: {
       height: number,
@@ -997,7 +1008,7 @@ export namespace RestResponsesRaw {
     url: string,
   }
 
-  export interface YoutubeSearchResultChannel extends YoutubeSearchResultBase {
+  export interface SearchYoutubeResultChannel extends SearchYoutubeResultBase {
     metadata: {
       badges: Array<string>,
       id: string,
@@ -1010,7 +1021,7 @@ export namespace RestResponsesRaw {
     type: YoutubeResultTypes.CHANNEL,
   }
 
-  export interface YoutubeSearchResultMovie extends YoutubeSearchResultBase {
+  export interface SearchYoutubeResultMovie extends SearchYoutubeResultBase {
     metadata: {
       channel: {
         badges: Array<string>,
@@ -1028,7 +1039,7 @@ export namespace RestResponsesRaw {
     type: YoutubeResultTypes.MOVIE,
   }
 
-  export interface YoutubeSearchResultPlaylist extends YoutubeSearchResultBase {
+  export interface SearchYoutubeResultPlaylist extends SearchYoutubeResultBase {
     metadata: {
       channel: {
         badges: Array<string>,
@@ -1050,7 +1061,7 @@ export namespace RestResponsesRaw {
     type: YoutubeResultTypes.PLAYLIST;
   }
 
-  export interface YoutubeSearchResultVideo extends YoutubeSearchResultBase {
+  export interface SearchYoutubeResultVideo extends SearchYoutubeResultBase {
     metadata: {
       badges: Array<string>,
       channel: {
@@ -1072,5 +1083,16 @@ export namespace RestResponsesRaw {
       view_count: number,
     },
     type: YoutubeResultTypes.VIDEO,
+  }
+
+  export interface User {
+    avatar: null | string,
+    blocked: boolean,
+    bot: boolean,
+    discriminator: string,
+    id: string,
+    flags: number,
+    username: string,
+    premium_type: number,
   }
 }

@@ -6,7 +6,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { searchReddit } from '../../api';
 import {
   CommandTypes,
-  DateOptions,
+  DateMomentLogFormat,
   EmbedBrands,
   EmbedColors,
   RedditKindTypes,
@@ -14,7 +14,7 @@ import {
   RedditTimeTypes,
   MOMENT_FORMAT,
 } from '../../constants';
-import { Arguments, Paginator, createUserEmbed, editOrReply, htmlDecode } from '../../utils';
+import { Arguments, Paginator, createTimestampMomentFromGuild, createUserEmbed, editOrReply, htmlDecode } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -69,8 +69,6 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
         onPage: (page) => {
           const data = results[page - 1];
 
-          const created = new Date(data.created * 1000);
-
           const embed = createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
           embed.setFooter(`Page ${page}/${pageLimit} of Reddit Results`, EmbedBrands.REDDIT);
@@ -92,7 +90,13 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
 
             description.push(`**Awards**: ${data.total_awards_received.toLocaleString()}`);
             description.push(`**Comments**: ${data.num_comments.toLocaleString()}`);
-            description.push(`**Created**: ${created.toLocaleString('en-US', DateOptions)}`);
+
+            {
+              const timestamp = createTimestampMomentFromGuild(data.created * 1000, context.guildId);
+              description.push(`**Created**: ${timestamp.fromNow()}`);
+              description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+            }
+
             description.push(`**NSFW**: ${(data.over_18) ? 'Yes' : 'No'}`);
 
             description.push('');

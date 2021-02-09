@@ -11,7 +11,7 @@ import {
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
 } from '../../constants';
-import { DefaultParameters, Parameters, createColorUrl, editOrReply, padCodeBlockFromRows } from '../../utils';
+import { DefaultParameters, Parameters, createColorUrl, editOrReply, padCodeBlockFromRows, permissionsToObject } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -130,15 +130,17 @@ export default class RoleCommand extends BaseCommand {
     }
 
     embed.addField('\u200b', '\u200b');
-    if (channel) {
-      const permissions = role.permissionsIn(channel);
+
+    {
+      const permissions = permissionsToObject(role.permissionsIn(channel));
 
       {
         const rows: Array<Array<string>> = [];
 
         for (const permission of PERMISSIONS_ADMIN) {
-          const can = PermissionTools.checkPermissions(permissions, permission);
-          rows.push([`${PermissionsText[String(permission)]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+          const key = String(permission);
+          const can = permissions[key];
+          rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
         embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -148,8 +150,9 @@ export default class RoleCommand extends BaseCommand {
         const rows: Array<Array<string>> = [];
 
         for (const permission of PERMISSIONS_TEXT) {
-          const can = PermissionTools.checkPermissions(permissions, permission);
-          rows.push([`${PermissionsText[String(permission)]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+          const key = String(permission);
+          const can = permissions[key];
+          rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
         embed.addField('Text', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -157,14 +160,15 @@ export default class RoleCommand extends BaseCommand {
         const rows: Array<Array<string>> = [];
 
         for (const permission of PERMISSIONS_VOICE) {
-          const can = PermissionTools.checkPermissions(permissions, permission);
-          rows.push([`${PermissionsText[String(permission)]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+          const key = String(permission);
+          const can = permissions[key];
+          rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
         }
 
         embed.addField('Voice', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
       }
-
-      return editOrReply(context, {embed});
     }
+
+    return editOrReply(context, {embed});
   }
 }

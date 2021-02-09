@@ -1,17 +1,14 @@
-import { ClusterClient, Structures } from 'detritus-client';
+import { ClusterClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
-import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
-import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { EventSubscription } from 'detritus-utils';
 
 import { Store } from './store';
 
 import { RequestContext, fetchGuildSettings, putGuildSettings } from '../api';
 import { GuildSettings } from '../api/structures/guildsettings';
-import { DateOptions, EmbedColors, RedisChannels } from '../constants';
+import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
 import { RedisPayloads } from '../types';
-import { createUserEmbed } from '../utils';
 
 
 // Stores Guild Settings

@@ -7,11 +7,11 @@ import { Endpoints } from 'detritus-client-rest';
 
 import {
   CommandTypes,
-  DateOptions,
+  DateMomentLogFormat,
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
 } from '../../constants';
-import { Parameters, editOrReply, formatMemory, toTitleCase } from '../../utils';
+import { Parameters, createTimestampMomentFromGuild, editOrReply, formatMemory, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -111,7 +111,11 @@ export default class GuildCommand extends BaseCommand {
       const description: Array<string> = [];
 
       description.push(`**Acronym**: ${guild.acronym}`);
-      description.push(`**Created**: ${guild.createdAt.toLocaleString('en-US', DateOptions)}`);
+      {
+        const timestamp = createTimestampMomentFromGuild(guild.createdAtUnix, context.guildId);
+        description.push(`**Created**: ${timestamp.fromNow()}`);
+        description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+      }
       description.push(`**Id**: \`${guild.id}\``);
       description.push(`**Locale**: \`${guild.preferredLocaleText || guild.preferredLocale}\``);
       description.push(`**Nitro Tier**: ${(guild.premiumTier) ? `Level ${guild.premiumTier}` : 'None'}`);

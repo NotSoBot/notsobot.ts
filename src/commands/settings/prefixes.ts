@@ -5,7 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { GuildSettingsPrefix } from '../../api/structures/guildsettings';
 import { CommandTypes, EmbedColors } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
-import { createUserEmbed } from '../../utils';
+import { createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -74,6 +74,6 @@ export default class PrefixesCommand extends BaseCommand {
       formatPrefixes(context, settings.prefixes, embed);
     }
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

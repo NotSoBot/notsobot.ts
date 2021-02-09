@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchWikihow, searchWikihowRandom } from '../../api';
-import { CommandTypes, DateOptions, EmbedBrands, EmbedColors } from '../../constants';
+import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
 import { Paginator, createUserEmbed } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';

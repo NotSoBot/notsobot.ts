@@ -4,12 +4,19 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
   CommandTypes,
-  DateOptions,
+  DateMomentLogFormat,
   PresenceStatusColors,
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
-import { DefaultParameters, Paginator, Parameters, toTitleCase } from '../../utils';
+import {
+  DefaultParameters,
+  Paginator,
+  Parameters,
+  createTimestampMomentFromGuild,
+  editOrReply,
+  toTitleCase,
+} from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -45,13 +52,12 @@ export default class UsersCommand extends BaseCommand {
           `${COMMAND_NAME} -botsonly`,
           `${COMMAND_NAME} cake`,
           `${COMMAND_NAME} cake#1`,
-          `${COMMAND_NAME} <@300505364032389122> <@439205512425504771>`,
         ],
         type: CommandTypes.INFO,
-        usage: '...?<user:id|mention|name>',
+        usage: '?<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
-      type: Parameters.memberOrUser(),
+      type: Parameters.membersOrUsersSearch(),
     });
   }
 
@@ -60,7 +66,7 @@ export default class UsersCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Unable to find any members matching that.');
+    return editOrReply(context, '⚠ Unable to find that user.');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -118,9 +124,17 @@ export default class UsersCommand extends BaseCommand {
 
         {
           const description: Array<string> = [];
-          description.push(`**Discord**: ${user.createdAt.toLocaleString('en-US', DateOptions)}`);
-          if (isMember && member.joinedAt) {
-            description.push(`**Guild**: ${member.joinedAt.toLocaleString('en-US', DateOptions)}`);
+          {
+            const timestamp = createTimestampMomentFromGuild(user.createdAtUnix, context.guildId);
+            description.push(`**Discord**: ${timestamp.fromNow()}`);
+            description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+          }
+          if (isMember && member.joinedAtUnix) {
+            {
+              const timestamp = createTimestampMomentFromGuild(member.joinedAtUnix, context.guildId);
+              description.push(`**Guild**: ${timestamp.fromNow()}`);
+              description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+            }
             if (member.guild) {
               const position = member.guild.members.sort((x, y) => x.joinedAtUnix - y.joinedAtUnix).findIndex((m) => m.id === member.id) + 1;
               description.push(`**Join Position**: ${position.toLocaleString()}/${member.guild.members.length.toLocaleString()}`);
@@ -133,7 +147,9 @@ export default class UsersCommand extends BaseCommand {
           const description: Array<string> = [];
 
           if (member.premiumSince) {
-            description.push(`**Boosting Since**: ${member.premiumSince.toLocaleString('en-US', DateOptions)}`);
+            const timestamp = createTimestampMomentFromGuild(member.premiumSinceUnix, context.guildId);
+            description.push(`**Boosting Since**: ${timestamp.fromNow()}`);
+            description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
           }
           if (member.nick) {
             description.push(`**Nickname**: ${member.nick}`);

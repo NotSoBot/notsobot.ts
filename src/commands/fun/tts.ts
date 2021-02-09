@@ -35,14 +35,14 @@ export interface CommandArgs {
   use: string,
 }
 
-export const COMMAND_NAME = 'text-to-speech';
+export const COMMAND_NAME = 'tts';
 
 export default class TTSCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['tts'],
+      aliases: ['texttospeech'],
       args: [
         {
           name: 'use',

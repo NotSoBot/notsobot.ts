@@ -20,10 +20,9 @@ export const COMMAND_NAME = 'eyes';
 export default class EyesCommand extends BaseImageCommand<CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
-      aliases: ['eye'],
       name: COMMAND_NAME,
-      prefixes: ['eyes ', 'eye '],
 
+      aliases: ['eye'],
       args: [
         {name: 'type', choices: Object.values(ImageEyeTypes), help: `Must be one of: (${Object.values(ImageEyeTypes).join(', ')})`},
       ],

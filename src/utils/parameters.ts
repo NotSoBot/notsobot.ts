@@ -17,6 +17,7 @@ import {
   findMemberByChunk,
   findMemberByChunkText,
   findMembersByChunk,
+  findMembersByChunkText,
   isSnowflake,
   toCodePoint,
 } from './tools';
@@ -380,7 +381,7 @@ export async function lastImageUrl(
       }
     }
     if (context.inDm || (context.channel && context.channel.canReadHistory)) {
-      const messages = await context.rest.fetchMessages(context.channelId, {limit: 50});
+      const messages = await context.rest.fetchMessages(context.channelId, {before: context.messageId, limit: 50});
       const url = findImageUrlInMessages(messages);
       if (url) {
         return url;
@@ -639,6 +640,75 @@ export function membersOrUsers(
         }
       }
       return membersOrUsers;
+    }
+    return null;
+  }
+}
+
+
+export function membersOrUsersSearch(
+  options: MemberOrUserOptions = {},
+) {
+  return async (value: string, context: Command.Context): Promise<Array<Structures.Member | Structures.User> | null> => {
+    if (value) {
+      return Promise.resolve((async () => {
+        try {
+          {
+            const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
+            if (matches.length) {
+              const { id: userId } = matches[0];
+              if (isSnowflake(userId)) {
+                value = userId;
+              }
+            }
+          }
+
+          if (isSnowflake(value)) {
+            const memberOrUser = await fetchMemberOrUserById(context, value, options.memberOnly);
+            if (memberOrUser) {
+              return [memberOrUser];
+            }
+            return null;
+          }
+
+          const found = await findMembersByChunkText(context, value);
+          if (found) {
+            return found;
+          }
+        } catch(error) {}
+
+        return null;
+      })()).then((membersOrUsers) => {
+        if (membersOrUsers) {
+          if (!options.allowBots && options.allowBots !== undefined) {
+            membersOrUsers = membersOrUsers.filter((memberOrUser) => !memberOrUser.bot);
+          }
+          if (!options.allowMe && options.allowMe !== undefined) {
+            membersOrUsers = membersOrUsers.filter((memberOrUser) => !memberOrUser.isMe);
+          }
+          if (options.memberOnly) {
+            membersOrUsers = membersOrUsers.filter((memberOrUser) => memberOrUser instanceof Structures.Member);
+          }
+          if (options.clientCanEdit || options.userCanEdit || options.permissions) {
+            membersOrUsers = membersOrUsers.filter((memberOrUser) => {
+              if (memberOrUser instanceof Structures.Member) {
+                if (options.clientCanEdit && !(context.me && context.me.canEdit(memberOrUser))) {
+                  return false;
+                }
+                if (options.userCanEdit && !(context.member && context.member.canEdit(memberOrUser))) {
+                  return false;
+                }
+                if (options.permissions && !memberOrUser.can(options.permissions)) {
+                  return false;
+                }
+                return true;
+              }
+              return false;
+            });
+          }
+        }
+        return membersOrUsers;
+      });
     }
     return null;
   }

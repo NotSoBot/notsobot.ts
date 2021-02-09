@@ -4,8 +4,15 @@ import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 
 import { Endpoints } from 'detritus-client-rest';
 
-import { CommandTypes, DateOptions } from '../../constants';
-import { DefaultParameters, Paginator, Parameters, editOrReply, toTitleCase } from '../../utils';
+import { CommandTypes, DateMomentLogFormat } from '../../constants';
+import {
+  DefaultParameters,
+  Paginator,
+  Parameters,
+  createTimestampMomentFromGuild,
+  editOrReply,
+  toTitleCase,
+} from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -156,7 +163,11 @@ export default class SeenOnCommand extends BaseCommand {
           {
             const description: Array<string> = [];
             description.push(`**Acronym**: ${guild.acronym}`);
-            description.push(`**Created**: ${guild.createdAt.toLocaleString('en-US', DateOptions)}`);
+            {
+              const timestamp = createTimestampMomentFromGuild(guild.createdAtUnix, context.guildId);
+              description.push(`**Created**: ${timestamp.fromNow()}`);
+              description.push(`**->** ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`);
+            }
             description.push(`**Id**: \`${guild.id}\``);
             description.push(`**Join Position**: ${joinPosition.toLocaleString()}/${guild.memberCount.toLocaleString()}`);
             description.push(`**Locale**: \`${guild.preferredLocaleText || guild.preferredLocale}\``);

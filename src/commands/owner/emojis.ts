@@ -1,11 +1,16 @@
-import * as moment from 'moment';
-
 import { ClusterClient, Command, CommandClient, Structures } from 'detritus-client';
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes, DateOptions } from '../../constants';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, isSnowflake } from '../../utils';
+import { CommandTypes, DateMomentLogFormat } from '../../constants';
+import {
+  Paginator,
+  chunkArray,
+  createTimestampMomentFromGuild,
+  createUserEmbed,
+  editOrReply,
+  isSnowflake,
+} from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -18,7 +23,7 @@ export interface CommandArgs {
   emojis: Array<Structures.Emoji>,
 }
 
-const ELEMENTS_PER_PAGE = 15;
+const ELEMENTS_PER_PAGE = 30;
 
 async function emojisSearch(value: string, context: Command.Context) {
   value = value.toLowerCase();
@@ -111,11 +116,50 @@ export default class EmojisCommand extends BaseCommand {
           for (let key in page) {
             const emoji = page[key];
 
+            const timestamp = createTimestampMomentFromGuild(emoji.createdAtUnix as number, context.guildId);
+
             const number = (+(key) + 1) + ((pageNumber - 1) * ELEMENTS_PER_PAGE);
-            description.push(`${number}. ${Markup.url(emoji.format, emoji.url)} - Created ${moment(emoji.createdAtUnix as number).fromNow()}`);
-            //description.push(`-> Created ${(emoji.createdAt as Date).toLocaleString('en-US', DateOptions)}`);
+            description.push([
+              `${number}. ${Markup.url(emoji.format, emoji.url + `?g=${emoji.guildId}`)} - Created ${timestamp.fromNow()}`,
+              //`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`,
+            ].join('\n'));
           }
-          embed.setDescription(description.join('\n'));
+
+          {
+            let text = '';
+            while (text.length < 2048) {
+              const part = description.shift();
+              if (!part) {
+                break;
+              }
+              if (2048 < text.length + part.length + 2) {
+                description.unshift(part);
+                break;
+              }
+              text += part + '\n';
+            }
+            embed.setDescription(text);
+          }
+
+          while (description.length) {
+            if (5000 < embed.length) {
+              break;
+            }
+
+            let text = '';
+            while (text.length < 1024) {
+              const part = description.shift();
+              if (!part) {
+                break;
+              }
+              if (1024 < text.length + part.length + 2) {
+                description.unshift(part);
+                break;
+              }
+              text += part + '\n';
+            }
+            embed.addField('\u200b', text);
+          }
         }
         return embed;
       },

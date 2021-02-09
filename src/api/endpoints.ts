@@ -156,6 +156,8 @@ export const Api = Object.freeze({
     '/image/tools/gif/reverse',
   IMAGE_TOOLS_GIF_SEE_SAW:
     '/image/tools/gif/see-saw',
+  IMAGE_TOOLS_GIF_SPEED:
+    '/image/tools/gif/speed',
   IMAGE_TOOLS_RESIZE:
     '/image/tools/resize',
   IMAGE_TOOLS_ROTATE:

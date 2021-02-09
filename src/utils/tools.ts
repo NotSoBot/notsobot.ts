@@ -1,31 +1,38 @@
 import { URL } from 'url';
 
+import * as moment from 'moment';
+
 import { Collections, Command, Structures } from 'detritus-client';
-import { DiscordAbortCodes, MessageEmbedTypes, StickerFormats } from 'detritus-client/lib/constants';
-import { Embed, Markup, intToHex } from 'detritus-client/lib/utils';
+import { DiscordAbortCodes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';
+import { Embed, Markup, PermissionTools, intToHex } from 'detritus-client/lib/utils';
 import { Response, replacePathParameters } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
 
 import { Endpoints } from '../api';
 import {
+  DateMomentLogFormat,
   EmbedColors,
   GoogleLocalesText,
   LanguageCodesText,
   Mimetypes,
+  Timezones,
   MIMETYPES_SAFE_EMBED,
   TRUSTED_URLS,
 } from '../constants';
+
+import GuildSettingsStore from '../stores/guildsettings';
 
 
 export function createColorUrl(color: number): string {
   return replacePathParameters(
     Endpoints.Api.URL_PUBLIC + Endpoints.Api.PATH + Endpoints.Api.IMAGE_CREATE_COLOR_HEX, {
     format: 'png',
-    height: 1,
+    height: 2,
     hex: intToHex(color),
-    width: 1,
+    width: 2,
   });
 }
+
 
 export function createUserEmbed(user: Structures.User, embed: Embed = new Embed()) {
   embed.setAuthor(
@@ -36,9 +43,33 @@ export function createUserEmbed(user: Structures.User, embed: Embed = new Embed(
   return embed;
 }
 
+
+export function createTimestampMoment(timestamp: number | string, timezone: string = Timezones.EST): moment.Moment {
+  return moment(timestamp).tz(timezone);
+}
+
+
+export function createTimestampMomentFromGuild(timestamp: number | string, guildId?: string): moment.Moment {
+  let timezone: string = Timezones.EST;
+  if (guildId) {
+    const settings = GuildSettingsStore.get(guildId);
+    if (settings && settings.timezone) {
+      timezone = settings.timezone;
+    }
+  }
+  return createTimestampMoment(timestamp, timezone);
+}
+
+
+export function createTimestampStringFromGuild(timestamp: number | string, guildId?: string): string {
+  return createTimestampMomentFromGuild(timestamp, guildId).format(DateMomentLogFormat);
+}
+
+
 export function createUserString(userId: string = '1', user?: Structures.User | null): string {
   return `<@!${userId}> ${Markup.spoiler(`(${Markup.escape.all(String(user || 'Unknown?'))})`)}`;
 }
+
 
 export function editOrReply(context: Command.Context, options: Command.EditOrReply | string = {}) {
   if (typeof(options) === 'string') {
@@ -124,6 +155,7 @@ export function findImageUrlInAttachment(
   return null;
 }
 
+
 export function findImageUrlInEmbed(
   embed: Structures.MessageEmbed,
 ): null | string {
@@ -156,6 +188,7 @@ export function findImageUrlInEmbed(
   return null;
 }
 
+
 export function findImageUrlInMessage(
   message: Structures.Message,
   url?: string,
@@ -185,6 +218,7 @@ export function findImageUrlInMessage(
   return null;
 }
 
+
 export function findImageUrlInMessages(
   messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
 ): null | string {
@@ -196,6 +230,9 @@ export function findImageUrlInMessages(
   }
   return null;
 }
+
+
+/** Member Chunking */
 
 export async function findMemberByChunk(
   context: Command.Context,
@@ -310,12 +347,7 @@ export async function findMemberByChunkText(
   context: Command.Context,
   text: string,
 ) {
-  const parts = text.split('#');
-  const username = (parts.shift() as string).slice(0, 32).toLowerCase();
-  let discriminator: null | string = null;
-  if (parts.length) {
-    discriminator = (parts.shift() as string).padStart(4, '0');
-  }
+  const [ username, discriminator ] = splitTextToDiscordHandle(text);
   return await findMemberByChunk(context, username, discriminator);
 }
 
@@ -362,6 +394,17 @@ export async function findMembersByChunk(
   return [];
 }
 
+
+export async function findMembersByChunkText(
+  context: Command.Context,
+  text: string,
+) {
+  const [ username, discriminator ] = splitTextToDiscordHandle(text);
+  return await findMembersByChunk(context, username, discriminator);
+}
+
+
+/** Member Cache Filtering */
 
 export interface FindMemberByUsernameCache {
   values(): IterableIterator<Structures.Member | Structures.User | undefined>,
@@ -411,6 +454,8 @@ export function findMembersByUsername(
   return found;
 }
 
+
+/** Formatting Text */
 
 export function formatMemory(bytes: number, decimals: number = 0): string {
   const divideBy = 1024;
@@ -504,15 +549,19 @@ export async function imageReply(
 
     const description: Array<string> = [];
     for (let key in args) {
-      if (args[key]) {
-        const title = toTitleCase(key);
+      const title = toTitleCase(key);
+      const value = args[key];
 
-        let text: string = args[key];
-        if (!isNaN(parseInt(text))) {
-          text = parseInt(text).toLocaleString();
-        }
-        description.push(`${title}: ${text}`);
+      let text: string;
+      if (typeof(value) === 'boolean') {
+        text = (value) ? 'Yes' : 'No';
+      } else if (typeof(value) === 'number') {
+        text = value.toLocaleString();
+      } else {
+        text = String(value);
       }
+
+      description.push(`${title}: ${text}`);
     }
     embed.setDescription(description.join(' | '));
   }
@@ -654,6 +703,7 @@ export function padCodeBlockFromColumns(
   return rows;
 }
 
+
 export function padCodeBlockFromRows(
   strings: Array<Array<string>>,
   options: {
@@ -699,6 +749,30 @@ export function padCodeBlockFromRows(
   return rows;
 }
 
+
+export function permissionsToObject(permissions: bigint | number): Record<string, boolean> {
+  const result: Record<string, boolean> = {};
+  for (let check of Object.values(Permissions)) {
+    if (check === Permissions.NONE) {
+      continue;
+    }
+    result[String(check)] = PermissionTools.checkPermissions(permissions, check);
+  }
+  return result;
+}
+
+
+export function splitTextToDiscordHandle(text: string): [string, string | null] {
+  const parts = text.split('#');
+  const username = (parts.shift() as string).slice(0, 32).toLowerCase();
+  let discriminator: null | string = null;
+  if (parts.length) {
+    discriminator = (parts.shift() as string).padStart(4, '0');
+  }
+  return [username, discriminator];
+}
+
+
 export function toCodePoint(unicodeSurrogates: string, separator: string = '-') {
   const r: Array<string> = [];
   let c: number = 0;
@@ -718,6 +792,7 @@ export function toCodePoint(unicodeSurrogates: string, separator: string = '-') 
   }
   return r.join(separator);
 }
+
 
 export function toTitleCase(value: string): string {
   return value.replace(/_/g, ' ').split(' ').map((word) => {

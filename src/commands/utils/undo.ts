@@ -29,7 +29,6 @@ export default class UndoCommand extends BaseCommand {
         type: CommandTypes.UTILS,
         usage: `${COMMAND_NAME}`,
       },
-      permissionsClient: [Permissions.MANAGE_MESSAGES],
       type: Parameters.number({max: 5, min: 1}),
     });
   }
@@ -67,8 +66,10 @@ export default class UndoCommand extends BaseCommand {
           await context.rest.deleteMessage(context.channelId, messageId);
         }
       } else {
-        if (messageIds.length === 1) {
-          await context.rest.deleteMessage(context.channelId, messageIds[0]);
+        if (messageIds.length === 1 || !context.canManage) {
+          for (let messageId of messageIds) {
+            await context.rest.deleteMessage(context.channelId, messageId);
+          }
         } else {
           await context.rest.bulkDeleteMessages(context.channelId, messageIds);
         }

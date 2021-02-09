@@ -22,7 +22,7 @@ export default class MirrorLeftCommand extends BaseImageCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['waaw'],
+      aliases: ['haah'],
       metadata: {
         description: 'Mirror left half of image',
         examples: [

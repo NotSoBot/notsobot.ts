@@ -2,8 +2,9 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchUrban } from '../../api';
-import { CommandTypes, DateOptions, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed, editOrReply } from '../../utils';
+import { RestResponsesRaw } from '../../api/types';
+import { CommandTypes, DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../constants';
+import { Paginator, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -12,8 +13,8 @@ const ReplacementRegex = /\[([\s\S]+?)\]/g;
 const UrbanUrl = 'https://www.urbandictionary.com/define.php';
 
 
-export function createEmbed(context: Command.Context, result: any) {
-  const created = new Date(result.written_on);
+export function createEmbed(context: Command.Context, result: RestResponsesRaw.SearchUrbanDictionaryResult) {
+  const created = createTimestampMomentFromGuild(result.written_on, context.guildId);
 
   const embed = createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
@@ -25,7 +26,9 @@ export function createEmbed(context: Command.Context, result: any) {
     return Markup.url(word, url);
   });
   embed.setDescription([
-    `Created by ${Markup.escape.all(result.author)} on ${created.toLocaleString('en-US', DateOptions)}`,
+    `Created by ${Markup.escape.all(result.author)}, ${created.fromNow()}`,
+    `-> ${Markup.spoiler(`(${created.format(DateMomentLogFormat)})`)}`,
+    '',
     `${result.thumbs_up.toLocaleString()} Likes, ${result.thumbs_down.toLocaleString()} Dislikes`,
     '\n' + definition,
   ].join('\n'));

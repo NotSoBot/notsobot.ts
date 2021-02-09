@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../api';
 import { CommandTypes, EmbedColors } from '../../constants';
-import { Parameters, createUserEmbed } from '../../utils';
+import { Parameters, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -47,10 +47,6 @@ export default class PrefixesReplaceCommand extends BaseCommand {
     return !!args.prefix;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Specify a prefix');
-  }
-
   async run(context: Command.Context, args: CommandArgs) {
     const guildId = context.guildId as string;
 
@@ -61,6 +57,6 @@ export default class PrefixesReplaceCommand extends BaseCommand {
     const { prefixes } = await editGuildSettings(context, guildId, {prefixes: [args.prefix]});
     formatPrefixes(context, prefixes, embed);
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

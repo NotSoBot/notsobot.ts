@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { editGuildSettings } from '../../api';
 import { CommandTypes, EmbedColors } from '../../constants';
-import { createUserEmbed } from '../../utils';
+import { createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -42,6 +42,6 @@ export default class PrefixesClearCommand extends BaseCommand {
     const { prefixes } = await editGuildSettings(context, guildId, {prefixes: []});
     formatPrefixes(context, prefixes, embed);
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

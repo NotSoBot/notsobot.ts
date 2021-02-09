@@ -1,5 +1,3 @@
-import * as moment from 'moment';
-
 import { ClusterClient, Collections, GatewayClientEvents, ShardClient, Structures } from 'detritus-client';
 import {
   ActivityActionTypes,
@@ -17,15 +15,24 @@ import GuildSettingsStore from './guildsettings';
 import { Store } from './store';
 
 import {
+  BooleanEmojis,
   DateMomentLogFormat,
   DiscordUserFlagsText,
   EmbedColors,
   GuildLoggerFlags,
   GuildLoggerTypes,
+  PermissionsText,
   RedisChannels,
 } from '../constants';
 import { RedisSpewer } from '../redis';
-import { createColorUrl, createUserEmbed, createUserString } from '../utils';
+import {
+  createColorUrl,
+  createTimestampMomentFromGuild,
+  createTimestampStringFromGuild,
+  createUserEmbed,
+  createUserString,
+  permissionsToObject,
+} from '../utils';
 
 
 type ClientStatusType = 'desktop' | 'mobile' | 'web';
@@ -34,35 +41,42 @@ export type GuildLoggingEventItemAudits = [Structures.AuditLog, ...Array<Structu
 
 export type GuildLoggingEventItem = {
   audits?: GuildLoggingEventItemAudits,
+  guildId: string,
   happened: number,
   name: ClientEvents.GUILD_BAN_ADD,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildBanAdd,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  guildId: string,
   happened: number,
   name: ClientEvents.GUILD_BAN_REMOVE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildBanRemove,
 } | {
   audits?: GuildLoggingEventItemAudits,
-  from?: ClientStatusType,
+  cached: {
+    from?: ClientStatusType,
+    memberCount: number,
+  },
+  guildId: string,
   happened: number,
   name: ClientEvents.GUILD_MEMBER_ADD,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberAdd,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  cached: {
+    memberCount: number,
+  },
+  guildId: string,
   happened: number,
   name: ClientEvents.GUILD_MEMBER_REMOVE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberRemove,
 } | {
   audits?: GuildLoggingEventItemAudits,
   cached: {
-    deaf: boolean,
-    hoistedRole: null | string,
-    mute: boolean,
-    nick: null | string,
-    premiumSince: Date | null,
-    roles: Array<string>,
+    member: Structures.Member,
+    old: Structures.Member,
   },
+  guildId: string,
   happened: number,
   name: ClientEvents.GUILD_MEMBER_UPDATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildMemberUpdate,
@@ -75,73 +89,74 @@ export type GuildLoggingEventItem = {
     flags: number,
     mentions: Collections.BaseCollection<string, Structures.User>,
   },
+  guildId: string,
   happened: number,
   name: ClientEvents.MESSAGE_CREATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageCreate,
 } | */{
   audits?: GuildLoggingEventItemAudits,
+  guildId: string,
   happened: number,
   name: ClientEvents.MESSAGE_DELETE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageDelete,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  guildId: string,
   happened: number,
   name: ClientEvents.MESSAGE_DELETE_BULK,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageDeleteBulk,
 } | {
   audits?: GuildLoggingEventItemAudits,
   cached: {
-    attachments: Collections.BaseCollection<string, Structures.Attachment>,
-    content: string,
-    embeds: Collections.BaseCollection<number, Structures.MessageEmbed>,
-    flags: number,
-    mentionEveryone: boolean,
-    mentionRoles: Collections.BaseCollection<string, null | Structures.Role>,
-    mentions: Collections.BaseCollection<string, Structures.User>,
+    message: Structures.Message,
+    old: Structures.Message | null,
   },
+  guildId: string,
   happened: number,
   name: ClientEvents.MESSAGE_UPDATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.MessageUpdate,
 } | {
   audits?: GuildLoggingEventItemAudits,
-  cached: Structures.User,
+  cached: {
+    old: Structures.User,
+    user: Structures.User,
+  },
+  guildId: string,
   happened: number,
   name: ClientEvents.USERS_UPDATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.UsersUpdate,
 } | {
   audits?: GuildLoggingEventItemAudits,
-  cached: Structures.VoiceState,
+  cached: {
+    old: Structures.VoiceState | null,
+    voiceState: Structures.VoiceState,
+  },
+  guildId: string,
   happened: number,
   name: ClientEvents.VOICE_STATE_UPDATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.VoiceStateUpdate,
 } | {
   audits?: GuildLoggingEventItemAudits,
   cached: {
-    color: number,
-    hoist: boolean,
-    mentionable: boolean,
-    name: string,
-    permissions: bigint,
-    position: number,
+    role: Structures.Role,
   },
+  guildId: string,
   happened: number,
   name: ClientEvents.GUILD_ROLE_CREATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleCreate,
 } | {
   audits?: GuildLoggingEventItemAudits,
+  guildId: string,
   happened: number,
   name: ClientEvents.GUILD_ROLE_DELETE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleDelete,
 } | {
   audits?: GuildLoggingEventItemAudits,
   cached: {
-    color: number,
-    hoist: boolean,
-    mentionable: boolean,
-    name: string,
-    permissions: bigint,
-    position: number,
+    old: Structures.Role,
+    role: Structures.Role,
   },
+  guildId: string,
   happened: number,
   name: ClientEvents.GUILD_ROLE_UPDATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate,
@@ -160,6 +175,9 @@ export const AUDITLOG_EVENTS = [
   ClientEvents.GUILD_MEMBER_ADD,
   ClientEvents.GUILD_MEMBER_REMOVE,
   ClientEvents.GUILD_MEMBER_UPDATE,
+  ClientEvents.GUILD_ROLE_CREATE,
+  ClientEvents.GUILD_ROLE_DELETE,
+  ClientEvents.GUILD_ROLE_UPDATE,
   ClientEvents.MESSAGE_DELETE,
   ClientEvents.MESSAGE_DELETE_BULK,
   ClientEvents.VOICE_STATE_UPDATE,
@@ -224,20 +242,27 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
           // only fetch on certain events
           if (AUDITLOG_EVENTS.includes(event.name)) {
             switch (event.name) {
-              // only bots will have an audit log
               case ClientEvents.GUILD_MEMBER_ADD: {
+                // only bots will have an audit log
                 const { member } = event.payload;
                 return member.bot;
+              };
+              case ClientEvents.GUILD_ROLE_CREATE: {
+                // bot/integration roles won't have logs when created
+                const { role } = event.payload;
+                return !role.botId && !role.integrationId;
               };
               case ClientEvents.MESSAGE_DELETE: {
                 const { message } = event.payload;
                 return !!message;
               };
               case ClientEvents.MESSAGE_DELETE_BULK: {
+                // Either it's from a ban or from a bot bulk deleting messages
                 const { messages } = event.payload;
                 return messages.every((message) => (message) ? !!message.author.id : true);
               };
               case ClientEvents.VOICE_STATE_UPDATE: {
+                // only deaf and mute events are logged in the audit
                 const { differences } = event.payload;
                 if (differences) {
                   return 'deaf' in differences || 'mute' in differences;
@@ -279,6 +304,15 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
             }; break;
             case AuditLogActions.MESSAGE_BULK_DELETE: {
               events = findEventsForMessageBulkDelete(auditLog, storage);
+            }; break;
+            case AuditLogActions.ROLE_CREATE: {
+              events = findEventsForRoleCreate(auditLog, storage);
+            }; break;
+            case AuditLogActions.ROLE_DELETE: {
+              events = findEventsForRoleDelete(auditLog, storage);
+            }; break;
+            case AuditLogActions.ROLE_UPDATE: {
+              events = findEventsForRoleUpdate(auditLog, storage);
             }; break;
           }
           if (events) {
@@ -349,9 +383,9 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
 
   async tryAdd(
     shard: ShardClient,
-    guildId: string,
     event: GuildLoggingEventItem,
   ): Promise<void> {
+    const { guildId } = event;
     const settings = await GuildSettingsStore.getOrFetch({client: shard}, guildId);
     if (!settings) {
       return;
@@ -393,15 +427,15 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         case ClientEvents.GUILD_BAN_REMOVE: {
           loggerType = GuildLoggerTypes.BANS;
         }; break;
-        case ClientEvents.GUILD_ROLE_CREATE:
-        case ClientEvents.GUILD_ROLE_DELETE:
-        case ClientEvents.GUILD_ROLE_UPDATE: {
-          loggerType = GuildLoggerTypes.ROLES;
-        }; break;
         case ClientEvents.GUILD_MEMBER_ADD:
         case ClientEvents.GUILD_MEMBER_REMOVE:
         case ClientEvents.GUILD_MEMBER_UPDATE: {
           loggerType = GuildLoggerTypes.MEMBERS;
+        }; break;
+        case ClientEvents.GUILD_ROLE_CREATE:
+        case ClientEvents.GUILD_ROLE_DELETE:
+        case ClientEvents.GUILD_ROLE_UPDATE: {
+          loggerType = GuildLoggerTypes.ROLES;
         }; break;
         /*case ClientEvents.MESSAGE_CREATE: */
         case ClientEvents.MESSAGE_DELETE:
@@ -432,7 +466,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
 
         const happened = Date.now();
         const name = ClientEvents.GUILD_BAN_ADD;
-        return this.tryAdd(shard, guildId, {happened, name, payload});
+        return this.tryAdd(shard, {guildId, happened, name, payload});
       });
       subscriptions.push(subscription);
     }
@@ -443,57 +477,30 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
 
         const happened = Date.now();
         const name = ClientEvents.GUILD_BAN_REMOVE;
-        return this.tryAdd(shard, guildId, {happened, name, payload});
+        return this.tryAdd(shard, {guildId, happened, name, payload});
       });
       subscriptions.push(subscription);
     }
 
     {
-      const subscription = cluster.subscribe(ClientEvents.GUILD_MEMBER_ADD, async (payload) => {
+      const name = ClientEvents.GUILD_MEMBER_ADD;
+      const subscription = cluster.subscribe(name, async (payload) => {
         const { guildId, isDuplicate, member, shard, userId } = payload;
         if (!isDuplicate) {
+          const { guild } = member;
+
           let from: ClientStatusType = 'desktop';
           if (member.presence && member.presence.clientStatus) {
             const { clientStatus } = member.presence;
             from = (clientStatus.mobile || clientStatus.desktop || clientStatus.web || from) as ClientStatusType;
           }
           const happened = Date.now();
-          const name = ClientEvents.GUILD_MEMBER_ADD;
-          return this.tryAdd(shard, guildId, {from, happened, name, payload});
-        }
-      });
-      subscriptions.push(subscription);
-    }
-
-    {
-      const subscription = cluster.subscribe(ClientEvents.GUILD_MEMBER_REMOVE, async (payload) => {
-        const { guildId, isDuplicate, shard } = payload;
-        if (!isDuplicate) {
-          const happened = Date.now();
-          const name = ClientEvents.GUILD_MEMBER_REMOVE;
-          return this.tryAdd(shard, guildId, {happened, name, payload});
-        }
-      });
-      subscriptions.push(subscription);
-    }
-
-    {
-      const keys = ['deaf', 'hoistedRole', 'mute', 'premiumSince', 'roles'];
-      const subscription = cluster.subscribe(ClientEvents.GUILD_MEMBER_UPDATE, async (payload) => {
-        const { differences, guildId, member, shard } = payload;
-        // if differences is not null and its not just {joinedAt}
-        if (differences && Object.keys(differences).some((key) => keys.includes(key))) {
-          const happened = Date.now();
-          const name = ClientEvents.GUILD_MEMBER_UPDATE;
-          return this.tryAdd(shard, guildId, {
+          return this.tryAdd(shard, {
             cached: {
-              deaf: member.deaf,
-              hoistedRole: member.hoistedRoleId,
-              mute: member.mute,
-              nick: member.nick,
-              premiumSince: member.premiumSince,
-              roles: member._roles || [],
+              from,
+              memberCount: (guild) ? guild.memberCount : 0,
             },
+            guildId,
             happened,
             name,
             payload,
@@ -504,51 +511,101 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
-      const subscription = cluster.subscribe(ClientEvents.GUILD_ROLE_CREATE, async (payload) => {
+      const name = ClientEvents.GUILD_MEMBER_REMOVE;
+      const subscription = cluster.subscribe(name, async (payload) => {
+        const { guildId, isDuplicate, shard } = payload;
+        if (!isDuplicate) {
+          const guild = shard.guilds.get(guildId);
+
+          const happened = Date.now();
+          return this.tryAdd(shard, {
+            cached: {
+              memberCount: (guild) ? guild.memberCount : 0,
+            },
+            guildId,
+            happened,
+            name,
+            payload,
+          });
+        }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      const keys = ['deaf', 'hoistedRole', 'mute', 'premiumSince', 'roles'];
+      const name = ClientEvents.GUILD_MEMBER_UPDATE;
+
+      const subscription = cluster.subscribe(name, async (payload) => {
+        const { differences, guildId, member, old, shard } = payload;
+        // if differences is not null and its not just {joinedAt}
+        if (old && (differences && keys.some((key) => key in differences))) {
+          const happened = Date.now();
+          return this.tryAdd(shard, {
+            cached: {
+              member: member.clone(),
+              old,
+            },
+            guildId,
+            happened,
+            name,
+            payload,
+          });
+        }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      const name = ClientEvents.GUILD_ROLE_CREATE;
+      const subscription = cluster.subscribe(name, async (payload) => {
         const { guildId, role, shard } = payload;
-        return this.tryAdd(shard, guildId, {
+        return this.tryAdd(shard, {
           cached: {
-            color: role.color,
-            hoist: role.hoist,
-            mentionable: role.mentionable,
-            name: role.name,
-            permissions: role.permissions,
-            position: role.position,
+            role: role.clone(),
           },
+          guildId,
           happened: Date.now(),
-          name: ClientEvents.GUILD_ROLE_CREATE,
+          name,
           payload,
         })
       });
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe(ClientEvents.GUILD_ROLE_DELETE, async (payload) => {
+      const name = ClientEvents.GUILD_ROLE_DELETE;
+      const subscription = cluster.subscribe(name, async (payload) => {
         const { guildId, role, shard } = payload;
-        return this.tryAdd(shard, guildId, {
+        return this.tryAdd(shard, {
+          guildId,
           happened: Date.now(),
-          name: ClientEvents.GUILD_ROLE_DELETE,
+          name,
           payload,
         })
       });
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe(ClientEvents.GUILD_ROLE_UPDATE, async (payload) => {
-        const { guildId, role, shard } = payload;
-        return this.tryAdd(shard, guildId, {
-          cached: {
-            color: role.color,
-            hoist: role.hoist,
-            mentionable: role.mentionable,
-            name: role.name,
-            permissions: role.permissions,
-            position: role.position,
-          },
-          happened: Date.now(),
-          name: ClientEvents.GUILD_ROLE_UPDATE,
-          payload,
-        })
+      const keys = ['color', 'hoist', 'mentionable', 'name', 'permissions', 'position'];
+      const name = ClientEvents.GUILD_ROLE_UPDATE;
+
+      const subscription = cluster.subscribe(name, async (payload) => {
+        const { differences, guildId, old, role, shard } = payload;
+        if (guildId === '178313653177548800') {
+          console.log(role, old, differences);
+        }
+        if (old && (differences && keys.some((key) => key in differences))) {
+          return this.tryAdd(shard, {
+            cached: {
+              old,
+              role: role.clone(),
+            },
+            guildId,
+            happened: Date.now(),
+            name,
+            payload,
+          });
+        }
       });
       subscriptions.push(subscription);
     }
@@ -561,14 +618,11 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         if (guildId && !message.author.bot) {
           const happened = Date.now();
           const name = ClientEvents.MESSAGE_CREATE;
-          return this.tryAdd(shard, guildId, {
+          return this.tryAdd(shard, {
             cached: {
-              attachments: message.attachments.clone(),
-              content: message.content,
-              embeds: message.embeds.clone(),
-              flags: message.flags,
-              mentions: message.mentions.clone(),
+              message: message.clone(),
             },
+            guildId,
             happened,
             name,
             payload,
@@ -586,7 +640,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         if (guildId && (!message || !message.author.bot)) {
           const happened = Date.now();
           const name = ClientEvents.MESSAGE_DELETE;
-          return this.tryAdd(shard, guildId, {happened, name, payload});
+          return this.tryAdd(shard, {guildId, happened, name, payload});
         }
       });
       subscriptions.push(subscription);
@@ -599,28 +653,24 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         if (guildId) {
           const happened = Date.now();
           const name = ClientEvents.MESSAGE_DELETE_BULK;
-          return this.tryAdd(shard, guildId, {happened, name, payload});
+          return this.tryAdd(shard, {guildId, happened, name, payload});
         }
       });
       subscriptions.push(subscription);
     }
 
     {
-      const subscription = cluster.subscribe(ClientEvents.MESSAGE_UPDATE, async (payload) => {
-        const { guildId, isEmbedUpdate, message, shard } = payload;
+      const name = ClientEvents.MESSAGE_UPDATE;
+      const subscription = cluster.subscribe(name, async (payload) => {
+        const { guildId, isEmbedUpdate, message, old, shard } = payload;
         if (!isEmbedUpdate && guildId && message && !message.author.bot) {
           const happened = Date.now();
-          const name = ClientEvents.MESSAGE_UPDATE;
-          return this.tryAdd(shard, guildId, {
+          return this.tryAdd(shard, {
             cached: {
-              attachments: message.attachments.clone(),
-              content: message.content,
-              embeds: message.embeds.clone(),
-              flags: message.flags,
-              mentionEveryone: message.mentionEveryone,
-              mentionRoles: message.mentionRoles.clone(),
-              mentions: message.mentions.clone(),
+              message: message.clone(),
+              old,
             },
+            guildId,
             happened,
             name,
             payload,
@@ -631,15 +681,21 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
-      const subscription = cluster.subscribe(ClientEvents.USERS_UPDATE, async (payload) => {
-        const { differences, shard, user } = payload;
-        if (differences) {
-          const cached = new Structures.User(shard, user.toJSON());
+      const name = ClientEvents.USERS_UPDATE;
+      const subscription = cluster.subscribe(name, async (payload) => {
+        const { shard, old, user } = payload;
+        if (old) {
+          const cached = {old, user: user.clone()};
           const happened = Date.now();
-          const name: ClientEvents.USERS_UPDATE = ClientEvents.USERS_UPDATE;
-          const event = {cached, happened, name, payload};
+
           for (let [guildId, guild] of user.guilds) {
-            await this.tryAdd(shard, guildId, event);
+            await this.tryAdd(shard, {
+              cached,
+              guildId,
+              happened,
+              name,
+              payload,
+            });
           }
         }
       });
@@ -647,13 +703,18 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
-      const subscription = cluster.subscribe(ClientEvents.VOICE_STATE_UPDATE, async (payload) => {
-        const { shard, voiceState } = payload;
-        if (voiceState.guildId) {
+      const name = ClientEvents.VOICE_STATE_UPDATE;
+      const subscription = cluster.subscribe(name, async (payload) => {
+        const { old, shard, voiceState } = payload;
+        const { guildId } = voiceState;
+        if (guildId) {
           const happened = Date.now();
-          const name = ClientEvents.VOICE_STATE_UPDATE;
-          return this.tryAdd(shard, voiceState.guildId, {
-            cached: new Structures.VoiceState(shard, voiceState.toJSON()),
+          return this.tryAdd(shard, {
+            cached: {
+              old,
+              voiceState: voiceState.clone(),
+            },
+            guildId,
             happened,
             name,
             payload,
@@ -676,7 +737,7 @@ export function createLogPayload(
   embed: Embed,
   files: Array<{filename: string, value: any}>,
 } {
-  const { audits, happened } = event;
+  const { audits, guildId, happened } = event;
 
   const embed = new Embed();
   const files: Array<{filename: string, value: any}> = [];
@@ -690,7 +751,7 @@ export function createLogPayload(
       embed.setDescription(user.mention);
 
       {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
         embed.setFooter(`Banned • ${timestamp}`);
       }
 
@@ -714,7 +775,7 @@ export function createLogPayload(
       embed.setDescription(user.mention);
 
       {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
         embed.setFooter(`Unbanned • ${timestamp}`);
       }
 
@@ -730,9 +791,8 @@ export function createLogPayload(
       }
     }; break;
     case ClientEvents.GUILD_MEMBER_ADD: {
-      const { from } = event;
+      const { from, memberCount } = event.cached;
       const { member } = event.payload;
-      const { guild } = member;
 
       createUserEmbed(member, embed);
       embed.setColor(EmbedColors.LOG_CREATION);
@@ -742,9 +802,10 @@ export function createLogPayload(
       {
         let footer: string;
         if (audits) {
-          footer = 'Added';
+          footer = 'Member Added';
         } else {
-          footer = 'Joined';
+          // rename this to something else so you can search for the messages
+          footer = 'Member Joined';
           /*
           if (from) {
             switch (from) {
@@ -755,8 +816,8 @@ export function createLogPayload(
           }
           */
         }
-        const timestamp = moment(member.joinedAtUnix || happened).format(DateMomentLogFormat);
-        embed.setFooter(`${footer} | ${timestamp}`);
+        const timestamp = createTimestampMomentFromGuild(member.joinedAtUnix || happened, guildId);
+        embed.setFooter(`${footer} • ${timestamp}`);
       }
       if (audits) {
         const [ audit ] = audits;
@@ -768,8 +829,7 @@ export function createLogPayload(
         const description: Array<string> = [];
         description.push(`**Id**: ${Markup.codestring(member.id)}`);
         description.push(`**Bot**: ${(member.bot) ? 'Yes' : 'No'}`);
-        if (guild) {
-          const { memberCount } = guild;
+        if (memberCount) {
           description.push(`**Members**: ${(memberCount - 1).toLocaleString()} -> ${memberCount.toLocaleString()}`);
         }
         embed.addField('Information', description.join('\n'), true);
@@ -777,19 +837,21 @@ export function createLogPayload(
       {
         const description: Array<string> = [];
         {
-          const timestamp = moment(member.createdAtUnix);
+          const timestamp = createTimestampMomentFromGuild(member.createdAtUnix, guildId);
           description.push(`**Discord**: ${timestamp.fromNow()}`);
-          description.push(`**->** ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`);
+          description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
         }
         embed.addField('Joined', description.join('\n'), true);
       }
     }; break;
     case ClientEvents.GUILD_MEMBER_REMOVE: {
-      const { guildId, member, shard, userId } = event.payload;
-      let { user } = event.payload;
+      const { memberCount } = event.cached;
+      const { member, shard, userId } = event.payload;
       const guild = shard.guilds.get(guildId);
 
+      let { user } = event.payload;
       if (!user && audits) {
+        // try to get the user object from the audit log
         const [ audit ] = audits;
         if (audit.user) {
           user = audit.user;
@@ -815,15 +877,15 @@ export function createLogPayload(
           switch (audit.actionType) {
             case AuditLogActions.MEMBER_BAN_ADD: {
               description.push(`**Banned By**: ${userText}`);
-              text = 'Banned';
+              text = 'Member Banned';
             }; break;
             case AuditLogActions.MEMBER_KICK: {
               description.push(`**Kicked By**: ${userText}`);
-              text = 'Kicked';
+              text = 'Member Kicked';
             }; break;
             default: {
               description.push(`**Unknown Reason**: ${userText}`);
-              text = `Left (Unknown Reason: ${audit.actionType})`;
+              text = `Member Left (Unknown Reason: ${audit.actionType})`;
             };
           }
           if (audit.reason) {
@@ -831,11 +893,11 @@ export function createLogPayload(
           }
           embed.addField('Moderation Action', description.join('\n'));
         } else {
-          text = 'Left';
+          text = 'Member Left';
         }
 
         {
-          const timestamp = moment(happened).format(DateMomentLogFormat);
+          const timestamp = createTimestampStringFromGuild(happened, guildId);
           embed.setFooter(`${text} • ${timestamp}`);
         }
       }
@@ -846,23 +908,22 @@ export function createLogPayload(
         if (user) {
           description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
         }
-        if (guild) {
-          const { memberCount } = guild;
-          description.push(`**Members**: ${(memberCount + 1).toLocaleString()} -> ${memberCount.toLocaleString()}`);
+        if (memberCount) {
+          description.push(`**Members**: ${(memberCount - 1).toLocaleString()} -> ${memberCount.toLocaleString()}`);
         }
         embed.addField('Information', description.join('\n'), true);
       }
       if (user) {
         const description: Array<string> = [];
         {
-          const timestamp = moment(user.createdAtUnix);
+          const timestamp = createTimestampMomentFromGuild(user.createdAtUnix, guildId);
           description.push(`**Discord**: ${timestamp.fromNow()}`);
-          description.push(`**->** ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`);
+          description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
         }
         if (member && member.joinedAtUnix) {
-          const timestamp = moment(member.joinedAtUnix);
+          const timestamp = createTimestampMomentFromGuild(member.joinedAtUnix, guildId);
           description.push(`**Guild**: ${timestamp.fromNow()}`);
-          description.push(`**->** ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`);
+          description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
           if (guild && guild.isReady) {
             // join position of the person that left
           }
@@ -871,8 +932,7 @@ export function createLogPayload(
       }
     }; break;
     case ClientEvents.GUILD_MEMBER_UPDATE: {
-      const { cached } = event;
-      const { differences, member } = event.payload;
+      const { member, old } = event.cached;
 
       createUserEmbed(member, embed);
       embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
@@ -880,193 +940,216 @@ export function createLogPayload(
       embed.setDescription(member.mention);
 
       {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
         embed.setFooter(`Member Updated • ${timestamp}`);
       }
 
-      if (differences) {
-        if (audits) {
-          const moderator = audits[0].user as Structures.User;
-          const isSelf = member.id === moderator.id;
+      if (audits) {
+        const moderator = audits[0].user as Structures.User;
+        const isSelf = member.id === moderator.id;
 
-          const description: Array<string> = [];
-          if (!isSelf) {
-            description.push(`By ${createUserString(moderator.id, moderator)}`);
-          }
-
-          let reason: string | undefined;
-          for (let audit of audits) {
-            for (let [x, change] of audit.changes) {
-              switch (change.key) {
-                case AuditLogChangeKeys.DEAF: {
-                  if (change.newValue) {
-                    description.push(`- Deafened`);
-                  } else {
-                    description.push(`- Undeafened`);
-                  }
-                }; break;
-                case AuditLogChangeKeys.MUTE: {
-                  if (change.newValue) {
-                    description.push('- Microphone Muted');
-                  } else {
-                    description.push('- Microphone Unmuted');
-                  }
-                }; break;
-                case AuditLogChangeKeys.NICK: {
-                  description.push(`- Nickname Change`);
-                  if (change.oldValue) {
-                    if (change.newValue) {
-                      description.push(`-> **${Markup.codestring(change.oldValue)}** to **${Markup.codestring(change.newValue)}**`);
-                    } else {
-                      description.push(`-> Cleared **${Markup.codestring(change.oldValue)}**`);
-                    }
-                  } else {
-                    description.push(`-> Set to **${Markup.codestring(change.newValue)}**`);
-                  }
-                }; break;
-                case AuditLogChangeKeys.ROLES_ADD: {
-                  description.push(`- Added Roles`);
-                  const roles = change.newValue.map((raw: {name: string, id: string}) => {
-                    return `<@&${raw.id}> (${Markup.escape.all(raw.name)})`;
-                  });
-                  description.push(`-> ${roles.join(', ')}`);
-                }; break;
-                case AuditLogChangeKeys.ROLES_REMOVE: {
-                  description.push(`- Removed Roles`);
-                  const roles = change.newValue.map((raw: {name: string, id: string}) => {
-                    return `<@&${raw.id}> (${Markup.escape.all(raw.name)})`;
-                  });
-                  description.push(`-> ${roles.join(', ')}`);
-                }; break;
-                default: {
-                  description.push(`- ${change.key} Changed`);
-                  description.push(`-> ${Markup.escape.all(JSON.stringify(change.newValue))}`);
-                };
-              }
-            }
-            reason = audit.reason;
-          }
-          if (reason) {
-            description.push(`**Reason**: ${Markup.codeblock(reason)}`);
-          }
-          if (isSelf) {
-            embed.addField('Self-Action', description.join('\n'));
-          } else {
-            embed.addField('Moderation Action', description.join('\n'));
-          }
+        const description: Array<string> = [];
+        if (!isSelf) {
+          description.push(`By ${createUserString(moderator.id, moderator)}`);
         }
-        {
-          const description: Array<string> = [];
-          // for non-premium guilds and when someone unboosts/boosts
-          const { guild } = member;
-          if (!audits) {
-            if (differences.deaf !== undefined || differences.mute !== undefined) {
-              const text: Array<string> = [];
-              if (differences.deaf !== undefined) {
-                text.push((cached.deaf) ? 'Deafened' : 'Undeafened');
-              }
-              if (differences.mute !== undefined) {
-                text.push((cached.mute) ? 'Muted' : 'Unmuted');
-              }
-              if (text.length) {
-                description.push(`- Server ${text.join(' and ')}`);
-              }
-            }
-            if (differences.nick !== undefined) {
-              description.push(`- Nickname Change`);
-              if (differences.nick) {
-                if (cached.nick) {
-                  description.push(`-> **${Markup.codestring(differences.nick)}** to **${Markup.codestring(cached.nick)}**`);
+
+        let reason: string | undefined;
+        for (let audit of audits) {
+          for (let [x, change] of audit.changes) {
+            switch (change.key) {
+              case AuditLogChangeKeys.DEAF: {
+                if (change.newValue) {
+                  description.push(`- Deafened`);
                 } else {
-                  description.push(`-> Cleared **${Markup.codestring(differences.nick)}**`);
+                  description.push(`- Undeafened`);
                 }
-              } else {
-                description.push(`-> Set to **${Markup.codestring(cached.nick || '')}**`);
-              }
-            }
-            if (differences.roles !== undefined) {
-              const additions: Array<string> = [];
-              const removals: Array<string> = [];
-              for (let roleId of differences.roles) {
-                if (!cached.roles.includes(roleId)) {
-                  const role = (guild) ? guild.roles.get(roleId) : null;
-                  if (role) {
-                    removals.push(`<@&${roleId}> (${Markup.escape.all(role.name)})`);
+              }; break;
+              case AuditLogChangeKeys.MUTE: {
+                if (change.newValue) {
+                  description.push('- Microphone Muted');
+                } else {
+                  description.push('- Microphone Unmuted');
+                }
+              }; break;
+              case AuditLogChangeKeys.NICK: {
+                description.push(`- Nickname Change`);
+                if (change.oldValue) {
+                  if (change.newValue) {
+                    description.push(`-> **${Markup.codestring(change.oldValue)}** to **${Markup.codestring(change.newValue)}**`);
                   } else {
-                    removals.push(`<@&${roleId}>`);
+                    description.push(`-> Cleared **${Markup.codestring(change.oldValue)}**`);
                   }
+                } else {
+                  description.push(`-> Set to **${Markup.codestring(change.newValue)}**`);
                 }
-              }
-              for (let roleId of cached.roles) {
-                if (!differences.roles.includes(roleId)) {
-                  const role = (guild) ? guild.roles.get(roleId) : null;
-                  if (role) {
-                    additions.push(`<@&${roleId}> (${Markup.escape.all(role.name)})`);
-                  } else {
-                    additions.push(`<@&${roleId}>`);
-                  }
-                }
-              }
-              if (removals.length) {
-                description.push(`- Removed Roles`);
-                description.push(`-> ${removals.join(', ')}`);
-              }
-              if (additions.length) {
+              }; break;
+              case AuditLogChangeKeys.ROLES_ADD: {
                 description.push(`- Added Roles`);
-                description.push(`-> ${additions.join(', ')}`);
-              }
+                const roles = change.newValue.map((raw: {name: string, id: string}) => {
+                  return `<@&${raw.id}> (${Markup.escape.all(raw.name)})`;
+                });
+                description.push(`-> ${roles.join(', ')}`);
+              }; break;
+              case AuditLogChangeKeys.ROLES_REMOVE: {
+                description.push(`- Removed Roles`);
+                const roles = change.newValue.map((raw: {name: string, id: string}) => {
+                  return `<@&${raw.id}> (${Markup.escape.all(raw.name)})`;
+                });
+                description.push(`-> ${roles.join(', ')}`);
+              }; break;
+              default: {
+                description.push(`- ${change.key} Changed`);
+                description.push(`-> ${Markup.escape.all(JSON.stringify(change.newValue))}`);
+              };
             }
           }
-          if (differences.hoistedRole !== undefined) {
-            differences.push('- Hoisted Role Change');
-            let newText = '';
-            if (cached.hoistedRole) {
-              newText = `<@&${cached.hoistedRole}>`;
-              if (guild && guild.roles.has(cached.hoistedRole)) {
-                const role = guild.roles.get(cached.hoistedRole) as Structures.Role;
-                newText = `${newText} (${Markup.escape.all(role.name)})`;
-              }
-            }
-            if (differences.hoistedRole) {
-              let oldText = `<@&${differences.hoistedRole}>`;
-              if (guild && guild.roles.has(differences.hoistedRole)) {
-                const role = guild.roles.get(differences.hoistedRole) as Structures.Role;
-                oldText = `${oldText} (${Markup.escape.all(role.name)})`;
-              }
-              if (cached.hoistedRole) {
-                differences.push(`-> ${oldText} to ${newText}`);
-              } else {
-                differences.push(`-> Removed ${oldText}`);
-              }
-            } else {
-              differences.push(`-> Added ${newText}`);
-            }
-          }
-          if (differences.premiumSince !== undefined) {
-            description.push('- Boost Change');
-            if (differences.premiumSince) {
-              description.push('-> Unboosted');
-            } else {
-              description.push('-> Boosted');
-            }
-          }
-          if (description.length) {
-            embed.addField('Changes', description.join('\n'));
-          }
+          reason = audit.reason;
+        }
+        if (reason) {
+          description.push(`**Reason**: ${Markup.codeblock(reason)}`);
+        }
+        if (isSelf) {
+          embed.addField('Self-Action', description.join('\n'));
+        } else {
+          embed.addField('Moderation Action', description.join('\n'));
         }
       }
+
+      {
+        const description: Array<string> = [];
+        // for non-premium guilds and when someone unboosts/boosts
+        if (!audits) {
+          if (member.deaf !== old.deaf || member.mute !== old.deaf) {
+            const text: Array<string> = [];
+            if (member.deaf !== old.deaf) {
+              text.push((member.deaf) ? 'Deafened' : 'Undeafened');
+            }
+            if (member.mute !== old.mute) {
+              text.push((member.mute) ? 'Muted' : 'Unmuted');
+            }
+            if (text.length) {
+              description.push(`- Server ${text.join(' and ')}`);
+            }
+          }
+
+          if (member.nick !== old.nick) {
+            description.push(`- Nickname Change`);
+            if (member.nick) {
+              if (old.nick) {
+                description.push(`-> **${Markup.codestring(old.nick)}** to **${Markup.codestring(member.nick)}**`);
+              } else {
+                description.push(`-> Set to **${Markup.codestring(member.nick || '')}**`);
+              }
+            } else {
+              description.push(`-> Cleared **${Markup.codestring(old.nick || '')}**`);
+            }
+          }
+
+          if (member.hasDifference('roles', old._roles)) {
+            const additions: Array<string> = [];
+            const removals: Array<string> = [];
+            for (let [roleId, role] of member.roles) {
+              if (!old.roles.has(roleId)) {
+                if (role) {
+                  additions.push(`<@&${roleId}> (${Markup.escape.all(role.name)})`);
+                } else {
+                  additions.push(`<@&${roleId}>`);
+                }
+              }
+            }
+            for (let [roleId, role] of old.roles) {
+              if (!member.roles.has(roleId)) {
+                if (role) {
+                  removals.push(`<@&${roleId}> (${Markup.escape.all(role.name)})`);
+                } else {
+                  removals.push(`<@&${roleId}>`);
+                }
+              }
+            }
+            if (removals.length) {
+              description.push(`- Removed Roles`);
+              description.push(`-> ${removals.join(', ')}`);
+            }
+            if (additions.length) {
+              description.push(`- Added Roles`);
+              description.push(`-> ${additions.join(', ')}`);
+            }
+          }
+        }
+
+        if (member.hoistedRoleId !== old.hoistedRoleId) {
+          description.push('- Hoisted Role Change');
+
+          let removedText = '';
+          if (old.hoistedRoleId) {
+            const role = old.hoistedRole;
+            if (role) {
+              removedText = `<@&${old.hoistedRoleId}> (${Markup.escape.all(role.name)})`;
+            } else {
+              removedText = `<@&${old.hoistedRoleId}>`;
+            }
+          }
+
+          if (member.hoistedRoleId) {
+            // added or updated
+            let addedText = '';
+            if (member.hoistedRoleId) {
+              const role = member.hoistedRole;
+              if (role) {
+                addedText = `<@&${member.hoistedRoleId}> (${Markup.escape.all(role.name)})`;
+              } else {
+                addedText = `<@&${member.hoistedRoleId}>`;
+              }
+            }
+
+            if (old.hoistedRoleId) {
+              description.push(`-> ${removedText} to ${addedText}`);
+            } else {
+              description.push(`-> Added ${addedText}`);
+            }
+          } else {
+            // removed
+            description.push(`-> Removed ${removedText}`);
+          }
+        }
+
+        if (member.premiumSinceUnix !== old.premiumSinceUnix) {
+          description.push('- Boost Change');
+          if (member.premiumSinceUnix) {
+            description.push(`-> Boosted`);
+          } else {
+            description.push(`-> Unboosted`);
+          }
+        }
+
+        if (description.length) {
+          embed.addField('Changes', description.join('\n'));
+        }
+      }
+
     }; break;
     case ClientEvents.GUILD_ROLE_CREATE: {
-      const { cached } = event;
-      const { role } = event.payload;
+      const { role } = event.cached;
+
+      {
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
+        embed.setFooter(`Role Created • ${timestamp}`);
+      }
 
       embed.setColor(EmbedColors.LOG_CREATION);
-      embed.setDescription(role.mention);
+      embed.setDescription(`${role.mention} ${Markup.spoiler(`(${role.id})`)}`);
 
       embed.setAuthor(role.name);
       if (role.color) {
         const url = createColorUrl(role.color);
         embed.setAuthor(role.name, url);
+      }
+
+      if (audits) {
+        const [ audit ] = audits;
+        const description: Array<string> = [];
+        description.push(`**Created By**: ${createUserString(audit.userId, audit.user as Structures.User)}`);
+        embed.addField('Moderation Action', description.join('\n'));
       }
 
       {
@@ -1080,12 +1163,11 @@ export function createLogPayload(
         } else {
           description.push(`**Color**: No Color`);
         }
-        description.push(`**Created**: ${moment(role.createdAtUnix).format(DateMomentLogFormat)}`);
-        description.push(`**Hoisted**: ${(cached.hoist) ? 'Yes' : 'No'}`);
+        description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
         description.push(`**Id**: \`${role.id}\``);
         description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
-        description.push(`**Mentionable**: ${(cached.mentionable) ? 'Yes' : 'No'}`);
-        description.push(`**Position**: ${cached.position}`);
+        description.push(`**Mentionable**: ${(role.mentionable) ? 'Yes' : 'No'}`);
+        description.push(`**Position**: ${role.position}`);
 
         if (role.tags) {
           if (role.isBoosterRole) {
@@ -1101,17 +1183,24 @@ export function createLogPayload(
 
         embed.addField('Information', description.join('\n'));
       }
-
-      {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
-        embed.setFooter(`Role Created • ${timestamp}`);
-      }
     }; break;
     case ClientEvents.GUILD_ROLE_DELETE: {
       const { role, roleId } = event.payload;
 
+      {
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
+        embed.setFooter(`Role Deleted • ${timestamp}`);
+      }
+
       embed.setColor(EmbedColors.LOG_DELETION);
-      embed.setDescription(`<@&${roleId}>`);
+      embed.setDescription(`<@&${roleId}> ${Markup.spoiler(`(${roleId})`)}`);
+
+      if (audits) {
+        const [ audit ] = audits;
+        const description: Array<string> = [];
+        description.push(`**Deleted By**: ${createUserString(audit.userId, audit.user as Structures.User)}`);
+        embed.addField('Moderation Action', description.join('\n'));
+      }
 
       if (role) {
         embed.setAuthor(role.name);
@@ -1131,7 +1220,11 @@ export function createLogPayload(
           } else {
             description.push(`**Color**: No Color`);
           }
-          description.push(`**Created**: ${moment(role.createdAtUnix).format(DateMomentLogFormat)}`);
+          {
+            const timestamp = createTimestampMomentFromGuild(role.createdAtUnix, guildId);
+            description.push(`**Created**: ${timestamp.fromNow()}`);
+            description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+          }
           description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
           description.push(`**Id**: \`${role.id}\``);
           description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
@@ -1153,17 +1246,17 @@ export function createLogPayload(
           embed.addField('Information', description.join('\n'));
         }
       }
-
-      {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
-        embed.setFooter(`Role Deleted • ${timestamp}`);
-      }
     }; break;
     case ClientEvents.GUILD_ROLE_UPDATE: {
-      const { differences, role } = event.payload;
+      const { old, role } = event.cached;
+
+      {
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
+        embed.setFooter(`Role Updated • ${timestamp}`);
+      }
 
       embed.setColor(EmbedColors.LOG_UPDATE);
-      embed.setDescription(role.mention);
+      embed.setDescription(`${role.mention} ${Markup.spoiler(`(${role.id})`)}`);
 
       embed.setAuthor(role.name);
       if (role.color) {
@@ -1171,42 +1264,112 @@ export function createLogPayload(
         embed.setAuthor(role.name, url);
       }
 
-      {
+      if (audits) {
+        const [ audit ] = audits;
         const description: Array<string> = [];
-
-        if (role.color) {
-          const color = intToRGB(role.color);
-          const hex = Markup.codestring(intToHex(role.color, true));
-          const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
-          description.push(`**Color**: ${hex} ${rgb}`);
-        } else {
-          description.push(`**Color**: No Color`);
-        }
-        description.push(`**Created**: ${moment(role.createdAtUnix).format(DateMomentLogFormat)}`);
-        description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
-        description.push(`**Id**: \`${role.id}\``);
-        description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
-        description.push(`**Mentionable**: ${(role.mentionable) ? 'Yes' : 'No'}`);
-        description.push(`**Position**: ${role.position}`);
-
-        if (role.tags) {
-          if (role.isBoosterRole) {
-            description.push('**Type**: Booster Role');
-          } else if (role.botId) {
-            description.push(`**Type**: Bot Role (for <@${role.botId}>)`);
-          } else if (role.integrationId) {
-            description.push(`**Type**: Integration Role (${role.integrationId})`);
-          } else {
-            description.push(`**Type**: Unknown (${JSON.stringify(role.tags)})`);
-          }
-        }
-
-        embed.addField('Information', description.join('\n'));
+        description.push(`**Updated By**: ${createUserString(audit.userId, audit.user as Structures.User)}`);
+        embed.addField('Moderation Action', description.join('\n'));
       }
 
       {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
-        embed.setFooter(`Role Updated • ${timestamp}`);
+        const description: Array<string> = [];
+
+        if (role.color !== old.color) {
+          description.push('- Color');
+
+          let addText = '';
+          if (role.color) {
+            const color = intToRGB(role.color);
+            const hex = Markup.codestring(intToHex(role.color, true));
+            const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
+            addText = `**${hex}** **${rgb}**`;
+          }
+          let removeText = '';
+          if (old.color) {
+            const color = intToRGB(old.color);
+            const hex = Markup.codestring(intToHex(old.color, true));
+            const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
+            removeText = `**${hex}** **${rgb}**`;
+          }
+
+          if (role.color) {
+            // added or updated color
+
+            if (old.color) {
+              // updated color
+              description.push(`-> ${removeText} to ${addText}`);
+            } else {
+              description.push(`-> Set to ${addText}`);
+            }
+          } else {
+            // removed color
+            description.push(`-> Cleared ${removeText}`);
+          }
+        }
+
+        if (role.hoist !== old.hoist) {
+          //description.push('- Hoist Change');
+          if (role.hoist) {
+            // added hoist
+            description.push('- Hoisted Role');
+          } else {
+            // removed hoist
+            description.push('- Unhoisted Role');
+          }
+        }
+
+        if (role.managed !== old.managed) {
+          // never should happen
+          //description.push('- Manage Change');
+          if (role.managed) {
+            description.push('- Made Role unmanaged somehow');
+          } else {
+            description.push('- Made Role managed somehow');
+          }
+        }
+
+        if (role.mentionable !== old.mentionable) {
+          //description.push('- Mentionable Change');
+          if (role.mentionable) {
+            description.push('- Made Mentionable');
+          } else {
+            description.push('- Made Unmentionable');
+          }
+        }
+
+        if (role.position !== old.position) {
+          description.push('- Position');
+          description.push(`-> #${old.position} to #${role.position}`);
+        }
+
+        if (description.length) {
+          embed.addField('Changes', description.join('\n'));
+        }
+      }
+
+      if (role.permissions !== old.permissions) {
+        const added: Array<string> = [];
+        const removed: Array<string> = [];
+
+        const newPermissions = permissionsToObject(role.permissions);
+        const oldPermissions = permissionsToObject(old.permissions);
+
+        for (let key in newPermissions) {
+          if (newPermissions[key] !== oldPermissions[key]) {
+            if (newPermissions[key]) {
+              added.push(`${PermissionsText[key]}: ${BooleanEmojis.YES}`);
+            } else {
+              removed.push(`${PermissionsText[key]}: ${BooleanEmojis.NO}`);
+            }
+          }
+        }
+
+        if (added.length) {
+          embed.addField('Enabled Permissions', Markup.codeblock(added.join('\n')), true);
+        }
+        if (removed.length) {
+          embed.addField('Removed Permissions', Markup.codeblock(removed.join('\n')), true);
+        }
       }
     }; break;
     /*
@@ -1235,16 +1398,21 @@ export function createLogPayload(
         embed.addField('Embeds', `${cached.embeds.length} Embeds`);
       }
 
-      const timestamp = moment(message.timestampUnix);
+      const timestamp = createTimestampMomentFromGuild(message.timestampUnix, guildId);
       embed.addField('Information', [
         `**Channel**: <#${message.channelId}>`,
-        `**Created**: ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`,
+        `**Created**: ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`,
         `**Link**: ${Markup.url(message.id, message.jumpLink)}`,
       ].join('\n'));
     }; break;
     */
     case ClientEvents.MESSAGE_DELETE: {
-      const { channelId, guildId, message, messageId } = event.payload;
+      const { channelId, message, messageId } = event.payload;
+
+      {
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
+        embed.setFooter(`Deleted • ${timestamp}`);
+      }
 
       if (message) {
         createUserEmbed(message.author, embed);
@@ -1252,11 +1420,6 @@ export function createLogPayload(
         embed.setAuthor('Unknown Author');
       }
       embed.setColor(EmbedColors.LOG_DELETION);
-
-      {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
-        embed.setFooter(`Deleted • ${timestamp}`);
-      }
 
       if (audits) {
         const [ audit ] = audits;
@@ -1328,26 +1491,27 @@ export function createLogPayload(
 
       let timestamp: moment.Moment;
       if (message) {
-        timestamp = moment(message.timestampUnix);
+        timestamp = createTimestampMomentFromGuild(message.timestampUnix, guildId);
       } else {
-        timestamp = moment(Snowflake.timestamp(messageId));
+        timestamp = createTimestampMomentFromGuild(Snowflake.timestamp(messageId), guildId);
       }
       embed.addField('Information', [
         `**Channel**: <#${channelId}>`,
-        `**Created**: ${timestamp.fromNow()} ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`,
+        `**Created**: ${timestamp.fromNow()}`,
+        `**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`,
         `**Link**: ${Markup.url(messageId, DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(guildId, channelId, messageId))}`,
       ].join('\n'));
     }; break;
     case ClientEvents.MESSAGE_DELETE_BULK: {
-      const { amount, channelId, messages } = event.payload;
+      const { amount, channelId, guildId, messages } = event.payload;
+
+      {
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
+        embed.setFooter(`Bulk Deletion • ${timestamp}`);
+      }
 
       embed.setAuthor(`${amount.toLocaleString()} Messages Deleted`);
       embed.setColor(EmbedColors.LOG_DELETION);
-
-      {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
-        embed.setFooter(`Bulk Deletion • ${timestamp}`);
-      }
 
       {
         const description: Array<string> = [
@@ -1383,8 +1547,14 @@ export function createLogPayload(
       ].join('\n'));
     }; break;
     case ClientEvents.MESSAGE_UPDATE: {
-      const { cached } = event;
-      const { channelId, differences, guildId, message, messageId } = event.payload;
+      const { message, old } = event.cached;
+      const { channelId, differences, messageId } = event.payload;
+
+      {
+        const time = (message && message.isEdited) ? message.editedAtUnix : happened;
+        const timestamp = createTimestampMomentFromGuild(time, guildId);
+        embed.setFooter(`Updated • ${timestamp}`);
+      }
 
       if (message) {
         createUserEmbed(message.author, embed);
@@ -1393,139 +1563,137 @@ export function createLogPayload(
       }
       embed.setColor(EmbedColors.LOG_UPDATE);
 
-      {
-        const timestamp = moment(((message) ? message.editedAtUnix : happened) || happened).format(DateMomentLogFormat);
-        embed.setFooter(`Updated • ${timestamp}`);
-      }
-
-      if (message) {
-        if (differences) {
-          if (differences.content !== undefined) {
-            if (differences.content) {
-              embed.setDescription(Markup.codeblock(differences.content));
-            } else {
-              embed.setDescription('Empty Message');
-            }
-            if (cached.content) {
-              if (1024 <= cached.content.length) {
-                const contentOne = cached.content.slice(0, 1014);
-                const contentTwo = cached.content.slice(1014);
-                embed.addField('New Content', Markup.codeblock(contentOne));
-                embed.addField('\u200b', Markup.codeblock(contentTwo));
-              } else {
-                embed.addField('New Content', Markup.codeblock(cached.content));
-              }
-            } else {
-              embed.addField('New Content', 'Empty Message');
-            }
+      if (old && differences) {
+        if (message.content !== old.content) {
+          if (old.content) {
+            embed.setDescription(Markup.codeblock(old.content));
+          } else {
+            embed.setDescription('Empty Message');
           }
-          if (differences.attachments) {
-            const oldUrls: Array<string> = differences.attachments.filter((attachment: Structures.Attachment) => {
-              return !!attachment.url;
-            }).map((attachment: Structures.Attachment) => {
+          if (message.content) {
+            // do 1014 instead of 1024 to add for codeblocks
+            if (1014 < message.content.length) {
+              const contentOne = message.content.slice(0, 1014);
+              const contentTwo = message.content.slice(1014);
+              embed.addField('New Content', Markup.codeblock(contentOne));
+              embed.addField('\u200b', Markup.codeblock(contentTwo));
+            } else {
+              embed.addField('New Content', Markup.codeblock(message.content));
+            }
+          } else {
+            embed.addField('New Content', 'Empty Message');
+          }
+        }
+
+        if (differences.attachments) {
+          const oldUrls: Array<string> = old.attachments
+            .filter((attachment) => !!attachment.url)
+            .map((attachment) => {
               return Markup.url(attachment.filename, attachment.url as string);
             });
 
-            const newUrls = cached.attachments.filter((attachment) => {
-              return !!attachment.url;
-            }).map((attachment) => {
+          const newUrls: Array<string> = message.attachments
+            .filter((attachment) => !!attachment.url)
+            .map((attachment) => {
               return Markup.url(attachment.filename, attachment.url as string);
             });
-            if (!newUrls.every((url) => oldUrls.includes(url))) {
-              embed.addField('Attachments', [
-                `- ${oldUrls.join(', ') || 'None'}`,
-                `+ ${newUrls.join(', ') || 'None'}`,
-              ].join('\n'));
-            }
-          }
-          if (differences.embeds) {
-            embed.addField('Embeds', `- ${differences.embeds.length} Embeds to ${cached.embeds.length} Embeds`, true);
-          }
-          if (differences.flags !== undefined) {
-            // assume its the embed hiding since that's the only one that can be updated by users
-            // bot messages (a webhook message) can have a flag update though
-            let text: string;
-            const hadSuppressEmbeds = (differences.flags & MessageFlags.SUPPRESS_EMBEDS) === MessageFlags.SUPPRESS_EMBEDS;
-            const hasSuppressEmbeds = (cached.flags & MessageFlags.SUPPRESS_EMBEDS) === MessageFlags.SUPPRESS_EMBEDS;
-            if (hadSuppressEmbeds && !hasSuppressEmbeds) {
-              text = '- Unsuppressed Embeds';
-            } else if (!hadSuppressEmbeds && hasSuppressEmbeds) {
-              text = '- Suppressed Embeds';
-            } else {
-              text = `${differences.flags} -> ${cached.flags}`;
-            }
-            embed.addField('Flags', text, true);
-          }
-          if (differences.mentionEveryone !== undefined || differences.mentions) {
-            const removedText: Array<string> = [];
-            const addedText: Array<string> = [];
-            if (differences.mentionEveryone !== undefined) {
-              if (differences.mentionEveryone) {
-                removedText.push('Everyone');
-              } else {
-                addedText.push('Everyone');
-              }
-            }
-            if (differences.mentions) {
-              const removed = differences.mentions.filter((raw: any) => !cached.mentions.has(raw.id));
-              const added = cached.mentions.filter((user) => !differences.mentions.has(user.id));
-              if (MAX_MENTIONS <= removed.length) {
-                removedText.push(`${removed.length.toLocaleString()} Users`);
-              } else {
-                removedText.push(removed.map((user: Structures.User) => `**${Markup.codestring(String(user))}**`).join(', '));
-              }
-              if (MAX_MENTIONS <= added.length) {
-                addedText.push(`${added.length.toLocaleString()} Users`);
-              } else {
-                addedText.push(added.map((user) => `**${Markup.codestring(String(user))}**`).join(', '));
-              }
-            }
-            embed.addField('Mentions', [
-              `- ${removedText.join(', ') || 'None'}`,
-              `+ ${addedText.join(', ') || 'None'}`,
+
+          if (!newUrls.every((url) => oldUrls.includes(url))) {
+            embed.addField('Attachments', [
+              `- ${oldUrls.join(', ') || 'None'}`,
+              `+ ${newUrls.join(', ') || 'None'}`,
             ].join('\n'));
           }
-        } else {
-          embed.setDescription('No Changes');
+        }
+
+        if (differences.embeds) {
+          embed.addField('Embeds', `- ${old.embeds.length} Embeds to ${message.embeds.length} Embeds`, true);
+        }
+
+        if (message.flags !== old.flags) {
+          // assume its the embed hiding since that's the only one that can be updated by users (message replies cant be updated)
+          // bot messages (a webhook message) can have a flag update though
+          let text: string;
+          const hadSuppressEmbeds = old.hasFlagSuppressEmbeds;
+          const hasSuppressEmbeds = message.hasFlagSuppressEmbeds;
+          if (hadSuppressEmbeds && !hasSuppressEmbeds) {
+            text = '- Unsuppressed Embeds';
+          } else if (!hadSuppressEmbeds && hasSuppressEmbeds) {
+            text = '- Suppressed Embeds';
+          } else {
+            text = `${old.flags} -> ${message.flags}`;
+          }
+          embed.addField('Flags', text, true);
+        }
+
+        if (message.mentionEveryone !== old.mentionEveryone || differences.mentions) {
+          const removedText: Array<string> = [];
+          const addedText: Array<string> = [];
+
+          // maybe check content for @here?
+          if (message.mentionEveryone !== old.mentionEveryone) {
+            if (message.mentionEveryone) {
+              addedText.push('Everyone');
+            } else {
+              removedText.push('Everyone');
+            }
+          }
+
+          if (differences.mentions) {
+            const removed = old.mentions.filter((memberOrUser) => !message.mentions.has(memberOrUser.id));
+            const added = message.mentions.filter((memberOrUser) => !old.mentions.has(memberOrUser.id));
+
+            if (MAX_MENTIONS <= removed.length) {
+              removedText.push(`${removed.length.toLocaleString()} Users`);
+            } else {
+              removedText.push(removed.map((memberOrUser) => `**${Markup.codestring(String(memberOrUser))}**`).join(', '));
+            }
+
+            if (MAX_MENTIONS <= added.length) {
+              addedText.push(`${added.length.toLocaleString()} Users`);
+            } else {
+              addedText.push(added.map((memberOrUser) => `**${Markup.codestring(String(memberOrUser))}**`).join(', '));
+            }
+          }
+
+          embed.addField('Mentions', [
+            `- ${removedText.join(', ') || 'None'}`,
+            `+ ${addedText.join(', ') || 'None'}`,
+          ].join('\n'));
         }
       } else {
-        // Message Embed was Updated
-        embed.setDescription('Embed Update');
+        // old wasn't in cache
+        embed.setDescription('Message was too old to get differences for');
       }
 
       let timestamp: moment.Moment;
       if (message) {
-        timestamp = moment(message.timestampUnix);
+        timestamp = createTimestampMomentFromGuild(message.timestampUnix, guildId);
       } else {
-        timestamp = moment(Snowflake.timestamp(messageId));
+        timestamp = createTimestampMomentFromGuild(Snowflake.timestamp(messageId), guildId);
       }
       embed.addField('Information', [
         `**Channel**: <#${channelId}>`,
-        `**Created**: ${timestamp.fromNow()} ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`,
+        `**Created**: ${timestamp.fromNow()}`,
+        `**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`,
         `**Link**: ${Markup.url(messageId, DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(guildId, channelId, messageId))}`,
       ].join('\n'));
     }; break;
     case ClientEvents.USERS_UPDATE: {
-      const { cached: user } = event;
-      const { differences, shard } = event.payload;
+      const { old, user } = event.cached;
+      const { differences } = event.payload;
+
+      {
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
+        embed.setFooter(`User Updated • ${timestamp}`);
+      }
 
       createUserEmbed(user, embed);
       embed.setColor(EmbedColors.LOG_UPDATE);
 
-      {
-        const timestamp = moment(happened).format(DateMomentLogFormat);
-        embed.setFooter(`User Updated • ${timestamp}`);
-      }
-
       embed.setDescription(user.mention);
       if (differences) {
         const description: Array<string> = [];
-        const oldUser = new Structures.User(shard, {
-          ...user.toJSON(),
-          avatar: differences.avatar,
-          discriminator: differences.discriminator,
-          public_flags: differences.publicFlags,
-        });
 
         if (differences.avatar !== undefined) {
           if (differences.avatar && user.avatar) {
@@ -1551,7 +1719,7 @@ export function createLogPayload(
           const removed: Array<string> = [];
           for (let key in DiscordUserFlagsText) {
             const flag = parseInt(key) as DiscordUserFlags;
-            const oldHas = oldUser.hasFlag(flag);
+            const oldHas = old.hasFlag(flag);
             const newHas = user.hasFlag(flag);
             if (oldHas && !newHas) {
               removed.push(`**${Markup.codestring(DiscordUserFlagsText[flag])}**`);
@@ -1572,11 +1740,13 @@ export function createLogPayload(
       }
     }; break;
     case ClientEvents.VOICE_STATE_UPDATE: {
-      const { cached } = event;
-      const { differences, leftChannel, shard, voiceState } = event.payload;
+      const { old, voiceState } = event.cached;
+      const { differences, leftChannel, shard } = event.payload;
 
-      createUserEmbed(voiceState.member, embed);
-      embed.setDescription(voiceState.member.mention);
+      if (voiceState.member) {
+        createUserEmbed(voiceState.member, embed);
+        embed.setDescription(voiceState.member.mention);
+      }
 
       {
         let text: string;
@@ -1599,7 +1769,7 @@ export function createLogPayload(
           text = 'Joined Voice';
         }
 
-        const timestamp = moment(happened).format(DateMomentLogFormat);
+        const timestamp = createTimestampStringFromGuild(happened, guildId);
         embed.setFooter(`${text} • ${timestamp}`);
       }
 
@@ -1646,9 +1816,9 @@ export function createLogPayload(
           } else {
             oldChannelName = `<#${differences.channelId}>`;
           }
-  
+
           embed.setDescription([
-            voiceState.member.mention + '\n',
+            ((voiceState.member) ? voiceState.member.mention : voiceState.userId) + '\n',
             `- Disconnected from ${oldChannelName}`,
           ].join('\n'));
         } else {
@@ -1662,13 +1832,13 @@ export function createLogPayload(
               oldChannelName = `<#${differences.channelId}>`;
             }
 
-            if (cached.channelId) {
+            if (voiceState.channelId) {
               let channelName: string;
-              if (shard.channels.has(cached.channelId)) {
-                const channel = shard.channels.get(cached.channelId) as Structures.Channel;
+              if (shard.channels.has(voiceState.channelId)) {
+                const channel = shard.channels.get(voiceState.channelId) as Structures.Channel;
                 channelName = `**${Markup.codestring(channel.toString())}**`;
               } else {
-                channelName = `<#${cached.channelId}>`;
+                channelName = `<#${voiceState.channelId}>`;
               }
 
               if (differences.sessionId) {
@@ -1680,13 +1850,13 @@ export function createLogPayload(
               // disconnected
             }
           } else if (differences.sessionId) {
-            if (cached.channelId) {
+            if (voiceState.channelId) {
               let channelName: string;
-              if (shard.channels.has(cached.channelId)) {
-                const channel = shard.channels.get(cached.channelId) as Structures.Channel;
+              if (shard.channels.has(voiceState.channelId)) {
+                const channel = shard.channels.get(voiceState.channelId) as Structures.Channel;
                 channelName = `**${Markup.codestring(channel.toString())}**`;
               } else {
-                channelName = `<#${cached.channelId}>`;
+                channelName = `<#${voiceState.channelId}>`;
               }
 
               description.push(`- Rejoined ${channelName} on a different device`);
@@ -1698,10 +1868,10 @@ export function createLogPayload(
           if (shouldLogMuteDeaf) {
             const text: Array<string> = [];
             if (differences.deaf !== undefined) {
-              text.push((cached.deaf) ? 'Deafened' : 'Undeafened');
+              text.push((voiceState.deaf) ? 'Deafened' : 'Undeafened');
             }
             if (differences.mute !== undefined) {
-              text.push((cached.mute) ? 'Muted' : 'Unmuted');
+              text.push((voiceState.mute) ? 'Muted' : 'Unmuted');
             }
             if (text.length) {
               description.push(`- Server ${text.join(' and ')} Themselves`);
@@ -1715,10 +1885,10 @@ export function createLogPayload(
           {
             const text: Array<string> = [];
             if (differences.selfDeaf !== undefined) {
-              text.push((cached.selfDeaf) ? 'Deafened' : 'Undeafened');
+              text.push((voiceState.selfDeaf) ? 'Deafened' : 'Undeafened');
             }
             if (differences.selfMute !== undefined) {
-              text.push((cached.selfMute) ? 'Muted' : 'Unmuted');
+              text.push((voiceState.selfMute) ? 'Muted' : 'Unmuted');
             }
             if (text.length) {
               description.push(`- ${text.join(' and ')} Themselves`);
@@ -1728,10 +1898,10 @@ export function createLogPayload(
           {
             const text: Array<string> = [];
             if (differences.selfStream !== undefined) {
-              text.push(`${(cached.selfStream) ? 'Started' : 'Stopped'} using Go Live`);
+              text.push(`${(voiceState.selfStream) ? 'Started' : 'Stopped'} using Go Live`);
             }
             if (differences.selfVideo !== undefined) {
-              text.push(`${(cached.selfVideo) ? 'Started' : 'Stopped'} Streaming Video`);
+              text.push(`${(voiceState.selfVideo) ? 'Started' : 'Stopped'} Streaming Video`);
             }
             if (text.length) {
               description.push(`- ${text.join(' and ')}`);
@@ -1750,28 +1920,28 @@ export function createLogPayload(
             embed.addField('Changes', description.join('\n'));
           }
         }
-      } else if (cached.channelId) {
+      } else if (voiceState.channelId) {
         let channelName: string;
-        if (shard.channels.has(cached.channelId)) {
-          const channel = shard.channels.get(cached.channelId) as Structures.Channel;
+        if (shard.channels.has(voiceState.channelId)) {
+          const channel = shard.channels.get(voiceState.channelId) as Structures.Channel;
           channelName = `**${Markup.codestring(channel.toString())}**`;
         } else {
-          channelName = `<#${cached.channelId}>`;
+          channelName = `<#${voiceState.channelId}>`;
         }
 
         const description: Array<string> = [
-          voiceState.member.mention + '\n',
+          ((voiceState.member) ? voiceState.member.mention : voiceState.userId) + '\n',
           `- Joined ${channelName}`,
         ];
         {
           const text: Array<string> = [];
-          if (cached.selfDeaf) {
+          if (voiceState.selfDeaf) {
             text.push('Self Deafened');
           }
-          if (cached.selfMute) {
+          if (voiceState.selfMute) {
             text.push('Self Muted');
           }
-          if (cached.selfVideo) {
+          if (voiceState.selfVideo) {
             text.push('Streaming Video');
           }
           if (text.length) {
@@ -1911,7 +2081,7 @@ export function findEventsForMemberRoleUpdate(
       if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
         return false;
       }
-      const { differences, member } = event.payload;
+      const { member, old } = event.cached;
       if (auditLog.targetId !== member.id) {
         return false;
       }
@@ -1943,21 +2113,23 @@ export function findEventsForMemberRoleUpdate(
         }
       }
       // check to see if the differences and member match up to the audit log
-      const cachedRoles = event.cached.roles;
-      return differences && differences.roles && cachedRoles && auditLog.changes.every((change) => {
-        switch (change.key) {
-          case AuditLogChangeKeys.ROLES_ADD: {
-            return change.newValue.every((raw: {id: string, name: string}) => {
-              return !differences.roles.includes(raw.id) && cachedRoles.includes(raw.id);
-            });
-          };
-          case AuditLogChangeKeys.ROLES_REMOVE: {
-            return change.newValue.every((raw: {id: string, name: string}) => {
-              return differences.roles.includes(raw.id) && !cachedRoles.includes(raw.id);
-            });
-          };
-        }
-      });
+      if (member.hasDifference('roles', old._roles)) {
+        return auditLog.changes.every((change) => {
+          switch (change.key) {
+            case AuditLogChangeKeys.ROLES_ADD: {
+              return change.newValue.every((raw: {id: string, name: string}) => {
+                return !old.roles.has(raw.id) && member.roles.has(raw.id);
+              });
+            };
+            case AuditLogChangeKeys.ROLES_REMOVE: {
+              return change.newValue.every((raw: {id: string, name: string}) => {
+                return old.roles.has(raw.id) && !member.roles.has(raw.id);
+              });
+            };
+          }
+        });
+      }
+      return false;
     });
   }
   return [];
@@ -2021,31 +2193,44 @@ export function findEventsForMemberUpdate(
 
       // putting it in a switch statement to please typescript
       switch (event.name) {
-        case ClientEvents.GUILD_MEMBER_UPDATE:
-        case ClientEvents.VOICE_STATE_UPDATE: {
-          const { cached } = event;
-          const { differences } = event.payload;
-          if (differences) {
-            // this doesnt work with some voice mute/deafens since a nick change could be grouped up with it..
-            const matchesChanges = auditLog.changes.every((change) => {
-              if (!(change.key in differences)) {
-                return false;
-              }
-              // check differences[key] to the change old value
-              if (change.oldValue !== undefined && change.oldValue !== differences[change.key]) {
-                return false;
-              }
-              // nick clear
-              if (change.newValue === undefined) {
-                return !(cached as any)[change.key];
-              }
-              // check the member[key] to the change new value
-              // newValue can be undefined, like a nick clear
-              return (cached as any)[change.key] === change.newValue;
-            });
-            if (matchesChanges) {
-              events.push(event);
+        case ClientEvents.GUILD_MEMBER_UPDATE: {
+          const { member, old } = event.cached;
+
+          const matchesChanges = auditLog.changes.every((change) => {
+            // check old object value
+            if (change.oldValue !== undefined && old.hasDifference(change.key, change.oldValue)) {
+              return false;
             }
+
+            // newValue can be undefined, like a nick clear
+            if (change.newValue === undefined) {
+              // check nick
+              return !!member._getFromSnake(change.key) === !!change.newValue;
+            } else {
+              return !member.hasDifference(change.key, change.newValue);
+            }
+          });
+          if (matchesChanges) {
+            events.push(event);
+          }
+        }; break;
+        case ClientEvents.VOICE_STATE_UPDATE: {
+          const { old, voiceState } = event.cached;
+
+          // this doesnt work with some voice mute/deafens since a nick change could be grouped up with it..
+          // very unlikely since only bots can do that
+          const matchesChanges = auditLog.changes.every((change) => {
+            // check old object value (would not be there if the person just joined voice)
+            if (old) {
+              if (change.oldValue !== undefined && old.hasDifference(change.key, change.oldValue)) {
+                return false;
+              }
+            }
+
+            return !voiceState.hasDifference(change.key, change.newValue);
+          });
+          if (matchesChanges) {
+            events.push(event);
           }
         }; break;
       }
@@ -2108,6 +2293,75 @@ export function findEventsForMessageBulkDelete(
         // amount to options
         return amount <= auditLog.options.count;
       }
+      return false;
+    });
+  }
+  return [];
+}
+
+
+export function findEventsForRoleCreate(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queue = storage.queues.get(GuildLoggerTypes.ROLES);
+  if (queue) {
+    return queue.filter((event) => {
+      if (event.name !== ClientEvents.GUILD_ROLE_CREATE) {
+        return false;
+      }
+      // if audit log was created before our event, ignore
+      if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+        return false;
+      }
+      return event.payload.role.id === auditLog.targetId;
+    });
+  }
+  return [];
+}
+
+
+export function findEventsForRoleDelete(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queue = storage.queues.get(GuildLoggerTypes.ROLES);
+  if (queue) {
+    return queue.filter((event) => {
+      if (event.name !== ClientEvents.GUILD_ROLE_DELETE) {
+        return false;
+      }
+      // if audit log was created before our event, ignore
+      if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+        return false;
+      }
+      return event.payload.roleId === auditLog.targetId;
+    });
+  }
+  return [];
+}
+
+
+export function findEventsForRoleUpdate(
+  auditLog: Structures.AuditLog,
+  storage: GuildLogStorage,
+): Array<GuildLoggingEventItem> {
+  const queue = storage.queues.get(GuildLoggerTypes.ROLES);
+  if (queue) {
+    return queue.filter((event) => {
+      if (event.name !== ClientEvents.GUILD_ROLE_UPDATE) {
+        return false;
+      }
+      // if audit log was created before our event, ignore
+      if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
+        return false;
+      }
+      const { differences, role } = event.payload;
+      if (role.id !== auditLog.targetId) {
+        return false;
+      }
+
+      // check differences against the changes
       return false;
     });
   }

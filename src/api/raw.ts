@@ -278,6 +278,7 @@ export async function editGuildSettings(
     allowlist: options.allowlist,
     blocklist: options.blocklist,
     prefixes: options.prefixes,
+    timezone: options.timezone,
   };
   const params = {guildId};
   return request(context, {
@@ -1333,6 +1334,26 @@ export async function imageToolsGifSeeSaw(
 }
 
 
+export async function imageToolsGifSpeed(
+  context: RequestContext,
+  options: RestOptions.ImageToolsGifSpeed,
+): Promise<Response> {
+  const query = {
+    loop: options.loop,
+    speed: options.speed,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_GIF_SPEED,
+    },
+  });
+}
+
+
 export async function imageToolsResize(
   context: RequestContext,
   options: RestOptions.ImageToolsResize,
@@ -1359,6 +1380,7 @@ export async function imageToolsRotate(
   options: RestOptions.ImageToolsRotate,
 ): Promise<Response> {
   const query = {
+    crop: options.crop,
     degrees: options.degrees,
     url: options.url,
   };
@@ -1667,7 +1689,7 @@ export async function searchSteamProfile(
 export async function searchUrban(
   context: RequestContext,
   options: RestOptions.SearchUrban,
-): Promise<any> {
+): Promise<RestResponsesRaw.SearchUrbanDictionary> {
   const query = {
     query: options.query,
   };
@@ -1684,7 +1706,7 @@ export async function searchUrban(
 export async function searchUrbanRandom(
   context: RequestContext,
   options: RestOptions.SearchUrbanRandom = {},
-): Promise<any> {
+): Promise<RestResponsesRaw.SearchUrbanDictionary> {
   return request(context, {
     route: {
       method: HTTPMethods.GET,

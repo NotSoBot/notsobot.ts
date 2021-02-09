@@ -4,12 +4,19 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import {
   CommandTypes,
-  DateOptions,
+  DateMomentLogFormat,
   PresenceStatusColors,
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../constants';
-import { Paginator, Parameters, createUserEmbed, editOrReply, toTitleCase } from '../../utils';
+import {
+  Paginator,
+  Parameters,
+  createTimestampMomentFromGuild,
+  createUserEmbed,
+  editOrReply,
+  toTitleCase,
+} from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -99,9 +106,18 @@ export default class PlayingCommand extends BaseCommand {
 
           {
             const description: Array<string> = [];
-            description.push(`**Discord**: ${user.createdAt.toLocaleString('en-US', DateOptions)}`);
-            if (member.joinedAt) {
-              description.push(`**Guild**: ${member.joinedAt.toLocaleString('en-US', DateOptions)}`);
+            {
+              const timestamp = createTimestampMomentFromGuild(user.createdAtUnix, context.guildId);
+              description.push(`**Discord**: ${timestamp.fromNow()}`);
+              description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+            }
+            if (member.joinedAtUnix) {
+              {
+                const timestamp = createTimestampMomentFromGuild(member.joinedAtUnix, context.guildId);
+                description.push(`**Guild**: ${timestamp.fromNow()}`);
+                description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+              }
+
               if (member.guild) {
                 const position = member.guild.members.sort((x, y) => x.joinedAtUnix - y.joinedAtUnix).findIndex((m) => m.id === member.id) + 1;
                 description.push(`**Join Position**: ${position.toLocaleString()}/${member.guild.members.length.toLocaleString()}`);
@@ -113,8 +129,10 @@ export default class PlayingCommand extends BaseCommand {
           {
             const description: Array<string> = [];
 
-            if (member.premiumSince) {
-              description.push(`**Boosting Since**: ${member.premiumSince.toLocaleString('en-US', DateOptions)}`);
+            if (member.premiumSinceUnix) {
+              const timestamp = createTimestampMomentFromGuild(member.premiumSinceUnix, context.guildId);
+              description.push(`**Boosting Since**: ${timestamp.fromNow()}`);
+              description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
             }
             if (member.nick) {
               description.push(`**Nickname**: ${member.nick}`);

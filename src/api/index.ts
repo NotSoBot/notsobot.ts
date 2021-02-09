@@ -470,7 +470,7 @@ export async function imageManipulationMirrorRight(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
 ) {
-  return raw.imageManipulationMirrorLeft(context, options);
+  return raw.imageManipulationMirrorRight(context, options);
 }
 
 
@@ -655,6 +655,14 @@ export async function imageToolsGifSeeSaw(
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageToolsGifSeeSaw(context, options);
+}
+
+
+export async function imageToolsGifSpeed(
+  context: RequestContext,
+  options: RestOptions.ImageToolsGifSpeed,
+) {
+  return raw.imageToolsGifSpeed(context, options);
 }
 
 

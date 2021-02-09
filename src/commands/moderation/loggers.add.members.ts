@@ -23,7 +23,7 @@ export default class LoggersAddMembersCommand extends LoggersAddBaseCommand {
           `${COMMAND_NAME} -in logs`,
         ],
         type: CommandTypes.MODERATION,
-        usage: '(-channel <text-channel:id|mention|name>) (-in <category-channel:idmention|name>)',
+        usage: '(-channel <text-channel:id|mention|name>) (-in <category-channel:id|mention|name>)',
       },
     });
   }

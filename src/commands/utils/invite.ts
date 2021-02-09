@@ -22,6 +22,6 @@ export default class InviteCommand extends BaseCommand {
   }
 
   run(context: Command.Context) {
-    return editOrReply(context, '<https://beta.notsobot.com/invite');
+    return editOrReply(context, '<https://beta.notsobot.com/invite>');
   }
 }

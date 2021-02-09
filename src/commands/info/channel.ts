@@ -4,9 +4,9 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
 
-import { ChannelTypesText, CommandTypes, DateOptions } from '../../constants';
+import { ChannelTypesText, CommandTypes, DateMomentLogFormat } from '../../constants';
 import { GuildChannelsStored } from '../../stores/guildchannels';
-import { Parameters, editOrReply } from '../../utils';
+import { Parameters, createTimestampMomentFromGuild, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -64,27 +64,39 @@ export default class ChannelCommand extends BaseCommand {
     const embed = new Embed();
     embed.setAuthor(`${channel}`, channel.iconUrl || undefined, channel.jumpLink);
     embed.setColor(Colors.BLURPLE);
-    if (channel.topic) {
-      embed.setDescription(channel.topic);
+
+    {
+      const description: Array<string> = [];
+      description.push(`${channel.mention} ${Markup.spoiler(`(${channel.id})`)}`);
+      if (channel.topic) {
+        description.push('');
+        description.push(channel.topic);
+      }
+      embed.setDescription(description.join('\n'));
     }
 
     {
       const description: Array<string> = [];
 
-      description.push(`**Created**: ${channel.createdAt.toLocaleString('en-US', DateOptions)}`);
+      {
+        const timestamp = createTimestampMomentFromGuild(channel.createdAtUnix, context.guildId);
+        description.push(`**Created**: ${timestamp.fromNow()}`);
+        description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+      }
+
       if (channels) {
         const position = channels.sort((x, y) => parseInt(x.id) - parseInt(y.id)).findIndex((c) => c.id === channel.id) + 1;
         description.push(`**Created Position**: ${position}/${channels.length}`);
       }
       if (channel.guildId) {
-        description.push(`**Guild**: \`${channel.guildId}\``);
+        description.push(`**Guild Id**: \`${channel.guildId}\``);
       }
-      description.push(`**Id**: \`${channel.id}\``);
       if (channel.isManaged) {
         description.push(`**Managed**: Yes`);
       }
       if (channel.parentId) {
         description.push(`**Parent**: <#${channel.parentId}>`);
+        description.push(`**->** ${Markup.spoiler(`(${channel.parentId})`)}`);
       }
       if (channel.position !== -1) {
         description.push(`**Position**: ${channel.position.toLocaleString()}`);
@@ -98,11 +110,14 @@ export default class ChannelCommand extends BaseCommand {
       const description: Array<string> = [];
 
       if (channel.lastMessageId) {
-        const lastMessageTimestamp = new Date(Snowflake.timestamp(channel.lastMessageId));
-        description.push(`**Last Message**: ${lastMessageTimestamp.toLocaleString('en-US', DateOptions)}`);
+        const timestamp = createTimestampMomentFromGuild(Snowflake.timestamp(channel.lastMessageId), context.guildId);
+        description.push(`**Last Message**: ${timestamp.fromNow()}`);
+        description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
       }
-      if (channel.lastPinTimestamp) {
-        description.push(`**Last Pin**: ${channel.lastPinTimestamp.toLocaleString('en-US', DateOptions)}`);
+      if (channel.lastPinTimestampUnix) {
+        const timestamp = createTimestampMomentFromGuild(channel.lastPinTimestampUnix, context.guildId);
+        description.push(`**Last Pin**: ${timestamp.fromNow()}`);
+        description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
       }
       if (channel.isGuildChannel) {
         description.push(`**NSFW**: ${(channel.nsfw) ? 'Yes': 'No'}`);

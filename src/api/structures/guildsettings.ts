@@ -31,6 +31,7 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.NAME,
   NotSoApiKeys.PREFIXES,
   NotSoApiKeys.PREMIUM_TYPE,
+  NotSoApiKeys.TIMEZONE,
 ]);
 
 export class GuildSettings extends BaseStructure {
@@ -46,6 +47,7 @@ export class GuildSettings extends BaseStructure {
   id: string = '';
   name: string = '';
   premiumType: GuildPremiumTypes = GuildPremiumTypes.NONE;
+  timezone: string | null = null;
 
   constructor(data: Structures.BaseStructureData) {
     super();
