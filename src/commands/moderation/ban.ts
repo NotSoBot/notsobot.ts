@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../constants';
-import { Parameters, createTimestampMomentFromGuild, createUserEmbed } from '../../utils';
+import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -25,6 +25,7 @@ export default class BanCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      aliases: ['hackban'],
       args: [
         {name: 'clean', default: 1, type: Parameters.days},
       ],
@@ -40,7 +41,7 @@ export default class BanCommand extends BaseCommand {
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
         ],
         type: CommandTypes.MODERATION,
-        usage: '...?<user:id|mention> <reason (string)> (-clean <days>)',
+        usage: '...?<user:id|mention> <reason:string> (-clean <days>)',
       },
       permissionsClient: [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS],
       permissions: [Permissions.BAN_MEMBERS],
@@ -56,7 +57,7 @@ export default class BanCommand extends BaseCommand {
     if (args.payload) {
       return context.editOrReply('⚠ Couldn\'t find any users. (Use Mentions or User IDs)');
     }
-    return context.editOrReply('⚠ Provide some users');
+    return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -193,6 +194,6 @@ export default class BanCommand extends BaseCommand {
       }
     }
 
-    return context.editOrReply({embed});
+    return editOrReply(context, {embed});
   }
 }

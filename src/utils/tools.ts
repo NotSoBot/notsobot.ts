@@ -34,16 +34,6 @@ export function createColorUrl(color: number): string {
 }
 
 
-export function createUserEmbed(user: Structures.User, embed: Embed = new Embed()) {
-  embed.setAuthor(
-    user.toString(),
-    user.avatarUrlFormat(null, {size: 1024}),
-    user.jumpLink,
-  );
-  return embed;
-}
-
-
 export function createTimestampMoment(timestamp: number | string, timezone: string = Timezones.EST): moment.Moment {
   return moment(timestamp).tz(timezone);
 }
@@ -66,8 +56,18 @@ export function createTimestampStringFromGuild(timestamp: number | string, guild
 }
 
 
-export function createUserString(userId: string = '1', user?: Structures.User | null): string {
-  return `<@!${userId}> ${Markup.spoiler(`(${Markup.escape.all(String(user || 'Unknown?'))})`)}`;
+export function createUserEmbed(user: Structures.User, embed: Embed = new Embed()) {
+  embed.setAuthor(
+    user.toString(),
+    user.avatarUrlFormat(null, {size: 1024}),
+    user.jumpLink,
+  );
+  return embed;
+}
+
+
+export function createUserString(userId: string = '1', user?: Structures.User | null, name: string = 'Unknown?'): string {
+  return `<@!${userId}> ${Markup.spoiler(`(${Markup.escape.all(String(user || name))})`)}`;
 }
 
 
@@ -158,12 +158,19 @@ export function findImageUrlInAttachment(
 
 export function findImageUrlInEmbed(
   embed: Structures.MessageEmbed,
+  ignoreGIFV: boolean = false,
 ): null | string {
-  if (embed.type === MessageEmbedTypes.GIFV) {
+  if (!ignoreGIFV && embed.type === MessageEmbedTypes.GIFV) {
     // try to use our own unfurler for the url since it'll use the thumbnail
+    // imgur returns the .gif image in thumbnail, so check if that ends with .gif
+    const url = findImageUrlInEmbed(embed, true);
+    if (url && url.endsWith('.gif')) {
+      return url;
+    }
     if (embed.url) {
       return embed.url;
     }
+    return null;
   }
   const { image } = embed;
   if (image && image.proxyUrl && (image.height || image.width)) {

@@ -220,6 +220,9 @@ export default class UsersCommand extends BaseCommand {
           const activity = presence.activity;
           if (activity) {
             const description: Array<string> = [];
+            if (activity.buttons && activity.buttons.length) {
+              description.push(`**Buttons**: ${activity.buttons.map((button) => Markup.codestring(button)).join(', ')}`);
+            }
             if (activity.emoji) {
               let emoji: string;
               if (activity.emoji.id) {

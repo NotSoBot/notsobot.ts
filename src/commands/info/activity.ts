@@ -113,6 +113,9 @@ export default class ActivityCommand extends BaseCommand {
 
             {
               const description: Array<string> = [];
+              if (activity.buttons && activity.buttons.length) {
+                description.push(`**Buttons**: ${activity.buttons.map((button) => Markup.codestring(button)).join(', ')}`);
+              }
               if (activity.emoji) {
                 let emoji: string;
                 if (activity.emoji.id) {

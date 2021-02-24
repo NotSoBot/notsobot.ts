@@ -44,10 +44,17 @@ export namespace RestOptions {
     responseUrl?: string,
   }
 
+
   export interface DeleteGuildLogger {
     channelId: string,
     type: GuildLoggerTypes,
   }
+
+  export interface DeleteTag {
+    guildId?: string,
+    name: string,
+  }
+
 
   export interface EditGuildSettings {
     allowlist?: Array<{
@@ -60,6 +67,25 @@ export namespace RestOptions {
     }>,
     prefixes?: Array<string>,
     timezone?: string,
+  }
+
+
+  export interface FetchGuildTags {
+    after?: string,
+    before?: string,
+    limit?: number,
+  }
+
+  export interface FetchTag {
+    guildId?: string,
+    name: string,
+  }
+
+  export interface FetchUserTags {
+    after?: string,
+    before?: string,
+    guildId?: string,
+    limit?: number,
   }
 
 
@@ -172,6 +198,12 @@ export namespace RestOptions {
 
   export interface PutGuildSettings {
     icon: null | string,
+    name: string,
+  }
+
+  export interface PutTag {
+    content: string,
+    guildId?: string,
     name: string,
   }
 
@@ -290,6 +322,11 @@ export namespace RestOptions {
       usage: string,
     }>,
   }
+
+
+  export interface UtilitiesScreenshot {
+    url: string,
+  }
 }
 
 
@@ -336,11 +373,26 @@ export namespace RestResponsesRaw {
   export type DeleteGuildLogger = Array<GuildLogger>;
   export type DeleteGuildPrefix = Array<GuildPrefix>;
 
+  export type DeleteTag = null;
+
   export type EditGuildSettings = GuildSettings;
 
   export type FetchGuildSettings = GuildSettings;
+
+  export interface FetchGuildTags {
+    count: number,
+    tags: Array<Tag>,
+  }
+
+  export type FetchTag = Tag;
   export type FetchUser = User;
 
+  export interface FetchUserTags {
+    count: number,
+    tags: Array<Tag>,
+  }
+
+  export type PutTag = Tag;
   export type PutUser = User;
 
 
@@ -1083,6 +1135,19 @@ export namespace RestResponsesRaw {
       view_count: number,
     },
     type: YoutubeResultTypes.VIDEO,
+  }
+
+  export interface Tag {
+    content: string,
+    created: string,
+    edited: string | null,
+    global: boolean,
+    guild_id: string | null,
+    id: string,
+    name: string,
+    nsfw: boolean,
+    user: User,
+    uses: number,
   }
 
   export interface User {

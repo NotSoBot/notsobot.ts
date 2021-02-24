@@ -47,19 +47,34 @@ export default class HelpCommand extends BaseCommand {
       type: (content: string, context: Command.Context) => {
         if (content) {
           const commands: Array<Command.Command> = [];
+          const commandsWithPrefix: Array<Command.Command> = [];
     
           const insensitive = content.toLowerCase().replace(/\s\s+/g, ' ');
+          const insensitiveAsPrefix = insensitive + ' ';
+
           for (let command of context.commandClient.commands) {
-            for (let name of command.names) {
-              if (name.startsWith(insensitive)) {
-                commands.push(command);
-                break;
-              }
+            if (command.names.includes(insensitive)) {
+              commandsWithPrefix.push(command);
+              continue;
+            }
+            if (command.names.some((name) => name.startsWith(insensitiveAsPrefix))) {
+              commandsWithPrefix.push(command);
+              continue;
+            }
+            if (command.names.some((name) => name.startsWith(insensitive))) {
+              commands.push(command);
+              continue;
             }
           }
-          return commands.sort((x, y) => {
-            return x.name.localeCompare(y.name);
-          });
+          return [
+            ...commandsWithPrefix.sort((x, y) => {
+              if (x.names.includes(insensitive)) {
+                return -1;
+              }
+              return x.name.localeCompare(y.name);
+            }),
+            ...commands.sort((x, y) => x.name.localeCompare(y.name)),
+          ];
         }
         return null;
       },

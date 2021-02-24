@@ -1,7 +1,8 @@
 import { Command, CommandClient } from 'detritus-client';
 
+import { utilitiesScreenshot } from '../../api';
 import { CommandTypes } from '../../constants';
-import { editOrReply } from '../../utils';
+import { Parameters, imageReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -27,14 +28,16 @@ export default class ScreenshotCommand extends BaseCommand<CommandArgs> {
         type: CommandTypes.TOOLS,
         usage: '<url>',
       },
+      type: Parameters.url,
     });
   }
 
-  onBefore(context: Command.Context) {
-    return context.user.isClientOwner;
+  onBeforeRun(context: Command.Context, args: CommandArgs) {
+    return !!args.url;
   }
 
-  async run(context: Command.Context) {
-
+  async run(context: Command.Context, args: CommandArgs) {
+    const response = await utilitiesScreenshot(context, args);
+    return imageReply(context, response);
   }
 }

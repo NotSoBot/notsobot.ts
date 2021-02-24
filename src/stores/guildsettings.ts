@@ -124,9 +124,10 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       const subscription = cluster.subscribe(ClientEvents.WEBHOOKS_UPDATE, async (event) => {
         const { channelId, guildId, shard } = event;
         if (this.has(guildId)) {
+          const channel = shard.channels.get(channelId);
           const settings = this.get(guildId) as GuildSettings;
           const loggers = settings.loggers.filter((logger) => logger.channelId === channelId);
-          if (loggers.length) {
+          if (loggers.length && channel && channel.canManageWebhooks) {
             try {
               const webhooks = await shard.rest.fetchChannelWebhooks(channelId);
               for (let logger of loggers) {

@@ -49,6 +49,8 @@ export const Api = Object.freeze({
     '/guilds/:guildId/prefixes',
   GUILD_PREFIXES_DELETE:
     '/guilds/:guildId/prefixes/delete',
+  GUILD_TAGS:
+    '/guilds/:guildId/tags',
 
   IMAGE_CREATE_COLOR_HEX:
     '/image/create/:height:x:width:/colors/:hex:.:format:',
@@ -207,12 +209,17 @@ export const Api = Object.freeze({
   SEARCH_YOUTUBE:
     '/search/youtube',
 
+  TAGS:
+    '/tags',
+
   USER:
     '/users/:userId',
   USER_COMMANDS:
     '/users/:userId/commands',
   USER_COMMAND:
     '/users/:userId/commands/:command',
+  USER_TAGS:
+    '/users/:userId/tags',
 
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
@@ -222,6 +229,19 @@ export const Api = Object.freeze({
 export const CDN = Tools.URIEncodeWrap({
   URL: Domains.CDN.slice(0, -1),
 
+  EMOJIS_APPLE: (codepoint: string) =>
+    `/emojis/apple/128x128/${codepoint}.png`,
+  EMOJIS_TWEMOJI: (codepoint: string) =>
+    `/emojis/twemoji/v13.0.1/${codepoint}.svg`,
+
   TWEMOJI_512: (codepoint: string): string =>
     `/twemoji/512x512/${codepoint}.png`,
+  TWEMOJI_SVG: (codepoint: string): string =>
+    `/twemoji/v13.0.1/${codepoint}.svg`,
+});
+
+
+export const CUSTOM = Tools.URIEncodeWrap({
+  STEAM_EMOJI: (name: string): string =>
+    `https://steamcommunity-a.akamaihd.net/economy/emoticon/${name}`,
 });

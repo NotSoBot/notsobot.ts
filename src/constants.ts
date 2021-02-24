@@ -11,23 +11,17 @@ import {
 } from 'detritus-client/lib/constants';
 
 
+
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
+
+
 
 export enum BooleanEmojis {
   NO = '❌',
   YES = '✅',
 };
 
-export const ChannelTypesText: {[key in ChannelTypes]: string} = Object.freeze({
-  [ChannelTypes.BASE]: 'Base Channel',
-  [ChannelTypes.GUILD_TEXT]: 'Guild Text',
-  [ChannelTypes.DM]: 'Direct Message',
-  [ChannelTypes.GUILD_VOICE]: 'Guild Voice',
-  [ChannelTypes.GROUP_DM]: 'Direct Message Group',
-  [ChannelTypes.GUILD_CATEGORY]: 'Guild Category',
-  [ChannelTypes.GUILD_NEWS]: 'Guild News',
-  [ChannelTypes.GUILD_STORE]: 'Guild Store',
-});
+
 
 export enum CommandTypes {
   FUN = 'FUN',
@@ -42,6 +36,8 @@ export enum CommandTypes {
   UTILS = 'UTILS',
 }
 
+
+
 export const DateMomentLogFormat = 'MM/DD/YY, h:mm:ss a z';
 
 export const DateMomentOptions = Object.freeze({
@@ -53,37 +49,13 @@ export const DateOptions = Object.freeze({
 });
 
 
-export const DiscordUserFlagsText: {[key in DiscordUserFlags]: string} = Object.freeze({
-  [DiscordUserFlags.STAFF]: 'Discord Staff',
-  [DiscordUserFlags.PARTNER]: 'Discord Partner',
-  [DiscordUserFlags.HYPESQUAD]: 'HypeSquad Events',
-  [DiscordUserFlags.BUG_HUNTER_LEVEL_1]: 'Discord Bug Hunter',
-  [DiscordUserFlags.MFA_SMS]: 'MFA SMS?',
-  [DiscordUserFlags.PREMIUM_PROMO_DISMISSED]: 'Nitro Promotion Dismissed',
-  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_1]: 'HypeSquad Bravery',
-  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_2]: 'HypeSquad Brilliance',
-  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_3]: 'HypeSquad Balance',
-  [DiscordUserFlags.PREMIUM_EARLY_SUPPORTER]: 'Early Nitro Supporter',
-  [DiscordUserFlags.TEAM_USER]: 'Team Owner Bot',
-  [DiscordUserFlags.SYSTEM]: 'System User',
-  [DiscordUserFlags.HAS_UNREAD_URGENT_MESSAGES]: 'Unread Urgent Message',
-  [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: 'Discord Bug Hunter 2',
-  [DiscordUserFlags.VERIFIED_BOT]: 'Verified Bot',
-  [DiscordUserFlags.VERIFIED_DEVELOPER]: 'Verified Bot Developer',
-});
-
-
 export enum E621Rating {
   EXPLICIT = 'e',
   QUESTIONABLE = 'q',
   SAFE = 's',
 }
 
-export const E621RatingText = Object.freeze({
-  [E621Rating.EXPLICIT]: 'Explicit',
-  [E621Rating.QUESTIONABLE]: 'Questionable',
-  [E621Rating.SAFE]: 'Safe',
-});
+
 
 export enum EmbedBrands {
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
@@ -101,6 +73,8 @@ export enum EmbedBrands {
   YOUTUBE = 'https://cdn.notsobot.com/brands/youtube.png',
 };
 
+
+
 export enum EmbedColors {
   DARK_MESSAGE_BACKGROUND = 3092790,
   DEFAULT = 8684933,
@@ -112,6 +86,21 @@ export enum EmbedColors {
   STEAM_OFFLINE = 9013641,
   STEAM_ONLINE = 5753822,
 };
+
+
+
+export enum EmojiTypes {
+  APPLE = 'apple',
+  EMOJI_ONE = 'emojione',
+  FACEBOOK = 'facebook',
+  GOOGLE = 'google',
+  MICROSOFT = 'microsoft',
+  STEAM = 'steam',
+  TWEMOJI = 'twemoji',
+  TWITCH = 'twitch',
+};
+
+
 
 export enum GoogleCardTypes {
   CALCULATOR = 'CALCULATOR',
@@ -127,7 +116,7 @@ export enum GoogleCardTypes {
   UNKNOWN = 'UNKNOWN',
   WEATHER = 'WEATHER',
   WEB_SNIPPET = 'WEB_SNIPPET',
-}
+};
 
 export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.CALCULATOR,
@@ -141,6 +130,7 @@ export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.WEATHER,
   GoogleCardTypes.WEB_SNIPPET,
 ]);
+
 
 
 export enum GoogleContentVisionSafeSearchAttributes {
@@ -161,10 +151,14 @@ export const GoogleContentVisionSafeSearchAttributeValues = Object.freeze({
   [GoogleContentVisionSafeSearchAttributes.VERY_LIKELY]: 1.00,
 });
 
+
+
 export enum GoogleImageVideoTypes {
   OTHER = 'other',
   YOUTUBE = 'youtube',
 }
+
+
 
 export enum GoogleLocales {
   AFRIKAANS = 'af',
@@ -277,7 +271,7 @@ export enum GoogleLocales {
 
 export const GOOGLE_LOCALES = Object.freeze(Object.values(GoogleLocales));
 
-export const GoogleLocalesText = Object.freeze({
+export const GoogleLocalesText: Record<GoogleLocales, string> = Object.freeze({
   [GoogleLocales.AFRIKAANS]: 'Afrikaans',
   [GoogleLocales.ALBANIAN]: 'Albanian',
   [GoogleLocales.AMHARIC]: 'Amharic',
@@ -386,17 +380,15 @@ export const GoogleLocalesText = Object.freeze({
   [GoogleLocales.ZULU]: 'Zulu',
 });
 
+
+
 export enum LanguageCodes {
   MULTIPLE_LANGUAGES = 'mul',
   PORTUGUESE_PORTUGAL_OTHER = 'pt',
   UNDEFINED = 'und',
-}
+};
 
-export const LanguageCodesText = Object.freeze({
-  [LanguageCodes.MULTIPLE_LANGUAGES]: 'Multiple Languages',
-  [LanguageCodes.PORTUGUESE_PORTUGAL_OTHER]: 'Portuguese, Portugal',
-  [LanguageCodes.UNDEFINED]: 'Undetermined Language',
-});
+
 
 export const GoogleLocaleFromDiscord = Object.freeze({
   [DiscordLocales.ENGLISH_US]: GoogleLocales.ENGLISH,
@@ -405,30 +397,28 @@ export const GoogleLocaleFromDiscord = Object.freeze({
   [DiscordLocales.SWEDISH]: GoogleLocales.SWEDISH,
 });
 
+
+
 export enum GuildAllowlistTypes {
   CHANNEL = 'channel',
   ROLE = 'role',
   USER = 'user',
-}
+};
 
 export enum GuildBlocklistTypes {
   CHANNEL = 'channel',
   ROLE = 'role',
   USER = 'user',
-}
+};
 
 export enum GuildDisableCommandsTypes {
   CHANNEL = 'channel',
   GUILD = 'guild',
   ROLE = 'role',
   USER = 'user',
-}
+};
 
-export const GuildExplicitContentFilterTypeTexts: {[key: string]: string} = Object.freeze({
-  [GuildExplicitContentFilterTypes.DISABLED]: 'Disabled',
-  [GuildExplicitContentFilterTypes.MEMBERS_WITHOUT_ROLES]: 'No Roles',
-  [GuildExplicitContentFilterTypes.ALL_MEMBERS]: 'Everyone',
-});
+
 
 export enum GuildLoggerFlags {
   MESSAGE_CREATE = 1 << 0,
@@ -450,7 +440,8 @@ export enum GuildLoggerFlags {
   GUILD_ROLE_CREATE = 1 << 16,
   GUILD_ROLE_DELETE = 1 << 17,
   GUILD_ROLE_UPDATE = 1 << 18,
-}
+};
+
 
 export enum GuildLoggerTypes {
   MESSAGES = 0,
@@ -460,12 +451,15 @@ export enum GuildLoggerTypes {
   CHANNELS = 4,
   BANS = 5,
   ROLES = 6,
-}
+};
+
 
 export enum GuildPremiumTypes {
   NONE = 0,
   LEVEL_1 = 1,
-}
+};
+
+
 
 export enum ImageEyeTypes {
   BIG = 'BIG',
@@ -486,21 +480,24 @@ export enum ImageEyeTypes {
   SMALL = 'SMALL',
   SPINNER = 'SPINNER',
   SPONGEBOB = 'SPONGEBOB',
-}
+};
+
 
 export enum ImageLegofyPalettes {
   ALL = 'all',
   EFFECTS = 'effects',
   MONO = 'mono',
   TRANSPARENT = 'transparent',
-}
+};
+
+
 
 export enum Mimetypes {
   IMAGE_GIF = 'image/gif',
   IMAGE_JPEG = 'image/jpeg',
   IMAGE_PNG = 'image/png',
   IMAGE_WEBP = 'image/webp',
-}
+};
 
 export const MIMETYPES_SAFE_EMBED = Object.freeze([
   Mimetypes.IMAGE_GIF,
@@ -509,54 +506,7 @@ export const MIMETYPES_SAFE_EMBED = Object.freeze([
   Mimetypes.IMAGE_WEBP,
 ]);
 
-export const PermissionsText = Object.freeze({
-  [String(Permissions.ADD_REACTIONS)]: 'Add Reactions',
-  [String(Permissions.ADMINISTRATOR)]: 'Administrator',
-  [String(Permissions.ATTACH_FILES)]: 'Attach Files',
-  [String(Permissions.BAN_MEMBERS)]: 'Ban Members',
-  [String(Permissions.CHANGE_NICKNAME)]: 'Change Nickname',
-  [String(Permissions.CHANGE_NICKNAMES)]: 'Change Nicknames',
-  [String(Permissions.CONNECT)]: 'Connect',
-  [String(Permissions.CREATE_INSTANT_INVITE)]: 'Create Instant Invite',
-  [String(Permissions.DEAFEN_MEMBERS)]: 'Deafen Members',
-  [String(Permissions.EMBED_LINKS)]: 'Embed Links',
-  [String(Permissions.KICK_MEMBERS)]: 'Kick Members',
-  [String(Permissions.MANAGE_CHANNELS)]: 'Manage Channels',
-  [String(Permissions.MANAGE_EMOJIS)]: 'Manage Emojis',
-  [String(Permissions.MANAGE_GUILD)]: 'Manage Guild',
-  [String(Permissions.MANAGE_MESSAGES)]: 'Manage Messages',
-  [String(Permissions.MANAGE_ROLES)]: 'Manage Roles',
-  [String(Permissions.MANAGE_WEBHOOKS)]: 'Manage Webhooks',
-  [String(Permissions.MENTION_EVERYONE)]: 'Mention Everyone',
-  [String(Permissions.MOVE_MEMBERS)]: 'Move Members',
-  [String(Permissions.MUTE_MEMBERS)]: 'Mute Members',
-  [String(Permissions.NONE)]: 'None',
-  [String(Permissions.PRIORITY_SPEAKER)]: 'Priority Speaker',
-  [String(Permissions.READ_MESSAGE_HISTORY)]: 'Read Message History',
-  [String(Permissions.SEND_MESSAGES)]: 'Send Messages',
-  [String(Permissions.SEND_TTS_MESSAGES)]: 'Text-To-Speech',
-  [String(Permissions.SPEAK)]: 'Speak',
-  [String(Permissions.STREAM)]: 'Go Live',
-  [String(Permissions.USE_EXTERNAL_EMOJIS)]: 'Use External Emojis',
-  [String(Permissions.USE_VAD)]: 'Voice Auto Detect',
-  [String(Permissions.VIEW_AUDIT_LOG)]: 'View Audit Logs',
-  [String(Permissions.VIEW_CHANNEL)]: 'View Channel',
-  [String(Permissions.VIEW_GUILD_ANALYTICS)]: 'View Guild Analytics',
-});
 
-export const PresenceStatusColors: {[key: string]: number} = Object.freeze({
-  [Statuses.ONLINE]: 4437377,
-  [Statuses.DND]: 15746887,
-  [Statuses.IDLE]: 16426522,
-  [Statuses.OFFLINE]: 7634829,
-});
-
-export const PresenceStatusTexts: {[key: string]: string} = Object.freeze({
-  [Statuses.ONLINE]: 'Online',
-  [Statuses.DND]: 'Do Not Disturb',
-  [Statuses.IDLE]: 'Idle',
-  [Statuses.OFFLINE]: 'Offline',
-});
 
 export enum RedditKindTypes {
   COMMENT = 't1',
@@ -565,7 +515,8 @@ export enum RedditKindTypes {
   MESSAGE = 't4',
   SUBREDDIT = 't5',
   AWARD = 't6',
-}
+};
+
 
 export enum RedditSortTypes {
   COMMENTS = 'COMMENTS',
@@ -573,7 +524,8 @@ export enum RedditSortTypes {
   NEW = 'NEW',
   RELEVANCE = 'RELEVANCE',
   TOP = 'TOP',
-}
+};
+
 
 export enum RedditTimeTypes {
   HOUR = 'HOUR',
@@ -582,7 +534,9 @@ export enum RedditTimeTypes {
   MONTH = 'MONTH',
   YEAR = 'YEAR',
   ALL = 'ALL',
-}
+};
+
+
 
 export enum RedisChannels {
   GUILD_ALLOWLIST_UPDATE = 'GUILD_ALLOWLIST_UPDATE',
@@ -592,7 +546,9 @@ export enum RedisChannels {
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
   USER_UPDATE = 'USER_UPDATE',
-}
+};
+
+
 
 export enum Timezones {
   MIT = 'Pacific/Midway',
@@ -626,65 +582,29 @@ export enum Timezones {
   AET = 'Etc/GMT+10',
   SST = 'Etc/GMT+11',
   NST = 'Etc/GMT+12',
-}
+};
 
-export const TimezoneText = Object.freeze({
-  [Timezones.MIT]: 'Midway Islands Time, -11:00',
-  [Timezones.HST]: 'Hawaii Standard Time, -10:00',
-  [Timezones.AST]: 'Alaska Standard Time, -9:00',
-  [Timezones.PST]: 'Pacific Standard Time, -8:00',
-  [Timezones.PNT]: 'Phoenix Standard Time, -7:00',
-  [Timezones.MST]: 'Mountain Standard Time, -7:00',
-  [Timezones.CST]: 'Central Standard Time, -6:00',
-  [Timezones.EST]: 'Eastern Standard Time, -5:00',
-  [Timezones.IET]: 'Indiana Eastern Standard Time, -5:00',
-  [Timezones.PRT]: 'Puetro Rico and US Virgin Islands Time, -4:00',
-  [Timezones.CNT]: 'Canada Newfoundland Time, -3:30',
-  [Timezones.AGT]: 'Argentina Standard Time, -3:00',
-  [Timezones.BET]: 'Brazil Eastern Time, -3:00',
-  [Timezones.CAT]: 'Central African Time, -1:00',
-  [Timezones.GMT]: 'Greenwich Mean Time',
-  [Timezones.ECT]: 'European Central Time, +1:00',
-  [Timezones.EET]: 'Eastern European Time, +2:00',
-  [Timezones.ART]: 'Arabic/Egypt Standard Time, +2:00',
-  [Timezones.EAT]: 'Eastern African Time, +3:00',
-  [Timezones.MET]: 'Middle East Time, +3:30',
-  [Timezones.NET]: 'Near East Time, +4:00',
-  [Timezones.PLT]: 'Pakistan Lahore Time, +5:00',
-  [Timezones.IST]: 'India Standard Time, +5:30',
-  [Timezones.BST]: 'Bangladesh Standard Time, +6:00',
-  [Timezones.VST]: 'Vietnam Standard Time, +7:00',
-  [Timezones.CTT]: 'China Taiwan Time, +8:00',
-  [Timezones.JST]: 'Japan Standard Time, +9:00',
-  [Timezones.ACT]: 'Australia Central Time, +9:30',
-  [Timezones.AET]: 'Australia Eastern Time, +10:00',
-  [Timezones.SST]: 'Solomon Standard Time, +11:00',
-  [Timezones.NST]: 'New Zealand Standard Time, +12:00',
-});
+
 
 export enum UserFlags {
   NONE = 0,
   OWNER = 1 << 0,
-}
+};
+
 
 export enum UserPremiumTypes {
   NONE = 0,
-}
+};
 
-export const VerificationLevelTexts: {[key: string]: string} = Object.freeze({
-  [VerificationLevels.NONE]: 'None',
-  [VerificationLevels.LOW]: 'Low',
-  [VerificationLevels.MEDIUM]: 'Medium',
-  [VerificationLevels.HIGH]: 'High',
-  [VerificationLevels.VERY_HIGH]: 'Very High',
-});
+
 
 export enum YoutubeResultTypes {
   CHANNEL = 0,
   VIDEO = 1,
   MOVIE = 2,
   PLAYLIST = 3,
-}
+};
+
 
 
 export const PERMISSIONS_ADMIN = Object.freeze([
@@ -702,6 +622,7 @@ export const PERMISSIONS_ADMIN = Object.freeze([
   Permissions.VIEW_GUILD_ANALYTICS,
 ]);
 
+
 export const PERMISSIONS_TEXT = Object.freeze([
   Permissions.ADD_REACTIONS,
   Permissions.ATTACH_FILES,
@@ -714,6 +635,7 @@ export const PERMISSIONS_TEXT = Object.freeze([
   Permissions.USE_EXTERNAL_EMOJIS,
   Permissions.VIEW_CHANNEL,
 ]);
+
 
 export const PERMISSIONS_VOICE = Object.freeze([
   Permissions.CONNECT,
@@ -728,11 +650,15 @@ export const PERMISSIONS_VOICE = Object.freeze([
   Permissions.VIEW_CHANNEL,
 ]);
 
+
+
 export const PRESENCE_CLIENT_STATUS_KEYS = Object.freeze([
   DetritusKeys[DiscordKeys.DESKTOP],
   DetritusKeys[DiscordKeys.MOBILE],
   DetritusKeys[DiscordKeys.WEB],
 ]);
+
+
 
 export const TRUSTED_URLS = Object.freeze([
   'cdn.discordapp.com',
@@ -742,13 +668,16 @@ export const TRUSTED_URLS = Object.freeze([
 ]);
 
 
+
 export enum NotSoHeaders {
   AUTHORIZATION = 'authorization',
   CHANNEL_ID = 'x-channel-id',
   GUILD_ID = 'x-guild-id',
   USER = 'x-user',
   USER_ID = 'x-user-id',
-}
+};
+
+
 
 export const NotSoApiKeys = Object.freeze({
   ABOUT: 'about',
@@ -878,4 +807,161 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.WEBHOOK_ID]: 'webhookId',
   [NotSoApiKeys.WEBHOOK_TOKEN]: 'webhookToken',
   [NotSoApiKeys.WIDTH]: 'width'
+});
+
+
+
+export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
+  [ChannelTypes.BASE]: 'Base Channel',
+  [ChannelTypes.GUILD_TEXT]: 'Guild Text',
+  [ChannelTypes.DM]: 'Direct Message',
+  [ChannelTypes.GUILD_VOICE]: 'Guild Voice',
+  [ChannelTypes.GROUP_DM]: 'Direct Message Group',
+  [ChannelTypes.GUILD_CATEGORY]: 'Guild Category',
+  [ChannelTypes.GUILD_NEWS]: 'Guild News',
+  [ChannelTypes.GUILD_STORE]: 'Guild Store',
+});
+
+
+
+export const DiscordUserFlagsText: Record<DiscordUserFlags, string> = Object.freeze({
+  [DiscordUserFlags.STAFF]: 'Discord Staff',
+  [DiscordUserFlags.PARTNER]: 'Discord Partner',
+  [DiscordUserFlags.HYPESQUAD]: 'HypeSquad Events',
+  [DiscordUserFlags.BUG_HUNTER_LEVEL_1]: 'Discord Bug Hunter',
+  [DiscordUserFlags.MFA_SMS]: 'MFA SMS?',
+  [DiscordUserFlags.PREMIUM_PROMO_DISMISSED]: 'Nitro Promotion Dismissed',
+  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_1]: 'HypeSquad Bravery',
+  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_2]: 'HypeSquad Brilliance',
+  [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_3]: 'HypeSquad Balance',
+  [DiscordUserFlags.PREMIUM_EARLY_SUPPORTER]: 'Early Nitro Supporter',
+  [DiscordUserFlags.TEAM_USER]: 'Team Owner Bot',
+  [DiscordUserFlags.SYSTEM]: 'System User',
+  [DiscordUserFlags.HAS_UNREAD_URGENT_MESSAGES]: 'Unread Urgent Message',
+  [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: 'Discord Bug Hunter 2',
+  [DiscordUserFlags.VERIFIED_BOT]: 'Verified Bot',
+  [DiscordUserFlags.VERIFIED_DEVELOPER]: 'Verified Bot Developer',
+});
+
+
+
+export const E621RatingText: Record<E621Rating, string> = Object.freeze({
+  [E621Rating.EXPLICIT]: 'Explicit',
+  [E621Rating.QUESTIONABLE]: 'Questionable',
+  [E621Rating.SAFE]: 'Safe',
+});
+
+
+
+export const LanguageCodesText: Record<LanguageCodes, string> = Object.freeze({
+  [LanguageCodes.MULTIPLE_LANGUAGES]: 'Multiple Languages',
+  [LanguageCodes.PORTUGUESE_PORTUGAL_OTHER]: 'Portuguese, Portugal',
+  [LanguageCodes.UNDEFINED]: 'Undetermined Language',
+});
+
+
+
+export const GuildExplicitContentFilterTypeTexts: Record<number, string> = Object.freeze({
+  [GuildExplicitContentFilterTypes.DISABLED]: 'Disabled',
+  [GuildExplicitContentFilterTypes.MEMBERS_WITHOUT_ROLES]: 'No Roles',
+  [GuildExplicitContentFilterTypes.ALL_MEMBERS]: 'Everyone',
+});
+
+
+
+export const PermissionsText = Object.freeze({
+  [String(Permissions.ADD_REACTIONS)]: 'Add Reactions',
+  [String(Permissions.ADMINISTRATOR)]: 'Administrator',
+  [String(Permissions.ATTACH_FILES)]: 'Attach Files',
+  [String(Permissions.BAN_MEMBERS)]: 'Ban Members',
+  [String(Permissions.CHANGE_NICKNAME)]: 'Change Nickname',
+  [String(Permissions.CHANGE_NICKNAMES)]: 'Change Nicknames',
+  [String(Permissions.CONNECT)]: 'Connect',
+  [String(Permissions.CREATE_INSTANT_INVITE)]: 'Create Instant Invite',
+  [String(Permissions.DEAFEN_MEMBERS)]: 'Deafen Members',
+  [String(Permissions.EMBED_LINKS)]: 'Embed Links',
+  [String(Permissions.KICK_MEMBERS)]: 'Kick Members',
+  [String(Permissions.MANAGE_CHANNELS)]: 'Manage Channels',
+  [String(Permissions.MANAGE_EMOJIS)]: 'Manage Emojis',
+  [String(Permissions.MANAGE_GUILD)]: 'Manage Guild',
+  [String(Permissions.MANAGE_MESSAGES)]: 'Manage Messages',
+  [String(Permissions.MANAGE_ROLES)]: 'Manage Roles',
+  [String(Permissions.MANAGE_WEBHOOKS)]: 'Manage Webhooks',
+  [String(Permissions.MENTION_EVERYONE)]: 'Mention Everyone',
+  [String(Permissions.MOVE_MEMBERS)]: 'Move Members',
+  [String(Permissions.MUTE_MEMBERS)]: 'Mute Members',
+  [String(Permissions.NONE)]: 'None',
+  [String(Permissions.PRIORITY_SPEAKER)]: 'Priority Speaker',
+  [String(Permissions.READ_MESSAGE_HISTORY)]: 'Read Message History',
+  [String(Permissions.SEND_MESSAGES)]: 'Send Messages',
+  [String(Permissions.SEND_TTS_MESSAGES)]: 'Text-To-Speech',
+  [String(Permissions.SPEAK)]: 'Speak',
+  [String(Permissions.STREAM)]: 'Go Live',
+  [String(Permissions.USE_EXTERNAL_EMOJIS)]: 'Use External Emojis',
+  [String(Permissions.USE_VAD)]: 'Voice Auto Detect',
+  [String(Permissions.VIEW_AUDIT_LOG)]: 'View Audit Logs',
+  [String(Permissions.VIEW_CHANNEL)]: 'View Channel',
+  [String(Permissions.VIEW_GUILD_ANALYTICS)]: 'View Guild Analytics',
+});
+
+
+
+export const PresenceStatusColors: Record<string, number> = Object.freeze({
+  [Statuses.ONLINE]: 4437377,
+  [Statuses.DND]: 15746887,
+  [Statuses.IDLE]: 16426522,
+  [Statuses.OFFLINE]: 7634829,
+});
+
+export const PresenceStatusTexts: Record<string, string> = Object.freeze({
+  [Statuses.ONLINE]: 'Online',
+  [Statuses.DND]: 'Do Not Disturb',
+  [Statuses.IDLE]: 'Idle',
+  [Statuses.OFFLINE]: 'Offline',
+});
+
+
+
+export const TimezoneText: Record<Timezones, string> = Object.freeze({
+  [Timezones.MIT]: 'Midway Islands Time, -11:00',
+  [Timezones.HST]: 'Hawaii Standard Time, -10:00',
+  [Timezones.AST]: 'Alaska Standard Time, -9:00',
+  [Timezones.PST]: 'Pacific Standard Time, -8:00',
+  [Timezones.PNT]: 'Phoenix Standard Time, -7:00',
+  [Timezones.MST]: 'Mountain Standard Time, -7:00',
+  [Timezones.CST]: 'Central Standard Time, -6:00',
+  [Timezones.EST]: 'Eastern Standard Time, -5:00',
+  [Timezones.IET]: 'Indiana Eastern Standard Time, -5:00',
+  [Timezones.PRT]: 'Puetro Rico and US Virgin Islands Time, -4:00',
+  [Timezones.CNT]: 'Canada Newfoundland Time, -3:30',
+  [Timezones.AGT]: 'Argentina Standard Time, -3:00',
+  [Timezones.BET]: 'Brazil Eastern Time, -3:00',
+  [Timezones.CAT]: 'Central African Time, -1:00',
+  [Timezones.GMT]: 'Greenwich Mean Time',
+  [Timezones.ECT]: 'European Central Time, +1:00',
+  [Timezones.EET]: 'Eastern European Time, +2:00',
+  [Timezones.ART]: 'Arabic/Egypt Standard Time, +2:00',
+  [Timezones.EAT]: 'Eastern African Time, +3:00',
+  [Timezones.MET]: 'Middle East Time, +3:30',
+  [Timezones.NET]: 'Near East Time, +4:00',
+  [Timezones.PLT]: 'Pakistan Lahore Time, +5:00',
+  [Timezones.IST]: 'India Standard Time, +5:30',
+  [Timezones.BST]: 'Bangladesh Standard Time, +6:00',
+  [Timezones.VST]: 'Vietnam Standard Time, +7:00',
+  [Timezones.CTT]: 'China Taiwan Time, +8:00',
+  [Timezones.JST]: 'Japan Standard Time, +9:00',
+  [Timezones.ACT]: 'Australia Central Time, +9:30',
+  [Timezones.AET]: 'Australia Eastern Time, +10:00',
+  [Timezones.SST]: 'Solomon Standard Time, +11:00',
+  [Timezones.NST]: 'New Zealand Standard Time, +12:00',
+});
+
+
+
+export const VerificationLevelTexts: Record<string, string> = Object.freeze({
+  [VerificationLevels.NONE]: 'None',
+  [VerificationLevels.LOW]: 'Low',
+  [VerificationLevels.MEDIUM]: 'Medium',
+  [VerificationLevels.HIGH]: 'High',
+  [VerificationLevels.VERY_HIGH]: 'Very High',
 });

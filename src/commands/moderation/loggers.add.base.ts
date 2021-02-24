@@ -1,5 +1,6 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
+import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../stores/guildsettings';
 import { Parameters } from '../../utils';
@@ -38,7 +39,7 @@ export class LoggersAddBaseCommand extends BaseCommand {
         },
       ],
       disableDm: true,
-      permissionsClient: [Permissions.MANAGE_CHANNELS, Permissions.MANAGE_WEBHOOKS],
+      permissionsClient: [Permissions.MANAGE_WEBHOOKS],
       permissions: [Permissions.MANAGE_GUILD],
       ...options,
     });
@@ -50,6 +51,13 @@ export class LoggersAddBaseCommand extends BaseCommand {
     }
     if (args.channel === null || args.in === null) {
       return false;
+    }
+    if (args.channel === undefined) {
+      // we will be making a channel now
+      const channel = args.in || context.channel;
+      if (!channel || !channel.canEdit) {
+        return false;
+      }
     }
 
     const settings = await GuildSettingsStore.getOrFetch(context, context.guildId as string);
@@ -64,6 +72,14 @@ export class LoggersAddBaseCommand extends BaseCommand {
       return context.editOrReply('⚠ Unable to find any valid Text Channels.');
     } else if (args.in === null) {
       return context.editOrReply('⚠ Unable to find any valid Category Channels.')
+    }
+
+    if (args.channel === undefined) {
+      // we will be making a channel now
+      const channel = args.in || context.channel;
+      if (!channel || !channel.canEdit) {
+        return context.editOrReply(`⚠ Need ${Markup.codestring('Manage Channels')} Permission to create a log channel`);
+      }
     }
 
     const settings = await GuildSettingsStore.getOrFetch(context, context.guildId as string);

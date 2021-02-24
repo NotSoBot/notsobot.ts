@@ -269,6 +269,24 @@ export async function deleteGuildPrefix(
 }
 
 
+export async function deleteTag(
+  context: RequestContext,
+  options: RestOptions.DeleteTag,
+): Promise<RestResponsesRaw.DeleteTag> {
+  const query = {
+    guild_id: options.guildId,
+    name: options.name,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.TAGS,
+    },
+  });
+}
+
+
 export async function editGuildSettings(
   context: RequestContext,
   guildId: string,
@@ -307,6 +325,46 @@ export async function fetchGuildSettings(
 }
 
 
+export async function fetchGuildTags(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchGuildTags,
+): Promise<RestResponsesRaw.FetchGuildTags> {
+  const params = {guildId};
+  const query = {
+    after: options.after,
+    before: options.before,
+    limit: options.limit,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GUILD_TAGS,
+      params,
+    },
+  });
+}
+
+
+export async function fetchTag(
+  context: RequestContext,
+  options: RestOptions.FetchTag,
+): Promise<RestResponsesRaw.FetchTag> {
+  const query = {
+    guild_id: options.guildId,
+    name: options.name,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAGS,
+    },
+  });
+}
+
+
 export async function fetchUser(
   context: RequestContext,
   userId: string,
@@ -316,6 +374,29 @@ export async function fetchUser(
     route: {
       method: HTTPMethods.GET,
       path: Api.USER,
+      params,
+    },
+  });
+}
+
+
+export async function fetchUserTags(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.FetchUserTags,
+): Promise<RestResponsesRaw.FetchUserTags> {
+  const params = {userId};
+  const query = {
+    after: options.after,
+    before: options.before,
+    guild_id: options.guildId,
+    limit: options.limit,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.USER_TAGS,
       params,
     },
   });
@@ -449,7 +530,7 @@ export async function googleTranslate(
 export async function imageCreateTombstone(
   context: RequestContext,
   options: RestOptions.ImageCreateTombstone,
-) {
+): Promise<Response> {
   const query = {
     line_1: options.line1,
     line_2: options.line2,
@@ -488,7 +569,7 @@ export async function imageInformationExif(
 export async function imageManipulationAscii(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
-) {
+): Promise<Response> {
   const query = {
     url: options.url,
   };
@@ -543,7 +624,7 @@ export async function imageManipulationBlurple(
 export async function imageManipulationCircle(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
-) {
+): Promise<Response> {
   const query = {
     url: options.url,
   };
@@ -618,7 +699,7 @@ export async function imageManipulationEyes(
 export async function imageManipulationFlip(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
-) {
+): Promise<Response> {
   const query = {
     url: options.url,
   };
@@ -636,7 +717,7 @@ export async function imageManipulationFlip(
 export async function imageManipulationFlop(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
-) {
+): Promise<Response> {
   const query = {
     url: options.url,
   };
@@ -1263,7 +1344,7 @@ export async function imageOverlayShutterstock(
 export async function imageToolsBackgroundRemove(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
-) {
+): Promise<Response> {
   const query = {
     url: options.url,
   };
@@ -1281,7 +1362,7 @@ export async function imageToolsBackgroundRemove(
 export async function imageToolsConvert(
   context: RequestContext,
   options: RestOptions.ImageToolsConvert,
-) {
+): Promise<Response> {
   const query = {
     size: options.size,
     to: options.to,
@@ -1414,6 +1495,26 @@ export async function putGuildSettings(
     },
   });
 }
+
+
+export async function putTag(
+  context: RequestContext,
+  options: RestOptions.PutTag,
+): Promise<RestResponsesRaw.PutTag> {
+  const body = {
+    content: options.content,
+    guild_id: options.guildId,
+    name: options.name,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.TAGS,
+    },
+  });
+}
+
 
 export async function putUser(
   context: RequestContext,
@@ -1784,7 +1885,7 @@ export async function searchYoutube(
 export async function uploadCommands(
   context: RequestContext,
   options: RestOptions.UploadCommands,
-): Promise<any> {
+) {
   const body = {
     commands: options.commands,
   };
@@ -1793,6 +1894,24 @@ export async function uploadCommands(
     route: {
       method: HTTPMethods.PUT,
       path: Api.COMMANDS,
+    },
+  });
+}
+
+
+export async function utilitiesScreenshot(
+  context: RequestContext,
+  options: RestOptions.UtilitiesScreenshot,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_SCREENSHOT,
     },
   });
 }

@@ -8,6 +8,7 @@ import { Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
+import { fetchTag } from '../api';
 import { CDN } from '../api/endpoints';
 import GuildChannelsStore, { GuildChannelsStored } from '../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../stores/guildmetadata';
@@ -201,6 +202,7 @@ export async function guildMetadata(
 
   try {
     if (isSnowflake(guildId)) {
+      let shouldStore = true;
       try {
         if (context.guilds.has(guildId)) {
           payload.guild = context.guilds.get(guildId) as Structures.Guild;
@@ -244,6 +246,9 @@ export async function guildMetadata(
         }
         payload.emojis = payload.guild.emojis;
       } catch(error) {
+        if (error.response && error.response.statusCode === 500) {
+          shouldStore = false;
+        }
       }
 
       if (payload.guild && payload.guild.ownerId) {
@@ -252,7 +257,9 @@ export async function guildMetadata(
           payload.owner = await context.rest.fetchUser(payload.guild.ownerId);
         }
       }
-      GuildMetadataStore.set(guildId, payload);
+      if (shouldStore) {
+        GuildMetadataStore.set(guildId, payload);
+      }
     }
   } catch(error) {
     console.error(error);
@@ -337,7 +344,7 @@ export async function imageUrl(
         if (emojis && emojis.length) {
           for (let emoji of emojis) {
             const codepoint = toCodePoint(emoji);
-            return CDN.URL + CDN.TWEMOJI_512(codepoint);
+            return CDN.URL + CDN.TWEMOJI_SVG(codepoint);
           }
         }
       }
@@ -889,6 +896,14 @@ export function string(options: StringOptions = {}) {
 }
 
 
+export function stringLowerCase(options: StringOptions = {}) {
+  const stringify = string(options);
+  return (value: string) => {
+    return stringify(value.toLowerCase());
+  };
+};
+
+
 const QuotesAll = {
   '"': '"',
   '\'': '\'',
@@ -942,4 +957,33 @@ export function stringArguments(value: string) {
     results.push(result);
   }
   return results;
+}
+
+
+
+export function url(value: string) {
+  if (value) {
+    if (!/^(?:view-source:)?https?:\/\//.test(value)) {
+      return `http://${value}`;
+    }
+  }
+  return value;
+}
+
+
+/* NotSoBot Stuff */
+
+
+export async function NotSoTag(value: string, context: Command.Context) {
+  try {
+    return await fetchTag(context, {
+      guildId: context.guildId || undefined,
+      name: value,
+    });
+  } catch(error) {
+    if (error.response && error.response.statusCode === 404) {
+      return false;
+    }
+    throw error;
+  }
 }

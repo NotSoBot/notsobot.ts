@@ -533,7 +533,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
-      const keys = ['deaf', 'hoistedRole', 'mute', 'premiumSince', 'roles'];
+      const keys = ['deaf', 'hoistedRole', 'mute', 'nick', 'premiumSince', 'roles'];
       const name = ClientEvents.GUILD_MEMBER_UPDATE;
 
       const subscription = cluster.subscribe(name, async (payload) => {
@@ -752,7 +752,7 @@ export function createLogPayload(
 
       {
         const timestamp = createTimestampStringFromGuild(happened, guildId);
-        embed.setFooter(`Banned • ${timestamp}`);
+        embed.setFooter(`User Banned • ${timestamp}`);
       }
 
       if (audits) {
@@ -776,7 +776,7 @@ export function createLogPayload(
 
       {
         const timestamp = createTimestampStringFromGuild(happened, guildId);
-        embed.setFooter(`Unbanned • ${timestamp}`);
+        embed.setFooter(`User Unbanned • ${timestamp}`);
       }
 
       if (audits) {
@@ -816,7 +816,7 @@ export function createLogPayload(
           }
           */
         }
-        const timestamp = createTimestampMomentFromGuild(member.joinedAtUnix || happened, guildId);
+        const timestamp = createTimestampStringFromGuild(member.joinedAtUnix || happened, guildId);
         embed.setFooter(`${footer} • ${timestamp}`);
       }
       if (audits) {
@@ -909,7 +909,7 @@ export function createLogPayload(
           description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
         }
         if (memberCount) {
-          description.push(`**Members**: ${(memberCount - 1).toLocaleString()} -> ${memberCount.toLocaleString()}`);
+          description.push(`**Members**: ${(memberCount + 1).toLocaleString()} -> ${memberCount.toLocaleString()}`);
         }
         embed.addField('Information', description.join('\n'), true);
       }
@@ -1411,7 +1411,7 @@ export function createLogPayload(
 
       {
         const timestamp = createTimestampStringFromGuild(happened, guildId);
-        embed.setFooter(`Deleted • ${timestamp}`);
+        embed.setFooter(`Message Deleted • ${timestamp}`);
       }
 
       if (message) {
@@ -1507,7 +1507,7 @@ export function createLogPayload(
 
       {
         const timestamp = createTimestampStringFromGuild(happened, guildId);
-        embed.setFooter(`Bulk Deletion • ${timestamp}`);
+        embed.setFooter(`Message Bulk Deletion • ${timestamp}`);
       }
 
       embed.setAuthor(`${amount.toLocaleString()} Messages Deleted`);
@@ -1552,8 +1552,8 @@ export function createLogPayload(
 
       {
         const time = (message && message.isEdited) ? message.editedAtUnix : happened;
-        const timestamp = createTimestampMomentFromGuild(time, guildId);
-        embed.setFooter(`Updated • ${timestamp}`);
+        const timestamp = createTimestampStringFromGuild(time, guildId);
+        embed.setFooter(`Message Updated • ${timestamp}`);
       }
 
       if (message) {

@@ -174,6 +174,14 @@ export async function deleteGuildPrefix(
 }
 
 
+export async function deleteTag(
+  context: RequestContext,
+  options: RestOptions.DeleteTag,
+) {
+  return raw.deleteTag(context, options);
+}
+
+
 export async function editGuildSettings(
   context: RequestContext,
   guildId: string,
@@ -209,6 +217,23 @@ export async function fetchGuildSettings(
 }
 
 
+export async function fetchGuildTags(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchGuildTags,
+) {
+  return raw.fetchGuildTags(context, guildId, options);
+}
+
+
+export async function fetchTag(
+  context: RequestContext,
+  options: RestOptions.FetchTag,
+) {
+  return raw.fetchTag(context, options);
+}
+
+
 export async function fetchUser(
   context: RequestContext,
   userId: string,
@@ -223,6 +248,15 @@ export async function fetchUser(
     UserStore.set(user.id, user);
   }
   return user;
+}
+
+
+export async function fetchUserTags(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.FetchUserTags,
+) {
+  return raw.fetchUserTags(context, userId, options);
 }
 
 
@@ -700,6 +734,15 @@ export async function putGuildSettings(
   return settings;
 }
 
+
+export async function putTag(
+  context: RequestContext,
+  options: RestOptions.PutTag,
+) {
+  return raw.putTag(context, options);
+}
+
+
 export async function putUser(
   context: RequestContext,
   userId: string,
@@ -889,4 +932,12 @@ export async function uploadCommands(
   options: RestOptions.UploadCommands,
 ) {
   return raw.uploadCommands(context, options);
+}
+
+
+export async function utilitiesScreenshot(
+  context: RequestContext,
+  options: RestOptions.UtilitiesScreenshot,
+) {
+  return raw.utilitiesScreenshot(context, options);
 }

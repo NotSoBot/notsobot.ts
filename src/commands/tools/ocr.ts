@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../utils';
+import { DefaultParameters, Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -28,7 +28,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'noembed', type: Boolean},
+        {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
         {name: 'files.gg', label: 'upload', type: Boolean},
       ],
       metadata: {

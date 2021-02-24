@@ -8,10 +8,12 @@ import { BaseImageCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
+  type?: ImageEyeTypes,
   url?: null | string,
 }
 
 export interface CommandArgs {
+  type?: ImageEyeTypes,
   url: string,
 }
 
