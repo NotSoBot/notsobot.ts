@@ -38,8 +38,8 @@ const bot = new NotSoClient({
       status: PresenceStatuses.ONLINE,
     },
   },
-  mentionsEnabled: false,
-  prefix: '..',
+  mentionsEnabled: true,
+  prefix: '.',
   ratelimits: [
     {duration: 60000, limit: 50, type: 'guild'},
     {duration: 5000, limit: 10, type: 'channel'},

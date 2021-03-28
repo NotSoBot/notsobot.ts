@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogleImages } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors, GoogleImageVideoTypes, GoogleLocales, GoogleLocalesText } from '../../constants';
-import { Arguments, Paginator, createUserEmbed, editOrReply } from '../../utils';
+import { Arguments, Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -11,6 +11,7 @@ import { BaseSearchCommand } from '../basecommand';
 export interface CommandArgs {
   locale: GoogleLocales,
   query: string,
+  randomize: boolean,
   safe: boolean,
 }
 
@@ -25,6 +26,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
       args: [
         Arguments.GoogleLocale,
         Arguments.Safe,
+        {aliases: ['r', 'random'], name: 'randomize', type: Boolean},
       ],
       metadata: {
         description: 'Search Google Images',
@@ -32,9 +34,11 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -locale russian`,
           `${COMMAND_NAME} something nsfw -safe`,
+          `${COMMAND_NAME} notsobot -randomize`,
+          `${COMMAND_NAME} notsobot -r`,
         ],
         type: CommandTypes.SEARCH,
-        usage: '<query> (-locale <language>) (-safe)',
+        usage: '<query> (-locale <language>) (-randomize) (-safe)',
       },
     });
   }
@@ -42,6 +46,9 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchGoogleImages(context, args);
     if (results.length) {
+      if (args.randomize) {
+        shuffleArray(results);
+      }
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
         pageLimit,

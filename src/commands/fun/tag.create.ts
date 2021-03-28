@@ -25,7 +25,7 @@ export default class TagCreateCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['t create'],
+      aliases: ['t create', 'tag add', 't add'],
       metadata: {
         description: 'Create a tag',
         examples: [
@@ -59,23 +59,22 @@ export default class TagCreateCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const guildId = context.guildId || undefined;
-    if (!guildId) {
-      return editOrReply(context, '⚠ Global tags are a no-no right now');
-    }
+    const serverId = context.guildId || context.channelId;
 
     let isEdit = false;
     try {
-      const tag = await fetchTag(context, {guildId, name: args.tag});
-      if (tag.user.id !== context.userId && !tag.global) {
-        return editOrReply(context, '⚠ Tag already exists in this server!');
+      const tag = await fetchTag(context, {name: args.tag, serverId});
+      if (!tag.global) {
+        if (tag.user.id !== context.userId) {
+          return editOrReply(context, '⚠ Tag already exists in this server!');
+        }
+        isEdit = true;
       }
-      isEdit = true;
     } catch(error) {
 
     }
 
-    const tag = await putTag(context, {content: args.content, guildId, name: args.tag});
+    const tag = await putTag(context, {content: args.content, name: args.tag, serverId});
 
     let text: string;
     if (isEdit) {

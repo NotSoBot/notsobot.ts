@@ -5,7 +5,7 @@ import { Response } from 'detritus-rest';
 
 import { createUserCommand } from '../api';
 import { CommandTypes, EmbedColors, PermissionsText } from '../constants';
-import { Parameters, editOrReply, findImageUrlInMessages } from '../utils';
+import { Parameters, createUserEmbed, editOrReply, findImageUrlInMessages } from '../utils';
 
 // description and usage shouldnt be optional, temporary for now
 export interface CommandMetadata {
@@ -111,7 +111,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
-    const embed = new Embed();
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Error');
 
@@ -170,7 +170,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
-    const embed = new Embed();
+    const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Argument Error');
 

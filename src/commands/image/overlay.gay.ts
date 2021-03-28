@@ -22,7 +22,7 @@ export default class OverlayGayCommand extends BaseImageCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['o gay', 'gay'],
+      aliases: ['o gay', 'gay', 'overlay lgbt', 'o lgbt', 'lgbt'],
       metadata: {
         description: 'Overlay a LGBT flag over an image',
         examples: [

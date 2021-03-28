@@ -5,17 +5,19 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34 } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed, editOrReply } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
   query: string,
+  randomize: boolean,
 }
 
 export interface CommandArgs {
   query: string,
+  randomize: boolean,
 }
 
 export const COMMAND_NAME = 'rule34';
@@ -28,14 +30,19 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
       name: COMMAND_NAME,
 
       aliases: ['r34'],
+      args: [
+        {aliases: ['r', 'random'], name: 'randomize', type: Boolean},
+      ],
       metadata: {
         description: 'Search https://rule34.xxx',
         examples: [
           `${COMMAND_NAME} some anime chick`,
           `${COMMAND_NAME} overwatch`,
+          `${COMMAND_NAME} overwatch -randomize`,
+          `${COMMAND_NAME} overwatch -r`,
         ],
         type: CommandTypes.SEARCH,
-        usage: '<query>',
+        usage: '<query> (-randomize)',
       },
     });
   }
@@ -43,6 +50,9 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchRule34(context, args);
     if (results.length) {
+      if (args.randomize) {
+        shuffleArray(results);
+      }
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
         pageLimit,
@@ -70,7 +80,14 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
           if (result.tags.length) {
             description.push(`**Tags**: ${Markup.escape.all(result.tags.sort().join(', '))}`);
           }
-          embed.setDescription(description.join('\n'));
+          {
+            let text = description.join('\n');
+            if (2048 < text.length) {
+              text = text.slice(0, 2048);
+              text = text.slice(0, text.lastIndexOf(','));
+            }
+            embed.setDescription(text);
+          }
 
           let imageUrl: string;
           if (result.is_video) {

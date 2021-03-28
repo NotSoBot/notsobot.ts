@@ -31,10 +31,10 @@ export default class GifSpeedCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
         type: CommandTypes.IMAGE,
-        usage: '<emoji,user:id|mention|name,url> <...speed:milliseconds>',
+        usage: '<emoji,user:id|mention,url> <...speed:milliseconds>',
       },
       type: [
-        {name: 'url', type: Parameters.imageUrl},
+        {name: 'url', type: Parameters.imageUrlPositional},
         {name: 'speed', consume: true, type: Number},
       ],
     });

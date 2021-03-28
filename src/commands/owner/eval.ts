@@ -95,19 +95,16 @@ export default class EvalCommand extends BaseCommand {
       }
 
       if (!args.noembed) {
-        const channel = context.channel;
-        if (channel && channel.canEmbedLinks) {
-          const embed = new Embed();
-          if (errored) {
-            embed.setColor(EmbedColors.ERROR);
-          } else {
-            embed.setColor(EmbedColors.DEFAULT);
-          }
-          embed.setDescription(Markup.codeblock(content, {language, mentions: false}));
-          embed.setFooter('Eval', EmbedBrands.NOTSOBOT);
-
-          return editOrReply(context, {embed});
+        const embed = new Embed();
+        if (errored) {
+          embed.setColor(EmbedColors.ERROR);
+        } else {
+          embed.setColor(EmbedColors.DEFAULT);
         }
+        embed.setDescription(Markup.codeblock(content, {language, mentions: false}));
+        embed.setFooter('Eval', EmbedBrands.NOTSOBOT);
+
+        return editOrReply(context, {embed});
       }
       return editOrReply(context, Markup.codeblock(content, {language}));
     }

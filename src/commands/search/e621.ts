@@ -5,19 +5,19 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchE621 } from '../../api';
 import { CommandTypes, E621Rating, E621RatingText, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed, editOrReply } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
 
-const VIDEO_EXTENSIONS = ['swf', 'webm'];
-
 export interface CommandArgsBefore {
   query: string,
+  randomize: boolean,
 }
 
 export interface CommandArgs {
   query: string,
+  randomize: boolean,
 }
 
 export const COMMAND_NAME = 'e621';
@@ -29,13 +29,18 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {aliases: ['r', 'random'], name: 'randomize', type: Boolean},
+      ],
       metadata: {
         description: 'Search e621, a furry porn imageboard',
         examples: [
           `${COMMAND_NAME} discord`,
+          `${COMMAND_NAME} discord -randomize`,
+          `${COMMAND_NAME} discord -r`,
         ],
         type: CommandTypes.SEARCH,
-        usage: '<query>',
+        usage: '<query> (-randomize)',
       },
     });
   }
@@ -43,6 +48,9 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchE621(context, args);
     if (results.length) {
+      if (args.randomize) {
+        shuffleArray(results);
+      }
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
         pageLimit,
@@ -59,8 +67,7 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
           embed.setFooter(`Page ${page}/${pageLimit} of https://e621.net Results`, EmbedBrands.E621);
 
 
-          const isVideo = VIDEO_EXTENSIONS.includes(result.file.ext);
-          embed.setTitle((isVideo) ? 'Video Post' : 'Image Post');
+          embed.setTitle((result.is_video) ? 'Video Post' : 'Image Post');
           embed.setUrl(result.url);
 
           const description: Array<string> = [];
@@ -108,7 +115,7 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
           }
           embed.setDescription(description.join('\n'));
 
-          if (isVideo) {
+          if (result.is_video) {
             embed.setImage(result.preview.url);
           } else {
             embed.setImage(result.file.url);

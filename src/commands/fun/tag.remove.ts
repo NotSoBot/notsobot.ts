@@ -68,7 +68,7 @@ export default class TagRemoveCommand extends BaseCommand {
         return editOrReply(context, '⚠ You\'re not the owner of this tag!');
       }
     }
-    await deleteTag(context, {guildId: context.guildId || undefined, name: tag.name});
+    await deleteTag(context, {name: tag.name, serverId: context.guildId || context.channelId});
     return editOrReply(context, `Removed tag ${tag.name}`);
   }
 }

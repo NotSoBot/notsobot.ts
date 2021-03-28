@@ -826,6 +826,19 @@ export function chunkArray<T>(
 }
 
 
+export function shuffleArray<T>(
+  array: Array<T>,
+): Array<T> {
+  for (let i = array.length - 1; 0 < i; i--) {
+    let x = Math.floor(Math.random() * (i + 1));
+    const current = array[i];
+    array[i] = array[x];
+    array[x] = current;
+  }
+  return array;
+}
+
+
 export function splitArray<T>(
   array: Array<T>,
   amount: number,

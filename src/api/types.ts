@@ -51,8 +51,8 @@ export namespace RestOptions {
   }
 
   export interface DeleteTag {
-    guildId?: string,
     name: string,
+    serverId?: string,
   }
 
 
@@ -77,15 +77,15 @@ export namespace RestOptions {
   }
 
   export interface FetchTag {
-    guildId?: string,
     name: string,
+    serverId?: string,
   }
 
   export interface FetchUserTags {
     after?: string,
     before?: string,
-    guildId?: string,
     limit?: number,
+    serverId?: string,
   }
 
 
@@ -122,6 +122,10 @@ export namespace RestOptions {
   }
 
   export interface ImageManipulationBlur extends ImageBaseOptions {
+    scale?: number,
+  }
+
+  export interface ImageManipulationCircle extends ImageBaseOptions {
     scale?: number,
   }
 
@@ -203,8 +207,8 @@ export namespace RestOptions {
 
   export interface PutTag {
     content: string,
-    guildId?: string,
     name: string,
+    serverId?: string,
   }
 
   export interface PutUser {
@@ -1146,6 +1150,7 @@ export namespace RestResponsesRaw {
     id: string,
     name: string,
     nsfw: boolean,
+    server_id: string | null,
     user: User,
     uses: number,
   }

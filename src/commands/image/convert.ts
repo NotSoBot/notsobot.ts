@@ -38,10 +38,10 @@ export default class ConvertCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png webp`,
         ],
         type: CommandTypes.IMAGE,
-        usage: '<emoji,user:id|mention|name,url> <...format> (-size <number|(width)x(height)>',
+        usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>',
       },
       type: [
-        {name: 'url', type: Parameters.imageUrl},
+        {name: 'url', type: Parameters.imageUrlPositional},
         {name: 'to', consume: true},
       ],
     });

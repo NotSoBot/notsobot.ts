@@ -68,8 +68,8 @@ export default class TagEditCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const tag = await putTag(context, {
       content: args.content,
-      guildId: context.guildId || undefined,
       name: args.tag.name,
+      serverId: context.guildId || context.channelId,
     });
     return editOrReply(context, `Successfully edited tag ${Markup.codestring(tag.name)}`);
   }

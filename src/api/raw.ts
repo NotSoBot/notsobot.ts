@@ -274,8 +274,8 @@ export async function deleteTag(
   options: RestOptions.DeleteTag,
 ): Promise<RestResponsesRaw.DeleteTag> {
   const query = {
-    guild_id: options.guildId,
     name: options.name,
+    server_id: options.serverId,
   };
   return request(context, {
     query,
@@ -352,8 +352,8 @@ export async function fetchTag(
   options: RestOptions.FetchTag,
 ): Promise<RestResponsesRaw.FetchTag> {
   const query = {
-    guild_id: options.guildId,
     name: options.name,
+    server_id: options.serverId,
   };
   return request(context, {
     query,
@@ -389,8 +389,8 @@ export async function fetchUserTags(
   const query = {
     after: options.after,
     before: options.before,
-    guild_id: options.guildId,
     limit: options.limit,
+    server_id: options.serverId,
   };
   return request(context, {
     query,
@@ -623,9 +623,10 @@ export async function imageManipulationBlurple(
 
 export async function imageManipulationCircle(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.ImageManipulationCircle,
 ): Promise<Response> {
   const query = {
+    scale: options.scale,
     url: options.url,
   };
   return request(context, {
@@ -1503,8 +1504,8 @@ export async function putTag(
 ): Promise<RestResponsesRaw.PutTag> {
   const body = {
     content: options.content,
-    guild_id: options.guildId,
     name: options.name,
+    server_id: options.serverId,
   };
   return request(context, {
     body,

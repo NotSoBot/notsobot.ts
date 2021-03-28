@@ -358,7 +358,7 @@ export async function imageManipulationBlurple(
 
 export async function imageManipulationCircle(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.ImageManipulationCircle,
 ) {
   return raw.imageManipulationCircle(context, options);
 }

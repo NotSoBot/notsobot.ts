@@ -5,13 +5,14 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34Paheal } from '../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
-import { Paginator, createUserEmbed, editOrReply } from '../../utils';
+import { Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
 
 export interface CommandArgs {
   query: string,
+  randomize: boolean,
 }
 
 export const COMMAND_NAME = 'rule34paheal';
@@ -24,13 +25,18 @@ export default class Rule34PahealCommand extends BaseSearchCommand {
       name: COMMAND_NAME,
 
       aliases: ['r34paheal', 'r34p', 'paheal', 'pahe'],
+      args: [
+        {aliases: ['r', 'random'], name: 'randomize', type: Boolean},
+      ],
       metadata: {
         description: 'Search https://rule34.paheal.net',
         examples: [
           `${COMMAND_NAME} overwatch`,
+          `${COMMAND_NAME} overwatch -randomize`,
+          `${COMMAND_NAME} overwatch -r`,
         ],
         type: CommandTypes.SEARCH,
-        usage: '<query>',
+        usage: '<query> (-randomize)',
       },
     });
   }
@@ -38,6 +44,9 @@ export default class Rule34PahealCommand extends BaseSearchCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const results = await searchRule34Paheal(context, args);
     if (results.length) {
+      if (args.randomize) {
+        shuffleArray(results);
+      }
       const pageLimit = results.length;
       const paginator = new Paginator(context, {
         pageLimit,

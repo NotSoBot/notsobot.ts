@@ -294,7 +294,7 @@ export async function imageUrl(
       }
 
       // it's in the form of username#discriminator
-      if (value.includes('#')) {
+      if (value.includes('#') && !value.startsWith('#')) {
         const found = await findMemberByChunkText(context, value);
         if (found) {
           return found.avatarUrlFormat(null, {size: 1024});
@@ -356,6 +356,104 @@ export async function imageUrl(
           return found.avatarUrlFormat(null, {size: 1024});
         }
       }
+    } catch(error) {
+      return null;
+    }
+  }
+  return null;
+}
+
+
+export async function imageUrlPositional(
+  value: string,
+  context: Command.Context,
+): Promise<string | null | undefined | [true, null | string | undefined]> {
+  if (value) {
+    try {
+      // check the message's attachments/stickers first
+      {
+        const url = findImageUrlInMessages([context.message]);
+        if (url) {
+          return [true, url];
+        }
+      }
+
+      // get last image then
+      if (value === '^') {
+        return await lastImageUrl('', context);
+      }
+
+      // if it's a url
+      {
+        const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+        if (matches.length) {
+          const [ { text } ] = matches;
+          if (!context.message.embeds.length) {
+            await Timers.sleep(1000);
+          }
+          const url = findImageUrlInMessages([context.message]);
+          return url || text;
+        }
+      }
+
+      // it's in the form of username#discriminator
+      if (value.includes('#') && !value.startsWith('#')) {
+        const found = await findMemberByChunkText(context, value);
+        if (found) {
+          return found.avatarUrlFormat(null, {size: 1024});
+        }
+        return null;
+      }
+
+      // it's in the form of <@123>
+      {
+        const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
+        if (matches.length) {
+          const [ { id: userId } ] = matches;
+
+          // pass it onto the next statement
+          if (isSnowflake(userId)) {
+            value = userId;
+          }
+        }
+      }
+
+      // it's just the snowflake of a user
+      if (isSnowflake(value)) {
+        const userId = value;
+
+        let user: Structures.User;
+        if (context.message.mentions.has(userId)) {
+          user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+        } else {
+          user = await context.rest.fetchUser(userId);
+        }
+        return user.avatarUrlFormat(null, {size: 1024});
+      }
+
+      // it's <a:emoji:id>
+      {
+        const { matches } = discordRegex(DiscordRegexNames.EMOJI, value) as {matches: Array<{animated: boolean, id: string}>};
+        if (matches.length) {
+          const [ { animated, id } ] = matches;
+          const format = (animated) ? 'gif' : 'png';
+          return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format);
+        }
+      }
+
+      // it's an unicode emoji
+      {
+        const emojis = onlyEmoji(value);
+        if (emojis && emojis.length) {
+          for (let emoji of emojis) {
+            const codepoint = toCodePoint(emoji);
+            return CDN.URL + CDN.TWEMOJI_SVG(codepoint);
+          }
+        }
+      }
+
+      // return the last image and skip parse
+      return [true, await lastImageUrl('', context)];
     } catch(error) {
       return null;
     }
@@ -486,10 +584,12 @@ export async function applications(
 
 
 export interface ChannelOptions {
+  inGuild?: boolean,
   types?: Array<ChannelTypes>,
 }
 
 export function channel(options: ChannelOptions = {}) {
+  options = Object.assign({inGuild: true}, options);
   return (value: string, context: Command.Context): Structures.Channel | null => {
     if (value) {
       {
@@ -498,14 +598,20 @@ export function channel(options: ChannelOptions = {}) {
           const { id: channelId } = matches[0];
           const channel = context.channels.get(channelId);
           if (channel && (!options.types || options.types.includes(channel.type))) {
-            return channel;
+            if (!options.inGuild || channel.guildId === context.guildId) {
+              return channel;
+            }
+            return null;
           }
         }
       }
       if (isSnowflake(value)) {
         const channel = context.channels.get(value);
         if (channel && (!options.types || options.types.includes(channel.type))) {
-          return channel;
+          if (!options.inGuild || channel.guildId === context.guildId) {
+            return channel;
+          }
+          return null;
         }
       }
       const { guild } = context;
@@ -871,6 +977,17 @@ export function seconds(
 }
 
 
+export function snowflake(
+  value: string,
+  context: Command.Context,
+): string {
+  if (!isSnowflake(value)) {
+    throw new Error('Value must be a snowflake');
+  }
+  return value;
+}
+
+
 export interface StringOptions {
   maxLength?: number,
   minLength?: number,
@@ -977,8 +1094,8 @@ export function url(value: string) {
 export async function NotSoTag(value: string, context: Command.Context) {
   try {
     return await fetchTag(context, {
-      guildId: context.guildId || undefined,
       name: value,
+      serverId: context.guildId || context.channelId,
     });
   } catch(error) {
     if (error.response && error.response.statusCode === 404) {
