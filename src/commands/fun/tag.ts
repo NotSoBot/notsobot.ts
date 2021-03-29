@@ -59,14 +59,14 @@ export default class TagCommand extends BaseCommand {
     // parse it
     const parsedTag = await TagFormatter.parse(context, args.tag.content, args.arguments);
 
-    const options: Command.EditOrReply = {content: parsedTag.text};
+    const options: Command.EditOrReply = {content: parsedTag.text.slice(0, 2000)};
     if (parsedTag.files.length) {
       options.files = parsedTag.files.map((file) => {
         return {filename: file.filename, value: file.buffer};
       });
     }
     if (!parsedTag.text.length && !parsedTag.files.length) {
-      options.content = args.tag.content;
+      options.content = 'tag returned no content lmao';
     }
     return editOrReply(context, options);
   }

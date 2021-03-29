@@ -4,6 +4,7 @@ import { Command } from 'detritus-client';
 import { utilitiesFetchImage } from '../api';
 
 import * as Parameters from './parameters';
+import { stringOccurances } from './tools';
 
 
 const memberOrUser = Parameters.memberOrUser();
@@ -12,6 +13,10 @@ const memberOrUser = Parameters.memberOrUser();
 export const ATTACHMENT_EXTENSIONS = ['bmp', 'heic', 'gif', 'ico', 'jpg', 'jpeg', 'png', 'raw', 'tiff', 'webp'];
 export const DEFAULT_REMAINING_ITERATIONS = 100;
 export const MAX_NETWORK_REQUESTS = 10;
+export const MAX_REPEAT_AMOUNT = 2000;
+export const MAX_STRING_LENGTH = 10000;
+export const MAX_VARIABLE_KEY_LENGTH = 64;
+export const MAX_VARIABLE_LENGTH = 2000;
 
 export const TagFunctions = Object.freeze({
   ARG: ['arg'],
@@ -34,16 +39,17 @@ export const TagFunctions = Object.freeze({
   IMAGESCRIPT: ['image2', 'iscript2', 'imagescript'],
   LOGICAL_GET: ['get'],
   LOGICAL_IF: ['if'],
+  LOGICAL_SET: ['set'],
   MATH: ['math'],
   NOTE: ['note'],
   NSFW: ['nsfw'],
   PREFIX: ['prefix'],
   RNG_CHOOSE: ['choose'],
   RNG_RANGE: ['range'],
-  SET: ['set'],
   STRING_CODEBLOCK: ['code'],
   STRING_LENGTH: ['len', 'length'],
   STRING_LOWER: ['lower'],
+  STRING_REPEAT: ['repeat'],
   STRING_REPLACE: ['replace', 'replaceregex'],
   STRING_SUB: ['substring'],
   STRING_UPPER: ['upper'],
@@ -63,6 +69,7 @@ export const TagFunctions = Object.freeze({
 export const TagSymbols = Object.freeze({
   BRACKET_LEFT: '{',
   BRACKET_RIGHT: '}',
+  IGNORE: '\\',
   SPLITTER_ARGUMENT: '|',
   SPLITTER_FUNCTION: ':',
 });
@@ -94,7 +101,7 @@ export async function parse(
   let position = 0;
   while (position < value.length) {
     if (tag.remainingIterations <= 0) {
-      tag.text += value;
+      tag.text += value.slice(position);
       position = value.length;
       continue;
     }
@@ -104,7 +111,7 @@ export async function parse(
       // find next left bracket
       const nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
       if (nextLeftBracket === -1) {
-        tag.text += value;
+        tag.text += value.slice(position);
         position = value.length;
         continue;
       }
@@ -121,6 +128,14 @@ export async function parse(
     scriptBuffer += result;
     console.log(position, result, depth, scriptBuffer);
     switch (result) {
+      case TagSymbols.IGNORE: {
+        const nextValue = value.slice(position, position + 1);
+        if (nextValue === TagSymbols.BRACKET_LEFT) {
+          depth--;
+        } else if (nextValue === TagSymbols.BRACKET_RIGHT) {
+          depth++;
+        }
+      }; break;
       case TagSymbols.BRACKET_LEFT: {
         // start of the script
         depth++;
@@ -240,9 +255,36 @@ export async function parse(
           } else if (TagFunctions.IMAGESCRIPT.includes(scriptName)) {
 
           } else if (TagFunctions.LOGICAL_GET.includes(scriptName)) {
-
+            if (arg.startsWith('__')) {
+              throw new Error('Tried to access a private variable, cannot start with `__`.');
+            }
+            if (MAX_VARIABLE_KEY_LENGTH < arg.length) {
+              throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+            }
+            if (arg in variables) {
+              tag.text += variables[arg];
+            }
           } else if (TagFunctions.LOGICAL_IF.includes(scriptName)) {
 
+          } else if (TagFunctions.LOGICAL_SET.includes(scriptName)) {
+            if (arg.includes('|')) {
+              const [key, ...value] = arg.split('|');
+              if (key.startsWith('__')) {
+                throw new Error('Tried to set a private variable, cannot start with `__`.');
+              }
+              if (MAX_VARIABLE_KEY_LENGTH < key.length) {
+                throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+              }
+
+              const text = value.join('|').slice(0, MAX_VARIABLE_LENGTH);
+              const argParsed = await parse(context, text, args, --tag.remainingIterations, tag.variables);
+              variables[key] = argParsed.text;
+              for (let file of argParsed.files) {
+                tag.files.push(file);
+              }
+            } else {
+              tag.text += scriptBuffer;
+            }
           } else if (TagFunctions.MATH.includes(scriptName)) {
 
           } else if (TagFunctions.NSFW.includes(scriptName)) {
@@ -253,14 +295,34 @@ export async function parse(
 
           } else if (TagFunctions.RNG_RANGE.includes(scriptName)) {
 
-          } else if (TagFunctions.SET.includes(scriptName)) {
-
           } else if (TagFunctions.STRING_CODEBLOCK.includes(scriptName)) {
 
           } else if (TagFunctions.STRING_LENGTH.includes(scriptName)) {
             tag.text += arg.length;
           } else if (TagFunctions.STRING_LOWER.includes(scriptName)) {
             tag.text += arg.toLowerCase();
+          } else if (TagFunctions.STRING_REPEAT.includes(scriptName)) {
+            if (arg.includes('|')) {
+              const [amountText, ...value] = arg.split('|');
+              const amount = parseInt(amountText);
+              if (isNaN(amount)) {
+                tag.text += scriptBuffer;
+              } else {
+                if (MAX_REPEAT_AMOUNT < amount) {
+                  throw new Error('really man, more than 2000 repeats?');
+                }
+                const argParsed = await parse(context, value.join('|'), args, --tag.remainingIterations, tag.variables);
+                for (let file of argParsed.files) {
+                  tag.files.push(file);
+                }
+                if (MAX_STRING_LENGTH < argParsed.text.length * amount) {
+                  throw new Error('ok buddy, dont repeat too much text man');
+                }
+                tag.text += argParsed.text.repeat(amount);
+              }
+            } else {
+              tag.text += scriptBuffer;
+            }
           } else if (TagFunctions.STRING_REPLACE.includes(scriptName)) {
 
           } else if (TagFunctions.STRING_SUB.includes(scriptName)) {
