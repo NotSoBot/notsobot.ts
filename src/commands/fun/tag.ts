@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { RestResponsesRaw } from '../../api/types';
 import { CommandTypes } from '../../constants';
-import { Parameters, editOrReply } from '../../utils';
+import { Parameters, TagFormatter, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -56,10 +56,18 @@ export default class TagCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { tag } = args;
-
     // parse it
+    const parsedTag = await TagFormatter.parse(context, args.tag.content, args.arguments);
 
-    return editOrReply(context, tag.content);
+    const options: Command.EditOrReply = {content: parsedTag.text};
+    if (parsedTag.files.length) {
+      options.files = parsedTag.files.map((file) => {
+        return {filename: file.filename, value: file.buffer};
+      });
+    }
+    if (!parsedTag.text.length && !parsedTag.files.length) {
+      options.content = args.tag.content;
+    }
+    return editOrReply(context, options);
   }
 }

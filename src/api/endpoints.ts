@@ -221,6 +221,8 @@ export const Api = Object.freeze({
   USER_TAGS:
     '/users/:userId/tags',
 
+  UTILITIES_FETCH_IMAGE:
+    '/utilities/fetch/image',
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
 });

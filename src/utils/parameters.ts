@@ -21,6 +21,7 @@ import {
   findMembersByChunkText,
   isSnowflake,
   toCodePoint,
+  validateUrl,
 } from './tools';
 
 
@@ -885,6 +886,27 @@ export function roles(
 }
 
 
+export function tagContent(
+  value: string,
+  context: Command.Context,
+): string {
+  if (!value) {
+    const url = findImageUrlInMessages([context.message]);
+    if (url) {
+      return url;
+    }
+  }
+  return value.trim();
+}
+
+
+export function tagName(
+  value: string,
+): string {
+  return value.replace(/\r?\n|\r/g, '');
+}
+
+
 /* ----- Values ----- */
 
 
@@ -1078,10 +1100,13 @@ export function stringArguments(value: string) {
 
 
 
-export function url(value: string) {
+export function url(value: string): string {
   if (value) {
-    if (!/^(?:view-source:)?https?:\/\//.test(value)) {
+    if (!/^https?:\/\//.test(value)) {
       return `http://${value}`;
+    }
+    if (!validateUrl(value)) {
+      throw new Error('Malformed URL');
     }
   }
   return value;

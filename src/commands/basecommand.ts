@@ -115,11 +115,12 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle('⚠ Command Error');
 
-    const description: Array<string> = [(error.message || error.stack) + '\n'];
+    const description: Array<string> = [];
     if (error.response) {
       const response: Response = error.response;
       try {
         const information = await response.json() as any;
+        description.push(error.message || error.stack);
         if ('errors' in information) {
           for (let key in information.errors) {
             const value = information.errors[key];
@@ -133,9 +134,19 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           }
         }
       } catch(e) {
-        description.push('Could not parse');
-        description.push(`**Mimetype**: ${response.headers.get('content-type')}`);
+        description.push(`HTTP Exception: ${response.statusCode}`);
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.startsWith('text/html')) {
+          // parse it?
+        } else {
+          description.push('Unknown Error Data');
+          if (contentType) {
+            description.push(`**Mimetype**: ${contentType}`);
+          }
+        }
       }
+    } else {
+      description.push(error.message || error.stack);
     }
 
     embed.setDescription(description.join('\n'));
@@ -193,6 +204,8 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 }
 
 export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
+  triggerTypingAfter = 250;
+
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {
       label: 'url',

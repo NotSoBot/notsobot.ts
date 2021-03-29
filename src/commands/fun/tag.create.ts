@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTag, putTag } from '../../api';
 import { CommandTypes } from '../../constants';
-import { editOrReply } from '../../utils';
+import { Parameters, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -36,8 +36,8 @@ export default class TagCreateCommand extends BaseCommand {
         usage: '<tagname> <...body>',
       },
       type: [
-        {name: 'tag'},
-        {name: 'content', consume: true},
+        {name: 'tag', type: Parameters.tagName},
+        {name: 'content', type: Parameters.tagContent, consume: true},
       ],
     });
   }

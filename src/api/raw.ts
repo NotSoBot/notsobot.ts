@@ -1900,6 +1900,24 @@ export async function uploadCommands(
 }
 
 
+export async function utilitiesFetchImage(
+  context: RequestContext,
+  options: RestOptions.UtilitiesFetchImage,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_FETCH_IMAGE,
+    },
+  });
+}
+
+
 export async function utilitiesScreenshot(
   context: RequestContext,
   options: RestOptions.UtilitiesScreenshot,

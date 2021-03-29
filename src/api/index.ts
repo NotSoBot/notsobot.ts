@@ -935,6 +935,14 @@ export async function uploadCommands(
 }
 
 
+export async function utilitiesFetchImage(
+  context: RequestContext,
+  options: RestOptions.UtilitiesFetchImage,
+) {
+  return raw.utilitiesFetchImage(context, options);
+}
+
+
 export async function utilitiesScreenshot(
   context: RequestContext,
   options: RestOptions.UtilitiesScreenshot,

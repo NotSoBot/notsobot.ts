@@ -38,7 +38,7 @@ export default class TagEditCommand extends BaseCommand {
       },
       type: [
         {name: 'tag', default: null, type: Parameters.NotSoTag},
-        {name: 'content', consume: true},
+        {name: 'content', type: Parameters.tagContent, consume: true},
       ],
     });
   }

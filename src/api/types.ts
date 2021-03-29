@@ -328,6 +328,10 @@ export namespace RestOptions {
   }
 
 
+  export interface UtilitiesFetchImage {
+    url: string,
+  }
+
   export interface UtilitiesScreenshot {
     url: string,
   }
