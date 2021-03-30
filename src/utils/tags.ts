@@ -616,7 +616,17 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.RNG_CHOOSE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    return false;
+    if(!arg) return false;
+    
+    if(!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      tag.text += arg;
+    } else {
+      let options = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+      let choice = options[Math.floor(Math.random() * options.length)];
+      tag.text += choice;
+    };
+
+    return true;
   },
 
   [TagFunctions.RNG_RANGE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
