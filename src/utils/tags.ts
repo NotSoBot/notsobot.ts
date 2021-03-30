@@ -633,7 +633,7 @@ const ScriptTags = Object.freeze({
 
     if (value.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
-      const argParsed = await parse(context, arg, args, --tag.remainingIterations, tag.variables);
+      const argParsed = await parse(context, value, args, --tag.remainingIterations, tag.variables);
       tag.text += argParsed.text;
       for (let file of argParsed.files) {
         tag.files.push(file);
@@ -668,7 +668,7 @@ const ScriptTags = Object.freeze({
 
     let bottom = Math.min(firstValue, secondValue);
     let top = Math.max(firstValue, secondValue);
-    tag.text += Math.floor(Math.random() * ((top + 1) + bottom));
+    tag.text += Math.floor(Math.random() * ((top + 1))) + bottom;
 
     return true;
   },
