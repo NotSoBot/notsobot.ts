@@ -65,6 +65,14 @@ export enum TagFunctions {
   LOGICAL_IF = 'LOGICAL_IF',
   LOGICAL_SET = 'LOGICAL_SET',
   MATH = 'MATH',
+  MATH_ABS = 'MATH_ABS',
+  MATH_COS = 'MATH_COS',
+  MATH_E = 'MATH_E',
+  MATH_MAX = 'MATH_MAX',
+  MATH_MIN = 'MATH_MIN',
+  MATH_PI = 'MATH_PI',
+  MATH_SIN = 'MATH_SIN',
+  MATH_TAN = 'MATH_TAN',
   NSFW = 'NSFW',
   PREFIX = 'PREFIX',
   RNG_CHOOSE = 'RNG_CHOOSE',
@@ -122,6 +130,14 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_IF]: ['if'],
   [TagFunctions.LOGICAL_SET]: ['set'],
   [TagFunctions.MATH]: ['math'],
+  [TagFunctions.MATH_ABS]: ['abs'],
+  [TagFunctions.MATH_COS]: ['cos'],
+  [TagFunctions.MATH_E]: ['e'],
+  [TagFunctions.MATH_MAX]: ['max'],
+  [TagFunctions.MATH_MIN]: ['min'],
+  [TagFunctions.MATH_PI]: ['pi'],
+  [TagFunctions.MATH_SIN]: ['sin'],
+  [TagFunctions.MATH_TAN]: ['tan'],
   [TagFunctions.NSFW]: ['nsfw'],
   [TagFunctions.PREFIX]: ['prefix'],
   [TagFunctions.RNG_CHOOSE]: ['choose'],
@@ -608,6 +624,96 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.MATH]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
+  },
+
+  [TagFunctions.MATH_ABS]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    let val = parseInt(arg);
+    if(isNaN(val)) return false;
+
+    tag.text += Math.abs(val);
+
+    return true;
+  },
+
+  [TagFunctions.MATH_COS]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    let val = parseInt(arg);
+    if(isNaN(val)) return false;
+
+    tag.text += Math.cos(val);
+
+    return true;
+  },
+
+  [TagFunctions.MATH_E]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    tag.text += Math.E;
+    return true;
+  },
+
+  [TagFunctions.MATH_MAX]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    if(!args) return false;
+    else if (!args.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      if(isNaN(arg as any)) return false;
+      tag.text += arg;
+      return true;
+    }
+
+    // check all args are valid numbers to stop BigInt constructor
+    // throwing errors when attempting to convert to BigInt
+    let splitArgs = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    if(splitArgs.some(s => isNaN(s as any)) == true) {
+      return false;
+    }
+
+    let max = bigIntMax(...splitArgs.map(BigInt));
+
+    tag.text += max;
+
+    return true;
+  },
+
+  [TagFunctions.MATH_MIN]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    if(!args) return false;
+    else if (!args.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      if(isNaN(arg as any)) return false;
+      tag.text += arg;
+      return true;
+    }
+
+    // check all args are valid numbers to stop BigInt constructor
+    // throwing errors when attempting to convert to BigInt
+    let splitArgs = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    if(splitArgs.some(s => isNaN(s as any)) == true) {
+      return false;
+    }
+
+    let min = bigIntMin(...splitArgs.map(BigInt));
+
+    tag.text += min;
+
+    return true;
+  },
+
+  [TagFunctions.MATH_PI]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    tag.text += Math.PI;
+    return true;
+  },
+
+  [TagFunctions.MATH_SIN]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    let val = parseInt(arg);
+    if(isNaN(val)) return false;
+
+    tag.text += Math.sin(val);
+
+    return true;
+  },
+
+  [TagFunctions.MATH_TAN]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    let val = parseInt(arg);
+    if(isNaN(val)) return false;
+
+    tag.text += Math.tan(val);
+
+    return true;
   },
 
   [TagFunctions.NSFW]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
