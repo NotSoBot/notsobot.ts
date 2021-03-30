@@ -812,7 +812,7 @@ export function bigIntGenerateBetween(value1: bigint, value2: bigint): bigint {
   const lowBigInt = bigIntMin(value1, value2);
   const highBigInt = bigIntMax(value1, value2);
 
-  const difference = highBigInt - lowBigInt;
+  const difference = highBigInt - lowBigInt + 1n;
   const differenceLength = difference.toString().length;
   let multiplier = '';
   while (multiplier.length < differenceLength) {
