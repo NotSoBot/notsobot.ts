@@ -295,6 +295,7 @@ export async function editGuildSettings(
   const body = {
     allowlist: options.allowlist,
     blocklist: options.blocklist,
+    disabled_commands: options.disabledCommands,
     prefixes: options.prefixes,
     timezone: options.timezone,
   };

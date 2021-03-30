@@ -89,7 +89,7 @@ export default class HelpCommand extends BaseCommand {
     if (args.commands) {
       return editOrReply(context, '⚠ Unknown Command');
     }
-    return editOrReply(context, `${context.user.mention}, this is our rewrite bot. <https://beta.notsobot.com/commands> (Join our support server <https://beta.notsobot.com/support/invite>)`);
+    return editOrReply(context, 'This is our rewrite bot. <https://beta.notsobot.com/commands> (Join our support server <https://beta.notsobot.com/support/invite>)');
   }
 
   // add client permission labels

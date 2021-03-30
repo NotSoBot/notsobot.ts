@@ -65,6 +65,11 @@ export namespace RestOptions {
       id: string,
       type: string,
     }>,
+    disabledCommands?: Array<{
+      command: string,
+      id: string,
+      type: string,
+    }>,
     prefixes?: Array<string>,
     timezone?: string,
   }

@@ -12,6 +12,7 @@ import { BaseSearchCommand } from '../basecommand';
 const ReplacementRegex = /\[([\s\S]+?)\]/g;
 const UrbanUrl = 'https://www.urbandictionary.com/define.php';
 
+const MAX_LENGTH = 1950;
 
 export function createEmbed(context: Command.Context, result: RestResponsesRaw.SearchUrbanDictionaryResult) {
   const created = createTimestampMomentFromGuild(result.written_on, context.guildId);
@@ -21,23 +22,32 @@ export function createEmbed(context: Command.Context, result: RestResponsesRaw.S
   embed.setTitle(result.word);
   embed.setUrl(result.permalink);
 
-  const definition = Markup.escape.all(result.definition).replace(ReplacementRegex, (found: string, word: string) => {
-    const url = addQuery(UrbanUrl, {term: word});
-    return Markup.url(word, url);
-  });
+  let definition = Markup.escape.all(result.definition.slice(0, 1950));
+  if (definition.length <= MAX_LENGTH) {
+    const formattedDefinition = definition.replace(ReplacementRegex, (found: string, word: string) => {
+      const url = addQuery(UrbanUrl, {term: word});
+      return Markup.url(word, url);
+    });
+    if (formattedDefinition.length <= MAX_LENGTH) {
+      definition = formattedDefinition;
+    }
+  }
+
   embed.setDescription([
     `Created by ${Markup.escape.all(result.author)}, ${created.fromNow()}`,
     `-> ${Markup.spoiler(`(${created.format(DateMomentLogFormat)})`)}`,
-    '',
     `${result.thumbs_up.toLocaleString()} Likes, ${result.thumbs_down.toLocaleString()} Dislikes`,
-    '\n' + definition,
+    '',
+    definition,
   ].join('\n'));
 
   const example = Markup.escape.all(result.example).replace(ReplacementRegex, (found: string, word: string) => {
     const url = addQuery(UrbanUrl, {term: word});
     return Markup.url(word, url);
   });
-  embed.addField('Example', example);
+  if (example) {
+    embed.addField('Example', example);
+  }
 
   return embed;
 }

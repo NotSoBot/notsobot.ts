@@ -77,18 +77,18 @@ export class NotSoClient extends CommandClient {
               if (context.channel && context.channel.parentId === disabled.id) {
                 return true;
               }
-            };
+            }; break;
             case GuildDisableCommandsTypes.GUILD: {
               return true;
-            };
+            }; break;
             case GuildDisableCommandsTypes.ROLE: {
               if (member) {
                 return member.roles.has(disabled.id);
               }
-            };
+            }; break;
             case GuildDisableCommandsTypes.USER: {
               return disabled.id === context.userId;
-            };
+            }; break;
           }
           return false;
         });
@@ -115,7 +115,7 @@ export class NotSoClient extends CommandClient {
             }; break;
             case GuildAllowlistTypes.USER: {
               return allow.id === context.userId;
-            };
+            }; break;
           }
           return false;
         });
@@ -132,15 +132,15 @@ export class NotSoClient extends CommandClient {
                 if (context.channel && context.channel.parentId === blocked.id) {
                   return true;
                 }
-              };
+              }; break;
               case GuildBlocklistTypes.ROLE: {
                 if (member) {
                   return member.roles.has(blocked.id);
                 }
-              };
+              }; break;
               case GuildBlocklistTypes.USER: {
                 return blocked.id === context.userId;
-              };
+              }; break;
             }
             return false;
           });

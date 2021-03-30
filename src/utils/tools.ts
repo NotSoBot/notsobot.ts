@@ -84,7 +84,7 @@ export function editOrReply(context: Command.Context, options: Command.EditOrRep
   }
   return context.editOrReply({
     ...options,
-    allowedMentions: {repliedUser: false},
+    allowedMentions: {parse: [], repliedUser: false, ...options.allowedMentions},
   });
 }
 
@@ -823,6 +823,28 @@ export function chunkArray<T>(
     }
   }
   return pages;
+}
+
+
+export function randomFromArray<T>(
+  array: Array<T>,
+): T {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+
+export function randomFromIterator<T>(
+  size: number,
+  iterator: IterableIterator<T>,
+): T {
+  const choice = Math.floor(Math.random() * (size + 1));
+  let i = 0;
+  for (let value of iterator) {
+    if (i++ === choice) {
+      return value;
+    }
+  }
+  return iterator.next().value;
 }
 
 

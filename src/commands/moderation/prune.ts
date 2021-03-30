@@ -38,6 +38,9 @@ export default class PruneCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      aliases: [
+        'purge',
+      ],
       args: [
         {name: 'after', type: Parameters.snowflake},
         {name: 'before', type: Parameters.snowflake},

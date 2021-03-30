@@ -222,7 +222,7 @@ export class Paginator {
       this.isOnGuide = false;
       this.page = page;
       const embed = await this.getPage(page);
-      await this.message.edit({embed});
+      await this.message.edit({allowedMentions: {parse: []}, embed});
     }
   }
 
@@ -288,7 +288,7 @@ export class Paginator {
           if (!this.isOnGuide) {
             this.isOnGuide = true;
             const embed = await this.getGuidePage();
-            await this.message.edit({embed});
+            await this.message.edit({allowedMentions: {parse: []}, embed});
           }
         }; break;
         default: {

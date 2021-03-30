@@ -1,11 +1,15 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
+import { Collections, Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { deleteGuildDisabledCommand } from '../../api';
+import { deleteGuildDisabledCommand, editGuildSettings } from '../../api';
+import { GuildSettings } from '../../api/structures/guildsettings';
 import { CommandTypes, GuildDisableCommandsTypes } from '../../constants';
+import GuildSettingsStore from '../../stores/guildsettings';
+import { Parameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
-import { Parameters } from '../../utils';
+
+import { createDisabledCommandsEmbed } from './commands';
 
 
 export interface CommandArgsBefore {
@@ -111,9 +115,81 @@ export default class CommandsEnable extends BaseCommand {
     const guildId = context.guildId as string;
 
     const isServerWide = !args.channels && !args.roles && !args.users;
+
+    let settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
+
+    let title = `Enabled ${command.name}`;
     if (isServerWide) {
+      title = `${title} server-wide`;
       await deleteGuildDisabledCommand(context, guildId, command.name, guildId, GuildDisableCommandsTypes.GUILD);
-      return context.reply(`Ok, enabled ${command.name} server-wide.`);
+      settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettings;
+    } else {
+      let channels = 0, roles = 0, users = 0;
+
+      const payloads = [];
+      if (args.channels) {
+        channels = args.channels.length;
+        for (let channel of args.channels) {
+          payloads.push({item: channel, type: GuildDisableCommandsTypes.CHANNEL});
+        }
+      }
+      if (args.roles) {
+        roles = args.roles.length;
+        for (let role of args.roles) {
+          payloads.push({item: role, type: GuildDisableCommandsTypes.ROLE});
+        }
+      }
+      if (args.users) {
+        users = args.users.length;
+        for (let user of args.users) {
+          payloads.push({item: user, type: GuildDisableCommandsTypes.USER});
+        }
+      }
+
+      for (let payload of payloads) {
+        const key = `${command.name}.${payload.item.id}.${payload.type}`;
+        if (settings.disabledCommands.has(key)) {
+          await deleteGuildDisabledCommand(context, guildId, command.name, payload.item.id, payload.type);
+        }
+      }
+      settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettings;
+
+      const comments: Array<string> = [];
+      if (channels) {
+        comments.push(`${channels.toLocaleString()} Channel${(channels === 1) ? '' : 's'}`);
+      }
+      if (roles) {
+        comments.push(`${roles.toLocaleString()} Role${(roles === 1) ? '' : 's'}`);
+      }
+      if (users) {
+        comments.push(`${users.toLocaleString()} Users${(users === 1) ? '' : 's'}`);
+      }
+      title = `${title} for ${comments.join(', ')}`;
+
+      /*
+      if (payloads.length === 1) {
+        // do single
+        const [ payload ] = payloads;
+        await deleteGuildDisabledCommand(context, guildId, command.name, payload.item.id, payload.type);
+        settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettings;
+      } else {
+        // do multiple
+        settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
+
+        const disabledCommands = new Collections.BaseCollection<string, {command: string, id: string, type: string}>();
+        for (let [key, disabled] of settings.disabledCommands) {
+          disabledCommands.set(key, {command: command.name, id: disabled.id, type: disabled.type});
+        }
+        for (let {item, type} of payloads) {
+          const key = `${command.name}.${item.id}.${type}`;
+          disabledCommands.delete(key);
+        }
+        settings = await editGuildSettings(context, guildId, {
+          disabledCommands: disabledCommands.toArray(),
+        });
+      }
+      */
     }
+    return createDisabledCommandsEmbed(context, settings.disabledCommands, {title})
   }
 }
