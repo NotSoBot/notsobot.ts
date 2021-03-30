@@ -716,6 +716,10 @@ const ScriptTags = Object.freeze({
 
     const [regex, replaceWith, source] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
 
+    if (regex === undefined || replaceWith === undefined || source === undefined) {
+      return false;
+    }
+
     try {
       tag.text += runInNewContext(`
         source.replace(new RegExp(regex, 'g'), replaceWith);
