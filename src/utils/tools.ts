@@ -808,6 +808,46 @@ export function toTitleCase(value: string): string {
 }
 
 
+export function bigIntGenerateBetween(value1: bigint, value2: bigint): bigint {
+  const lowBigInt = bigIntMin(value1, value2);
+  const highBigInt = bigIntMax(value1, value2);
+
+  const difference = highBigInt - lowBigInt;
+  const differenceLength = difference.toString().length;
+  let multiplier = '';
+  while (multiplier.length < differenceLength) {
+    multiplier += Math.random().toString().split('.')[1];
+  }
+  multiplier = multiplier.slice(0, differenceLength);
+  const divisor = '1' + '0'.repeat(differenceLength);
+
+  const randomDifference = (difference * BigInt(multiplier)) / BigInt(divisor);
+  return lowBigInt + randomDifference;
+}
+
+
+export function bigIntMax(...args: Array<bigint>): bigint {
+  let value = args[0];
+  for (let x of args) {
+    if (value < x) {
+      value = x;
+    }
+  }
+  return value;
+}
+
+
+export function bigIntMin(...args: Array<bigint>): bigint {
+  let value = args[0];
+  for (let x of args) {
+    if (x < value) {
+      value = x;
+    }
+  }
+  return value;
+}
+
+
 export function chunkArray<T>(
   array: Array<T>,
   amount: number,

@@ -4,7 +4,7 @@ import { Command, Structures } from 'detritus-client';
 import { utilitiesFetchImage } from '../api';
 
 import * as Parameters from './parameters';
-import { randomFromArray, randomFromIterator } from './tools';
+import { bigIntGenerateBetween, bigIntMax, bigIntMin, randomFromArray, randomFromIterator } from './tools';
 
 
 const findChannel = Parameters.channel({inGuild: true});
@@ -653,22 +653,20 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let firstValue = 0, secondValue = 0;
+    let firstValue = '0', secondValue = '0';
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      secondValue = parseInt(arg);
+      secondValue = arg.split('.').shift() as string;
     } else {
       const firstSplitter = arg.indexOf(TagSymbols.SPLITTER_ARGUMENT);
-      firstValue = parseInt(arg.slice(0, firstSplitter));
-      secondValue = parseInt(arg.slice(firstSplitter + 1));
+      firstValue = arg.slice(0, firstSplitter).split('.').shift() as string;
+      secondValue = arg.slice(firstSplitter + 1).split('.').shift() as string;
     }
 
-    if (isNaN(firstValue) || isNaN(secondValue)) {
+    if (isNaN(firstValue as any) || isNaN(secondValue as any)) {
       return false;
     }
 
-    let bottom = Math.min(firstValue, secondValue);
-    let top = Math.max(firstValue, secondValue);
-    tag.text += Math.floor(Math.random() * ((top + 1))) + bottom;
+    tag.text += bigIntGenerateBetween(BigInt(firstValue), BigInt(secondValue));
 
     return true;
   },
