@@ -233,38 +233,41 @@ export async function parse(
           let [scriptName, arg] = parseInnerScript(scriptBuffer);
           if (TagFunctionsToString.IGNORE.includes(scriptName)) {
             tag.text += arg;
-            scriptBuffer = '';
-            continue;
           } else if (TagFunctionsToString.NOTE.includes(scriptName)) {
-            scriptBuffer = '';
-            continue;
-          }
-
-          {
+            // do nothing
+          } else if (TagFunctionsToString.RNG_CHOOSE.includes(scriptName)) {
+            // do this separate from below because we don't want our args parsed yet
+            const wasValid = await ScriptTags[TagFunctions.RNG_CHOOSE](context, arg, args, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
+          } else {
+            // check the other tags now
             const argParsed = await parse(context, arg, args, --tag.remainingIterations, tag.variables);
             arg = argParsed.text;
             for (let file of argParsed.files) {
               tag.files.push(file);
             }
-          }
 
-          let found = false;
-          for (let TAG_FUNCTION of Object.values(TagFunctions)) {
-            if (TagFunctionsToString[TAG_FUNCTION].includes(scriptName)) {
-              found = true;
-              const wasValid = await ScriptTags[TAG_FUNCTION](context, arg, args, tag);
-              if (!wasValid) {
-                tag.text += scriptBuffer;
+            let found = false;
+            for (let TAG_FUNCTION of Object.values(TagFunctions)) {
+              if (TagFunctionsToString[TAG_FUNCTION].includes(scriptName)) {
+                found = true;
+                const wasValid = await ScriptTags[TAG_FUNCTION](context, arg, args, tag);
+                if (!wasValid) {
+                  tag.text += scriptBuffer;
+                }
+                break;
               }
-              break;
+            }
+
+            if (!found) {
+              // parse as script (check if scriptName is a programming language)
+              // do this for now
+              tag.text += scriptBuffer;
             }
           }
 
-          if (!found) {
-            // parse as script (check if scriptName is a programming language)
-            // do this for now
-            tag.text += scriptBuffer;
-          }
           scriptBuffer = '';
         }
       }; break;
@@ -579,11 +582,11 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.LOGICAL_SET]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    if (!arg.includes('|')) {
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
-    const [key, ...value] = arg.split('|');
+    const [key, ...value] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
@@ -598,7 +601,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    tag.variables[key] = value.join('|').slice(0, MAX_VARIABLE_LENGTH);
+    tag.variables[key] = value.join(TagSymbols.SPLITTER_ARGUMENT).slice(0, MAX_VARIABLE_LENGTH);
 
     return true;
   },
@@ -616,21 +619,58 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.RNG_CHOOSE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    if(!arg) return false;
-    
-    if(!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      tag.text += arg;
+    if (!arg) {
+      return false;
+    }
+
+    let value: string;
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      const choices = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+      value = randomFromArray<string>(choices);
     } else {
-      let options = arg.split(TagSymbols.SPLITTER_ARGUMENT);
-      let choice = options[Math.floor(Math.random() * options.length)];
-      tag.text += choice;
-    };
+      value = arg;
+    }
+
+    if (value.includes(TagSymbols.BRACKET_LEFT)) {
+      // parse it
+      const argParsed = await parse(context, arg, args, --tag.remainingIterations, tag.variables);
+      tag.text += argParsed.text;
+      for (let file of argParsed.files) {
+        tag.files.push(file);
+      }
+    } else {
+      tag.text += value;
+    }
 
     return true;
   },
 
   [TagFunctions.RNG_RANGE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    return false;
+    // {range:50}
+    // {range:50|100}
+
+    if (!arg) {
+      return false;
+    }
+
+    let firstValue = 0, secondValue = 0;
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      secondValue = parseInt(arg);
+    } else {
+      const firstSplitter = arg.indexOf(TagSymbols.SPLITTER_ARGUMENT);
+      firstValue = parseInt(arg.slice(0, firstSplitter));
+      secondValue = parseInt(arg.slice(firstSplitter + 1));
+    }
+
+    if (isNaN(firstValue) || isNaN(secondValue)) {
+      return false;
+    }
+
+    let bottom = Math.min(firstValue, secondValue);
+    let top = Math.max(firstValue, secondValue);
+    tag.text += Math.floor(Math.random() * ((top + 1) + bottom));
+
+    return true;
   },
 
   [TagFunctions.STRING_CODEBLOCK]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
@@ -648,11 +688,11 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_REPEAT]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    if (!arg.includes('|')) {
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
-    const [ amountText, ...value ] = arg.split('|');
+    const [ amountText, ...value ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
     const amount = parseInt(amountText);
     if (isNaN(amount)) {
       return false;
@@ -662,7 +702,7 @@ const ScriptTags = Object.freeze({
       throw new Error('really man, more than 2000 repeats?');
     }
 
-    const text = value.join('|');
+    const text = value.join(TagSymbols.SPLITTER_ARGUMENT);
     if (MAX_STRING_LENGTH < text.length * amount) {
       throw new Error('ok buddy, dont repeat too much text man');
     }
