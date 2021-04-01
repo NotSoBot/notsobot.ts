@@ -4,7 +4,7 @@ import { Command, Structures } from 'detritus-client';
 import { utilitiesFetchImage } from '../api';
 
 import * as Parameters from './parameters';
-import { bigIntGenerateBetween, bigIntMax, bigIntMin, randomFromArray, randomFromIterator } from './tools';
+import { bigIntGenerateBetween, bigIntMax, bigIntMin, randomFromArray, randomFromIterator, splitString } from './tools';
 
 
 const findChannel = Parameters.channel({inGuild: true});
@@ -12,7 +12,7 @@ const findMemberOrUser = Parameters.memberOrUser();
 
 
 export const ATTACHMENT_EXTENSIONS = ['bmp', 'heic', 'gif', 'ico', 'jpg', 'jpeg', 'png', 'raw', 'tiff', 'webp'];
-export const DEFAULT_REMAINING_ITERATIONS = 100;
+export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
 export const MAX_REPEAT_AMOUNT = 2000;
 export const MAX_STRING_LENGTH = 10000;
@@ -22,6 +22,7 @@ export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
 export enum PrivateVariables {
+  ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',
 }
 
@@ -80,8 +81,10 @@ export enum TagFunctions {
   STRING_CODEBLOCK = 'STRING_CODEBLOCK',
   STRING_LENGTH = 'STRING_LENGTH',
   STRING_LOWER = 'STRING_LOWER',
+  STRING_NEWLINE = 'STRING_NEWLINE',
   STRING_REPEAT = 'STRING_REPEAT',
   STRING_REPLACE = 'STRING_REPLACE',
+  STRING_REVERSE = 'STRING_REVERSE',
   STRING_SUB = 'STRING_SUB',
   STRING_UPPER = 'STRING_UPPER',
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
@@ -145,8 +148,10 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_CODEBLOCK]: ['code'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
   [TagFunctions.STRING_LOWER]: ['lower'],
+  [TagFunctions.STRING_NEWLINE]: ['newline'],
   [TagFunctions.STRING_REPEAT]: ['repeat'],
   [TagFunctions.STRING_REPLACE]: ['replace', 'replaceregex'],
+  [TagFunctions.STRING_REVERSE]: ['reverse'],
   [TagFunctions.STRING_SUB]: ['substring'],
   [TagFunctions.STRING_UPPER]: ['upper'],
   [TagFunctions.STRING_URL_ENCODE]: ['url'],
@@ -175,13 +180,13 @@ export const TagSymbols = Object.freeze({
 
 
 export interface TagVariables {
+  [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
   [key: string]: number | string,
 }
 
 export interface TagResult {
   files: Array<{buffer: null | Buffer, filename: string, url: string}>,
-  remainingIterations: number,
   text: string,
   variables: TagVariables,
 }
@@ -190,25 +195,30 @@ export async function parse(
   context: Command.Context,
   value: string,
   args: Array<string>,
-  remainingIterations: number = DEFAULT_REMAINING_ITERATIONS,
   variables: TagVariables = Object.create(null),
 ): Promise<TagResult> {
+  let isFirstParse = true;
+  if (PrivateVariables.ITERATIONS_REMAINING in variables) {
+    isFirstParse = false;
+  } else {
+    variables[PrivateVariables.ITERATIONS_REMAINING] = MAX_ITERATIONS;
+  }
   if (!(PrivateVariables.NETWORK_REQUESTS in variables)) {
     variables[PrivateVariables.NETWORK_REQUESTS] = 0;
   }
-  const tag: TagResult = {files: [], remainingIterations, text: '', variables};
+  const tag: TagResult = {files: [], text: '', variables};
+  tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   let depth = 0;
   let scriptBuffer = '';
   let position = 0;
   while (position < value.length) {
-    if (tag.remainingIterations <= 0) {
+    if (tag.variables[PrivateVariables.ITERATIONS_REMAINING] <= 0) {
       tag.text += value.slice(position);
       position = value.length;
       continue;
     }
 
-    console.log(position);
     if (depth === 0) {
       // find next left bracket
       const nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
@@ -228,7 +238,6 @@ export async function parse(
     // add network checks
     let result = value.slice(position, ++position);
     scriptBuffer += result;
-    console.log(position, result, depth, scriptBuffer);
     switch (result) {
       case TagSymbols.IGNORE: {
         const nextValue = value.slice(position, position + 1);
@@ -259,7 +268,7 @@ export async function parse(
             }
           } else {
             // check the other tags now
-            const argParsed = await parse(context, arg, args, --tag.remainingIterations, tag.variables);
+            const argParsed = await parse(context, arg, args, tag.variables);
             arg = argParsed.text;
             for (let file of argParsed.files) {
               tag.files.push(file);
@@ -290,7 +299,10 @@ export async function parse(
     }
   }
 
-  tag.text += scriptBuffer;
+  tag.text = (tag.text + scriptBuffer).trim();
+  if (isFirstParse) {
+    tag.text = tag.text.replace(/\u200B/g, '\n');
+  }
   return tag;
 }
 
@@ -300,7 +312,7 @@ function parseInnerScript(value: string): [string, string] {
   let arg: string;
 
   // remove the brackets from both sides of the value
-  value = value.slice(1, value.length - 1);
+  value = value.slice(1, value.length - 1).trim();
 
   const firstSplitter = value.indexOf(TagSymbols.SPLITTER_FUNCTION);
   if (firstSplitter === -1) {
@@ -318,9 +330,10 @@ function parseInnerScript(value: string): [string, string] {
 
 const ScriptTags = Object.freeze({
   [TagFunctions.ARG]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {arg} (defaults to the first one)
     // {arg:0}
 
-    const index = parseInt(arg);
+    const index = parseInt(arg || '0');
     if (isNaN(index)) {
       return false;
     }
@@ -328,6 +341,7 @@ const ScriptTags = Object.freeze({
     if (index in args) {
       tag.text += args[index];
     }
+
     return true;
   },
 
@@ -515,7 +529,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.EVAL]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {eval:{args}}
 
-    const argParsed = await parse(context, arg, args, --tag.remainingIterations, tag.variables);
+    const argParsed = await parse(context, arg, args, tag.variables);
     tag.text += argParsed.text;
     for (let file of argParsed.files) {
       tag.files.push(file);
@@ -580,14 +594,15 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.LOGICAL_GET]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    if (arg.startsWith(PRIVATE_VARIABLE_PREFIX)) {
+    const key = arg.trim();
+    if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to access a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
-    if (MAX_VARIABLE_KEY_LENGTH < arg.length) {
+    if (MAX_VARIABLE_KEY_LENGTH < key.length) {
       throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
     }
-    if (arg in tag.variables) {
-      tag.text += tag.variables[arg];
+    if (key in tag.variables) {
+      tag.text += tag.variables[key];
     }
   
     return true;
@@ -602,7 +617,8 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const [key, ...value] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    let [key, ...value] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    key = key.trim();
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
@@ -617,7 +633,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    tag.variables[key] = value.join(TagSymbols.SPLITTER_ARGUMENT).slice(0, MAX_VARIABLE_LENGTH);
+    tag.variables[key] = value.join(TagSymbols.SPLITTER_ARGUMENT).slice(0, MAX_VARIABLE_LENGTH).trim();
 
     return true;
   },
@@ -627,19 +643,23 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_ABS]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    let val = parseInt(arg);
-    if(isNaN(val)) return false;
+    const value = parseInt(arg);
+    if (isNaN(value)) {
+      return false;
+    }
 
-    tag.text += Math.abs(val);
+    tag.text += Math.abs(value);
 
     return true;
   },
 
   [TagFunctions.MATH_COS]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    let val = parseInt(arg);
-    if(isNaN(val)) return false;
+    const value = parseInt(arg);
+    if (isNaN(value)) {
+      return false;
+    }
 
-    tag.text += Math.cos(val);
+    tag.text += Math.cos(value);
 
     return true;
   },
@@ -650,45 +670,53 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_MAX]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    if(!args) return false;
-    else if (!args.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      if(isNaN(arg as any)) return false;
-      tag.text += arg;
-      return true;
-    }
-
-    // check all args are valid numbers to stop BigInt constructor
-    // throwing errors when attempting to convert to BigInt
-    let splitArgs = arg.split(TagSymbols.SPLITTER_ARGUMENT);
-    if(splitArgs.some(s => isNaN(s as any)) == true) {
+    if (!arg) {
       return false;
     }
 
-    let max = bigIntMax(...splitArgs.map(BigInt));
+    const [ firstValuePart, ...secondValueParts ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    const firstValue = firstValuePart.split('.').shift() as string;
+    if (isNaN(firstValue as any)) {
+      return false;
+    }
 
-    tag.text += max;
+    let value: bigint;
+    if (secondValueParts.length) {
+      const secondValue = secondValueParts.join(TagSymbols.SPLITTER_ARGUMENT).split('.').shift() as string;
+      if (isNaN(secondValue as any)) {
+        return false;
+      }
+      value = bigIntMax(BigInt(firstValue), BigInt(secondValue));
+    } else {
+      value = BigInt(firstValue);
+    }
+    tag.text += value;
 
     return true;
   },
 
   [TagFunctions.MATH_MIN]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    if(!args) return false;
-    else if (!args.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      if(isNaN(arg as any)) return false;
-      tag.text += arg;
-      return true;
-    }
-
-    // check all args are valid numbers to stop BigInt constructor
-    // throwing errors when attempting to convert to BigInt
-    let splitArgs = arg.split(TagSymbols.SPLITTER_ARGUMENT);
-    if(splitArgs.some(s => isNaN(s as any)) == true) {
+    if (!arg) {
       return false;
     }
 
-    let min = bigIntMin(...splitArgs.map(BigInt));
+    const [ firstValuePart, ...secondValueParts ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    const firstValue = firstValuePart.split('.').shift() as string;
+    if (isNaN(firstValue as any)) {
+      return false;
+    }
 
-    tag.text += min;
+    let value: bigint;
+    if (secondValueParts.length) {
+      const secondValue = secondValueParts.join(TagSymbols.SPLITTER_ARGUMENT).split('.').shift() as string;
+      if (isNaN(secondValue as any)) {
+        return false;
+      }
+      value = bigIntMin(BigInt(firstValue), BigInt(secondValue));
+    } else {
+      value = BigInt(firstValue);
+    }
+    tag.text += value;
 
     return true;
   },
@@ -699,19 +727,23 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_SIN]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    let val = parseInt(arg);
-    if(isNaN(val)) return false;
+    const value = parseInt(arg);
+    if (isNaN(value)) {
+      return false;
+    }
 
-    tag.text += Math.sin(val);
+    tag.text += Math.sin(value);
 
     return true;
   },
 
   [TagFunctions.MATH_TAN]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    let val = parseInt(arg);
-    if(isNaN(val)) return false;
+    const value = parseInt(arg);
+    if (isNaN(value)) {
+      return false;
+    }
 
-    tag.text += Math.tan(val);
+    tag.text += Math.tan(value);
 
     return true;
   },
@@ -731,7 +763,7 @@ const ScriptTags = Object.freeze({
 
     let value: string;
     if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      const choices = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+      const choices = splitString(arg, TagSymbols.SPLITTER_ARGUMENT);
       value = randomFromArray<string>(choices);
     } else {
       value = arg;
@@ -739,7 +771,7 @@ const ScriptTags = Object.freeze({
 
     if (value.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
-      const argParsed = await parse(context, value, args, --tag.remainingIterations, tag.variables);
+      const argParsed = await parse(context, value, args, tag.variables);
       tag.text += argParsed.text;
       for (let file of argParsed.files) {
         tag.files.push(file);
@@ -781,6 +813,23 @@ const ScriptTags = Object.freeze({
     return false;
   },
 
+  [TagFunctions.STRING_NEWLINE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {newline}
+    // {newline:5} (5 newlines)
+
+    if (arg) {
+      const amount = parseInt(arg);
+      if (isNaN(amount)) {
+        return false;
+      }
+      tag.text += '\u200b'.repeat(amount);
+    } else {
+      tag.text += '\u200b';
+    }
+
+    return true;
+  },
+
   [TagFunctions.STRING_LENGTH]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     tag.text += arg.length;
     return true;
@@ -797,7 +846,7 @@ const ScriptTags = Object.freeze({
     }
 
     const [ amountText, ...value ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
-    const amount = parseInt(amountText);
+    const amount = parseInt(amountText.trim());
     if (isNaN(amount)) {
       return false;
     }
@@ -806,7 +855,7 @@ const ScriptTags = Object.freeze({
       throw new Error('really man, more than 2000 repeats?');
     }
 
-    const text = value.join(TagSymbols.SPLITTER_ARGUMENT);
+    const text = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
     if (MAX_STRING_LENGTH < text.length * amount) {
       throw new Error('ok buddy, dont repeat too much text man');
     }
@@ -817,6 +866,11 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.STRING_REPLACE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
+  },
+
+  [TagFunctions.STRING_REVERSE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    tag.text += arg.split('').reverse().join('');
+    return true;
   },
 
   [TagFunctions.STRING_SUB]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {

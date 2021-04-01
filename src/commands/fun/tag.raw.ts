@@ -24,7 +24,7 @@ export default class TagCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['t raw'],
+      aliases: ['t raw', 'tag owner', 't owner'],
       label: 'tag',
       metadata: {
         description: 'View a tag\'s raw content',

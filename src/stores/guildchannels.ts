@@ -1,4 +1,4 @@
-import { ClusterClient, Collections, GatewayClientEvents, Structures } from 'detritus-client';
+import { ClusterClient, Collections, Structures } from 'detritus-client';
 import { EventSubscription } from 'detritus-utils';
 
 import { Store } from './store';
@@ -19,7 +19,7 @@ class GuildChannelsStore extends Store<string, GuildChannelsStored> {
   create(cluster: ClusterClient) {
     const subscriptions: Array<EventSubscription> = [];
     {
-      const subscription = cluster.subscribe('guildDelete', (event: GatewayClientEvents.GuildDelete) => {
+      const subscription = cluster.subscribe('guildDelete', (event) => {
         const { guildId } = event;
         this.delete(guildId);
       });

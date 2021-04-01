@@ -1,5 +1,5 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
-import { Colors, Permissions } from 'detritus-client/lib/constants';
+import { ChannelVideoQualityModes, Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
@@ -129,11 +129,21 @@ export default class ChannelCommand extends BaseCommand {
       }
 
       embed.addField('Text Information', description.join('\n'), true);
-    } else if (channel.isGuildVoice) {
+    } else if (channel.isVoice && channel.isGuildChannel) {
       const description: Array<string> = [];
 
       description.push(`**Bitrate**: ${(channel.bitrate / 1000).toLocaleString()} kbps`);
       description.push(`**User Limit**: ${(channel.userLimit) ? channel.userLimit.toLocaleString() : 'Unlimited'}`);
+
+      {
+        let text: string;
+        switch (channel.videoQualityMode) {
+          case ChannelVideoQualityModes.AUTO: text = 'Auto'; break;
+          case ChannelVideoQualityModes.FULL: text = '720p'; break;
+          default: text = `Unknown (${channel.videoQualityMode})`;
+        }
+        description.push(`**Video Quality**: ${text}`);
+      }
 
       embed.addField('Voice Information', description.join('\n'), true);
     }
@@ -179,7 +189,19 @@ export default class ChannelCommand extends BaseCommand {
       description.push(`Overwrites: ${channel.permissionOverwrites.length.toLocaleString()}`);
 
       if (channel.isVoice) {
-        description.push(`Members: ${channel.voiceStates.length.toLocaleString()}`);
+        description.push('');
+
+        const membersAmount = channel.voiceStates.length;
+        if (channel.isGuildStageVoice) {
+          const listenersAmount = channel.voiceStates.filter((voiceState) => voiceState.isAudience).length;
+          const speakersAmount = (membersAmount - listenersAmount);
+
+          description.push(`Listeners: ${listenersAmount.toLocaleString()}`);
+          description.push(`Speakers: ${speakersAmount.toLocaleString()}`);
+          description.push(`Total: ${membersAmount.toLocaleString()}`);
+        } else {
+          description.push(`Members: ${membersAmount.toLocaleString()}`);
+        }
       }
 
       if (description.length) {

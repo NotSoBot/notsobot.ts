@@ -5,6 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import {
   CommandTypes,
   DateMomentLogFormat,
+  DiscordEmojis,
   PresenceStatusColors,
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
@@ -15,6 +16,7 @@ import {
   Parameters,
   createTimestampMomentFromGuild,
   editOrReply,
+  getMemberJoinPosition,
   toTitleCase,
 } from '../../utils';
 
@@ -22,12 +24,14 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  botsonly: boolean,
+  bots: boolean,
+  role?: Structures.Role,
   users: Array<Structures.Member | Structures.User>,
 }
 
 export interface CommandArgs {
-  botsonly: boolean,
+  bots: boolean,
+  role?: Structures.Role,
   users: Array<Structures.Member | Structures.User>,
 }
 
@@ -41,7 +45,8 @@ export default class UsersCommand extends BaseCommand {
 
       aliases: ['members'],
       args: [
-        {name: 'botsonly', type: Boolean},
+        {name: 'bots', type: Boolean},
+        {name: 'role', type: Parameters.role},
       ],
       default: DefaultParameters.members,
       label: 'users',
@@ -49,9 +54,10 @@ export default class UsersCommand extends BaseCommand {
         description: 'Get information about multiple members/users',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} -botsonly`,
+          `${COMMAND_NAME} -bots`,
           `${COMMAND_NAME} cake`,
           `${COMMAND_NAME} cake#1`,
+          `${COMMAND_NAME} cake -role admin`,
         ],
         type: CommandTypes.INFO,
         usage: '?<user:id|mention|name>',
@@ -73,8 +79,17 @@ export default class UsersCommand extends BaseCommand {
     const { users } = args;
 
     let membersOrUsers = users;
-    if (args.botsonly) {
+    if (args.bots) {
       membersOrUsers = membersOrUsers.filter((memberOrUser) => memberOrUser.bot);
+    }
+    if (args.role) {
+      const roleId = args.role.id;
+      membersOrUsers = membersOrUsers.filter((memberOrUser) => {
+        if (memberOrUser instanceof Structures.Member) {
+          return memberOrUser.roles.has(roleId);
+        }
+        return false;
+      });
     }
     membersOrUsers = membersOrUsers.sort((x, y) => {
       if (x instanceof Structures.Member && y instanceof Structures.Member) {
@@ -109,15 +124,36 @@ export default class UsersCommand extends BaseCommand {
         embed.setTitle(`User ${page} of ${pageLimit}`);
         {
           const description: Array<string> = [];
-          description.push(`**Id**: \`${user.id}\``);
+          {
+            const badges: Array<string> = [];
+            for (let key in DiscordEmojis.DISCORD_BADGES) {
+              if (user.hasFlag(parseInt(key))) {
+                badges.push((DiscordEmojis.DISCORD_BADGES as any)[key]);
+              }
+            }
+            if (badges.length) {
+              description.push(`**Badges**: ${badges.join(' ')}`);
+            }
+          }
           description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
+          description.push(`**Id**: \`${user.id}\``);
           if (user.system) {
             description.push(`**System**: Yes`);
           }
-          if (user.system) {
-            description.push('**Tag**: <:system1:649406724960157708><:system2:649406733613269002>');
-          } else if (user.bot) {
-            description.push('**Tag**: <:bot1:649407239060455426><:bot2:649407247033565215>');
+          {
+            let tag: string | undefined;
+            if (user.system) {
+              tag = DiscordEmojis.DISCORD_TAG_SYSTEM;
+            } else if (user.bot) {
+              if (user.hasVerifiedBot) {
+                tag = DiscordEmojis.DISCORD_TAG_BOT
+              } else {
+                tag = DiscordEmojis.DISCORD_TAG_BOT;
+              }
+            }
+            if (tag) {
+              description.push(`**Tag**: ${tag}`);
+            }
           }
           embed.addField('Information', description.join('\n'), true);
         }
@@ -136,8 +172,8 @@ export default class UsersCommand extends BaseCommand {
               description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
             }
             if (member.guild) {
-              const position = member.guild.members.sort((x, y) => x.joinedAtUnix - y.joinedAtUnix).findIndex((m) => m.id === member.id) + 1;
-              description.push(`**Join Position**: ${position.toLocaleString()}/${member.guild.members.length.toLocaleString()}`);
+              const [ position, memberCount ] = getMemberJoinPosition(member.guild, member.id);
+              description.push(`**Join Position**: ${position.toLocaleString()}/${memberCount.toLocaleString()}`);
             }
           }
           embed.addField('Joined', description.join('\n'), true);

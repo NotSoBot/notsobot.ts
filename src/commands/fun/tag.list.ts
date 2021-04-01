@@ -17,7 +17,7 @@ import {
 import { BaseCommand } from '../basecommand';
 
 
-export const RESULTS_PER_PAGE = 30;
+export const RESULTS_PER_PAGE = 28;
 
 export interface CommandArgsBefore {
   user: Structures.Member | Structures.User | null,

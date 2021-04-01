@@ -20,6 +20,8 @@ import {
   TRUSTED_URLS,
 } from '../constants';
 
+import ChannelMembersStore, { ChannelMembersStored } from '../stores/channelmembers';
+import GuildMembersStore, { GuildMembersStored } from '../stores/guildmembers';
 import GuildSettingsStore from '../stores/guildsettings';
 
 
@@ -296,29 +298,52 @@ export async function findMemberByChunk(
       }
     }
     {
-      const members = findMembersByUsername(channel.members, username, discriminator) as Array<Structures.Member>;
-      if (members.length) {
-        const sorted = members.sort((x, y) => {
-          if (x.hoistedRole && y.hoistedRole) {
-              return y.hoistedRole.position - x.hoistedRole.position;
-          } else if (x.hoistedRole) {
-              return -1;
-          } else if (y.hoistedRole) {
-              return 1;
+      if (guild && guild.memberCount < ChannelMembersStore.MAX_AMOUNT) {
+        let channelMembers: ChannelMembersStored;
+        if (ChannelMembersStore.has(channel.id)) {
+          channelMembers = ChannelMembersStore.get(channel.id) as ChannelMembersStored;
+        } else {
+          channelMembers = channel.members;
+          if (ChannelMembersStore.MIN_AMOUNT <= channelMembers.length) {
+            ChannelMembersStore.set(channel.id, channelMembers);
           }
-          return 0;
-        });
-        return sorted[0];
+        }
+
+        const members = findMembersByUsername(channelMembers, username, discriminator) as Array<Structures.Member>;
+        if (members.length) {
+          const sorted = members.sort((x, y) => {
+            if (x.hoistedRole && y.hoistedRole) {
+                return y.hoistedRole.position - x.hoistedRole.position;
+            } else if (x.hoistedRole) {
+                return -1;
+            } else if (y.hoistedRole) {
+                return 1;
+            }
+            return 0;
+          });
+          return sorted[0];
+        }
       }
     }
   }
 
   if (guild) {
     // find via guild cache
-    const found = findMemberByUsername(guild.members, username, discriminator);
+
+    const members = findMembersByUsername(guild.members, username, discriminator) as Array<Structures.Member>;
     // add isPartial check (for joinedAt value?)
-    if (found) {
-      return found;
+    if (members.length) {
+      const sorted = members.sort((x, y) => {
+        if (x.hoistedRole && y.hoistedRole) {
+            return y.hoistedRole.position - x.hoistedRole.position;
+        } else if (x.hoistedRole) {
+            return -1;
+        } else if (y.hoistedRole) {
+            return 1;
+        }
+        return 0;
+      });
+      return sorted[0];
     }
   } else {
     // we are in a DM, check our channel's recipients first
@@ -459,6 +484,24 @@ export function findMembersByUsername(
     }
   }
   return found;
+}
+
+
+export function getMemberJoinPosition(
+  guild: Structures.Guild,
+  userId: string,
+): [number, number] {
+  let members: GuildMembersStored;
+  if (GuildMembersStore.has(guild.id)) {
+    members = GuildMembersStore.get(guild.id) as GuildMembersStored;
+  } else {
+    members = guild.members.sort((x, y) => x.joinedAtUnix - y.joinedAtUnix);
+    if (GuildMembersStore.MIN_AMOUNT <= guild.members.length) {
+      GuildMembersStore.set(guild.id, members);
+    }
+  }
+  const joinPosition = members.findIndex((m) => m.id === userId) + 1;
+  return [joinPosition, guild.members.length];
 }
 
 
@@ -913,6 +956,39 @@ export function splitArray<T>(
     pages.push(array.slice(position, position + chunkAmount));
   }
   return pages;
+}
+
+
+// split string based on the splitter, but ignore splitters that start with `\`
+export function splitString(
+  value: string,
+  splitter: string = '|',
+): Array<string> {
+  const splits: Array<string> = [];
+
+  if (value.length) {
+    let position = 0;
+    let argStart = position;
+    while (position !== value.length) {
+      let nextSplitter = value.indexOf(splitter, position);
+      if (nextSplitter === -1) {
+        position = value.length;
+        splits.push(value.slice(argStart, position));
+      } else {
+        position = nextSplitter + 1;
+        if (value[nextSplitter - 1] !== '\\') {
+          splits.push(value.slice(argStart, nextSplitter));
+          argStart = position;
+        } else if (position === value.length) {
+          splits.push(value.slice(argStart, position));
+        }
+      }
+    }
+  } else {
+    splits.push(value);
+  }
+
+  return splits;
 }
 
 

@@ -49,6 +49,24 @@ export const DateOptions = Object.freeze({
 });
 
 
+export const DiscordEmojis = Object.freeze({
+  DISCORD_BADGES: {
+    [DiscordUserFlags.STAFF]: '<:d_staff:826576202189373471> ',
+    [DiscordUserFlags.PARTNER]: '<:d_partner:826576193717272587>',
+    [DiscordUserFlags.HYPESQUAD]: '<:d_hypesquad:826576151534108722>',
+    [DiscordUserFlags.BUG_HUNTER_LEVEL_1]: '<:d_bug_hunter_level_1:826576135353139272>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_1]: '<:d_hypesquad_bravery:826576173915308034>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_2]: '<:d_hypesquad_brilliance:826576182308241459>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_3]: '<:d_hypesquad_balance:826576159789285427>',
+    [DiscordUserFlags.PREMIUM_EARLY_SUPPORTER]: '<:d_early_supporter:826577164966166548>',
+    [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: '<:d_bug_hunter_level_2:826576144001794088>',
+    [DiscordUserFlags.VERIFIED_DEVELOPER]: '<:d_verified_developer:826576213493153822>',
+  },
+  DISCORD_TAG_BOT: '<:d_tag_bot_1:826576077736378428><:d_tag_bot_2:826576087684349983>',
+  DISCORD_TAG_SYSTEM: '<:d_tag_system_1:826576106592665662><:d_tag_system_2:826576115698237481>',
+});
+
+
 export enum E621Rating {
   EXPLICIT = 'e',
   QUESTIONABLE = 'q',
@@ -820,6 +838,9 @@ export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
   [ChannelTypes.GUILD_CATEGORY]: 'Guild Category',
   [ChannelTypes.GUILD_NEWS]: 'Guild News',
   [ChannelTypes.GUILD_STORE]: 'Guild Store',
+  [ChannelTypes.PUBLIC_THREAD]: 'Public Thread',
+  [ChannelTypes.PRIVATE_THREAD]: 'Private Thread',
+  [ChannelTypes.GUILD_STAGE_VOICE]: 'Guild Stage Voice',
 });
 
 

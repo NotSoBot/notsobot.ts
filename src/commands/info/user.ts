@@ -5,6 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import {
   CommandTypes,
   DateMomentLogFormat,
+  DiscordEmojis,
   PresenceStatusColors,
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
@@ -15,6 +16,7 @@ import {
   Parameters,
   createTimestampMomentFromGuild,
   editOrReply,
+  getMemberJoinPosition,
   toTitleCase,
 } from '../../utils';
 
@@ -91,15 +93,36 @@ export default class UserCommand extends BaseCommand {
 
         {
           const description: Array<string> = [];
-          description.push(`**Id**: \`${user.id}\``);
+          {
+            const badges: Array<string> = [];
+            for (let key in DiscordEmojis.DISCORD_BADGES) {
+              if (user.hasFlag(parseInt(key))) {
+                badges.push((DiscordEmojis.DISCORD_BADGES as any)[key]);
+              }
+            }
+            if (badges.length) {
+              description.push(`**Badges**: ${badges.join(' ')}`);
+            }
+          }
           description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
+          description.push(`**Id**: \`${user.id}\``);
           if (user.system) {
             description.push(`**System**: Yes`);
           }
-          if (user.system) {
-            description.push('**Tag**: <:system1:649406724960157708><:system2:649406733613269002>');
-          } else if (user.bot) {
-            description.push('**Tag**: <:bot1:649407239060455426><:bot2:649407247033565215>');
+          {
+            let tag: string | undefined;
+            if (user.system) {
+              tag = DiscordEmojis.DISCORD_TAG_SYSTEM;
+            } else if (user.bot) {
+              if (user.hasVerifiedBot) {
+                tag = DiscordEmojis.DISCORD_TAG_BOT
+              } else {
+                tag = DiscordEmojis.DISCORD_TAG_BOT;
+              }
+            }
+            if (tag) {
+              description.push(`**Tag**: ${tag}`);
+            }
           }
           embed.addField('Information', description.join('\n'), true);
         }
@@ -119,8 +142,8 @@ export default class UserCommand extends BaseCommand {
             }
 
             if (member.guild) {
-              const position = member.guild.members.sort((x, y) => x.joinedAtUnix - y.joinedAtUnix).findIndex((m) => m.id === member.id) + 1;
-              description.push(`**Join Position**: ${position.toLocaleString()}/${member.guild.members.length.toLocaleString()}`);
+              const [ position, memberCount ] = getMemberJoinPosition(member.guild, member.id);
+              description.push(`**Join Position**: ${position.toLocaleString()}/${memberCount.toLocaleString()}`);
             }
           }
           embed.addField('Joined', description.join('\n'), true);

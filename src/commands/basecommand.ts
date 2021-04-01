@@ -168,7 +168,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           content: context.message.content,
           contentUrl,
           editedTimestamp: context.message.editedAtUnix,
-          failedReason: String(error.message || error.stack),
+          failedReason: String(error.message || error.stack).slice(0, 256),
           guildId: context.guildId,
           messageId: context.messageId,
           responseId: message.id,

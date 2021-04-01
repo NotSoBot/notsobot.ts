@@ -5,6 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import {
   CommandTypes,
   DateMomentLogFormat,
+  DiscordEmojis,
   PresenceStatusColors,
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
@@ -15,6 +16,7 @@ import {
   createTimestampMomentFromGuild,
   createUserEmbed,
   editOrReply,
+  getMemberJoinPosition,
   toTitleCase,
 } from '../../utils';
 
@@ -22,11 +24,39 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  applications: Array<Structures.Application>,
+  text: string,
 }
 
 export interface CommandArgs {
-  applications: Array<Structures.Application>,
+  text: string,
+}
+
+
+export function activityFilter(activity: Structures.PresenceActivity, text: string): boolean {
+  if (activity.name.toLowerCase().includes(text)) {
+    return true;
+  }
+  if (activity.state && activity.state.toLowerCase().includes(text)) {
+    return true;
+  }
+  if (activity.details && activity.details.toLowerCase().includes(text)) {
+    return true;
+  }
+  if (activity.applicationId === text) {
+    return true;
+  }
+  if (activity.application) {
+    const { application } = activity;
+    if (application.name.toLowerCase().includes(text)) {
+      return true;
+    }
+    if (application.aliases && application.aliases.length) {
+      return application.aliases.some((name) => {
+        return name.toLowerCase().includes(text);
+      });
+    }
+  }
+  return false;
 }
 
 
@@ -39,36 +69,30 @@ export default class PlayingCommand extends BaseCommand {
 
       aliases: ['membersplaying'],
       disableDm: true,
-      label: 'applications',
+      label: 'text',
       metadata: {
         description: 'List users in the current server that is playing a certain game.',
         examples: [
           `${COMMAND_NAME} rust`,
-          `${COMMAND_NAME} 356888738724446208`,
+          `${COMMAND_NAME} spotify`,
         ],
         type: CommandTypes.INFO,
         usage: '?<application:id|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
-      type: Parameters.applications,
+      type: Parameters.stringLowerCase(),
     });
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return !!args.applications.length;
-  }
-
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, '⚠ Unable to find that game.');
+    return !!args.text;
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { applications } = args;
-    const [ application ] = applications as [Structures.Application];
     const guild =  context.guild as Structures.Guild;
 
     const presences = guild.presences.filter((presence) => {
-      return presence.activities.some((activity) => activity.applicationId === application.id || activity.name === application.name);
+      return presence.activities.some((activity) => activityFilter(activity, args.text));
     });
     if (presences.length) {
       const members = (presences
@@ -91,15 +115,36 @@ export default class PlayingCommand extends BaseCommand {
           embed.setTitle(`User ${page} of ${pageLimit}`);
           {
             const description: Array<string> = [];
-            description.push(`**Id**: \`${user.id}\``);
+            {
+              const badges: Array<string> = [];
+              for (let key in DiscordEmojis.DISCORD_BADGES) {
+                if (user.hasFlag(parseInt(key))) {
+                  badges.push((DiscordEmojis.DISCORD_BADGES as any)[key]);
+                }
+              }
+              if (badges.length) {
+                description.push(`**Badges**: ${badges.join(' ')}`);
+              }
+            }
             description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
+            description.push(`**Id**: \`${user.id}\``);
             if (user.system) {
               description.push(`**System**: Yes`);
             }
-            if (user.system) {
-              description.push('**Tag**: <:system1:649406724960157708><:system2:649406733613269002>');
-            } else if (user.bot) {
-              description.push('**Tag**: <:bot1:649407239060455426><:bot2:649407247033565215>');
+            {
+              let tag: string | undefined;
+              if (user.system) {
+                tag = DiscordEmojis.DISCORD_TAG_SYSTEM;
+              } else if (user.bot) {
+                if (user.hasVerifiedBot) {
+                  tag = DiscordEmojis.DISCORD_TAG_BOT
+                } else {
+                  tag = DiscordEmojis.DISCORD_TAG_BOT;
+                }
+              }
+              if (tag) {
+                description.push(`**Tag**: ${tag}`);
+              }
             }
             embed.addField('Information', description.join('\n'), true);
           }
@@ -119,8 +164,8 @@ export default class PlayingCommand extends BaseCommand {
               }
 
               if (member.guild) {
-                const position = member.guild.members.sort((x, y) => x.joinedAtUnix - y.joinedAtUnix).findIndex((m) => m.id === member.id) + 1;
-                description.push(`**Join Position**: ${position.toLocaleString()}/${member.guild.members.length.toLocaleString()}`);
+                const [ position, memberCount ] = getMemberJoinPosition(member.guild, member.id);
+                description.push(`**Join Position**: ${position.toLocaleString()}/${memberCount.toLocaleString()}`);
               }
             }
             embed.addField('Joined', description.join('\n'), true);
@@ -200,7 +245,7 @@ export default class PlayingCommand extends BaseCommand {
               embed.addField('Status', status, true);
             }
 
-            const activity = presence.activity;
+            const activity = presence.activities.find((activity) => activityFilter(activity, args.text));
             if (activity) {
               const description: Array<string> = [];
               if (activity.emoji) {
@@ -252,7 +297,7 @@ export default class PlayingCommand extends BaseCommand {
 
               let name = 'Activity';
               if (presence.activities.length !== 1) {
-                name = `Activity (1 of ${presence.activities.length})`;
+                name = `Activity (${activity.position + 1} of ${presence.activities.length})`;
               }
               embed.addField(name, description.join('\n'), true);
             }
