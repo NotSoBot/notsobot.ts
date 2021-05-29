@@ -24,6 +24,7 @@ export interface ClusterInformation {
 export interface ClusterObjectInformation {
   applications: number,
   channels: number,
+  channelThreads: number,
   emojis: number,
   events: number,
   guilds: number,
@@ -37,6 +38,7 @@ export interface ClusterObjectInformation {
   relationships: number,
   roles: number,
   sessions: number,
+  stageInstances: number,
   typings: number,
   users: number,
   voiceCalls: number,
@@ -53,6 +55,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
         objects: {
           applications: 0,
           channels: 0,
+          channelThreads: 0,
           emojis: 0,
           events: 0,
           guilds: 0,
@@ -66,6 +69,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           relationships: 0,
           roles: 0,
           sessions: 0,
+          stageInstances: 0,
           typings: 0,
           users: 0,
           voiceCalls: 0,
@@ -81,6 +85,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           }
           information.objects.applications += shard.applications.length;
           information.objects.channels += shard.channels.length;
+          information.objects.channelThreads += shard.channels.filter((channel) => channel.isGuildThread).length;
           information.objects.emojis += shard.emojis.length;
           information.objects.events += shard.gateway.sequence;
           information.objects.guilds += shard.guilds.length;
@@ -94,6 +99,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           information.objects.relationships += shard.relationships.length;
           information.objects.roles += shard.roles.length;
           information.objects.sessions += shard.sessions.length;
+          information.objects.stageInstances += shard.stageInstances.length;
           information.objects.typings += shard.typings.length;
           information.objects.users += shard.users.length;
           information.objects.voiceCalls += shard.voiceCalls.length;

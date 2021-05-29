@@ -9,6 +9,7 @@ import {
   MessageComponentButtonStyles,
   MessageComponentTypes,
 } from 'detritus-client/lib/constants';
+import { ComponentActionRow } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
@@ -88,7 +89,7 @@ export class Paginator {
   pageLimit: number = MAX_PAGE;
   pageSkipAmount: number = 10;
   pages?: Array<Utils.Embed>;
-  ratelimit: number = 500;
+  ratelimit: number = 250;
   ratelimitTimeout = new Timers.Timeout();
   stopped: boolean = false;
   targets: Array<string> = [];
@@ -170,53 +171,44 @@ export class Paginator {
   }
 
   get components() {
-    const components: Array<RequestTypes.CreateChannelMessageComponent> = [];
+    const components: Array<ComponentActionRow> = [];
 
-    if (this.isLarge) {
-      components.push({
-        customId: PageButtonNames.PREVIOUS_DOUBLE,
+    {
+      const actionRow = new ComponentActionRow();
+      if (this.isLarge) {
+        actionRow.createButton({
+          customId: PageButtonNames.PREVIOUS_DOUBLE,
+          disabled: this.page === MIN_PAGE,
+          label: String(this.buttons[PageButtonNames.PREVIOUS_DOUBLE]),
+        });
+      }
+      actionRow.createButton({
+        customId: PageButtonNames.PREVIOUS,
         disabled: this.page === MIN_PAGE,
-        label: String(this.buttons[PageButtonNames.PREVIOUS_DOUBLE]),
-        style: MessageComponentButtonStyles.PRIMARY,
-        type: MessageComponentTypes.BUTTON,
+        label: String(this.buttons[PageButtonNames.PREVIOUS]),
       });
-    }
-
-    components.push({
-      customId: PageButtonNames.PREVIOUS,
-      disabled: this.page === MIN_PAGE,
-      label: String(this.buttons[PageButtonNames.PREVIOUS]),
-      style: MessageComponentButtonStyles.PRIMARY,
-      type: MessageComponentTypes.BUTTON,
-    });
-
-    components.push({
-      customId: PageButtonNames.NEXT,
-      disabled: this.page === this.pageLimit,
-      label: String(this.buttons[PageButtonNames.NEXT]),
-      style: MessageComponentButtonStyles.PRIMARY,
-      type: MessageComponentTypes.BUTTON,
-    });
-
-    if (this.isLarge) {
-      components.push({
-        customId: PageButtonNames.NEXT_DOUBLE,
+      actionRow.createButton({
+        customId: PageButtonNames.NEXT,
         disabled: this.page === this.pageLimit,
-        label: String(this.buttons[PageButtonNames.NEXT_DOUBLE]),
-        style: MessageComponentButtonStyles.PRIMARY,
-        type: MessageComponentTypes.BUTTON,
+        label: String(this.buttons[PageButtonNames.NEXT]),
       });
+      if (this.isLarge) {
+        actionRow.createButton({
+          customId: PageButtonNames.NEXT_DOUBLE,
+          disabled: this.page === this.pageLimit,
+          label: String(this.buttons[PageButtonNames.NEXT_DOUBLE]),
+        });
+      }
+      actionRow.createButton({
+        customId: PageButtonNames.STOP,
+        disabled: false,
+        label: String(this.buttons[PageButtonNames.STOP]),
+        style: MessageComponentButtonStyles.DANGER,
+      });
+      components.push(actionRow);
     }
 
-    components.push({
-      customId: PageButtonNames.STOP,
-      disabled: false,
-      label: String(this.buttons[PageButtonNames.STOP]),
-      style: MessageComponentButtonStyles.DANGER,
-      type: MessageComponentTypes.BUTTON,
-    });
-
-    return [{components, type: MessageComponentTypes.ACTION_ROW}];
+    return components;
   }
 
   get channelId(): string {
