@@ -22,7 +22,7 @@ export default class Image2Command extends BaseSearchCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['g image2', 'g img2', 'google image2', 'google img2', 'img2'],
+      aliases: ['g image2', 'g img2', 'g im2', 'google image2', 'google img2', 'google im2', 'img2', 'im2'],
       args: [
         Arguments.GoogleLocale,
         Arguments.Safe,
@@ -67,11 +67,9 @@ export default class Image2Command extends BaseSearchCommand<CommandArgs> {
           }
           embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
+          embed.setImage(result.imageUrl);
           if (result.image.isSVG) {
-            embed.setImage(result.thumbnail.url);
             embed.setDescription(Markup.url('**Image URL**', result.image.url));
-          } else {
-            embed.setImage(result.image.url);
           }
 
           return embed;

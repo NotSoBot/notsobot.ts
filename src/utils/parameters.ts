@@ -146,7 +146,7 @@ export async function channelMetadata(
     if (guild) {
       payload.channels = guild.channels;
     } else {
-      const guildId = payload.channel.guildId;
+      const guildId = payload.channel.guildId!;
       if (GuildChannelsStore.has(guildId)) {
         payload.channels = GuildChannelsStore.get(guildId) as GuildChannelsStored;
       } else {
@@ -625,7 +625,7 @@ export function channel(options: ChannelOptions = {}) {
         } else {
           channels = guild.channels.toArray();
         }
-        channels = channels.sort((x, y) => x.position - y.position);
+        channels = channels.sort((x, y) => (x.position || 0) - (y.position || 0));
         for (let channel of channels) {
           if (channel.name.toLowerCase().startsWith(value)) {
             return channel;
@@ -961,6 +961,46 @@ export function number(options: NumberOptions = {}) {
     }
     return value;
   };
+}
+
+
+export interface OneOfOptions<T> {
+  choices: Record<string, T>,
+  defaultChoice?: T,
+}
+
+export function oneOf<T>(options: OneOfOptions<T>) {
+  return (value: string): null | T => {
+    if (value) {
+      value = value.toUpperCase().replace(/ /g, '_');
+
+      // match any values that are exact
+      for (let key in options.choices) {
+        const choice = (options.choices as any)[key];
+        if (choice.toUpperCase() === value) {
+          return choice;
+        }
+      }
+
+      // go through the keys next
+      for (let key in options.choices) {
+        if (key.toUpperCase().includes(value)) {
+          return (options.choices as any)[key];
+        }
+      }
+
+      // go through the values then
+      for (let key in options.choices) {
+        const choice = (options.choices as any)[key];
+        if (choice.toUpperCase().includes(value)) {
+          return choice;
+        }
+      }
+
+      return null;
+    }
+    return options.defaultChoice || null;
+  }
 }
 
 

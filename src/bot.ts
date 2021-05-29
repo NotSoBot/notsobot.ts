@@ -7,6 +7,7 @@ import { GatewayIntents } from 'detritus-client-socket/lib/constants';
 import { Timers } from 'detritus-utils';
 
 import { NotSoClient } from './client';
+import { DiscordReactionEmojis } from './constants';
 import { connectAllStores } from './stores';
 
 
@@ -42,51 +43,64 @@ const bot = new NotSoClient({
   prefix: '.',
   ratelimits: [
     {duration: 60000, limit: 50, type: 'guild'},
-    {duration: 5000, limit: 10, type: 'channel'},
+    {duration: 5000, limit: 5, type: 'channel'},
   ],
 });
 
 
 bot.on(ClientEvents.COMMAND_RATELIMIT, async ({command, context, global, ratelimits}) => {
-  if (context.message.canReply) {
-    let replied: boolean = false;
-    for (const {item, ratelimit, remaining} of ratelimits) {
-      if (remaining < 1000 || replied || item.replied) {
-        item.replied = true;
-        continue;
+  const { message } = context;
+  if (!message.canReply && !message.canReact) {
+    return;
+  }
+
+  let replied: boolean = false;
+  for (const {item, ratelimit, remaining} of ratelimits) {
+    if ((remaining < 1000 && !replied && !item.replied) || !message.canReply) {
+      const { message } = context;
+      if (message.canReact && !message.reactions.has(DiscordReactionEmojis.WAIT.id)) {
+        await message.react(`${DiscordReactionEmojis.WAIT.name}:${DiscordReactionEmojis.WAIT.id}`);
       }
       replied = item.replied = true;
+      continue;
+    }
 
-      let noun: string = 'You idiots are';
-      switch (ratelimit.type) {
-        case 'channel': {
-          noun = 'This guild is';
-        }; break;
-        case 'guild': {
-          noun = 'This channel is';
-        }; break;
-        case 'user': {
-          noun = 'You are';
-        }; break;
-      }
+    if (remaining < 1000 || replied || item.replied) {
+      // skip replying
+      item.replied = true;
+      continue;
+    }
+    replied = item.replied = true;
 
-      let content: string;
-      if (global) {
-        content = `${noun} using commands WAY too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
-      } else {
-        content = `${noun} using ${command.name} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
-      }
+    let noun: string = 'You idiots are';
+    switch (ratelimit.type) {
+      case 'channel': {
+        noun = 'This guild is';
+      }; break;
+      case 'guild': {
+        noun = 'This channel is';
+      }; break;
+      case 'user': {
+        noun = 'You are';
+      }; break;
+    }
 
-      try {
-        const message = await context.reply(content);
-        await Timers.sleep(Math.max(remaining / 2, 1000));
-        item.replied = false;
-        if (!message.deleted) {
-          await message.delete();
-        }
-      } catch(e) {
-        item.replied = false;
+    let content: string;
+    if (global) {
+      content = `${noun} using commands WAY too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+    } else {
+      content = `${noun} using ${command.name} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+    }
+
+    try {
+      const reply = await context.reply(content);
+      await Timers.sleep(Math.max(remaining / 2, 2000));
+      item.replied = false;
+      if (!reply.deleted) {
+        await reply.delete();
       }
+    } catch(e) {
+      item.replied = false;
     }
   }
 });

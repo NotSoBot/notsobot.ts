@@ -194,7 +194,19 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
                 }; break;
                 case GoogleCardTypes.TIME: {
                   embed.setTitle(page.footer as string);
-                  embed.setDescription(`${page.header} on ${page.description}`);
+
+                  {
+                    const description: Array<string> = [];
+                    description.push(`${page.header} on ${page.description}`);
+                    if (page.fields.length) {
+                      description.push('');
+                      for (let field of page.fields) {
+                        description.push(`${field.value} at ${field.name}`);
+                      }
+                    }
+                    embed.setDescription(description.join('\n'));
+                  }
+
                 }; break;
                 case GoogleCardTypes.TRANSLATION: {
                   for (let section of page.sections) {

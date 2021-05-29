@@ -68,10 +68,16 @@ export default class UsersCommand extends BaseCommand {
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    if (args.role === null) {
+      return false;
+    }
     return !!args.users.length;
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    if (args.role === null) {
+      return editOrReply(context, '⚠ Unknown Role');
+    }
     return editOrReply(context, '⚠ Unable to find that user.');
   }
 
@@ -233,10 +239,10 @@ export default class UsersCommand extends BaseCommand {
             embed.setColor(PresenceStatusColors[presence.status]);
           }
 
-          if (presence.clientStatus) {
+          if (presence.clientStatus && Object.keys(presence.clientStatus).length) {
             const description = [];
             for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
-              let status = (<any> presence.clientStatus)[key];
+              let status = (presence.clientStatus as any)[key];
               if (status) {
                 if (status in PresenceStatusTexts) {
                   status = PresenceStatusTexts[status];

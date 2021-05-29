@@ -69,8 +69,9 @@ export default class UploadCommandsCommand extends BaseCommand {
         ratelimits: command.ratelimits.map((ratelimit) => {
           return {
             duration: ratelimit.duration,
+            key: ratelimit.key,
             limit: ratelimit.limit,
-            type: ratelimit.type,
+            type: String(ratelimit.type),
           };
         }),
         type: metadata.type,

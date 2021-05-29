@@ -107,13 +107,28 @@ export default class HelpCommand extends BaseCommand {
         const resultNumber = page - 1;
         if (resultNumber in commands) {
           const command = commands[resultNumber];
+
+          const names = [...command.names];
+          let name: string;
+          if (command.arg.prefixes.size) {
+            name = names.shift() as string;
+          } else {
+            name = command.name;
+            for (let i = 0; i < names.length; i++) {
+              if (names[i] === name) {
+                names.splice(i, 1);
+                break;
+              }
+            }
+          }
+
           const metadata = command.metadata as CommandMetadata;
 
-          embed.setTitle(command.name);
+          embed.setTitle(name);
           embed.setDescription(metadata.description);
 
-          if (command.aliases.length) {
-            embed.addField('Aliases', command.aliases.join('\n'), true);
+          if (names.length) {
+            embed.addField('Aliases', names.join('\n'), true);
           }
           if (metadata.examples && metadata.examples.length) {
             embed.addField('Examples', Markup.escape.mentions(metadata.examples.join('\n')), true);
@@ -129,7 +144,7 @@ export default class HelpCommand extends BaseCommand {
           {
             let text: string;
             if (typeof(metadata.usage) === 'string') {
-              text = Markup.codeblock(`${context.prefix}${command.name} ${metadata.usage}`.trim());
+              text = Markup.codeblock(`${context.prefix}${name} ${metadata.usage}`.trim());
             } else {
               text = 'good luck, this ain\'t finished.';
             }

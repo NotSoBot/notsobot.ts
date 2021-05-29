@@ -77,7 +77,8 @@ export function editOrReply(context: Command.Context, options: Command.EditOrRep
   if (typeof(options) === 'string') {
     options = {content: options};
   }
-  if (!context.message.deleted) {
+  // check if the message is not deleted and we can read history
+  if (!context.message.deleted && (!context.channel || context.channel.canReadHistory)) {
     options.messageReference = {
       channelId: context.channelId,
       guildId: context.guildId,
@@ -364,12 +365,14 @@ export async function findMemberByChunk(
     }
 
     // check our users cache since this is from a dm...
+    /*
     {
       const found = findMemberByUsername(context.users, username, discriminator);
       if (found) {
         return found;
       }
     }
+    */
   }
   return null;
 }
@@ -421,7 +424,7 @@ export async function findMembersByChunk(
     }
 
     // check our users cache since this is from a dm...
-    return findMembersByUsername(context.users, username, discriminator);
+    // return findMembersByUsername(context.users, username, discriminator);
   }
   return [];
 }
@@ -920,10 +923,13 @@ export function randomFromIterator<T>(
   size: number,
   iterator: IterableIterator<T>,
 ): T {
-  const choice = Math.floor(Math.random() * (size + 1));
+  const choice = Math.floor(Math.random() * size);
   let i = 0;
   for (let value of iterator) {
     if (i++ === choice) {
+      return value;
+    }
+    if (i === size) {
       return value;
     }
   }

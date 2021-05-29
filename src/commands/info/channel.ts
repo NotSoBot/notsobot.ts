@@ -98,7 +98,7 @@ export default class ChannelCommand extends BaseCommand {
         description.push(`**Parent**: <#${channel.parentId}>`);
         description.push(`**->** ${Markup.spoiler(`(${channel.parentId})`)}`);
       }
-      if (channel.position !== -1) {
+      if (channel.position !== undefined) {
         description.push(`**Position**: ${channel.position.toLocaleString()}`);
       }
       description.push(`**Type**: ${ChannelTypesText[channel.type] || 'Unknown'}`);
@@ -132,7 +132,7 @@ export default class ChannelCommand extends BaseCommand {
     } else if (channel.isVoice && channel.isGuildChannel) {
       const description: Array<string> = [];
 
-      description.push(`**Bitrate**: ${(channel.bitrate / 1000).toLocaleString()} kbps`);
+      description.push(`**Bitrate**: ${((channel.bitrate || 0) / 1000).toLocaleString()} kbps`);
       description.push(`**User Limit**: ${(channel.userLimit) ? channel.userLimit.toLocaleString() : 'Unlimited'}`);
 
       {

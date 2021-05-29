@@ -326,7 +326,7 @@ export namespace RestOptions {
       dmable: boolean,
       examples: Array<string>,
       name: string,
-      ratelimits: Array<{duration: number, limit: number, type: string}>,
+      ratelimits: Array<{duration: number, key?: string, limit: number, type: string}>,
       type: string,
       usage: string,
     }>,

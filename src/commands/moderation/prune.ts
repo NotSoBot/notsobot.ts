@@ -97,8 +97,8 @@ export default class PruneCommand extends BaseCommand {
         } else {
           manual.push(message.id);
         }
-        before = message.id;
       }
+      before = message.id;
     }
 
     let tries = 0;
@@ -114,13 +114,20 @@ export default class PruneCommand extends BaseCommand {
           } else {
             manual.push(message.id);
           }
-          before = message.id;
         }
+        before = message.id;
       }
       if (!this.shouldBulkDelete(Snowflake.timestamp(before))) {
         // check before date to see if it was made before 2 weeks (temporarily)
         break;
       }
+    }
+
+    let message: Structures.Message;
+    if (bulk.length + manual.length) {
+      message = await editOrReply(context, `Deleting ${(bulk.length + manual.length).toLocaleString()} messages`);
+    } else {
+      message = await editOrReply(context, `Unable to prune any messages`);
     }
 
     if (bulk.length) {
@@ -137,11 +144,8 @@ export default class PruneCommand extends BaseCommand {
       }
     }
 
-    let message: Structures.Message;
     if (bulk.length + manual.length) {
-      message = await editOrReply(context, `Deleted ${(bulk.length + manual.length).toLocaleString()} messages`);
-    } else {
-      message = await editOrReply(context, `Couldn\'t prune any messages`);
+      await message.edit(`Deleted ${(bulk.length + manual.length).toLocaleString()} messages`);
     }
 
     setTimeout(async () => {

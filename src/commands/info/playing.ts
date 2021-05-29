@@ -225,7 +225,7 @@ export default class PlayingCommand extends BaseCommand {
               embed.setColor(PresenceStatusColors[presence.status]);
             }
 
-            if (presence.clientStatus) {
+            if (presence.clientStatus && Object.keys(presence.clientStatus).length) {
               const description = [];
               for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
                 let status = (presence.clientStatus as any)[key];

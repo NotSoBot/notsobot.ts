@@ -21,6 +21,8 @@ export const MAX_VARIABLE_LENGTH = 2000;
 export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
+export const SCRIPT_REGEX = /\{((?:(?!:)(?:.|\s))*):([\s\S]+)\}/;
+
 export enum PrivateVariables {
   ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',

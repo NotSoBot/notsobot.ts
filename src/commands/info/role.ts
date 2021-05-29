@@ -132,7 +132,7 @@ export default class RoleCommand extends BaseCommand {
     embed.addField('\u200b', '\u200b');
 
     {
-      const permissions = permissionsToObject(role.permissionsIn(channel));
+      const permissions = permissionsToObject(role.permissionsIn(channel as Structures.ChannelGuildBase));
 
       {
         const rows: Array<Array<string>> = [];

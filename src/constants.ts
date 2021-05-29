@@ -67,6 +67,11 @@ export const DiscordEmojis = Object.freeze({
 });
 
 
+export const DiscordReactionEmojis = Object.freeze({
+  WAIT: {id: '580670599630946314', name: 'stopthonk'},
+});
+
+
 export enum E621Rating {
   EXPLICIT = 'e',
   QUESTIONABLE = 'q',
@@ -525,6 +530,11 @@ export const MIMETYPES_SAFE_EMBED = Object.freeze([
 ]);
 
 
+export const RatelimitKeys = Object.freeze({
+  IMAGE: Math.random().toString(36).substring(7),
+  SEARCH: Math.random().toString(36).substring(7),
+});
+
 
 export enum RedditKindTypes {
   COMMENT = 't1',
@@ -728,6 +738,7 @@ export const NotSoApiKeys = Object.freeze({
   IMAGE: 'image',
   IN_STOCK: 'in_stock',
   INGREDIENTS: 'ingredients',
+  IS_RAW_IMAGE: 'is_raw_image',
   LICENSABLE: 'licensable',
   LIKES: 'likes',
   LOGGER_FLAGS: 'logger_flags',
@@ -793,6 +804,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.IMAGE]: 'image',
   [NotSoApiKeys.IN_STOCK]: 'inStock',
   [NotSoApiKeys.INGREDIENTS]: 'ingredients',
+  [NotSoApiKeys.IS_RAW_IMAGE]: 'isRawImage',
   [NotSoApiKeys.LICENSABLE]: 'licensable',
   [NotSoApiKeys.LIKES]: 'likes',
   [NotSoApiKeys.LOGGER_FLAGS]: 'loggerFlags',
@@ -838,8 +850,10 @@ export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
   [ChannelTypes.GUILD_CATEGORY]: 'Guild Category',
   [ChannelTypes.GUILD_NEWS]: 'Guild News',
   [ChannelTypes.GUILD_STORE]: 'Guild Store',
-  [ChannelTypes.PUBLIC_THREAD]: 'Public Thread',
-  [ChannelTypes.PRIVATE_THREAD]: 'Private Thread',
+
+  [ChannelTypes.GUILD_NEWS_THREAD]: 'Guild News Thread',
+  [ChannelTypes.GUILD_PUBLIC_THREAD]: 'Guild Public Thread',
+  [ChannelTypes.GUILD_PRIVATE_THREAD]: 'Guild Private Thread',
   [ChannelTypes.GUILD_STAGE_VOICE]: 'Guild Stage Voice',
 });
 
@@ -977,6 +991,22 @@ export const TimezoneText: Record<Timezones, string> = Object.freeze({
   [Timezones.NST]: 'New Zealand Standard Time, +12:00',
 });
 
+
+export enum TTSVoices {
+  BLUE_DE_DE_DIETER = 'BLUE_DE_DE_DIETER',
+  BLUE_EN_GB_KATE = 'BLUE_EN_GB_KATE',
+  BLUE_EN_US_ALLISON = 'BLUE_EN_US_ALLISON',
+  BLUE_EN_US_LISA = 'BLUE_EN_US_LISA',
+  BLUE_EN_US_MICHAEL = 'BLUE_EN_US_MICHAEL',
+  BLUE_ES_ES_ENRIQUE = 'BLUE_ES_ES_ENRIQUE',
+  BLUE_FR_FR_RENEE = 'BLUE_FR_FR_RENEE',
+  BLUE_IT_IT_FRANCESCA = 'BLUE_IT_IT_FRANCESCA',
+  BLUE_JA_JP_EMI = 'BLUE_JA_JP_EMI',
+  BLUE_PT_BR_ISABELA = 'BLUE_PT_BR_ISABELA',
+}
+
+
+export const TTS_VOICES = Object.values(TTSVoices);
 
 
 export const VerificationLevelTexts: Record<string, string> = Object.freeze({

@@ -1,10 +1,12 @@
+import { URL } from 'url';
+
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { createUserCommand } from '../api';
-import { CommandTypes, EmbedColors, PermissionsText } from '../constants';
+import { CommandTypes, EmbedColors, PermissionsText, RatelimitKeys } from '../constants';
 import { Parameters, createUserEmbed, editOrReply, findImageUrlInMessages } from '../utils';
 
 // description and usage shouldnt be optional, temporary for now
@@ -31,14 +33,15 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       name: '',
       ratelimits: [
         {duration: 5000, limit: 5, type: 'guild'},
-        {duration: 1000, limit: 1, type: 'channel'},
+        {duration: 500, limit: 1, type: 'channel'},
       ],
     }, options));
   }
 
   get commandDescription(): string {
     if (typeof(this.metadata.usage) === 'string') {
-      return `${this.name} ${this.metadata.usage}`.trim();
+      const name = (this.arg.prefixes.size) ? this.names[0] : this.name;
+      return `${name} ${this.metadata.usage}`.trim();
     }
     return '';
   }
@@ -61,7 +64,13 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         permissions.push(`\`(Unknown: ${permission})\``);
       }
     }
-    const command = (context.command) ? `\`${context.command.name}\`` : 'This command';
+
+    let command: string;
+    if (context.command) {
+      command = '`' + ((context.command.arg.prefixes.size) ? context.command.names[0] : context.command.name) + '`';
+    } else {
+      command = 'This command';
+    }
     return editOrReply(context, `⚠ ${command} requires the bot to have ${permissions.join(', ')} to work.`);
   }
 
@@ -75,7 +84,13 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         permissions.push(`\`(Unknown: ${permission})\``);
       }
     }
-    const command = (context.command) ? `\`${context.command.name}\`` : 'This command';
+
+    let command: string;
+    if (context.command) {
+      command = '`' + ((context.command.arg.prefixes.size) ? context.command.names[0] : context.command.name) + '`';
+    } else {
+      command = 'This command';
+    }
     return editOrReply(context, `⚠ ${command} requires you to have ${permissions.join(', ')}.`);
   }
 
@@ -88,11 +103,12 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
       }
 
+      const name = (context.command.arg.prefixes.size) ? context.command.names[0] : context.command.name;
       try {
         await createUserCommand(
           context,
           context.userId,
-          context.command.name,
+          name,
           {
             channelId: context.channelId,
             content: context.message.content,
@@ -133,6 +149,27 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
             description.push(`**${key}**: ${message}`);
           }
         }
+
+        if (
+          response.statusCode === 429 &&
+          (
+            (context.rest.raw.restClient.baseUrl instanceof URL) &&
+            (context.rest.raw.restClient.baseUrl.host === response.request.parsedUrl.host)
+          )
+        ) {
+          const headers: Record<string, string> = {};
+          for (let [header, value] of response.headers) {
+            if (header.startsWith('x-ratelimit')) {
+              headers[header] = value;
+            }
+          }
+          embed.addField('Ratelimit Info', [
+            '```json',
+            JSON.stringify({body: information, headers}),
+            '```',
+          ].join('\n'));
+        }
+
       } catch(e) {
         description.push(`HTTP Exception: ${response.statusCode}`);
         const contentType = response.headers.get('content-type') || '';
@@ -148,8 +185,16 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     } else {
       description.push(error.message || error.stack);
     }
-
     embed.setDescription(description.join('\n'));
+
+    if (error.metadata) {
+      embed.addField('Metadata', [
+        '```json',
+        JSON.stringify(error.metadata),
+        '```',
+      ].join('\n'));
+    }
+
     const message = await editOrReply(context, {embed});
 
     if (context.command) {
@@ -159,10 +204,11 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
       }
 
+      const name = (context.command.arg.prefixes.size) ? context.command.names[0] : context.command.name;
       await createUserCommand(
         context,
         context.userId,
-        context.command.name,
+        name,
         {
           channelId: context.channelId,
           content: context.message.content,
@@ -212,8 +258,8 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
       name: '',
       permissionsClient: [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS],
       ratelimits: [
-        {duration: 5000, limit: 2, type: 'guild'},
-        {duration: 1000, limit: 1, type: 'channel'},
+        {duration: 5000, limit: 5, key: RatelimitKeys.IMAGE, type: 'guild'},
+        {duration: 1000, limit: 1, key: RatelimitKeys.IMAGE, type: 'channel'},
       ],
       type: Parameters.lastImageUrl,
       ...options,
@@ -255,6 +301,10 @@ export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
     super(commandClient, {
       label: 'query',
       permissionsClient: [Permissions.EMBED_LINKS],
+      ratelimits: [
+        {duration: 5000, limit: 5, key: RatelimitKeys.SEARCH, type: 'guild'},
+        {duration: 1000, limit: 1, key: RatelimitKeys.SEARCH, type: 'channel'},
+      ],
       ...options,
     });
     if (this.metadata) {

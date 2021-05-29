@@ -182,9 +182,11 @@ export class Paginator {
   async clearCustomMessage(): Promise<void> {
     this.custom.timeout.stop();
     if (this.custom.message) {
-      try {
-        await this.custom.message.delete();
-      } catch(error) {}
+      if (!this.custom.message.deleted) {
+        try {
+          await this.custom.message.delete();
+        } catch(error) {}
+      }
       this.custom.message = null;
     }
   }
@@ -336,7 +338,7 @@ export class Paginator {
         }
       }
       if (clearEmojis) {
-        if (this.message && this.message.canManage) {
+        if (this.message && !this.message.deleted && this.message.canManage) {
           try {
             await this.message.deleteReactions();
           } catch(error) {}

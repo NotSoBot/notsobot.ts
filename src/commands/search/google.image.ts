@@ -22,7 +22,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['g image', 'g img', 'google image', 'google img', 'img'],
+      aliases: ['g image', 'g img', 'g im', 'google image', 'google img', 'google im', 'img', 'im'],
       args: [
         Arguments.GoogleLocale,
         Arguments.Safe,
@@ -154,11 +154,9 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
             }
           }
 
+          embed.setImage(result.imageUrl);
           if (result.image.isSVG) {
-            embed.setImage(result.thumbnail.url);
             description.push(Markup.url('**Image URL**', result.image.url));
-          } else {
-            embed.setImage(result.image.url);
           }
 
           embed.setDescription(description.join('\n'));

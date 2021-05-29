@@ -202,10 +202,10 @@ export default class UserCommand extends BaseCommand {
             embed.setColor(PresenceStatusColors[presence.status]);
           }
 
-          if (presence.clientStatus) {
+          if (presence.clientStatus && Object.keys(presence.clientStatus).length) {
             const description = [];
             for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
-              let status = (<any> presence.clientStatus)[key];
+              let status = (presence.clientStatus as any)[key];
               if (status) {
                 if (status in PresenceStatusTexts) {
                   status = PresenceStatusTexts[status];
