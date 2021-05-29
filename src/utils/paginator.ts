@@ -4,7 +4,12 @@ import {
   Structures,
   Utils,
 } from 'detritus-client';
-import { DiscordRegexNames } from 'detritus-client/lib/constants';
+import {
+  InteractionCallbackTypes,
+  MessageComponentButtonStyles,
+  MessageComponentTypes,
+} from 'detritus-client/lib/constants';
+import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import PaginatorsStore from '../stores/paginators';
@@ -15,14 +20,21 @@ import { editOrReply } from './tools';
 export const MAX_PAGE = Number.MAX_SAFE_INTEGER;
 export const MIN_PAGE = 1;
 
-export const PageEmojis = Object.freeze({
-  custom: '🔢',
-  info: 'ℹ',
-  next: '➡',
-  nextDouble: '⏭',
-  previous: '⬅',
-  previousDouble: '⏮',
-  stop: '⏹',
+
+export enum PageButtonNames {
+  NEXT = 'next',
+  NEXT_DOUBLE = 'nextDouble',
+  PREVIOUS = 'previous',
+  PREVIOUS_DOUBLE = 'previousDouble',
+  STOP = 'stop',
+}
+
+export const PageButtons = Object.freeze({
+  [PageButtonNames.NEXT]: '>',
+  [PageButtonNames.NEXT_DOUBLE]: '>>',
+  [PageButtonNames.PREVIOUS]: '<',
+  [PageButtonNames.PREVIOUS_DOUBLE]: '<<',
+  [PageButtonNames.STOP]: '⬜',
 });
 
 export type OnErrorCallback = (error: any, paginator: Paginator) => Promise<any> | any;
@@ -30,7 +42,8 @@ export type OnExpireCallback = (paginator: Paginator) => Promise<any> | any;
 export type OnPageCallback = (page: number) => Promise<Utils.Embed> | Utils.Embed;
 export type OnPageNumberCallback = (content: string) => Promise<number> | number;
 
-export interface PaginatorEmojis {
+
+export interface PaginatorButtons {
   custom?: Structures.Emoji | string,
   info?: Structures.Emoji | string,
   next?: Structures.Emoji | string,
@@ -39,7 +52,7 @@ export interface PaginatorEmojis {
 }
 
 export interface PaginatorOptions {
-  emojis?: PaginatorEmojis,
+  buttons?: PaginatorButtons,
   expire?: number,
   message?: Structures.Message,
   page?: number,
@@ -54,6 +67,7 @@ export interface PaginatorOptions {
   onPageNumber?: OnPageNumberCallback,
 }
 
+
 export class Paginator {
   readonly context: Command.Context | Structures.Message;
   readonly custom: {
@@ -67,15 +81,14 @@ export class Paginator {
   };
   readonly timeout = new Timers.Timeout();
 
-  emojis: {[key: string]: Structures.Emoji} = {};
+  buttons: Record<PageButtonNames, string | Structures.Emoji> = Object.assign({}, PageButtons);
   expires: number = 60000;
-  isOnGuide: boolean = false;
   message: null | Structures.Message = null;
   page: number = MIN_PAGE;
   pageLimit: number = MAX_PAGE;
   pageSkipAmount: number = 10;
   pages?: Array<Utils.Embed>;
-  ratelimit: number = 1500;
+  ratelimit: number = 500;
   ratelimitTimeout = new Timers.Timeout();
   stopped: boolean = false;
   targets: Array<string> = [];
@@ -126,23 +139,16 @@ export class Paginator {
       throw new Error('A userId must be specified in the targets array');
     }
 
-    const emojis: PaginatorEmojis = Object.assign({}, PageEmojis, options.emojis);
-    for (let key in PageEmojis) {
-      const value = (<any> emojis)[key];
-      if (typeof(value) === 'string') {
-        let emoji: Structures.Emoji;
-
-        const { matches } = Utils.regex(DiscordRegexNames.EMOJI, value);
-        if (matches.length) {
-          emoji = new Structures.Emoji(context.client, matches[0]);
-        } else {
-          emoji = new Structures.Emoji(context.client, {name: value});
-        }
-        this.emojis[key] = emoji;
+    const buttons: PaginatorButtons = Object.assign({}, PageButtons, options.buttons);
+    for (let key in PageButtons) {
+      let value: any = (buttons as any)[key];
+      if (typeof(value) === 'object') {
+        value = new Structures.Emoji(context.client, value);
       }
-      if (!(this.emojis[key] instanceof Structures.Emoji)) {
+      if (!(value instanceof Structures.Emoji) && typeof(value) !== 'string') {
         throw new Error(`Emoji for ${key} must be a string or Emoji structure`);
       }
+      (this.buttons as any)[key] = value;
     }
 
     this.onError = options.onError;
@@ -151,9 +157,9 @@ export class Paginator {
     this.onPageNumber = options.onPageNumber;
 
     Object.defineProperties(this, {
+      buttons: {enumerable: false},
       context: {enumerable: false},
       custom: {enumerable: false},
-      emojis: {enumerable: false},
       message: {enumerable: false},
       timeout: {enumerable: false},
       onError: {enumerable: false},
@@ -161,6 +167,60 @@ export class Paginator {
       onPage: {enumerable: false},
       onPageNumber: {enumerable: false},
     });
+  }
+
+  get components() {
+    const components: Array<RequestTypes.CreateChannelMessageComponent> = [];
+
+    if (this.isLarge) {
+      components.push({
+        customId: PageButtonNames.PREVIOUS_DOUBLE,
+        disabled: this.page === MIN_PAGE,
+        label: String(this.buttons[PageButtonNames.PREVIOUS_DOUBLE]),
+        style: MessageComponentButtonStyles.PRIMARY,
+        type: MessageComponentTypes.BUTTON,
+      });
+    }
+
+    components.push({
+      customId: PageButtonNames.PREVIOUS,
+      disabled: this.page === MIN_PAGE,
+      label: String(this.buttons[PageButtonNames.PREVIOUS]),
+      style: MessageComponentButtonStyles.PRIMARY,
+      type: MessageComponentTypes.BUTTON,
+    });
+
+    components.push({
+      customId: PageButtonNames.NEXT,
+      disabled: this.page === this.pageLimit,
+      label: String(this.buttons[PageButtonNames.NEXT]),
+      style: MessageComponentButtonStyles.PRIMARY,
+      type: MessageComponentTypes.BUTTON,
+    });
+
+    if (this.isLarge) {
+      components.push({
+        customId: PageButtonNames.NEXT_DOUBLE,
+        disabled: this.page === this.pageLimit,
+        label: String(this.buttons[PageButtonNames.NEXT_DOUBLE]),
+        style: MessageComponentButtonStyles.PRIMARY,
+        type: MessageComponentTypes.BUTTON,
+      });
+    }
+
+    components.push({
+      customId: PageButtonNames.STOP,
+      disabled: false,
+      label: String(this.buttons[PageButtonNames.STOP]),
+      style: MessageComponentButtonStyles.DANGER,
+      type: MessageComponentTypes.BUTTON,
+    });
+
+    return [{components, type: MessageComponentTypes.ACTION_ROW}];
+  }
+
+  get channelId(): string {
+    return this.context.channelId;
   }
 
   get isLarge(): boolean {
@@ -179,31 +239,14 @@ export class Paginator {
     return this;
   }
 
-  async clearCustomMessage(): Promise<void> {
+  reset() {
+    this.timeout.stop();
     this.custom.timeout.stop();
-    if (this.custom.message) {
-      if (!this.custom.message.deleted) {
-        try {
-          await this.custom.message.delete();
-        } catch(error) {}
-      }
-      this.custom.message = null;
-    }
+    this.ratelimitTimeout.stop();
   }
 
-  async getGuidePage(): Promise<Utils.Embed> {
-    const embed = new Utils.Embed();
-    embed.setTitle('Interactive Paginator Guide');
-    embed.setDescription([
-      'This allows you to navigate through pages of text using reactions.\n',
-      `${this.emojis.previous} - Goes back one page`,
-      `${this.emojis.next} - Goes forward one page`,
-      `${this.emojis.custom} - Allows you to choose a number via text`,
-      `${this.emojis.stop} - Stops the paginator`,
-      `${this.emojis.info} - Shows this guide`,
-    ].join('\n'));
-    embed.setFooter(`We were on page ${this.page.toLocaleString()}.`);
-    return embed;
+  stop(clearButtons: boolean = true, interaction?: Structures.Interaction) {
+    return this.onStop(null, clearButtons, interaction);
   }
 
   async getPage(page: number): Promise<Utils.Embed> {
@@ -219,79 +262,57 @@ export class Paginator {
     throw new Error(`Page ${page} not found`);
   }
 
-  async setPage(page: number): Promise<void> {
-    if (this.message && (this.isOnGuide || page !== this.page)) {
-      this.isOnGuide = false;
-      this.page = page;
-      const embed = await this.getPage(page);
-      await this.message.edit({allowedMentions: {parse: []}, embed});
+  async setPage(page: number, interaction: Structures.Interaction): Promise<void> {
+    page = Math.max(MIN_PAGE, Math.min(page, this.pageLimit));
+    if (page === this.page) {
+      return await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
     }
+    this.page = page;
+    const embed = await this.getPage(page);
+    await interaction.respond({
+      data: {
+        allowedMentions: {parse: []},
+        components: this.components,
+        embed,
+      },
+      type: InteractionCallbackTypes.UPDATE_MESSAGE,
+    });
   }
 
-  async onMessageReactionAdd(
-    {messageId, reaction, userId}: {messageId: string, reaction: Structures.Reaction, userId: string},
-  ) {
-    if (this.stopped) {
+  async onInteraction(interaction: Structures.Interaction) {
+    if (this.stopped || !this.message || !interaction.message || this.message.id !== interaction.message.id || !interaction.data) {
       return;
     }
-    if (!this.message || this.message.id !== messageId) {
-      return;
-    }
-    if (!this.targets.includes(userId) && !this.context.client.isOwner(userId)) {
-      return;
+    if (!this.targets.includes(interaction.userId) && !this.context.client.isOwner(interaction.userId)) {
+      return await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
     }
     if (this.ratelimitTimeout.hasStarted) {
-      return;
+      return await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
     }
 
+    const data = interaction.data as Structures.InteractionDataComponent;
     try {
-      switch (reaction.emoji.endpointFormat) {
-        case this.emojis.previousDouble.endpointFormat: {
+      switch (data.customId) {
+        case PageButtonNames.NEXT: {
+          await this.setPage(this.page + 1, interaction);
+        }; break;
+        case PageButtonNames.NEXT_DOUBLE: {
           if (!this.isLarge) {
             return;
           }
-          const page = Math.max(this.page - this.pageSkipAmount, MIN_PAGE);
-          await this.setPage(page);
+          await this.setPage(this.page + this.pageSkipAmount, interaction);
         }; break;
-        case this.emojis.previous.endpointFormat: {
-          const page = this.page - 1;
-          if (MIN_PAGE <= page) {
-            await this.setPage(page);
-          }
+        case PageButtonNames.PREVIOUS: {
+          await this.setPage(this.page - 1, interaction);
         }; break;
-
-        case this.emojis.next.endpointFormat: {
-          const page = this.page + 1;
-          if (page <= this.pageLimit) {
-            await this.setPage(page);
-          }
-        }; break;
-        case this.emojis.nextDouble.endpointFormat: {
+        case PageButtonNames.PREVIOUS_DOUBLE: {
           if (!this.isLarge) {
             return;
           }
-          const page = Math.min(this.page + this.pageSkipAmount, this.pageLimit);
-          await this.setPage(page);
+          await this.setPage(this.page - this.pageSkipAmount, interaction);
         }; break;
-
-        case this.emojis.custom.endpointFormat: {
-          if (!this.custom.message) {
-            await this.clearCustomMessage();
-            this.custom.message = await this.message.reply('What page would you like to go to?');
-            this.custom.timeout.start(this.custom.expire, async () => {
-              await this.clearCustomMessage();
-            });
-          }
-        }; break;
-        case this.emojis.stop.endpointFormat: {
-          await this.onStop();
-        }; break;
-        case this.emojis.info.endpointFormat: {
-          if (!this.isOnGuide) {
-            this.isOnGuide = true;
-            const embed = await this.getGuidePage();
-            await this.message.edit({allowedMentions: {parse: []}, embed});
-          }
+        case PageButtonNames.STOP: {
+          await this.onStop(null, true, interaction);
         }; break;
         default: {
           return;
@@ -300,11 +321,6 @@ export class Paginator {
 
       this.timeout.start(this.expires, this.onStop.bind(this));
       this.ratelimitTimeout.start(this.ratelimit, () => {});
-      /*
-      if (this.message.canManage) {
-        await reaction.delete(userId);
-      }
-      */
     } catch(error) {
       if (typeof(this.onError) === 'function') {
         await Promise.resolve(this.onError(error, this));
@@ -312,11 +328,12 @@ export class Paginator {
     }
   }
 
-  async onStop(error?: any, clearEmojis: boolean = true) {
-    if (PaginatorsStore.has(this.context.channelId)) {
-      const paginator = <Paginator> PaginatorsStore.get(this.context.channelId);
-      if (paginator === this) {
-        PaginatorsStore.delete(this.context.channelId);
+  async onStop(error?: any, clearButtons: boolean = true, interaction?: Structures.Interaction) {
+    if (PaginatorsStore.has(this.channelId)) {
+      const store = PaginatorsStore.get(this.channelId)!;
+      store.delete(this);
+      if (!store.length) {
+        PaginatorsStore.delete(this.channelId);
       }
     }
 
@@ -337,26 +354,27 @@ export class Paginator {
           await Promise.resolve(this.onError(error, this));
         }
       }
-      if (clearEmojis) {
-        if (this.message && !this.message.deleted && this.message.canManage) {
+
+      if (clearButtons) {
+        if (interaction) {
+          await interaction.respond({
+            data: {allowedMentions: {parse: []}, components: []},
+            type: InteractionCallbackTypes.UPDATE_MESSAGE,
+          });
+        } else if (this.message && !this.message.deleted && this.message.components.length) {
           try {
-            await this.message.deleteReactions();
-          } catch(error) {}
+            await this.message.edit({components: []});
+          } catch(error) {
+  
+          }
         }
       }
-      await this.clearCustomMessage();
 
       this.onError = undefined;
       this.onExpire = undefined;
       this.onPage = undefined;
       this.onPageNumber = undefined;
     }
-  }
-
-  reset() {
-    this.timeout.stop();
-    this.custom.timeout.stop();
-    this.ratelimitTimeout.stop();
   }
 
   async start() {
@@ -371,60 +389,34 @@ export class Paginator {
       if (!this.context.canReply) {
         throw new Error('Cannot create messages in this channel');
       }
+
       const embed = await this.getPage(this.page);
       if (this.context instanceof Command.Context) {
-        message = this.message = await editOrReply(this.context, {embed});
+        message = this.message = await editOrReply(this.context, {
+          components: this.components,
+          embed,
+        });
       } else {
-        message = this.message = await this.context.reply({embed});
+        message = this.message = await this.context.reply({
+          components: this.components,
+          embed,
+        });
       }
     }
 
     this.reset();
-    if (!this.stopped && this.pageLimit !== MIN_PAGE && message.canReact) {
-      setImmediate(async () => {
-        try {
-          if (PaginatorsStore.has(this.context.channelId)) {
-            const paginator = PaginatorsStore.get(this.context.channelId) as Paginator;
-            if (message === paginator.message) {
-              await paginator.stop(false);
-            } else {
-              await paginator.stop();
-            }
-          }
-          PaginatorsStore.insert(this);
-
-          this.timeout.start(this.expires, this.onStop.bind(this));
-          const emojis = <Array<Structures.Emoji>> [
-            (this.isLarge) ? this.emojis.previousDouble : null,
-            this.emojis.previous,
-            this.emojis.next,
-            (this.isLarge) ? this.emojis.nextDouble : null,
-            this.emojis.custom,
-            this.emojis.stop,
-            this.emojis.info,
-          ].filter((v) => v);
-
-          for (let emoji of emojis) {
-            if (this.stopped || message.deleted) {
-              break;
-            }
-            if (message.reactions.has(emoji.id || emoji.name)) {
-              continue;
-            }
-            await message.react(emoji.endpointFormat);
-          }
-        } catch(error) {
-          if (typeof(this.onError) === 'function') {
-            this.onError(error, this);
+    if (!this.stopped && this.pageLimit !== MIN_PAGE) {
+      if (PaginatorsStore.has(this.channelId)) {
+        const stored = PaginatorsStore.get(this.channelId)!;
+        for (let paginator of stored) {
+          if (paginator.message === message) {
+            await paginator.stop(false);
           }
         }
-      });
+      }
+      PaginatorsStore.insert(this);
     }
 
     return message;
-  }
-
-  stop(clearEmojis: boolean = true) {
-    return this.onStop(null, clearEmojis);
   }
 }
