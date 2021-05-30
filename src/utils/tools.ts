@@ -81,6 +81,7 @@ export function editOrReply(context: Command.Context, options: Command.EditOrRep
   if (!context.message.deleted && (!context.channel || context.channel.canReadHistory)) {
     options.messageReference = {
       channelId: context.channelId,
+      failIfNotExists: false,
       guildId: context.guildId,
       messageId: context.messageId,
     };

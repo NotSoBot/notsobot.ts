@@ -8,6 +8,8 @@ import { Paginator, MIN_PAGE } from '../utils/paginator';
 import { Store } from './store';
 
 
+export const MAX_PAGINATORS_PER_CHANNEL = 3;
+
 export type PaginatorsStored = BaseSet<Paginator>;
 
 // Stores an array of paginators based on channel id
@@ -21,6 +23,10 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
       this.set(paginator.channelId, stored);
     }
     stored.add(paginator);
+    while (MAX_PAGINATORS_PER_CHANNEL < stored.length) {
+      const paginator = stored.first()!;
+      paginator.stop();
+    }
   }
 
   create(cluster: ClusterClient) {
@@ -81,6 +87,20 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
       subscriptions.push(subscription);
     }
     {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_CREATE, async (event) => {
+        const { message } = event;
+        if (!message.fromBot && this.has(message.channelId)) {
+          const stored = this.get(message.channelId)!;
+          for (let paginator of stored) {
+            if (paginator.custom.message) {
+              await paginator.onMessage(message);
+            }
+          }
+        }
+      });
+      subscriptions.push(subscription);
+    }
+    {
       const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE, async (event) => {
         const { channelId, messageId } = event;
         if (this.has(channelId)) {
@@ -93,6 +113,14 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
                 paginator.message = null;
                 paginator.custom.message = null;
                 await paginator.stop(false);
+                continue;
+              }
+            }
+            if (paginator.custom.message) {
+              if (paginator.custom.message.id === messageId) {
+                paginator.custom.message = null;
+                await paginator.clearCustomMessage();
+                continue;
               }
             }
           }
