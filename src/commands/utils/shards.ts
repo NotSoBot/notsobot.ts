@@ -4,7 +4,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { SocketStates } from 'detritus-client-socket/lib/constants';
 
 import { CommandTypes } from '../../constants';
-import { editOrReply, padCodeBlockFromRows } from '../../utils';
+import { editOrReply, padCodeBlockFromRows, splitTextByAmount } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -174,24 +174,13 @@ export default class ShardCommand extends BaseCommand {
 
     const embed = new Embed();
     {
-      const parts = content.split('\n');
-
-      // put this into a function and reuse it below
-      let description = '';
-      while (description.length < 1988 && parts.length) {
-        const part = parts.shift() as string;
-        const newDescription = description + part + '\n';
-        if (1988 < newDescription.length) {
-          parts.unshift(part);
-          break;
+      const parts = splitTextByAmount(content, 1988, '\n');
+      embed.setDescription(Markup.codeblock(parts.shift()!, {language: 'py'}));
+      {
+        const fieldParts = splitTextByAmount(parts.join('\n'), 1012, '\n');
+        for (let part of fieldParts) {
+          embed.addField('\u200b', Markup.codeblock(part, {language: '\py'}));
         }
-        description = newDescription;
-      }
-
-      embed.setDescription(Markup.codeblock(description, {language: 'py'}));
-      if (parts.length) {
-        // split these up into 1024
-        embed.addField('\u200b', Markup.codeblock(parts.join('\n'), {language: 'py'}));
       }
     }
     return editOrReply(context, {embed});
