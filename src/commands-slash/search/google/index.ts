@@ -1,16 +1,19 @@
-import { BaseCommand } from '../../basecommand';
+import { BaseCommandOptionGroup } from '../../basecommand';
 
-import { GoogleImagesCommand } from './google.images';
-import { GoogleSearchCommand } from './google.search';
+import { SearchGoogleImagesCommand } from './google.images';
+import { SearchGoogleWebCommand } from './google.web';
 
 
-export default class GoogleCommand extends BaseCommand {
-  description = 'ull never see this';
+export class SearchGoogleGroupCommand extends BaseCommandOptionGroup {
+  description = '.';
   name = 'google';
 
   constructor() {
     super({
-      options: [new GoogleSearchCommand(), new GoogleImagesCommand()],
+      options: [
+        new SearchGoogleImagesCommand(),
+        new SearchGoogleWebCommand(),
+      ],
     });
   }
 }

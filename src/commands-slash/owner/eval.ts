@@ -5,7 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
-import { BaseCommand } from '../basecommand';
+import { BaseCommandOption } from '../basecommand';
 
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
@@ -20,15 +20,16 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'eval';
 
-export default class EvalCommand extends BaseCommand {
+export class OwnerEvalCommand extends BaseCommandOption<CommandArgs> {
+  description = 'Eval some code ;)';
+  name = COMMAND_NAME;
+
   constructor() {
     super({
-      description: 'Eval some code ;)',
-      name: COMMAND_NAME,
       options: [
         {name: 'code', description: 'Code to evaluate', required: true},
         {name: 'async', type: Boolean, description: 'Wrap the code in an async block'},
-        {name: 'jsonspacing', type: Number,, description: 'Spacing for the JSON encoder'},
+        {name: 'jsonspacing', type: Number, description: 'Spacing for the JSON encoder'},
         {name: 'noembed', type: Boolean, description: 'Output the result without an Embed'},
       ],
     });

@@ -25,9 +25,9 @@ export interface CommandArgs {
   safe?: boolean,
 }
 
-export class GoogleSearchCommand extends BaseCommandOption {
+export class SearchGoogleWebCommand extends BaseCommandOption {
   description = 'Search Google';
-  name = 'search';
+  name = 'web';
 
   constructor() {
     super({

@@ -1,5 +1,5 @@
 import { Slash } from 'detritus-client';
-import { InteractionCallbackTypes, Permissions } from 'detritus-client/lib/constants';
+import { ApplicationCommandOptionTypes, InteractionCallbackTypes } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
@@ -125,6 +125,7 @@ export class BaseCommand<ParsedArgsFinished = Slash.ParsedArgs> extends Slash.Sl
 
 export class BaseCommandOption<ParsedArgsFinished = Slash.ParsedArgs> extends Slash.SlashCommandOption<ParsedArgsFinished> {
   permissionsIgnoreClientOwner = true;
+  type = ApplicationCommandOptionTypes.SUB_COMMAND;
 
   onPermissionsFailClient(context: Slash.SlashContext, failed: Array<bigint>) {
     const permissions: Array<string> = [];
@@ -236,4 +237,9 @@ export class BaseCommandOption<ParsedArgsFinished = Slash.ParsedArgs> extends Sl
       flags: 64,
     });
   }
+}
+
+
+export class BaseCommandOptionGroup<ParsedArgsFinished = Slash.ParsedArgs> extends Slash.SlashCommandOption<ParsedArgsFinished> {
+  type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
 }

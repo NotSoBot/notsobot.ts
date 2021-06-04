@@ -16,7 +16,7 @@ export interface CommandArgs {
   safe?: boolean,
 }
 
-export class GoogleImagesCommand extends BaseCommandOption {
+export class SearchGoogleImagesCommand extends BaseCommandOption {
   description = 'Search Google Images';
   name = 'images';
 
