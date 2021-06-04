@@ -237,9 +237,12 @@ export class Paginator {
     if (this.pageLimit === MIN_PAGE) {
       return this.pageLimit;
     }
+    if (this.pageLimit === 2) {
+      return (this.page === MIN_PAGE) ? 2 : MIN_PAGE;
+    }
     let page: number = this.page;
     while (page === this.page) {
-      page = Math.round(Math.random() * this.pageLimit) + 1;
+      page = Math.ceil(Math.random() * this.pageLimit);
     }
     return page;
   }

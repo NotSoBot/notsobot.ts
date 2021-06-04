@@ -1,4 +1,5 @@
 import {
+  ClusterClient,
   Command,
   CommandClient,
   CommandClientOptions,
@@ -10,20 +11,20 @@ import GuildSettingsStore from './stores/guildsettings';
 import UserStore from './stores/users';
 
 
-export interface NotSoClientOptions extends CommandClientOptions {
+export interface NotSoCommandClientOptions extends CommandClientOptions {
   directory: string, 
 }
 
-export interface NotSoClientRunOptions extends CommandClientRunOptions {
+export interface NotSoCommandClientRunOptions extends CommandClientRunOptions {
   directory?: string,
 }
 
-export class NotSoClient extends CommandClient {
+export class NotSoCommandClient extends CommandClient {
   directory?: string;
 
   constructor(
-    options: NotSoClientOptions,
-    token?: string,
+    options: NotSoCommandClientOptions,
+    token?: ClusterClient | string,
   ) {
     super(token || '', options);
 
@@ -39,7 +40,7 @@ export class NotSoClient extends CommandClient {
     }
   }
 
-  async run(options: NotSoClientRunOptions = {}) {
+  async run(options: NotSoCommandClientRunOptions = {}) {
     this.directory = options.directory || this.directory;
     if (this.directory) {
       await this.resetCommands();

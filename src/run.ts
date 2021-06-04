@@ -24,7 +24,7 @@ if (SENTRY_DSN) {
 const manager = new ClusterManager('./bot', NOTSOBOT_DISCORD_TOKEN, {
   shardCount: 36 * 16,
   shardsPerCluster: 8,
-//  shards: [225, 225],
+//  shards: [209, 209],
 });
 
 (async () => {

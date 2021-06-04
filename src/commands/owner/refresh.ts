@@ -2,8 +2,9 @@ import { ClusterClient, Command, CommandClient, ShardClient } from 'detritus-cli
 
 import { DIRECTORY } from '../../../config.json';
 
-import { NotSoClient } from '../../client';
+import { NotSoCommandClient } from '../../commandclient';
 import { CommandTypes } from '../../constants';
+import { NotSoSlashClient } from '../../slashclient';
 import { Store } from '../../stores';
 import { editOrReply } from '../../utils';
 
@@ -67,8 +68,12 @@ async function refreshCommands(
     }
   }
   if (cluster.commandClient) {
-    const commandClient = cluster.commandClient as NotSoClient;
+    const commandClient = cluster.commandClient as NotSoCommandClient;
     await commandClient.resetCommands();
+  }
+  if (cluster.slashCommandClient) {
+    const slashCommandClient = cluster.slashCommandClient as NotSoSlashClient;
+    await slashCommandClient.resetCommands();
   }
   return cluster.shards.map((shard: ShardClient) => shard.shardId);
 }

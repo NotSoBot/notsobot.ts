@@ -3,11 +3,11 @@ import * as Sentry from '@sentry/node';
 
 import { ClusterClient, ShardClient } from 'detritus-client';
 import { ActivityTypes, ClientEvents, PresenceStatuses, SocketStates } from 'detritus-client/lib/constants';
-import { GatewayIntents } from 'detritus-client-socket/lib/constants';
 import { Timers } from 'detritus-utils';
 
-import { NotSoClient } from './client';
+import { NotSoCommandClient } from './commandclient';
 import { DiscordReactionEmojis } from './constants';
+import { NotSoSlashClient } from './slashclient';
 import { connectAllStores } from './stores';
 
 
@@ -17,14 +17,8 @@ if (process.env.SENTRY_DSN) {
   });
 }
 
-const bot = new NotSoClient({
-  activateOnEdits: true,
-  cache: {
-    messages: {
-      expire: 60 * 60 * 1000, // 1 hour
-    },
-  },
-  directory: './commands',
+const cluster = new ClusterClient('', {
+  cache: {messages: {expire: 60 * 60 * 1000}}, // messages expire after 1 hour
   gateway: {
     compress: false,
     identifyProperties: {
@@ -39,16 +33,21 @@ const bot = new NotSoClient({
       status: PresenceStatuses.ONLINE,
     },
   },
+});
+
+const notSoCommandBot = new NotSoCommandClient({
+  activateOnEdits: true,
+  directory: './commands',
   mentionsEnabled: true,
   prefix: '.',
   ratelimits: [
     {duration: 60000, limit: 50, type: 'guild'},
     {duration: 5000, limit: 5, type: 'channel'},
   ],
-});
+}, cluster);
 
 
-bot.on(ClientEvents.COMMAND_RATELIMIT, async ({command, context, global, ratelimits}) => {
+notSoCommandBot.on(ClientEvents.COMMAND_RATELIMIT, async ({command, context, global, ratelimits}) => {
   const { message } = context;
   if (!message.canReply && !message.canReact) {
     return;
@@ -58,7 +57,7 @@ bot.on(ClientEvents.COMMAND_RATELIMIT, async ({command, context, global, ratelim
   for (const {item, ratelimit, remaining} of ratelimits) {
     if ((remaining < 1000 && !replied && !item.replied) || !message.canReply) {
       const { message } = context;
-      if (message.canReact && !message.reactions.has(DiscordReactionEmojis.WAIT.id)) {
+      if (!message.deleted && message.canReact && !message.reactions.has(DiscordReactionEmojis.WAIT.id)) {
         await message.react(`${DiscordReactionEmojis.WAIT.name}:${DiscordReactionEmojis.WAIT.id}`);
       }
       replied = item.replied = true;
@@ -105,16 +104,22 @@ bot.on(ClientEvents.COMMAND_RATELIMIT, async ({command, context, global, ratelim
   }
 });
 
-bot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
+notSoCommandBot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
   // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
 });
 
-bot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
+notSoCommandBot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
   // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
 });
 
+
+
+const notSoSlashBot = new NotSoSlashClient({
+  directory: './commands-slash',
+}, cluster);
+
+
 (async () => {
-  const cluster = bot.client as ClusterClient;
   if (cluster.manager) {
     process.title = `C: ${cluster.manager.clusterId}, S:(${cluster.shardStart}-${cluster.shardEnd})`;
   } else {
@@ -154,13 +159,13 @@ bot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
 
     /*
     const now = Date.now();
-    const send = <any> shard.gateway.send;
+    const send = shard.gateway.send as any;
     shard.gateway.send = function () {
-      console.log(Date.now() - now, 'SEND', ...arguments);
+      console.log(`Shard #${shardId}`, Date.now() - now, 'SEND', ...arguments);
       return send.call(shard.gateway, ...arguments);
     };
     shard.gateway.on('packet', (packet) => {
-      console.log(Date.now() - now, 'RECEIVED', packet.s, packet.op, packet.t);
+      console.log(`Shard #${shardId}`, Date.now() - now, 'RECEIVED', packet.s, packet.op, packet.t);
     });
     */
   });
@@ -169,9 +174,30 @@ bot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
     Sentry.captureException(error);
   });
 
+  /*
+  if (cluster.manager) {
+    const sendIPC = cluster.manager.sendIPC;
+    cluster.manager.sendIPC = function() {
+      console.log('sendIPC', JSON.stringify([...arguments]));
+      return (sendIPC as any).call(cluster.manager, ...arguments);
+    }
+    //cluster.manager.on('ipc', console.log);
+  }
+  */
+
   try {
-    await bot.run();
-    console.log(`Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')}) loaded`);
+    await cluster.run();
+    console.log('cluster ran', cluster.ran);
+    const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
+    console.log(`${shardsText} - Loaded`);
+    await notSoCommandBot.run();
+    console.log(`${shardsText} - Command Client Loaded`);
+    await notSoSlashBot.run();
+    console.log(`${shardsText} - Slash Command Client Loaded`);
+
+    if (!cluster.manager || cluster.manager.clusterId === 0) {
+      await notSoSlashBot.checkAndUploadCommands();
+    }
   } catch(error) {
     console.log(error);
     console.log(error.errors);
