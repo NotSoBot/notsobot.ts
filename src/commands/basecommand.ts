@@ -9,6 +9,7 @@ import { createUserCommand } from '../api';
 import { CommandTypes, EmbedColors, PermissionsText, RatelimitKeys } from '../constants';
 import { Parameters, createUserEmbed, editOrReply, findImageUrlInMessages } from '../utils';
 
+
 // description and usage shouldnt be optional, temporary for now
 export interface CommandMetadata {
   description?: string,

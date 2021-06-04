@@ -1,6 +1,7 @@
 import {
   Command,
   GatewayClientEvents,
+  Slash,
   Structures,
   Utils,
 } from 'detritus-client';
@@ -72,7 +73,7 @@ export interface PaginatorOptions {
 
 
 export class Paginator {
-  readonly context: Command.Context | Structures.Message;
+  readonly context: Command.Context | Slash.SlashContext | Structures.Message;
   readonly custom: {
     expire: number,
     message?: null | Structures.Message,
@@ -102,7 +103,7 @@ export class Paginator {
   onPageNumber?: OnPageNumberCallback;
 
   constructor(
-    context: Command.Context | Structures.Message,
+    context: Command.Context | Slash.SlashContext | Structures.Message,
     options: PaginatorOptions,
   ) {
     this.context = context;
@@ -222,7 +223,7 @@ export class Paginator {
   }
 
   get channelId(): string {
-    return this.context.channelId;
+    return this.context.channelId!;
   }
 
   get isLarge(): boolean {
@@ -278,8 +279,15 @@ export class Paginator {
     if (this.custom.message) {
       if (!this.custom.message.deleted) {
         try {
+          if (this.context instanceof Slash.SlashContext) {
+            await this.context.deleteMessage(this.custom.message.id);
+          } else {
+            await this.custom.message.delete();
+          }
           await this.custom.message.delete();
-        } catch(error) {}
+        } catch(error) {
+
+        }
       }
       this.custom.message = null;
       await this.updateButtons(interaction);
@@ -303,20 +311,23 @@ export class Paginator {
     page = Math.max(MIN_PAGE, Math.min(page, this.pageLimit));
     if (page === this.page) {
       if (interaction) {
-        return await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
+        return await interaction.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       return;
     }
     this.page = page;
     const embed = await this.getPage(page);
     if (interaction) {
-      await interaction.respond({
-        data: {
-          allowedMentions: {parse: []},
-          components: this.components,
-          embed,
-        },
-        type: InteractionCallbackTypes.UPDATE_MESSAGE,
+      await interaction.respond(InteractionCallbackTypes.UPDATE_MESSAGE, {
+        allowedMentions: {parse: []},
+        components: this.components,
+        embed,
+      });
+    } else if (this.context instanceof Slash.SlashContext) {
+      await this.context.editResponse({
+        allowedMentions: {parse: []},
+        components: this.components,
+        embed,
       });
     } else if (this.message) {
       await this.message.edit({
@@ -330,12 +341,20 @@ export class Paginator {
   async updateButtons(interaction?: Structures.Interaction): Promise<void> {
     if (!this.stopped) {
       if (interaction) {
-        await interaction.respond({
-          data: {allowedMentions: {parse: []}, components: this.components},
-          type: InteractionCallbackTypes.UPDATE_MESSAGE,
+        await interaction.respond(InteractionCallbackTypes.UPDATE_MESSAGE, {
+          allowedMentions: {parse: []},
+          components: this.components,
+        });
+      } else if (this.context instanceof Slash.SlashContext) {
+        await this.context.editResponse({
+          allowedMentions: {parse: []},
+          components: this.components,
         });
       } else if (this.message) {
-        await this.message.edit({allowedMentions: {parse: []}, components: this.components});
+        await this.message.edit({
+          allowedMentions: {parse: []},
+          components: this.components,
+        });
       }
     }
   }
@@ -345,10 +364,10 @@ export class Paginator {
       return;
     }
     if (!this.canInteract(interaction.userId)) {
-      return await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
+      return await interaction.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
     if (this.ratelimitTimeout.hasStarted) {
-      return await interaction.respond({type: InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE});
+      return await interaction.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
 
     const data = interaction.data as Structures.InteractionDataComponent;
@@ -360,16 +379,20 @@ export class Paginator {
           } else {
             await this.clearCustomMessage();
 
-            const options: RequestTypes.CreateMessage = {content: 'What page would you like to go?'};
-            if (!this.message.deleted && (!this.message.channel || this.message.channel.canReadHistory)) {
-              options.messageReference = {
-                channelId: this.message.channelId,
-                failIfNotExists: false,
-                guildId: this.message.guildId,
-                messageId: this.message.id,
-              };
+            if (this.context instanceof Slash.SlashContext) {
+              this.custom.message = await this.context.createMessage('What page would you like to go?');
+            } else {
+              const options: RequestTypes.CreateMessage = {content: 'What page would you like to go?'};
+              if (!this.message.deleted && (!this.message.channel || this.message.channel.canReadHistory)) {
+                options.messageReference = {
+                  channelId: this.message.channelId,
+                  failIfNotExists: false,
+                  guildId: this.message.guildId,
+                  messageId: this.message.id,
+                };
+              }
+              this.custom.message = await this.message.reply(options);
             }
-            this.custom.message = await this.message.reply(options);
             await this.updateButtons(interaction);
             this.custom.timeout.start(this.custom.expire, async () => {
               await this.clearCustomMessage();
@@ -461,15 +484,19 @@ export class Paginator {
 
       if (clearButtons) {
         if (interaction) {
-          await interaction.respond({
-            data: {allowedMentions: {parse: []}, components: []},
-            type: InteractionCallbackTypes.UPDATE_MESSAGE,
+          await interaction.respond(InteractionCallbackTypes.UPDATE_MESSAGE, {
+            allowedMentions: {parse: []},
+            components: [],
           });
         } else if (this.message && !this.message.deleted && this.message.components.length) {
           try {
-            await this.message.edit({components: []});
+            if (this.context instanceof Slash.SlashContext) {
+              await this.context.editMessage(this.message.id, {components: []});
+            } else {
+              await this.message.edit({components: []});
+            }
           } catch(error) {
-  
+
           }
         }
       }
@@ -491,21 +518,30 @@ export class Paginator {
     if (this.message) {
       message = this.message;
     } else {
-      if (!this.context.canReply) {
-        throw new Error('Cannot create messages in this channel');
-      }
-
-      const embed = await this.getPage(this.page);
-      if (this.context instanceof Command.Context) {
-        message = this.message = await editOrReply(this.context, {
+      if (this.context instanceof Slash.SlashContext) {
+        const embed = await this.getPage(this.page);
+        message = this.message = await this.context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
           components: this.components,
           embed,
         });
+        message = this.message = await this.context.fetchResponse();
       } else {
-        message = this.message = await this.context.reply({
-          components: this.components,
-          embed,
-        });
+        if (!this.context.canReply) {
+          throw new Error('Cannot create messages in this channel');
+        }
+
+        const embed = await this.getPage(this.page);
+        if (this.context instanceof Command.Context) {
+          message = this.message = await editOrReply(this.context, {
+            components: this.components,
+            embed,
+          });
+        } else {
+          message = this.message = await this.context.reply({
+            components: this.components,
+            embed,
+          });
+        }
       }
     }
 

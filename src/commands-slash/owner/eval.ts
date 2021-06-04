@@ -18,7 +18,6 @@ export interface CommandArgs {
   noembed?: boolean,
 }
 
-
 export const COMMAND_NAME = 'eval';
 
 export default class EvalCommand extends BaseCommand {
@@ -27,10 +26,10 @@ export default class EvalCommand extends BaseCommand {
       description: 'Eval some code ;)',
       name: COMMAND_NAME,
       options: [
-        {name: 'code', type: ApplicationCommandOptionTypes.STRING, description: 'Code to evaluate', required: true},
-        {name: 'async', type: ApplicationCommandOptionTypes.BOOLEAN, description: 'Wrap the code in an async block'},
-        {name: 'jsonspacing', type: ApplicationCommandOptionTypes.INTEGER, description: 'Spacing for the JSON encoder'},
-        {name: 'noembed', type: ApplicationCommandOptionTypes.BOOLEAN, description: 'Output the result without an Embed'},
+        {name: 'code', description: 'Code to evaluate', required: true},
+        {name: 'async', type: Boolean, description: 'Wrap the code in an async block'},
+        {name: 'jsonspacing', type: Number,, description: 'Spacing for the JSON encoder'},
+        {name: 'noembed', type: Boolean, description: 'Output the result without an Embed'},
       ],
     });
   }

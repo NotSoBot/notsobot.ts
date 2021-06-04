@@ -124,6 +124,11 @@ export default class RefreshCommand extends BaseCommand {
       }
       return message.edit(`Error: ${error.message}`);
     }
+
+    if (context.cluster && context.cluster.slashCommandClient) {
+      context.cluster.slashCommandClient.commandsVerified = false;
+      await context.cluster.slashCommandClient.checkAndUploadCommands();
+    }
     return message.edit(`ok, refreshed commands on ${shardIds.flat().length} shards.`);
   }
 }
