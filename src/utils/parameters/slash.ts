@@ -11,6 +11,7 @@ export const GOOGLE_LOCALES = [
   GoogleLocales.GERMAN,
   GoogleLocales.GREEK,
   GoogleLocales.HEBREW,
+  GoogleLocales.INDONESIAN,
   GoogleLocales.ITALIAN,
   GoogleLocales.JAPANESE,
   GoogleLocales.KOREAN,
