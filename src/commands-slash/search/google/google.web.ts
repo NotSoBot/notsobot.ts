@@ -1,6 +1,6 @@
 import { Slash } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogle } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
@@ -52,7 +52,7 @@ export class SearchGoogleWebCommand extends BaseCommandOption {
         const paginator = new Paginator(context, {
           pageLimit,
           onPage: (pageNumber) => {
-            const embed = createUserEmbed(context.user);
+            const embed = new Embed();
             embed.setColor(EmbedColors.DEFAULT);
 
             let footer = 'Google Search Results';
@@ -246,7 +246,7 @@ export class SearchGoogleWebCommand extends BaseCommandOption {
       }
     }
 
-    const embed = createUserEmbed(context.user);
+    const embed = new Embed();
     embed.setColor(EmbedColors.DEFAULT);
 
     let footer: string = 'Google Search Results';

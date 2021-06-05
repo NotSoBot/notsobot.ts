@@ -1,6 +1,6 @@
 import { Slash } from 'detritus-client';
 import { ApplicationCommandOptionTypes, InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { googleTranslate } from '../../api';
 import {
@@ -9,7 +9,7 @@ import {
   GoogleLocales,
   GoogleLocalesText,
 } from '../../constants';
-import { Parameters, createUserEmbed } from '../../utils';
+import { Parameters } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -47,7 +47,7 @@ export default class TranslateCommand extends BaseCommand {
       to: args.to || undefined,
     });
 
-    const embed = createUserEmbed(context.user);
+    const embed = new Embed();
     embed.setColor(EmbedColors.DEFAULT);
     embed.setFooter('Google Translate', EmbedBrands.GOOGLE_GO);
 

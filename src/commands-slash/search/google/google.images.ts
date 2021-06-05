@@ -1,10 +1,10 @@
 import { Slash } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogleImages } from '../../../api';
 import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../../constants';
-import { Paginator, Parameters, createUserEmbed, shuffleArray } from '../../../utils';
+import { Paginator, Parameters, shuffleArray } from '../../../utils';
 
 import { BaseCommandOption } from '../../basecommand';
 
@@ -41,7 +41,7 @@ export class SearchGoogleImagesCommand extends BaseCommandOption {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = createUserEmbed(context.user);
+          const embed = new Embed();
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];

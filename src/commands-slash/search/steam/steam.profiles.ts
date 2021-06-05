@@ -1,10 +1,9 @@
 import { Slash } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchSteamProfile } from '../../../api';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { createUserEmbed } from '../../../utils';
 
 import { BaseCommandOption } from '../../basecommand';
 
@@ -28,8 +27,7 @@ export class SearchSteamProfilesCommand extends BaseCommandOption {
   async run(context: Slash.SlashContext, args: CommandArgs) {
     const profile = await searchSteamProfile(context, args);
 
-    const embed = createUserEmbed(context.user);
-
+    const embed = new Embed();
     switch (profile.state) {
       case 'in-game': {
         embed.setColor(EmbedColors.STEAM_IN_GAME);

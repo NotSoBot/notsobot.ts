@@ -1,9 +1,10 @@
 import { Slash } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
+import { Embed } from 'detritus-client/lib/utils';
 
 import { searchSteamEmojis } from '../../../api';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, createUserEmbed } from '../../../utils';
+import { Paginator } from '../../../utils';
 
 import { BaseCommandOption } from '../../basecommand';
 
@@ -33,7 +34,7 @@ export class SearchSteamEmojisCommand extends BaseCommandOption {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = createUserEmbed(context.user);
+          const embed = new Embed();
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];

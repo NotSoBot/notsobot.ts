@@ -1,6 +1,6 @@
 import { Slash } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchSteam } from '../../../api';
 import { EmbedBrands, EmbedColors } from '../../../constants';
@@ -38,7 +38,7 @@ export class SearchSteamCommunityCommand extends BaseCommandOption {
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (page) => {
-          const embed = createUserEmbed(context.user);
+          const embed = new Embed();
           embed.setColor(EmbedColors.DEFAULT);
 
           const result = results[page - 1];

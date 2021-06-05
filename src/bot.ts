@@ -194,10 +194,6 @@ const notSoSlashBot = new NotSoSlashClient({
     console.log(`${shardsText} - Command Client Loaded`);
     await notSoSlashBot.run();
     console.log(`${shardsText} - Slash Command Client Loaded`);
-
-    if (!cluster.manager || cluster.manager.clusterId === 0) {
-      await notSoSlashBot.checkAndUploadCommands();
-    }
   } catch(error) {
     console.log(error);
     console.log(error.errors);

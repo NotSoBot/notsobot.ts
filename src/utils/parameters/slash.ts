@@ -6,6 +6,7 @@ export const GOOGLE_LOCALES = [
   GoogleLocales.ARABIC,
   GoogleLocales.CHINESE_SIMPLIFIED,
   GoogleLocales.CHINESE_TRADITIONAL,
+  GoogleLocales.FINNISH,
   GoogleLocales.FRENCH,
   GoogleLocales.GERMAN,
   GoogleLocales.GREEK,
