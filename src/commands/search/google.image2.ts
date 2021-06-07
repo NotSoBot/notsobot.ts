@@ -1,9 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { searchGoogleImages } from '../../api';
-import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../constants';
-import { Arguments, Paginator, editOrReply, shuffleArray } from '../../utils';
+import { CommandTypes, GoogleLocales } from '../../constants';
+import { Arguments, Formatter } from '../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -44,39 +42,9 @@ export default class Image2Command extends BaseSearchCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const results = await searchGoogleImages(context, args);
-    if (results.length) {
-      if (args.randomize) {
-        shuffleArray(results);
-      }
-      const pageLimit = results.length;
-      const paginator = new Paginator(context, {
-        pageLimit,
-        onPage: (page) => {
-          const embed = new Embed();
-          embed.setColor(EmbedColors.DEFAULT);
-
-          const result = results[page - 1];
-          if (result.color) {
-            embed.setColor(result.color);
-          }
-
-          let footer = `Page ${page}/${pageLimit} of Google Image Search Results`;
-          if (args.locale in GoogleLocalesText) {
-            footer = `${footer} (${GoogleLocalesText[args.locale]})`;
-          }
-          embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
-
-          embed.setImage(result.imageUrl);
-          if (result.image.isSVG) {
-            embed.setDescription(Markup.url('**Image URL**', result.image.url));
-          }
-
-          return embed;
-        },
-      });
-      return await paginator.start();
-    }
-    return editOrReply(context, 'Couldn\'t find any images for that search term');
+    return Formatter.Commands.SearchGoogleImages.createMessage(context, {
+      ...args,
+      simple: true,
+    });
   }
 }

@@ -1,54 +1,11 @@
-import {
-  ClusterClient,
-  Command,
-  CommandClient,
-  CommandClientOptions,
-  CommandClientRunOptions,
-} from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 
 import { GuildAllowlistTypes, GuildBlocklistTypes, GuildDisableCommandsTypes } from './constants';
 import GuildSettingsStore from './stores/guildsettings';
 import UserStore from './stores/users';
 
 
-export interface NotSoCommandClientOptions extends CommandClientOptions {
-  directory: string, 
-}
-
-export interface NotSoCommandClientRunOptions extends CommandClientRunOptions {
-  directory?: string,
-}
-
 export class NotSoCommandClient extends CommandClient {
-  directory?: string;
-
-  constructor(
-    options: NotSoCommandClientOptions,
-    token?: ClusterClient | string,
-  ) {
-    super(token || '', options);
-
-    if (options.directory) {
-      this.directory = options.directory;
-    }
-  }
-
-  async resetCommands(): Promise<void> {
-    this.clear();
-    if (this.directory) {
-      await this.addMultipleIn(this.directory, {subdirectories: true});
-    }
-  }
-
-  async run(options: NotSoCommandClientRunOptions = {}) {
-    this.directory = options.directory || this.directory;
-    if (this.directory) {
-      await this.resetCommands();
-    }
-    return super.run(options);
-  }
-
-
   async onCommandCheck(context: Command.Context, command: Command.Command) {
     if (context.user.isClientOwner) {
       return true;

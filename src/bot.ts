@@ -35,16 +35,15 @@ const cluster = new ClusterClient('', {
   },
 });
 
-const notSoCommandBot = new NotSoCommandClient({
+const notSoCommandBot = new NotSoCommandClient(cluster, {
   activateOnEdits: true,
-  directory: './commands',
   mentionsEnabled: true,
   prefix: '.',
   ratelimits: [
     {duration: 60000, limit: 50, type: 'guild'},
     {duration: 5000, limit: 5, type: 'channel'},
   ],
-}, cluster);
+});
 
 
 notSoCommandBot.on(ClientEvents.COMMAND_RATELIMIT, async ({command, context, global, ratelimits}) => {
@@ -112,11 +111,6 @@ notSoCommandBot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) =>
   // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
 });
 
-
-
-const notSoSlashBot = new NotSoSlashClient({
-  directory: './commands-slash',
-}, cluster);
 
 
 (async () => {
@@ -190,10 +184,19 @@ const notSoSlashBot = new NotSoSlashClient({
     console.log('cluster ran', cluster.ran);
     const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
     console.log(`${shardsText} - Loaded`);
-    await notSoCommandBot.run();
-    console.log(`${shardsText} - Command Client Loaded`);
-    await notSoSlashBot.run();
-    console.log(`${shardsText} - Slash Command Client Loaded`);
+
+    {
+      await notSoCommandBot.addMultipleIn('./commands');
+      await notSoCommandBot.run();
+      console.log(`${shardsText} - Command Client Loaded`);
+    }
+
+    {
+      const notSoSlashBot = new NotSoSlashClient(cluster);
+      await notSoSlashBot.addMultipleIn('./commands-slash');
+      await notSoSlashBot.run();
+      console.log(`${shardsText} - Slash Command Client Loaded`);
+    }
   } catch(error) {
     console.log(error);
     console.log(error.errors);

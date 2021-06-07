@@ -124,10 +124,6 @@ export default class RefreshCommand extends BaseCommand {
       }
       return message.edit(`Error: ${error.message}`);
     }
-
-    if (context.slashCommandClient) {
-      await context.slashCommandClient.checkAndUploadCommands(true);
-    }
     return message.edit(`ok, refreshed commands on ${shardIds.flat().length} shards.`);
   }
 }

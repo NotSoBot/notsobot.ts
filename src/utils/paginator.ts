@@ -382,16 +382,10 @@ export class Paginator {
             if (this.context instanceof Slash.SlashContext) {
               this.custom.message = await this.context.createMessage('What page would you like to go?');
             } else {
-              const options: RequestTypes.CreateMessage = {content: 'What page would you like to go?'};
-              if (!this.message.deleted && (!this.message.channel || this.message.channel.canReadHistory)) {
-                options.messageReference = {
-                  channelId: this.message.channelId,
-                  failIfNotExists: false,
-                  guildId: this.message.guildId,
-                  messageId: this.message.id,
-                };
-              }
-              this.custom.message = await this.message.reply(options);
+              this.custom.message = await this.message.reply({
+                content: 'What page would you like to go?',
+                reference: true,
+              });
             }
             await this.updateButtons(interaction);
             this.custom.timeout.start(this.custom.expire, async () => {
@@ -520,11 +514,13 @@ export class Paginator {
     } else {
       if (this.context instanceof Slash.SlashContext) {
         const embed = await this.getPage(this.page);
-        message = this.message = await this.context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+        message = this.message = await this.context.editOrRespond({
           components: this.components,
           embed,
         });
-        message = this.message = await this.context.fetchResponse();
+        if (!message) {
+          message = this.message = await this.context.fetchResponse();
+        }
       } else {
         if (!this.context.canReply) {
           throw new Error('Cannot create messages in this channel');

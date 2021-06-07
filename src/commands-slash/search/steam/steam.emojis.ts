@@ -4,7 +4,7 @@ import { Embed } from 'detritus-client/lib/utils';
 
 import { searchSteamEmojis } from '../../../api';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator } from '../../../utils';
+import { Paginator, editOrReply } from '../../../utils';
 
 import { BaseCommandOption } from '../../basecommand';
 
@@ -62,9 +62,6 @@ export class SearchSteamEmojisCommand extends BaseCommandOption {
       });
       return await paginator.start();
     }
-    return context.respond(
-      InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE,
-      'Couldn\'t find any steam emojis matching that search term',
-    );
+    return editOrReply(context, 'Couldn\'t find any steam emojis matching that search term');
   }
 }

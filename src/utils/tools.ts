@@ -2,8 +2,8 @@ import { URL } from 'url';
 
 import * as moment from 'moment';
 
-import { Collections, Command, Structures } from 'detritus-client';
-import { DiscordAbortCodes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';
+import { Collections, Command, Slash, Structures } from 'detritus-client';
+import { DiscordAbortCodes, InteractionCallbackTypes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';
 import { Embed, Markup, PermissionTools, intToHex } from 'detritus-client/lib/utils';
 import { Response, replacePathParameters } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
@@ -73,20 +73,18 @@ export function createUserString(userId: string = '1', user?: Structures.User | 
 }
 
 
-export function editOrReply(context: Command.Context, options: Command.EditOrReply | string = {}) {
+export function editOrReply(
+  context: Command.Context | Slash.SlashContext,
+  options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
+) {
   if (typeof(options) === 'string') {
     options = {content: options};
   }
-  // check if the message is not deleted and we can read history
-  if (!context.message.deleted && (!context.channel || context.channel.canReadHistory)) {
-    options.messageReference = {
-      channelId: context.channelId,
-      failIfNotExists: false,
-      guildId: context.guildId,
-      messageId: context.messageId,
-    };
+  if (context instanceof Slash.SlashContext) {
+    return context.editOrRespond(options);
   }
   return context.editOrReply({
+    reference: true,
     ...options,
     allowedMentions: {parse: [], repliedUser: false, ...options.allowedMentions},
   });

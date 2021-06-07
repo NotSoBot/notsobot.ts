@@ -1,10 +1,7 @@
 import { Slash } from 'detritus-client';
-import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { searchGoogleImages } from '../../../api';
-import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../../constants';
-import { Paginator, Parameters, shuffleArray } from '../../../utils';
+import { GoogleLocales } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommandOption } from '../../basecommand';
 
@@ -32,39 +29,9 @@ export class SearchGoogleImagesSimpleCommand extends BaseCommandOption {
   }
 
   async run(context: Slash.SlashContext, args: CommandArgs) {
-    const results = await searchGoogleImages(context, args);
-    if (results.length) {
-      if (args.randomize) {
-        shuffleArray(results);
-      }
-      const pageLimit = results.length;
-      const paginator = new Paginator(context, {
-        pageLimit,
-        onPage: (page) => {
-          const embed = new Embed();
-          embed.setColor(EmbedColors.DEFAULT);
-
-          const result = results[page - 1];
-          if (result.color) {
-            embed.setColor(result.color);
-          }
-
-          let footer = `Page ${page}/${pageLimit} of Google Image Search Results`;
-          if (args.locale && args.locale in GoogleLocalesText) {
-            footer = `${footer} (${GoogleLocalesText[args.locale]})`;
-          }
-          embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
-
-          embed.setImage(result.imageUrl);
-          if (result.image.isSVG) {
-            embed.setDescription(Markup.url('**Image URL**', result.image.url));
-          }
-
-          return embed;
-        },
-      });
-      return await paginator.start();
-    }
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, 'Couldn\'t find any images for that search term');
+    return Formatter.Commands.SearchGoogleImages.createMessage(context, {
+      ...args,
+      simple: true,
+    });
   }
 }

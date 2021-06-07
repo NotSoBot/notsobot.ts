@@ -4,6 +4,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchSteamProfile } from '../../../api';
 import { EmbedBrands, EmbedColors } from '../../../constants';
+import { editOrReply } from '../../../utils';
 
 import { BaseCommandOption } from '../../basecommand';
 
@@ -91,6 +92,6 @@ export class SearchSteamProfilesCommand extends BaseCommandOption {
       embed.addField('**Past Names**', description.join('\n'));
     }
 
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {embed});
+    return editOrReply(context, {embed});
   }
 }

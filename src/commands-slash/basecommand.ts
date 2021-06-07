@@ -20,7 +20,7 @@ export class BaseCommand<ParsedArgsFinished = Slash.ParsedArgs> extends Slash.Sl
 
   onDmBlocked(context: Slash.SlashContext) {
     const command = Markup.codestring(context.name);
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+    return context.editOrRespond({
       content: `⚠ ${command} cannot be used in a DM.`,
       flags: MessageFlags.EPHEMERAL,
     });
@@ -38,7 +38,7 @@ export class BaseCommand<ParsedArgsFinished = Slash.ParsedArgs> extends Slash.Sl
     }
 
     const command = Markup.codestring(context.name);
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+    return context.editOrRespond({
       content: `⚠ ${command} requires the bot to have ${permissions.join(', ')} to work.`,
     });
   }
@@ -55,7 +55,7 @@ export class BaseCommand<ParsedArgsFinished = Slash.ParsedArgs> extends Slash.Sl
     }
 
     const command = Markup.codestring(context.name);
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+    return context.editOrRespond({
       content: `⚠ ${command} requires you to have ${permissions.join(', ')}.`,
       flags: MessageFlags.EPHEMERAL,
     });
@@ -130,7 +130,7 @@ export class BaseCommand<ParsedArgsFinished = Slash.ParsedArgs> extends Slash.Sl
       ].join('\n'));
     }
 
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+    return context.editOrRespond({
       embed,
       flags: MessageFlags.EPHEMERAL,
     });
