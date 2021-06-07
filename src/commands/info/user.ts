@@ -68,8 +68,8 @@ export default class UserCommand extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     const isMember = (args.user instanceof Structures.Member);
-    const member = <Structures.Member> args.user;
-    const user = <Structures.User> args.user;
+    const member = args.user as Structures.Member;
+    const user = ((isMember) ? member.user : args.user) as Structures.User;
 
     const presence = user.presence;
     let activities: Array<Structures.PresenceActivity>;
@@ -89,7 +89,8 @@ export default class UserCommand extends BaseCommand {
         embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
         embed.setColor(PresenceStatusColors['offline']);
         embed.setDescription(user.mention);
-        embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
+
+        embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
 
         {
           const description: Array<string> = [];
@@ -285,6 +286,18 @@ export default class UserCommand extends BaseCommand {
         } else {
           embed.addField('Activity', PresenceStatusTexts['offline']);
         }
+
+        if (isMember) {
+          if (member.avatar) {
+            const description: Array<string> = [];
+
+            description.push(Markup.url(Markup.bold('Guild Avatar'), member.avatarUrl));
+            description.push(Markup.url(Markup.bold('User Avatar'), user.avatarUrl));
+
+            embed.addField('Urls', description.join(', '));
+          }
+        }
+
         return embed;
       },
     });

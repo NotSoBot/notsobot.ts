@@ -116,16 +116,17 @@ export default class UsersCommand extends BaseCommand {
         if (!(position in membersOrUsers)) {
           throw new Error('lol');
         }
+        const memberOrUser = membersOrUsers[position];
 
-        const isMember = (membersOrUsers[position] instanceof Structures.Member);
-        const member = <Structures.Member> membersOrUsers[position];
-        const user = <Structures.User> membersOrUsers[position];
+        const isMember = (memberOrUser instanceof Structures.Member);
+        const member = memberOrUser as Structures.Member;
+        const user = ((isMember) ? member.user : memberOrUser) as Structures.User;
 
         const embed = new Embed();
         embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
         embed.setColor(PresenceStatusColors['offline']);
         embed.setDescription(member.mention);
-        embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
+        embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
 
         embed.setTitle(`User ${page} of ${pageLimit}`);
         {
@@ -321,6 +322,18 @@ export default class UsersCommand extends BaseCommand {
         } else {
           embed.addField('Activity', PresenceStatusTexts['offline']);
         }
+
+        if (isMember) {
+          if (member.avatar) {
+            const description: Array<string> = [];
+
+            description.push(Markup.url(Markup.bold('Guild Avatar'), member.avatarUrl));
+            description.push(Markup.url(Markup.bold('User Avatar'), user.avatarUrl));
+
+            embed.addField('Urls', description.join(', '));
+          }
+        }
+
         return embed;
       },
     });

@@ -533,7 +533,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
-      const keys = ['deaf', 'hoistedRole', 'mute', 'nick', 'premiumSince', 'roles'];
+      const keys = ['avatar', 'deaf', 'hoistedRole', 'mute', 'nick', 'premiumSince', 'roles'];
       const name = ClientEvents.GUILD_MEMBER_UPDATE;
 
       const subscription = cluster.subscribe(name, async (payload) => {
@@ -1017,6 +1017,7 @@ export function createLogPayload(
 
       {
         const description: Array<string> = [];
+
         // for non-premium guilds and when someone unboosts/boosts
         if (!audits) {
           if (member.deaf !== old.deaf || member.mute !== old.deaf) {
@@ -1119,6 +1120,16 @@ export function createLogPayload(
             description.push(`-> Boosted`);
           } else {
             description.push(`-> Unboosted`);
+          }
+        }
+
+        if (member.avatar !== old.avatar) {
+          if (member.avatar && old.avatar) {
+            description.push('- Changed their Server Avatar');
+          } else if (member.avatar && !old.avatar) {
+            description.push('- Set their Server Avatar');
+          } else if (!member.avatar && old.avatar) {
+            description.push('- Removed their Server Avatar');
           }
         }
 
