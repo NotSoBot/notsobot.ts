@@ -817,25 +817,31 @@ export function permissionsToObject(permissions: bigint | number): Record<string
 export function splitTextByAmount(text: string, amount: number, character = '\n'): Array<string> {
   const parts: Array<string> = [];
 
-  const split = text.split(character);
-  if (split.length === 1) {
-    return split;
-  }
-  while (split.length) {
-    let newText: string = '';
-    while (newText.length < amount && split.length) {
-      const part = split.shift()!;
-      if (part) {
-        if (amount < newText.length + part.length + 2) {
-          split.unshift(part);
-          break;
-        }
-        newText += part + '\n';
-      }
+  if (character) {
+    const split = text.split(character);
+    if (split.length === 1) {
+      return split;
     }
-    parts.push(newText);
+    while (split.length) {
+      let newText: string = '';
+      while (newText.length < amount && split.length) {
+        const part = split.shift()!;
+        if (part) {
+          if (amount < newText.length + part.length + 2) {
+            split.unshift(part);
+            break;
+          }
+          newText += part + '\n';
+        }
+      }
+      parts.push(newText);
+    }
+  } else {
+    while (text.length) {
+      parts.push(text.slice(0, amount));
+      text = text.slice(amount);
+    }
   }
-
   return parts;
 }
 
