@@ -52,7 +52,7 @@ export default class PruneCommand extends BaseCommand {
       disableDm: true,
       label: 'amount',
       metadata: {
-        description: 'Prune multiple messages, default 10 messages',
+        description: 'Prune multiple messages, default 10 messages (Only will search over the past 1000 messages)',
         examples: [
           `${COMMAND_NAME} 100`,
           `${COMMAND_NAME} 100 -from cake`,
@@ -69,12 +69,15 @@ export default class PruneCommand extends BaseCommand {
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return args.amount !== null && !isNaN(args.amount);
+    return args.amount !== null && !isNaN(args.amount) && !args.after;
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (isNaN(args.amount)) {
-      return context.editOrReply('⚠ Amount has to be a number lmao');
+      return editOrReply(context, '⚠ Amount has to be a number lmao');
+    }
+    if (args.after) {
+      return editOrReply(context, '⚠ After isn\'t supported yet, im so sorry ;(');
     }
     return super.onCancelRun(context, args);
   }
@@ -104,7 +107,7 @@ export default class PruneCommand extends BaseCommand {
     let tries = 0;
     while (tries++ < MAX_FETCHES && bulk.length + manual.length < args.amount) {
       const messages = await args.in.fetchMessages({before, limit: 100});
-      for (let message of messages.toArray().reverse()) {
+      for (let message of messages.toArray()) {
         if (args.amount <= bulk.length + manual.length) {
           break;
         }

@@ -3,11 +3,9 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { editGuildSettings } from '../../api';
 import { CommandTypes, EmbedColors } from '../../constants';
-import { createUserEmbed, editOrReply } from '../../utils';
+import { Formatter, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
-
-import { formatPrefixes } from './prefixes';
 
 
 export const COMMAND_NAME = 'prefixes clear';
@@ -40,7 +38,7 @@ export default class PrefixesClearCommand extends BaseCommand {
     embed.setTitle('Cleared prefixes');
 
     const { prefixes } = await editGuildSettings(context, guildId, {prefixes: []});
-    formatPrefixes(context, prefixes, embed);
+    Formatter.Commands.SettingsPrefixesList.formatPrefixes(context, prefixes, embed);
 
     return editOrReply(context, {embed});
   }

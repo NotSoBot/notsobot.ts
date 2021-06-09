@@ -86,7 +86,7 @@ export default class ActivityCommand extends BaseCommand {
           if (presence.clientStatus) {
             const description = [];
             for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
-              let status = (<any> presence.clientStatus)[key];
+              let status = (presence.clientStatus as any)[key];
               if (status) {
                 if (status in PresenceStatusTexts) {
                   status = PresenceStatusTexts[status];

@@ -4,11 +4,9 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { createGuildPrefix } from '../../api';
 import { CommandTypes, EmbedColors } from '../../constants';
-import { Parameters, createUserEmbed, editOrReply } from '../../utils';
+import { Formatter, Parameters, createUserEmbed, editOrReply } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
-
-import { formatPrefixes } from './prefixes';
 
 
 export interface CommandArgsBefore {
@@ -55,7 +53,7 @@ export default class PrefixesAddCommand extends BaseCommand {
     embed.setTitle(`Created prefix: **${Markup.escape.all(args.prefix)}**`);
 
     const prefixes = await createGuildPrefix(context, guildId, args.prefix);
-    formatPrefixes(context, prefixes, embed);
+    Formatter.Commands.SettingsPrefixesList.formatPrefixes(context, prefixes, embed);
 
     return editOrReply(context, {embed});
   }

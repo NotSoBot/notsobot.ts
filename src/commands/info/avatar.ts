@@ -61,7 +61,24 @@ export default class AvatarCommand extends BaseCommand {
     if (!args.noembed) {
       const embed = createUserEmbed(user);
       embed.setColor(PresenceStatusColors['offline']);
-      embed.setDescription(`[**Avatar Url**](${avatarUrl})`);
+
+      {
+        const description: Array<string> = [];
+        description.push(`[**Default**](${user.defaultAvatarUrl})`);
+        if (user instanceof Structures.Member) {
+          if (user.avatar) {
+            description.push(`[**Server**](${user.avatarUrl})`);
+          }
+          if (user.user.avatar) {
+            description.push(`[**User**](${user.user.avatarUrl})`);
+          }
+        } else {
+          if (user.avatar) {
+            description.push(`[**User**](${user.avatarUrl})`);
+          }
+        }
+        embed.setDescription(description.join(', '));
+      }
 
       if (args.default) {
         embed.setImage(avatarUrl);

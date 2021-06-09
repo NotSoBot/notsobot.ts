@@ -16,6 +16,7 @@ export interface CommandArgs {
   code: string,
   jsonspacing?: number,
   noembed?: boolean,
+  noreply?: boolean,
 }
 
 export const COMMAND_NAME = 'eval';
@@ -23,6 +24,7 @@ export const COMMAND_NAME = 'eval';
 export class OwnerEvalCommand extends BaseCommandOption<CommandArgs> {
   description = 'Eval some code ;)';
   name = COMMAND_NAME;
+  triggerLoadingAfter = 2000;
 
   constructor() {
     super({
@@ -31,6 +33,7 @@ export class OwnerEvalCommand extends BaseCommandOption<CommandArgs> {
         {name: 'async', type: Boolean, description: 'Wrap the code in an async block'},
         {name: 'jsonspacing', type: Number, description: 'Spacing for the JSON encoder'},
         {name: 'noembed', type: Boolean, description: 'Output the result without an Embed'},
+        {name: 'noreply', type: Boolean, description: 'Do not reply'},
       ],
     });
   }
@@ -47,9 +50,42 @@ export class OwnerEvalCommand extends BaseCommandOption<CommandArgs> {
   }
 
   async run(context: Slash.SlashContext, args: CommandArgs) {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-      content: 'ok',
-      flags: 64,
-    });
+    const code = Parameters.codeblock(args.code);
+
+    let language = 'js';
+    let message: any;
+    let errored: boolean = false;
+    try {
+      if (args.async) {
+        const func = new AsyncFunction('context', code);
+        message = await func(context);
+      } else {
+        message = await Promise.resolve(eval(code));
+      }
+      if (typeof(message) === 'object') {
+        message = JSON.stringify(message, null, args.jsonspacing);
+        language = 'json';
+      }
+    } catch(error) {
+      message = (error) ? error.stack || error.message : error;
+      errored = true;
+    }
+
+    if (!args.noreply) {
+      const content = String(message);
+      if (!args.noembed) {
+        const embed = new Embed();
+        if (errored) {
+          embed.setColor(EmbedColors.ERROR);
+        } else {
+          embed.setColor(EmbedColors.DEFAULT);
+        }
+        embed.setDescription(Markup.codeblock(content, {language, mentions: false}));
+        embed.setFooter('Eval', EmbedBrands.NOTSOBOT);
+
+        return editOrReply(context, {embed});
+      }
+      return editOrReply(context, Markup.codeblock(content, {language}));
+    }
   }
 }
