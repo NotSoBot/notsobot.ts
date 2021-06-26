@@ -3,7 +3,6 @@ import * as Sentry from '@sentry/node';
 
 import { ClusterClient, ShardClient } from 'detritus-client';
 import { ActivityTypes, ClientEvents, PresenceStatuses, SocketStates } from 'detritus-client/lib/constants';
-import { Timers } from 'detritus-utils';
 
 import { NotSoCommandClient } from './commandclient';
 import { DiscordReactionEmojis } from './constants';
@@ -43,64 +42,6 @@ const notSoCommandBot = new NotSoCommandClient(cluster, {
     {duration: 60000, limit: 50, type: 'guild'},
     {duration: 5000, limit: 5, type: 'channel'},
   ],
-});
-
-
-notSoCommandBot.on(ClientEvents.COMMAND_RATELIMIT, async ({command, context, global, ratelimits}) => {
-  const { message } = context;
-  if (!message.canReply && !message.canReact) {
-    return;
-  }
-
-  let replied: boolean = false;
-  for (const {item, ratelimit, remaining} of ratelimits) {
-    if ((remaining < 1000 && !replied && !item.replied) || !message.canReply) {
-      const { message } = context;
-      if (!message.deleted && message.canReact && !message.reactions.has(DiscordReactionEmojis.WAIT.id)) {
-        await message.react(`${DiscordReactionEmojis.WAIT.name}:${DiscordReactionEmojis.WAIT.id}`);
-      }
-      replied = item.replied = true;
-      continue;
-    }
-
-    if (remaining < 1000 || replied || item.replied) {
-      // skip replying
-      item.replied = true;
-      continue;
-    }
-    replied = item.replied = true;
-
-    let noun: string = 'You idiots are';
-    switch (ratelimit.type) {
-      case 'channel': {
-        noun = 'This guild is';
-      }; break;
-      case 'guild': {
-        noun = 'This channel is';
-      }; break;
-      case 'user': {
-        noun = 'You are';
-      }; break;
-    }
-
-    let content: string;
-    if (global) {
-      content = `${noun} using commands WAY too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
-    } else {
-      content = `${noun} using ${command.name} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
-    }
-
-    try {
-      const reply = await context.reply(content);
-      await Timers.sleep(Math.max(remaining / 2, 2000));
-      item.replied = false;
-      if (!reply.deleted) {
-        await reply.delete();
-      }
-    } catch(e) {
-      item.replied = false;
-    }
-  }
 });
 
 notSoCommandBot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {

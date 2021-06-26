@@ -52,7 +52,7 @@ export default class PruneCommand extends BaseCommand {
       disableDm: true,
       label: 'amount',
       metadata: {
-        description: 'Prune multiple messages, default 10 messages (Only will search over the past 1000 messages)',
+        description: 'Prune multiple messages, default 10 messages',
         examples: [
           `${COMMAND_NAME} 100`,
           `${COMMAND_NAME} 100 -from cake`,

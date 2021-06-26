@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes } from '../../constants';
+import { CommandTypes, EmbedBrands, EmbedColors } from '../../constants';
 import { Paginator, createUserEmbed, editOrReply, toTitleCase } from '../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -124,6 +124,7 @@ export default class HelpCommand extends BaseCommand {
 
           const metadata = command.metadata as CommandMetadata;
 
+          embed.setColor(EmbedColors.DEFAULT);
           embed.setTitle(name);
           embed.setDescription(metadata.description);
 
@@ -151,7 +152,7 @@ export default class HelpCommand extends BaseCommand {
             embed.addField('Usage', text);
           }
         }
-        embed.setFooter(`Command ${page} of ${pageLimit} Found`);
+        embed.setFooter(`Command ${page} of ${pageLimit} Found`, EmbedBrands.NOTSOBOT);
         return embed;
       },
     });

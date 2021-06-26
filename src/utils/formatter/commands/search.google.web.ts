@@ -1,4 +1,5 @@
 import { Command, Slash } from 'detritus-client';
+import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogle } from '../../../api';

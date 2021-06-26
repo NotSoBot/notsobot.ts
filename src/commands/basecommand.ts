@@ -4,9 +4,10 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
+import { Timers } from 'detritus-utils';
 
 import { createUserCommand } from '../api';
-import { CommandTypes, EmbedColors, PermissionsText, RatelimitKeys } from '../constants';
+import { CommandTypes, DiscordReactionEmojis, EmbedColors, PermissionsText, RatelimitKeys } from '../constants';
 import { Parameters, createUserEmbed, editOrReply, findImageUrlInMessages } from '../utils';
 
 
@@ -41,8 +42,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 
   get commandDescription(): string {
     if (typeof(this.metadata.usage) === 'string') {
-      const name = (this.arg.prefixes.size) ? this.names[0] : this.name;
-      return `${name} ${this.metadata.usage}`.trim();
+      return `${this.fullName} ${this.metadata.usage}`.trim();
     }
     return '';
   }
@@ -68,7 +68,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 
     let command: string;
     if (context.command) {
-      command = '`' + ((context.command.arg.prefixes.size) ? context.command.names[0] : context.command.name) + '`';
+      command = '`' + (context.command.fullName) + '`';
     } else {
       command = 'This command';
     }
@@ -88,41 +88,71 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 
     let command: string;
     if (context.command) {
-      command = '`' + ((context.command.arg.prefixes.size) ? context.command.names[0] : context.command.name) + '`';
+      command = '`' + (context.command.fullName) + '`';
     } else {
       command = 'This command';
     }
     return editOrReply(context, `⚠ ${command} requires you to have ${permissions.join(', ')}.`);
   }
 
-  async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
-    // log command
-    if (context.command) {
-      let contentUrl: string | undefined;
-      let responseUrl: string | undefined;
-      if (context.metadata) {
-        ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
+  async onRatelimit(
+    context: Command.Context,
+    ratelimits: Array<Command.CommandRatelimitInfo>,
+    metadata: Command.CommandRatelimitMetadata,
+  ) {
+    const { message } = context;
+    if (!message.canReply && !message.canReact) {
+      return;
+    }
+    const { global } = metadata;
+  
+    let replied: boolean = false;
+    for (const {item, ratelimit, remaining} of ratelimits) {
+      if ((remaining < 1000 && !replied && !item.replied) || !message.canReply) {
+        const { message } = context;
+        if (!message.deleted && message.canReact && !message.reactions.has(DiscordReactionEmojis.WAIT.id)) {
+          await message.react(`${DiscordReactionEmojis.WAIT.name}:${DiscordReactionEmojis.WAIT.id}`);
+        }
+        replied = item.replied = true;
+        continue;
       }
-
-      const name = (context.command.arg.prefixes.size) ? context.command.names[0] : context.command.name;
+  
+      if (remaining < 1000 || replied || item.replied) {
+        // skip replying
+        item.replied = true;
+        continue;
+      }
+      replied = item.replied = true;
+  
+      let noun: string = 'You idiots are';
+      switch (ratelimit.type) {
+        case 'channel': {
+          noun = 'This guild is';
+        }; break;
+        case 'guild': {
+          noun = 'This channel is';
+        }; break;
+        case 'user': {
+          noun = 'You are';
+        }; break;
+      }
+  
+      let content: string;
+      if (global) {
+        content = `${noun} using commands WAY too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+      } else {
+        content = `${noun} using ${this.fullName} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+      }
+  
       try {
-        await createUserCommand(
-          context,
-          context.userId,
-          name,
-          {
-            channelId: context.channelId,
-            content: context.message.content,
-            contentUrl,
-            editedTimestamp: context.message.editedAtUnix,
-            guildId: context.guildId,
-            messageId: context.messageId,
-            responseId: (context.response) ? context.response.id : undefined,
-            responseUrl,
-          },
-        );
-      } catch(error) {
-        // do something?
+        const reply = await context.reply(content);
+        await Timers.sleep(Math.max(remaining / 2, 2000));
+        item.replied = false;
+        if (!reply.deleted) {
+          await reply.delete();
+        }
+      } catch(e) {
+        item.replied = false;
       }
     }
   }
@@ -205,7 +235,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
       }
 
-      const name = (context.command.arg.prefixes.size) ? context.command.names[0] : context.command.name;
+      const name = context.command.fullName;
       await createUserCommand(
         context,
         context.userId,
@@ -225,6 +255,38 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
 
     return message;
+  }
+
+  async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
+    // log command
+    if (context.command) {
+      let contentUrl: string | undefined;
+      let responseUrl: string | undefined;
+      if (context.metadata) {
+        ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
+      }
+
+      const name = context.command.fullName;
+      try {
+        await createUserCommand(
+          context,
+          context.userId,
+          name,
+          {
+            channelId: context.channelId,
+            content: context.message.content,
+            contentUrl,
+            editedTimestamp: context.message.editedAtUnix,
+            guildId: context.guildId,
+            messageId: context.messageId,
+            responseId: (context.response) ? context.response.id : undefined,
+            responseUrl,
+          },
+        );
+      } catch(error) {
+        // do something?
+      }
+    }
   }
 
   onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {

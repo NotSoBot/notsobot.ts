@@ -14,11 +14,15 @@ export const MAX_MEMBERS = 1000;
 export const RATELIMIT_TIME = [10, 10]; // 10 members per 10 seconds (use a constant incase it changes in the future)
 
 export interface CommandArgsBefore {
+  nobots?: boolean,
+  nousers?: boolean,
   role?: null | Structures.Role,
   text: string,
 }
 
 export interface CommandArgs {
+  nobots?: boolean,
+  nousers?: boolean,
   role?: null | Structures.Role,
   text: string,
 }
@@ -33,6 +37,8 @@ export default class NickMassCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
+        {name: 'nobots', type: Boolean},
+        {name: 'nousers', type: Boolean},
         {name: 'role', type: Parameters.role},
       ],
       disableDm: true,
@@ -42,9 +48,11 @@ export default class NickMassCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} troy`,
           `${COMMAND_NAME} troy -role admin`,
+          `${COMMAND_NAME} troy -nobots`,
+          `${COMMAND_NAME} troy -nousers`,
         ],
         type: CommandTypes.MODERATION,
-        usage: '<text> (-role <role:id|name>)',
+        usage: '<text> (-nobots) (-nousers) (-role <role:id|name>)',
       },
       permissionsClient: [Permissions.CHANGE_NICKNAMES],
       permissions: [Permissions.CHANGE_NICKNAMES, Permissions.MANAGE_GUILD],
@@ -66,12 +74,18 @@ export default class NickMassCommand extends BaseCommand {
     if (args.role === null) {
       return false;
     }
+    if (args.nobots && args.nousers) {
+      return false;
+    }
     return !!args.text;
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.role === null) {
       return editOrReply(context, '⚠ Unknown Role');
+    }
+    if (args.nobots && args.nousers) {
+      return editOrReply(context, '⚠ who then?!');
     }
     return super.onCancelRun(context, args);
   }
@@ -83,6 +97,12 @@ export default class NickMassCommand extends BaseCommand {
     const nick = args.text.slice(0, 32);
 
     const members = guild.members.filter((member) => {
+      if (args.nobots && member.bot) {
+        return false;
+      }
+      if (args.nousers && !member.bot) {
+        return false;
+      }
       if (args.role && !member.roles.has(args.role.id)) {
         return false;
       }
