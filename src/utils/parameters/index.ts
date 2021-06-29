@@ -373,16 +373,28 @@ export async function imageUrlPositional(
   value: string,
   context: Command.Context,
 ): Promise<string | null | undefined | [true, null | string | undefined]> {
-  if (value) {
-    try {
-      // check the message's attachments/stickers first
-      {
-        const url = findImageUrlInMessages([context.message]);
+  try {
+    // check the message's attachments/stickers first
+    {
+      const url = findImageUrlInMessages([context.message]);
+      if (url) {
+        return [true, url];
+      }
+    }
+
+    // check for reply and if it has an image
+    {
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId) {
+        const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+        const url = findImageUrlInMessages([message]);
         if (url) {
           return [true, url];
         }
       }
+    }
 
+    if (value) {
       // get last image then
       if (value === '^') {
         return await lastImageUrl('', context);
@@ -459,9 +471,9 @@ export async function imageUrlPositional(
 
       // return the last image and skip parse
       return [true, await lastImageUrl('', context)];
-    } catch(error) {
-      return null;
     }
+  } catch(error) {
+    return null;
   }
   return null;
 }
@@ -480,6 +492,17 @@ export async function lastImageUrl(
       const url = findImageUrlInMessages([context.message]);
       if (url) {
         return url;
+      }
+    }
+    {
+      // check reply
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId) {
+        const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+        const url = findImageUrlInMessages([message]);
+        if (url) {
+          return url;
+        }
       }
     }
     {
