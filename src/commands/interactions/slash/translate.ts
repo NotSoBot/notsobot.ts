@@ -26,7 +26,7 @@ export default class TranslateCommand extends BaseCommand {
         {name: 'to', type: ApplicationCommandOptionTypes.STRING, description: 'Language to translate to', choices: Parameters.Slash.GOOGLE_LOCALES},
         {name: 'from', type: ApplicationCommandOptionTypes.STRING, description: 'Language to translate from', choices: Parameters.Slash.GOOGLE_LOCALES},
       ],
-    })
+    });
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
