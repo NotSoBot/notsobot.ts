@@ -1,4 +1,4 @@
-import { Interaction } from 'detritus-client';
+import { Interaction, Structures } from 'detritus-client';
 import {
   ApplicationCommandTypes,
   MessageFlags,
@@ -10,11 +10,17 @@ import { EmbedColors, PermissionsText } from '../../../../constants';
 import { createUserEmbed } from '../../../../utils';
 
 
+export interface CommandArgs {
+  message: Structures.Message,
+}
+
 export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
+  triggerLoadingAsEphemeral = true;
   type = ApplicationCommandTypes.MESSAGE;
 
   constructor(data: Interaction.InteractionCommandOptions = {}) {
     super(Object.assign({
+      guildIds: ['178313653177548800', '621077547471601685'],
       permissionsIgnoreClientOwner: true,
     }, data));
   }

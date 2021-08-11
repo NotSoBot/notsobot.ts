@@ -1,4 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
+import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { googleTranslate } from '../../../api';
@@ -13,6 +14,7 @@ import { createUserEmbed, editOrReply, splitTextByAmount } from '../../../utils'
 
 export interface CommandArgs {
   from?: GoogleLocales | null,
+  isEphemeral?: boolean,
   text: string,
   to?: GoogleLocales | null,
 }
@@ -65,5 +67,8 @@ export async function createMessage(
     }
   }
 
-  return editOrReply(context, {embed});
+  return editOrReply(context, {
+    embed,
+    flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
+  });
 }

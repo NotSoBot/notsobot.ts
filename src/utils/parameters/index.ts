@@ -24,9 +24,10 @@ import {
   validateUrl,
 } from '../tools';
 
+import * as ContextMenu from './context-menu';
 import * as Slash from './slash';
 
-export { Slash };
+export { ContextMenu, Slash };
 
 
 export interface BanPayloadOptions {

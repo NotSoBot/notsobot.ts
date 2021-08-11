@@ -16,6 +16,7 @@ export interface CommandArgs {
 }
 
 export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
+  triggerLoadingAsEphemeral = true;
   type = ApplicationCommandTypes.USER;
 
   constructor(data: Interaction.InteractionCommandOptions = {}) {

@@ -34,28 +34,64 @@ export default class UndoCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    let found = 0;
-    const messageIds: Array<string> = [];
-    for (let {context: lastContext, reply: lastReply} of context.commandClient.replies.toArray().reverse()) {
-      if (args.amount <= found) {
-        break;
-      }
-      if (lastContext.channelId === context.channelId) {
-        if (lastContext.userId === context.userId) {
-          if (lastContext.message.canDelete && !lastContext.message.deleted) {
-            messageIds.push(lastContext.message.id);
-          }
-          if (lastReply.canDelete && !lastReply.deleted) {
-            messageIds.push(lastReply.id);
-            found++;
-          }
+    const messageIdPairs: Array<{fromInteraction: boolean, ids: Array<bigint>}> = [];
+
+    {
+      // get as many normal commands as possible
+      let found = 0;
+      for (let {context: lastContext, reply: lastReply} of context.commandClient.replies.toArray().reverse()) {
+        if (args.amount <= found) {
+          break;
         }
+        if (lastContext.channelId !== context.channelId || lastContext.userId !== context.userId) {
+          continue;
+        }
+        const store: {fromInteraction: boolean, ids: Array<bigint>}= {fromInteraction: false, ids: []};
+        if (lastContext.message.canDelete && !lastContext.message.deleted) {
+          store.ids.push(BigInt(lastContext.message.id));
+        }
+        if (lastReply.canDelete && !lastReply.deleted) {
+          store.ids.push(BigInt(lastReply.id));
+          messageIdPairs.push(store);
+          found++;
+        }
+      }
+    }
+
+    {
+      // get as many interaction commands as possible
+      let found = 0;
+      for (let message of context.messages.filter((x) => x.channelId === context.channelId).reverse()) {
+        if (args.amount <= found) {
+          break;
+        }
+        // same channel, has interaction, is from me, interaction is from the user
+        if (!message.interaction || !message.fromMe || message.interaction.user.id !== context.userId) {
+          continue;
+        }
+        messageIdPairs.push({fromInteraction: true, ids: [BigInt(message.id)]})
+        found++;
       }
     }
 
     if (context.message.canDelete && !context.message.deleted) {
       await context.message.delete();
     }
+
+    const count = {interactions: 0, prefixed: 0};
+    const messageIds = messageIdPairs.sort((x, y) => {
+      if (x.ids.length && y.ids.length) {
+        return parseInt((y.ids[0] - x.ids[0]) as any);
+      }
+      return 0;
+    }).slice(0, args.amount).map((x) => {
+      if (x.fromInteraction) {
+        count.interactions++;
+      } else {
+        count.prefixed++;
+      }
+      return x.ids;
+    }).flat().map((x) => String(x));
 
     let message: Structures.Message;
     if (messageIds.length) {
@@ -74,7 +110,7 @@ export default class UndoCommand extends BaseCommand {
           await context.rest.bulkDeleteMessages(context.channelId, messageIds);
         }
       }
-      message = await editOrReply(context, `Successfully deleted ${found} commands.`);
+      message = await editOrReply(context, `Successfully deleted ${count.interactions} interactions and ${count.prefixed} commands.`);
     } else {
       message = await editOrReply(context, `Could not find any of your last commands.`);
     }
