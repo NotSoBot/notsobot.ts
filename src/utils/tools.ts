@@ -2,7 +2,7 @@ import { URL } from 'url';
 
 import * as moment from 'moment';
 
-import { Collections, Command, Slash, Structures } from 'detritus-client';
+import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { DiscordAbortCodes, InteractionCallbackTypes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';
 import { Embed, Markup, PermissionTools, intToHex } from 'detritus-client/lib/utils';
 import { Response, replacePathParameters } from 'detritus-rest';
@@ -74,13 +74,13 @@ export function createUserString(userId: string = '1', user?: Structures.User | 
 
 
 export function editOrReply(
-  context: Command.Context | Slash.SlashContext,
+  context: Command.Context | Interaction.InteractionContext,
   options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
 ) {
   if (typeof(options) === 'string') {
     options = {content: options};
   }
-  if (context instanceof Slash.SlashContext) {
+  if (context instanceof Interaction.InteractionContext) {
     return context.editOrRespond(options);
   }
   return context.editOrReply({

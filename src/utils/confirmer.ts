@@ -1,4 +1,4 @@
-import { Command, Slash, Structures, Utils } from 'detritus-client';
+import { Command, Interaction, Structures, Utils } from 'detritus-client';
 
 
 export type OnErrorCallback = (error: any, confirmer: Confirmer) => Promise<any> | any;
@@ -9,9 +9,9 @@ export type OnConfirmationSuccessCallback = () => Promise<Utils.Embed> | Utils.E
 
 
 export class Confirmer {
-  readonly context: Command.Context | Slash.SlashContext | Structures.Message;
+  readonly context: Command.Context | Interaction.InteractionContext | Structures.Message;
 
-  constructor(context: Command.Context | Slash.SlashContext | Structures.Message) {
+  constructor(context: Command.Context | Interaction.InteractionContext | Structures.Message) {
     this.context = context;
   }
 

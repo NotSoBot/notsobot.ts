@@ -1,4 +1,4 @@
-import { Command, Slash } from 'detritus-client';
+import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { googleTranslate } from '../../../api';
@@ -18,10 +18,10 @@ export interface CommandArgs {
 }
 
 export async function createMessage(
-  context: Command.Context | Slash.SlashContext,
+  context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const isFromSlash = (context instanceof Slash.SlashContext);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const {
     from_language: fromLanguage,
@@ -33,7 +33,7 @@ export async function createMessage(
     to: args.to || undefined,
   });
 
-  const embed = (isFromSlash) ? new Embed() : createUserEmbed(context.user);
+  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
   embed.setFooter('Google Translate', EmbedBrands.GOOGLE_GO);
 

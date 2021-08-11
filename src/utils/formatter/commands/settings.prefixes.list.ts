@@ -1,11 +1,11 @@
-import { Collections, Command, Slash } from 'detritus-client';
+import { Collections, Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettingsPrefix } from '../../../api/structures/guildsettings';
 
 
 export function formatPrefixes(
-  context: Command.Context | Slash.SlashContext,
+  context: Command.Context | Interaction.InteractionContext,
   prefixes: Collections.BaseCollection<string, GuildSettingsPrefix>,
   embed?: Embed,
 ): Embed {

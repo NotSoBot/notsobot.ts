@@ -1,4 +1,4 @@
-import { Command, Slash } from 'detritus-client';
+import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
@@ -19,10 +19,10 @@ import { Paginator, chunkArray, createUserEmbed, editOrReply } from '../../../ut
 export const RESULTS_PER_PAGE = 3;
 
 export async function createMessage(
-  context: Command.Context | Slash.SlashContext,
+  context: Command.Context | Interaction.InteractionContext,
   args: {locale?: GoogleLocales, query: string, safe?: boolean},
 ) {
-  const isFromSlash = (context instanceof Slash.SlashContext);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const {
     cards,
     results,
@@ -40,7 +40,7 @@ export async function createMessage(
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (pageNumber) => {
-          const embed = (isFromSlash) ? new Embed() : createUserEmbed(context.user);
+          const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
 
           let footer = 'Google Search Results';
@@ -233,7 +233,7 @@ export async function createMessage(
       return await paginator.start();
     }
   } else {
-    const embed = (isFromSlash) ? new Embed() : createUserEmbed(context.user);
+    const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
 
     let footer: string = 'Google Search Results';

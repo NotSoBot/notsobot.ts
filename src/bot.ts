@@ -6,7 +6,7 @@ import { ActivityTypes, ClientEvents, PresenceStatuses, SocketStates } from 'det
 
 import { NotSoCommandClient } from './commandclient';
 import { DiscordReactionEmojis } from './constants';
-import { NotSoSlashClient } from './slashclient';
+import { NotSoInteractionClient } from './interactioncommandclient';
 import { connectAllStores } from './stores';
 
 
@@ -32,24 +32,6 @@ const cluster = new ClusterClient('', {
       status: PresenceStatuses.ONLINE,
     },
   },
-});
-
-const notSoCommandBot = new NotSoCommandClient(cluster, {
-  activateOnEdits: true,
-  mentionsEnabled: true,
-  prefix: '.',
-  ratelimits: [
-    {duration: 60000, limit: 50, type: 'guild'},
-    {duration: 5000, limit: 5, type: 'channel'},
-  ],
-});
-
-notSoCommandBot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
-  // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
-});
-
-notSoCommandBot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
-  // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
 });
 
 
@@ -127,16 +109,34 @@ notSoCommandBot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) =>
     console.log(`${shardsText} - Loaded`);
 
     {
-      await notSoCommandBot.addMultipleIn('./commands');
+      const notSoCommandBot = new NotSoCommandClient(cluster, {
+        activateOnEdits: true,
+        mentionsEnabled: true,
+        prefix: '.',
+        ratelimits: [
+          {duration: 60000, limit: 50, type: 'guild'},
+          {duration: 5000, limit: 5, type: 'channel'},
+        ],
+      });
+      
+      notSoCommandBot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
+        // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
+      });
+      
+      notSoCommandBot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
+        // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
+      });
+
+      await notSoCommandBot.addMultipleIn('./commands/prefixed');
       await notSoCommandBot.run();
       console.log(`${shardsText} - Command Client Loaded`);
     }
 
     {
-      const notSoSlashBot = new NotSoSlashClient(cluster);
-      await notSoSlashBot.addMultipleIn('./commands-slash');
-      await notSoSlashBot.run();
-      console.log(`${shardsText} - Slash Command Client Loaded`);
+      const notSoInteractionBot = new NotSoInteractionClient(cluster);
+      await notSoInteractionBot.addMultipleIn('./commands/interactions');
+      await notSoInteractionBot.run();
+      console.log(`${shardsText} - Interaction Command Client Loaded`);
     }
   } catch(error) {
     console.log(error);

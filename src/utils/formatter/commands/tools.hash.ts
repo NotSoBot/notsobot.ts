@@ -1,6 +1,6 @@
 import * as Crypto from 'crypto';
 
-import { Command, Slash } from 'detritus-client';
+import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
@@ -30,10 +30,10 @@ export interface CommandArgs {
 }
 
 export async function createMessage(
-  context: Command.Context | Slash.SlashContext,
+  context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const isFromSlash = (context instanceof Slash.SlashContext);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const algorithm = (args.use || HashTypes.MD5).toLowerCase();
   const title = toTitleCase(algorithm);
@@ -49,7 +49,7 @@ export async function createMessage(
     digest = hash.digest('hex');
   }
 
-  const embed = (isFromSlash) ? new Embed() : createUserEmbed(context.user);
+  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
   embed.setFooter((args.secret) ? `${title} HMAC` : `${title} Hash`, EmbedBrands.NOTSOBOT);
 

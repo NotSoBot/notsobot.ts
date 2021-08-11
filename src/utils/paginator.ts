@@ -1,7 +1,7 @@
 import {
   Command,
   GatewayClientEvents,
-  Slash,
+  Interaction,
   Structures,
   Utils,
 } from 'detritus-client';
@@ -73,7 +73,7 @@ export interface PaginatorOptions {
 
 
 export class Paginator {
-  readonly context: Command.Context | Slash.SlashContext | Structures.Message;
+  readonly context: Command.Context | Interaction.InteractionContext | Structures.Message;
   readonly custom: {
     expire: number,
     message?: null | Structures.Message,
@@ -103,7 +103,7 @@ export class Paginator {
   onPageNumber?: OnPageNumberCallback;
 
   constructor(
-    context: Command.Context | Slash.SlashContext | Structures.Message,
+    context: Command.Context | Interaction.InteractionContext | Structures.Message,
     options: PaginatorOptions,
   ) {
     this.context = context;
@@ -279,7 +279,7 @@ export class Paginator {
     if (this.custom.message) {
       if (!this.custom.message.deleted) {
         try {
-          if (this.context instanceof Slash.SlashContext) {
+          if (this.context instanceof Interaction.InteractionContext) {
             await this.context.deleteMessage(this.custom.message.id);
           } else {
             await this.custom.message.delete();
@@ -323,7 +323,7 @@ export class Paginator {
         components: this.components,
         embed,
       });
-    } else if (this.context instanceof Slash.SlashContext) {
+    } else if (this.context instanceof Interaction.InteractionContext) {
       await this.context.editResponse({
         allowedMentions: {parse: []},
         components: this.components,
@@ -345,7 +345,7 @@ export class Paginator {
           allowedMentions: {parse: []},
           components: this.components,
         });
-      } else if (this.context instanceof Slash.SlashContext) {
+      } else if (this.context instanceof Interaction.InteractionContext) {
         await this.context.editResponse({
           allowedMentions: {parse: []},
           components: this.components,
@@ -379,7 +379,7 @@ export class Paginator {
           } else {
             await this.clearCustomMessage();
 
-            if (this.context instanceof Slash.SlashContext) {
+            if (this.context instanceof Interaction.InteractionContext) {
               this.custom.message = await this.context.createMessage('What page would you like to go?');
             } else {
               this.custom.message = await this.message.reply({
@@ -484,7 +484,7 @@ export class Paginator {
           });
         } else if (this.message && !this.message.deleted && this.message.components.length) {
           try {
-            if (this.context instanceof Slash.SlashContext) {
+            if (this.context instanceof Interaction.InteractionContext) {
               await this.context.editMessage(this.message.id, {components: []});
             } else {
               await this.message.edit({components: []});
@@ -512,7 +512,7 @@ export class Paginator {
     if (this.message) {
       message = this.message;
     } else {
-      if (this.context instanceof Slash.SlashContext) {
+      if (this.context instanceof Interaction.InteractionContext) {
         const embed = await this.getPage(this.page);
         message = this.message = await this.context.editOrRespond({
           components: this.components,
