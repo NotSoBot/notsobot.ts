@@ -9,6 +9,7 @@ import {
   InteractionCallbackTypes,
   MessageComponentButtonStyles,
   MessageComponentTypes,
+  MessageFlags,
 } from 'detritus-client/lib/constants';
 import { ComponentActionRow } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
@@ -58,6 +59,7 @@ export type PaginatorButtons = Partial<Record<PageButtonNames, PageButton>>;
 export interface PaginatorOptions {
   buttons?: PaginatorButtons,
   expire?: number,
+  isEphemeral?: boolean,
   message?: Structures.Message,
   page?: number,
   pageLimit?: number,
@@ -76,17 +78,20 @@ export class Paginator {
   readonly context: Command.Context | Interaction.InteractionContext | Structures.Message;
   readonly custom: {
     expire: number,
+    isActive: boolean,
     message?: null | Structures.Message,
     timeout: Timers.Timeout,
     userId?: null | string,
   } = {
     expire: 10000,
+    isActive: false,
     timeout: new Timers.Timeout(),
   };
   readonly timeout = new Timers.Timeout();
 
   buttons: Record<PageButtonNames, PageButton> = Object.assign({}, PageButtons);
   expires: number = 60000;
+  isEphemeral: boolean = false;
   message: null | Structures.Message = null;
   page: number = MIN_PAGE;
   pageLimit: number = MAX_PAGE;
@@ -108,6 +113,7 @@ export class Paginator {
   ) {
     this.context = context;
     this.message = options.message || null;
+    this.isEphemeral = !!options.isEphemeral;
 
     if (Array.isArray(options.pages)) {
       this.pages = options.pages;
@@ -168,10 +174,11 @@ export class Paginator {
 
   get components() {
     const components: Array<ComponentActionRow> = [];
-    if (!this.shouldHaveComponents) {
+    if (!this.shouldHaveComponents || this.stopped) {
       return components;
     }
 
+    const uniqueId = this.id;
     {
       const actionRow = new ComponentActionRow();
       /*
@@ -184,12 +191,12 @@ export class Paginator {
       }
       */
       actionRow.createButton({
-        customId: PageButtonNames.PREVIOUS,
+        customId: `${uniqueId}-${PageButtonNames.PREVIOUS}`,
         disabled: this.page === MIN_PAGE,
         ...this.buttons[PageButtonNames.PREVIOUS],
       });
       actionRow.createButton({
-        customId: PageButtonNames.NEXT,
+        customId: `${uniqueId}-${PageButtonNames.NEXT}`,
         disabled: this.page === this.pageLimit,
         ...this.buttons[PageButtonNames.NEXT],
       });
@@ -203,16 +210,16 @@ export class Paginator {
       }
       */
       actionRow.createButton({
-        customId: PageButtonNames.SHUFFLE,
+        customId: `${uniqueId}-${PageButtonNames.SHUFFLE}`,
         ...this.buttons[PageButtonNames.SHUFFLE],
       });
       actionRow.createButton({
-        customId: PageButtonNames.CUSTOM,
-        style: (this.custom.message) ? MessageComponentButtonStyles.DANGER : MessageComponentButtonStyles.PRIMARY,
+        customId: `${uniqueId}-${PageButtonNames.CUSTOM}`,
+        style: (this.custom.isActive) ? MessageComponentButtonStyles.DANGER : MessageComponentButtonStyles.PRIMARY,
         ...this.buttons[PageButtonNames.CUSTOM],
       });
       actionRow.createButton({
-        customId: PageButtonNames.STOP,
+        customId: `${uniqueId}-${PageButtonNames.STOP}`,
         style: MessageComponentButtonStyles.DANGER,
         ...this.buttons[PageButtonNames.STOP],
       });
@@ -224,6 +231,17 @@ export class Paginator {
 
   get channelId(): string {
     return this.context.channelId!;
+  }
+
+  get id(): string {
+    if (this.context instanceof Interaction.InteractionContext) {
+      return this.context.id;
+    } else if (this.context instanceof Command.Context) {
+      return this.context.messageId;
+    } else if (this.context instanceof Structures.Message) {
+      return this.context.id;
+    }
+    return '';
   }
 
   get isLarge(): boolean {
@@ -264,6 +282,13 @@ export class Paginator {
     return this.targets.includes(userId) || this.context.client.isOwner(userId);
   }
 
+  isForMe(id: string): boolean {
+    if (this.isEphemeral && this.context instanceof Interaction.InteractionContext) {
+      return this.context.id === id;
+    }
+    return (this.message) ? this.message.id === id : false;
+  }
+
   reset() {
     this.timeout.stop();
     this.custom.timeout.stop();
@@ -276,20 +301,23 @@ export class Paginator {
 
   async clearCustomMessage(interaction?: Structures.Interaction): Promise<void> {
     this.custom.timeout.stop();
-    if (this.custom.message) {
-      if (!this.custom.message.deleted) {
-        try {
-          if (this.context instanceof Interaction.InteractionContext) {
-            await this.context.deleteMessage(this.custom.message.id);
-          } else {
+    if (this.custom.isActive) {
+      if (this.custom.message) {
+        if (!this.custom.message.deleted) {
+          try {
+            if (this.context instanceof Interaction.InteractionContext) {
+              await this.context.deleteMessage(this.custom.message.id);
+            } else {
+              await this.custom.message.delete();
+            }
             await this.custom.message.delete();
-          }
-          await this.custom.message.delete();
-        } catch(error) {
+          } catch(error) {
 
+          }
         }
+        this.custom.message = null;
       }
-      this.custom.message = null;
+      this.custom.isActive = false;
       await this.updateButtons(interaction);
     }
   }
@@ -360,9 +388,20 @@ export class Paginator {
   }
 
   async onInteraction(interaction: Structures.Interaction): Promise<void> {
-    if (this.stopped || !this.message || !interaction.message || this.message.id !== interaction.message.id || !interaction.data) {
+    if (this.stopped || !interaction.message || !interaction.data) {
       return;
     }
+    const data = interaction.data as Structures.InteractionDataComponent;
+    const [uniqueId, customId] = data.customId.split('-');
+    if (!uniqueId || !customId) {
+      return;
+    }
+
+    // if ephemeral, use the unique id
+    if (!this.isForMe((this.isEphemeral) ? uniqueId : interaction.message.id)) {
+      return;
+    }
+
     if (!this.canInteract(interaction.userId)) {
       return await interaction.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
@@ -370,24 +409,20 @@ export class Paginator {
       return await interaction.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
 
-    const data = interaction.data as Structures.InteractionDataComponent;
     try {
-      switch (data.customId) {
+      switch (customId) {
         case PageButtonNames.CUSTOM: {
-          if (this.custom.message) {
+          if (this.custom.isActive) {
             await this.clearCustomMessage(interaction);
           } else {
             await this.clearCustomMessage();
 
-            if (this.context instanceof Interaction.InteractionContext) {
-              this.custom.message = await this.context.createMessage('What page would you like to go?');
-            } else {
-              this.custom.message = await this.message.reply({
-                content: 'What page would you like to go?',
-                reference: true,
-              });
-            }
+            this.custom.isActive = true;
             await this.updateButtons(interaction);
+            this.custom.message = await interaction.createMessage({
+              content: 'What page would you like to go?',
+              flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
+            });
             this.custom.timeout.start(this.custom.expire, async () => {
               await this.clearCustomMessage();
             });
@@ -432,7 +467,7 @@ export class Paginator {
   }
 
   async onMessage(message: Structures.Message): Promise<void> {
-    if (!this.custom.message || !this.canInteract(message.author.id)) {
+    if (!this.custom.isActive || !this.canInteract(message.author.id)) {
       return;
     }
     const page = parseInt(message.content);
@@ -452,8 +487,9 @@ export class Paginator {
   async onStop(error?: any, clearButtons: boolean = true, interaction?: Structures.Interaction) {
     if (PaginatorsStore.has(this.channelId)) {
       const stored = PaginatorsStore.get(this.channelId)!;
-      stored.delete(this);
-      if (!stored.length) {
+      stored.ephemeral.delete(this);
+      stored.normal.delete(this);
+      if (!stored.ephemeral.length && !stored.normal.length) {
         PaginatorsStore.delete(this.channelId);
       }
     }
@@ -481,6 +517,7 @@ export class Paginator {
           await interaction.respond(InteractionCallbackTypes.UPDATE_MESSAGE, {
             allowedMentions: {parse: []},
             components: [],
+            embed: await this.getPage(this.page), // temporarily here until they fix ephemeral message component clearing on button press
           });
         } else if (this.message && !this.message.deleted && this.message.components.length) {
           try {
@@ -508,18 +545,32 @@ export class Paginator {
       throw new Error('Paginator needs an onPage function or at least one page added to it');
     }
 
+    if (this.isEphemeral && !(this.context instanceof Interaction.InteractionContext)) {
+      this.isEphemeral = false;
+    }
+
     let message: Structures.Message;
     if (this.message) {
       message = this.message;
+      this.isEphemeral = message.hasFlag(MessageFlags.EPHEMERAL);
     } else {
       if (this.context instanceof Interaction.InteractionContext) {
         const embed = await this.getPage(this.page);
         message = this.message = await this.context.editOrRespond({
           components: this.components,
           embed,
+          flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
         });
-        if (!message) {
-          message = this.message = await this.context.fetchResponse();
+        if (message) {
+          this.isEphemeral = message.hasFlag(MessageFlags.EPHEMERAL);
+        } else {
+          try {
+            message = this.message = await this.context.fetchResponse();
+            this.isEphemeral = message.hasFlag(MessageFlags.EPHEMERAL);
+          } catch(error) {
+            // Assume we're working with an ephemeral message
+            this.isEphemeral = true;
+          }
         }
       } else {
         if (!this.context.canReply) {
@@ -546,7 +597,7 @@ export class Paginator {
       this.timeout.start(this.expires, this.onStop.bind(this));
       if (PaginatorsStore.has(this.channelId)) {
         const stored = PaginatorsStore.get(this.channelId)!;
-        for (let paginator of stored) {
+        for (let paginator of stored.normal) {
           if (paginator.message === message) {
             await paginator.stop(false);
           }

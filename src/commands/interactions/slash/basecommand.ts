@@ -18,6 +18,18 @@ export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends In
     }, data));
   }
 
+  onLoadingTrigger(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+    if (context.responded) {
+      return;
+    }
+
+    if (this.triggerLoadingAsEphemeral) {
+      return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+    }
+    // check perms to maybe force as ephemeral, just in case
+    return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+  }
+
   onDmBlocked(context: Interaction.InteractionContext) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({

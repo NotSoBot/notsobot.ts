@@ -61,6 +61,7 @@ export const DiscordEmojis = Object.freeze({
     [DiscordUserFlags.PREMIUM_EARLY_SUPPORTER]: '<:d_early_supporter:826577164966166548>',
     [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: '<:d_bug_hunter_level_2:826576144001794088>',
     [DiscordUserFlags.VERIFIED_DEVELOPER]: '<:d_verified_developer:826576213493153822>',
+    [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: '<:d_certified_moderator:874967819463327775>',
   },
   DISCORD_TAG_BOT: '<:d_tag_bot_1:826576077736378428><:d_tag_bot_2:826576087684349983>',
   DISCORD_TAG_SYSTEM: '<:d_tag_system_1:826576106592665662><:d_tag_system_2:826576115698237481>',
@@ -881,6 +882,7 @@ export const DiscordUserFlagsText: Record<DiscordUserFlags, string> = Object.fre
   [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: 'Discord Bug Hunter 2',
   [DiscordUserFlags.VERIFIED_BOT]: 'Verified Bot',
   [DiscordUserFlags.VERIFIED_DEVELOPER]: 'Verified Bot Developer',
+  [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: 'Discord Certified Moderator',
 });
 
 

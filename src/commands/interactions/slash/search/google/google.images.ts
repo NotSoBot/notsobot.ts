@@ -16,6 +16,7 @@ export interface CommandArgs {
 export class SearchGoogleImagesCommand extends BaseCommandOption {
   description = 'Search Google Images';
   name = 'images';
+  triggerLoadingAsEphemeral = true;
 
   constructor() {
     super({
