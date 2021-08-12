@@ -1,0 +1,36 @@
+import { Interaction } from 'detritus-client';
+import { MessageFlags } from 'detritus-client/lib/constants';
+
+import { Formatter, Parameters, findImageUrlInMessage } from '../../../../utils';
+
+import { BaseCommand, CommandArgs } from './basecommand';
+
+
+export interface OCRCommandArgs extends CommandArgs {
+  url?: string | null,
+}
+
+export const COMMAND_NAME = 'OCR';
+
+export default class OCRCommand extends BaseCommand {
+  name = COMMAND_NAME;
+
+  onBeforeRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {
+    args.url = findImageUrlInMessage(args.message);
+    return !!args.url;
+  }
+
+  onCancelRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {
+    return context.editOrRespond({
+      content: 'Message must have some sort of image to read!',
+      flags: MessageFlags.EPHEMERAL,
+    });
+  }
+
+  async run(context: Interaction.InteractionContext, args: OCRCommandArgs) {
+    return Formatter.Commands.ToolsOCR.createMessage(context, {
+      isEphemeral: true,
+      url: args.url || '',
+    });
+  }
+}

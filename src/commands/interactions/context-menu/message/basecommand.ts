@@ -15,6 +15,7 @@ export interface CommandArgs {
 }
 
 export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
+  triggerLoadingAfter = 1000;
   triggerLoadingAsEphemeral = true;
   type = ApplicationCommandTypes.MESSAGE;
 

@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR } from '../../../api';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
-import { DefaultParameters, Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -46,49 +46,6 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { annotation } = await googleContentVisionOCR(context, {url: args.url});
-
-    let description: string = '';
-    if (annotation) {
-      if (2000 < annotation.description.length && args.upload) {
-        try {
-          const upload = await context.rest.request({
-            files: [{filename: 'ocr.txt', key: 'file', value: annotation.description}],
-            method: 'post',
-            url: 'https://api.files.gg/files',
-          });
-          description = upload.urls.main;
-        } catch(error) {
-          description = Markup.codeblock(annotation.description);
-        }
-      } else {
-        description = Markup.codeblock(annotation.description);
-      }
-    }
-
-    if (args.noembed) {
-      if (!annotation) {
-        return editOrReply(context, {content: '⚠ No text detected'});
-      }
-
-      const title = languageCodeToText(annotation.locale);
-      return editOrReply(context, [title, description].join('\n'));
-    } else {
-      const embed = createUserEmbed(context.user);
-      embed.setColor(EmbedColors.DEFAULT);
-      embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
-      embed.setThumbnail(args.url);
-
-      if (annotation) {
-        const language = languageCodeToText(annotation.locale);
-        embed.setTitle(language);
-        embed.setDescription(description);
-      } else {
-        embed.setColor(EmbedColors.ERROR);
-        embed.setDescription('No text detected');
-      }
-
-      return editOrReply(context, {embed});
-    }
+    return Formatter.Commands.ToolsOCR.createMessage(context, args);
   }
 }

@@ -1,9 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
 
-import { googleContentVisionOCR, googleTranslate } from '../../../api';
-import { CommandTypes, EmbedBrands, EmbedColors, GoogleLocales } from '../../../constants';
-import { Arguments, Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../../utils';
+import { CommandTypes, GoogleLocales } from '../../../constants';
+import { Arguments, Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -44,38 +42,9 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { annotation } = await googleContentVisionOCR(context, {url: args.url});
-
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setFooter('Google Translate from OCR', EmbedBrands.GOOGLE_GO);
-    embed.setThumbnail(args.url);
-
-    if (annotation) {
-      let locale: GoogleLocales | undefined;
-      if (annotation.locale in GoogleLocales) {
-        locale = annotation.locale;
-      }
-
-      const {
-        from_language: fromLanguage,
-        translated_language: translatedLanguage,
-        translated_text: translatedText,
-      } = await googleTranslate(context, {
-        from: locale,
-        text: annotation.description,
-        to: args.to || undefined,
-      });
-
-      const fromLanguageText = languageCodeToText(fromLanguage);
-      const translatedLanguageText = languageCodeToText(translatedLanguage);
-      embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
-      embed.setDescription(Markup.codeblock(translatedText));
-    } else {
-      embed.setColor(EmbedColors.ERROR);
-      embed.setDescription('No text detected');
-    }
-
-    return editOrReply(context, {embed});
+    return Formatter.Commands.ToolsOCRTranslate.createMessage(context, {
+      to: args.to,
+      url: args.url,
+    });
   }
 }
