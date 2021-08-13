@@ -1,6 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
-import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
-import { Markup, Snowflake } from 'detritus-client/lib/utils';
+import { ChannelTypes, InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { ComponentActionRow, ComponentContext, Markup, Snowflake } from 'detritus-client/lib/utils';
+import { Timers } from 'detritus-utils';
 
 import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import { DefaultParameters, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
@@ -9,6 +10,9 @@ import { BaseCommand } from '../basecommand';
 
 
 export const MAX_FETCHES = 10;
+export const MAX_MESSAGE_LIFE = 4 * 1000;
+export const MAX_MESSAGES_BEFORE_CONFIRMATION = 15;
+export const MAX_TIME_TO_RESPOND = 60 * 1000;
 export const TWO_WEEKS_IN_MILLISECONDS = 2 * 7 * 24 * 60 * 60 * 1000;
 export const TWO_WEEKS_IN_MILLISECONDS_WITH_LEEWAY = TWO_WEEKS_IN_MILLISECONDS - 200;
 
@@ -83,8 +87,8 @@ export default class PruneCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const bulk: Array<string> = [];
-    const manual: Array<string> = [];
+    const bulk: Array<Structures.Message> = [];
+    const manual: Array<Structures.Message> = [];
 
     let before = args.before || context.messageId;
     for (let message of args.in.messages.toArray().reverse()) {
@@ -96,9 +100,9 @@ export default class PruneCommand extends BaseCommand {
       }
       if (this.shouldDelete(message, args)) {
         if (this.shouldBulkDelete(message.createdAtUnix)) {
-          bulk.push(message.id);
+          bulk.push(message);
         } else {
-          manual.push(message.id);
+          manual.push(message);
         }
       }
       before = message.id;
@@ -113,9 +117,9 @@ export default class PruneCommand extends BaseCommand {
         }
         if (this.shouldDelete(message, args)) {
           if (this.shouldBulkDelete(message.createdAtUnix)) {
-            bulk.push(message.id);
+            bulk.push(message);
           } else {
-            manual.push(message.id);
+            manual.push(message);
           }
         }
         before = message.id;
@@ -126,39 +130,120 @@ export default class PruneCommand extends BaseCommand {
       }
     }
 
-    let message: Structures.Message;
-    if (bulk.length + manual.length) {
-      message = await editOrReply(context, `Deleting ${(bulk.length + manual.length).toLocaleString()} messages`);
-    } else {
-      message = await editOrReply(context, `Unable to prune any messages`);
-    }
+    const total = bulk.length + manual.length;
+    const timeout = new Timers.Timeout();
+    if (total) {
+      if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION) {
+        const message = await editOrReply(context, `Ok, pruning ${total.toLocaleString()} messages.`);
+        const deletedTotal = await this.deleteMessages(context, args.in, bulk, manual);
+        if (message.canEdit) {
+          await message.edit(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
+        }
+        await this.clearMessages(timeout, [context.message, message]);
+      } else {
+        const actionRow = new ComponentActionRow();
+        actionRow.createButton({
+          label: 'Continue',
+          run: async (ctx: ComponentContext) => {
+            if (!timeout.hasStarted || ctx.userId !== context.userId) {
+              return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+            }
+            timeout.stop();
 
+            await ctx.editOrRespond({
+              content: `Ok, pruning ${total.toLocaleString()} messages.`,
+              components: [],
+            });
+
+            const deletedTotal = await this.deleteMessages(context, args.in, bulk, manual);
+            if (deletedTotal === total) {
+              await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
+            } else {
+              await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} out of ${total.toLocaleString()} messages`);
+            }
+
+            await this.clearMessages(timeout, [context.message, message]);
+          },
+        });
+
+        actionRow.createButton({
+          label: 'Cancel',
+          style: MessageComponentButtonStyles.DANGER,
+          run: async (ctx: ComponentContext) => {
+            if (!timeout.hasStarted || ctx.userId !== context.userId) {
+              return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+            }
+            timeout.stop();
+
+            await ctx.editOrRespond({
+              content: `Ok, canceled pruning of ${total.toLocaleString()} messages.`,
+              components: [],
+            });
+            await this.clearMessages(timeout, [context.message], 0);
+            await this.clearMessages(timeout, [message]);
+          },
+        });
+
+        const message = await editOrReply(context, {
+          content: `Found ${total.toLocaleString()} messages to delete`,
+          components: [actionRow],
+        });
+
+        this.clearMessages(timeout, [context.message, message], MAX_TIME_TO_RESPOND);
+      }
+    } else {
+      const message = await editOrReply(context, {
+        content: 'Unable to prune any messages',
+        flags: MessageFlags.EPHEMERAL,
+      });
+      this.clearMessages(timeout, [context.message, message]);
+    }
+  }
+
+  async deleteMessages(
+    context: Command.Context,
+    channel: Structures.Channel,
+    bulk: Array<Structures.Message>,
+    manual: Array<Structures.Message>,
+  ): Promise<number> {
+    let deletedTotal = 0;
     if (bulk.length) {
-      for (let i = 0; i < bulk.length; i += 100) {
-        const messageIds = bulk.slice(i, i + 100);
-        await args.in.bulkDelete(messageIds);
+      const bulkToDelete = bulk.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
+      deletedTotal += bulkToDelete.length;
+
+      for (let i = 0; i < bulkToDelete.length; i += 100) {
+        const messageIds = bulkToDelete.slice(i, i + 100);
+        await channel.bulkDelete(messageIds);
       }
     }
 
     if (manual.length) {
-      const reason = `Pruning of ${(bulk.length + manual.length).toLocaleString()} messages by ${context.user} (${context.user.id})`;
-      for (let messageId of manual) {
-        await args.in.deleteMessage(messageId, {reason});
+      const manualToDelete = manual.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
+      deletedTotal += manualToDelete.length;
+
+      const reason = `Pruning of ${deletedTotal.toLocaleString()} messages by ${context.user} (${context.user.id})`;
+      for (let messageId of manualToDelete) {
+        await channel.deleteMessage(messageId, {reason});
       }
     }
+    return deletedTotal;
+  }
 
-    if (bulk.length + manual.length) {
-      await message.edit(`Deleted ${(bulk.length + manual.length).toLocaleString()} messages`);
-    }
-
-    setTimeout(async () => {
-      if (context.message.canDelete && !context.message.deleted) {
-        await context.message.delete();
-      }
-      if (!message.deleted) {
-        await message.delete();
-      }
-    }, 2000);
+  async clearMessages(timeout: Timers.Timeout, messages: Array<Structures.Message>, timeToWait = MAX_MESSAGE_LIFE): Promise<void> {
+    return new Promise((resolve) => {
+      timeout.start(timeToWait, async () => {
+        try {
+          for (let message of messages) {
+            if (message.canDelete && !message.deleted) {
+              await message.delete();
+            }
+          }
+        } catch(error) {
+          // /shrug
+        }
+        resolve();
+      });
+    });
   }
 
   shouldBulkDelete(timestamp: number): boolean {
