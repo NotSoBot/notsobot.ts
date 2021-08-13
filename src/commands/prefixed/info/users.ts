@@ -25,12 +25,14 @@ import { BaseCommand } from '../basecommand';
 
 export interface CommandArgsBefore {
   bots: boolean,
+  hasnick: boolean,
   role?: Structures.Role,
   users: Array<Structures.Member | Structures.User>,
 }
 
 export interface CommandArgs {
   bots: boolean,
+  hasnick: boolean,
   role?: Structures.Role,
   users: Array<Structures.Member | Structures.User>,
 }
@@ -46,6 +48,7 @@ export default class UsersCommand extends BaseCommand {
       aliases: ['members'],
       args: [
         {name: 'bots', type: Boolean},
+        {name: 'hasnick', type: Boolean},
         {name: 'role', type: Parameters.role},
       ],
       default: DefaultParameters.members,
@@ -88,11 +91,16 @@ export default class UsersCommand extends BaseCommand {
     if (args.bots) {
       membersOrUsers = membersOrUsers.filter((memberOrUser) => memberOrUser.bot);
     }
-    if (args.role) {
-      const roleId = args.role.id;
+    if (args.hasnick || args.role) {
       membersOrUsers = membersOrUsers.filter((memberOrUser) => {
         if (memberOrUser instanceof Structures.Member) {
-          return memberOrUser.roles.has(roleId);
+          if (args.hasnick && !memberOrUser.nick) {
+            return false;
+          }
+          if (args.role && !memberOrUser.roles.has(args.role.id)) {
+            return false;
+          }
+          return true;
         }
         return false;
       });
@@ -128,7 +136,7 @@ export default class UsersCommand extends BaseCommand {
         embed.setDescription(member.mention);
         embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
 
-        embed.setTitle(`User ${page} of ${pageLimit}`);
+        embed.setTitle(`User ${page.toLocaleString()} of ${pageLimit.toLocaleString()}`);
         {
           const description: Array<string> = [];
           {

@@ -693,6 +693,7 @@ export interface MemberOrUserOptions {
   allowBots?: boolean,
   allowMe?: boolean,
   clientCanEdit?: boolean,
+  hasNick?: boolean,
   memberOnly?: boolean,
   permissions?: Array<number>,
   userCanEdit?: boolean,
@@ -735,6 +736,9 @@ export function memberOrUser(
             return null;
           }
           if (memberOrUser instanceof Structures.Member) {
+            if (options.hasNick && !memberOrUser.nick) {
+              return null;
+            }
             if (options.clientCanEdit && !(context.me && context.me.canEdit(memberOrUser))) {
               return null;
             }
@@ -828,12 +832,12 @@ export function membersOrUsersSearch(
           if (!options.allowMe && options.allowMe !== undefined) {
             membersOrUsers = membersOrUsers.filter((memberOrUser) => !memberOrUser.isMe);
           }
-          if (options.memberOnly) {
-            membersOrUsers = membersOrUsers.filter((memberOrUser) => memberOrUser instanceof Structures.Member);
-          }
-          if (options.clientCanEdit || options.userCanEdit || options.permissions) {
+          if (options.memberOnly || options.clientCanEdit || options.userCanEdit || options.permissions || options.hasNick) {
             membersOrUsers = membersOrUsers.filter((memberOrUser) => {
               if (memberOrUser instanceof Structures.Member) {
+                if (options.hasNick && !memberOrUser.nick) {
+                  return false;
+                }
                 if (options.clientCanEdit && !(context.me && context.me.canEdit(memberOrUser))) {
                   return false;
                 }

@@ -117,8 +117,8 @@ export default class NickMassResetCommand extends BaseCommand {
 
       const embed = createUserEmbed(context.user);
       embed.setColor(EmbedColors.DEFAULT);
-      embed.setTitle(`Can edit ${members.length.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
-      embed.setDescription(`Should take about ${((members.length / amount) * time).toLocaleString()} seconds to clear their nicknames`);
+      embed.setTitle(`Can clear the nickname of ${members.length.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
+      embed.setDescription(`Should take about ${((members.length / amount) * time).toLocaleString()} seconds`);
 
       const actionRow = new ComponentActionRow();
 
