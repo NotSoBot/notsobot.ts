@@ -1,6 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } from 'detritus-client/lib/constants';
+import { ComponentActionRow, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
+import { Timers } from 'detritus-utils';
 
 import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
@@ -8,7 +9,7 @@ import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrRepl
 
 import { BaseCommand } from '../basecommand';
 
-import { ERROR_CODES_IGNORE, MAX_MEMBERS, RATELIMIT_TIME } from './nick.mass';
+import { ERROR_CODES_IGNORE, MAX_MEMBERS, MAX_TIME_TO_RESPOND, RATELIMIT_TIME } from './nick.mass';
 
 
 export interface CommandArgsBefore {
@@ -108,80 +109,238 @@ export default class NickMassResetCommand extends BaseCommand {
 
     const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
     if (isExecuting.nick) {
-      return context.reply('already mass editing nicks');
+      return context.reply('Already mass editing nicks');
     }
 
-    const embed = new Embed();
-    embed.setTitle(`Clearing Nicknames of ${members.length.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
-    embed.setDescription(`Should take about ${((members.length / amount) * time).toLocaleString()} seconds`);
+    if (members.length) {
+      const timeout = new Timers.Timeout();
 
-    const message = await context.reply({embed});
+      const embed = createUserEmbed(context.user);
+      embed.setColor(EmbedColors.DEFAULT);
+      embed.setTitle(`Can edit ${members.length.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
+      embed.setDescription(`Should take about ${((members.length / amount) * time).toLocaleString()} seconds to clear their nicknames`);
 
-    const amounts = {
-      changed: 0,
-      failed: 0,
-      skipped: 0,
-    };
-    const errors: Array<any> = [];
-    const reason = `Mass Nickname reset by ${context.user} (${context.user.id})`;
+      const actionRow = new ComponentActionRow();
 
-    isExecuting.nick = true;
-    for (let member of members) {
-      if (!isExecuting.nick) {
-        break;
-      }
+      actionRow.createButton({
+        label: 'Continue',
+        run: async (ctx: ComponentContext) => {
+          if (!timeout.hasStarted || ctx.userId !== context.userId) {
+            return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+          }
+          timeout.stop();
 
-      if (!member.nick) {
-        amounts.skipped++;
-        continue;
-      }
+          const amounts = {
+            changed: 0,
+            failed: 0,
+            skipped: 0,
+          };
+          const errors: Array<any> = [];
+          const reason = `Mass Nickname Reset by ${context.user} (${context.user.id})`;
 
-      if (member.isMe) {
-        if (!me.canChangeNickname) {
-          amounts.failed++;
-          continue;
+          {
+            embed.setDescription(`Ok, starting to clear ${members.length.toLocaleString()} member\'s nicknames. (Should take about ${((members.length / amount) * time).toLocaleString()} seconds)`);
+            embed.setColor(EmbedColors.LOG_UPDATE);
+
+            const actionRow = new ComponentActionRow();
+            actionRow.createButton({
+              label: 'Refresh',
+              style: MessageComponentButtonStyles.SECONDARY,
+              run: async (ctx: ComponentContext) => {
+                const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+                const description: Array<string> = [];
+                description.push(`Finished the clearing nicknames of ${finished.toLocaleString()} out of ${members.length.toLocaleString()} members`);
+                if (finished) {
+                  if (amounts.changed) {
+                    description.push(`- Cleared ${amounts.changed.toLocaleString()} members successfully`);
+                  }
+                  if (amounts.skipped) {
+                    description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                  }
+                  if (amounts.failed) {
+                    description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                  }
+                  if (errors.length) {
+                    description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                  }
+                }
+                if (members.length !== finished) {
+                  description.push('');
+                  description.push(`About ${(((members.length - finished) / amount) * time).toLocaleString()} seconds left.`);
+                }
+                embed.setDescription(description.join('\n'));
+
+                ctx.editOrRespond({embed});
+              },
+            });
+            actionRow.createButton({
+              label: 'Stop',
+              style: MessageComponentButtonStyles.DANGER,
+              run: async (ctx: ComponentContext) => {
+                // stop it and give the number of people edited
+                if (ctx.userId !== context.userId) {
+                  return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+                }
+                isExecuting.nick = false;
+
+                embed.setColor(EmbedColors.ERROR);
+                embed.setTitle('Mass Nickname Reset Canceled');
+                {
+                  const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+                  const description: Array<string> = [];
+                  description.push(`Canceled the clearing nicknames of ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
+                  if (finished) {
+                    if (amounts.changed) {
+                      description.push(`- Cleared ${amounts.changed.toLocaleString()} members successfully`);
+                    }
+                    if (amounts.skipped) {
+                      description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                    }
+                    if (amounts.failed) {
+                      description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                    }
+                    if (errors.length) {
+                      description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                    }
+                  }
+                  embed.setDescription(description.join('\n'));
+                }
+                return ctx.editOrRespond({embed, components: []});
+              },
+            });
+            await ctx.editOrRespond({embed, components: [actionRow]});
+          }
+
+          isExecuting.nick = true;
+          for (let member of members) {
+            if (!isExecuting.nick) {
+              break;
+            }
+
+            if (!member.nick) {
+              amounts.skipped++;
+              continue;
+            }
+
+            if (member.isMe) {
+              if (!me.canChangeNickname) {
+                amounts.failed++;
+                continue;
+              }
+            } else if (!me.canEdit(member) || !me.canChangeNicknames) {
+              amounts.failed++;
+              continue;
+            }
+
+            try {
+              await member.editNick('', {reason});
+              amounts.changed++;
+            } catch(error) {
+              if (error.response && ERROR_CODES_IGNORE.includes(error.response.statusCode)) {
+                errors.push(error);
+              } else {
+                error.metadata = {
+                  canEdit: me.canEdit(member),
+                  canChangeNicknames: me.canChangeNicknames,
+                  user: member.user,
+                };
+                throw error;
+              }
+            }
+          }
+
+          if (!isExecuting.nick) {
+            embed.setColor(EmbedColors.ERROR);
+            embed.setTitle('Mass Nickname Reset Canceled');
+            {
+              const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+              const description: Array<string> = [];
+              description.push(`Canceled the clearing nicknames of ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
+              if (finished) {
+                if (amounts.changed) {
+                  description.push(`- Reset ${amounts.changed.toLocaleString()} members successfully`);
+                }
+                if (amounts.skipped) {
+                  description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                }
+                if (amounts.failed) {
+                  description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                }
+                if (errors.length) {
+                  description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                }
+              }
+              embed.setDescription(description.join('\n'));
+            }
+
+            if (message.deleted) {
+              return message.reply({embed});
+            }
+            return (ctx.interaction.deleted) ? message.edit({embed, components: []}) : ctx.editOrRespond({embed, components: []});
+          }
+          isExecuting.nick = false;
+
+          {
+            const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+            const description: Array<string> = [];
+            description.push(`Finished the clearing nicknames of ${finished.toLocaleString()} out of ${members.length.toLocaleString()} members`);
+            if (finished) {
+              if (amounts.changed) {
+                description.push(`- Reset ${amounts.changed.toLocaleString()} members successfully`);
+              }
+              if (amounts.skipped) {
+                description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+              }
+              if (amounts.failed) {
+                description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+              }
+              if (errors.length) {
+                description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+              }
+            }
+            embed.setColor(EmbedColors.LOG_CREATION);
+            embed.setDescription(description.join('\n'));
+          }
+
+          if (message.deleted) {
+            return message.reply({embed});
+          }
+          return (ctx.interaction.deleted) ? message.edit({embed, components: []}) : ctx.editOrRespond({embed, components: []});
+        },
+      });
+
+      actionRow.createButton({
+        label: 'Cancel',
+        style: MessageComponentButtonStyles.DANGER,
+        run: async (ctx: ComponentContext) => {
+          if (!timeout.hasStarted || ctx.userId !== context.userId) {
+            return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+          }
+          timeout.stop();
+
+          embed.setColor(EmbedColors.ERROR);
+          embed.setTitle('Mass Nickname Reset Canceled');
+          embed.setDescription(`Canceled the clearing of ${members.length.toLocaleString()} member\'s nicknames`);
+          await ctx.editOrRespond({embed, components: []});
+        },
+      });
+
+      const message = await context.reply({components: [actionRow], embed});
+      timeout.start(MAX_TIME_TO_RESPOND, async () => {
+        try {
+          if (message.canEdit) {
+            await message.edit({components: []});
+          }
+        } catch(error) {
+
         }
-      } else if (!me.canEdit(member) || !me.canChangeNicknames) {
-        amounts.failed++;
-        continue;
-      }
-
-      try {
-        await member.editNick('', {reason});
-        amounts.changed++;
-      } catch(error) {
-        if (error.response && ERROR_CODES_IGNORE.includes(error.response.statusCode)) {
-          errors.push(error);
-        } else {
-          throw error;
-        }
-      }
+      });
+      return message;
     }
-
-    if (!isExecuting.nick) {
-      embed.setDescription(`Mass Nickname Reset Canceled`);
-      return (message.deleted) ? context.reply({embed}) : message.edit({embed});
-    }
-    isExecuting.nick = false;
-
-    {
-      const description: Array<string> = [];
-      description.push(`Finished clearing ${members.length.toLocaleString()} members's nicknames`);
-      if (amounts.skipped || amounts.failed || errors.length) {
-        description.push('');
-        if (amounts.skipped) {
-          description.push(`Skipped ${amounts.skipped.toLocaleString()} members`);
-        }
-        if (amounts.failed) {
-          description.push(`Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
-        }
-        if (errors.length) {
-          description.push(`Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
-        }
-      }
-      embed.setDescription(description.join('\n'));
-
-      return (message.deleted) ? context.reply({embed}) : message.edit({embed});
-    }
+    return editOrReply(context, 'Unable to clear anyone\'s nick');
   }
 }

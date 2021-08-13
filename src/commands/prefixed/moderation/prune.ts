@@ -133,7 +133,7 @@ export default class PruneCommand extends BaseCommand {
     const total = bulk.length + manual.length;
     const timeout = new Timers.Timeout();
     if (total) {
-      if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION) {
+      if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && total === args.amount) {
         const message = await editOrReply(context, `Ok, pruning ${total.toLocaleString()} messages.`);
         const deletedTotal = await this.deleteMessages(context, args.in, bulk, manual);
         if (message.canEdit) {
@@ -184,11 +184,14 @@ export default class PruneCommand extends BaseCommand {
           },
         });
 
-        const message = await editOrReply(context, {
-          content: `Found ${total.toLocaleString()} messages to delete`,
-          components: [actionRow],
-        });
+        let content: string;
+        if (args.amount === total) {
+          content = `Found ${total.toLocaleString()} messages to delete.`;
+        } else {
+          content = `Found ${total.toLocaleString()} messages to delete. (Out of the ${args.amount.toLocaleString()} messages requested)`;
+        }
 
+        const message = await editOrReply(context, {content, components: [actionRow]});
         this.clearMessages(timeout, [context.message, message], MAX_TIME_TO_RESPOND);
       }
     } else {
