@@ -84,24 +84,6 @@ class PaginatorsStore extends Store<string, PaginatorsStored> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe(ClientEvents.INTERACTION_CREATE, async (event) => {
-        const { interaction } = event;
-        switch (interaction.type) {
-          case InteractionTypes.MESSAGE_COMPONENT: {
-            if (interaction.channelId && this.has(interaction.channelId) && interaction.message) {
-              const stored = this.get(interaction.channelId)!;
-
-              const store = (interaction.message.hasFlag(MessageFlags.EPHEMERAL)) ? stored.ephemeral : stored.normal;
-              for (let paginator of store) {
-                paginator.onInteraction(interaction);
-              }
-            }
-          }; break;
-        }
-      });
-      subscriptions.push(subscription);
-    }
-    {
       const subscription = cluster.subscribe(ClientEvents.MESSAGE_CREATE, async (event) => {
         const { message } = event;
         if (!message.fromBot && this.has(message.channelId)) {
