@@ -1,6 +1,6 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } from 'detritus-client/lib/constants';
-import { ComponentActionRow, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
+import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
 import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../../constants';
@@ -113,22 +113,18 @@ export default class NickMassResetCommand extends BaseCommand {
     }
 
     if (members.length) {
-      const timeout = new Timers.Timeout();
-
       const embed = createUserEmbed(context.user);
       embed.setColor(EmbedColors.DEFAULT);
       embed.setTitle(`Can clear the nickname of ${members.length.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
       embed.setDescription(`Should take about ${((members.length / amount) * time).toLocaleString()} seconds`);
 
-      const actionRow = new ComponentActionRow();
-
-      actionRow.createButton({
+      const components = new Components({timeout: 5 * (60 * 1000)});
+      components.createButton({
         label: 'Continue',
         run: async (ctx: ComponentContext) => {
-          if (!timeout.hasStarted || ctx.userId !== context.userId) {
+          if (ctx.userId !== context.userId) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
-          timeout.stop();
 
           const amounts = {
             changed: 0,
@@ -142,8 +138,8 @@ export default class NickMassResetCommand extends BaseCommand {
             embed.setDescription(`Ok, starting to clear ${members.length.toLocaleString()} member\'s nicknames. (Should take about ${((members.length / amount) * time).toLocaleString()} seconds)`);
             embed.setColor(EmbedColors.LOG_UPDATE);
 
-            const actionRow = new ComponentActionRow();
-            actionRow.createButton({
+            const components = new Components({timeout: 20 * (60 * 1000)});
+            components.createButton({
               label: 'Refresh',
               style: MessageComponentButtonStyles.SECONDARY,
               run: async (ctx: ComponentContext) => {
@@ -174,7 +170,7 @@ export default class NickMassResetCommand extends BaseCommand {
                 ctx.editOrRespond({embed});
               },
             });
-            actionRow.createButton({
+            components.createButton({
               label: 'Stop',
               style: MessageComponentButtonStyles.DANGER,
               run: async (ctx: ComponentContext) => {
@@ -207,10 +203,10 @@ export default class NickMassResetCommand extends BaseCommand {
                   }
                   embed.setDescription(description.join('\n'));
                 }
-                return ctx.editOrRespond({embed, components: []});
+                return ctx.editOrRespond({components: [], embed});
               },
             });
-            await ctx.editOrRespond({embed, components: [actionRow]});
+            await ctx.editOrRespond({components, embed});
           }
 
           isExecuting.nick = true;
@@ -279,7 +275,7 @@ export default class NickMassResetCommand extends BaseCommand {
             if (message.deleted) {
               return message.reply({embed});
             }
-            return (ctx.interaction.deleted) ? message.edit({embed, components: []}) : ctx.editOrRespond({embed, components: []});
+            return (ctx.interaction.deleted) ? message.edit({components: [], embed}) : ctx.editOrRespond({components: [], embed});
           }
           isExecuting.nick = false;
 
@@ -309,36 +305,37 @@ export default class NickMassResetCommand extends BaseCommand {
           if (message.deleted) {
             return message.reply({embed});
           }
-          return (ctx.interaction.deleted) ? message.edit({embed, components: []}) : ctx.editOrRespond({embed, components: []});
+          return (ctx.interaction.deleted) ? message.edit({components: [], embed}) : ctx.editOrRespond({components: [], embed});
         },
       });
 
-      actionRow.createButton({
+      components.createButton({
         label: 'Cancel',
         style: MessageComponentButtonStyles.DANGER,
         run: async (ctx: ComponentContext) => {
-          if (!timeout.hasStarted || ctx.userId !== context.userId) {
+          if (ctx.userId !== context.userId) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
-          timeout.stop();
 
           embed.setColor(EmbedColors.ERROR);
           embed.setTitle('Mass Nickname Reset Canceled');
           embed.setDescription(`Canceled the clearing of ${members.length.toLocaleString()} member\'s nicknames`);
-          await ctx.editOrRespond({embed, components: []});
+          await ctx.editOrRespond({components: [], embed});
         },
       });
 
-      const message = await context.reply({components: [actionRow], embed});
-      timeout.start(MAX_TIME_TO_RESPOND, async () => {
+      const message = await context.reply({components, embed});
+      components.onTimeout = async () => {
         try {
+          embed.setColor(EmbedColors.ERROR);
+          embed.setFooter('Request expired, press a button next time');
           if (message.canEdit) {
-            await message.edit({components: []});
+            await message.edit({components: [], embed});
           }
         } catch(error) {
 
         }
-      });
+      };
       return message;
     }
     return editOrReply(context, 'Unable to clear anyone\'s nick');

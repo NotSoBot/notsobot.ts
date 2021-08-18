@@ -9,7 +9,7 @@ import {
   MessageComponentButtonStyles,
   MessageFlags,
 } from 'detritus-client/lib/constants';
-import { ComponentActionRow, ComponentContext } from 'detritus-client/lib/utils';
+import { Components, ComponentContext } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
 import PaginatorsStore from '../stores/paginators';
@@ -84,10 +84,9 @@ export class Paginator {
     isActive: false,
     timeout: new Timers.Timeout(),
   };
-  readonly timeout = new Timers.Timeout();
 
   buttons: Record<PageButtonNames, PageButton> = Object.assign({}, PageButtons);
-  expires: number = 60000;
+  expires: number = 1 * (60 * 1000);
   isEphemeral: boolean = false;
   message: null | Structures.Message = null;
   page: number = MIN_PAGE;
@@ -161,7 +160,6 @@ export class Paginator {
       context: {enumerable: false},
       custom: {enumerable: false},
       message: {enumerable: false},
-      timeout: {enumerable: false},
       onError: {enumerable: false},
       onExpire: {enumerable: false},
       onPage: {enumerable: false},
@@ -170,62 +168,60 @@ export class Paginator {
   }
 
   get components() {
-    const components: Array<ComponentActionRow> = [];
+    const components = new Components({
+      timeout: this.expires,
+      onTimeout: this.onStop.bind(this),
+      run: this.onButtonPress.bind(this),
+    });
     if (!this.shouldHaveComponents || this.stopped) {
       return components;
     }
-    {
-      const actionRow = new ComponentActionRow();
-      /*
-      if (this.isLarge) {
-        actionRow.createButton({
-          customId: PageButtonNames.PREVIOUS_DOUBLE,
-          disabled: this.page === MIN_PAGE,
-          ...this.buttons[PageButtonNames.PREVIOUS_DOUBLE],
-        });
-      }
-      */
-      actionRow.createButton({
-        customId: PageButtonNames.PREVIOUS,
-        disabled: this.page === MIN_PAGE,
-        ...this.buttons[PageButtonNames.PREVIOUS],
-        run: this.onButtonPress.bind(this),
-      });
-      actionRow.createButton({
-        customId: PageButtonNames.NEXT,
-        disabled: this.page === this.pageLimit,
-        ...this.buttons[PageButtonNames.NEXT],
-        run: this.onButtonPress.bind(this),
-      });
-      /*
-      if (this.isLarge) {
-        actionRow.createButton({
-          customId: PageButtonNames.NEXT_DOUBLE,
-          disabled: this.page === this.pageLimit,
-          ...this.buttons[PageButtonNames.NEXT_DOUBLE],
-        });
-      }
-      */
-      actionRow.createButton({
-        customId: PageButtonNames.SHUFFLE,
-        ...this.buttons[PageButtonNames.SHUFFLE],
-        run: this.onButtonPress.bind(this),
-      });
-      actionRow.createButton({
-        customId: PageButtonNames.CUSTOM,
-        style: (this.custom.isActive) ? MessageComponentButtonStyles.DANGER : MessageComponentButtonStyles.PRIMARY,
-        ...this.buttons[PageButtonNames.CUSTOM],
-        run: this.onButtonPress.bind(this),
-      });
-      actionRow.createButton({
-        customId: PageButtonNames.STOP,
-        style: MessageComponentButtonStyles.DANGER,
-        ...this.buttons[PageButtonNames.STOP],
-        run: this.onButtonPress.bind(this),
-      });
-      components.push(actionRow);
-    }
 
+    /*
+    if (this.isLarge) {
+      components.createButton({
+        customId: PageButtonNames.PREVIOUS_DOUBLE,
+        disabled: this.page === MIN_PAGE,
+        ...this.buttons[PageButtonNames.PREVIOUS_DOUBLE],
+      });
+    }
+    */
+
+    components.createButton({
+      customId: PageButtonNames.PREVIOUS,
+      disabled: this.page === MIN_PAGE,
+      ...this.buttons[PageButtonNames.PREVIOUS],
+    });
+    components.createButton({
+      customId: PageButtonNames.NEXT,
+      disabled: this.page === this.pageLimit,
+      ...this.buttons[PageButtonNames.NEXT],
+    });
+
+    /*
+    if (this.isLarge) {
+      components.createButton({
+        customId: PageButtonNames.NEXT_DOUBLE,
+        disabled: this.page === this.pageLimit,
+        ...this.buttons[PageButtonNames.NEXT_DOUBLE],
+      });
+    }
+    */
+
+    components.createButton({
+      customId: PageButtonNames.SHUFFLE,
+      ...this.buttons[PageButtonNames.SHUFFLE],
+    });
+    components.createButton({
+      customId: PageButtonNames.CUSTOM,
+      style: (this.custom.isActive) ? MessageComponentButtonStyles.DANGER : MessageComponentButtonStyles.PRIMARY,
+      ...this.buttons[PageButtonNames.CUSTOM],
+    });
+    components.createButton({
+      customId: PageButtonNames.STOP,
+      style: MessageComponentButtonStyles.DANGER,
+      ...this.buttons[PageButtonNames.STOP],
+    });
     return components;
   }
 
@@ -283,7 +279,6 @@ export class Paginator {
   }
 
   reset() {
-    this.timeout.stop();
     this.custom.timeout.stop();
     this.ratelimitTimeout.stop();
   }
@@ -440,7 +435,6 @@ export class Paginator {
         };
       }
 
-      this.timeout.start(this.expires, this.onStop.bind(this));
       this.ratelimitTimeout.start(this.ratelimit, () => {});
     } catch(error) {
       if (typeof(this.onError) === 'function') {
@@ -577,7 +571,6 @@ export class Paginator {
 
     this.reset();
     if (!this.stopped && this.shouldHaveComponents) {
-      this.timeout.start(this.expires, this.onStop.bind(this));
       if (PaginatorsStore.has(this.channelId)) {
         const stored = PaginatorsStore.get(this.channelId)!;
         for (let paginator of stored.normal) {
@@ -587,7 +580,6 @@ export class Paginator {
         }
       }
       PaginatorsStore.insert(this);
-      this.timeout.start(this.expires, this.onStop.bind(this));
     }
 
     return message;

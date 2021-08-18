@@ -58,7 +58,7 @@ export async function createMessage(
     }
   }
 
-  {
+  if (translatedText !== args.text) {
     // 1024 - 10 ('```\n\n```')
     const parts = splitTextByAmount(translatedText, 1014, '');
     embed.addField(translatedLanguageText, Markup.codeblock(parts.shift() as string));

@@ -15,6 +15,8 @@ export interface CommandArgs {
 }
 
 export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
+  global = true;
+  permissionsIgnoreClientOwner = true;
   triggerLoadingAfter = 1000;
   triggerLoadingAsEphemeral = true;
   type = ApplicationCommandTypes.MESSAGE;
@@ -22,7 +24,6 @@ export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends In
   constructor(data: Interaction.InteractionCommandOptions = {}) {
     super(Object.assign({
       guildIds: ['178313653177548800', '621077547471601685'],
-      permissionsIgnoreClientOwner: true,
     }, data));
   }
 
