@@ -1,6 +1,7 @@
 import * as InfoUser from './info.user';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleWeb from './search.google.web';
+import * as SettingsMeLocale from './settings.me.locale';
 import * as SettingsPrefixesList from './settings.prefixes.list';
 import * as ToolsHash from './tools.hash';
 import * as ToolsOCR from './tools.ocr';
@@ -11,6 +12,7 @@ export {
   InfoUser,
   SearchGoogleImages,
   SearchGoogleWeb,
+  SettingsMeLocale,
   SettingsPrefixesList,
   ToolsHash,
   ToolsOCR,

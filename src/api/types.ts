@@ -74,6 +74,10 @@ export namespace RestOptions {
     timezone?: string,
   }
 
+  export interface EditUser {
+    locale?: null | string,
+  }
+
 
   export interface FetchGuildTags {
     after?: string,
@@ -220,6 +224,7 @@ export namespace RestOptions {
     avatar: null | string,
     bot: boolean,
     discriminator: string,
+    locale?: null | string,
     username: string,
   }
 
@@ -357,6 +362,7 @@ export namespace RestResponses {
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   export type EditGuildSettings = GuildSettings;
+  export type EditUser = User;
 
   export type FetchGuildSettings = GuildSettings;
   export type FetchUser = User;
@@ -389,6 +395,7 @@ export namespace RestResponsesRaw {
   export type DeleteTag = null;
 
   export type EditGuildSettings = GuildSettings;
+  export type EditUser = User;
 
   export type FetchGuildSettings = GuildSettings;
 

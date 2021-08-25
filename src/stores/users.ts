@@ -1,4 +1,4 @@
-import { ClusterClient, Command, GatewayClientEvents } from 'detritus-client';
+import { ClusterClient, Command, Interaction } from 'detritus-client';
 import { EventSubscription } from 'detritus-utils';
 
 import { Store } from './store';
@@ -21,7 +21,7 @@ class UserStore extends Store<string, User> {
     this.set(payload.id, payload);
   }
 
-  async getOrFetch(context: Command.Context, userId: string): Promise<User | null> {
+  async getOrFetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<User | null> {
     let user: User | null = null;
     if (UserPromisesStore.has(userId)) {
       const promise = UserPromisesStore.get(userId) as UserPromise;
@@ -36,7 +36,7 @@ class UserStore extends Store<string, User> {
     return user;
   }
 
-  async fetch(context: Command.Context, userId: string): Promise<User | null> {
+  async fetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<User | null> {
     let promise: UserPromise;
     if (UserPromisesStore.has(userId)) {
       promise = UserPromisesStore.get(userId) as UserPromise;

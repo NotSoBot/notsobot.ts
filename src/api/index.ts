@@ -199,6 +199,23 @@ export async function editGuildSettings(
   return settings;
 }
 
+export async function editUser(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.EditUser,
+): Promise<RestResponses.EditUser> {
+  const data = await raw.editUser(context, userId, options);
+  let user: User;
+  if (UserStore.has(userId)) {
+    user = UserStore.get(userId) as User;
+    user.merge(data);
+  } else {
+    user = new User(data);
+    UserStore.set(user.id, user);
+  }
+  return user;
+}
+
 
 export async function fetchGuildSettings(
   context: RequestContext,

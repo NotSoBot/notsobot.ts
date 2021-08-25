@@ -311,6 +311,26 @@ export async function editGuildSettings(
 }
 
 
+export async function editUser(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.EditUser,
+): Promise<RestResponsesRaw.EditUser> {
+  const body = {
+    locale: options.locale,
+  };
+  const params = {userId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.USER,
+      params,
+    },
+  });
+}
+
+
 export async function fetchGuildSettings(
   context: RequestContext,
   guildId: string,
@@ -1527,6 +1547,7 @@ export async function putUser(
     avatar: options.avatar,
     bot: options.bot,
     discriminator: options.discriminator,
+    locale: options.locale,
     username: options.username,
   };
   const params = {userId};

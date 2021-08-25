@@ -1,6 +1,7 @@
 import { Collections, Structures } from 'detritus-client';
 
 import {
+  GoogleLocales,
   UserFlags,
   UserPremiumTypes,
   NotSoApiKeys,
@@ -16,6 +17,7 @@ const keysUser = new Collections.BaseSet<string>([
   NotSoApiKeys.DISCRIMINATOR,
   NotSoApiKeys.FLAGS,
   NotSoApiKeys.ID,
+  NotSoApiKeys.LOCALE,
   NotSoApiKeys.USERNAME,
   NotSoApiKeys.PREMIUM_TYPE,
 ]);
@@ -29,6 +31,7 @@ export class User extends BaseStructure {
   discriminator: string = '0000';
   flags: number = 0;
   id: string = '';
+  locale: GoogleLocales | null = null;
   username: string = '';
   premiumType: UserPremiumTypes = UserPremiumTypes.NONE;
 

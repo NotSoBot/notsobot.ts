@@ -11,9 +11,16 @@ import {
 import { createUserEmbed, editOrReply, languageCodeToText, splitTextByAmount } from '../../../utils';
 
 
+export interface CommandArgs {
+  isEphemeral?: boolean,
+  to?: GoogleLocales | null,
+  url: string,
+}
+
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: {isEphemeral?: boolean, to?: GoogleLocales | null, url: string},
+  args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
@@ -44,7 +51,8 @@ export async function createMessage(
     const translatedLanguageText = languageCodeToText(translatedLanguage);
     embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
 
-    {
+    const shouldShowInput = (translatedText !== annotation.description);
+    if (shouldShowInput) {
       // 1024 - 10 ('```\n\n```')
       const parts = splitTextByAmount(annotation.description, 1014, '');
       embed.addField(fromLanguageText, Markup.codeblock(parts.shift() as string));
@@ -56,7 +64,8 @@ export async function createMessage(
     if (translatedText !== annotation.description) {
       // 1024 - 10 ('```\n\n```')
       const parts = splitTextByAmount(translatedText, 1014, '');
-      embed.addField(translatedLanguageText, Markup.codeblock(parts.shift() as string));
+      const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageText : `${fromLanguageText} -> ${translatedLanguageText}`;
+      embed.addField(title, Markup.codeblock(parts.shift() as string));
       for (let part of parts) {
         embed.addField('\u200b', Markup.codeblock(part));
       }

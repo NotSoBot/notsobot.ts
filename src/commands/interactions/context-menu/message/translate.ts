@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
-import { Formatter, Parameters, findImageUrlInMessage } from '../../../../utils';
+import { DefaultParameters, Formatter, findImageUrlInMessage } from '../../../../utils';
 
 import { BaseCommand, CommandArgs } from './basecommand';
 
@@ -30,7 +30,7 @@ export default class TranslateCommand extends BaseCommand {
   }
 
   async run(context: Interaction.InteractionContext, args: TranslateCommandArgs) {
-    const to = Parameters.ContextMenu.serverLocale(context);
+    const to = await DefaultParameters.locale(context);
     if (args.url) {
       return Formatter.Commands.ToolsOCRTranslate.createMessage(context, {
         isEphemeral: true,

@@ -1,6 +1,6 @@
 import { BaseCommandOptionGroup } from '../../basecommand';
 
-import { SettingsUserSetLanguageCommand } from './set.language';
+import { SettingsUserSetLocaleCommand } from './set.locale';
 
 
 export class SettingsUserSetGroupCommand extends BaseCommandOptionGroup {
@@ -10,7 +10,7 @@ export class SettingsUserSetGroupCommand extends BaseCommandOptionGroup {
   constructor() {
     super({
       options: [
-        new SettingsUserSetLanguageCommand(),
+        new SettingsUserSetLocaleCommand(),
       ],
     });
   }

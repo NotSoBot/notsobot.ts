@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
-import { Formatter, Parameters, findImageUrlInMessage } from '../../../../utils';
+import { Formatter, findImageUrlInMessage } from '../../../../utils';
 
 import { BaseCommand, CommandArgs } from './basecommand';
 

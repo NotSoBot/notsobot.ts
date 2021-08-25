@@ -1,18 +1,18 @@
 import { Interaction } from 'detritus-client';
-import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
 
-import { Parameters } from '../../../../../utils';
+import { GoogleLocales } from '../../../../../constants';
+import { Formatter, Parameters } from '../../../../../utils';
 
 import { BaseCommandOption } from '../../basecommand';
 
 
 export interface CommandArgs {
-  language: string,
+  language: GoogleLocales,
 }
 
-export class SettingsUserSetLanguageCommand extends BaseCommandOption {
-  description = 'Set your language for the bot.';
-  name = 'language';
+export class SettingsUserSetLocaleCommand extends BaseCommandOption {
+  description = 'Set your default language for the bot.';
+  name = 'locale';
 
   constructor() {
     super({
@@ -28,9 +28,6 @@ export class SettingsUserSetLanguageCommand extends BaseCommandOption {
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-      content: 'wip',
-      flags: 64,
-    });
+    return Formatter.Commands.SettingsMeLocale.createMessage(context, {locale: args.language});
   }
 }
