@@ -1,5 +1,5 @@
-import { Command, CommandClient, Constants } from 'detritus-client';
-import { LocalesText, Permissions } from 'detritus-client/lib/constants';
+import { Command, CommandClient } from 'detritus-client';
+import { Locales as DiscordLocales, LocalesText, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes } from '../../../constants';
 import { Arguments } from '../../../utils';
@@ -8,11 +8,11 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  locale: Constants.Locales | undefined,
+  locale?: DiscordLocales,
 }
 
 export interface CommandArgs {
-  locale: Constants.Locales,
+  locale: DiscordLocales,
 }
 
 export const COMMAND_NAME = 'set locale';
@@ -26,10 +26,10 @@ export default class SetLocaleCommand extends BaseCommand {
       disableDm: true,
       label: 'locale',
       metadata: {
-        description: 'Set the guild\'s locale preference.',
+        description: 'Set the guild\'s language preference.',
         examples: [
           `${COMMAND_NAME} en-us`,
-          `${COMMAND_NAME} english`,
+          `${COMMAND_NAME} german`,
         ],
         type: CommandTypes.SETTINGS,
         usage: '<locale>',
@@ -45,7 +45,7 @@ export default class SetLocaleCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return context.editOrReply('⚠ Provide some kind of locale');
+    return context.editOrReply('⚠ Provide some kind of language');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -53,13 +53,11 @@ export default class SetLocaleCommand extends BaseCommand {
     if (guild) {
       await guild.edit({preferredLocale: args.locale});
 
-      let locale: string;
+      let text: string = args.locale;
       if (args.locale in LocalesText) {
-        locale = LocalesText[args.locale];
-      } else {
-        locale = args.locale;
+        text = LocalesText[args.locale];
       }
-      return context.editOrReply(`Successfully changed the guild\'s locale to ${locale}`);
+      return context.editOrReply(`Successfully changed the guild\'s locale to ${text}`);
     }
   }
 }
