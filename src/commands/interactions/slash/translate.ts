@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { GoogleLocales } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from './basecommand';
 
@@ -30,6 +30,10 @@ export default class TranslateCommand extends BaseCommand {
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return Formatter.Commands.ToolsTranslate.createMessage(context, args);
+    return Formatter.Commands.ToolsTranslate.createMessage(context, {
+      from: args.from,
+      to: args.to || await DefaultParameters.locale(context),
+      text: args.text,
+    });
   }
 }

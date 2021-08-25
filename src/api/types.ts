@@ -1177,6 +1177,7 @@ export namespace RestResponsesRaw {
     bot: boolean,
     discriminator: string,
     id: string,
+    locale: GoogleLocales | null,
     flags: number,
     username: string,
     premium_type: number,

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes, GoogleLocales } from '../../../constants';
-import { Arguments, Formatter } from '../../../utils';
+import { Arguments, DefaultParameters, Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -25,7 +25,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
 
       aliases: ['ocrtr', 'trocr', 'translateocr'],
       args: [
-        {name: 'to', default: Arguments.GoogleLocale.default, type: Arguments.GoogleLocale.type},
+        {name: 'to', default: DefaultParameters.locale, type: Arguments.GoogleLocale.type},
       ],
       metadata: {
         description: 'Read text inside of an image and translate it',
