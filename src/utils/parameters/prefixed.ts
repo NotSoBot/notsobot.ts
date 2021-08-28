@@ -66,8 +66,14 @@ export function banPayload(
             // /shrug
           }
         }
+
         if (message) {
-          membersOrUsers.set(message.author.id, message.member || message.author);
+          const member = await fetchMemberOrUserById(context, message.author.id, options.membersOnly);
+          if (member) {
+            membersOrUsers.set(member.id, member);
+          } else {
+            notFound.push(message.author.id);
+          }
         }
       }
     }

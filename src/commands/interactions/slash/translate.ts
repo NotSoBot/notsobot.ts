@@ -11,6 +11,7 @@ export interface CommandArgs {
   from: GoogleLocales | null,
   text: string,
   to: GoogleLocales | null,
+  toChoice: GoogleLocales | null,
 }
 
 export const COMMAND_NAME = 'translate';
@@ -22,17 +23,19 @@ export default class TranslateCommand extends BaseCommand {
   constructor() {
     super({
       options: [
-        {name: 'text', type: ApplicationCommandOptionTypes.STRING, description: 'Text to translate', required: true},
-        {name: 'to', type: ApplicationCommandOptionTypes.STRING, description: 'Language to translate to', choices: Parameters.Slash.GOOGLE_LOCALES},
-        {name: 'from', type: ApplicationCommandOptionTypes.STRING, description: 'Language to translate from', choices: Parameters.Slash.GOOGLE_LOCALES},
+        {name: 'text', description: 'Text to translate', required: true},
+        {name: 'to', description: 'Language to translate to', value: Parameters.locale},
+        {name: 'to-choices', description: 'Language to translate to (Choices)', choices: Parameters.Slash.GOOGLE_LOCALES, label: 'toChoice'},
+        {name: 'from', description: 'Language to translate from', choices: Parameters.Slash.GOOGLE_LOCALES},
       ],
     });
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
+    const to = args.to || args.toChoice || await DefaultParameters.locale(context);
     return Formatter.Commands.ToolsTranslate.createMessage(context, {
       from: args.from,
-      to: args.to || await DefaultParameters.locale(context),
+      to,
       text: args.text,
     });
   }

@@ -1,3 +1,6 @@
+import { Interaction } from 'detritus-client';
+import { InteractionCallbackTypes, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+
 import { BaseCommand } from '../basecommand';
 
 import { SearchGoogleGroupCommand } from './google';
@@ -16,5 +19,16 @@ export default class SearchGroupCommand extends BaseCommand {
         new SearchSteamGroupCommand(),
       ],
     });
+  }
+
+  onLoadingTrigger(context: Interaction.InteractionContext) {
+    if (context.responded) {
+      return;
+    }
+
+    if (context.member && !context.member.can([Permissions.EMBED_LINKS])) {
+      return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+    }
+    return super.onLoadingTrigger(context);
   }
 }

@@ -96,9 +96,25 @@ export async function fetchMemberOrUserById(
   userId: string,
   memberOnly: boolean = false,
 ): Promise<Structures.Member | Structures.User | null> {
+  if (context.user.id === userId) {
+    if (memberOnly) {
+      if (context.member) {
+        return context.member;
+      }
+    } else {
+      return context.user;
+    }
+  }
+
   const mention = context.message.mentions.get(userId);
   if (mention) {
-    return mention;
+    if (memberOnly) {
+      if (mention instanceof Structures.Member) {
+        return mention;
+      }
+    } else {
+      return mention;
+    }
   }
 
   try {

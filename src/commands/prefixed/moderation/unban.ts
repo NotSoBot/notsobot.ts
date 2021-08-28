@@ -62,7 +62,7 @@ export default class UnbanCommand extends BaseCommand {
 
     const unsure: Array<Structures.Member | Structures.User> = [];
 
-    const bans = await context.rest.fetchGuildBans(context.guildId as string);
+    //const bans = await context.rest.fetchGuildBans(context.guildId as string);
 
     const admin = context.member;
     const me = context.me;
