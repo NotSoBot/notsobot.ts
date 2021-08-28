@@ -14,7 +14,7 @@ import {
   RedditTimeTypes,
   MOMENT_FORMAT,
 } from '../../../constants';
-import { Arguments, Paginator, createTimestampMomentFromGuild, createUserEmbed, editOrReply, htmlDecode } from '../../../utils';
+import { DefaultParameters, Paginator, createTimestampMomentFromGuild, createUserEmbed, editOrReply, htmlDecode } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -43,7 +43,7 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
       name: COMMAND_NAME,
 
       args: [
-        Arguments.Safe,
+        {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'sort', choices: Object.values(RedditSortTypes), help: `Must be one of: (${Object.values(RedditSortTypes).join(', ')})`, type: (value) => value.toUpperCase()},
         {name: 'subreddit'},
         {name: 'time', choices: Object.values(RedditTimeTypes), help: `Must be one of: (${Object.values(RedditTimeTypes).join(', ')})`, type: (value) => value.toUpperCase()},

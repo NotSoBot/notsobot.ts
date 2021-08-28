@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Locales as DiscordLocales, LocalesText, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes } from '../../../constants';
-import { Arguments } from '../../../utils';
+import { Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -36,7 +36,7 @@ export default class SetLocaleCommand extends BaseCommand {
       },
       permissionsClient: [Permissions.MANAGE_GUILD],
       permissions: [Permissions.MANAGE_GUILD],
-      type: Arguments.DiscordLocale.type!,
+      type: Parameters.localeDiscord,
     });
   }
 

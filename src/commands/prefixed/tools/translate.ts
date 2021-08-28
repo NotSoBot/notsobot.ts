@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandTypes, GoogleLocales } from '../../../constants';
-import { Arguments, DefaultParameters, Formatter, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -28,8 +28,8 @@ export default class TranslateCommand extends BaseCommand {
 
       aliases: ['tr'],
       args: [
-        {name: 'from', default: null, type: Arguments.GoogleLocale.type},
-        {name: 'to', default: DefaultParameters.locale, type: Arguments.GoogleLocale.type},
+        {name: 'from', default: null, type: Parameters.locale},
+        {name: 'to', default: DefaultParameters.locale, type: Parameters.locale},
       ],
       label: 'text',
       metadata: {

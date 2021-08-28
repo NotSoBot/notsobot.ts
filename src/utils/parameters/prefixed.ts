@@ -1,6 +1,4 @@
 import { onlyEmoji } from 'emoji-aware';
-import * as moment from 'moment';
-import * as juration from 'juration';
 
 import { ClusterClient, Collections, Command, Structures } from 'detritus-client';
 import { ChannelTypes, DiscordAbortCodes, DiscordRegexNames } from 'detritus-client/lib/constants';
@@ -946,49 +944,6 @@ export function codeblock(
 }
 
 
-export function days(
-  value: string,
-  context: Command.Context,
-): number {
-  let days: number;
-  if (isNaN(value as any)) {
-    days = Math.round(moment.duration(seconds(value, context), 'seconds').asDays());
-  } else {
-    days = parseInt(value);
-  }
-  return days;
-}
-
-
-export interface NumberOptions {
-  max?: number,
-  min?: number,
-}
-
-export function number(options: NumberOptions = {}) {
-  return (valueStr: string): number => {
-    const value = parseInt(valueStr);
-    if (isNaN(value)) {
-      throw new Error('Value must be a number.');
-    }
-    if (options.max !== undefined && options.min !== undefined) {
-      if (value < options.min || options.max < value) {
-        throw new Error(`Value must be between ${options.min} and ${options.max}`);
-      }
-    } else if (options.max !== undefined) {
-      if (options.max < value) {
-        throw new Error(`Value must be less than ${options.max}`);
-      }
-    } else if (options.min !== undefined) {
-      if (value < options.min) {
-        throw new Error(`Value must be more than ${options.min}`);
-      }
-    }
-    return value;
-  };
-}
-
-
 export interface OneOfOptions<T> {
   choices: Record<string, T>,
   defaultChoice?: T,
@@ -1028,84 +983,6 @@ export function oneOf<T>(options: OneOfOptions<T>) {
   }
 }
 
-
-export function percentage(
-  value: string,
-  context: Command.Context,
-): number {
-  value = value.replace(/%/g, '');
-  const percentage = parseFloat(value);
-  if (isNaN(percentage)) {
-    return percentage;
-  }
-  return Math.max(0, Math.min(percentage / 100));
-}
-
-
-export function seconds(
-  value: string,
-  context: Command.Context,
-): number {
-  try {
-    return juration.parse(value);
-  } catch(error) {
-    if (typeof(error) === 'string') {
-      let text = error.slice(error.indexOf(':', error.indexOf(':') + 1) + 1).trim();
-      if (text === 'a falsey value') {
-        throw new Error('Unable to parse');
-      }
-      if (25 < text.length) {
-        text = text.slice(0, 22) + '...';
-      }
-      throw new Error(`Unable to parse time format ${Markup.codestring(text)}`);
-    }
-    throw error;
-  }
-}
-
-
-export function snowflake(
-  value: string,
-  context: Command.Context,
-): string {
-  if (!isSnowflake(value)) {
-    throw new Error('Value must be a snowflake');
-  }
-  return value;
-}
-
-
-export interface StringOptions {
-  maxLength?: number,
-  minLength?: number,
-}
-
-export function string(options: StringOptions = {}) {
-  return (value: string): string => {
-    if (options.maxLength !== undefined && options.minLength !== undefined) {
-      if (value.length < options.minLength || options.maxLength < value.length) {
-        throw new Error(`Value must be between ${options.minLength} and ${options.maxLength} characters`);
-      }
-    } else if (options.maxLength !== undefined) {
-      if (options.maxLength < value.length) {
-        throw new Error(`Value must be less than ${options.maxLength} characters`);
-      }
-    } else if (options.minLength !== undefined) {
-      if (value.length < options.minLength) {
-        throw new Error(`Value must be more than ${options.minLength} characters`);
-      }
-    }
-    return value;
-  };
-}
-
-
-export function stringLowerCase(options: StringOptions = {}) {
-  const stringify = string(options);
-  return (value: string) => {
-    return stringify(value.toLowerCase());
-  };
-};
 
 
 const QuotesAll = {
@@ -1163,19 +1040,6 @@ export function stringArguments(value: string) {
   return results;
 }
 
-
-
-export function url(value: string): string {
-  if (value) {
-    if (!/^https?:\/\//.test(value)) {
-      return `http://${value}`;
-    }
-    if (!validateUrl(value)) {
-      throw new Error('Malformed URL');
-    }
-  }
-  return value;
-}
 
 
 /* NotSoBot Stuff */

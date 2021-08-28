@@ -48,7 +48,7 @@ export default class HelpCommand extends BaseCommand {
         if (content) {
           const commands: Array<Command.Command> = [];
           const commandsWithPrefix: Array<Command.Command> = [];
-    
+
           const insensitive = content.toLowerCase().replace(/\s\s+/g, ' ');
           const insensitiveAsPrefix = insensitive + ' ';
 

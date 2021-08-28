@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes, GoogleLocales } from '../../../constants';
-import { Arguments, Formatter } from '../../../utils';
+import { Formatter, Parameters, DefaultParameters } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -22,9 +22,9 @@ export default class Image2Command extends BaseSearchCommand<CommandArgs> {
 
       aliases: ['g image2', 'g img2', 'g im2', 'google image2', 'google img2', 'google im2', 'img2', 'im2'],
       args: [
-        Arguments.GoogleLocale,
-        Arguments.Safe,
-        {aliases: ['r', 'random'], name: 'randomize', type: Boolean},
+        {name: 'language', aliases: ['locale'], default: DefaultParameters.locale, type: Parameters.locale},
+        {name: 'randomize', aliases: ['r', 'random'], type: Boolean},
+        {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],
       metadata: {
         description: 'Search Google Images, but with less data displayed',

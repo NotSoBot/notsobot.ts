@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes, GoogleLocales } from '../../../constants';
-import { Arguments, Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -33,7 +33,7 @@ export default class SetMyLocaleCommand extends BaseCommand {
         type: CommandTypes.SETTINGS,
         usage: '<locale>',
       },
-      type: Arguments.GoogleLocale.type,
+      type: Parameters.locale,
     });
   }
 

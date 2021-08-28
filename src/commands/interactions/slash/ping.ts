@@ -1,11 +1,18 @@
 import { Interaction } from 'detritus-client';
-import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
+
+import { editOrReply } from '../../../utils';
+
+import { BaseCommand } from './basecommand';
 
 
-export default {
-  description: 'ping test!',
-  name: 'ping',
-  run: (context: Interaction.InteractionContext) => {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, 'pong!');
-  },
-};
+export const COMMAND_NAME = 'ping';
+
+export default class PingCommand extends BaseCommand {
+  description = 'Ping';
+  name = COMMAND_NAME;
+
+  async run(context: Interaction.InteractionContext) {
+    const { gateway, rest } = await context.client.ping();
+    return editOrReply(context, `pong! (gateway: ${gateway}ms) (rest: ${rest}ms)`);
+  }
+}
