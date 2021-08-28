@@ -1,4 +1,7 @@
+import { Interaction } from 'detritus-client';
+
 import { GoogleLocales, GoogleLocalesText } from '../../constants';
+import { DefaultParameters } from '../../utils';
 
 
 export const GOOGLE_LOCALES = [
@@ -28,3 +31,17 @@ export const GOOGLE_LOCALES = [
   GoogleLocales.TURKISH,
   GoogleLocales.VIETNAMESE,
 ].map((x) => ({name: GoogleLocalesText[x], value: x}));
+
+
+
+export function safe(value: boolean, context: Interaction.InteractionContext): Boolean {
+  if (value) {
+    return value;
+  }
+
+  const shouldBeSafe = DefaultParameters.safe(context);
+  if (shouldBeSafe) {
+    throw new Error('Channel doesn\'t support disabling NSFW filtering.');
+  }
+  return value;
+}

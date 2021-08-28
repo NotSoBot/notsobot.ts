@@ -216,7 +216,11 @@ export default class PruneCommand extends BaseCommand {
 
       for (let i = 0; i < bulkToDelete.length; i += 100) {
         const messageIds = bulkToDelete.slice(i, i + 100);
-        await channel.bulkDelete(messageIds);
+        if (messageIds.length === 1) {
+          await channel.deleteMessage(messageIds[0]);
+        } else {
+          await channel.bulkDelete(messageIds);
+        }
       }
     }
 

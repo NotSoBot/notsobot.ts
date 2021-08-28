@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { GoogleLocales } from '../../../../../constants';
-import { Formatter, Parameters } from '../../../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
 
 import { BaseCommandOption } from '../../basecommand';
 
@@ -20,8 +20,8 @@ export class SearchGoogleWebCommand extends BaseCommandOption {
     super({
       options: [
         {name: 'query', description: 'Search Text', required: true},
-        {name: 'locale', description: 'Language for the Google Results', choices: Parameters.Slash.GOOGLE_LOCALES},
-        {name: 'safe', type: Boolean, description: 'Safe Search'},
+        {name: 'locale', description: 'Language for the Google Results', default: DefaultParameters.locale, choices: Parameters.Slash.GOOGLE_LOCALES},
+        {name: 'safe', description: 'Safe Search', type: Boolean, default: DefaultParameters.safe, value: Parameters.Slash.safe},
       ],
     });
   }
