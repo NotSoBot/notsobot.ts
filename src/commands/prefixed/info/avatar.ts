@@ -58,6 +58,19 @@ export default class AvatarCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const { user } = args;
     const avatarUrl = (args.default) ? user.defaultAvatarUrl : user.avatarUrl;
+
+    let file: {filename: string, value: Buffer} | undefined;
+    if (avatarUrl !== user.defaultAvatarUrl) {
+      try {
+        file = {
+          filename: avatarUrl.split('/').pop()!,
+          value: await context.rest.get(user.avatarUrlFormat(null, {size: 512})),
+        };
+      } catch(error) {
+
+      }
+    }
+
     if (!args.noembed) {
       const embed = createUserEmbed(user);
       embed.setColor(PresenceStatusColors['offline']);
@@ -83,7 +96,11 @@ export default class AvatarCommand extends BaseCommand {
       if (args.default) {
         embed.setImage(avatarUrl);
       } else {
-        embed.setImage(user.avatarUrlFormat(null, {size: 512}));
+        const url = (file) ? `attachment://${file.filename}` : user.avatarUrlFormat(null, {size: 512});
+        embed.setImage(url);
+        if (file) {
+          embed.setAuthor(undefined, url);
+        }
       }
 
       const presence = user.presence;
@@ -91,7 +108,11 @@ export default class AvatarCommand extends BaseCommand {
         embed.setColor(PresenceStatusColors[presence.status]);
       }
 
-      return editOrReply(context, {embed});
+      return editOrReply(context, {embed, file});
+    }
+
+    if (file) {
+      return editOrReply(context, {file});
     }
     return editOrReply(context, avatarUrl);
   }

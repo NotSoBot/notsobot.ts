@@ -6,9 +6,9 @@ import { Formatter } from '../../../../utils';
 import { BaseCommand, CommandArgs } from './basecommand';
 
 
-export const COMMAND_NAME = 'Usage Block';
+export const COMMAND_NAME = 'Blocklist Remove';
 
-export default class UsageBlockCommand extends BaseCommand {
+export default class BlocklistRemoveCommand extends BaseCommand {
   disableDm = true;
   name = COMMAND_NAME;
   permissions = [Permissions.ADMINISTRATOR];

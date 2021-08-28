@@ -53,6 +53,25 @@ export function banPayload(
   return async (value: string, context: Command.Context): Promise<BanPayload> => {
     const membersOrUsers = new Collections.BaseCollection<string, Structures.Member | Structures.User>();
     const notFound: Array<string> = [];
+
+    {
+      // check reply for a user to ban
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId) {
+        let message = messageReference.message;
+        if (!message && (context.channel && context.channel.canReadHistory)) {
+          try {
+            message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          } catch(error) {
+            // /shrug
+          }
+        }
+        if (message) {
+          membersOrUsers.set(message.author.id, message.member || message.author);
+        }
+      }
+    }
+
     if (value) {
       let stillSearching = true;
       while (stillSearching) {

@@ -40,10 +40,19 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
       // check reply
       const { messageReference } = context.message;
       if (messageReference && messageReference.messageId) {
-        const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-        const url = findImageUrlInMessages([message]);
-        if (url) {
-          return url;
+        let message = messageReference.message;
+        if (!message && (context.inDm || (context.channel && context.channel.canReadHistory))) {
+          try {
+            message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          } catch(error) {
+            // /shrug
+          }
+        }
+        if (message) {
+          const url = findImageUrlInMessages([message]);
+          if (url) {
+            return url;
+          }
         }
       }
     }
