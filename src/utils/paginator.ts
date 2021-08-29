@@ -86,7 +86,7 @@ export class Paginator {
   };
 
   buttons: Record<PageButtonNames, PageButton> = Object.assign({}, PageButtons);
-  expires: number = 1 * (60 * 1000);
+  expires: number = 2 * (60 * 1000);
   isEphemeral: boolean = false;
   message: null | Structures.Message = null;
   page: number = MIN_PAGE;

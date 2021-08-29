@@ -237,7 +237,7 @@ export function findImageUrlInMessage(
       return url;
     }
   }
-  for (let [stickerId, sticker] of message.stickers) {
+  for (let [stickerId, sticker] of message.stickerItems) {
     return sticker.assetUrl;
   }
   return null;

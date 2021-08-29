@@ -70,19 +70,6 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
   create(cluster: ClusterClient, redis: RedisSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
-      const subscription = cluster.subscribe(ClientEvents.MESSAGE_CREATE, async (event) => {
-        const { message } = event;
-        if (message.guildId === '178313653177548800' && (message.stickers.length || message.stickerItems.length) && message.canDelete) {
-          try {
-            await message.delete();
-          } catch(error) {
-            
-          }
-        }
-      });
-      subscriptions.push(subscription);
-    }
-    {
       const subscription = cluster.subscribe(ClientEvents.CHANNEL_DELETE, async (event) => {
         const { channel, shard } = event;
         const { guildId } = channel;
