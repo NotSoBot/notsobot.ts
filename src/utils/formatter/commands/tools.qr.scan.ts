@@ -2,12 +2,12 @@ import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { utilitiesQrRead } from '../../../api';
+import { utilitiesQrScan } from '../../../api';
 import {
   EmbedBrands,
   EmbedColors,
 } from '../../../constants';
-import { createUserEmbed, editOrReply } from '../../../utils';
+import { createUserEmbed, editOrReply } from '../..';
 
 
 export async function createMessage(
@@ -16,7 +16,7 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const { scanned, url } = await utilitiesQrRead(context, args);
+  const { scanned, url } = await utilitiesQrScan(context, args);
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);

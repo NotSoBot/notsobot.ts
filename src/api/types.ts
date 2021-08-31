@@ -347,7 +347,7 @@ export namespace RestOptions {
     size?: number | string,
   }
 
-  export interface UtilitiesQrRead {
+  export interface UtilitiesQrScan {
     url: string,
   }
 
@@ -1166,7 +1166,7 @@ export namespace RestResponsesRaw {
     type: YoutubeResultTypes.VIDEO,
   }
 
-  export interface UtilitiesQrRead {
+  export interface UtilitiesQrScan {
     scanned: Array<{
       data: string,
       box: {

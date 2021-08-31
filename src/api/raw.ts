@@ -1959,10 +1959,10 @@ export async function utilitiesQrCreate(
 }
 
 
-export async function utilitiesQrRead(
+export async function utilitiesQrScan(
   context: RequestContext,
-  options: RestOptions.UtilitiesQrRead,
-): Promise<RestResponsesRaw.UtilitiesQrRead> {
+  options: RestOptions.UtilitiesQrScan,
+): Promise<RestResponsesRaw.UtilitiesQrScan> {
   const query = {
     url: options.url,
   };
@@ -1971,7 +1971,7 @@ export async function utilitiesQrRead(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.UTILITIES_QR_READ,
+      path: Api.UTILITIES_QR_SCAN,
     },
   });
   return {

@@ -968,11 +968,11 @@ export async function utilitiesQrCreate(
 }
 
 
-export async function utilitiesQrRead(
+export async function utilitiesQrScan(
   context: RequestContext,
-  options: RestOptions.UtilitiesQrRead,
+  options: RestOptions.UtilitiesQrScan,
 ) {
-  return raw.utilitiesQrRead(context, options);
+  return raw.utilitiesQrScan(context, options);
 }
 
 

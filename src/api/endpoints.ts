@@ -225,8 +225,8 @@ export const Api = Object.freeze({
     '/utilities/fetch/image',
   UTILITIES_QR_CREATE:
     '/utilities/qr/create',
-  UTILITIES_QR_READ:
-    '/utilities/qr/read',
+  UTILITIES_QR_SCAN:
+    '/utilities/qr/scan',
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
 });
