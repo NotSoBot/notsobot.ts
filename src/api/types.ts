@@ -343,6 +343,7 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesQrCreate {
+    margin?: number,
     query: string,
     size?: number | string,
   }

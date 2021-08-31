@@ -19,16 +19,20 @@ export default class QRCreateCommand extends BaseCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
-      args: [{name: 'size'}],
+      args: [
+        {name: 'margin', type: Number},
+        {name: 'size'},
+      ],
       label: 'query',
       metadata: {
         description: 'Generate a QR code',
         examples: [
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -size 1024`,
+          `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -size 1024 -margin 0`,
         ],
         type: CommandTypes.TOOLS,
-        usage: '<query> (-size <number>)',
+        usage: '<query> (-margin <number>) (-size <number>)',
       },
     });
   }

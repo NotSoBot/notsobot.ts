@@ -1945,6 +1945,7 @@ export async function utilitiesQrCreate(
   options: RestOptions.UtilitiesQrCreate,
 ): Promise<Response> {
   const query = {
+    margin: options.margin,
     query: options.query,
     size: options.size,
   };
