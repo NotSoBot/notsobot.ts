@@ -1,9 +1,9 @@
-import { BaseCommand } from '../basecommand';
+import { BaseSlashCommand } from '../../basecommand';
 
 import { ToolsHashCommand } from './hash';
 
 
-export default class ToolsGroupCommand extends BaseCommand {
+export default class ToolsGroupCommand extends BaseSlashCommand {
   description = '.';
   name = 'tools';
 

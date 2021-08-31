@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseCommandOption } from '../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 const HashTypes = Formatter.Commands.ToolsHash.HashTypes;
 type CommandArgs = Formatter.Commands.ToolsHash.CommandArgs;
 
-export class ToolsHashCommand extends BaseCommandOption {
+export class ToolsHashCommand extends BaseInteractionCommandOption {
   description = 'Create a hash from some text';
   name = 'hash';
 

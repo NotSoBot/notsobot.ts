@@ -1,9 +1,9 @@
-import { BaseCommandOptionGroup } from '../../basecommand';
+import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SettingsSetTimezoneCommand } from './set.timezone';
 
 
-export class SettingsSetGroupCommand extends BaseCommandOptionGroup {
+export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'set';
 

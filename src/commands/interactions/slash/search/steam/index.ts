@@ -1,11 +1,11 @@
-import { BaseCommandOptionGroup } from '../../basecommand';
+import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SearchSteamCommunityCommand } from './steam.community';
 import { SearchSteamEmojisCommand } from './steam.emojis';
 import { SearchSteamProfilesCommand } from './steam.profiles';
 
 
-export class SearchSteamGroupCommand extends BaseCommandOptionGroup {
+export class SearchSteamGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'steam';
 

@@ -3,17 +3,17 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 
 import { DefaultParameters, Formatter, findImageUrlInMessage } from '../../../../utils';
 
-import { BaseCommand, CommandArgs } from './basecommand';
+import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
 
 
-export interface TranslateCommandArgs extends CommandArgs {
+export interface TranslateCommandArgs extends ContextMenuMessageArgs {
   text: string,
   url?: string | null,
 }
 
 export const COMMAND_NAME = 'Translate';
 
-export default class TranslateCommand extends BaseCommand {
+export default class TranslateCommand extends BaseContextMenuMessageCommand {
   name = COMMAND_NAME;
 
   onBeforeRun(context: Interaction.InteractionContext, args: TranslateCommandArgs) {

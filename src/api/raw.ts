@@ -4,7 +4,7 @@ import { Response, createHeaders } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
 import { Api, LOCALHOST_API } from './endpoints';
-import { RestOptions, RestResponsesRaw } from './types';
+import { RestOptions, RestResponsesRaw, RestResponses } from './types';
 
 import {
   GoogleLocales,
@@ -1937,6 +1937,47 @@ export async function utilitiesFetchImage(
       path: Api.UTILITIES_FETCH_IMAGE,
     },
   });
+}
+
+
+export async function utilitiesQrCreate(
+  context: RequestContext,
+  options: RestOptions.UtilitiesQrCreate,
+): Promise<Response> {
+  const query = {
+    query: options.query,
+    size: options.size,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_QR_CREATE,
+    },
+  });
+}
+
+
+export async function utilitiesQrRead(
+  context: RequestContext,
+  options: RestOptions.UtilitiesQrRead,
+): Promise<RestResponsesRaw.UtilitiesQrRead> {
+  const query = {
+    url: options.url,
+  };
+  const response = await request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_QR_READ,
+    },
+  });
+  return {
+    scanned: await response.json(),
+    url: response.headers.get('x-unfurled-url'),
+  };
 }
 
 

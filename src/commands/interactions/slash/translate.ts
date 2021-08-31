@@ -4,7 +4,7 @@ import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 import { GoogleLocales } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
-import { BaseCommand } from './basecommand';
+import { BaseSlashCommand } from '../basecommand';
 
 
 export interface CommandArgs {
@@ -16,7 +16,7 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'translate';
 
-export default class TranslateCommand extends BaseCommand {
+export default class TranslateCommand extends BaseSlashCommand {
   description = 'Translate some text';
   name = COMMAND_NAME;
 

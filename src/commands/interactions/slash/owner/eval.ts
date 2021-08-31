@@ -5,7 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../../../utils';
 
-import { BaseCommandOption } from '../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
@@ -21,7 +21,7 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'eval';
 
-export class OwnerEvalCommand extends BaseCommandOption<CommandArgs> {
+export class OwnerEvalCommand extends BaseInteractionCommandOption<CommandArgs> {
   description = 'Eval some code ;)';
   name = COMMAND_NAME;
   triggerLoadingAfter = 2000;

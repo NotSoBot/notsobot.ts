@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { editOrReply } from '../../../utils';
 
-import { BaseCommand } from './basecommand';
+import { BaseSlashCommand } from '../basecommand';
 
 
 export const COMMAND_NAME = 'help';
 
-export default class HelpCommand extends BaseCommand {
+export default class HelpCommand extends BaseSlashCommand {
   description = 'Help';
   name = COMMAND_NAME;
 

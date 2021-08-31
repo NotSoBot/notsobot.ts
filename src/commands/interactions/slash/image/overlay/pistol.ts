@@ -1,9 +1,9 @@
 import { Interaction } from 'detritus-client';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
-export class ImageOverlayPistolCommand extends BaseCommandOption {
+export class ImageOverlayPistolCommand extends BaseInteractionCommandOption {
   description = 'Overlay a pistol on an image';
   name = 'pistol';
 

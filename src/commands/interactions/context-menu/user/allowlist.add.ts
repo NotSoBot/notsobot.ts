@@ -3,17 +3,17 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseCommand, CommandArgs } from './basecommand';
+import { BaseContextMenuUserCommand, ContextMenuUserArgs } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'Allowlist Add';
 
-export default class AllowlistAddCommand extends BaseCommand {
+export default class AllowlistAddCommand extends BaseContextMenuUserCommand {
   disableDm = true;
   name = COMMAND_NAME;
   permissions = [Permissions.ADMINISTRATOR];
 
-  async run(context: Interaction.InteractionContext, args: CommandArgs) {
+  async run(context: Interaction.InteractionContext, args: ContextMenuUserArgs) {
     return context.editOrRespond({content: 'wip', flags: 64});
   }
 }

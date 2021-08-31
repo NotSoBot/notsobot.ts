@@ -4,14 +4,14 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { EmbedBrands, EmbedColors } from '../../../../../constants';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
 
 }
 
-export class SettingsPrefixesClearCommand extends BaseCommandOption {
+export class SettingsPrefixesClearCommand extends BaseInteractionCommandOption {
   description = 'Clear all custom prefixes in the Server';
   name = 'clear';
 

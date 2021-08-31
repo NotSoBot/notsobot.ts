@@ -223,6 +223,10 @@ export const Api = Object.freeze({
 
   UTILITIES_FETCH_IMAGE:
     '/utilities/fetch/image',
+  UTILITIES_QR_CREATE:
+    '/utilities/qr/create',
+  UTILITIES_QR_READ:
+    '/utilities/qr/read',
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
 });

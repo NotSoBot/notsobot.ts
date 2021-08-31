@@ -4,14 +4,14 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { EmbedBrands, EmbedColors } from '../../../../../constants';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
   prefix: string,
 }
 
-export class SettingsPrefixesRemoveCommand extends BaseCommandOption {
+export class SettingsPrefixesRemoveCommand extends BaseInteractionCommandOption {
   description = 'Remove a custom prefix on this Server';
   name = 'remove';
 

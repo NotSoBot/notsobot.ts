@@ -6,10 +6,10 @@ import { Formatter, editOrReply } from '../../../../../utils';
 
 import GuildSettingsStore from '../../../../../stores/guildsettings';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
-export class SettingsPrefixesListCommand extends BaseCommandOption {
+export class SettingsPrefixesListCommand extends BaseInteractionCommandOption {
   description = 'List the Server\'s Prefixes';
   name = 'list';
 

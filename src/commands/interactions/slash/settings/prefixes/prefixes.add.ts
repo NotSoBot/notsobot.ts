@@ -4,14 +4,14 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { EmbedBrands, EmbedColors } from '../../../../../constants';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
   prefix: string,
 }
 
-export class SettingsPrefixesAddCommand extends BaseCommandOption {
+export class SettingsPrefixesAddCommand extends BaseInteractionCommandOption {
   description = 'Add a custom prefix for this Server';
   name = 'add';
   permissions = [Permissions.MANAGE_GUILD];

@@ -1,9 +1,9 @@
-import { BaseCommandOptionGroup } from '../../basecommand';
+import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SettingsUserSetLocaleCommand } from './set.locale';
 
 
-export class SettingsUserSetGroupCommand extends BaseCommandOptionGroup {
+export class SettingsUserSetGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'set';
 

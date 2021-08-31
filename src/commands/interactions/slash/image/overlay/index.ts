@@ -1,9 +1,9 @@
-import { BaseCommandOptionGroup } from '../../basecommand';
+import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { ImageOverlayPistolCommand } from './pistol';
 
 
-export class ImageOverlayGroupCommand extends BaseCommandOptionGroup {
+export class ImageOverlayGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'overlay';
 

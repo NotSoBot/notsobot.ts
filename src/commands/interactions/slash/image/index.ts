@@ -1,12 +1,12 @@
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { BaseCommand } from '../basecommand';
+import { BaseSlashCommand } from '../../basecommand';
 
 import { ImageInvertCommand } from './invert';
 import { ImageOverlayGroupCommand } from './overlay';
 
 
-export default class ImageGroupCommand extends BaseCommand {
+export default class ImageGroupCommand extends BaseSlashCommand {
   description = '.';
   name = 'i';
 

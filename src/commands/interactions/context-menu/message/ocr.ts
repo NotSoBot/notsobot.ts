@@ -3,16 +3,16 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 
 import { Formatter, findImageUrlInMessage } from '../../../../utils';
 
-import { BaseCommand, CommandArgs } from './basecommand';
+import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
 
 
-export interface OCRCommandArgs extends CommandArgs {
+export interface OCRCommandArgs extends ContextMenuMessageArgs {
   url?: string | null,
 }
 
 export const COMMAND_NAME = 'OCR';
 
-export default class OCRCommand extends BaseCommand {
+export default class OCRCommand extends BaseContextMenuMessageCommand {
   name = COMMAND_NAME;
 
   onBeforeRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {

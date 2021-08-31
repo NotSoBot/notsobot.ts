@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { editOrReply } from '../../../utils';
 
-import { BaseCommand } from './basecommand';
+import { BaseSlashCommand } from '../basecommand';
 
 
 export const COMMAND_NAME = 'ping';
 
-export default class PingCommand extends BaseCommand {
+export default class PingCommand extends BaseSlashCommand {
   description = 'Ping';
   name = COMMAND_NAME;
 

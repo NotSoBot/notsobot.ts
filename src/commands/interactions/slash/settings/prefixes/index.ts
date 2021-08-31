@@ -1,4 +1,4 @@
-import { BaseCommandOptionGroup } from '../../basecommand';
+import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SettingsPrefixesAddCommand } from './prefixes.add';
 import { SettingsPrefixesClearCommand } from './prefixes.clear';
@@ -6,7 +6,7 @@ import { SettingsPrefixesListCommand } from './prefixes.list';
 import { SettingsPrefixesRemoveCommand } from './prefixes.remove';
 
 
-export class SettingsPrefixesGroupCommand extends BaseCommandOptionGroup {
+export class SettingsPrefixesGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   disableDm = true;
   name = 'prefixes';

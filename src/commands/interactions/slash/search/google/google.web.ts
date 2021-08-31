@@ -3,7 +3,7 @@ import { Interaction } from 'detritus-client';
 import { GoogleLocales } from '../../../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
@@ -12,7 +12,7 @@ export interface CommandArgs {
   safe?: boolean,
 }
 
-export class SearchGoogleWebCommand extends BaseCommandOption {
+export class SearchGoogleWebCommand extends BaseInteractionCommandOption {
   description = 'Search Google';
   name = 'web';
 

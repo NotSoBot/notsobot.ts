@@ -6,7 +6,7 @@ import { searchSteam } from '../../../../../api';
 import { EmbedBrands, EmbedColors } from '../../../../../constants';
 import { Paginator, createUserEmbed, editOrReply } from '../../../../../utils';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
@@ -14,7 +14,7 @@ export interface CommandArgs {
   query: string,
 }
 
-export class SearchSteamCommunityCommand extends BaseCommandOption {
+export class SearchSteamCommunityCommand extends BaseInteractionCommandOption {
   description = 'Search Steam Community';
   name = 'community';
 

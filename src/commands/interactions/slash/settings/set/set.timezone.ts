@@ -4,14 +4,14 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { EmbedBrands, EmbedColors } from '../../../../../constants';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
   timezone: string,
 }
 
-export class SettingsSetTimezoneCommand extends BaseCommandOption {
+export class SettingsSetTimezoneCommand extends BaseInteractionCommandOption {
   description = 'Set the Server\'s Timezone';
   name = 'timezone';
 

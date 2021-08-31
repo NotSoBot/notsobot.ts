@@ -6,14 +6,14 @@ import { searchSteamProfile } from '../../../../../api';
 import { EmbedBrands, EmbedColors } from '../../../../../constants';
 import { editOrReply } from '../../../../../utils';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
   query: string,
 }
 
-export class SearchSteamProfilesCommand extends BaseCommandOption {
+export class SearchSteamProfilesCommand extends BaseInteractionCommandOption {
   description = 'Show information about a Steam Profile';
   name = 'profile';
 

@@ -1,9 +1,9 @@
-import { BaseCommand } from '../basecommand';
+import { BaseSlashCommand } from '../../basecommand';
 
 import { SettingsUserSetGroupCommand } from './set';
 
 
-export default class SettingsUserGroupCommand extends BaseCommand {
+export default class SettingsUserGroupCommand extends BaseSlashCommand {
   description = '.';
   name = 'settings-user';
 

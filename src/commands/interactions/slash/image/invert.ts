@@ -1,9 +1,9 @@
 import { Interaction } from 'detritus-client';
 
-import { BaseCommandOption } from '../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 
-export class ImageInvertCommand extends BaseCommandOption {
+export class ImageInvertCommand extends BaseInteractionCommandOption {
   description = 'Invert an image';
   name = 'invert';
 

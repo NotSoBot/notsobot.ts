@@ -1,36 +1,37 @@
 import { Interaction, Structures } from 'detritus-client';
 import {
   ApplicationCommandTypes,
+  ApplicationCommandOptionTypes,
+  InteractionCallbackTypes,
   MessageFlags,
 } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
-import { EmbedColors, PermissionsText } from '../../../../constants';
-import { createUserEmbed } from '../../../../utils';
+import { EmbedColors, PermissionsText } from '../../constants';
+import { createUserEmbed } from '../../utils';
 
 
-export interface CommandArgs {
-  message: Structures.Message,
-}
 
-export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
-  global = true;
-  permissionsIgnoreClientOwner = true;
-  triggerLoadingAfter = 1000;
-  triggerLoadingAsEphemeral = true;
-  type = ApplicationCommandTypes.MESSAGE;
+export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
+  error = 'Command';
 
-  constructor(data: Interaction.InteractionCommandOptions = {}) {
-    super(Object.assign({
-      guildIds: ['178313653177548800', '621077547471601685'],
-    }, data));
+  onLoadingTrigger(context: Interaction.InteractionContext) {
+    if (context.responded) {
+      return;
+    }
+
+    if (this.triggerLoadingAsEphemeral) {
+      return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+    }
+    // check perms to maybe force as ephemeral, just in case
+    return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
   }
 
   onDmBlocked(context: Interaction.InteractionContext) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ Message Context Menu Command \`${command}\` cannot be used in a DM.`,
+      content: `⚠ ${this.error} \`${command}\` cannot be used in a DM.`,
       flags: MessageFlags.EPHEMERAL,
     });
   }
@@ -48,7 +49,7 @@ export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends In
 
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ Message Context Menu Command ${command} requires the bot to have ${permissions.join(', ')} to work.`,
+      content: `⚠ ${this.error} ${command} requires the bot to have ${permissions.join(', ')} to work.`,
     });
   }
 
@@ -65,7 +66,7 @@ export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends In
 
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ Message Context Menu Command ${command} requires you to have ${permissions.join(', ')}.`,
+      content: `⚠ ${this.error} ${command} requires you to have ${permissions.join(', ')}.`,
       flags: MessageFlags.EPHEMERAL,
     });
   }
@@ -73,7 +74,7 @@ export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends In
   async onRunError(context: Interaction.InteractionContext, args: ParsedArgsFinished, error: any) {
     const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.ERROR);
-    embed.setTitle('⚠ Message Context Menu Command Error');
+    embed.setTitle(`⚠ ${this.error} Command Error`);
 
     const description: Array<string> = [];
     if (error.response) {
@@ -143,5 +144,60 @@ export class BaseCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends In
       embed,
       flags: MessageFlags.EPHEMERAL,
     });
+  }
+}
+
+
+export class BaseInteractionCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
+  type = ApplicationCommandOptionTypes.SUB_COMMAND;
+}
+
+
+export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
+  type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
+}
+
+
+
+export class BaseSlashCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommand<ParsedArgsFinished> {
+  error = 'Slash Command';
+  type = ApplicationCommandTypes.CHAT_INPUT;
+}
+
+
+export interface ContextMenuMessageArgs {
+  message: Structures.Message,
+}
+
+export class BaseContextMenuMessageCommand extends BaseInteractionCommand<ContextMenuMessageArgs> {
+  error = 'Message Context Menu';
+  type = ApplicationCommandTypes.MESSAGE;
+
+  global = true;
+  permissionsIgnoreClientOwner = true;
+  triggerLoadingAfter = 1000;
+  triggerLoadingAsEphemeral = true;
+
+  constructor(data: Interaction.InteractionCommandOptions = {}) {
+    super(Object.assign({guildIds: ['178313653177548800', '621077547471601685']}, data));
+  }
+}
+
+
+export interface ContextMenuUserArgs {
+  member?: Structures.Member,
+  user: Structures.User,
+}
+
+export class BaseContextMenuUserCommand extends BaseInteractionCommand<ContextMenuUserArgs> {
+  error = 'User Context Menu';
+  type = ApplicationCommandTypes.USER;
+
+  global = true;
+  permissionsIgnoreClientOwner = true;
+  triggerLoadingAsEphemeral = true;
+
+  constructor(data: Interaction.InteractionCommandOptions = {}) {
+    super(Object.assign({guildIds: ['178313653177548800']}, data));
   }
 }

@@ -1,9 +1,9 @@
-import { BaseCommand } from '../basecommand';
+import { BaseSlashCommand } from '../../basecommand';
 
 import { OwnerEvalCommand } from './eval';
 
 
-export default class OwnerGroupCommand extends BaseCommand {
+export default class OwnerGroupCommand extends BaseSlashCommand {
   description = '.';
   name = 'owner';
 

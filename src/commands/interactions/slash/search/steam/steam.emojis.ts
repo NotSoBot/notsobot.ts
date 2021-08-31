@@ -6,7 +6,7 @@ import { searchSteamEmojis } from '../../../../../api';
 import { EmbedBrands, EmbedColors } from '../../../../../constants';
 import { Paginator, editOrReply } from '../../../../../utils';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 
@@ -14,7 +14,7 @@ export interface CommandArgs {
   query: string,
 }
 
-export class SearchSteamEmojisCommand extends BaseCommandOption {
+export class SearchSteamEmojisCommand extends BaseInteractionCommandOption {
   description = 'Search Steam\'s Emojis';
   name = 'emojis';
 

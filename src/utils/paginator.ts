@@ -84,11 +84,11 @@ export class Paginator {
     isActive: false,
     timeout: new Timers.Timeout(),
   };
+  _isEphemeral?: boolean;
+  _message: null | Structures.Message = null;
 
   buttons: Record<PageButtonNames, PageButton> = Object.assign({}, PageButtons);
-  expires: number = 2 * (60 * 1000);
-  isEphemeral: boolean = false;
-  message: null | Structures.Message = null;
+  expires: number = 1 * (60 * 1000);
   page: number = MIN_PAGE;
   pageLimit: number = MAX_PAGE;
   pageSkipAmount: number = 10;
@@ -108,8 +108,11 @@ export class Paginator {
     options: PaginatorOptions,
   ) {
     this.context = context;
-    this.message = options.message || null;
-    this.isEphemeral = !!options.isEphemeral;
+    this._message = options.message || null;
+
+    if (options.isEphemeral !== undefined) {
+      this.isEphemeral = options.isEphemeral;
+    }
 
     if (Array.isArray(options.pages)) {
       this.pages = options.pages;
@@ -240,8 +243,36 @@ export class Paginator {
     return '';
   }
 
+  get isEphemeral(): boolean {
+    if (this._isEphemeral !== undefined) {
+      return this._isEphemeral;
+    }
+    if (this.message) {
+      return this._isEphemeral = this.message.hasFlag(MessageFlags.EPHEMERAL);
+    }
+    return false;
+  }
+
+  set isEphemeral(isEphemeral: boolean) {
+    this._isEphemeral = isEphemeral;
+  }
+
   get isLarge(): boolean {
     return false; //this.pageSkipAmount < this.pageLimit;
+  }
+
+  get message(): null | Structures.Message {
+    if (this._message) {
+      return this._message;
+    }
+    if (this.context instanceof Interaction.InteractionContext) {
+      return this._message = this.context.response;
+    }
+    return null;
+  }
+
+  get messageId(): string {
+    return (this.message) ? this.message.id : '';
   }
 
   get shouldHaveComponents(): boolean {
@@ -529,26 +560,14 @@ export class Paginator {
     let message: Structures.Message;
     if (this.message) {
       message = this.message;
-      this.isEphemeral = message.hasFlag(MessageFlags.EPHEMERAL);
     } else {
       if (this.context instanceof Interaction.InteractionContext) {
         const embed = await this.getPage(this.page);
-        message = this.message = await this.context.editOrRespond({
+        await this.context.editOrRespond({
           components: this.components,
           embed,
           flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
         });
-        if (message) {
-          this.isEphemeral = message.hasFlag(MessageFlags.EPHEMERAL);
-        } else {
-          try {
-            message = this.message = await this.context.fetchResponse();
-            this.isEphemeral = message.hasFlag(MessageFlags.EPHEMERAL);
-          } catch(error) {
-            // Assume we're working with an ephemeral message
-            this.isEphemeral = true;
-          }
-        }
       } else {
         if (!this.context.canReply) {
           throw new Error('Cannot create messages in this channel');
@@ -556,12 +575,12 @@ export class Paginator {
 
         const embed = await this.getPage(this.page);
         if (this.context instanceof Command.Context) {
-          message = this.message = await editOrReply(this.context, {
+          message = this._message = await editOrReply(this.context, {
             components: this.components,
             embed,
           });
         } else {
-          message = this.message = await this.context.reply({
+          message = this._message = await this.context.reply({
             components: this.components,
             embed,
           });

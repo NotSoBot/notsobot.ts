@@ -6,6 +6,7 @@ import * as SettingsPrefixesList from './settings.prefixes.list';
 import * as ToolsHash from './tools.hash';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
+import * as ToolsQrScan from './tools.qr.scan';
 import * as ToolsTranslate from './tools.translate';
 
 export {
@@ -17,5 +18,6 @@ export {
   ToolsHash,
   ToolsOCR,
   ToolsOCRTranslate,
+  ToolsQrScan,
   ToolsTranslate,
 };

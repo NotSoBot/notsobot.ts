@@ -1,0 +1,39 @@
+import { Command, Interaction } from 'detritus-client';
+import { MessageFlags } from 'detritus-client/lib/constants';
+import { Embed, Markup } from 'detritus-client/lib/utils';
+
+import { utilitiesQrRead } from '../../../api';
+import {
+  EmbedBrands,
+  EmbedColors,
+} from '../../../constants';
+import { createUserEmbed, editOrReply } from '../../../utils';
+
+
+export async function createMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  args: {isEphemeral?: boolean, url: string},
+) {
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
+
+  const { scanned, url } = await utilitiesQrRead(context, args);
+
+  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
+  embed.setColor(EmbedColors.DEFAULT);
+  embed.setFooter('QR Scanner', EmbedBrands.NOTSOBOT);
+  embed.setThumbnail(url || args.url);
+
+  embed.setTitle('QR Code Scan Result');
+  if (scanned.length) {
+    for (let i = 0; i < scanned.length; i++) {
+      const qr = scanned[i];
+      embed.addField(`QR Code ${i + 1}`, Markup.codeblock(qr.data, {limit: 1014}));
+    }
+  } else {
+    embed.setDescription('No QR Codes found');
+  }
+  return editOrReply(context, {
+    embed,
+    flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
+  });
+}

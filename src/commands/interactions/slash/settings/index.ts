@@ -1,10 +1,10 @@
-import { BaseCommand } from '../basecommand';
+import { BaseSlashCommand } from '../../basecommand';
 
 import { SettingsPrefixesGroupCommand } from './prefixes';
 import { SettingsSetGroupCommand } from './set';
 
 
-export default class SettingsGroupCommand extends BaseCommand {
+export default class SettingsGroupCommand extends BaseSlashCommand {
   description = '.';
   name = 'settings';
 

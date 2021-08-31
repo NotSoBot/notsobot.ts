@@ -342,6 +342,15 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface UtilitiesQrCreate {
+    query: string,
+    size?: number | string,
+  }
+
+  export interface UtilitiesQrRead {
+    url: string,
+  }
+
   export interface UtilitiesScreenshot {
     url: string,
   }
@@ -1155,6 +1164,18 @@ export namespace RestResponsesRaw {
       view_count: number,
     },
     type: YoutubeResultTypes.VIDEO,
+  }
+
+  export interface UtilitiesQrRead {
+    scanned: Array<{
+      data: string,
+      box: {
+        points: Array<{x: number, y: number}>,
+        rectangle: {height: number, left: number, top: number, width: number},
+      },
+      type: string,
+    }>,
+    url?: string,
   }
 
   export interface Tag {

@@ -1,13 +1,13 @@
 import { Interaction } from 'detritus-client';
 import { InteractionCallbackTypes, MessageFlags, Permissions } from 'detritus-client/lib/constants';
 
-import { BaseCommand } from '../basecommand';
+import { BaseSlashCommand } from '../../basecommand';
 
 import { SearchGoogleGroupCommand } from './google';
 import { SearchSteamGroupCommand } from './steam';
 
 
-export default class SearchGroupCommand extends BaseCommand {
+export default class SearchGroupCommand extends BaseSlashCommand {
   description = '.';
   name = 'search';
   triggerLoadingAfter = 100;

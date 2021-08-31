@@ -4,7 +4,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { GoogleLocales } from '../../../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../../../utils';
 
-import { BaseCommandOption } from '../../basecommand';
+import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
@@ -12,7 +12,7 @@ export interface CommandArgs {
   languageChoice?: GoogleLocales,
 }
 
-export class SettingsUserSetLocaleCommand extends BaseCommandOption {
+export class SettingsUserSetLocaleCommand extends BaseInteractionCommandOption {
   description = 'Set your default language for the bot.';
   name = 'locale';
 
