@@ -47,7 +47,7 @@ export default class LoggersAddRolesCommand extends LoggersAddBaseCommand {
       channelId: channel.id,
       type: GuildLoggerTypes.ROLES,
       webhookId: webhook.id,
-      webhookToken: webhook.token,
+      webhookToken: webhook.token!,
     });
     return createLoggersEmbed(context, loggers, {title: `Created a Role Logger in ${channel} (${channel.id})`});
   }

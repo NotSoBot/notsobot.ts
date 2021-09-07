@@ -92,7 +92,7 @@ export function editOrReply(
 
 
 export async function fetchMemberOrUserById(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   userId: string,
   memberOnly: boolean = false,
 ): Promise<Structures.Member | Structures.User | null> {
@@ -106,14 +106,16 @@ export async function fetchMemberOrUserById(
     }
   }
 
-  const mention = context.message.mentions.get(userId);
-  if (mention) {
-    if (memberOnly) {
-      if (mention instanceof Structures.Member) {
+  if (context instanceof Command.Context) {
+    const mention = context.message.mentions.get(userId);
+    if (mention) {
+      if (memberOnly) {
+        if (mention instanceof Structures.Member) {
+          return mention;
+        }
+      } else {
         return mention;
       }
-    } else {
-      return mention;
     }
   }
 
@@ -260,7 +262,7 @@ export function findImageUrlInMessages(
 /** Member Chunking */
 
 export async function findMemberByChunk(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   username: string,
   discriminator?: null | string,
 ): Promise<Structures.Member | Structures.User | null> {
@@ -394,7 +396,7 @@ export async function findMemberByChunk(
 
 
 export async function findMemberByChunkText(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   text: string,
 ) {
   const [ username, discriminator ] = splitTextToDiscordHandle(text);
@@ -403,7 +405,7 @@ export async function findMemberByChunkText(
 
 
 export async function findMembersByChunk(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   username: string,
   discriminator?: null | string,
 ): Promise<Array<Structures.Member | Structures.User>> {
@@ -446,7 +448,7 @@ export async function findMembersByChunk(
 
 
 export async function findMembersByChunkText(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   text: string,
 ) {
   const [ username, discriminator ] = splitTextToDiscordHandle(text);
@@ -601,7 +603,7 @@ export function htmlDecode(value: string): string {
 
 
 export async function imageReply(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   response: Response,
   options: {
     content?: string,
@@ -653,7 +655,7 @@ export async function imageReply(
 
 
 export async function imageReplyFromOptions(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   value: any,
   options: {
     content?: string,

@@ -47,7 +47,7 @@ export default class LoggersAddVoiceCommand extends LoggersAddBaseCommand {
       channelId: channel.id,
       type: GuildLoggerTypes.VOICE,
       webhookId: webhook.id,
-      webhookToken: webhook.token,
+      webhookToken: webhook.token!,
     });
     return createLoggersEmbed(context, loggers, {title: `Created a Voice Logger in ${channel} (${channel.id})`});
   }

@@ -36,6 +36,14 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
     });
   }
 
+  onCancelRun(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+    const command = Markup.codestring(context.name);
+    return context.editOrRespond({
+      content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,
+      flags: MessageFlags.EPHEMERAL,
+    });
+  }
+
   onPermissionsFailClient(context: Interaction.InteractionContext, failed: Array<bigint>) {
     const permissions: Array<string> = [];
     for (let permission of failed) {
@@ -162,6 +170,8 @@ export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.
 export class BaseSlashCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommand<ParsedArgsFinished> {
   error = 'Slash Command';
   type = ApplicationCommandTypes.CHAT_INPUT;
+
+  triggerLoadingAfter = 1000;
 }
 
 

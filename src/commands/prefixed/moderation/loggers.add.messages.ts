@@ -47,7 +47,7 @@ export default class LoggersAddMessagesCommand extends LoggersAddBaseCommand {
       channelId: channel.id,
       type: GuildLoggerTypes.MESSAGES,
       webhookId: webhook.id,
-      webhookToken: webhook.token,
+      webhookToken: webhook.token!,
     });
     return createLoggersEmbed(context, loggers, {title: `Created a Message Logger in ${channel} (${channel.id})`});
   }

@@ -863,6 +863,7 @@ export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
   [ChannelTypes.GUILD_PUBLIC_THREAD]: 'Guild Public Thread',
   [ChannelTypes.GUILD_PRIVATE_THREAD]: 'Guild Private Thread',
   [ChannelTypes.GUILD_STAGE_VOICE]: 'Guild Stage Voice',
+  [ChannelTypes.GUILD_DIRECTORY]: 'Guild Directory',
 });
 
 

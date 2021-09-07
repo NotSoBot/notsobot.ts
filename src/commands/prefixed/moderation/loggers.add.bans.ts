@@ -47,7 +47,7 @@ export default class LoggersAddBansCommand extends LoggersAddBaseCommand {
       channelId: channel.id,
       type: GuildLoggerTypes.BANS,
       webhookId: webhook.id,
-      webhookToken: webhook.token,
+      webhookToken: webhook.token!,
     });
     return createLoggersEmbed(context, loggers, {title: `Created a Ban Logger in ${channel} (${channel.id})`});
   }

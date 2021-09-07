@@ -47,7 +47,7 @@ export default class LoggersAddMembersCommand extends LoggersAddBaseCommand {
       channelId: channel.id,
       type: GuildLoggerTypes.MEMBERS,
       webhookId: webhook.id,
-      webhookToken: webhook.token,
+      webhookToken: webhook.token!,
     });
     return createLoggersEmbed(context, loggers, {title: `Created a Member Logger in ${channel} (${channel.id})`});
   }
