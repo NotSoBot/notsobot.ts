@@ -1,5 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 
+import { runInNewContext } from 'vm';
 
 import { utilitiesFetchImage } from '../api';
 
@@ -20,6 +21,7 @@ export const MAX_VARIABLE_KEY_LENGTH = 64;
 export const MAX_VARIABLE_LENGTH = 2000;
 export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
+export const REGEX_REPLACE_TIMEOUT = 25;
 
 export const SCRIPT_REGEX = /\{((?:(?!:)(?:.|\s))*):([\s\S]+)\}/;
 
@@ -866,8 +868,30 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.STRING_REPLACE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    return false;
+  [TagFunctions.STRING_REPLACE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {replace:regex|with|in}
+
+    const [regex, replaceWith, source] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+
+    if (regex === undefined || replaceWith === undefined || source === undefined) {
+      return false;
+    }
+
+    try {
+      tag.text += runInNewContext(`
+        source.replace(new RegExp(regex, 'g'), replaceWith);
+      `, {
+        regex,
+        source,
+        replaceWith
+      }, {
+        timeout: REGEX_REPLACE_TIMEOUT
+      });
+    } catch {
+      throw new Error('text replacing timed out');
+    }
+
+    return true;
   },
 
   [TagFunctions.STRING_REVERSE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
