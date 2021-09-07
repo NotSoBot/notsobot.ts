@@ -21,7 +21,7 @@ export class NotSoCommandClient extends CommandClient {
     if (member && (member.isOwner || member.canAdministrator)) {
       return true;
     }
-    const guildId = context.guildId as string;
+    const guildId = context.guildId!;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {
       const disabledCommands = settings.disabledCommands.filter((disabled) => disabled.command === command.name);
@@ -46,7 +46,7 @@ export class NotSoCommandClient extends CommandClient {
             }; break;
             case GuildDisableCommandsTypes.USER: {
               return disabled.id === context.userId;
-            }; break;
+            };
           }
           return false;
         });
@@ -73,7 +73,7 @@ export class NotSoCommandClient extends CommandClient {
             }; break;
             case GuildAllowlistTypes.USER: {
               return allow.id === context.userId;
-            }; break;
+            };
           }
           return false;
         });
