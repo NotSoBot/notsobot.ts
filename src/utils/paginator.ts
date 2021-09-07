@@ -159,10 +159,10 @@ export class Paginator {
     this.onPageNumber = options.onPageNumber;
 
     Object.defineProperties(this, {
+      _message: {enumerable: false},
       buttons: {enumerable: false},
       context: {enumerable: false},
       custom: {enumerable: false},
-      message: {enumerable: false},
       onError: {enumerable: false},
       onExpire: {enumerable: false},
       onPage: {enumerable: false},
