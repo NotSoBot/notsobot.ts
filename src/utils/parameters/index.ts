@@ -258,15 +258,30 @@ export async function NotSoTag(
 }
 
 
-export function tagContent(
+export async function tagContent(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
-): string {
+): Promise<string> {
   if (!value) {
     if (context instanceof Command.Context) {
-      const url = findImageUrlInMessages([context.message]);
-      if (url) {
-        return url;
+      // check the message's attachments/stickers first
+      {
+        const url = findImageUrlInMessages([context.message]);
+        if (url) {
+          return url;
+        }
+      }
+
+      // check for reply and if it has an image
+      {
+        const { messageReference } = context.message;
+        if (messageReference && messageReference.messageId) {
+          const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          const url = findImageUrlInMessages([message]);
+          if (url) {
+            return url;
+          }
+        }
       }
     }
   }

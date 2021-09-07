@@ -562,33 +562,39 @@ export class Paginator {
     }
 
     let message: Structures.Message | null = null;
-    if (this.message) {
+    if (this.context instanceof Interaction.InteractionContext) {
+      const embed = await this.getPage(this.page);
+      await this.context.editOrRespond({
+        components: this.components,
+        embed,
+        flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
+      });
       message = this.message;
-    } else {
-      if (this.context instanceof Interaction.InteractionContext) {
+    } else if (this.message) {
+      message = this.message;
+      if (message.canEdit) {
         const embed = await this.getPage(this.page);
-        await this.context.editOrRespond({
+        message = this.message = await message.edit({
           components: this.components,
           embed,
-          flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
+        });
+      }
+    } else {
+      if (!this.context.canReply) {
+        throw new Error('Cannot create messages in this channel');
+      }
+
+      const embed = await this.getPage(this.page);
+      if (this.context instanceof Command.Context) {
+        message = this._message = await editOrReply(this.context, {
+          components: this.components,
+          embed,
         });
       } else {
-        if (!this.context.canReply) {
-          throw new Error('Cannot create messages in this channel');
-        }
-
-        const embed = await this.getPage(this.page);
-        if (this.context instanceof Command.Context) {
-          message = this._message = await editOrReply(this.context, {
-            components: this.components,
-            embed,
-          });
-        } else {
-          message = this._message = await this.context.reply({
-            components: this.components,
-            embed,
-          });
-        }
+        message = this._message = await this.context.reply({
+          components: this.components,
+          embed,
+        });
       }
     }
 
