@@ -88,6 +88,7 @@ export namespace RestOptions {
     after?: string,
     before?: string,
     limit?: number,
+    query?: string,
     userId?: string,
   }
 
@@ -95,6 +96,7 @@ export namespace RestOptions {
     after?: string,
     before?: string,
     limit?: number,
+    query?: string,
   }
 
 

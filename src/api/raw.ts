@@ -374,6 +374,7 @@ export async function fetchTagsServer(
     after: options.after,
     before: options.before,
     limit: options.limit,
+    query: options.query,
     user_id: options.userId,
   };
   return request(context, {
@@ -412,6 +413,7 @@ export async function fetchUserTags(
     after: options.after,
     before: options.before,
     limit: options.limit,
+    query: options.query,
   };
   return request(context, {
     query,

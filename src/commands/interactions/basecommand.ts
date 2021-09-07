@@ -157,12 +157,30 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
 
 
 export class BaseInteractionCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
+  error = 'Slash Command';
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
+
+  onCancelRun(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+    const command = Markup.codestring(context.name);
+    return context.editOrRespond({
+      content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,
+      flags: MessageFlags.EPHEMERAL,
+    });
+  }
 }
 
 
 export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
+  error = 'Slash Command';
   type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
+
+  onCancelRun(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+    const command = Markup.codestring(context.name);
+    return context.editOrRespond({
+      content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,
+      flags: MessageFlags.EPHEMERAL,
+    });
+  }
 }
 
 

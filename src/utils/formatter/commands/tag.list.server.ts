@@ -12,19 +12,50 @@ import {
   createTimestampMomentFromGuild,
   createUserEmbed,
   editOrReply,
-} from '../..';
+} from '../../../utils';
 
 
-
+export const MAX_FETCHES = 10;
 export const RESULTS_PER_PAGE = 28;
 
 
+export interface CommandArgs {
+  query?: string,
+  user?: Structures.Member | Structures.User,
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
+  const serverId = context.guildId || context.channelId!;
 
-  const { count, tags } = await fetchTagsServer(context, context.guildId || context.channelId!);
+  let before: string | undefined;
+  let count: number = 0;
+  let fetched: number = 0;
+  const chunks: Array<Array<RestResponsesRaw.Tag>> = [];
+  for (let i = 0; i < MAX_FETCHES; i++) {
+    const response = await fetchTagsServer(context, serverId, {
+      before,
+      query: args.query,
+      userId: (args.user) ? args.user.id : undefined,
+    });
+
+    count = response.count;
+    if (response.tags.length) {
+      fetched += response.tags.length;
+      chunks.push(response.tags);
+      before = response.tags[response.tags.length - 1].id;
+    } else {
+      break;
+    }
+
+    if (count <= fetched) {
+      break;
+    }
+  }
+  const tags = chunks.flat();
 
   const pages = chunkArray<RestResponsesRaw.Tag>(tags, RESULTS_PER_PAGE);
   if (pages.length) {

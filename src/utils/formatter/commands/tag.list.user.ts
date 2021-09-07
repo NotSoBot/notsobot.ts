@@ -15,12 +15,13 @@ import {
 } from '../../../utils';
 
 
-
+export const MAX_FETCHES = 10;
 export const RESULTS_PER_PAGE = 28;
 
 
 export interface CommandArgs {
   global?: boolean,
+  query?: string,
   user: Structures.Member | Structures.User,
 }
 
@@ -34,18 +35,39 @@ export async function createMessage(
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  let count: number, tags: Array<RestResponsesRaw.Tag>;
-  if (args.global) {
-    const response = await fetchUserTags(context, args.user.id);
+  let before: string | undefined;
+  let count: number = 0;
+  let fetched: number = 0;
+  const chunks: Array<Array<RestResponsesRaw.Tag>> = [];
+  for (let i = 0; i < MAX_FETCHES; i++) {
+    let response: RestResponsesRaw.FetchTagsServer | RestResponsesRaw.FetchUserTags;
+    if (args.global) {
+      response = await fetchUserTags(context, args.user.id, {
+        before,
+        query: args.query,
+      });
+    } else {
+      response = await fetchTagsServer(context, context.guildId || context.channelId!, {
+        before,
+        query: args.query,
+        userId: args.user.id,
+      });
+    }
+
     count = response.count;
-    tags = response.tags;
-  } else {
-    const response = await fetchTagsServer(context, context.guildId || context.channelId!, {
-      userId: args.user.id,
-    });
-    count = response.count;
-    tags = response.tags;
+    if (response.tags.length) {
+      fetched += response.tags.length;
+      chunks.push(response.tags);
+      before = response.tags[response.tags.length - 1].id;
+    } else {
+      break;
+    }
+
+    if (count <= fetched) {
+      break;
+    }
   }
+  const tags = chunks.flat();
 
   const pages = chunkArray<RestResponsesRaw.Tag>(tags, RESULTS_PER_PAGE);
   if (pages.length) {

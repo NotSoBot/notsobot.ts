@@ -13,14 +13,13 @@ import {
 
 
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
-
+export const SNOWFLAKE_EPOCH = 1564790400000;
 
 
 export enum BooleanEmojis {
   NO = '❌',
   YES = '✅',
 };
-
 
 
 export enum CommandTypes {
@@ -35,7 +34,6 @@ export enum CommandTypes {
   TOOLS = 'TOOLS',
   UTILS = 'UTILS',
 }
-
 
 
 export const DateMomentLogFormat = 'MM/DD/YY, h:mm:ss a z';
