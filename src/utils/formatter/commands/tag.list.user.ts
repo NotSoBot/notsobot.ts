@@ -11,6 +11,7 @@ import {
   chunkArray,
   createTimestampMomentFromGuild,
   createUserEmbed,
+  createUserString,
   editOrReply,
 } from '../../../utils';
 
@@ -78,9 +79,18 @@ export async function createMessage(
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
 
-        embed.setDescription(args.user.mention);
+        if (args.query || args.user) {
+          const description: Array<string> = [];
+          if (args.user) {
+            description.push(`Showing tags owned by ${createUserString(args.user.id, args.user)}`);
+          }
+          if (args.query) {
+            description.push(`Filtering for tags containing ${Markup.codestring(args.query)}`);
+          }
+          embed.setDescription(description.join('\n'));
+        }
 
-        let footer = (args.global) ? `${args.user}'s Global Tags` : `${args.user}'s Server Tags`;
+        let footer = (args.global) ? 'Global Tags' : 'Server Tags'
         if (pageLimit !== 1) {
           footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
         }
@@ -115,5 +125,7 @@ export async function createMessage(
     return await paginator.start();
   }
 
-  return editOrReply(context, (args.user.id === context.userId) ? 'You don\'t have any tags here' : 'They don\'t have any tags here');
+  const person = (args.user.id === context.userId) ? 'You don\'t' : 'They don\'t';
+  const noun = (args.global) ? 'global tags' : 'tags here';
+  return editOrReply(context, `${person} doesn\'t have any ${noun}`);
 }

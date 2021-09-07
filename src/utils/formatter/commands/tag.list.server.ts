@@ -11,6 +11,7 @@ import {
   chunkArray,
   createTimestampMomentFromGuild,
   createUserEmbed,
+  createUserString,
   editOrReply,
 } from '../../../utils';
 
@@ -28,6 +29,10 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  if (args.user && args.user.bot) {
+    return editOrReply(context, '⚠ Bots do not have tags.');
+  }
+
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const serverId = context.guildId || context.channelId!;
 
@@ -65,6 +70,17 @@ export async function createMessage(
       onPage: (pageNumber) => {
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
+
+        if (args.query || args.user) {
+          const description: Array<string> = [];
+          if (args.user) {
+            description.push(`Showing tags owned by ${createUserString(args.user.id, args.user)}`);
+          }
+          if (args.query) {
+            description.push(`Filtering for tags containing ${Markup.codestring(args.query)}`);
+          }
+          embed.setDescription(description.join('\n'));
+        }
 
         let footer = `Server Tags`;
         if (pageLimit !== 1) {
