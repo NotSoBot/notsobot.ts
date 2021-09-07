@@ -118,6 +118,10 @@ export type GuildLoggingEventItem = {
 } | {
   audits?: GuildLoggingEventItemAudits,
   cached: {
+    avatars?: {
+      current?: {filename: string, value: Buffer},
+      old?: {filename: string, value: Buffer},
+    },
     old: Structures.User,
     user: Structures.User,
   },
@@ -193,7 +197,8 @@ export const MAX_MENTIONS = 10;
 
 // <guildId, GuildLogStorage>
 class GuildLoggingStore extends Store<string, GuildLogStorage> {
-  add(guildId: string, type: GuildLoggerTypes, shard: ShardClient, event: GuildLoggingEventItem): void {
+  async add(guildId: string, type: GuildLoggerTypes, shard: ShardClient, event: GuildLoggingEventItem): Promise<void> {
+    await Timers.sleep(250); // add a slight delay for the audit log to be populated
     const storage = this.getOrCreate(guildId, shard);
 
     let queue: Array<GuildLoggingEventItem>;
@@ -533,7 +538,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
-      const keys = ['deaf', 'hoistedRole', 'mute', 'nick', 'premiumSince', 'roles'];
+      const keys = ['avatar', 'deaf', 'hoistedRole', 'mute', 'nick', 'premiumSince', 'roles'];
       const name = ClientEvents.GUILD_MEMBER_UPDATE;
 
       const subscription = cluster.subscribe(name, async (payload) => {
@@ -685,8 +690,28 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       const subscription = cluster.subscribe(name, async (payload) => {
         const { shard, old, user } = payload;
         if (old) {
-          const cached = {old, user: user.clone()};
+          const cached: {
+            avatars?: {current?: {filename: string, value: Buffer}, old?: {filename: string, value: Buffer}},
+            old: Structures.User,
+            user: Structures.User,
+          } = {old, user: user.clone()};
           const happened = Date.now();
+
+          if (old.avatar !== user.avatar) {
+            cached.avatars = {};
+            try {
+              if (old.avatar) {
+                const url = old.avatarUrlFormat(null, {size: 512});
+                cached.avatars.old = {filename: `${user.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`, value: await shard.rest.get(url)};
+              }
+              if (user.avatar) {
+                const url = user.avatarUrlFormat(null, {size: 512});
+                cached.avatars.current = {filename: `${user.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`, value: await shard.rest.get(url)};
+              }
+            } catch(error) {
+              cached.avatars = undefined;
+            }
+          }
 
           for (let [guildId, guild] of user.guilds) {
             await this.tryAdd(shard, {
@@ -1017,6 +1042,7 @@ export function createLogPayload(
 
       {
         const description: Array<string> = [];
+
         // for non-premium guilds and when someone unboosts/boosts
         if (!audits) {
           if (member.deaf !== old.deaf || member.mute !== old.deaf) {
@@ -1119,6 +1145,16 @@ export function createLogPayload(
             description.push(`-> Boosted`);
           } else {
             description.push(`-> Unboosted`);
+          }
+        }
+
+        if (member.avatar !== old.avatar) {
+          if (member.avatar && old.avatar) {
+            description.push('- Changed their Server Avatar');
+          } else if (member.avatar && !old.avatar) {
+            description.push('- Set their Server Avatar');
+          } else if (!member.avatar && old.avatar) {
+            description.push('- Removed their Server Avatar');
           }
         }
 
@@ -1680,7 +1716,7 @@ export function createLogPayload(
       ].join('\n'));
     }; break;
     case ClientEvents.USERS_UPDATE: {
-      const { old, user } = event.cached;
+      const { avatars, old, user } = event.cached;
       const { differences } = event.payload;
 
       {
@@ -1690,6 +1726,17 @@ export function createLogPayload(
 
       createUserEmbed(user, embed);
       embed.setColor(EmbedColors.LOG_UPDATE);
+
+      if (avatars) {
+        if (avatars.current) {
+          embed.setAuthor(undefined, `attachment://${avatars.current.filename}`);
+          files.push(avatars.current);
+        }
+        if (avatars.old) {
+          embed.setThumbnail(`attachment://${avatars.old.filename}`);
+          files.push(avatars.old);
+        }
+      }
 
       embed.setDescription(user.mention);
       if (differences) {

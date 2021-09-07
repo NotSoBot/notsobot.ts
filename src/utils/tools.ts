@@ -2,8 +2,8 @@ import { URL } from 'url';
 
 import * as moment from 'moment';
 
-import { Collections, Command, Structures } from 'detritus-client';
-import { DiscordAbortCodes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';
+import { Collections, Command, Interaction, Structures } from 'detritus-client';
+import { DiscordAbortCodes, InteractionCallbackTypes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';
 import { Embed, Markup, PermissionTools, intToHex } from 'detritus-client/lib/utils';
 import { Response, replacePathParameters } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
@@ -20,6 +20,8 @@ import {
   TRUSTED_URLS,
 } from '../constants';
 
+import ChannelMembersStore, { ChannelMembersStored } from '../stores/channelmembers';
+import GuildMembersStore, { GuildMembersStored } from '../stores/guildmembers';
 import GuildSettingsStore from '../stores/guildsettings';
 
 
@@ -71,18 +73,18 @@ export function createUserString(userId: string = '1', user?: Structures.User | 
 }
 
 
-export function editOrReply(context: Command.Context, options: Command.EditOrReply | string = {}) {
+export function editOrReply(
+  context: Command.Context | Interaction.InteractionContext,
+  options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
+) {
   if (typeof(options) === 'string') {
     options = {content: options};
   }
-  if (!context.message.deleted) {
-    options.messageReference = {
-      channelId: context.channelId,
-      guildId: context.guildId,
-      messageId: context.messageId,
-    };
+  if (context instanceof Interaction.InteractionContext) {
+    return context.editOrRespond(options);
   }
   return context.editOrReply({
+    reference: true,
     ...options,
     allowedMentions: {parse: [], repliedUser: false, ...options.allowedMentions},
   });
@@ -90,13 +92,31 @@ export function editOrReply(context: Command.Context, options: Command.EditOrRep
 
 
 export async function fetchMemberOrUserById(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   userId: string,
   memberOnly: boolean = false,
 ): Promise<Structures.Member | Structures.User | null> {
-  const mention = context.message.mentions.get(userId);
-  if (mention) {
-    return mention;
+  if (context.user.id === userId) {
+    if (memberOnly) {
+      if (context.member) {
+        return context.member;
+      }
+    } else {
+      return context.user;
+    }
+  }
+
+  if (context instanceof Command.Context) {
+    const mention = context.message.mentions.get(userId);
+    if (mention) {
+      if (memberOnly) {
+        if (mention instanceof Structures.Member) {
+          return mention;
+        }
+      } else {
+        return mention;
+      }
+    }
   }
 
   try {
@@ -219,7 +239,7 @@ export function findImageUrlInMessage(
       return url;
     }
   }
-  for (let [stickerId, sticker] of message.stickers) {
+  for (let [stickerId, sticker] of message.stickerItems) {
     return sticker.assetUrl;
   }
   return null;
@@ -242,7 +262,7 @@ export function findImageUrlInMessages(
 /** Member Chunking */
 
 export async function findMemberByChunk(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   username: string,
   discriminator?: null | string,
 ): Promise<Structures.Member | Structures.User | null> {
@@ -296,29 +316,52 @@ export async function findMemberByChunk(
       }
     }
     {
-      const members = findMembersByUsername(channel.members, username, discriminator) as Array<Structures.Member>;
-      if (members.length) {
-        const sorted = members.sort((x, y) => {
-          if (x.hoistedRole && y.hoistedRole) {
-              return y.hoistedRole.position - x.hoistedRole.position;
-          } else if (x.hoistedRole) {
-              return -1;
-          } else if (y.hoistedRole) {
-              return 1;
+      if (guild && guild.memberCount < ChannelMembersStore.MAX_AMOUNT) {
+        let channelMembers: ChannelMembersStored;
+        if (ChannelMembersStore.has(channel.id)) {
+          channelMembers = ChannelMembersStore.get(channel.id) as ChannelMembersStored;
+        } else {
+          channelMembers = channel.members;
+          if (ChannelMembersStore.MIN_AMOUNT <= channelMembers.length) {
+            ChannelMembersStore.set(channel.id, channelMembers);
           }
-          return 0;
-        });
-        return sorted[0];
+        }
+
+        const members = findMembersByUsername(channelMembers, username, discriminator) as Array<Structures.Member>;
+        if (members.length) {
+          const sorted = members.sort((x, y) => {
+            if (x.hoistedRole && y.hoistedRole) {
+                return y.hoistedRole.position - x.hoistedRole.position;
+            } else if (x.hoistedRole) {
+                return -1;
+            } else if (y.hoistedRole) {
+                return 1;
+            }
+            return 0;
+          });
+          return sorted[0];
+        }
       }
     }
   }
 
   if (guild) {
     // find via guild cache
-    const found = findMemberByUsername(guild.members, username, discriminator);
+
+    const members = findMembersByUsername(guild.members, username, discriminator) as Array<Structures.Member>;
     // add isPartial check (for joinedAt value?)
-    if (found) {
-      return found;
+    if (members.length) {
+      const sorted = members.sort((x, y) => {
+        if (x.hoistedRole && y.hoistedRole) {
+            return y.hoistedRole.position - x.hoistedRole.position;
+        } else if (x.hoistedRole) {
+            return -1;
+        } else if (y.hoistedRole) {
+            return 1;
+        }
+        return 0;
+      });
+      return sorted[0];
     }
   } else {
     // we are in a DM, check our channel's recipients first
@@ -339,19 +382,21 @@ export async function findMemberByChunk(
     }
 
     // check our users cache since this is from a dm...
+    /*
     {
       const found = findMemberByUsername(context.users, username, discriminator);
       if (found) {
         return found;
       }
     }
+    */
   }
   return null;
 }
 
 
 export async function findMemberByChunkText(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   text: string,
 ) {
   const [ username, discriminator ] = splitTextToDiscordHandle(text);
@@ -360,7 +405,7 @@ export async function findMemberByChunkText(
 
 
 export async function findMembersByChunk(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   username: string,
   discriminator?: null | string,
 ): Promise<Array<Structures.Member | Structures.User>> {
@@ -396,14 +441,14 @@ export async function findMembersByChunk(
     }
 
     // check our users cache since this is from a dm...
-    return findMembersByUsername(context.users, username, discriminator);
+    // return findMembersByUsername(context.users, username, discriminator);
   }
   return [];
 }
 
 
 export async function findMembersByChunkText(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   text: string,
 ) {
   const [ username, discriminator ] = splitTextToDiscordHandle(text);
@@ -459,6 +504,24 @@ export function findMembersByUsername(
     }
   }
   return found;
+}
+
+
+export function getMemberJoinPosition(
+  guild: Structures.Guild,
+  userId: string,
+): [number, number] {
+  let members: GuildMembersStored;
+  if (GuildMembersStore.has(guild.id)) {
+    members = GuildMembersStore.get(guild.id) as GuildMembersStored;
+  } else {
+    members = guild.members.sort((x, y) => x.joinedAtUnix - y.joinedAtUnix);
+    if (GuildMembersStore.MIN_AMOUNT <= guild.members.length) {
+      GuildMembersStore.set(guild.id, members);
+    }
+  }
+  const joinPosition = members.findIndex((m) => m.id === userId) + 1;
+  return [joinPosition, guild.members.length];
 }
 
 
@@ -540,7 +603,7 @@ export function htmlDecode(value: string): string {
 
 
 export async function imageReply(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   response: Response,
   options: {
     content?: string,
@@ -592,7 +655,7 @@ export async function imageReply(
 
 
 export async function imageReplyFromOptions(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   value: any,
   options: {
     content?: string,
@@ -769,6 +832,38 @@ export function permissionsToObject(permissions: bigint | number): Record<string
 }
 
 
+export function splitTextByAmount(text: string, amount: number, character = '\n'): Array<string> {
+  const parts: Array<string> = [];
+
+  if (character) {
+    const split = text.split(character);
+    if (split.length === 1) {
+      return split;
+    }
+    while (split.length) {
+      let newText: string = '';
+      while (newText.length < amount && split.length) {
+        const part = split.shift()!;
+        if (part) {
+          if (amount < newText.length + part.length + 2) {
+            split.unshift(part);
+            break;
+          }
+          newText += part + '\n';
+        }
+      }
+      parts.push(newText);
+    }
+  } else {
+    while (text.length) {
+      parts.push(text.slice(0, amount));
+      text = text.slice(amount);
+    }
+  }
+  return parts;
+}
+
+
 export function splitTextToDiscordHandle(text: string): [string, string | null] {
   const parts = text.split('#');
   const username = (parts.shift() as string).slice(0, 32).toLowerCase();
@@ -877,10 +972,13 @@ export function randomFromIterator<T>(
   size: number,
   iterator: IterableIterator<T>,
 ): T {
-  const choice = Math.floor(Math.random() * (size + 1));
+  const choice = Math.floor(Math.random() * size);
   let i = 0;
   for (let value of iterator) {
     if (i++ === choice) {
+      return value;
+    }
+    if (i === size) {
       return value;
     }
   }
@@ -913,6 +1011,39 @@ export function splitArray<T>(
     pages.push(array.slice(position, position + chunkAmount));
   }
   return pages;
+}
+
+
+// split string based on the splitter, but ignore splitters that start with `\`
+export function splitString(
+  value: string,
+  splitter: string = '|',
+): Array<string> {
+  const splits: Array<string> = [];
+
+  if (value.length) {
+    let position = 0;
+    let argStart = position;
+    while (position !== value.length) {
+      let nextSplitter = value.indexOf(splitter, position);
+      if (nextSplitter === -1) {
+        position = value.length;
+        splits.push(value.slice(argStart, position));
+      } else {
+        position = nextSplitter + 1;
+        if (value[nextSplitter - 1] !== '\\') {
+          splits.push(value.slice(argStart, nextSplitter));
+          argStart = position;
+        } else if (position === value.length) {
+          splits.push(value.slice(argStart, position));
+        }
+      }
+    }
+  } else {
+    splits.push(value);
+  }
+
+  return splits;
 }
 
 

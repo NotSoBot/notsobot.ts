@@ -47,6 +47,13 @@ export class GoogleSearchImageResult extends BaseStructure {
     this.merge(data);
   }
 
+  get imageUrl(): string {
+    if (this.image.isRawImage || this.image.isSVG) {
+      return this.thumbnail.url;
+    }
+    return this.image.url;
+  }
+
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
@@ -74,6 +81,7 @@ export class GoogleSearchImageResult extends BaseStructure {
 const keysGoogleSearchImage = new Collections.BaseSet<string>([
   NotSoApiKeys.EXTENSION,
   NotSoApiKeys.HEIGHT,
+  NotSoApiKeys.IS_RAW_IMAGE,
   NotSoApiKeys.PROXY_URL,
   NotSoApiKeys.TRUSTED,
   NotSoApiKeys.URL,
@@ -86,7 +94,8 @@ export class GoogleSearchImage extends BaseStructure {
 
   extension: null | string = null;
   height: number = 0;
-  proxyUrl: string = '';
+  isRawImage: boolean = false;
+  proxyUrl: null | string = null;
   trusted: boolean = false;
   url: string = '';
   width: number = 0;

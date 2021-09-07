@@ -199,6 +199,23 @@ export async function editGuildSettings(
   return settings;
 }
 
+export async function editUser(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.EditUser,
+): Promise<RestResponses.EditUser> {
+  const data = await raw.editUser(context, userId, options);
+  let user: User;
+  if (UserStore.has(userId)) {
+    user = UserStore.get(userId) as User;
+    user.merge(data);
+  } else {
+    user = new User(data);
+    UserStore.set(user.id, user);
+  }
+  return user;
+}
+
 
 export async function fetchGuildSettings(
   context: RequestContext,
@@ -217,20 +234,20 @@ export async function fetchGuildSettings(
 }
 
 
-export async function fetchGuildTags(
-  context: RequestContext,
-  guildId: string,
-  options: RestOptions.FetchGuildTags,
-) {
-  return raw.fetchGuildTags(context, guildId, options);
-}
-
-
 export async function fetchTag(
   context: RequestContext,
   options: RestOptions.FetchTag,
 ) {
   return raw.fetchTag(context, options);
+}
+
+
+export async function fetchTagsServer(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchTagsServer = {},
+) {
+  return raw.fetchTagsServer(context, guildId, options);
 }
 
 
@@ -254,7 +271,7 @@ export async function fetchUser(
 export async function fetchUserTags(
   context: RequestContext,
   userId: string,
-  options: RestOptions.FetchUserTags,
+  options: RestOptions.FetchUserTags = {},
 ) {
   return raw.fetchUserTags(context, userId, options);
 }
@@ -940,6 +957,22 @@ export async function utilitiesFetchImage(
   options: RestOptions.UtilitiesFetchImage,
 ) {
   return raw.utilitiesFetchImage(context, options);
+}
+
+
+export async function utilitiesQrCreate(
+  context: RequestContext,
+  options: RestOptions.UtilitiesQrCreate,
+) {
+  return raw.utilitiesQrCreate(context, options);
+}
+
+
+export async function utilitiesQrScan(
+  context: RequestContext,
+  options: RestOptions.UtilitiesQrScan,
+) {
+  return raw.utilitiesQrScan(context, options);
 }
 
 

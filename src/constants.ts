@@ -13,14 +13,13 @@ import {
 
 
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
-
+export const SNOWFLAKE_EPOCH = 1564790400000;
 
 
 export enum BooleanEmojis {
   NO = '❌',
   YES = '✅',
 };
-
 
 
 export enum CommandTypes {
@@ -37,7 +36,6 @@ export enum CommandTypes {
 }
 
 
-
 export const DateMomentLogFormat = 'MM/DD/YY, h:mm:ss a z';
 
 export const DateMomentOptions = Object.freeze({
@@ -46,6 +44,30 @@ export const DateMomentOptions = Object.freeze({
 
 export const DateOptions = Object.freeze({
   timeZone: 'America/New_York',
+});
+
+
+export const DiscordEmojis = Object.freeze({
+  DISCORD_BADGES: {
+    [DiscordUserFlags.STAFF]: '<:d_staff:826576202189373471> ',
+    [DiscordUserFlags.PARTNER]: '<:d_partner:826576193717272587>',
+    [DiscordUserFlags.HYPESQUAD]: '<:d_hypesquad:826576151534108722>',
+    [DiscordUserFlags.BUG_HUNTER_LEVEL_1]: '<:d_bug_hunter_level_1:826576135353139272>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_1]: '<:d_hypesquad_bravery:826576173915308034>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_2]: '<:d_hypesquad_brilliance:826576182308241459>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_3]: '<:d_hypesquad_balance:826576159789285427>',
+    [DiscordUserFlags.PREMIUM_EARLY_SUPPORTER]: '<:d_early_supporter:826577164966166548>',
+    [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: '<:d_bug_hunter_level_2:826576144001794088>',
+    [DiscordUserFlags.VERIFIED_DEVELOPER]: '<:d_verified_developer:826576213493153822>',
+    [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: '<:d_certified_moderator:874967819463327775>',
+  },
+  DISCORD_TAG_BOT: '<:d_tag_bot_1:826576077736378428><:d_tag_bot_2:826576087684349983>',
+  DISCORD_TAG_SYSTEM: '<:d_tag_system_1:826576106592665662><:d_tag_system_2:826576115698237481>',
+});
+
+
+export const DiscordReactionEmojis = Object.freeze({
+  WAIT: {id: '580670599630946314', name: 'stopthonk'},
 });
 
 
@@ -507,6 +529,11 @@ export const MIMETYPES_SAFE_EMBED = Object.freeze([
 ]);
 
 
+export const RatelimitKeys = Object.freeze({
+  IMAGE: Math.random().toString(36).substring(7),
+  SEARCH: Math.random().toString(36).substring(7),
+});
+
 
 export enum RedditKindTypes {
   COMMENT = 't1',
@@ -617,6 +644,7 @@ export const PERMISSIONS_ADMIN = Object.freeze([
   Permissions.MANAGE_GUILD,
   Permissions.MANAGE_MESSAGES,
   Permissions.MANAGE_ROLES,
+  Permissions.MANAGE_THREADS,
   Permissions.MANAGE_WEBHOOKS,
   Permissions.VIEW_AUDIT_LOG,
   Permissions.VIEW_GUILD_ANALYTICS,
@@ -632,7 +660,10 @@ export const PERMISSIONS_TEXT = Object.freeze([
   Permissions.READ_MESSAGE_HISTORY,
   Permissions.SEND_MESSAGES,
   Permissions.SEND_TTS_MESSAGES,
+  Permissions.USE_APPLICATION_COMMANDS,
   Permissions.USE_EXTERNAL_EMOJIS,
+  Permissions.USE_PRIVATE_THREADS,
+  Permissions.USE_PUBLIC_THREADS,
   Permissions.VIEW_CHANNEL,
 ]);
 
@@ -644,6 +675,7 @@ export const PERMISSIONS_VOICE = Object.freeze([
   Permissions.MOVE_MEMBERS,
   Permissions.MUTE_MEMBERS,
   Permissions.PRIORITY_SPEAKER,
+  Permissions.REQUEST_TO_SPEAK,
   Permissions.SPEAK,
   Permissions.STREAM,
   Permissions.USE_VAD,
@@ -710,8 +742,10 @@ export const NotSoApiKeys = Object.freeze({
   IMAGE: 'image',
   IN_STOCK: 'in_stock',
   INGREDIENTS: 'ingredients',
+  IS_RAW_IMAGE: 'is_raw_image',
   LICENSABLE: 'licensable',
   LIKES: 'likes',
+  LOCALE: 'locale',
   LOGGER_FLAGS: 'logger_flags',
   LOGGER_TYPE: 'logger_type',
   LOGGERS: 'loggers',
@@ -775,8 +809,10 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.IMAGE]: 'image',
   [NotSoApiKeys.IN_STOCK]: 'inStock',
   [NotSoApiKeys.INGREDIENTS]: 'ingredients',
+  [NotSoApiKeys.IS_RAW_IMAGE]: 'isRawImage',
   [NotSoApiKeys.LICENSABLE]: 'licensable',
   [NotSoApiKeys.LIKES]: 'likes',
+  [NotSoApiKeys.LOCALE]: 'locale',
   [NotSoApiKeys.LOGGER_FLAGS]: 'loggerFlags',
   [NotSoApiKeys.LOGGER_TYPE]: 'loggerType',
   [NotSoApiKeys.LOGGERS]: 'loggers',
@@ -820,6 +856,12 @@ export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
   [ChannelTypes.GUILD_CATEGORY]: 'Guild Category',
   [ChannelTypes.GUILD_NEWS]: 'Guild News',
   [ChannelTypes.GUILD_STORE]: 'Guild Store',
+
+  [ChannelTypes.GUILD_NEWS_THREAD]: 'Guild News Thread',
+  [ChannelTypes.GUILD_PUBLIC_THREAD]: 'Guild Public Thread',
+  [ChannelTypes.GUILD_PRIVATE_THREAD]: 'Guild Private Thread',
+  [ChannelTypes.GUILD_STAGE_VOICE]: 'Guild Stage Voice',
+  [ChannelTypes.GUILD_DIRECTORY]: 'Guild Directory',
 });
 
 
@@ -841,6 +883,7 @@ export const DiscordUserFlagsText: Record<DiscordUserFlags, string> = Object.fre
   [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: 'Discord Bug Hunter 2',
   [DiscordUserFlags.VERIFIED_BOT]: 'Verified Bot',
   [DiscordUserFlags.VERIFIED_DEVELOPER]: 'Verified Bot Developer',
+  [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: 'Discord Certified Moderator',
 });
 
 
@@ -886,6 +929,7 @@ export const PermissionsText = Object.freeze({
   [String(Permissions.MANAGE_GUILD)]: 'Manage Guild',
   [String(Permissions.MANAGE_MESSAGES)]: 'Manage Messages',
   [String(Permissions.MANAGE_ROLES)]: 'Manage Roles',
+  [String(Permissions.MANAGE_THREADS)]: 'Manage Threads',
   [String(Permissions.MANAGE_WEBHOOKS)]: 'Manage Webhooks',
   [String(Permissions.MENTION_EVERYONE)]: 'Mention Everyone',
   [String(Permissions.MOVE_MEMBERS)]: 'Move Members',
@@ -893,11 +937,15 @@ export const PermissionsText = Object.freeze({
   [String(Permissions.NONE)]: 'None',
   [String(Permissions.PRIORITY_SPEAKER)]: 'Priority Speaker',
   [String(Permissions.READ_MESSAGE_HISTORY)]: 'Read Message History',
+  [String(Permissions.REQUEST_TO_SPEAK)]: 'Request To Speak',
   [String(Permissions.SEND_MESSAGES)]: 'Send Messages',
   [String(Permissions.SEND_TTS_MESSAGES)]: 'Text-To-Speech',
   [String(Permissions.SPEAK)]: 'Speak',
   [String(Permissions.STREAM)]: 'Go Live',
+  [String(Permissions.USE_APPLICATION_COMMANDS)]: 'Use Application Commands',
   [String(Permissions.USE_EXTERNAL_EMOJIS)]: 'Use External Emojis',
+  [String(Permissions.USE_PRIVATE_THREADS)]: 'Use Private Threads',
+  [String(Permissions.USE_PUBLIC_THREADS)]: 'Use Public Threads',
   [String(Permissions.USE_VAD)]: 'Voice Auto Detect',
   [String(Permissions.VIEW_AUDIT_LOG)]: 'View Audit Logs',
   [String(Permissions.VIEW_CHANNEL)]: 'View Channel',
@@ -956,6 +1004,22 @@ export const TimezoneText: Record<Timezones, string> = Object.freeze({
   [Timezones.NST]: 'New Zealand Standard Time, +12:00',
 });
 
+
+export enum TTSVoices {
+  BLUE_DE_DE_DIETER = 'BLUE_DE_DE_DIETER',
+  BLUE_EN_GB_KATE = 'BLUE_EN_GB_KATE',
+  BLUE_EN_US_ALLISON = 'BLUE_EN_US_ALLISON',
+  BLUE_EN_US_LISA = 'BLUE_EN_US_LISA',
+  BLUE_EN_US_MICHAEL = 'BLUE_EN_US_MICHAEL',
+  BLUE_ES_ES_ENRIQUE = 'BLUE_ES_ES_ENRIQUE',
+  BLUE_FR_FR_RENEE = 'BLUE_FR_FR_RENEE',
+  BLUE_IT_IT_FRANCESCA = 'BLUE_IT_IT_FRANCESCA',
+  BLUE_JA_JP_EMI = 'BLUE_JA_JP_EMI',
+  BLUE_PT_BR_ISABELA = 'BLUE_PT_BR_ISABELA',
+}
+
+
+export const TTS_VOICES = Object.values(TTSVoices);
 
 
 export const VerificationLevelTexts: Record<string, string> = Object.freeze({

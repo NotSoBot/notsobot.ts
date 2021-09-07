@@ -1,11 +1,11 @@
-import { Command, Structures } from 'detritus-client';
+import { Command, Interaction, Structures } from 'detritus-client';
 
 import { runInNewContext } from 'vm';
 
 import { utilitiesFetchImage } from '../api';
 
 import * as Parameters from './parameters';
-import { bigIntGenerateBetween, bigIntMax, bigIntMin, randomFromArray, randomFromIterator } from './tools';
+import { bigIntGenerateBetween, bigIntMax, bigIntMin, randomFromArray, randomFromIterator, splitString } from './tools';
 
 
 const findChannel = Parameters.channel({inGuild: true});
@@ -13,7 +13,7 @@ const findMemberOrUser = Parameters.memberOrUser();
 
 
 export const ATTACHMENT_EXTENSIONS = ['bmp', 'heic', 'gif', 'ico', 'jpg', 'jpeg', 'png', 'raw', 'tiff', 'webp'];
-export const DEFAULT_REMAINING_ITERATIONS = 100;
+export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
 export const MAX_REPEAT_AMOUNT = 2000;
 export const MAX_STRING_LENGTH = 10000;
@@ -23,7 +23,10 @@ export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
 export const REGEX_REPLACE_TIMEOUT = 25;
 
+export const SCRIPT_REGEX = /\{((?:(?!:)(?:.|\s))*):([\s\S]+)\}/;
+
 export enum PrivateVariables {
+  ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',
 }
 
@@ -67,6 +70,14 @@ export enum TagFunctions {
   LOGICAL_IF = 'LOGICAL_IF',
   LOGICAL_SET = 'LOGICAL_SET',
   MATH = 'MATH',
+  MATH_ABS = 'MATH_ABS',
+  MATH_COS = 'MATH_COS',
+  MATH_E = 'MATH_E',
+  MATH_MAX = 'MATH_MAX',
+  MATH_MIN = 'MATH_MIN',
+  MATH_PI = 'MATH_PI',
+  MATH_SIN = 'MATH_SIN',
+  MATH_TAN = 'MATH_TAN',
   NSFW = 'NSFW',
   PREFIX = 'PREFIX',
   RNG_CHOOSE = 'RNG_CHOOSE',
@@ -74,8 +85,10 @@ export enum TagFunctions {
   STRING_CODEBLOCK = 'STRING_CODEBLOCK',
   STRING_LENGTH = 'STRING_LENGTH',
   STRING_LOWER = 'STRING_LOWER',
+  STRING_NEWLINE = 'STRING_NEWLINE',
   STRING_REPEAT = 'STRING_REPEAT',
   STRING_REPLACE = 'STRING_REPLACE',
+  STRING_REVERSE = 'STRING_REVERSE',
   STRING_SUB = 'STRING_SUB',
   STRING_UPPER = 'STRING_UPPER',
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
@@ -124,6 +137,14 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_IF]: ['if'],
   [TagFunctions.LOGICAL_SET]: ['set'],
   [TagFunctions.MATH]: ['math'],
+  [TagFunctions.MATH_ABS]: ['abs'],
+  [TagFunctions.MATH_COS]: ['cos'],
+  [TagFunctions.MATH_E]: ['e'],
+  [TagFunctions.MATH_MAX]: ['max'],
+  [TagFunctions.MATH_MIN]: ['min'],
+  [TagFunctions.MATH_PI]: ['pi'],
+  [TagFunctions.MATH_SIN]: ['sin'],
+  [TagFunctions.MATH_TAN]: ['tan'],
   [TagFunctions.NSFW]: ['nsfw'],
   [TagFunctions.PREFIX]: ['prefix'],
   [TagFunctions.RNG_CHOOSE]: ['choose'],
@@ -131,8 +152,10 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_CODEBLOCK]: ['code'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
   [TagFunctions.STRING_LOWER]: ['lower'],
+  [TagFunctions.STRING_NEWLINE]: ['newline'],
   [TagFunctions.STRING_REPEAT]: ['repeat'],
   [TagFunctions.STRING_REPLACE]: ['replace', 'replaceregex'],
+  [TagFunctions.STRING_REVERSE]: ['reverse'],
   [TagFunctions.STRING_SUB]: ['substring'],
   [TagFunctions.STRING_UPPER]: ['upper'],
   [TagFunctions.STRING_URL_ENCODE]: ['url'],
@@ -161,40 +184,45 @@ export const TagSymbols = Object.freeze({
 
 
 export interface TagVariables {
+  [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
   [key: string]: number | string,
 }
 
 export interface TagResult {
   files: Array<{buffer: null | Buffer, filename: string, url: string}>,
-  remainingIterations: number,
   text: string,
   variables: TagVariables,
 }
 
 export async function parse(
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
   value: string,
   args: Array<string>,
-  remainingIterations: number = DEFAULT_REMAINING_ITERATIONS,
   variables: TagVariables = Object.create(null),
 ): Promise<TagResult> {
+  let isFirstParse = true;
+  if (PrivateVariables.ITERATIONS_REMAINING in variables) {
+    isFirstParse = false;
+  } else {
+    variables[PrivateVariables.ITERATIONS_REMAINING] = MAX_ITERATIONS;
+  }
   if (!(PrivateVariables.NETWORK_REQUESTS in variables)) {
     variables[PrivateVariables.NETWORK_REQUESTS] = 0;
   }
-  const tag: TagResult = {files: [], remainingIterations, text: '', variables};
+  const tag: TagResult = {files: [], text: '', variables};
+  tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   let depth = 0;
   let scriptBuffer = '';
   let position = 0;
   while (position < value.length) {
-    if (tag.remainingIterations <= 0) {
+    if (tag.variables[PrivateVariables.ITERATIONS_REMAINING] <= 0) {
       tag.text += value.slice(position);
       position = value.length;
       continue;
     }
 
-    console.log(position);
     if (depth === 0) {
       // find next left bracket
       const nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
@@ -214,7 +242,6 @@ export async function parse(
     // add network checks
     let result = value.slice(position, ++position);
     scriptBuffer += result;
-    console.log(position, result, depth, scriptBuffer);
     switch (result) {
       case TagSymbols.IGNORE: {
         const nextValue = value.slice(position, position + 1);
@@ -245,7 +272,7 @@ export async function parse(
             }
           } else {
             // check the other tags now
-            const argParsed = await parse(context, arg, args, --tag.remainingIterations, tag.variables);
+            const argParsed = await parse(context, arg, args, tag.variables);
             arg = argParsed.text;
             for (let file of argParsed.files) {
               tag.files.push(file);
@@ -276,7 +303,10 @@ export async function parse(
     }
   }
 
-  tag.text += scriptBuffer;
+  tag.text = (tag.text + scriptBuffer).trim();
+  if (isFirstParse) {
+    tag.text = tag.text.replace(/\u200B/g, '\n');
+  }
   return tag;
 }
 
@@ -286,7 +316,7 @@ function parseInnerScript(value: string): [string, string] {
   let arg: string;
 
   // remove the brackets from both sides of the value
-  value = value.slice(1, value.length - 1);
+  value = value.slice(1, value.length - 1).trim();
 
   const firstSplitter = value.indexOf(TagSymbols.SPLITTER_FUNCTION);
   if (firstSplitter === -1) {
@@ -303,10 +333,11 @@ function parseInnerScript(value: string): [string, string] {
 
 
 const ScriptTags = Object.freeze({
-  [TagFunctions.ARG]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.ARG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {arg} (defaults to the first one)
     // {arg:0}
 
-    const index = parseInt(arg);
+    const index = parseInt(arg || '0');
     if (isNaN(index)) {
       return false;
     }
@@ -314,24 +345,25 @@ const ScriptTags = Object.freeze({
     if (index in args) {
       tag.text += args[index];
     }
+
     return true;
   },
 
-  [TagFunctions.ARGS]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.ARGS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {args}
 
     tag.text += args.join(' ');
     return true;
   },
 
-  [TagFunctions.ARGSLEN]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.ARGSLEN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {argslen}
 
     tag.text += args.length;
     return true;
   },
 
-  [TagFunctions.ATTACHMENT]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.ATTACHMENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // assume the arg is a url and download it
     // {attach:https://google.com/something.png}
 
@@ -358,7 +390,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.ATTACHMENT_LAST]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.ATTACHMENT_LAST]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // return last image url
     // {lastattachment}
 
@@ -372,7 +404,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.AVATAR]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.AVATAR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // returns the user's avatar url
     // {avatar}
     // {avatar:notsobot}
@@ -391,7 +423,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.CHANNEL]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // returns the channel's name
     // {channel}
     // {channel:general}
@@ -408,7 +440,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.CHANNEL_ID]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.CHANNEL_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // returns the channel's id
     // {channelid}
     // {channelid:general}
@@ -425,7 +457,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.CHANNEL_MENTION]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.CHANNEL_MENTION]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // returns the channel's mention
     // {channelmention}
     // {channelmention:general}
@@ -442,7 +474,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.CHANNEL_RANDOM]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.CHANNEL_RANDOM]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // returns a random channel's name
     // {randchannel}
 
@@ -455,7 +487,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.CHANNEL_RANDOM_ID]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.CHANNEL_RANDOM_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // return a random channel's id
     // {randchannelid}
 
@@ -468,7 +500,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.CHANNEL_RANDOM_MENTION]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.CHANNEL_RANDOM_MENTION]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // return a random channel's mention
     // {randchannelmention}
 
@@ -481,7 +513,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.DISCORD]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.DISCORD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // split it up by `.`, use the first one as context[firstVariable]
 
     // {discord:member.color}
@@ -489,7 +521,7 @@ const ScriptTags = Object.freeze({
     return false;
   },
 
-  [TagFunctions.DOWNLOAD]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.DOWNLOAD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // Actually do it
     // {download:https://google.com}
 
@@ -498,10 +530,10 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.EVAL]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.EVAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {eval:{args}}
 
-    const argParsed = await parse(context, arg, args, --tag.remainingIterations, tag.variables);
+    const argParsed = await parse(context, arg, args, tag.variables);
     tag.text += argParsed.text;
     for (let file of argParsed.files) {
       tag.files.push(file);
@@ -509,7 +541,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.GUILD]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.GUILD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {guild}
     // todo: {guild:178313653177548800}
 
@@ -521,7 +553,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.GUILD_COUNT]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.GUILD_COUNT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {guildcount}
     // todo: {guildcount:178313653177548800}
 
@@ -533,7 +565,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.GUILD_ID]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.GUILD_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {guildid}
     // todo: {guildid:178313653177548800} (useless lmao)
 
@@ -541,19 +573,19 @@ const ScriptTags = Object.freeze({
     return false;
   },
 
-  [TagFunctions.HASTEBIN]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.HASTEBIN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.IMAGE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.IMAGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.IMAGESCRIPT]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.IMAGESCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.LOGICAL_DELETE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.LOGICAL_DELETE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (arg.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to delete a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
@@ -565,30 +597,32 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.LOGICAL_GET]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    if (arg.startsWith(PRIVATE_VARIABLE_PREFIX)) {
+  [TagFunctions.LOGICAL_GET]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    const key = arg.trim();
+    if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to access a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
-    if (MAX_VARIABLE_KEY_LENGTH < arg.length) {
+    if (MAX_VARIABLE_KEY_LENGTH < key.length) {
       throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
     }
-    if (arg in tag.variables) {
-      tag.text += tag.variables[arg];
+    if (key in tag.variables) {
+      tag.text += tag.variables[key];
     }
   
     return true;
   },
 
-  [TagFunctions.LOGICAL_IF]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.LOGICAL_IF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.LOGICAL_SET]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.LOGICAL_SET]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
-    const [key, ...value] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    let [key, ...value] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    key = key.trim();
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
@@ -603,31 +637,137 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    tag.variables[key] = value.join(TagSymbols.SPLITTER_ARGUMENT).slice(0, MAX_VARIABLE_LENGTH);
+    tag.variables[key] = value.join(TagSymbols.SPLITTER_ARGUMENT).slice(0, MAX_VARIABLE_LENGTH).trim();
 
     return true;
   },
 
-  [TagFunctions.MATH]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.MATH]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.NSFW]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.MATH_ABS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    const value = parseInt(arg);
+    if (isNaN(value)) {
+      return false;
+    }
+
+    tag.text += Math.abs(value);
+
+    return true;
+  },
+
+  [TagFunctions.MATH_COS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    const value = parseInt(arg);
+    if (isNaN(value)) {
+      return false;
+    }
+
+    tag.text += Math.cos(value);
+
+    return true;
+  },
+
+  [TagFunctions.MATH_E]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    tag.text += Math.E;
+    return true;
+  },
+
+  [TagFunctions.MATH_MAX]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    if (!arg) {
+      return false;
+    }
+
+    const [ firstValuePart, ...secondValueParts ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    const firstValue = firstValuePart.split('.').shift() as string;
+    if (isNaN(firstValue as any)) {
+      return false;
+    }
+
+    let value: bigint;
+    if (secondValueParts.length) {
+      const secondValue = secondValueParts.join(TagSymbols.SPLITTER_ARGUMENT).split('.').shift() as string;
+      if (isNaN(secondValue as any)) {
+        return false;
+      }
+      value = bigIntMax(BigInt(firstValue), BigInt(secondValue));
+    } else {
+      value = BigInt(firstValue);
+    }
+    tag.text += value;
+
+    return true;
+  },
+
+  [TagFunctions.MATH_MIN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    if (!arg) {
+      return false;
+    }
+
+    const [ firstValuePart, ...secondValueParts ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    const firstValue = firstValuePart.split('.').shift() as string;
+    if (isNaN(firstValue as any)) {
+      return false;
+    }
+
+    let value: bigint;
+    if (secondValueParts.length) {
+      const secondValue = secondValueParts.join(TagSymbols.SPLITTER_ARGUMENT).split('.').shift() as string;
+      if (isNaN(secondValue as any)) {
+        return false;
+      }
+      value = bigIntMin(BigInt(firstValue), BigInt(secondValue));
+    } else {
+      value = BigInt(firstValue);
+    }
+    tag.text += value;
+
+    return true;
+  },
+
+  [TagFunctions.MATH_PI]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    tag.text += Math.PI;
+    return true;
+  },
+
+  [TagFunctions.MATH_SIN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    const value = parseInt(arg);
+    if (isNaN(value)) {
+      return false;
+    }
+
+    tag.text += Math.sin(value);
+
+    return true;
+  },
+
+  [TagFunctions.MATH_TAN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    const value = parseInt(arg);
+    if (isNaN(value)) {
+      return false;
+    }
+
+    tag.text += Math.tan(value);
+
+    return true;
+  },
+
+  [TagFunctions.NSFW]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.PREFIX]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.PREFIX]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.RNG_CHOOSE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.RNG_CHOOSE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (!arg) {
       return false;
     }
 
     let value: string;
     if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      const choices = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+      const choices = splitString(arg, TagSymbols.SPLITTER_ARGUMENT);
       value = randomFromArray<string>(choices);
     } else {
       value = arg;
@@ -635,7 +775,7 @@ const ScriptTags = Object.freeze({
 
     if (value.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
-      const argParsed = await parse(context, value, args, --tag.remainingIterations, tag.variables);
+      const argParsed = await parse(context, value, args, tag.variables);
       tag.text += argParsed.text;
       for (let file of argParsed.files) {
         tag.files.push(file);
@@ -647,7 +787,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.RNG_RANGE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.RNG_RANGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {range:50}
     // {range:50|100}
 
@@ -673,27 +813,44 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.STRING_CODEBLOCK]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.STRING_CODEBLOCK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.STRING_LENGTH]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.STRING_NEWLINE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {newline}
+    // {newline:5} (5 newlines)
+
+    if (arg) {
+      const amount = parseInt(arg);
+      if (isNaN(amount)) {
+        return false;
+      }
+      tag.text += '\u200b'.repeat(amount);
+    } else {
+      tag.text += '\u200b';
+    }
+
+    return true;
+  },
+
+  [TagFunctions.STRING_LENGTH]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     tag.text += arg.length;
     return true;
   },
 
-  [TagFunctions.STRING_LOWER]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.STRING_LOWER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     tag.text += arg.toLowerCase();
     return true;
   },
 
-  [TagFunctions.STRING_REPEAT]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.STRING_REPEAT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
     const [ amountText, ...value ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
-    const amount = parseInt(amountText);
+    const amount = parseInt(amountText.trim());
     if (isNaN(amount)) {
       return false;
     }
@@ -702,7 +859,7 @@ const ScriptTags = Object.freeze({
       throw new Error('really man, more than 2000 repeats?');
     }
 
-    const text = value.join(TagSymbols.SPLITTER_ARGUMENT);
+    const text = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
     if (MAX_STRING_LENGTH < text.length * amount) {
       throw new Error('ok buddy, dont repeat too much text man');
     }
@@ -737,21 +894,26 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.STRING_SUB]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.STRING_REVERSE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    tag.text += arg.split('').reverse().join('');
+    return true;
+  },
+
+  [TagFunctions.STRING_SUB]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     return false;
   },
 
-  [TagFunctions.STRING_UPPER]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.STRING_UPPER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     tag.text += arg.toUpperCase();
     return true;
   },
 
-  [TagFunctions.STRING_URL_ENCODE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.STRING_URL_ENCODE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     tag.text += encodeURIComponent(arg);
     return true;
   },
 
-  [TagFunctions.USER_DISCRIMINATOR]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_DISCRIMINATOR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -764,7 +926,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_MENTION]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_MENTION]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -777,7 +939,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_NAME]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_NAME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -790,7 +952,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_NICK]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_NICK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -803,7 +965,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_ID]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -816,7 +978,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_RANDOM]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_RANDOM]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
@@ -837,7 +999,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_RANDOM_ID]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_RANDOM_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
@@ -858,7 +1020,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_RANDOM_ONLINE]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_RANDOM_ONLINE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // all online users are already in cache pretty sure
     if (context.guild) {
       const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
@@ -871,7 +1033,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_RANDOM_ONLINE_ID]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_RANDOM_ONLINE_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // all online users are already in cache pretty sure
     if (context.guild) {
       const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
@@ -884,7 +1046,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_RANDOM_ONLINE_TAG]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_RANDOM_ONLINE_TAG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // all online users are already in cache pretty sure
     if (context.guild) {
       const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
@@ -897,7 +1059,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_RANDOM_TAG]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_RANDOM_TAG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
@@ -918,7 +1080,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.USER_TAG]: async (context: Command.Context, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.USER_TAG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);

@@ -74,23 +74,29 @@ export namespace RestOptions {
     timezone?: string,
   }
 
-
-  export interface FetchGuildTags {
-    after?: string,
-    before?: string,
-    limit?: number,
+  export interface EditUser {
+    locale?: null | string,
   }
+
 
   export interface FetchTag {
     name: string,
     serverId?: string,
   }
 
+  export interface FetchTagsServer {
+    after?: string,
+    before?: string,
+    limit?: number,
+    query?: string,
+    userId?: string,
+  }
+
   export interface FetchUserTags {
     after?: string,
     before?: string,
     limit?: number,
-    serverId?: string,
+    query?: string,
   }
 
 
@@ -220,6 +226,7 @@ export namespace RestOptions {
     avatar: null | string,
     bot: boolean,
     discriminator: string,
+    locale?: null | string,
     username: string,
   }
 
@@ -326,7 +333,7 @@ export namespace RestOptions {
       dmable: boolean,
       examples: Array<string>,
       name: string,
-      ratelimits: Array<{duration: number, limit: number, type: string}>,
+      ratelimits: Array<{duration: number, key?: string, limit: number, type: string}>,
       type: string,
       usage: string,
     }>,
@@ -334,6 +341,16 @@ export namespace RestOptions {
 
 
   export interface UtilitiesFetchImage {
+    url: string,
+  }
+
+  export interface UtilitiesQrCreate {
+    margin?: number,
+    query: string,
+    size?: number | string,
+  }
+
+  export interface UtilitiesQrScan {
     url: string,
   }
 
@@ -357,6 +374,7 @@ export namespace RestResponses {
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   export type EditGuildSettings = GuildSettings;
+  export type EditUser = User;
 
   export type FetchGuildSettings = GuildSettings;
   export type FetchUser = User;
@@ -389,15 +407,17 @@ export namespace RestResponsesRaw {
   export type DeleteTag = null;
 
   export type EditGuildSettings = GuildSettings;
+  export type EditUser = User;
 
   export type FetchGuildSettings = GuildSettings;
 
-  export interface FetchGuildTags {
+  export type FetchTag = Tag;
+
+  export interface FetchTagsServer {
     count: number,
     tags: Array<Tag>,
   }
 
-  export type FetchTag = Tag;
   export type FetchUser = User;
 
   export interface FetchUserTags {
@@ -1150,6 +1170,18 @@ export namespace RestResponsesRaw {
     type: YoutubeResultTypes.VIDEO,
   }
 
+  export interface UtilitiesQrScan {
+    scanned: Array<{
+      data: string,
+      box: {
+        points: Array<{x: number, y: number}>,
+        rectangle: {height: number, left: number, top: number, width: number},
+      },
+      type: string,
+    }>,
+    url?: string,
+  }
+
   export interface Tag {
     content: string,
     created: string,
@@ -1170,6 +1202,7 @@ export namespace RestResponsesRaw {
     bot: boolean,
     discriminator: string,
     id: string,
+    locale: GoogleLocales | null,
     flags: number,
     username: string,
     premium_type: number,

@@ -4,7 +4,7 @@ import { Response, createHeaders } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
 import { Api, LOCALHOST_API } from './endpoints';
-import { RestOptions, RestResponsesRaw } from './types';
+import { RestOptions, RestResponsesRaw, RestResponses } from './types';
 
 import {
   GoogleLocales,
@@ -311,6 +311,26 @@ export async function editGuildSettings(
 }
 
 
+export async function editUser(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.EditUser,
+): Promise<RestResponsesRaw.EditUser> {
+  const body = {
+    locale: options.locale,
+  };
+  const params = {userId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.USER,
+      params,
+    },
+  });
+}
+
+
 export async function fetchGuildSettings(
   context: RequestContext,
   guildId: string,
@@ -320,28 +340,6 @@ export async function fetchGuildSettings(
     route: {
       method: HTTPMethods.GET,
       path: Api.GUILD,
-      params,
-    },
-  });
-}
-
-
-export async function fetchGuildTags(
-  context: RequestContext,
-  guildId: string,
-  options: RestOptions.FetchGuildTags,
-): Promise<RestResponsesRaw.FetchGuildTags> {
-  const params = {guildId};
-  const query = {
-    after: options.after,
-    before: options.before,
-    limit: options.limit,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.GUILD_TAGS,
       params,
     },
   });
@@ -366,6 +364,30 @@ export async function fetchTag(
 }
 
 
+export async function fetchTagsServer(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.FetchTagsServer = {},
+): Promise<RestResponsesRaw.FetchTagsServer> {
+  const params = {serverId};
+  const query = {
+    after: options.after,
+    before: options.before,
+    limit: options.limit,
+    query: options.query,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAGS_SERVER,
+      params,
+    },
+  });
+}
+
+
 export async function fetchUser(
   context: RequestContext,
   userId: string,
@@ -384,14 +406,14 @@ export async function fetchUser(
 export async function fetchUserTags(
   context: RequestContext,
   userId: string,
-  options: RestOptions.FetchUserTags,
+  options: RestOptions.FetchUserTags = {},
 ): Promise<RestResponsesRaw.FetchUserTags> {
   const params = {userId};
   const query = {
     after: options.after,
     before: options.before,
     limit: options.limit,
-    server_id: options.serverId,
+    query: options.query,
   };
   return request(context, {
     query,
@@ -1527,6 +1549,7 @@ export async function putUser(
     avatar: options.avatar,
     bot: options.bot,
     discriminator: options.discriminator,
+    locale: options.locale,
     username: options.username,
   };
   const params = {userId};
@@ -1916,6 +1939,48 @@ export async function utilitiesFetchImage(
       path: Api.UTILITIES_FETCH_IMAGE,
     },
   });
+}
+
+
+export async function utilitiesQrCreate(
+  context: RequestContext,
+  options: RestOptions.UtilitiesQrCreate,
+): Promise<Response> {
+  const query = {
+    margin: options.margin,
+    query: options.query,
+    size: options.size,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_QR_CREATE,
+    },
+  });
+}
+
+
+export async function utilitiesQrScan(
+  context: RequestContext,
+  options: RestOptions.UtilitiesQrScan,
+): Promise<RestResponsesRaw.UtilitiesQrScan> {
+  const query = {
+    url: options.url,
+  };
+  const response = await request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_QR_SCAN,
+    },
+  });
+  return {
+    scanned: await response.json(),
+    url: response.headers.get('x-unfurled-url'),
+  };
 }
 
 
