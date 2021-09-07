@@ -7,13 +7,12 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export interface CommandArgsBefore {
-  arguments: Array<string>,
   tag: false | null | RestResponsesRaw.Tag,
 }
 
-export class TagShowCommand extends BaseInteractionCommandOption {
-  description = 'Show a tag';
-  name = 'show';
+export class TagInfoCommand extends BaseInteractionCommandOption {
+  description = 'View a Tag\'s Information';
+  name = 'info';
 
   constructor() {
     super({
@@ -24,12 +23,6 @@ export class TagShowCommand extends BaseInteractionCommandOption {
           label: 'tag',
           required: true,
           value: Parameters.NotSoTag,
-        },
-        {
-          name: 'arguments',
-          description: 'Tag\'s Arguments',
-          default: [],
-          value: Parameters.stringArguments,
         },
       ],
     });
@@ -46,7 +39,7 @@ export class TagShowCommand extends BaseInteractionCommandOption {
     return super.onCancelRun(context, args);
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgs) {
-    return Formatter.Commands.TagShow.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.TagInfo.CommandArgs) {
+    return Formatter.Commands.TagInfo.createMessage(context, args);
   }
 }

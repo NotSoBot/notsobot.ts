@@ -346,28 +346,6 @@ export async function fetchGuildSettings(
 }
 
 
-export async function fetchGuildTags(
-  context: RequestContext,
-  guildId: string,
-  options: RestOptions.FetchGuildTags,
-): Promise<RestResponsesRaw.FetchGuildTags> {
-  const params = {guildId};
-  const query = {
-    after: options.after,
-    before: options.before,
-    limit: options.limit,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.GUILD_TAGS,
-      params,
-    },
-  });
-}
-
-
 export async function fetchTag(
   context: RequestContext,
   options: RestOptions.FetchTag,
@@ -381,6 +359,29 @@ export async function fetchTag(
     route: {
       method: HTTPMethods.GET,
       path: Api.TAGS,
+    },
+  });
+}
+
+
+export async function fetchTagsServer(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.FetchTagsServer = {},
+): Promise<RestResponsesRaw.FetchTagsServer> {
+  const params = {serverId};
+  const query = {
+    after: options.after,
+    before: options.before,
+    limit: options.limit,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAGS_SERVER,
+      params,
     },
   });
 }
@@ -404,14 +405,13 @@ export async function fetchUser(
 export async function fetchUserTags(
   context: RequestContext,
   userId: string,
-  options: RestOptions.FetchUserTags,
+  options: RestOptions.FetchUserTags = {},
 ): Promise<RestResponsesRaw.FetchUserTags> {
   const params = {userId};
   const query = {
     after: options.after,
     before: options.before,
     limit: options.limit,
-    server_id: options.serverId,
   };
   return request(context, {
     query,

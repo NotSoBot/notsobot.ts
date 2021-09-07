@@ -1,6 +1,6 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { TagListGuildCommand } from './guild';
+import { TagListServerCommand } from './server';
 import { TagListUserCommand } from './user';
 
 
@@ -11,7 +11,7 @@ export class TagListGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
-        new TagListGuildCommand(),
+        new TagListServerCommand(),
         new TagListUserCommand(),
       ],
     });

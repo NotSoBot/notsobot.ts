@@ -79,22 +79,22 @@ export namespace RestOptions {
   }
 
 
-  export interface FetchGuildTags {
-    after?: string,
-    before?: string,
-    limit?: number,
-  }
-
   export interface FetchTag {
     name: string,
     serverId?: string,
+  }
+
+  export interface FetchTagsServer {
+    after?: string,
+    before?: string,
+    limit?: number,
+    userId?: string,
   }
 
   export interface FetchUserTags {
     after?: string,
     before?: string,
     limit?: number,
-    serverId?: string,
   }
 
 
@@ -409,12 +409,13 @@ export namespace RestResponsesRaw {
 
   export type FetchGuildSettings = GuildSettings;
 
-  export interface FetchGuildTags {
+  export type FetchTag = Tag;
+
+  export interface FetchTagsServer {
     count: number,
     tags: Array<Tag>,
   }
 
-  export type FetchTag = Tag;
   export type FetchUser = User;
 
   export interface FetchUserTags {

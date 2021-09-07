@@ -110,7 +110,16 @@ export default class UndoCommand extends BaseCommand {
           await context.rest.bulkDeleteMessages(context.channelId, messageIds);
         }
       }
-      message = await editOrReply(context, `Successfully deleted ${count.interactions} interactions and ${count.prefixed} commands.`);
+
+      let text: string;
+      if (count.interactions && count.prefixed) {
+        text = `Successfully deleted ${count.interactions} interactions and ${count.prefixed} commands.`;
+      } else if (count.interactions) {
+        text = `Successfully deleted ${count.interactions} interactions.`;
+      } else {
+        text = `Successfully deleted ${count.prefixed} commands.`;
+      }
+      message = await editOrReply(context, text);
     } else {
       message = await editOrReply(context, `Could not find any of your last commands.`);
     }

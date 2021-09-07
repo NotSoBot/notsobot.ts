@@ -234,20 +234,20 @@ export async function fetchGuildSettings(
 }
 
 
-export async function fetchGuildTags(
-  context: RequestContext,
-  guildId: string,
-  options: RestOptions.FetchGuildTags,
-) {
-  return raw.fetchGuildTags(context, guildId, options);
-}
-
-
 export async function fetchTag(
   context: RequestContext,
   options: RestOptions.FetchTag,
 ) {
   return raw.fetchTag(context, options);
+}
+
+
+export async function fetchTagsServer(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchTagsServer = {},
+) {
+  return raw.fetchTagsServer(context, guildId, options);
 }
 
 
@@ -271,7 +271,7 @@ export async function fetchUser(
 export async function fetchUserTags(
   context: RequestContext,
   userId: string,
-  options: RestOptions.FetchUserTags,
+  options: RestOptions.FetchUserTags = {},
 ) {
   return raw.fetchUserTags(context, userId, options);
 }

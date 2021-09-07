@@ -6,6 +6,7 @@ import { RestResponsesRaw } from '../../../api/types';
 import { CommandTypes, EmbedColors } from '../../../constants';
 import {
   DefaultParameters,
+  Formatter,
   Paginator,
   Parameters,
   chunkArray,
@@ -61,54 +62,6 @@ export default class TagListCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { count, tags } = await fetchUserTags(context, args.user.id, {
-      serverId: context.guildId || context.channelId,
-    });
-
-    const pages = chunkArray<RestResponsesRaw.Tag>(tags, RESULTS_PER_PAGE);
-    if (pages.length) {
-      const pageLimit = pages.length;
-      const paginator = new Paginator(context, {
-        pageLimit,
-        onPage: (pageNumber) => {
-          const embed = createUserEmbed(context.user);
-          embed.setColor(EmbedColors.DEFAULT);
-
-          let footer = `${args.user}'s Tags`;
-          if (pageLimit !== 1) {
-            footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
-          }
-          embed.setFooter(`${footer} (${count.toLocaleString()} Total Tags)`);
-
-          const page = pages[pageNumber - 1];
-
-          {
-            for (let i = 0; i < page.length; i += RESULTS_PER_PAGE / 2) {
-              const description: Array<string> = [];
-
-              const section = page.slice(i, i + RESULTS_PER_PAGE / 2);
-              for (let x = 0; x < section.length; x++) {
-                const tag = section[x];
-                description.push(`**${(i + x + 1) + ((pageNumber - 1) * RESULTS_PER_PAGE)}**. ${Markup.escape.all(tag.name)}`);
-
-                /*
-                {
-                  const timestamp = createTimestampMomentFromGuild(tag.edited || tag.created, context.guildId);
-                  description.push(`**->** ${(tag.edited) ? 'Edited' : 'Created'} ${timestamp.fromNow()}`);
-                }
-                */
-              }
-
-              embed.addField('\u200b', description.join('\n'), true);
-            }
-          }
-
-          return embed;
-        },
-      });
-      return await paginator.start();
-    }
-
-    return editOrReply(context, (args.user.id === context.userId) ? 'You don\'t have any tags here' : 'They don\'t have any tags here');
+    return Formatter.Commands.TagListUser.createMessage(context, args);
   }
 }

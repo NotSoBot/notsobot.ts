@@ -49,8 +49,6 @@ export const Api = Object.freeze({
     '/guilds/:guildId/prefixes',
   GUILD_PREFIXES_DELETE:
     '/guilds/:guildId/prefixes/delete',
-  GUILD_TAGS:
-    '/guilds/:guildId/tags',
 
   IMAGE_CREATE_COLOR_HEX:
     '/image/create/:height:x:width:/colors/:hex:.:format:',
@@ -211,6 +209,8 @@ export const Api = Object.freeze({
 
   TAGS:
     '/tags',
+  TAGS_SERVER:
+    '/tags/servers/:serverId',
 
   USER:
     '/users/:userId',
