@@ -271,6 +271,10 @@ export class Paginator {
     return null;
   }
 
+  set message(value: null | Structures.Message) {
+    this._message = value;
+  }
+
   get messageId(): string {
     return (this.message) ? this.message.id : '';
   }
@@ -408,7 +412,7 @@ export class Paginator {
 
   async onButtonPress(context: ComponentContext): Promise<void> {
     if (this.stopped) {
-      return;
+      return await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
 
     if (!this.canInteract(context.userId)) {
@@ -557,7 +561,7 @@ export class Paginator {
       this.isEphemeral = false;
     }
 
-    let message: Structures.Message;
+    let message: Structures.Message | null = null;
     if (this.message) {
       message = this.message;
     } else {

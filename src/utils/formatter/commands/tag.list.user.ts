@@ -82,7 +82,8 @@ export async function createMessage(
         if (args.query || args.user) {
           const description: Array<string> = [];
           if (args.user) {
-            description.push(`Showing tags owned by ${createUserString(args.user.id, args.user)}`);
+            const noun = (args.global) ? 'Global Tags' : 'Server Tags';
+            description.push(`Showing ${noun} owned by ${createUserString(args.user.id, args.user)}`);
           }
           if (args.query) {
             description.push(`Filtering for tags containing ${Markup.codestring(args.query)}`);
@@ -125,7 +126,7 @@ export async function createMessage(
     return await paginator.start();
   }
 
-  const person = (args.user.id === context.userId) ? 'You don\'t' : 'They don\'t';
+  const person = (args.user.id === context.userId) ? 'You' : 'They';
   const noun = (args.global) ? 'global tags' : 'tags here';
-  return editOrReply(context, `${person} doesn\'t have any ${noun}`);
+  return editOrReply(context, `${person} don\'t have any ${noun}`);
 }
