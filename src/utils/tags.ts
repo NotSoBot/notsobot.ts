@@ -644,6 +644,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.LOGICAL_GET]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {get:variable-name}
+
     const key = arg.trim();
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to access a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
@@ -984,6 +986,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_CODEBLOCK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {code} (unknown)
+
     return false;
   },
 
@@ -1005,11 +1009,15 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_LENGTH]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {len:text}
+
     tag.text += arg.length;
     return true;
   },
 
   [TagFunctions.STRING_LOWER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {lower:text}
+
     tag.text += arg.toLowerCase();
     return true;
   },
@@ -1071,25 +1079,36 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_REVERSE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {reverse:text}
+
     tag.text += arg.split('').reverse().join('');
     return true;
   },
 
   [TagFunctions.STRING_SUB]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {substring} (unknown)
+
     return false;
   },
 
   [TagFunctions.STRING_UPPER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {upper:text}
+
     tag.text += arg.toUpperCase();
     return true;
   },
 
   [TagFunctions.STRING_URL_ENCODE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {url:text}
+
     tag.text += encodeURIComponent(arg);
     return true;
   },
 
   [TagFunctions.USER_DISCRIMINATOR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {discrim}
+    // {discrim:user}
+
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -1103,6 +1122,9 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_MENTION]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {mention}
+    // {mention:user}
+
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -1116,6 +1138,9 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_NAME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {name}
+    // {name:user}
+
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -1129,6 +1154,9 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_NICK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {nick}
+    // {nick:user}
+
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -1142,6 +1170,9 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {id}
+    // {id:user}
+
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
@@ -1155,6 +1186,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_RANDOM]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {randuser}
+
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
@@ -1176,6 +1209,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_RANDOM_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {randuserid}
+
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
@@ -1197,6 +1232,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_RANDOM_ONLINE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {randonline}
+
     // all online users are already in cache pretty sure
     if (context.guild) {
       const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
@@ -1210,6 +1247,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_RANDOM_ONLINE_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {randonlineid}
+
     // all online users are already in cache pretty sure
     if (context.guild) {
       const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
@@ -1223,6 +1262,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_RANDOM_ONLINE_TAG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {randonlinetag}
+
     // all online users are already in cache pretty sure
     if (context.guild) {
       const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
@@ -1236,6 +1277,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_RANDOM_TAG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {randusertag}
+
     // make sure guild is ready `Guild.ready` before getting a random member
     if (context.guild) {
       if (!context.guild.isReady) {
@@ -1257,6 +1300,9 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.USER_TAG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {usertag}
+    // {usertag:user}
+
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
