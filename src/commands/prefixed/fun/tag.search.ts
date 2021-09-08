@@ -7,12 +7,12 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  query: string,
+  name: string,
   user?: Structures.Member | Structures.User | null,
 }
 
 export interface CommandArgs {
-  query: string,
+  name: string,
   user?: Structures.Member | Structures.User,
 }
 
@@ -25,7 +25,7 @@ export default class TagSearchCommand extends BaseCommand {
 
       aliases: ['t search'],
       args: [{name: 'user', type: Parameters.memberOrUser({allowBots: false})}],
-      label: 'query',
+      label: 'name',
       metadata: {
         description: 'Search the Server\'s Tags',
         examples: [
@@ -42,7 +42,7 @@ export default class TagSearchCommand extends BaseCommand {
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return !!args.query || !!args.user;
+    return !!args.name || !!args.user;
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {

@@ -14,8 +14,13 @@ export class TagListServerCommand extends BaseInteractionCommandOption {
     super({
       options: [
         {
-          name: 'query',
-          description: 'Match the tag\'s name with this',
+          name: 'content',
+          description: 'Match the tag\'s content',
+          value: Parameters.string({maxLength: 1000}),
+        },
+        {
+          name: 'name',
+          description: 'Match the tag\'s name',
           value: Parameters.string({maxLength: 64}),
         },
         {

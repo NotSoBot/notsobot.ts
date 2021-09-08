@@ -25,13 +25,18 @@ export class TagListUserCommand extends BaseInteractionCommandOption {
           type: ApplicationCommandOptionTypes.USER,
         },
         {
+          name: 'content',
+          description: 'Match the tag\'s content',
+          value: Parameters.string({maxLength: 1000}),
+        },
+        {
           name: 'global',
           description: 'Only show global tags',
           type: Boolean,
         },
         {
-          name: 'query',
-          description: 'Match the tag\'s name with this',
+          name: 'name',
+          description: 'Match the tag\'s name',
           value: Parameters.string({maxLength: 64}),
         },
       ],

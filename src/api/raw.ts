@@ -373,8 +373,9 @@ export async function fetchTagsServer(
   const query = {
     after: options.after,
     before: options.before,
+    content: options.content,
     limit: options.limit,
-    query: options.query,
+    name: options.name,
     user_id: options.userId,
   };
   return request(context, {
@@ -412,8 +413,9 @@ export async function fetchUserTags(
   const query = {
     after: options.after,
     before: options.before,
+    content: options.content,
     limit: options.limit,
-    query: options.query,
+    name: options.name,
   };
   return request(context, {
     query,

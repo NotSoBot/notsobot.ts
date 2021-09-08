@@ -21,8 +21,9 @@ export const RESULTS_PER_PAGE = 28;
 
 
 export interface CommandArgs {
+  content?: string,
   global?: boolean,
-  query?: string,
+  name?: string,
   user: Structures.Member | Structures.User,
 }
 
@@ -45,12 +46,14 @@ export async function createMessage(
     if (args.global) {
       response = await fetchUserTags(context, args.user.id, {
         before,
-        query: args.query,
+        content: args.content,
+        name: args.name,
       });
     } else {
       response = await fetchTagsServer(context, context.guildId || context.channelId!, {
         before,
-        query: args.query,
+        content: args.content,
+        name: args.name,
         userId: args.user.id,
       });
     }
@@ -79,14 +82,17 @@ export async function createMessage(
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
 
-        if (args.query || args.user) {
+        if (args.content || args.name || args.user) {
           const description: Array<string> = [];
           if (args.user) {
             const noun = (args.global) ? 'Global Tags' : 'Server Tags';
             description.push(`Showing ${noun} owned by ${createUserString(args.user.id, args.user)}`);
           }
-          if (args.query) {
-            description.push(`Filtering for tags containing ${Markup.codestring(args.query)}`);
+          if (args.name) {
+            description.push(`Filtering for tags with names containing ${Markup.codestring(args.name)}`);
+          }
+          if (args.content) {
+            description.push(`Filtering for tags with content containing ${Markup.codestring(args.content)}`);
           }
           embed.setDescription(description.join('\n'));
         }

@@ -87,16 +87,18 @@ export namespace RestOptions {
   export interface FetchTagsServer {
     after?: string,
     before?: string,
+    content?: string,
     limit?: number,
-    query?: string,
+    name?: string,
     userId?: string,
   }
 
   export interface FetchUserTags {
     after?: string,
     before?: string,
+    content?: string,
     limit?: number,
-    query?: string,
+    name?: string,
   }
 
 

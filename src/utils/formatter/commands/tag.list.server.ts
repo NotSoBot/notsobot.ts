@@ -21,7 +21,8 @@ export const RESULTS_PER_PAGE = 28;
 
 
 export interface CommandArgs {
-  query?: string,
+  content?: string,
+  name?: string,
   user?: Structures.Member | Structures.User,
 }
 
@@ -43,7 +44,8 @@ export async function createMessage(
   for (let i = 0; i < MAX_FETCHES; i++) {
     const response = await fetchTagsServer(context, serverId, {
       before,
-      query: args.query,
+      content: args.content,
+      name: args.name,
       userId: (args.user) ? args.user.id : undefined,
     });
 
@@ -71,13 +73,16 @@ export async function createMessage(
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
 
-        if (args.query || args.user) {
+        if (args.content || args.content || args.user) {
           const description: Array<string> = [];
           if (args.user) {
             description.push(`Showing tags owned by ${createUserString(args.user.id, args.user)}`);
           }
-          if (args.query) {
-            description.push(`Filtering for tags containing ${Markup.codestring(args.query)}`);
+          if (args.name) {
+            description.push(`Filtering for tags with names containing ${Markup.codestring(args.name)}`);
+          }
+          if (args.content) {
+            description.push(`Filtering for tags with content containing ${Markup.codestring(args.content)}`);
           }
           embed.setDescription(description.join('\n'));
         }
