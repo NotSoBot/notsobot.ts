@@ -259,6 +259,117 @@ export function findImageUrlInMessages(
 }
 
 
+export function findMediaUrlInAttachment(
+  attachment: Structures.Attachment,
+): null | string {
+  // Has proxy url
+  // is Audio or is Image/Video w/ height or width
+  if (attachment.proxyUrl && (attachment.isAudio || ((attachment.isImage || attachment.isVideo) && (attachment.height || attachment.width)))) {
+    if (attachment.url) {
+      const url = new URL(attachment.url);
+      if (TRUSTED_URLS.includes(url.host)) {
+        return attachment.url;
+      }
+    }
+    return attachment.proxyUrl;
+  }
+  return null;
+}
+
+
+export function findMediaUrlInEmbed(
+  embed: Structures.MessageEmbed,
+  ignoreGIFV: boolean = false,
+): null | string {
+  if (!ignoreGIFV && embed.type === MessageEmbedTypes.GIFV) {
+    // try to use our own unfurler for the url since it'll use the thumbnail
+    // imgur returns the .gif image in thumbnail, so check if that ends with .gif
+    const url = findImageUrlInEmbed(embed, true);
+    if (url && url.endsWith('.gif')) {
+      return url;
+    }
+    if (embed.url) {
+      return embed.url;
+    }
+    return null;
+  }
+  const { image } = embed;
+  if (image && image.proxyUrl && (image.height || image.width)) {
+    if (image.url) {
+      const url = new URL(image.url);
+      if (TRUSTED_URLS.includes(url.host)) {
+        return image.url;
+      }
+    }
+    return image.proxyUrl;
+  }
+  const { thumbnail } = embed;
+  if (thumbnail && thumbnail.proxyUrl && (thumbnail.height || thumbnail.width)) {
+    if (thumbnail.url) {
+      const url = new URL(thumbnail.url);
+      if (TRUSTED_URLS.includes(url.host)) {
+        return thumbnail.url;
+      }
+    }
+    return thumbnail.proxyUrl;
+  }
+  const { video } = embed;
+  if (video && video.proxyUrl && (video.height || video.width)) {
+    if (video.url) {
+      const url = new URL(video.url);
+      if (TRUSTED_URLS.includes(url.host)) {
+        return video.url;
+      }
+    }
+    return video.proxyUrl;
+  }
+  return null;
+}
+
+
+export function findMediaUrlInMessage(
+  message: Structures.Message,
+  url?: string,
+): null | string {
+  if (url) {
+    for (let [embedId, embed] of message.embeds) {
+      if (embed.url === url) {
+        return findMediaUrlInEmbed(embed);
+      }
+    }
+  }
+  for (let [attachmentId, attachment] of message.attachments) {
+    const url = findMediaUrlInAttachment(attachment);
+    if (url) {
+      return url;
+    }
+  }
+  for (let [embedId, embed] of message.embeds) {
+    const url = findMediaUrlInEmbed(embed);
+    if (url) {
+      return url;
+    }
+  }
+  for (let [stickerId, sticker] of message.stickerItems) {
+    return sticker.assetUrl;
+  }
+  return null;
+}
+
+
+export function findMediaUrlInMessages(
+  messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
+): null | string {
+  for (const message of messages.values()) {
+    const url = findMediaUrlInMessage(message);
+    if (url) {
+      return url;
+    }
+  }
+  return null;
+}
+
+
 /** Member Chunking */
 
 export async function findMemberByChunk(

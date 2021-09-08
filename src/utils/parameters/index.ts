@@ -22,6 +22,7 @@ import {
   DefaultParameters,
   fetchMemberOrUserById,
   findImageUrlInMessages,
+  findMediaUrlInMessages,
   findMemberByChunkText,
   findMembersByChunkText,
   isSnowflake,
@@ -266,7 +267,7 @@ export async function tagContent(
     if (context instanceof Command.Context) {
       // check the message's attachments/stickers first
       {
-        const url = findImageUrlInMessages([context.message]);
+        const url = findMediaUrlInMessages([context.message]);
         if (url) {
           return url;
         }
@@ -277,7 +278,7 @@ export async function tagContent(
         const { messageReference } = context.message;
         if (messageReference && messageReference.messageId) {
           const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-          const url = findImageUrlInMessages([message]);
+          const url = findMediaUrlInMessages([message]);
           if (url) {
             return url;
           }

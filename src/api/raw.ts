@@ -1942,6 +1942,24 @@ export async function utilitiesFetchImage(
 }
 
 
+export async function utilitiesFetchUrl(
+  context: RequestContext,
+  options: RestOptions.UtilitiesFetchUrl,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_FETCH_URL,
+    },
+  });
+}
+
+
 export async function utilitiesQrCreate(
   context: RequestContext,
   options: RestOptions.UtilitiesQrCreate,

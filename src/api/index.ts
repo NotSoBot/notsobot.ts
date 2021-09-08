@@ -960,6 +960,14 @@ export async function utilitiesFetchImage(
 }
 
 
+export async function utilitiesFetchUrl(
+  context: RequestContext,
+  options: RestOptions.UtilitiesFetchUrl,
+) {
+  return raw.utilitiesFetchUrl(context, options);
+}
+
+
 export async function utilitiesQrCreate(
   context: RequestContext,
   options: RestOptions.UtilitiesQrCreate,

@@ -2,8 +2,9 @@ import { runInNewContext } from 'vm';
 
 import { Command, Interaction, Structures } from 'detritus-client';
 
-import { utilitiesFetchImage } from '../api';
+import { utilitiesFetchImage, utilitiesFetchUrl } from '../api';
 
+import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
 import { bigIntGenerateBetween, bigIntMax, bigIntMin, randomFromArray, randomFromIterator, splitString } from './tools';
 
@@ -53,6 +54,26 @@ export const AllowedDiscordProperties = Object.freeze({
     variables: ['botId', 'color', 'createdAt', 'createdAtUnix', 'hoist', 'id', 'integrationId', 'isBoosterRole', 'isDefault', 'managed', 'mention', 'mentionable', 'name', 'permissions', 'position'],
   },
 });
+
+
+export enum TagIfComparisons {
+  EQUAL = '=',
+  GREATER_THAN = '>',
+  GREATER_THAN_OR_EQUAL = '>=',
+  LESS_THAN = '<',
+  LESS_THAN_OR_EQUAL = '<=',
+  TILDE = '~',
+}
+
+
+export const TAG_IF_COMPARISONS = [
+  TagIfComparisons.EQUAL,
+  TagIfComparisons.GREATER_THAN,
+  TagIfComparisons.GREATER_THAN_OR_EQUAL,
+  TagIfComparisons.LESS_THAN,
+  TagIfComparisons.LESS_THAN_OR_EQUAL,
+  TagIfComparisons.TILDE,
+];
 
 
 export enum TagFunctions {
@@ -267,6 +288,12 @@ export async function parse(
             tag.text += arg;
           } else if (TagFunctionsToString.NOTE.includes(scriptName)) {
             // do nothing
+          } else if (TagFunctionsToString.LOGICAL_IF.includes(scriptName)) {
+            // do this separate because we dont want to parse args yet
+            const wasValid = await ScriptTags[TagFunctions.LOGICAL_IF](context, arg, args, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
           } else if (TagFunctionsToString.RNG_CHOOSE.includes(scriptName)) {
             // do this separate from below because we don't want our args parsed yet
             const wasValid = await ScriptTags[TagFunctions.RNG_CHOOSE](context, arg, args, tag);
@@ -388,6 +415,7 @@ const ScriptTags = Object.freeze({
       });
     } catch(error) {
       console.log(error);
+      throw error;
     }
 
     return true;
@@ -528,8 +556,17 @@ const ScriptTags = Object.freeze({
     // Actually do it
     // {download:https://google.com}
 
+    const url = Parameters.url(arg);
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-    tag.text += 'Temporary Stuff';
+
+    try {
+      const response = await utilitiesFetchUrl(context, {url});
+      tag.text += await response.text();
+    } catch(error) {
+      console.log(error);
+      throw error;
+    }
+
     return true;
   },
 
@@ -573,18 +610,24 @@ const ScriptTags = Object.freeze({
     // todo: {guildid:178313653177548800} (useless lmao)
 
     tag.text += (context.guildId) ? context.guildId : '0';
-    return false;
+    return true;
   },
 
   [TagFunctions.HASTEBIN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {hastebin:data}
+
     return false;
   },
 
   [TagFunctions.IMAGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // imagescript 1
+
     return false;
   },
 
   [TagFunctions.IMAGESCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // imagescript 2
+
     return false;
   },
 
@@ -616,7 +659,101 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.LOGICAL_IF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    return false;
+    // {if:statement|comparison|value|then:action|else:action}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    const [ value1, comparison, value2, then, ...elseValueParts ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+    if (value1 === undefined || comparison === undefined || value2 === undefined || then === undefined || !elseValueParts.length) {
+      return false;
+    }
+
+    if (!then.startsWith('then:')) {
+      return false;
+    }
+
+    const elseValue = elseValueParts.join(TagSymbols.SPLITTER_ARGUMENT);
+    if (!elseValue.startsWith('else:')) {
+      return false;
+    }
+
+    if (!TAG_IF_COMPARISONS.includes(comparison as TagIfComparisons)) {
+      return false;
+    }
+
+    const values: [string, string] = [value1, value2];
+    for (let i in values) {
+      const x = values[i];
+      if (x.includes(TagSymbols.BRACKET_LEFT)) {
+        // parse it
+        const argParsed = await parse(context, x, args, tag.variables);
+        for (let file of argParsed.files) {
+          tag.files.push(file);
+        }
+        values[i] = argParsed.text;
+      } else {
+        values[i] = x;
+      }
+    }
+
+    let compared: boolean | undefined;
+    switch (comparison) {
+      case TagIfComparisons.EQUAL: {
+        compared = values[0] === values[1];
+      }; break;
+      case TagIfComparisons.GREATER_THAN:
+      case TagIfComparisons.GREATER_THAN_OR_EQUAL:
+      case TagIfComparisons.LESS_THAN:
+      case TagIfComparisons.LESS_THAN_OR_EQUAL:
+      case TagIfComparisons.TILDE: {
+        try {
+          const [ int1, int2 ] = values.map(BigInt) as [bigint, bigint];
+          switch (comparison) {
+            case TagIfComparisons.GREATER_THAN: {
+              compared = int1 > int2;
+            }; break;
+            case TagIfComparisons.GREATER_THAN_OR_EQUAL: {
+              compared = int1 >= int2;
+            }; break;
+            case TagIfComparisons.LESS_THAN: {
+              compared = int1 < int2;
+            }; break;
+            case TagIfComparisons.LESS_THAN_OR_EQUAL: {
+              compared = int1 <= int2;
+            }; break;
+            case TagIfComparisons.TILDE: {
+              compared = ~int1 == ~int2;
+            }; break;
+          }
+        } catch(error) {
+          if (comparison === TagIfComparisons.TILDE) {
+            compared = values[0].toLowerCase() === values[1].toLowerCase();
+          } else {
+            compared = false;
+          }
+        }
+      }; break;
+    }
+
+    if (compared === undefined) {
+      return false;
+    }
+
+    const text = (compared) ? then.slice(5) : elseValue.slice(5);
+    if (text.includes(TagSymbols.BRACKET_LEFT)) {
+      // parse it
+      const argParsed = await parse(context, text, args, tag.variables);
+      for (let file of argParsed.files) {
+        tag.files.push(file);
+      }
+      tag.text += argParsed.text;
+    } else {
+      tag.text += text;
+    }
+
+    return true;
   },
 
   [TagFunctions.LOGICAL_SET]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
@@ -627,7 +764,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [key, ...value] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+    let [ key, ...value ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
     key = key.trim();
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
@@ -649,6 +786,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {math:5+5}
+
     return false;
   },
 
@@ -765,10 +904,26 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.NSFW]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // errors the command if the channel/user isnt suppose to use nsfw
+    // {nsfw}
+
+    if (DefaultParameters.safe(context)) {
+      throw new Error('Cannot use a NSFW tag here!');
+    }
+
     return false;
   },
 
   [TagFunctions.PREFIX]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // the prefix used
+    // {prefix}
+
+    if (context instanceof Interaction.InteractionContext) {
+      tag.text += '/';
+    } else {
+      tag.text += context.prefix;
+    }
+
     return false;
   },
 

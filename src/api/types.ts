@@ -344,6 +344,10 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface UtilitiesFetchUrl {
+    url: string,
+  }
+
   export interface UtilitiesQrCreate {
     margin?: number,
     query: string,
