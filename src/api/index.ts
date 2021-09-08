@@ -952,6 +952,13 @@ export async function uploadCommands(
 }
 
 
+export async function utilitiesFetchData(
+  context: RequestContext,
+  options: RestOptions.UtilitiesFetchData,
+) {
+  return raw.utilitiesFetchData(context, options);
+}
+
 export async function utilitiesFetchImage(
   context: RequestContext,
   options: RestOptions.UtilitiesFetchImage,
@@ -960,11 +967,11 @@ export async function utilitiesFetchImage(
 }
 
 
-export async function utilitiesFetchUrl(
+export async function utilitiesFetchText(
   context: RequestContext,
-  options: RestOptions.UtilitiesFetchUrl,
+  options: RestOptions.UtilitiesFetchText,
 ) {
-  return raw.utilitiesFetchUrl(context, options);
+  return raw.utilitiesFetchText(context, options);
 }
 
 

@@ -340,11 +340,15 @@ export namespace RestOptions {
   }
 
 
+  export interface UtilitiesFetchData {
+    url: string,
+  }
+
   export interface UtilitiesFetchImage {
     url: string,
   }
 
-  export interface UtilitiesFetchUrl {
+  export interface UtilitiesFetchText {
     url: string,
   }
 

@@ -1924,6 +1924,24 @@ export async function uploadCommands(
 }
 
 
+export async function utilitiesFetchData(
+  context: RequestContext,
+  options: RestOptions.UtilitiesFetchData,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_FETCH_DATA,
+    },
+  });
+}
+
+
 export async function utilitiesFetchImage(
   context: RequestContext,
   options: RestOptions.UtilitiesFetchImage,
@@ -1942,9 +1960,9 @@ export async function utilitiesFetchImage(
 }
 
 
-export async function utilitiesFetchUrl(
+export async function utilitiesFetchText(
   context: RequestContext,
-  options: RestOptions.UtilitiesFetchUrl,
+  options: RestOptions.UtilitiesFetchText,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1954,7 +1972,7 @@ export async function utilitiesFetchUrl(
     query,
     route: {
       method: HTTPMethods.GET,
-      path: Api.UTILITIES_FETCH_URL,
+      path: Api.UTILITIES_FETCH_TEXT,
     },
   });
 }

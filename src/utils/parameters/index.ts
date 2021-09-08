@@ -20,6 +20,7 @@ import { RestResponsesRaw } from '../../api/types';
 import { GoogleLocales, GoogleLocalesText } from '../../constants';
 import {
   DefaultParameters,
+  TagFormatter,
   fetchMemberOrUserById,
   findImageUrlInMessages,
   findMediaUrlInMessages,
@@ -269,6 +270,9 @@ export async function tagContent(
       {
         const url = findMediaUrlInMessages([context.message]);
         if (url) {
+          if (TagFormatter.ATTACHMENT_EXTENSIONS_MEDIA.includes(url.split('.').pop()!.toLowerCase())) {
+            return `{attach:${url}}`;
+          }
           return url;
         }
       }
@@ -280,6 +284,9 @@ export async function tagContent(
           const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
           const url = findMediaUrlInMessages([message]);
           if (url) {
+            if (TagFormatter.ATTACHMENT_EXTENSIONS_MEDIA.includes(url.split('.').pop()!.toLowerCase())) {
+              return `{attach:${url}}`;
+            }
             return url;
           }
         }

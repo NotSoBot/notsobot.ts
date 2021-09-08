@@ -2,7 +2,7 @@ import { runInNewContext } from 'vm';
 
 import { Command, Interaction, Structures } from 'detritus-client';
 
-import { utilitiesFetchImage, utilitiesFetchUrl } from '../api';
+import { utilitiesFetchData, utilitiesFetchImage, utilitiesFetchText } from '../api';
 
 import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
@@ -21,7 +21,30 @@ export const TagSymbols = Object.freeze({
   SPLITTER_FUNCTION: ':',
 });
 
-export const ATTACHMENT_EXTENSIONS = ['bmp', 'heic', 'gif', 'ico', 'jpg', 'jpeg', 'png', 'raw', 'tiff', 'webp'];
+export const ATTACHMENT_EXTENSIONS_IMAGE = [
+  'bmp',
+  'heic',
+  'gif',
+  'ico',
+  'jpg',
+  'jpeg',
+  'png',
+  'raw',
+  'tiff',
+  'webp',
+];
+
+export const ATTACHMENT_EXTENSIONS_MEDIA = [
+  'mov',
+  'mp3',
+  'mp4',
+  'txt',
+  'wav',
+  'webm',
+];
+
+export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHMENT_EXTENSIONS_MEDIA];
+
 export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
 export const MAX_REGEX_TIME = 25;
@@ -82,6 +105,7 @@ export enum TagFunctions {
   ARGSLEN = 'ARGSLEN',
   ATTACHMENT = 'ATTACHMENT',
   ATTACHMENT_LAST = 'ATTACHMENT_LAST',
+  ATTACHMENT_SPOILER = 'ATTACHMENT_SPOILER',
   AVATAR = 'AVATAR',
   CHANNEL = 'CHANNEL',
   CHANNEL_ID = 'CHANNEL_ID',
@@ -149,6 +173,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.ARGSLEN]: ['argslen'],
   [TagFunctions.ATTACHMENT]: ['attachment', 'attach', 'file'],
   [TagFunctions.ATTACHMENT_LAST]: ['last_attachment', 'lastattachment', 'lattachment', 'lattach'],
+  [TagFunctions.ATTACHMENT_SPOILER]: ['attachmentspoiler', 'attachspoiler', 'filespoiler'],
   [TagFunctions.AVATAR]: ['avatar'],
   [TagFunctions.CHANNEL]: ['channel'],
   [TagFunctions.CHANNEL_ID]: ['channelid'],
@@ -214,7 +239,7 @@ export interface TagVariables {
 }
 
 export interface TagResult {
-  files: Array<{buffer: null | Buffer, filename: string, url: string}>,
+  files: Array<{buffer: null | Buffer, filename: string, spoiler?: boolean, url: string}>,
   text: string,
   variables: TagVariables,
 }
@@ -393,24 +418,27 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.ATTACHMENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.ATTACHMENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult, spoiler?: boolean): Promise<boolean> => {
     // assume the arg is a url and download it
     // {attach:https://google.com/something.png}
 
     const url = Parameters.url(arg);
     // maybe unfurl instead?
-    const filename = ((url.split('/').pop() as string).split('?').shift() as string).split('#').shift() as string;
-    const extension = (filename.split('.').pop() as string).toLowerCase();
+    const filename = url.split('/').pop()!.split('?').shift()!.split('#').shift()!;
+    const extension = filename.split('.').pop()!.toLowerCase();
     if (!ATTACHMENT_EXTENSIONS.includes(extension)) {
-      throw new Error('Only images/gifs are supported for attachments.');
+      throw new Error('Only audio/images/gifs/text/videos are supported for attachments.');
     }
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
     try {
-      const response = await utilitiesFetchImage(context, {url});
+      const isImage = ATTACHMENT_EXTENSIONS_IMAGE.includes(extension);
+      const response = (isImage) ? await utilitiesFetchImage(context, {url}) : await utilitiesFetchData(context, {url});
+
       tag.files.push({
         buffer: await response.buffer(),
         filename,
+        spoiler,
         url,
       });
     } catch(error) {
@@ -433,6 +461,12 @@ const ScriptTags = Object.freeze({
     }
 
     return true;
+  },
+
+  [TagFunctions.ATTACHMENT_SPOILER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // assume the arg is a url and download it
+    // {attachspoiler:https://google.com/something.png}
+    return ScriptTags[TagFunctions.ATTACHMENT](context, arg, args, tag, true);
   },
 
   [TagFunctions.AVATAR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
@@ -560,7 +594,7 @@ const ScriptTags = Object.freeze({
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
     try {
-      const response = await utilitiesFetchUrl(context, {url});
+      const response = await utilitiesFetchText(context, {url});
       tag.text += await response.text();
     } catch(error) {
       console.log(error);
@@ -913,7 +947,7 @@ const ScriptTags = Object.freeze({
       throw new Error('Cannot use a NSFW tag here!');
     }
 
-    return false;
+    return true;
   },
 
   [TagFunctions.PREFIX]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
@@ -926,7 +960,7 @@ const ScriptTags = Object.freeze({
       tag.text += context.prefix;
     }
 
-    return false;
+    return true;
   },
 
   [TagFunctions.RNG_CHOOSE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {

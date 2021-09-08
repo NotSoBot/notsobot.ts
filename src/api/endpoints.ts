@@ -221,10 +221,12 @@ export const Api = Object.freeze({
   USER_TAGS:
     '/users/:userId/tags',
 
+  UTILITIES_FETCH_DATA:
+    '/utilities/fetch/data',
   UTILITIES_FETCH_IMAGE:
     '/utilities/fetch/image',
-  UTILITIES_FETCH_URL:
-    '/utilities/fetch/url',
+  UTILITIES_FETCH_TEXT:
+    '/utilities/fetch/text',
   UTILITIES_QR_CREATE:
     '/utilities/qr/create',
   UTILITIES_QR_SCAN:
