@@ -1,24 +1,10 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
 
-import { fetchUserTags } from '../../../api';
-import { RestResponsesRaw } from '../../../api/types';
-import { CommandTypes, EmbedColors } from '../../../constants';
-import {
-  DefaultParameters,
-  Formatter,
-  Paginator,
-  Parameters,
-  chunkArray,
-  createTimestampMomentFromGuild,
-  createUserEmbed,
-  editOrReply,
-} from '../../../utils';
+import { CommandTypes } from '../../../constants';
+import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-
-export const RESULTS_PER_PAGE = 28;
 
 export interface CommandArgsBefore {
   user: Structures.Member | Structures.User | null,
