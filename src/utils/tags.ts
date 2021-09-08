@@ -12,6 +12,14 @@ const findChannel = Parameters.channel({inGuild: true});
 const findMemberOrUser = Parameters.memberOrUser();
 
 
+export const TagSymbols = Object.freeze({
+  BRACKET_LEFT: '{',
+  BRACKET_RIGHT: '}',
+  IGNORE: '\\',
+  SPLITTER_ARGUMENT: '|',
+  SPLITTER_FUNCTION: ':',
+});
+
 export const ATTACHMENT_EXTENSIONS = ['bmp', 'heic', 'gif', 'ico', 'jpg', 'jpeg', 'png', 'raw', 'tiff', 'webp'];
 export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
@@ -24,6 +32,10 @@ export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
 export const SCRIPT_REGEX = /\{((?:(?!:)(?:.|\s))*):([\s\S]+)\}/;
+
+export const REGEX_ARGUMENT_SPLITTER = new RegExp(`(?<!\\\\)[${TagSymbols.SPLITTER_ARGUMENT}]`, 'g');
+export const REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT = new RegExp(`\\\\\\${TagSymbols.SPLITTER_ARGUMENT}`, 'g');
+
 
 export enum PrivateVariables {
   ITERATIONS_REMAINING = '__iterationsRemaining',
@@ -171,15 +183,6 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.USER_RANDOM_ONLINE_TAG]: ['randonlinetag'],
   [TagFunctions.USER_RANDOM_TAG]: ['randusertag'],
   [TagFunctions.USER_TAG]: ['usertag'],
-});
-
-
-export const TagSymbols = Object.freeze({
-  BRACKET_LEFT: '{',
-  BRACKET_RIGHT: '}',
-  IGNORE: '\\',
-  SPLITTER_ARGUMENT: '|',
-  SPLITTER_FUNCTION: ':',
 });
 
 
@@ -617,11 +620,14 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.LOGICAL_SET]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {set:variable|value}
+    // {set:channel|123}
+
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
-    let [key, ...value] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    let [key, ...value] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
     key = key.trim();
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
@@ -647,6 +653,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_ABS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {abs:integer}
+
     const value = parseInt(arg);
     if (isNaN(value)) {
       return false;
@@ -658,6 +666,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_COS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {cos:integer}
+
     const value = parseInt(arg);
     if (isNaN(value)) {
       return false;
@@ -669,30 +679,29 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_E]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {e}
+
     tag.text += Math.E;
     return true;
   },
 
   [TagFunctions.MATH_MAX]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {max:number|number|...}
+
     if (!arg) {
       return false;
     }
 
-    const [ firstValuePart, ...secondValueParts ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
-    const firstValue = firstValuePart.split('.').shift() as string;
-    if (isNaN(firstValue as any)) {
+    const numbers = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.split('.').shift()!);
+    if (numbers.some((x) => isNaN(x as any))) {
       return false;
     }
 
     let value: bigint;
-    if (secondValueParts.length) {
-      const secondValue = secondValueParts.join(TagSymbols.SPLITTER_ARGUMENT).split('.').shift() as string;
-      if (isNaN(secondValue as any)) {
-        return false;
-      }
-      value = bigIntMax(BigInt(firstValue), BigInt(secondValue));
+    if (numbers.length === 1) {
+      value = BigInt(numbers[0]);
     } else {
-      value = BigInt(firstValue);
+      value = bigIntMax(...numbers.map(BigInt));
     }
     tag.text += value;
 
@@ -700,25 +709,22 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_MIN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {min:number|number|...}
+
     if (!arg) {
       return false;
     }
 
-    const [ firstValuePart, ...secondValueParts ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
-    const firstValue = firstValuePart.split('.').shift() as string;
-    if (isNaN(firstValue as any)) {
+    const numbers = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.split('.').shift()!);
+    if (numbers.some((x) => isNaN(x as any))) {
       return false;
     }
 
     let value: bigint;
-    if (secondValueParts.length) {
-      const secondValue = secondValueParts.join(TagSymbols.SPLITTER_ARGUMENT).split('.').shift() as string;
-      if (isNaN(secondValue as any)) {
-        return false;
-      }
-      value = bigIntMin(BigInt(firstValue), BigInt(secondValue));
+    if (numbers.length === 1) {
+      value = BigInt(numbers[0]);
     } else {
-      value = BigInt(firstValue);
+      value = bigIntMin(...numbers.map(BigInt));
     }
     tag.text += value;
 
@@ -726,11 +732,15 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_PI]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {pi}
+
     tag.text += Math.PI;
     return true;
   },
 
   [TagFunctions.MATH_SIN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {sin:number}
+
     const value = parseInt(arg);
     if (isNaN(value)) {
       return false;
@@ -742,6 +752,8 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_TAN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {tan:number}
+
     const value = parseInt(arg);
     if (isNaN(value)) {
       return false;
@@ -770,7 +782,7 @@ const ScriptTags = Object.freeze({
 
     let value: string;
     if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      const choices = splitString(arg, TagSymbols.SPLITTER_ARGUMENT);
+      const choices = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
       value = randomFromArray<string>(choices);
     } else {
       value = arg;
@@ -848,11 +860,13 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_REPEAT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {repeat:50|lol}
+
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
-    const [ amountText, ...value ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
+    const [ amountText, ...value ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
     const amount = parseInt(amountText.trim());
     if (isNaN(amount)) {
       return false;
@@ -873,16 +887,25 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.STRING_REPLACE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {replace:regex|with|in}
+    // {replace:(cake\|josh)|tom|cake went with josh to the store}
 
-    const [ regex, replaceWith, source ] = arg.split(TagSymbols.SPLITTER_ARGUMENT);
-    if (regex === undefined || replaceWith === undefined || source === undefined) {
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    const [ regex, replaceWith, ...source ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+    if (regex === undefined || replaceWith === undefined || !source.length) {
       return false;
     }
 
     try {
       tag.text += runInNewContext(
-        `source.replace(new RegExp(regex, 'g'), replaceWith);`,
-        {regex, source, replaceWith},
+        `source.replace(new RegExp(regex, 'gi'), replaceWith);`,
+        {
+          regex: regex.trim(),
+          source: source.join(TagSymbols.SPLITTER_ARGUMENT).trim(),
+          replaceWith: replaceWith.trim(),
+        },
         {timeout: MAX_REGEX_TIME},
       );
     } catch {
