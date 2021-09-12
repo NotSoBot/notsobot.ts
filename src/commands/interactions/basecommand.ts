@@ -136,7 +136,12 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
         }
       }
     } else {
-      description.push(error.message || error.stack);
+      const message = String(error.message || error.stack);
+      if (message.includes('reason: connect ECONNREFUSED 127.0.0.1:80')) {
+        description.push('Our api is restarting, might take a bit. Sorry ;(');
+      } else {
+        description.push(message);
+      }
     }
     embed.setDescription(description.join('\n'));
 

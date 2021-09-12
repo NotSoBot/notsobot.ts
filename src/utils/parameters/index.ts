@@ -810,6 +810,9 @@ export async function imageUrlPositional(
       {
         const url = findImageUrlInMessages([context.message]);
         if (url) {
+          if (url === value) {
+            return url;
+          }
           return [true, url];
         }
       }
