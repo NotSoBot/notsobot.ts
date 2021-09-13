@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageToolsGifReverse } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -17,7 +16,7 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'gif reverse';
 
-export default class GifReverseCommand extends BaseImageCommand<CommandArgs> {
+export default class GifReverseCommand extends BaseImageCommand<Formatter.Commands.ImageGifReverse.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -34,8 +33,7 @@ export default class GifReverseCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageToolsGifReverse(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageGifReverse.CommandArgs) {
+    return Formatter.Commands.ImageGifReverse.createMessage(context, args);
   }
 }

@@ -12,6 +12,7 @@ import { ImageFlopCommand } from './flop';
 import { ImageInvertCommand } from './invert';
 import { ImageMemeCommand } from './meme';
 
+import { ImageGifGroupCommand } from './gif';
 import { ImageOverlayGroupCommand } from './overlay';
 import { ImageToolsGroupCommand } from './tools';
 
@@ -31,6 +32,7 @@ export default class ImageGroupCommand extends BaseSlashCommand {
         new ImageExplodeCommand(),
         new ImageFlipCommand(),
         new ImageFlopCommand(),
+        new ImageGifGroupCommand(),
         new ImageInvertCommand(),
         new ImageMemeCommand(),
         new ImageOverlayGroupCommand(),

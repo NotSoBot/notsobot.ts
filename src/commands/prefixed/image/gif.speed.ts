@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageToolsGifSpeed } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { Parameters, imageReply } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -19,7 +18,7 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'gif speed';
 
-export default class GifSpeedCommand extends BaseImageCommand<CommandArgs> {
+export default class GifSpeedCommand extends BaseImageCommand<Formatter.Commands.ImageGifSpeed.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -40,8 +39,7 @@ export default class GifSpeedCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageToolsGifSpeed(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageGifSpeed.CommandArgs) {
+    return Formatter.Commands.ImageGifSpeed.createMessage(context, args);
   }
 }

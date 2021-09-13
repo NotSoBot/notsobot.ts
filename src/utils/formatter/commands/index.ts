@@ -5,6 +5,9 @@ import * as ImageDeepfry from './image.deepfry';
 import * as ImageExplode from './image.explode';
 import * as ImageFlip from './image.flip';
 import * as ImageFlop from './image.flop';
+import * as ImageGifReverse from './image.gif.reverse';
+import * as ImageGifSeeSaw from './image.gif.seesaw';
+import * as ImageGifSpeed from './image.gif.speed';
 import * as ImageInvert from './image.invert';
 import * as ImageMeme from './image.meme';
 import * as ImageOverlayPistol from './image.overlay.pistol';
@@ -42,6 +45,9 @@ export {
   ImageExplode,
   ImageFlip,
   ImageFlop,
+  ImageGifReverse,
+  ImageGifSeeSaw,
+  ImageGifSpeed,
   ImageInvert,
   ImageMeme,
   ImageOverlayPistol,
