@@ -4,6 +4,7 @@ import { SettingsPrefixesAddCommand } from './prefixes.add';
 import { SettingsPrefixesClearCommand } from './prefixes.clear';
 import { SettingsPrefixesListCommand } from './prefixes.list';
 import { SettingsPrefixesRemoveCommand } from './prefixes.remove';
+import { SettingsPrefixesReplaceCommand } from './prefixes.replace';
 
 
 export class SettingsPrefixesGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -18,6 +19,7 @@ export class SettingsPrefixesGroupCommand extends BaseInteractionCommandOptionGr
         new SettingsPrefixesAddCommand(),
         new SettingsPrefixesClearCommand(),
         new SettingsPrefixesRemoveCommand(),
+        new SettingsPrefixesReplaceCommand(),
       ],
     });
   }

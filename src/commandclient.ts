@@ -21,6 +21,10 @@ export class NotSoCommandClient extends CommandClient {
     if (member && (member.isOwner || member.canAdministrator)) {
       return true;
     }
+
+    const channel = context.channel;
+    const parent = (channel) ? channel.parent : null;
+
     const guildId = context.guildId!;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {
@@ -32,7 +36,10 @@ export class NotSoCommandClient extends CommandClient {
               if (disabled.id === context.channelId) {
                 return true;
               }
-              if (context.channel && context.channel.parentId === disabled.id) {
+              if (channel && channel.parentId === disabled.id) {
+                return true;
+              }
+              if (parent && parent.parentId === disabled.id) {
                 return true;
               }
             }; break;
@@ -62,7 +69,10 @@ export class NotSoCommandClient extends CommandClient {
               if (allow.id === context.channelId) {
                 return true;
               }
-              if (context.channel && context.channel.parentId === allow.id) {
+              if (channel && channel.parentId === allow.id) {
+                return true;
+              }
+              if (parent && parent.parentId === allow.id) {
                 return true;
               }
             }; break;
@@ -87,7 +97,10 @@ export class NotSoCommandClient extends CommandClient {
                 if (blocked.id === context.channelId) {
                   return true;
                 }
-                if (context.channel && context.channel.parentId === blocked.id) {
+                if (channel && channel.parentId === blocked.id) {
+                  return true;
+                }
+                if (parent && parent.parentId === blocked.id) {
                   return true;
                 }
               }; break;

@@ -1,19 +1,16 @@
 import { Interaction } from 'detritus-client';
-import { InteractionCallbackTypes, Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Permissions } from 'detritus-client/lib/constants';
 
-import { EmbedBrands, EmbedColors } from '../../../../../constants';
+import { Formatter } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
-export interface CommandArgs {
-  prefix: string,
-}
+export const COMMAND_NAME = 'add';
 
 export class SettingsPrefixesAddCommand extends BaseInteractionCommandOption {
   description = 'Add a custom prefix for this Server';
-  name = 'add';
+  name = COMMAND_NAME;
   permissions = [Permissions.MANAGE_GUILD];
 
   constructor() {
@@ -24,10 +21,7 @@ export class SettingsPrefixesAddCommand extends BaseInteractionCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-      content: 'wip',
-      flags: 64,
-    });
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.SettingsPrefixesAdd.CommandArgs) {
+    return Formatter.Commands.SettingsPrefixesAdd.createMessage(context, args);
   }
 }

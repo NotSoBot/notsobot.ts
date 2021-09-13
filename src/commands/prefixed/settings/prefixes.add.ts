@@ -1,10 +1,8 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
 
-import { createGuildPrefix } from '../../../api';
-import { CommandTypes, EmbedColors } from '../../../constants';
-import { Formatter, Parameters, createUserEmbed, editOrReply } from '../../../utils';
+import { CommandTypes } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -13,9 +11,6 @@ export interface CommandArgsBefore {
   prefix: string,
 }
 
-export interface CommandArgs {
-  prefix: string,
-}
 
 export const COMMAND_NAME = 'prefixes add';
 
@@ -45,16 +40,7 @@ export default class PrefixesAddCommand extends BaseCommand {
     return !!args.prefix;
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const guildId = context.guildId as string;
-
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setTitle(`Created prefix: **${Markup.escape.all(args.prefix)}**`);
-
-    const prefixes = await createGuildPrefix(context, guildId, args.prefix);
-    Formatter.Commands.SettingsPrefixesList.formatPrefixes(context, prefixes, embed);
-
-    return editOrReply(context, {embed});
+  async run(context: Command.Context, args: Formatter.Commands.SettingsPrefixesAdd.CommandArgs) {
+    return Formatter.Commands.SettingsPrefixesAdd.createMessage(context, args);
   }
 }

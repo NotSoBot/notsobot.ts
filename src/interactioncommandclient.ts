@@ -24,10 +24,13 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     if (member && (member.isOwner || member.canAdministrator)) {
       return true;
     }
+
+    const channel = context.channel;
+    const parent = (channel) ? channel.parent : null;
+
     const guildId = context.guildId!;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {
-      /*
       const disabledCommands = settings.disabledCommands.filter((disabled) => disabled.command === command.name);
       if (disabledCommands.length) {
         const shouldIgnore = disabledCommands.some((disabled) => {
@@ -36,7 +39,10 @@ export class NotSoInteractionClient extends InteractionCommandClient {
               if (disabled.id === context.channelId) {
                 return true;
               }
-              if (context.channel && context.channel.parentId === disabled.id) {
+              if (channel && channel.parentId === disabled.id) {
+                return true;
+              }
+              if (parent && parent.parentId === disabled.id) {
                 return true;
               }
             }; break;
@@ -50,7 +56,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
             }; break;
             case GuildDisableCommandsTypes.USER: {
               return disabled.id === context.userId;
-            }; break;
+            };
           }
           return false;
         });
@@ -58,7 +64,6 @@ export class NotSoInteractionClient extends InteractionCommandClient {
           return false;
         }
       }
-      */
       const { allowlist } = settings;
       if (allowlist.length) {
         const shouldAllow = allowlist.some((allow) => {
@@ -67,7 +72,10 @@ export class NotSoInteractionClient extends InteractionCommandClient {
               if (allow.id === context.channelId) {
                 return true;
               }
-              if (context.channel && context.channel.parentId === allow.id) {
+              if (channel && channel.parentId === allow.id) {
+                return true;
+              }
+              if (parent && parent.parentId === allow.id) {
                 return true;
               }
             }; break;
@@ -92,7 +100,10 @@ export class NotSoInteractionClient extends InteractionCommandClient {
                 if (blocked.id === context.channelId) {
                   return true;
                 }
-                if (context.channel && context.channel.parentId === blocked.id) {
+                if (channel && channel.parentId === blocked.id) {
+                  return true;
+                }
+                if (parent && parent.parentId === blocked.id) {
                   return true;
                 }
               }; break;
@@ -103,7 +114,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
               }; break;
               case GuildBlocklistTypes.USER: {
                 return blocked.id === context.userId;
-              };
+              }; break;
             }
             return false;
           });

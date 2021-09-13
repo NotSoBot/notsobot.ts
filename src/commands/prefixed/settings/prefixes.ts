@@ -1,9 +1,8 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, EmbedColors } from '../../../constants';
-import GuildSettingsStore from '../../../stores/guildsettings';
-import { Formatter, createUserEmbed, editOrReply } from '../../../utils';
+import { CommandTypes } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -31,17 +30,6 @@ export default class PrefixesCommand extends BaseCommand {
   }
 
   async run(context: Command.Context) {
-    const guildId = context.guildId as string;
-
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setTitle('Showing prefixes');
-
-    const settings = await GuildSettingsStore.getOrFetch(context, guildId);
-    if (settings) {
-      Formatter.Commands.SettingsPrefixesList.formatPrefixes(context, settings.prefixes, embed);
-    }
-
-    return editOrReply(context, {embed});
+    return Formatter.Commands.SettingsPrefixesList.createMessage(context);
   }
 }

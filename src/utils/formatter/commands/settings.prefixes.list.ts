@@ -2,6 +2,9 @@ import { Collections, Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettingsPrefix } from '../../../api/structures/guildsettings';
+import { EmbedColors } from '../../../constants';
+import GuildSettingsStore from '../../../stores/guildsettings';
+import { createUserEmbed, editOrReply } from '../../tools';
 
 
 export function formatPrefixes(
@@ -37,4 +40,24 @@ export function formatPrefixes(
     ].join('\n'));
   }
   return embed;
+}
+
+
+export async function createMessage(
+  context: Command.Context | Interaction.InteractionContext,
+) {
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
+
+  const guildId = context.guildId!;
+
+  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
+  embed.setColor(EmbedColors.DEFAULT);
+  embed.setTitle('Showing prefixes');
+
+  const settings = await GuildSettingsStore.getOrFetch(context, guildId);
+  if (settings) {
+    formatPrefixes(context, settings.prefixes, embed);
+  }
+
+  return editOrReply(context, {embed});
 }

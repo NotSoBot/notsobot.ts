@@ -1,10 +1,8 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
 
-import { editGuildSettings } from '../../../api';
-import { CommandTypes, EmbedColors } from '../../../constants';
-import { Formatter, Parameters, createUserEmbed, editOrReply } from '../../../utils';
+import { CommandTypes } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -45,16 +43,7 @@ export default class PrefixesReplaceCommand extends BaseCommand {
     return !!args.prefix;
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const guildId = context.guildId as string;
-
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setTitle(`Replaced prefixes with **${Markup.escape.all(args.prefix)}**`);
-
-    const { prefixes } = await editGuildSettings(context, guildId, {prefixes: [args.prefix]});
-    Formatter.Commands.SettingsPrefixesList.formatPrefixes(context, prefixes, embed);
-
-    return editOrReply(context, {embed});
+  async run(context: Command.Context, args: Formatter.Commands.SettingsPrefixesReplace.CommandArgs) {
+    return Formatter.Commands.SettingsPrefixesReplace.createMessage(context, args);
   }
 }

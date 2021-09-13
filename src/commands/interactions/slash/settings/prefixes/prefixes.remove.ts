@@ -1,19 +1,17 @@
 import { Interaction } from 'detritus-client';
-import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Permissions } from 'detritus-client/lib/constants';
 
-import { EmbedBrands, EmbedColors } from '../../../../../constants';
+import { Formatter } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
-export interface CommandArgs {
-  prefix: string,
-}
+export const COMMAND_NAME = 'remove';
 
 export class SettingsPrefixesRemoveCommand extends BaseInteractionCommandOption {
   description = 'Remove a custom prefix on this Server';
-  name = 'remove';
+  name = COMMAND_NAME;
+  permissions = [Permissions.MANAGE_GUILD];
 
   constructor() {
     super({
@@ -23,10 +21,7 @@ export class SettingsPrefixesRemoveCommand extends BaseInteractionCommandOption 
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-      content: 'wip',
-      flags: 64,
-    });
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.SettingsPrefixesRemove.CommandArgs) {
+    return Formatter.Commands.SettingsPrefixesRemove.createMessage(context, args);
   }
 }
