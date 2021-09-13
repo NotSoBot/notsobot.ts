@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationCircle } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -12,14 +11,9 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export interface CommandArgs {
-  scale?: number,
-  url: string,
-}
-
 export const COMMAND_NAME = 'circle';
 
-export default class CircleCommand extends BaseImageCommand<CommandArgs> {
+export default class CircleCommand extends BaseImageCommand<Formatter.Commands.ImageCircle.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -40,8 +34,7 @@ export default class CircleCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationCircle(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageCircle.CommandArgs) {
+    return Formatter.Commands.ImageCircle.createMessage(context, args);
   }
 }

@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageToolsConvert } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { Parameters, imageReply } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -13,15 +12,9 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export interface CommandArgs {
-  size?: string,
-  to: string,
-  url: string,
-}
-
 export const COMMAND_NAME = 'convert';
 
-export default class ConvertCommand extends BaseImageCommand<CommandArgs> {
+export default class ConvertCommand extends BaseImageCommand<Formatter.Commands.ImageToolsConvert.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -47,8 +40,7 @@ export default class ConvertCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageToolsConvert(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageToolsConvert.CommandArgs) {
+    return Formatter.Commands.ImageToolsConvert.createMessage(context, args);
   }
 }

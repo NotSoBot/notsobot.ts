@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageToolsResize } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -14,16 +13,9 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export interface CommandArgs {
-  convert?: string,
-  scale: number,
-  size?: string,
-  url: string,
-}
-
 export const COMMAND_NAME = 'resize';
 
-export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
+export default class ResizeCommand extends BaseImageCommand<Formatter.Commands.ImageToolsResize.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -49,8 +41,7 @@ export default class ResizeCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageToolsResize(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageToolsResize.CommandArgs) {
+    return Formatter.Commands.ImageToolsResize.createMessage(context, args);
   }
 }

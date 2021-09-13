@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationFlip } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -11,13 +10,9 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'flip';
 
-export default class FlipCommand extends BaseImageCommand<CommandArgs> {
+export default class FlipCommand extends BaseImageCommand<Formatter.Commands.ImageFlip.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -34,8 +29,7 @@ export default class FlipCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationFlip(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageFlip.CommandArgs) {
+    return Formatter.Commands.ImageFlip.createMessage(context, args);
   }
 }
