@@ -634,8 +634,30 @@ export async function imageUrl(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<string | null | undefined> {
-  if (value) {
-    try {
+  try {
+    if (context instanceof Command.Context) {
+      // check the message's attachments/stickers first
+      {
+        const url = findImageUrlInMessages([context.message]);
+        if (url) {
+          return url;
+        }
+      }
+
+      // check for reply and if it has an image
+      {
+        const { messageReference } = context.message;
+        if (messageReference && messageReference.messageId) {
+          const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          const url = findImageUrlInMessages([message]);
+          if (url) {
+            return url;
+          }
+        }
+      }
+    }
+
+    if (value) {
       // get last image then
       if (value === '^') {
         return await lastImageUrl('', context);
@@ -646,6 +668,22 @@ export async function imageUrl(
         const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
         if (matches.length) {
           const [ { text } ] = matches;
+
+          // if its https://discord.com/channels/:guildId/:channelId/:messageId
+          {
+            const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+            if (messageLink.matches.length) {
+              const [ { channelId, messageId } ] = messageLink.matches;
+              if (channelId && messageId) {
+                const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+                const url = findImageUrlInMessages([message]);
+                if (url) {
+                  return url;
+                }
+              }
+            }
+          }
+
           if (context instanceof Command.Context) {
             if (!context.message.embeds.length) {
               await Timers.sleep(1000);
@@ -721,9 +759,9 @@ export async function imageUrl(
           return found.avatarUrlFormat(null, {size: 1024});
         }
       }
-    } catch(error) {
-      return null;
     }
+  } catch(error) {
+    return null;
   }
   return null;
 }
@@ -761,14 +799,34 @@ export async function lastImageUrls(
       if (matches.length) {
         // match the url with the embed?
         const [ { text } ] = matches;
-        if (context instanceof Command.Context) {
-          if (!context.message.embeds.length) {
-            await Timers.sleep(1000);
+
+        let found: boolean = false;
+        // if its https://discord.com/channels/:guildId/:channelId/:messageId
+        {
+          const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+          if (messageLink.matches.length) {
+            const [ { channelId, messageId } ] = messageLink.matches;
+            if (channelId && messageId) {
+              const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+              const url = findImageUrlInMessages([message]);
+              if (url) {
+                urls.add(url);
+                found = true;
+              }
+            }
           }
-          const url = findImageUrlInMessages([context.message]);
-          urls.add(url || text);
-        } else {
-          urls.add(text);;
+        }
+
+        if (!found) {
+          if (context instanceof Command.Context) {
+            if (!context.message.embeds.length) {
+              await Timers.sleep(1000);
+            }
+            const url = findImageUrlInMessages([context.message]);
+            urls.add(url || text);
+          } else {
+            urls.add(text);
+          }
         }
       }
     }
@@ -841,6 +899,22 @@ export async function imageUrlPositional(
         const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
         if (matches.length) {
           const [ { text } ] = matches;
+
+          // if its https://discord.com/channels/:guildId/:channelId/:messageId
+          {
+            const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+            if (messageLink.matches.length) {
+              const [ { channelId, messageId } ] = messageLink.matches;
+              if (channelId && messageId) {
+                const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+                const url = findImageUrlInMessages([message]);
+                if (url) {
+                  return url;
+                }
+              }
+            }
+          }
+
           if (context instanceof Command.Context) {
             if (!context.message.embeds.length) {
               await Timers.sleep(1000);

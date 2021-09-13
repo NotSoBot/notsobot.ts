@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationMeme } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { Parameters, imageReply } from '../../../utils';
+import { Formatter, Parameters, imageReply } from '../../../utils';
 
 import { BaseCommand, BaseImageCommand } from '../basecommand';
 
@@ -12,14 +11,9 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export interface CommandArgs {
-  text: string,
-  url: string,
-}
-
 export const COMMAND_NAME = 'meme';
 
-export default class MemeCommand extends BaseImageCommand<CommandArgs> {
+export default class MemeCommand extends BaseImageCommand<Formatter.Commands.ImageMeme.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -40,32 +34,18 @@ export default class MemeCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgs) {
+  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.text && super.onBeforeRun(context, args);
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgs) {
+  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (!args.text) {
       return BaseCommand.prototype.onCancelRun.call(this, context, args);
     }
     return super.onCancelRun(context, args);
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { text, url } = args;
-
-    let top: string = '';
-    let bottom: string | undefined;
-    if (text.includes('|')) {
-      [ top, bottom ] = text.split('|');
-    } else {
-      const split = text.split(' ');
-      const half = Math.floor(split.length / 2);
-      top = split.slice(0, half).join(' ');
-      bottom = split.slice(half).join(' ');
-    }
-
-    const response = await imageManipulationMeme(context, {bottom, top, url});
-    return imageReply(context, response);
+  run(context: Command.Context, args: Formatter.Commands.ImageMeme.CommandArgs) {
+    return Formatter.Commands.ImageMeme.createMessage(context, args);
   }
 }

@@ -505,13 +505,35 @@ export enum ImageEyeTypes {
 };
 
 
+export enum ImageMemeFonts {
+  IMPACT = 'IMPACT',
+  MPLUS_1C_BLACK = 'MPLUS_1C_BLACK',
+  MPLUS_2P_BLACK = 'MPLUS_2P_BLACK',
+  RUBIK_BLACK = 'RUBIK_BLACK',
+  TAHOMA_BOLD = 'TAHOMA_BOLD',
+  TITILLIUMWEB_BLACK = 'TITILLIUMWEB_BLACK',
+  TITILLIUMWEB_BOLD = 'TITILLIUMWEB_BOLD',
+  TYPOLINE_DEMO = 'TYPOLINE_DEMO',
+};
+
+export const ImageMemeFontsToText: Record<ImageMemeFonts, string> = Object.freeze({
+  [ImageMemeFonts.IMPACT]: 'Impact',
+  [ImageMemeFonts.MPLUS_1C_BLACK]: 'M+ 1c',
+  [ImageMemeFonts.MPLUS_2P_BLACK]: 'M+ 2p',
+  [ImageMemeFonts.RUBIK_BLACK]: 'Rubik Black',
+  [ImageMemeFonts.TAHOMA_BOLD]: 'Tahoma Bold',
+  [ImageMemeFonts.TITILLIUMWEB_BLACK]: 'Titillium Black',
+  [ImageMemeFonts.TITILLIUMWEB_BOLD]: 'Titillium Bold',
+  [ImageMemeFonts.TYPOLINE_DEMO]: 'Typoline',
+});
+
+
 export enum ImageLegofyPalettes {
   ALL = 'all',
   EFFECTS = 'effects',
   MONO = 'mono',
   TRANSPARENT = 'transparent',
 };
-
 
 
 export enum Mimetypes {

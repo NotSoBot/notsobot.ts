@@ -9,7 +9,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { EmbedColors, PermissionsText } from '../../constants';
-import { createUserEmbed } from '../../utils';
+import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 
 
@@ -36,7 +36,7 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
     });
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+  onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
       content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,
@@ -80,7 +80,7 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
   }
 
   async onRunError(context: Interaction.InteractionContext, args: ParsedArgsFinished, error: any) {
-    const embed = createUserEmbed(context.user);
+    const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle(`⚠ ${this.error} Command Error`);
 
@@ -165,7 +165,7 @@ export class BaseInteractionCommandOption<ParsedArgsFinished = Interaction.Parse
   error = 'Slash Command';
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
 
-  onCancelRun(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+  onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
       content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,
@@ -175,11 +175,40 @@ export class BaseInteractionCommandOption<ParsedArgsFinished = Interaction.Parse
 }
 
 
+export class BaseInteractionImageCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommandOption<ParsedArgsFinished> {
+  constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
+    super({
+      ...data,
+      options: [
+        ...(data.options || []),
+        {name: 'image', description: 'Emoji/Image URL/User', label: 'url', default: DefaultParameters.lastImageUrl, value: Parameters.lastImageUrl},
+      ],
+    });
+  }
+
+  onBeforeRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url) {
+      context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});
+    }
+    return !!args.url;
+  }
+
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return editOrReply(context, '⚠ Unable to find any images in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+    }
+    return super.onCancelRun(context, args);
+  }
+}
+
+
 export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
   error = 'Slash Command';
   type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
 
-  onCancelRun(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+  onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
       content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,

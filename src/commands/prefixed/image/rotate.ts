@@ -9,13 +9,13 @@ import { BaseImageCommand } from '../basecommand';
 
 export interface CommandArgsBefore {
   degrees?: number,
-  nocrop?: boolean,
+  crop?: boolean,
   url?: null | string,
 }
 
 export interface CommandArgs {
   degrees?: number,
-  nocrop?: boolean,
+  crop?: boolean,
   url: string,
 }
 
@@ -28,7 +28,7 @@ export default class RotateCommand extends BaseImageCommand<CommandArgs> {
 
       args: [
         {name: 'degrees', aliases: ['d'], type: Number},
-        {name: 'nocrop', type: Boolean},
+        {name: 'crop', type: Boolean},
       ],
       metadata: {
         description: 'Rotate an Image (default 90 degrees)',
@@ -46,7 +46,7 @@ export default class RotateCommand extends BaseImageCommand<CommandArgs> {
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await imageToolsRotate(context, {
-      crop: !args.nocrop,
+      crop: args.crop,
       degrees: args.degrees,
       url: args.url,
     });

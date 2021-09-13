@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { GoogleLocales, GoogleLocalesText } from '../../constants';
+import { GoogleLocales, GoogleLocalesText, ImageMemeFonts, ImageMemeFontsToText } from '../../constants';
 import { DefaultParameters } from '../../utils';
 
 
@@ -31,6 +31,18 @@ export const GOOGLE_LOCALES = [
   GoogleLocales.TURKISH,
   GoogleLocales.VIETNAMESE,
 ].map((x) => ({name: GoogleLocalesText[x], value: x}));
+
+
+export const IMAGE_MEME_FONTS = [
+  ImageMemeFonts.IMPACT,
+  ImageMemeFonts.MPLUS_1C_BLACK,
+  ImageMemeFonts.MPLUS_2P_BLACK,
+  ImageMemeFonts.RUBIK_BLACK,
+  ImageMemeFonts.TAHOMA_BOLD,
+  ImageMemeFonts.TITILLIUMWEB_BLACK,
+  ImageMemeFonts.TITILLIUMWEB_BOLD,
+  ImageMemeFonts.TYPOLINE_DEMO,
+].map((x) => ({name: ImageMemeFontsToText[x], value: x}));
 
 
 

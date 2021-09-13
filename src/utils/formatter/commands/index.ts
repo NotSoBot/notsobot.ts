@@ -1,3 +1,4 @@
+import * as ImageMeme from './image.meme';
 import * as InfoUser from './info.user';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleWeb from './search.google.web';
@@ -14,6 +15,7 @@ import * as ToolsQrScan from './tools.qr.scan';
 import * as ToolsTranslate from './tools.translate';
 
 export {
+  ImageMeme,
   InfoUser,
   SearchGoogleImages,
   SearchGoogleWeb,

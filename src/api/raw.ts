@@ -937,6 +937,7 @@ export async function imageManipulationMeme(
 ): Promise<Response> {
   const query = {
     bottom: options.bottom,
+    font: options.font,
     top: options.top,
     url: options.url,
   };

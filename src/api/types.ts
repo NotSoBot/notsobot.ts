@@ -7,6 +7,7 @@ import {
   GuildLoggerTypes,
   ImageEyeTypes,
   ImageLegofyPalettes,
+  ImageMemeFonts,
   RedditSortTypes,
   RedditTimeTypes,
   YoutubeResultTypes,
@@ -180,6 +181,7 @@ export namespace RestOptions {
 
   export interface ImageManipulationMeme extends ImageBaseOptions {
     bottom?: string,
+    font?: ImageMemeFonts,
     top: string,
   }
 
