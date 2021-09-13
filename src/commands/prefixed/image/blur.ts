@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationBlur } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -40,8 +39,7 @@ export default class BlurCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationBlur(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageBlur.CommandArgs) {
+    return Formatter.Commands.ImageBlur.createMessage(context, args);
   }
 }

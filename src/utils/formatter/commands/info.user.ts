@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { InteractionCallbackTypes, MessageFlags } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 
 import {
   DateMomentLogFormat,
@@ -22,11 +22,12 @@ export const RESULTS_PER_PAGE = 3;
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: {isEphemeral?: boolean, user: Structures.Member | Structures.User},
+  args: {isEphemeral?: boolean, user: Structures.Member | Structures.User | Structures.UserWithBanner},
 ) {
   const isMember = (args.user instanceof Structures.Member);
   const member = args.user as Structures.Member;
   const user = ((isMember) ? member.user : args.user) as Structures.User;
+  const userWithBanner = (args.user instanceof Structures.UserWithBanner) ? args.user : await context.rest.fetchUser(user.id);
 
   const presence = user.presence;
   let activities: Array<Structures.PresenceActivity>;
@@ -63,6 +64,14 @@ export async function createMessage(
             description.push(`**Badges**: ${badges.join(' ')}`);
           }
         }
+
+        if (userWithBanner.accentColor !== null) {
+          const color = intToRGB(userWithBanner.accentColor);
+          const hex = Markup.codestring(intToHex(userWithBanner.accentColor, true));
+          const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
+          description.push(`**Banner Color**: ${hex} ${rgb}`);
+        }
+
         description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
         description.push(`**Id**: \`${user.id}\``);
         if (user.system) {
@@ -245,14 +254,23 @@ export async function createMessage(
         embed.addField('Activity', PresenceStatusTexts['offline']);
       }
 
-      if (isMember) {
-        if (member.avatar) {
-          const description: Array<string> = [];
+      {
+        const description: Array<string> = [];
 
-          description.push(Markup.url(Markup.bold('Guild Avatar'), member.avatarUrl));
+        if (isMember) {
+          if (member.avatar) {
+            description.push(Markup.url(Markup.bold('Guild Avatar'), member.avatarUrl));
+          }
+        }
+
+        if (userWithBanner.banner) {
+          embed.setImage(userWithBanner.bannerUrl!);
+          description.push(Markup.url(Markup.bold('User Banner'), userWithBanner.bannerUrlFormat(null, {size: 512})!));
+        }
+
+        if (description.length) {
           description.push(Markup.url(Markup.bold('User Avatar'), user.avatarUrl));
-
-          embed.addField('Urls', description.join(', '));
+          embed.addField('Urls', description.sort().join(', '));
         }
       }
 

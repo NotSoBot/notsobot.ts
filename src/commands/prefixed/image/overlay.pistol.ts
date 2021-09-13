@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageOverlayHalfLifePistol } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -11,13 +10,9 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'overlay pistol';
 
-export default class OverlayPistolCommand extends BaseImageCommand<CommandArgs> {
+export default class OverlayPistolCommand extends BaseImageCommand<Formatter.Commands.ImageOverlayPistol.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -35,8 +30,7 @@ export default class OverlayPistolCommand extends BaseImageCommand<CommandArgs> 
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageOverlayHalfLifePistol(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageOverlayPistol.CommandArgs) {
+    return Formatter.Commands.ImageOverlayPistol.createMessage(context, args);
   }
 }

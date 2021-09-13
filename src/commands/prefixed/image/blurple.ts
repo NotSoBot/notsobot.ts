@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationBlurple } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -34,8 +33,7 @@ export default class BlurpleCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationBlurple(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageBlurple.CommandArgs) {
+    return Formatter.Commands.ImageBlurple.createMessage(context, args);
   }
 }

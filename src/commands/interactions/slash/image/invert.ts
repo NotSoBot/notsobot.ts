@@ -1,13 +1,17 @@
 import { Interaction } from 'detritus-client';
 
-import { BaseInteractionCommandOption } from '../../basecommand';
+import { Formatter } from '../../../../utils';
+
+import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 
-export class ImageInvertCommand extends BaseInteractionCommandOption {
-  description = 'Invert an image';
-  name = 'invert';
+export const COMMAND_NAME = 'invert';
 
-  async run(context: Interaction.InteractionContext) {
-    return context.editOrRespond({content: 'wip', flags: 64});
+export class ImageInvertCommand extends BaseInteractionImageCommandOption {
+  description = 'Invert an Image\'s Color';
+  name = COMMAND_NAME;
+
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageInvert.CommandArgs) {
+    return Formatter.Commands.ImageInvert.createMessage(context, args);
   }
 }
