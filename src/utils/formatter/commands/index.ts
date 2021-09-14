@@ -29,6 +29,7 @@ import * as SettingsPrefixesReplace from './settings.prefixes.replace';
 import * as TagInfo from './tag.info';
 import * as TagListServer from './tag.list.server';
 import * as TagListUser from './tag.list.user';
+import * as TagRandom from './tag.random';
 import * as TagShow from './tag.show';
 
 import * as ToolsHash from './tools.hash';
@@ -65,6 +66,7 @@ export {
   TagInfo,
   TagListServer,
   TagListUser,
+  TagRandom,
   TagShow,
   ToolsHash,
   ToolsOCR,

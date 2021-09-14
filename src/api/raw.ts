@@ -364,6 +364,26 @@ export async function fetchTag(
 }
 
 
+export async function fetchTagRandom(
+  context: RequestContext,
+  options: RestOptions.FetchTagRandom = {},
+): Promise<RestResponsesRaw.FetchTagRandom> {
+  const query = {
+    content: options.content,
+    name: options.name,
+    server_id: options.serverId,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAGS_RANDOM,
+    },
+  });
+}
+
+
 export async function fetchTagsServer(
   context: RequestContext,
   serverId: string,

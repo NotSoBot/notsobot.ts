@@ -242,6 +242,14 @@ export async function fetchTag(
 }
 
 
+export async function fetchTagRandom(
+  context: RequestContext,
+  options: RestOptions.FetchTagRandom = {},
+) {
+  return raw.fetchTagRandom(context, options);
+}
+
+
 export async function fetchTagsServer(
   context: RequestContext,
   guildId: string,

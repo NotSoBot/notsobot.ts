@@ -209,6 +209,8 @@ export const Api = Object.freeze({
 
   TAGS:
     '/tags',
+  TAGS_RANDOM:
+    '/tags/random',
   TAGS_SERVER:
     '/tags/servers/:serverId',
 

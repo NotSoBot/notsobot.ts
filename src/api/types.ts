@@ -85,6 +85,13 @@ export namespace RestOptions {
     serverId?: string,
   }
 
+  export interface FetchTagRandom {
+    content?: string,
+    name?: string,
+    serverId?: string,
+    userId?: string,
+  }
+
   export interface FetchTagsServer {
     after?: string,
     before?: string,
@@ -424,6 +431,7 @@ export namespace RestResponsesRaw {
   export type FetchGuildSettings = GuildSettings;
 
   export type FetchTag = Tag;
+  export type FetchTagRandom = Tag;
 
   export interface FetchTagsServer {
     count: number,

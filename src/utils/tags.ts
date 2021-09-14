@@ -48,10 +48,10 @@ export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHM
 export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
 export const MAX_REGEX_TIME = 25;
-export const MAX_REPEAT_AMOUNT = 2000;
+export const MAX_REPEAT_AMOUNT = 4000;
 export const MAX_STRING_LENGTH = 10000;
 export const MAX_VARIABLE_KEY_LENGTH = 64;
-export const MAX_VARIABLE_LENGTH = 2000;
+export const MAX_VARIABLE_LENGTH = 4000;
 export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
@@ -1070,7 +1070,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (MAX_REPEAT_AMOUNT < amount) {
-      throw new Error('really man, more than 2000 repeats?');
+      throw new Error(`really man, more than ${MAX_REPEAT_AMOUNT} repeats?`);
     }
 
     const text = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();

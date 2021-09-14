@@ -16,7 +16,7 @@ export async function createMessage(
   // parse it
   const parsedTag = await TagFormatter.parse(context, args.tag.content, args.arguments);
 
-  const options: Command.EditOrReply = {content: parsedTag.text.slice(0, 2000)};
+  const options: Command.EditOrReply = {content: parsedTag.text.slice(0, 4000)};
   if (parsedTag.files.length) {
     options.files = parsedTag.files.map((file) => {
       return {filename: file.filename, hasSpoiler: file.spoiler, value: file.buffer};
