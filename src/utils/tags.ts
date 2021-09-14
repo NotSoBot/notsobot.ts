@@ -2,7 +2,7 @@ import { runInNewContext } from 'vm';
 
 import { Command, Interaction, Structures } from 'detritus-client';
 
-import { utilitiesFetchData, utilitiesFetchImage, utilitiesFetchText } from '../api';
+import { utilitiesFetchMedia, utilitiesFetchText } from '../api';
 
 import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
@@ -423,17 +423,11 @@ const ScriptTags = Object.freeze({
     // {attach:https://google.com/something.png}
 
     const url = Parameters.url(arg);
-    // maybe unfurl instead?
-    const filename = url.split('/').pop()!.split('?').shift()!.split('#').shift()!;
-    const extension = filename.split('.').pop()!.toLowerCase();
-    if (!ATTACHMENT_EXTENSIONS.includes(extension)) {
-      throw new Error('Only audio/images/gifs/text/videos are supported for attachments.');
-    }
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
-      const isImage = ATTACHMENT_EXTENSIONS_IMAGE.includes(extension);
-      const response = (isImage) ? await utilitiesFetchImage(context, {url}) : await utilitiesFetchData(context, {url});
+      const response = await utilitiesFetchMedia(context, {url});
+      const filename = (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
 
       tag.files.push({
         buffer: await response.buffer(),

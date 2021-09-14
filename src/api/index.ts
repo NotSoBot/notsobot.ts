@@ -974,6 +974,13 @@ export async function utilitiesFetchImage(
   return raw.utilitiesFetchImage(context, options);
 }
 
+export async function utilitiesFetchMedia(
+  context: RequestContext,
+  options: RestOptions.UtilitiesFetchMedia,
+) {
+  return raw.utilitiesFetchMedia(context, options);
+}
+
 
 export async function utilitiesFetchText(
   context: RequestContext,

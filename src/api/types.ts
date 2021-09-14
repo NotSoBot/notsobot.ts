@@ -359,6 +359,10 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface UtilitiesFetchMedia {
+    url: string,
+  }
+
   export interface UtilitiesFetchText {
     url: string,
   }

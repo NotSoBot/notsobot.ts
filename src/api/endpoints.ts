@@ -227,6 +227,8 @@ export const Api = Object.freeze({
     '/utilities/fetch/data',
   UTILITIES_FETCH_IMAGE:
     '/utilities/fetch/image',
+  UTILITIES_FETCH_MEDIA:
+    '/utilities/fetch/media',
   UTILITIES_FETCH_TEXT:
     '/utilities/fetch/text',
   UTILITIES_QR_CREATE:

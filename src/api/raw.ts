@@ -1983,6 +1983,24 @@ export async function utilitiesFetchImage(
 }
 
 
+export async function utilitiesFetchMedia(
+  context: RequestContext,
+  options: RestOptions.UtilitiesFetchMedia,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_FETCH_MEDIA,
+    },
+  });
+}
+
+
 export async function utilitiesFetchText(
   context: RequestContext,
   options: RestOptions.UtilitiesFetchText,
