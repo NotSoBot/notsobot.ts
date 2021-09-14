@@ -695,19 +695,19 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const [ value1, comparison, value2, then, ...elseValueParts ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
-    if (value1 === undefined || comparison === undefined || value2 === undefined || then === undefined || !elseValueParts.length) {
+    const [ value1, comparison, value2, ...parts ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+    if (value1 === undefined || comparison === undefined || value2 === undefined || !parts.length) {
       return false;
     }
 
+    const statements = parts.join(TagSymbols.SPLITTER_ARGUMENT);
+  
+    const [ then, ...elseParts ] = statements.split('|else:');
     if (!then.startsWith('then:')) {
       return false;
     }
 
-    const elseValue = elseValueParts.join(TagSymbols.SPLITTER_ARGUMENT);
-    if (!elseValue.startsWith('else:')) {
-      return false;
-    }
+    const elseValue = elseParts.join('|else:');
 
     if (!TAG_IF_COMPARISONS.includes(comparison as TagIfComparisons)) {
       return false;
@@ -771,7 +771,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const text = (compared) ? then.slice(5) : elseValue.slice(5);
+    const text = (compared) ? then.slice(5) : elseValue;
     if (text.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
       const argParsed = await parse(context, text, args, tag.variables);

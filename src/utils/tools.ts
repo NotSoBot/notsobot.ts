@@ -267,6 +267,43 @@ export function findImageUrlInMessages(
 }
 
 
+export function findImageUrlsInMessage(
+  message: Structures.Message,
+): Array<string> {
+  const urls = new Set<string>();
+  for (let [attachmentId, attachment] of message.attachments) {
+    const url = findImageUrlInAttachment(attachment);
+    if (url) {
+      urls.add(url);
+    }
+  }
+  for (let [embedId, embed] of message.embeds) {
+    const url = findImageUrlInEmbed(embed);
+    if (url) {
+      urls.add(url);
+    }
+  }
+  for (let [stickerId, sticker] of message.stickerItems) {
+    urls.add(sticker.assetUrl);
+  }
+  return (urls.size) ? Array.from(urls) : [];
+}
+
+
+export function findImageUrlsInMessages(
+  messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
+): Array<string> {
+  const urls = new Set<string>();
+  for (const message of messages.values()) {
+    const urlsFound = findImageUrlsInMessage(message);
+    for (let url of urlsFound) {
+      urls.add(url);
+    }
+  }
+  return (urls.size) ? Array.from(urls) : [];
+}
+
+
 export function findMediaUrlInAttachment(
   attachment: Structures.Attachment,
 ): null | string {
@@ -376,6 +413,44 @@ export function findMediaUrlInMessages(
   }
   return null;
 }
+
+
+export function findMediaUrlsInMessage(
+  message: Structures.Message,
+): Array<string> {
+  const urls = new Set<string>();
+  for (let [attachmentId, attachment] of message.attachments) {
+    const url = findMediaUrlInAttachment(attachment);
+    if (url) {
+      urls.add(url);
+    }
+  }
+  for (let [embedId, embed] of message.embeds) {
+    const url = findMediaUrlInEmbed(embed);
+    if (url) {
+      urls.add(url);
+    }
+  }
+  for (let [stickerId, sticker] of message.stickerItems) {
+    urls.add(sticker.assetUrl);
+  }
+  return (urls.size) ? Array.from(urls) : [];
+}
+
+
+export function findMediaUrlsInMessages(
+  messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
+): Array<string> {
+  const urls = new Set<string>();
+  for (const message of messages.values()) {
+    const urlsFound = findMediaUrlsInMessage(message);
+    for (let url of urlsFound) {
+      urls.add(url);
+    }
+  }
+  return (urls.size) ? Array.from(urls) : [];
+}
+
 
 
 /** Member Chunking */
@@ -826,7 +901,7 @@ export async function imageReplyFromOptions(
   embed.setFooter(footer);
 
   return editOrReply(context, {
-    content: options.content,
+    content: options.content || '',
     embed,
     file: {contentType: options.mimetype, filename, value},
   });

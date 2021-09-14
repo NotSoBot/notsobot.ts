@@ -23,7 +23,7 @@ import {
   TagFormatter,
   fetchMemberOrUserById,
   findImageUrlInMessages,
-  findMediaUrlInMessages,
+  findMediaUrlsInMessages,
   findMemberByChunkText,
   findMembersByChunkText,
   isSnowflake,
@@ -264,28 +264,6 @@ export async function tagContent(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<string> {
-  if (context instanceof Command.Context) {
-    // check the message's attachments/stickers first
-    {
-      const url = findMediaUrlInMessages([context.message]);
-      if (url) {
-        return [value, `{attach:${url}}`].filter((x) => x).join('\n');
-      }
-    }
-
-    // check for reply and if it has an image
-    {
-      const { messageReference } = context.message;
-      if (messageReference && messageReference.messageId) {
-        const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-        const url = findMediaUrlInMessages([message]);
-        if (url) {
-          return [value, `{attach:${url}}`].filter((x) => x).join('\n');
-        }
-      }
-    }
-  }
-
   // if its https://discord.com/channels/:guildId/:channelId/:messageId
   if (value) {
     const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, value) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
@@ -293,9 +271,37 @@ export async function tagContent(
       const [ { channelId, messageId } ] = messageLink.matches;
       if (channelId && messageId) {
         const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-        const url = findImageUrlInMessages([message]);
-        if (url) {
-          return `{attach:${url}}`;
+        const urls = findMediaUrlsInMessages([message]);
+        if (urls.length) {
+          return urls.map((url) => `{attach:${url}}`).join('');
+        }
+      }
+    }
+  } else {
+    if (context instanceof Command.Context) {
+      // check the message's attachments/stickers first
+      {
+        const urls = findMediaUrlsInMessages([context.message]);
+        if (urls.length) {
+          return [
+            value,
+            urls.map((url) => `{attach:${url}}`).join(''),
+          ].filter((x) => x).join('\n');
+        }
+      }
+  
+      // check for reply and if it has an image
+      {
+        const { messageReference } = context.message;
+        if (messageReference && messageReference.messageId) {
+          const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          const urls = findMediaUrlsInMessages([message]);
+          if (urls.length) {
+            return [
+              value,
+              urls.map((url) => `{attach:${url}}`).join(''),
+            ].filter((x) => x).join('\n');
+          }
         }
       }
     }
