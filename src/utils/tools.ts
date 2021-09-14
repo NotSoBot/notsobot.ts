@@ -163,14 +163,18 @@ export async function fetchMemberOrUserById(
 export function findImageUrlInAttachment(
   attachment: Structures.Attachment,
 ): null | string {
-  if (attachment.isImage && attachment.proxyUrl && (attachment.height || attachment.width)) {
-    if (attachment.url) {
-      const url = new URL(attachment.url);
-      if (TRUSTED_URLS.includes(url.host)) {
-        return attachment.url;
+  if (attachment.proxyUrl && (attachment.height || attachment.width)) {
+    if (attachment.isImage) {
+      if (attachment.url) {
+        const url = new URL(attachment.url);
+        if (TRUSTED_URLS.includes(url.host)) {
+          return attachment.url;
+        }
       }
+      return attachment.proxyUrl;
+    } else if (attachment.isVideo) {
+      return attachment.proxyUrl + '?format=png';
     }
-    return attachment.proxyUrl;
   }
   return null;
 }
@@ -211,6 +215,10 @@ export function findImageUrlInEmbed(
       }
     }
     return thumbnail.proxyUrl;
+  }
+  const { video } = embed;
+  if (video && video.proxyUrl && (video.height || video.width)) {
+    return video.proxyUrl + '?format=png';
   }
   return null;
 }

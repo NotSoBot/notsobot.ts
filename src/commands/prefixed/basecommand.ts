@@ -202,14 +202,18 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         }
 
       } catch(e) {
-        description.push(`HTTP Exception: ${response.statusCode}`);
-        const contentType = response.headers.get('content-type') || '';
-        if (contentType.startsWith('text/html')) {
-          // parse it?
+        if (response.statusCode === 502) {
+          description.push('Our api is restarting, might take a bit. Sorry ;(');
         } else {
-          description.push('Unknown Error Data');
-          if (contentType) {
-            description.push(`**Mimetype**: ${contentType}`);
+          description.push(`HTTP Exception: ${response.statusCode}`);
+          const contentType = response.headers.get('content-type') || '';
+          if (contentType.startsWith('text/html')) {
+            // parse it?
+          } else {
+            description.push('Unknown Error Data');
+            if (contentType) {
+              description.push(`**Mimetype**: ${contentType}`);
+            }
           }
         }
       }
