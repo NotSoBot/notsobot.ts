@@ -69,7 +69,15 @@ class UserStore extends Store<string, User> {
 
   create(cluster: ClusterClient, redis: RedisSpewer) {
     const subscriptions: Array<EventSubscription> = [];
-
+    {
+      const subscription = redis.subscribe(RedisChannels.USER_UPDATE, (payload: RedisPayloads.UserUpdate) => {
+        if (this.has(payload.id)) {
+          const user = this.get(payload.id)!;
+          user.merge(payload);
+        }
+      });
+      subscriptions.push(subscription);
+    }
     return subscriptions;
   }
 }

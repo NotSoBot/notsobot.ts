@@ -392,7 +392,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
   ): Promise<void> {
     const { guildId } = event;
     const settings = await GuildSettingsStore.getOrFetch({client: shard}, guildId);
-    if (!settings) {
+    if (!settings || settings.blocked) {
       return;
     }
 

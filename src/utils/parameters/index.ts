@@ -403,6 +403,28 @@ export function channels(options: ChannelOptions = {}) {
 }
 
 
+export async function guild(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<Structures.Guild | null | undefined> {
+  if (value) {
+    if (isSnowflake(value)) {
+      if (context.guilds.has(value)) {
+        return context.guilds.get(value)!;
+      } else {
+        try {
+          return context.rest.fetchGuild(value);
+        } catch(error) {
+          return null;
+        }
+      }
+    }
+    return null;
+  }
+  return undefined;
+}
+
+
 export interface MemberOrUserOptions {
   allowBots?: boolean,
   allowMe?: boolean,

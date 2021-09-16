@@ -20,6 +20,14 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     if (context.inDm) {
       return !command.disableDm;
     }
+
+    const guildId = context.guildId!;
+    const settings = await GuildSettingsStore.getOrFetch(context, guildId);
+    if (settings && settings.blocked) {
+      // if we aren't able to fetch the settings, it will surpass the blocked setting cuz it's rare to block a guild
+      return false;
+    }
+
     const { member } = context;
     if (member && (member.isOwner || member.canAdministrator)) {
       return true;
@@ -27,9 +35,6 @@ export class NotSoInteractionClient extends InteractionCommandClient {
 
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
-
-    const guildId = context.guildId!;
-    const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings) {
       const disabledCommands = settings.disabledCommands.filter((disabled) => disabled.command === command.name);
       if (disabledCommands.length) {

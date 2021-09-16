@@ -294,6 +294,7 @@ export async function editGuildSettings(
 ): Promise<RestResponsesRaw.EditGuildSettings> {
   const body = {
     allowlist: options.allowlist,
+    blocked: options.blocked,
     blocklist: options.blocklist,
     disabled_commands: options.disabledCommands,
     prefixes: options.prefixes,
@@ -317,6 +318,7 @@ export async function editUser(
   options: RestOptions.EditUser,
 ): Promise<RestResponsesRaw.EditUser> {
   const body = {
+    blocked: options.blocked,
     locale: options.locale,
   };
   const params = {userId};

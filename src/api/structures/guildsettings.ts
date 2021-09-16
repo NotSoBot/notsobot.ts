@@ -21,6 +21,7 @@ import { BaseStructure } from './basestructure';
 
 const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.ALLOWLIST,
+  NotSoApiKeys.BLOCKED,
   NotSoApiKeys.BLOCKLIST,
   NotSoApiKeys.DISABLED_COMMANDS,
   NotSoApiKeys.DISABLED_LOGGER_EVENTS,
@@ -42,6 +43,7 @@ export class GuildSettings extends BaseStructure {
   _loggers?: Collections.BaseCollection<string, GuildSettingsLogger>;
   _prefixes?: Collections.BaseCollection<string, GuildSettingsPrefix>;
 
+  blocked: boolean = false;
   disabledLoggerEvents: number = 0;
   icon: string | null = null;
   id: string = '';

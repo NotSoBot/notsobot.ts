@@ -27,6 +27,11 @@ export function defaultRole(context: Command.Context | Interaction.InteractionCo
 }
 
 
+export function guild(context: Command.Context | Interaction.InteractionContext): Structures.Guild | null {
+  return context.guild || null;
+}
+
+
 export async function lastImageUrl(context: Command.Context | Interaction.InteractionContext): Promise<string | null> {
   if (context instanceof Command.Context) {
     {

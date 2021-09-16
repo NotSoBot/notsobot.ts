@@ -62,6 +62,7 @@ export namespace RestOptions {
       id: string,
       type: string,
     }>,
+    blocked?: boolean,
     blocklist?: Array<{
       id: string,
       type: string,
@@ -76,6 +77,7 @@ export namespace RestOptions {
   }
 
   export interface EditUser {
+    blocked?: boolean,
     locale?: null | string,
   }
 

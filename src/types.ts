@@ -28,4 +28,6 @@ export namespace RedisPayloads {
   }
 
   export type GuildSettingsUpdate = RestResponsesRaw.GuildSettings;
+
+  export type UserUpdate = RestResponsesRaw.User;
 }
