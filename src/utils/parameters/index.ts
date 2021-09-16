@@ -413,7 +413,7 @@ export async function guild(
         return context.guilds.get(value)!;
       } else {
         try {
-          return context.rest.fetchGuild(value);
+          return await context.rest.fetchGuild(value);
         } catch(error) {
           return null;
         }
