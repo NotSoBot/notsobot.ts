@@ -81,7 +81,10 @@ export function editOrReply(
     options = {content: options};
   }
   if (context instanceof Interaction.InteractionContext) {
-    return context.editOrRespond(options);
+    return context.editOrRespond({
+      ...options,
+      allowedMentions: {parse: [], ...options.allowedMentions},
+    });
   }
   return context.editOrReply({
     reference: true,
