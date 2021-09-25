@@ -5,9 +5,6 @@ import { Formatter } from '../../../../utils';
 import { BaseInteractionCommandOption } from '../../basecommand';
 
 
-const HashTypes = Formatter.Commands.ToolsHash.HashTypes;
-type CommandArgs = Formatter.Commands.ToolsHash.CommandArgs;
-
 export class ToolsHashCommand extends BaseInteractionCommandOption {
   description = 'Create a hash from some text';
   name = 'hash';
@@ -27,7 +24,7 @@ export class ToolsHashCommand extends BaseInteractionCommandOption {
         {
           name: 'use',
           description: 'Hash Type to Use',
-          choices: Object.values(HashTypes).map((key) => {
+          choices: Object.values(Formatter.Commands.ToolsHash.HashTypes).map((key) => {
             return {name: key, value: key};
           }),
         },
@@ -35,7 +32,7 @@ export class ToolsHashCommand extends BaseInteractionCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: CommandArgs) {
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ToolsHash.CommandArgs) {
     return Formatter.Commands.ToolsHash.createMessage(context, args);
   }
 }

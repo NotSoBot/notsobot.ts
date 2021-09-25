@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -16,7 +16,12 @@ export class SettingsPrefixesRemoveCommand extends BaseInteractionCommandOption 
   constructor() {
     super({
       options: [
-        {name: 'prefix', description: 'Prefix to remove', required: true},
+        {
+          name: 'prefix',
+          description: 'Prefix to remove',
+          required: true,
+          onAutoComplete: Parameters.AutoComplete.prefix,
+        },
       ],
     });
   }

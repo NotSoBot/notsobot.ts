@@ -1,3 +1,5 @@
+import * as Sentry from '@sentry/node';
+
 import { Interaction, Structures } from 'detritus-client';
 import {
   ApplicationCommandTypes,
@@ -15,6 +17,10 @@ import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
   error = 'Command';
+
+  onAutoCompleteError(context: Interaction.InteractionAutoCompleteContext, error: any) {
+    Sentry.captureException(error);
+  }
 
   onLoadingTrigger(context: Interaction.InteractionContext) {
     if (context.responded) {

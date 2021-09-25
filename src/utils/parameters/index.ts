@@ -60,25 +60,19 @@ export async function locale(
     return await DefaultParameters.locale(context);
   }
 
-  value = value.toLowerCase().replace(/ /g, '_');
-  for (let key in GoogleLocales) {
-    const locale = (GoogleLocales as any)[key];
+  value = value.toLowerCase().replace(/_/g, ' ');
+  for (let key in GoogleLocalesText) {
+    const locale = key as GoogleLocales;
     if (locale.toLowerCase() === value) {
       return locale;
     }
   }
 
-  for (let key in GoogleLocales) {
-    const name = key.toLowerCase();
-    if (name.includes(value)) {
-      return (GoogleLocales as any)[key];
-    }
-  }
-
   for (let key in GoogleLocalesText) {
-    const name = (GoogleLocalesText as any)[key].toLowerCase();
+    const locale = key as GoogleLocales;
+    const name = GoogleLocalesText[locale].toLowerCase();
     if (name.includes(value)) {
-      return key as GoogleLocales;
+      return locale;
     }
   }
 
