@@ -157,6 +157,10 @@ export type GuildLoggingEventItem = {
 } | {
   audits?: GuildLoggingEventItemAudits,
   cached: {
+    icons?: {
+      current?: {filename: string, value: Buffer},
+      old?: {filename: string, value: Buffer},
+    },
     old: Structures.Role,
     role: Structures.Role,
   },
@@ -591,7 +595,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       subscriptions.push(subscription);
     }
     {
-      const keys = ['color', 'hoist', 'mentionable', 'name', 'permissions', 'position'];
+      const keys = ['color', 'hoist', 'icon', 'mentionable', 'name', 'permissions', 'position', 'unicodeEmoji'];
       const name = ClientEvents.GUILD_ROLE_UPDATE;
 
       const subscription = cluster.subscribe(name, async (payload) => {
@@ -600,13 +604,33 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
           console.log(role, old, differences);
         }
         if (old && (differences && keys.some((key) => key in differences))) {
+          const cached: {
+            icons?: {current?: {filename: string, value: Buffer}, old?: {filename: string, value: Buffer}},
+            old: Structures.Role,
+            role: Structures.Role,
+          } = {old, role: role.clone()};
+          const happened = Date.now();
+
+          if (old.icon !== role.icon) {
+            cached.icons = {};
+            try {
+              if (old.icon) {
+                const url = old.iconUrlFormat(null, {size: 512})!;
+                cached.icons.old = {filename: `${role.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`, value: await shard.rest.get(url)};
+              }
+              if (role.icon) {
+                const url = role.iconUrlFormat(null, {size: 512})!;
+                cached.icons.current = {filename: `${role.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`, value: await shard.rest.get(url)};
+              }
+            } catch(error) {
+              cached.icons = undefined;
+            }
+          }
+
           return this.tryAdd(shard, {
-            cached: {
-              old,
-              role: role.clone(),
-            },
+            cached,
             guildId,
-            happened: Date.now(),
+            happened,
             name,
             payload,
           });
@@ -1284,7 +1308,7 @@ export function createLogPayload(
       }
     }; break;
     case ClientEvents.GUILD_ROLE_UPDATE: {
-      const { old, role } = event.cached;
+      const { icons, old, role } = event.cached;
 
       {
         const timestamp = createTimestampStringFromGuild(happened, guildId);
@@ -1295,9 +1319,22 @@ export function createLogPayload(
       embed.setDescription(`${role.mention} ${Markup.spoiler(`(${role.id})`)}`);
 
       embed.setAuthor(role.name);
-      if (role.color) {
+      if (role.icon) {
+        embed.setAuthor(role.name, role.iconUrl!);
+      } else if (role.color) {
         const url = createColorUrl(role.color);
         embed.setAuthor(role.name, url);
+      }
+
+      if (icons) {
+        if (icons.current) {
+          embed.setAuthor(role.name, `attachment://${icons.current.filename}`);
+          files.push(icons.current);
+        }
+        if (icons.old) {
+          embed.setThumbnail(`attachment://${icons.old.filename}`);
+          files.push(icons.old);
+        }
       }
 
       if (audits) {
@@ -1343,6 +1380,41 @@ export function createLogPayload(
           }
         }
 
+        if (role.unicodeEmoji !== old.unicodeEmoji) {
+          description.push('- Emoji');
+
+          let addText = '';
+          if (role.unicodeEmoji) {
+            addText = role.unicodeEmoji;
+            if (15 < addText.length) {
+              addText = addText.slice(0, 12) + '...';
+            }
+            addText = Markup.codestring(addText);
+          }
+          let removeText = '';
+          if (old.unicodeEmoji) {
+            removeText = old.unicodeEmoji;
+            if (15 < removeText.length) {
+              removeText = removeText.slice(0, 12) + '...';
+            }
+            removeText = Markup.codestring(removeText);
+          }
+
+          if (role.unicodeEmoji) {
+            // added or updated emoji
+
+            if (old.unicodeEmoji) {
+              // updated emoji
+              description.push(`-> ${removeText} to ${addText}`);
+            } else {
+              description.push(`-> Set to ${addText}`);
+            }
+          } else {
+            // removed emoji
+            description.push(`-> Cleared ${removeText}`);
+          }
+        }
+
         if (role.hoist !== old.hoist) {
           //description.push('- Hoist Change');
           if (role.hoist) {
@@ -1354,13 +1426,14 @@ export function createLogPayload(
           }
         }
 
-        if (role.managed !== old.managed) {
-          // never should happen
-          //description.push('- Manage Change');
-          if (role.managed) {
-            description.push('- Made Role unmanaged somehow');
+        if (role.icon !== old.icon) {
+          description.push('- Icon');
+          if (role.icon && old.icon) {
+            description.push('-> Changed Icons');
+          } else if (role.icon) {
+            description.push('-> Set Icon');
           } else {
-            description.push('- Made Role managed somehow');
+            description.push('-> Removed Icon');
           }
         }
 
@@ -2403,13 +2476,21 @@ export function findEventsForRoleUpdate(
       if (auditLog.createdAtUnix <= (event.happened - AUDIT_LEEWAY_TIME)) {
         return false;
       }
-      const { differences, role } = event.payload;
+      const { differences, old, role } = event.payload;
       if (role.id !== auditLog.targetId) {
         return false;
       }
 
-      // check differences against the changes
-      return false;
+      let matches = false;
+      if (differences && auditLog.changes.length) {
+        for (let [key, change] of auditLog.changes) {
+          if (change.key in differences) {
+            // newValue can be undefined, like an emoji/icon clear
+            matches = change.oldValue == differences[change.key] && change.newValue == role._getFromSnake(change.key);
+          }
+        }
+      }
+      return matches;
     });
   }
   return [];
