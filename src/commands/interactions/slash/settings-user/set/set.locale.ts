@@ -8,8 +8,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
-  language?: GoogleLocales,
-  languageChoice?: GoogleLocales,
+  language: GoogleLocales,
 }
 
 export class SettingsUserSetLocaleCommand extends BaseInteractionCommandOption {
@@ -19,14 +18,19 @@ export class SettingsUserSetLocaleCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'language', description: 'Language', value: Parameters.locale},
-        {name: 'language-choices', description: 'Language to choose from', choices: Parameters.Slash.GOOGLE_LOCALES, label: 'languageChoice'},
+        {
+          name: 'language',
+          description: 'Language',
+          required: true,
+          value: Parameters.locale,
+          onAutoComplete: Parameters.AutoComplete.googleLocales,
+        },
       ],
     });
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {
-    return !!(args.language || args.languageChoice);
+    return !!args.language;
   }
 
   onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
@@ -37,6 +41,6 @@ export class SettingsUserSetLocaleCommand extends BaseInteractionCommandOption {
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return Formatter.Commands.SettingsMeLocale.createMessage(context, {locale: (args.language || args.languageChoice)!});
+    return Formatter.Commands.SettingsMeLocale.createMessage(context, {locale: args.language});
   }
 }

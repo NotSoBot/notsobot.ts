@@ -20,10 +20,29 @@ export class SearchGoogleImagesCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'query', description: 'Search Text', required: true},
-        {name: 'locale', description: 'Language for the Google Results', default: DefaultParameters.locale, choices: Parameters.Slash.GOOGLE_LOCALES},
-        {name: 'randomize', description: 'Randomize the Image Results', type: Boolean},
-        {name: 'safe', description: 'Safe Search', type: Boolean, default: DefaultParameters.safe, value: Parameters.Slash.safe},
+        {
+          name: 'query',
+          description: 'Search Text',
+          required: true,
+        },
+        {
+          name: 'locale',
+          description: 'Language for the Google Results',
+          default: DefaultParameters.locale,
+          onAutoComplete: Parameters.AutoComplete.googleLocales,
+        },
+        {
+          name: 'randomize',
+          description: 'Randomize the Image Results',
+          type: Boolean,
+        },
+        {
+          name: 'safe',
+          description: 'Safe Search',
+          type: Boolean,
+          default: DefaultParameters.safe,
+          value: Parameters.Slash.safe,
+        },
       ],
     });
   }
