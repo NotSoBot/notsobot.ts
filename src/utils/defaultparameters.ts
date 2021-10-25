@@ -63,7 +63,9 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
     }
   }
 
+  const before = (context instanceof Command.Context) ? context.messageId : undefined;
   {
+    const beforeId = (before) ? BigInt(before) : null;
     // we dont get DM channels anymore so we must manually find messages now
     const messages = context.messages.filter((message) => {
       if (message.channelId !== context.channelId) {
@@ -71,6 +73,9 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
       }
       if (message.interaction && message.hasFlagEphemeral) {
         return message.interaction.user.id === context.userId;
+      }
+      if (beforeId) {
+        return BigInt(message.id) <= beforeId;
       }
       return true;
     }).reverse();
@@ -81,7 +86,6 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
   }
 
   if (context.inDm || (context.channel && context.channel.canReadHistory)) {
-    const before = (context instanceof Command.Context) ? context.messageId : undefined;
     const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
     const url = findImageUrlInMessages(messages);
     if (url) {
