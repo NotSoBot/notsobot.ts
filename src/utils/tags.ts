@@ -754,19 +754,14 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const [ value1, comparison, value2, ...parts ] = split(arg);
-    if (value1 === undefined || comparison === undefined || value2 === undefined || !parts.length) {
+    const [ value1, comparison, value2, then, elseValue ] = split(arg);
+    if (value1 === undefined || comparison === undefined || value2 === undefined || then === undefined) {
       return false;
     }
 
-    const statements = parts.join(TagSymbols.SPLITTER_ARGUMENT);
-  
-    const [ then, ...elseParts ] = statements.split('|else:');
     if (!then.startsWith('then:')) {
       return false;
     }
-
-    const elseValue = elseParts.join('|else:');
 
     if (!TAG_IF_COMPARISONS.includes(comparison as TagIfComparisons)) {
       return false;
@@ -830,7 +825,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const text = (compared) ? then.slice(5) : elseValue;
+    const text = (compared) ? then.slice(5) : (elseValue || '').slice(5);
     if (text.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
       const argParsed = await parse(context, text, args, tag.variables);
@@ -1143,9 +1138,18 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const [ regex, replaceWith, ...source ] = split(arg);
-    if (regex === undefined || replaceWith === undefined || !source.length) {
+    let [ regex, replaceWith, ...sourceText ] = split(arg);
+    if (regex === undefined || replaceWith === undefined || !sourceText.length) {
       return false;
+    }
+
+    if (replaceWith.startsWith('with:')) {
+      replaceWith = replaceWith.slice(5);
+    }
+
+    let source = sourceText.join(TagSymbols.SPLITTER_ARGUMENT);
+    if (source.startsWith('in:')) {
+      source = source.slice(3);
     }
 
     try {
@@ -1153,13 +1157,13 @@ const ScriptTags = Object.freeze({
         `source.replace(new RegExp(regex, 'gi'), replaceWith);`,
         {
           regex: regex.trim(),
-          source: source.join(TagSymbols.SPLITTER_ARGUMENT),
+          source,
           replaceWith,
         },
         {timeout: MAX_REGEX_TIME},
       );
     } catch {
-      throw new Error('text replacing timed out');
+      throw new Error('text replacing errored or timed out');
     }
 
     return true;
@@ -1173,9 +1177,36 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_SUB]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    // {substring} (unknown)
+    // {substring:text|start}
+    // {substring:text|start|end}
 
-    return false;
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    const [ text, startText, endText ] = split(arg);
+    if (text === undefined || startText === undefined) {
+      return false;
+    }
+
+    const start = parseInt((startText || '').trim());
+    if (isNaN(start)) {
+      return false;
+    }
+
+    const end = (endText === undefined) ? endText : parseInt(endText.trim());
+    if (end !== undefined && isNaN(end)) {
+      return false;
+    }
+
+    // parse it
+    const argParsed = await parse(context, text, args, tag.variables);
+    tag.text += argParsed.text.substring(start, end);
+    for (let file of argParsed.files) {
+      tag.files.push(file);
+    }
+
+    return true;
   },
 
   [TagFunctions.STRING_UPPER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
