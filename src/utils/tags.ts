@@ -358,7 +358,7 @@ export async function parse(
     }
   }
 
-  tag.text = (tag.text + scriptBuffer).trim();
+  tag.text = (tag.text + scriptBuffer);
   if (isFirstParse) {
     tag.text = tag.text.replace(/\u200B/g, '\n');
   }
@@ -373,12 +373,12 @@ export function split(value: string): Array<string> {
 
   const args: Array<string> = [];
   while (position < value.length) {
-    if (depth === 0) {
+    if (depth === 0 && !text) {
       // find next left bracket
       const nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
       if (nextLeftBracket === -1) {
         // no script tags found inside, so we have no splitters to ignore
-        for (let x of value.split(REGEX_ARGUMENT_SPLITTER)) {
+        for (let x of value.slice(position).split(REGEX_ARGUMENT_SPLITTER)) {
           x = x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT);
           args.push(x);
         }
@@ -1153,8 +1153,8 @@ const ScriptTags = Object.freeze({
         `source.replace(new RegExp(regex, 'gi'), replaceWith);`,
         {
           regex: regex.trim(),
-          source: source.join(TagSymbols.SPLITTER_ARGUMENT).trim(),
-          replaceWith: replaceWith.trim(),
+          source: source.join(TagSymbols.SPLITTER_ARGUMENT),
+          replaceWith,
         },
         {timeout: MAX_REGEX_TIME},
       );
