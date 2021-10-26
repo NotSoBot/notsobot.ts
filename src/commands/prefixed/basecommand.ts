@@ -34,7 +34,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     super(commandClient, Object.assign({
       name: '',
       ratelimits: [
-        {duration: 5000, limit: 5, type: 'guild'},
+        {duration: 5000, limit: 10, type: 'guild'},
         {duration: 500, limit: 1, type: 'channel'},
       ],
     }, options));
@@ -127,10 +127,10 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       let noun: string = 'You idiots are';
       switch (ratelimit.type) {
         case 'channel': {
-          noun = 'This guild is';
+          noun = 'This channel is';
         }; break;
         case 'guild': {
-          noun = 'This channel is';
+          noun = 'This guild is';
         }; break;
         case 'user': {
           noun = 'You are';
