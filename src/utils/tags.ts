@@ -379,7 +379,7 @@ export function split(value: string): Array<string> {
       if (nextLeftBracket === -1) {
         // no script tags found inside, so we have no splitters to ignore
         for (let x of value.split(REGEX_ARGUMENT_SPLITTER)) {
-          x = x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT).trim();
+          x = x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT);
           args.push(x);
         }
         position = value.length;
@@ -393,7 +393,7 @@ export function split(value: string): Array<string> {
       case TagSymbols.SPLITTER_ARGUMENT: {
         if (depth <= 0) {
           // use the arg, we arent in the function anymore
-          args.push(text.slice(0, -1).trim());
+          args.push(text.slice(0, -1));
           text = '';
         }
       }; break;
@@ -418,7 +418,6 @@ export function split(value: string): Array<string> {
     }
   }
 
-  text = text.trim();
   if (text) {
     args.push(text);
   }
