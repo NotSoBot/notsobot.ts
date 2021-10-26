@@ -366,6 +366,66 @@ export async function parse(
 }
 
 
+export function split(value: string): Array<string> {
+  let depth = 0;
+  let position = 0;
+  let text = '';
+
+  const args: Array<string> = [];
+  while (position < value.length) {
+    if (depth === 0) {
+      // find next left bracket
+      const nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
+      if (nextLeftBracket === -1) {
+        // no script tags found inside, so we have no splitters to ignore
+        for (let x of value.split(REGEX_ARGUMENT_SPLITTER)) {
+          x = x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT).trim();
+          args.push(x);
+        }
+        position = value.length;
+        continue;
+      }
+    }
+
+    let result = value.slice(position, ++position);
+    text += result;
+    switch (result) {
+      case TagSymbols.SPLITTER_ARGUMENT: {
+        if (depth <= 0) {
+          // use the arg, we arent in the function anymore
+          args.push(text.slice(0, -1).trim());
+          text = '';
+        }
+      }; break;
+      case TagSymbols.IGNORE: {
+        const nextValue = value.slice(position, position + 1);
+        if (nextValue === TagSymbols.BRACKET_LEFT) {
+          depth--;
+        } else if (nextValue === TagSymbols.BRACKET_RIGHT) {
+          depth++;
+        } else if (nextValue === TagSymbols.SPLITTER_ARGUMENT) {
+          position++;
+        }
+      }; break;
+      case TagSymbols.BRACKET_LEFT: {
+        // start of the script
+        depth++;
+      }; break;
+      case TagSymbols.BRACKET_RIGHT: {
+        // end of the script
+        depth--;
+      }; break;
+    }
+  }
+
+  text = text.trim();
+  if (text) {
+    args.push(text);
+  }
+  return args;
+}
+
+
 function parseInnerScript(value: string): [string, string] {
   let scriptName: string;
   let arg: string;
@@ -695,7 +755,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const [ value1, comparison, value2, ...parts ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+    const [ value1, comparison, value2, ...parts ] = split(arg);
     if (value1 === undefined || comparison === undefined || value2 === undefined || !parts.length) {
       return false;
     }
@@ -794,7 +854,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [ key, ...value ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+    let [ key, ...value ] = split(arg);
     key = key.trim();
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
@@ -861,7 +921,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const numbers = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.split('.').shift()!);
+    const numbers = split(arg).map((x) => x.split('.').shift()!);
     if (numbers.some((x) => isNaN(x as any))) {
       return false;
     }
@@ -884,7 +944,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const numbers = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.split('.').shift()!);
+    const numbers = split(arg).map((x) => x.split('.').shift()!);
     if (numbers.some((x) => isNaN(x as any))) {
       return false;
     }
@@ -967,7 +1027,7 @@ const ScriptTags = Object.freeze({
 
     let value: string;
     if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      const choices = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+      const choices = split(arg);
       value = randomFromArray<string>(choices);
     } else {
       value = arg;
@@ -1057,7 +1117,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const [ amountText, ...value ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+    const [ amountText, ...value ] = split(arg);
     const amount = parseInt(amountText.trim());
     if (isNaN(amount)) {
       return false;
@@ -1084,7 +1144,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const [ regex, replaceWith, ...source ] = arg.split(REGEX_ARGUMENT_SPLITTER).map((x) => x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+    const [ regex, replaceWith, ...source ] = split(arg);
     if (regex === undefined || replaceWith === undefined || !source.length) {
       return false;
     }
