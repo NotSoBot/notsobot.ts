@@ -1,6 +1,7 @@
 import { runInNewContext } from 'vm';
 
 import { Command, Interaction, Structures } from 'detritus-client';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesFetchMedia, utilitiesFetchText } from '../api';
 
@@ -325,6 +326,11 @@ export async function parse(
             if (!wasValid) {
               tag.text += scriptBuffer;
             }
+          } else if (TagFunctionsToString.STRING_SUB.includes(scriptName)) {
+            const wasValid = await ScriptTags[TagFunctions.STRING_SUB](context, arg, args, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
           } else {
             // check the other tags now
             const argParsed = await parse(context, arg, args, tag.variables);
@@ -481,7 +487,7 @@ const ScriptTags = Object.freeze({
     // assume the arg is a url and download it
     // {attach:https://google.com/something.png}
 
-    const url = Parameters.url(arg);
+    const url = Parameters.url(arg.trim());
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
@@ -643,7 +649,7 @@ const ScriptTags = Object.freeze({
     // Actually do it
     // {download:https://google.com}
 
-    const url = Parameters.url(arg);
+    const url = Parameters.url(arg.trim());
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
     try {
@@ -1068,9 +1074,10 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_CODEBLOCK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
-    // {code} (unknown)
+    // {code:text}
 
-    return false;
+    tag.text += Markup.codeblock(arg);
+    return true;
   },
 
   [TagFunctions.STRING_NEWLINE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
@@ -1189,14 +1196,28 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const start = parseInt((startText || '').trim());
-    if (isNaN(start)) {
-      return false;
+    let start: number;
+    {
+      const parsed = await parse(context, startText, args, tag.variables);
+      start = parseInt(parsed.text.trim());
+      for (let file of parsed.files) {
+        tag.files.push(file);
+      }
+      if (isNaN(start)) {
+        return false;
+      }
     }
 
-    const end = (endText === undefined) ? endText : parseInt(endText.trim());
-    if (end !== undefined && isNaN(end)) {
-      return false;
+    let end: number | undefined;
+    if (endText !== undefined) {
+      const parsed = await parse(context, endText, args, tag.variables);
+      end = parseInt(parsed.text.trim());
+      for (let file of parsed.files) {
+        tag.files.push(file);
+      }
+      if (isNaN(end)) {
+        return false;
+      }
     }
 
     // parse it

@@ -7,6 +7,7 @@ import { ActivityTypes, ClientEvents, PresenceStatuses, SocketStates } from 'det
 import { NotSoCommandClient } from './commandclient';
 import { DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
+import { connectAllListeners } from './listeners';
 import { connectAllStores } from './stores';
 
 
@@ -42,6 +43,7 @@ const cluster = new ClusterClient('', {
   } else {
     process.title = `S:(${cluster.shardStart}-${cluster.shardEnd})`;
   }
+  connectAllListeners(cluster);
   connectAllStores(cluster);
 
   cluster.on(ClientEvents.REST_RESPONSE, async ({response, restRequest, shard}) => {
@@ -118,11 +120,11 @@ const cluster = new ClusterClient('', {
           {duration: 5000, limit: 5, type: 'channel'},
         ],
       });
-      
+
       notSoCommandBot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
         // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
       });
-      
+
       notSoCommandBot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
         // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
       });

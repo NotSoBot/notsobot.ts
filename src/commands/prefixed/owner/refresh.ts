@@ -14,9 +14,11 @@ import { BaseCommand } from '../basecommand';
 
 async function refreshCommands(
   cluster: ClusterClient,
+  refreshListeners: boolean,
   refreshStores: boolean,
   LIB_PATH: string,
 ): Promise<Array<number>> {
+  const LISTENERS_PATH = '/listeners/';
   const STORE_PATH = '/stores/';
 
   const IGNORE = ['/bot.', '/redis.'];
@@ -29,38 +31,45 @@ async function refreshCommands(
       continue;
     }
 
-    if (key.includes(STORE_PATH)) {
-      if (!refreshStores) {
-        continue;
+    if (key.includes(LISTENERS_PATH) || key.includes(STORE_PATH)) {
+      if (key.includes(LISTENERS_PATH)) {
+        if (!refreshListeners) {
+          continue;
+        }
+      } else if (key.includes(STORE_PATH)) {
+        if (!refreshStores) {
+          continue;
+        }
       }
-      // get the old store and stop it
-      const oldStoreModule = require(key);
-      if (oldStoreModule.default) {
-        const { default: oldStore } = oldStoreModule;
-        oldStore.stop(cluster);
+
+      // get the old module and stop it
+      const oldModule = require(key);
+      if (oldModule.default) {
+        const { default: oldObject } = oldModule;
+        oldObject.stop(cluster);
 
         // delete old store module
         delete require.cache[key];
 
         // re-fetch the new store object
-        const newStoreModule = require(key);
-        const { default: newStore } = newStoreModule;
+        const newModule = require(key);
+        const { default: newObject } = newModule;
 
         // set the cache back to the old store
         const oldCache = require.cache[key];
         if (oldCache) {
-          oldCache.exports = oldStoreModule;
+          oldCache.exports = oldModule;
         }
 
         // set the old store's functions to the new store's
-        for (let key of Object.getOwnPropertyNames(newStore.constructor.prototype)) {
-          if (key !== 'constructor' && typeof(newStore[key]) === 'function') {
-            oldStore[key] = newStore.constructor.prototype[key].bind(oldStore);
+        for (let key of Object.getOwnPropertyNames(newObject.constructor.prototype)) {
+          if (key !== 'constructor' && typeof(newObject[key]) === 'function') {
+            oldObject[key] = newObject.constructor.prototype[key].bind(oldObject);
           }
         }
 
         // reconnect it
-        oldStore.connect(cluster);
+        oldObject.connect(cluster);
       }
       // do nothing since it's just /index.ts and /store.ts
     } else {
@@ -83,6 +92,7 @@ async function refreshCommands(
 }
 
 export interface CommandArgs {
+  listeners: boolean,
   stores: boolean,
 }
 
@@ -95,6 +105,7 @@ export default class RefreshCommand extends BaseCommand {
 
       aliases: ['reload'],
       args: [
+        {name: 'listeners', type: Boolean},
         {name: 'stores', type: Boolean},
       ],
       metadata: {
@@ -102,9 +113,10 @@ export default class RefreshCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -stores`,
+          `${COMMAND_NAME} -listeners`,
         ],
         type: CommandTypes.OWNER,
-        usage: '',
+        usage: '(-listeners) (-stores)',
       },
       responseOptional: true,
     });
@@ -119,7 +131,7 @@ export default class RefreshCommand extends BaseCommand {
       return editOrReply(context, 'no cluster manager found');
     }
     const message = await editOrReply(context, 'ok, refreshing...');
-    const shardIds = await context.manager.broadcastEval(refreshCommands, args.stores, DIRECTORY);
+    const shardIds = await context.manager.broadcastEval(refreshCommands, args.listeners, args.stores, DIRECTORY);
 
     const error = shardIds.find((shardId: any) => shardId instanceof Error);
     if (error) {
