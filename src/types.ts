@@ -29,5 +29,9 @@ export namespace RedisPayloads {
 
   export type GuildSettingsUpdate = RestResponsesRaw.GuildSettings;
 
+  export interface InfoDiscordRequest {
+    
+  }
+
   export type UserUpdate = RestResponsesRaw.User;
 }

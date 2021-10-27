@@ -24,8 +24,12 @@ export class RedisSpewer extends EventSpewer {
     });
     this.client.on('message', (channel: string, message: string) => {
       if (channel in RedisChannels) {
-        const data = JSON.parse(message);
-        this.emit(channel, data);
+        try {
+          const data = (message) ? JSON.parse(message) : null;
+          this.emit(channel, data);
+        } catch(error) {
+          Sentry.captureException(error);
+        }
       }
     });
 
