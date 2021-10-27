@@ -18,10 +18,9 @@ class ClusterInfoInterval extends Listener {
         try {
           const usage = process.memoryUsage();
 
-          /*
           await putInfoDiscord({client: shard}, {
             clusterId: cluster.clusterId,
-            ramUsage: usage.heapUsed + usage.external +  Math.max(0, usage.rss - usage.heapTotal),
+            ramUsage: usage.heapUsed + usage.external + Math.max(0, usage.rss - usage.heapTotal),
             shardCount: cluster.shardCount,
             shardsPerCluster: 8,
             shards: cluster.shards.map((shard) => {
@@ -49,7 +48,6 @@ class ClusterInfoInterval extends Listener {
               };
             }),
           });
-          */
         } catch(error) {
 
         }
