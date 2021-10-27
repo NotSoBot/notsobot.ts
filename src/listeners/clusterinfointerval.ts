@@ -14,12 +14,10 @@ class ClusterInfoInterval extends Listener {
   intervalTime = 15000;
 
   create(cluster: ClusterClient, redis: RedisSpewer) {
-    console.log('LISTENER REFRESH'.repeat(100));
     const subscriptions: Array<EventSubscription> = [];
 
     {
       const subscription = redis.subscribe(RedisChannels.INFO_DISCORD_REQUEST, async (payload: RedisPayloads.InfoDiscordRequest) => {
-        console.log('DISCORD REQUEST'.repeat(100));
         const shard = cluster.shards.first();
         if (shard) {
           try {
@@ -29,7 +27,7 @@ class ClusterInfoInterval extends Listener {
               clusterId: cluster.clusterId,
               ramUsage: usage.heapUsed + usage.external + Math.max(0, usage.rss - usage.heapTotal),
               shardCount: cluster.shardCount,
-              shardsPerCluster: 8,
+              shardsPerCluster: 6,
               shards: cluster.shards.map((shard) => {
                 return {
                   shardId: shard.shardId,
