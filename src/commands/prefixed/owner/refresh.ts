@@ -5,6 +5,7 @@ import { DIRECTORY } from '../../../../config.json';
 import { NotSoCommandClient } from '../../../commandclient';
 import { CommandTypes } from '../../../constants';
 import { NotSoInteractionClient } from '../../../interactioncommandclient';
+import { Listener } from '../../../listeners';
 import { Store } from '../../../stores';
 import { editOrReply } from '../../../utils';
 
@@ -85,6 +86,7 @@ async function refreshCommands(
     try {
       await interactionCommandClient.resetCommands();
     } catch(error) {
+      console.log('a'.repeat(100), error);
       console.log('a'.repeat(100), await error.response.text());
     }
   }

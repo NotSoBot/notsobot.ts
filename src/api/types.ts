@@ -229,6 +229,35 @@ export namespace RestOptions {
     name: string,
   }
 
+  export interface PutInfoDiscord {
+    clusterId: number,
+    ramUsage: number,
+    shardCount: number,
+    shardsPerCluster: number,
+    shards: Array<{
+      shardId: number,
+      status: string,
+  
+      applications?: number,
+      channels?: number,
+      channelThreads?: number,
+      emojis?: number,
+      events?: number,
+      guilds?: number,
+      members?: number,
+      memberCount?: number,
+      messages?: number,
+      permissionOverwrites?: number,
+      presences?: number,
+      presenceActivities?: number,
+      roles?: number,
+      stageInstances?: number,
+      typings?: number,
+      users?: number,
+      voiceStates?: number,
+    }>,
+  }
+
   export interface PutTag {
     content: string,
     name: string,
@@ -407,6 +436,7 @@ export namespace RestResponses {
   export type SearchGoogleImages = Array<GoogleSearchImageResult>;
 
   export type PutGuildSettings = GuildSettings;
+  export type PutInfoDiscord = null;
   export type PutUser = User;
 }
 

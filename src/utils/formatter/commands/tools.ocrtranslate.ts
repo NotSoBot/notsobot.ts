@@ -11,16 +11,9 @@ import {
 import { createUserEmbed, editOrReply, languageCodeToText, splitTextByAmount } from '../../../utils';
 
 
-export interface CommandArgs {
-  isEphemeral?: boolean,
-  to?: GoogleLocales | null,
-  url: string,
-}
-
-
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: {isEphemeral?: boolean, to?: GoogleLocales | null, url: string},
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 

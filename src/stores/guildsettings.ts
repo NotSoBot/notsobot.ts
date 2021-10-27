@@ -198,6 +198,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       });
       subscriptions.push(subscription);
     }
+
     return subscriptions;
   }
 }

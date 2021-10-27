@@ -1546,6 +1546,50 @@ export async function putGuildSettings(
 }
 
 
+export async function putInfoDiscord(
+  context: RequestContext,
+  options: RestOptions.PutInfoDiscord,
+): Promise<RestResponses.PutInfoDiscord> {
+  const body = {
+    cluster_id: options.clusterId,
+    ram_usage: options.ramUsage,
+    shard_count: options.shardCount,
+    shards_per_cluster: options.shardsPerCluster,
+    shards: options.shards.map((x) => {
+      return {
+        shard_id: x.shardId,
+        status: x.status,
+
+        applications: x.applications,
+        channels: x.channels,
+        channel_threads: x.channelThreads,
+        emojis: x.emojis,
+        events: x.events,
+        guilds: x.guilds,
+        members: x.members,
+        member_count: x.memberCount,
+        messages: x.messages,
+        permission_overwrites: x.permissionOverwrites,
+        presences: x.presences,
+        presence_activities: x.presenceActivities,
+        roles: x.roles,
+        stage_instances: x.stageInstances,
+        typings: x.typings,
+        users: x.users,
+        voice_states: x.voiceStates,
+      };
+    }),
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.INFO_DISCORD,
+    },
+  });
+}
+
+
 export async function putTag(
   context: RequestContext,
   options: RestOptions.PutTag,

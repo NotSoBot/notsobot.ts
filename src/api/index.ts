@@ -760,6 +760,14 @@ export async function putGuildSettings(
 }
 
 
+export async function putInfoDiscord(
+  context: RequestContext,
+  options: RestOptions.PutInfoDiscord,
+) {
+  return raw.putInfoDiscord(context, options);
+}
+
+
 export async function putTag(
   context: RequestContext,
   options: RestOptions.PutTag,

@@ -163,6 +163,9 @@ export const Api = Object.freeze({
   IMAGE_TOOLS_ROTATE:
     '/image/tools/rotate',
 
+  INFO_DISCORD:
+    '/info/discord',
+
   ME:
     '/users/@me',
 
