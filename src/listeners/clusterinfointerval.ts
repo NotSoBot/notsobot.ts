@@ -9,7 +9,7 @@ import { RedisSpewer } from '../redis';
 
 class ClusterInfoInterval extends Listener {
   interval = new Timers.Interval();
-  intervalTime = 5000;
+  intervalTime = 15000;
 
   create(cluster: ClusterClient, redis: RedisSpewer) {
     this.interval.start(this.intervalTime, async () => {
