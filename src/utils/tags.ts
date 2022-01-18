@@ -240,7 +240,7 @@ export interface TagVariables {
 }
 
 export interface TagResult {
-  files: Array<{buffer: null | Buffer, filename: string, spoiler?: boolean, url: string}>,
+  files: Array<{buffer: null | string | Buffer, filename: string, spoiler?: boolean, url: string}>,
   text: string,
   variables: TagVariables,
 }
@@ -494,8 +494,13 @@ const ScriptTags = Object.freeze({
       const response = await utilitiesFetchMedia(context, {url});
       const filename = (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
 
+      let data: Buffer | string = await response.buffer();
+      if ((response.headers.get('content-type') || '').startsWith('text/')) {
+        data = data.toString();
+      }
+
       tag.files.push({
-        buffer: await response.buffer(),
+        buffer: data,
         filename,
         spoiler,
         url,

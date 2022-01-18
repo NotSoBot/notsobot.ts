@@ -362,7 +362,7 @@ export class Paginator {
     page = Math.max(MIN_PAGE, Math.min(page, this.pageLimit));
     if (page === this.page) {
       if (context) {
-        return await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       return;
     }
@@ -412,14 +412,17 @@ export class Paginator {
 
   async onButtonPress(context: ComponentContext): Promise<void> {
     if (this.stopped) {
-      return await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      return;
     }
 
     if (!this.canInteract(context.userId)) {
-      return await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      return;
     }
     if (this.ratelimitTimeout.hasStarted) {
-      return await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+      return;
     }
 
     try {

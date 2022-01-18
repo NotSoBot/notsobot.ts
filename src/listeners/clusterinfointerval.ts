@@ -27,7 +27,7 @@ class ClusterInfoInterval extends Listener {
               clusterId: cluster.clusterId,
               ramUsage: usage.heapUsed + usage.external + Math.max(0, usage.rss - usage.heapTotal),
               shardCount: cluster.shardCount,
-              shardsPerCluster: 6,
+              shardsPerCluster: (cluster.manager) ? cluster.manager.clusterShardsPer : 1,
               shards: cluster.shards.map((shard) => {
                 return {
                   shardId: shard.shardId,

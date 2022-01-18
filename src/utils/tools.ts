@@ -73,10 +73,13 @@ export function createUserString(userId: string = '1', user?: Structures.User | 
 }
 
 
+export function editOrReply(context: Command.Context, options: Command.EditOrReply | string): Promise<Structures.Message>
+export function editOrReply(context: Interaction.InteractionContext, options: Structures.InteractionEditOrRespond | string): Promise<null>
+export function editOrReply(context: Command.Context | Interaction.InteractionContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | null>
 export function editOrReply(
   context: Command.Context | Interaction.InteractionContext,
   options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
-) {
+): Promise<Structures.Message | null> {
   if (typeof(options) === 'string') {
     options = {content: options};
   }
@@ -84,7 +87,7 @@ export function editOrReply(
     return context.editOrRespond({
       ...options,
       allowedMentions: {parse: [], ...options.allowedMentions},
-    });
+    }) as Promise<Structures.Message | null>;
   }
   return context.editOrReply({
     reference: true,
@@ -806,7 +809,7 @@ export async function imageReply(
     content?: string,
     filename?: string,
   } | string = {},
-): Promise<Structures.Message> {
+) {
   if (typeof(options) === 'string') {
     options = {filename: options};
   }
@@ -867,7 +870,7 @@ export async function imageReplyFromOptions(
     took?: number,
     width: number,
   },
-): Promise<Structures.Message> {
+) {
   let filename: string = '';
   if (options.filename) {
     filename = options.filename;
