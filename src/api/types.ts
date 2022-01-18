@@ -383,18 +383,22 @@ export namespace RestOptions {
 
 
   export interface UtilitiesFetchData {
+    maxFileSize?: number,
     url: string,
   }
 
   export interface UtilitiesFetchImage {
+    maxFileSize?: number,
     url: string,
   }
 
   export interface UtilitiesFetchMedia {
+    maxFileSize?: number,
     url: string,
   }
 
   export interface UtilitiesFetchText {
+    maxFileSize?: number,
     url: string,
   }
 

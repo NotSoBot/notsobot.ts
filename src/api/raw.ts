@@ -1998,6 +1998,7 @@ export async function utilitiesFetchData(
   options: RestOptions.UtilitiesFetchData,
 ): Promise<Response> {
   const query = {
+    max_file_size: options.maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2016,6 +2017,7 @@ export async function utilitiesFetchImage(
   options: RestOptions.UtilitiesFetchImage,
 ): Promise<Response> {
   const query = {
+    max_file_size: options.maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2034,6 +2036,7 @@ export async function utilitiesFetchMedia(
   options: RestOptions.UtilitiesFetchMedia,
 ): Promise<Response> {
   const query = {
+    max_file_size: options.maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2052,6 +2055,7 @@ export async function utilitiesFetchText(
   options: RestOptions.UtilitiesFetchText,
 ): Promise<Response> {
   const query = {
+    max_file_size: options.maxFileSize,
     url: options.url,
   };
   return request(context, {

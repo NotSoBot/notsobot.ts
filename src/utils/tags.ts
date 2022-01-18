@@ -1,6 +1,7 @@
 import { runInNewContext } from 'vm';
 
 import { Command, Interaction, Structures } from 'detritus-client';
+import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesFetchMedia, utilitiesFetchText } from '../api';
@@ -36,6 +37,7 @@ export const ATTACHMENT_EXTENSIONS_IMAGE = [
 ];
 
 export const ATTACHMENT_EXTENSIONS_MEDIA = [
+  'flac',
   'mov',
   'mp3',
   'mp4',
@@ -45,6 +47,8 @@ export const ATTACHMENT_EXTENSIONS_MEDIA = [
 ];
 
 export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHMENT_EXTENSIONS_MEDIA];
+
+export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 
 export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
@@ -63,6 +67,7 @@ export const REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT = new RegExp(`\\\\\\${Ta
 
 
 export enum PrivateVariables {
+  FILE_SIZE = '__fileSize',
   ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',
 }
@@ -234,6 +239,7 @@ export const TagFunctionsToString = Object.freeze({
 
 
 export interface TagVariables {
+  [PrivateVariables.FILE_SIZE]: number,
   [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
   [key: string]: number | string,
@@ -259,6 +265,9 @@ export async function parse(
   }
   if (!(PrivateVariables.NETWORK_REQUESTS in variables)) {
     variables[PrivateVariables.NETWORK_REQUESTS] = 0;
+  }
+  if (!(PrivateVariables.FILE_SIZE in variables)) {
+    variables[PrivateVariables.FILE_SIZE] = 0;
   }
   const tag: TagResult = {files: [], text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
@@ -491,13 +500,20 @@ const ScriptTags = Object.freeze({
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
-      const response = await utilitiesFetchMedia(context, {url});
+      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+      const response = await utilitiesFetchMedia(context, {maxFileSize, url});
       const filename = (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
 
       let data: Buffer | string = await response.buffer();
       if ((response.headers.get('content-type') || '').startsWith('text/')) {
         data = data.toString();
       }
+
+      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+      if (maxFileSize <= currentFileSize + data.length) {
+        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+      }
+      tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({
         buffer: data,
@@ -658,7 +674,8 @@ const ScriptTags = Object.freeze({
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
     try {
-      const response = await utilitiesFetchText(context, {url});
+      const maxFileSize = (context.guild) ? context.guild.maxAttachmentSize : undefined;
+      const response = await utilitiesFetchText(context, {maxFileSize, url});
       tag.text += await response.text();
     } catch(error) {
       console.log(error);
