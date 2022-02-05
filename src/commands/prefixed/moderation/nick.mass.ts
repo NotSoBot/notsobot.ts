@@ -185,12 +185,12 @@ export default class NickMassCommand extends BaseCommand {
                 isExecuting.nick = false;
 
                 embed.setColor(EmbedColors.ERROR);
-                embed.setTitle('Mass Nickname Canceled');
+                embed.setTitle('Mass Nickname Cancelled');
                 {
                   const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
                   const description: Array<string> = [];
-                  description.push(`Canceled editing ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
+                  description.push(`Cancelled editing ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
                   if (finished) {
                     if (amounts.changed) {
                       description.push(`- Changed ${amounts.changed.toLocaleString()} members successfully`);
@@ -253,12 +253,12 @@ export default class NickMassCommand extends BaseCommand {
 
           if (!isExecuting.nick) {
             embed.setColor(EmbedColors.ERROR);
-            embed.setTitle('Mass Nickname Canceled');
+            embed.setTitle('Mass Nickname Cancelled');
             {
               const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
               const description: Array<string> = [];
-              description.push(`Canceled editing ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
+              description.push(`Cancelled editing ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
               if (finished) {
                 if (amounts.changed) {
                   description.push(`- Changed ${amounts.changed.toLocaleString()} members successfully`);
@@ -322,8 +322,8 @@ export default class NickMassCommand extends BaseCommand {
           }
 
           embed.setColor(EmbedColors.ERROR);
-          embed.setTitle('Mass Nickname Canceled');
-          embed.setDescription(`Canceled editing ${members.length.toLocaleString()} member\'s nicknames`);
+          embed.setTitle('Mass Nickname Cancelled');
+          embed.setDescription(`Cancelled editing ${members.length.toLocaleString()} member\'s nicknames`);
           await ctx.editOrRespond({components: [], embed});
         },
       });

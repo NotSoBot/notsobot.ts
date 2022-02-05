@@ -30,6 +30,7 @@ import * as TagInfo from './tag.info';
 import * as TagListServer from './tag.list.server';
 import * as TagListUser from './tag.list.user';
 import * as TagRandom from './tag.random';
+import * as TagRemove from './tag.remove';
 import * as TagShow from './tag.show';
 
 import * as ToolsHash from './tools.hash';
@@ -68,6 +69,7 @@ export {
   TagListServer,
   TagListUser,
   TagRandom,
+  TagRemove,
   TagShow,
   ToolsHash,
   ToolsOCR,
