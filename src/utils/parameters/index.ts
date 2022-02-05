@@ -711,6 +711,7 @@ export async function imageUrl(
                   return url;
                 }
               }
+              return null;
             }
           }
 
@@ -841,9 +842,10 @@ export async function lastImageUrls(
               const url = findImageUrlInMessages([message]);
               if (url) {
                 urls.add(url);
-                found = true;
               }
             }
+            // ignore this url no matter what
+            found = true;
           }
         }
 
@@ -942,6 +944,7 @@ export async function imageUrlPositional(
                   return url;
                 }
               }
+              return null;
             }
           }
 

@@ -1,6 +1,7 @@
 import { BaseSlashCommand } from '../../basecommand';
 
 import { ToolsHashCommand } from './hash';
+import { ToolsScreenshotCommand } from './screenshot';
 
 
 export default class ToolsGroupCommand extends BaseSlashCommand {
@@ -11,6 +12,7 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new ToolsHashCommand(),
+        new ToolsScreenshotCommand(),
       ],
     });
   }

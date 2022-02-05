@@ -36,6 +36,7 @@ import * as ToolsHash from './tools.hash';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
 import * as ToolsQrScan from './tools.qr.scan';
+import * as ToolsScreenshot from './tools.screenshot';
 import * as ToolsTranslate from './tools.translate';
 
 export {
@@ -72,5 +73,6 @@ export {
   ToolsOCR,
   ToolsOCRTranslate,
   ToolsQrScan,
+  ToolsScreenshot,
   ToolsTranslate,
 };

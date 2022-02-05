@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { utilitiesScreenshot } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { Parameters, imageReply } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -37,7 +36,6 @@ export default class ScreenshotCommand extends BaseCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const response = await utilitiesScreenshot(context, args);
-    return imageReply(context, response);
+    return Formatter.Commands.ToolsScreenshot.createMessage(context, args);
   }
 }
