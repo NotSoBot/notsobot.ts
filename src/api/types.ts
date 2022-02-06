@@ -415,6 +415,15 @@ export namespace RestOptions {
   export interface UtilitiesScreenshot {
     url: string,
   }
+
+
+  export interface VideoBaseOptions {
+    url: string,
+  }
+
+  export interface VideoToolsConvertOptions extends VideoBaseOptions {
+    to: string,
+  }
 }
 
 

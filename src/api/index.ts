@@ -1020,3 +1020,11 @@ export async function utilitiesScreenshot(
 ) {
   return raw.utilitiesScreenshot(context, options);
 }
+
+
+export async function videoToolsConvert(
+  context: RequestContext,
+  options: RestOptions.VideoToolsConvertOptions,
+) {
+  return raw.videoToolsConvert(context, options);
+}

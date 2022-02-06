@@ -541,15 +541,43 @@ export enum Mimetypes {
   IMAGE_JPEG = 'image/jpeg',
   IMAGE_PNG = 'image/png',
   IMAGE_WEBP = 'image/webp',
+  VIDEO_M4V = 'video/x-m4v',
+  VIDEO_MP4 = 'video/mp4',
+  VIDEO_MPEG = 'video/mpeg',
+  VIDEO_QUICKTIME = 'video/quicktime',
+  VIDEO_WEBM = 'video/webm',
+  VIDEO_X_MSVIDEO = 'video/x-msvideo',
 };
 
-export const MIMETYPES_SAFE_EMBED = Object.freeze([
+export const MimetypesToExtension = Object.freeze({
+  [Mimetypes.IMAGE_GIF]: 'gif',
+  [Mimetypes.IMAGE_JPEG]: 'jpg',
+  [Mimetypes.IMAGE_PNG]: 'png',
+  [Mimetypes.IMAGE_WEBP]: 'webp',
+  [Mimetypes.VIDEO_M4V]: 'm4v',
+  [Mimetypes.VIDEO_MP4]: 'mp4',
+  [Mimetypes.VIDEO_MPEG]: 'mpeg',
+  [Mimetypes.VIDEO_QUICKTIME]: 'mov',
+  [Mimetypes.VIDEO_WEBM]: 'webm',
+  [Mimetypes.VIDEO_X_MSVIDEO]: 'avi',
+});
+
+
+export const MIMETYPES_IMAGE_EMBEDDABLE = Object.freeze([
   Mimetypes.IMAGE_GIF,
   Mimetypes.IMAGE_JPEG,
   Mimetypes.IMAGE_PNG,
   Mimetypes.IMAGE_WEBP,
 ]);
 
+export const MIMETYPES_VIDEO_EMBEDDABLE = Object.freeze([
+  Mimetypes.VIDEO_QUICKTIME,
+  Mimetypes.VIDEO_MP4,
+  Mimetypes.VIDEO_WEBM,
+]);
+
+
+export const MIMETYPES_SAFE_EMBED = MIMETYPES_IMAGE_EMBEDDABLE;
 
 export const RatelimitKeys = Object.freeze({
   IMAGE: Math.random().toString(36).substring(7),

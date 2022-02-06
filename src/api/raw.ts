@@ -2127,3 +2127,22 @@ export async function utilitiesScreenshot(
     },
   });
 }
+
+
+export async function videoToolsConvert(
+  context: RequestContext,
+  options: RestOptions.VideoToolsConvertOptions,
+): Promise<Response> {
+  const query = {
+    to: options.to,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.VIDEO_TOOLS_CONVERT,
+    },
+  });
+}

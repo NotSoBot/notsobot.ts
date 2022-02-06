@@ -240,6 +240,9 @@ export const Api = Object.freeze({
     '/utilities/qr/scan',
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
+
+  VIDEO_TOOLS_CONVERT:
+    '/video/tools/convert',
 });
 
 

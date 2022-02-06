@@ -4,7 +4,10 @@ import { GuildExplicitContentFilterTypes } from 'detritus-client/lib/constants';
 import { GoogleLocales, GoogleLocaleFromDiscord } from '../constants';
 import UserStore from '../stores/users';
 
-import { findImageUrlInMessages } from './tools';
+import {
+  findImageUrlInMessages,
+  findMediaUrlInMessages,
+} from './tools';
 
 
 export function applications(context: Command.Context | Interaction.InteractionContext) {
@@ -88,6 +91,73 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
   if (context.inDm || (context.channel && context.channel.canReadHistory)) {
     const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
     const url = findImageUrlInMessages(messages);
+    if (url) {
+      return url;
+    }
+  }
+
+  return null;
+}
+
+
+export async function lastVideoUrl(context: Command.Context | Interaction.InteractionContext): Promise<string | null> {
+  const mediaSearchOptions = {image: false};
+
+  if (context instanceof Command.Context) {
+    {
+      const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
+      if (url) {
+        return url;
+      }
+    }
+
+    {
+      // check reply
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId) {
+        let message = messageReference.message;
+        if (!message && (context.inDm || (context.channel && context.channel.canReadHistory))) {
+          try {
+            message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          } catch(error) {
+            // /shrug
+          }
+        }
+        if (message) {
+          const url = findMediaUrlInMessages([message], mediaSearchOptions);
+          if (url) {
+            return url;
+          }
+        }
+      }
+    }
+  }
+
+  const before = (context instanceof Command.Context) ? context.messageId : undefined;
+  {
+    const beforeId = (before) ? BigInt(before) : null;
+    // we dont get DM channels anymore so we must manually find messages now
+    const messages = context.messages.filter((message) => {
+      if (message.channelId !== context.channelId) {
+        return false;
+      }
+      if (message.interaction && message.hasFlagEphemeral) {
+        return message.interaction.user.id === context.userId;
+      }
+      if (beforeId) {
+        return BigInt(message.id) <= beforeId;
+      }
+      return true;
+    }).reverse();
+    const url = findMediaUrlInMessages(messages, mediaSearchOptions);
+    if (url) {
+      return url;
+    }
+  }
+
+  if (context.inDm || (context.channel && context.channel.canReadHistory)) {
+    const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
+    const url = findMediaUrlInMessages(messages, mediaSearchOptions);
     if (url) {
       return url;
     }

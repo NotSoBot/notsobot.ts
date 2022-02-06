@@ -40,6 +40,9 @@ import * as ToolsQrScan from './tools.qr.scan';
 import * as ToolsScreenshot from './tools.screenshot';
 import * as ToolsTranslate from './tools.translate';
 
+import * as VideoConvert from './video.convert';
+
+
 export {
   ImageBlur,
   ImageBlurple,
@@ -77,4 +80,5 @@ export {
   ToolsQrScan,
   ToolsScreenshot,
   ToolsTranslate,
+  VideoConvert,
 };

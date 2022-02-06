@@ -214,6 +214,35 @@ export class BaseInteractionImageCommandOption<ParsedArgsFinished = Interaction.
 }
 
 
+export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommandOption<ParsedArgsFinished> {
+  constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
+    super({
+      ...data,
+      options: [
+        ...(data.options || []),
+        {name: 'video', description: 'Emoji/Media URL/User', label: 'url', default: DefaultParameters.lastVideoUrl, value: Parameters.lastVideoUrl},
+      ],
+    });
+  }
+
+  onBeforeRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url) {
+      context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});
+    }
+    return !!args.url;
+  }
+
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return editOrReply(context, '⚠ Unable to find any media in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+    }
+    return super.onCancelRun(context, args);
+  }
+}
+
+
 export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
   error = 'Slash Command';
   type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
