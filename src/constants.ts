@@ -482,6 +482,13 @@ export enum GuildPremiumTypes {
 };
 
 
+export enum ImageBackgroundRemovalModels {
+  ALPHA_MATTING = 'ALPHA_MATTING',
+  U2NET = 'U2NET',
+  U2NETP = 'U2NETP',
+  U2NET_HUMAN_SEG = 'U2NET_HUMAN_SEG',
+}
+
 
 export enum ImageEyeTypes {
   BIG = 'BIG',

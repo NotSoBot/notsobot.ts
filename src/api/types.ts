@@ -136,6 +136,10 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface ImageBackgroundRemoveOptions extends ImageBaseOptions {
+    model?: string,
+  }
+
   export interface ImageCreateTombstone {
     line1?: string,
     line2?: string,

@@ -1392,9 +1392,10 @@ export async function imageOverlayShutterstock(
 
 export async function imageToolsBackgroundRemove(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.ImageBackgroundRemoveOptions,
 ): Promise<Response> {
   const query = {
+    model: options.model,
     url: options.url,
   };
   return request(context, {

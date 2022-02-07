@@ -687,7 +687,7 @@ export async function imageOverlayShutterstock(
 
 export async function imageToolsBackgroundRemove(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.ImageBackgroundRemoveOptions,
 ) {
   return raw.imageToolsBackgroundRemove(context, options);
 }
