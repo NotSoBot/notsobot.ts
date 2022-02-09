@@ -687,7 +687,8 @@ export namespace RestResponsesRaw {
     header: null | string,
     image: null | string,
     sections: Array<{
-      fields: Array<{name: string, value: null | string, values?: Array<string>}>,
+      description: string,
+      fields: Array<{name: string, title?: string, value: null | string, values?: Array<string>}>,
       title: string,
     }>,
     thumbnail: null | string,

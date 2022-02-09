@@ -106,7 +106,11 @@ export async function createMessage(
                   if (section.fields.length) {
                     const description: Array<string> = [];
                     for (let field of section.fields) {
-                      description.push(`- ${field.name}`);
+                      if (field.title) {
+                        description.push(`- ${field.title}: ${field.name}`);
+                      } else {
+                        description.push(`- ${field.name}`);
+                      }
                       if (field.value) {
                         description.push(`-> ${Markup.italics(field.value)}`);
                       }
