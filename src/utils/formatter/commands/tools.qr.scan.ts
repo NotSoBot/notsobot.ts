@@ -10,9 +10,16 @@ import {
 import { createUserEmbed, editOrReply } from '../..';
 
 
+export const COMMAND_ID = 'qr scan';
+
+export interface CommandArgs {
+ isEphemeral?: boolean,
+ url: string, 
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: {isEphemeral?: boolean, url: string},
+  args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 

@@ -22,7 +22,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
 
       aliases: ['g image', 'g img', 'g im', 'google image', 'google img', 'google im', 'img', 'im'],
       args: [
-        {name: 'language', aliases: ['locale'], default: DefaultParameters.locale, type: Parameters.locale},
+        {name: 'locale', aliases: ['language'], default: DefaultParameters.locale, type: Parameters.locale},
         {name: 'randomize', aliases: ['r', 'random'], type: Boolean},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],

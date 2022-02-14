@@ -12,6 +12,9 @@ export interface CommandArgsBefore {
 
 export class TagInfoCommand extends BaseInteractionCommandOption {
   description = 'View a Tag\'s Information';
+  metadata = {
+    id: Formatter.Commands.TagInfo.COMMAND_ID,
+  };
   name = 'info';
 
   constructor() {

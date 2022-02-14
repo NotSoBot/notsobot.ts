@@ -1,3 +1,4 @@
+import * as ImageBackgroundRemove from './image.background.remove';
 import * as ImageBlur from './image.blur';
 import * as ImageBlurple from './image.blurple';
 import * as ImageCircle from './image.circle';
@@ -36,6 +37,7 @@ import * as TagShow from './tag.show';
 import * as ToolsHash from './tools.hash';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
+import * as ToolsQrCreate from './tools.qr.create';
 import * as ToolsQrScan from './tools.qr.scan';
 import * as ToolsScreenshot from './tools.screenshot';
 import * as ToolsTranslate from './tools.translate';
@@ -44,6 +46,7 @@ import * as VideoConvert from './video.convert';
 
 
 export {
+  ImageBackgroundRemove,
   ImageBlur,
   ImageBlurple,
   ImageCircle,
@@ -77,6 +80,7 @@ export {
   ToolsHash,
   ToolsOCR,
   ToolsOCRTranslate,
+  ToolsQrCreate,
   ToolsQrScan,
   ToolsScreenshot,
   ToolsTranslate,

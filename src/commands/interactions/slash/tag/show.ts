@@ -13,6 +13,9 @@ export interface CommandArgsBefore {
 
 export class TagShowCommand extends BaseInteractionCommandOption {
   description = 'Show a tag';
+  metadata = {
+    id: Formatter.Commands.TagShow.COMMAND_ID,
+  };
   name = 'show';
 
   constructor() {

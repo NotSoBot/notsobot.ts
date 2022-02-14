@@ -2135,6 +2135,7 @@ export async function videoToolsConvert(
   options: RestOptions.VideoToolsConvertOptions,
 ): Promise<Response> {
   const query = {
+    remove_audio: options.removeAudio,
     to: options.to,
     url: options.url,
   };

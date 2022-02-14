@@ -14,6 +14,8 @@ import {
 } from '../../../utils';
 
 
+export const COMMAND_ID = 'tag remove';
+
 export interface CommandArgsBefore {
   force?: boolean,
   tag: false | null | RestResponsesRaw.Tag,

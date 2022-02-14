@@ -4,6 +4,8 @@ import { RestResponsesRaw } from '../../../api/types';
 import { TagFormatter, editOrReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'tag show';
+
 export interface CommandArgs {
   arguments: Array<string>,
   tag: RestResponsesRaw.Tag,

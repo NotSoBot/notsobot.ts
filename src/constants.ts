@@ -489,6 +489,13 @@ export enum ImageBackgroundRemovalModels {
   U2NET_HUMAN_SEG = 'U2NET_HUMAN_SEG',
 }
 
+export const ImageBackgroundRemovalModelsToText: Record<ImageBackgroundRemovalModels, string> = Object.freeze({
+  [ImageBackgroundRemovalModels.ALPHA_MATTING]: 'Alpha Matting',
+  [ImageBackgroundRemovalModels.U2NET]: 'U2Net',
+  [ImageBackgroundRemovalModels.U2NETP]: 'U2Netp (Simpler U2Net)',
+  [ImageBackgroundRemovalModels.U2NET_HUMAN_SEG]: 'U2Net Human Segmentation (Human-Orientated U2Net)',
+});
+
 
 export enum ImageEyeTypes {
   BIG = 'BIG',

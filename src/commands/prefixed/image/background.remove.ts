@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageToolsBackgroundRemove } from '../../../api';
 import { CommandTypes, ImageBackgroundRemovalModels } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -12,14 +11,9 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export interface CommandArgs {
-  model?: string,
-  url: string,
-}
-
 export const COMMAND_NAME = 'background remove';
 
-export default class GrayscaleCommand extends BaseImageCommand<CommandArgs> {
+export default class GrayscaleCommand extends BaseImageCommand<Formatter.Commands.ImageBackgroundRemove.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -41,8 +35,7 @@ export default class GrayscaleCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageToolsBackgroundRemove(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageBackgroundRemove.CommandArgs) {
+    return Formatter.Commands.ImageBackgroundRemove.createMessage(context, args);
   }
 }

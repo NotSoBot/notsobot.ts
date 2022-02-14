@@ -21,7 +21,7 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
 
       aliases: ['g', 'google search', 'g search'],
       args: [
-        {name: 'language', aliases: ['locale'], default: DefaultParameters.locale, type: Parameters.locale},
+        {name: 'locale', aliases: ['language'], default: DefaultParameters.locale, type: Parameters.locale},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],
       metadata: {

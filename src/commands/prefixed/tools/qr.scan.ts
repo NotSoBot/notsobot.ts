@@ -6,13 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'qr scan';
 
-export default class QRScanCommand extends BaseImageCommand<CommandArgs> {
+export default class QRScanCommand extends BaseImageCommand<Formatter.Commands.ToolsQrScan.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -29,7 +25,7 @@ export default class QRScanCommand extends BaseImageCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
+  async run(context: Command.Context, args: Formatter.Commands.ToolsQrScan.CommandArgs) {
     return Formatter.Commands.ToolsQrScan.createMessage(context, args);
   }
 }

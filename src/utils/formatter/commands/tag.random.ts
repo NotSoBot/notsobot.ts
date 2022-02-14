@@ -5,6 +5,8 @@ import { fetchTagRandom } from '../../../api';
 import { TagFormatter, editOrReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'tag random';
+
 export interface CommandArgs {
   arguments: Array<string>,
   content?: string,

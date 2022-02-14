@@ -20,6 +20,11 @@ export class VideoConvertCommand extends BaseInteractionVideoCommandOption {
           choices: Formatter.Commands.VideoConvert.SLASH_CHOICES,
           default: Formatter.Commands.VideoConvert.DEFAULT_MIMETYPE,
         },
+        {
+          name: 'noaudio',
+          description: 'Remove Audio',
+          type: Boolean,
+        },
       ],
     });
   }

@@ -11,7 +11,7 @@ export interface TranslateCommandArgs extends ContextMenuMessageArgs {
   url?: string | null,
 }
 
-export const COMMAND_NAME = 'Translate';
+export const COMMAND_NAME = 'Translate (w/ OCR)';
 
 export default class TranslateCommand extends BaseContextMenuMessageCommand {
   name = COMMAND_NAME;

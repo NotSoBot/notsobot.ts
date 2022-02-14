@@ -12,6 +12,7 @@ import { ImageFlopCommand } from './flop';
 import { ImageInvertCommand } from './invert';
 import { ImageMemeCommand } from './meme';
 
+import { ImageBackgroundGroupCommand } from './background';
 import { ImageGifGroupCommand } from './gif';
 import { ImageOverlayGroupCommand } from './overlay';
 import { ImageToolsGroupCommand } from './tools';
@@ -25,6 +26,7 @@ export default class ImageGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new ImageBackgroundGroupCommand(),
         new ImageBlurCommand(),
         new ImageBlurpleCommand(),
         new ImageCircleCommand(),

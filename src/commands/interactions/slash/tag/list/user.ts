@@ -13,6 +13,9 @@ export interface CommandArgs {
 
 export class TagListUserCommand extends BaseInteractionCommandOption {
   description = 'List all of a User\'s Tags';
+  metadata = {
+    id: Formatter.Commands.TagListUser.COMMAND_ID,
+  };
   name = 'user';
 
   constructor() {

@@ -12,6 +12,8 @@ import {
 } from '../../../utils';
 
 
+export const COMMAND_ID = 'tag info';
+
 export interface CommandArgs {
   tag: RestResponsesRaw.Tag,
 }

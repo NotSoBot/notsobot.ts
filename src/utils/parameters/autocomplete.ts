@@ -2,7 +2,12 @@ import { Interaction } from 'detritus-client';
 import { BaseSet } from 'detritus-client/lib/collections';
 
 import { fetchTagsServer } from '../../api';
-import { GoogleLocales, GoogleLocalesText, ImageMemeFonts, ImageMemeFontsToText } from '../../constants';
+import {
+  GoogleLocales,
+  GoogleLocalesText,
+  ImageMemeFonts,
+  ImageMemeFontsToText,
+} from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
 
 

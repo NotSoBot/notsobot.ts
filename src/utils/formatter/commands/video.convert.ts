@@ -17,6 +17,7 @@ export const SLASH_CHOICES = MIMETYPES_VIDEO_EMBEDDABLE.map((mimetype) => {
 
 
 export interface CommandArgs {
+  noaudio?: boolean,
   to: Mimetypes,
   url: string,
 }
@@ -25,6 +26,10 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await videoToolsConvert(context, args);
+  const response = await videoToolsConvert(context, {
+    removeAudio: args.noaudio,
+    to: args.to,
+    url: args.url,
+  });
   return mediaReply(context, response);
 }

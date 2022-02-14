@@ -1,20 +1,14 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { utilitiesQrCreate } from '../../../api';
 import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
 
-export interface CommandArgs {
-  query: string,
-  size?: string,
-}
-
 export const COMMAND_NAME = 'qr create';
 
-export default class QRCreateCommand extends BaseCommand<CommandArgs> {
+export default class QRCreateCommand extends BaseCommand<Formatter.Commands.ToolsQrCreate.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -37,8 +31,7 @@ export default class QRCreateCommand extends BaseCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await utilitiesQrCreate(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ToolsQrCreate.CommandArgs) {
+    return Formatter.Commands.ToolsQrScan.createMessage(context, args);
   }
 }

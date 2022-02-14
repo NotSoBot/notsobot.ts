@@ -8,6 +8,9 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 export class TagListServerCommand extends BaseInteractionCommandOption {
   description = 'List the Server\'s Tags';
+  metadata = {
+    id: Formatter.Commands.TagListServer.COMMAND_ID,
+  };
   name = 'server';
 
   constructor() {

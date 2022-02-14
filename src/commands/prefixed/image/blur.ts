@@ -11,14 +11,9 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export interface CommandArgs {
-  scale?: number,
-  url: string,
-}
-
 export const COMMAND_NAME = 'blur';
 
-export default class BlurCommand extends BaseImageCommand<CommandArgs> {
+export default class BlurCommand extends BaseImageCommand<Formatter.Commands.ImageBlur.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

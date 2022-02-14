@@ -1,7 +1,7 @@
 import { InteractionCommandClient, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
-
+import { InteractionCommandMetadata } from './commands/interactions/basecommand';
 import { GuildAllowlistTypes, GuildBlocklistTypes, GuildDisableCommandsTypes } from './constants';
 import GuildSettingsStore from './stores/guildsettings';
 import UserStore from './stores/users';
@@ -13,10 +13,12 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     if (context.user.isClientOwner) {
       return true;
     }
+
     const user = await UserStore.getOrFetch(context, context.userId);
     if (!user || user.blocked) {
       return false;
     }
+
     if (context.inDm) {
       return !command.disableDm;
     }
@@ -33,10 +35,17 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       return true;
     }
 
+    const metadata = (command.metadata.id) ? (command.metadata as InteractionCommandMetadata) : null;
+
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
     if (settings) {
-      const disabledCommands = settings.disabledCommands.filter((disabled) => disabled.command === command.name);
+      const disabledCommands = settings.disabledCommands.filter((disabled) => {
+        if (metadata) {
+          return metadata.id === disabled.command;
+        }
+        return command.name === disabled.command;
+      });
       if (disabledCommands.length) {
         const shouldIgnore = disabledCommands.some((disabled) => {
           switch (disabled.type) {

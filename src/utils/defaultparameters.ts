@@ -36,6 +36,13 @@ export function guild(context: Command.Context | Interaction.InteractionContext)
 
 
 export async function lastImageUrl(context: Command.Context | Interaction.InteractionContext): Promise<string | null> {
+  if (context instanceof Interaction.InteractionContext) {
+    if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
+      const attachment = context.data.resolved.attachments.first()!;
+      return attachment.url!;
+    }
+  }
+
   if (context instanceof Command.Context) {
     {
       const url = findImageUrlInMessages([context.message]);
@@ -101,6 +108,13 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
 
 
 export async function lastVideoUrl(context: Command.Context | Interaction.InteractionContext): Promise<string | null> {
+  if (context instanceof Interaction.InteractionContext) {
+    if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
+      const attachment = context.data.resolved.attachments.first()!;
+      return attachment.url!;
+    }
+  }
+
   const mediaSearchOptions = {image: false};
 
   if (context instanceof Command.Context) {

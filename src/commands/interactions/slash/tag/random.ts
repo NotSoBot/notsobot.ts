@@ -8,6 +8,9 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 export class TagRandomCommand extends BaseInteractionCommandOption {
   description = 'Show a random tag';
+  metadata = {
+    id: Formatter.Commands.TagRandom.COMMAND_ID,
+  };
   name = 'random';
 
   constructor() {

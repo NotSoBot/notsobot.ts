@@ -426,6 +426,7 @@ export namespace RestOptions {
   }
 
   export interface VideoToolsConvertOptions extends VideoBaseOptions {
+    removeAudio?: boolean,
     to: string,
   }
 }

@@ -14,6 +14,9 @@ import { EmbedColors, PermissionsText } from '../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 
+export interface InteractionCommandMetadata {
+  id: string,
+};
 
 export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
   error = 'Command';
@@ -192,6 +195,7 @@ export class BaseInteractionImageCommandOption<ParsedArgsFinished = Interaction.
       options: [
         ...(data.options || []),
         {name: 'image', description: 'Emoji/Image URL/User', label: 'url', default: DefaultParameters.lastImageUrl, value: Parameters.lastImageUrl},
+        {name: 'file', description: 'Image File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
   }
@@ -221,6 +225,7 @@ export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.
       options: [
         ...(data.options || []),
         {name: 'video', description: 'Emoji/Media URL/User', label: 'url', default: DefaultParameters.lastVideoUrl, value: Parameters.lastVideoUrl},
+        {name: 'file', description: 'Video File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
   }

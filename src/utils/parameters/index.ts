@@ -805,6 +805,13 @@ export async function lastImageUrl(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<null | string | undefined> {
+  if (context instanceof Interaction.InteractionContext) {
+    if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
+      const attachment = context.data.resolved.attachments.first()!;
+      return attachment.url;
+    }
+  }
+
   if (value) {
     return imageUrl(value, context);
   }
@@ -817,6 +824,12 @@ export async function lastImageUrls(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<Array<string> | null> {
+  if (context instanceof Interaction.InteractionContext) {
+    if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
+      return context.data.resolved.attachments.map((x) => x.url);
+    }
+  }
+
   if (value) {
     const urls = new Set<string>();
     if (context instanceof Command.Context) {
@@ -1173,6 +1186,13 @@ export async function lastVideoUrl(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<null | string | undefined> {
+  if (context instanceof Interaction.InteractionContext) {
+    if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
+      const attachment = context.data.resolved.attachments.first()!;
+      return attachment.url;
+    }
+  }
+
   if (value) {
     return videoUrl(value, context);
   }

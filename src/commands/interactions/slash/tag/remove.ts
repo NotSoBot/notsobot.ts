@@ -7,6 +7,9 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 export class TagRemoveCommand extends BaseInteractionCommandOption {
   description = 'Remove a tag';
+  metadata = {
+    id: Formatter.Commands.TagRemove.COMMAND_ID,
+  };
   name = 'remove';
 
   constructor() {
