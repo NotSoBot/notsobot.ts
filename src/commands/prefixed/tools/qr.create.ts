@@ -32,6 +32,6 @@ export default class QRCreateCommand extends BaseCommand<Formatter.Commands.Tool
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ToolsQrCreate.CommandArgs) {
-    return Formatter.Commands.ToolsQrScan.createMessage(context, args);
+    return Formatter.Commands.ToolsQrCreate.createMessage(context, args);
   }
 }

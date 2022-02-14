@@ -19,6 +19,7 @@ export class ToolsQrCreateCommand extends BaseInteractionCommandOption {
         {
           name: 'query',
           description: 'QR Code\'s Content',
+          required: true,
           value: Parameters.string({maxLength: 1248}),
         },
         {
