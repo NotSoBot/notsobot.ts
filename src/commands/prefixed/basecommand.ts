@@ -26,8 +26,6 @@ export interface ContextMetadata {
 }
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
-  /* @ts-ignore */
-  metadata!: CommandMetadata;
   permissionsIgnoreClientOwner = true;
   triggerTypingAfter = 2000;
 
@@ -42,8 +40,9 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   get commandDescription(): string {
-    if (typeof(this.metadata.usage) === 'string') {
-      return `${this.fullName} ${this.metadata.usage}`.trim();
+    const metadata = this.metadata as CommandMetadata;
+    if (typeof(metadata.usage) === 'string') {
+      return `${this.fullName} ${metadata.usage}`.trim();
     }
     return '';
   }

@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
-import { BaseCommand } from '../basecommand';
+import { BaseCommand, CommandMetadata } from '../basecommand';
 
 
 export interface CommandArgsBefore {
@@ -14,14 +14,6 @@ export interface CommandArgsBefore {
 
 export interface CommandArgs {
   commands: Array<Command.Command>,
-}
-
-export interface CommandMetadata {
-  description: string,
-  examples?: Array<string>,
-  nsfw?: boolean,
-  type: CommandTypes,
-  usage: string,
 }
 
 
@@ -126,7 +118,7 @@ export default class HelpCommand extends BaseCommand {
 
           embed.setColor(EmbedColors.DEFAULT);
           embed.setTitle(name);
-          embed.setDescription(metadata.description);
+          embed.setDescription(metadata.description || '');
 
           if (names.length) {
             embed.addField('Aliases', names.join('\n'), true);

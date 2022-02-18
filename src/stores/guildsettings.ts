@@ -44,7 +44,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     } else {
       const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
-        timeout.start(5000, () => {
+        timeout.start(15000, () => {
           GuildSettingsPromisesStore.delete(guildId);
           resolve(null);
         });
