@@ -1,6 +1,6 @@
 import { ClusterClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
-import { EventSubscription } from 'detritus-utils';
+import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Store } from './store';
 
@@ -25,11 +25,11 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
   async getOrFetch(context: RequestContext, guildId: string): Promise<GuildSettings | null> {
     let settings: GuildSettings | null = null;
     if (GuildSettingsPromisesStore.has(guildId)) {
-      const promise = GuildSettingsPromisesStore.get(guildId) as GuildSettingsPromise;
+      const { promise } = GuildSettingsPromisesStore.get(guildId)!;
       settings = await promise;
     } else {
       if (this.has(guildId)) {
-        settings = this.get(guildId) as GuildSettings;
+        settings = this.get(guildId)!;
       } else {
         settings = await this.fetch(context, guildId);
       }
@@ -38,11 +38,17 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
   }
 
   async fetch(context: RequestContext, guildId: string): Promise<GuildSettings | null> {
-    let promise: GuildSettingsPromise;
+    let promise: Promise<GuildSettings | null>;
     if (GuildSettingsPromisesStore.has(guildId)) {
-      promise = GuildSettingsPromisesStore.get(guildId) as GuildSettingsPromise;
+      promise = GuildSettingsPromisesStore.get(guildId)!.promise;
     } else {
+      const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
+        timeout.start(5000, () => {
+          GuildSettingsPromisesStore.delete(guildId);
+          resolve(null);
+        });
+
         const { client } = context;
         const guild = client.guilds.get(guildId);
         try {
@@ -60,9 +66,10 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         } catch(error) {
           resolve(null);
         }
+        timeout.stop();
         GuildSettingsPromisesStore.delete(guildId);
       });
-      GuildSettingsPromisesStore.set(guildId, promise);
+      GuildSettingsPromisesStore.set(guildId, {promise, timeout});
     }
     return promise;
   }
@@ -74,7 +81,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         const { channel, shard } = event;
         const { guildId } = channel;
         if (guildId && this.has(guildId)) {
-          const settings = this.get(guildId) as GuildSettings;
+          const settings = this.get(guildId)!;
           {
             const loggers = settings.loggers.filter((logger) => logger.channelId === channel.id);
             for (let logger of loggers) {
@@ -125,7 +132,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         const { channelId, guildId, shard } = event;
         if (this.has(guildId)) {
           const channel = shard.channels.get(channelId);
-          const settings = this.get(guildId) as GuildSettings;
+          const settings = this.get(guildId)!;
           const loggers = settings.loggers.filter((logger) => logger.channelId === channelId);
           if (loggers.length && channel && channel.canManageWebhooks) {
             try {
@@ -147,7 +154,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     {
       const subscription = redis.subscribe(RedisChannels.GUILD_ALLOWLIST_UPDATE, (payload: RedisPayloads.GuildAllowlistUpdate) => {
         if (this.has(payload.id)) {
-          const settings = this.get(payload.id) as GuildSettings;
+          const settings = this.get(payload.id)!;
           settings.merge(payload);
         }
       });
@@ -156,7 +163,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     {
       const subscription = redis.subscribe(RedisChannels.GUILD_BLOCKLIST_UPDATE, (payload: RedisPayloads.GuildBlocklistUpdate) => {
         if (this.has(payload.id)) {
-          const settings = this.get(payload.id) as GuildSettings;
+          const settings = this.get(payload.id)!;
           settings.merge(payload);
         }
       });
@@ -165,7 +172,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     {
       const subscription = redis.subscribe(RedisChannels.GUILD_DISABLED_COMMAND_UPDATE, (payload: RedisPayloads.GuildDisabledCommandUpdate) => {
         if (this.has(payload.id)) {
-          const settings = this.get(payload.id) as GuildSettings;
+          const settings = this.get(payload.id)!;
           settings.merge(payload);
         }
       });
@@ -174,7 +181,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     {
       const subscription = redis.subscribe(RedisChannels.GUILD_LOGGER_UPDATE, (payload: RedisPayloads.GuildLoggerUpdate) => {
         if (this.has(payload.id)) {
-          const settings = this.get(payload.id) as GuildSettings;
+          const settings = this.get(payload.id)!;
           settings.merge(payload);
         }
       });
@@ -183,7 +190,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     {
       const subscription = redis.subscribe(RedisChannels.GUILD_PREFIX_UPDATE, (payload: RedisPayloads.GuildPrefixUpdate) => {
         if (this.has(payload.id)) {
-          const settings = this.get(payload.id) as GuildSettings;
+          const settings = this.get(payload.id)!;
           settings.merge(payload);
         }
       });
@@ -192,7 +199,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     {
       const subscription = redis.subscribe(RedisChannels.GUILD_SETTINGS_UPDATE, (payload: RedisPayloads.GuildSettingsUpdate) => {
         if (this.has(payload.id)) {
-          const settings = this.get(payload.id) as GuildSettings;
+          const settings = this.get(payload.id)!;
           settings.merge(payload);
         }
       });
@@ -207,11 +214,11 @@ export default new GuildSettingsStore();
 
 
 
-export type GuildSettingsPromise = Promise<GuildSettings | null>;
+export type GuildSettingsPromiseItem = {promise: Promise<GuildSettings | null>, timeout: Timers.Timeout};
 
-class GuildSettingsPromises extends Store<string, GuildSettingsPromise> {
-  insert(guildId: string, promise: GuildSettingsPromise): void {
-    this.set(guildId, promise);
+class GuildSettingsPromises extends Store<string, GuildSettingsPromiseItem> {
+  insert(guildId: string, item: GuildSettingsPromiseItem): void {
+    this.set(guildId, item);
   }
 }
 

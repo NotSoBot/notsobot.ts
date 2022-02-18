@@ -1,5 +1,5 @@
 import { ClusterClient, Command, Interaction } from 'detritus-client';
-import { EventSubscription } from 'detritus-utils';
+import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Store } from './store';
 
@@ -24,11 +24,11 @@ class UserStore extends Store<string, User> {
   async getOrFetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<User | null> {
     let user: User | null = null;
     if (UserPromisesStore.has(userId)) {
-      const promise = UserPromisesStore.get(userId) as UserPromise;
+      const { promise } = UserPromisesStore.get(userId)!;
       user = await promise;
     } else {
       if (this.has(userId)) {
-        user = this.get(userId) as User;
+        user = this.get(userId)!;
       } else {
         user = await this.fetch(context, userId);
       }
@@ -37,11 +37,17 @@ class UserStore extends Store<string, User> {
   }
 
   async fetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<User | null> {
-    let promise: UserPromise;
+    let promise: Promise<User | null>;
     if (UserPromisesStore.has(userId)) {
-      promise = UserPromisesStore.get(userId) as UserPromise;
+      promise = UserPromisesStore.get(userId)!.promise;
     } else {
+      const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
+        timeout.start(5000, () => {
+          UserPromisesStore.delete(userId);
+          resolve(null);
+        });
+
         const discordUser = context.users.get(userId);
         try {
           let user: User | null = null;
@@ -60,9 +66,10 @@ class UserStore extends Store<string, User> {
         } catch(error) {
           resolve(null);
         }
+        timeout.stop();
         UserPromisesStore.delete(userId);
       });
-      UserPromisesStore.insert(userId, promise);
+      UserPromisesStore.insert(userId, {promise, timeout});
     }
     return promise;
   }
@@ -86,11 +93,11 @@ export default new UserStore();
 
 
 
-export type UserPromise = Promise<User | null>;
+export type UserPromiseItem = {promise: Promise<User | null>, timeout: Timers.Timeout};
 
-class UserPromises extends Store<string, UserPromise> {
-  insert(guildId: string, promise: UserPromise): void {
-    this.set(guildId, promise);
+class UserPromises extends Store<string, UserPromiseItem> {
+  insert(guildId: string, item: UserPromiseItem): void {
+    this.set(guildId, item);
   }
 }
 

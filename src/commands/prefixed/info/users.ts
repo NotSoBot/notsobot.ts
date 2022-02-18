@@ -251,7 +251,7 @@ export default class UsersCommand extends BaseCommand {
           if (presence.clientStatus && Object.keys(presence.clientStatus).length) {
             const description = [];
             for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
-              let status = (presence.clientStatus as any)[key];
+              let status = (presence.clientStatus as any)[key] as string | undefined;
               if (status) {
                 if (status in PresenceStatusTexts) {
                   status = PresenceStatusTexts[status];

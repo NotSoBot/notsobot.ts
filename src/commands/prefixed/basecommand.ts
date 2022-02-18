@@ -26,6 +26,7 @@ export interface ContextMetadata {
 }
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
+  /* @ts-ignore */
   metadata!: CommandMetadata;
   permissionsIgnoreClientOwner = true;
   triggerTypingAfter = 2000;
