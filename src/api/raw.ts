@@ -3,7 +3,7 @@ import { RequestTypes } from 'detritus-client-rest';
 import { Response, createHeaders } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
-import { Api, LOCALHOST_API } from './endpoints';
+import { Api, Domains } from './endpoints';
 import { RestOptions, RestResponsesRaw, RestResponses } from './types';
 
 import {
@@ -30,7 +30,7 @@ export async function request(
   options.url = Api.URL + Api.PATH;
   options.headers = createHeaders(options.headers);
 
-  if (Api.URL === LOCALHOST_API) {
+  if (Api.URL === Domains.LOCALHOST) {
     options.headers.set('host', 'beta.notsobot.com');
   }
 

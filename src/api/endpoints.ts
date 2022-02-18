@@ -1,17 +1,16 @@
 import { Tools } from 'detritus-utils';
 
 
-export const LOCALHOST_API = 'http://localhost';
-
 export enum Domains {
-  CDN = 'https://cdn.notsobot.com/',
-  BETA = 'https://beta.notsobot.com/',
-  STABLE = 'https://notsobot.com/',
+  CDN = 'https://cdn.notsobot.com',
+  BETA = 'https://beta.notsobot.com',
+  LOCALHOST = 'http://localhost',
+  STABLE = 'https://notsobot.com',
 }
 
 export const Api = Object.freeze({
-  URL: LOCALHOST_API,
-  URL_PUBLIC: Domains.BETA.slice(0, -1),
+  URL: Domains.BETA,
+  URL_PUBLIC: Domains.BETA,
   PATH: '/api',
 
   COMMANDS:
@@ -247,7 +246,7 @@ export const Api = Object.freeze({
 
 
 export const CDN = Tools.URIEncodeWrap({
-  URL: Domains.CDN.slice(0, -1),
+  URL: Domains.CDN,
 
   EMOJIS_APPLE: (codepoint: string) =>
     `/emojis/apple/128x128/${codepoint}.png`,
