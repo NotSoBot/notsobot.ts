@@ -79,6 +79,7 @@ export namespace RestOptions {
   export interface EditUser {
     blocked?: boolean,
     locale?: null | string,
+    optOutContent?: boolean,
   }
 
 
@@ -1276,10 +1277,11 @@ export namespace RestResponsesRaw {
     blocked: boolean,
     bot: boolean,
     discriminator: string,
+    flags: number,
     id: string,
     locale: GoogleLocales | null,
-    flags: number,
-    username: string,
+    opted_out_content: null | string,
     premium_type: number,
+    username: string,
   }
 }

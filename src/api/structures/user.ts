@@ -18,8 +18,9 @@ const keysUser = new Collections.BaseSet<string>([
   NotSoApiKeys.FLAGS,
   NotSoApiKeys.ID,
   NotSoApiKeys.LOCALE,
-  NotSoApiKeys.USERNAME,
+  NotSoApiKeys.OPTED_OUT_CONTENT,
   NotSoApiKeys.PREMIUM_TYPE,
+  NotSoApiKeys.USERNAME,
 ]);
 
 export class User extends BaseStructure {
@@ -32,8 +33,9 @@ export class User extends BaseStructure {
   flags: number = 0;
   id: string = '';
   locale: GoogleLocales | null = null;
-  username: string = '';
+  optedOutContent: string | null = null;
   premiumType: UserPremiumTypes = UserPremiumTypes.NONE;
+  username: string = '';
 
   constructor(data: Structures.BaseStructureData) {
     super();

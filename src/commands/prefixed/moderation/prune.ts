@@ -31,7 +31,7 @@ export interface CommandArgs {
   amount: number,
   before?: string,
   from?: Array<Structures.Member | Structures.User>,
-  in: Structures.Channel,
+  in?: Structures.Channel,
   with?: string,
 }
 
@@ -53,7 +53,6 @@ export default class PruneCommand extends BaseCommand {
         {name: 'with', type: Parameters.string({minLength: 1})},
       ],
       default: null,
-      disableDm: true,
       label: 'amount',
       metadata: {
         description: 'Prune multiple messages, default 10 messages',
@@ -90,33 +89,48 @@ export default class PruneCommand extends BaseCommand {
     const bulk: Array<Structures.Message> = [];
     const manual: Array<Structures.Message> = [];
 
-    let before = args.before || context.messageId;
-    for (let message of args.in.messages.toArray().reverse()) {
-      if (message.id === context.messageId) {
-        continue;
+    const channelId = (args.in) ? args.in.id : context.channelId;
+
+    let before: string;
+    if (args.before) {
+      before = args.before;
+    } else {
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId && messageReference.channelId === channelId) {
+        before = String(BigInt(messageReference.messageId) + 1n);
+      } else {
+        before = context.messageId;
       }
-      if (args.amount <= bulk.length + manual.length) {
-        break;
-      }
-      if (this.shouldDelete(message, args)) {
-        if (this.shouldBulkDelete(message.createdAtUnix)) {
-          bulk.push(message);
-        } else {
-          manual.push(message);
+    }
+
+    if (args.in) {
+      for (let message of args.in.messages.toArray().reverse()) {
+        if (message.id === context.messageId) {
+          continue;
         }
+        if (args.amount <= bulk.length + manual.length) {
+          break;
+        }
+        if (this.shouldDelete(message, args)) {
+          if (!context.inDm && this.shouldBulkDelete(message.createdAtUnix)) {
+            bulk.push(message);
+          } else {
+            manual.push(message);
+          }
+        }
+        before = message.id;
       }
-      before = message.id;
     }
 
     let tries = 0;
     while (tries++ < MAX_FETCHES && bulk.length + manual.length < args.amount) {
-      const messages = await args.in.fetchMessages({before, limit: 100});
+      const messages = await context.rest.fetchMessages(channelId, {before, limit: 100});
       for (let message of messages.toArray()) {
         if (args.amount <= bulk.length + manual.length) {
           break;
         }
         if (this.shouldDelete(message, args)) {
-          if (this.shouldBulkDelete(message.createdAtUnix)) {
+          if (!context.inDm && this.shouldBulkDelete(message.createdAtUnix)) {
             bulk.push(message);
           } else {
             manual.push(message);
@@ -135,7 +149,7 @@ export default class PruneCommand extends BaseCommand {
     if (total) {
       if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && total === args.amount) {
         const message = await editOrReply(context, `Ok, pruning ${total.toLocaleString()} messages.`);
-        const deletedTotal = await this.deleteMessages(context, args.in, bulk, manual);
+        const deletedTotal = await this.deleteMessages(context, channelId, bulk, manual);
         if (message.canEdit) {
           await message.edit(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
         }
@@ -155,7 +169,7 @@ export default class PruneCommand extends BaseCommand {
               components: [],
             });
 
-            const deletedTotal = await this.deleteMessages(context, args.in, bulk, manual);
+            const deletedTotal = await this.deleteMessages(context, channelId, bulk, manual);
             if (deletedTotal === total) {
               await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
             } else {
@@ -205,7 +219,7 @@ export default class PruneCommand extends BaseCommand {
 
   async deleteMessages(
     context: Command.Context,
-    channel: Structures.Channel,
+    channelId: string,
     bulk: Array<Structures.Message>,
     manual: Array<Structures.Message>,
   ): Promise<number> {
@@ -217,9 +231,9 @@ export default class PruneCommand extends BaseCommand {
       for (let i = 0; i < bulkToDelete.length; i += 100) {
         const messageIds = bulkToDelete.slice(i, i + 100);
         if (messageIds.length === 1) {
-          await channel.deleteMessage(messageIds[0]);
+          await context.rest.deleteMessage(channelId, messageIds[0]);
         } else {
-          await channel.bulkDelete(messageIds);
+          await context.rest.bulkDeleteMessages(channelId, messageIds);
         }
       }
     }
@@ -230,7 +244,7 @@ export default class PruneCommand extends BaseCommand {
 
       const reason = `Pruning of ${deletedTotal.toLocaleString()} messages by ${context.user} (${context.user.id})`;
       for (let messageId of manualToDelete) {
-        await channel.deleteMessage(messageId, {reason});
+        await context.rest.deleteMessage(channelId, messageId, {reason});
       }
     }
     return deletedTotal;

@@ -320,6 +320,7 @@ export async function editUser(
   const body = {
     blocked: options.blocked,
     locale: options.locale,
+    opt_out_content: options.optOutContent,
   };
   const params = {userId};
   return request(context, {

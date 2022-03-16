@@ -43,7 +43,7 @@ export const PageButtons: Record<PageButtonNames, PageButton> = Object.freeze({
   [PageButtonNames.PREVIOUS]: {emoji: '<:b_previous:848383585962819585>'},
   [PageButtonNames.PREVIOUS_DOUBLE]: {emoji: '<:b_previous_double:848383585807106064>'},
   [PageButtonNames.SHUFFLE]: {emoji: '<:b_shuffle:848380144338993174>'},
-  [PageButtonNames.STOP]: {emoji: '<:b_stop:848383585873428520>'},
+  [PageButtonNames.STOP]: {emoji: '<:b_stop_delete:945057641103753377>'},//{emoji: '<:b_stop:848383585873428520>'},
 });
 
 export type OnErrorCallback = (error: any, paginator: Paginator) => Promise<any> | any;
@@ -466,7 +466,7 @@ export class Paginator {
           await this.setPage(this.randomPage, context);
         }; break;
         case PageButtonNames.STOP: {
-          await this.onStop(null, true, context);
+          await this.onStop(null, true, context, true);
         }; break;
         default: {
           return;
@@ -499,7 +499,7 @@ export class Paginator {
     }
   }
 
-  async onStop(error?: any, clearButtons: boolean = true, context?: ComponentContext) {
+  async onStop(error?: any, clearButtons: boolean = true, context?: ComponentContext, deleteMessage?: boolean) {
     if (PaginatorsStore.has(this.channelId)) {
       const stored = PaginatorsStore.get(this.channelId)!;
       stored.ephemeral.delete(this);
@@ -527,7 +527,19 @@ export class Paginator {
         }
       }
 
-      if (clearButtons) {
+      if (deleteMessage) {
+        if (this.message && !this.message.deleted) {
+          try {
+            if (this.context instanceof Interaction.InteractionContext) {
+              await this.context.deleteMessage(this.message.id);
+            } else {
+              await this.message.delete();
+            }
+          } catch(error) {
+
+          }
+        }
+      } else if (clearButtons) {
         if (context) {
           await context.editOrRespond({
             allowedMentions: {parse: []},
