@@ -57,10 +57,10 @@ export class OwnerEvalCommand extends BaseInteractionCommandOption<CommandArgs> 
     let errored: boolean = false;
     try {
       if (args.async) {
-        const func = new AsyncFunction('context', code);
+        const func = new AsyncFunction('context', code.text);
         message = await func(context);
       } else {
-        message = await Promise.resolve(eval(code));
+        message = await Promise.resolve(eval(code.text));
       }
       if (typeof(message) === 'object') {
         message = JSON.stringify(message, null, args.jsonspacing);

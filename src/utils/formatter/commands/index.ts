@@ -13,6 +13,7 @@ import * as ImageInvert from './image.invert';
 import * as ImageMeme from './image.meme';
 import * as ImageOverlayPistol from './image.overlay.pistol';
 import * as ImageToolsConvert from './image.tools.convert';
+import * as ImageToolsCrop from './image.tools.crop';
 import * as ImageToolsResize from './image.tools.resize';
 
 import * as InfoUser from './info.user';
@@ -34,6 +35,7 @@ import * as TagRandom from './tag.random';
 import * as TagRemove from './tag.remove';
 import * as TagShow from './tag.show';
 
+import * as ToolsCode from './tools.code';
 import * as ToolsHash from './tools.hash';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
@@ -61,6 +63,7 @@ export {
   ImageMeme,
   ImageOverlayPistol,
   ImageToolsConvert,
+  ImageToolsCrop,
   ImageToolsResize,
   InfoUser,
   SearchGoogleImages,
@@ -77,6 +80,7 @@ export {
   TagRandom,
   TagRemove,
   TagShow,
+  ToolsCode,
   ToolsHash,
   ToolsOCR,
   ToolsOCRTranslate,

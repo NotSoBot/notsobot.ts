@@ -701,6 +701,14 @@ export async function imageToolsConvert(
 }
 
 
+export async function imageToolsCrop(
+  context: RequestContext,
+  options: RestOptions.ImageToolsCrop,
+) {
+  return raw.imageToolsCrop(context, options);
+}
+
+
 export async function imageToolsGifReverse(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -967,6 +975,13 @@ export async function uploadCommands(
   return raw.uploadCommands(context, options);
 }
 
+
+export async function utilitiesCodeRun2(
+  context: RequestContext,
+  options: RestOptions.UtilitiesCodeRun2,
+) {
+  return raw.utilitiesCodeRun2(context, options);
+}
 
 export async function utilitiesFetchData(
   context: RequestContext,

@@ -1430,6 +1430,25 @@ export async function imageToolsConvert(
 }
 
 
+export async function imageToolsCrop(
+  context: RequestContext,
+  options: RestOptions.ImageToolsCrop,
+): Promise<Response> {
+  const query = {
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_CROP,
+    },
+  });
+}
+
+
 export async function imageToolsGifReverse(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,
@@ -1990,6 +2009,25 @@ export async function uploadCommands(
     route: {
       method: HTTPMethods.PUT,
       path: Api.COMMANDS,
+    },
+  });
+}
+
+
+export async function utilitiesCodeRun2(
+  context: RequestContext,
+  options: RestOptions.UtilitiesCodeRun2,
+): Promise<RestResponsesRaw.UtilitiesCodeRun2> {
+  const body = {
+    code: options.code,
+    input: options.input,
+    language: options.language,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_CODE_RUN2,
     },
   });
 }

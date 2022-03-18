@@ -4,11 +4,19 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { utilitiesFetchMedia, utilitiesFetchText } from '../api';
+import { utilitiesCodeRun2, utilitiesFetchMedia, utilitiesFetchText } from '../api';
+import { CodeRextesterLanguages } from '../constants';
 
 import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
-import { bigIntGenerateBetween, bigIntMax, bigIntMin, randomFromArray, randomFromIterator, splitString } from './tools';
+import {
+  bigIntGenerateBetween,
+  bigIntMax,
+  bigIntMin,
+  getCodeRextesterLanguage,
+  randomFromArray,
+  randomFromIterator,
+} from './tools';
 
 
 const findChannel = Parameters.channel({inGuild: true});
@@ -363,7 +371,15 @@ export async function parse(
             if (!found) {
               // parse as script (check if scriptName is a programming language)
               // do this for now
-              tag.text += scriptBuffer;
+              const language = getCodeRextesterLanguage(scriptName);
+              if (language) {
+                const wasValid = await ScriptTags._code(context, arg, args, tag, language);
+                if (!wasValid) {
+                  tag.text += scriptBuffer;
+                }
+              } else {
+                tag.text += scriptBuffer;
+              }
             }
           }
 
@@ -462,6 +478,44 @@ function parseInnerScript(value: string): [string, string] {
 
 
 const ScriptTags = Object.freeze({
+  _code: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult, language: CodeRextesterLanguages): Promise<boolean> => {
+    // {python:code}
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    if (arg) {
+      let guild: any = context.guild;
+      if (guild) {
+        guild = guild.toJSON();
+        guild.members = [];
+        guild.presences = [];
+        guild.voice_states = [];
+      }
+      const response = await utilitiesCodeRun2(context, {
+        code: arg,
+        input: JSON.stringify({
+          channel: context.channel,
+          channel_id: context.channelId,
+          guild,
+          guild_id: context.guildId,
+          member: context.member,
+          member_bot: context.me,
+          message: (context instanceof Command.Context) ? context.message : null,
+          user: context.user,
+          user_bot: context.client.user,
+          variables: tag.variables,
+        }),
+        language,
+      });
+      if (response.error) {
+        throw new Error(response.error);
+      } else {
+        tag.text += response.content;
+      }
+    }
+
+    return true;
+  },
+
   [TagFunctions.ARG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {arg} (defaults to the first one)
     // {arg:0}

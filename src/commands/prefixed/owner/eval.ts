@@ -12,7 +12,7 @@ const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
 export interface CommandArgs {
   async: boolean,
-  code: string,
+  code: {language?: string, text: string},
   jsonspacing: number,
   noembed: boolean,
   noreply: boolean,
@@ -60,10 +60,10 @@ export default class EvalCommand extends BaseCommand {
     let errored: boolean = false;
     try {
       if (args.async) {
-        const func = new AsyncFunction('context', code);
+        const func = new AsyncFunction('context', code.text);
         message = await func(context);
       } else {
-        message = await Promise.resolve(eval(code));
+        message = await Promise.resolve(eval(code.text));
       }
       if (typeof(message) === 'object') {
         message = JSON.stringify(message, null, args.jsonspacing);

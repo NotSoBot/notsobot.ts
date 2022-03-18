@@ -151,6 +151,8 @@ export const Api = Object.freeze({
     '/image/tools/background/remove',
   IMAGE_TOOLS_CONVERT:
     '/image/tools/convert',
+  IMAGE_TOOLS_CROP:
+    '/image/tools/crop',
   IMAGE_TOOLS_GIF_REVERSE:
     '/image/tools/gif/reverse',
   IMAGE_TOOLS_GIF_SEE_SAW:
@@ -225,6 +227,10 @@ export const Api = Object.freeze({
   USER_TAGS:
     '/users/:userId/tags',
 
+  UTILITIES_CODE_RUN:
+    '/utilities/code/run',
+  UTILITIES_CODE_RUN2:
+    '/utilities/code/run2',
   UTILITIES_FETCH_DATA:
     '/utilities/fetch/data',
   UTILITIES_FETCH_IMAGE:

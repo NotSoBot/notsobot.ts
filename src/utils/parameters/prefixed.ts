@@ -336,12 +336,12 @@ export async function applications(
 
 export function codeblock(
   value: string,
-): string {
-  const { matches } = discordRegex(DiscordRegexNames.TEXT_CODEBLOCK, value) as {matches: Array<{text: string}>};
+): {language?: string, text: string} {
+  const { matches } = discordRegex(DiscordRegexNames.TEXT_CODEBLOCK, value) as {matches: Array<{language?: string, text: string}>};
   if (matches.length) {
-    return matches[0].text;
+    return matches[0];
   }
-  return value;
+  return {text: value};
 }
 
 

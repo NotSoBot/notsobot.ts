@@ -212,6 +212,10 @@ export namespace RestOptions {
     to: string,
   }
 
+  export interface ImageToolsCrop extends ImageBaseOptions {
+    size?: string,
+  }
+
   export interface ImageToolsGifSpeed extends ImageBaseOptions {
     loop?: boolean,
     speed: number,
@@ -386,6 +390,12 @@ export namespace RestOptions {
     }>,
   }
 
+
+  export interface UtilitiesCodeRun2 {
+    code: string,
+    input?: string,
+    language: string,
+  }
 
   export interface UtilitiesFetchData {
     maxFileSize?: number,
@@ -1244,6 +1254,19 @@ export namespace RestResponsesRaw {
       view_count: number,
     },
     type: YoutubeResultTypes.VIDEO,
+  }
+
+  export interface UtilitiesCodeRun2 {
+    content: string,
+    error: string | null,
+    files: Array<string>,
+    stats: {
+      memory: string,
+      time_cpu: number,
+      time_running: number,
+      time_service: number,
+    },
+    warnings: string | null,
   }
 
   export interface UtilitiesQrScan {
