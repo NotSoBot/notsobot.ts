@@ -110,7 +110,7 @@ export async function fetchMemberOrUserById(
         return context.member;
       }
     } else {
-      return context.user;
+      return context.member || context.user;
     }
   }
 
