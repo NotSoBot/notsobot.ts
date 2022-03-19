@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { utilitiesCodeRun2 } from '../../../api';
+import { utilitiesCodeRun } from '../../../api';
 import {
   EmbedBrands,
   EmbedColors,
@@ -30,7 +30,7 @@ export async function createMessage(
     guild.presences = [];
     guild.voice_states = [];
   }
-  const { content, error, stats } = await utilitiesCodeRun2(context, {
+  const { content, error, stats } = await utilitiesCodeRun(context, {
     code: args.code,
     input: JSON.stringify({
       channel: context.channel,

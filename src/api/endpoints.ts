@@ -229,8 +229,10 @@ export const Api = Object.freeze({
 
   UTILITIES_CODE_RUN:
     '/utilities/code/run',
-  UTILITIES_CODE_RUN2:
-    '/utilities/code/run2',
+  UTILITIES_CODE_RUN_GOCODEIT:
+    '/utilities/code/run/gocodeit',
+  UTILITIES_CODE_RUN_REXTESTER:
+    '/utilities/code/run/rextester',
   UTILITIES_FETCH_DATA:
     '/utilities/fetch/data',
   UTILITIES_FETCH_IMAGE:
@@ -239,6 +241,8 @@ export const Api = Object.freeze({
     '/utilities/fetch/media',
   UTILITIES_FETCH_TEXT:
     '/utilities/fetch/text',
+  UTILITIES_IMAGESCRIPT_V1:
+    '/utilities/imagescript/v1',
   UTILITIES_QR_CREATE:
     '/utilities/qr/create',
   UTILITIES_QR_SCAN:

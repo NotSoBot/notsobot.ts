@@ -391,7 +391,13 @@ export namespace RestOptions {
   }
 
 
-  export interface UtilitiesCodeRun2 {
+  export interface UtilitiesCodeRun {
+    code: string,
+    input?: string,
+    language: string,
+  }
+
+  export interface UtilitiesCodeRunRextester {
     code: string,
     input?: string,
     language: string,
@@ -415,6 +421,10 @@ export namespace RestOptions {
   export interface UtilitiesFetchText {
     maxFileSize?: number,
     url: string,
+  }
+
+  export interface UtilitiesImagescriptV1 {
+    code: string,
   }
 
   export interface UtilitiesQrCreate {
@@ -1256,9 +1266,23 @@ export namespace RestResponsesRaw {
     type: YoutubeResultTypes.VIDEO,
   }
 
-  export interface UtilitiesCodeRun2 {
+  export interface UtilitiesCodeRun {
     content: string,
-    error: string | null,
+    error: string,
+    files: Array<string>,
+    stats: {
+      memory: string,
+      time_compilation: number,
+      time_cpu: number,
+      time_running: number,
+      time_service: number,
+    },
+    warnings: string | null,
+  }
+
+  export interface UtilitiesCodeRunRextester {
+    content: string,
+    error: string,
     files: Array<string>,
     stats: {
       memory: string,

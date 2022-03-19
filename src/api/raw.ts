@@ -2014,10 +2014,10 @@ export async function uploadCommands(
 }
 
 
-export async function utilitiesCodeRun2(
+export async function utilitiesCodeRun(
   context: RequestContext,
-  options: RestOptions.UtilitiesCodeRun2,
-): Promise<RestResponsesRaw.UtilitiesCodeRun2> {
+  options: RestOptions.UtilitiesCodeRun,
+): Promise<RestResponsesRaw.UtilitiesCodeRun> {
   const body = {
     code: options.code,
     input: options.input,
@@ -2027,7 +2027,26 @@ export async function utilitiesCodeRun2(
     body,
     route: {
       method: HTTPMethods.POST,
-      path: Api.UTILITIES_CODE_RUN2,
+      path: Api.UTILITIES_CODE_RUN,
+    },
+  });
+}
+
+
+export async function utilitiesCodeRunRextester(
+  context: RequestContext,
+  options: RestOptions.UtilitiesCodeRunRextester,
+): Promise<RestResponsesRaw.UtilitiesCodeRunRextester> {
+  const body = {
+    code: options.code,
+    input: options.input,
+    language: options.language,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_CODE_RUN_REXTESTER,
     },
   });
 }
@@ -2104,6 +2123,24 @@ export async function utilitiesFetchText(
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_FETCH_TEXT,
+    },
+  });
+}
+
+
+export async function utilitiesImagescriptV1(
+  context: RequestContext,
+  options: RestOptions.UtilitiesImagescriptV1,
+): Promise<Response> {
+  const body = {
+    code: options.code,
+  };
+  return request(context, {
+    dataOnly: false,
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_IMAGESCRIPT_V1,
     },
   });
 }

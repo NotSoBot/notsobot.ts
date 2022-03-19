@@ -976,11 +976,18 @@ export async function uploadCommands(
 }
 
 
-export async function utilitiesCodeRun2(
+export async function utilitiesCodeRun(
   context: RequestContext,
-  options: RestOptions.UtilitiesCodeRun2,
+  options: RestOptions.UtilitiesCodeRun,
 ) {
-  return raw.utilitiesCodeRun2(context, options);
+  return raw.utilitiesCodeRun(context, options);
+}
+
+export async function utilitiesCodeRunRextester(
+  context: RequestContext,
+  options: RestOptions.UtilitiesCodeRunRextester,
+) {
+  return raw.utilitiesCodeRunRextester(context, options);
 }
 
 export async function utilitiesFetchData(
@@ -1010,6 +1017,14 @@ export async function utilitiesFetchText(
   options: RestOptions.UtilitiesFetchText,
 ) {
   return raw.utilitiesFetchText(context, options);
+}
+
+
+export async function utilitiesImagescriptV1(
+  context: RequestContext,
+  options: RestOptions.UtilitiesImagescriptV1,
+) {
+  return raw.utilitiesImagescriptV1(context, options);
 }
 
 

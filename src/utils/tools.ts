@@ -10,8 +10,8 @@ import { Timers } from 'detritus-utils';
 
 import { Endpoints } from '../api';
 import {
-  CodeRextesterLanguages,
-  CodeRextesterLanguagesToName,
+  CodeLanguages,
+  CodeLanguagesToName,
   DateMomentLogFormat,
   EmbedColors,
   GoogleLocalesText,
@@ -832,16 +832,16 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 }
 
 
-export function getCodeRextesterLanguage(value?: string): CodeRextesterLanguages | null {
+export function getCodeLanguage(value?: string): CodeLanguages | null {
   if (value) {
     const insensitive = value.toUpperCase();
-    if (insensitive in CodeRextesterLanguages) {
-      return insensitive as CodeRextesterLanguages;
+    if (insensitive in CodeLanguages) {
+      return insensitive as CodeLanguages;
     }
     value = value.toLowerCase();
-    for (let key in CodeRextesterLanguagesToName) {
-      if ((CodeRextesterLanguagesToName as any)[key].includes(value)) {
-        return key as CodeRextesterLanguages;
+    for (let key in CodeLanguagesToName) {
+      if ((CodeLanguagesToName as any)[key].includes(value)) {
+        return key as CodeLanguages;
       }
     }
   }

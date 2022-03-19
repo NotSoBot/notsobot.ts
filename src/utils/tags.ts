@@ -4,8 +4,8 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { utilitiesCodeRun2, utilitiesFetchMedia, utilitiesFetchText } from '../api';
-import { CodeRextesterLanguages } from '../constants';
+import { utilitiesCodeRun, utilitiesFetchMedia, utilitiesFetchText, utilitiesImagescriptV1 } from '../api';
+import { CodeLanguages } from '../constants';
 
 import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
@@ -13,7 +13,7 @@ import {
   bigIntGenerateBetween,
   bigIntMax,
   bigIntMin,
-  getCodeRextesterLanguage,
+  getCodeLanguage,
   randomFromArray,
   randomFromIterator,
 } from './tools';
@@ -220,7 +220,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.NSFW]: ['nsfw'],
   [TagFunctions.PREFIX]: ['prefix'],
   [TagFunctions.RNG_CHOOSE]: ['choose'],
-  [TagFunctions.RNG_RANGE]: ['range'],
+  [TagFunctions.RNG_RANGE]: ['range', 'random', 'rnd'],
   [TagFunctions.STRING_CODEBLOCK]: ['code'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
   [TagFunctions.STRING_LOWER]: ['lower'],
@@ -230,7 +230,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_REVERSE]: ['reverse'],
   [TagFunctions.STRING_SUB]: ['substring'],
   [TagFunctions.STRING_UPPER]: ['upper'],
-  [TagFunctions.STRING_URL_ENCODE]: ['url'],
+  [TagFunctions.STRING_URL_ENCODE]: ['url', 'urlencode'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
   [TagFunctions.USER_MENTION]: ['mention'],
   [TagFunctions.USER_NAME]: ['name', 'user'],
@@ -371,7 +371,7 @@ export async function parse(
             if (!found) {
               // parse as script (check if scriptName is a programming language)
               // do this for now
-              const language = getCodeRextesterLanguage(scriptName);
+              const language = getCodeLanguage(scriptName);
               if (language) {
                 const wasValid = await ScriptTags._code(context, arg, args, tag, language);
                 if (!wasValid) {
@@ -478,7 +478,7 @@ function parseInnerScript(value: string): [string, string] {
 
 
 const ScriptTags = Object.freeze({
-  _code: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult, language: CodeRextesterLanguages): Promise<boolean> => {
+  _code: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult, language: CodeLanguages): Promise<boolean> => {
     // {python:code}
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
@@ -490,7 +490,7 @@ const ScriptTags = Object.freeze({
         guild.presences = [];
         guild.voice_states = [];
       }
-      const response = await utilitiesCodeRun2(context, {
+      const response = await utilitiesCodeRun(context, {
         code: arg,
         input: JSON.stringify({
           channel: context.channel,
@@ -614,10 +614,10 @@ const ScriptTags = Object.freeze({
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
       const user = await findMemberOrUser(arg, context);
       if (user) {
-        tag.text += user.avatarUrl;
+        tag.text += user.avatarUrlFormat({size: 1024});
       }
     } else {
-      tag.text += context.user.avatarUrl;
+      tag.text += context.user.avatarUrlFormat({size: 1024});
     }
     return true;
   },
@@ -791,7 +791,40 @@ const ScriptTags = Object.freeze({
   [TagFunctions.IMAGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // imagescript 1
 
-    return false;
+    const code = arg.trim();
+    if (!code) {
+      return false;
+    }
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    try {
+      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+      const response = await utilitiesImagescriptV1(context, {code});
+      const filename = (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
+
+      let data: Buffer | string = await response.buffer();
+      if ((response.headers.get('content-type') || '').startsWith('text/')) {
+        data = data.toString();
+      }
+
+      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+      if (maxFileSize <= currentFileSize + data.length) {
+        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+      }
+      tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+      tag.files.push({
+        buffer: data,
+        filename,
+        spoiler: false,
+        url: '',
+      });
+    } catch(error) {
+      console.log(error);
+      throw error;
+    }
+
+    return true;
   },
 
   [TagFunctions.IMAGESCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
@@ -831,17 +864,26 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.LOGICAL_IF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {if:statement|comparison|value|then:action|else:action}
+    // {if:statement|comparison|value|else:action|then:action}
 
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
-    const [ value1, comparison, value2, then, elseValue ] = split(arg);
-    if (value1 === undefined || comparison === undefined || value2 === undefined || then === undefined) {
+    let [ value1, comparison, value2, conditional1, conditional2 ] = split(arg);
+    if (value1 === undefined || comparison === undefined || value2 === undefined || (conditional1 === undefined && conditional2 === undefined)) {
       return false;
     }
 
-    if (!then.startsWith('then:')) {
+    let then = ''
+    let elseValue = '';
+    if (conditional1 && conditional1.startsWith('then:')) {
+      then = conditional1;
+      elseValue = conditional2 || elseValue;
+    } else if (conditional2 && conditional2.startsWith('then:')) {
+      then = conditional2;
+      elseValue = conditional1 || elseValue;
+    } else {
       return false;
     }
 
@@ -1126,6 +1168,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.RNG_RANGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {range:50}
     // {range:50|100}
+    // {random:50|100}
 
     if (!arg) {
       return false;
@@ -1216,21 +1259,33 @@ const ScriptTags = Object.freeze({
   [TagFunctions.STRING_REPLACE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // {replace:regex|with|in}
     // {replace:(cake\|josh)|tom|cake went with josh to the store}
+    // {replace:"|in:"help"|with:'}
+    // {replace:"|with:'|in:"help"}
 
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
-    let [ regex, replaceWith, ...sourceText ] = split(arg);
-    if (regex === undefined || replaceWith === undefined || !sourceText.length) {
+    let [ regex, part1, ...part2s ] = split(arg);
+    if (regex === undefined || part1 === undefined || !part2s.length) {
       return false;
     }
 
-    if (replaceWith.startsWith('with:')) {
-      replaceWith = replaceWith.slice(5);
-    }
+    let part2 = part2s.join(TagSymbols.SPLITTER_ARGUMENT);
 
-    let source = sourceText.join(TagSymbols.SPLITTER_ARGUMENT);
+    let replaceWith = '';
+    let source = '';
+
+    if (part1.startsWith('with:')) {
+      replaceWith = part1.slice(5);
+      source = part2;
+    } else if (part2.startsWith('with:')) {
+      replaceWith = part2.slice(5);
+      source = part1;
+    } else {
+      replaceWith = part1;
+      source = part2;
+    }
     if (source.startsWith('in:')) {
       source = source.slice(3);
     }

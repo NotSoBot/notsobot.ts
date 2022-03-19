@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../../constants';
-import { Formatter, Parameters, editOrReply, getCodeRextesterLanguage } from '../../../utils';
+import { Formatter, Parameters, editOrReply, getCodeLanguage } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -41,7 +41,7 @@ export default class CodeCommand extends BaseCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const language = getCodeRextesterLanguage(args.code.language || args.language);
+    const language = getCodeLanguage(args.code.language || args.language);
     if (!language) {
       return editOrReply(context, 'Give me a valid language!');
     }
