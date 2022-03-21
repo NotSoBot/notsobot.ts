@@ -16,7 +16,7 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'gif seesaw';
 
-export default class GifSeeSawCommand extends BaseImageCommand<Formatter.Commands.ImageGifReverse.CommandArgs> {
+export default class GifSeeSawCommand extends BaseImageCommand<Formatter.Commands.ImageGifSeeSaw.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -33,7 +33,7 @@ export default class GifSeeSawCommand extends BaseImageCommand<Formatter.Command
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageGifReverse.CommandArgs) {
-    return Formatter.Commands.ImageGifReverse.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.ImageGifSeeSaw.CommandArgs) {
+    return Formatter.Commands.ImageGifSeeSaw.createMessage(context, args);
   }
 }
