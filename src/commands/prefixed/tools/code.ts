@@ -43,7 +43,7 @@ export default class CodeCommand extends BaseCommand<CommandArgs> {
   async run(context: Command.Context, args: CommandArgs) {
     const language = getCodeLanguage(args.code.language || args.language);
     if (!language) {
-      return editOrReply(context, 'Give me a valid language!');
+      return editOrReply(context, `Give me a valid language! (One of ${Formatter.Commands.ToolsCode.languagesText})`);
     }
     return Formatter.Commands.ToolsCode.createMessage(context, {
       code: args.code.text,

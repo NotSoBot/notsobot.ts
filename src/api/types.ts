@@ -1270,6 +1270,7 @@ export namespace RestResponsesRaw {
     content: string,
     error: string,
     files: Array<string>,
+    language: string,
     stats: {
       memory: string,
       time_compilation: number,
