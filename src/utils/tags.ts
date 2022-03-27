@@ -95,6 +95,7 @@ export const AllowedDiscordProperties = Object.freeze({
 
 export enum TagIfComparisons {
   EQUAL = '=',
+  NOT_EQUAL = "!=",
   GREATER_THAN = '>',
   GREATER_THAN_OR_EQUAL = '>=',
   LESS_THAN = '<',
@@ -105,6 +106,7 @@ export enum TagIfComparisons {
 
 export const TAG_IF_COMPARISONS = [
   TagIfComparisons.EQUAL,
+  TagIfComparisons.NOT_EQUAL,
   TagIfComparisons.GREATER_THAN,
   TagIfComparisons.GREATER_THAN_OR_EQUAL,
   TagIfComparisons.LESS_THAN,
@@ -910,6 +912,9 @@ const ScriptTags = Object.freeze({
     switch (comparison) {
       case TagIfComparisons.EQUAL: {
         compared = values[0] === values[1];
+      }; break;
+      case TagIfComparisons.NOT_EQUAL: {
+        compared = values[0] !== values[1];
       }; break;
       case TagIfComparisons.GREATER_THAN:
       case TagIfComparisons.GREATER_THAN_OR_EQUAL:
