@@ -12,6 +12,8 @@ import {
 
 
 
+export const MAX_MEMBERS_SAFE = 1000;
+
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
 export const SNOWFLAKE_EPOCH = 1564790400000;
 

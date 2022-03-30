@@ -1,4 +1,4 @@
-import { Command, Interaction } from 'detritus-client';
+import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
@@ -8,9 +8,17 @@ import {
   CodeLanguagesToName,
   EmbedBrands,
   EmbedColors,
+  MAX_MEMBERS_SAFE,
 } from '../../../constants';
 
-import { createUserEmbed, editOrReply, toTitleCase } from '../../tools';
+import {
+  createUserEmbed,
+  editOrReply,
+  generateCodeFromLanguage,
+  generateCodeStdin,
+  toTitleCase,
+} from '../../tools';
+
 
 
 export const languagesText = Object.values(CodeLanguages).map((x: any) => {
@@ -25,7 +33,7 @@ export const COMMAND_ID = 'tools code';
 
 export interface CommandArgs {
   code: string,
-  language: string,
+  language: CodeLanguages,
 }
 
 export async function createMessage(
@@ -34,26 +42,9 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  let guild: any = context.guild;
-  if (guild) {
-    guild = guild.toJSON();
-    guild.members = [];
-    guild.presences = [];
-    guild.voice_states = [];
-  }
   const { content, error, stats } = await utilitiesCodeRun(context, {
-    code: args.code,
-    input: JSON.stringify({
-      channel: context.channel,
-      channel_id: context.channelId,
-      guild,
-      guild_id: context.guildId,
-      member: context.member,
-      member_bot: context.me,
-      message: (context instanceof Command.Context) ? context.message : null,
-      user: context.user,
-      user_bot: context.client.user,
-    }),
+    code: generateCodeFromLanguage(args.language, args.code),
+    input: generateCodeStdin(context),
     language: args.language,
   });
 

@@ -1,11 +1,11 @@
 import { runInNewContext } from 'vm';
 
-import { Command, Interaction, Structures } from 'detritus-client';
+import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesCodeRun, utilitiesFetchMedia, utilitiesFetchText, utilitiesImagescriptV1 } from '../api';
-import { CodeLanguages } from '../constants';
+import { CodeLanguages, MAX_MEMBERS_SAFE } from '../constants';
 
 import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
@@ -13,6 +13,8 @@ import {
   bigIntGenerateBetween,
   bigIntMax,
   bigIntMin,
+  generateCodeFromLanguage,
+  generateCodeStdin,
   getCodeLanguage,
   randomFromArray,
   randomFromIterator,
@@ -95,7 +97,7 @@ export const AllowedDiscordProperties = Object.freeze({
 
 export enum TagIfComparisons {
   EQUAL = '=',
-  NOT_EQUAL = "!=",
+  EQUAL_NOT = "!=",
   GREATER_THAN = '>',
   GREATER_THAN_OR_EQUAL = '>=',
   LESS_THAN = '<',
@@ -106,7 +108,7 @@ export enum TagIfComparisons {
 
 export const TAG_IF_COMPARISONS = [
   TagIfComparisons.EQUAL,
-  TagIfComparisons.NOT_EQUAL,
+  TagIfComparisons.EQUAL_NOT,
   TagIfComparisons.GREATER_THAN,
   TagIfComparisons.GREATER_THAN_OR_EQUAL,
   TagIfComparisons.LESS_THAN,
@@ -485,27 +487,9 @@ const ScriptTags = Object.freeze({
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
     if (arg) {
-      let guild: any = context.guild;
-      if (guild) {
-        guild = guild.toJSON();
-        guild.members = [];
-        guild.presences = [];
-        guild.voice_states = [];
-      }
       const response = await utilitiesCodeRun(context, {
-        code: arg,
-        input: JSON.stringify({
-          channel: context.channel,
-          channel_id: context.channelId,
-          guild,
-          guild_id: context.guildId,
-          member: context.member,
-          member_bot: context.me,
-          message: (context instanceof Command.Context) ? context.message : null,
-          user: context.user,
-          user_bot: context.client.user,
-          variables: tag.variables,
-        }),
+        code: generateCodeFromLanguage(language, arg),
+        input: generateCodeStdin(context, tag.variables),
         language,
       });
       if (response.error) {
@@ -913,7 +897,7 @@ const ScriptTags = Object.freeze({
       case TagIfComparisons.EQUAL: {
         compared = values[0] === values[1];
       }; break;
-      case TagIfComparisons.NOT_EQUAL: {
+      case TagIfComparisons.EQUAL_NOT: {
         compared = values[0] !== values[1];
       }; break;
       case TagIfComparisons.GREATER_THAN:

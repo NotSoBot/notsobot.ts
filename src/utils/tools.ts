@@ -18,6 +18,7 @@ import {
   LanguageCodesText,
   Mimetypes,
   Timezones,
+  MAX_MEMBERS_SAFE,
   MIMETYPES_SAFE_EMBED,
   TRUSTED_URLS,
 } from '../constants';
@@ -829,6 +830,68 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
     time = `${daysStr} ${time}`;
   }
   return time;
+}
+
+
+export function generateCodeFromLanguage(language: CodeLanguages, code: string): string {
+  switch (language) {
+    case CodeLanguages.JAVASCRIPT: {
+      code = `(() => {global.discord = JSON.parse(require('fs').readFileSync(0))})();` + '\n'.repeat(5) + code;
+    }; break;
+  }
+  return code;
+}
+
+
+export function generateCodeStdin(
+  context: Command.Context | Interaction.InteractionContext,
+  variables?: Record<any, any>,
+): string {
+  let guild: any = context.guild;
+  if (guild) {
+    guild = guild.toJSON();
+    if (MAX_MEMBERS_SAFE < guild.members.length) {
+      guild.members = new Collections.BaseCollection<string, Structures.Member>();
+      guild.members.set(context.client.userId, context.me!);
+      guild.members.set(context.userId, context.member!);
+      for (let [userId, voiceState] of guild.voice_states) {
+        guild.members.set(userId, voiceState.member!);
+      }
+    }
+
+    guild.presences = new Collections.BaseCollection<string, any>();
+    for (let [userId, member] of guild.members) {
+      const presence = member.presence;
+      if (presence) {
+        const data = presence.toJSON() as any;
+        const guildIds = [guild.id];
+
+        data.guild_ids = guildIds;
+        data.activities = data.activities.toArray().map((x: any) => x.toJSON());
+        for (let x of data.activities) {
+          x.guild_ids = guildIds;
+        }
+        if (data.game) {
+          data.game.guild_ids = guildIds;
+        }
+
+        guild.presences.set(userId, data);
+      }
+    }
+  }
+
+  return JSON.stringify({
+    channel: context.channel,
+    channel_id: context.channelId,
+    guild,
+    guild_id: context.guildId,
+    member: context.member,
+    member_bot: context.me,
+    message: (context instanceof Command.Context) ? context.message : null,
+    user: context.user,
+    user_bot: context.client.user,
+    variables,
+  });
 }
 
 
