@@ -1,5 +1,5 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
+import { Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 
 import { CommandTypes, PresenceStatusColors } from '../../../constants';
 import { DefaultParameters, Parameters, createUserEmbed, editOrReply } from '../../../utils';
@@ -66,6 +66,10 @@ export default class AvatarCommand extends BaseCommand {
           filename: avatarUrl.split('/').pop()!,
           value: await context.rest.get(user.avatarUrlFormat(null, {size: 512})),
         };
+        const maxAttachmentSize = (context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE;
+        if (maxAttachmentSize <= file.value.length) {
+          file = undefined;
+        }
       } catch(error) {
 
       }

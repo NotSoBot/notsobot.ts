@@ -467,11 +467,14 @@ export class Paginator {
         }; break;
         case PageButtonNames.STOP: {
           await this.onStop(null, true, context, true);
-          if (context instanceof Command.Context && !context.message.deleted && context.message.canDelete) {
-            try {
-              await context.message.delete();
-            } catch(error) {
-    
+          if (this.context instanceof Command.Context) {
+            const message = this.context.message;
+            if (!message.deleted && message.canDelete) {
+              try {
+                await message.delete();
+              } catch(error) {
+
+              }
             }
           }
         }; break;

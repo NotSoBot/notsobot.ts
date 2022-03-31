@@ -6,6 +6,7 @@ import {
   ClientEvents,
   MessageFlags,
   UserFlags as DiscordUserFlags,
+  MAX_ATTACHMENT_SIZE,
 } from 'detritus-client/lib/constants';
 import { Embed, Markup, Snowflake, intToHex, intToRGB } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints, RequestTypes } from 'detritus-client-rest';
@@ -341,7 +342,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         const promises: Array<Promise<any>> = [];
         for (let [loggerType, queue] of queues) {
           // add embed length checks since the max character amount of 6000 is spread through all 10 embeds
-          const unfilteredPayloads = queue.splice(0, 10).map((event) => createLogPayload(event));
+          const unfilteredPayloads = queue.splice(0, 10).map((event) => createLogPayload(event, shard));
           const payloads: Array<RequestTypes.ExecuteWebhook> = [];
           while (unfilteredPayloads.length) {
             const embeds: Array<Embed> = [];
@@ -782,6 +783,7 @@ export default new GuildLoggingStore();
 
 export function createLogPayload(
   event: GuildLoggingEventItem,
+  shard: ShardClient,
 ): {
   embed: Embed,
   files: Array<{filename: string, value: any}>,
@@ -1801,13 +1803,19 @@ export function createLogPayload(
       embed.setColor(EmbedColors.LOG_UPDATE);
 
       if (avatars) {
-        if (avatars.current) {
-          embed.setAuthor(undefined, `attachment://${avatars.current.filename}`);
-          files.push(avatars.current);
-        }
-        if (avatars.old) {
-          embed.setThumbnail(`attachment://${avatars.old.filename}`);
-          files.push(avatars.old);
+        const guild = shard.guilds.get(guildId);
+        const maxFileSize = (guild) ? guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE;
+
+        const total = ((avatars.current) ? avatars.current.value.length : 0) + ((avatars.old) ? avatars.old.value.length : 0);
+        if (total && total < maxFileSize) {
+          if (avatars.current) {
+            embed.setAuthor(undefined, `attachment://${avatars.current.filename}`);
+            files.push(avatars.current);
+          }
+          if (avatars.old) {
+            embed.setThumbnail(`attachment://${avatars.old.filename}`);
+            files.push(avatars.old);
+          }
         }
       }
 
