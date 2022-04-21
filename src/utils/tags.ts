@@ -117,6 +117,7 @@ export const TAG_IF_COMPARISONS = [
 ];
 
 
+// maybe make {argattachment}
 export enum TagFunctions {
   ARG = 'ARG',
   ARGS = 'ARGS',
@@ -140,6 +141,7 @@ export enum TagFunctions {
   HASTEBIN = 'HASTEBIN',
   IMAGE = 'IMAGE',
   IMAGESCRIPT = 'IMAGESCRIPT',
+  IMAGESCRIPT_2 = 'IMAGESCRIPT_2',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
   LOGICAL_GET = 'LOGICAL_GET',
   LOGICAL_IF = 'LOGICAL_IF',
@@ -206,8 +208,9 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.GUILD_COUNT]: ['guildcount', 'membercount', 'servercount'],
   [TagFunctions.GUILD_ID]: ['guildid', 'serverid', 'sid', 'gid'],
   [TagFunctions.HASTEBIN]: ['hastebin', 'haste'],
-  [TagFunctions.IMAGE]: ['image', 'iscript'],
-  [TagFunctions.IMAGESCRIPT]: ['image2', 'iscript2', 'imagescript'],
+  [TagFunctions.IMAGE]: ['image'],
+  [TagFunctions.IMAGESCRIPT]: ['iscript'],
+  [TagFunctions.IMAGESCRIPT_2]: ['image2', 'iscript2', 'imagescript'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
   [TagFunctions.LOGICAL_GET]: ['get'],
   [TagFunctions.LOGICAL_IF]: ['if'],
@@ -775,6 +778,21 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.IMAGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // get image from arg or last image
+    // {image}
+    // {image:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const url = await Parameters.lastImageUrl(arg.trim(), context);
+    if (url) {
+      tag.text += url;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.IMAGESCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // imagescript 1
 
     const code = arg.trim();
@@ -813,7 +831,7 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.IMAGESCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.IMAGESCRIPT_2]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
     // imagescript 2
 
     return false;

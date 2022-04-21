@@ -62,6 +62,42 @@ export async function request(
 }
 
 
+export async function audioToolsConvert(
+  context: RequestContext,
+  options: RestOptions.AudioToolsConvertOptions,
+): Promise<Response> {
+  const query = {
+    to: options.to,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.AUDIO_TOOLS_CONVERT,
+    },
+  });
+}
+
+
+export async function audioToolsIdentify(
+  context: RequestContext,
+  options: RestOptions.AudioBaseOptions,
+): Promise<RestResponsesRaw.AudioToolsIdentify> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.AUDIO_TOOLS_IDENTIFY,
+    },
+  });
+}
+
+
 export async function createGuildAllowlist(
   context: RequestContext,
   guildId: string,
@@ -160,14 +196,11 @@ export async function createUserCommand(
 ): Promise<RestResponsesRaw.CreateUserCommand> {
   const body = {
     channel_id: options.channelId,
-    content: options.content,
-    content_url: options.contentUrl,
     edited_timestamp: options.editedTimestamp,
     failed_reason: options.failedReason,
     guild_id: options.guildId,
     message_id: options.messageId,
     response_id: options.responseId,
-    response_url: options.responseUrl,
   };
   const params = {userId, command};
   return request(context, {
@@ -2221,6 +2254,24 @@ export async function videoToolsConvert(
     route: {
       method: HTTPMethods.POST,
       path: Api.VIDEO_TOOLS_CONVERT,
+    },
+  });
+}
+
+
+export async function videoToolsExtractAudio(
+  context: RequestContext,
+  options: RestOptions.VideoBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.VIDEO_TOOLS_EXTRACT_AUDIO,
     },
   });
 }

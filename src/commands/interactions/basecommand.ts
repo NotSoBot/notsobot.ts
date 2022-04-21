@@ -188,13 +188,43 @@ export class BaseInteractionCommandOption<ParsedArgsFinished = Interaction.Parse
 }
 
 
+export class BaseInteractionAudioOrVideoCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommandOption<ParsedArgsFinished> {
+  constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
+    super({
+      ...data,
+      options: [
+        ...(data.options || []),
+        {name: 'media', description: 'Emoji/Media URL/User', label: 'url', default: DefaultParameters.lastMediaUrl({image: false}), value: Parameters.lastMediaUrl({image: false})},
+        {name: 'file', description: 'Audio/Video File', type: ApplicationCommandOptionTypes.ATTACHMENT},
+      ],
+    });
+  }
+
+  onBeforeRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url) {
+      context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});
+    }
+    return !!args.url;
+  }
+
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return editOrReply(context, '⚠ Unable to find any media in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+    }
+    return super.onCancelRun(context, args);
+  }
+}
+
+
 export class BaseInteractionImageCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommandOption<ParsedArgsFinished> {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({
       ...data,
       options: [
         ...(data.options || []),
-        {name: 'image', description: 'Emoji/Image URL/User', label: 'url', default: DefaultParameters.lastImageUrl, value: Parameters.lastImageUrl},
+        {name: 'image', description: 'Emoji/Image URL/User', label: 'url', default: DefaultParameters.lastMediaUrl({audio: false, video: false}), value: Parameters.lastMediaUrl({audio: false, video: false})},
         {name: 'file', description: 'Image File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
@@ -224,7 +254,7 @@ export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.
       ...data,
       options: [
         ...(data.options || []),
-        {name: 'video', description: 'Emoji/Media URL/User', label: 'url', default: DefaultParameters.lastVideoUrl, value: Parameters.lastVideoUrl},
+        {name: 'video', description: 'Emoji/Media URL/User', label: 'url', default: DefaultParameters.lastMediaUrl({audio: false, image: false}), value: Parameters.lastMediaUrl({audio: false, image: false})},
         {name: 'file', description: 'Video File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
@@ -239,7 +269,7 @@ export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.
 
   onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any media in the last 50 messages.');
+      return editOrReply(context, '⚠ Unable to find any videos in the last 50 messages.');
     } else if (args.url === null) {
       return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
     }

@@ -26,6 +26,22 @@ export { request } from './raw';
 export { Endpoints, RequestContext, raw };
 
 
+export async function audioToolsConvert(
+  context: RequestContext,
+  options: RestOptions.AudioToolsConvertOptions,
+) {
+  return raw.audioToolsConvert(context, options);
+}
+
+
+export async function audioToolsIdentify(
+  context: RequestContext,
+  options: RestOptions.AudioBaseOptions,
+) {
+  return raw.audioToolsIdentify(context, options);
+}
+
+
 export async function createGuildAllowlist(
   context: RequestContext,
   guildId: string,
@@ -1057,4 +1073,12 @@ export async function videoToolsConvert(
   options: RestOptions.VideoToolsConvertOptions,
 ) {
   return raw.videoToolsConvert(context, options);
+}
+
+
+export async function videoToolsExtractAudio(
+  context: RequestContext,
+  options: RestOptions.VideoBaseOptions,
+) {
+  return raw.videoToolsExtractAudio(context, options);
 }

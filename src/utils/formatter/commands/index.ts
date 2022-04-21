@@ -1,3 +1,6 @@
+import * as AudioConvert from './audio.convert';
+import * as AudioIdentify from './audio.identify';
+
 import * as ImageBackgroundRemove from './image.background.remove';
 import * as ImageBlur from './image.blur';
 import * as ImageBlurple from './image.blurple';
@@ -45,9 +48,12 @@ import * as ToolsScreenshot from './tools.screenshot';
 import * as ToolsTranslate from './tools.translate';
 
 import * as VideoConvert from './video.convert';
+import * as VideoExtractAudio from './video.extract.audio';
 
 
 export {
+  AudioConvert,
+  AudioIdentify,
   ImageBackgroundRemove,
   ImageBlur,
   ImageBlurple,
@@ -89,4 +95,5 @@ export {
   ToolsScreenshot,
   ToolsTranslate,
   VideoConvert,
+  VideoExtractAudio,
 };

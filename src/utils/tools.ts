@@ -1033,6 +1033,7 @@ export async function imageReplyFromOptions(
   });
 }
 
+
 export async function mediaReply(
   context: Command.Context | Interaction.InteractionContext,
   response: Response,
@@ -1043,6 +1044,9 @@ export async function mediaReply(
 ) {
   if (typeof(options) === 'string') {
     options = {filename: options};
+  }
+  if (!options.filename) {
+    options.filename = (response.headers.get('x-file-name') || '').split('.').slice(0, -1).join('.');
   }
   return mediaReplyFromOptions(context, await response.buffer(), {
     content: options.content,
@@ -1245,7 +1249,7 @@ export function splitTextToDiscordHandle(text: string): [string, string | null] 
 }
 
 
-export function toCodePoint(unicodeSurrogates: string, separator: string = '-') {
+export function toCodePoint(unicodeSurrogates: string, separator: string = '-'): string {
   const r: Array<string> = [];
   let c: number = 0;
   let p: number = 0;
@@ -1263,6 +1267,17 @@ export function toCodePoint(unicodeSurrogates: string, separator: string = '-') 
     }
   }
   return r.join(separator);
+}
+
+
+const U200D = String.fromCharCode(0x200D);
+const UFE0F_REGEX = /\uFE0F/g;
+
+export function toCodePointForTwemoji(unicodeSurrogates: string): string {
+  if (unicodeSurrogates.indexOf(U200D) < 0) {
+    unicodeSurrogates = unicodeSurrogates.replace(UFE0F_REGEX, '');
+  }
+  return toCodePoint(unicodeSurrogates);
 }
 
 

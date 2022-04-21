@@ -8,7 +8,7 @@ import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { imageToolsResize } from '../../../api';
 import { CDN, CUSTOM } from '../../../api/endpoints';
 import { CommandTypes, EmojiTypes, Mimetypes } from '../../../constants';
-import { Parameters, editOrReply, imageReply, toCodePoint } from '../../../utils';
+import { Parameters, editOrReply, imageReply, toCodePoint, toCodePointForTwemoji } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -90,31 +90,31 @@ export default class EmojiCommand extends BaseCommand {
 
       switch (args.type) {
         case EmojiTypes.APPLE: {
-          const codepoints = getEmojiCodePoints(value);
+          const codepoints = getEmojiCodePoints(value, args.type);
           for (let codepoint of codepoints) {
             urls.push(CDN.URL + CDN.EMOJIS_APPLE(codepoint));
           }
         }; break;
         case EmojiTypes.EMOJI_ONE: {
-          const codepoints = getEmojiCodePoints(value);
+          const codepoints = getEmojiCodePoints(value, args.type);
           for (let codepoint of codepoints) {
             // emoji one
           }
         }; break;
         case EmojiTypes.FACEBOOK: {
-          const codepoints = getEmojiCodePoints(value);
+          const codepoints = getEmojiCodePoints(value, args.type);
           for (let codepoint of codepoints) {
             // facebook emoji
           }
         }; break;
         case EmojiTypes.GOOGLE: {
-          const codepoints = getEmojiCodePoints(value);
+          const codepoints = getEmojiCodePoints(value, args.type);
           for (let codepoint of codepoints) {
             // google emoji
           }
         }; break;
         case EmojiTypes.MICROSOFT: {
-          const codepoints = getEmojiCodePoints(value);
+          const codepoints = getEmojiCodePoints(value, args.type);
           for (let codepoint of codepoints) {
             // microsoft emoji
           }
@@ -125,9 +125,9 @@ export default class EmojiCommand extends BaseCommand {
         }; break;
         case EmojiTypes.TWEMOJI: {
           // twemoji
-          const codepoints = getEmojiCodePoints(value);
+          const codepoints = getEmojiCodePoints(value, args.type);
           for (let codepoint of codepoints) {
-            urls.push(CDN.URL + CDN.EMOJIS_TWEMOJI(codepoint));
+            urls.push(CUSTOM.TWEMOJI_SVG(codepoint));
           }
         }; break;
         case EmojiTypes.TWITCH: {
@@ -149,10 +149,17 @@ export default class EmojiCommand extends BaseCommand {
 }
 
 
-function getEmojiCodePoints(value: string): Array<string> {
+function getEmojiCodePoints(value: string, type: EmojiTypes): Array<string> {
   const emojis = onlyEmoji(value);
   if (emojis && emojis.length) {
-    return emojis.map((emoji) => toCodePoint(emoji));
+    return emojis.map((emoji) => {
+      switch (type) {
+        case EmojiTypes.TWEMOJI: {
+          return toCodePointForTwemoji(emoji);
+        };
+      }
+      return toCodePoint(emoji);
+    });
   }
   return [];
 }

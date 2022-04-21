@@ -236,14 +236,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
 
     const message = await editOrReply(context, {embed});
-
     if (context.command) {
-      let contentUrl: string | undefined;
-      let responseUrl: string | undefined;
-      if (context.metadata) {
-        ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
-      }
-
       const name = context.command.fullName;
       await createUserCommand(
         context,
@@ -251,14 +244,11 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         name,
         {
           channelId: context.channelId,
-          content: context.message.content,
-          contentUrl,
           editedTimestamp: context.message.editedAtUnix,
           failedReason: String(error.message || error.stack).slice(0, 256),
           guildId: context.guildId,
           messageId: context.messageId,
           responseId: message.id,
-          responseUrl,
         },
       );
     }
@@ -269,12 +259,6 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
     // log command
     if (context.command) {
-      let contentUrl: string | undefined;
-      let responseUrl: string | undefined;
-      if (context.metadata) {
-        ({contentUrl, responseUrl} = context.metadata as ContextMetadata);
-      }
-
       const name = context.command.fullName;
       try {
         await createUserCommand(
@@ -283,13 +267,10 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           name,
           {
             channelId: context.channelId,
-            content: context.message.content,
-            contentUrl,
             editedTimestamp: context.message.editedAtUnix,
             guildId: context.guildId,
             messageId: context.messageId,
             responseId: (context.response) ? context.response.id : undefined,
-            responseUrl,
           },
         );
       } catch(error) {
@@ -321,6 +302,54 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 }
 
+
+export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
+  triggerTypingAfter = 250;
+
+  constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
+    super(commandClient, {
+      label: 'url',
+      name: '',
+      permissionsClient: [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS],
+      ratelimits: [
+        {duration: 5000, limit: 5, key: RatelimitKeys.IMAGE, type: 'guild'},
+        {duration: 1000, limit: 1, key: RatelimitKeys.IMAGE, type: 'channel'},
+      ],
+      type: Parameters.lastMediaUrl({image: false}),
+      ...options,
+    });
+  }
+
+  onBeforeRun(context: Command.Context, args: {url?: null | string}) {
+    if (args.url) {
+      context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});
+    }
+    return !!args.url;
+  }
+
+  onCancelRun(context: Command.Context, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return editOrReply(context, '⚠ Unable to find any audio or videos in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+    }
+    return super.onCancelRun(context, args);
+  }
+
+  onSuccess(context: Command.Context, args: ParsedArgsFinished) {
+    /*
+    if (context.response) {
+      const responseUrl = findImageUrlInMessages([context.response]);
+      if (responseUrl) {
+        context.metadata = Object.assign({}, context.metadata, {responseUrl});
+      }
+    }
+    */
+    return super.onSuccess(context, args);
+  }
+}
+
+
 export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
   triggerTypingAfter = 250;
 
@@ -333,7 +362,7 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
         {duration: 5000, limit: 5, key: RatelimitKeys.IMAGE, type: 'guild'},
         {duration: 1000, limit: 1, key: RatelimitKeys.IMAGE, type: 'channel'},
       ],
-      type: Parameters.lastImageUrl,
+      type: Parameters.lastMediaUrl({audio: false, video: false}),
       ...options,
     });
   }

@@ -273,6 +273,7 @@ export enum E621Rating {
 
 
 export enum EmbedBrands {
+  AUDD = 'https://dashboard.audd.io/img/transperent.png',
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
   E621 = 'https://cdn.notsobot.com/brands/e621.png',
   GOOGLE_CONTENT_VISION_SAFETY = 'https://cdn.notsobot.com/brands/google-content-vision-safety.png',
@@ -744,6 +745,16 @@ export enum ImageLegofyPalettes {
 
 
 export enum Mimetypes {
+  AUDIO_AAC = 'audio/aac',
+  AUDIO_FLAC = 'audio/flac',
+  AUDIO_FLAC_2 = 'audio/x-flac',
+  AUDIO_M3U = 'audio/x-mpegurl',
+  AUDIO_MP3 = 'audio/mp3',
+  AUDIO_MP4 = 'audio/mp4',
+  AUDIO_MPEG = 'audio/mpeg',
+  AUDIO_OGG = 'audio/ogg',
+  AUDIO_WAV = 'audio/x-wav',
+  AUDIO_WAV_2 = 'audio/vnd.wav',
   IMAGE_GIF = 'image/gif',
   IMAGE_JPEG = 'image/jpeg',
   IMAGE_PNG = 'image/png',
@@ -756,7 +767,17 @@ export enum Mimetypes {
   VIDEO_X_MSVIDEO = 'video/x-msvideo',
 };
 
-export const MimetypesToExtension = Object.freeze({
+export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
+  [Mimetypes.AUDIO_AAC]: 'm4a',
+  [Mimetypes.AUDIO_FLAC]: 'flac',
+  [Mimetypes.AUDIO_FLAC_2]: 'flac',
+  [Mimetypes.AUDIO_M3U]: 'm3u',
+  [Mimetypes.AUDIO_MP3]: 'mp3',
+  [Mimetypes.AUDIO_MP4]: 'mp4',
+  [Mimetypes.AUDIO_MPEG]: 'mp3',
+  [Mimetypes.AUDIO_OGG]: 'ogg',
+  [Mimetypes.AUDIO_WAV]: 'wav',
+  [Mimetypes.AUDIO_WAV_2]: 'wav',
   [Mimetypes.IMAGE_GIF]: 'gif',
   [Mimetypes.IMAGE_JPEG]: 'jpg',
   [Mimetypes.IMAGE_PNG]: 'png',
@@ -769,6 +790,17 @@ export const MimetypesToExtension = Object.freeze({
   [Mimetypes.VIDEO_X_MSVIDEO]: 'avi',
 });
 
+
+export const MIMETYPES_AUDIO_EMBEDDABLE = Object.freeze([
+  Mimetypes.AUDIO_AAC,
+  //Mimetypes.AUDIO_FLAC,
+  //Mimetypes.AUDIO_FLAC_2,
+  Mimetypes.AUDIO_MP3,
+  Mimetypes.AUDIO_MPEG,
+  Mimetypes.AUDIO_OGG,
+  Mimetypes.AUDIO_WAV,
+  //Mimetypes.AUDIO_WAV_2,
+]);
 
 export const MIMETYPES_IMAGE_EMBEDDABLE = Object.freeze([
   Mimetypes.IMAGE_GIF,

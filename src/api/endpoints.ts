@@ -13,6 +13,11 @@ export const Api = Object.freeze({
   URL_PUBLIC: Domains.BETA,
   PATH: '/api',
 
+  AUDIO_TOOLS_CONVERT:
+    '/audio/tools/convert',
+  AUDIO_TOOLS_IDENTIFY:
+    '/audio/tools/identify',
+
   COMMANDS:
     '/commands',
 
@@ -252,6 +257,8 @@ export const Api = Object.freeze({
 
   VIDEO_TOOLS_CONVERT:
     '/video/tools/convert',
+  VIDEO_TOOLS_EXTRACT_AUDIO:
+    '/video/tools/extract/audio',
 });
 
 
@@ -273,4 +280,6 @@ export const CDN = Tools.URIEncodeWrap({
 export const CUSTOM = Tools.URIEncodeWrap({
   STEAM_EMOJI: (name: string): string =>
     `https://steamcommunity-a.akamaihd.net/economy/emoticon/${name}`,
+  TWEMOJI_SVG: (codepoint: string) =>
+    `https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/${codepoint}.svg`,
 });

@@ -26,6 +26,14 @@ import { User } from './structures/user';
 
 
 export namespace RestOptions {
+  export interface AudioBaseOptions {
+    url: string,
+  }
+
+  export interface AudioToolsConvertOptions extends AudioBaseOptions {
+    to: string,
+  }
+
   export interface CreateGuildLogger {
     channelId: string,
     type: GuildLoggerTypes,
@@ -35,14 +43,11 @@ export namespace RestOptions {
 
   export interface CreateUserCommand {
     channelId: string,
-    content: string,
-    contentUrl?: string,
     editedTimestamp?: null | number,
     failedReason?: string,
     guildId?: string,
     messageId: string,
     responseId?: string,
-    responseUrl?: string,
   }
 
 
@@ -481,6 +486,28 @@ export namespace RestResponses {
 
 
 export namespace RestResponsesRaw {
+
+  export interface AudioToolsIdentify {
+    error: null | {
+      error_code: number,
+      error_message: string,
+    },
+    result: null | {
+      album: string,
+      artist: string,
+      label: string,
+      release_date: string,
+      song_link: string,
+      timecode: string,
+      title: string,
+      apple_music: any,
+      deezer: any,
+      musicbrainz: any,
+      napster: any,
+      spotify: any,
+    },
+    status: string,
+  }
 
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;
