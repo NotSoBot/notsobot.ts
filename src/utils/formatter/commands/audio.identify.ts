@@ -11,6 +11,7 @@ import {
   createUserString,
   editOrReply,
   fetchMemberOrUserById,
+  formatTime,
 } from '../../../utils';
 
 
@@ -23,72 +24,112 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
-  const { error, result } = await audioToolsIdentify(context, {
+  const songs = await audioToolsIdentify(context, {
     url: args.url,
   });
 
-  if (!result) {
-    let content: string;
-    if (error) {
-      content = `Error: ${error.error_message}`;
-    } else {
-      content = 'Unable to identify any songs in the media provided';
-    }
-    return editOrReply(context, {content, flags: MessageFlags.EPHEMERAL});
+  if (songs.length) {
+    const pageLimit = songs.length || 1;
+    const paginator = new Paginator(context, {
+      pageLimit,
+      onPage: (page) => {
+        const song = songs[page - 1];
+
+        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
+        embed.setColor(EmbedColors.DEFAULT);
+        embed.setTitle(song.title);
+
+        {
+          let footer: string;
+          if (pageLimit === 1) {
+            footer = 'Audio Recognition Result';
+          } else {
+            footer = `Page ${page}/${pageLimit} of Audio Recognition Results`;
+          }
+          embed.setFooter(footer, EmbedBrands.NOTSOBOT);
+        }
+
+        let thumbnail: string | undefined;
+        for (let key in song.platforms) {
+          const platform = (song.platforms as any)[key];
+          if (platform && platform.album && platform.album.cover_url) {
+            thumbnail = platform.album.cover_url;
+            break;
+          }
+        }
+
+        if (thumbnail) {
+          embed.setThumbnail(thumbnail);
+        }
+
+        {
+          const description: Array<string> = [];
+          description.push(`**Album**: ${song.album.name}`);
+          description.push(`**Artist**: ${song.artists[0]!.name}`);
+          description.push(`**Duration**: ${formatTime(song.duration)}`);
+          if (song.label) {
+            description.push(`**Label**: ${song.label}`);
+          }
+          if (song.genres.length) {
+            description.push(`**Genres**: ${song.genres.join(', ')}`);
+          }
+          description.push(`**Match**: ${song.score}%`);
+          if (song.release_date) {
+            description.push(`**Release Date**: ${song.release_date}`);
+          }
+          if (song.timestamp) {
+            description.push(`**Timestamp**: ${formatTime(song.timestamp)}`);
+          }
+          description.push(`**Title**: ${song.title}`);
+          embed.setDescription(description.join('\n'));
+        }
+
+        {
+          const urls: Array<string> = [];
+          if (song.platforms.apple_music && song.platforms.apple_music.url) {
+            urls.push(Markup.url('Apple Music', song.platforms.apple_music.url));
+          }
+          if (song.platforms.deezer && song.platforms.deezer.url) {
+            urls.push(Markup.url('Deezer', song.platforms.deezer.url));
+          }
+          if (song.platforms.musicbrainz && song.platforms.musicbrainz.url) {
+            urls.push(Markup.url('MusicBrainz', song.platforms.musicbrainz.url));
+          }
+          if (song.platforms.spotify && song.platforms.spotify.url) {
+            urls.push(Markup.url('Spotify', song.platforms.spotify.url));
+          }
+          if (song.platforms.youtube && song.platforms.youtube.url) {
+            urls.push(Markup.url('YouTube', song.platforms.youtube.url));
+          }
+          embed.addField('Platform Links', urls.join(', '));
+        }
+
+        {
+          const urls: Array<string> = [];
+          if (song.platforms.apple_music && song.platforms.apple_music.preview_url) {
+            urls.push(Markup.url('Apple Music', song.platforms.apple_music.preview_url));
+          }
+          if (song.platforms.deezer && song.platforms.deezer.preview_url) {
+            urls.push(Markup.url('Deezer', song.platforms.deezer.preview_url));
+          }
+          if (song.platforms.spotify && song.platforms.spotify.preview_url) {
+            urls.push(Markup.url('Spotify', song.platforms.spotify.preview_url));
+          }
+          if (urls.length) {
+            embed.addField('Preview Links', urls.join(', '));
+          }
+        }
+
+        return embed;
+      },
+    });
+    return await paginator.start();
   }
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Audd.io Result', EmbedBrands.AUDD);
-  embed.setTitle(result.title);
-  embed.setUrl(result.song_link);
-
-  {
-    const description: Array<string> = [];
-    description.push(`**Album**: ${result.album}`);
-    description.push(`**Artist**: ${result.artist}`);
-    if (result.label) {
-      description.push(`**Label**: ${result.label}`);
-    }
-    description.push(`**Release Date**: ${result.release_date}`);
-    description.push(`**Title**: ${result.title}`);
-    embed.setDescription(description.join('\n'));
-  }
-
-  {
-    const urls: Array<string> = [Markup.url('lis.tn', result.song_link)];
-    if (result.apple_music) {
-      urls.push(Markup.url('Apple Music', result.apple_music.url));
-    }
-    if (result.deezer) {
-      urls.push(Markup.url('Deezer', result.deezer.link));
-    }
-    if (result.napster) {
-
-    }
-    if (result.spotify) {
-      urls.push(Markup.url('Spotify', result.spotify.external_urls.spotify));
-    }
-    embed.addField('Direct Links', urls.join(', '));
-  }
-
-  {
-    const urls: Array<string> = [];
-    if (result.apple_music && result.apple_music.previews.length) {
-      urls.push(Markup.url('Apple Music', result.apple_music.previews[0].url));
-    }
-    if (result.deezer && result.deezer.preview) {
-      urls.push(Markup.url('Deezer', result.deezer.preview));
-    }
-    if (result.spotify) {
-      urls.push(Markup.url('Spotify', result.spotify.preview_url || result.spotify.external_urls.spotify));
-    }
-    if (urls.length) {
-      embed.addField('Preview Links', urls.join(', '));
-    }
-  }
-
-  return editOrReply(context, {embed});
+  return editOrReply(context, {
+    content: 'Couldn\'t identify any songs',
+    flags: MessageFlags.EPHEMERAL,
+  });
   /*
   const pages = [result.apple_music];
   const pageLimit = activities.length || 1;

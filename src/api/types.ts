@@ -486,28 +486,66 @@ export namespace RestResponses {
 
 
 export namespace RestResponsesRaw {
-
-  export interface AudioToolsIdentify {
-    error: null | {
-      error_code: number,
-      error_message: string,
+  export interface AudioToolsIdentifySong {
+    album: {name: string},
+    artists: Array<{name: string}>,
+    duration: number,
+    exids: string | null,
+    genres: Array<string>,
+    ids: {acrid: string, isrc: string, upc: string},
+    label: string,
+    platforms: {
+      apple_music: AudioToolsIdentifySongPlatform | null,
+      deezer: AudioToolsIdentifySongPlatform | null,
+      musicbrainz: AudioToolsIdentifySongPlatformPartial | null,
+      spotify: AudioToolsIdentifySongPlatform | null,
+      youtube: AudioToolsIdentifySongPlatformPartial | null,
+      raw: any,
     },
-    result: null | {
-      album: string,
-      artist: string,
-      label: string,
-      release_date: string,
-      song_link: string,
-      timecode: string,
-      title: string,
-      apple_music: any,
-      deezer: any,
-      musicbrainz: any,
-      napster: any,
-      spotify: any,
-    },
-    status: string,
+    release_date: string,
+    result_from: number,
+    score: number,
+    timestamp: number,
+    title: string,
   }
+
+  export interface AudioToolsIdentifySongPlatform {
+    album: {
+      cover_url: string | null,
+      id: string,
+      name: string,
+    },
+    artist: {
+      cover_url?: string | null,
+      id: string,
+      name: string,
+    },
+    bpm: number,
+    disc: number,
+    duration: number,
+    genres: Array<string>,
+    id: string,
+    isrc: string,
+    metadata: {
+      audio_locale?: string,
+      audio_traits?: Array<string>,
+      has_lyrics?: boolean,
+      has_time_synced_lyrics?: boolean,
+      is_mastered_for_itunes?: boolean,
+    },
+    preview_url: string | null,
+    release_date: string | null,
+    title: string,
+    track: number,
+    url: string,
+  }
+
+  export interface AudioToolsIdentifySongPlatformPartial {
+    id: string,
+    url: string,
+  }
+
+  export type AudioToolsIdentify = Array<AudioToolsIdentifySong>;
 
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;
