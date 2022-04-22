@@ -101,7 +101,9 @@ export async function createMessage(
           if (song.platforms.youtube && song.platforms.youtube.url) {
             urls.push(Markup.url('YouTube', song.platforms.youtube.url));
           }
-          embed.addField('Platform Links', urls.join(', '));
+          if (urls.length) {
+            embed.addField('Platform Links', urls.join(', '));
+          }
         }
 
         {

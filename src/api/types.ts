@@ -488,7 +488,11 @@ export namespace RestResponses {
 export namespace RestResponsesRaw {
   export interface AudioToolsIdentifySong {
     album: {name: string},
-    artists: Array<{name: string}>,
+    artists: Array<{
+      langs?: Array<{name: string, code: string}>,
+      name: string,
+      roles?: Array<string>,
+    }>,
     duration: number,
     exids: string | null,
     genres: Array<string>,
