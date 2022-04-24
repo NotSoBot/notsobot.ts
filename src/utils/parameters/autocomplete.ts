@@ -79,6 +79,11 @@ export async function prefix(context: Interaction.InteractionAutoCompleteContext
 }
 
 
+export async function reminder(context: Interaction.InteractionAutoCompleteContext) {
+  return context.respond({choices: []});
+}
+
+
 export async function tags(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}>;
   try {

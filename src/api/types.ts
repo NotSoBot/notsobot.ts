@@ -22,7 +22,7 @@ import {
   GuildSettingsLogger,
   GuildSettingsPrefix,
 } from './structures/guildsettings';
-import { User } from './structures/user';
+import { User, UserFull } from './structures/user';
 
 
 export namespace RestOptions {
@@ -50,6 +50,25 @@ export namespace RestOptions {
     responseId?: string,
   }
 
+  export interface CreateReminder {
+    channelId?: string,
+    content: string,
+    guildId?: string,
+    isAllDay?: boolean,
+    messageId?: null | string,
+    timestampEnd?: number,
+    timestampStart: number,
+  }
+
+  export interface CreateTagUse {
+    timestamp: number,
+    userId: string,
+  }
+
+
+  export interface DeleteChannel {
+    guildId: string,
+  }
 
   export interface DeleteGuildLogger {
     channelId: string,
@@ -83,10 +102,20 @@ export namespace RestOptions {
 
   export interface EditUser {
     blocked?: boolean,
+    channelId?: null | string,
     locale?: null | string,
     optOutContent?: boolean,
   }
 
+
+  export interface FetchReminders {
+    after?: string,
+    before?: string,
+    guildId?: string,
+    limit?: number,
+    timestampMax?: number,
+    timestampMin?: number,
+  }
 
   export interface FetchTag {
     name: string,
@@ -281,6 +310,7 @@ export namespace RestOptions {
   export interface PutUser {
     avatar: null | string,
     bot: boolean,
+    channelId?: null | string,
     discriminator: string,
     locale?: null | string,
     username: string,
@@ -465,6 +495,7 @@ export namespace RestResponses {
   export type CreateGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type CreateGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
+  export type DeleteChannel = null;
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
   export type DeleteGuildDisabledCommand = null;
@@ -472,16 +503,16 @@ export namespace RestResponses {
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   export type EditGuildSettings = GuildSettings;
-  export type EditUser = User;
+  export type EditUser = UserFull;
 
   export type FetchGuildSettings = GuildSettings;
-  export type FetchUser = User;
+  export type FetchUser = UserFull;
 
   export type SearchGoogleImages = Array<GoogleSearchImageResult>;
 
   export type PutGuildSettings = GuildSettings;
   export type PutInfoDiscord = null;
-  export type PutUser = User;
+  export type PutUser = UserFull;
 }
 
 
@@ -557,15 +588,21 @@ export namespace RestResponsesRaw {
   export type CreateGuildLogger = Array<GuildLogger>;
   export type CreateGuildPrefix = Array<GuildPrefix>;
 
+  export type CreateReminder = Reminder;
+  export type CreateTagUse = null;
+
   export interface CreateUserCommand {
     
   }
 
+  export type DeleteChannel = null;
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
   export type DeleteGuildDisabledCommand = null;
   export type DeleteGuildLogger = Array<GuildLogger>;
   export type DeleteGuildPrefix = Array<GuildPrefix>;
+
+  export type DeleteReminder = null;
 
   export type DeleteTag = null;
 
@@ -573,6 +610,11 @@ export namespace RestResponsesRaw {
   export type EditUser = User;
 
   export type FetchGuildSettings = GuildSettings;
+
+  export interface FetchReminders {
+    count: number,
+    reminders: Array<Reminder>,
+  };
 
   export type FetchTag = Tag;
   export type FetchTagRandom = Tag;
@@ -1376,6 +1418,20 @@ export namespace RestResponsesRaw {
     url?: string,
   }
 
+
+  export interface Reminder {
+    channel_id: string | null,
+    channel_id_backup: string | null,
+    content: string,
+    guild_id: string | null,
+    id: string,
+    is_all_day: boolean,
+    message_id: string | null,
+    timestamp_end: string | null,
+    timestamp_start: string,
+    user: User,
+  }
+
   export interface Tag {
     content: string,
     created: string,
@@ -1394,12 +1450,15 @@ export namespace RestResponsesRaw {
     avatar: null | string,
     blocked: boolean,
     bot: boolean,
+    channel_id?: null | string,
     discriminator: string,
     flags: number,
     id: string,
-    locale: GoogleLocales | null,
-    opted_out_content: null | string,
-    premium_type: number,
+    locale?: GoogleLocales | null,
+    opted_out?: {
+      content: null | string,
+    },
+    premium_type?: number,
     username: string,
   }
 }

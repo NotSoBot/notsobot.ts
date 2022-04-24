@@ -5,8 +5,10 @@
     "moduleResolution": "node",
     "outDir": "./lib",
     "resolveJsonModule": true,
+    "skipLibCheck": true,
     "strict": true,
-    "target": "esnext"
+    "target": "esnext",
+    "useUnknownInCatchVariables": false
   },
   "include": ["src"],
   "exclude": ["node_modules"],

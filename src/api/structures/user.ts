@@ -17,9 +17,6 @@ const keysUser = new Collections.BaseSet<string>([
   NotSoApiKeys.DISCRIMINATOR,
   NotSoApiKeys.FLAGS,
   NotSoApiKeys.ID,
-  NotSoApiKeys.LOCALE,
-  NotSoApiKeys.OPTED_OUT_CONTENT,
-  NotSoApiKeys.PREMIUM_TYPE,
   NotSoApiKeys.USERNAME,
 ]);
 
@@ -32,14 +29,13 @@ export class User extends BaseStructure {
   discriminator: string = '0000';
   flags: number = 0;
   id: string = '';
-  locale: GoogleLocales | null = null;
-  optedOutContent: string | null = null;
-  premiumType: UserPremiumTypes = UserPremiumTypes.NONE;
   username: string = '';
 
-  constructor(data: Structures.BaseStructureData) {
+  constructor(data?: Structures.BaseStructureData) {
     super();
-    this.merge(data);
+    if (data) {
+      this.merge(data);
+    }
   }
 
   hasOwner(): boolean {
@@ -48,5 +44,43 @@ export class User extends BaseStructure {
 
   hasFlag(flag: number): boolean {
     return (this.flags & flag) === flag;
+  }
+}
+
+
+const keysUserFull = new Collections.BaseSet<string>([
+  NotSoApiKeys.AVATAR,
+  NotSoApiKeys.BLOCKED,
+  NotSoApiKeys.BOT,
+  NotSoApiKeys.CHANNEL_ID,
+  NotSoApiKeys.DISCRIMINATOR,
+  NotSoApiKeys.FLAGS,
+  NotSoApiKeys.ID,
+  NotSoApiKeys.LOCALE,
+  NotSoApiKeys.OPTED_OUT,
+  NotSoApiKeys.PREMIUM_TYPE,
+  NotSoApiKeys.USERNAME,
+]);
+
+export class UserFull extends User {
+  readonly _keys = keysUserFull;
+
+  avatar: string | null = null;
+  blocked: boolean = false;
+  bot: boolean = false;
+  channelId: string | null = null;
+  discriminator: string = '0000';
+  flags: number = 0;
+  id: string = '';
+  locale: GoogleLocales | null = null;
+  optedOut!: {
+    content: string | null,
+  };
+  premiumType: UserPremiumTypes = UserPremiumTypes.NONE;
+  username: string = '';
+
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
   }
 }

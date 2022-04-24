@@ -4,7 +4,7 @@ import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Store } from './store';
 
-import { RequestContext, fetchGuildSettings, putGuildSettings } from '../api';
+import { RequestContext, deleteChannel, fetchGuildSettings, putGuildSettings } from '../api';
 import { GuildSettings } from '../api/structures/guildsettings';
 import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
@@ -80,30 +80,40 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       const subscription = cluster.subscribe(ClientEvents.CHANNEL_DELETE, async (event) => {
         const { channel, shard } = event;
         const { guildId } = channel;
-        if (guildId && this.has(guildId)) {
-          const settings = this.get(guildId)!;
-          {
-            const loggers = settings.loggers.filter((logger) => logger.channelId === channel.id);
-            for (let logger of loggers) {
-              await logger.delete(shard);
-            }
+
+        if (guildId) {
+          try {
+            await deleteChannel({client: shard}, channel.id, {guildId});
+          } catch(e) {
+
           }
-          {
-            const disabledCommands = settings.disabledCommands.filter((disabledCommand) => disabledCommand.id === channel.id);
-            for (let disabledCommand of disabledCommands) {
-              //await disabledCommand.delete(shard);
+
+          if (this.has(guildId)) {
+            // clear from cache even tho redis will give us the stuff
+            const settings = this.get(guildId)!;
+            {
+              const loggers = settings.loggers.filter((logger) => logger.channelId === channel.id);
+              for (let logger of loggers) {
+                //await logger.delete(shard);
+              }
             }
-          }
-          {
-            const allowlist = settings.allowlist.filter((allowed) => allowed.id === channel.id);
-            for (let allowed of allowlist) {
-              //await allowed.delete(shard);
+            {
+              const disabledCommands = settings.disabledCommands.filter((disabledCommand) => disabledCommand.id === channel.id);
+              for (let disabledCommand of disabledCommands) {
+                //await disabledCommand.delete(shard);
+              }
             }
-          }
-          {
-            const blocklist = settings.blocklist.filter((blocked) => blocked.id === channel.id);
-            for (let blocked of blocklist) {
-              //await blocked.delete(shard);
+            {
+              const allowlist = settings.allowlist.filter((allowed) => allowed.id === channel.id);
+              for (let allowed of allowlist) {
+                //await allowed.delete(shard);
+              }
+            }
+            {
+              const blocklist = settings.blocklist.filter((blocked) => blocked.id === channel.id);
+              for (let blocked of blocklist) {
+                //await blocked.delete(shard);
+              }
             }
           }
         }

@@ -6,7 +6,7 @@ import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { DiscordAbortCodes, InteractionCallbackTypes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';
 import { Embed, Markup, PermissionTools, intToHex } from 'detritus-client/lib/utils';
 import { Response, replacePathParameters } from 'detritus-rest';
-import { Timers } from 'detritus-utils';
+import { Snowflake, Timers } from 'detritus-utils';
 
 import { Endpoints } from '../api';
 import {
@@ -17,9 +17,11 @@ import {
   GoogleLocalesText,
   LanguageCodesText,
   Mimetypes,
+  ReminderMessages,
   Timezones,
   MAX_MEMBERS_SAFE,
   MIMETYPES_SAFE_EMBED,
+  SNOWFLAKE_EPOCH,
   TRUSTED_URLS,
 } from '../constants';
 
@@ -745,6 +747,15 @@ export function findMembersByUsername(
     }
   }
   return found;
+}
+
+
+export function getReminderMessage(
+  reminderId: string,
+): string {
+  const createdAtUnix = Snowflake.timestamp(reminderId, {epoch: SNOWFLAKE_EPOCH});
+  const number = createdAtUnix % ReminderMessages.length;
+  return (ReminderMessages as any)[number];
 }
 
 

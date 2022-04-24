@@ -21,6 +21,8 @@ import * as ImageToolsResize from './image.tools.resize';
 
 import * as InfoUser from './info.user';
 
+import * as ReminderCreate from './reminder.create';
+
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleWeb from './search.google.web';
 
@@ -72,6 +74,7 @@ export {
   ImageToolsCrop,
   ImageToolsResize,
   InfoUser,
+  ReminderCreate,
   SearchGoogleImages,
   SearchGoogleWeb,
   SettingsMeLocale,

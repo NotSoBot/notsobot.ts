@@ -882,8 +882,30 @@ export enum RedisChannels {
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
   INFO_DISCORD_REQUEST = 'INFO_DISCORD_REQUEST',
+  REMINDER_CREATE = 'REMINDER_CREATE',
+  REMINDER_DELETE = 'REMINDER_DELETE',
   USER_UPDATE = 'USER_UPDATE',
 };
+
+
+export const ReminderMessages = [
+  'drink water',
+  'eat your water',
+  'eat your vegetables',
+  'fancy water',
+  'get that bread',
+  'hydrate',
+  'love thy water',
+  'nothing meaningful',
+  'notsobot',
+  'reminder',
+  'take that sip of water',
+  'the cosmos',
+  'touch grass',
+  'u\'re beautiful',
+  'ur face',
+  'water',
+];
 
 
 
@@ -1061,7 +1083,7 @@ export const NotSoApiKeys = Object.freeze({
   LOGGERS: 'loggers',
   METADATA: 'metadata',
   NAME: 'name',
-  OPTED_OUT_CONTENT: 'opted_out_content',
+  OPTED_OUT: 'opted_out',
   PREFIX: 'prefix',
   PREFIXES: 'prefixes',
   PREMIUM_TYPE: 'premium_type',
@@ -1129,7 +1151,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.LOGGERS]: 'loggers',
   [NotSoApiKeys.METADATA]: 'metadata',
   [NotSoApiKeys.NAME]: 'name',
-  [NotSoApiKeys.OPTED_OUT_CONTENT]: 'optedOutContent',
+  [NotSoApiKeys.OPTED_OUT]: 'optedOut',
   [NotSoApiKeys.PREFIX]: 'prefix',
   [NotSoApiKeys.PREFIXES]: 'prefixes',
   [NotSoApiKeys.PREMIUM_TYPE]: 'premiumType',

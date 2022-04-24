@@ -19,7 +19,7 @@ import {
   GuildSettingsLogger,
   GuildSettingsPrefix,
 } from './structures/guildsettings';
-import { User } from './structures/user';
+import { UserFull } from './structures/user';
 import { RestOptions, RestResponses } from './types';
 
 export { request } from './raw';
@@ -111,6 +111,23 @@ export async function createGuildPrefix(
 }
 
 
+export async function createReminder(
+  context: RequestContext,
+  options: RestOptions.CreateReminder,
+) {
+  return raw.createReminder(context, options);
+}
+
+
+export async function createTagUse(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.CreateTagUse,
+) {
+  return raw.createTagUse(context, tagId, options);
+}
+
+
 export async function createUserCommand(
   context: RequestContext,
   userId: string,
@@ -118,6 +135,15 @@ export async function createUserCommand(
   options: RestOptions.CreateUserCommand,
 ) {
   return raw.createUserCommand(context, userId, command, options);
+}
+
+
+export async function deleteChannel(
+  context: RequestContext,
+  channelId: string,
+  options: RestOptions.DeleteChannel,
+) {
+  return raw.deleteChannel(context, channelId, options);
 }
 
 
@@ -190,6 +216,14 @@ export async function deleteGuildPrefix(
 }
 
 
+export async function deleteReminder(
+  context: RequestContext,
+  reminderId: string,
+) {
+  return raw.deleteReminder(context, reminderId);
+}
+
+
 export async function deleteTag(
   context: RequestContext,
   options: RestOptions.DeleteTag,
@@ -215,18 +249,19 @@ export async function editGuildSettings(
   return settings;
 }
 
+
 export async function editUser(
   context: RequestContext,
   userId: string,
   options: RestOptions.EditUser,
 ): Promise<RestResponses.EditUser> {
   const data = await raw.editUser(context, userId, options);
-  let user: User;
+  let user: UserFull;
   if (UserStore.has(userId)) {
-    user = UserStore.get(userId) as User;
+    user = UserStore.get(userId)!;
     user.merge(data);
   } else {
-    user = new User(data);
+    user = new UserFull(data);
     UserStore.set(user.id, user);
   }
   return user;
@@ -247,6 +282,14 @@ export async function fetchGuildSettings(
     GuildSettingsStore.set(settings.id, settings);
   }
   return settings;
+}
+
+
+export async function fetchReminders(
+  context: RequestContext,
+  options: RestOptions.FetchReminders,
+) {
+  return raw.fetchReminders(context, options);
 }
 
 
@@ -280,12 +323,12 @@ export async function fetchUser(
   userId: string,
 ): Promise<RestResponses.FetchUser> {
   const data = await raw.fetchUser(context, userId);
-  let user: User;
+  let user: UserFull;
   if (UserStore.has(userId)) {
-    user = UserStore.get(userId) as User;
+    user = UserStore.get(userId)!;
     user.merge(data);
   } else {
-    user = new User(data);
+    user = new UserFull(data);
     UserStore.set(user.id, user);
   }
   return user;
@@ -806,12 +849,12 @@ export async function putUser(
   options: RestOptions.PutUser,
 ): Promise<RestResponses.PutUser> {
   const data = await raw.putUser(context, userId, options);
-  let user: User;
+  let user: UserFull;
   if (UserStore.has(userId)) {
-    user = UserStore.get(userId) as User;
+    user = UserStore.get(userId)!;
     user.merge(data);
   } else {
-    user = new User(data);
+    user = new UserFull(data);
     UserStore.set(user.id, user);
   }
   return user;

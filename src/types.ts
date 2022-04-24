@@ -33,5 +33,8 @@ export namespace RedisPayloads {
     
   }
 
+  export type ReminderCreate = RestResponsesRaw.Reminder;
+  export type ReminderDelete = RestResponsesRaw.Reminder;
+
   export type UserUpdate = RestResponsesRaw.User;
 }

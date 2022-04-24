@@ -7,6 +7,7 @@ import { RedisPayloads } from './types';
 
 
 export class RedisSpewer extends EventSpewer {
+  channels: Array<string> = [];
   client!: RedisClient;
   ended: boolean = false;
   url: string;
@@ -33,9 +34,7 @@ export class RedisSpewer extends EventSpewer {
       }
     });
 
-    for (let channel of Object.values(RedisChannels)) {
-      this.client.subscribe(channel);
-    }
+    this.subscribeToChannels(Object.values(RedisChannels));
   }
 
   end(): void {
@@ -46,8 +45,20 @@ export class RedisSpewer extends EventSpewer {
     }
   }
 
+  subscribeToChannels(channels: Array<string>) {
+    for (let channel of this.channels) {
+      this.client.unsubscribe(channel);
+    }
+    for (let channel of channels) {
+      this.client.subscribe(channel);
+    }
+    this.channels = channels;
+  }
+
   on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: RedisChannels.GUILD_SETTINGS_UPDATE, listener: (payload: RedisPayloads.GuildSettingsUpdate) => any): this;
+  on(event: RedisChannels.REMINDER_CREATE, listener: (payload: RedisPayloads.ReminderCreate) => any): this;
+  on(event: RedisChannels.REMINDER_DELETE, listener: (payload: RedisPayloads.ReminderDelete) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;

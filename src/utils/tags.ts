@@ -4,8 +4,15 @@ import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { utilitiesCodeRun, utilitiesFetchMedia, utilitiesFetchText, utilitiesImagescriptV1 } from '../api';
-import { CodeLanguages, MAX_MEMBERS_SAFE } from '../constants';
+import {
+  googleContentVisionOCR,
+  googleTranslate,
+  utilitiesCodeRun,
+  utilitiesFetchMedia,
+  utilitiesFetchText,
+  utilitiesImagescriptV1,
+} from '../api';
+import { CodeLanguages, GoogleLocales, MAX_MEMBERS_SAFE } from '../constants';
 
 import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
@@ -16,6 +23,7 @@ import {
   generateCodeFromLanguage,
   generateCodeStdin,
   getCodeLanguage,
+  languageCodeToText,
   randomFromArray,
   randomFromIterator,
 } from './tools';
@@ -142,6 +150,7 @@ export enum TagFunctions {
   IMAGE = 'IMAGE',
   IMAGESCRIPT = 'IMAGESCRIPT',
   IMAGESCRIPT_2 = 'IMAGESCRIPT_2',
+  IMAGE_OCR = 'IMAGE_OCR',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
   LOGICAL_GET = 'LOGICAL_GET',
   LOGICAL_IF = 'LOGICAL_IF',
@@ -167,6 +176,7 @@ export enum TagFunctions {
   STRING_REPLACE = 'STRING_REPLACE',
   STRING_REVERSE = 'STRING_REVERSE',
   STRING_SUB = 'STRING_SUB',
+  STRING_TRANSLATE = 'STRING_TRANSLATE',
   STRING_UPPER = 'STRING_UPPER',
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
   USER_DISCRIMINATOR = 'USER_DISCRIMINATOR',
@@ -211,6 +221,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.IMAGE]: ['image'],
   [TagFunctions.IMAGESCRIPT]: ['iscript'],
   [TagFunctions.IMAGESCRIPT_2]: ['image2', 'iscript2', 'imagescript'],
+  [TagFunctions.IMAGE_OCR]: ['ocr'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
   [TagFunctions.LOGICAL_GET]: ['get'],
   [TagFunctions.LOGICAL_IF]: ['if'],
@@ -236,6 +247,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_REPLACE]: ['replace', 'replaceregex'],
   [TagFunctions.STRING_REVERSE]: ['reverse'],
   [TagFunctions.STRING_SUB]: ['substring'],
+  [TagFunctions.STRING_TRANSLATE]: ['translate'],
   [TagFunctions.STRING_UPPER]: ['upper'],
   [TagFunctions.STRING_URL_ENCODE]: ['url', 'urlencode'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
@@ -405,6 +417,10 @@ export async function parse(
 
 
 export function split(value: string): Array<string> {
+  if (!value.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+    return [value];
+  }
+
   let depth = 0;
   let position = 0;
   let text = '';
@@ -835,6 +851,27 @@ const ScriptTags = Object.freeze({
     // imagescript 2
 
     return false;
+  },
+
+  [TagFunctions.IMAGE_OCR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // ocr an image
+    // {ocr:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const url = await Parameters.lastImageUrl(arg.trim(), context);
+    if (url) {
+      try {
+        const { annotation } = await googleContentVisionOCR(context, {url});
+        if (annotation) {
+          tag.text += annotation.description;
+        }
+      } catch(error) {
+
+      }
+    }
+
+    return true;
   },
 
   [TagFunctions.LOGICAL_DELETE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
@@ -1363,6 +1400,47 @@ const ScriptTags = Object.freeze({
     tag.text += argParsed.text.substring(start, end);
     for (let file of argParsed.files) {
       tag.files.push(file);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.STRING_TRANSLATE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // translate some text
+    // {translate:cake}
+    // {translate:cake|russian}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    if (arg.length) {
+      const parts = split(arg);
+
+      let text: string;
+
+      let language: GoogleLocales;
+      if (2 <= parts.length) {
+        const suspectedLanguage = parts.pop()!;
+        try {
+          language = await Parameters.locale(suspectedLanguage, context);
+        } catch(error) {
+          parts.push(suspectedLanguage);
+          language = await Parameters.locale('', context);
+        }
+
+        text = parts.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+      } else {
+        language = await Parameters.locale('', context);
+        text = parts[0]!;
+      }
+
+      if (text) {
+        try {
+          const { translated_text: translatedText } = await googleTranslate(context, {text, to: language});
+          tag.text += translatedText.trim();
+        } catch(error) {
+
+        }
+      }
     }
 
     return true;

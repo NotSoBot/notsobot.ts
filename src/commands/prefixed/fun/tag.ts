@@ -52,4 +52,14 @@ export default class TagCommand extends BaseCommand {
   async run(context: Command.Context, args: Formatter.Commands.TagShow.CommandArgs) {
     return Formatter.Commands.TagShow.createMessage(context, args);
   }
+
+  async onRunError(context: Command.Context, args: Formatter.Commands.TagShow.CommandArgs, error: any) {
+    await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
+    return super.onRunError(context, args, error);
+  }
+
+  async onSuccess(context: Command.Context, args: Formatter.Commands.TagShow.CommandArgs) {
+    await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
+    return super.onSuccess(context, args);
+  }
 }

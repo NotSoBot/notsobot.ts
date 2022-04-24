@@ -18,6 +18,9 @@ export const Api = Object.freeze({
   AUDIO_TOOLS_IDENTIFY:
     '/audio/tools/identify',
 
+  CHANNEL:
+    '/channels/:channelId',
+
   COMMANDS:
     '/commands',
 
@@ -175,6 +178,11 @@ export const Api = Object.freeze({
   ME:
     '/users/@me',
 
+  REMINDERS:
+    '/reminders',
+  REMINDER:
+    '/reminders/:reminderId',
+
   SEARCH_DUCKDUCKGO:
     '/search/duckduckgo',
   SEARCH_DUCKDUCKGO_IMAGES:
@@ -222,6 +230,8 @@ export const Api = Object.freeze({
     '/tags/random',
   TAGS_SERVER:
     '/tags/servers/:serverId',
+  TAG_USE:
+    '/tags/:tagId/use',
 
   USER:
     '/users/:userId',
@@ -229,6 +239,10 @@ export const Api = Object.freeze({
     '/users/:userId/commands',
   USER_COMMAND:
     '/users/:userId/commands/:command',
+  USER_REMINDERS:
+    '/users/:userId/reminders',
+  USER_REMINDERS_EXPIRED:
+    '/users/:userId/reminders/expired',
   USER_TAGS:
     '/users/:userId/tags',
 

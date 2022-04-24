@@ -3,7 +3,7 @@ import { ClusterClient, Command, CommandClient, ShardClient } from 'detritus-cli
 import { DIRECTORY } from '../../../../config.json';
 
 import { NotSoCommandClient } from '../../../commandclient';
-import { CommandTypes } from '../../../constants';
+import { CommandTypes, RedisChannels } from '../../../constants';
 import { NotSoInteractionClient } from '../../../interactioncommandclient';
 import { Listener } from '../../../listeners';
 import { Store } from '../../../stores';
@@ -18,6 +18,7 @@ async function refreshCommands(
   refreshListeners: boolean,
   refreshStores: boolean,
   LIB_PATH: string,
+  extras: Record<string, any>,
 ): Promise<Array<number>> {
   const LISTENERS_PATH = '/listeners/';
   const STORE_PATH = '/stores/';
@@ -29,6 +30,14 @@ async function refreshCommands(
       continue;
     }
     if (IGNORE.some((file) => key.includes(file))) {
+      continue;
+    }
+
+    if (key.includes('/redis.')) {
+      const { default: redisObject } = require(key);
+      if (redisObject && extras.redisChannels && redisObject.subscribeToChannels) {
+        redisObject.subscribeToChannels(extras.redisChannels);
+      }
       continue;
     }
 
@@ -134,12 +143,18 @@ export default class RefreshCommand extends BaseCommand {
     }
     const message = await editOrReply(context, 'ok, refreshing...');
     const shardIds = await context.manager.broadcastEval(refreshCommands, args.listeners, args.stores, DIRECTORY);
+      /*
+    {
+      redisChannels: Object.values(RedisChannels),
+    });
+    */
 
     const error = shardIds.find((shardId: any) => shardId instanceof Error);
     if (error) {
       if (error.errors) {
         return message.edit(`${error.message} (${JSON.stringify(error.errors)})`);
       }
+      console.log(error);
       return message.edit(`Error: ${error.message}`);
     }
     return message.edit(`ok, refreshed commands on ${shardIds.flat().length} shards.`);

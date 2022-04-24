@@ -20,6 +20,7 @@ export interface RequestContext {
   channelId?: string,
   client: ShardClient,
   guildId?: string,
+  inDm?: boolean,
   user?: Structures.User,
 }
 
@@ -51,6 +52,7 @@ export async function request(
     const bareUser = JSON.stringify({
       avatar: user.avatar,
       discriminator: user.discriminator,
+      channel_id: (context.inDm) ? context.channelId : undefined,
       bot: user.bot,
       id: user.id,
       username: user.username,
@@ -188,6 +190,50 @@ export async function createGuildPrefix(
 }
 
 
+export async function createReminder(
+  context: RequestContext,
+  options: RestOptions.CreateReminder,
+): Promise<RestResponsesRaw.CreateReminder> {
+  const body = {
+    channel_id: options.channelId,
+    content: options.content,
+    guild_id: options.guildId,
+    is_all_day: options.isAllDay,
+    message_id: options.messageId,
+    timestamp_end: options.timestampEnd,
+    timestamp_start: options.timestampStart,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.REMINDERS,
+    },
+  });
+}
+
+
+export async function createTagUse(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.CreateTagUse,
+): Promise<RestResponsesRaw.CreateTagUse> {
+  const body = {
+    timestamp: options.timestamp,
+    user_id: options.userId,
+  };
+  const params = {tagId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.TAG_USE,
+      params,
+    },
+  });
+}
+
+
 export async function createUserCommand(
   context: RequestContext,
   userId: string,
@@ -209,6 +255,24 @@ export async function createUserCommand(
       method: HTTPMethods.PUT,
       path: Api.USER_COMMAND,
       params,
+    },
+  });
+}
+
+
+export async function deleteChannel(
+  context: RequestContext,
+  channelId: string,
+  options: RestOptions.DeleteChannel,
+): Promise<RestResponsesRaw.DeleteChannel> {
+  return request(context, {
+    query: {
+      guild_id: options.guildId,
+    },
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.CHANNEL,
+      params: {channelId},
     },
   });
 }
@@ -302,6 +366,20 @@ export async function deleteGuildPrefix(
 }
 
 
+export async function deleteReminder(
+  context: RequestContext,
+  reminderId: string,
+): Promise<RestResponsesRaw.DeleteReminder> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.REMINDER,
+      params: {reminderId},
+    },
+  });
+}
+
+
 export async function deleteTag(
   context: RequestContext,
   options: RestOptions.DeleteTag,
@@ -352,6 +430,7 @@ export async function editUser(
 ): Promise<RestResponsesRaw.EditUser> {
   const body = {
     blocked: options.blocked,
+    channel_id: options.channelId,
     locale: options.locale,
     opt_out_content: options.optOutContent,
   };
@@ -377,6 +456,28 @@ export async function fetchGuildSettings(
       method: HTTPMethods.GET,
       path: Api.GUILD,
       params,
+    },
+  });
+}
+
+
+export async function fetchReminders(
+  context: RequestContext,
+  options: RestOptions.FetchReminders = {},
+): Promise<RestResponsesRaw.FetchReminders> {
+  const query = {
+    after: options.after,
+    before: options.before,
+    guild_id: options.guildId,
+    limit: options.limit,
+    timestamp_max: options.timestampMax,
+    timestamp_min: options.timestampMin,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.REMINDERS,
     },
   });
 }
@@ -1671,6 +1772,7 @@ export async function putUser(
   const body = {
     avatar: options.avatar,
     bot: options.bot,
+    channel_id: options.channelId,
     discriminator: options.discriminator,
     locale: options.locale,
     username: options.username,

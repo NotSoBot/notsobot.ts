@@ -171,11 +171,17 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
       flags: MessageFlags.EPHEMERAL,
     });
   }
+
+  /*
+  async onSuccess(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+    // log usage
+  }
+  */
 }
 
 
 export class BaseInteractionCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
-  error = 'Slash Command';
+  error = 'Slash';
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
 
   onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
@@ -279,7 +285,7 @@ export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.
 
 
 export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
-  error = 'Slash Command';
+  error = 'Slash';
   type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
 
   onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
@@ -294,7 +300,7 @@ export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.
 
 
 export class BaseSlashCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommand<ParsedArgsFinished> {
-  error = 'Slash Command';
+  error = 'Slash';
   type = ApplicationCommandTypes.CHAT_INPUT;
 
   triggerLoadingAfter = 1000;

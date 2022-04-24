@@ -1,3 +1,4 @@
+import * as chrono from 'chrono-node';
 import { onlyEmoji } from 'emoji-aware';
 
 import { Command, Interaction, Structures } from 'detritus-client';
@@ -63,6 +64,11 @@ export async function locale(
   }
 
   value = value.toLowerCase().replace(/_/g, ' ');
+  if (value === 'random') {
+    const locales = Object.keys(GoogleLocalesText) as Array<GoogleLocales>;
+    return locales[Math.floor(Math.random() * locales.length)];
+  }
+
   for (let key in GoogleLocalesText) {
     const locale = key as GoogleLocales;
     if (locale.toLowerCase() === value) {
@@ -119,6 +125,105 @@ export async function localeDiscord(value: string): Promise<DiscordLocales | nul
     return `\`${locale}\``;
   });
   throw new Error(`Must be one of ${locales.join(', ')}`);
+}
+
+
+export interface NLPTimestampResult {
+  content: string,
+  end: Date | null,
+  start: Date,
+}
+
+const customChrono = chrono.casual.clone();
+customChrono.refiners.push({
+  refine: (context, results) => {
+    // If there is no AM/PM (meridiem) specified,
+    //  let all time between 1:00 - 5:00 be PM (13.00 - 17.00)
+    for (let result of results) {
+      if (result.start.isCertain('meridiem')) {
+        continue;
+      }
+      const hour = result.start.get('hour') || 0;
+      if (1 <= hour && hour <= 5) {
+        result.start.assign('meridiem', 1);
+        result.start.assign('hour', hour + 12);
+      }
+    }
+    return results;
+  },
+});
+
+const IGNORE_WORDS = ['in', 'and', 'about', 'to', 'between'];
+export function nlpTimestamp(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): NLPTimestampResult {
+  let instant: Date;
+  let timezone: string | undefined;
+  if (context) {
+    if (context instanceof Interaction.InteractionContext) {
+      instant = context.interaction.createdAt;
+    } else {
+      instant = context.message.editedAt || context.message.createdAt;
+    }
+  } else {
+    instant = new Date();
+  }
+
+  if (value.toLowerCase().startsWith('me')) {
+    value = value.slice(2).trim();
+  }
+
+  const results = customChrono.parse(value, {instant, timezone}, {forwardDate: true});
+  if (!results.length) {
+    throw new Error('Must provide some sort of time in your text');
+  }
+
+  /*
+   - 'about elon musk in 5 days and 5 minutes' == [{text: '5 days'}, {text: '5 minutes'}]
+   - 'in 5 days and 5 minutes about elon musk' == [{text: '5 days'}, {text: '5 minutes'}]
+   - 'next friday at 4pm do something funny' == [{text: 'next friday at 4pm'}]
+   - 'do the laundry tomorrow' == [{text: 'tomorrow'}]
+   - '2d unmute me' == []
+  */
+
+  let content: string = '';
+  let lastIndex = 0;
+
+  const now = Date.now();
+
+  let end = 0;
+  let start = 0;
+  for (let result of results) {
+    const text = value.slice(lastIndex, result.index);
+    lastIndex = result.index + result.text.length; // 25, 30
+
+    if (!IGNORE_WORDS.includes(text.trim())) {
+      content += text;
+    }
+
+    // add up the time
+
+    start += (result.start.date().getTime() - now);
+    if (result.end) {
+      end += (result.end.date().getTime() - now);
+    }
+  }
+  content = (content + value.slice(lastIndex)).trim();
+
+  const insensitiveParts = content.toLowerCase().split(' ');
+  if (IGNORE_WORDS.includes(insensitiveParts[0])) {
+    content = content.slice(insensitiveParts[0].length).trim();
+  }
+  if (1 < insensitiveParts.length && IGNORE_WORDS.includes(insensitiveParts[insensitiveParts.length - 1])) {
+    content = content.slice(0, content.length - insensitiveParts[insensitiveParts.length - 1].length).trim();
+  }
+
+  return {
+    end: (end) ? new Date(instant.getTime() + end) : null,
+    content,
+    start: new Date(instant.getTime() + start),
+  };
 }
 
 

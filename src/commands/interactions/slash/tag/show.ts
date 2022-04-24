@@ -53,4 +53,14 @@ export class TagShowCommand extends BaseInteractionCommandOption {
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgs) {
     return Formatter.Commands.TagShow.createMessage(context, args);
   }
+
+  async onRunError(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgs, error: any) {
+    await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
+    return super.onRunError && super.onRunError(context, args, error);
+  }
+
+  async onSuccess(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgs) {
+    await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
+    return super.onSuccess && super.onSuccess(context, args);
+  }
 }

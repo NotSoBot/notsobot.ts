@@ -4,25 +4,25 @@ import { EventSubscription, Timers } from 'detritus-utils';
 import { Store } from './store';
 
 import { fetchUser, putUser } from '../api';
-import { User } from '../api/structures/user';
+import { UserFull } from '../api/structures/user';
 import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
 import { RedisPayloads } from '../types';
 
 
 // Stores NotSoApi User Object
-class UserStore extends Store<string, User> {
+class UserStore extends Store<string, UserFull> {
   constructor() {
     // 2 hours
     super({expire: 2 * 60 * 60 * 1000});
   }
 
-  insert(payload: User): void {
+  insert(payload: UserFull): void {
     this.set(payload.id, payload);
   }
 
-  async getOrFetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<User | null> {
-    let user: User | null = null;
+  async getOrFetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<UserFull | null> {
+    let user: UserFull | null = null;
     if (UserPromisesStore.has(userId)) {
       const { promise } = UserPromisesStore.get(userId)!;
       user = await promise;
@@ -36,8 +36,8 @@ class UserStore extends Store<string, User> {
     return user;
   }
 
-  async fetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<User | null> {
-    let promise: Promise<User | null>;
+  async fetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<UserFull | null> {
+    let promise: Promise<UserFull | null>;
     if (UserPromisesStore.has(userId)) {
       promise = UserPromisesStore.get(userId)!.promise;
     } else {
@@ -50,11 +50,17 @@ class UserStore extends Store<string, User> {
 
         const discordUser = context.users.get(userId);
         try {
-          let user: User | null = null;
+          let user: UserFull | null = null;
           if (discordUser) {
+            let channelId: string | undefined;
+            if (context.inDm) {
+              // Bots can only be in non-group dms, we also have no checks we can use without fetching the channel
+              channelId = context.channelId;
+            }
             user = await putUser(context, userId, {
               avatar: discordUser.avatar,
               bot: discordUser.bot,
+              channelId,
               discriminator: discordUser.discriminator,
               username: discordUser.username,
             });
@@ -93,7 +99,7 @@ export default new UserStore();
 
 
 
-export type UserPromiseItem = {promise: Promise<User | null>, timeout: Timers.Timeout};
+export type UserPromiseItem = {promise: Promise<UserFull | null>, timeout: Timers.Timeout};
 
 class UserPromises extends Store<string, UserPromiseItem> {
   insert(guildId: string, item: UserPromiseItem): void {
