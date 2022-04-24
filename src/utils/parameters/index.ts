@@ -28,6 +28,8 @@ import {
   findMediaUrlsInMessages,
   findMemberByChunkText,
   findMembersByChunkText,
+  getTimezoneAbbreviation,
+  getTimezoneFromContext,
   isSnowflake,
   toCodePointForTwemoji,
   validateUrl,
@@ -159,7 +161,6 @@ export function nlpTimestamp(
   context: Command.Context | Interaction.InteractionContext,
 ): NLPTimestampResult {
   let instant: Date;
-  let timezone: string | undefined;
   if (context) {
     if (context instanceof Interaction.InteractionContext) {
       instant = context.interaction.createdAt;
@@ -174,7 +175,10 @@ export function nlpTimestamp(
     value = value.slice(2).trim();
   }
 
-  const results = customChrono.parse(value, {instant, timezone}, {forwardDate: true});
+  const results = customChrono.parse(value, {
+    instant,
+    timezone: getTimezoneAbbreviation(getTimezoneFromContext(context)),
+  }, {forwardDate: true});
   if (!results.length) {
     throw new Error('Must provide some sort of time in your text');
   }

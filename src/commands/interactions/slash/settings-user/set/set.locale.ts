@@ -13,6 +13,9 @@ export interface CommandArgs {
 
 export class SettingsUserSetLocaleCommand extends BaseInteractionCommandOption {
   description = 'Set your default language for the bot.';
+  metadata = {
+    id: Formatter.Commands.SettingsMeLocale.COMMAND_ID,
+  };
   name = 'locale';
 
   constructor() {

@@ -7,6 +7,8 @@ import {
   GoogleLocalesText,
   ImageMemeFonts,
   ImageMemeFontsToText,
+  Timezones,
+  TimezonesToText,
 } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
 
@@ -95,6 +97,42 @@ export async function tags(context: Interaction.InteractionAutoCompleteContext) 
     choices = tags.map((tag) => ({name: tag.name, value: tag.name}));
   } catch(error) {
     choices = [];
+  }
+  return context.respond({choices});
+}
+
+
+// needs better sorting
+export async function timezone(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}>;
+  if (context.value) {
+    const value = context.value.toLowerCase().replace(/\s\s+/g, ' ');
+    const searchKey = value.replace(/\s/g, '_');
+    const searchValue = value.replace(/\\/g, ' ')
+
+    const collection = new Set<string>();
+    for (let key in TimezonesToText) {
+      const keyInsensitive = key.toLowerCase();
+      const valueInsensitive = (TimezonesToText as any)[key].toLowerCase();
+      if (!valueInsensitive) {
+        continue;
+      }
+
+      if (keyInsensitive.includes(searchKey) || valueInsensitive.includes(searchValue)) {
+        collection.add(key);
+      }
+    }
+    choices = Array.from(collection).map((timezone: string) => {
+      return {name: (TimezonesToText as any)[timezone], value: timezone};
+    }).sort((x, y) => {
+      return x.name.localeCompare(y.name);
+    }).slice(0, 25);
+  } else {
+    choices = Object.entries(TimezonesToText).filter((x) => x[1]).sort((x, y) => {
+      return x[1].localeCompare(y[1]);
+    }).slice(0, 25).map(([timezone, name]) => {
+      return {name, value: timezone};
+    });
   }
   return context.respond({choices});
 }

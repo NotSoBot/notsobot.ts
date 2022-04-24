@@ -433,6 +433,7 @@ export async function editUser(
     channel_id: options.channelId,
     locale: options.locale,
     opt_out_content: options.optOutContent,
+    timezone: options.timezone,
   };
   const params = {userId};
   return request(context, {
@@ -1775,6 +1776,7 @@ export async function putUser(
     channel_id: options.channelId,
     discriminator: options.discriminator,
     locale: options.locale,
+    timezone: options.timezone,
     username: options.username,
   };
   const params = {userId};

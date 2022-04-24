@@ -10,6 +10,8 @@ import {
 import { editOrReply } from '../..';
 
 
+export const COMMAND_ID = 'settings me locale';
+
 export interface CommandArgs {
   locale?: GoogleLocales | null,
 }

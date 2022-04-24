@@ -28,6 +28,7 @@ import {
 import ChannelMembersStore, { ChannelMembersStored } from '../stores/channelmembers';
 import GuildMembersStore, { GuildMembersStored } from '../stores/guildmembers';
 import GuildSettingsStore from '../stores/guildsettings';
+import UserStore from '../stores/users';
 
 
 export function createColorUrl(color: number): string {
@@ -46,15 +47,20 @@ export function createTimestampMoment(timestamp: number | string, timezone: stri
 }
 
 
-export function createTimestampMomentFromGuild(timestamp: number | string, guildId?: string): moment.Moment {
-  let timezone: string = Timezones.EST;
-  if (guildId) {
-    const settings = GuildSettingsStore.get(guildId);
-    if (settings && settings.timezone) {
-      timezone = settings.timezone;
-    }
-  }
+export function createTimestampMomentFromContext(timestamp: number | string, options: {guildId?: string, userId?: string}): moment.Moment {
+  const timezone = getTimezoneFromContext(options);
   return createTimestampMoment(timestamp, timezone);
+}
+
+
+export function createTimestampMomentFromGuild(timestamp: number | string, guildId?: string): moment.Moment {
+  const timezone = getTimezoneFromGuild(guildId);
+  return createTimestampMoment(timestamp, timezone);
+}
+
+
+export function createTimestampStringFromContext(timestamp: number | string, options: {guildId?: string, userId?: string}): string {
+  return createTimestampMomentFromContext(timestamp, options).format(DateMomentLogFormat);
 }
 
 
@@ -750,15 +756,6 @@ export function findMembersByUsername(
 }
 
 
-export function getReminderMessage(
-  reminderId: string,
-): string {
-  const createdAtUnix = Snowflake.timestamp(reminderId, {epoch: SNOWFLAKE_EPOCH});
-  const number = createdAtUnix % ReminderMessages.length;
-  return (ReminderMessages as any)[number];
-}
-
-
 export function getMemberJoinPosition(
   guild: Structures.Guild,
   userId: string,
@@ -774,6 +771,51 @@ export function getMemberJoinPosition(
   }
   const joinPosition = members.findIndex((m) => m.id === userId) + 1;
   return [joinPosition, guild.members.length];
+}
+
+
+export function getReminderMessage(
+  reminderId: string,
+): string {
+  const createdAtUnix = Snowflake.timestamp(reminderId, {epoch: SNOWFLAKE_EPOCH});
+  const number = createdAtUnix % ReminderMessages.length;
+  return (ReminderMessages as any)[number];
+}
+
+
+export function getTimezoneAbbreviation(timezone: string): string {
+  return moment.tz(timezone).zoneAbbr();
+}
+
+
+export function getTimezoneFromContext(options: {guildId?: string, userId?: string}): string {
+  // add user timezones
+  let timezone: string | undefined;
+  if (options.userId) {
+    const user = UserStore.get(options.userId);
+    if (user && user.timezone) {
+      timezone = user.timezone;
+    }
+  }
+  if (!timezone && options.guildId) {
+    const settings = GuildSettingsStore.get(options.guildId);
+    if (settings && settings.timezone) {
+      timezone = settings.timezone;
+    }
+  }
+  return timezone || Timezones.EST;
+}
+
+
+export function getTimezoneFromGuild(guildId?: string): string {
+  let timezone: string = Timezones.EST;
+  if (guildId) {
+    const settings = GuildSettingsStore.get(guildId);
+    if (settings && settings.timezone) {
+      timezone = settings.timezone;
+    }
+  }
+  return timezone;
 }
 
 

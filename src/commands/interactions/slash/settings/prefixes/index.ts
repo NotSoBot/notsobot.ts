@@ -9,7 +9,6 @@ import { SettingsPrefixesReplaceCommand } from './prefixes.replace';
 
 export class SettingsPrefixesGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
-  disableDm = true;
   name = 'prefixes';
 
   constructor() {

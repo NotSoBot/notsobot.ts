@@ -1,6 +1,7 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SettingsUserSetLocaleCommand } from './set.locale';
+import { SettingsUserSetTimezoneCommand } from './set.timezone';
 
 
 export class SettingsUserSetGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -11,6 +12,7 @@ export class SettingsUserSetGroupCommand extends BaseInteractionCommandOptionGro
     super({
       options: [
         new SettingsUserSetLocaleCommand(),
+        new SettingsUserSetTimezoneCommand(),
       ],
     });
   }

@@ -105,6 +105,7 @@ export namespace RestOptions {
     channelId?: null | string,
     locale?: null | string,
     optOutContent?: boolean,
+    timezone?: null | string,
   }
 
 
@@ -313,6 +314,7 @@ export namespace RestOptions {
     channelId?: null | string,
     discriminator: string,
     locale?: null | string,
+    timezone?: null | string,
     username: string,
   }
 

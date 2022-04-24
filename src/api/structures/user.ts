@@ -59,6 +59,7 @@ const keysUserFull = new Collections.BaseSet<string>([
   NotSoApiKeys.LOCALE,
   NotSoApiKeys.OPTED_OUT,
   NotSoApiKeys.PREMIUM_TYPE,
+  NotSoApiKeys.TIMEZONE,
   NotSoApiKeys.USERNAME,
 ]);
 
@@ -77,6 +78,7 @@ export class UserFull extends User {
     content: string | null,
   };
   premiumType: UserPremiumTypes = UserPremiumTypes.NONE;
+  timezone: string | null = null;
   username: string = '';
 
   constructor(data: Structures.BaseStructureData) {

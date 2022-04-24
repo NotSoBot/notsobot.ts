@@ -6,6 +6,7 @@ import { SettingsSetGroupCommand } from './set';
 
 export default class SettingsGroupCommand extends BaseSlashCommand {
   description = '.';
+  disableDm = true;
   name = 'settings';
 
   constructor() {
