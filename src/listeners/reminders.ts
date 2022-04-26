@@ -66,7 +66,7 @@ class ReminderInterval extends Listener {
         }
 
         let messageReference: any;
-        if (reminder.guild_id && reminder.message_id) {
+        if (reminder.channel_id && reminder.message_id) {
           messageReference = {
             channelId,
             failIfNotExists: false,

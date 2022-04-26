@@ -21,6 +21,7 @@ export default class TagRandomCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         type: CommandTypes.FUN,
+        usage: '<...arguments>',
       },
       type: Parameters.stringArguments,
     });

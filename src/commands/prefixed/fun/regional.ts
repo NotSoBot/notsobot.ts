@@ -1,16 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandTypes } from '../../../constants';
+import { Formatter } from '../../../utils';
+
 import { BaseCommand } from '../basecommand';
 
-
-export interface CommandArgsBefore {
-  text: string, 
-}
-
-export interface CommandArgs {
-  text: string,
-}
 
 export const COMMAND_NAME = 'regional';
 
@@ -25,13 +19,18 @@ export default class RegionalCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} lol`,
         ],
+        id: Formatter.Commands.FunRegional.COMMAND_ID,
         type: CommandTypes.FUN,
         usage: '<text>',
       },
     });
   }
 
-  run(context: Command.Context, args: CommandArgs) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.FunRegional.CommandArgs) {
+    return !!args.text;
+  }
 
+  run(context: Command.Context, args: Formatter.Commands.FunRegional.CommandArgs) {
+    return Formatter.Commands.FunRegional.createMessage(context, args);
   }
 }

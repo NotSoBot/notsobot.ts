@@ -1,6 +1,6 @@
 import { URL } from 'url';
 
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { DiscordAbortCodes, InteractionCallbackTypes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';

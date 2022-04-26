@@ -183,6 +183,10 @@ export const Api = Object.freeze({
   REMINDER:
     '/reminders/:reminderId',
 
+  SEARCH_4CHAN:
+    '/search/4chan',
+  SEARCH_4CHAN_RANDOM:
+    '/search/4chan/random',
   SEARCH_DUCKDUCKGO:
     '/search/duckduckgo',
   SEARCH_DUCKDUCKGO_IMAGES:

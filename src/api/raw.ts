@@ -1791,6 +1791,40 @@ export async function putUser(
 }
 
 
+export async function search4Chan(
+  context: RequestContext,
+  options: RestOptions.Search4Chan,
+): Promise<RestResponsesRaw.Search4Chan> {
+  const query = {
+    board: options.board,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_4CHAN,
+    },
+  });
+}
+
+
+export async function search4ChanRandom(
+  context: RequestContext,
+  options: RestOptions.Search4ChanRandom,
+): Promise<RestResponsesRaw.Search4Chan> {
+  const query = {
+    nsfw: options.nsfw,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_4CHAN_RANDOM,
+    },
+  });
+}
+
+
 export async function searchDuckDuckGo(
   context: RequestContext,
   options: RestOptions.SearchDuckDuckGo,

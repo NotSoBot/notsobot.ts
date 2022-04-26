@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { Collections, ShardClient, Structures } from 'detritus-client';
 import { DiscordAbortCodes } from 'detritus-client/lib/constants';

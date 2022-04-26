@@ -1,11 +1,11 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "esModuleInterop": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./lib",
     "resolveJsonModule": true,
-    "skipLibCheck": true,
     "strict": true,
     "target": "esnext",
     "useUnknownInCatchVariables": false

@@ -10,20 +10,17 @@
   "dependencies": {
     "@sentry/node": "^6.4.1",
     "chrono-node": "^2.3.8",
-    "detritus-client": "^0.17.0-beta.1",
+    "detritus-client": "^0.17.0-beta.4",
     "emoji-aware": "^3.0.5",
     "juration": "^0.1.1",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
     "moment-timezone": "^0.5.32",
-    "node-libcurl": "^2.3.3",
-    "redis": "^3.1.2",
-    "typescript": "^4.1.2"
+    "redis": "^3.1.2"
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.2",
-    "@types/node": "^15.6.1",
-    "@types/node-fetch": "^2.5.10",
+    "@types/node": "^17.0.27",
     "@types/redis": "^2.8.28"
   },
   "scripts": {

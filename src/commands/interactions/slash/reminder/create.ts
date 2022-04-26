@@ -39,6 +39,7 @@ export class ReminderCreateCommand extends BaseInteractionCommandOption {
     return Formatter.Commands.ReminderCreate.createMessage(context, {
       result: {
         content: args.content || args.when.content,
+        contentTimestamp: args.when.contentTimestamp,
         end: args.when.end,
         start: args.when.start,
       },

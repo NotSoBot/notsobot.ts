@@ -132,6 +132,7 @@ export async function localeDiscord(value: string): Promise<DiscordLocales | nul
 
 export interface NLPTimestampResult {
   content: string,
+  contentTimestamp: string,
   end: Date | null,
   start: Date,
 }
@@ -192,6 +193,7 @@ export function nlpTimestamp(
   */
 
   let content: string = '';
+  let contentTimestamp: string = '';
   let lastIndex = 0;
 
   const now = Date.now();
@@ -202,9 +204,12 @@ export function nlpTimestamp(
     const text = value.slice(lastIndex, result.index);
     lastIndex = result.index + result.text.length; // 25, 30
 
-    if (!IGNORE_WORDS.includes(text.trim())) {
+    if (IGNORE_WORDS.includes(text.trim())) {
+      contentTimestamp += text;
+    } else {
       content += text;
     }
+    contentTimestamp += result.text;
 
     // add up the time
 
@@ -214,6 +219,7 @@ export function nlpTimestamp(
     }
   }
   content = (content + value.slice(lastIndex)).trim();
+  contentTimestamp = contentTimestamp.trim();
 
   const insensitiveParts = content.toLowerCase().split(' ');
   if (IGNORE_WORDS.includes(insensitiveParts[0])) {
@@ -226,6 +232,7 @@ export function nlpTimestamp(
   return {
     end: (end) ? new Date(instant.getTime() + end) : null,
     content,
+    contentTimestamp,
     start: new Date(instant.getTime() + start),
   };
 }

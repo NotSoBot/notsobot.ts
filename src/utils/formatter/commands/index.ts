@@ -1,6 +1,11 @@
 import * as AudioConvert from './audio.convert';
 import * as AudioIdentify from './audio.identify';
 
+import * as FunAesthetics from './fun.aesthetics';
+import * as FunRegional from './fun.regional';
+import * as FunTextwall from './fun.textwall';
+import * as FunTTS from './fun.tts';
+
 import * as ImageBackgroundRemove from './image.background.remove';
 import * as ImageBlur from './image.blur';
 import * as ImageBlurple from './image.blurple';
@@ -23,8 +28,10 @@ import * as InfoUser from './info.user';
 
 import * as ReminderCreate from './reminder.create';
 
+import * as Search4Chan from './search.4chan';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleWeb from './search.google.web';
+import * as SearchUrban from './search.urban';
 
 import * as SettingsMeLocale from './settings.me.locale';
 import * as SettingsMeTimezone from './settings.me.timezone';
@@ -58,6 +65,10 @@ import * as VideoExtractAudio from './video.extract.audio';
 export {
   AudioConvert,
   AudioIdentify,
+  FunAesthetics,
+  FunRegional,
+  FunTextwall,
+  FunTTS,
   ImageBackgroundRemove,
   ImageBlur,
   ImageBlurple,
@@ -77,8 +88,10 @@ export {
   ImageToolsResize,
   InfoUser,
   ReminderCreate,
+  Search4Chan,
   SearchGoogleImages,
   SearchGoogleWeb,
+  SearchUrban,
   SettingsMeLocale,
   SettingsMeTimezone,
   SettingsPrefixesAdd,

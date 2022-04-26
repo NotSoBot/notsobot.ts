@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 
 import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';

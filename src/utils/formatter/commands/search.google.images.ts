@@ -22,7 +22,6 @@ export async function createMessage(
     const pageLimit = results.length;
     const paginator = new Paginator(context, {
       pageLimit,
-      isEphemeral: true,
       onPage: (page) => {
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);

@@ -10,6 +10,7 @@ import {
   MessageFlags,
 } from 'detritus-client/lib/constants';
 import { Components, ComponentContext } from 'detritus-client/lib/utils';
+import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import PaginatorsStore from '../stores/paginators';
@@ -46,9 +47,11 @@ export const PageButtons: Record<PageButtonNames, PageButton> = Object.freeze({
   [PageButtonNames.STOP]: {emoji: '<:b_stop_delete:945057641103753377>'},//{emoji: '<:b_stop:848383585873428520>'},
 });
 
+export type Page = Utils.Embed | [Utils.Embed, Array<RequestTypes.File>];
+
 export type OnErrorCallback = (error: any, paginator: Paginator) => Promise<any> | any;
 export type OnExpireCallback = (paginator: Paginator) => Promise<any> | any;
-export type OnPageCallback = (page: number) => Promise<Utils.Embed> | Utils.Embed;
+export type OnPageCallback = (page: number) => Promise<Page> | Page;
 export type OnPageNumberCallback = (content: string) => Promise<number> | number;
 
 export type PaginatorButtons = Partial<Record<PageButtonNames, PageButton>>;
@@ -61,7 +64,7 @@ export interface PaginatorOptions {
   page?: number,
   pageLimit?: number,
   pageSkipAmount?: number,
-  pages?: Array<Utils.Embed>,
+  pages?: Array<Page>,
   targets?: Array<Structures.Member | Structures.User | string>,
 
   onError?: OnErrorCallback,
@@ -92,7 +95,7 @@ export class Paginator {
   page: number = MIN_PAGE;
   pageLimit: number = MAX_PAGE;
   pageSkipAmount: number = 10;
-  pages?: Array<Utils.Embed>;
+  pages?: Array<Page>;
   ratelimit: number = 250;
   ratelimitTimeout = new Timers.Timeout();
   stopped: boolean = false;
@@ -297,14 +300,14 @@ export class Paginator {
     return page;
   }
 
-  addPage(embed: Utils.Embed): Paginator {
+  addPage(page: Page): Paginator {
     if (typeof(this.onPage) === 'function') {
       throw new Error('Cannot add a page when onPage is attached to the paginator');
     }
     if (!Array.isArray(this.pages)) {
       this.pages = [];
     }
-    this.pages.push(embed);
+    this.pages.push(page);
     this.pageLimit = this.pages.length;
     return this;
   }
@@ -345,46 +348,66 @@ export class Paginator {
     }
   }
 
-  async getPage(page: number): Promise<Utils.Embed> {
+  async getPage(pageNumber: number): Promise<[Utils.Embed, Array<RequestTypes.File> | undefined]> {
+    let page: Page | undefined;
     if (typeof(this.onPage) === 'function') {
-      return await Promise.resolve(this.onPage(this.page));
-    }
-    if (Array.isArray(this.pages)) {
-      page -= 1;
-      if (page in this.pages) {
-        return this.pages[page];
+      page = await Promise.resolve(this.onPage(this.page));
+    } else {
+      if (Array.isArray(this.pages)) {
+        pageNumber -= 1;
+        if (pageNumber in this.pages) {
+          page = this.pages[pageNumber];
+        }
       }
     }
-    throw new Error(`Page ${page} not found`);
+    if (!page) {
+      throw new Error(`Page ${pageNumber} not found`);
+    }
+
+    let files: Array<RequestTypes.File> | undefined;
+    let embed: Utils.Embed;
+    if (Array.isArray(page) && page.length === 2) {
+      embed = page[0];
+      files = page[1];
+    } else if (page instanceof Utils.Embed) {
+      embed = page; 
+    } else {
+      throw new Error('Invalid Page Given');
+    }
+    return [embed, files];
   }
 
-  async setPage(page: number, context?: ComponentContext): Promise<void> {
-    page = Math.max(MIN_PAGE, Math.min(page, this.pageLimit));
-    if (page === this.page) {
+  async setPage(pageNumber: number, context?: ComponentContext): Promise<void> {
+    pageNumber = Math.max(MIN_PAGE, Math.min(pageNumber, this.pageLimit));
+    if (pageNumber === this.page) {
       if (context) {
         await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       return;
     }
-    this.page = page;
-    const embed = await this.getPage(page);
+    this.page = pageNumber;
+    const [ embed, files ] = await this.getPage(this.page);
     if (context) {
       await context.editOrRespond({
         allowedMentions: {parse: []},
         components: this.components,
         embed,
+        files,
       });
     } else if (this.context instanceof Interaction.InteractionContext) {
       await this.context.editOrRespond({
         allowedMentions: {parse: []},
         components: this.components,
         embed,
+        files,
       });
     } else if (this.message) {
       await this.message.edit({
         allowedMentions: {parse: []},
+        attachments: [],
         components: this.components,
         embed,
+        files,
       });
     }
   }
@@ -551,10 +574,12 @@ export class Paginator {
         }
       } else if (clearButtons) {
         if (context) {
+          const [ embed, files ] = await this.getPage(this.page);
           await context.editOrRespond({
             allowedMentions: {parse: []},
             components: [],
-            embed: await this.getPage(this.page), // temporarily here until they fix ephemeral message component clearing on button press
+            embed,  // temporarily here until they fix ephemeral message component clearing on button press
+            files, // temporarily here until they fix ephemeral message component clearing on button press
           });
         } else if (this.message && !this.message.deleted && this.message.components.length) {
           try {
@@ -588,20 +613,23 @@ export class Paginator {
 
     let message: Structures.Message | null = null;
     if (this.context instanceof Interaction.InteractionContext) {
-      const embed = await this.getPage(this.page);
+      const [ embed, files ] = await this.getPage(this.page);
       await this.context.editOrRespond({
         components: this.components,
         embed,
+        files,
         flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
       });
       message = this.message;
     } else if (this.message) {
       message = this.message;
       if (message.canEdit) {
-        const embed = await this.getPage(this.page);
+        const [ embed, files ] = await this.getPage(this.page);
         message = this.message = await message.edit({
+          attachments: [],
           components: this.components,
           embed,
+          files,
         });
       }
     } else {
@@ -609,16 +637,18 @@ export class Paginator {
         throw new Error('Cannot create messages in this channel');
       }
 
-      const embed = await this.getPage(this.page);
+      const [ embed, files ] = await this.getPage(this.page);
       if (this.context instanceof Command.Context) {
         message = this._message = await editOrReply(this.context, {
           components: this.components,
           embed,
+          files,
         });
       } else {
         message = this._message = await this.context.reply({
           components: this.components,
           embed,
+          files,
         });
       }
     }

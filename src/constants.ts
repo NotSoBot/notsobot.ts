@@ -16,6 +16,7 @@ export const MAX_MEMBERS_SAFE = 1000;
 
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
 export const SNOWFLAKE_EPOCH = 1564790400000;
+export const ZERO_WIDTH_SPACE = '\u200b';
 
 
 export enum BooleanEmojis {
@@ -262,6 +263,11 @@ export const DateOptions = Object.freeze({
 
 
 export const DiscordEmojis = Object.freeze({
+  CHAN: {
+    BADGE_MOD: '<:4chan_mod:968301568564789320>',
+    CLOSED: '<:4chan_closed:968295513344589884>',
+    STICKIED: '<:4chan_stickied:968295513302659122>',
+  },
   DISCORD_BADGES: {
     [DiscordUserFlags.STAFF]: '<:d_staff:826576202189373471> ',
     [DiscordUserFlags.PARTNER]: '<:d_partner:826576193717272587>',
@@ -967,15 +973,15 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
   [Timezones.MET]: '(GMT+01:00) Middle European Time (MET)', // duplicate of CET
   [Timezones.NET]: '',
   [Timezones.PLT]: '',
-  [Timezones.IST]: '',
-  [Timezones.BST]: '',
-  [Timezones.VST]: '',
+  [Timezones.IST]: '(GMT+05:30) India Standard Time (IST)',
+  [Timezones.BST]: '(GMT+06:00) Bangladesh Standard Time (BST)',
+  [Timezones.VST]: '(GMT-04:30) Venezuela Standard Time (VST)',
   [Timezones.CTT]: '',
   [Timezones.JST]: '(GMT+09:00) Japan Standard Time (JST)',
   [Timezones.ACT]: '(GMT+09:30) Australian Central Time (ACT)',
   [Timezones.AET]: '',
-  [Timezones.SST]: '',
-  [Timezones.NST]: '',
+  [Timezones.SST]: '(GMT+02:00) Syria Standard Time (SST)',
+  [Timezones.NST]: '(GMT-03:30) Newfoundland Standard Time (NST)', // duplicate of CNT
 });
 
 
@@ -1231,6 +1237,7 @@ export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
   [ChannelTypes.GUILD_PRIVATE_THREAD]: 'Guild Private Thread',
   [ChannelTypes.GUILD_STAGE_VOICE]: 'Guild Stage Voice',
   [ChannelTypes.GUILD_DIRECTORY]: 'Guild Directory',
+  [ChannelTypes.GUILD_FORUM]: 'Guild Forum',
 });
 
 
@@ -1385,6 +1392,22 @@ export enum TTSVoices {
   BLUE_IT_IT_FRANCESCA = 'BLUE_IT_IT_FRANCESCA',
   BLUE_JA_JP_EMI = 'BLUE_JA_JP_EMI',
   BLUE_PT_BR_ISABELA = 'BLUE_PT_BR_ISABELA',
+  TIKTOK_DE_FEMALE_01 = 'TIKTOK_DE_FEMALE_01',
+  TIKTOK_DE_MALE_01 = 'TIKTOK_DE_MALE_01',
+  TIKTOK_EN_US_FEMALE_01 = 'TIKTOK_EN_US_FEMALE_01',
+  TIKTOK_EN_US_FEMALE_02 = 'TIKTOK_EN_US_FEMALE_02',
+  TIKTOK_EN_US_MALE_01 = 'TIKTOK_EN_US_MALE_01',
+  TIKTOK_EN_US_MALE_02 = 'TIKTOK_EN_US_MALE_02',
+  TIKTOK_EN_US_MALE_03 = 'TIKTOK_EN_US_MALE_03',
+  TIKTOK_EN_US_MALE_04 = 'TIKTOK_EN_US_MALE_04',
+  TIKTOK_ES_MALE_01 = 'TIKTOK_ES_MALE_01',
+  TIKTOK_FR_MALE_01 = 'TIKTOK_FR_MALE_01',
+  TIKTOK_FR_MALE_02 = 'TIKTOK_FR_MALE_02',
+  TIKTOK_ID_FEMALE_01 = 'TIKTOK_ID_FEMALE_01',
+  TIKTOK_JP_FEMALE_01 = 'TIKTOK_JP_FEMALE_01',
+  TIKTOK_JP_FEMALE_02 = 'TIKTOK_JP_FEMALE_02',
+  TIKTOK_JP_FEMALE_03 = 'TIKTOK_JP_FEMALE_03',
+  TIKTOK_JP_MALE_01 = 'TIKTOK_JP_MALE_01',
 }
 
 

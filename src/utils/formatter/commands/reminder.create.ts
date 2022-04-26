@@ -40,8 +40,8 @@ export async function createMessage(
     text = `Ok, reminding`;
   }
 
-  text = `${text} ${timestamp.fromNow()}`;
-  if (ONE_DAY <= (date.getTime() - Date.now())) {
+  text = `${text} ${result.contentTimestamp || timestamp.fromNow()}`;
+  if (result.contentTimestamp.toLowerCase().includes('tomorrow') || ONE_DAY <= (date.getTime() - Date.now())) {
     text = `${text} (${Markup.timestamp(date)})`;
   }
   if (!reminder.content) {

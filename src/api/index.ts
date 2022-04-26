@@ -861,6 +861,22 @@ export async function putUser(
 }
 
 
+export async function search4Chan(
+  context: RequestContext,
+  options: RestOptions.Search4Chan,
+) {
+  return raw.search4Chan(context, options);
+}
+
+
+export async function search4ChanRandom(
+  context: RequestContext,
+  options: RestOptions.Search4ChanRandom,
+) {
+  return raw.search4ChanRandom(context, options);
+}
+
+
 export async function searchDuckDuckGo(
   context: RequestContext,
   options: RestOptions.SearchDuckDuckGo,

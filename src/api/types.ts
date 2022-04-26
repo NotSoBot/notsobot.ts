@@ -319,6 +319,14 @@ export namespace RestOptions {
   }
 
 
+  export interface Search4Chan {
+    board: string,
+  }
+
+  export interface Search4ChanRandom {
+    nsfw: boolean,
+  }
+
   export interface SearchDuckDuckGo {
     query: string,
   }
@@ -787,6 +795,76 @@ export namespace RestResponsesRaw {
       [key: string]: any,
     },
     url: null | string,
+  }
+
+
+  export interface Search4ChanMedia {
+    deleted: boolean,
+    extension: string,
+    height: number,
+    md5: string,
+    mobile_optimized: boolean,
+    name: string,
+    size: number,
+    spoiler: boolean,
+    spoiler_id: null | number,
+    tag: null | string,
+    url: string,
+    width: number,
+  }
+
+  export interface Search4ChanThread {
+    closed: boolean,
+    comment: string,
+    created_at: number,
+    created_at_text: string,
+    edited_at: null | number,
+    id: number,
+    images: number,
+    limited: {
+      bump: boolean,
+      images: boolean,
+    },
+    media: Search4ChanMedia | null,
+    omitted: {
+      images: number,
+      posts: number,
+    },
+    posts: Array<{
+      comment: string,
+      created_at: number,
+      created_at_text: string,
+      id: number,
+      media: Search4ChanMedia,
+      reply_id: null | number,
+      url: string,
+      user: Search4ChanUser,
+    }>,
+    replies: number,
+    sticky: boolean,
+    sticky_cap: number | null,
+    tail_size: number | null,
+    title: string,
+    unique_ips: number | null,
+    url: string,
+    url_semantic: string | null,
+    user: Search4ChanUser,
+  }
+
+  export interface Search4ChanUser {
+    badge: null | string,
+    country: null | {code: string, name: string},
+    id: null | string,
+    name: string,
+    since4pass: null | number,
+    trip: null | string,
+  }
+
+  export interface Search4Chan {
+    board: string,
+    nsfw: boolean,
+    threads: Array<Search4ChanThread>,
+    url: string,
   }
 
 
