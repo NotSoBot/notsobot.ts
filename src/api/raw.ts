@@ -242,6 +242,7 @@ export async function createUserCommand(
 ): Promise<RestResponsesRaw.CreateUserCommand> {
   const body = {
     channel_id: options.channelId,
+    command_type: options.commandType,
     edited_timestamp: options.editedTimestamp,
     failed_reason: options.failedReason,
     guild_id: options.guildId,

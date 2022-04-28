@@ -43,6 +43,7 @@ export namespace RestOptions {
 
   export interface CreateUserCommand {
     channelId: string,
+    commandType?: number,
     editedTimestamp?: null | number,
     failedReason?: string,
     guildId?: string,

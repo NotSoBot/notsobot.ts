@@ -10,7 +10,8 @@ import {
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
-import { EmbedColors, PermissionsText } from '../../constants';
+import { createUserCommand } from '../../api';
+import { CommandTypes, EmbedColors, PermissionsText } from '../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 
@@ -166,17 +167,69 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
       ].join('\n'));
     }
 
-    return context.editOrRespond({
+    await context.editOrRespond({
       embed,
       flags: MessageFlags.EPHEMERAL,
     });
+
+    if (context.invoker && context.invoker.metadata) {
+      let commandType: null | number = null;
+      switch (context.command.type) {
+        case ApplicationCommandTypes.CHAT_INPUT: commandType = CommandTypes.APPLICATION_SLASH; break;
+        case ApplicationCommandTypes.MESSAGE: commandType = CommandTypes.APPLICATION_MENU_MESSAGE; break;
+        case ApplicationCommandTypes.USER: commandType = CommandTypes.APPLICATION_MENU_USER; break;
+        default: commandType = null;
+      }
+
+      if (commandType !== null) {
+        const metadata = context.invoker.metadata;
+        const commandId = metadata.id || context.name.split(' ').join('.')
+        await createUserCommand(
+          context,
+          context.userId,
+          commandId,
+          {
+            commandType,
+            channelId: context.channelId!,
+            failedReason: String(error.message || error.stack).slice(0, 256),
+            guildId: context.guildId,
+            messageId: context.interactionId,
+            responseId: context.responseId,
+          },
+        );
+      }
+    }
   }
 
-  /*
   async onSuccess(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
     // log usage
+    if (context.invoker && context.invoker.metadata) {
+      let commandType: null | number = null;
+      switch (context.command.type) {
+        case ApplicationCommandTypes.CHAT_INPUT: commandType = CommandTypes.APPLICATION_SLASH; break;
+        case ApplicationCommandTypes.MESSAGE: commandType = CommandTypes.APPLICATION_MENU_MESSAGE; break;
+        case ApplicationCommandTypes.USER: commandType = CommandTypes.APPLICATION_MENU_USER; break;
+        default: commandType = null;
+      }
+
+      if (commandType !== null) {
+        const metadata = context.invoker.metadata;
+        const commandId = metadata.id || context.name.split(' ').join('.')
+        await createUserCommand(
+          context,
+          context.userId,
+          commandId,
+          {
+            commandType,
+            channelId: context.channelId!,
+            guildId: context.guildId,
+            messageId: context.interactionId,
+            responseId: context.responseId,
+          },
+        );
+      }
+    }
   }
-  */
 }
 
 
