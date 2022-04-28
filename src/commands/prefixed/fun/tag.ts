@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../api/types';
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -21,13 +21,14 @@ export default class TagCommand extends BaseCommand {
 
       aliases: ['t', 'tag show', 't show'],
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Show a tag',
         examples: [
           `${COMMAND_NAME} something`,
           `${COMMAND_NAME} "some tag"`,
           `${COMMAND_NAME} "some tag" arg1`,
         ],
-        type: CommandTypes.FUN,
+        id: Formatter.Commands.TagShow.COMMAND_ID,
         usage: '<tagname> <...arguments>',
       },
       priority: -1,

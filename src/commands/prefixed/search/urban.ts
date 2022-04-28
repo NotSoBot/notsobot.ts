@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -14,12 +14,12 @@ export default class UrbanCommand extends BaseSearchCommand<Formatter.Commands.S
       name: COMMAND_NAME,
 
       metadata: {
+        category: CommandCategories.SEARCH,
         description: 'Search Urban Dictionary',
         examples: [
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.SearchUrban.COMMAND_ID,
-        type: CommandTypes.SEARCH,
         usage: '<query>',
       },
       priority: -1,

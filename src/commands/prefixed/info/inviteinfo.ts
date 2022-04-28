@@ -6,7 +6,7 @@ import { Endpoints } from 'detritus-client-rest';
 
 
 import {
-  CommandTypes,
+  CommandCategories,
   DateMomentLogFormat,
   VerificationLevelTexts,
 } from '../../../constants';
@@ -37,7 +37,7 @@ export default class InviteInfoCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} 9Ukuw9V`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '<code>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

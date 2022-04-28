@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { uploadCommands } from '../../../api';
-import { CommandTypes } from '../../../constants';
+import { CommandCategories, CommandTypes } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
@@ -19,7 +19,7 @@ export default class UploadCommandsCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        type: CommandTypes.OWNER,
+        category: CommandCategories.OWNER,
         usage: `${COMMAND_NAME}`,
       },
     });
@@ -31,7 +31,7 @@ export default class UploadCommandsCommand extends BaseCommand {
 
   async run(context: Command.Context) {
     const commands = context.commandClient.commands.filter((command) => {
-      return !!command.metadata && !!command.metadata.type;
+      return !!command.metadata && !!command.metadata.category;
     }).map((command) => {
       const { args } = command.argParser;
       const metadata = command.metadata as CommandMetadata;
@@ -60,10 +60,12 @@ export default class UploadCommandsCommand extends BaseCommand {
             prefix: Array.from(arg.prefixes).shift() || '',
           };
         }),
+        category: metadata.category,
         enabled: true,
         description: metadata.description || '',
         dmable: !command.disableDm,
         examples: metadata.examples || [],
+        id: metadata.id || name.split(' ').join('.'),
         name,
         nsfw: !!metadata.nsfw,
         ratelimits: command.ratelimits.map((ratelimit) => {
@@ -74,7 +76,7 @@ export default class UploadCommandsCommand extends BaseCommand {
             type: String(ratelimit.type),
           };
         }),
-        type: metadata.type,
+        type: CommandTypes.PREFIXED,
         usage: metadata.usage || '',
       };
     });

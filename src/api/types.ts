@@ -184,6 +184,10 @@ export namespace RestOptions {
     line5?: string,
   }
 
+  export interface ImageCreateWordcloud {
+    words: Array<string>,
+  }
+
   export interface ImageManipulationBlur extends ImageBaseOptions {
     scale?: number,
   }
@@ -423,14 +427,16 @@ export namespace RestOptions {
 
   export interface UploadCommands {
     commands: Array<{
-      aliases: Array<string>,
-      args: Array<{aliases: Array<string>, name: string, prefix: string}>,
-      description: string,
-      dmable: boolean,
-      examples: Array<string>,
+      aliases?: Array<string>,
+      args?: Array<{aliases: Array<string>, description?: string, name: string, prefix: string}>,
+      category: string,
+      description?: string,
+      dmable?: boolean,
+      examples?: Array<string>,
+      id: string,
       name: string,
-      ratelimits: Array<{duration: number, key?: string, limit: number, type: string}>,
-      type: string,
+      ratelimits?: Array<{duration: number, key?: string, limit: number, type: string}>,
+      type: number,
       usage: string,
     }>,
   }

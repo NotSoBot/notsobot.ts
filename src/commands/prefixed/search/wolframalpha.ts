@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { searchWolframAlpha } from '../../../api';
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -24,7 +24,7 @@ export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
         examples: [
           `${COMMAND_NAME} 5 plus 5`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query>',
       },
     });

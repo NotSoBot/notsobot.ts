@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Paginator, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -32,7 +32,7 @@ export default class ApplicationsCommand extends BaseCommand {
           `${COMMAND_NAME} rust`,
           `${COMMAND_NAME} 356888738724446208`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<application:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

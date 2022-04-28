@@ -4,6 +4,8 @@ import { imageManipulationCircle } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.circle';
+
 export interface CommandArgs {
   scale?: number,
   url: string,

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -26,11 +26,12 @@ export default class PrefixesRemoveCommand extends BaseCommand {
       disableDm: true,
       label: 'prefix',
       metadata: {
+        category: CommandCategories.SETTINGS,
         description: 'Remove a custom prefix from the guild. (Bot Mentions will always override this)',
         examples: [
           `${COMMAND_NAME} ..`,
         ],
-        type: CommandTypes.SETTINGS,
+        id: Formatter.Commands.PrefixesRemove.COMMAND_ID,
         usage: '<prefix>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -43,7 +44,7 @@ export default class PrefixesRemoveCommand extends BaseCommand {
     return !!args.prefix;
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.SettingsPrefixesRemove.CommandArgs) {
-    return Formatter.Commands.SettingsPrefixesRemove.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.PrefixesRemove.CommandArgs) {
+    return Formatter.Commands.PrefixesRemove.createMessage(context, args);
   }
 }

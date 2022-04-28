@@ -14,7 +14,7 @@ import {
 } from '../../../utils';
 
 
-export const COMMAND_ID = 'tag remove';
+export const COMMAND_ID = 'tag.remove';
 
 export interface CommandArgsBefore {
   force?: boolean,

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -23,6 +23,7 @@ export default class ConvertCommand extends BaseImageCommand<Formatter.Commands.
         {name: 'size'},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Convert an image',
         examples: [
           COMMAND_NAME,
@@ -30,7 +31,7 @@ export default class ConvertCommand extends BaseImageCommand<Formatter.Commands.
           `${COMMAND_NAME} 👌🏿 png -size 2560`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png webp`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageToolsConvert.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>',
       },
       type: [

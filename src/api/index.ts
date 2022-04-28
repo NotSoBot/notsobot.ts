@@ -408,6 +408,14 @@ export async function imageCreateTombstone(
 }
 
 
+export async function imageCreateWordcloud(
+  context: RequestContext,
+  options: RestOptions.ImageCreateWordcloud,
+) {
+  return raw.imageCreateWordcloud(context, options);
+}
+
+
 export async function imageInformationExif(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes, DateMomentLogFormat } from '../../../constants';
+import { CommandCategories, DateMomentLogFormat } from '../../../constants';
 import { createTimestampMomentFromGuild, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -24,7 +24,7 @@ export default class ShardsLeftCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        type: CommandTypes.OWNER,
+        category: CommandCategories.OWNER,
         usage: '',
       },
     });

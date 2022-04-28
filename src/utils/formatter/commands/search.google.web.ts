@@ -16,6 +16,8 @@ import {
 import { Paginator, chunkArray, createUserEmbed, editOrReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'search.google.web';
+
 export const RESULTS_PER_PAGE = 3;
 
 export async function createMessage(

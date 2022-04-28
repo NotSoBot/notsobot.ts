@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'convert';
 
 export class AudioConvertCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Convert an Audio or Video File';
+  metadata = {
+    id: Formatter.Commands.AudioConvert.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

@@ -14,6 +14,9 @@ export interface CommandArgs {
 
 export class SearchGoogleWebCommand extends BaseInteractionCommandOption {
   description = 'Search Google';
+  metadata = {
+    id: Formatter.Commands.SearchGoogleWeb.COMMAND_ID,
+  };
   name = 'web';
 
   constructor() {

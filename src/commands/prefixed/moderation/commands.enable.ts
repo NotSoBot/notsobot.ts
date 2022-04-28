@@ -3,7 +3,7 @@ import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { deleteGuildDisabledCommand, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
-import { CommandTypes, GuildDisableCommandsTypes } from '../../../constants';
+import { CommandCategories, GuildDisableCommandsTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Parameters } from '../../../utils';
 
@@ -66,7 +66,7 @@ export default class CommandsEnable extends BaseCommand {
           `${COMMAND_NAME} rule34 -channels lobby`,
           `${COMMAND_NAME} rule34 -roles admin everyone`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '<command-name> (-channels ...<channel:id|mention|name>) (-roles ...<role:id|mention|name>) (-users ...<user:id|mention|name>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

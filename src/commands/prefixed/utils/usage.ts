@@ -4,7 +4,7 @@ import * as os from 'os';
 import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { BaseCommand } from '../basecommand';
 import { editOrReply, padCodeBlockFromRows } from '../../../utils';
 
@@ -23,7 +23,7 @@ export default class UsageCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        type: CommandTypes.UTILS,
+        category: CommandCategories.UTILS,
         usage: '',
       },
     });

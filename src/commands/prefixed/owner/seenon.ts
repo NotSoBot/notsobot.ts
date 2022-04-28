@@ -4,7 +4,7 @@ import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 
 import { Endpoints } from 'detritus-client-rest';
 
-import { CommandTypes, DateMomentLogFormat } from '../../../constants';
+import { CommandCategories, DateMomentLogFormat } from '../../../constants';
 import {
   DefaultParameters,
   Paginator,
@@ -110,7 +110,7 @@ export default class SeenOnCommand extends BaseCommand {
           `${COMMAND_NAME} cake#1`,
           `${COMMAND_NAME} <@439205512425504771>`,
         ],
-        type: CommandTypes.OWNER,
+        category: CommandCategories.OWNER,
         usage: '?<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

@@ -358,17 +358,20 @@ export async function NotSoTag(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<false | null | RestResponsesRaw.Tag> {
-  try {
-    return await fetchTag(context, {
-      name: value,
-      serverId: context.guildId || context.channelId,
-    });
-  } catch(error) {
-    if (error.response && error.response.statusCode === 404) {
-      return false;
+  if (value) {
+    try {
+      return await fetchTag(context, {
+        name: value,
+        serverId: context.guildId || context.channelId,
+      });
+    } catch(error) {
+      if (error.response && error.response.statusCode === 404) {
+        return false;
+      }
+      throw error;
     }
-    throw error;
   }
+  return null;
 }
 
 

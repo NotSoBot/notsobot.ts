@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -20,11 +20,12 @@ export default class ScreenshotCommand extends BaseCommand<CommandArgs> {
       aliases: ['ss'],
       label: 'url',
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Take a screenshot of a website',
         examples: [
           `${COMMAND_NAME} https://discordapp.com`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
         usage: '<url>',
       },
       type: Parameters.url,

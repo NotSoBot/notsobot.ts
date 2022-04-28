@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsBlocklist } from '../../../api/structures/guildsettings';
-import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildBlocklistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Paginator, Parameters, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
@@ -125,7 +125,7 @@ export default class BlocklistCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} channels`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '?<GuildBlocklistType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

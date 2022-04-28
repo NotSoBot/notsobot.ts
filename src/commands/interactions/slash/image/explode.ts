@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'explode';
 
 export class ImageExplodeCommand extends BaseInteractionImageCommandOption {
   description = 'Explode an Image from the center';
+  metadata = {
+    id: Formatter.Commands.ImageExplode.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

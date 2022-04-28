@@ -4,7 +4,7 @@ import { utilitiesQrCreate } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'qr scan';
+export const COMMAND_ID = 'tools.qr.create';
 
 export interface CommandArgs {
   margin?: number,

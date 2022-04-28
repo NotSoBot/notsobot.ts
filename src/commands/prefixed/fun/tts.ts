@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes, TTSVoices, TTS_VOICES } from '../../../constants';
+import { CommandCategories, TTSVoices, TTS_VOICES } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -25,13 +25,13 @@ export default class TTSCommand extends BaseCommand {
       ],
       label: 'text',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Text to Speech',
         examples: [
           `${COMMAND_NAME} give me a table`,
           `${COMMAND_NAME} give me a table -use kate`,
         ],
         id: Formatter.Commands.FunTTS.COMMAND_ID,
-        type: CommandTypes.FUN,
         usage: '<text> (-use <language/type>)',
       },
     });

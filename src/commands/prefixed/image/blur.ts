@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -22,13 +22,14 @@ export default class BlurCommand extends BaseImageCommand<Formatter.Commands.Ima
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Blur an image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageBlur.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });

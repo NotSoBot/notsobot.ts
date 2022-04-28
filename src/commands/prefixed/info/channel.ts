@@ -4,7 +4,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
 
-import { ChannelTypesText, CommandTypes, DateMomentLogFormat } from '../../../constants';
+import { ChannelTypesText, CommandCategories, DateMomentLogFormat } from '../../../constants';
 import { GuildChannelsStored } from '../../../stores/guildchannels';
 import { Parameters, createTimestampMomentFromGuild, editOrReply } from '../../../utils';
 
@@ -42,7 +42,7 @@ export default class ChannelCommand extends BaseCommand {
           `${COMMAND_NAME} lobby`,
           `${COMMAND_NAME} 585639594574217232`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<channel:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

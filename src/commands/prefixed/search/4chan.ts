@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { DefaultParameters, Formatter } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -21,13 +21,13 @@ export default class ChanCommand extends BaseSearchCommand<Formatter.Commands.Se
       ],
       label: 'board',
       metadata: {
+        category: CommandCategories.SEARCH,
         description: 'Search 4Chan',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} fitness`,
         ],
         id: Formatter.Commands.Search4Chan.COMMAND_ID,
-        type: CommandTypes.SEARCH,
         usage: '?<board>',
       },
     });

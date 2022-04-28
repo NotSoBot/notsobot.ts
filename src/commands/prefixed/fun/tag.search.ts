@@ -1,6 +1,6 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -27,6 +27,7 @@ export default class TagSearchCommand extends BaseCommand {
       args: [{name: 'user', type: Parameters.memberOrUser({allowBots: false})}],
       label: 'name',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Search the Server\'s Tags',
         examples: [
           COMMAND_NAME,
@@ -34,7 +35,7 @@ export default class TagSearchCommand extends BaseCommand {
           `${COMMAND_NAME} bot -user cake#1`,
           `${COMMAND_NAME} -user <@439205512425504771>`,
         ],
-        type: CommandTypes.FUN,
+        id: Formatter.Commands.TagListServer.COMMAND_ID,
         usage: '?<query> (-user ?<user:id|mention|name>)',
       },
       type: Parameters.tagName,

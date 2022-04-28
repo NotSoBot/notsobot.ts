@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'reverse';
 
 export class ImageGifReverseCommand extends BaseInteractionImageCommandOption {
   description = 'Reverse an Animated Image';
+  metadata = {
+    id: Formatter.Commands.ImageGifReverse.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageGifReverse.CommandArgs) {

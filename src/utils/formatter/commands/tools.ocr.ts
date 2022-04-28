@@ -10,6 +10,8 @@ import {
 import { createUserEmbed, editOrReply, languageCodeToText } from '../../../utils';
 
 
+export const COMMAND_ID = 'tools.ocr';
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: {isEphemeral?: boolean, noembed?: boolean, upload?: boolean, url: string},

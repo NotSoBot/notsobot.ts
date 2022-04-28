@@ -29,7 +29,7 @@ export const languagesText = Object.values(CodeLanguages).map((x: any) => {
 }).sort().join(', ');
 
 
-export const COMMAND_ID = 'tools code';
+export const COMMAND_ID = 'tools.code';
 
 export interface CommandArgs {
   code: string,

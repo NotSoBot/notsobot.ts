@@ -3,7 +3,7 @@ import { ClusterClient, Command, CommandClient, ShardClient } from 'detritus-cli
 import { DIRECTORY } from '../../../../config.json';
 
 import { NotSoCommandClient } from '../../../commandclient';
-import { CommandTypes, RedisChannels } from '../../../constants';
+import { CommandCategories, RedisChannels } from '../../../constants';
 import { NotSoInteractionClient } from '../../../interactioncommandclient';
 import { Listener } from '../../../listeners';
 import { Store } from '../../../stores';
@@ -126,7 +126,7 @@ export default class RefreshCommand extends BaseCommand {
           `${COMMAND_NAME} -stores`,
           `${COMMAND_NAME} -listeners`,
         ],
-        type: CommandTypes.OWNER,
+        category: CommandCategories.OWNER,
         usage: '(-listeners) (-stores)',
       },
       responseOptional: true,

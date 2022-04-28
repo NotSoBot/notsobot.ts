@@ -6,7 +6,7 @@ import { Endpoints } from 'detritus-client-rest';
 
 
 import {
-  CommandTypes,
+  CommandCategories,
   DateMomentLogFormat,
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
@@ -56,7 +56,7 @@ export default class GuildCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} 178313653177548800`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<guild:id>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

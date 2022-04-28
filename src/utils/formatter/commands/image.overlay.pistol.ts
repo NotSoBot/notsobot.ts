@@ -4,6 +4,8 @@ import { imageOverlayHalfLifePistol } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.overlay.pistol';
+
 export interface CommandArgs {
   url: string,
 }

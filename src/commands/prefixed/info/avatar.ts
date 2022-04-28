@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 
-import { CommandTypes, PresenceStatusColors } from '../../../constants';
+import { CommandCategories, PresenceStatusColors } from '../../../constants';
 import { DefaultParameters, Parameters, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -39,7 +39,7 @@ export default class AvatarCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<user:id|mention|name> (-default) (-noembed)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

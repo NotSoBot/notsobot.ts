@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'meme';
 
 export class ImageMemeCommand extends BaseInteractionImageCommandOption {
   description = 'Add Meme Text to an Image';
+  metadata = {
+    id: Formatter.Commands.ImageMeme.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

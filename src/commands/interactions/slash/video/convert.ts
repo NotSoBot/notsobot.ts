@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'convert';
 
 export class VideoConvertCommand extends BaseInteractionVideoCommandOption {
   description = 'Convert a Video';
+  metadata = {
+    id: Formatter.Commands.VideoConvert.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import {
-  CommandTypes,
+  CommandCategories,
   DateMomentLogFormat,
   DiscordEmojis,
   PresenceStatusColors,
@@ -76,7 +76,7 @@ export default class PlayingCommand extends BaseCommand {
           `${COMMAND_NAME} rust`,
           `${COMMAND_NAME} spotify`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<application:id|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

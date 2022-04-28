@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { imageOverlayFlagUK } from '../../../api';
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { imageReply } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -29,7 +29,7 @@ export default class OverlayUKCommand extends BaseImageCommand<CommandArgs> {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.IMAGE,
+        category: CommandCategories.IMAGE,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

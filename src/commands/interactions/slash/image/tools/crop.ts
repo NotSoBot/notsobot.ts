@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'crop';
 
 export class ImageToolsCropCommand extends BaseInteractionImageCommandOption {
   description = 'Crop an Image';
+  metadata = {
+    id: Formatter.Commands.ImageToolsCrop.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageToolsCrop.CommandArgs) {

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -19,12 +19,13 @@ export default class OverlayPistolCommand extends BaseImageCommand<Formatter.Com
 
       aliases: ['o pistol', 'pistol'],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Overlay a Half Life Pistol over an image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageOverlayPistol.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

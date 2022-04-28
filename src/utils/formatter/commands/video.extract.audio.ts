@@ -4,6 +4,8 @@ import { videoToolsExtractAudio } from '../../../api';
 import { mediaReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'video.extract.audio';
+
 export interface CommandArgs {
   url: string,
 }

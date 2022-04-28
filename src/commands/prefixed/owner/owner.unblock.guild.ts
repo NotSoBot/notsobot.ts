@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../../api';
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -31,7 +31,7 @@ export default class OwnerBlockGuildCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} 178313653177548800`,
         ],
-        type: CommandTypes.OWNER,
+        category: CommandCategories.OWNER,
         usage: '<guild:id>',
       },
       type: Parameters.guild,

@@ -8,6 +8,9 @@ import { BaseContextMenuUserCommand, ContextMenuUserArgs } from '../../basecomma
 export const COMMAND_NAME = 'Information';
 
 export default class InformationCommand extends BaseContextMenuUserCommand {
+  metadata = {
+    id: Formatter.Commands.InfoUser.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   async run(context: Interaction.InteractionContext, args: ContextMenuUserArgs) {

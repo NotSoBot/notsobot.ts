@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { imageInformationExif } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { createUserEmbed, editOrReply, formatMemory, splitArray } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -30,7 +30,7 @@ export default class ExifCommand extends BaseImageCommand<CommandArgs> {
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        type: CommandTypes.IMAGE,
+        category: CommandCategories.IMAGE,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

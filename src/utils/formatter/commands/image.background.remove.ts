@@ -5,6 +5,8 @@ import { ImageBackgroundRemovalModels, ImageBackgroundRemovalModelsToText } from
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.background.remove';
+
 export const DEFAULT_MODEL = ImageBackgroundRemovalModels.U2NET;
 
 export const SLASH_CHOICES_MODEL = Object.keys(ImageBackgroundRemovalModelsToText).map((value) => {

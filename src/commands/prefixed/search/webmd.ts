@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -24,7 +24,7 @@ export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
         examples: [
           `${COMMAND_NAME} red spot on finger`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query>',
       },
     });

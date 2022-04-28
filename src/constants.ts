@@ -237,7 +237,7 @@ export const CodeRextesterLanguagesToName = Object.freeze({
 });
 
 
-export enum CommandTypes {
+export enum CommandCategories {
   FUN = 'FUN',
   IMAGE = 'IMAGE',
   INFO = 'INFO',
@@ -248,6 +248,14 @@ export enum CommandTypes {
   SETTINGS = 'SETTINGS',
   TOOLS = 'TOOLS',
   UTILS = 'UTILS',
+}
+
+
+export enum CommandTypes {
+  PREFIXED = 0,
+  APPLICATION_SLASH = 1,
+  APPLICATION_MENU_USER = 2,
+  APPLICATION_MENU_MESSAGE = 3,
 }
 
 

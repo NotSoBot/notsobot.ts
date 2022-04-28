@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'blur';
 
 export class ImageBlurCommand extends BaseInteractionImageCommandOption {
   description = 'Blur an Image';
+  metadata = {
+    id: Formatter.Commands.ImageBlur.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

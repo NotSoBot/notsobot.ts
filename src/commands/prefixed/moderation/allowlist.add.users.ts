@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildAllowlistTypes } from '../../../constants';
 import { Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -34,7 +34,7 @@ export default class AllowlistAddUsersCommand extends BaseCommand {
           `${COMMAND_NAME} cake`,
           `${COMMAND_NAME} <@300505364032389122> <@61189081970774016>`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '...<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

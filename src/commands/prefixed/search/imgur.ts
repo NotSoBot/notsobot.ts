@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -21,7 +21,7 @@ export default class ImgurCommand extends BaseSearchCommand<CommandArgs> {
         examples: [
           `${COMMAND_NAME} cat`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query>',
       },
     });

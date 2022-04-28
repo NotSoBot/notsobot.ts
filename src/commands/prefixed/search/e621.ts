@@ -4,7 +4,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchE621 } from '../../../api';
-import { CommandTypes, E621Rating, E621RatingText, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, E621Rating, E621RatingText, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -39,7 +39,7 @@ export default class E621Command extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} discord -randomize`,
           `${COMMAND_NAME} discord -r`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query> (-randomize)',
       },
     });

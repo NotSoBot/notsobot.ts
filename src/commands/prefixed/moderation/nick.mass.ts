@@ -3,7 +3,7 @@ import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } f
 import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
-import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
 import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
@@ -51,7 +51,7 @@ export default class NickMassCommand extends BaseCommand {
           `${COMMAND_NAME} troy -nobots`,
           `${COMMAND_NAME} troy -nousers`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '<text> (-nobots) (-nousers) (-role <role:id|name>)',
       },
       permissionsClient: [Permissions.CHANGE_NICKNAMES],

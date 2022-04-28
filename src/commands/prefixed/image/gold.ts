@@ -1,41 +1,32 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationRainGold } from '../../../api';
-import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'gold';
 
-export default class GoldCommand extends BaseImageCommand<CommandArgs> {
+export default class GoldCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Gold tintify an image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageGold.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationRainGold(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageGold.CommandArgs) {
+    return Formatter.Commands.ImageGold.createMessage(context, args);
   }
 }

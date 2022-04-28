@@ -4,6 +4,8 @@ import { utilitiesScreenshot } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'tools.screenshot';
+
 export interface CommandArgs {
   url: string,
 }

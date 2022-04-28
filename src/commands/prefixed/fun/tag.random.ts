@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -16,11 +16,12 @@ export default class TagRandomCommand extends BaseCommand {
       aliases: ['t random'],
       label: 'arguments',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Show a random tag',
         examples: [
           COMMAND_NAME,
         ],
-        type: CommandTypes.FUN,
+        id: Formatter.Commands.TagRandom.COMMAND_ID,
         usage: '<...arguments>',
       },
       type: Parameters.stringArguments,

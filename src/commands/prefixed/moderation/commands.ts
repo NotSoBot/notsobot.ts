@@ -2,7 +2,7 @@ import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { GuildSettings, GuildSettingsDisabledCommand } from '../../../api/structures/guildsettings';
-import { CommandTypes, EmbedColors, GuildDisableCommandsTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildDisableCommandsTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
@@ -111,7 +111,7 @@ export default class CommandsCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} channels`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '?<GuildDisableCommandsType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

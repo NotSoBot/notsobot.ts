@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'remove';
 
 export class ImageBackgroundRemoveCommand extends BaseInteractionImageCommandOption {
   description = 'Remove an image\'s background';
+  metadata = {
+    id: Formatter.Commands.ImageBackgroundRemove.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

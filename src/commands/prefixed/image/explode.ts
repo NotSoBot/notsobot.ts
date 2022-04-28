@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -22,13 +22,14 @@ export default class ExplodeCommand extends BaseImageCommand<Formatter.Commands.
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Explode an image from the center',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageExplode.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });

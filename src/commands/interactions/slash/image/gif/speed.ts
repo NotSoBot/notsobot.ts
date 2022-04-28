@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'speed';
 
 export class ImageGifSpeedCommand extends BaseInteractionImageCommandOption {
   description = 'Edit an Animated Image\'s Speed';
+  metadata = {
+    id: Formatter.Commands.ImageGifSpeed.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

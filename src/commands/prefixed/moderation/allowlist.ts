@@ -2,7 +2,7 @@ import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { GuildSettings, GuildSettingsAllowlist } from '../../../api/structures/guildsettings';
-import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
@@ -124,7 +124,7 @@ export default class AllowlistCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} channels`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '?<GuildAllowlistType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

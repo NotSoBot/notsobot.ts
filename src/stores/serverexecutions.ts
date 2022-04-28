@@ -4,9 +4,9 @@ import { EventSubscription } from 'detritus-utils';
 import { Store } from './store';
 
 
-export type ServerExecutionsStored = {nick: boolean, prune: boolean};
+export type ServerExecutionsStored = {nick: boolean, prune: boolean, wordcloud: boolean};
 
-// Stores a server's command execution, for nick mass/pruning
+// Stores a server's command execution, for nick mass/pruning/wordcloud
 class ServerExecutionsStore extends Store<string, ServerExecutionsStored> {
   constructor() {
     super({expire: 0});
@@ -17,7 +17,7 @@ class ServerExecutionsStore extends Store<string, ServerExecutionsStored> {
     if (this.has(key)) {
       value = this.get(key) as ServerExecutionsStored;
     } else {
-      value = {nick: false, prune: false};
+      value = {nick: false, prune: false, wordcloud: false};
       this.insert(key, value);
     }
     return value;

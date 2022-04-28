@@ -3,7 +3,8 @@ import { ChannelTypes, InteractionCallbackTypes, MessageComponentButtonStyles, M
 import { ComponentActionRow, ComponentContext, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
-import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
+import ServerExecutionsStore from '../../../stores/serverexecutions';
 import { DefaultParameters, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -62,7 +63,7 @@ export default class PruneCommand extends BaseCommand {
           `${COMMAND_NAME} 500 -with discord.gg`,
           `${COMMAND_NAME} 500 -with discord.gg -in general`
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '<max_messages> (-after <message_id>) (-before <message_id>) (-from <user>) (-in <channel>) (-with <text>)',
       },
       permissionsClient: [Permissions.MANAGE_MESSAGES],
@@ -91,57 +92,68 @@ export default class PruneCommand extends BaseCommand {
 
     const channelId = (args.in) ? args.in.id : context.channelId;
 
-    let before: string;
-    if (args.before) {
-      before = args.before;
-    } else {
-      const { messageReference } = context.message;
-      if (messageReference && messageReference.messageId && messageReference.channelId === channelId) {
-        before = String(BigInt(messageReference.messageId) + 1n);
+    const isExecuting = ServerExecutionsStore.getOrCreate(context.guildId || context.channelId);
+    if (isExecuting.prune) {
+      return editOrReply(context, 'Currently pruning this server, wait for it to finish');
+    }
+
+    isExecuting.prune = true;
+    try {
+      let before: string;
+      if (args.before) {
+        before = args.before;
       } else {
-        before = context.messageId;
-      }
-    }
-
-    if (args.in) {
-      for (let message of args.in.messages.toArray().reverse()) {
-        if (message.id === context.messageId) {
-          continue;
+        const { messageReference } = context.message;
+        if (messageReference && messageReference.messageId && messageReference.channelId === channelId) {
+          before = String(BigInt(messageReference.messageId) + 1n);
+        } else {
+          before = context.messageId;
         }
-        if (args.amount <= bulk.length + manual.length) {
+      }
+
+      if (args.in) {
+        for (let message of args.in.messages.toArray().reverse()) {
+          if (message.id === context.messageId) {
+            continue;
+          }
+          if (args.amount <= bulk.length + manual.length) {
+            break;
+          }
+          if (this.shouldDelete(message, args)) {
+            if (!context.inDm && this.shouldBulkDelete(message.createdAtUnix)) {
+              bulk.push(message);
+            } else {
+              manual.push(message);
+            }
+          }
+          before = message.id;
+        }
+      }
+
+      let tries = 0;
+      while (tries++ < MAX_FETCHES && bulk.length + manual.length < args.amount) {
+        const messages = await context.rest.fetchMessages(channelId, {before, limit: 100});
+        for (let message of messages.toArray()) {
+          if (args.amount <= bulk.length + manual.length) {
+            break;
+          }
+          if (this.shouldDelete(message, args)) {
+            if (!context.inDm && this.shouldBulkDelete(message.createdAtUnix)) {
+              bulk.push(message);
+            } else {
+              manual.push(message);
+            }
+          }
+          before = message.id;
+        }
+        if (!this.shouldBulkDelete(Snowflake.timestamp(before))) {
+          // check before date to see if it was made before 2 weeks (temporarily)
           break;
         }
-        if (this.shouldDelete(message, args)) {
-          if (!context.inDm && this.shouldBulkDelete(message.createdAtUnix)) {
-            bulk.push(message);
-          } else {
-            manual.push(message);
-          }
-        }
-        before = message.id;
       }
-    }
-
-    let tries = 0;
-    while (tries++ < MAX_FETCHES && bulk.length + manual.length < args.amount) {
-      const messages = await context.rest.fetchMessages(channelId, {before, limit: 100});
-      for (let message of messages.toArray()) {
-        if (args.amount <= bulk.length + manual.length) {
-          break;
-        }
-        if (this.shouldDelete(message, args)) {
-          if (!context.inDm && this.shouldBulkDelete(message.createdAtUnix)) {
-            bulk.push(message);
-          } else {
-            manual.push(message);
-          }
-        }
-        before = message.id;
-      }
-      if (!this.shouldBulkDelete(Snowflake.timestamp(before))) {
-        // check before date to see if it was made before 2 weeks (temporarily)
-        break;
-      }
+    } catch(error) {
+      isExecuting.prune = false;
+      throw error;
     }
 
     const total = bulk.length + manual.length;
@@ -153,6 +165,7 @@ export default class PruneCommand extends BaseCommand {
         if (message.canEdit) {
           await message.edit(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
         }
+        isExecuting.prune = false;
         await this.clearMessages(timeout, [context.message, message]);
       } else {
         const actionRow = new ComponentActionRow();
@@ -176,6 +189,7 @@ export default class PruneCommand extends BaseCommand {
               await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} out of ${total.toLocaleString()} messages`);
             }
 
+            isExecuting.prune = false;
             await this.clearMessages(timeout, [context.message, message]);
           },
         });
@@ -189,6 +203,7 @@ export default class PruneCommand extends BaseCommand {
             }
             timeout.stop();
 
+            isExecuting.prune = false;
             await ctx.editOrRespond({
               content: `Ok, canceled pruning of ${total.toLocaleString()} messages.`,
               components: [],
@@ -205,10 +220,12 @@ export default class PruneCommand extends BaseCommand {
           content = `Found ${total.toLocaleString()} messages to delete. (Out of the ${args.amount.toLocaleString()} messages requested)`;
         }
 
+        isExecuting.prune = false;
         const message = await editOrReply(context, {content, components: [actionRow]});
         this.clearMessages(timeout, [context.message, message], MAX_TIME_TO_RESPOND);
       }
     } else {
+      isExecuting.prune = false;
       const message = await editOrReply(context, {
         content: 'Unable to prune any messages',
         flags: MessageFlags.EPHEMERAL,

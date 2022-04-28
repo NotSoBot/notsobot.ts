@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../api/types';
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -17,16 +17,17 @@ export default class RemindCommand extends BaseCommand {
       aliases: ['reminder', 'remind create', 'reminder create'],
       label: 'result',
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Create a reminder',
         examples: [
           `${COMMAND_NAME} me to take out the dishes at 4pm`,
           `${COMMAND_NAME} unmute someone in 2 days`,
           `${COMMAND_NAME} do the laundry tomorrow`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ReminderCreate.COMMAND_ID,
         usage: '<natural-timestamp-and-text>',
       },
-      priority: -1,
+      priority: -2,
       type: Parameters.nlpTimestamp,
     });
   }

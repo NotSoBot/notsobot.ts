@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, GuildAllowlistTypes } from '../../../constants';
+import { CommandCategories, GuildAllowlistTypes } from '../../../constants';
 import { Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -39,7 +39,7 @@ export default class AllowlistRemoveRolesCommand extends BaseCommand {
           `${COMMAND_NAME} everyone`,
           `${COMMAND_NAME} <@&668258873546637322> <@&178897437082124288>`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '...<role:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

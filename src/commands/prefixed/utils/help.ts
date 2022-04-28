@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
@@ -32,7 +32,7 @@ export default class HelpCommand extends BaseCommand {
           `${COMMAND_NAME} google`,
           `${COMMAND_NAME} loggers`,
         ],
-        type: CommandTypes.UTILS,
+        category: CommandCategories.UTILS,
         usage: '?<command:name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -129,8 +129,8 @@ export default class HelpCommand extends BaseCommand {
           {
             const description: Array<string> = [];
 
+            description.push(`**Category**: ${toTitleCase(metadata.category)}`);
             description.push(`**NSFW**: ${(metadata.nsfw) ? 'Yes' : 'No'}`);
-            description.push(`**Type**: ${toTitleCase(metadata.type)}`);
 
             embed.addField('Information', description.join('\n'));
           }

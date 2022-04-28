@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { SocketStates } from 'detritus-client-socket/lib/constants';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { editOrReply, padCodeBlockFromRows, splitTextByAmount } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -126,7 +126,7 @@ export default class ShardCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        type: CommandTypes.UTILS,
+        category: CommandCategories.UTILS,
         usage: `${COMMAND_NAME}`,
       },
     });

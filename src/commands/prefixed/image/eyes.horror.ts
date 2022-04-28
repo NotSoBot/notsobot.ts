@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { imageManipulationEyes } from '../../../api';
-import { CommandTypes, ImageEyeTypes } from '../../../constants';
+import { CommandCategories, ImageEyeTypes } from '../../../constants';
 import { imageReply } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -29,7 +29,7 @@ export default class EyesCommand extends BaseImageCommand<CommandArgs> {
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        type: CommandTypes.IMAGE,
+        category: CommandCategories.IMAGE,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

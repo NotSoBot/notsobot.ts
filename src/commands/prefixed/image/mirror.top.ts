@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationMirrorTop } from '../../../api';
-import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -17,26 +16,26 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'mirror top';
 
-export default class MirrorTopCommand extends BaseImageCommand<CommandArgs> {
+export default class MirrorTopCommand extends BaseImageCommand<Formatter.Commands.ImageMirrorTop.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
       aliases: ['woow'],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Mirror top half of image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageMirrorTop.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationMirrorTop(context, {url: args.url});
-    return imageReply(context, response, 'mirror-top');
+  async run(context: Command.Context, args: Formatter.Commands.ImageMirrorTop.CommandArgs) {
+    return Formatter.Commands.ImageMirrorTop.createMessage(context, args);
   }
 }

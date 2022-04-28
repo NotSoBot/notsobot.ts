@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -16,12 +16,12 @@ export default class TextwallCommand extends BaseCommand {
       aliases: ['twall'],
       label: 'text',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Textwallify some text',
         examples: [
           `${COMMAND_NAME} lol`,
         ],
         id: Formatter.Commands.FunTextwall.COMMAND_ID,
-        type: CommandTypes.FUN,
         usage: '<text>',
       },
     });

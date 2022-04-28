@@ -18,6 +18,9 @@ export const COMMAND_NAME = 'translate';
 
 export default class TranslateCommand extends BaseSlashCommand {
   description = 'Translate some text';
+  metadata = {
+    id: Formatter.Commands.ToolsTranslate.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

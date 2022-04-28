@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionWebDetection, searchGoogleReverseImages } from '../../../api';
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -26,7 +26,7 @@ export default class GoogleReverseCommand extends BaseImageCommand<CommandArgs> 
           `${COMMAND_NAME}`,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

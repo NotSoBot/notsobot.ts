@@ -4,7 +4,7 @@ import { Markup, rgbToInt } from 'detritus-client/lib/utils';
 
 import { googleContentVisionSafeSearch } from '../../../api';
 import {
-  CommandTypes,
+  CommandCategories,
   EmbedBrands,
   EmbedColors,
   GoogleContentVisionSafeSearchAttributes,
@@ -33,7 +33,7 @@ export default class SafetyLabelsCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
         ],
         permissionsClient: [Permissions.EMBED_LINKS],
-        type: CommandTypes.TOOLS,
+        category: CommandCategories.TOOLS,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

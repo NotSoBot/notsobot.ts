@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -18,7 +18,7 @@ export default class PrivacyCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        type: CommandTypes.UTILS,
+        category: CommandCategories.UTILS,
         usage: '',
       },
     });

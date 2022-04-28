@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { funASCII } from '../../../api';
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { editOrReply, imageReplyFromOptions } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -29,7 +29,7 @@ export default class AsciiCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} NotSoBot`,
         ],
-        type: CommandTypes.FUN,
+        category: CommandCategories.FUN,
         usage: '<text>',
       },
       priority: -1,

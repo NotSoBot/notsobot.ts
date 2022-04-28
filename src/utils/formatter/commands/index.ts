@@ -2,9 +2,12 @@ import * as AudioConvert from './audio.convert';
 import * as AudioIdentify from './audio.identify';
 
 import * as FunAesthetics from './fun.aesthetics';
+import * as FunEmoji from './fun.emoji';
 import * as FunRegional from './fun.regional';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
+import * as FunWordcloudChannel from './fun.wordcloud.channel';
+import * as FunWordcloudUser from './fun.wordcloud.user';
 
 import * as ImageBackgroundRemove from './image.background.remove';
 import * as ImageBlur from './image.blur';
@@ -17,31 +20,60 @@ import * as ImageFlop from './image.flop';
 import * as ImageGifReverse from './image.gif.reverse';
 import * as ImageGifSeeSaw from './image.gif.seesaw';
 import * as ImageGifSpeed from './image.gif.speed';
+import * as ImageGlitch from './image.glitch';
+import * as ImageGold from './image.gold';
+import * as ImageImplode from './image.implode';
 import * as ImageInvert from './image.invert';
+import * as ImageLegofy from './image.legofy';
+import * as ImageMagik from './image.magik';
+import * as ImageMagikGif from './image.magik.gif';
 import * as ImageMeme from './image.meme';
+import * as ImageMirrorBottom from './image.mirror.bottom';
+import * as ImageMirrorLeft from './image.mirror.left';
+import * as ImageMirrorRight from './image.mirror.right';
+import * as ImageMirrorTop from './image.mirror.top';
+import * as ImageNeedsMoreJpeg from './image.needsmorejpeg';
 import * as ImageOverlayPistol from './image.overlay.pistol';
+import * as ImagePixelate from './image.pixelate';
+import * as ImageSharpen from './image.sharpen';
+import * as ImageSpin from './image.spin';
+import * as ImageRain from './image.rain';
+import * as ImageRip from './image.rip';
 import * as ImageToolsConvert from './image.tools.convert';
 import * as ImageToolsCrop from './image.tools.crop';
 import * as ImageToolsResize from './image.tools.resize';
+import * as ImageToolsRotate from './image.tools.rotate';
+import * as ImageWall from './image.wall';
 
 import * as InfoUser from './info.user';
 
+import * as PrefixesAdd from './prefixes.add';
+import * as PrefixesClear from './prefixes.clear';
+import * as PrefixesList from './prefixes.list';
+import * as PrefixesRemove from './prefixes.remove';
+import * as PrefixesReplace from './prefixes.replace';
+
 import * as ReminderCreate from './reminder.create';
+import * as ReminderDelete from './reminder.delete';
+import * as ReminderListUser from './reminder.list.user';
 
 import * as Search4Chan from './search.4chan';
+import * as SearchDiscordEmojis from './search.discord.emojis';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleWeb from './search.google.web';
+import * as SearchSteamCommunity from './search.steam.community';
+import * as SearchSteamEmojis from './search.steam.emojis';
+import * as SearchSteamProfile from './search.steam.profile';
 import * as SearchUrban from './search.urban';
 
-import * as SettingsMeLocale from './settings.me.locale';
-import * as SettingsMeTimezone from './settings.me.timezone';
-import * as SettingsPrefixesAdd from './settings.prefixes.add';
-import * as SettingsPrefixesClear from './settings.prefixes.clear';
-import * as SettingsPrefixesList from './settings.prefixes.list';
-import * as SettingsPrefixesRemove from './settings.prefixes.remove';
-import * as SettingsPrefixesReplace from './settings.prefixes.replace';
-import * as SettingsTimezone from './settings.timezone';
+import * as SettingsServerSetLocale from './settings.server.set.locale';
+import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
+import * as SettingsSetLocale from './settings.set.locale';
+import * as SettingsSetTimezone from './settings.set.timezone';
+
+import * as TagCreate from './tag.create';
+import * as TagEdit from './tag.edit';
 import * as TagInfo from './tag.info';
 import * as TagListServer from './tag.list.server';
 import * as TagListUser from './tag.list.user';
@@ -66,9 +98,12 @@ export {
   AudioConvert,
   AudioIdentify,
   FunAesthetics,
+  FunEmoji,
   FunRegional,
   FunTextwall,
   FunTTS,
+  FunWordcloudChannel,
+  FunWordcloudUser,
   ImageBackgroundRemove,
   ImageBlur,
   ImageBlurple,
@@ -80,26 +115,53 @@ export {
   ImageGifReverse,
   ImageGifSeeSaw,
   ImageGifSpeed,
+  ImageGlitch,
+  ImageGold,
+  ImageImplode,
   ImageInvert,
+  ImageLegofy,
+  ImageMagik,
+  ImageMagikGif,
   ImageMeme,
+  ImageMirrorBottom,
+  ImageMirrorLeft,
+  ImageMirrorRight,
+  ImageMirrorTop,
+  ImageNeedsMoreJpeg,
   ImageOverlayPistol,
+  ImagePixelate,
+  ImageRain,
+  ImageRip,
+  ImageSharpen,
+  ImageSpin,
   ImageToolsConvert,
   ImageToolsCrop,
   ImageToolsResize,
+  ImageToolsRotate,
+  ImageWall,
   InfoUser,
+  PrefixesAdd,
+  PrefixesClear,
+  PrefixesList,
+  PrefixesRemove,
+  PrefixesReplace,
   ReminderCreate,
+  ReminderDelete,
+  ReminderListUser,
   Search4Chan,
+  SearchDiscordEmojis,
   SearchGoogleImages,
   SearchGoogleWeb,
+  SearchSteamCommunity,
+  SearchSteamEmojis,
+  SearchSteamProfile,
   SearchUrban,
-  SettingsMeLocale,
-  SettingsMeTimezone,
-  SettingsPrefixesAdd,
-  SettingsPrefixesClear,
-  SettingsPrefixesList,
-  SettingsPrefixesRemove,
-  SettingsPrefixesReplace,
-  SettingsTimezone,
+  SettingsServerSetLocale,
+  SettingsServerSetTimezone,
+  SettingsSetLocale,
+  SettingsSetTimezone,
+  TagCreate,
+  TagEdit,
   TagInfo,
   TagListServer,
   TagListUser,

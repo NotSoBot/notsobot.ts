@@ -1,25 +1,14 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationPixelate } from '../../../api';
-import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-  width?: number,
-}
-
-export interface CommandArgs {
-  url: string,
-  width: number,
-}
-
 export const COMMAND_NAME = 'pixelate';
 
-export default class PixelateCommand extends BaseImageCommand<CommandArgs> {
+export default class PixelateCommand extends BaseImageCommand<Formatter.Commands.ImagePixelate.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -35,17 +24,14 @@ export default class PixelateCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -width 2`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImagePixelate.COMMAND_ID,
+        category: CommandCategories.IMAGE,
         usage: '?<emoji,user:id|mention|name,url> (-width <number>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationPixelate(context, {
-      pixelWidth: args.width,
-      url: args.url,
-    });
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImagePixelate.CommandArgs) {
+    return Formatter.Commands.ImagePixelate.createMessage(context, args);
   }
 }

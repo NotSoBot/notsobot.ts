@@ -8,7 +8,7 @@ import { Parameters, createTimestampMomentFromGuild, editOrReply, getReminderMes
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
-export const COMMAND_ID = 'reminder create';
+export const COMMAND_ID = 'reminder.create';
 
 export interface CommandArgs {
   result: Parameters.NLPTimestampResult,

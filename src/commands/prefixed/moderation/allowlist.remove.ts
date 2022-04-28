@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { deleteGuildAllowlist, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
-import { CommandTypes, GuildAllowlistTypes } from '../../../constants';
+import { CommandCategories, GuildAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 
 import { BaseCommand } from '../basecommand';
@@ -99,7 +99,7 @@ export default class AllowlistRemoveCommand extends BaseCommand {
           `${COMMAND_NAME} <#585639594574217232>`,
           `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '...<channel:mention,role:mention,user:mention>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

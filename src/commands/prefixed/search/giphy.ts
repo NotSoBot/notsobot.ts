@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -22,7 +22,7 @@ export default class GiphyCommand extends BaseSearchCommand<CommandArgs> {
         examples: [
           `${COMMAND_NAME} dancing`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query>',
       },
     });

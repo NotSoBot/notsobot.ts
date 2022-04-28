@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes, GoogleLocales } from '../../../constants';
+import { CommandCategories, GoogleLocales } from '../../../constants';
 import { Formatter, Parameters, DefaultParameters } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -25,13 +25,14 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],
       metadata: {
+        category: CommandCategories.SEARCH,
         description: 'Search Google',
         examples: [
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -locale russian`,
           `${COMMAND_NAME} something nsfw -safe`,
         ],
-        type: CommandTypes.SEARCH,
+        id: Formatter.Commands.SearchGoogleWeb.COMMAND_ID,
         usage: '<query> (-locale <language>) (-safe)',
       },
       priority: -1,

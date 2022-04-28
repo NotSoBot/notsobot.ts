@@ -4,6 +4,8 @@ import { imageManipulationInvert } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.invert';
+
 export interface CommandArgs {
   url: string,
 }

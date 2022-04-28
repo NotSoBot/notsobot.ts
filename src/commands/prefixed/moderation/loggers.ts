@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsLogger } from '../../../api/structures/guildsettings';
-import { CommandTypes, EmbedColors, GuildLoggerTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildLoggerTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Paginator, Parameters, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
@@ -120,7 +120,7 @@ export default class LoggersCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} members`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '?<GuildLoggerTypes>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { BaseCommand } from '../basecommand';
 
 
@@ -20,7 +20,7 @@ export default class MergeCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        type: CommandTypes.IMAGE,
+        category: CommandCategories.IMAGE,
       },
     });
   }

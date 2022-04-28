@@ -5,6 +5,8 @@ import { ImageMemeFonts } from '../../../constants';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.meme';
+
 export interface CommandArgs {
   font?: ImageMemeFonts,
   text: string,

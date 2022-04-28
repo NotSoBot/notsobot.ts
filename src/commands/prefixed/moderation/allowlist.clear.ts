@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { editGuildSettings } from '../../../api';
-import { CommandTypes, EmbedColors, GuildAllowlistTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildAllowlistTypes } from '../../../constants';
 import { createUserEmbed } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -30,7 +30,7 @@ export default class AllowlistClearCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} channels`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '?<GuildDisableCommandsType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

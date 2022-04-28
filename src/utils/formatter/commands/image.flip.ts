@@ -4,6 +4,8 @@ import { imageManipulationFlip } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.flip';
+
 export interface CommandArgs {
   url: string,
 }

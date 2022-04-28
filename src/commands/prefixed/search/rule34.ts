@@ -4,7 +4,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34 } from '../../../api';
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -41,7 +41,7 @@ export default class Rule34Command extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} overwatch -randomize`,
           `${COMMAND_NAME} overwatch -r`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query> (-randomize)',
       },
     });

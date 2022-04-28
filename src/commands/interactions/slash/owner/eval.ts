@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes, InteractionCallbackTypes } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -20,7 +20,7 @@ export default class RegionalCommand extends BaseCommand {
           `${COMMAND_NAME} lol`,
         ],
         id: Formatter.Commands.FunRegional.COMMAND_ID,
-        type: CommandTypes.FUN,
+        category: CommandCategories.FUN,
         usage: '<text>',
       },
     });

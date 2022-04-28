@@ -4,6 +4,8 @@ import { imageToolsGifSeeSaw } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.gif.seesaw';
+
 export interface CommandArgs {
   url: string,
 }

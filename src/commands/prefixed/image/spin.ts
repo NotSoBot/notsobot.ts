@@ -1,41 +1,32 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationSpin } from '../../../api';
-import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'spin';
 
-export default class SpinCommand extends BaseImageCommand<CommandArgs> {
+export default class SpinCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
       metadata: {
-        description: 'Create a spinning disc from an image',
+        category: CommandCategories.IMAGE,
+        description: 'Create a spinning disk from an image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageSpin.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationSpin(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageSpin.CommandArgs) {
+    return Formatter.Commands.ImageSpin.createMessage(context, args);
   }
 }

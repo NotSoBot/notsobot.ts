@@ -4,6 +4,8 @@ import { imageToolsGifReverse } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.gif.reverse';
+
 export interface CommandArgs {
   url: string,
 }

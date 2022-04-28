@@ -6,6 +6,9 @@ import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../.
 import { Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
 
+export const COMMAND_ID = 'search.google.images';
+export const COMMAND_ID_SIMPLE = 'search.google.images.simple';
+
 export const RESULTS_PER_PAGE = 3;
 
 export async function createMessage(

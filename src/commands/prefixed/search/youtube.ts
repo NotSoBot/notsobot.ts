@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchYoutube } from '../../../api';
 import {
-  CommandTypes,
+  CommandCategories,
   DateMomentOptions,
   EmbedBrands,
   EmbedColors,
@@ -41,7 +41,7 @@ export default class YoutubeCommand extends BaseSearchCommand<CommandArgs> {
         examples: [
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query> (-sp <string>)',
       },
     });

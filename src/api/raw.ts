@@ -732,6 +732,24 @@ export async function imageCreateTombstone(
 }
 
 
+export async function imageCreateWordcloud(
+  context: RequestContext,
+  options: RestOptions.ImageCreateWordcloud,
+): Promise<Response> {
+  const body = {
+    words: options.words,
+  };
+  return request(context, {
+    dataOnly: false,
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_CREATE_WORDCLOUD,
+    },
+  });
+}
+
+
 export async function imageInformationExif(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,

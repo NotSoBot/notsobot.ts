@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildBlocklistTypes } from '../../../constants';
 import { Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -38,7 +38,7 @@ export default class BlocklistRemoveChannelsCommand extends BaseCommand {
           `${COMMAND_NAME} lobby`,
           `${COMMAND_NAME} <#585639594574217232> <#560595518129045504>`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '...<channel:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

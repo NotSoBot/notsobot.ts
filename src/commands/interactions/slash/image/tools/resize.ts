@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'resize';
 
 export class ImageToolsResizeCommand extends BaseInteractionImageCommandOption {
   description = 'Resize an Image';
+  metadata = {
+    id: Formatter.Commands.ImageToolsResize.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

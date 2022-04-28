@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes, GoogleLocales } from '../../../constants';
+import { CommandCategories, GoogleLocales } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -33,12 +33,13 @@ export default class TranslateCommand extends BaseCommand {
       ],
       label: 'text',
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Translate text to a different language',
         examples: [
           `${COMMAND_NAME} не так бот`,
           `${COMMAND_NAME} not so bot -to russian`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ToolsTranslate.COMMAND_ID,
         usage: '<text> (-to <language>) (-from <language>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

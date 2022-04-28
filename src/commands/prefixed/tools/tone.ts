@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { BaseCommand } from '../basecommand';
 
 
@@ -18,7 +18,7 @@ export default class ToneCommand extends BaseCommand {
       name: 'tone',
 
       metadata: {
-        type: CommandTypes.TOOLS,
+        category: CommandCategories.TOOLS,
       },
     });
   }

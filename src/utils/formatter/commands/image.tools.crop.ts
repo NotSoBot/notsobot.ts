@@ -4,6 +4,8 @@ import { imageToolsCrop } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.tools.crop';
+
 export interface CommandArgs {
   size?: string,
   url: string,

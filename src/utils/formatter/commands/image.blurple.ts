@@ -4,6 +4,8 @@ import { imageManipulationBlurple } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.blurple';
+
 export interface CommandArgs {
   url: string,
 }

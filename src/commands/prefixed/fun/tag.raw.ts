@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { RestResponsesRaw } from '../../../api/types';
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -22,12 +22,13 @@ export default class TagCommand extends BaseCommand {
       aliases: ['t raw', 'tag owner', 't owner'],
       label: 'tag',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'View a tag\'s raw content',
         examples: [
           `${COMMAND_NAME} something`,
           `${COMMAND_NAME} some tag`,
         ],
-        type: CommandTypes.FUN,
+        id: Formatter.Commands.TagInfo.COMMAND_ID,
         usage: '<tagname>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

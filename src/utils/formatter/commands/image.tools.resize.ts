@@ -4,6 +4,8 @@ import { imageToolsResize } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.tools.resize';
+
 export interface CommandArgs {
   convert?: string,
   scale: number,

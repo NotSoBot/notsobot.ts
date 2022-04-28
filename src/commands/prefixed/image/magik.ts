@@ -1,25 +1,14 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationMagik } from '../../../api';
-import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  scale?: number,
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  scale?: number,
-  url: string,
-}
-
 export const COMMAND_NAME = 'magik';
 
-export default class MagikCommand extends BaseImageCommand<CommandArgs> {
+export default class MagikCommand extends BaseImageCommand<Formatter.Commands.ImageMagik.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -29,19 +18,20 @@ export default class MagikCommand extends BaseImageCommand<CommandArgs> {
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
+        description: 'Magikify an Image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageMagik.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationMagik(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageMagik.CommandArgs) {
+    return Formatter.Commands.ImageMagik.createMessage(context, args);
   }
 }

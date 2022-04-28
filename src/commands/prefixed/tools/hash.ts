@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -35,12 +35,13 @@ export default class HashCommand extends BaseCommand<CommandArgs> {
       ],
       label: 'text',
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Hash some text, uses MD5 by default',
         examples: [
           `${COMMAND_NAME} Discord Bots`,
           `${COMMAND_NAME} Discord Bots -use sha256`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ToolsHash.COMMAND_ID,
         usage: '<text> (-use <HashTypes>) (-secret <string>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, imageReply } from '../../../utils';
 
 import { BaseCommand, BaseImageCommand } from '../basecommand';
@@ -19,12 +19,13 @@ export default class MemeCommand extends BaseImageCommand<Formatter.Commands.Ima
       name: COMMAND_NAME,
 
       metadata: {
+        category: CommandCategories.IMAGE,
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot what an idiot`,
           `${COMMAND_NAME} notsobot what an idiot | lmao`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageMeme.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...text>',
       },
       type: [

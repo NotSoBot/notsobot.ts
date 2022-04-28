@@ -2,7 +2,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SearchSteamCommunityCommand } from './steam.community';
 import { SearchSteamEmojisCommand } from './steam.emojis';
-import { SearchSteamProfilesCommand } from './steam.profiles';
+import { SearchSteamProfileCommand } from './steam.profile';
 
 
 export class SearchSteamGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -14,7 +14,7 @@ export class SearchSteamGroupCommand extends BaseInteractionCommandOptionGroup {
       options: [
         new SearchSteamCommunityCommand(),
         new SearchSteamEmojisCommand(),
-        new SearchSteamProfilesCommand(),
+        new SearchSteamProfileCommand(),
       ],
     });
   }

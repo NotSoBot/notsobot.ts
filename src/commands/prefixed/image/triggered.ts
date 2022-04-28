@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -31,7 +31,7 @@ export default class TriggeredCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -type 2`,
         ],
-        type: CommandTypes.IMAGE,
+        category: CommandCategories.IMAGE,
         usage: '?<emoji,user:id|mention|name,url> (-type <triggered-type>)',
       },
     });

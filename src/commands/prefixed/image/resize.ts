@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -27,6 +27,7 @@ export default class ResizeCommand extends BaseImageCommand<Formatter.Commands.I
         {name: 'size'},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Resize an image',
         examples: [
           COMMAND_NAME,
@@ -35,7 +36,7 @@ export default class ResizeCommand extends BaseImageCommand<Formatter.Commands.I
           `${COMMAND_NAME} 👌🏿 -scale 2`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -convert webp -size 2048`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageToolsResize.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-convert <format>) (-scale <number>) (-size <number>)',
       },
     });

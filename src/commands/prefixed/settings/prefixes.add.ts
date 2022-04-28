@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -23,11 +23,12 @@ export default class PrefixesAddCommand extends BaseCommand {
       disableDm: true,
       label: 'prefix',
       metadata: {
+        category: CommandCategories.SETTINGS,
         description: 'Add a custom prefix to the guild. (Bot Mentions will always override this)',
         examples: [
           `${COMMAND_NAME} ..`,
         ],
-        type: CommandTypes.SETTINGS,
+        id: Formatter.Commands.PrefixesAdd.COMMAND_ID,
         usage: '<prefix>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -40,7 +41,7 @@ export default class PrefixesAddCommand extends BaseCommand {
     return !!args.prefix;
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.SettingsPrefixesAdd.CommandArgs) {
-    return Formatter.Commands.SettingsPrefixesAdd.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.PrefixesAdd.CommandArgs) {
+    return Formatter.Commands.PrefixesAdd.createMessage(context, args);
   }
 }

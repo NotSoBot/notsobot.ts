@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -15,7 +15,7 @@ export default class InviteCommand extends BaseCommand {
 
       metadata: {
         description: 'Invite to Guild Link',
-        type: CommandTypes.UTILS,
+        category: CommandCategories.UTILS,
         usage: `${COMMAND_NAME}`,
       },
     });

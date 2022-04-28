@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseAudioOrVideoCommand } from '../basecommand';
@@ -15,11 +15,12 @@ export default class VideoExtractAudioCommand extends BaseAudioOrVideoCommand<Fo
 
       aliases: ['v extract audio', 'v e audio'],
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Extract audio from a video',
         examples: [
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/966626275852681216/TerryResonance.webm`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.VideoExtractAudio.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

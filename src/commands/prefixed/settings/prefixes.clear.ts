@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -17,11 +17,12 @@ export default class PrefixesClearCommand extends BaseCommand {
       aliases: ['prefix clear'],
       disableDm: true,
       metadata: {
+        category: CommandCategories.SETTINGS,
         description: 'Clear all custom prefixes from the guild. (Bot Mentions will always override this)',
         examples: [
           COMMAND_NAME,
         ],
-        type: CommandTypes.SETTINGS,
+        id: Formatter.Commands.PrefixesClear.COMMAND_ID,
         usage: `${COMMAND_NAME}`,
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -30,6 +31,6 @@ export default class PrefixesClearCommand extends BaseCommand {
   }
 
   async run(context: Command.Context) {
-    return Formatter.Commands.SettingsPrefixesClear.createMessage(context);
+    return Formatter.Commands.PrefixesClear.createMessage(context);
   }
 }

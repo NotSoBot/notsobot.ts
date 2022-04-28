@@ -301,6 +301,7 @@ export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.
 
 export class BaseSlashCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommand<ParsedArgsFinished> {
   error = 'Slash';
+  permissionsIgnoreClientOwner = true;
   type = ApplicationCommandTypes.CHAT_INPUT;
 
   triggerLoadingAfter = 1000;

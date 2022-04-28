@@ -4,6 +4,8 @@ import { imageToolsGifSpeed } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.gif.speed';
+
 export interface CommandArgs {
   speed: number,
   url: string,

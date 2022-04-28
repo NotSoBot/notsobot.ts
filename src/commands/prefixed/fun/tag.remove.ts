@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -19,13 +19,14 @@ export default class TagRemoveCommand extends BaseCommand {
       ],
       label: 'tag',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Delete a tag',
         examples: [
           `${COMMAND_NAME} something`,
           `${COMMAND_NAME} some tag`,
           `${COMMAND_NAME} some tag -force`,
         ],
-        type: CommandTypes.FUN,
+        id: Formatter.Commands.TagRemove.COMMAND_ID,
         usage: '<tagname> (-force)',
       },
       type: Parameters.NotSoTag,

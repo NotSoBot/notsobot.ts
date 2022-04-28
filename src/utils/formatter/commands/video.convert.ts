@@ -5,6 +5,8 @@ import { Mimetypes, MimetypesToExtension, MIMETYPES_VIDEO_EMBEDDABLE } from '../
 import { mediaReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'video.convert';
+
 export const DEFAULT_MIMETYPE = Mimetypes.VIDEO_MP4;
 
 export const SLASH_CHOICES = MIMETYPES_VIDEO_EMBEDDABLE.map((mimetype) => {

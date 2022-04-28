@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchReddit } from '../../../api';
 import {
-  CommandTypes,
+  CommandCategories,
   DateMomentLogFormat,
   EmbedBrands,
   EmbedColors,
@@ -54,7 +54,7 @@ export default class RedditCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -subreddit discordapp`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query> (-safe) (-sort <RedditSortType>) (-subreddit <string>) (-time <RedditTimeType>)',
       },
     });

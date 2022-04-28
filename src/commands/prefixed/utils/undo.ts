@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -26,7 +26,7 @@ export default class UndoCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} 5`,
         ],
-        type: CommandTypes.UTILS,
+        category: CommandCategories.UTILS,
         usage: `${COMMAND_NAME}`,
       },
       type: Parameters.number({max: 5, min: 1}),

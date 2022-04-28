@@ -1,30 +1,55 @@
 import { Command, CommandClient } from 'detritus-client';
+import { ChannelTypes } from 'detritus-client/lib/constants';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
+import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
+
 import { BaseCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  
-}
 
-export interface CommandArgs {
-
-}
+export const COMMAND_NAME = 'wordcloud';
 
 export default class WordcloudCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
-      name: 'wordcloud',
+      name: COMMAND_NAME,
 
       aliases: ['wc'],
+      args: [
+        {name: 'before', type: Parameters.snowflake},
+        {name: 'max', default: 500, type: Parameters.number({max: 1000, min: 0})},
+      ],
+      default: DefaultParameters.channel,
+      label: 'channel',
       metadata: {
-        type: CommandTypes.FUN,
+        category: CommandCategories.FUN,
+        description: 'Generate a wordcloud from past messages',
+        examples: [
+          `${COMMAND_NAME} lobby`,
+          `${COMMAND_NAME} <#585639594574217232> -max 500`,
+        ],
+        id: Formatter.Commands.FunWordcloudChannel.COMMAND_ID,
+        usage: '...<channel:id|mention|name> (-max <number>)',
       },
+      type: Parameters.channel({
+        types: [
+          ChannelTypes.GUILD_NEWS,
+          ChannelTypes.GUILD_TEXT,
+        ],
+      }),
     });
   }
 
-  run(context: Command.Context, args: CommandArgs) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.FunWordcloudChannel.CommandArgs) {
+    return context.inDm || !!args.channel;
+  }
 
+  onCancelRun(context: Command.Context, args: Formatter.Commands.FunWordcloudChannel.CommandArgs) {
+    return editOrReply(context, 'Unable to find that channel');
+  }
+
+  run(context: Command.Context, args: Formatter.Commands.FunWordcloudChannel.CommandArgs) {
+    return Formatter.Commands.FunWordcloudChannel.createMessage(context, args);
   }
 }

@@ -7,6 +7,9 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
   description = 'Screenshot a website';
+  metadata = {
+    id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
+  };
   name = 'screenshot';
 
   constructor() {

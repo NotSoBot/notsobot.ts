@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 
 import { BaseCommand } from '../basecommand';
 
@@ -23,7 +23,7 @@ export default class SayCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} :spider:`,
         ],
-        type: CommandTypes.OWNER,
+        category: CommandCategories.OWNER,
         usage: '<text>',
       },
     });

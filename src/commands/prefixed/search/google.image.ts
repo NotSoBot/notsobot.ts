@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes, GoogleLocales } from '../../../constants';
+import { CommandCategories, GoogleLocales } from '../../../constants';
 import { Formatter, Parameters, DefaultParameters } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -27,6 +27,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],
       metadata: {
+        category: CommandCategories.SEARCH,
         description: 'Search Google Images',
         examples: [
           `${COMMAND_NAME} notsobot`,
@@ -35,7 +36,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -randomize`,
           `${COMMAND_NAME} notsobot -r`,
         ],
-        type: CommandTypes.SEARCH,
+        id: Formatter.Commands.SearchGoogleImages.COMMAND_ID,
         usage: '<query> (-locale <language>) (-randomize) (-safe)',
       },
     });

@@ -1,6 +1,6 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -25,6 +25,7 @@ export default class TagListCommand extends BaseCommand {
       default: DefaultParameters.author,
       label: 'user',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'List all of a user\'s tags',
         examples: [
           COMMAND_NAME,
@@ -32,7 +33,7 @@ export default class TagListCommand extends BaseCommand {
           `${COMMAND_NAME} cake#1`,
           `${COMMAND_NAME} <@439205512425504771>`,
         ],
-        type: CommandTypes.FUN,
+        id: Formatter.Commands.TagListUser.COMMAND_ID,
         usage: '?<user:id|mention|name>',
       },
       type: Parameters.memberOrUser({allowBots: false}),

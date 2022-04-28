@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { BaseCommand } from '../basecommand';
 
 
@@ -19,7 +19,7 @@ export default class EmojifyCommand extends BaseCommand {
 
       aliases: ['efy'],
       metadata: {
-        type: CommandTypes.FUN,
+        category: CommandCategories.FUN,
       },
     });
   }

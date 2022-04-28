@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'convert';
 
 export class ImageToolsConvertCommand extends BaseInteractionImageCommandOption {
   description = 'Convert an Image';
+  metadata = {
+    id: Formatter.Commands.ImageToolsConvert.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

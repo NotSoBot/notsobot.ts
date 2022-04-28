@@ -2,8 +2,8 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTag, putTag } from '../../../api';
-import { CommandTypes } from '../../../constants';
-import { Parameters, editOrReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -27,12 +27,13 @@ export default class TagCreateCommand extends BaseCommand {
 
       aliases: ['t create', 'tag add', 't add'],
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Create a tag',
         examples: [
           `${COMMAND_NAME} test im a tag`,
           `${COMMAND_NAME} "test tag" im a test tag!`,
         ],
-        type: CommandTypes.FUN,
+        id: Formatter.Commands.TagCreate.COMMAND_ID,
         usage: '<tagname> <...body>',
       },
       type: [

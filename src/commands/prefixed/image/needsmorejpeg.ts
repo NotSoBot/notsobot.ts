@@ -1,8 +1,8 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { imageManipulationJPEG } from '../../../api';
-import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -19,7 +19,7 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'needsmorejpeg';
 
-export default class NeedsMoreJPEGCommand extends BaseImageCommand<CommandArgs> {
+export default class NeedsMoreJPEGCommand extends BaseImageCommand<Formatter.Commands.ImageNeedsMoreJpeg.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -29,20 +29,20 @@ export default class NeedsMoreJPEGCommand extends BaseImageCommand<CommandArgs> 
         {aliases: ['q'], name: 'quality', type: Number},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Needs More JPEG',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -quality 20`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageNeedsMoreJpeg.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-quality <number>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationJPEG(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageNeedsMoreJpeg.CommandArgs) {
+    return Formatter.Commands.ImageNeedsMoreJpeg.createMessage(context, args);
   }
 }

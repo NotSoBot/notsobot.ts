@@ -3,8 +3,8 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTag, putTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { CommandTypes } from '../../../constants';
-import { Parameters, editOrReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -28,12 +28,13 @@ export default class TagEditCommand extends BaseCommand {
 
       aliases: ['t edit'],
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Edit a tag',
         examples: [
           `${COMMAND_NAME} test im a tag`,
           `${COMMAND_NAME} "test tag" im a test tag!`,
         ],
-        type: CommandTypes.FUN,
+        id: Formatter.Commands.TagEdit.COMMAND_ID,
         usage: '<tagname> <...body>',
       },
       type: [

@@ -2,7 +2,7 @@ import { Collections, Command, CommandClient, Structures } from 'detritus-client
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -47,7 +47,7 @@ export default class GuildIconCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} 178313653177548800`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<guild:id>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

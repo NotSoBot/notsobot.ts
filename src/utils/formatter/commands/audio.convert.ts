@@ -5,6 +5,8 @@ import { Mimetypes, MimetypesToExtension, MIMETYPES_AUDIO_EMBEDDABLE } from '../
 import { mediaReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'audio.convert';
+
 export const DEFAULT_MIMETYPE = Mimetypes.AUDIO_MP3;
 
 export const SLASH_CHOICES = MIMETYPES_AUDIO_EMBEDDABLE.map((mimetype) => {

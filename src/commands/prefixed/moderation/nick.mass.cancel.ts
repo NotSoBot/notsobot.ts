@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
 import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
@@ -31,7 +31,7 @@ export default class NickMassCancelCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '',
       },
       permissionsClient: [Permissions.CHANGE_NICKNAMES],

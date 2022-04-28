@@ -12,6 +12,8 @@ import {
 import { createUserEmbed, editOrReply, splitTextByAmount } from '../../../utils';
 
 
+export const COMMAND_ID = 'tools.translate';
+
 export interface CommandArgs {
   from?: GoogleLocales | null,
   isEphemeral?: boolean,

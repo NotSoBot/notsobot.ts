@@ -4,7 +4,7 @@ import { Embed, Markup, PermissionTools, intToHex, intToRGB } from 'detritus-cli
 
 import {
   BooleanEmojis,
-  CommandTypes,
+  CommandCategories,
   DateOptions,
   PermissionsText,
   PERMISSIONS_ADMIN,
@@ -46,7 +46,7 @@ export default class RoleCommand extends BaseCommand {
           `${COMMAND_NAME} everyone`,
           `${COMMAND_NAME} everyone -channel lobby`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<role:id|mention|name> (-channel ?<channel:id|mention|name>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

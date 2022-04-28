@@ -1,42 +1,33 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationMirrorBottom } from '../../../api';
-import { CommandTypes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'mirror bottom';
 
-export default class MirrorBottomCommand extends BaseImageCommand<CommandArgs> {
+export default class MirrorBottomCommand extends BaseImageCommand<Formatter.Commands.ImageMirrorBottom.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
       aliases: ['hooh'],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Mirror bottom half of image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageMirrorBottom.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationMirrorBottom(context, {url: args.url});
-    return imageReply(context, response, 'mirror-bottom');
+  async run(context: Command.Context, args: Formatter.Commands.ImageMirrorBottom.CommandArgs) {
+    return Formatter.Commands.ImageMirrorBottom.createMessage(context, args);
   }
 }

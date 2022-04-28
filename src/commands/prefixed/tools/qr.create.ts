@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -19,13 +19,14 @@ export default class QRCreateCommand extends BaseCommand<Formatter.Commands.Tool
       ],
       label: 'query',
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Generate a QR code',
         examples: [
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -size 1024`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -size 1024 -margin 0`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ToolsQrCreate.COMMAND_ID,
         usage: '<query> (-margin <number>) (-size <number>)',
       },
     });

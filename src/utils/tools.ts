@@ -979,6 +979,7 @@ export async function imageReply(
   context: Command.Context | Interaction.InteractionContext,
   response: Response,
   options: {
+    args?: boolean,
     content?: string,
     filename?: string,
   } | string = {},
@@ -987,7 +988,7 @@ export async function imageReply(
     options = {filename: options};
   }
   const embed = new Embed();
-  if (response.headers.has('x-args')) {
+  if (response.headers.has('x-args') && options.args !== false) {
     const args = JSON.parse(Buffer.from(response.headers.get('x-args') || '', 'base64').toString());
 
     const description: Array<string> = [];

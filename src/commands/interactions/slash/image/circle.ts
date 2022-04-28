@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'circle';
 
 export class ImageCircleCommand extends BaseInteractionImageCommandOption {
   description = 'Put a Radial Blur on an Image';
+  metadata = {
+    id: Formatter.Commands.ImageCircle.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   constructor() {

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -14,12 +14,13 @@ export default class QRScanCommand extends BaseImageCommand<Formatter.Commands.T
       name: COMMAND_NAME,
 
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Scan an image for QR Codes',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ToolsQrScan.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

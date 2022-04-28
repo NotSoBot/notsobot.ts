@@ -7,16 +7,17 @@ import { Response } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
 
 import { createUserCommand } from '../../api';
-import { CommandTypes, DiscordReactionEmojis, EmbedColors, PermissionsText, RatelimitKeys } from '../../constants';
+import { CommandCategories, DiscordReactionEmojis, EmbedColors, PermissionsText, RatelimitKeys } from '../../constants';
 import { Parameters, createUserEmbed, editOrReply, findImageUrlInMessages } from '../../utils';
 
 
 // description and usage shouldnt be optional, temporary for now
 export interface CommandMetadata {
+  category: CommandCategories,
   description?: string,
   examples?: Array<string>,
+  id?: string,
   nsfw?: boolean,
-  type: CommandTypes,
   usage?: string,
 }
 
@@ -236,12 +237,13 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
 
     const message = await editOrReply(context, {embed});
-    if (context.command) {
-      const name = context.command.fullName;
+    if (context.command && context.command.metadata) {
+      const metadata = context.command.metadata;
+      const commandId = metadata.id || context.command.fullName.split(' ').join('.');
       await createUserCommand(
         context,
         context.userId,
-        name,
+        commandId,
         {
           channelId: context.channelId,
           editedTimestamp: context.message.editedAtUnix,
@@ -259,12 +261,13 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
     // log command
     if (context.command) {
-      const name = context.command.fullName;
+      const metadata = context.command.metadata;
+      const commandId = metadata.id || context.command.fullName.split(' ').join('.');
       try {
         await createUserCommand(
           context,
           context.userId,
-          name,
+          commandId,
           {
             channelId: context.channelId,
             editedTimestamp: context.message.editedAtUnix,

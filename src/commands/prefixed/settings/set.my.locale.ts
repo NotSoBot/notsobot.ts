@@ -1,18 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes, GoogleLocales } from '../../../constants';
+import { CommandCategories, GoogleLocales } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-
-export interface CommandArgsBefore {
-  locale?: GoogleLocales,
-}
-
-export interface CommandArgs {
-  locale: GoogleLocales,
-}
 
 export const COMMAND_NAME = 'set my locale';
 
@@ -25,27 +17,28 @@ export default class SetMyLocaleCommand extends BaseCommand {
       default: null,
       label: 'locale',
       metadata: {
+        category: CommandCategories.SETTINGS,
         description: 'Set your default language preference.',
         examples: [
           `${COMMAND_NAME} en-us`,
           `${COMMAND_NAME} german`,
         ],
-        type: CommandTypes.SETTINGS,
+        id: Formatter.Commands.SettingsSetLocale.COMMAND_ID,
         usage: '<locale>',
       },
       type: Parameters.locale,
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.SettingsSetLocale.CommandArgs) {
     return !!args.locale;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.SettingsSetLocale.CommandArgs) {
     return context.editOrReply('⚠ Provide some kind of language');
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    return Formatter.Commands.SettingsMeLocale.createMessage(context, {locale: args.locale});
+  async run(context: Command.Context, args: Formatter.Commands.SettingsSetLocale.CommandArgs) {
+    return Formatter.Commands.SettingsSetLocale.createMessage(context, {locale: args.locale});
   }
 }

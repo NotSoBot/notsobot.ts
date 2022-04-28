@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import {
   DefaultParameters,
   Formatter,
@@ -32,6 +32,7 @@ export default class UserCommand extends BaseCommand {
       default: DefaultParameters.author,
       label: 'user',
       metadata: {
+        category: CommandCategories.INFO,
         description: 'Get information about a user, defaults to self',
         examples: [
           COMMAND_NAME,
@@ -39,7 +40,7 @@ export default class UserCommand extends BaseCommand {
           `${COMMAND_NAME} cake#1`,
           `${COMMAND_NAME} <@439205512425504771>`,
         ],
-        type: CommandTypes.INFO,
+        id: Formatter.Commands.InfoUser.COMMAND_ID,
         usage: '?<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

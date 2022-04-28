@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { imageToolsRotate } from '../../../api';
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { imageReply } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -38,7 +38,7 @@ export default class RotateCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -degrees 90`,
           `${COMMAND_NAME} notsobot -degrees 90 -nocrop`,
         ],
-        type: CommandTypes.IMAGE,
+        category: CommandCategories.IMAGE,
         usage: '?<emoji,user:id|mention|name,url> (-degrees <number>) (-nocrop)',
       },
     });

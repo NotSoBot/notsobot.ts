@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchWikihow, searchWikihowRandom } from '../../../api';
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -35,7 +35,7 @@ export default class WikihowCommand extends BaseSearchCommand<CommandArgs> {
           `${COMMAND_NAME} cut tree`,
           `${COMMAND_NAME} -random`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query> (-random)',
       },
     });

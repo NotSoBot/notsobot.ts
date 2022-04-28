@@ -4,7 +4,7 @@ import { Embed, Markup, regex as discordRegex } from 'detritus-client/lib/utils'
 
 import { createGuildBlocklist, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
-import { CommandTypes, EmbedColors, GuildBlocklistTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildBlocklistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 
 import { BaseCommand } from '../basecommand';
@@ -170,7 +170,7 @@ export default class BlocklistAddCommand extends BaseCommand {
           `${COMMAND_NAME} <#585639594574217232>`,
           `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '...<channel:mention,role:mention,user:mention>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

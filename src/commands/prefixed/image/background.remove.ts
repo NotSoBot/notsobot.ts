@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes, ImageBackgroundRemovalModels } from '../../../constants';
+import { CommandCategories, ImageBackgroundRemovalModels } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -23,13 +23,14 @@ export default class GrayscaleCommand extends BaseImageCommand<Formatter.Command
         {name: 'model', choices: Object.values(ImageBackgroundRemovalModels), help: `Must be one of: (${Object.values(ImageBackgroundRemovalModels).join(', ')})`},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Remove the background of an image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -model U2NETP`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageBackgroundRemove.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-model <ImageBackgroundRemovalModels>)',
       },
     });

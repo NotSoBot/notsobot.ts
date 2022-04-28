@@ -10,6 +10,8 @@ import {
 import { createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
 
+export const COMMAND_ID = 'tools.hash';
+
 export enum HashTypes {
   MD4 = 'MD4',
   MD5 = 'MD5',

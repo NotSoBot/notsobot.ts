@@ -17,8 +17,9 @@ import {
 } from '../../../utils';
 
 
-export const RESULTS_PER_PAGE = 3;
+export const COMMAND_ID = 'info.user';
 
+export const RESULTS_PER_PAGE = 3;
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

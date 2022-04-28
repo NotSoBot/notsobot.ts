@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -40,7 +40,7 @@ export default class EvalCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} context.client.token`,
         ],
-        type: CommandTypes.OWNER,
+        category: CommandCategories.OWNER,
         usage: '<code> (-async) (-jsonspacing <number>) (-noembed) (-noreply) (-upload)',
       },
       responseOptional: true,

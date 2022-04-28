@@ -9,6 +9,9 @@ export const COMMAND_NAME = 'flip';
 
 export class ImageFlipCommand extends BaseInteractionImageCommandOption {
   description = 'Flip an Image (Vertical Flip)';
+  metadata = {
+    id: Formatter.Commands.ImageFlip.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageFlip.CommandArgs) {

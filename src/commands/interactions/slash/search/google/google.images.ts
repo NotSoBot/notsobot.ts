@@ -15,6 +15,9 @@ export interface CommandArgs {
 
 export class SearchGoogleImagesCommand extends BaseInteractionCommandOption {
   description = 'Search Google Images';
+  metadata = {
+    id: Formatter.Commands.SearchGoogleImages.COMMAND_ID_SIMPLE,
+  };
   name = 'images';
 
   constructor() {

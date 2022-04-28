@@ -4,6 +4,8 @@ import { imageToolsConvert } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
+export const COMMAND_ID = 'image.tools.convert';
+
 export interface CommandArgs {
   size?: string,
   to: string,

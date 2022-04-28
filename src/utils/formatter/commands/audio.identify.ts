@@ -15,6 +15,8 @@ import {
 } from '../../../utils';
 
 
+export const COMMAND_ID = 'audio.identify';
+
 export interface CommandArgs {
   url: string,
 }

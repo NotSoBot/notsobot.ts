@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -22,12 +22,13 @@ export default class GifReverseCommand extends BaseImageCommand<Formatter.Comman
       name: COMMAND_NAME,
 
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Reverse an animated image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageGifReverse.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

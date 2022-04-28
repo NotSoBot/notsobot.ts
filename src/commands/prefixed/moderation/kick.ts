@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandTypes, DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import { Parameters, createTimestampMomentFromGuild, createUserEmbed } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -39,7 +39,7 @@ export default class KickCommand extends BaseCommand {
           `${COMMAND_NAME} 300505364032389122 <@439205512425504771>`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '...?<user:id|mention> <reason (string)> (-clean <days>)',
       },
       permissionsClient: [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS, Permissions.KICK_MEMBERS],

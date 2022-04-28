@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
-  CommandTypes,
+  CommandCategories,
   DateMomentLogFormat,
   DiscordEmojis,
   PresenceStatusColors,
@@ -62,7 +62,7 @@ export default class UsersCommand extends BaseCommand {
           `${COMMAND_NAME} cake#1`,
           `${COMMAND_NAME} cake -role admin`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

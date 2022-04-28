@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes, GoogleLocales } from '../../../constants';
+import { CommandCategories, GoogleLocales } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -28,6 +28,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
         {name: 'to', default: DefaultParameters.locale, type: Parameters.locale},
       ],
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Read text inside of an image and translate it',
         examples: [
           COMMAND_NAME,
@@ -35,7 +36,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
           `${COMMAND_NAME} https://google.com -to russian`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ToolsOCRTranslate.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-to <language>)',
       },
     });

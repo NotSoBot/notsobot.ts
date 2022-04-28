@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionOCR } from '../../../api';
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -32,13 +32,14 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
         {name: 'files.gg', label: 'upload', type: Boolean},
       ],
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Read text inside of an image (Optical Character Recognition)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} cake`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ToolsOCR.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-noembed) (-files.gg)',
       },
       type: Parameters.lastImageUrl,

@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes } from 'detritus-client/lib/constants';
 
 import { createGuildLogger } from '../../../api';
-import { CommandTypes, GuildLoggerTypes } from '../../../constants';
+import { CommandCategories, GuildLoggerTypes } from '../../../constants';
 
 import { createLoggersEmbed } from './loggers';
 import { LoggersAddBaseCommand, CommandArgs } from './loggers.add.base';
@@ -22,7 +22,7 @@ export default class LoggersAddMessagesCommand extends LoggersAddBaseCommand {
           `${COMMAND_NAME} -channel message-logs`,
           `${COMMAND_NAME} -in logs`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '(-channel <text-channel:id|mention|name>) (-in <category-channel:id|mention|name>)',
       },
     });

@@ -7,6 +7,9 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 export class ToolsHashCommand extends BaseInteractionCommandOption {
   description = 'Create a hash from some text';
+  metadata = {
+    id: Formatter.Commands.ToolsHash.COMMAND_ID,
+  };
   name = 'hash';
 
   constructor() {

@@ -10,7 +10,7 @@ import {
 import { createUserEmbed, editOrReply } from '../..';
 
 
-export const COMMAND_ID = 'qr scan';
+export const COMMAND_ID = 'tools.qr.scan';
 
 export interface CommandArgs {
  isEphemeral?: boolean,

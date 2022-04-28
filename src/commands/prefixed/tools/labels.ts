@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionLabels } from '../../../api';
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { createUserEmbed, formatPercentageAsBar, toTitleCase } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -27,7 +27,7 @@ export default class LabelsCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
         ],
         permissionsClient: [Permissions.EMBED_LINKS],
-        type: CommandTypes.TOOLS,
+        category: CommandCategories.TOOLS,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

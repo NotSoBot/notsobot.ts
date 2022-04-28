@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -24,12 +24,13 @@ export default class GifSpeedCommand extends BaseImageCommand<Formatter.Commands
       name: COMMAND_NAME,
 
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Edit a gif\'s speed',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageGifSpeed.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...speed:milliseconds>',
       },
       type: [

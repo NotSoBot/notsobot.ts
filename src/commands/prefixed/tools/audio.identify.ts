@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandTypes } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseAudioOrVideoCommand } from '../basecommand';
@@ -15,11 +15,12 @@ export default class AudioIdentifyCommand extends BaseAudioOrVideoCommand<Format
 
       aliases: ['a identify'],
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Identify a song in an audio or video file',
         examples: [
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/966626275852681216/TerryResonance.webm`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.AudioIdentify.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

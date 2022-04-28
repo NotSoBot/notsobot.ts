@@ -1,29 +1,14 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationLegofy } from '../../../api';
-import { CommandTypes, ImageLegofyPalettes } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { CommandCategories, ImageLegofyPalettes } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  dither: boolean,
-  palette?: ImageLegofyPalettes,
-  size?: number,
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  dither: boolean,
-  palette?: ImageLegofyPalettes,
-  size?: number,
-  url: string,
-}
-
 export const COMMAND_NAME = 'legofy';
 
-export default class LegofyCommand extends BaseImageCommand<CommandArgs> {
+export default class LegofyCommand extends BaseImageCommand<Formatter.Commands.ImageLegofy.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -35,6 +20,7 @@ export default class LegofyCommand extends BaseImageCommand<CommandArgs> {
         {name: 'size', type: Number},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Legofy an image',
         examples: [
           COMMAND_NAME,
@@ -42,14 +28,13 @@ export default class LegofyCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -palette mono`,
           `${COMMAND_NAME} notsobot -dither`,
         ],
-        type: CommandTypes.IMAGE,
+        id: Formatter.Commands.ImageLegofy.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-dither) (-palette <ImageLegofyPalettes>) (-size <number>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationLegofy(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageLegofy.CommandArgs) {
+    return Formatter.Commands.ImageLegofy.createMessage(context, args);
   }
 }

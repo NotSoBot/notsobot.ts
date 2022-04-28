@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { deleteGuildBlocklist, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
-import { CommandTypes, GuildBlocklistTypes } from '../../../constants';
+import { CommandCategories, GuildBlocklistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 
 import { BaseCommand } from '../basecommand';
@@ -98,7 +98,7 @@ export default class BlocklistRemoveCommand extends BaseCommand {
           `${COMMAND_NAME} <#585639594574217232>`,
           `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '...<channel:mention,role:mention,user:mention>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

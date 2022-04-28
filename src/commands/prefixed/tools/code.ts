@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CodeLanguages, CommandTypes } from '../../../constants';
+import { CodeLanguages, CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply, getCodeLanguage } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -27,13 +27,14 @@ export default class CodeCommand extends BaseCommand<CommandArgs> {
         {name: 'language', aliases: ['l']},
       ],
       metadata: {
+        category: CommandCategories.TOOLS,
         description: 'Execute code',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} \`\`\`js console.log('lol')\`\`\``,
           `${COMMAND_NAME} console.log('lol'); -language js`,
         ],
-        type: CommandTypes.TOOLS,
+        id: Formatter.Commands.ToolsCode.COMMAND_ID,
         usage: '<code> (-language <language>)',
       },
       type: Parameters.codeblock,

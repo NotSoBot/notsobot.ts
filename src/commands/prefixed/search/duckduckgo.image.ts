@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGoImages } from '../../../api';
-import { CommandTypes, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
@@ -25,7 +25,7 @@ export default class DuckDuckGoImageCommand extends BaseSearchCommand<CommandArg
         examples: [
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.SEARCH,
+        category: CommandCategories.SEARCH,
         usage: '<query>',
       },
     });

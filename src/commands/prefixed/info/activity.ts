@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import {
-  CommandTypes,
+  CommandCategories,
   PresenceStatusColors,
   PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
@@ -46,7 +46,7 @@ export default class ActivityCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        type: CommandTypes.INFO,
+        category: CommandCategories.INFO,
         usage: '?<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

@@ -4,7 +4,7 @@ import { regex as discordRegex } from 'detritus-client/lib/utils';
 
 import { createGuildAllowlist, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
-import { CommandTypes, GuildAllowlistTypes } from '../../../constants';
+import { CommandCategories, GuildAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 
 import { BaseCommand } from '../basecommand';
@@ -170,7 +170,7 @@ export default class AllowlistAddCommand extends BaseCommand {
           `${COMMAND_NAME} <#585639594574217232>`,
           `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
         ],
-        type: CommandTypes.MODERATION,
+        category: CommandCategories.MODERATION,
         usage: '...<channel:mention,role:mention,user:mention>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
