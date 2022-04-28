@@ -1,14 +1,12 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageToolsRotate } from '../../../api';
+import { imageManipulationGrayscale } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'image.tools.rotate';
+export const COMMAND_ID = 'image.grayscale';
 
 export interface CommandArgs {
-  crop?: boolean,
-  degrees?: number,
   url: string,
 }
 
@@ -16,6 +14,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await imageToolsRotate(context, args);
+  const response = await imageManipulationGrayscale(context, args);
   return imageReply(context, response);
 }

@@ -1,42 +1,33 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationGrayscale } from '../../../api';
 import { CommandCategories } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'grayscale';
 
-export default class GrayscaleCommand extends BaseImageCommand<CommandArgs> {
+export default class GrayscaleCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
       aliases: ['greyscale'],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Grayscale an Image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        id: Formatter.Commands.ImageGrayscale.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationGrayscale(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.ImageGrayscale.CommandArgs) {
+    return Formatter.Commands.ImageGrayscale.createMessage(context, args);
   }
 }

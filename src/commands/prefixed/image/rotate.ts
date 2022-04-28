@@ -1,27 +1,14 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageToolsRotate } from '../../../api';
 import { CommandCategories } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  degrees?: number,
-  crop?: boolean,
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  degrees?: number,
-  crop?: boolean,
-  url: string,
-}
-
 export const COMMAND_NAME = 'rotate';
 
-export default class RotateCommand extends BaseImageCommand<CommandArgs> {
+export default class RotateCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -31,6 +18,7 @@ export default class RotateCommand extends BaseImageCommand<CommandArgs> {
         {name: 'crop', type: Boolean},
       ],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Rotate an Image (default 90 degrees)',
         examples: [
           COMMAND_NAME,
@@ -38,18 +26,13 @@ export default class RotateCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot -degrees 90`,
           `${COMMAND_NAME} notsobot -degrees 90 -nocrop`,
         ],
-        category: CommandCategories.IMAGE,
+        id:  Formatter.Commands.ImageToolsRotate.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-degrees <number>) (-nocrop)',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageToolsRotate(context, {
-      crop: args.crop,
-      degrees: args.degrees,
-      url: args.url,
-    });
-    return imageReply(context, response);
+  async run(context: Command.Context, args:  Formatter.Commands.ImageToolsRotate.CommandArgs) {
+    return Formatter.Commands.ImageToolsRotate.createMessage(context, args);
   }
 }

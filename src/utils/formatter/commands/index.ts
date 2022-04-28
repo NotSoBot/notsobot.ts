@@ -22,6 +22,7 @@ import * as ImageGifSeeSaw from './image.gif.seesaw';
 import * as ImageGifSpeed from './image.gif.speed';
 import * as ImageGlitch from './image.glitch';
 import * as ImageGold from './image.gold';
+import * as ImageGrayscale from './image.grayscale';
 import * as ImageImplode from './image.implode';
 import * as ImageInvert from './image.invert';
 import * as ImageLegofy from './image.legofy';
@@ -82,6 +83,7 @@ import * as TagRemove from './tag.remove';
 import * as TagShow from './tag.show';
 
 import * as ToolsCode from './tools.code';
+import * as ToolsExif from './tools.exif';
 import * as ToolsHash from './tools.hash';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
@@ -117,6 +119,7 @@ export {
   ImageGifSpeed,
   ImageGlitch,
   ImageGold,
+  ImageGrayscale,
   ImageImplode,
   ImageInvert,
   ImageLegofy,
@@ -169,6 +172,7 @@ export {
   TagRemove,
   TagShow,
   ToolsCode,
+  ToolsExif,
   ToolsHash,
   ToolsOCR,
   ToolsOCRTranslate,

@@ -10,7 +10,6 @@ import { createUserEmbed, editOrReply, formatMemory, splitArray } from '../../..
 export const COMMAND_ID = 'tools.exif';
 
 export interface CommandArgs {
- isEphemeral?: boolean,
  url: string, 
 }
 
