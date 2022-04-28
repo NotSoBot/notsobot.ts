@@ -13,6 +13,9 @@ export interface OCRCommandArgs extends ContextMenuMessageArgs {
 export const COMMAND_NAME = 'OCR';
 
 export default class OCRCommand extends BaseContextMenuMessageCommand {
+  metadata = {
+    id: Formatter.Commands.ToolsOCR.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   onBeforeRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {

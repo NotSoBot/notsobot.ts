@@ -1,4 +1,5 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command, CommandClient, Interaction } from 'detritus-client';
+import { ApplicationCommandTypes } from 'detritus-client/lib/constants';
 
 import { uploadCommands } from '../../../api';
 import { CommandCategories, CommandTypes } from '../../../constants';
@@ -30,9 +31,12 @@ export default class UploadCommandsCommand extends BaseCommand {
   }
 
   async run(context: Command.Context) {
-    const commands = context.commandClient.commands.filter((command) => {
-      return !!command.metadata && !!command.metadata.category;
-    }).map((command) => {
+    const commands: Array<any> = [];
+    for (let command of context.commandClient.commands) {
+      if (!command.metadata || !command.metadata.category) {
+        continue;
+      }
+
       const { args } = command.argParser;
       const metadata = command.metadata as CommandMetadata;
 
@@ -49,7 +53,7 @@ export default class UploadCommandsCommand extends BaseCommand {
           }
         }
       }
-      return {
+      commands.push({
         aliases: names,
         args: args.map((arg) => {
           const argMetadata = arg.metadata || {};
@@ -78,8 +82,62 @@ export default class UploadCommandsCommand extends BaseCommand {
         }),
         type: CommandTypes.PREFIXED,
         usage: metadata.usage || '',
-      };
-    });
+      });
+    }
+    if (context.interactionCommandClient) {
+      const invokers: Array<[Interaction.InteractionCommand, Interaction.InteractionCommand | Interaction.InteractionCommandOption]> = [];
+      for (let command of context.interactionCommandClient.commands) {
+        if (command._options && command.isGroup) {
+          for (let [x, option] of command._options) {
+            if (option._options && option.isSubCommandGroup) {
+              for (let [y, opt] of option._options) {
+                if (opt.isSubCommand) {
+                  invokers.push([command, opt]);
+                }
+              }
+            } else if (option.isSubCommand) {
+              invokers.push([command, option]);
+            }
+          }
+        } else {
+          invokers.push([command, command]);
+        }
+      }
+      for (let [command, invoker] of invokers) {
+        if (!invoker.metadata) {
+          continue;
+        }
+
+        let commandType: number;
+        switch (command.type) {
+          case ApplicationCommandTypes.CHAT_INPUT: commandType = CommandTypes.APPLICATION_SLASH; break;
+          case ApplicationCommandTypes.MESSAGE: commandType = CommandTypes.APPLICATION_MENU_MESSAGE; break;
+          case ApplicationCommandTypes.USER: commandType = CommandTypes.APPLICATION_MENU_USER; break;
+          default: continue;
+        }
+
+        // add in args
+        commands.push({
+          args: [],
+          category: '',
+          enabled: true,
+          description: invoker.description,
+          dmable: !invoker.disableDm,
+          id: invoker.metadata.id || invoker.fullName.split(' ').join('.'),
+          name: invoker.fullName,
+          ratelimits: invoker.ratelimits?.map((ratelimit) => {
+            return {
+              duration: ratelimit.duration,
+              key: ratelimit.key,
+              limit: ratelimit.limit,
+              type: String(ratelimit.type),
+            };
+          }),
+          type: commandType,
+          usage: '',
+        });
+      }
+    }
     await uploadCommands(context, {commands});
 
     return editOrReply(context, 'ok');

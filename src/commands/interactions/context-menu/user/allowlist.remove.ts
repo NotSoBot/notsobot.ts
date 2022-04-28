@@ -10,6 +10,9 @@ export const COMMAND_NAME = 'Allowlist Remove';
 
 export default class AllowlistRemoveCommand extends BaseContextMenuUserCommand {
   disableDm = true;
+  metadata = {
+    id: Formatter.Commands.ModerationAllowlistRemoveUsers.COMMAND_ID,
+  };
   name = COMMAND_NAME;
   permissions = [Permissions.ADMINISTRATOR];
 

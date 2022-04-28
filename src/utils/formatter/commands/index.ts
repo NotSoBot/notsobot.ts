@@ -48,6 +48,11 @@ import * as ImageWall from './image.wall';
 
 import * as InfoUser from './info.user';
 
+import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
+import * as ModerationAllowlistRemoveUsers from './moderation.allowlist.remove.users';
+import * as ModerationBlocklistAddUsers from './moderation.blocklist.add.users';
+import * as ModerationBlocklistRemoveUsers from './moderation.blocklist.remove.users';
+
 import * as PrefixesAdd from './prefixes.add';
 import * as PrefixesClear from './prefixes.clear';
 import * as PrefixesList from './prefixes.list';
@@ -143,6 +148,10 @@ export {
   ImageToolsRotate,
   ImageWall,
   InfoUser,
+  ModerationAllowlistAddUsers,
+  ModerationAllowlistRemoveUsers,
+  ModerationBlocklistAddUsers,
+  ModerationBlocklistRemoveUsers,
   PrefixesAdd,
   PrefixesClear,
   PrefixesList,

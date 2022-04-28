@@ -2,7 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, EmbedColors, GuildBlocklistTypes } from '../../../constants';
-import { Parameters } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -29,12 +29,13 @@ export default class BlocklistAddUsersCommand extends BaseCommand {
       disableDm: true,
       label: 'users',
       metadata: {
+        category: CommandCategories.MODERATION,
         description: 'Add users to the blocklist.',
         examples: [
           `${COMMAND_NAME} cake`,
           `${COMMAND_NAME} <@300505364032389122> <@61189081970774016>`,
         ],
-        category: CommandCategories.MODERATION,
+        id: Formatter.Commands.ModerationBlocklistAddUsers.COMMAND_ID,
         usage: '...<user:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

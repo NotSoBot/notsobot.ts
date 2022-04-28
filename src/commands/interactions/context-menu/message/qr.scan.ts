@@ -13,6 +13,9 @@ export interface QRScanCommandArgs extends ContextMenuMessageArgs {
 export const COMMAND_NAME = 'QR Scan';
 
 export default class QRScanCommand extends BaseContextMenuMessageCommand {
+  metadata = {
+    id: Formatter.Commands.ToolsQrScan.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   onBeforeRun(context: Interaction.InteractionContext, args: QRScanCommandArgs) {

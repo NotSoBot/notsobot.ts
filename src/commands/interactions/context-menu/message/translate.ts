@@ -14,6 +14,9 @@ export interface TranslateCommandArgs extends ContextMenuMessageArgs {
 export const COMMAND_NAME = 'Translate (w/ OCR)';
 
 export default class TranslateCommand extends BaseContextMenuMessageCommand {
+  metadata = {
+    id: Formatter.Commands.ToolsTranslate.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   onBeforeRun(context: Interaction.InteractionContext, args: TranslateCommandArgs) {

@@ -10,6 +10,9 @@ export const COMMAND_NAME = 'Blocklist Remove';
 
 export default class BlocklistRemoveCommand extends BaseContextMenuUserCommand {
   disableDm = true;
+  metadata = {
+    id: Formatter.Commands.ModerationBlocklistRemoveUsers.COMMAND_ID,
+  };
   name = COMMAND_NAME;
   permissions = [Permissions.ADMINISTRATOR];
 

@@ -10,6 +10,9 @@ export const COMMAND_NAME = 'Allowlist Add';
 
 export default class AllowlistAddCommand extends BaseContextMenuUserCommand {
   disableDm = true;
+  metadata = {
+    id: Formatter.Commands.ModerationAllowlistAddUsers.COMMAND_ID,
+  };
   name = COMMAND_NAME;
   permissions = [Permissions.ADMINISTRATOR];
 
