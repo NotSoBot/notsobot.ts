@@ -2,20 +2,20 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { ImageBlurCommand } from './blur';
-import { ImageBlurpleCommand } from './blurple';
-import { ImageCircleCommand } from './circle';
-import { ImageDeepfryCommand } from './deepfry';
-import { ImageExplodeCommand } from './explode';
 import { ImageFlipCommand } from './flip';
 import { ImageFlopCommand } from './flop';
-import { ImageInvertCommand } from './invert';
+import { ImageJPEGCommand } from './tools/jpeg';
 import { ImageMemeCommand } from './meme';
+// rip command
+import { ImageSpinCommand } from './spin';
 
 import { ImageBackgroundGroupCommand } from './background';
+import { ImageFunGroupCommand } from './fun';
 import { ImageGifGroupCommand } from './gif';
 import { ImageOverlayGroupCommand } from './overlay';
+import { ImageTintGroupCommand } from './tint';
 import { ImageToolsGroupCommand } from './tools';
+// mirror
 
 
 export default class ImageGroupCommand extends BaseSlashCommand {
@@ -27,17 +27,15 @@ export default class ImageGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new ImageBackgroundGroupCommand(),
-        new ImageBlurCommand(),
-        new ImageBlurpleCommand(),
-        new ImageCircleCommand(),
-        new ImageDeepfryCommand(),
-        new ImageExplodeCommand(),
         new ImageFlipCommand(),
         new ImageFlopCommand(),
+        new ImageFunGroupCommand(),
         new ImageGifGroupCommand(),
-        new ImageInvertCommand(),
+        new ImageJPEGCommand(),
         new ImageMemeCommand(),
         new ImageOverlayGroupCommand(),
+        new ImageSpinCommand(),
+        new ImageTintGroupCommand(),
         new ImageToolsGroupCommand(),
       ],
     });
