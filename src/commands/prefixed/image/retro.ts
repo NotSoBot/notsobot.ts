@@ -1,43 +1,36 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
-import { BaseImageCommand } from '../basecommand';
+import { BaseCommand } from '../basecommand';
 
-
-export interface CommandArgsBefore {
-  type?: string,
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  type?: string,
-  url: string,
-}
 
 export const COMMAND_NAME = 'retro';
 
-export default class RetroCommand extends BaseImageCommand<CommandArgs> {
+export default class RetroCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'type'},
+        {name: 'type', label: 'background'},
       ],
+      label: 'text',
       metadata: {
+        category: CommandCategories.IMAGE,
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
-          `${COMMAND_NAME} notsobot -type 2`,
+          `${COMMAND_NAME} line1 | line2 | line3 -type 2`,
         ],
-        category: CommandCategories.IMAGE,
-        usage: '?<emoji,user:id|mention|name,url> (-type <retro-type>)',
+        id: Formatter.Commands.ImageCreateRetrowave.COMMAND_ID,
+        usage: '?<text> (-type <retro-type>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-
+  async run(context: Command.Context, args: Formatter.Commands.ImageCreateRetrowave.CommandArgs) {
+    return Formatter.Commands.ImageCreateRetrowave.createMessage(context, args);
   }
 }

@@ -177,6 +177,14 @@ export namespace RestOptions {
     model?: string,
   }
 
+  export interface ImageCreateRetrowave {
+    background?: number,
+    line1?: string,
+    line2?: string,
+    line3?: string,
+    textStyle?: number,
+  }
+
   export interface ImageCreateTombstone {
     line1?: string,
     line2?: string,

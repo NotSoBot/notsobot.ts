@@ -711,6 +711,28 @@ export async function googleTranslate(
 }
 
 
+export async function imageCreateRetrowave(
+  context: RequestContext,
+  options: RestOptions.ImageCreateRetrowave,
+): Promise<Response> {
+  const query = {
+    background: options.background,
+    line_1: options.line1,
+    line_2: options.line2,
+    line_3: options.line3,
+    text_style: options.textStyle,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_CREATE_RETROWAVE,
+    },
+  });
+}
+
+
 export async function imageCreateTombstone(
   context: RequestContext,
   options: RestOptions.ImageCreateTombstone,

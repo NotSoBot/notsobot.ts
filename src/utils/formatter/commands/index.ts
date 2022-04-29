@@ -13,6 +13,7 @@ import * as ImageBackgroundRemove from './image.background.remove';
 import * as ImageBlur from './image.blur';
 import * as ImageBlurple from './image.blurple';
 import * as ImageCircle from './image.circle';
+import * as ImageCreateRetrowave from './image.create.retrowave';
 import * as ImageDeepfry from './image.deepfry';
 import * as ImageExplode from './image.explode';
 import * as ImageFlip from './image.flip';
@@ -115,6 +116,7 @@ export {
   ImageBlur,
   ImageBlurple,
   ImageCircle,
+  ImageCreateRetrowave,
   ImageDeepfry,
   ImageExplode,
   ImageFlip,

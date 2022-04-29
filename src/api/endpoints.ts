@@ -61,6 +61,8 @@ export const Api = Object.freeze({
     '/image/create/:height:x:width:/colors/:hex:.:format:',
   IMAGE_CREATE_COLOR_RGB:
     '/image/create/:height:x:width:/colors/:red:.:green:.:blue:.:format:',
+  IMAGE_CREATE_RETROWAVE:
+    '/image/create/retrowave',
   IMAGE_CREATE_TOMBSTONE:
     '/image/create/tombstone',
   IMAGE_CREATE_WORDCLOUD:

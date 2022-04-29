@@ -400,6 +400,14 @@ export async function googleTranslate(
 }
 
 
+export async function imageCreateRetrowave(
+  context: RequestContext,
+  options: RestOptions.ImageCreateRetrowave,
+) {
+  return raw.imageCreateRetrowave(context, options);
+}
+
+
 export async function imageCreateTombstone(
   context: RequestContext,
   options: RestOptions.ImageCreateTombstone,

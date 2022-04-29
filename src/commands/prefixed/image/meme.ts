@@ -20,6 +20,7 @@ export default class MemeCommand extends BaseImageCommand<Formatter.Commands.Ima
 
       metadata: {
         category: CommandCategories.IMAGE,
+        description: 'Add Meme Text to an Image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot what an idiot`,
