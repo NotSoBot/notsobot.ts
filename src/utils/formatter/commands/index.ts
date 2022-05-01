@@ -2,6 +2,7 @@ import * as AudioConvert from './audio.convert';
 import * as AudioIdentify from './audio.identify';
 
 import * as FunAesthetics from './fun.aesthetics';
+import * as FunBadMeme from './fun.badmeme';
 import * as FunEmoji from './fun.emoji';
 import * as FunRegional from './fun.regional';
 import * as FunTextwall from './fun.textwall';
@@ -73,7 +74,6 @@ import * as ReminderDelete from './reminder.delete';
 import * as ReminderListUser from './reminder.list.user';
 
 import * as Search4Chan from './search.4chan';
-import * as SearchBadMeme from './search.badmeme';
 import * as SearchDiscordEmojis from './search.discord.emojis';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleWeb from './search.google.web';
@@ -116,6 +116,7 @@ export {
   AudioIdentify,
 
   FunAesthetics,
+  FunBadMeme,
   FunEmoji,
   FunRegional,
   FunTextwall,
@@ -186,7 +187,6 @@ export {
   ReminderListUser,
 
   Search4Chan,
-  SearchBadMeme,
   SearchDiscordEmojis,
   SearchGoogleImages,
   SearchGoogleWeb,

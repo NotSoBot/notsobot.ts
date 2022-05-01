@@ -5,10 +5,10 @@ import { RequestTypes } from 'detritus-client-rest';
 import { searchImgur } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { DiscordEmojis, EmbedBrands, EmbedColors } from '../../../constants';
-import { DefaultParameters, Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import { DefaultParameters, Paginator, createUserEmbed, editOrReply, shuffleArray } from '../..';
 
 
-export const COMMAND_ID = 'search.badmeme';
+export const COMMAND_ID = 'fun.badmeme';
 
 export interface CommandArgs {
 
@@ -23,9 +23,16 @@ export async function createMessage(
   const results = shuffleArray<RestResponsesRaw.SearchImgurResult>(await searchImgur(context, {query: 'meme'}));
   if (results.length) {
     const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setThumbnail(results[0].thumbnail);
-    return editOrReply(context, {embed});
+    embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
+    embed.setImage(results[0].thumbnail);
+
+    const url = results[0].thumbnail;
+    const filename = url.split('/').pop()!;
+    embed.setImage(`attachment://${filename}`);
+    return editOrReply(context, {
+      embed,
+      file: {filename, value: await context.rest.get(url)},
+    });
   }
   return editOrReply(context, 'Couldn\'t find any bad memes');
 }
