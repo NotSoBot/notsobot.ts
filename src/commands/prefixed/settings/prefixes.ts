@@ -23,7 +23,7 @@ export default class PrefixesCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.PrefixesList.COMMAND_ID,
-        usage: `${COMMAND_NAME}`,
+        usage: '',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       priority: -1,

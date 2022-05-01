@@ -33,7 +33,7 @@ export default class HelpCommand extends BaseCommand {
           `${COMMAND_NAME} loggers`,
         ],
         category: CommandCategories.UTILS,
-        usage: '?<command:name>',
+        usage: '',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       type: (content: string, context: Command.Context) => {

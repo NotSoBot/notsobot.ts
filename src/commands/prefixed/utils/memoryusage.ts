@@ -23,7 +23,7 @@ export default class MemoryUsageCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         category: CommandCategories.UTILS,
-        usage: `${COMMAND_NAME}`,
+        usage: '',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
     });

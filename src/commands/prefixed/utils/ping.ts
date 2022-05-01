@@ -19,7 +19,7 @@ export default class PingCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         category: CommandCategories.UTILS,
-        usage: `${COMMAND_NAME}`,
+        usage: '',
       },
     });
   }

@@ -512,6 +512,14 @@ export async function imageManipulationGlitch(
 }
 
 
+export async function imageManipulationGlobe(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationGlobe(context, options);
+}
+
+
 export async function imageManipulationGold(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,

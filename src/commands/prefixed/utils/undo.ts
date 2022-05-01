@@ -27,7 +27,7 @@ export default class UndoCommand extends BaseCommand {
           `${COMMAND_NAME} 5`,
         ],
         category: CommandCategories.UTILS,
-        usage: `${COMMAND_NAME}`,
+        usage: '?<amount>',
       },
       type: Parameters.number({max: 5, min: 1}),
     });

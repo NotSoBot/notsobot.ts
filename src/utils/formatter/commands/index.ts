@@ -29,6 +29,7 @@ import * as ImageInvert from './image.invert';
 import * as ImageLegofy from './image.legofy';
 import * as ImageMagik from './image.magik';
 import * as ImageMagikGif from './image.magik.gif';
+import * as ImageManipulationGlobe from './image.manipulation.globe';
 import * as ImageMeme from './image.meme';
 import * as ImageMirrorBottom from './image.mirror.bottom';
 import * as ImageMirrorLeft from './image.mirror.left';
@@ -132,6 +133,7 @@ export {
   ImageLegofy,
   ImageMagik,
   ImageMagikGif,
+  ImageManipulationGlobe,
   ImageMeme,
   ImageMirrorBottom,
   ImageMirrorLeft,

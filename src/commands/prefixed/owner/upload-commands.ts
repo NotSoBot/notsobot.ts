@@ -21,7 +21,7 @@ export default class UploadCommandsCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         category: CommandCategories.OWNER,
-        usage: `${COMMAND_NAME}`,
+        usage: '',
       },
     });
   }
