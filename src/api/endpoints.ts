@@ -123,6 +123,8 @@ export const Api = Object.freeze({
     '/image/manipulation/mirror-right',
   IMAGE_MANIPULATION_MIRROR_TOP:
     '/image/manipulation/mirror-top',
+  IMAGE_MANIPULATION_PAPER:
+    '/image/manipulation/paper',
   IMAGE_MANIPULATION_PIXELATE:
     '/image/manipulation/pixelate',
   IMAGE_MANIPULATION_RAIN:
@@ -133,6 +135,8 @@ export const Api = Object.freeze({
     '/image/manipulation/sharpen',
   IMAGE_MANIPULATION_SPIN:
     '/image/manipulation/spin',
+  IMAGE_MANIPULATION_TRACE:
+    '/image/manipulation/trace',
   IMAGE_MANIPULATION_WALL:
     '/image/manipulation/wall',
 

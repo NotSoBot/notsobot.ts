@@ -632,6 +632,14 @@ export async function imageManipulationMirrorTop(
 }
 
 
+export async function imageManipulationPaper(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationPaper(context, options);
+}
+
+
 export async function imageManipulationPixelate(
   context: RequestContext,
   options: RestOptions.ImageManipulationPixelate,
@@ -669,6 +677,14 @@ export async function imageManipulationSpin(
   options: RestOptions.ImageBaseOptions,
 ) {
   return raw.imageManipulationSpin(context, options);
+}
+
+
+export async function imageManipulationTrace(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationTrace(context, options);
 }
 
 

@@ -8,7 +8,9 @@ import { ImageGlitchCommand } from './glitch';
 import { ImageImplodeCommand } from './implode';
 import { ImageLegofyCommand } from './legofy';
 import { ImageMagikCommand } from './magik';
+import { ImagePaperCommand } from './paper';
 import { ImagePixelateCommand } from './pixelate';
+import { ImageTraceCommand } from './trace';
 import { ImageWallCommand } from './wall';
 
 
@@ -27,7 +29,9 @@ export class ImageFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new ImageImplodeCommand(),
         new ImageLegofyCommand(),
         new ImageMagikCommand(),
+        new ImagePaperCommand(),
         new ImagePixelateCommand(),
+        new ImageTraceCommand(),
         new ImageWallCommand(),
       ],
     });

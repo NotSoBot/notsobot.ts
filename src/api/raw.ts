@@ -1262,6 +1262,24 @@ export async function imageManipulationMirrorTop(
 }
 
 
+export async function imageManipulationPaper(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_PAPER,
+    },
+  });
+}
+
+
 export async function imageManipulationPixelate(
   context: RequestContext,
   options: RestOptions.ImageManipulationPixelate,
@@ -1349,6 +1367,24 @@ export async function imageManipulationSpin(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_MANIPULATION_SPIN,
+    },
+  });
+}
+
+
+export async function imageManipulationTrace(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_TRACE,
     },
   });
 }

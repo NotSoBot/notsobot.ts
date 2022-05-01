@@ -15,7 +15,7 @@ export default class SpinCommand extends BaseImageCommand {
 
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Create a spinning disk from an image',
+        description: 'Create a spinning disk from an Image/Gif',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

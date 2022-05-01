@@ -9,11 +9,9 @@ import * as FunTTS from './fun.tts';
 import * as FunWordcloudChannel from './fun.wordcloud.channel';
 import * as FunWordcloudUser from './fun.wordcloud.user';
 
-import * as ImageBackgroundRemove from './image.background.remove';
 import * as ImageBlur from './image.blur';
 import * as ImageBlurple from './image.blurple';
 import * as ImageCircle from './image.circle';
-import * as ImageCreateRetrowave from './image.create.retrowave';
 import * as ImageDeepfry from './image.deepfry';
 import * as ImageExplode from './image.explode';
 import * as ImageFlip from './image.flip';
@@ -29,8 +27,6 @@ import * as ImageInvert from './image.invert';
 import * as ImageLegofy from './image.legofy';
 import * as ImageMagik from './image.magik';
 import * as ImageMagikGif from './image.magik.gif';
-import * as ImageManipulationGlobe from './image.manipulation.globe';
-import * as ImageManipulationGlitchGif from './image.manipulation.glitch.gif';
 import * as ImageMeme from './image.meme';
 import * as ImageMirrorBottom from './image.mirror.bottom';
 import * as ImageMirrorLeft from './image.mirror.left';
@@ -43,11 +39,21 @@ import * as ImageSharpen from './image.sharpen';
 import * as ImageSpin from './image.spin';
 import * as ImageRain from './image.rain';
 import * as ImageRip from './image.rip';
+import * as ImageWall from './image.wall';
+
+import * as ImageBackgroundRemove from './image.background.remove';
+
+import * as ImageCreateRetrowave from './image.create.retrowave';
+
+import * as ImageManipulationGlobe from './image.manipulation.globe';
+import * as ImageManipulationGlitchGif from './image.manipulation.glitch.gif';
+import * as ImageManipulationPaper from './image.manipulation.paper';
+import * as ImageManipulationTrace from './image.manipulation.trace';
+
 import * as ImageToolsConvert from './image.tools.convert';
 import * as ImageToolsCrop from './image.tools.crop';
 import * as ImageToolsResize from './image.tools.resize';
 import * as ImageToolsRotate from './image.tools.rotate';
-import * as ImageWall from './image.wall';
 
 import * as InfoUser from './info.user';
 
@@ -107,6 +113,7 @@ import * as VideoExtractAudio from './video.extract.audio';
 export {
   AudioConvert,
   AudioIdentify,
+
   FunAesthetics,
   FunEmoji,
   FunRegional,
@@ -114,11 +121,10 @@ export {
   FunTTS,
   FunWordcloudChannel,
   FunWordcloudUser,
-  ImageBackgroundRemove,
+
   ImageBlur,
   ImageBlurple,
   ImageCircle,
-  ImageCreateRetrowave,
   ImageDeepfry,
   ImageExplode,
   ImageFlip,
@@ -134,8 +140,6 @@ export {
   ImageLegofy,
   ImageMagik,
   ImageMagikGif,
-  ImageManipulationGlobe,
-  ImageManipulationGlitchGif,
   ImageMeme,
   ImageMirrorBottom,
   ImageMirrorLeft,
@@ -148,24 +152,38 @@ export {
   ImageRip,
   ImageSharpen,
   ImageSpin,
+  ImageWall,
+  ImageBackgroundRemove,
+
+  ImageCreateRetrowave,
+
+  ImageManipulationGlobe,
+  ImageManipulationGlitchGif,
+  ImageManipulationPaper,
+  ImageManipulationTrace,
+
   ImageToolsConvert,
   ImageToolsCrop,
   ImageToolsResize,
   ImageToolsRotate,
-  ImageWall,
+
   InfoUser,
+
   ModerationAllowlistAddUsers,
   ModerationAllowlistRemoveUsers,
   ModerationBlocklistAddUsers,
   ModerationBlocklistRemoveUsers,
+
   PrefixesAdd,
   PrefixesClear,
   PrefixesList,
   PrefixesRemove,
   PrefixesReplace,
+
   ReminderCreate,
   ReminderDelete,
   ReminderListUser,
+
   Search4Chan,
   SearchDiscordEmojis,
   SearchGoogleImages,
@@ -174,10 +192,12 @@ export {
   SearchSteamEmojis,
   SearchSteamProfile,
   SearchUrban,
+
   SettingsServerSetLocale,
   SettingsServerSetTimezone,
   SettingsSetLocale,
   SettingsSetTimezone,
+
   TagCreate,
   TagEdit,
   TagInfo,
@@ -186,6 +206,7 @@ export {
   TagRandom,
   TagRemove,
   TagShow,
+
   ToolsCode,
   ToolsExif,
   ToolsHash,
@@ -195,6 +216,7 @@ export {
   ToolsQrScan,
   ToolsScreenshot,
   ToolsTranslate,
+
   VideoConvert,
   VideoExtractAudio,
 };
