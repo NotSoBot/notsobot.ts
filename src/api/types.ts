@@ -377,6 +377,10 @@ export namespace RestOptions {
     url: string,
   }
 
+  export interface SearchImgur {
+    query: string,
+  }
+
   export interface SearchReddit {
     maxResults?: number,
     query: string,
@@ -1005,6 +1009,19 @@ export namespace RestResponsesRaw {
     url: string,
     urls: Array<{text: string, url: string}>,
   }
+
+  export interface SearchImgurResult {
+    dislikes: number,
+    id: string,
+    likes: number,
+    points: number,
+    thumbnail: string,
+    type: string,
+    url: string,
+    views: number,
+  }
+
+  export type SearchImgur = Array<SearchImgurResult>;
 
   export type SearchRule34 = Array<SearchRule34Result>;
   export interface SearchRule34Result {

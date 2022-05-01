@@ -215,6 +215,10 @@ export const Api = Object.freeze({
     '/search/google/images',
   SEARCH_GOOGLE_REVERSE_IMAGES:
     '/search/google/reverse-images',
+  SEARCH_IMGUR:
+    '/search/imgur',
+  SEARCH_IMGUR_HOME:
+    '/search/imgur/home',
   SEARCH_REDDIT:
     '/search/reddit',
   SEARCH_RULE34:

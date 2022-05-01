@@ -20,7 +20,7 @@ export default class UrbanCommand extends BaseSearchCommand<Formatter.Commands.S
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.SearchUrban.COMMAND_ID,
-        usage: '<query>',
+        usage: '?<query>',
       },
       priority: -1,
     });

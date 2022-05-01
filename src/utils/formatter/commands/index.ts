@@ -73,6 +73,7 @@ import * as ReminderDelete from './reminder.delete';
 import * as ReminderListUser from './reminder.list.user';
 
 import * as Search4Chan from './search.4chan';
+import * as SearchBadMeme from './search.badmeme';
 import * as SearchDiscordEmojis from './search.discord.emojis';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleWeb from './search.google.web';
@@ -185,6 +186,7 @@ export {
   ReminderListUser,
 
   Search4Chan,
+  SearchBadMeme,
   SearchDiscordEmojis,
   SearchGoogleImages,
   SearchGoogleWeb,

@@ -2067,6 +2067,23 @@ export async function searchGoogleReverseImages(
 }
 
 
+export async function searchImgur(
+  context: RequestContext,
+  options: RestOptions.SearchImgur,
+): Promise<RestResponsesRaw.SearchImgur> {
+  const query = {
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_IMGUR,
+    },
+  });
+}
+
+
 export async function searchReddit(
   context: RequestContext,
   options: RestOptions.SearchReddit,

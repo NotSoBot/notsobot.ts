@@ -23,7 +23,7 @@ export default class PrefixesClearCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.PrefixesClear.COMMAND_ID,
-        usage: `${COMMAND_NAME}`,
+        usage: '',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],

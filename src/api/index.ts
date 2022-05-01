@@ -987,6 +987,14 @@ export async function searchGoogleReverseImages(
 }
 
 
+export async function searchImgur(
+  context: RequestContext,
+  options: RestOptions.SearchImgur,
+) {
+  return raw.searchImgur(context, options);
+}
+
+
 export async function searchReddit(
   context: RequestContext,
   options: RestOptions.SearchReddit,
