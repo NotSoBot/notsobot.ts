@@ -978,6 +978,27 @@ export async function imageManipulationGlitch(
 }
 
 
+export async function imageManipulationGlitchGif(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationGlitch,
+): Promise<Response> {
+  const query = {
+    amount: options.amount,
+    iterations: options.iterations,
+    seed: options.seed,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_GLITCH_GIF,
+    },
+  });
+}
+
+
 export async function imageManipulationGlobe(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,

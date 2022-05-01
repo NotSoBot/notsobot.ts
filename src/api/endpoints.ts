@@ -93,6 +93,8 @@ export const Api = Object.freeze({
     '/image/manipulation/flop',
   IMAGE_MANIPULATION_GLITCH:
     '/image/manipulation/glitch',
+  IMAGE_MANIPULATION_GLITCH_GIF:
+    '/image/manipulation/glitch/gif',
   IMAGE_MANIPULATION_GLOBE:
     '/image/manipulation/globe',
   IMAGE_MANIPULATION_GOLD:

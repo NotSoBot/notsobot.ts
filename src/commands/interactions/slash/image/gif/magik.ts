@@ -7,7 +7,7 @@ import { BaseInteractionImageCommandOption } from '../../../basecommand';
 
 export const COMMAND_NAME = 'magik';
 
-export class ImageGMagikCommand extends BaseInteractionImageCommandOption {
+export class ImageGifMagikCommand extends BaseInteractionImageCommandOption {
   description = 'Moving Magikfy an Image/Gif';
   metadata = {
     id: Formatter.Commands.ImageMagikGif.COMMAND_ID,

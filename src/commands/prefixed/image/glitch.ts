@@ -8,7 +8,7 @@ import { BaseImageCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'glitch';
 
-export default class GlitchCommand extends BaseImageCommand<Formatter.Commands.ImageGlitch.CommandArgs> {
+export default class GlitchCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

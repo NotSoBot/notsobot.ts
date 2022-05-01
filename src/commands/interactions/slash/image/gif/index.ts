@@ -1,6 +1,7 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { ImageGMagikCommand } from './magik';
+import { ImageGifGlitchCommand } from './glitch';
+import { ImageGifMagikCommand } from './magik';
 import { ImageGifReverseCommand } from './reverse';
 import { ImageGifSeeSawCommand } from './seesaw';
 import { ImageGifSpeedCommand } from './speed';
@@ -13,7 +14,8 @@ export class ImageGifGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
-        new ImageGMagikCommand(),
+        new ImageGifGlitchCommand(),
+        new ImageGifMagikCommand(),
         new ImageGifReverseCommand(),
         new ImageGifSeeSawCommand(),
         new ImageGifSpeedCommand(),

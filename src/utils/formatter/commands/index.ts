@@ -30,6 +30,7 @@ import * as ImageLegofy from './image.legofy';
 import * as ImageMagik from './image.magik';
 import * as ImageMagikGif from './image.magik.gif';
 import * as ImageManipulationGlobe from './image.manipulation.globe';
+import * as ImageManipulationGlitchGif from './image.manipulation.glitch.gif';
 import * as ImageMeme from './image.meme';
 import * as ImageMirrorBottom from './image.mirror.bottom';
 import * as ImageMirrorLeft from './image.mirror.left';
@@ -134,6 +135,7 @@ export {
   ImageMagik,
   ImageMagikGif,
   ImageManipulationGlobe,
+  ImageManipulationGlitchGif,
   ImageMeme,
   ImageMirrorBottom,
   ImageMirrorLeft,

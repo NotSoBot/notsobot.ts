@@ -169,6 +169,7 @@ export enum TagFunctions {
   RNG_CHOOSE = 'RNG_CHOOSE',
   RNG_RANGE = 'RNG_RANGE',
   STRING_CODEBLOCK = 'STRING_CODEBLOCK',
+  STRING_JSONIFY = 'STRING_JSONIFY',
   STRING_LENGTH = 'STRING_LENGTH',
   STRING_LOWER = 'STRING_LOWER',
   STRING_NEWLINE = 'STRING_NEWLINE',
@@ -240,6 +241,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.RNG_CHOOSE]: ['choose'],
   [TagFunctions.RNG_RANGE]: ['range', 'random', 'rnd'],
   [TagFunctions.STRING_CODEBLOCK]: ['code'],
+  [TagFunctions.STRING_JSONIFY]: ['jsonify'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
   [TagFunctions.STRING_LOWER]: ['lower'],
   [TagFunctions.STRING_NEWLINE]: ['newline'],
@@ -1240,6 +1242,13 @@ const ScriptTags = Object.freeze({
     // {code:text}
 
     tag.text += Markup.codeblock(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_JSONIFY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult): Promise<boolean> => {
+    // {jsonify:text}
+
+    tag.text += JSON.stringify(arg);
     return true;
   },
 
