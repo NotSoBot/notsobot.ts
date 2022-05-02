@@ -640,6 +640,14 @@ export async function imageManipulationPaper(
 }
 
 
+export async function imageManipulationPix2Pix(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationPix2Pix,
+) {
+  return raw.imageManipulationPix2Pix(context, options);
+}
+
+
 export async function imageManipulationPixelate(
   context: RequestContext,
   options: RestOptions.ImageManipulationPixelate,

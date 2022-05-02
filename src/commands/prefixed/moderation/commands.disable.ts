@@ -1,5 +1,6 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { createGuildDisabledCommand, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
@@ -96,16 +97,17 @@ export default class CommandsDisable extends BaseCommand {
 
   async run(context: Command.Context, args: CommandArgs) {
     const { command } = args;
+    const commandId = (command.metadata && command.metadata.id) ? command.metadata.id : command.name.split(' ').join('.');
     const guildId = context.guildId as string;
 
     const isServerWide = !args.channels && !args.roles && !args.users;
 
     let settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
 
-    let title = `Disabled ${command.name}`;
+    let title = `Disabled ${Markup.codestring(commandId)}`;
     if (isServerWide) {
       title = `${title} server-wide`;
-      await createGuildDisabledCommand(context, guildId, command.name, guildId, GuildDisableCommandsTypes.GUILD);
+      await createGuildDisabledCommand(context, guildId, commandId, guildId, GuildDisableCommandsTypes.GUILD);
       settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettings;
     } else {
       let channels = 0, roles = 0, users = 0;
@@ -131,7 +133,7 @@ export default class CommandsDisable extends BaseCommand {
       }
 
       for (let payload of payloads) {
-        const key = `${command.name}.${payload.item.id}.${payload.type}`;
+        const key = `${commandId}.${payload.item.id}.${payload.type}`;
         if (!settings.disabledCommands.has(key)) {
           await createGuildDisabledCommand(context, guildId, command.name, payload.item.id, payload.type);
         }

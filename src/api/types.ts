@@ -247,6 +247,10 @@ export namespace RestOptions {
     top: string,
   }
 
+  export interface ImageManipulationPix2Pix extends ImageBaseOptions {
+    model: string,
+  }
+
   export interface ImageManipulationPixelate extends ImageBaseOptions {
     pixelWidth?: number,
   }

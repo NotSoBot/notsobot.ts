@@ -1280,6 +1280,25 @@ export async function imageManipulationPaper(
 }
 
 
+export async function imageManipulationPix2Pix(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationPix2Pix,
+): Promise<Response> {
+  const query = {
+    model: options.model,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_PIX2PIX,
+    },
+  });
+}
+
+
 export async function imageManipulationPixelate(
   context: RequestContext,
   options: RestOptions.ImageManipulationPixelate,

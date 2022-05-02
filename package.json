@@ -10,14 +10,15 @@
   "dependencies": {
     "@sentry/node": "^6.4.1",
     "chrono-node": "^2.3.8",
-    "detritus-client": "^0.17.0-beta.8",
-    "detritus-client-rest": "^0.11.0-beta.3",
+    "detritus-client": "^0.17.0-beta.10",
+    "detritus-rest": "^0.9.0-beta.4",
     "emoji-aware": "^3.0.5",
     "juration": "^0.1.1",
     "moment": "^2.29.1",
     "moment-duration-format": "^2.3.2",
     "moment-timezone": "^0.5.32",
-    "redis": "^3.1.2"
+    "redis": "^3.1.2",
+    "undici": "^5.1.1"
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.2",

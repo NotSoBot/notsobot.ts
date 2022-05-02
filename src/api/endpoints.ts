@@ -125,6 +125,8 @@ export const Api = Object.freeze({
     '/image/manipulation/mirror-top',
   IMAGE_MANIPULATION_PAPER:
     '/image/manipulation/paper',
+  IMAGE_MANIPULATION_PIX2PIX:
+    '/image/manipulation/pix2pix',
   IMAGE_MANIPULATION_PIXELATE:
     '/image/manipulation/pixelate',
   IMAGE_MANIPULATION_RAIN:

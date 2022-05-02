@@ -6,14 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  scale?: number,
-  url?: null | string,
-}
-
 export const COMMAND_NAME = 'deepfry';
 
-export default class DeepfryCommand extends BaseImageCommand<Formatter.Commands.ImageDeepfry.CommandArgs> {
+export default class DeepfryCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

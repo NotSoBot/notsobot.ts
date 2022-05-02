@@ -46,6 +46,8 @@ import * as ImageBackgroundRemove from './image.background.remove';
 
 import * as ImageCreateRetrowave from './image.create.retrowave';
 
+import * as ImageManipulationE2E from './image.manipulation.e2e';
+import * as ImageManipulationE2P from './image.manipulation.e2p';
 import * as ImageManipulationGlobe from './image.manipulation.globe';
 import * as ImageManipulationGlitchGif from './image.manipulation.glitch.gif';
 import * as ImageManipulationPaper from './image.manipulation.paper';
@@ -159,6 +161,8 @@ export {
 
   ImageCreateRetrowave,
 
+  ImageManipulationE2E,
+  ImageManipulationE2P,
   ImageManipulationGlobe,
   ImageManipulationGlitchGif,
   ImageManipulationPaper,

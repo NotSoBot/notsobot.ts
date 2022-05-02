@@ -715,7 +715,7 @@ export enum ImageBackgroundRemovalModels {
   U2NET = 'U2NET',
   U2NETP = 'U2NETP',
   U2NET_HUMAN_SEG = 'U2NET_HUMAN_SEG',
-}
+};
 
 export const ImageBackgroundRemovalModelsToText: Record<ImageBackgroundRemovalModels, string> = Object.freeze({
   [ImageBackgroundRemovalModels.ALPHA_MATTING]: 'Alpha Matting',
@@ -775,6 +775,13 @@ export enum ImageLegofyPalettes {
   EFFECTS = 'effects',
   MONO = 'mono',
   TRANSPARENT = 'transparent',
+};
+
+
+export enum ImagePix2PixModels {
+  EDGES = 'EDGES',
+  EMOJI = 'EMOJI',
+  PORN = 'PORN',
 };
 
 

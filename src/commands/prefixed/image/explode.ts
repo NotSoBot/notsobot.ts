@@ -6,14 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  scale?: number,
-  url?: null | string,
-}
-
 export const COMMAND_NAME = 'explode';
 
-export default class ExplodeCommand extends BaseImageCommand<Formatter.Commands.ImageExplode.CommandArgs> {
+export default class ExplodeCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
