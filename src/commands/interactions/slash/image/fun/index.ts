@@ -3,6 +3,8 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { ImageBlurCommand } from './blur';
 import { ImageCircleCommand } from './circle';
 import { ImageDeepfryCommand } from './deepfry';
+import { ImageE2ECommand } from './e2e';
+import { ImageE2PCommand } from './e2p';
 import { ImageExplodeCommand } from './explode';
 import { ImageGlitchCommand } from './glitch';
 import { ImageImplodeCommand } from './implode';
@@ -24,6 +26,8 @@ export class ImageFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new ImageBlurCommand(),
         new ImageCircleCommand(),
         new ImageDeepfryCommand(),
+        new ImageE2ECommand(),
+        new ImageE2PCommand(),
         new ImageExplodeCommand(),
         new ImageGlitchCommand(),
         new ImageImplodeCommand(),

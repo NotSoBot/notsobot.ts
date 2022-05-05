@@ -17,6 +17,7 @@ import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 export interface InteractionCommandMetadata {
   id: string,
+  nsfw?: boolean,
 };
 
 export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
@@ -32,7 +33,9 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
     }
 
     if (this.triggerLoadingAsEphemeral) {
-      return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
+      return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+        flags: MessageFlags.EPHEMERAL,
+      });
     }
     // check perms to maybe force as ephemeral, just in case
     return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
@@ -44,6 +47,29 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
       content: `⚠ ${this.error} \`${command}\` cannot be used in a DM.`,
       flags: MessageFlags.EPHEMERAL,
     });
+  }
+
+  onBefore(context: Interaction.InteractionContext) {
+    const metadata = context.invoker.metadata;
+    if (metadata && metadata.nsfw) {
+      if (context.channel) {
+        return context.channel.isDm || context.channel.nsfw;
+      }
+      return context.inDm;
+    }
+    return true;
+  }
+
+  onCancel(context: Interaction.InteractionContext) {
+    const metadata = context.invoker.metadata;
+    if (metadata && metadata.nsfw) {
+      if (!context.inDm && (context.channel && (!context.channel.isDm || !context.channel.nsfw))) {
+        return editOrReply(context, {
+          content: '⚠ Not a NSFW channel.',
+          flags: MessageFlags.EPHEMERAL,
+        });
+      }
+    }
   }
 
   onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {

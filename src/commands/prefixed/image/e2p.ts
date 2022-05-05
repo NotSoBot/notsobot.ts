@@ -22,6 +22,7 @@ export default class E2PCommand extends BaseImageCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.ImageManipulationE2P.COMMAND_ID,
+        nsfw: true,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

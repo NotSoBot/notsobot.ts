@@ -21,12 +21,9 @@ export interface CommandMetadata {
   usage?: string,
 }
 
-export interface ContextMetadata {
-  contentUrl?: string,
-  responseUrl?: string,
-}
-
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
+  nsfw = false;
+
   permissionsIgnoreClientOwner = true;
   triggerTypingAfter = 2000;
 
@@ -38,6 +35,10 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         {duration: 500, limit: 1, type: 'channel'},
       ],
     }, options));
+    if (this.metadata) {
+      this.nsfw = this.metadata.nsfw || this.nsfw;
+      this.metadata.nsfw = this.nsfw;
+    }
   }
 
   get commandDescription(): string {
@@ -46,6 +47,24 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       return `${this.fullName} ${metadata.usage}`.trim();
     }
     return '';
+  }
+
+  onBefore(context: Command.Context) {
+    if (this.nsfw) {
+      if (context.channel) {
+        return context.channel.isDm || context.channel.nsfw;
+      }
+      return context.inDm;
+    }
+    return true;
+  }
+
+  onCancel(context: Command.Context) {
+    if (this.nsfw) {
+      if (!context.inDm && (context.channel && (!context.channel.isDm || !context.channel.nsfw))) {
+        return editOrReply(context, '⚠ Not a NSFW channel.');
+      }
+    }
   }
 
   onCancelRun(context: Command.Context, args: unknown) {
@@ -399,8 +418,6 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 
 
 export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
-  nsfw = false;
-
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {
       label: 'query',
@@ -411,23 +428,6 @@ export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
       ],
       ...options,
     });
-    if (this.metadata) {
-      this.metadata.nsfw = this.nsfw;
-    }
-  }
-
-  onBefore(context: Command.Context) {
-    if (this.nsfw) {
-      if (context.channel) {
-        return context.channel.isDm || context.channel.nsfw;
-      }
-      return context.inDm;
-    }
-    return true;
-  }
-
-  onCancel(context: Command.Context) {
-    return editOrReply(context, '⚠ Not a NSFW channel.');
   }
 
   onBeforeRun(context: Command.Context, args: {query: string}) {
