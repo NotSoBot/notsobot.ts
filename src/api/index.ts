@@ -807,6 +807,13 @@ export async function imageToolsBackgroundRemove(
   return raw.imageToolsBackgroundRemove(context, options);
 }
 
+export async function imageToolsObjectRemove(
+  context: RequestContext,
+  options: RestOptions.ImageObjectRemoveOptions,
+) {
+  return raw.imageToolsObjectRemove(context, options);
+}
+
 
 export async function imageToolsConvert(
   context: RequestContext,

@@ -1680,6 +1680,25 @@ export async function imageToolsBackgroundRemove(
 }
 
 
+export async function imageToolsObjectRemove(
+  context: RequestContext,
+  options: RestOptions.ImageObjectRemoveOptions,
+): Promise<Response> {
+  const query = {
+    label: options.object,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_OBJECT_REMOVE,
+    },
+  });
+}
+
+
 export async function imageToolsConvert(
   context: RequestContext,
   options: RestOptions.ImageToolsConvert,

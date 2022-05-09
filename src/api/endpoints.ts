@@ -173,6 +173,8 @@ export const Api = Object.freeze({
 
   IMAGE_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',
+    IMAGE_TOOLS_OBJECT_REMOVE:
+    '/image/tools/object/remove',
   IMAGE_TOOLS_CONVERT:
     '/image/tools/convert',
   IMAGE_TOOLS_CROP:

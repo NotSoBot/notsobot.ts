@@ -10,6 +10,7 @@ import { ImageMemeCommand } from './meme';
 import { ImageSpinCommand } from './spin';
 
 import { ImageBackgroundGroupCommand } from './background';
+import { ImageObjectGroupCommand } from './object';
 import { ImageFunGroupCommand } from './fun';
 import { ImageGifGroupCommand } from './gif';
 import { ImageOverlayGroupCommand } from './overlay';
@@ -33,6 +34,7 @@ export default class ImageGroupCommand extends BaseSlashCommand {
         new ImageGifGroupCommand(),
         new ImageJPEGCommand(),
         new ImageMemeCommand(),
+        new ImageObjectGroupCommand(),
         new ImageOverlayGroupCommand(),
         new ImageSpinCommand(),
         new ImageTintGroupCommand(),

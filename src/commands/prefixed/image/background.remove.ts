@@ -13,7 +13,7 @@ export interface CommandArgsBefore {
 
 export const COMMAND_NAME = 'background remove';
 
-export default class GrayscaleCommand extends BaseImageCommand<Formatter.Commands.ImageBackgroundRemove.CommandArgs> {
+export default class BackgroundRemoveCommand extends BaseImageCommand<Formatter.Commands.ImageBackgroundRemove.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

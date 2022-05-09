@@ -177,6 +177,10 @@ export namespace RestOptions {
     model?: string,
   }
 
+  export interface ImageObjectRemoveOptions extends ImageBaseOptions {
+    object?: string,
+  }
+
   export interface ImageCreateRetrowave {
     background?: number,
     line1?: string,

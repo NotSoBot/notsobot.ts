@@ -43,6 +43,7 @@ import * as ImageRip from './image.rip';
 import * as ImageWall from './image.wall';
 
 import * as ImageBackgroundRemove from './image.background.remove';
+import * as ImageObjectRemove from './image.object.remove';
 
 import * as ImageCreateRetrowave from './image.create.retrowave';
 
@@ -158,6 +159,7 @@ export {
   ImageSpin,
   ImageWall,
   ImageBackgroundRemove,
+  ImageObjectRemove,
 
   ImageCreateRetrowave,
 
