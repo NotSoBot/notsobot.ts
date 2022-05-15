@@ -4,6 +4,8 @@ import {
   AuditLogActions,
   AuditLogChangeKeys,
   ClientEvents,
+  DetritusKeys,
+  DiscordKeys,
   MessageFlags,
   UserFlags as DiscordUserFlags,
   MAX_ATTACHMENT_SIZE,
@@ -543,7 +545,17 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     }
 
     {
-      const keys = ['avatar', 'deaf', 'hoistedRole', 'mute', 'nick', 'premiumSince', 'roles'];
+      const keys = [
+        DetritusKeys[DiscordKeys.AVATAR],
+        DetritusKeys[DiscordKeys.COMMUNICATION_DISABLED_UNTIL],
+        DetritusKeys[DiscordKeys.DEAF],
+        DetritusKeys[DiscordKeys.HOISTED_ROLE],
+        DetritusKeys[DiscordKeys.IS_PENDING],
+        DetritusKeys[DiscordKeys.MUTE],
+        DetritusKeys[DiscordKeys.NICK],
+        DetritusKeys[DiscordKeys.PREMIUM_SINCE],
+        DetritusKeys[DiscordKeys.ROLES],
+      ];
       const name = ClientEvents.GUILD_MEMBER_UPDATE;
 
       const subscription = cluster.subscribe(name, async (payload) => {
@@ -596,7 +608,16 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       subscriptions.push(subscription);
     }
     {
-      const keys = ['color', 'hoist', 'icon', 'mentionable', 'name', 'permissions', 'position', 'unicodeEmoji'];
+      const keys = [
+        DetritusKeys[DiscordKeys.COLOR],
+        DetritusKeys[DiscordKeys.HOIST],
+        DetritusKeys[DiscordKeys.ICON],
+        DetritusKeys[DiscordKeys.MENTIONABLE],
+        DetritusKeys[DiscordKeys.NAME],
+        DetritusKeys[DiscordKeys.PERMISSIONS],
+        DetritusKeys[DiscordKeys.POSITION],
+        DetritusKeys[DiscordKeys.UNICODE_EMOJI],
+      ];
       const name = ClientEvents.GUILD_ROLE_UPDATE;
 
       const subscription = cluster.subscribe(name, async (payload) => {
@@ -1008,6 +1029,19 @@ export function createLogPayload(
         for (let audit of audits) {
           for (let [x, change] of audit.changes) {
             switch (change.key) {
+              case AuditLogChangeKeys.COMMUNICATION_DISABLED_UNTIL: {
+                description.push(`- Timeout Change`);
+                if (change.newValue) {
+                  // must check if oldValue is newer than now to consider it a change
+                  if (change.oldValue && Date.now() < Date.parse(change.oldValue)) {
+                    description.push(`-> Timeout changed from ${change.oldValue} to ${change.newValue}`);
+                  } else {
+                    description.push(`-> Timed out until ${change.newValue}`);
+                  }
+                } else {
+                  description.push(`-> Timeout Cleared`);
+                }
+              }; break;
               case AuditLogChangeKeys.DEAF: {
                 if (change.newValue) {
                   description.push(`- Deafened`);
@@ -1071,6 +1105,19 @@ export function createLogPayload(
 
         // for non-premium guilds and when someone unboosts/boosts
         if (!audits) {
+          if (member.communicationDisabledUntilUnix !== old.communicationDisabledUntilUnix) {
+            description.push(`- Timeout Change`);
+            if (member.communicationDisabledUntilUnix) {
+              if (old.communicationDisabledUntilUnix && Date.now() < old.communicationDisabledUntilUnix) {
+                description.push(`-> Timeout changed from ${old.communicationDisabledUntil} to ${member.communicationDisabledUntil}`);
+              } else {
+                description.push(`-> Timed out until ${member.communicationDisabledUntil}`);
+              }
+            } else {
+              description.push(`-> Timeout Cleared`);
+            }
+          }
+
           if (member.deaf !== old.deaf || member.mute !== old.deaf) {
             const text: Array<string> = [];
             if (member.deaf !== old.deaf) {
@@ -1174,13 +1221,23 @@ export function createLogPayload(
           }
         }
 
+        if (member.isPending !== old.isPending) {
+          description.push(`- Pending Change`);
+          if (member.isPending) {
+            description.push('-> Is Pending');
+          } else {
+            description.push(`-> No longer pending`);
+          }
+        }
+
         if (member.avatar !== old.avatar) {
+          description.push('- Server Avatar Change');
           if (member.avatar && old.avatar) {
-            description.push('- Changed their Server Avatar');
+            description.push('-> Changed their Server Avatar');
           } else if (member.avatar && !old.avatar) {
-            description.push('- Set their Server Avatar');
+            description.push('-> Set their Server Avatar');
           } else if (!member.avatar && old.avatar) {
-            description.push('- Removed their Server Avatar');
+            description.push('-> Removed their Server Avatar');
           }
         }
 
