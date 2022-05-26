@@ -7,11 +7,10 @@ import { Listener } from './listener';
 
 import { deleteReminder, fetchReminders } from '../api';
 import { RestResponsesRaw } from '../api/types';
-import { RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
+import { RedisChannels, ONE_DAY, SNOWFLAKE_EPOCH } from '../constants';
 import { RedisSpewer } from '../redis';
 import { RedisPayloads } from '../types';
 import { createTimestampMomentFromGuild, getReminderMessage } from '../utils';
-
 
 
 export interface ReminderItem {
@@ -20,10 +19,23 @@ export interface ReminderItem {
 }
 
 class ReminderInterval extends Listener {
-  // every 6 hours we will scan for reminders for the next hour
+  // every 12 hours we will scan for reminders for the next 12 hour
   interval = new Timers.Interval();
-  intervalTime = 6 * 60 * 60 * 1000;
+  intervalTime = 12 * 60 * 60 * 1000;
   reminders = new Collections.BaseCollection<string, ReminderItem>();
+
+  createReminderText(reminder: RestResponsesRaw.Reminder, expired: boolean = false): string {
+    const createdAtUnix = Snowflake.timestamp(reminder.id, {epoch: SNOWFLAKE_EPOCH});
+    const text = (reminder.content) ? Markup.codestring(reminder.content) : getReminderMessage(reminder.id);
+
+    const mention = `<@${reminder.user.id}>`;
+    const timestampText = Markup.timestamp(createdAtUnix, MarkupTimestampStyles.RELATIVE);
+    if (expired) {
+      const expiredTimestampText = Markup.timestamp(Date.parse(reminder.timestamp_start));
+      return `${mention}, an expired reminder from ${timestampText} for ${expiredTimestampText}: ${text}`;
+    }
+    return `${mention}, reminder from ${timestampText}: ${text}`;
+  }
 
   insertReminder(cluster: ClusterClient, reminder: RestResponsesRaw.Reminder): void {
     const shard = cluster.shards.first();
@@ -37,7 +49,7 @@ class ReminderInterval extends Listener {
 
     const now = Date.now();
     const timestamp = Date.parse(reminder.timestamp_start);
-    const duration = timestamp - now;
+    const duration = Math.max(timestamp - now, 0);
     if (this.intervalTime < duration) {
       // ignore this guy since he's so far into the future
       return;
@@ -45,16 +57,33 @@ class ReminderInterval extends Listener {
 
     const timeout = new Timers.Timeout();
     timeout.start(duration, async () => {
-      const allowedMentions = {
-        repliedUser: true,
-        users: [reminder.user.id],
-      };
-      const createdAtUnix = Snowflake.timestamp(reminder.id, {epoch: SNOWFLAKE_EPOCH});
-      const text = (reminder.content) ? Markup.codestring(reminder.content) : getReminderMessage(reminder.id);
-      const content = `<@${reminder.user.id}>, reminder from ${Markup.timestamp(createdAtUnix, MarkupTimestampStyles.RELATIVE)}: ${text}`;
+      const content = this.createReminderText(reminder);
+      await this.executeReminder(shard, reminder, content);
+    });
+    this.reminders.set(reminder.id, {reminder, timeout});
+  }
 
-      let channelId = reminder.channel_id || reminder.channel_id_backup;
-      let dmChannelId = reminder.channel_id_backup;
+  removeReminder(reminderId: string): void {
+    if (this.reminders.has(reminderId)) {
+      const item = this.reminders.get(reminderId)!;
+      item.timeout.stop();
+      this.reminders.delete(reminderId);
+    }
+  }
+
+  async executeReminder(
+    shard: ShardClient,
+    reminder: RestResponsesRaw.Reminder,
+    content: string,
+  ): Promise<void> {
+    const allowedMentions = {
+      repliedUser: true,
+      users: [reminder.user.id],
+    };
+
+    let channelId = reminder.channel_id || reminder.channel_id_backup;
+    let dmChannelId = reminder.channel_id_backup;
+    try {
       try {
         // channelId then channelIdBackup then fetchDm channel
         // maybe check perms using eval
@@ -93,17 +122,51 @@ class ReminderInterval extends Listener {
         }
       } finally {
         this.removeReminder(reminder.id);
-        return deleteReminder({client: shard}, reminder.id);
+        await deleteReminder({client: shard}, reminder.id);
       }
-    });
-    this.reminders.set(reminder.id, {reminder, timeout});
+    } catch(e) {
+
+    }
   }
 
-  removeReminder(reminderId: string): void {
-    if (this.reminders.has(reminderId)) {
-      const item = this.reminders.get(reminderId)!;
-      item.timeout.stop();
-      this.reminders.delete(reminderId);
+  async fetchReminders(
+    shard: ShardClient,
+    timestampMin: number,
+    timestampMax: number,
+  ): Promise<Collections.BaseCollection<string, RestResponsesRaw.Reminder>> {
+    const reminders = new Collections.BaseCollection<string, RestResponsesRaw.Reminder>();
+
+    let count = -1;
+
+    let after: string | undefined;
+    const limit = 1000;
+    while (count === -1 || limit < count) {
+      const response = await fetchReminders({client: shard}, {
+        after,
+        limit,
+        timestampMax,
+        timestampMin,
+      });
+      count = response.count;
+      for (let reminder of response.reminders) {
+        reminders.set(reminder.id, reminder);
+      }
+    }
+
+    return reminders;
+  }
+
+  async scanForRemindersExpired(cluster: ClusterClient) {
+    const shard = cluster.shards.first();
+    if (!shard) {
+      return;
+    }
+
+    // Maybe limit to less than a week old?
+    const reminders = await this.fetchReminders(shard, 0, Date.now());
+    for (let [reminderId, reminder] of reminders) {
+      const content = this.createReminderText(reminder, true);
+      await this.executeReminder(shard, reminder, content);
     }
   }
 
@@ -113,23 +176,10 @@ class ReminderInterval extends Listener {
       return;
     }
 
-    let count = -1;
-
-    let after: string | undefined;
-    const limit = 1000;
-    const timestampMax = Date.now() + this.intervalTime;
-    const timestampMin = Date.now();
-    while (count === -1 || limit < count) {
-      const response = await fetchReminders({client: shard}, {
-        after,
-        limit,
-        timestampMax,
-        timestampMin,
-      });
-      count = response.count;
-      for (let x of response.reminders) {
-        this.insertReminder(cluster, x);
-      }
+    // from (now - 2 seconds) to (now + intervalTime (12 hours?))
+    const reminders = await this.fetchReminders(shard, Date.now() - 2000, Date.now() + this.intervalTime);
+    for (let [reminderId, reminder] of reminders) {
+      this.insertReminder(cluster, reminder);
     }
   }
 
@@ -144,7 +194,6 @@ class ReminderInterval extends Listener {
 
     {
       const subscription = redis.subscribe(RedisChannels.REMINDER_CREATE, async (payload) => {
-        console.log(payload);
         this.insertReminder(cluster, payload);
       });
       subscriptions.push(subscription);
@@ -157,6 +206,7 @@ class ReminderInterval extends Listener {
       subscriptions.push(subscription);
     }
 
+    this.scanForRemindersExpired(cluster);
     this.scanForReminders(cluster);
     this.interval.start(this.intervalTime, this.scanForReminders.bind(this, cluster));
 

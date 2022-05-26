@@ -28,6 +28,7 @@ export interface ClusterObjectInformation {
   emojis: number,
   events: number,
   guilds: number,
+  guildScheduledEvents: number,
   members: number,
   memberCount: number,
   messages: number,
@@ -59,6 +60,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           emojis: 0,
           events: 0,
           guilds: 0,
+          guildScheduledEvents: 0,
           members: 0,
           memberCount: 0,
           messages: 0,
@@ -89,6 +91,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           information.objects.emojis += shard.emojis.length;
           information.objects.events += shard.gateway.sequence;
           information.objects.guilds += shard.guilds.length;
+          information.objects.guildScheduledEvents += shard.guildScheduledEvents.length;
           information.objects.members += shard.members.length;
           information.objects.memberCount += shard.guilds.reduce((x, guild) => x + guild.memberCount, 0);
           information.objects.messages += shard.messages.length;

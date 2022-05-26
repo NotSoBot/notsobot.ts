@@ -3,10 +3,9 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { createReminder } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
+import { ONE_DAY } from '../../../constants';
 import { Parameters, createTimestampMomentFromGuild, editOrReply, getReminderMessage } from '../../../utils';
 
-
-const ONE_DAY = 24 * 60 * 60 * 1000;
 
 export const COMMAND_ID = 'reminder.create';
 

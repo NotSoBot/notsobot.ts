@@ -1876,6 +1876,7 @@ export async function putInfoDiscord(
         emojis: x.emojis,
         events: x.events,
         guilds: x.guilds,
+        guild_scheduled_events: x.guildScheduledEvents,
         members: x.members,
         member_count: x.memberCount,
         messages: x.messages,
@@ -1927,6 +1928,7 @@ export async function putUser(
   const body = {
     avatar: options.avatar,
     bot: options.bot,
+    blocked: options.blocked,
     channel_id: options.channelId,
     discriminator: options.discriminator,
     locale: options.locale,

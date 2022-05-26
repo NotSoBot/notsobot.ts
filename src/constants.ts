@@ -11,12 +11,13 @@ import {
 } from 'detritus-client/lib/constants';
 
 
-
 export const MAX_MEMBERS_SAFE = 1000;
 
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
 export const SNOWFLAKE_EPOCH = 1564790400000;
 export const ZERO_WIDTH_SPACE = '\u200b';
+
+export const ONE_DAY = 24 * 60 * 60 * 1000;
 
 
 export enum BooleanEmojis {

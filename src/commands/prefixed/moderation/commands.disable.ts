@@ -6,7 +6,7 @@ import { createGuildDisabledCommand, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
 import { CommandCategories, GuildDisableCommandsTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { Parameters } from '../../../utils';
+import { Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -90,15 +90,15 @@ export default class CommandsDisable extends BaseCommand {
       if (args.users && !args.users.length) {
         errors.push('users');
       }
-      return context.editOrReply(`⚠ Unable to find the provided ${errors.join(', ')}.`);
+      return editOrReply(context, `⚠ Unable to find the provided ${errors.join(', ')}.`);
     }
-    return context.editOrReply('⚠ Unknown Command');
+    return editOrReply(context, '⚠ Unknown Command');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
     const { command } = args;
     const commandId = (command.metadata && command.metadata.id) ? command.metadata.id : command.name.split(' ').join('.');
-    const guildId = context.guildId as string;
+    const guildId = context.guildId!;
 
     const isServerWide = !args.channels && !args.roles && !args.users;
 
@@ -135,7 +135,7 @@ export default class CommandsDisable extends BaseCommand {
       for (let payload of payloads) {
         const key = `${commandId}.${payload.item.id}.${payload.type}`;
         if (!settings.disabledCommands.has(key)) {
-          await createGuildDisabledCommand(context, guildId, command.name, payload.item.id, payload.type);
+          await createGuildDisabledCommand(context, guildId, commandId, payload.item.id, payload.type);
         }
       }
       settings = await GuildSettingsStore.fetch(context, guildId) as GuildSettings;

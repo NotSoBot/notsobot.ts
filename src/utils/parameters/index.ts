@@ -141,20 +141,29 @@ const customChrono = chrono.casual.clone();
 customChrono.refiners.push({
   refine: (context, results) => {
     // If there is no AM/PM (meridiem) specified,
-    //  let all time between 1:00 - 5:00 be PM (13.00 - 17.00)
+    // let all time between 1:00 - 5:00 be PM (13.00 - 17.00)
     for (let result of results) {
-      if (result.start.isCertain('meridiem')) {
-        continue;
-      }
-      const hour = result.start.get('hour') || 0;
-      if (1 <= hour && hour <= 5) {
-        result.start.assign('meridiem', 1);
-        result.start.assign('hour', hour + 12);
+      // only continue if hour is specified AND meridiem is not specified
+      // e.g. `next week at 5` (`next week at 5 pm` will be skipped)
+      if (result.start.isCertain('hour') && !result.start.isCertain('meridiem')) {
+        const hour = (result.start.get('hour') || 0);
+        if (1 <= hour && hour <= 5) {
+          result.start.assign('meridiem', 1);
+          result.start.assign('hour', hour + 12);
+        }
       }
     }
     return results;
   },
 });
+
+
+function mergeText(text1: string, text2: string): string {
+  if (text1.endsWith(' ') && text2.startsWith(' ')) {
+    return text1 + text2.slice(1);
+  }
+  return text1 + text2;
+}
 
 const IGNORE_WORDS = ['in', 'and', 'about', 'to', 'between'];
 export function nlpTimestamp(
@@ -190,6 +199,7 @@ export function nlpTimestamp(
    - 'next friday at 4pm do something funny' == [{text: 'next friday at 4pm'}]
    - 'do the laundry tomorrow' == [{text: 'tomorrow'}]
    - '2d unmute me' == []
+   - 'cake in 5 days about lol' == [{text: 'in 5 days'}]
   */
 
   let content: string = '';
@@ -207,7 +217,7 @@ export function nlpTimestamp(
     if (IGNORE_WORDS.includes(text.trim())) {
       contentTimestamp += text;
     } else {
-      content += text;
+      content = mergeText(content, text);
     }
     contentTimestamp += result.text;
 
@@ -218,7 +228,7 @@ export function nlpTimestamp(
       end += (result.end.date().getTime() - now);
     }
   }
-  content = (content + value.slice(lastIndex)).trim();
+  content = mergeText(content, value.slice(lastIndex)).trim();
   contentTimestamp = contentTimestamp.trim();
 
   const insensitiveParts = content.toLowerCase().split(' ');
@@ -901,7 +911,7 @@ export function mediaUrl(
           if (emojis && emojis.length) {
             for (let emoji of emojis) {
               const codepoint = toCodePointForTwemoji(emoji);
-              return CUSTOM.TWEMOGI_SVG(codepoint);
+              return CUSTOM.TWEMOJI_SVG(codepoint);
             }
           }
         }
@@ -1064,7 +1074,7 @@ export async function imageUrl(
         if (emojis && emojis.length) {
           for (let emoji of emojis) {
             const codepoint = toCodePointForTwemoji(emoji);
-            return CUSTOM.TWEMOGI_SVG(codepoint);
+            return CUSTOM.TWEMOJI_SVG(codepoint);
           }
         }
       }
@@ -1310,7 +1320,7 @@ export async function imageUrlPositional(
         if (emojis && emojis.length) {
           for (let emoji of emojis) {
             const codepoint = toCodePointForTwemoji(emoji);
-            return CUSTOM.TWEMOGI_SVG(codepoint);
+            return CUSTOM.TWEMOJI_SVG(codepoint);
           }
         }
       }

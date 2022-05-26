@@ -35,16 +35,14 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       return true;
     }
 
-    const metadata = (command.metadata.id) ? (command.metadata as InteractionCommandMetadata) : null;
+    const metadata = command.metadata as InteractionCommandMetadata;
+    const commandId = metadata.id || command.name.split(' ').join('.');
 
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
     if (settings) {
       const disabledCommands = settings.disabledCommands.filter((disabled) => {
-        if (metadata) {
-          return metadata.id === disabled.command;
-        }
-        return command.name === disabled.command;
+        return disabled.command === commandId;
       });
       if (disabledCommands.length) {
         const shouldIgnore = disabledCommands.some((disabled) => {

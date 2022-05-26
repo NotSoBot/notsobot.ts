@@ -43,6 +43,7 @@ class ClusterInfoInterval extends Listener {
               emojis: shard.emojis.length,
               events: shard.gateway.sequence,
               guilds: shard.guilds.length,
+              guildScheduledEvents: shard.guildScheduledEvents.length,
               members: shard.members.length,
               memberCount: shard.guilds.reduce((x, guild) => x + guild.memberCount, 0),
               messages: shard.messages.length,

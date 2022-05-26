@@ -309,6 +309,7 @@ export namespace RestOptions {
       emojis?: number,
       events?: number,
       guilds?: number,
+      guildScheduledEvents?: number,
       members?: number,
       memberCount?: number,
       messages?: number,
@@ -332,6 +333,7 @@ export namespace RestOptions {
   export interface PutUser {
     avatar: null | string,
     bot: boolean,
+    blocked?: boolean,
     channelId?: null | string,
     discriminator: string,
     locale?: null | string,

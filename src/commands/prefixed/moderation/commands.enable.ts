@@ -114,7 +114,7 @@ export default class CommandsEnable extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const { command } = args;
     const commandId = (command.metadata && command.metadata.id) ? command.metadata.id : command.name.split(' ').join('.');
-    const guildId = context.guildId as string;
+    const guildId = context.guildId!;
 
     const isServerWide = !args.channels && !args.roles && !args.users;
 

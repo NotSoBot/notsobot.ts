@@ -1,5 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
+import { CommandMetadata } from './commands/prefixed/basecommand';
+
 import { GuildAllowlistTypes, GuildBlocklistTypes, GuildDisableCommandsTypes } from './constants';
 import GuildSettingsStore from './stores/guildsettings';
 import UserStore from './stores/users';
@@ -30,10 +32,15 @@ export class NotSoCommandClient extends CommandClient {
       return true;
     }
 
+    const metadata = command.metadata as CommandMetadata;
+    const commandId = metadata.id || command.name.split(' ').join('.');
+
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
     if (settings) {
-      const disabledCommands = settings.disabledCommands.filter((disabled) => disabled.command === command.name);
+      const disabledCommands = settings.disabledCommands.filter((disabled) => {
+        return disabled.command === commandId;
+      });
       if (disabledCommands.length) {
         const shouldIgnore = disabledCommands.some((disabled) => {
           switch (disabled.type) {
