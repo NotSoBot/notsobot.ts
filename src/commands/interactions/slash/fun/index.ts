@@ -6,7 +6,7 @@ import { BadMemeCommand } from './badmeme';
 
 
 export default class FunGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Fun Commands';
   name = 'fun';
 
   constructor() {

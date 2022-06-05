@@ -17,6 +17,7 @@ export interface CommandArgs {
   jsonspacing?: number,
   noembed?: boolean,
   noreply?: boolean,
+  upload?: boolean,
 }
 
 export const COMMAND_NAME = 'eval';
@@ -34,6 +35,7 @@ export class OwnerEvalCommand extends BaseInteractionCommandOption<CommandArgs> 
         {name: 'jsonspacing', type: Number, description: 'Spacing for the JSON encoder'},
         {name: 'noembed', type: Boolean, description: 'Output the result without an Embed'},
         {name: 'noreply', type: Boolean, description: 'Do not reply'},
+        {name: 'upload', type: Boolean, description: 'Upload as text file'},
       ],
     });
   }
@@ -72,7 +74,21 @@ export class OwnerEvalCommand extends BaseInteractionCommandOption<CommandArgs> 
     }
 
     if (!args.noreply) {
-      const content = String(message);
+      let content: string;
+      if (args.upload) {
+        try {
+          return await editOrReply(context, {
+            file: {filename: `eval.${language}`, value: message},
+          });
+        } catch(error) {
+          content = error.stack || error.message;
+          language = 'js';
+          errored = true;
+        }
+      } else {
+        content = String(message);
+      }
+
       if (!args.noembed) {
         const embed = new Embed();
         if (errored) {

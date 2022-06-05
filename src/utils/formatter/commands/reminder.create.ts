@@ -4,6 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { createReminder } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { ONE_DAY } from '../../../constants';
+import { ReminderInterval } from '../../../listeners';
 import { Parameters, createTimestampMomentFromGuild, editOrReply, getReminderMessage } from '../../../utils';
 
 
@@ -27,7 +28,11 @@ export async function createMessage(
     timestampStart: result.start.getTime(),
   });
 
-  // maybe input it using broadcastEval
+  if (context.manager) {
+    await context.manager.broadcastEval(ReminderInterval.broadcastEvalInsert, reminder);
+  } else if (context.cluster) {
+    ReminderInterval.insertReminder(context.cluster, reminder);
+  }
 
   const date = new Date(reminder.timestamp_start);
   const timestamp = createTimestampMomentFromGuild(reminder.timestamp_start, context.guildId);
@@ -50,6 +55,7 @@ export async function createMessage(
   } else {
     text = `${text}: ${Markup.codestring(reminder.content)}`;
   }
+
   return editOrReply(context, {
     content: text,
     allowedMentions: {

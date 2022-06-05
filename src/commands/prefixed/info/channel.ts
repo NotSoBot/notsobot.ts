@@ -122,7 +122,7 @@ export default class ChannelCommand extends BaseCommand {
       if (channel.isGuildChannel) {
         description.push(`**NSFW**: ${(channel.nsfw) ? 'Yes': 'No'}`);
         if (channel.rateLimitPerUser) {
-          description.push(`*Ratelimit**: ${channel.rateLimitPerUser.toLocaleString()} seconds`);
+          description.push(`**Ratelimit**: ${channel.rateLimitPerUser.toLocaleString()} seconds`);
         } else {
           description.push(`**Ratelimit**: Disabled`);
         }

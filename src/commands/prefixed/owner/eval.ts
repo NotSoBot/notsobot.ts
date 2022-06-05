@@ -32,7 +32,7 @@ export default class EvalCommand extends BaseCommand {
         {name: 'jsonspacing', default: 2, type: Number},
         {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
         {name: 'noreply', type: Boolean},
-        {name: 'upload', aliases: ['files.gg'], type: Boolean},
+        {name: 'upload', type: Boolean},
       ],
       label: 'code',
       metadata: {
@@ -78,13 +78,9 @@ export default class EvalCommand extends BaseCommand {
       let content: string;
       if (args.upload) {
         try {
-          const upload = await context.rest.request({
-            files: [{filename: `eval.${language}`, key: 'file', value: message}],
-            method: 'post',
-            url: 'https://api.files.gg/files',
+          return await editOrReply(context, {
+            file: {filename: `eval.${language}`, value: message},
           });
-
-          return editOrReply(context, upload.urls.main);
         } catch(error) {
           content = error.stack || error.message;
           language = 'js';

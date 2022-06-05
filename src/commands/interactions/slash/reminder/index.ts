@@ -6,7 +6,7 @@ import { ReminderListGroupCommand } from './list';
 
 
 export default class ReminderCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Reminders';
   name = 'reminder';
 
   constructor() {

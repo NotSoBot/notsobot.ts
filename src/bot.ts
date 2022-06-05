@@ -43,8 +43,6 @@ const cluster = new ClusterClient('', {
   } else {
     process.title = `S:(${cluster.shardStart}-${cluster.shardEnd})`;
   }
-  connectAllListeners(cluster);
-  connectAllStores(cluster);
 
   cluster.on(ClientEvents.REST_RESPONSE, async ({response, restRequest, shard}) => {
     const route = response.request.route;
@@ -106,6 +104,10 @@ const cluster = new ClusterClient('', {
 
   try {
     await cluster.run();
+
+    connectAllListeners(cluster);
+    connectAllStores(cluster);
+
     console.log('cluster ran', cluster.ran);
     const shardsText = `Shards #(${cluster.shards.map((shard: ShardClient) => shard.shardId).join(', ')})`;
     console.log(`${shardsText} - Loaded`);

@@ -6,7 +6,7 @@ import { NotSoBotKeys } from '../../constants';
 
 export function convertKey(snake: string): string {
   if (snake in NotSoBotKeys) {
-    return NotSoBotKeys[snake];
+    return (NotSoBotKeys as any)[snake];
   }
   return toCamelCase(snake);
 }

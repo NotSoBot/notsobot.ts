@@ -8,7 +8,7 @@ import { TagShowCommand } from './show';
 
 
 export default class TagGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Custom Tags';
   name = 'tag';
 
   constructor() {

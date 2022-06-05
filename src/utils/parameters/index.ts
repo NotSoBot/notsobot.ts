@@ -886,9 +886,13 @@ export function mediaUrl(
         if (isSnowflake(value)) {
           const userId = value;
 
-          let user: Structures.User;
+          let user: Structures.Member | Structures.User;
           if (context instanceof Command.Context && context.message.mentions.has(userId)) {
             user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+          } else if (context.guild && context.guild.members.has(userId)) {
+            user = context.guild.members.get(userId)!;
+          } else if (context.users.has(userId)) {
+            user = context.users.get(userId)!;
           } else {
             user = await context.rest.fetchUser(userId);
           }
@@ -1049,9 +1053,13 @@ export async function imageUrl(
       if (isSnowflake(value)) {
         const userId = value;
 
-        let user: Structures.User;
+        let user: Structures.Member | Structures.User;
         if (context instanceof Command.Context && context.message.mentions.has(userId)) {
           user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+        } else if (context.guild && context.guild.members.has(userId)) {
+          user = context.guild.members.get(userId)!;
+        } else if (context.users.has(userId)) {
+          user = context.users.get(userId)!;
         } else {
           user = await context.rest.fetchUser(userId);
         }
@@ -1295,9 +1303,13 @@ export async function imageUrlPositional(
       if (isSnowflake(value)) {
         const userId = value;
 
-        let user: Structures.User;
+        let user: Structures.Member | Structures.User;
         if (context instanceof Command.Context && context.message.mentions.has(userId)) {
           user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+        } else if (context.guild && context.guild.members.has(userId)) {
+          user = context.guild.members.get(userId)!;
+        } else if (context.users.has(userId)) {
+          user = context.users.get(userId)!;
         } else {
           user = await context.rest.fetchUser(userId);
         }

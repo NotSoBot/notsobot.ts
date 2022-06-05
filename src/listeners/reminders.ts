@@ -24,6 +24,20 @@ class ReminderInterval extends Listener {
   intervalTime = 12 * 60 * 60 * 1000;
   reminders = new Collections.BaseCollection<string, ReminderItem>();
 
+  broadcastEvalInsert = ((moduleName: string, cluster: ClusterClient, reminder: RestResponsesRaw.Reminder) => {
+    const store = require(moduleName).default as ReminderInterval;
+    store.insertReminder(cluster, reminder);
+  }).bind(null, __filename);
+
+  broadcastEvalRemove = ((moduleName: string, cluster: ClusterClient, reminder: RestResponsesRaw.Reminder) => {
+    const store = require(moduleName).default as ReminderInterval;
+    store.removeReminder(reminder.id);
+  }).bind(null, __filename);
+
+  shouldHandle(cluster: ClusterClient): boolean {
+    return cluster.clusterId === 0;
+  }
+
   createReminderText(reminder: RestResponsesRaw.Reminder, expired: boolean = false): string {
     const createdAtUnix = Snowflake.timestamp(reminder.id, {epoch: SNOWFLAKE_EPOCH});
     const text = (reminder.content) ? Markup.codestring(reminder.content) : getReminderMessage(reminder.id);
@@ -38,6 +52,10 @@ class ReminderInterval extends Listener {
   }
 
   insertReminder(cluster: ClusterClient, reminder: RestResponsesRaw.Reminder): void {
+    if (!this.shouldHandle(cluster)) {
+      return;
+    }
+
     const shard = cluster.shards.first();
     if (!shard) {
       return;
@@ -186,7 +204,7 @@ class ReminderInterval extends Listener {
   create(cluster: ClusterClient, redis: RedisSpewer) {
     // we only want to deal with reminders on cluster 0, cause we're awesome like that
 
-    if (cluster.clusterId !== 0) {
+    if (!this.shouldHandle(cluster)) {
       return [];
     }
 

@@ -4,7 +4,7 @@ import { OwnerEvalCommand } from './eval';
 
 
 export default class OwnerGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Owner Only Commands';
   name = 'owner';
 
   constructor() {

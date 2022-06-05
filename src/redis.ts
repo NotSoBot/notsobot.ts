@@ -1,5 +1,5 @@
 import { EventSpewer, Timers } from 'detritus-utils';
-import { createClient, RedisClient } from 'redis';
+import { createClient, RedisClientType } from 'redis';
 import * as Sentry from '@sentry/node';
 
 import { RedisChannels } from './constants';
@@ -8,49 +8,52 @@ import { RedisPayloads } from './types';
 
 export class RedisSpewer extends EventSpewer {
   channels: Array<string> = [];
-  client!: RedisClient;
+  client!: RedisClientType;
   ended: boolean = false;
   url: string;
 
   constructor(url: string) {
     super();
     this.url = url;
-    this.client = createClient(this.url, {
-      retry_strategy: (options) => {
-        return Math.min(options.attempt * 1000, 3000);
-      },
+    this.client = createClient({
+      url: this.url,
     });
     this.client.on('error', (error) => {
       Sentry.captureException(error);
     });
-    this.client.on('message', (channel: string, message: string) => {
-      if (channel in RedisChannels) {
-        try {
-          const data = (message) ? JSON.parse(message) : null;
-          this.emit(channel, data);
-        } catch(error) {
-          Sentry.captureException(error);
-        }
-      }
-    });
-
     this.subscribeToChannels(Object.values(RedisChannels));
   }
 
   end(): void {
     if (!this.ended && this.client) {
-      this.client.end(true);
+      this.client.quit();
       this.client.removeAllListeners();
       this.ended = true;
     }
   }
 
-  subscribeToChannels(channels: Array<string>) {
+  onMessage(channel: string, message: string) {
+    if (channel in RedisChannels) {
+      try {
+        const data = (message) ? JSON.parse(message) : null;
+        this.emit(channel, data);
+      } catch(error) {
+        Sentry.captureException(error);
+      }
+    }
+  }
+
+  async subscribeToChannels(channels: Array<string>) {
+    if (!this.client.isOpen) {
+      await this.client.connect().catch(() => {});
+    }
     for (let channel of this.channels) {
-      this.client.unsubscribe(channel);
+      await this.client.unsubscribe(channel).catch(() => {});
     }
     for (let channel of channels) {
-      this.client.subscribe(channel);
+      await this.client.subscribe(channel, (message) => {
+        this.onMessage(channel, message);
+      }).catch(() => {});
     }
     this.channels = channels;
   }

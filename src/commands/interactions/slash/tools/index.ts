@@ -7,7 +7,7 @@ import { ToolsQrGroupCommand } from './qr';
 
 
 export default class ToolsGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Tool-like Commands';
   name = 'tools';
 
   constructor() {

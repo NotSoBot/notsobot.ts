@@ -12,6 +12,6 @@ export default class HelpCommand extends BaseSlashCommand {
   name = COMMAND_NAME;
 
   run(context: Interaction.InteractionContext) {
-    return editOrReply(context, 'This is our rewrite bot. <https://beta.notsobot.com/commands> (Join our support server <https://beta.notsobot.com/support/invite>)');
+    return editOrReply(context, '<https://notsobot.com/commands> (Join our support server <https://notsobot.com/support/invite>)');
   }
 }

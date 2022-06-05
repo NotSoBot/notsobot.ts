@@ -20,7 +20,7 @@ import { ImageToolsGroupCommand } from './tools';
 
 
 export default class ImageGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Image-Related Commands';
   name = 'i';
 
   constructor() {

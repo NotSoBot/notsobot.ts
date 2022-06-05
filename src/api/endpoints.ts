@@ -9,8 +9,8 @@ export enum Domains {
 }
 
 export const Api = Object.freeze({
-  URL: Domains.BETA,
-  URL_PUBLIC: Domains.BETA,
+  URL: Domains.STABLE,
+  URL_PUBLIC: Domains.STABLE,
   PATH: '/api',
 
   AUDIO_TOOLS_CONVERT:

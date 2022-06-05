@@ -334,7 +334,7 @@ export class BaseInteractionImageCommandOption<ParsedArgsFinished = Interaction.
       ...data,
       options: [
         ...(data.options || []),
-        {name: 'image', description: 'Emoji/Image URL/User', label: 'url', default: DefaultParameters.lastMediaUrl({audio: false, video: false}), value: Parameters.lastMediaUrl({audio: false, video: false})},
+        {name: 'url', description: 'Emoji/Image URL/User', default: DefaultParameters.lastMediaUrl({audio: false, video: false}), value: Parameters.lastMediaUrl({audio: false, video: false})},
         {name: 'file', description: 'Image File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
@@ -364,7 +364,7 @@ export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.
       ...data,
       options: [
         ...(data.options || []),
-        {name: 'video', description: 'Emoji/Media URL/User', label: 'url', default: DefaultParameters.lastMediaUrl({audio: false, image: false}), value: Parameters.lastMediaUrl({audio: false, image: false})},
+        {name: 'url', description: 'Emoji/Media URL/User', default: DefaultParameters.lastMediaUrl({audio: false, image: false}), value: Parameters.lastMediaUrl({audio: false, image: false})},
         {name: 'file', description: 'Video File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });

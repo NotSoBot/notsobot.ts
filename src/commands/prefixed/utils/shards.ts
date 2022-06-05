@@ -78,7 +78,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           voiceConnections: 0,
           voiceStates: 0,
         },
-        ramUsage: usage.heapUsed + usage.external +  Math.max(0, usage.rss - usage.heapTotal),
+        ramUsage: usage.heapTotal + usage.external + usage.arrayBuffers,//usage.heapUsed + usage.external +  Math.max(0, usage.rss - usage.heapTotal),
         shardsIdentified: 0,
       };
       for (let [shardId, shard] of cluster.shards) {

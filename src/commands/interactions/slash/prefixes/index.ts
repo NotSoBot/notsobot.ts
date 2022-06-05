@@ -8,7 +8,7 @@ import { PrefixesReplaceCommand } from './prefixes.replace';
 
 
 export default class PrefixesGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Prefixes';
   disableDm = true;
   name = 'prefixes';
 

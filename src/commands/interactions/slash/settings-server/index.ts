@@ -4,7 +4,7 @@ import { SettingsServerSetGroupCommand } from './set';
 
 
 export default class SettingsServerGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Server Settings';
   disableDm = true;
   name = 'settings-server';
 

@@ -7,7 +7,7 @@ import { VideoExtractGroupCommand } from './extract';
 
 
 export default class VideoGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Video-Related Commands';
   name = 'v';
 
   constructor() {

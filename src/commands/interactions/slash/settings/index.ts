@@ -5,7 +5,7 @@ import { SettingsSetGroupCommand } from './set';
 
 
 export default class SettingsGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'User Settings';
   name = 'settings';
 
   constructor() {

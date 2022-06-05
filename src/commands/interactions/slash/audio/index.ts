@@ -7,7 +7,7 @@ import { AudioIdentifyCommand } from './identify';
 
 
 export default class AudioGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Audio-Related Commands';
   name = 'a';
 
   constructor() {

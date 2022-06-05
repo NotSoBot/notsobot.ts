@@ -24,6 +24,9 @@ export interface RequestContext {
   user?: Structures.User,
 }
 
+
+const HOST = Api.URL_PUBLIC.split('/').pop()!;
+
 export async function request(
   context: RequestContext,
   options: RequestTypes.Options,
@@ -31,8 +34,8 @@ export async function request(
   options.url = Api.URL + Api.PATH;
   options.headers = createHeaders(options.headers);
 
-  if (Api.URL === Domains.LOCALHOST) {
-    options.headers.set('host', 'beta.notsobot.com');
+  if ((Api.URL as string) === (Domains.LOCALHOST as string)) {
+    options.headers.set('host', HOST);
   }
 
   const token = process.env.NOTSOBOT_API_TOKEN;

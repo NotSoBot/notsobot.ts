@@ -8,7 +8,7 @@ import { SearchSteamGroupCommand } from './steam';
 
 
 export default class SearchGroupCommand extends BaseSlashCommand {
-  description = '.';
+  description = 'Search Commands';
   name = 'search';
   triggerLoadingAfter = 100;
 
