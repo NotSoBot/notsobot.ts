@@ -1,5 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
+import { CDN } from '../../../api/endpoints';
 import { CommandCategories } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
@@ -27,7 +28,7 @@ export default class B1Command extends BaseCommand {
     async run(context: Command.Context) {
         return editOrReply(
             context,
-            'https://cdn.discordapp.com/attachments/560593452476399626/716571699247579186/b1.png',
+            CDN.COMMAND_ASSETS_B1,
         );
     }
 }

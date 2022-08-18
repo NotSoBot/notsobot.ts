@@ -173,7 +173,7 @@ export const Api = Object.freeze({
 
   IMAGE_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',
-    IMAGE_TOOLS_OBJECT_REMOVE:
+  IMAGE_TOOLS_OBJECT_REMOVE:
     '/image/tools/object/remove',
   IMAGE_TOOLS_CONVERT:
     '/image/tools/convert',
@@ -304,6 +304,9 @@ export const Api = Object.freeze({
 
 export const CDN = Tools.URIEncodeWrap({
   URL: Domains.CDN,
+
+  COMMAND_ASSETS_B1:
+    '/command-assets/b1.png',
 
   EMOJIS_APPLE: (codepoint: string) =>
     `/emojis/apple/128x128/${codepoint}.png`,
