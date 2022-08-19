@@ -2,6 +2,7 @@ import * as AudioConvert from './audio.convert';
 import * as AudioIdentify from './audio.identify';
 
 import * as FunAesthetics from './fun.aesthetics';
+import * as FunB1 from './fun.b1';
 import * as FunBadMeme from './fun.badmeme';
 import * as FunEmoji from './fun.emoji';
 import * as FunRegional from './fun.regional';
@@ -56,6 +57,8 @@ import * as ImageManipulationTrace from './image.manipulation.trace';
 
 import * as ImageToolsConvert from './image.tools.convert';
 import * as ImageToolsCrop from './image.tools.crop';
+import * as ImageToolsCropCircle from './image.tools.crop.circle';
+import * as ImageToolsCropNFT from './image.tools.crop.nft';
 import * as ImageToolsResize from './image.tools.resize';
 import * as ImageToolsRotate from './image.tools.rotate';
 
@@ -119,6 +122,7 @@ export {
   AudioIdentify,
 
   FunAesthetics,
+  FunB1,
   FunBadMeme,
   FunEmoji,
   FunRegional,
@@ -172,6 +176,8 @@ export {
 
   ImageToolsConvert,
   ImageToolsCrop,
+  ImageToolsCropCircle,
+  ImageToolsCropNFT,
   ImageToolsResize,
   ImageToolsRotate,
 

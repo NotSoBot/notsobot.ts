@@ -275,7 +275,7 @@ export interface TagVariables {
 }
 
 export interface TagResult {
-  files: Array<{buffer: null | string | Buffer, filename: string, spoiler?: boolean, url: string}>,
+  files: Array<{buffer: null | string | Buffer, description?: string, filename: string, spoiler?: boolean, url: string}>,
   text: string,
   variables: TagVariables,
 }
@@ -555,15 +555,19 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.ATTACHMENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, args: Array<string>, tag: TagResult, spoiler?: boolean): Promise<boolean> => {
     // assume the arg is a url and download it
+    // {attach:url|filename|description}
     // {attach:https://google.com/something.png}
+    // {attach:https://google.com/something.png|something_lol.png}
 
-    const url = Parameters.url(arg.trim());
+    let [ urlString, filenameArg, ...descriptionValues ] = split(arg);
+
+    const url = Parameters.url(urlString.trim());
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
       const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
       const response = await utilitiesFetchMedia(context, {maxFileSize, url});
-      const filename = (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
+      const filename = filenameArg || (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
 
       let data: Buffer | string = await response.buffer();
       if ((response.headers.get('content-type') || '').startsWith('text/')) {
@@ -578,6 +582,7 @@ const ScriptTags = Object.freeze({
 
       tag.files.push({
         buffer: data,
+        description: (descriptionValues.length) ? descriptionValues.join(TagSymbols.SPLITTER_ARGUMENT) : undefined,
         filename,
         spoiler,
         url,

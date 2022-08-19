@@ -11,7 +11,7 @@ export const COMMAND_NAME = 'magik gif';
 export default class MagikGifCommand extends BaseImageCommand<Formatter.Commands.ImageMagikGif.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
-      aliases: ['magic gif'],
+      aliases: ['gmagik', 'magic gif'],
       name: COMMAND_NAME,
 
       metadata: {

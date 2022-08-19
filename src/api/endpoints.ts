@@ -179,6 +179,10 @@ export const Api = Object.freeze({
     '/image/tools/convert',
   IMAGE_TOOLS_CROP:
     '/image/tools/crop',
+  IMAGE_TOOLS_CROP_CIRCLE:
+    '/image/tools/crop/circle',
+  IMAGE_TOOLS_CROP_TWITTER_HEX:
+    '/image/tools/crop/twitter-hex',
   IMAGE_TOOLS_GIF_REVERSE:
     '/image/tools/gif/reverse',
   IMAGE_TOOLS_GIF_SEE_SAW:

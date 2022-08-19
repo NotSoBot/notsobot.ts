@@ -67,14 +67,20 @@ export async function createMessage(
 
         const files: Array<RequestTypes.File> = [];
         if (thread.media && !thread.media.deleted) {
-          let url = thread.media.url;
+          let url: string;
+          if (thread.media.extension === 'webm') {
+            url = thread.media.thumbnail;
+          } else {
+            url = thread.media.url;
+          }
+
           if (!(url in filesCached)) {
             try {
-              const value = await context.rest.get(thread.media.url);
-              const filename = `${thread.media.name}.${thread.media.extension}`;
-              filesCached[thread.media.url] = {filename, value};
+              const value = await context.rest.get(url);
+              const filename = `${thread.created_at}.${thread.media.extension}`;
+              filesCached[url] = {filename, value};
             } catch(error) {
-              filesCached[thread.media.url] = null;
+              filesCached[url] = null;
             }
           }
 
@@ -135,11 +141,13 @@ export async function createMessage(
         {
           const description: Array<string> = [];
           description.push(Markup.url('Board', board.url));
-          if (thread.media) {
-            description.push(Markup.url('Media', thread.media.url));
-          }
           description.push(Markup.url('Thread', thread.url));
           embed.addField('Urls', description.join(', '));
+        }
+
+        if (thread.media) {
+          const filename = `${thread.media.name}.${thread.media.extension}`;
+          embed.addField('Media', Markup.url(filename, thread.media.url));
         }
 
         return [embed, files];

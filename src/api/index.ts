@@ -815,6 +815,14 @@ export async function imageToolsObjectRemove(
 }
 
 
+export async function imageToolsObjectRemove(
+  context: RequestContext,
+  options: RestOptions.ImageObjectRemoveOptions,
+) {
+  return raw.imageToolsObjectRemove(context, options);
+}
+
+
 export async function imageToolsConvert(
   context: RequestContext,
   options: RestOptions.ImageToolsConvert,
@@ -828,6 +836,22 @@ export async function imageToolsCrop(
   options: RestOptions.ImageToolsCrop,
 ) {
   return raw.imageToolsCrop(context, options);
+}
+
+
+export async function imageToolsCropCircle(
+  context: RequestContext,
+  options: RestOptions.ImageToolsCropCircle,
+) {
+  return raw.imageToolsCropCircle(context, options);
+}
+
+
+export async function imageToolsCropTwitterHex(
+  context: RequestContext,
+  options: RestOptions.ImageToolsCropTwitterHex,
+) {
+  return raw.imageToolsCropTwitterHex(context, options);
 }
 
 

@@ -22,7 +22,12 @@ export async function createMessage(
   const options: Command.EditOrReply = {content: parsedTag.text.slice(0, 2000)};
   if (parsedTag.files.length) {
     options.files = parsedTag.files.map((file) => {
-      return {filename: file.filename, hasSpoiler: file.spoiler, value: file.buffer};
+      return {
+        description: file.description,
+        filename: file.filename,
+        hasSpoiler: file.spoiler,
+        value: file.buffer,
+      };
     });
   }
   if (!parsedTag.text.length && !parsedTag.files.length) {

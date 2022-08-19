@@ -1741,6 +1741,44 @@ export async function imageToolsCrop(
 }
 
 
+export async function imageToolsCropCircle(
+  context: RequestContext,
+  options: RestOptions.ImageToolsCropCircle,
+): Promise<Response> {
+  const query = {
+    background: options.background,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_CROP_CIRCLE,
+    },
+  });
+}
+
+
+export async function imageToolsCropTwitterHex(
+  context: RequestContext,
+  options: RestOptions.ImageToolsCropTwitterHex,
+): Promise<Response> {
+  const query = {
+    background: options.background,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_CROP_TWITTER_HEX,
+    },
+  });
+}
+
+
 export async function imageToolsGifReverse(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,

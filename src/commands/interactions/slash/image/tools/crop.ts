@@ -8,7 +8,7 @@ import { BaseInteractionImageCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'crop';
 
 export class ImageToolsCropCommand extends BaseInteractionImageCommandOption {
-  description = 'Crop an Image';
+  description = 'Crop an Image automatically';
   metadata = {
     id: Formatter.Commands.ImageToolsCrop.COMMAND_ID,
   };

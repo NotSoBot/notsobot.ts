@@ -272,6 +272,14 @@ export namespace RestOptions {
     size?: string,
   }
 
+  export interface ImageToolsCropCircle extends ImageBaseOptions {
+    background?: boolean,
+  }
+
+  export interface ImageToolsCropTwitterHex extends ImageBaseOptions {
+    background?: boolean,
+  }
+
   export interface ImageToolsGifSpeed extends ImageBaseOptions {
     loop?: boolean,
     speed: number,
@@ -838,6 +846,7 @@ export namespace RestResponsesRaw {
     spoiler: boolean,
     spoiler_id: null | number,
     tag: null | string,
+    thumbnail: string,
     url: string,
     width: number,
   }

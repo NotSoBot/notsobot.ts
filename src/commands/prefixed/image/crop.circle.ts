@@ -6,29 +6,31 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'crop';
+export interface CommandArgsBefore {
+  url?: null | string,
+}
 
-export default class CropCommand extends BaseImageCommand<Formatter.Commands.ImageToolsCrop.CommandArgs> {
+export const COMMAND_NAME = 'crop circle';
+
+export default class CropCircleCommand extends BaseImageCommand<Formatter.Commands.ImageToolsCropCircle.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['crop auto'],
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Crop an image automatically',
+        description: 'Crop out a circle from an image',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageToolsCrop.COMMAND_ID,
+        id: Formatter.Commands.ImageToolsCropCircle.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
-      priority: -1,
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageToolsCrop.CommandArgs) {
-    return Formatter.Commands.ImageToolsCrop.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.ImageToolsCropCircle.CommandArgs) {
+    return Formatter.Commands.ImageToolsCropCircle.createMessage(context, args);
   }
 }
