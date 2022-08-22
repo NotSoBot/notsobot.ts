@@ -175,6 +175,7 @@ export namespace RestOptions {
 
   export interface ImageBackgroundRemoveOptions extends ImageBaseOptions {
     model?: string,
+    trim?: boolean,
   }
 
   export interface ImageObjectRemoveOptions extends ImageBaseOptions {
@@ -203,6 +204,11 @@ export namespace RestOptions {
 
   export interface ImageManipulationBlur extends ImageBaseOptions {
     scale?: number,
+  }
+
+  export interface ImageManipulationCaption extends ImageBaseOptions {
+    font?: ImageMemeFonts,
+    text: string,
   }
 
   export interface ImageManipulationCircle extends ImageBaseOptions {

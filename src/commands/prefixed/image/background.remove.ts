@@ -8,6 +8,7 @@ import { BaseImageCommand } from '../basecommand';
 
 export interface CommandArgsBefore {
   model?: string,
+  trim?: boolean,
   url?: null | string,
 }
 
@@ -21,6 +22,7 @@ export default class BackgroundRemoveCommand extends BaseImageCommand<Formatter.
       aliases: ['background rm', 'bg remove', 'bg rm'],
       args: [
         {name: 'model', choices: Object.values(ImageBackgroundRemovalModels), help: `Must be one of: (${Object.values(ImageBackgroundRemovalModels).join(', ')})`},
+        {name: 'trim', type: Boolean},
       ],
       metadata: {
         category: CommandCategories.IMAGE,
@@ -29,9 +31,10 @@ export default class BackgroundRemoveCommand extends BaseImageCommand<Formatter.
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -model U2NETP`,
+          `${COMMAND_NAME} notsobot -trim`,
         ],
         id: Formatter.Commands.ImageBackgroundRemove.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-model <ImageBackgroundRemovalModels>)',
+        usage: '?<emoji,user:id|mention|name,url> (-model <ImageBackgroundRemovalModels>) (-trim)',
       },
     });
   }

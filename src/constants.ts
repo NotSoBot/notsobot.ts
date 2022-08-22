@@ -884,7 +884,11 @@ export enum ImageEyeTypes {
 
 
 export enum ImageMemeFonts {
+  ARIAL = 'ARIAL',
   IMPACT = 'IMPACT',
+  MONTSERRAT_BOLD = 'MONTSERRAT_BOLD',
+  MONTSERRAT_REGULAR = 'MONTSERRAT_REGULAR',
+  MONTSERRAT_SEMIBOLD = 'MONTSERRAT_SEMIBOLD',
   MPLUS_1C_BLACK = 'MPLUS_1C_BLACK',
   MPLUS_2P_BLACK = 'MPLUS_2P_BLACK',
   RUBIK_BLACK = 'RUBIK_BLACK',
@@ -895,7 +899,11 @@ export enum ImageMemeFonts {
 };
 
 export const ImageMemeFontsToText: Record<ImageMemeFonts, string> = Object.freeze({
+  [ImageMemeFonts.ARIAL]: 'Arial',
   [ImageMemeFonts.IMPACT]: 'Impact',
+  [ImageMemeFonts.MONTSERRAT_BOLD]: 'Montserrat Bold',
+  [ImageMemeFonts.MONTSERRAT_REGULAR]: 'Montserrat Regular',
+  [ImageMemeFonts.MONTSERRAT_SEMIBOLD]: 'Montserrat SemiBold',
   [ImageMemeFonts.MPLUS_1C_BLACK]: 'M+ 1c',
   [ImageMemeFonts.MPLUS_2P_BLACK]: 'M+ 2p',
   [ImageMemeFonts.RUBIK_BLACK]: 'Rubik Black',

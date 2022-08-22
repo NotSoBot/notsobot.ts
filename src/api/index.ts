@@ -456,6 +456,14 @@ export async function imageManipulationBlurple(
 }
 
 
+export async function imageManipulationCaption(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationCaption,
+) {
+  return raw.imageManipulationCaption(context, options);
+}
+
+
 export async function imageManipulationCircle(
   context: RequestContext,
   options: RestOptions.ImageManipulationCircle,
@@ -807,13 +815,6 @@ export async function imageToolsBackgroundRemove(
   return raw.imageToolsBackgroundRemove(context, options);
 }
 
-export async function imageToolsObjectRemove(
-  context: RequestContext,
-  options: RestOptions.ImageObjectRemoveOptions,
-) {
-  return raw.imageToolsObjectRemove(context, options);
-}
-
 
 export async function imageToolsObjectRemove(
   context: RequestContext,
@@ -894,6 +895,13 @@ export async function imageToolsRotate(
   return raw.imageToolsRotate(context, options);
 }
 
+
+export async function imageToolsTrim(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageToolsTrim(context, options);
+}
 
 
 export async function putGuildSettings(

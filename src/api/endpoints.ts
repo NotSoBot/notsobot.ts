@@ -79,6 +79,8 @@ export const Api = Object.freeze({
     '/image/manipulation/blur',
   IMAGE_MANIPULATION_BLURPLE:
     '/image/manipulation/blurple',
+  IMAGE_MANIPULATION_CAPTION:
+    '/image/manipulation/caption',
   IMAGE_MANIPULATION_CIRCLE:
     '/image/manipulation/circle',
   IMAGE_MANIPULATION_DEEPFRY:
@@ -193,6 +195,8 @@ export const Api = Object.freeze({
     '/image/tools/resize',
   IMAGE_TOOLS_ROTATE:
     '/image/tools/rotate',
+  IMAGE_TOOLS_TRIM:
+    '/image/tools/trim',
 
   INFO_DISCORD:
     '/info/discord',

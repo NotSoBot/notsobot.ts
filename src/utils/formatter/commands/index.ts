@@ -13,6 +13,7 @@ import * as FunWordcloudUser from './fun.wordcloud.user';
 
 import * as ImageBlur from './image.blur';
 import * as ImageBlurple from './image.blurple';
+import * as ImageCaption from './image.caption';
 import * as ImageCircle from './image.circle';
 import * as ImageDeepfry from './image.deepfry';
 import * as ImageExplode from './image.explode';
@@ -61,6 +62,7 @@ import * as ImageToolsCropCircle from './image.tools.crop.circle';
 import * as ImageToolsCropNFT from './image.tools.crop.nft';
 import * as ImageToolsResize from './image.tools.resize';
 import * as ImageToolsRotate from './image.tools.rotate';
+import * as ImageToolsTrim from './image.tools.trim';
 
 import * as InfoUser from './info.user';
 
@@ -133,6 +135,7 @@ export {
 
   ImageBlur,
   ImageBlurple,
+  ImageCaption,
   ImageCircle,
   ImageDeepfry,
   ImageExplode,
@@ -180,6 +183,7 @@ export {
   ImageToolsCropNFT,
   ImageToolsResize,
   ImageToolsRotate,
+  ImageToolsTrim,
 
   InfoUser,
 

@@ -1,8 +1,8 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'crop';

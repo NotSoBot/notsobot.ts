@@ -17,8 +17,10 @@ export const SLASH_CHOICES_MODEL = Object.keys(ImageBackgroundRemovalModelsToTex
   return {name, value};
 }).sort((x) => (x.value === DEFAULT_MODEL) ? -1 : 0);
 
+
 export interface CommandArgs {
   model?: string,
+  trim?: boolean,
   url: string,
 }
 

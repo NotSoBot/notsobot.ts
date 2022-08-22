@@ -23,8 +23,8 @@ export default class MemeCommand extends BaseImageCommand<Formatter.Commands.Ima
         description: 'Add Meme Text to an Image',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} notsobot what an idiot`,
-          `${COMMAND_NAME} notsobot what an idiot | lmao`,
+          `${COMMAND_NAME} @NotSoBot what an idiot`,
+          `${COMMAND_NAME} @NotSoBot what an idiot | lmao`,
         ],
         id: Formatter.Commands.ImageMeme.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...text>',

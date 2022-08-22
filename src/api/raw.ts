@@ -848,6 +848,26 @@ export async function imageManipulationBlurple(
 }
 
 
+export async function imageManipulationCaption(
+  context: RequestContext,
+  options: RestOptions.ImageManipulationCaption,
+): Promise<Response> {
+  const query = {
+    font: options.font,
+    text: options.text,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_CAPTION,
+    },
+  });
+}
+
+
 export async function imageManipulationCircle(
   context: RequestContext,
   options: RestOptions.ImageManipulationCircle,
@@ -1670,6 +1690,7 @@ export async function imageToolsBackgroundRemove(
 ): Promise<Response> {
   const query = {
     model: options.model,
+    trim: options.trim,
     url: options.url,
   };
   return request(context, {
@@ -1871,6 +1892,24 @@ export async function imageToolsRotate(
     route: {
       method: HTTPMethods.POST,
       path: Api.IMAGE_TOOLS_ROTATE,
+    },
+  });
+}
+
+
+export async function imageToolsTrim(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_TOOLS_TRIM,
     },
   });
 }
