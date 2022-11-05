@@ -1,6 +1,6 @@
 import { ShardClient, Structures } from 'detritus-client';
 import { RequestTypes } from 'detritus-client-rest';
-import { Response, createHeaders } from 'detritus-rest';
+import { RequestFile, Response, createHeaders } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
 import { Api, Domains } from './endpoints';
@@ -24,12 +24,16 @@ export interface RequestContext {
   user?: Structures.User,
 }
 
+export interface RequestOptions extends RequestTypes.Options {
+  file?: RequestFile,
+}
+
 
 const HOST = Api.URL_PUBLIC.split('/').pop()!;
 
 export async function request(
   context: RequestContext,
-  options: RequestTypes.Options,
+  options: RequestOptions,
 ): Promise<any> {
   options.url = Api.URL + Api.PATH;
   options.headers = createHeaders(options.headers);
@@ -61,6 +65,14 @@ export async function request(
       username: user.username,
     });
     options.headers.set(NotSoHeaders.USER, Buffer.from(bareUser).toString('base64'));
+  }
+
+  if (options.file) {
+    if (options.files) {
+      options.files.unshift(options.file);
+    } else {
+      options.files = [options.file];
+    }
   }
 
   return client.rest.request(options);
@@ -953,6 +965,7 @@ export async function imageManipulationFlip(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -971,6 +984,7 @@ export async function imageManipulationFlop(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,

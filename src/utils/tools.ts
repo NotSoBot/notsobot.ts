@@ -975,19 +975,19 @@ export function htmlDecode(value: string): string {
 }
 
 
-export async function imageReply(
-  context: Command.Context | Interaction.InteractionContext,
+export function generateImageReplyOptionsFromResponse(
   response: Response,
   options: {
     args?: boolean,
     content?: string,
     filename?: string,
   } | string = {},
-) {
+): {description?: string, options: ImageReplyOptions} {
   if (typeof(options) === 'string') {
     options = {filename: options};
   }
-  const embed = new Embed();
+
+  let descriptionText: string | undefined;
   if (response.headers.has('x-args') && options.args !== false) {
     const args = JSON.parse(Buffer.from(response.headers.get('x-args') || '', 'base64').toString());
 
@@ -1007,26 +1007,64 @@ export async function imageReply(
 
       description.push(`${title}: ${text}`);
     }
-    embed.setDescription(description.join(' | '));
+    descriptionText = description.join(' | ');
   }
 
   const [ width, height ]: [number, number] = JSON.parse(response.headers.get('x-dimensions') || '[0, 0]');
   const [ framesOld, framesNew ]: [number, number] = JSON.parse(response.headers.get('x-frames') || '[0, 0]');
-  return imageReplyFromOptions(context, await response.buffer(), {
-    content: options.content,
-    embed,
-    extension: response.headers.get('x-file-extension') || undefined,
-    filename: options.filename, // we will get the filename based off the command name
-    framesNew,
-    framesOld,
-    height,
-    mimetype: response.headers.get('content-type') || undefined,
-    size: +(response.headers.get('x-file-size') || 0),
-    took: +(response.headers.get('x-took') || 0),
-    width,
-  });
+  return {
+    description: descriptionText,
+    options: {
+      content: options.content,
+      extension: response.headers.get('x-file-extension') || undefined,
+      filename: options.filename, // we will get the filename based off the command name
+      framesNew,
+      framesOld,
+      height,
+      mimetype: response.headers.get('content-type') || undefined,
+      size: +(response.headers.get('x-file-size') || 0),
+      took: +(response.headers.get('x-took') || 0),
+      width,
+    },
+  };
 }
 
+export async function imageReply(
+  context: Command.Context | Interaction.InteractionContext,
+  response: Response,
+  options: {
+    args?: boolean,
+    content?: string,
+    filename?: string,
+  } | string = {},
+) {
+  const imageReplyOptions = generateImageReplyOptionsFromResponse(response, options);
+  if (imageReplyOptions.description) {
+    imageReplyOptions.options.embed = new Embed();
+    imageReplyOptions.options.embed.setDescription(imageReplyOptions.description);
+  }
+
+  return imageReplyFromOptions(
+    context,
+    await response.buffer(),
+    imageReplyOptions.options,
+  );
+}
+
+
+export interface ImageReplyOptions {
+  content?: string,
+  embed?: Embed,
+  extension?: string,
+  filename?: string,
+  framesNew?: number,
+  framesOld?: number,
+  height: number,
+  mimetype?: string,
+  size: number,
+  took?: number,
+  width: number,
+}
 
 export async function imageReplyFromOptions(
   context: Command.Context | Interaction.InteractionContext,

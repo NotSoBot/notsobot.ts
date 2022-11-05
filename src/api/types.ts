@@ -1,4 +1,5 @@
 import { Collections } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 
 import {
   GoogleCardTypes,
@@ -170,7 +171,8 @@ export namespace RestOptions {
   }
 
   export interface ImageBaseOptions {
-    url: string,
+    file?: RequestFile,
+    url?: string,
   }
 
   export interface ImageBackgroundRemoveOptions extends ImageBaseOptions {

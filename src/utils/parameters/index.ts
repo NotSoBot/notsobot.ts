@@ -18,7 +18,7 @@ import * as moment from 'moment';
 import { fetchTag } from '../../api';
 import { CDN, CUSTOM } from '../../api/endpoints';
 import { RestResponsesRaw } from '../../api/types';
-import { GoogleLocales, GoogleLocalesText } from '../../constants';
+import { CommandCategories, GoogleLocales, GoogleLocalesText } from '../../constants';
 import {
   DefaultParameters,
   TagFormatter,
@@ -286,6 +286,44 @@ export function percentage(value: number | string): number {
     return percentage;
   }
   return Math.max(0, Math.min(percentage / 100));
+}
+
+
+export interface PipingCommand {
+  command: Command.Command,
+  commandArgs: Record<string, any>
+}
+
+export async function pipingCommands(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<Array<PipingCommand>> {
+  const commandClient = context.commandClient;
+  if (!commandClient) {
+    throw new Error('need prefix command client');
+  }
+
+  const pipers: Array<PipingCommand> = [];
+  if (value) {
+    const contents = value.split(';').map((x) => x.trim());
+    for (let content of contents) {
+      if (pipers.length === 5) {
+        break;
+      }
+      const attributes = {content, prefix: ''};
+      const command = commandClient.getCommand(attributes);
+      if (command && command.metadata && command.metadata.id && command.metadata.category === CommandCategories.IMAGE) {
+        // const {errors, parsed: args} = await command.getArgs(attributes, context);
+        pipers.push({command, commandArgs: {}});
+      } else {
+        throw new Error(`${content} is not a valid piping command`);
+      }
+    }
+    if (5 < pipers.length) {
+      throw new Error(`Cannot exceed 5 commands to pipe with`)
+    }
+  }
+  return pipers;
 }
 
 

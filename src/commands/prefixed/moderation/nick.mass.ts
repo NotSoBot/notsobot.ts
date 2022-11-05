@@ -10,8 +10,18 @@ import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrRepl
 import { BaseCommand } from '../basecommand';
 
 
+export const NameRegexes = {
+  DISCRIMINATOR: /{(?:discrim|discriminator)}/g,
+  GUILD: /{guild}/g,
+  NICKNAME: /{(?:name|nick)}/g,
+  USERNAME: /{(?:user|username)}/g,
+};
+export const NAME_REGEXES = Object.values(NameRegexes);
+
+
 export const ERROR_CODES_IGNORE = [400, 403];
 export const MAX_MEMBERS = 1000;
+export const MAX_NICKNAME_LENGTH = 32;
 export const MAX_TIME_TO_RESPOND = 60 * 1000;
 export const RATELIMIT_TIME = [10, 10]; // 10 members per 10 seconds (use a constant incase it changes in the future)
 
@@ -91,10 +101,10 @@ export default class NickMassCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const guild = context.guild as Structures.Guild;
-    const me = guild.me as Structures.Member;
+    const guild = context.guild!;
+    const me = guild.me!;
 
-    const nick = args.text.slice(0, 32);
+    const nick = args.text;
 
     const members = guild.members.filter((member) => {
       if (args.nobots && member.bot) {
@@ -219,7 +229,26 @@ export default class NickMassCommand extends BaseCommand {
               break;
             }
 
-            if (member.name === nick) {
+            let nickname = nick;
+            for (let regex of NAME_REGEXES) {
+              switch (regex) {
+                case NameRegexes.DISCRIMINATOR: {
+                  nickname = nickname.replace(regex, member.discriminator);
+                }; break;
+                case NameRegexes.GUILD: {
+                  nickname = nickname.replace(regex, guild.name);
+                }; break;
+                case NameRegexes.NICKNAME: {
+                  nickname = nickname.replace(regex, member.name);
+                }; break;
+                case NameRegexes.USERNAME: {
+                  nickname = nickname.replace(regex, member.username);
+                }; break;
+              }
+            }
+            nickname = nickname.slice(0, MAX_NICKNAME_LENGTH).trim();
+
+            if (member.name === nickname) {
               amounts.skipped++;
               continue;
             }
@@ -235,7 +264,7 @@ export default class NickMassCommand extends BaseCommand {
             }
 
             try {
-              await member.editNick(nick, {reason});
+              await member.editNick(nickname, {reason});
               amounts.changed++;
             } catch(error) {
               if (error.response && ERROR_CODES_IGNORE.includes(error.response.statusCode)) {
