@@ -4,6 +4,7 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { ImageFlipCommand } from './flip';
 import { ImageFlopCommand } from './flop';
+import { ImagePipeCommand } from './pipe';
 // rip command
 
 import { ImageFunGroupCommand } from './fun';
@@ -24,6 +25,7 @@ export default class ImageGroupCommand extends BaseSlashCommand {
         new ImageFlopCommand(),
         new ImageFunGroupCommand(),
         new ImageOverlayGroupCommand(),
+        new ImagePipeCommand(),
         new ImageTintGroupCommand(),
       ],
     });

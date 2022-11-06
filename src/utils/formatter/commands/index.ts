@@ -37,7 +37,7 @@ import * as ImageMirrorRight from './image.mirror.right';
 import * as ImageMirrorTop from './image.mirror.top';
 import * as ImageNeedsMoreJpeg from './image.needsmorejpeg';
 import * as ImageOverlayPistol from './image.overlay.pistol';
-//import * as ImagePipe from './image.pipe';
+import * as ImagePipe from './image.pipe';
 import * as ImagePixelate from './image.pixelate';
 import * as ImageSharpen from './image.sharpen';
 import * as ImageSpin from './image.spin';
@@ -160,7 +160,7 @@ export {
   ImageMirrorTop,
   ImageNeedsMoreJpeg,
   ImageOverlayPistol,
-// ImagePipe,
+  ImagePipe,
   ImagePixelate,
   ImageRain,
   ImageRip,

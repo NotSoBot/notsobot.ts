@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import * as ImagePipe from '../../../utils/formatter/commands/image.pipe';
-import { Parameters, imageReply } from '../../../utils';
+import { Formatter, Parameters, imageReply } from '../../../utils';
 
 import { BaseCommand, BaseImageCommand } from '../basecommand';
 
@@ -14,7 +13,7 @@ export interface CommandArgsBefore {
 
 export const COMMAND_NAME = 'pipe';
 
-export default class PipeCommand extends BaseImageCommand<ImagePipe.CommandArgs> {
+export default class PipeCommand extends BaseImageCommand<Formatter.Commands.ImagePipe.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -26,7 +25,7 @@ export default class PipeCommand extends BaseImageCommand<ImagePipe.CommandArgs>
           COMMAND_NAME,
           `${COMMAND_NAME} flip; flop`,
         ],
-        id: ImagePipe.COMMAND_ID,
+        id: Formatter.Commands.ImagePipe.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...commands>',
       },
       type: [
@@ -47,7 +46,7 @@ export default class PipeCommand extends BaseImageCommand<ImagePipe.CommandArgs>
     return super.onCancelRun(context, args);
   }
 
-  run(context: Command.Context, args: ImagePipe.CommandArgs) {
-    return ImagePipe.createMessage(context, args);
+  run(context: Command.Context, args: Formatter.Commands.ImagePipe.CommandArgs) {
+    return Formatter.Commands.ImagePipe.createMessage(context, args);
   }
 }
