@@ -6,6 +6,7 @@ import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'image.background.remove';
+export const IS_PIPEABLE = true;
 
 export const DEFAULT_MODEL = ImageBackgroundRemovalModels.U2NET;
 
@@ -24,10 +25,17 @@ export interface CommandArgs {
   url: string,
 }
 
+export function createResponse(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  return imageToolsBackgroundRemove(context, args);
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await imageToolsBackgroundRemove(context, args);
+  const response = await createResponse(context, args);
   return imageReply(context, response);
 }

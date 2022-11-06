@@ -814,6 +814,7 @@ export async function imageManipulationAscii(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -833,6 +834,7 @@ export async function imageManipulationBlur(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -851,6 +853,7 @@ export async function imageManipulationBlurple(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -871,6 +874,7 @@ export async function imageManipulationCaption(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -890,6 +894,7 @@ export async function imageManipulationCircle(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -909,6 +914,7 @@ export async function imageManipulationDeepfry(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -928,6 +934,7 @@ export async function imageManipulationExplode(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -947,6 +954,7 @@ export async function imageManipulationEyes(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1006,6 +1014,7 @@ export async function imageManipulationGlitch(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1027,6 +1036,7 @@ export async function imageManipulationGlitchGif(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1045,6 +1055,7 @@ export async function imageManipulationGlobe(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1063,6 +1074,7 @@ export async function imageManipulationGold(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1081,6 +1093,7 @@ export async function imageManipulationGrayscale(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1100,6 +1113,7 @@ export async function imageManipulationImplode(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1118,6 +1132,7 @@ export async function imageManipulationInvert(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1137,6 +1152,7 @@ export async function imageManipulationJPEG(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1158,6 +1174,7 @@ export async function imageManipulationLegofy(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1177,6 +1194,7 @@ export async function imageManipulationMagik(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1197,6 +1215,7 @@ export async function imageManipulationMagikGif(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1218,6 +1237,7 @@ export async function imageManipulationMeme(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1236,6 +1256,7 @@ export async function imageManipulationMirrorBottom(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1254,6 +1275,7 @@ export async function imageManipulationMirrorLeft(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1272,6 +1294,7 @@ export async function imageManipulationMirrorRight(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1290,6 +1313,7 @@ export async function imageManipulationMirrorTop(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1308,6 +1332,7 @@ export async function imageManipulationPaper(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1327,6 +1352,7 @@ export async function imageManipulationPix2Pix(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1346,6 +1372,7 @@ export async function imageManipulationPixelate(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1364,6 +1391,7 @@ export async function imageManipulationRain(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1382,6 +1410,7 @@ export async function imageManipulationRainGold(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1401,6 +1430,7 @@ export async function imageManipulationSharpen(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1419,6 +1449,7 @@ export async function imageManipulationSpin(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1437,6 +1468,7 @@ export async function imageManipulationTrace(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1455,6 +1487,7 @@ export async function imageManipulationWall(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1709,6 +1742,7 @@ export async function imageToolsBackgroundRemove(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1728,6 +1762,7 @@ export async function imageToolsObjectRemove(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1748,6 +1783,7 @@ export async function imageToolsConvert(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1767,6 +1803,7 @@ export async function imageToolsCrop(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1786,6 +1823,7 @@ export async function imageToolsCropCircle(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1805,6 +1843,7 @@ export async function imageToolsCropTwitterHex(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1823,6 +1862,7 @@ export async function imageToolsGifReverse(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,

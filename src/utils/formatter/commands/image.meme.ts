@@ -1,4 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 
 import { imageManipulationMeme } from '../../../api';
 import { ImageMemeFonts } from '../../../constants';
@@ -6,6 +7,7 @@ import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'image.meme';
+export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   font?: ImageMemeFonts,
@@ -13,13 +15,11 @@ export interface CommandArgs {
   url: string,
 }
 
-export async function createMessage(
+export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: CommandArgs & {file?: RequestFile},
 ) {
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
-
-  const { font, text, url } = args;
+  const { file, font, text, url } = args;
 
   let top: string = '';
   let bottom: string | undefined;
@@ -34,6 +34,15 @@ export async function createMessage(
     top = text;
   }
 
-  const response = await imageManipulationMeme(context, {bottom, font, top, url});
+  return imageManipulationMeme(context, {bottom, file, font, top, url});
+}
+
+export async function createMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
+
+  const response = await createResponse(context, args);
   return imageReply(context, response);
 }

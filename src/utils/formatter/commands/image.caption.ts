@@ -6,11 +6,19 @@ import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'image.caption';
+export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   font?: ImageMemeFonts,
   text: string,
   url: string,
+}
+
+export function createResponse(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  return imageManipulationCaption(context, args);
 }
 
 export async function createMessage(
@@ -19,6 +27,6 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const response = await imageManipulationCaption(context, args);
+  const response = await createResponse(context, args);
   return imageReply(context, response);
 }

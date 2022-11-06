@@ -5,6 +5,7 @@ import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'image.flip';
+export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   url: string,

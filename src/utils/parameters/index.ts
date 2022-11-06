@@ -305,7 +305,7 @@ export async function pipingCommands(
 
   const pipers: Array<PipingCommand> = [];
   if (value) {
-    const contents = value.split(';').map((x) => x.trim());
+    const contents = value.split(';').map((x) => x.trim()).filter(Boolean);
     for (let content of contents) {
       if (pipers.length === 5) {
         break;
@@ -313,8 +313,12 @@ export async function pipingCommands(
       const attributes = {content, prefix: ''};
       const command = commandClient.getCommand(attributes);
       if (command && command.metadata && command.metadata.id && command.metadata.category === CommandCategories.IMAGE) {
-        // const {errors, parsed: args} = await command.getArgs(attributes, context);
-        pipers.push({command, commandArgs: {}});
+        attributes.content = `https://notsobot.com/ ${attributes.content}`; // inject a url at the beginning for image url parsing (to basically skip it)
+        const {errors, parsed: commandArgs} = await command.getArgs(attributes, context as any);
+        if (Object.keys(errors).length) {
+          throw new Error(`Error parsing piping args for \`${command.name}\``);
+        }
+        pipers.push({command, commandArgs});
       } else {
         throw new Error(`${content} is not a valid piping command`);
       }
@@ -1255,7 +1259,9 @@ export async function imageUrlPositional(
       {
         const url = findImageUrlInMessages([context.message]);
         if (url) {
-          if (url === value) {
+          // so we have the proxy url here, compare it? 
+          // compare here temporarily
+          if (url === value || context.message.embeds.some((embed) => embed.url === value)) {
             return url;
           }
           return [true, url];

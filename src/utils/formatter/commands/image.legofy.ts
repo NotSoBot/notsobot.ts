@@ -6,6 +6,7 @@ import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'image.legofy';
+export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   dither: boolean,
@@ -14,10 +15,17 @@ export interface CommandArgs {
   url: string,
 }
 
+export function createResponse(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  return imageManipulationLegofy(context, args);
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await imageManipulationLegofy(context, args);
+  const response = await createResponse(context, args);
   return imageReply(context, response);
 }

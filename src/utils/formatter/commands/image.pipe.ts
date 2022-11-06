@@ -49,13 +49,13 @@ export async function createMessage(
     for (let key in Formatter.Commands) {
       const formatter = (Formatter.Commands as any)[key];
       if (formatter.COMMAND_ID === commandId) {
-        if (typeof(formatter.createResponse) === 'function') {
+        if (formatter.IS_PIPEABLE && typeof(formatter.createResponse) === 'function') {
           pipers.push({command, commandArgs, execute: formatter.createResponse});
           found = true;
-          break;
         } else {
           throw new Error(`cant pipe ${command.name} yet`);
         }
+        break;
       }
     }
     if (!found) {
