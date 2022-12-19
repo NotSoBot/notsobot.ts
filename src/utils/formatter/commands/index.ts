@@ -108,6 +108,7 @@ import * as TagRemove from './tag.remove';
 import * as TagShow from './tag.show';
 
 import * as ToolsCode from './tools.code';
+import * as ToolsConvert from './tools.convert';
 import * as ToolsDownload from './tools.download';
 import * as ToolsExif from './tools.exif';
 import * as ToolsHash from './tools.hash';
@@ -231,6 +232,7 @@ export {
   TagShow,
 
   ToolsCode,
+  ToolsConvert,
   ToolsDownload,
   ToolsExif,
   ToolsHash,

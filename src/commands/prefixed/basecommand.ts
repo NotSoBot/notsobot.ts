@@ -325,7 +325,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
 }
 
 
-export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
+export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
   triggerTypingAfter = 250;
 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
@@ -337,7 +337,7 @@ export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> ex
         {duration: 5000, limit: 5, key: RatelimitKeys.IMAGE, type: 'guild'},
         {duration: 1000, limit: 1, key: RatelimitKeys.IMAGE, type: 'channel'},
       ],
-      type: Parameters.lastMediaUrl({image: false}),
+      type: options.type || Parameters.lastMediaUrl(),
       ...options,
     });
   }
@@ -347,6 +347,35 @@ export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> ex
       context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});
     }
     return !!args.url;
+  }
+
+  onCancelRun(context: Command.Context, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return editOrReply(context, '⚠ Unable to find any media in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+    }
+    return super.onCancelRun(context, args);
+  }
+
+  onSuccess(context: Command.Context, args: ParsedArgsFinished) {
+    if (context.response) {
+      const responseUrl = findImageUrlInMessages([context.response]);
+      if (responseUrl) {
+        context.metadata = Object.assign({}, context.metadata, {responseUrl});
+      }
+    }
+    return super.onSuccess(context, args);
+  }
+}
+
+
+export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediaCommand<ParsedArgsFinished> {
+  constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
+    super(commandClient, {
+      type: options.type || Parameters.lastMediaUrl({image: false}),
+      ...options,
+    });
   }
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
@@ -357,43 +386,15 @@ export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> ex
     }
     return super.onCancelRun(context, args);
   }
-
-  onSuccess(context: Command.Context, args: ParsedArgsFinished) {
-    /*
-    if (context.response) {
-      const responseUrl = findImageUrlInMessages([context.response]);
-      if (responseUrl) {
-        context.metadata = Object.assign({}, context.metadata, {responseUrl});
-      }
-    }
-    */
-    return super.onSuccess(context, args);
-  }
 }
 
 
-export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
-  triggerTypingAfter = 250;
-
+export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediaCommand<ParsedArgsFinished> {
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {
-      label: 'url',
-      name: '',
-      permissionsClient: [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS],
-      ratelimits: [
-        {duration: 5000, limit: 5, key: RatelimitKeys.IMAGE, type: 'guild'},
-        {duration: 1000, limit: 1, key: RatelimitKeys.IMAGE, type: 'channel'},
-      ],
-      type: Parameters.lastMediaUrl({audio: false, video: false}),
+      type: options.type || Parameters.lastMediaUrl({audio: false, video: false}),
       ...options,
     });
-  }
-
-  onBeforeRun(context: Command.Context, args: {url?: null | string}) {
-    if (args.url) {
-      context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});
-    }
-    return !!args.url;
   }
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
@@ -403,16 +404,6 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
       return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
     }
     return super.onCancelRun(context, args);
-  }
-
-  onSuccess(context: Command.Context, args: ParsedArgsFinished) {
-    if (context.response) {
-      const responseUrl = findImageUrlInMessages([context.response]);
-      if (responseUrl) {
-        context.metadata = Object.assign({}, context.metadata, {responseUrl});
-      }
-    }
-    return super.onSuccess(context, args);
   }
 }
 

@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { videoToolsConvert } from '../../../api';
-import { Mimetypes, MimetypesToExtension, MIMETYPES_VIDEO_EMBEDDABLE } from '../../../constants';
+import { Mimetypes, MimetypesToExtension, MIMETYPES_AUDIO_EMBEDDABLE, MIMETYPES_VIDEO_EMBEDDABLE } from '../../../constants';
 import { mediaReply } from '../../../utils';
 
 
@@ -9,7 +9,7 @@ export const COMMAND_ID = 'video.convert';
 
 export const DEFAULT_MIMETYPE = Mimetypes.VIDEO_MP4;
 
-export const SLASH_CHOICES = MIMETYPES_VIDEO_EMBEDDABLE.map((mimetype) => {
+export const SLASH_CHOICES = [...MIMETYPES_AUDIO_EMBEDDABLE, ...MIMETYPES_VIDEO_EMBEDDABLE].map((mimetype) => {
   let name = `.${MimetypesToExtension[mimetype]} (${mimetype})`;
   if (mimetype === DEFAULT_MIMETYPE) {
     name = `${name} (Default)`;

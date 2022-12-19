@@ -28,7 +28,8 @@ import { User, UserFull } from './structures/user';
 
 export namespace RestOptions {
   export interface AudioBaseOptions {
-    url: string,
+    file?: RequestFile,
+    url?: string,
   }
 
   export interface AudioToolsConvertOptions extends AudioBaseOptions {
@@ -533,7 +534,8 @@ export namespace RestOptions {
 
 
   export interface VideoBaseOptions {
-    url: string,
+    file?: RequestFile,
+    url?: string,
   }
 
   export interface VideoToolsConvertOptions extends VideoBaseOptions {

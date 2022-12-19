@@ -1281,6 +1281,44 @@ export function padCodeBlockFromRows(
 }
 
 
+export function parseContentDisposition(value: string): {disposition: string, filename: string} {
+  let disposition = ''
+  let filename = '';
+
+  const parts = value.split(';');
+  disposition = parts.shift()!.toLowerCase();
+  for (let part of parts) {
+    part = part.trim();
+    if (part.startsWith('%20')) {
+      part = decodeURIComponent(part).trim();
+    }
+    if (part.toLowerCase().startsWith('filename=')) {
+      filename = part.slice(9);
+      if (filename.startsWith('"')&& filename.endsWith('"')) {
+        filename = part.slice(1, -1);
+      }
+    }
+  }
+
+  return {disposition, filename};
+}
+
+
+export function parseFilenameFromResponse(response: Response): string {
+  const { disposition, filename } = parseContentDisposition(response.headers.get('content-disposition') || '');
+  return filename || parseFilenameFromUrl(response.url);
+}
+
+
+export function parseFilenameFromUrl(value: string, maxLength: number = 64): string {
+  return (
+      value.split('?').shift()!.split('#').shift()!.split('/').pop()! ||
+      (value.split('//')[1] || '').split('/').shift()! ||
+      'some-random-file'
+  ).slice(0, maxLength);
+}
+
+
 export function permissionsToObject(permissions: bigint | number): Record<string, boolean> {
   const result: Record<string, boolean> = {};
   for (let check of Object.values(Permissions)) {

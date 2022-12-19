@@ -89,6 +89,7 @@ export async function audioToolsConvert(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -106,6 +107,7 @@ export async function audioToolsIdentify(
     url: options.url,
   };
   return request(context, {
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2714,6 +2716,7 @@ export async function videoToolsConvert(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2732,6 +2735,7 @@ export async function videoToolsExtractAudio(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,

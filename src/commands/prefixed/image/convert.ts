@@ -12,7 +12,7 @@ export interface CommandArgsBefore {
   url?: null | string,
 }
 
-export const COMMAND_NAME = 'convert';
+export const COMMAND_NAME = 'convert-image';
 
 export default class ConvertCommand extends BaseImageCommand<Formatter.Commands.ImageToolsConvert.CommandArgs> {
   constructor(client: CommandClient) {

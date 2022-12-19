@@ -17,7 +17,12 @@ export class ImageToolsConvertCommand extends BaseInteractionImageCommandOption 
   constructor() {
     super({
       options: [
-        {name: 'to', description: 'Image Type'},
+        {
+          name: 'to',
+          description: 'Conversion Mimetype',
+          choices: Formatter.Commands.ImageToolsConvert.SLASH_CHOICES,
+          default: Formatter.Commands.ImageToolsConvert.DEFAULT_MIMETYPE,
+        },
         {name: 'size', description: 'number or (width)x(height)'},
       ],
     });

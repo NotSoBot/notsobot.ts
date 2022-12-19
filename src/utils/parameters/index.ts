@@ -890,7 +890,7 @@ export function mediaUrl(
               }
             }
 
-            if (context instanceof Command.Context) {
+            if (context instanceof Command.Context && (!mediaSearchOptions.audio && !mediaSearchOptions.video)) {
               if (!context.message.embeds.length) {
                 await Timers.sleep(1000);
               }
@@ -974,6 +974,146 @@ export function mediaUrl(
       return null;
     }
     return null;
+  };
+}
+
+
+export function mediaUrlPositional(
+  mediaSearchOptions: FindMediaUrlOptions = {},
+): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<string | null | undefined | [true, null | string | undefined]> {
+  const customLastMediaUrl = DefaultParameters.lastMediaUrl(mediaSearchOptions);
+
+  return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
+    try {
+      if (context instanceof Command.Context) {
+        // check the message's attachments/stickers first
+        {
+          const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
+          if (url) {
+            return [true, url];
+          }
+        }
+
+        // check for reply and if it has an image
+        {
+          const { messageReference } = context.message;
+          if (messageReference && messageReference.messageId) {
+            const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+            const url = findMediaUrlInMessages([message], mediaSearchOptions);
+            if (url) {
+              return [true, url];
+            }
+          }
+        }
+      }
+
+      if (value) {
+        // get last image then
+        if (value === '^') {
+          return await customLastMediaUrl(context) || undefined;
+        }
+
+        // if it's a url
+        {
+          const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+          if (matches.length) {
+            const [ { text } ] = matches;
+  
+            // if its https://discord.com/channels/:guildId/:channelId/:messageId
+            {
+              const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+              if (messageLink.matches.length) {
+                const [ { channelId, messageId } ] = messageLink.matches;
+                if (channelId && messageId) {
+                  const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+                  const url = findMediaUrlInMessages([message], mediaSearchOptions);
+                  if (url) {
+                    return url;
+                  }
+                }
+                return null;
+              }
+            }
+
+            if (context instanceof Command.Context && (!mediaSearchOptions.audio && !mediaSearchOptions.video)) {
+              if (!context.message.embeds.length) {
+                await Timers.sleep(1000);
+              }
+              const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
+              return url || text;
+            } else {
+              return text;
+            }
+          }
+        }
+
+        // it's in the form of username#discriminator
+        if (value.includes('#') && !value.startsWith('#')) {
+          const found = await findMemberByChunkText(context, value);
+          if (found) {
+            return found.avatarUrlFormat(null, {size: 1024});
+          }
+          return null;
+        }
+
+        // it's in the form of <@123>
+        {
+          const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
+          if (matches.length) {
+            const [ { id: userId } ] = matches;
+  
+            // pass it onto the next statement
+            if (isSnowflake(userId)) {
+              value = userId;
+            }
+          }
+        }
+
+        // it's just the snowflake of a user
+        if (isSnowflake(value)) {
+          const userId = value;
+
+          let user: Structures.Member | Structures.User;
+          if (context instanceof Command.Context && context.message.mentions.has(userId)) {
+            user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+          } else if (context.guild && context.guild.members.has(userId)) {
+            user = context.guild.members.get(userId)!;
+          } else if (context.users.has(userId)) {
+            user = context.users.get(userId)!;
+          } else {
+            user = await context.rest.fetchUser(userId);
+          }
+          return user.avatarUrlFormat(null, {size: 1024});
+        }
+
+        // it's <a:emoji:id>
+        {
+          const { matches } = discordRegex(DiscordRegexNames.EMOJI, value) as {matches: Array<{animated: boolean, id: string}>};
+          if (matches.length) {
+            const [ { animated, id } ] = matches;
+            const format = (animated) ? 'gif' : 'png';
+            return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format);
+          }
+        }
+
+        // it's an unicode emoji
+        {
+          const emojis = onlyEmoji(value);
+          if (emojis && emojis.length) {
+            for (let emoji of emojis) {
+              const codepoint = toCodePointForTwemoji(emoji);
+              return CUSTOM.TWEMOJI_SVG(codepoint);
+            }
+          }
+        }
+
+        // return the last image and skip parse
+        return [true, await customLastMediaUrl(context) || undefined];
+      }
+    } catch(error) {
+      return null;
+    }
+    return await customLastMediaUrl(context) || undefined;
   };
 }
 
@@ -1387,7 +1527,7 @@ export async function imageUrlPositional(
   } catch(error) {
     return null;
   }
-  return null;
+  return await lastImageUrl('', context);
 }
 
 
