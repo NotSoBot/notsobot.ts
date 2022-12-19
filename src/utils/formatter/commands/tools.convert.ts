@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
-import { Response } from 'detritus-rest';
+import { RequestFile, Response } from 'detritus-rest';
 
 import { audioToolsConvert, imageToolsConvert, utilitiesFetchMedia, videoToolsConvert } from '../../../api';
 import { Mimetypes, MIMETYPES_SAFE_EMBED } from '../../../constants';
@@ -18,6 +18,7 @@ export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 
 
 export interface CommandArgs {
+  file?: RequestFile,
   size?: string,
   to?: string,
   url: string,
@@ -27,6 +28,14 @@ export async function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  if (args.file) {
+    return await imageToolsConvert(context, {
+      file: args.file,
+      size: args.size,
+      to: args.to || DEFAULT_IMAGE_MIMETYPE,
+    });
+  }
+
   const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
   const mediaResponse = await utilitiesFetchMedia(context, {maxFileSize, url: args.url});
   const mimetype = (mediaResponse.headers.get('content-type') || '').toLowerCase();

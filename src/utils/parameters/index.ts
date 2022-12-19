@@ -312,7 +312,7 @@ export async function pipingCommands(
       }
       const attributes = {content, prefix: ''};
       const command = commandClient.getCommand(attributes);
-      if (command && command.metadata && command.metadata.id && command.metadata.category === CommandCategories.IMAGE) {
+      if (command && command.metadata && command.metadata.id && (command.metadata.category === CommandCategories.IMAGE || command.metadata.category === CommandCategories.TOOLS)) {
         attributes.content = `https://notsobot.com/ ${attributes.content}`; // inject a url at the beginning for image url parsing (to basically skip it)
         const {errors, parsed: commandArgs} = await command.getArgs(attributes, context as any);
         if (Object.keys(errors).length) {

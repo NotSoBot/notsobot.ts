@@ -53,7 +53,7 @@ export async function createMessage(
           pipers.push({command, commandArgs, execute: formatter.createResponse});
           found = true;
         } else {
-          throw new Error(`cant pipe ${command.name} yet`);
+          throw new Error(`${command.name} is not a valid piping command`);
         }
         break;
       }
