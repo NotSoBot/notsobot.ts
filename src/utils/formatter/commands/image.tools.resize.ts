@@ -5,6 +5,7 @@ import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'image.tools.resize';
+export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   convert?: string,
@@ -13,10 +14,17 @@ export interface CommandArgs {
   url: string,
 }
 
+export function createResponse(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  return imageToolsResize(context, args);
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await imageToolsResize(context, args);
+  const response = await createResponse(context, args);
   return imageReply(context, response);
 }

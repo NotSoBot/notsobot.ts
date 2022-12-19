@@ -6,6 +6,8 @@ import { BaseSlashCommand } from '../../basecommand';
 import { SearchGoogleGroupCommand } from './google';
 import { SearchSteamGroupCommand } from './steam';
 
+import { SearchYoutubeCommand } from './youtube';
+
 
 export default class SearchGroupCommand extends BaseSlashCommand {
   description = 'Search Commands';
@@ -17,6 +19,7 @@ export default class SearchGroupCommand extends BaseSlashCommand {
       options: [
         new SearchGoogleGroupCommand(),
         new SearchSteamGroupCommand(),
+        new SearchYoutubeCommand(),
       ],
     });
   }

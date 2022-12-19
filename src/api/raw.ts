@@ -796,6 +796,7 @@ export async function imageInformationExif(
     url: options.url,
   };
   return request(context, {
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1506,6 +1507,7 @@ export async function imageOverlayFlagIsrael(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1524,6 +1526,7 @@ export async function imageOverlayFlagLGBT(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1542,6 +1545,7 @@ export async function imageOverlayFlagNorthKorea(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1560,6 +1564,7 @@ export async function imageOverlayFlagTrans(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1578,6 +1583,7 @@ export async function imageOverlayFlagRussia(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1596,6 +1602,7 @@ export async function imageOverlayFlagUK(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1614,6 +1621,7 @@ export async function imageOverlayFlagUSA(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1632,6 +1640,7 @@ export async function imageOverlayFlagUSSR(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1650,6 +1659,7 @@ export async function imageOverlayGoldstar(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1668,6 +1678,7 @@ export async function imageOverlayHalfLifePistol(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1686,6 +1697,7 @@ export async function imageOverlayHalfLifeShotgun(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1704,6 +1716,7 @@ export async function imageOverlayHalfLifeSMG(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1722,6 +1735,7 @@ export async function imageOverlayShutterstock(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1881,6 +1895,7 @@ export async function imageToolsGifSeeSaw(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1901,6 +1916,7 @@ export async function imageToolsGifSpeed(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1922,6 +1938,7 @@ export async function imageToolsResize(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1942,6 +1959,7 @@ export async function imageToolsRotate(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1960,6 +1978,7 @@ export async function imageToolsTrim(
   };
   return request(context, {
     dataOnly: false,
+    file: options.file,
     query,
     route: {
       method: HTTPMethods.POST,

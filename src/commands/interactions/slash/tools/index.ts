@@ -1,5 +1,6 @@
 import { BaseSlashCommand } from '../../basecommand';
 
+import { ToolsDownloadCommand } from './download';
 import { ToolsHashCommand } from './hash';
 import { ToolsScreenshotCommand } from './screenshot';
 
@@ -13,6 +14,7 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
   constructor() {
     super({
       options: [
+        new ToolsDownloadCommand(),
         new ToolsHashCommand(),
         new ToolsScreenshotCommand(),
         new ToolsQrGroupCommand(),

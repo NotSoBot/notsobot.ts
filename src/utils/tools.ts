@@ -981,6 +981,7 @@ export function generateImageReplyOptionsFromResponse(
     args?: boolean,
     content?: string,
     filename?: string,
+    spoiler?: boolean,
   } | string = {},
 ): {description?: string, options: ImageReplyOptions} {
   if (typeof(options) === 'string') {
@@ -1023,6 +1024,7 @@ export function generateImageReplyOptionsFromResponse(
       height,
       mimetype: response.headers.get('content-type') || undefined,
       size: +(response.headers.get('x-file-size') || 0),
+      spoiler: options.spoiler,
       took: +(response.headers.get('x-took') || 0),
       width,
     },
@@ -1036,6 +1038,7 @@ export async function imageReply(
     args?: boolean,
     content?: string,
     filename?: string,
+    spoiler?: boolean,
   } | string = {},
 ) {
   const imageReplyOptions = generateImageReplyOptionsFromResponse(response, options);
@@ -1062,6 +1065,7 @@ export interface ImageReplyOptions {
   height: number,
   mimetype?: string,
   size: number,
+  spoiler?: boolean,
   took?: number,
   width: number,
 }
@@ -1069,19 +1073,7 @@ export interface ImageReplyOptions {
 export async function imageReplyFromOptions(
   context: Command.Context | Interaction.InteractionContext,
   value: any,
-  options: {
-    content?: string,
-    embed?: Embed,
-    extension?: string,
-    filename?: string,
-    framesNew?: number,
-    framesOld?: number,
-    height: number,
-    mimetype?: string,
-    size: number,
-    took?: number,
-    width: number,
-  },
+  options: ImageReplyOptions,
 ) {
   let filename: string = '';
   if (options.filename) {
@@ -1121,7 +1113,7 @@ export async function imageReplyFromOptions(
   return editOrReply(context, {
     content: options.content || '',
     embed,
-    file: {contentType: options.mimetype, filename, value},
+    file: {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value},
   });
 }
 
@@ -1132,6 +1124,7 @@ export async function mediaReply(
   options: {
     content?: string,
     filename?: string,
+    spoiler?: boolean,
   } | string = {},
 ) {
   if (typeof(options) === 'string') {
@@ -1146,6 +1139,7 @@ export async function mediaReply(
     filename: options.filename, // we will get the filename based off the command name
     mimetype: response.headers.get('content-type') || undefined,
     size: +(response.headers.get('x-file-size') || 0),
+    spoiler: options.spoiler,
   });
 }
 
@@ -1159,6 +1153,7 @@ export async function mediaReplyFromOptions(
     filename?: string,
     mimetype?: string,
     size: number,
+    spoiler?: boolean,
   },
 ) {
   let filename: string = '';
@@ -1175,7 +1170,7 @@ export async function mediaReplyFromOptions(
 
   return editOrReply(context, {
     content: options.content || '',
-    file: {contentType: options.mimetype, filename, value},
+    file: {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value},
   });
 }
 

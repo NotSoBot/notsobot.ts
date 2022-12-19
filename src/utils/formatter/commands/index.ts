@@ -90,6 +90,7 @@ import * as SearchSteamCommunity from './search.steam.community';
 import * as SearchSteamEmojis from './search.steam.emojis';
 import * as SearchSteamProfile from './search.steam.profile';
 import * as SearchUrban from './search.urban';
+import * as SearchYoutube from './search.youtube';
 
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
@@ -107,6 +108,7 @@ import * as TagRemove from './tag.remove';
 import * as TagShow from './tag.show';
 
 import * as ToolsCode from './tools.code';
+import * as ToolsDownload from './tools.download';
 import * as ToolsExif from './tools.exif';
 import * as ToolsHash from './tools.hash';
 import * as ToolsOCR from './tools.ocr';
@@ -212,6 +214,7 @@ export {
   SearchSteamEmojis,
   SearchSteamProfile,
   SearchUrban,
+  SearchYoutube,
 
   SettingsServerSetLocale,
   SettingsServerSetTimezone,
@@ -228,6 +231,7 @@ export {
   TagShow,
 
   ToolsCode,
+  ToolsDownload,
   ToolsExif,
   ToolsHash,
   ToolsOCR,

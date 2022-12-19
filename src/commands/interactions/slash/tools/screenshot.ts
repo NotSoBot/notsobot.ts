@@ -1,4 +1,5 @@
 import { Interaction } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { Formatter, Parameters } from '../../../../utils';
 
@@ -14,6 +15,7 @@ export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
 
   constructor() {
     super({
+      permissions: [Permissions.ATTACH_FILES],
       options: [
         {
           name: 'url',
