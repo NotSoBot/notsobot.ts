@@ -8,7 +8,7 @@ import { Timers } from 'detritus-utils';
 
 import { createUserCommand } from '../../api';
 import { CommandCategories, DiscordReactionEmojis, EmbedColors, PermissionsText, RatelimitKeys } from '../../constants';
-import { Parameters, createUserEmbed, editOrReply, findImageUrlInMessages } from '../../utils';
+import { Parameters, createUserEmbed, editOrReply, findMediaUrlInMessages } from '../../utils';
 
 
 // description and usage shouldnt be optional, temporary for now
@@ -360,7 +360,7 @@ export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 
   onSuccess(context: Command.Context, args: ParsedArgsFinished) {
     if (context.response) {
-      const responseUrl = findImageUrlInMessages([context.response]);
+      const responseUrl = findMediaUrlInMessages([context.response], {audio: false, video: false});
       if (responseUrl) {
         context.metadata = Object.assign({}, context.metadata, {responseUrl});
       }

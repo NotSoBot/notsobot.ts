@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
-import { Formatter, findImageUrlInMessage } from '../../../../utils';
+import { Formatter, findMediaUrlInMessages } from '../../../../utils';
 
 import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
 
@@ -19,7 +19,7 @@ export default class OCRCommand extends BaseContextMenuMessageCommand {
   name = COMMAND_NAME;
 
   onBeforeRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {
-    args.url = findImageUrlInMessage(args.message);
+    args.url = findMediaUrlInMessages([args.message], {audio: false, video: false});
     return !!args.url;
   }
 

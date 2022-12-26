@@ -29,7 +29,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
 
       args: [
         {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
-        {name: 'files.gg', label: 'upload', type: Boolean},
+        //{name: 'files.gg', label: 'upload', type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,
@@ -40,9 +40,9 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
         ],
         id: Formatter.Commands.ToolsOCR.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-noembed) (-files.gg)',
+        usage: '?<emoji,user:id|mention|name,url> (-noembed)',
       },
-      type: Parameters.lastImageUrl,
+      type: Parameters.lastMediaUrl({audio: false, video: false}),
     });
   }
 

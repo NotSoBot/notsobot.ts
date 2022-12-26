@@ -3,8 +3,15 @@ import { URL } from 'url';
 import moment from 'moment';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
-import { DiscordAbortCodes, InteractionCallbackTypes, MessageEmbedTypes, Permissions, StickerFormats } from 'detritus-client/lib/constants';
-import { Embed, Markup, PermissionTools, intToHex } from 'detritus-client/lib/utils';
+import {
+  DiscordAbortCodes,
+  DiscordRegexNames,
+  InteractionCallbackTypes,
+  MessageEmbedTypes,
+  Permissions,
+  StickerFormats,
+} from 'detritus-client/lib/constants';
+import { Embed, Markup, PermissionTools, intToHex, regex as discordRegex } from 'detritus-client/lib/utils';
 import { Response, replacePathParameters } from 'detritus-rest';
 import { Snowflake, Timers } from 'detritus-utils';
 
@@ -177,151 +184,6 @@ export async function fetchMemberOrUserById(
 }
 
 
-export function findImageUrlInAttachment(
-  attachment: Structures.Attachment,
-): null | string {
-  if (attachment.proxyUrl && (attachment.height || attachment.width)) {
-    if (attachment.isImage) {
-      if (attachment.url) {
-        const url = new URL(attachment.url);
-        if (TRUSTED_URLS.includes(url.host)) {
-          return attachment.url;
-        }
-      }
-      return attachment.proxyUrl;
-    } else if (attachment.isVideo) {
-      return attachment.proxyUrl + '?format=png';
-    }
-  }
-  return null;
-}
-
-
-export function findImageUrlInEmbed(
-  embed: Structures.MessageEmbed,
-  ignoreGIFV: boolean = false,
-): null | string {
-  if (!ignoreGIFV && embed.type === MessageEmbedTypes.GIFV) {
-    // try to use our own unfurler for the url since it'll use the thumbnail
-    // imgur returns the .gif image in thumbnail, so check if that ends with .gif
-    const url = findImageUrlInEmbed(embed, true);
-    if (url && url.endsWith('.gif')) {
-      return url;
-    }
-    if (embed.url) {
-      return embed.url;
-    }
-    return null;
-  }
-  const { image } = embed;
-  if (image && image.proxyUrl && (image.height || image.width)) {
-    if (image.url) {
-      const url = new URL(image.url);
-      if (TRUSTED_URLS.includes(url.host)) {
-        return image.url;
-      }
-    }
-    return image.proxyUrl;
-  }
-  const { thumbnail } = embed;
-  if (thumbnail && thumbnail.proxyUrl && (thumbnail.height || thumbnail.width)) {
-    if (thumbnail.url) {
-      const url = new URL(thumbnail.url);
-      if (TRUSTED_URLS.includes(url.host)) {
-        return thumbnail.url;
-      }
-    }
-    return thumbnail.proxyUrl;
-  }
-  const { video } = embed;
-  if (video && video.proxyUrl && (video.height || video.width)) {
-    return video.proxyUrl + '?format=png';
-  }
-  return null;
-}
-
-
-export function findImageUrlInMessage(
-  message: Structures.Message,
-  url?: null | string,
-): null | string {
-  if (url) {
-    for (let [embedId, embed] of message.embeds) {
-      if (embed.url === url) {
-        return findImageUrlInEmbed(embed);
-      }
-    }
-  }
-  for (let [attachmentId, attachment] of message.attachments) {
-    const url = findImageUrlInAttachment(attachment);
-    if (url) {
-      return url;
-    }
-  }
-  for (let [embedId, embed] of message.embeds) {
-    const url = findImageUrlInEmbed(embed);
-    if (url) {
-      return url;
-    }
-  }
-  for (let [stickerId, sticker] of message.stickerItems) {
-    return sticker.assetUrl;
-  }
-  return null;
-}
-
-
-export function findImageUrlInMessages(
-  messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
-): null | string {
-  for (const message of messages.values()) {
-    const url = findImageUrlInMessage(message);
-    if (url) {
-      return url;
-    }
-  }
-  return null;
-}
-
-
-export function findImageUrlsInMessage(
-  message: Structures.Message,
-): Array<string> {
-  const urls = new Set<string>();
-  for (let [attachmentId, attachment] of message.attachments) {
-    const url = findImageUrlInAttachment(attachment);
-    if (url) {
-      urls.add(url);
-    }
-  }
-  for (let [embedId, embed] of message.embeds) {
-    const url = findImageUrlInEmbed(embed);
-    if (url) {
-      urls.add(url);
-    }
-  }
-  for (let [stickerId, sticker] of message.stickerItems) {
-    urls.add(sticker.assetUrl);
-  }
-  return (urls.size) ? Array.from(urls) : [];
-}
-
-
-export function findImageUrlsInMessages(
-  messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
-): Array<string> {
-  const urls = new Set<string>();
-  for (const message of messages.values()) {
-    const urlsFound = findImageUrlsInMessage(message);
-    for (let url of urlsFound) {
-      urls.add(url);
-    }
-  }
-  return (urls.size) ? Array.from(urls) : [];
-}
-
-
-
 export interface FindMediaUrlOptions {
   audio?: boolean,
   image?: boolean,
@@ -346,8 +208,13 @@ export function findMediaUrlInAttachment(
     if (attachment.isImage && (!findImage || !(attachment.height || attachment.width))) {
       return null;
     }
-    if (attachment.isVideo && (!findVideo || !(attachment.height || attachment.width))) {
-      return null;
+    if (attachment.isVideo) {
+      if ((!findImage && !findVideo) || !(attachment.height || attachment.width)) {
+        return null;
+      }
+      if (findImage && !findVideo) {
+        return attachment.proxyUrl + '?format=png';
+      }
     }
     if (attachment.url) {
       const url = new URL(attachment.url);
@@ -372,7 +239,7 @@ export function findMediaUrlInEmbed(
   if (!ignoreGIFV && embed.type === MessageEmbedTypes.GIFV && findImage) {
     // try to use our own unfurler for the url since it'll use the thumbnail
     // imgur returns the .gif image in thumbnail, so check if that ends with .gif
-    const url = findImageUrlInEmbed(embed, true);
+    const url = findMediaUrlInEmbed(embed, true, options);
     if (url && url.endsWith('.gif')) {
       return url;
     }
@@ -402,14 +269,19 @@ export function findMediaUrlInEmbed(
     return thumbnail.proxyUrl;
   }
   const { video } = embed;
-  if (video && video.proxyUrl && (video.height || video.width) && findVideo) {
-    if (video.url) {
-      const url = new URL(video.url);
-      if (TRUSTED_URLS.includes(url.host)) {
-        return video.url;
+  if (video && video.proxyUrl && (video.height || video.width)) {
+    if (findVideo) {
+      if (video.url) {
+        const url = new URL(video.url);
+        if (TRUSTED_URLS.includes(url.host)) {
+          return video.url;
+        }
       }
+      return video.proxyUrl;
     }
-    return video.proxyUrl;
+    if (findImage) {
+      return video.proxyUrl + '?format=png';
+    }
   }
   return null;
 }
@@ -499,6 +371,69 @@ export function findMediaUrlsInMessages(
   const urls = new Set<string>();
   for (const message of messages.values()) {
     const urlsFound = findMediaUrlsInMessage(message, options);
+    for (let url of urlsFound) {
+      urls.add(url);
+    }
+  }
+  return (urls.size) ? Array.from(urls) : [];
+}
+
+
+
+export function findUrlInMessage(
+  message: Structures.Message,
+  url?: null | string,
+  options?: FindMediaUrlOptions,
+): null | string {
+  if (message.content) {
+    const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, message.content) as {matches: Array<{text: string}>};
+    if (matches.length) {
+      const [ { text } ] = matches;
+      return text;
+    }
+  }
+  return findMediaUrlInMessage(message, url, options);
+}
+
+
+export function findUrlInMessages(
+  messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
+  options?: FindMediaUrlOptions,
+): null | string {
+  for (const message of messages.values()) {
+    const url = findUrlInMessage(message, null, options);
+    if (url) {
+      return url;
+    }
+  }
+  return null;
+}
+
+
+
+export function findUrlsInMessage(
+  message: Structures.Message,
+  options?: FindMediaUrlOptions,
+): Array<string> {
+  const urls = findMediaUrlsInMessage(message, options);
+  if (message.content) {
+    const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, message.content) as {matches: Array<{text: string}>};
+    if (matches.length) {
+      const [ { text } ] = matches;
+      return Array.from(new Set<string>([text, ...urls]));
+    }
+  }
+  return urls;
+}
+
+
+export function findUrlsInMessages(
+  messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
+  options?: FindMediaUrlOptions,
+): Array<string> {
+  const urls = new Set<string>();
+  for (const message of messages.values()) {
+    const urlsFound = findUrlsInMessage(message, options);
     for (let url of urlsFound) {
       urls.add(url);
     }
@@ -771,6 +706,48 @@ export function getMemberJoinPosition(
   }
   const joinPosition = members.findIndex((m) => m.id === userId) + 1;
   return [joinPosition, guild.members.length];
+}
+
+
+export async function getOrFetchRealUrl(
+  context: Command.Context | Interaction.InteractionContext,
+  value: string,
+  options?: FindMediaUrlOptions,
+): Promise<string | null> {
+  const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, value) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+  if (messageLink.matches.length) {
+    const [ { channelId, messageId } ] = messageLink.matches;
+    if (channelId && messageId) {
+      try {
+        const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+        return findUrlInMessages([message], options);
+      } catch(error) {
+
+      }
+    }
+  }
+  return value;
+}
+
+
+export async function getOrFetchRealUrls(
+  context: Command.Context | Interaction.InteractionContext,
+  value: string,
+  options?: FindMediaUrlOptions,
+): Promise<Array<string>> {
+  const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, value) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+  if (messageLink.matches.length) {
+    const [ { channelId, messageId } ] = messageLink.matches;
+    if (channelId && messageId) {
+      try {
+        const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+        return findUrlsInMessages([message], options);
+      } catch(error) {
+
+      }
+    }
+  }
+  return [value];
 }
 
 
@@ -1294,9 +1271,10 @@ export function parseContentDisposition(value: string): {disposition: string, fi
     }
     if (part.toLowerCase().startsWith('filename=')) {
       filename = part.slice(9);
-      if (filename.startsWith('"')&& filename.endsWith('"')) {
-        filename = part.slice(1, -1);
+      if (filename.startsWith('"') && filename.endsWith('"')) {
+        filename = filename.slice(1, -1);
       }
+      break;
     }
   }
 

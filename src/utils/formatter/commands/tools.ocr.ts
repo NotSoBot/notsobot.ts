@@ -14,15 +14,19 @@ export const COMMAND_ID = 'tools.ocr';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: {isEphemeral?: boolean, noembed?: boolean, upload?: boolean, url: string},
+  args: {isEphemeral?: boolean, noembed?: boolean, url: string},
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { annotation } = await googleContentVisionOCR(context, {url: args.url});
 
   let description: string = '';
+  let file: {filename: string, value: string} | undefined;
   if (annotation) {
-    if (2000 < annotation.description.length && args.upload) {
+    if (2000 < annotation.description.length) {
+      file = {filename: 'ocr.txt', value: annotation.description};
+      description = `${annotation.description.length.toLocaleString()} Characters`;
+      /*
       try {
         const upload = await context.rest.request({
           files: [{filename: 'ocr.txt', key: 'file', value: annotation.description}],
@@ -33,6 +37,7 @@ export async function createMessage(
       } catch(error) {
         description = Markup.codeblock(annotation.description);
       }
+      */
     } else {
       description = Markup.codeblock(annotation.description);
     }
@@ -68,6 +73,7 @@ export async function createMessage(
 
     return editOrReply(context, {
       embed,
+      file,
       flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
     });
   }

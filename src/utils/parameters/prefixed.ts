@@ -10,16 +10,8 @@ import { CDN } from '../../api/endpoints';
 import GuildChannelsStore, { GuildChannelsStored } from '../../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../../stores/guildmetadata';
 import {
-  DefaultParameters,
   fetchMemberOrUserById,
-  findImageUrlInMessages,
-  findMemberByChunk,
-  findMemberByChunkText,
-  findMembersByChunk,
-  findMembersByChunkText,
   isSnowflake,
-  toCodePoint,
-  validateUrl,
 } from '../../utils';
 
 import * as ContextMenu from './context-menu';

@@ -31,6 +31,7 @@ import {
 
 const findChannel = Parameters.channel({inGuild: true});
 const findMemberOrUser = Parameters.memberOrUser();
+const lastImageUrl = Parameters.lastMediaUrl({audio: false, video: false});
 
 
 export const TagSymbols = Object.freeze({
@@ -561,7 +562,7 @@ const ScriptTags = Object.freeze({
 
     let [ urlString, filenameArg, ...descriptionValues ] = split(arg);
 
-    const url = Parameters.url(urlString.trim());
+    const url = await Parameters.url(urlString.trim(), context);
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
@@ -601,7 +602,7 @@ const ScriptTags = Object.freeze({
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
-    const url = await Parameters.lastImageUrl('', context);
+    const url = await lastImageUrl('', context);
     if (url) {
       tag.text += url;
     }
@@ -736,7 +737,7 @@ const ScriptTags = Object.freeze({
     // Actually do it
     // {download:https://google.com}
 
-    const url = Parameters.url(arg.trim());
+    const url = await Parameters.url(arg.trim(), context);
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
     try {
@@ -807,7 +808,7 @@ const ScriptTags = Object.freeze({
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
-    const url = await Parameters.lastImageUrl(arg.trim(), context);
+    const url = await lastImageUrl(arg.trim(), context);
     if (url) {
       tag.text += url;
     }
@@ -866,7 +867,7 @@ const ScriptTags = Object.freeze({
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
-    const url = await Parameters.lastImageUrl(arg.trim(), context);
+    const url = await lastImageUrl(arg.trim(), context);
     if (url) {
       try {
         const { annotation } = await googleContentVisionOCR(context, {url});

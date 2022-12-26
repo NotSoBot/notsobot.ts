@@ -34,7 +34,7 @@ export default class GifSpeedCommand extends BaseImageCommand<Formatter.Commands
         usage: '<emoji,user:id|mention,url> <...speed:milliseconds>',
       },
       type: [
-        {name: 'url', type: Parameters.imageUrlPositional},
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
         {name: 'speed', consume: true, type: Number},
       ],
     });

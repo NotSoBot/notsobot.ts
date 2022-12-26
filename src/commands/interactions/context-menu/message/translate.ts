@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
-import { DefaultParameters, Formatter, findImageUrlInMessage } from '../../../../utils';
+import { DefaultParameters, Formatter, findMediaUrlInMessages } from '../../../../utils';
 
 import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
 
@@ -21,7 +21,7 @@ export default class TranslateCommand extends BaseContextMenuMessageCommand {
 
   onBeforeRun(context: Interaction.InteractionContext, args: TranslateCommandArgs) {
     args.text = args.message.content;
-    args.url = findImageUrlInMessage(args.message);
+    args.url = findMediaUrlInMessages([args.message], {audio: false, video: false});
     return !!(args.text || args.url);
   }
 

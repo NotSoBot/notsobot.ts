@@ -23,11 +23,14 @@ import {
   DefaultParameters,
   TagFormatter,
   fetchMemberOrUserById,
-  findImageUrlInMessages,
   findMediaUrlInMessages,
   findMediaUrlsInMessages,
   findMemberByChunkText,
   findMembersByChunkText,
+  findUrlInMessages,
+  findUrlsInMessages,
+  getOrFetchRealUrl,
+  getOrFetchRealUrls,
   getTimezoneAbbreviation,
   getTimezoneFromContext,
   isSnowflake,
@@ -391,14 +394,18 @@ export function stringLowerCase(options: StringOptions = {}) {
 }
 
 
-export function url(value: string): string {
+export async function url(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<string> {
   if (value) {
     if (!/^https?:\/\//.test(value)) {
-      return `http://${value}`;
+      value = `http://${value}`;
     }
     if (!validateUrl(value)) {
       throw new Error('Malformed URL');
     }
+    return (await getOrFetchRealUrl(context, value)) || value;
   }
   return value;
 }
@@ -433,16 +440,9 @@ export async function tagContent(
 ): Promise<string> {
   // if its https://discord.com/channels/:guildId/:channelId/:messageId
   if (value) {
-    const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, value) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-    if (messageLink.matches.length) {
-      const [ { channelId, messageId } ] = messageLink.matches;
-      if (channelId && messageId) {
-        const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-        const urls = findMediaUrlsInMessages([message]);
-        if (urls.length) {
-          return urls.map((url) => `{attach:${url}}`).join('');
-        }
-      }
+    const referencedUrls = await getOrFetchRealUrls(context, value);
+    if (referencedUrls.length) {
+      return referencedUrls.map((url) => `{attach:${url}}`).join('');
     }
   } else {
     if (context instanceof Command.Context) {
@@ -462,7 +462,7 @@ export async function tagContent(
         const { messageReference } = context.message;
         if (messageReference && messageReference.messageId) {
           const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-          const urls = findMediaUrlsInMessages([message]);
+          const urls = findUrlsInMessages([message]);
           if (urls.length) {
             return [
               value,
@@ -849,14 +849,14 @@ export function mediaUrl(
           }
         }
 
-        // check for reply and if it has an image
+        // check for reply and if it has a url
         {
           const { messageReference } = context.message;
           if (messageReference && messageReference.messageId) {
             const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-            const url = findMediaUrlInMessages([message], mediaSearchOptions);
+            const url = findUrlInMessages([message], mediaSearchOptions);
             if (url) {
-              return url;
+              return getOrFetchRealUrl(context, url, mediaSearchOptions);
             }
           }
         }
@@ -999,9 +999,10 @@ export function mediaUrlPositional(
           const { messageReference } = context.message;
           if (messageReference && messageReference.messageId) {
             const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-            const url = findMediaUrlInMessages([message], mediaSearchOptions);
+            const url = findUrlInMessages([message], mediaSearchOptions);
             if (url) {
-              return [true, url];
+              const realUrl = await getOrFetchRealUrl(context, url, mediaSearchOptions);
+              return [true, realUrl];
             }
           }
         }
@@ -1139,395 +1140,6 @@ export function lastMediaUrl(
     }
     return await customLastMediaUrl(context) || undefined;
   };
-}
-
-
-export async function imageUrl(
-  value: string,
-  context: Command.Context | Interaction.InteractionContext,
-): Promise<string | null | undefined> {
-  try {
-    if (context instanceof Command.Context) {
-      // check the message's attachments/stickers first
-      {
-        const url = findImageUrlInMessages([context.message]);
-        if (url) {
-          return url;
-        }
-      }
-
-      // check for reply and if it has an image
-      {
-        const { messageReference } = context.message;
-        if (messageReference && messageReference.messageId) {
-          const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-          const url = findImageUrlInMessages([message]);
-          if (url) {
-            return url;
-          }
-        }
-      }
-    }
-
-    if (value) {
-      // get last image then
-      if (value === '^') {
-        return await lastImageUrl('', context);
-      }
-
-      // if it's a url
-      {
-        const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
-        if (matches.length) {
-          const [ { text } ] = matches;
-
-          // if its https://discord.com/channels/:guildId/:channelId/:messageId
-          {
-            const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-            if (messageLink.matches.length) {
-              const [ { channelId, messageId } ] = messageLink.matches;
-              if (channelId && messageId) {
-                const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-                const url = findImageUrlInMessages([message]);
-                if (url) {
-                  return url;
-                }
-              }
-              return null;
-            }
-          }
-
-          if (context instanceof Command.Context) {
-            if (!context.message.embeds.length) {
-              await Timers.sleep(1000);
-            }
-            const url = findImageUrlInMessages([context.message]);
-            return url || text;
-          } else {
-            return text;
-          }
-        }
-      }
-
-      // it's in the form of username#discriminator
-      if (value.includes('#') && !value.startsWith('#')) {
-        const found = await findMemberByChunkText(context, value);
-        if (found) {
-          return found.avatarUrlFormat(null, {size: 1024});
-        }
-        return null;
-      }
-
-      // it's in the form of <@123>
-      {
-        const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
-        if (matches.length) {
-          const [ { id: userId } ] = matches;
-
-          // pass it onto the next statement
-          if (isSnowflake(userId)) {
-            value = userId;
-          }
-        }
-      }
-
-      // it's just the snowflake of a user
-      if (isSnowflake(value)) {
-        const userId = value;
-
-        let user: Structures.Member | Structures.User;
-        if (context instanceof Command.Context && context.message.mentions.has(userId)) {
-          user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
-        } else if (context.guild && context.guild.members.has(userId)) {
-          user = context.guild.members.get(userId)!;
-        } else if (context.users.has(userId)) {
-          user = context.users.get(userId)!;
-        } else {
-          user = await context.rest.fetchUser(userId);
-        }
-        return user.avatarUrlFormat(null, {size: 1024});
-      }
-
-      // it's <a:emoji:id>
-      {
-        const { matches } = discordRegex(DiscordRegexNames.EMOJI, value) as {matches: Array<{animated: boolean, id: string}>};
-        if (matches.length) {
-          const [ { animated, id } ] = matches;
-          const format = (animated) ? 'gif' : 'png';
-          return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format);
-        }
-      }
-
-      // it's an unicode emoji
-      {
-        const emojis = onlyEmoji(value);
-        if (emojis && emojis.length) {
-          for (let emoji of emojis) {
-            const codepoint = toCodePointForTwemoji(emoji);
-            return CUSTOM.TWEMOJI_SVG(codepoint);
-          }
-        }
-      }
-
-      // try user search (without the discriminator)
-      {
-        const found = await findMemberByChunkText(context, value);
-        if (found) {
-          return found.avatarUrlFormat(null, {size: 1024});
-        }
-      }
-    }
-  } catch(error) {
-    return null;
-  }
-  return null;
-}
-
-
-// returns undefined if it couldn't find any messages in the past
-// returns null if a value was provided
-export async function lastImageUrl(
-  value: string,
-  context: Command.Context | Interaction.InteractionContext,
-): Promise<null | string | undefined> {
-  if (context instanceof Interaction.InteractionContext) {
-    if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
-      const attachment = context.data.resolved.attachments.first()!;
-      return attachment.url;
-    }
-  }
-
-  if (value) {
-    return imageUrl(value, context);
-  }
-  return await DefaultParameters.lastImageUrl(context) || undefined;
-}
-
-
-// returns null if the no value provided and there was no last image
-export async function lastImageUrls(
-  value: string,
-  context: Command.Context | Interaction.InteractionContext,
-): Promise<Array<string> | null> {
-  if (context instanceof Interaction.InteractionContext) {
-    if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
-      return context.data.resolved.attachments.map((x) => x.url);
-    }
-  }
-
-  if (value) {
-    const urls = new Set<string>();
-    if (context instanceof Command.Context) {
-      const url = findImageUrlInMessages([context.message]);
-      if (url) {
-        urls.add(url);
-      }
-    }
-
-    {
-      const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
-      if (matches.length) {
-        // match the url with the embed?
-        const [ { text } ] = matches;
-
-        let found: boolean = false;
-        // if its https://discord.com/channels/:guildId/:channelId/:messageId
-        {
-          const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-          if (messageLink.matches.length) {
-            const [ { channelId, messageId } ] = messageLink.matches;
-            if (channelId && messageId) {
-              const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-              const url = findImageUrlInMessages([message]);
-              if (url) {
-                urls.add(url);
-              }
-            }
-            // ignore this url no matter what
-            found = true;
-          }
-        }
-
-        if (!found) {
-          if (context instanceof Command.Context) {
-            if (!context.message.embeds.length) {
-              await Timers.sleep(1000);
-            }
-            const url = findImageUrlInMessages([context.message]);
-            urls.add(url || text);
-          } else {
-            urls.add(text);
-          }
-        }
-      }
-    }
-
-    if (urls.size) {
-      return Array.from(urls);
-    }
-
-    const values = Array.from(new Set(value.split(' ')));
-    for (let i = 0; i < Math.min(5, values.length); i++) {
-      if (3 <= urls.size) {
-        break;
-      }
-
-      const url = await imageUrl(values[i], context);
-      if (url) {
-        urls.add(url);
-      }
-    }
-
-    return Array.from(urls).slice(0, 3);
-  } else {
-    const url = await lastImageUrl('', context);
-    if (url) {
-      return [url];
-    }
-    return null;
-  }
-}
-
-
-export async function imageUrlPositional(
-  value: string,
-  context: Command.Context | Interaction.InteractionContext,
-): Promise<string | null | undefined | [true, null | string | undefined]> {
-  try {
-    if (context instanceof Command.Context) {
-      // check the message's attachments/stickers first
-      {
-        const url = findImageUrlInMessages([context.message]);
-        if (url) {
-          // so we have the proxy url here, compare it? 
-          // compare here temporarily
-          if (url === value || context.message.embeds.some((embed) => embed.url === value)) {
-            return url;
-          }
-          return [true, url];
-        }
-      }
-
-      // check for reply and if it has an image
-      {
-        const { messageReference } = context.message;
-        if (messageReference && messageReference.messageId) {
-          const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-          const url = findImageUrlInMessages([message]);
-          if (url) {
-            return [true, url];
-          }
-        }
-      }
-    }
-
-    if (value) {
-      // get last image then
-      if (value === '^') {
-        return await lastImageUrl('', context);
-      }
-
-      // if it's a url
-      {
-        const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
-        if (matches.length) {
-          const [ { text } ] = matches;
-
-          // if its https://discord.com/channels/:guildId/:channelId/:messageId
-          {
-            const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-            if (messageLink.matches.length) {
-              const [ { channelId, messageId } ] = messageLink.matches;
-              if (channelId && messageId) {
-                const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-                const url = findImageUrlInMessages([message]);
-                if (url) {
-                  return url;
-                }
-              }
-              return null;
-            }
-          }
-
-          if (context instanceof Command.Context) {
-            if (!context.message.embeds.length) {
-              await Timers.sleep(1000);
-            }
-            const url = findImageUrlInMessages([context.message]);
-            return url || text;
-          } else {
-            return text;
-          }
-        }
-      }
-
-      // it's in the form of username#discriminator
-      if (value.includes('#') && !value.startsWith('#')) {
-        const found = await findMemberByChunkText(context, value);
-        if (found) {
-          return found.avatarUrlFormat(null, {size: 1024});
-        }
-        return null;
-      }
-
-      // it's in the form of <@123>
-      {
-        const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
-        if (matches.length) {
-          const [ { id: userId } ] = matches;
-
-          // pass it onto the next statement
-          if (isSnowflake(userId)) {
-            value = userId;
-          }
-        }
-      }
-
-      // it's just the snowflake of a user
-      if (isSnowflake(value)) {
-        const userId = value;
-
-        let user: Structures.Member | Structures.User;
-        if (context instanceof Command.Context && context.message.mentions.has(userId)) {
-          user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
-        } else if (context.guild && context.guild.members.has(userId)) {
-          user = context.guild.members.get(userId)!;
-        } else if (context.users.has(userId)) {
-          user = context.users.get(userId)!;
-        } else {
-          user = await context.rest.fetchUser(userId);
-        }
-        return user.avatarUrlFormat(null, {size: 1024});
-      }
-
-      // it's <a:emoji:id>
-      {
-        const { matches } = discordRegex(DiscordRegexNames.EMOJI, value) as {matches: Array<{animated: boolean, id: string}>};
-        if (matches.length) {
-          const [ { animated, id } ] = matches;
-          const format = (animated) ? 'gif' : 'png';
-          return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format);
-        }
-      }
-
-      // it's an unicode emoji
-      {
-        const emojis = onlyEmoji(value);
-        if (emojis && emojis.length) {
-          for (let emoji of emojis) {
-            const codepoint = toCodePointForTwemoji(emoji);
-            return CUSTOM.TWEMOJI_SVG(codepoint);
-          }
-        }
-      }
-
-      // return the last image and skip parse
-      return [true, await lastImageUrl('', context)];
-    }
-  } catch(error) {
-    return null;
-  }
-  return await lastImageUrl('', context);
 }
 
 

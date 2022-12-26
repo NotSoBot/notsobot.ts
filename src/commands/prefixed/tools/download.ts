@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -17,6 +17,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
       args: [
         {name: 'spoiler', aliases: ['s'], type: Boolean},
       ],
+      default: DefaultParameters.lastUrl,
       label: 'url',
       metadata: {
         category: CommandCategories.TOOLS,
@@ -33,6 +34,15 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.ToolsDownload.CommandArgs) {
     return !!args.url;
+  }
+
+  onCancelRun(context: Command.Context, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return editOrReply(context, '⚠ Unable to find any urls in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Invalid url');
+    }
+    return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ToolsDownload.CommandArgs) {

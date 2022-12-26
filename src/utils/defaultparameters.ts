@@ -5,8 +5,9 @@ import { GoogleLocales, GoogleLocaleFromDiscord } from '../constants';
 import UserStore from '../stores/users';
 
 import {
-  findImageUrlInMessages,
   findMediaUrlInMessages,
+  findUrlInMessages,
+  getOrFetchRealUrl,
   FindMediaUrlOptions,
 } from './tools';
 
@@ -51,7 +52,7 @@ export function lastMediaUrl(
       {
         const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
         if (url) {
-          return url;
+          return getOrFetchRealUrl(context, url);
         }
       }
 
@@ -70,7 +71,7 @@ export function lastMediaUrl(
           if (message) {
             const url = findMediaUrlInMessages([message], mediaSearchOptions);
             if (url) {
-              return url;
+              return getOrFetchRealUrl(context, url);
             }
           }
         }
@@ -95,7 +96,7 @@ export function lastMediaUrl(
       }).reverse();
       const url = findMediaUrlInMessages(messages, mediaSearchOptions);
       if (url) {
-        return url;
+        return getOrFetchRealUrl(context, url);
       }
     }
 
@@ -103,14 +104,14 @@ export function lastMediaUrl(
       const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
       const url = findMediaUrlInMessages(messages, mediaSearchOptions);
       if (url) {
-        return url;
+        return getOrFetchRealUrl(context, url);
       }
     }
   };
 }
 
 
-export async function lastImageUrl(context: Command.Context | Interaction.InteractionContext): Promise<string | null> {
+export async function lastUrl(context: Command.Context | Interaction.InteractionContext): Promise<string | null | undefined> {
   if (context instanceof Interaction.InteractionContext) {
     if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
       const attachment = context.data.resolved.attachments.first()!;
@@ -120,9 +121,9 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
 
   if (context instanceof Command.Context) {
     {
-      const url = findImageUrlInMessages([context.message]);
+      const url = findUrlInMessages([context.message]);
       if (url) {
-        return url;
+        return getOrFetchRealUrl(context, url);
       }
     }
 
@@ -139,9 +140,9 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
           }
         }
         if (message) {
-          const url = findImageUrlInMessages([message]);
+          const url = findUrlInMessages([message]);
           if (url) {
-            return url;
+            return getOrFetchRealUrl(context, url);
           }
         }
       }
@@ -164,21 +165,21 @@ export async function lastImageUrl(context: Command.Context | Interaction.Intera
       }
       return true;
     }).reverse();
-    const url = findImageUrlInMessages(messages);
+    const url = findUrlInMessages(messages);
     if (url) {
-      return url;
+      return getOrFetchRealUrl(context, url);
     }
   }
 
   if (context.inDm || (context.channel && context.channel.canReadHistory)) {
     const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
-    const url = findImageUrlInMessages(messages);
+    const url = findUrlInMessages(messages);
     if (url) {
-      return url;
+      return getOrFetchRealUrl(context, url);
     }
   }
 
-  return null;
+  return undefined;
 }
 
 

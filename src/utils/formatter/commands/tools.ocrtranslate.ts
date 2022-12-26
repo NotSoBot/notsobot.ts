@@ -26,6 +26,7 @@ export async function createMessage(
   embed.setFooter('Google Translate from OCR', EmbedBrands.GOOGLE_GO);
   embed.setThumbnail(args.url);
 
+  const files: Array<{filename: string, value: string}> = [];
   if (annotation) {
     let locale: GoogleLocales | undefined;
     if (annotation.locale in GoogleLocales) {
@@ -47,23 +48,35 @@ export async function createMessage(
     embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
 
     const shouldShowInput = (translatedText !== annotation.description);
-    if (shouldShowInput) {
-      // 1024 - 10 ('```\n\n```')
-      const parts = splitTextByAmount(annotation.description, 1014, '');
-      embed.addField(fromLanguageText, Markup.codeblock(parts.shift() as string));
-      for (let part of parts) {
-        embed.addField('\u200b', Markup.codeblock(part));
+    const totalLength = annotation.description.length + translatedText.length;
+    if (totalLength <= 4000) {
+      if (shouldShowInput) {
+        // 1024 - 10 ('```\n\n```')
+        const parts = splitTextByAmount(annotation.description, 1014, '');
+        embed.addField(fromLanguageText, Markup.codeblock(parts.shift() as string));
+        for (let part of parts) {
+          embed.addField('\u200b', Markup.codeblock(part));
+        }
       }
-    }
 
-    if (translatedText !== annotation.description) {
-      // 1024 - 10 ('```\n\n```')
-      const parts = splitTextByAmount(translatedText, 1014, '');
-      const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageText : `${fromLanguageText} -> ${translatedLanguageText}`;
-      embed.addField(title, Markup.codeblock(parts.shift() as string));
-      for (let part of parts) {
-        embed.addField('\u200b', Markup.codeblock(part));
+      {
+        // 1024 - 10 ('```\n\n```')
+        const parts = splitTextByAmount(translatedText, 1014, '');
+        const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageText : `${fromLanguageText} -> ${translatedLanguageText}`;
+        embed.addField(title, Markup.codeblock(parts.shift() as string));
+        for (let part of parts) {
+          embed.addField('\u200b', Markup.codeblock(part));
+        }
       }
+    } else {
+      if (shouldShowInput) {
+        files.push({filename: `translate-from-${fromLanguageText}.txt`, value: annotation.description});
+      }
+      files.push({filename: `translate-to-${translatedLanguage}.txt`, value: translatedText});
+      embed.setDescription([
+        `Input: ${annotation.description.length.toLocaleString()} Characters`,
+        `Result: ${translatedText.length.toLocaleString()} Characters`,
+      ].join('\n'));
     }
   } else {
     embed.setColor(EmbedColors.ERROR);
@@ -72,6 +85,7 @@ export async function createMessage(
 
   return editOrReply(context, {
     embed,
+    files,
     flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
   });
 }

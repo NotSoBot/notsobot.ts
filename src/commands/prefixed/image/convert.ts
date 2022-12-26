@@ -35,7 +35,7 @@ export default class ConvertCommand extends BaseImageCommand<Formatter.Commands.
         usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>',
       },
       type: [
-        {name: 'url', type: Parameters.imageUrlPositional},
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
         {name: 'to', consume: true},
       ],
     });

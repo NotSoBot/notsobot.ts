@@ -30,7 +30,7 @@ export default class MemeCommand extends BaseImageCommand<Formatter.Commands.Ima
         usage: '<emoji,user:id|mention,url> <...text>',
       },
       type: [
-        {name: 'url', type: Parameters.imageUrlPositional},
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
         {name: 'text', consume: true},
       ],
     });
