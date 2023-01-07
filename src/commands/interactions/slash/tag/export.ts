@@ -1,9 +1,9 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { Formatter, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, Parameters, editOrReply } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../../basecommand';
+import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export class TagExportCommand extends BaseInteractionCommandOption {
