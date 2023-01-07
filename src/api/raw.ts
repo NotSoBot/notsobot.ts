@@ -416,6 +416,28 @@ export async function deleteTag(
 }
 
 
+export async function deleteTagsServer(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.DeleteTagsServer = {},
+): Promise<{count: number}> {
+  const params = {serverId};
+  const query = {
+    content: options.content,
+    name: options.name,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.TAGS_SERVER_DELETE,
+      params,
+    },
+  });
+}
+
+
 export async function editGuildSettings(
   context: RequestContext,
   guildId: string,

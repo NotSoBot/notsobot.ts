@@ -96,7 +96,9 @@ async function refreshCommands(
       await interactionCommandClient.resetCommands();
     } catch(error) {
       console.log('a'.repeat(100), error);
-      console.log('a'.repeat(100), await error.response.text());
+      if (error.response) {
+        console.log('a'.repeat(100), await error.response.text());
+      }
     }
   }
   return cluster.shards.map((shard: ShardClient) => shard.shardId);

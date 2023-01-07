@@ -438,9 +438,9 @@ export async function tagContent(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<string> {
-  // if its https://discord.com/channels/:guildId/:channelId/:messageId
   if (value) {
-    const referencedUrls = await getOrFetchRealUrls(context, value);
+    // if its https://discord.com/channels/:guildId/:channelId/:messageId
+    const referencedUrls = await getOrFetchRealUrls(context, value, undefined, true);
     if (referencedUrls.length) {
       return referencedUrls.map((url) => `{attach:${url}}`).join('');
     }

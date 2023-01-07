@@ -934,6 +934,7 @@ export enum Mimetypes {
   AUDIO_FLAC = 'audio/flac',
   AUDIO_FLAC_2 = 'audio/x-flac',
   AUDIO_M3U = 'audio/x-mpegurl',
+  AUDIO_MATROSKA = 'audio/x-matroska',
   AUDIO_MP3 = 'audio/mp3',
   AUDIO_MP4 = 'audio/mp4',
   AUDIO_MPEG = 'audio/mpeg',
@@ -945,6 +946,7 @@ export enum Mimetypes {
   IMAGE_JPEG = 'image/jpeg',
   IMAGE_PNG = 'image/png',
   IMAGE_WEBP = 'image/webp',
+  VIDEO_MATROSKA = 'video/x-matroska',
   VIDEO_M4V = 'video/x-m4v',
   VIDEO_MP4 = 'video/mp4',
   VIDEO_MPEG = 'video/mpeg',
@@ -958,6 +960,7 @@ export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
   [Mimetypes.AUDIO_FLAC]: 'flac',
   [Mimetypes.AUDIO_FLAC_2]: 'flac',
   [Mimetypes.AUDIO_M3U]: 'm3u',
+  [Mimetypes.AUDIO_MATROSKA]: 'mka',
   [Mimetypes.AUDIO_MP3]: 'mp3',
   [Mimetypes.AUDIO_MP4]: 'mp4',
   [Mimetypes.AUDIO_MPEG]: 'mp3',
@@ -970,6 +973,7 @@ export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
   [Mimetypes.IMAGE_PNG]: 'png',
   [Mimetypes.IMAGE_WEBP]: 'webp',
   [Mimetypes.VIDEO_M4V]: 'm4v',
+  [Mimetypes.VIDEO_MATROSKA]: 'mkv',
   [Mimetypes.VIDEO_MP4]: 'mp4',
   [Mimetypes.VIDEO_MPEG]: 'mpeg',
   [Mimetypes.VIDEO_QUICKTIME]: 'mov',
@@ -982,6 +986,7 @@ export const MIMETYPES_AUDIO_EMBEDDABLE = Object.freeze([
   Mimetypes.AUDIO_AAC,
   //Mimetypes.AUDIO_FLAC,
   //Mimetypes.AUDIO_FLAC_2,
+  Mimetypes.AUDIO_MATROSKA,
   Mimetypes.AUDIO_MP3,
   Mimetypes.AUDIO_MPEG,
   Mimetypes.AUDIO_OGG,
@@ -997,6 +1002,7 @@ export const MIMETYPES_IMAGE_EMBEDDABLE = Object.freeze([
 ]);
 
 export const MIMETYPES_VIDEO_EMBEDDABLE = Object.freeze([
+  Mimetypes.VIDEO_MATROSKA,
   Mimetypes.VIDEO_QUICKTIME,
   Mimetypes.VIDEO_MP4,
   Mimetypes.VIDEO_WEBM,

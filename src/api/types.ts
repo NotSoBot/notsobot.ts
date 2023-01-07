@@ -83,6 +83,12 @@ export namespace RestOptions {
     serverId?: string,
   }
 
+  export interface DeleteTagsServer {
+    content?: string,
+    name?: string,
+    userId?: string,
+  }
+
 
   export interface EditGuildSettings {
     allowlist?: Array<{

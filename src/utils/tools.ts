@@ -713,20 +713,29 @@ export async function getOrFetchRealUrl(
   context: Command.Context | Interaction.InteractionContext,
   value: string,
   options?: FindMediaUrlOptions,
+  onlyJumpMessage: boolean = false,
 ): Promise<string | null> {
-  const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, value) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-  if (messageLink.matches.length) {
-    const [ { channelId, messageId } ] = messageLink.matches;
-    if (channelId && messageId) {
-      try {
-        const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-        return findUrlInMessages([message], options);
-      } catch(error) {
+  const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+  if (matches.length) {
+    const [ { text } ] = matches;
+    const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+    if (messageLink.matches.length) {
+      const [ { channelId, messageId } ] = messageLink.matches;
+      if (channelId && messageId) {
+        try {
+          const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+          return findUrlInMessages([message], options);
+        } catch(error) {
 
+        }
       }
     }
+    if (!onlyJumpMessage) {
+      return text;
+    }
   }
-  return value;
+
+  return null;
 }
 
 
@@ -734,20 +743,33 @@ export async function getOrFetchRealUrls(
   context: Command.Context | Interaction.InteractionContext,
   value: string,
   options?: FindMediaUrlOptions,
+  onlyJumpMessage: boolean = false,
 ): Promise<Array<string>> {
-  const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, value) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
-  if (messageLink.matches.length) {
-    const [ { channelId, messageId } ] = messageLink.matches;
-    if (channelId && messageId) {
-      try {
-        const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-        return findUrlsInMessages([message], options);
-      } catch(error) {
+  const urls: Array<string> = [];
 
+  const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+  if (matches.length) {
+    for (let { text } of matches) {
+      // if its a jump link, just return the results from that
+      const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+      if (messageLink.matches.length) {
+        const [ { channelId, messageId } ] = messageLink.matches;
+        if (channelId && messageId) {
+          try {
+            const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+            return findUrlsInMessages([message], options);
+          } catch(error) {
+
+          }
+        }
+      }
+      if (!onlyJumpMessage) {
+        urls.push(text);
       }
     }
   }
-  return [value];
+
+  return urls;
 }
 
 

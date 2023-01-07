@@ -6,14 +6,14 @@ import { Formatter, Parameters, editOrReply } from '../../../utils';
 import { BaseCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'tag remove';
+export const COMMAND_NAME = 'tag remove tag';
 
 export default class TagRemoveCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['t remove'],
+      aliases: ['tag remove', 't remove', 't remove tag'],
       args: [
         {name: 'force', type: Boolean},
       ],

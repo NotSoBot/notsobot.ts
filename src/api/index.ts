@@ -232,6 +232,15 @@ export async function deleteTag(
 }
 
 
+export async function deleteTagsServer(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.DeleteTagsServer = {},
+) {
+  return raw.deleteTagsServer(context, serverId, options);
+}
+
+
 export async function editGuildSettings(
   context: RequestContext,
   guildId: string,

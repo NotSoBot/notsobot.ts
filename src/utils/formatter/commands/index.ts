@@ -100,11 +100,13 @@ import * as SettingsSetTimezone from './settings.set.timezone';
 
 import * as TagCreate from './tag.create';
 import * as TagEdit from './tag.edit';
+import * as TagExport from './tag.export';
 import * as TagInfo from './tag.info';
 import * as TagListServer from './tag.list.server';
 import * as TagListUser from './tag.list.user';
 import * as TagRandom from './tag.random';
 import * as TagRemove from './tag.remove';
+import * as TagRemoveAll from './tag.remove.all';
 import * as TagShow from './tag.show';
 
 import * as ToolsCode from './tools.code';
@@ -224,11 +226,13 @@ export {
 
   TagCreate,
   TagEdit,
+  TagExport,
   TagInfo,
   TagListServer,
   TagListUser,
   TagRandom,
   TagRemove,
+  TagRemoveAll,
   TagShow,
 
   ToolsCode,

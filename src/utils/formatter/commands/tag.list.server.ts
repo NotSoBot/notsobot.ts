@@ -22,6 +22,49 @@ export const MAX_FETCHES = 10;
 export const RESULTS_PER_PAGE = 28;
 
 
+
+export interface FetchTagsServerSearch {
+  content?: string,
+  name?: string,
+  userId?: string,
+}
+
+
+export async function fetchTagsServerSearch(
+  context: Command.Context | Interaction.InteractionContext,
+  serverId: string,
+  options: FetchTagsServerSearch = {},
+): Promise<Array<RestResponsesRaw.Tag>> {
+  let before: string | undefined;
+  let count: number = 0;
+  let fetched: number = 0;
+  const chunks: Array<Array<RestResponsesRaw.Tag>> = [];
+  for (let i = 0; i < MAX_FETCHES; i++) {
+    const response = await fetchTagsServer(context, serverId, {
+      before,
+      content: options.content,
+      name: options.name,
+      userId: options.userId,
+    });
+
+    count = response.count;
+    if (response.tags.length) {
+      fetched += response.tags.length;
+      chunks.push(response.tags);
+      before = response.tags[response.tags.length - 1].id;
+    } else {
+      break;
+    }
+
+    if (count <= fetched) {
+      break;
+    }
+  }
+
+  return chunks.flat();
+}
+
+
 export interface CommandArgs {
   content?: string,
   name?: string,
@@ -39,32 +82,11 @@ export async function createMessage(
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const serverId = context.guildId || context.channelId!;
 
-  let before: string | undefined;
-  let count: number = 0;
-  let fetched: number = 0;
-  const chunks: Array<Array<RestResponsesRaw.Tag>> = [];
-  for (let i = 0; i < MAX_FETCHES; i++) {
-    const response = await fetchTagsServer(context, serverId, {
-      before,
-      content: args.content,
-      name: args.name,
-      userId: (args.user) ? args.user.id : undefined,
-    });
-
-    count = response.count;
-    if (response.tags.length) {
-      fetched += response.tags.length;
-      chunks.push(response.tags);
-      before = response.tags[response.tags.length - 1].id;
-    } else {
-      break;
-    }
-
-    if (count <= fetched) {
-      break;
-    }
-  }
-  const tags = chunks.flat();
+  const tags = await fetchTagsServerSearch(context, serverId, {
+    content: args.content,
+    name: args.name,
+    userId: (args.user) ? args.user.id : undefined,
+  });
 
   const pages = chunkArray<RestResponsesRaw.Tag>(tags, RESULTS_PER_PAGE);
   if (pages.length) {
@@ -93,7 +115,7 @@ export async function createMessage(
         if (pageLimit !== 1) {
           footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
         }
-        embed.setFooter(`${footer} (${count.toLocaleString()} Total Tags)`);
+        embed.setFooter(`${footer} (${tags.length.toLocaleString()} Total Tags)`);
 
         const page = pages[pageNumber - 1];
 
@@ -126,6 +148,10 @@ export async function createMessage(
       },
     });
     return await paginator.start();
+  }
+
+  if (args.content || args.name || args.user) {
+    return editOrReply(context, 'This server has no tags matching the search options');
   }
 
   return editOrReply(context, 'This server has no tags');
