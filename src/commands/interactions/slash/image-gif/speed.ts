@@ -17,7 +17,7 @@ export class ImageGifSpeedCommand extends BaseInteractionImageCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'speed', description: 'milliseconds'},
+        {name: 'speed', description: 'Number to double the gif speed by, floats included'},
       ],
     });
   }

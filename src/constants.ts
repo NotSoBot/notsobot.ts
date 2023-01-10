@@ -946,6 +946,7 @@ export enum Mimetypes {
   IMAGE_JPEG = 'image/jpeg',
   IMAGE_PNG = 'image/png',
   IMAGE_WEBP = 'image/webp',
+  IMAGE_X_APNG = 'image/x-apng',
   VIDEO_MATROSKA = 'video/x-matroska',
   VIDEO_M4V = 'video/x-m4v',
   VIDEO_MP4 = 'video/mp4',
@@ -972,6 +973,7 @@ export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
   [Mimetypes.IMAGE_JPEG]: 'jpg',
   [Mimetypes.IMAGE_PNG]: 'png',
   [Mimetypes.IMAGE_WEBP]: 'webp',
+  [Mimetypes.IMAGE_X_APNG]: 'apng',
   [Mimetypes.VIDEO_M4V]: 'm4v',
   [Mimetypes.VIDEO_MATROSKA]: 'mkv',
   [Mimetypes.VIDEO_MP4]: 'mp4',
@@ -999,6 +1001,7 @@ export const MIMETYPES_IMAGE_EMBEDDABLE = Object.freeze([
   Mimetypes.IMAGE_JPEG,
   Mimetypes.IMAGE_PNG,
   Mimetypes.IMAGE_WEBP,
+  Mimetypes.IMAGE_X_APNG,
 ]);
 
 export const MIMETYPES_VIDEO_EMBEDDABLE = Object.freeze([

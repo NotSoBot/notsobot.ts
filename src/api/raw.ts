@@ -1956,6 +1956,7 @@ export async function imageToolsResize(
 ): Promise<Response> {
   const query = {
     convert: options.convert,
+    ratio: options.ratio,
     scale: options.scale,
     size: options.size,
     url: options.url,

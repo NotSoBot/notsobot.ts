@@ -23,6 +23,7 @@ import {
   DefaultParameters,
   TagFormatter,
   fetchMemberOrUserById,
+  findMediaUrlInEmbed,
   findMediaUrlInMessages,
   findMediaUrlsInMessages,
   findMemberByChunkText,
@@ -990,6 +991,18 @@ export function mediaUrlPositional(
         {
           const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
           if (url) {
+            // if the url matches the one in text or is in embed, e.g. a proxy url then use tell the parser that the first value in string is the url
+            if (url === value) {
+              return url;
+            }
+
+            const inEmbed = context.message.embeds.some((embed) => {
+              return url === findMediaUrlInEmbed(embed, false, mediaSearchOptions);
+            });
+            if (inEmbed) {
+              return url;
+            }
+
             return [true, url];
           }
         }

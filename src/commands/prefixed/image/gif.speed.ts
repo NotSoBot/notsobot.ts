@@ -35,7 +35,7 @@ export default class GifSpeedCommand extends BaseImageCommand<Formatter.Commands
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
-        {name: 'speed', consume: true, type: Number},
+        {name: 'speed', consume: true, type: 'float'},
       ],
     });
   }

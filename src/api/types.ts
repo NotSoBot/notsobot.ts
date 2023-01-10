@@ -302,6 +302,7 @@ export namespace RestOptions {
 
   export interface ImageToolsResize extends ImageBaseOptions {
     convert?: string,
+    ratio?: boolean,
     scale?: number,
     size?: string,
   }

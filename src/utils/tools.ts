@@ -251,20 +251,26 @@ export function findMediaUrlInEmbed(
   const { image } = embed;
   if (image && image.proxyUrl && (image.height || image.width) && findImage) {
     if (image.url) {
+      return image.url; // just return the image url since we added support for APNGs
+      /*
       const url = new URL(image.url);
       if (TRUSTED_URLS.includes(url.host)) {
         return image.url;
       }
+      */
     }
     return image.proxyUrl;
   }
   const { thumbnail } = embed;
   if (thumbnail && thumbnail.proxyUrl && (thumbnail.height || thumbnail.width) && findImage) {
     if (thumbnail.url) {
+      return thumbnail.url; // just return the image url since we added support for APNGs
+      /*
       const url = new URL(thumbnail.url);
       if (TRUSTED_URLS.includes(url.host)) {
         return thumbnail.url;
       }
+      */
     }
     return thumbnail.proxyUrl;
   }
@@ -1099,8 +1105,20 @@ export async function imageReplyFromOptions(
   }
 
   let footer = `${options.width}x${options.height}`;
-  if (options.mimetype === Mimetypes.IMAGE_GIF && options.framesNew) {
-    footer = `${footer}, ${options.framesNew.toLocaleString()} frames`;
+  if (options.framesNew) {
+    let showFrames = (options.framesNew !== 1);
+    switch (options.mimetype) {
+      case Mimetypes.IMAGE_GIF: showFrames = true; break;
+      case Mimetypes.IMAGE_WEBP: {
+        if (showFrames) {
+          embed.setImage(''); // discord doesnt support embedding animated webps
+        }
+      }; break;
+    }
+
+    if (showFrames) {
+      footer = `${footer}, ${options.framesNew.toLocaleString()} frames`;
+    }
   }
   footer = `${footer}, ${formatMemory(options.size, 2)}`;
   if (options.took && 2000 <= options.took) {

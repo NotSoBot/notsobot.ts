@@ -9,7 +9,8 @@ export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   convert?: string,
-  scale: number,
+  ratio?: boolean,
+  scale?: number,
   size?: string,
   url: string,
 }

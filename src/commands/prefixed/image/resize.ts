@@ -23,6 +23,7 @@ export default class ResizeCommand extends BaseImageCommand<Formatter.Commands.I
       aliases: ['enlarge', 'rescale'],
       args: [
         {name: 'convert'},
+        {name: 'ratio', type: Boolean},
         {name: 'scale', default: 2, type: 'float'},
         {name: 'size'},
       ],
@@ -35,9 +36,10 @@ export default class ResizeCommand extends BaseImageCommand<Formatter.Commands.I
           `${COMMAND_NAME} notsobot -convert jpeg`,
           `${COMMAND_NAME} 👌🏿 -scale 2`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -convert webp -size 2048`,
+          `${COMMAND_NAME} https://apng.onevcat.com/assets/elephant.png -ratio -size 320x320`,
         ],
         id: Formatter.Commands.ImageToolsResize.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-convert <format>) (-scale <number>) (-size <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-convert <format>) (-ratio) (-scale <number>) (-size <number>)',
       },
     });
   }
