@@ -1100,10 +1100,7 @@ export async function imageReplyFromOptions(
   }
   embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
 
-  if (!options.mimetype || MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes)) {
-    embed.setImage(`attachment://${filename}`);
-  }
-
+  let shouldSetImage = !options.mimetype || MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes);
   let footer = `${options.width}x${options.height}`;
   if (options.framesNew) {
     let showFrames = (options.framesNew !== 1);
@@ -1111,7 +1108,7 @@ export async function imageReplyFromOptions(
       case Mimetypes.IMAGE_GIF: showFrames = true; break;
       case Mimetypes.IMAGE_WEBP: {
         if (showFrames) {
-          embed.setImage(''); // discord doesnt support embedding animated webps
+          shouldSetImage = false;// discord doesnt support embedding animated webps
         }
       }; break;
     }
@@ -1126,6 +1123,10 @@ export async function imageReplyFromOptions(
     footer = `${footer}, took ${seconds} seconds`;
   }
   embed.setFooter(footer);
+
+  if (shouldSetImage) {
+    embed.setImage(`attachment://${filename}`);
+  }
 
   return editOrReply(context, {
     content: options.content || '',
