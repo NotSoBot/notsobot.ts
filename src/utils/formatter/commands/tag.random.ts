@@ -8,7 +8,7 @@ import { TagFormatter, editOrReply } from '../../../utils';
 export const COMMAND_ID = 'tag.random';
 
 export interface CommandArgs {
-  arguments: Array<string>,
+  arguments?: string,
   content?: string,
   name?: string,
   user?: Structures.Member | Structures.User | Structures.UserWithBanner,

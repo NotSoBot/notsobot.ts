@@ -5,6 +5,7 @@ import { ImageGoldCommand } from './gold';
 import { ImageGrayscaleCommand } from './grayscale';
 import { ImageInvertCommand } from './invert';
 import { ImageRainCommand } from './rain';
+import { ImageRainGoldCommand } from './raingold';
 
 
 export class ImageTintGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -19,6 +20,7 @@ export class ImageTintGroupCommand extends BaseInteractionCommandOptionGroup {
         new ImageGrayscaleCommand(),
         new ImageInvertCommand(),
         new ImageRainCommand(),
+        new ImageRainGoldCommand(),
       ],
     });
   }

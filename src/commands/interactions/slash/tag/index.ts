@@ -1,5 +1,6 @@
 import { BaseSlashCommand } from '../../basecommand';
 
+import { TagCreateCommand } from './create';
 import { TagExportCommand } from './export';
 import { TagInfoCommand } from './info';
 import { TagListGroupCommand } from './list';
@@ -16,6 +17,7 @@ export default class TagGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new TagShowCommand(),
+        new TagCreateCommand(),
         new TagExportCommand(),
         new TagInfoCommand(),
         new TagRandomCommand(),

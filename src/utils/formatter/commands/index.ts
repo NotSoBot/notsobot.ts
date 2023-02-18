@@ -42,6 +42,7 @@ import * as ImagePixelate from './image.pixelate';
 import * as ImageSharpen from './image.sharpen';
 import * as ImageSpin from './image.spin';
 import * as ImageRain from './image.rain';
+import * as ImageRainGold from './image.rain.gold';
 import * as ImageRip from './image.rip';
 import * as ImageWall from './image.wall';
 
@@ -168,6 +169,7 @@ export {
   ImagePipe,
   ImagePixelate,
   ImageRain,
+  ImageRainGold,
   ImageRip,
   ImageSharpen,
   ImageSpin,

@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export interface CommandArgsBefore {
-  arguments: Array<string>,
+  arguments?: string,
   tag: false | null | RestResponsesRaw.Tag,
 }
 
@@ -32,8 +32,6 @@ export class TagShowCommand extends BaseInteractionCommandOption {
         {
           name: 'arguments',
           description: 'Tag\'s Arguments',
-          default: [],
-          value: Parameters.stringArguments,
         },
       ],
     });

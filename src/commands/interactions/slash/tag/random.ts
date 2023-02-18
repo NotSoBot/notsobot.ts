@@ -19,8 +19,6 @@ export class TagRandomCommand extends BaseInteractionCommandOption {
         {
           name: 'arguments',
           description: 'Tag\'s Arguments',
-          default: [],
-          value: Parameters.stringArguments,
         },
         {
           name: 'content',

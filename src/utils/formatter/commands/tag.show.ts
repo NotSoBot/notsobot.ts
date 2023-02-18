@@ -8,7 +8,7 @@ import { TagFormatter, editOrReply } from '../../../utils';
 export const COMMAND_ID = 'tag.show';
 
 export interface CommandArgs {
-  arguments: Array<string>,
+  arguments?: string,
   tag: RestResponsesRaw.Tag,
 }
 
