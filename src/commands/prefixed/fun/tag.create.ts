@@ -8,7 +8,7 @@ import { BaseCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'tag create';
 
-export class TagCreateCommand extends BaseCommand {
+export default class TagCreateCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

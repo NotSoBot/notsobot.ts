@@ -24,7 +24,6 @@ export default class TagRandomCommand extends BaseCommand {
         id: Formatter.Commands.TagRandom.COMMAND_ID,
         usage: '<...arguments>',
       },
-      type: Parameters.stringArguments,
     });
   }
 

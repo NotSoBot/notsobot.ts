@@ -34,7 +34,7 @@ export default class TagCommand extends BaseCommand {
       priority: -1,
       type: [
         {name: 'tag', default: null, type: Parameters.NotSoTag},
-        {name: 'arguments', consume: true, type: Parameters.stringArguments},
+        {name: 'arguments', consume: true},
       ],
     });
   }
