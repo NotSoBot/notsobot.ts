@@ -41,19 +41,23 @@ export async function createMessage(
   try {
     const parsedTag = await TagFormatter.parse(context, tag.content, args.arguments);
 
-    content.push(parsedTag.text.slice(0, 4000));
+    content.push(parsedTag.text.slice(0, 2000));
+    if (parsedTag.embeds.length) {
+      // add checks for embed lengths
+      options.embeds = parsedTag.embeds.slice(0, 10);
+    }
     if (parsedTag.files.length) {
       options.files = parsedTag.files.map((file) => {
         return {filename: file.filename, hasSpoiler: file.spoiler, value: file.buffer};
       });
     }
-    if (!parsedTag.text.length && !parsedTag.files.length) {
-      content.push('tag returned no content lmao');
+    if (!parsedTag.text.length && !parsedTag.embeds.length && !parsedTag.files.length) {
+      content.push('Tag returned no content');
     }
   } catch(error) {
     content.push(error.message);
   }
 
-  options.content = content.join('\n').slice(0, 4000);
+  options.content = content.join('\n').slice(0, 2000);
   return editOrReply(context, options);
 }

@@ -20,6 +20,11 @@ export async function createMessage(
   const parsedTag = await TagFormatter.parse(context, args.tag.content, args.arguments);
 
   const options: Command.EditOrReply = {content: parsedTag.text.slice(0, 2000)};
+  if (parsedTag.embeds.length) {
+    // add checks for embed lengths
+    options.embeds = parsedTag.embeds.slice(0, 10);
+  }
+
   if (parsedTag.files.length) {
     options.files = parsedTag.files.map((file) => {
       return {
@@ -30,8 +35,9 @@ export async function createMessage(
       };
     });
   }
-  if (!parsedTag.text.length && !parsedTag.files.length) {
-    options.content = 'tag returned no content lmao';
+
+  if (!parsedTag.text.length && !parsedTag.embeds.length && !parsedTag.files.length) {
+    options.content = 'Tag returned no content';
   }
 
   return editOrReply(context, options);

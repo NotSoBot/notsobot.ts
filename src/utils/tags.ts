@@ -2,7 +2,7 @@ import { runInNewContext } from 'vm';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
-import { Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
   googleContentVisionOCR,
@@ -69,6 +69,7 @@ export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHM
 
 export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 
+export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
 export const MAX_REGEX_TIME = 25;
@@ -89,6 +90,7 @@ export enum PrivateVariables {
   ARGS = '__args',
   ARGS_STRING = '__argsString',
   FILE_SIZE = '__fileSize',
+  FILES = '__files',
   ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',
 }
@@ -280,6 +282,7 @@ export interface TagVariables {
 }
 
 export interface TagResult {
+  embeds: Array<Embed>,
   files: Array<{buffer: null | string | Buffer, description?: string, filename: string, spoiler?: boolean, url: string}>,
   text: string,
   variables: TagVariables,
@@ -305,7 +308,7 @@ export async function parse(
   if (!(PrivateVariables.FILE_SIZE in variables)) {
     variables[PrivateVariables.FILE_SIZE] = 0;
   }
-  const tag: TagResult = {files: [], text: '', variables};
+  const tag: TagResult = {embeds: [], files: [], text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   let depth = 0;
@@ -514,16 +517,71 @@ const ScriptTags = Object.freeze({
     // {python:code}
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
+    const variables = Object.assign({
+      [PrivateVariables.FILES]: tag.files.map((file) => {
+        return {description: file.description, filename: file.filename};
+      }),
+    }, tag.variables);
     if (arg) {
       const response = await utilitiesCodeRun(context, {
         code: generateCodeFromLanguage(language, arg),
-        input: generateCodeStdin(context, tag.variables),
+        input: generateCodeStdin(context, variables),
         language,
       });
       if (response.error) {
         throw new Error(response.error);
       } else {
-        tag.text += response.content;
+
+        let isEmbed = false;
+        if (response.content.length <= 12000) {
+          // just incase its a big content lol
+          let object: any = null;
+          try {
+            object = JSON.parse(response.content);
+          } catch(error) {
+            
+          }
+
+          if (object && typeof(object) === 'object' && Object.keys(object).length <= 2 && (('embed' in object) || ('embeds' in object))) {
+            const embeds: Array<Record<string, any>> = [];
+            if ('embed' in object && typeof(object.embed) === 'object') {
+              embeds.push(object.embed);
+            }
+            if ('embeds' in object && Array.isArray(object.embeds)) {
+              for (let embed of object.embeds) {
+                if (typeof(embed) === 'object') {
+                  embeds.push(embed);
+                }
+              }
+            }
+
+            if (MAX_EMBEDS < embeds.length) {
+              throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+            }
+
+            isEmbed = true;
+            for (let raw of embeds) {
+              // todo: maybe add embed length checks here?
+              try {
+                const embed = new Embed(raw);
+                if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+                  throw new Error('this error doesn\'t matter');
+                }
+                tag.embeds.push(embed);
+              } catch(error) {
+                throw new Error('Invalid Embed Given');
+              }
+            }
+
+            if (MAX_EMBEDS < tag.embeds.length) {
+              throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+            }
+          }
+        }
+
+        if (!isEmbed) {
+          tag.text += response.content;
+        }
       }
     }
 
@@ -764,6 +822,9 @@ const ScriptTags = Object.freeze({
 
     const argParsed = await parse(context, arg, '', tag.variables);
     tag.text += argParsed.text;
+    for (let embed of argParsed.embeds) {
+      tag.embeds.push(embed);
+    }
     for (let file of argParsed.files) {
       tag.files.push(file);
     }
