@@ -8,6 +8,7 @@ export const COMMAND_ID = 'media.aiv.manipulation.adhd';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  horizontal?: boolean,
   url: string,
 }
 

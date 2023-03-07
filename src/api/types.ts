@@ -211,6 +211,10 @@ export namespace RestOptions {
     words: Array<string>,
   }
 
+  export interface ImageManipulationADHD extends ImageBaseOptions {
+    horizontal?: boolean,
+  }
+
   export interface ImageManipulationBlur extends ImageBaseOptions {
     scale?: number,
   }

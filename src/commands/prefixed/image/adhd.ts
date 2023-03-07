@@ -13,6 +13,9 @@ export default class ADHDCommand extends BaseMediaCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {aliases: ['h'], name: 'horizontal', type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.IMAGE,
         description: 'Add random gameplay to an audio/image/video file',
@@ -21,7 +24,7 @@ export default class ADHDCommand extends BaseMediaCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.MediaAIVManipulationADHD.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-horizontal)',
       },
     });
   }

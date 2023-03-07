@@ -832,9 +832,10 @@ export async function imageInformationExif(
 
 export async function imageManipulationADHD(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.ImageManipulationADHD,
 ): Promise<Response> {
   const query = {
+    horizontal: options.horizontal,
     url: options.url,
   };
   return request(context, {
