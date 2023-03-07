@@ -40,7 +40,6 @@ export default class AudioPutReplaceCommand extends BaseImageOrVideoCommand {
   }
 
   async run(context: Command.Context, args: Formatter.Commands.AudioToolsPutReplace.CommandArgs) {
-    console.log(args);
     return Formatter.Commands.AudioToolsPutReplace.createMessage(context, args);
   }
 }
