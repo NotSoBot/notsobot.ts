@@ -830,6 +830,25 @@ export async function imageInformationExif(
 }
 
 
+export async function imageManipulationADHD(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.IMAGE_MANIPULATION_ADHD,
+    },
+  });
+}
+
+
 export async function imageManipulationAscii(
   context: RequestContext,
   options: RestOptions.ImageBaseOptions,

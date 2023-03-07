@@ -68,6 +68,8 @@ import * as ImageToolsTrim from './image.tools.trim';
 
 import * as InfoUser from './info.user';
 
+import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
+
 import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
 import * as ModerationAllowlistRemoveUsers from './moderation.allowlist.remove.users';
 import * as ModerationBlocklistAddUsers from './moderation.blocklist.add.users';
@@ -195,6 +197,8 @@ export {
   ImageToolsTrim,
 
   InfoUser,
+
+  MediaAIVManipulationADHD,
 
   ModerationAllowlistAddUsers,
   ModerationAllowlistRemoveUsers,

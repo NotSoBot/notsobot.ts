@@ -73,6 +73,8 @@ export const Api = Object.freeze({
   IMAGE_INFORMATION_EXIF:
     '/image/information/exif',
 
+  IMAGE_MANIPULATION_ADHD:
+    '/image/manipulation/adhd',
   IMAGE_MANIPULATION_ASCII:
     '/image/manipulation/ascii',
   IMAGE_MANIPULATION_BLUR:

@@ -440,6 +440,13 @@ export async function imageInformationExif(
   return raw.imageInformationExif(context, options);
 }
 
+export async function imageManipulationADHD(
+  context: RequestContext,
+  options: RestOptions.ImageBaseOptions,
+) {
+  return raw.imageManipulationADHD(context, options);
+}
+
 
 export async function imageManipulationAscii(
   context: RequestContext,
