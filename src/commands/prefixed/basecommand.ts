@@ -408,6 +408,25 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 }
 
 
+export class BaseImageOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediaCommand<ParsedArgsFinished> {
+  constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
+    super(commandClient, {
+      type: options.type || Parameters.lastMediaUrl({audio: false}),
+      ...options,
+    });
+  }
+
+  onCancelRun(context: Command.Context, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return editOrReply(context, '⚠ Unable to find any images or videos in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+    }
+    return super.onCancelRun(context, args);
+  }
+}
+
+
 export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {

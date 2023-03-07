@@ -29,11 +29,16 @@ import { User, UserFull } from './structures/user';
 export namespace RestOptions {
   export interface AudioBaseOptions {
     file?: RequestFile,
+    files?: Array<RequestFile>,
     url?: string,
   }
 
   export interface AudioToolsConvertOptions extends AudioBaseOptions {
     to: string,
+  }
+
+  export interface AudioToolsPutReplace extends AudioBaseOptions {
+    audioUrl?: string,
   }
 
   export interface CreateGuildLogger {

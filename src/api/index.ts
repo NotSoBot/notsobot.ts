@@ -42,6 +42,14 @@ export async function audioToolsIdentify(
 }
 
 
+export async function audioToolsPutReplace(
+  context: RequestContext,
+  options: RestOptions.AudioToolsPutReplace,
+) {
+  return raw.audioToolsPutReplace(context, options);
+}
+
+
 export async function createGuildAllowlist(
   context: RequestContext,
   guildId: string,

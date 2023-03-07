@@ -18,6 +18,9 @@ export const Api = Object.freeze({
   AUDIO_TOOLS_IDENTIFY:
     '/audio/tools/identify',
 
+  AUDIO_TOOLS_PUT_REPLACE:
+    '/audio/tools/put/replace',
+
   CHANNEL:
     '/channels/:channelId',
 

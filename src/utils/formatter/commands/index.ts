@@ -1,5 +1,6 @@
 import * as AudioConvert from './audio.convert';
 import * as AudioIdentify from './audio.identify';
+import * as AudioToolsPutReplace from './audio.tools.put.replace';
 
 import * as FunAesthetics from './fun.aesthetics';
 import * as FunB1 from './fun.b1';
@@ -131,6 +132,8 @@ import * as VideoExtractAudio from './video.extract.audio';
 export {
   AudioConvert,
   AudioIdentify,
+
+  AudioToolsPutReplace,
 
   FunAesthetics,
   FunB1,

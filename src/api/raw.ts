@@ -117,6 +117,27 @@ export async function audioToolsIdentify(
 }
 
 
+export async function audioToolsPutReplace(
+  context: RequestContext,
+  options: RestOptions.AudioToolsPutReplace,
+): Promise<Response> {
+  const query = {
+    audio_url: options.audioUrl,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    files: options.files,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.AUDIO_TOOLS_PUT_REPLACE,
+    },
+  });
+}
+
+
 export async function createGuildAllowlist(
   context: RequestContext,
   guildId: string,
