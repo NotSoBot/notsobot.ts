@@ -28,7 +28,7 @@ export { Endpoints, RequestContext, raw };
 
 export async function audioToolsConvert(
   context: RequestContext,
-  options: RestOptions.AudioToolsConvertOptions,
+  options: RestOptions.MediaAToolsConvertOptions,
 ) {
   return raw.audioToolsConvert(context, options);
 }
@@ -36,7 +36,7 @@ export async function audioToolsConvert(
 
 export async function audioToolsIdentify(
   context: RequestContext,
-  options: RestOptions.AudioBaseOptions,
+  options: RestOptions.MediaABaseOptions,
 ) {
   return raw.audioToolsIdentify(context, options);
 }
@@ -44,7 +44,7 @@ export async function audioToolsIdentify(
 
 export async function audioToolsPutConcat(
   context: RequestContext,
-  options: RestOptions.AudioToolsPutBase,
+  options: RestOptions.MediaAToolsPutBase,
 ) {
   return raw.audioToolsPutConcat(context, options);
 }
@@ -52,7 +52,7 @@ export async function audioToolsPutConcat(
 
 export async function audioToolsPutMix(
   context: RequestContext,
-  options: RestOptions.AudioToolsPutBase,
+  options: RestOptions.MediaAToolsPutBase,
 ) {
   return raw.audioToolsPutMix(context, options);
 }
@@ -60,7 +60,7 @@ export async function audioToolsPutMix(
 
 export async function audioToolsPutReplace(
   context: RequestContext,
-  options: RestOptions.AudioToolsPutBase,
+  options: RestOptions.MediaAToolsPutBase,
 ) {
   return raw.audioToolsPutReplace(context, options);
 }
@@ -459,14 +459,14 @@ export async function imageCreateWordcloud(
 
 export async function imageInformationExif(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageInformationExif(context, options);
 }
 
 export async function imageManipulationADHD(
   context: RequestContext,
-  options: RestOptions.ImageManipulationADHD,
+  options: RestOptions.MediaIVManipulationADHD,
 ) {
   return raw.imageManipulationADHD(context, options);
 }
@@ -474,7 +474,7 @@ export async function imageManipulationADHD(
 
 export async function imageManipulationAscii(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationAscii(context, options);
 }
@@ -482,7 +482,7 @@ export async function imageManipulationAscii(
 
 export async function imageManipulationBlur(
   context: RequestContext,
-  options: RestOptions.ImageManipulationBlur,
+  options: RestOptions.MediaIVManipulationBlur,
 ) {
   return raw.imageManipulationBlur(context, options);
 }
@@ -490,7 +490,7 @@ export async function imageManipulationBlur(
 
 export async function imageManipulationBlurple(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationBlurple(context, options);
 }
@@ -498,7 +498,7 @@ export async function imageManipulationBlurple(
 
 export async function imageManipulationCaption(
   context: RequestContext,
-  options: RestOptions.ImageManipulationCaption,
+  options: RestOptions.MediaIVManipulationCaption,
 ) {
   return raw.imageManipulationCaption(context, options);
 }
@@ -506,7 +506,7 @@ export async function imageManipulationCaption(
 
 export async function imageManipulationCircle(
   context: RequestContext,
-  options: RestOptions.ImageManipulationCircle,
+  options: RestOptions.MediaIVManipulationCircle,
 ) {
   return raw.imageManipulationCircle(context, options);
 }
@@ -514,7 +514,7 @@ export async function imageManipulationCircle(
 
 export async function imageManipulationDeepfry(
   context: RequestContext,
-  options: RestOptions.ImageManipulationDeepfry,
+  options: RestOptions.MediaIVManipulationDeepfry,
 ) {
   return raw.imageManipulationDeepfry(context, options);
 }
@@ -522,7 +522,7 @@ export async function imageManipulationDeepfry(
 
 export async function imageManipulationExplode(
   context: RequestContext,
-  options: RestOptions.ImageManipulationExplode,
+  options: RestOptions.MediaIVManipulationExplode,
 ) {
   return raw.imageManipulationExplode(context, options);
 }
@@ -530,7 +530,7 @@ export async function imageManipulationExplode(
 
 export async function imageManipulationEyes(
   context: RequestContext,
-  options: RestOptions.ImageManipulationEyes,
+  options: RestOptions.MediaIVManipulationEyes,
 ) {
   return raw.imageManipulationEyes(context, options);
 }
@@ -538,7 +538,7 @@ export async function imageManipulationEyes(
 
 export async function imageManipulationFlip(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationFlip(context, options);
 }
@@ -546,7 +546,7 @@ export async function imageManipulationFlip(
 
 export async function imageManipulationFlop(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationFlop(context, options);
 }
@@ -554,7 +554,7 @@ export async function imageManipulationFlop(
 
 export async function imageManipulationGlitch(
   context: RequestContext,
-  options: RestOptions.ImageManipulationGlitch,
+  options: RestOptions.MediaIVManipulationGlitch,
 ) {
   return raw.imageManipulationGlitch(context, options);
 }
@@ -562,7 +562,7 @@ export async function imageManipulationGlitch(
 
 export async function imageManipulationGlitchGif(
   context: RequestContext,
-  options: RestOptions.ImageManipulationGlitch,
+  options: RestOptions.MediaIVManipulationGlitch,
 ) {
   return raw.imageManipulationGlitchGif(context, options);
 }
@@ -570,7 +570,7 @@ export async function imageManipulationGlitchGif(
 
 export async function imageManipulationGlobe(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationGlobe(context, options);
 }
@@ -578,7 +578,7 @@ export async function imageManipulationGlobe(
 
 export async function imageManipulationGold(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationGold(context, options);
 }
@@ -586,7 +586,7 @@ export async function imageManipulationGold(
 
 export async function imageManipulationGrayscale(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationGrayscale(context, options);
 }
@@ -594,7 +594,7 @@ export async function imageManipulationGrayscale(
 
 export async function imageManipulationImplode(
   context: RequestContext,
-  options: RestOptions.ImageManipulationImplode,
+  options: RestOptions.MediaIVManipulationImplode,
 ) {
   return raw.imageManipulationImplode(context, options);
 }
@@ -602,7 +602,7 @@ export async function imageManipulationImplode(
 
 export async function imageManipulationInvert(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationInvert(context, options);
 }
@@ -610,7 +610,7 @@ export async function imageManipulationInvert(
 
 export async function imageManipulationJPEG(
   context: RequestContext,
-  options: RestOptions.ImageManipulationJPEG,
+  options: RestOptions.MediaIVManipulationJPEG,
 ) {
   return raw.imageManipulationJPEG(context, options);
 }
@@ -618,7 +618,7 @@ export async function imageManipulationJPEG(
 
 export async function imageManipulationLegofy(
   context: RequestContext,
-  options: RestOptions.ImageManipulationLegofy,
+  options: RestOptions.MediaIVManipulationLegofy,
 ) {
   return raw.imageManipulationLegofy(context, options);
 }
@@ -626,7 +626,7 @@ export async function imageManipulationLegofy(
 
 export async function imageManipulationMagik(
   context: RequestContext,
-  options: RestOptions.ImageManipulationMagik,
+  options: RestOptions.MediaIVManipulationMagik,
 ) {
   return raw.imageManipulationMagik(context, options);
 }
@@ -634,7 +634,7 @@ export async function imageManipulationMagik(
 
 export async function imageManipulationMagikGif(
   context: RequestContext,
-  options: RestOptions.ImageManipulationMagik,
+  options: RestOptions.MediaIVManipulationMagik,
 ) {
   return raw.imageManipulationMagikGif(context, options);
 }
@@ -642,7 +642,7 @@ export async function imageManipulationMagikGif(
 
 export async function imageManipulationMeme(
   context: RequestContext,
-  options: RestOptions.ImageManipulationMeme,
+  options: RestOptions.MediaIVManipulationMeme,
 ) {
   return raw.imageManipulationMeme(context, options);
 }
@@ -650,7 +650,7 @@ export async function imageManipulationMeme(
 
 export async function imageManipulationMirrorBottom(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationMirrorBottom(context, options);
 }
@@ -658,7 +658,7 @@ export async function imageManipulationMirrorBottom(
 
 export async function imageManipulationMirrorLeft(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationMirrorLeft(context, options);
 }
@@ -666,7 +666,7 @@ export async function imageManipulationMirrorLeft(
 
 export async function imageManipulationMirrorRight(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationMirrorRight(context, options);
 }
@@ -674,7 +674,7 @@ export async function imageManipulationMirrorRight(
 
 export async function imageManipulationMirrorTop(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationMirrorTop(context, options);
 }
@@ -682,7 +682,7 @@ export async function imageManipulationMirrorTop(
 
 export async function imageManipulationPaper(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationPaper(context, options);
 }
@@ -690,7 +690,7 @@ export async function imageManipulationPaper(
 
 export async function imageManipulationPix2Pix(
   context: RequestContext,
-  options: RestOptions.ImageManipulationPix2Pix,
+  options: RestOptions.MediaIVManipulationPix2Pix,
 ) {
   return raw.imageManipulationPix2Pix(context, options);
 }
@@ -698,7 +698,7 @@ export async function imageManipulationPix2Pix(
 
 export async function imageManipulationPixelate(
   context: RequestContext,
-  options: RestOptions.ImageManipulationPixelate,
+  options: RestOptions.MediaIVManipulationPixelate,
 ) {
   return raw.imageManipulationPixelate(context, options);
 }
@@ -706,7 +706,7 @@ export async function imageManipulationPixelate(
 
 export async function imageManipulationRain(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationRain(context, options);
 }
@@ -714,7 +714,7 @@ export async function imageManipulationRain(
 
 export async function imageManipulationRainGold(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationRainGold(context, options);
 }
@@ -722,7 +722,7 @@ export async function imageManipulationRainGold(
 
 export async function imageManipulationSharpen(
   context: RequestContext,
-  options: RestOptions.ImageManipulationSharpen,
+  options: RestOptions.MediaIVManipulationSharpen,
 ) {
   return raw.imageManipulationSharpen(context, options);
 }
@@ -730,7 +730,7 @@ export async function imageManipulationSharpen(
 
 export async function imageManipulationSpin(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationSpin(context, options);
 }
@@ -738,7 +738,7 @@ export async function imageManipulationSpin(
 
 export async function imageManipulationTrace(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationTrace(context, options);
 }
@@ -746,7 +746,7 @@ export async function imageManipulationTrace(
 
 export async function imageManipulationWall(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageManipulationWall(context, options);
 }
@@ -754,7 +754,7 @@ export async function imageManipulationWall(
 
 export async function imageOverlayFlagIsrael(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayFlagIsrael(context, options);
 }
@@ -762,7 +762,7 @@ export async function imageOverlayFlagIsrael(
 
 export async function imageOverlayFlagLGBT(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayFlagLGBT(context, options);
 }
@@ -770,7 +770,7 @@ export async function imageOverlayFlagLGBT(
 
 export async function imageOverlayFlagNorthKorea(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayFlagNorthKorea(context, options);
 }
@@ -778,7 +778,7 @@ export async function imageOverlayFlagNorthKorea(
 
 export async function imageOverlayFlagRussia(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayFlagRussia(context, options);
 }
@@ -786,7 +786,7 @@ export async function imageOverlayFlagRussia(
 
 export async function imageOverlayFlagTrans(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayFlagTrans(context, options);
 }
@@ -794,7 +794,7 @@ export async function imageOverlayFlagTrans(
 
 export async function imageOverlayFlagUK(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayFlagUK(context, options);
 }
@@ -802,7 +802,7 @@ export async function imageOverlayFlagUK(
 
 export async function imageOverlayFlagUSA(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayFlagUSA(context, options);
 }
@@ -810,7 +810,7 @@ export async function imageOverlayFlagUSA(
 
 export async function imageOverlayFlagUSSR(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayFlagUSSR(context, options);
 }
@@ -818,7 +818,7 @@ export async function imageOverlayFlagUSSR(
 
 export async function imageOverlayHalfLifePistol(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayHalfLifePistol(context, options);
 }
@@ -826,7 +826,7 @@ export async function imageOverlayHalfLifePistol(
 
 export async function imageOverlayHalfLifeShotgun(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayHalfLifeShotgun(context, options);
 }
@@ -834,7 +834,7 @@ export async function imageOverlayHalfLifeShotgun(
 
 export async function imageOverlayHalfLifeSMG(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayHalfLifeSMG(context, options);
 }
@@ -842,7 +842,7 @@ export async function imageOverlayHalfLifeSMG(
 
 export async function imageOverlayShutterstock(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageOverlayShutterstock(context, options);
 }
@@ -850,7 +850,7 @@ export async function imageOverlayShutterstock(
 
 export async function imageToolsBackgroundRemove(
   context: RequestContext,
-  options: RestOptions.ImageBackgroundRemoveOptions,
+  options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
 ) {
   return raw.imageToolsBackgroundRemove(context, options);
 }
@@ -858,7 +858,7 @@ export async function imageToolsBackgroundRemove(
 
 export async function imageToolsObjectRemove(
   context: RequestContext,
-  options: RestOptions.ImageObjectRemoveOptions,
+  options: RestOptions.MediaIVToolsObjectRemoveOptions,
 ) {
   return raw.imageToolsObjectRemove(context, options);
 }
@@ -866,7 +866,7 @@ export async function imageToolsObjectRemove(
 
 export async function imageToolsConvert(
   context: RequestContext,
-  options: RestOptions.ImageToolsConvert,
+  options: RestOptions.MediaIVToolsConvert,
 ) {
   return raw.imageToolsConvert(context, options);
 }
@@ -874,7 +874,7 @@ export async function imageToolsConvert(
 
 export async function imageToolsCrop(
   context: RequestContext,
-  options: RestOptions.ImageToolsCrop,
+  options: RestOptions.MediaIVToolsCrop,
 ) {
   return raw.imageToolsCrop(context, options);
 }
@@ -882,7 +882,7 @@ export async function imageToolsCrop(
 
 export async function imageToolsCropCircle(
   context: RequestContext,
-  options: RestOptions.ImageToolsCropCircle,
+  options: RestOptions.MediaIVToolsCropCircle,
 ) {
   return raw.imageToolsCropCircle(context, options);
 }
@@ -890,7 +890,7 @@ export async function imageToolsCropCircle(
 
 export async function imageToolsCropTwitterHex(
   context: RequestContext,
-  options: RestOptions.ImageToolsCropTwitterHex,
+  options: RestOptions.MediaIVToolsCropTwitterHex,
 ) {
   return raw.imageToolsCropTwitterHex(context, options);
 }
@@ -898,7 +898,7 @@ export async function imageToolsCropTwitterHex(
 
 export async function imageToolsGifReverse(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageToolsGifReverse(context, options);
 }
@@ -906,7 +906,7 @@ export async function imageToolsGifReverse(
 
 export async function imageToolsGifSeeSaw(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageToolsGifSeeSaw(context, options);
 }
@@ -914,7 +914,7 @@ export async function imageToolsGifSeeSaw(
 
 export async function imageToolsGifSpeed(
   context: RequestContext,
-  options: RestOptions.ImageToolsGifSpeed,
+  options: RestOptions.MediaIVToolsGifSpeed,
 ) {
   return raw.imageToolsGifSpeed(context, options);
 }
@@ -922,7 +922,7 @@ export async function imageToolsGifSpeed(
 
 export async function imageToolsResize(
   context: RequestContext,
-  options: RestOptions.ImageToolsResize,
+  options: RestOptions.MediaIVToolsResize,
 ) {
   return raw.imageToolsResize(context, options);
 }
@@ -930,7 +930,7 @@ export async function imageToolsResize(
 
 export async function imageToolsRotate(
   context: RequestContext,
-  options: RestOptions.ImageToolsRotate,
+  options: RestOptions.MediaIVToolsRotate,
 ) {
   return raw.imageToolsRotate(context, options);
 }
@@ -938,7 +938,7 @@ export async function imageToolsRotate(
 
 export async function imageToolsTrim(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageToolsTrim(context, options);
 }

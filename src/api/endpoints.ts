@@ -13,18 +13,6 @@ export const Api = Object.freeze({
   URL_PUBLIC: Domains.STABLE,
   PATH: '/api',
 
-  AUDIO_TOOLS_CONVERT:
-    '/audio/tools/convert',
-  AUDIO_TOOLS_IDENTIFY:
-    '/audio/tools/identify',
-
-  AUDIO_TOOLS_PUT_CONCAT:
-    '/audio/tools/put/concat',
-  AUDIO_TOOLS_PUT_MIX:
-    '/audio/tools/put/mix',
-  AUDIO_TOOLS_PUT_REPLACE:
-    '/audio/tools/put/replace',
-
   CHANNEL:
     '/channels/:channelId',
 
@@ -80,77 +68,89 @@ export const Api = Object.freeze({
   IMAGE_INFORMATION_EXIF:
     '/image/information/exif',
 
-  IMAGE_MANIPULATION_ADHD:
+  MEDIA_A_TOOLS_CONVERT:
+    '/audio/tools/convert',
+  MEDIA_A_TOOLS_IDENTIFY:
+    '/audio/tools/identify',
+  MEDIA_A_TOOLS_PUT_CONCAT:
+    '/audio/tools/put/concat',
+  MEDIA_A_TOOLS_PUT_MIX:
+    '/audio/tools/put/mix',
+  MEDIA_A_TOOLS_PUT_REPLACE:
+    '/audio/tools/put/replace',
+
+  MEDIA_AIV_MANIPULATION_ADHD:
     '/image/manipulation/adhd',
-  IMAGE_MANIPULATION_ASCII:
+
+  MEDIA_IV_MANIPULATION_ASCII:
     '/image/manipulation/ascii',
-  IMAGE_MANIPULATION_BLUR:
+  MEDIA_IV_MANIPULATION_BLUR:
     '/image/manipulation/blur',
-  IMAGE_MANIPULATION_BLURPLE:
+  MEDIA_IV_MANIPULATION_BLURPLE:
     '/image/manipulation/blurple',
-  IMAGE_MANIPULATION_CAPTION:
+  MEDIA_IV_MANIPULATION_CAPTION:
     '/image/manipulation/caption',
-  IMAGE_MANIPULATION_CIRCLE:
+  MEDIA_IV_MANIPULATION_CIRCLE:
     '/image/manipulation/circle',
-  IMAGE_MANIPULATION_DEEPFRY:
+  MEDIA_IV_MANIPULATION_DEEPFRY:
     '/image/manipulation/deepfry',
-  IMAGE_MANIPULATION_EXPLODE:
+  MEDIA_IV_MANIPULATION_EXPLODE:
     '/image/manipulation/explode',
-  IMAGE_MANIPULATION_EYES:
+  MEDIA_IV_MANIPULATION_EYES:
     '/image/manipulation/eyes',
-  IMAGE_MANIPULATION_FLIP:
+  MEDIA_IV_MANIPULATION_FLIP:
     '/image/manipulation/flip',
-  IMAGE_MANIPULATION_FLOP:
+  MEDIA_IV_MANIPULATION_FLOP:
     '/image/manipulation/flop',
-  IMAGE_MANIPULATION_GLITCH:
+  MEDIA_IV_MANIPULATION_GLITCH:
     '/image/manipulation/glitch',
-  IMAGE_MANIPULATION_GLITCH_GIF:
+  MEDIA_IV_MANIPULATION_GLITCH_GIF:
     '/image/manipulation/glitch/gif',
-  IMAGE_MANIPULATION_GLOBE:
+  MEDIA_IV_MANIPULATION_GLOBE:
     '/image/manipulation/globe',
-  IMAGE_MANIPULATION_GOLD:
+  MEDIA_IV_MANIPULATION_GOLD:
     '/image/manipulation/gold',
-  IMAGE_MANIPULATION_GRAYSCALE:
+  MEDIA_IV_MANIPULATION_GRAYSCALE:
     '/image/manipulation/grayscale',
-  IMAGE_MANIPULATION_IMPLODE:
+  MEDIA_IV_MANIPULATION_IMPLODE:
     '/image/manipulation/implode',
-  IMAGE_MANIPULATION_INVERT:
+  MEDIA_IV_MANIPULATION_INVERT:
     '/image/manipulation/invert',
-  IMAGE_MANIPULATION_JPEG:
+  MEDIA_IV_MANIPULATION_JPEG:
     '/image/manipulation/jpeg',
-  IMAGE_MANIPULATION_LEGOFY:
+  MEDIA_IV_MANIPULATION_LEGOFY:
     '/image/manipulation/legofy',
-  IMAGE_MANIPULATION_MAGIK:
+  MEDIA_IV_MANIPULATION_MAGIK:
     '/image/manipulation/magik',
-  IMAGE_MANIPULATION_MAGIK_GIF:
+  MEDIA_IV_MANIPULATION_MAGIK_GIF:
     '/image/manipulation/magik/gif',
-  IMAGE_MANIPULATION_MEME:
+  MEDIA_IV_MANIPULATION_MEME:
     '/image/manipulation/meme',
-  IMAGE_MANIPULATION_MIRROR_BOTTOM:
+  MEDIA_IV_MANIPULATION_MIRROR_BOTTOM:
     '/image/manipulation/mirror-bottom',
-  IMAGE_MANIPULATION_MIRROR_LEFT:
+  MEDIA_IV_MANIPULATION_MIRROR_LEFT:
     '/image/manipulation/mirror-left',
-  IMAGE_MANIPULATION_MIRROR_RIGHT:
+  MEDIA_IV_MANIPULATION_MIRROR_RIGHT:
     '/image/manipulation/mirror-right',
-  IMAGE_MANIPULATION_MIRROR_TOP:
+  MEDIA_IV_MANIPULATION_MIRROR_TOP:
     '/image/manipulation/mirror-top',
-  IMAGE_MANIPULATION_PAPER:
+  MEDIA_IV_MANIPULATION_PAPER:
     '/image/manipulation/paper',
-  IMAGE_MANIPULATION_PIX2PIX:
+  MEDIA_IV_MANIPULATION_PIX2PIX:
     '/image/manipulation/pix2pix',
-  IMAGE_MANIPULATION_PIXELATE:
+  MEDIA_IV_MANIPULATION_PIXELATE:
     '/image/manipulation/pixelate',
-  IMAGE_MANIPULATION_RAIN:
+  MEDIA_IV_MANIPULATION_RAIN:
     '/image/manipulation/rain',
-  IMAGE_MANIPULATION_RAIN_GOLD:
+  MEDIA_IV_MANIPULATION_RAIN_GOLD:
     '/image/manipulation/rain/gold',
-  IMAGE_MANIPULATION_SHARPEN:
+  MEDIA_IV_MANIPULATION_SHARPEN:
     '/image/manipulation/sharpen',
-  IMAGE_MANIPULATION_SPIN:
+  MEDIA_IV_MANIPULATION_SPIN:
     '/image/manipulation/spin',
-  IMAGE_MANIPULATION_TRACE:
+  MEDIA_IV_MANIPULATION_TRACE:
     '/image/manipulation/trace',
-  IMAGE_MANIPULATION_WALL:
+  MEDIA_IV_MANIPULATION_WALL:
     '/image/manipulation/wall',
 
   IMAGE_OVERLAY_FLAG_ISIS:
@@ -182,29 +182,29 @@ export const Api = Object.freeze({
   IMAGE_OVERLAY_SHUTTERSTOCK:
     '/image/overlay/shutterstock',
 
-  IMAGE_TOOLS_BACKGROUND_REMOVE:
+  MEDIA_IV_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',
-  IMAGE_TOOLS_OBJECT_REMOVE:
+  MEDIA_IV_TOOLS_OBJECT_REMOVE:
     '/image/tools/object/remove',
-  IMAGE_TOOLS_CONVERT:
+  MEDIA_IV_TOOLS_CONVERT:
     '/image/tools/convert',
-  IMAGE_TOOLS_CROP:
+  MEDIA_IV_TOOLS_CROP:
     '/image/tools/crop',
-  IMAGE_TOOLS_CROP_CIRCLE:
+  MEDIA_IV_TOOLS_CROP_CIRCLE:
     '/image/tools/crop/circle',
-  IMAGE_TOOLS_CROP_TWITTER_HEX:
+  MEDIA_IV_TOOLS_CROP_TWITTER_HEX:
     '/image/tools/crop/twitter-hex',
-  IMAGE_TOOLS_GIF_REVERSE:
+  MEDIA_IV_TOOLS_GIF_REVERSE:
     '/image/tools/gif/reverse',
-  IMAGE_TOOLS_GIF_SEE_SAW:
+  MEDIA_IV_TOOLS_GIF_SEE_SAW:
     '/image/tools/gif/see-saw',
-  IMAGE_TOOLS_GIF_SPEED:
+  MEDIA_IV_TOOLS_GIF_SPEED:
     '/image/tools/gif/speed',
-  IMAGE_TOOLS_RESIZE:
+  MEDIA_IV_TOOLS_RESIZE:
     '/image/tools/resize',
-  IMAGE_TOOLS_ROTATE:
+  MEDIA_IV_TOOLS_ROTATE:
     '/image/tools/rotate',
-  IMAGE_TOOLS_TRIM:
+  MEDIA_IV_TOOLS_TRIM:
     '/image/tools/trim',
 
   INFO_DISCORD:

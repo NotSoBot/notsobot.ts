@@ -27,21 +27,6 @@ import { User, UserFull } from './structures/user';
 
 
 export namespace RestOptions {
-  export interface AudioBaseOptions {
-    file?: RequestFile,
-    files?: Array<RequestFile>,
-    url?: string,
-  }
-
-  export interface AudioToolsConvertOptions extends AudioBaseOptions {
-    to: string,
-  }
-
-  export interface AudioToolsPutBase extends AudioBaseOptions {
-    audioUrl?: string,
-    longest?: boolean,
-  }
-
   export interface CreateGuildLogger {
     channelId: string,
     type: GuildLoggerTypes,
@@ -183,20 +168,7 @@ export namespace RestOptions {
     to?: GoogleLocales,
   }
 
-  export interface ImageBaseOptions {
-    file?: RequestFile,
-    url?: string,
-  }
-
-  export interface ImageBackgroundRemoveOptions extends ImageBaseOptions {
-    model?: string,
-    trim?: boolean,
-  }
-
-  export interface ImageObjectRemoveOptions extends ImageBaseOptions {
-    object?: string,
-  }
-
+  
   export interface ImageCreateRetrowave {
     background?: number,
     line1?: string,
@@ -217,107 +189,135 @@ export namespace RestOptions {
     words: Array<string>,
   }
 
-  export interface ImageManipulationADHD extends ImageBaseOptions {
+
+  export interface MediaBaseOptions {
+    file?: RequestFile,
+    url?: string,
+  }
+
+  export interface MediaABaseOptions extends MediaBaseOptions {
+    files?: Array<RequestFile>,
+  }
+
+  export interface MediaAToolsConvertOptions extends MediaABaseOptions {
+    to: string,
+  }
+
+  export interface MediaAToolsPutBase extends MediaABaseOptions {
+    audioUrl?: string,
+    longest?: boolean,
+  }
+
+  export interface MediaIVManipulationADHD extends MediaBaseOptions {
     horizontal?: boolean,
   }
 
-  export interface ImageManipulationBlur extends ImageBaseOptions {
+  export interface MediaIVManipulationBlur extends MediaBaseOptions {
     scale?: number,
   }
 
-  export interface ImageManipulationCaption extends ImageBaseOptions {
+  export interface MediaIVManipulationCaption extends MediaBaseOptions {
     font?: ImageMemeFonts,
     text: string,
   }
 
-  export interface ImageManipulationCircle extends ImageBaseOptions {
+  export interface MediaIVManipulationCircle extends MediaBaseOptions {
     scale?: number,
   }
 
-  export interface ImageManipulationDeepfry extends ImageBaseOptions {
+  export interface MediaIVManipulationDeepfry extends MediaBaseOptions {
     scale?: number,
   }
 
-  export interface ImageManipulationExplode extends ImageBaseOptions {
+  export interface MediaIVManipulationExplode extends MediaBaseOptions {
     scale?: number,
   }
 
-  export interface ImageManipulationEyes extends ImageBaseOptions {
+  export interface MediaIVManipulationEyes extends MediaBaseOptions {
     type?: ImageEyeTypes,
   }
 
-  export interface ImageManipulationGlitch extends ImageBaseOptions {
+  export interface MediaIVManipulationGlitch extends MediaBaseOptions {
     amount?: number,
     iterations?: number,
     seed?: number,
   }
 
-  export interface ImageManipulationImplode extends ImageBaseOptions {
+  export interface MediaIVManipulationImplode extends MediaBaseOptions {
     scale?: number,
   }
 
-  export interface ImageManipulationJPEG extends ImageBaseOptions {
+  export interface MediaIVManipulationJPEG extends MediaBaseOptions {
     quality?: number,
   }
 
-  export interface ImageManipulationLegofy extends ImageBaseOptions {
+  export interface MediaIVManipulationLegofy extends MediaBaseOptions {
     dither?: boolean,
     palette?: ImageLegofyPalettes,
     size?: number,
   }
 
-  export interface ImageManipulationMagik extends ImageBaseOptions {
+  export interface MediaIVManipulationMagik extends MediaBaseOptions {
     scale?: number,
   }
 
-  export interface ImageManipulationMeme extends ImageBaseOptions {
+  export interface MediaIVManipulationMeme extends MediaBaseOptions {
     bottom?: string,
     font?: ImageMemeFonts,
     top: string,
   }
 
-  export interface ImageManipulationPix2Pix extends ImageBaseOptions {
+  export interface MediaIVManipulationPix2Pix extends MediaBaseOptions {
     model: string,
   }
 
-  export interface ImageManipulationPixelate extends ImageBaseOptions {
+  export interface MediaIVManipulationPixelate extends MediaBaseOptions {
     pixelWidth?: number,
   }
 
-  export interface ImageManipulationSharpen extends ImageBaseOptions {
+  export interface MediaIVManipulationSharpen extends MediaBaseOptions {
     scale?: number,
   }
 
-  export interface ImageToolsConvert extends ImageBaseOptions {
+  export interface MediaIVToolsBackgroundRemoveOptions extends MediaBaseOptions {
+    model?: string,
+    trim?: boolean,
+  }
+
+  export interface MediaIVToolsObjectRemoveOptions extends MediaBaseOptions {
+    object?: string,
+  }
+
+  export interface MediaIVToolsConvert extends MediaBaseOptions {
     size?: string,
     to: string,
   }
 
-  export interface ImageToolsCrop extends ImageBaseOptions {
+  export interface MediaIVToolsCrop extends MediaBaseOptions {
     size?: string,
   }
 
-  export interface ImageToolsCropCircle extends ImageBaseOptions {
+  export interface MediaIVToolsCropCircle extends MediaBaseOptions {
     background?: boolean,
   }
 
-  export interface ImageToolsCropTwitterHex extends ImageBaseOptions {
+  export interface MediaIVToolsCropTwitterHex extends MediaBaseOptions {
     background?: boolean,
   }
 
-  export interface ImageToolsGifSpeed extends ImageBaseOptions {
+  export interface MediaIVToolsGifSpeed extends MediaBaseOptions {
     loop?: boolean,
     speed: number,
   }
 
-  export interface ImageToolsResize extends ImageBaseOptions {
+  export interface MediaIVToolsResize extends MediaBaseOptions {
     convert?: string,
     ratio?: boolean,
     scale?: number,
     size?: string,
   }
 
-  export interface ImageToolsRotate extends ImageBaseOptions {
+  export interface MediaIVToolsRotate extends MediaBaseOptions {
     crop?: boolean,
     degrees?: number,
   }
@@ -591,7 +591,7 @@ export namespace RestResponses {
 
 
 export namespace RestResponsesRaw {
-  export interface AudioToolsIdentifySong {
+  export interface MediaAToolsIdentifySong {
     album: {name: string},
     artists: Array<{
       langs?: Array<{name: string, code: string}>,
@@ -604,11 +604,11 @@ export namespace RestResponsesRaw {
     ids: {acrid: string, isrc: string, upc: string},
     label: string,
     platforms: {
-      apple_music: AudioToolsIdentifySongPlatform | null,
-      deezer: AudioToolsIdentifySongPlatform | null,
-      musicbrainz: AudioToolsIdentifySongPlatformPartial | null,
-      spotify: AudioToolsIdentifySongPlatform | null,
-      youtube: AudioToolsIdentifySongPlatformPartial | null,
+      apple_music: MediaAToolsIdentifySongPlatform | null,
+      deezer: MediaAToolsIdentifySongPlatform | null,
+      musicbrainz: MediaAToolsIdentifySongPlatformPartial | null,
+      spotify: MediaAToolsIdentifySongPlatform | null,
+      youtube: MediaAToolsIdentifySongPlatformPartial | null,
       raw: any,
     },
     release_date: string,
@@ -618,7 +618,7 @@ export namespace RestResponsesRaw {
     title: string,
   }
 
-  export interface AudioToolsIdentifySongPlatform {
+  export interface MediaAToolsIdentifySongPlatform {
     album: {
       cover_url: string | null,
       id: string,
@@ -649,12 +649,12 @@ export namespace RestResponsesRaw {
     url: string,
   }
 
-  export interface AudioToolsIdentifySongPlatformPartial {
+  export interface MediaAToolsIdentifySongPlatformPartial {
     id: string,
     url: string,
   }
 
-  export type AudioToolsIdentify = Array<AudioToolsIdentifySong>;
+  export type MediaAToolsIdentify = Array<MediaAToolsIdentifySong>;
 
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;

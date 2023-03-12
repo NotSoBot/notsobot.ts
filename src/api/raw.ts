@@ -81,7 +81,7 @@ export async function request(
 
 export async function audioToolsConvert(
   context: RequestContext,
-  options: RestOptions.AudioToolsConvertOptions,
+  options: RestOptions.MediaAToolsConvertOptions,
 ): Promise<Response> {
   const query = {
     to: options.to,
@@ -93,7 +93,7 @@ export async function audioToolsConvert(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.AUDIO_TOOLS_CONVERT,
+      path: Api.MEDIA_A_TOOLS_CONVERT,
     },
   });
 }
@@ -101,8 +101,8 @@ export async function audioToolsConvert(
 
 export async function audioToolsIdentify(
   context: RequestContext,
-  options: RestOptions.AudioBaseOptions,
-): Promise<RestResponsesRaw.AudioToolsIdentify> {
+  options: RestOptions.MediaABaseOptions,
+): Promise<RestResponsesRaw.MediaAToolsIdentify> {
   const query = {
     url: options.url,
   };
@@ -111,7 +111,7 @@ export async function audioToolsIdentify(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.AUDIO_TOOLS_IDENTIFY,
+      path: Api.MEDIA_A_TOOLS_IDENTIFY,
     },
   });
 }
@@ -119,7 +119,7 @@ export async function audioToolsIdentify(
 
 export async function audioToolsPutConcat(
   context: RequestContext,
-  options: RestOptions.AudioToolsPutBase,
+  options: RestOptions.MediaAToolsPutBase,
 ): Promise<Response> {
   const query = {
     audio_url: options.audioUrl,
@@ -133,7 +133,7 @@ export async function audioToolsPutConcat(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.AUDIO_TOOLS_PUT_CONCAT,
+      path: Api.MEDIA_A_TOOLS_PUT_CONCAT,
     },
   });
 }
@@ -141,7 +141,7 @@ export async function audioToolsPutConcat(
 
 export async function audioToolsPutMix(
   context: RequestContext,
-  options: RestOptions.AudioToolsPutBase,
+  options: RestOptions.MediaAToolsPutBase,
 ): Promise<Response> {
   const query = {
     audio_url: options.audioUrl,
@@ -155,7 +155,7 @@ export async function audioToolsPutMix(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.AUDIO_TOOLS_PUT_MIX,
+      path: Api.MEDIA_A_TOOLS_PUT_MIX,
     },
   });
 }
@@ -163,7 +163,7 @@ export async function audioToolsPutMix(
 
 export async function audioToolsPutReplace(
   context: RequestContext,
-  options: RestOptions.AudioToolsPutBase,
+  options: RestOptions.MediaAToolsPutBase,
 ): Promise<Response> {
   const query = {
     audio_url: options.audioUrl,
@@ -177,7 +177,7 @@ export async function audioToolsPutReplace(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.AUDIO_TOOLS_PUT_REPLACE,
+      path: Api.MEDIA_A_TOOLS_PUT_REPLACE,
     },
   });
 }
@@ -880,7 +880,7 @@ export async function imageCreateWordcloud(
 
 export async function imageInformationExif(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.ImageInformationExif> {
   const query = {
     url: options.url,
@@ -898,7 +898,7 @@ export async function imageInformationExif(
 
 export async function imageManipulationADHD(
   context: RequestContext,
-  options: RestOptions.ImageManipulationADHD,
+  options: RestOptions.MediaIVManipulationADHD,
 ): Promise<Response> {
   const query = {
     horizontal: options.horizontal,
@@ -910,15 +910,16 @@ export async function imageManipulationADHD(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_ADHD,
+      path: Api.MEDIA_AIV_MANIPULATION_ADHD,
     },
   });
 }
 
 
+
 export async function imageManipulationAscii(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -929,7 +930,7 @@ export async function imageManipulationAscii(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_ASCII,
+      path: Api.MEDIA_IV_MANIPULATION_ASCII,
     },
   });
 }
@@ -937,7 +938,7 @@ export async function imageManipulationAscii(
 
 export async function imageManipulationBlur(
   context: RequestContext,
-  options: RestOptions.ImageManipulationBlur,
+  options: RestOptions.MediaIVManipulationBlur,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -949,7 +950,7 @@ export async function imageManipulationBlur(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_BLUR,
+      path: Api.MEDIA_IV_MANIPULATION_BLUR,
     },
   });
 }
@@ -957,7 +958,7 @@ export async function imageManipulationBlur(
 
 export async function imageManipulationBlurple(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -968,7 +969,7 @@ export async function imageManipulationBlurple(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_BLURPLE,
+      path: Api.MEDIA_IV_MANIPULATION_BLURPLE,
     },
   });
 }
@@ -976,7 +977,7 @@ export async function imageManipulationBlurple(
 
 export async function imageManipulationCaption(
   context: RequestContext,
-  options: RestOptions.ImageManipulationCaption,
+  options: RestOptions.MediaIVManipulationCaption,
 ): Promise<Response> {
   const query = {
     font: options.font,
@@ -989,7 +990,7 @@ export async function imageManipulationCaption(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_CAPTION,
+      path: Api.MEDIA_IV_MANIPULATION_CAPTION,
     },
   });
 }
@@ -997,7 +998,7 @@ export async function imageManipulationCaption(
 
 export async function imageManipulationCircle(
   context: RequestContext,
-  options: RestOptions.ImageManipulationCircle,
+  options: RestOptions.MediaIVManipulationCircle,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -1009,7 +1010,7 @@ export async function imageManipulationCircle(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_CIRCLE,
+      path: Api.MEDIA_IV_MANIPULATION_CIRCLE,
     },
   });
 }
@@ -1017,7 +1018,7 @@ export async function imageManipulationCircle(
 
 export async function imageManipulationDeepfry(
   context: RequestContext,
-  options: RestOptions.ImageManipulationDeepfry,
+  options: RestOptions.MediaIVManipulationDeepfry,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -1029,7 +1030,7 @@ export async function imageManipulationDeepfry(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_DEEPFRY,
+      path: Api.MEDIA_IV_MANIPULATION_DEEPFRY,
     },
   });
 }
@@ -1037,7 +1038,7 @@ export async function imageManipulationDeepfry(
 
 export async function imageManipulationExplode(
   context: RequestContext,
-  options: RestOptions.ImageManipulationExplode,
+  options: RestOptions.MediaIVManipulationExplode,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -1049,7 +1050,7 @@ export async function imageManipulationExplode(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_EXPLODE,
+      path: Api.MEDIA_IV_MANIPULATION_EXPLODE,
     },
   });
 }
@@ -1057,7 +1058,7 @@ export async function imageManipulationExplode(
 
 export async function imageManipulationEyes(
   context: RequestContext,
-  options: RestOptions.ImageManipulationEyes,
+  options: RestOptions.MediaIVManipulationEyes,
 ): Promise<Response> {
   const query = {
     type: options.type,
@@ -1069,7 +1070,7 @@ export async function imageManipulationEyes(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_EYES,
+      path: Api.MEDIA_IV_MANIPULATION_EYES,
     },
   });
 }
@@ -1077,7 +1078,7 @@ export async function imageManipulationEyes(
 
 export async function imageManipulationFlip(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1088,7 +1089,7 @@ export async function imageManipulationFlip(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_FLIP,
+      path: Api.MEDIA_IV_MANIPULATION_FLIP,
     },
   });
 }
@@ -1096,7 +1097,7 @@ export async function imageManipulationFlip(
 
 export async function imageManipulationFlop(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1107,7 +1108,7 @@ export async function imageManipulationFlop(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_FLOP,
+      path: Api.MEDIA_IV_MANIPULATION_FLOP,
     },
   });
 }
@@ -1115,7 +1116,7 @@ export async function imageManipulationFlop(
 
 export async function imageManipulationGlitch(
   context: RequestContext,
-  options: RestOptions.ImageManipulationGlitch,
+  options: RestOptions.MediaIVManipulationGlitch,
 ): Promise<Response> {
   const query = {
     amount: options.amount,
@@ -1129,7 +1130,7 @@ export async function imageManipulationGlitch(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_GLITCH,
+      path: Api.MEDIA_IV_MANIPULATION_GLITCH,
     },
   });
 }
@@ -1137,7 +1138,7 @@ export async function imageManipulationGlitch(
 
 export async function imageManipulationGlitchGif(
   context: RequestContext,
-  options: RestOptions.ImageManipulationGlitch,
+  options: RestOptions.MediaIVManipulationGlitch,
 ): Promise<Response> {
   const query = {
     amount: options.amount,
@@ -1151,7 +1152,7 @@ export async function imageManipulationGlitchGif(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_GLITCH_GIF,
+      path: Api.MEDIA_IV_MANIPULATION_GLITCH_GIF,
     },
   });
 }
@@ -1159,7 +1160,7 @@ export async function imageManipulationGlitchGif(
 
 export async function imageManipulationGlobe(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1170,7 +1171,7 @@ export async function imageManipulationGlobe(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_GLOBE,
+      path: Api.MEDIA_IV_MANIPULATION_GLOBE,
     },
   });
 }
@@ -1178,7 +1179,7 @@ export async function imageManipulationGlobe(
 
 export async function imageManipulationGold(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1189,7 +1190,7 @@ export async function imageManipulationGold(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_GOLD,
+      path: Api.MEDIA_IV_MANIPULATION_GOLD,
     },
   });
 }
@@ -1197,7 +1198,7 @@ export async function imageManipulationGold(
 
 export async function imageManipulationGrayscale(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1208,7 +1209,7 @@ export async function imageManipulationGrayscale(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_GRAYSCALE,
+      path: Api.MEDIA_IV_MANIPULATION_GRAYSCALE,
     },
   });
 }
@@ -1216,7 +1217,7 @@ export async function imageManipulationGrayscale(
 
 export async function imageManipulationImplode(
   context: RequestContext,
-  options: RestOptions.ImageManipulationImplode,
+  options: RestOptions.MediaIVManipulationImplode,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -1228,7 +1229,7 @@ export async function imageManipulationImplode(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_IMPLODE,
+      path: Api.MEDIA_IV_MANIPULATION_IMPLODE,
     },
   });
 }
@@ -1236,7 +1237,7 @@ export async function imageManipulationImplode(
 
 export async function imageManipulationInvert(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1247,7 +1248,7 @@ export async function imageManipulationInvert(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_INVERT,
+      path: Api.MEDIA_IV_MANIPULATION_INVERT,
     },
   });
 }
@@ -1255,7 +1256,7 @@ export async function imageManipulationInvert(
 
 export async function imageManipulationJPEG(
   context: RequestContext,
-  options: RestOptions.ImageManipulationJPEG,
+  options: RestOptions.MediaIVManipulationJPEG,
 ): Promise<Response> {
   const query = {
     quality: options.quality,
@@ -1267,7 +1268,7 @@ export async function imageManipulationJPEG(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_JPEG,
+      path: Api.MEDIA_IV_MANIPULATION_JPEG,
     },
   });
 }
@@ -1275,7 +1276,7 @@ export async function imageManipulationJPEG(
 
 export async function imageManipulationLegofy(
   context: RequestContext,
-  options: RestOptions.ImageManipulationLegofy,
+  options: RestOptions.MediaIVManipulationLegofy,
 ): Promise<Response> {
   const query = {
     dither: options.dither,
@@ -1289,7 +1290,7 @@ export async function imageManipulationLegofy(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_LEGOFY,
+      path: Api.MEDIA_IV_MANIPULATION_LEGOFY,
     },
   });
 }
@@ -1297,7 +1298,7 @@ export async function imageManipulationLegofy(
 
 export async function imageManipulationMagik(
   context: RequestContext,
-  options: RestOptions.ImageManipulationMagik,
+  options: RestOptions.MediaIVManipulationMagik,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -1309,7 +1310,7 @@ export async function imageManipulationMagik(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MAGIK,
+      path: Api.MEDIA_IV_MANIPULATION_MAGIK,
     },
   });
 }
@@ -1318,7 +1319,7 @@ export async function imageManipulationMagik(
 
 export async function imageManipulationMagikGif(
   context: RequestContext,
-  options: RestOptions.ImageManipulationMagik,
+  options: RestOptions.MediaIVManipulationMagik,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -1330,7 +1331,7 @@ export async function imageManipulationMagikGif(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MAGIK_GIF,
+      path: Api.MEDIA_IV_MANIPULATION_MAGIK_GIF,
     },
   });
 }
@@ -1338,7 +1339,7 @@ export async function imageManipulationMagikGif(
 
 export async function imageManipulationMeme(
   context: RequestContext,
-  options: RestOptions.ImageManipulationMeme,
+  options: RestOptions.MediaIVManipulationMeme,
 ): Promise<Response> {
   const query = {
     bottom: options.bottom,
@@ -1352,7 +1353,7 @@ export async function imageManipulationMeme(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MEME,
+      path: Api.MEDIA_IV_MANIPULATION_MEME,
     },
   });
 }
@@ -1360,7 +1361,7 @@ export async function imageManipulationMeme(
 
 export async function imageManipulationMirrorBottom(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1371,7 +1372,7 @@ export async function imageManipulationMirrorBottom(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MIRROR_BOTTOM,
+      path: Api.MEDIA_IV_MANIPULATION_MIRROR_BOTTOM,
     },
   });
 }
@@ -1379,7 +1380,7 @@ export async function imageManipulationMirrorBottom(
 
 export async function imageManipulationMirrorLeft(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1390,7 +1391,7 @@ export async function imageManipulationMirrorLeft(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MIRROR_LEFT,
+      path: Api.MEDIA_IV_MANIPULATION_MIRROR_LEFT,
     },
   });
 }
@@ -1398,7 +1399,7 @@ export async function imageManipulationMirrorLeft(
 
 export async function imageManipulationMirrorRight(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1409,7 +1410,7 @@ export async function imageManipulationMirrorRight(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MIRROR_RIGHT,
+      path: Api.MEDIA_IV_MANIPULATION_MIRROR_RIGHT,
     },
   });
 }
@@ -1417,7 +1418,7 @@ export async function imageManipulationMirrorRight(
 
 export async function imageManipulationMirrorTop(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1428,7 +1429,7 @@ export async function imageManipulationMirrorTop(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_MIRROR_TOP,
+      path: Api.MEDIA_IV_MANIPULATION_MIRROR_TOP,
     },
   });
 }
@@ -1436,7 +1437,7 @@ export async function imageManipulationMirrorTop(
 
 export async function imageManipulationPaper(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1447,7 +1448,7 @@ export async function imageManipulationPaper(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_PAPER,
+      path: Api.MEDIA_IV_MANIPULATION_PAPER,
     },
   });
 }
@@ -1455,7 +1456,7 @@ export async function imageManipulationPaper(
 
 export async function imageManipulationPix2Pix(
   context: RequestContext,
-  options: RestOptions.ImageManipulationPix2Pix,
+  options: RestOptions.MediaIVManipulationPix2Pix,
 ): Promise<Response> {
   const query = {
     model: options.model,
@@ -1467,7 +1468,7 @@ export async function imageManipulationPix2Pix(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_PIX2PIX,
+      path: Api.MEDIA_IV_MANIPULATION_PIX2PIX,
     },
   });
 }
@@ -1475,7 +1476,7 @@ export async function imageManipulationPix2Pix(
 
 export async function imageManipulationPixelate(
   context: RequestContext,
-  options: RestOptions.ImageManipulationPixelate,
+  options: RestOptions.MediaIVManipulationPixelate,
 ): Promise<Response> {
   const query = {
     pixel_width: options.pixelWidth,
@@ -1487,7 +1488,7 @@ export async function imageManipulationPixelate(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_PIXELATE,
+      path: Api.MEDIA_IV_MANIPULATION_PIXELATE,
     },
   });
 }
@@ -1495,7 +1496,7 @@ export async function imageManipulationPixelate(
 
 export async function imageManipulationRain(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1506,7 +1507,7 @@ export async function imageManipulationRain(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_RAIN,
+      path: Api.MEDIA_IV_MANIPULATION_RAIN,
     },
   });
 }
@@ -1514,7 +1515,7 @@ export async function imageManipulationRain(
 
 export async function imageManipulationRainGold(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1525,7 +1526,7 @@ export async function imageManipulationRainGold(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_RAIN_GOLD,
+      path: Api.MEDIA_IV_MANIPULATION_RAIN_GOLD,
     },
   });
 }
@@ -1533,7 +1534,7 @@ export async function imageManipulationRainGold(
 
 export async function imageManipulationSharpen(
   context: RequestContext,
-  options: RestOptions.ImageManipulationSharpen,
+  options: RestOptions.MediaIVManipulationSharpen,
 ): Promise<Response> {
   const query = {
     scale: options.scale,
@@ -1545,7 +1546,7 @@ export async function imageManipulationSharpen(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_SHARPEN,
+      path: Api.MEDIA_IV_MANIPULATION_SHARPEN,
     },
   });
 }
@@ -1553,7 +1554,7 @@ export async function imageManipulationSharpen(
 
 export async function imageManipulationSpin(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1564,7 +1565,7 @@ export async function imageManipulationSpin(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_SPIN,
+      path: Api.MEDIA_IV_MANIPULATION_SPIN,
     },
   });
 }
@@ -1572,7 +1573,7 @@ export async function imageManipulationSpin(
 
 export async function imageManipulationTrace(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1583,7 +1584,7 @@ export async function imageManipulationTrace(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_TRACE,
+      path: Api.MEDIA_IV_MANIPULATION_TRACE,
     },
   });
 }
@@ -1591,7 +1592,7 @@ export async function imageManipulationTrace(
 
 export async function imageManipulationWall(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1602,7 +1603,7 @@ export async function imageManipulationWall(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_MANIPULATION_WALL,
+      path: Api.MEDIA_IV_MANIPULATION_WALL,
     },
   });
 }
@@ -1610,7 +1611,7 @@ export async function imageManipulationWall(
 
 export async function imageOverlayFlagIsrael(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1629,7 +1630,7 @@ export async function imageOverlayFlagIsrael(
 
 export async function imageOverlayFlagLGBT(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1648,7 +1649,7 @@ export async function imageOverlayFlagLGBT(
 
 export async function imageOverlayFlagNorthKorea(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1667,7 +1668,7 @@ export async function imageOverlayFlagNorthKorea(
 
 export async function imageOverlayFlagTrans(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1686,7 +1687,7 @@ export async function imageOverlayFlagTrans(
 
 export async function imageOverlayFlagRussia(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1705,7 +1706,7 @@ export async function imageOverlayFlagRussia(
 
 export async function imageOverlayFlagUK(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1724,7 +1725,7 @@ export async function imageOverlayFlagUK(
 
 export async function imageOverlayFlagUSA(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1743,7 +1744,7 @@ export async function imageOverlayFlagUSA(
 
 export async function imageOverlayFlagUSSR(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1762,7 +1763,7 @@ export async function imageOverlayFlagUSSR(
 
 export async function imageOverlayGoldstar(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1781,7 +1782,7 @@ export async function imageOverlayGoldstar(
 
 export async function imageOverlayHalfLifePistol(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1800,7 +1801,7 @@ export async function imageOverlayHalfLifePistol(
 
 export async function imageOverlayHalfLifeShotgun(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1819,7 +1820,7 @@ export async function imageOverlayHalfLifeShotgun(
 
 export async function imageOverlayHalfLifeSMG(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1838,7 +1839,7 @@ export async function imageOverlayHalfLifeSMG(
 
 export async function imageOverlayShutterstock(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1857,7 +1858,7 @@ export async function imageOverlayShutterstock(
 
 export async function imageToolsBackgroundRemove(
   context: RequestContext,
-  options: RestOptions.ImageBackgroundRemoveOptions,
+  options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
 ): Promise<Response> {
   const query = {
     model: options.model,
@@ -1870,7 +1871,7 @@ export async function imageToolsBackgroundRemove(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_BACKGROUND_REMOVE,
+      path: Api.MEDIA_IV_TOOLS_BACKGROUND_REMOVE,
     },
   });
 }
@@ -1878,7 +1879,7 @@ export async function imageToolsBackgroundRemove(
 
 export async function imageToolsObjectRemove(
   context: RequestContext,
-  options: RestOptions.ImageObjectRemoveOptions,
+  options: RestOptions.MediaIVToolsObjectRemoveOptions,
 ): Promise<Response> {
   const query = {
     label: options.object,
@@ -1890,7 +1891,7 @@ export async function imageToolsObjectRemove(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_OBJECT_REMOVE,
+      path: Api.MEDIA_IV_TOOLS_OBJECT_REMOVE,
     },
   });
 }
@@ -1898,7 +1899,7 @@ export async function imageToolsObjectRemove(
 
 export async function imageToolsConvert(
   context: RequestContext,
-  options: RestOptions.ImageToolsConvert,
+  options: RestOptions.MediaIVToolsConvert,
 ): Promise<Response> {
   const query = {
     size: options.size,
@@ -1911,7 +1912,7 @@ export async function imageToolsConvert(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_CONVERT,
+      path: Api.MEDIA_IV_TOOLS_CONVERT,
     },
   });
 }
@@ -1919,7 +1920,7 @@ export async function imageToolsConvert(
 
 export async function imageToolsCrop(
   context: RequestContext,
-  options: RestOptions.ImageToolsCrop,
+  options: RestOptions.MediaIVToolsCrop,
 ): Promise<Response> {
   const query = {
     size: options.size,
@@ -1931,7 +1932,7 @@ export async function imageToolsCrop(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_CROP,
+      path: Api.MEDIA_IV_TOOLS_CROP,
     },
   });
 }
@@ -1939,7 +1940,7 @@ export async function imageToolsCrop(
 
 export async function imageToolsCropCircle(
   context: RequestContext,
-  options: RestOptions.ImageToolsCropCircle,
+  options: RestOptions.MediaIVToolsCropCircle,
 ): Promise<Response> {
   const query = {
     background: options.background,
@@ -1951,7 +1952,7 @@ export async function imageToolsCropCircle(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_CROP_CIRCLE,
+      path: Api.MEDIA_IV_TOOLS_CROP_CIRCLE,
     },
   });
 }
@@ -1959,7 +1960,7 @@ export async function imageToolsCropCircle(
 
 export async function imageToolsCropTwitterHex(
   context: RequestContext,
-  options: RestOptions.ImageToolsCropTwitterHex,
+  options: RestOptions.MediaIVToolsCropTwitterHex,
 ): Promise<Response> {
   const query = {
     background: options.background,
@@ -1971,7 +1972,7 @@ export async function imageToolsCropTwitterHex(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_CROP_TWITTER_HEX,
+      path: Api.MEDIA_IV_TOOLS_CROP_TWITTER_HEX,
     },
   });
 }
@@ -1979,7 +1980,7 @@ export async function imageToolsCropTwitterHex(
 
 export async function imageToolsGifReverse(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -1990,7 +1991,7 @@ export async function imageToolsGifReverse(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_GIF_REVERSE,
+      path: Api.MEDIA_IV_TOOLS_GIF_REVERSE,
     },
   });
 }
@@ -1998,7 +1999,7 @@ export async function imageToolsGifReverse(
 
 export async function imageToolsGifSeeSaw(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -2009,7 +2010,7 @@ export async function imageToolsGifSeeSaw(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_GIF_SEE_SAW,
+      path: Api.MEDIA_IV_TOOLS_GIF_SEE_SAW,
     },
   });
 }
@@ -2017,7 +2018,7 @@ export async function imageToolsGifSeeSaw(
 
 export async function imageToolsGifSpeed(
   context: RequestContext,
-  options: RestOptions.ImageToolsGifSpeed,
+  options: RestOptions.MediaIVToolsGifSpeed,
 ): Promise<Response> {
   const query = {
     loop: options.loop,
@@ -2030,7 +2031,7 @@ export async function imageToolsGifSpeed(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_GIF_SPEED,
+      path: Api.MEDIA_IV_TOOLS_GIF_SPEED,
     },
   });
 }
@@ -2038,7 +2039,7 @@ export async function imageToolsGifSpeed(
 
 export async function imageToolsResize(
   context: RequestContext,
-  options: RestOptions.ImageToolsResize,
+  options: RestOptions.MediaIVToolsResize,
 ): Promise<Response> {
   const query = {
     convert: options.convert,
@@ -2053,7 +2054,7 @@ export async function imageToolsResize(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_RESIZE,
+      path: Api.MEDIA_IV_TOOLS_RESIZE,
     },
   });
 }
@@ -2061,7 +2062,7 @@ export async function imageToolsResize(
 
 export async function imageToolsRotate(
   context: RequestContext,
-  options: RestOptions.ImageToolsRotate,
+  options: RestOptions.MediaIVToolsRotate,
 ): Promise<Response> {
   const query = {
     crop: options.crop,
@@ -2074,7 +2075,7 @@ export async function imageToolsRotate(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_ROTATE,
+      path: Api.MEDIA_IV_TOOLS_ROTATE,
     },
   });
 }
@@ -2082,7 +2083,7 @@ export async function imageToolsRotate(
 
 export async function imageToolsTrim(
   context: RequestContext,
-  options: RestOptions.ImageBaseOptions,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<Response> {
   const query = {
     url: options.url,
@@ -2093,7 +2094,7 @@ export async function imageToolsTrim(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.IMAGE_TOOLS_TRIM,
+      path: Api.MEDIA_IV_TOOLS_TRIM,
     },
   });
 }
