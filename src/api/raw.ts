@@ -123,6 +123,7 @@ export async function audioToolsPutReplace(
 ): Promise<Response> {
   const query = {
     audio_url: options.audioUrl,
+    longest: options.longest,
     url: options.url,
   };
   return request(context, {

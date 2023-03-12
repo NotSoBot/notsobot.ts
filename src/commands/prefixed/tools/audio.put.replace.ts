@@ -14,6 +14,9 @@ export default class AudioPutReplaceCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       aliases: ['a put replace'],
+      args: [
+        {name: 'longest', type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.TOOLS,
         description: 'Replace an image/video\'s audio with another audio file',
@@ -21,7 +24,7 @@ export default class AudioPutReplaceCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/621077547471601689/1082590399459241994/tiktok_en_us_female_01-3acb462e5617fa65b7914ef2ae049cd8.mp3 @cake#0001`,
         ],
         id: Formatter.Commands.AudioToolsPutReplace.COMMAND_ID,
-        usage: '?<url> ?<emoji,user:id|mention|name,url>',
+        usage: '?<url> ?<emoji,user:id|mention|name,url> (-longest)',
       },
       type: [
         {name: 'audio', label: 'audioUrl', type: Parameters.mediaUrlPositional({image: false, video: false})},

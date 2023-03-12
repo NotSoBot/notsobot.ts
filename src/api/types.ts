@@ -39,6 +39,7 @@ export namespace RestOptions {
 
   export interface AudioToolsPutReplace extends AudioBaseOptions {
     audioUrl?: string,
+    longest?: boolean,
   }
 
   export interface CreateGuildLogger {

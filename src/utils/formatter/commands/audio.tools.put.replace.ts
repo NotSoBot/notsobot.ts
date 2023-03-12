@@ -17,6 +17,7 @@ export async function createMessage(
 ) {
   const response = await audioToolsPutReplace(context, {
     audioUrl: args.audioUrl,
+    longest: args.longest,
     url: args.url,
   });
   return mediaReply(context, response);
