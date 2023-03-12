@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'explode';
 export class ImageExplodeCommand extends BaseInteractionImageCommandOption {
   description = 'Explode an Image from the center';
   metadata = {
-    id: Formatter.Commands.ImageExplode.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationExplode.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImageExplodeCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageExplode.CommandArgs) {
-    return Formatter.Commands.ImageExplode.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationExplode.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationExplode.createMessage(context, args);
   }
 }

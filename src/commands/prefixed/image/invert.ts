@@ -12,7 +12,7 @@ export interface CommandArgsBefore {
 
 export const COMMAND_NAME = 'invert';
 
-export default class InvertCommand extends BaseImageCommand<Formatter.Commands.ImageInvert.CommandArgs> {
+export default class InvertCommand extends BaseImageCommand<Formatter.Commands.MediaIVManipulationInvert.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -24,13 +24,13 @@ export default class InvertCommand extends BaseImageCommand<Formatter.Commands.I
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageInvert.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationInvert.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageInvert.CommandArgs) {
-    return Formatter.Commands.ImageInvert.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationInvert.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationInvert.createMessage(context, args);
   }
 }

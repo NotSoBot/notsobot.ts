@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'meme';
 export class ImageMemeCommand extends BaseInteractionImageCommandOption {
   description = 'Add Meme Text to an Image';
   metadata = {
-    id: Formatter.Commands.ImageMeme.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationMeme.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -23,7 +23,7 @@ export class ImageMemeCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageMeme.CommandArgs) {
-    return Formatter.Commands.ImageMeme.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationMeme.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationMeme.createMessage(context, args);
   }
 }

@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'spin';
 export class ImageSpinCommand extends BaseInteractionImageCommandOption {
   description = 'Create a Spinning Disk from an Image/Gif';
   metadata = {
-    id: Formatter.Commands.ImageSpin.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationSpin.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageSpin.CommandArgs) {
-    return Formatter.Commands.ImageSpin.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationSpin.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSpin.createMessage(context, args);
   }
 }

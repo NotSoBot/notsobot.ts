@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'convert';
 export class ImageToolsConvertCommand extends BaseInteractionImageCommandOption {
   description = 'Convert an Image';
   metadata = {
-    id: Formatter.Commands.ImageToolsConvert.COMMAND_ID,
+    id: Formatter.Commands.MediaIVToolsConvert.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -20,15 +20,15 @@ export class ImageToolsConvertCommand extends BaseInteractionImageCommandOption 
         {
           name: 'to',
           description: 'Conversion Mimetype',
-          choices: Formatter.Commands.ImageToolsConvert.SLASH_CHOICES,
-          default: Formatter.Commands.ImageToolsConvert.DEFAULT_MIMETYPE,
+          choices: Formatter.Commands.MediaIVToolsConvert.SLASH_CHOICES,
+          default: Formatter.Commands.MediaIVToolsConvert.DEFAULT_MIMETYPE,
         },
         {name: 'size', description: 'number or (width)x(height)'},
       ],
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageToolsConvert.CommandArgs) {
-    return Formatter.Commands.ImageToolsConvert.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsConvert.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsConvert.createMessage(context, args);
   }
 }

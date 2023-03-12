@@ -248,6 +248,24 @@ export function findMediaUrlInEmbed(
     }
     return null;
   }
+  const { video } = embed;
+  if (video && video.proxyUrl && (video.height || video.width)) {
+    if (findVideo) {
+      if (video.url) {
+        if (embed.url && (video.url.startsWith('https://www.youtube.com/embed/') || video.url.startsWith('https://www.redditmedia.com/mediaembed/'))) {
+          return embed.url;
+        }
+        const url = new URL(video.url);
+        if (TRUSTED_URLS.includes(url.host)) {
+          return video.url;
+        }
+      }
+      return video.proxyUrl;
+    }
+    if (findImage) {
+      return video.proxyUrl + '?format=png';
+    }
+  }
   const { image } = embed;
   if (image && image.proxyUrl && (image.height || image.width) && findImage) {
     if (image.url) {
@@ -274,21 +292,6 @@ export function findMediaUrlInEmbed(
     }
     return thumbnail.proxyUrl;
   }
-  const { video } = embed;
-  if (video && video.proxyUrl && (video.height || video.width)) {
-    if (findVideo) {
-      if (video.url) {
-        const url = new URL(video.url);
-        if (TRUSTED_URLS.includes(url.host)) {
-          return video.url;
-        }
-      }
-      return video.proxyUrl;
-    }
-    if (findImage) {
-      return video.proxyUrl + '?format=png';
-    }
-  }
   return null;
 }
 
@@ -297,10 +300,11 @@ export function findMediaUrlInMessage(
   message: Structures.Message,
   url?: null | string,
   options?: FindMediaUrlOptions,
+  ignoreEmbed?: boolean,
 ): null | string {
   const findImage = (!options || options.image || options.image === undefined);
 
-  if (url) {
+  if (url && !ignoreEmbed) {
     for (let [embedId, embed] of message.embeds) {
       if (embed.url === url) {
         return findMediaUrlInEmbed(embed, false, options);
@@ -313,10 +317,12 @@ export function findMediaUrlInMessage(
       return url;
     }
   }
-  for (let [embedId, embed] of message.embeds) {
-    const url = findMediaUrlInEmbed(embed, false, options);
-    if (url) {
-      return url;
+  if (!ignoreEmbed) {
+    for (let [embedId, embed] of message.embeds) {
+      const url = findMediaUrlInEmbed(embed, false, options);
+      if (url) {
+        return url;
+      }
     }
   }
   if (findImage) {
@@ -331,9 +337,10 @@ export function findMediaUrlInMessage(
 export function findMediaUrlInMessages(
   messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
   options?: FindMediaUrlOptions,
+  ignoreEmbed?: boolean,
 ): null | string {
   for (const message of messages.values()) {
-    const url = findMediaUrlInMessage(message, null, options);
+    const url = findMediaUrlInMessage(message, null, options, ignoreEmbed);
     if (url) {
       return url;
     }
@@ -345,6 +352,7 @@ export function findMediaUrlInMessages(
 export function findMediaUrlsInMessage(
   message: Structures.Message,
   options?: FindMediaUrlOptions,
+  ignoreEmbed?: boolean,
 ): Array<string> {
   const findImage = (!options || options.image || options.image === undefined);
 
@@ -355,10 +363,12 @@ export function findMediaUrlsInMessage(
       urls.add(url);
     }
   }
-  for (let [embedId, embed] of message.embeds) {
-    const url = findMediaUrlInEmbed(embed, false, options);
-    if (url) {
-      urls.add(url);
+  if (!ignoreEmbed) {
+    for (let [embedId, embed] of message.embeds) {
+      const url = findMediaUrlInEmbed(embed, false, options);
+      if (url) {
+        urls.add(url);
+      }
     }
   }
   if (findImage) {
@@ -373,10 +383,11 @@ export function findMediaUrlsInMessage(
 export function findMediaUrlsInMessages(
   messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
   options?: FindMediaUrlOptions,
+  ignoreEmbed?: boolean,
 ): Array<string> {
   const urls = new Set<string>();
   for (const message of messages.values()) {
-    const urlsFound = findMediaUrlsInMessage(message, options);
+    const urlsFound = findMediaUrlsInMessage(message, options, ignoreEmbed);
     for (let url of urlsFound) {
       urls.add(url);
     }

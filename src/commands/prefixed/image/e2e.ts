@@ -21,13 +21,13 @@ export default class E2ECommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageManipulationE2E.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationE2E.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageManipulationE2E.CommandArgs) {
-    return Formatter.Commands.ImageManipulationE2E.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationE2E.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationE2E.createMessage(context, args);
   }
 }

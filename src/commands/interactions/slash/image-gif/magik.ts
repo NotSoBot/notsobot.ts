@@ -8,13 +8,13 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'magik';
 
 export class ImageGifMagikCommand extends BaseInteractionImageCommandOption {
-  description = 'Moving Magikfy an Image/Gif';
+  description = 'Magikfy an Image, Single-framed Images become Animated';
   metadata = {
-    id: Formatter.Commands.ImageMagikGif.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationMagikAnimated.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageMagikGif.CommandArgs) {
-    return Formatter.Commands.ImageMagikGif.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationMagikAnimated.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationMagikAnimated.createMessage(context, args);
   }
 }

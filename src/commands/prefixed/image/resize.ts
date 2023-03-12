@@ -6,16 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  convert?: string,
-  scale: number,
-  size?: string,
-  url?: null | string,
-}
-
 export const COMMAND_NAME = 'resize';
 
-export default class ResizeCommand extends BaseImageCommand<Formatter.Commands.ImageToolsResize.CommandArgs> {
+export default class ResizeCommand extends BaseImageCommand<Formatter.Commands.MediaIVToolsResize.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -38,13 +31,13 @@ export default class ResizeCommand extends BaseImageCommand<Formatter.Commands.I
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -convert webp -size 2048`,
           `${COMMAND_NAME} https://apng.onevcat.com/assets/elephant.png -ratio -size 320x320`,
         ],
-        id: Formatter.Commands.ImageToolsResize.COMMAND_ID,
+        id: Formatter.Commands.MediaIVToolsResize.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-convert <format>) (-ratio) (-scale <number>) (-size <number>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageToolsResize.CommandArgs) {
-    return Formatter.Commands.ImageToolsResize.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsResize.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsResize.createMessage(context, args);
   }
 }

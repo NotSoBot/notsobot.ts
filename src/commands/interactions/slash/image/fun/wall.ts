@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'wall';
 export class ImageWallCommand extends BaseInteractionImageCommandOption {
   description = 'Create a wall with an Image';
   metadata = {
-    id: Formatter.Commands.ImageWall.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationWall.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageWall.CommandArgs) {
-    return Formatter.Commands.ImageWall.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationWall.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationWall.createMessage(context, args);
   }
 }

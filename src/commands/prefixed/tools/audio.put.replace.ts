@@ -21,9 +21,9 @@ export default class AudioPutReplaceCommand extends BaseImageOrVideoCommand {
         category: CommandCategories.TOOLS,
         description: 'Replace an image/video\'s audio with another audio file',
         examples: [
-          `${COMMAND_NAME} https://cdn.discordapp.com/attachments/621077547471601689/1082590399459241994/tiktok_en_us_female_01-3acb462e5617fa65b7914ef2ae049cd8.mp3 @cake#0001`,
+          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,
         ],
-        id: Formatter.Commands.AudioToolsPutReplace.COMMAND_ID,
+        id: Formatter.Commands.MediaAToolsPutReplace.COMMAND_ID,
         usage: '?<url> ?<emoji,user:id|mention|name,url> (-longest)',
       },
       type: [
@@ -42,7 +42,7 @@ export default class AudioPutReplaceCommand extends BaseImageOrVideoCommand {
     return super.onCancelRun(context, args);
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.AudioToolsPutReplace.CommandArgs) {
-    return Formatter.Commands.AudioToolsPutReplace.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAToolsPutReplace.CommandArgs) {
+    return Formatter.Commands.MediaAToolsPutReplace.createMessage(context, args);
   }
 }

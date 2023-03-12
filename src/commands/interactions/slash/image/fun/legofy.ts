@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'legofy';
 export class ImageLegofyCommand extends BaseInteractionImageCommandOption {
   description = 'Legofy an Image';
   metadata = {
-    id: Formatter.Commands.ImageLegofy.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationLegofy.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -24,7 +24,7 @@ export class ImageLegofyCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageLegofy.CommandArgs) {
-    return Formatter.Commands.ImageLegofy.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationLegofy.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationLegofy.createMessage(context, args);
   }
 }

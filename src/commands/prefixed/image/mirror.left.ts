@@ -6,17 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'mirror left';
 
-export default class MirrorLeftCommand extends BaseImageCommand<Formatter.Commands.ImageMirrorLeft.CommandArgs> {
+export default class MirrorLeftCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -29,13 +21,13 @@ export default class MirrorLeftCommand extends BaseImageCommand<Formatter.Comman
           `${COMMAND_NAME} notsobot`,
         ],
         category: CommandCategories.IMAGE,
-        id: Formatter.Commands.ImageMirrorLeft.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationMirrorLeft.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageMirrorLeft.CommandArgs) {
-    return Formatter.Commands.ImageMirrorLeft.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationMirrorLeft.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationMirrorLeft.createMessage(context, args);
   }
 }

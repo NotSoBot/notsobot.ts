@@ -8,7 +8,7 @@ import { BaseImageCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'implode';
 
-export default class ImplodeCommand extends BaseImageCommand<Formatter.Commands.ImageImplode.CommandArgs> {
+export default class ImplodeCommand extends BaseImageCommand<Formatter.Commands.MediaIVManipulationImplode.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -24,13 +24,13 @@ export default class ImplodeCommand extends BaseImageCommand<Formatter.Commands.
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        id: Formatter.Commands.ImageImplode.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationImplode.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageImplode.CommandArgs) {
-    return Formatter.Commands.ImageImplode.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationImplode.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationImplode.createMessage(context, args);
   }
 }

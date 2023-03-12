@@ -24,13 +24,13 @@ export default class DeepfryCommand extends BaseImageCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        id: Formatter.Commands.ImageDeepfry.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationDeepfry.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageDeepfry.CommandArgs) {
-    return Formatter.Commands.ImageDeepfry.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationDeepfry.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationDeepfry.createMessage(context, args);
   }
 }

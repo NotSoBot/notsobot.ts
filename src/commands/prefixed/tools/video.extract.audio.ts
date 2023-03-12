@@ -8,7 +8,7 @@ import { BaseAudioOrVideoCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'video extract audio';
 
-export default class VideoExtractAudioCommand extends BaseAudioOrVideoCommand<Formatter.Commands.VideoExtractAudio.CommandArgs> {
+export default class VideoExtractAudioCommand extends BaseAudioOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -20,13 +20,13 @@ export default class VideoExtractAudioCommand extends BaseAudioOrVideoCommand<Fo
         examples: [
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/966626275852681216/TerryResonance.webm`,
         ],
-        id: Formatter.Commands.VideoExtractAudio.COMMAND_ID,
+        id: Formatter.Commands.MediaAVToolsExtractAudio.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.VideoExtractAudio.CommandArgs) {
-    return Formatter.Commands.VideoExtractAudio.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAVToolsExtractAudio.CommandArgs) {
+    return Formatter.Commands.MediaAVToolsExtractAudio.createMessage(context, args);
   }
 }

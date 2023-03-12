@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'trace';
 export class ImageTraceCommand extends BaseInteractionImageCommandOption {
   description = 'Trace an Image/Gif';
   metadata = {
-    id: Formatter.Commands.ImageManipulationTrace.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationTrace.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageManipulationTrace.CommandArgs) {
-    return Formatter.Commands.ImageManipulationTrace.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationTrace.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationTrace.createMessage(context, args);
   }
 }

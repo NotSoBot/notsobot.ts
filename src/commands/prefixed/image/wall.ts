@@ -20,13 +20,13 @@ export default class WallCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageWall.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationWall.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageWall.CommandArgs) {
-    return Formatter.Commands.ImageWall.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationWall.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationWall.createMessage(context, args);
   }
 }

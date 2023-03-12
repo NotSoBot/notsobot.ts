@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'remove';
 export class ImageBackgroundRemoveCommand extends BaseInteractionImageCommandOption {
   description = 'Remove an image\'s background';
   metadata = {
-    id: Formatter.Commands.ImageBackgroundRemove.COMMAND_ID,
+    id: Formatter.Commands.MediaIVToolsBackgroundRemove.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -20,8 +20,8 @@ export class ImageBackgroundRemoveCommand extends BaseInteractionImageCommandOpt
         {
           name: 'model',
           description: 'Background Removal Model',
-          choices: Formatter.Commands.ImageBackgroundRemove.SLASH_CHOICES_MODEL,
-          default: Formatter.Commands.ImageBackgroundRemove.DEFAULT_MODEL,
+          choices: Formatter.Commands.MediaIVToolsBackgroundRemove.SLASH_CHOICES_MODEL,
+          default: Formatter.Commands.MediaIVToolsBackgroundRemove.DEFAULT_MODEL,
         },
         {
           name: 'trim',
@@ -32,7 +32,7 @@ export class ImageBackgroundRemoveCommand extends BaseInteractionImageCommandOpt
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageBackgroundRemove.CommandArgs) {
-    return Formatter.Commands.ImageBackgroundRemove.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsBackgroundRemove.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsBackgroundRemove.createMessage(context, args);
   }
 }

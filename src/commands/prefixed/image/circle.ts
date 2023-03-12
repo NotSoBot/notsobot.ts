@@ -6,14 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  scale?: number,
-  url?: null | string,
-}
-
 export const COMMAND_NAME = 'circle';
 
-export default class CircleCommand extends BaseImageCommand<Formatter.Commands.ImageCircle.CommandArgs> {
+export default class CircleCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -29,13 +24,13 @@ export default class CircleCommand extends BaseImageCommand<Formatter.Commands.I
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 20`,
         ],
-        id: Formatter.Commands.ImageCircle.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationCircle.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <number>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageCircle.CommandArgs) {
-    return Formatter.Commands.ImageCircle.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCircle.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCircle.createMessage(context, args);
   }
 }

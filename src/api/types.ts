@@ -37,7 +37,7 @@ export namespace RestOptions {
     to: string,
   }
 
-  export interface AudioToolsPutReplace extends AudioBaseOptions {
+  export interface AudioToolsPutBase extends AudioBaseOptions {
     audioUrl?: string,
     longest?: boolean,
   }

@@ -20,13 +20,13 @@ export default class TraceCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageManipulationTrace.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationTrace.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageManipulationTrace.CommandArgs) {
-    return Formatter.Commands.ImageManipulationTrace.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationTrace.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationTrace.createMessage(context, args);
   }
 }

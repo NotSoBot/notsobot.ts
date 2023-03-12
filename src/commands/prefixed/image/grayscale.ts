@@ -21,13 +21,13 @@ export default class GrayscaleCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageGrayscale.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationGrayscale.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageGrayscale.CommandArgs) {
-    return Formatter.Commands.ImageGrayscale.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationGrayscale.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationGrayscale.createMessage(context, args);
   }
 }

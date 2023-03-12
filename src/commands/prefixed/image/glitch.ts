@@ -27,13 +27,13 @@ export default class GlitchCommand extends BaseImageCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -seed 68`,
         ],
-        id: Formatter.Commands.ImageGlitch.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationGlitch.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-iterations <number>) (-seed <number>)', // (-type <glitch-type>)
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageGlitch.CommandArgs) {
-    return Formatter.Commands.ImageGlitch.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationGlitch.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationGlitch.createMessage(context, args);
   }
 }

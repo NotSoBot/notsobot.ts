@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'speed';
 export class ImageGifSpeedCommand extends BaseInteractionImageCommandOption {
   description = 'Edit an Animated Image\'s Speed';
   metadata = {
-    id: Formatter.Commands.ImageGifSpeed.COMMAND_ID,
+    id: Formatter.Commands.MediaIVToolsFramesSpeed.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImageGifSpeedCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageGifSpeed.CommandArgs) {
-    return Formatter.Commands.ImageGifSpeed.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsFramesSpeed.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsFramesSpeed.createMessage(context, args);
   }
 }

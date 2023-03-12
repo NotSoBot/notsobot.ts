@@ -20,13 +20,13 @@ export default class GoldCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageGold.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationGold.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageGold.CommandArgs) {
-    return Formatter.Commands.ImageGold.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationGold.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationGold.createMessage(context, args);
   }
 }

@@ -6,14 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  scale?: number,
-  url?: null | string,
-}
-
 export const COMMAND_NAME = 'blur';
 
-export default class BlurCommand extends BaseImageCommand<Formatter.Commands.ImageBlur.CommandArgs> {
+export default class BlurCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -29,13 +24,13 @@ export default class BlurCommand extends BaseImageCommand<Formatter.Commands.Ima
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        id: Formatter.Commands.ImageBlur.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationBlur.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageBlur.CommandArgs) {
-    return Formatter.Commands.ImageBlur.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationBlur.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationBlur.createMessage(context, args);
   }
 }

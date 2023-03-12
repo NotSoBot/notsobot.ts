@@ -21,14 +21,14 @@ export default class E2PCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageManipulationE2P.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationE2P.COMMAND_ID,
         nsfw: true,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageManipulationE2P.CommandArgs) {
-    return Formatter.Commands.ImageManipulationE2P.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationE2P.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationE2P.createMessage(context, args);
   }
 }

@@ -20,13 +20,13 @@ export default class SpinCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageSpin.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationSpin.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageSpin.CommandArgs) {
-    return Formatter.Commands.ImageSpin.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationSpin.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSpin.createMessage(context, args);
   }
 }

@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'circle';
 export class ImageCircleCommand extends BaseInteractionImageCommandOption {
   description = 'Put a Radial Blur on an Image';
   metadata = {
-    id: Formatter.Commands.ImageCircle.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationCircle.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImageCircleCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageCircle.CommandArgs) {
-    return Formatter.Commands.ImageCircle.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationCircle.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCircle.createMessage(context, args);
   }
 }

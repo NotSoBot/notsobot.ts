@@ -117,9 +117,53 @@ export async function audioToolsIdentify(
 }
 
 
+export async function audioToolsPutConcat(
+  context: RequestContext,
+  options: RestOptions.AudioToolsPutBase,
+): Promise<Response> {
+  const query = {
+    audio_url: options.audioUrl,
+    longest: options.longest,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    files: options.files,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.AUDIO_TOOLS_PUT_CONCAT,
+    },
+  });
+}
+
+
+export async function audioToolsPutMix(
+  context: RequestContext,
+  options: RestOptions.AudioToolsPutBase,
+): Promise<Response> {
+  const query = {
+    audio_url: options.audioUrl,
+    longest: options.longest,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    files: options.files,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.AUDIO_TOOLS_PUT_MIX,
+    },
+  });
+}
+
+
 export async function audioToolsPutReplace(
   context: RequestContext,
-  options: RestOptions.AudioToolsPutReplace,
+  options: RestOptions.AudioToolsPutBase,
 ): Promise<Response> {
   const query = {
     audio_url: options.audioUrl,

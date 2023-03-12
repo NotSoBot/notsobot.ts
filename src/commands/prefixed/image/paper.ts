@@ -20,13 +20,13 @@ export default class PaperCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageManipulationPaper.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationPaper.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageManipulationPaper.CommandArgs) {
-    return Formatter.Commands.ImageManipulationPaper.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationPaper.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationPaper.createMessage(context, args);
   }
 }

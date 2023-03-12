@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'implode';
 export class ImageImplodeCommand extends BaseInteractionImageCommandOption {
   description = 'Implode an Image from the center';
   metadata = {
-    id: Formatter.Commands.ImageImplode.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationImplode.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImageImplodeCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageImplode.CommandArgs) {
-    return Formatter.Commands.ImageImplode.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationImplode.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationImplode.createMessage(context, args);
   }
 }

@@ -8,7 +8,7 @@ import { BaseImageCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'crop';
 
-export default class CropCommand extends BaseImageCommand<Formatter.Commands.ImageToolsCrop.CommandArgs> {
+export default class CropCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -21,14 +21,14 @@ export default class CropCommand extends BaseImageCommand<Formatter.Commands.Ima
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageToolsCrop.COMMAND_ID,
+        id: Formatter.Commands.MediaIVToolsCrop.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
       priority: -1,
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageToolsCrop.CommandArgs) {
-    return Formatter.Commands.ImageToolsCrop.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsCrop.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsCrop.createMessage(context, args);
   }
 }

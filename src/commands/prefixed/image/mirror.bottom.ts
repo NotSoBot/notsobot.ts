@@ -8,7 +8,7 @@ import { BaseImageCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'mirror bottom';
 
-export default class MirrorBottomCommand extends BaseImageCommand<Formatter.Commands.ImageMirrorBottom.CommandArgs> {
+export default class MirrorBottomCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -21,13 +21,13 @@ export default class MirrorBottomCommand extends BaseImageCommand<Formatter.Comm
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageMirrorBottom.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationMirrorBottom.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageMirrorBottom.CommandArgs) {
-    return Formatter.Commands.ImageMirrorBottom.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationMirrorBottom.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationMirrorBottom.createMessage(context, args);
   }
 }

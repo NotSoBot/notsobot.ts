@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'jpeg';
 export class ImageJPEGCommand extends BaseInteractionImageCommandOption {
   description = 'Needs More JPEG';
   metadata = {
-    id: Formatter.Commands.ImageNeedsMoreJpeg.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationJPEG.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImageJPEGCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageNeedsMoreJpeg.CommandArgs) {
-    return Formatter.Commands.ImageNeedsMoreJpeg.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationJPEG.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationJPEG.createMessage(context, args);
   }
 }

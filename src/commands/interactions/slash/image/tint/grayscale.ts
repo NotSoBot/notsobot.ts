@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'grayscale';
 export class ImageGrayscaleCommand extends BaseInteractionImageCommandOption {
   description = 'Grayscale an Image';
   metadata = {
-    id: Formatter.Commands.ImageGrayscale.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationGrayscale.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageGrayscale.CommandArgs) {
-    return Formatter.Commands.ImageGrayscale.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationGrayscale.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationGrayscale.createMessage(context, args);
   }
 }

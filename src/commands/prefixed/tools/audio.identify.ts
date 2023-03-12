@@ -8,7 +8,7 @@ import { BaseAudioOrVideoCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'audio identify';
 
-export default class AudioIdentifyCommand extends BaseAudioOrVideoCommand<Formatter.Commands.AudioIdentify.CommandArgs> {
+export default class AudioIdentifyCommand extends BaseAudioOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -20,13 +20,13 @@ export default class AudioIdentifyCommand extends BaseAudioOrVideoCommand<Format
         examples: [
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/966626275852681216/TerryResonance.webm`,
         ],
-        id: Formatter.Commands.AudioIdentify.COMMAND_ID,
+        id: Formatter.Commands.MediaAToolsIdentify.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.AudioIdentify.CommandArgs) {
-    return Formatter.Commands.AudioIdentify.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAToolsIdentify.CommandArgs) {
+    return Formatter.Commands.MediaAToolsIdentify.createMessage(context, args);
   }
 }

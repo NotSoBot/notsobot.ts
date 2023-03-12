@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'blurple';
 export class ImageBlurpleCommand extends BaseInteractionImageCommandOption {
   description = 'Blurple-fy an Image';
   metadata = {
-    id: Formatter.Commands.ImageBlurple.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationBlurple.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageBlurple.CommandArgs) {
-    return Formatter.Commands.ImageBlurple.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationBlurple.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationBlurple.createMessage(context, args);
   }
 }

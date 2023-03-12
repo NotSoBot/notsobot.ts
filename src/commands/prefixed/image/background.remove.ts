@@ -6,15 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  model?: string,
-  trim?: boolean,
-  url?: null | string,
-}
-
 export const COMMAND_NAME = 'background remove';
 
-export default class BackgroundRemoveCommand extends BaseImageCommand<Formatter.Commands.ImageBackgroundRemove.CommandArgs> {
+export default class BackgroundRemoveCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -33,13 +27,13 @@ export default class BackgroundRemoveCommand extends BaseImageCommand<Formatter.
           `${COMMAND_NAME} notsobot -model U2NETP`,
           `${COMMAND_NAME} notsobot -trim`,
         ],
-        id: Formatter.Commands.ImageBackgroundRemove.COMMAND_ID,
+        id: Formatter.Commands.MediaIVToolsBackgroundRemove.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-model <ImageBackgroundRemovalModels>) (-trim)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageBackgroundRemove.CommandArgs) {
-    return Formatter.Commands.ImageBackgroundRemove.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsBackgroundRemove.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsBackgroundRemove.createMessage(context, args);
   }
 }

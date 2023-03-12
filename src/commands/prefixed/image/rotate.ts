@@ -26,13 +26,13 @@ export default class RotateCommand extends BaseImageCommand {
           `${COMMAND_NAME} notsobot -degrees 90`,
           `${COMMAND_NAME} notsobot -degrees 90 -nocrop`,
         ],
-        id:  Formatter.Commands.ImageToolsRotate.COMMAND_ID,
+        id:  Formatter.Commands.MediaIVToolsRotate.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-degrees <number>) (-nocrop)',
       },
     });
   }
 
-  async run(context: Command.Context, args:  Formatter.Commands.ImageToolsRotate.CommandArgs) {
-    return Formatter.Commands.ImageToolsRotate.createMessage(context, args);
+  async run(context: Command.Context, args:  Formatter.Commands.MediaIVToolsRotate.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsRotate.createMessage(context, args);
   }
 }

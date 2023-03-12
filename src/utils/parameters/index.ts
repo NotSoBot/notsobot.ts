@@ -24,6 +24,7 @@ import {
   TagFormatter,
   fetchMemberOrUserById,
   findMediaUrlInEmbed,
+  findMediaUrlInMessage,
   findMediaUrlInMessages,
   findMediaUrlsInMessages,
   findMemberByChunkText,
@@ -844,7 +845,7 @@ export function mediaUrl(
       if (context instanceof Command.Context) {
         // check the message's attachments/stickers first
         {
-          const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
+          const url = findMediaUrlInMessage(context.message, value, mediaSearchOptions);
           if (url) {
             return url;
           }
@@ -989,7 +990,7 @@ export function mediaUrlPositional(
       if (context instanceof Command.Context) {
         // check the message's attachments/stickers first
         {
-          const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
+          const url = findMediaUrlInMessage(context.message, value, mediaSearchOptions, true);
           if (url) {
             // if the url matches the one in text or is in embed, e.g. a proxy url then use tell the parser that the first value in string is the url
             if (url === value) {

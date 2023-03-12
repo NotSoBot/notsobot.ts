@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'sharpen';
 export class ImageSharpenCommand extends BaseInteractionImageCommandOption {
   description = 'Sharpen an Image';
   metadata = {
-    id: Formatter.Commands.ImageSharpen.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationSharpen.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImageSharpenCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageSharpen.CommandArgs) {
-    return Formatter.Commands.ImageSharpen.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationSharpen.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSharpen.createMessage(context, args);
   }
 }

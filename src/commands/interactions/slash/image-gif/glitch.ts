@@ -8,13 +8,13 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'glitch';
 
 export class ImageGifGlitchCommand extends BaseInteractionImageCommandOption {
-  description = 'Glitch an Image/Gif';
+  description = 'Glitch an Image, Single-framed Images become Animated';
   metadata = {
-    id: Formatter.Commands.ImageManipulationGlitchGif.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationGlitchAnimated.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageManipulationGlitchGif.CommandArgs) {
-    return Formatter.Commands.ImageManipulationGlitchGif.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationGlitchAnimated.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationGlitchAnimated.createMessage(context, args);
   }
 }

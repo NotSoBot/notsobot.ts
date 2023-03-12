@@ -13,7 +13,7 @@ export interface CommandArgsBefore {
 
 export const COMMAND_NAME = 'caption';
 
-export default class CaptionCommand extends BaseImageCommand<Formatter.Commands.ImageCaption.CommandArgs> {
+export default class CaptionCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -26,7 +26,7 @@ export default class CaptionCommand extends BaseImageCommand<Formatter.Commands.
           `${COMMAND_NAME} notsobot what an idiot`,
           `${COMMAND_NAME} notsobot what an idiot | lmao`,
         ],
-        id: Formatter.Commands.ImageCaption.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationCaption.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...text>',
       },
       type: [
@@ -47,7 +47,7 @@ export default class CaptionCommand extends BaseImageCommand<Formatter.Commands.
     return super.onCancelRun(context, args);
   }
 
-  run(context: Command.Context, args: Formatter.Commands.ImageCaption.CommandArgs) {
-    return Formatter.Commands.ImageCaption.createMessage(context, args);
+  run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCaption.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCaption.createMessage(context, args);
   }
 }

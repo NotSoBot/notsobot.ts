@@ -14,7 +14,7 @@ export interface CommandArgsBefore {
 
 export const COMMAND_NAME = 'convert-image';
 
-export default class ConvertCommand extends BaseImageCommand<Formatter.Commands.ImageToolsConvert.CommandArgs> {
+export default class ConvertCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -31,7 +31,7 @@ export default class ConvertCommand extends BaseImageCommand<Formatter.Commands.
           `${COMMAND_NAME} 👌🏿 png -size 2560`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png webp`,
         ],
-        id: Formatter.Commands.ImageToolsConvert.COMMAND_ID,
+        id: Formatter.Commands.MediaIVToolsConvert.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>',
       },
       type: [
@@ -41,7 +41,7 @@ export default class ConvertCommand extends BaseImageCommand<Formatter.Commands.
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageToolsConvert.CommandArgs) {
-    return Formatter.Commands.ImageToolsConvert.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsConvert.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsConvert.createMessage(context, args);
   }
 }

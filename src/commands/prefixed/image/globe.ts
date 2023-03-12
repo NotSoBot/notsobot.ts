@@ -20,13 +20,13 @@ export default class GlobeCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageManipulationGlobe.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationGlobe.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageManipulationGlobe.CommandArgs) {
-    return Formatter.Commands.ImageManipulationGlobe.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationGlobe.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationGlobe.createMessage(context, args);
   }
 }

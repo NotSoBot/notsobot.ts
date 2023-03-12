@@ -6,17 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'blurple';
 
-export default class BlurpleCommand extends BaseImageCommand<CommandArgs> {
+export default class BlurpleCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -28,13 +20,13 @@ export default class BlurpleCommand extends BaseImageCommand<CommandArgs> {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageBlurple.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationBlurple.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageBlurple.CommandArgs) {
-    return Formatter.Commands.ImageBlurple.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationBlurple.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationBlurple.createMessage(context, args);
   }
 }

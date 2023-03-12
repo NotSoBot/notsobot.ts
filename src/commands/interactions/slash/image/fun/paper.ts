@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'paper';
 export class ImagePaperCommand extends BaseInteractionImageCommandOption {
   description = 'Create a Paper out of an Image/Gif';
   metadata = {
-    id: Formatter.Commands.ImageManipulationPaper.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationPaper.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageManipulationPaper.CommandArgs) {
-    return Formatter.Commands.ImageManipulationPaper.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationPaper.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationPaper.createMessage(context, args);
   }
 }

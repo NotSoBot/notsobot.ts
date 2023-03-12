@@ -24,13 +24,13 @@ export default class SharpenCommand extends BaseImageCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        id: Formatter.Commands.ImageSharpen.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationSharpen.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageSharpen.CommandArgs) {
-    return Formatter.Commands.ImageSharpen.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationSharpen.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSharpen.createMessage(context, args);
   }
 }

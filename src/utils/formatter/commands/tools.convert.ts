@@ -6,8 +6,8 @@ import { audioToolsConvert, imageToolsConvert, utilitiesFetchMedia, videoToolsCo
 import { Mimetypes, MIMETYPES_SAFE_EMBED } from '../../../constants';
 import { imageReply, mediaReply, parseFilenameFromResponse } from '../../../utils';
 
-import { DEFAULT_MIMETYPE as DEFAULT_AUDIO_MIMETYPE } from './audio.convert';
-import { DEFAULT_MIMETYPE as DEFAULT_IMAGE_MIMETYPE } from './image.tools.convert';
+import { DEFAULT_MIMETYPE as DEFAULT_AUDIO_MIMETYPE } from './media.a.tools.convert';
+import { DEFAULT_MIMETYPE as DEFAULT_IMAGE_MIMETYPE } from './media.iv.tools.convert';
 import { DEFAULT_MIMETYPE as DEFAULT_VIDEO_MIMETYPE } from './video.convert';
 
 

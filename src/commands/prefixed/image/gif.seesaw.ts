@@ -6,17 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'gif seesaw';
 
-export default class GifSeeSawCommand extends BaseImageCommand<Formatter.Commands.ImageGifSeeSaw.CommandArgs> {
+export default class GifSeeSawCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -28,13 +20,13 @@ export default class GifSeeSawCommand extends BaseImageCommand<Formatter.Command
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        id: Formatter.Commands.ImageGifSeeSaw.COMMAND_ID,
+        id: Formatter.Commands.MediaIVToolsFramesSeeSaw.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageGifSeeSaw.CommandArgs) {
-    return Formatter.Commands.ImageGifSeeSaw.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsFramesSeeSaw.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsFramesSeeSaw.createMessage(context, args);
   }
 }

@@ -6,19 +6,9 @@ import { Formatter, Parameters } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  speed?: number,
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  speed: number,
-  url: string,
-}
-
 export const COMMAND_NAME = 'gif speed';
 
-export default class GifSpeedCommand extends BaseImageCommand<Formatter.Commands.ImageGifSpeed.CommandArgs> {
+export default class GifSpeedCommand extends BaseImageCommand<Formatter.Commands.MediaIVToolsFramesSpeed.CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -30,7 +20,7 @@ export default class GifSpeedCommand extends BaseImageCommand<Formatter.Commands
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        id: Formatter.Commands.ImageGifSpeed.COMMAND_ID,
+        id: Formatter.Commands.MediaIVToolsFramesSpeed.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...speed:milliseconds>',
       },
       type: [
@@ -40,7 +30,7 @@ export default class GifSpeedCommand extends BaseImageCommand<Formatter.Commands
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageGifSpeed.CommandArgs) {
-    return Formatter.Commands.ImageGifSpeed.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsFramesSpeed.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsFramesSpeed.createMessage(context, args);
   }
 }

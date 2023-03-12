@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'flop';
 export class ImageFlopCommand extends BaseInteractionImageCommandOption {
   description = 'Flop an Image (Horizontal Flip)';
   metadata = {
-    id: Formatter.Commands.ImageFlop.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationFlop.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageFlop.CommandArgs) {
-    return Formatter.Commands.ImageFlop.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationFlop.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationFlop.createMessage(context, args);
   }
 }

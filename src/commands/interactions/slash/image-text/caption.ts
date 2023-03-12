@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'caption';
 export class ImageCaptionCommand extends BaseInteractionImageCommandOption {
   description = 'Add Caption Text to an Image';
   metadata = {
-    id: Formatter.Commands.ImageCaption.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationCaption.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -23,7 +23,7 @@ export class ImageCaptionCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageCaption.CommandArgs) {
-    return Formatter.Commands.ImageCaption.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationCaption.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCaption.createMessage(context, args);
   }
 }

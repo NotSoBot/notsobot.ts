@@ -6,13 +6,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
 export const COMMAND_NAME = 'flip';
 
-export default class FlipCommand extends BaseImageCommand<Formatter.Commands.ImageFlip.CommandArgs> {
+export default class FlipCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -24,13 +20,13 @@ export default class FlipCommand extends BaseImageCommand<Formatter.Commands.Ima
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageFlip.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationFlip.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageFlip.CommandArgs) {
-    return Formatter.Commands.ImageFlip.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationFlip.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationFlip.createMessage(context, args);
   }
 }

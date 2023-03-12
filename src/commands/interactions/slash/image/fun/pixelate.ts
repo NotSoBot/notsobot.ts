@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'pixelate';
 export class ImagePixelateCommand extends BaseInteractionImageCommandOption {
   description = 'Pixelate an Image';
   metadata = {
-    id: Formatter.Commands.ImageLegofy.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationLegofy.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImagePixelateCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImagePixelate.CommandArgs) {
-    return Formatter.Commands.ImagePixelate.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationPixelate.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationPixelate.createMessage(context, args);
   }
 }

@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'crop-nft';
 export class ImageToolsCropNFTCommand extends BaseInteractionImageCommandOption {
   description = 'Crop out a Twitter NFT Hex from an Image';
   metadata = {
-    id: Formatter.Commands.ImageToolsCropNFT.COMMAND_ID,
+    id: Formatter.Commands.MediaIVToolsCropNFT.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -26,7 +26,7 @@ export class ImageToolsCropNFTCommand extends BaseInteractionImageCommandOption 
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageToolsCropNFT.CommandArgs) {
-    return Formatter.Commands.ImageToolsCropNFT.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsCropNFT.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsCropNFT.createMessage(context, args);
   }
 }

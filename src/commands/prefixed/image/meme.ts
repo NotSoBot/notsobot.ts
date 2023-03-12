@@ -13,7 +13,7 @@ export interface CommandArgsBefore {
 
 export const COMMAND_NAME = 'meme';
 
-export default class MemeCommand extends BaseImageCommand<Formatter.Commands.ImageMeme.CommandArgs> {
+export default class MemeCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -26,7 +26,7 @@ export default class MemeCommand extends BaseImageCommand<Formatter.Commands.Ima
           `${COMMAND_NAME} @NotSoBot what an idiot`,
           `${COMMAND_NAME} @NotSoBot what an idiot | lmao`,
         ],
-        id: Formatter.Commands.ImageMeme.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationMeme.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...text>',
       },
       type: [
@@ -47,7 +47,7 @@ export default class MemeCommand extends BaseImageCommand<Formatter.Commands.Ima
     return super.onCancelRun(context, args);
   }
 
-  run(context: Command.Context, args: Formatter.Commands.ImageMeme.CommandArgs) {
-    return Formatter.Commands.ImageMeme.createMessage(context, args);
+  run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationMeme.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationMeme.createMessage(context, args);
   }
 }

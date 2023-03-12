@@ -42,9 +42,25 @@ export async function audioToolsIdentify(
 }
 
 
+export async function audioToolsPutConcat(
+  context: RequestContext,
+  options: RestOptions.AudioToolsPutBase,
+) {
+  return raw.audioToolsPutConcat(context, options);
+}
+
+
+export async function audioToolsPutMix(
+  context: RequestContext,
+  options: RestOptions.AudioToolsPutBase,
+) {
+  return raw.audioToolsPutMix(context, options);
+}
+
+
 export async function audioToolsPutReplace(
   context: RequestContext,
-  options: RestOptions.AudioToolsPutReplace,
+  options: RestOptions.AudioToolsPutBase,
 ) {
   return raw.audioToolsPutReplace(context, options);
 }

@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'blur';
 export class ImageBlurCommand extends BaseInteractionImageCommandOption {
   description = 'Blur an Image';
   metadata = {
-    id: Formatter.Commands.ImageBlur.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationBlur.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImageBlurCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageBlur.CommandArgs) {
-    return Formatter.Commands.ImageBlur.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationBlur.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationBlur.createMessage(context, args);
   }
 }

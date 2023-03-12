@@ -18,6 +18,10 @@ export const Api = Object.freeze({
   AUDIO_TOOLS_IDENTIFY:
     '/audio/tools/identify',
 
+  AUDIO_TOOLS_PUT_CONCAT:
+    '/audio/tools/put/concat',
+  AUDIO_TOOLS_PUT_MIX:
+    '/audio/tools/put/mix',
   AUDIO_TOOLS_PUT_REPLACE:
     '/audio/tools/put/replace',
 

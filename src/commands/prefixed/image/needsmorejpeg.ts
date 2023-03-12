@@ -7,19 +7,9 @@ import { Formatter } from '../../../utils';
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  quality?: number,
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  quality?: number,
-  url: string,
-}
-
 export const COMMAND_NAME = 'needsmorejpeg';
 
-export default class NeedsMoreJPEGCommand extends BaseImageCommand<Formatter.Commands.ImageNeedsMoreJpeg.CommandArgs> {
+export default class NeedsMoreJPEGCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -36,13 +26,13 @@ export default class NeedsMoreJPEGCommand extends BaseImageCommand<Formatter.Com
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -quality 20`,
         ],
-        id: Formatter.Commands.ImageNeedsMoreJpeg.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationJPEG.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-quality <number>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageNeedsMoreJpeg.CommandArgs) {
-    return Formatter.Commands.ImageNeedsMoreJpeg.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationJPEG.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationJPEG.createMessage(context, args);
   }
 }

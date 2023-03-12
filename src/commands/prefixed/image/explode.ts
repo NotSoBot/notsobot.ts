@@ -24,13 +24,13 @@ export default class ExplodeCommand extends BaseImageCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        id: Formatter.Commands.ImageExplode.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationExplode.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageExplode.CommandArgs) {
-    return Formatter.Commands.ImageExplode.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationExplode.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationExplode.createMessage(context, args);
   }
 }

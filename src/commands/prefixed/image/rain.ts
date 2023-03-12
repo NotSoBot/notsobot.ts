@@ -20,13 +20,13 @@ export default class RainCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageRain.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationRain.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageRain.CommandArgs) {
-    return Formatter.Commands.ImageRain.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationRain.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationRain.createMessage(context, args);
   }
 }

@@ -8,7 +8,7 @@ import { BaseImageCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'magik';
 
-export default class MagikCommand extends BaseImageCommand<Formatter.Commands.ImageMagik.CommandArgs> {
+export default class MagikCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -25,13 +25,13 @@ export default class MagikCommand extends BaseImageCommand<Formatter.Commands.Im
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
-        id: Formatter.Commands.ImageMagik.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationMagik.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageMagik.CommandArgs) {
-    return Formatter.Commands.ImageMagik.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationMagik.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationMagik.createMessage(context, args);
   }
 }

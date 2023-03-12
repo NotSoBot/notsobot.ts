@@ -1,23 +1,14 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationAscii } from '../../../api';
 import { CommandCategories } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'ascii image';
 
-export default class AsciiImageCommand extends BaseImageCommand<CommandArgs> {
+export default class AsciiImageCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -30,13 +21,13 @@ export default class AsciiImageCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} notsobot`,
         ],
         category: CommandCategories.IMAGE,
+        id: Formatter.Commands.MediaIVManipulationASCII.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageManipulationAscii(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationASCII.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationASCII.createMessage(context, args);
   }
 }

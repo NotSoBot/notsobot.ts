@@ -8,7 +8,7 @@ import { BaseImageCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'legofy';
 
-export default class LegofyCommand extends BaseImageCommand<Formatter.Commands.ImageLegofy.CommandArgs> {
+export default class LegofyCommand extends BaseImageCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -28,13 +28,13 @@ export default class LegofyCommand extends BaseImageCommand<Formatter.Commands.I
           `${COMMAND_NAME} notsobot -palette mono`,
           `${COMMAND_NAME} notsobot -dither`,
         ],
-        id: Formatter.Commands.ImageLegofy.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationLegofy.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-dither) (-palette <ImageLegofyPalettes>) (-size <number>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageLegofy.CommandArgs) {
-    return Formatter.Commands.ImageLegofy.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationLegofy.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationLegofy.createMessage(context, args);
   }
 }
