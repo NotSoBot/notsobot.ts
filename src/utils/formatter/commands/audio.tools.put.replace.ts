@@ -8,6 +8,7 @@ export const COMMAND_ID = 'audio.tools.put.replace';
 
 export interface CommandArgs {
   audioUrl: string,
+  longest?: boolean,
   url: string,
 }
 
