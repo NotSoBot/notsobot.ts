@@ -249,21 +249,20 @@ export function findMediaUrlInEmbed(
     return null;
   }
   const { video } = embed;
-  if (video && video.proxyUrl && (video.height || video.width)) {
-    if (findVideo) {
-      if (video.url) {
-        if (embed.url && (video.url.startsWith('https://www.youtube.com/embed/') || video.url.startsWith('https://www.redditmedia.com/mediaembed/'))) {
-          return embed.url;
-        }
-        const url = new URL(video.url);
-        if (TRUSTED_URLS.includes(url.host)) {
-          return video.url;
-        }
+  if (video && (video.height || video.width)) {
+    if (findVideo && video.url) {
+      if (embed.url && (video.url.startsWith('https://www.youtube.com/embed/') || video.url.startsWith('https://www.redditmedia.com/mediaembed/'))) {
+        return embed.url;
       }
-      return video.proxyUrl;
+      return video.url;
     }
-    if (findImage) {
-      return video.proxyUrl + '?format=png';
+    if (video.proxyUrl) {
+      if (findVideo) {
+        return video.proxyUrl;
+      }
+      if (findImage) {
+        return video.proxyUrl + '?format=png';
+      }
     }
   }
   const { image } = embed;

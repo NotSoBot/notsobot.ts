@@ -840,6 +840,8 @@ export function mediaUrl(
 ): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<string | null | undefined> {
   const customLastMediaUrl = DefaultParameters.lastMediaUrl(mediaSearchOptions);
 
+  const findAudio = (!mediaSearchOptions || mediaSearchOptions.audio || mediaSearchOptions.audio === undefined);
+  const findVideo = (!mediaSearchOptions || mediaSearchOptions.video || mediaSearchOptions.video === undefined);
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
     try {
       if (context instanceof Command.Context) {
@@ -892,7 +894,7 @@ export function mediaUrl(
               }
             }
 
-            if (context instanceof Command.Context && (!mediaSearchOptions.audio && !mediaSearchOptions.video)) {
+            if (context instanceof Command.Context && (!findAudio && !findVideo)) {
               if (!context.message.embeds.length) {
                 await Timers.sleep(1000);
               }
@@ -985,6 +987,8 @@ export function mediaUrlPositional(
 ): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<string | null | undefined | [true, null | string | undefined]> {
   const customLastMediaUrl = DefaultParameters.lastMediaUrl(mediaSearchOptions);
 
+  const findAudio = (!mediaSearchOptions || mediaSearchOptions.audio || mediaSearchOptions.audio === undefined);
+  const findVideo = (!mediaSearchOptions || mediaSearchOptions.video || mediaSearchOptions.video === undefined);
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
     try {
       if (context instanceof Command.Context) {
@@ -1050,7 +1054,7 @@ export function mediaUrlPositional(
               }
             }
 
-            if (context instanceof Command.Context && (!mediaSearchOptions.audio && !mediaSearchOptions.video)) {
+            if (context instanceof Command.Context && (!findAudio && !findVideo)) {
               if (!context.message.embeds.length) {
                 await Timers.sleep(1000);
               }

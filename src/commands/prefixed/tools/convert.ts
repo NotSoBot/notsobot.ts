@@ -6,15 +6,9 @@ import { Formatter, Parameters } from '../../../utils';
 import { BaseMediaCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  size?: string,
-  to: string,
-  url?: null | string,
-}
-
 export const COMMAND_NAME = 'convert';
 
-export default class ConvertCommand extends BaseMediaCommand<Formatter.Commands.ToolsConvert.CommandArgs> {
+export default class ConvertCommand extends BaseMediaCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
