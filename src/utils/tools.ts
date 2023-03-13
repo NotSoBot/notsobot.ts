@@ -948,7 +948,21 @@ export function generateCodeFromLanguage(language: CodeLanguages, code: string):
 
   switch (language) {
     case CodeLanguages.NODE: {
-      code = `(() => {global.discord = JSON.parse(require('fs').readFileSync(0))})();` + '\n'.repeat(5) + code;
+      code = [
+        '(() => {',
+        `global.discord = JSON.parse(require('fs').readFileSync(0));`,
+        `process.on('beforeExit', () => {`,
+          `(typeof(global.discord) === 'object') ? require('fs').writeFileSync('./output/variables.json', JSON.stringify(global.discord.variables || {})) : null;`,
+        `});`,
+        '})();',
+      ].join('') + '\n'.repeat(5) + code;
+    }; break;
+    case CodeLanguages.PYTHON:
+    case CodeLanguages.PYTHON_2: {
+      code = [
+        `discord = __import__('json').loads(__import__('sys').stdin.read());`,
+        `__import__('atexit').register(lambda:open('./output/variables.json', 'w').write(__import__('json').dumps(discord.get('variables', ''))));`,
+      ].join('') + '\n'.repeat(5) + code;
     }; break;
   }
   return { code, urls };

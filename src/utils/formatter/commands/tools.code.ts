@@ -78,6 +78,9 @@ export async function createMessage(
     const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE);
     for (let file of result.files) {
       const { filename, size, value } = file;
+      if (filename === 'variables.json') {
+        continue;
+      }
       if (maxFileSize <= currentFileSize + size) {
         throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
       }

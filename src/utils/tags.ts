@@ -537,6 +537,38 @@ const ScriptTags = Object.freeze({
           const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
           for (let file of result.files) {
             const { filename, size, value } = file;
+            if (filename === 'variables.json') {
+              if (MAX_ATTACHMENT_SIZE <= size) {
+                continue;
+              }
+              let variables = {};
+              try {
+                variables = JSON.parse(Buffer.from(value, 'base64').toString());
+              } catch(error) {
+
+              }
+              if (typeof(variables) === 'object') {
+                for (let key in variables) {
+                  if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
+                    continue;
+                  }
+
+                  if (MAX_VARIABLE_KEY_LENGTH < key.length) {
+                    throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+                  }
+
+                  if (!(key in tag.variables)) {
+                    if (MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
+                      throw new Error(`Reached max variable amount (Max ${MAX_VARIABLES.toLocaleString()} Variables)`);
+                    }
+                  }
+
+                  tag.variables[key] = String((variables as any)[key]);
+                }
+              }
+              continue;
+            }
+
             const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
             if (maxFileSize <= currentFileSize + size) {
               throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
