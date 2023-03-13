@@ -1,5 +1,5 @@
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
+import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesCodeRun } from '../../../api';
@@ -68,9 +68,24 @@ export async function createMessage(
     embed.setDescription(Markup.codeblock(result.error, {language: languageMarkupString}));
   } else if (result.output) {
     embed.setDescription(Markup.codeblock(result.output, {language: languageMarkupString}));
-  } else {
+  } else if (!result.files.length) {
     embed.setDescription('No Content');
   }
 
-  return editOrReply(context, {embed});
+  const files: Array<{filename: string, value: Buffer}> = [];
+  if (result.files.length) {
+    let currentFileSize = 0;
+    const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE);
+    for (let file of result.files) {
+      const { filename, size, value } = file;
+      if (maxFileSize <= currentFileSize + size) {
+        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+      }
+      currentFileSize += size;
+
+      files.push({filename, value: Buffer.from(value, 'base64')});
+    }
+  }
+
+  return editOrReply(context, {embed, files});
 }
