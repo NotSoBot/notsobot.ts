@@ -199,17 +199,18 @@ export namespace RestOptions {
     files?: Array<RequestFile>,
   }
 
-  export interface MediaAToolsConvertOptions extends MediaABaseOptions {
-    to: string,
-  }
-
   export interface MediaAToolsPutBase extends MediaABaseOptions {
     audioUrl?: string,
     longest?: boolean,
   }
 
-  export interface MediaIVManipulationADHD extends MediaBaseOptions {
+  export interface MediaAIVManipulationADHD extends MediaBaseOptions {
     horizontal?: boolean,
+  }
+
+  export interface MediaAIVToolsConvert extends MediaBaseOptions {
+    removeAudio?: boolean,
+    to?: string,
   }
 
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
@@ -286,11 +287,6 @@ export namespace RestOptions {
 
   export interface MediaIVToolsObjectRemoveOptions extends MediaBaseOptions {
     object?: string,
-  }
-
-  export interface MediaIVToolsConvert extends MediaBaseOptions {
-    size?: string,
-    to: string,
   }
 
   export interface MediaIVToolsCrop extends MediaBaseOptions {
@@ -553,11 +549,6 @@ export namespace RestOptions {
   export interface VideoBaseOptions {
     file?: RequestFile,
     url?: string,
-  }
-
-  export interface VideoToolsConvertOptions extends VideoBaseOptions {
-    removeAudio?: boolean,
-    to: string,
   }
 }
 

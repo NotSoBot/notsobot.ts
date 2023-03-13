@@ -26,14 +26,6 @@ export { request } from './raw';
 export { Endpoints, RequestContext, raw };
 
 
-export async function audioToolsConvert(
-  context: RequestContext,
-  options: RestOptions.MediaAToolsConvertOptions,
-) {
-  return raw.audioToolsConvert(context, options);
-}
-
-
 export async function audioToolsIdentify(
   context: RequestContext,
   options: RestOptions.MediaABaseOptions,
@@ -466,7 +458,7 @@ export async function imageInformationExif(
 
 export async function imageManipulationADHD(
   context: RequestContext,
-  options: RestOptions.MediaIVManipulationADHD,
+  options: RestOptions.MediaAIVManipulationADHD,
 ) {
   return raw.imageManipulationADHD(context, options);
 }
@@ -864,14 +856,6 @@ export async function imageToolsObjectRemove(
 }
 
 
-export async function imageToolsConvert(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsConvert,
-) {
-  return raw.imageToolsConvert(context, options);
-}
-
-
 export async function imageToolsCrop(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCrop,
@@ -941,6 +925,14 @@ export async function imageToolsTrim(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.imageToolsTrim(context, options);
+}
+
+
+export async function mediaAIVToolsConvert(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsConvert,
+) {
+  return raw.mediaAIVToolsConvert(context, options);
 }
 
 
@@ -1267,14 +1259,6 @@ export async function utilitiesScreenshot(
   options: RestOptions.UtilitiesScreenshot,
 ) {
   return raw.utilitiesScreenshot(context, options);
-}
-
-
-export async function videoToolsConvert(
-  context: RequestContext,
-  options: RestOptions.VideoToolsConvertOptions,
-) {
-  return raw.videoToolsConvert(context, options);
 }
 
 

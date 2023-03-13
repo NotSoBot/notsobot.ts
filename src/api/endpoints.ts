@@ -68,8 +68,6 @@ export const Api = Object.freeze({
   IMAGE_INFORMATION_EXIF:
     '/image/information/exif',
 
-  MEDIA_A_TOOLS_CONVERT:
-    '/audio/tools/convert',
   MEDIA_A_TOOLS_IDENTIFY:
     '/audio/tools/identify',
   MEDIA_A_TOOLS_PUT_CONCAT:
@@ -81,6 +79,9 @@ export const Api = Object.freeze({
 
   MEDIA_AIV_MANIPULATION_ADHD:
     '/image/manipulation/adhd',
+
+  MEDIA_AIV_TOOLS_CONVERT:
+    '/video/tools/convert',
 
   MEDIA_IV_MANIPULATION_ASCII:
     '/image/manipulation/ascii',
@@ -186,8 +187,6 @@ export const Api = Object.freeze({
     '/image/tools/background/remove',
   MEDIA_IV_TOOLS_OBJECT_REMOVE:
     '/image/tools/object/remove',
-  MEDIA_IV_TOOLS_CONVERT:
-    '/image/tools/convert',
   MEDIA_IV_TOOLS_CROP:
     '/image/tools/crop',
   MEDIA_IV_TOOLS_CROP_CIRCLE:
@@ -314,8 +313,6 @@ export const Api = Object.freeze({
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
 
-  VIDEO_TOOLS_CONVERT:
-    '/video/tools/convert',
   VIDEO_TOOLS_EXTRACT_AUDIO:
     '/video/tools/extract/audio',
 });

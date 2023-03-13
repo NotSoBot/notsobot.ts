@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { videoToolsConvert } from '../../../api';
+import { mediaAIVToolsConvert } from '../../../api';
 import { Mimetypes, MimetypesToExtension, MIMETYPES_AUDIO_EMBEDDABLE, MIMETYPES_VIDEO_EMBEDDABLE } from '../../../constants';
 import { mediaReply } from '../../../utils';
 
@@ -28,7 +28,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await videoToolsConvert(context, {
+  const response = await mediaAIVToolsConvert(context, {
     removeAudio: args.noaudio,
     to: args.to,
     url: args.url,

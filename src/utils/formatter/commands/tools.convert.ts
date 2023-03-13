@@ -1,14 +1,9 @@
 import { Command, Interaction } from 'detritus-client';
-import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
-import { RequestFile, Response } from 'detritus-rest';
+import { RequestFile } from 'detritus-rest';
 
-import { audioToolsConvert, imageToolsConvert, utilitiesFetchMedia, videoToolsConvert } from '../../../api';
+import { mediaAIVToolsConvert } from '../../../api';
 import { Mimetypes, MIMETYPES_SAFE_EMBED } from '../../../constants';
 import { imageReply, mediaReply, parseFilenameFromResponse } from '../../../utils';
-
-import { DEFAULT_MIMETYPE as DEFAULT_AUDIO_MIMETYPE } from './media.a.tools.convert';
-import { DEFAULT_MIMETYPE as DEFAULT_IMAGE_MIMETYPE } from './media.iv.tools.convert';
-import { DEFAULT_MIMETYPE as DEFAULT_VIDEO_MIMETYPE } from './video.convert';
 
 
 export const COMMAND_ID = 'tools.convert';
@@ -28,32 +23,11 @@ export async function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  if (args.file) {
-    return await imageToolsConvert(context, {
-      file: args.file,
-      size: args.size,
-      to: args.to || DEFAULT_IMAGE_MIMETYPE,
-    });
-  }
-
-  const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
-  const mediaResponse = await utilitiesFetchMedia(context, {maxFileSize, url: args.url});
-  const mimetype = (mediaResponse.headers.get('content-type') || '').toLowerCase();
-  const filename = parseFilenameFromResponse(mediaResponse);
-
-  const file = {mimetype, filename, value: await mediaResponse.buffer()};
-
-  let response: Response;
-  if (mimetype.startsWith('audio/')) {
-    response = await audioToolsConvert(context, {file, to: args.to || DEFAULT_AUDIO_MIMETYPE});
-  } else if (mimetype.startsWith('image/')) {
-    response = await imageToolsConvert(context, {file, to: args.to || DEFAULT_IMAGE_MIMETYPE});
-  } else if (mimetype.startsWith('video/')) {
-    response = await videoToolsConvert(context, {file, to: args.to || DEFAULT_VIDEO_MIMETYPE});
-  } else {
-    throw new Error('Don\'t know what to convert this to');
-  }
-  return response;
+  return await mediaAIVToolsConvert(context, {
+    file: args.file,
+    to: args.to,
+    url: args.url,
+  });
 }
 
 export async function createMessage(

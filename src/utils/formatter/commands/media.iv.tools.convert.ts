@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageToolsConvert } from '../../../api';
+import { mediaAIVToolsConvert } from '../../../api';
 import { Mimetypes, MimetypesToExtension, MIMETYPES_IMAGE_EMBEDDABLE } from '../../../constants';
 import { imageReply } from '../..';
 
@@ -20,7 +20,6 @@ export const SLASH_CHOICES = MIMETYPES_IMAGE_EMBEDDABLE.map((mimetype) => {
 
 
 export interface CommandArgs {
-  size?: string,
   to: string,
   url: string,
 }
@@ -29,7 +28,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageToolsConvert(context, args);
+  return mediaAIVToolsConvert(context, args);
 }
 
 export async function createMessage(

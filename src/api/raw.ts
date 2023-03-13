@@ -79,26 +79,6 @@ export async function request(
 }
 
 
-export async function audioToolsConvert(
-  context: RequestContext,
-  options: RestOptions.MediaAToolsConvertOptions,
-): Promise<Response> {
-  const query = {
-    to: options.to,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_A_TOOLS_CONVERT,
-    },
-  });
-}
-
-
 export async function audioToolsIdentify(
   context: RequestContext,
   options: RestOptions.MediaABaseOptions,
@@ -898,7 +878,7 @@ export async function imageInformationExif(
 
 export async function imageManipulationADHD(
   context: RequestContext,
-  options: RestOptions.MediaIVManipulationADHD,
+  options: RestOptions.MediaAIVManipulationADHD,
 ): Promise<Response> {
   const query = {
     horizontal: options.horizontal,
@@ -1897,27 +1877,6 @@ export async function imageToolsObjectRemove(
 }
 
 
-export async function imageToolsConvert(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsConvert,
-): Promise<Response> {
-  const query = {
-    size: options.size,
-    to: options.to,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_CONVERT,
-    },
-  });
-}
-
-
 export async function imageToolsCrop(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCrop,
@@ -2095,6 +2054,27 @@ export async function imageToolsTrim(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_TOOLS_TRIM,
+    },
+  });
+}
+
+
+export async function mediaAIVToolsConvert(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsConvert,
+): Promise<Response> {
+  const query = {
+    remove_audio: options.removeAudio,
+    to: options.to,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_CONVERT,
     },
   });
 }
@@ -2810,27 +2790,6 @@ export async function utilitiesScreenshot(
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_SCREENSHOT,
-    },
-  });
-}
-
-
-export async function videoToolsConvert(
-  context: RequestContext,
-  options: RestOptions.VideoToolsConvertOptions,
-): Promise<Response> {
-  const query = {
-    remove_audio: options.removeAudio,
-    to: options.to,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.VIDEO_TOOLS_CONVERT,
     },
   });
 }
