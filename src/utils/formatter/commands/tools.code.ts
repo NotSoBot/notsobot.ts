@@ -42,30 +42,32 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const { content, error, stats } = await utilitiesCodeRun(context, {
-    code: generateCodeFromLanguage(args.language, args.code),
-    input: generateCodeStdin(context),
+  const { code, urls } = generateCodeFromLanguage(args.language, args.code);
+  const { language, result, took, version } = await utilitiesCodeRun(context, {
+    code,
     language: args.language,
+    stdin: generateCodeStdin(context),
+    urls: Object.values(urls),
   });
 
-  const language = args.language.toLowerCase().replace('_plus_plus', '++').replace('_sharp', '#');
+  const title = args.language.toLowerCase().replace('_plus_plus', '++').replace('_sharp', '#');
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
 
-  let footer = `${toTitleCase(language)} Code Execution`;
-  if (stats.time_service && 1000 <= stats.time_service) {
-    const seconds = (stats.time_service / 1000).toFixed(1);
+  let footer = `${toTitleCase(title)} (${version}) Code Execution`;
+  if (1000 <= took) {
+    const seconds = (took / 1000).toFixed(1);
     footer = `${footer}, took ${seconds} seconds`;
   }
   embed.setFooter(footer, EmbedBrands.NOTSOBOT);
 
-  const languageMarkupString = language.split('_').shift()!;
-  if (error) {
+  const languageMarkupString = language.extension;
+  if (result.error) {
     embed.setColor(EmbedColors.ERROR);
-    embed.setDescription(Markup.codeblock(error, {language: languageMarkupString}));
-  } else if (content) {
-    embed.setDescription(Markup.codeblock(content, {language: languageMarkupString}));
+    embed.setDescription(Markup.codeblock(result.error, {language: languageMarkupString}));
+  } else if (result.output) {
+    embed.setDescription(Markup.codeblock(result.output, {language: languageMarkupString}));
   } else {
     embed.setDescription('No Content');
   }

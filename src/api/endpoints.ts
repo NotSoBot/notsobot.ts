@@ -292,10 +292,6 @@ export const Api = Object.freeze({
 
   UTILITIES_CODE_RUN:
     '/utilities/code/run',
-  UTILITIES_CODE_RUN_GOCODEIT:
-    '/utilities/code/run/gocodeit',
-  UTILITIES_CODE_RUN_REXTESTER:
-    '/utilities/code/run/rextester',
   UTILITIES_FETCH_DATA:
     '/utilities/fetch/data',
   UTILITIES_FETCH_IMAGE:

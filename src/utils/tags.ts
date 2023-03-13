@@ -523,21 +523,40 @@ const ScriptTags = Object.freeze({
       }),
     }, tag.variables);
     if (arg) {
-      const response = await utilitiesCodeRun(context, {
-        code: generateCodeFromLanguage(language, arg),
-        input: generateCodeStdin(context, variables),
+      const { code, urls } = generateCodeFromLanguage(language, arg);
+      const { result } = await utilitiesCodeRun(context, {
+        code,
         language,
+        stdin: generateCodeStdin(context, variables),
+        urls: Object.values(urls),
       });
-      if (response.error) {
-        throw new Error(response.error);
+      if (result.error) {
+        throw new Error(result.error);
       } else {
+        if (result.files.length) {
+          const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+          for (let file of result.files) {
+            const { filename, size, value } = file;
+            const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+            if (maxFileSize <= currentFileSize + size) {
+              throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+            }
+            tag.variables[PrivateVariables.FILE_SIZE] += size;
+
+            tag.files.push({
+              buffer: Buffer.from(value, 'base64'),
+              filename,
+              url: '',
+            });
+          }
+        }
 
         let isEmbed = false;
-        if (response.content.length <= 12000) {
+        if (result.output.length <= 12000) {
           // just incase its a big content lol
           let object: any = null;
           try {
-            object = JSON.parse(response.content);
+            object = JSON.parse(result.output);
           } catch(error) {
             
           }
@@ -580,7 +599,7 @@ const ScriptTags = Object.freeze({
         }
 
         if (!isEmbed) {
-          tag.text += response.content;
+          tag.text += result.output;
         }
       }
     }

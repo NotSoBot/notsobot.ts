@@ -1193,12 +1193,6 @@ export async function utilitiesCodeRun(
   return raw.utilitiesCodeRun(context, options);
 }
 
-export async function utilitiesCodeRunRextester(
-  context: RequestContext,
-  options: RestOptions.UtilitiesCodeRunRextester,
-) {
-  return raw.utilitiesCodeRunRextester(context, options);
-}
 
 export async function utilitiesFetchData(
   context: RequestContext,

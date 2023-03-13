@@ -904,13 +904,54 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 }
 
 
-export function generateCodeFromLanguage(language: CodeLanguages, code: string): string {
+export function generateCodeFromLanguage(language: CodeLanguages, code: string): { code: string, urls: Record<string, string>} {
+  // parse the urls from the code header
+  const urls: Record<string, string> = {};
+
+  const lines = code.split(/\n/g);
+  let position = 0;
+  for (let i = 0; i < lines.length; i++) {
+    // we are looking for `load URL KEY?`, either split with new spaces or semicolons
+    let line = lines[i].split('##')[0]!.trim();
+    line = line.replace(/^\s+|\s+$|[;]+$/g, '')
+    line = line.replace(/\s+/g, ' ');
+    if (line) {
+      const args = line.split(' ');
+
+      let key = `file_${i}`;
+      if (args.length === 3) {
+        key = args.pop()!;
+      }
+
+      if (args.length === 2) {
+        const [ action, url ] = args;
+        if (action.toLowerCase() !== 'load') {
+          break;
+        }
+
+        urls[key] = url;
+        position = i;
+        continue;
+      }
+    } else {
+      position = i;
+      continue;
+    }
+
+    // break on the first invalid action line
+    break;
+  }
+
+  if (position) {
+    code = lines.slice(position).join('\n');
+  }
+
   switch (language) {
-    case CodeLanguages.JAVASCRIPT: {
+    case CodeLanguages.NODE: {
       code = `(() => {global.discord = JSON.parse(require('fs').readFileSync(0))})();` + '\n'.repeat(5) + code;
     }; break;
   }
-  return code;
+  return { code, urls };
 }
 
 

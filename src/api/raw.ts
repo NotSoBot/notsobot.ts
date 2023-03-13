@@ -2609,33 +2609,16 @@ export async function utilitiesCodeRun(
 ): Promise<RestResponsesRaw.UtilitiesCodeRun> {
   const body = {
     code: options.code,
-    input: options.input,
     language: options.language,
+    stdin: options.stdin,
+    urls: options.urls,
+    version: options.version,
   };
   return request(context, {
     body,
     route: {
       method: HTTPMethods.POST,
       path: Api.UTILITIES_CODE_RUN,
-    },
-  });
-}
-
-
-export async function utilitiesCodeRunRextester(
-  context: RequestContext,
-  options: RestOptions.UtilitiesCodeRunRextester,
-): Promise<RestResponsesRaw.UtilitiesCodeRunRextester> {
-  const body = {
-    code: options.code,
-    input: options.input,
-    language: options.language,
-  };
-  return request(context, {
-    body,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.UTILITIES_CODE_RUN_REXTESTER,
     },
   });
 }

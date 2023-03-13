@@ -497,14 +497,10 @@ export namespace RestOptions {
 
   export interface UtilitiesCodeRun {
     code: string,
-    input?: string,
     language: string,
-  }
-
-  export interface UtilitiesCodeRunRextester {
-    code: string,
-    input?: string,
-    language: string,
+    stdin?: string,
+    urls?: Array<string>,
+    version?: string,
   }
 
   export interface UtilitiesFetchData {
@@ -1527,32 +1523,24 @@ export namespace RestResponsesRaw {
   }
 
   export interface UtilitiesCodeRun {
-    content: string,
-    error: string,
-    files: Array<string>,
-    language: string,
-    stats: {
-      memory: string,
-      time_compilation: number,
-      time_cpu: number,
-      time_running: number,
-      time_service: number,
+    language: {
+      extension: string,
+      default_version: string,
+      id: string,
+      language: string,
+      versions: Array<string>,
     },
-    warnings: string | null,
-  }
-
-  export interface UtilitiesCodeRunRextester {
-    content: string,
-    error: string,
-    files: Array<string>,
-    stats: {
-      memory: string,
-      time_compilation: number,
-      time_cpu: number,
-      time_running: number,
-      time_service: number,
+    result: {
+      error: string,
+      files: Array<{
+        filename: string,
+        size: number,
+        value: string,
+      }>,
+      output: string,
     },
-    warnings: string | null,
+    took: number,
+    version: string,
   }
 
   export interface UtilitiesQrScan {
