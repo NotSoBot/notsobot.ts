@@ -319,6 +319,9 @@ export function findMediaUrlInMessage(
   }
   if (!ignoreEmbed) {
     for (let [embedId, embed] of message.embeds) {
+      if (message.fromMe && embed.url && embed.url.startsWith('https://youtu.be/')) {
+        return embed.url;
+      }
       const url = findMediaUrlInEmbed(embed, false, options);
       if (url) {
         return url;
