@@ -13,15 +13,19 @@ export default class SnipCommand extends BaseAudioOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'audio', type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.TOOLS,
         description: 'Snip an audio/video file',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 10 50`,
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -50`,
+          `${COMMAND_NAME} https://notsobot.com/some/video/file.mp4 -50 -audio`,
         ],
         id: Formatter.Commands.MediaAVToolsSnip.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> <start> <end>',
+        usage: '?<emoji,user:id|mention|name,url> <start> <end> (-audio)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({image: false})},

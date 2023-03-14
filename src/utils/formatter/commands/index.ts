@@ -27,7 +27,6 @@ import * as MediaIVToolsTrim from './media.iv.tools.trim';
 import * as InfoUser from './info.user';
 
 import * as MediaAToolsConvert from './media.a.tools.convert';
-import * as MediaAToolsIdentify from './media.a.tools.identify';
 import * as MediaAToolsPutConcat from './media.a.tools.put.concat';
 import * as MediaAToolsPutMix from './media.a.tools.put.mix';
 import * as MediaAToolsPutReplace from './media.a.tools.put.replace';
@@ -35,6 +34,7 @@ import * as MediaAToolsPutReplace from './media.a.tools.put.replace';
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
 
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
+import * as MediaAVToolsIdentify from './media.av.tools.identify';
 import * as MediaAVToolsSnip from './media.av.tools.snip';
 
 import * as MediaIVManipulationASCII from './media.iv.manipulation.ascii';
@@ -157,7 +157,6 @@ export {
   InfoUser,
 
   MediaAToolsConvert,
-  MediaAToolsIdentify,
   MediaAToolsPutConcat,
   MediaAToolsPutMix,
   MediaAToolsPutReplace,
@@ -165,6 +164,7 @@ export {
   MediaAIVManipulationADHD,
 
   MediaAVToolsExtractAudio,
+  MediaAVToolsIdentify,
   MediaAVToolsSnip,
 
   MediaIVManipulationASCII,

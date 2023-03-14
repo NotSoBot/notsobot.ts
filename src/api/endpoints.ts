@@ -68,8 +68,6 @@ export const Api = Object.freeze({
   IMAGE_INFORMATION_EXIF:
     '/image/information/exif',
 
-  MEDIA_A_TOOLS_IDENTIFY:
-    '/audio/tools/identify',
   MEDIA_A_TOOLS_PUT_CONCAT:
     '/audio/tools/put/concat',
   MEDIA_A_TOOLS_PUT_MIX:
@@ -85,6 +83,8 @@ export const Api = Object.freeze({
 
   MEDIA_AV_TOOLS_EXTRACT_AUDIO:
     '/video/tools/extract/audio',
+  MEDIA_AV_TOOLS_IDENTIFY:
+    '/audio/tools/identify',
   MEDIA_AV_TOOLS_SNIP:
     '/video/tools/snip',
 

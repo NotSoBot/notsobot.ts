@@ -79,24 +79,6 @@ export async function request(
 }
 
 
-export async function audioToolsIdentify(
-  context: RequestContext,
-  options: RestOptions.MediaABaseOptions,
-): Promise<RestResponsesRaw.MediaAToolsIdentify> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_A_TOOLS_IDENTIFY,
-    },
-  });
-}
-
-
 export async function audioToolsPutConcat(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
@@ -2099,11 +2081,30 @@ export async function mediaAVToolsExtractAudio(
 }
 
 
+export async function mediaAVToolsIdentify(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsIdentify,
+): Promise<RestResponsesRaw.MediaAVToolsIdentify> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_TOOLS_IDENTIFY,
+    },
+  });
+}
+
+
 export async function mediaAVToolsSnip(
   context: RequestContext,
   options: RestOptions.MediaAVToolsSnip,
 ): Promise<Response> {
   const query = {
+    audio_only: options.audioOnly,
     end: options.end,
     start: options.start,
     url: options.url,

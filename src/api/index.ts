@@ -26,14 +26,6 @@ export { request } from './raw';
 export { Endpoints, RequestContext, raw };
 
 
-export async function audioToolsIdentify(
-  context: RequestContext,
-  options: RestOptions.MediaABaseOptions,
-) {
-  return raw.audioToolsIdentify(context, options);
-}
-
-
 export async function audioToolsPutConcat(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
@@ -941,6 +933,14 @@ export async function mediaAVToolsExtractAudio(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaAVToolsExtractAudio(context, options);
+}
+
+
+export async function mediaAVToolsIdentify(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsIdentify,
+) {
+  return raw.mediaAVToolsIdentify(context, options);
 }
 
 

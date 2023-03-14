@@ -213,7 +213,12 @@ export namespace RestOptions {
     to?: string,
   }
 
+  export interface MediaAVToolsIdentify extends MediaBaseOptions {
+    start?: number,
+  }
+
   export interface MediaAVToolsSnip extends MediaBaseOptions {
+    audioOnly?: boolean,
     end?: number,
     start?: number,
   }
@@ -577,7 +582,7 @@ export namespace RestResponses {
 
 
 export namespace RestResponsesRaw {
-  export interface MediaAToolsIdentifySong {
+  export interface MediaAVToolsIdentifySong {
     album: {name: string},
     artists: Array<{
       langs?: Array<{name: string, code: string}>,
@@ -590,11 +595,11 @@ export namespace RestResponsesRaw {
     ids: {acrid: string, isrc: string, upc: string},
     label: string,
     platforms: {
-      apple_music: MediaAToolsIdentifySongPlatform | null,
-      deezer: MediaAToolsIdentifySongPlatform | null,
-      musicbrainz: MediaAToolsIdentifySongPlatformPartial | null,
-      spotify: MediaAToolsIdentifySongPlatform | null,
-      youtube: MediaAToolsIdentifySongPlatformPartial | null,
+      apple_music: MediaAVToolsIdentifySongPlatform | null,
+      deezer: MediaAVToolsIdentifySongPlatform | null,
+      musicbrainz: MediaAVToolsIdentifySongPlatformPartial | null,
+      spotify: MediaAVToolsIdentifySongPlatform | null,
+      youtube: MediaAVToolsIdentifySongPlatformPartial | null,
       raw: any,
     },
     release_date: string,
@@ -604,7 +609,7 @@ export namespace RestResponsesRaw {
     title: string,
   }
 
-  export interface MediaAToolsIdentifySongPlatform {
+  export interface MediaAVToolsIdentifySongPlatform {
     album: {
       cover_url: string | null,
       id: string,
@@ -635,12 +640,12 @@ export namespace RestResponsesRaw {
     url: string,
   }
 
-  export interface MediaAToolsIdentifySongPlatformPartial {
+  export interface MediaAVToolsIdentifySongPlatformPartial {
     id: string,
     url: string,
   }
 
-  export type MediaAToolsIdentify = Array<MediaAToolsIdentifySong>;
+  export type MediaAVToolsIdentify = Array<MediaAVToolsIdentifySong>;
 
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;

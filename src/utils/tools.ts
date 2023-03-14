@@ -101,7 +101,9 @@ export function durationToMilliseconds(duration: string): number {
     milliseconds += (parseInt(parts.pop()!) || 0) * 60 * 60 * 1000; // hours
     milliseconds += (parseInt(parts.pop()!) || 0) * 24 * 60 * 60 * 1000; // days
   }
-  milliseconds += (parseFloat(duration) || 0) * 1000;
+  if (!isNaN(duration as any)) {
+    milliseconds += (parseFloat(duration) || 0) * 1000;
+  }
   return milliseconds;
 }
 

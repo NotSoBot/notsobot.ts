@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { audioToolsIdentify } from '../../../api';
+import { mediaAVToolsIdentify } from '../../../api';
 import { DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../../constants';
 import {
   Paginator,
@@ -18,6 +18,7 @@ import {
 export const COMMAND_ID = 'audio.identify';
 
 export interface CommandArgs {
+  start?: number,
   url: string,
 }
 
@@ -26,7 +27,8 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
-  const songs = await audioToolsIdentify(context, {
+  const songs = await mediaAVToolsIdentify(context, {
+    start: (args.start) ? args.start * 1000 : args.start,
     url: args.url,
   });
 
