@@ -25,8 +25,8 @@ export default class SnipCommand extends BaseAudioOrVideoCommand {
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({image: false})},
-        {name: 'start', default: 0, type: Parameters.seconds_with_negative},
-        {name: 'end', default: 0, type: Parameters.seconds_with_negative},
+        {name: 'start', default: 0, type: Parameters.secondsWithOptions({negatives: true})},
+        {name: 'end', default: 0, type: Parameters.secondsWithOptions({negatives: true})},
       ],
     });
   }

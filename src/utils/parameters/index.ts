@@ -22,6 +22,7 @@ import { CommandCategories, GoogleLocales, GoogleLocalesText } from '../../const
 import {
   DefaultParameters,
   TagFormatter,
+  durationToMilliseconds,
   fetchMemberOrUserById,
   findMediaUrlInEmbed,
   findMediaUrlInMessage,
@@ -337,8 +338,13 @@ export async function pipingCommands(
 
 
 export function seconds(value: number | string): number {
+  const valueString = String(value);
   try {
-    return juration.parse(String(value));
+    const duration = durationToMilliseconds(valueString);
+    if (duration) {
+      return Math.floor(duration / 1000);
+    }
+    return juration.parse(valueString);
   } catch(error) {
     if (typeof(error) === 'string') {
       let text = error.slice(error.indexOf(':', error.indexOf(':') + 1) + 1).trim();
@@ -354,10 +360,30 @@ export function seconds(value: number | string): number {
   }
 }
 
-export function seconds_with_negative(value: number | string): number {
-  const isNegative = String(value).startsWith('-');
-  const result = seconds(value);
-  return (isNegative) ? -result : result;
+
+export interface SecondsOptions {
+  float?: boolean,
+  negatives?: boolean,
+}
+
+export function secondsWithOptions(options: SecondsOptions = {}) {
+  const allowFloats = (options.float || options.float === undefined);
+  const allowNegatives = !!options.negatives;
+
+  return (value: number | string): number => {
+    const valueString = String(value);
+    const isNegative = (allowNegatives) ? valueString.startsWith('-') : false;
+
+    let duration = (durationToMilliseconds(valueString) || seconds(valueString)) / 1000;
+    if (isNegative) {
+      duration = -duration;
+    }
+
+    if (allowFloats) {
+      return duration;
+    }
+    return Math.floor(duration);
+  }
 }
 
 

@@ -91,6 +91,21 @@ export function createUserString(userId: string = '1', user?: Structures.User | 
 }
 
 
+export function durationToMilliseconds(duration: string): number {
+  let milliseconds = 0;
+  if (duration.includes(':')) {
+    const parts = duration.split(':');
+    duration = parts.pop()!;
+
+    milliseconds += (parseInt(parts.pop()!) || 0) * 60 * 1000; // minutes
+    milliseconds += (parseInt(parts.pop()!) || 0) * 60 * 60 * 1000; // hours
+    milliseconds += (parseInt(parts.pop()!) || 0) * 24 * 60 * 60 * 1000; // days
+  }
+  milliseconds += (parseFloat(duration) || 0) * 1000;
+  return milliseconds;
+}
+
+
 export function editOrReply(context: Command.Context, options: Command.EditOrReply | string): Promise<Structures.Message>
 export function editOrReply(context: Interaction.InteractionContext, options: Structures.InteractionEditOrRespond | string): Promise<null>
 export function editOrReply(context: Command.Context | Interaction.InteractionContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | null>
