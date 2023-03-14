@@ -35,6 +35,7 @@ import * as MediaAToolsPutReplace from './media.a.tools.put.replace';
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
 
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
+import * as MediaAVToolsSnip from './media.av.tools.snip';
 
 import * as MediaIVManipulationASCII from './media.iv.manipulation.ascii';
 import * as MediaIVManipulationBlur from './media.iv.manipulation.blur';
@@ -164,6 +165,7 @@ export {
   MediaAIVManipulationADHD,
 
   MediaAVToolsExtractAudio,
+  MediaAVToolsSnip,
 
   MediaIVManipulationASCII,
   MediaIVManipulationBlur,

@@ -1,12 +1,14 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaAVToolsExtractAudio } from '../../../api';
+import { mediaAVToolsSnip } from '../../../api';
 import { mediaReply } from '../..';
 
 
-export const COMMAND_ID = 'video.extract.audio';
+export const COMMAND_ID = 'media.av.tools.snip';
 
 export interface CommandArgs {
+  end?: number,
+  start?: number,
   url: string,
 }
 
@@ -14,7 +16,9 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await mediaAVToolsExtractAudio(context, {
+  const response = await mediaAVToolsSnip(context, {
+    end: (args.end) ? args.end * 1000 : args.end,
+    start: (args.start) ? args.start * 1000 : args.start,
     url: args.url,
   });
   return mediaReply(context, response);

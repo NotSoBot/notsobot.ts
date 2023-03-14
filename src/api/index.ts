@@ -936,6 +936,23 @@ export async function mediaAIVToolsConvert(
 }
 
 
+export async function mediaAVToolsExtractAudio(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVToolsExtractAudio(context, options);
+}
+
+
+export async function mediaAVToolsSnip(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsSnip,
+) {
+  return raw.mediaAVToolsSnip(context, options);
+}
+
+
+
 export async function putGuildSettings(
   context: RequestContext,
   guildId: string,
@@ -1253,12 +1270,4 @@ export async function utilitiesScreenshot(
   options: RestOptions.UtilitiesScreenshot,
 ) {
   return raw.utilitiesScreenshot(context, options);
-}
-
-
-export async function videoToolsExtractAudio(
-  context: RequestContext,
-  options: RestOptions.VideoBaseOptions,
-) {
-  return raw.videoToolsExtractAudio(context, options);
 }

@@ -354,6 +354,12 @@ export function seconds(value: number | string): number {
   }
 }
 
+export function seconds_with_negative(value: number | string): number {
+  const isNegative = String(value).startsWith('-');
+  const result = seconds(value);
+  return (isNegative) ? -result : result;
+}
+
 
 export function snowflake(value: string): string {
   if (!isSnowflake(value)) {

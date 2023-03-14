@@ -213,6 +213,11 @@ export namespace RestOptions {
     to?: string,
   }
 
+  export interface MediaAVToolsSnip extends MediaBaseOptions {
+    end?: number,
+    start?: number,
+  }
+
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
     scale?: number,
   }
@@ -539,12 +544,6 @@ export namespace RestOptions {
 
   export interface UtilitiesScreenshot {
     url: string,
-  }
-
-
-  export interface VideoBaseOptions {
-    file?: RequestFile,
-    url?: string,
   }
 }
 

@@ -2080,6 +2080,46 @@ export async function mediaAIVToolsConvert(
 }
 
 
+export async function mediaAVToolsExtractAudio(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_TOOLS_EXTRACT_AUDIO,
+    },
+  });
+}
+
+
+export async function mediaAVToolsSnip(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsSnip,
+): Promise<Response> {
+  const query = {
+    end: options.end,
+    start: options.start,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_TOOLS_SNIP,
+    },
+  });
+}
+
+
 export async function putGuildSettings(
   context: RequestContext,
   guildId: string,
@@ -2773,25 +2813,6 @@ export async function utilitiesScreenshot(
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_SCREENSHOT,
-    },
-  });
-}
-
-
-export async function videoToolsExtractAudio(
-  context: RequestContext,
-  options: RestOptions.VideoBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.VIDEO_TOOLS_EXTRACT_AUDIO,
     },
   });
 }

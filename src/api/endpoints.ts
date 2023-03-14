@@ -83,6 +83,11 @@ export const Api = Object.freeze({
   MEDIA_AIV_TOOLS_CONVERT:
     '/video/tools/convert',
 
+  MEDIA_AV_TOOLS_EXTRACT_AUDIO:
+    '/video/tools/extract/audio',
+  MEDIA_AV_TOOLS_SNIP:
+    '/video/tools/snip',
+
   MEDIA_IV_MANIPULATION_ASCII:
     '/image/manipulation/ascii',
   MEDIA_IV_MANIPULATION_BLUR:
@@ -308,9 +313,6 @@ export const Api = Object.freeze({
     '/utilities/qr/scan',
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
-
-  VIDEO_TOOLS_EXTRACT_AUDIO:
-    '/video/tools/extract/audio',
 });
 
 
