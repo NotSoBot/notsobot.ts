@@ -959,8 +959,8 @@ export function generateCodeFromLanguage(language: CodeLanguages, code: string):
     break;
   }
 
-  if (position) {
-    code = lines.slice(position).join('\n');
+  if (Object.keys(urls).length) {
+    code = lines.slice(position + 1).join('\n');
   }
 
   switch (language) {
