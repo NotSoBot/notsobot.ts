@@ -44,7 +44,7 @@ export enum CodeLanguages {
 //  CJAM = 'CJAM',
 //  CLOJURE = 'CLOJURE',
 ////  COBOL = 'COBOL',
-//  COFFEESCRIPT = 'COFFEESCRIPT',
+  COFFEESCRIPT = 'COFFEESCRIPT',
   COW = 'COW',
 //  CRYSTAL = 'CRYSTAL',
   D = 'D',
