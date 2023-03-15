@@ -1,9 +1,12 @@
 import { Interaction } from 'detritus-client';
 
+import { ImageMemeFonts, ImageMemeFontsToText } from '../../../../constants';
 import { Formatter, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../basecommand';
 
+
+const DEFAULT_FONT_TEXT = ImageMemeFontsToText[ImageMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD];
 
 export const COMMAND_NAME = 'caption';
 
@@ -18,7 +21,7 @@ export class ImageCaptionCommand extends BaseInteractionImageCommandOption {
     super({
       options: [
         {name: 'text', description: 'Caption Text', required: true},
-        {name: 'font', description: 'Default: Montserrat Bold', choices: Parameters.Slash.IMAGE_MEME_FONTS},
+        {name: 'font', description: `Default: ${DEFAULT_FONT_TEXT}`, choices: Parameters.Slash.IMAGE_MEME_FONTS},
       ],
     });
   }

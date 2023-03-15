@@ -35,6 +35,7 @@ export const GOOGLE_LOCALES = [
 
 export const IMAGE_MEME_FONTS = [
   ImageMemeFonts.ARIAL,
+  ImageMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD,
   ImageMemeFonts.IMPACT,
   ImageMemeFonts.MONTSERRAT_BOLD,
   ImageMemeFonts.MONTSERRAT_REGULAR,

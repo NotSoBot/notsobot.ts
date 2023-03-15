@@ -796,6 +796,7 @@ export enum ImageEyeTypes {
 
 export enum ImageMemeFonts {
   ARIAL = 'ARIAL',
+  FUTURA_CONDENSED_EXTRA_BOLD = 'FUTURA_CONDENSED_EXTRA_BOLD',
   IMPACT = 'IMPACT',
   MONTSERRAT_BOLD = 'MONTSERRAT_BOLD',
   MONTSERRAT_REGULAR = 'MONTSERRAT_REGULAR',
@@ -811,6 +812,7 @@ export enum ImageMemeFonts {
 
 export const ImageMemeFontsToText: Record<ImageMemeFonts, string> = Object.freeze({
   [ImageMemeFonts.ARIAL]: 'Arial',
+  [ImageMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD]: 'Futura Condensed Extra Bold',
   [ImageMemeFonts.IMPACT]: 'Impact',
   [ImageMemeFonts.MONTSERRAT_BOLD]: 'Montserrat Bold',
   [ImageMemeFonts.MONTSERRAT_REGULAR]: 'Montserrat Regular',
