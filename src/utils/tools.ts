@@ -1031,6 +1031,7 @@ export function generateCodeStdin(
     member: context.member,
     member_bot: context.me,
     message: (context instanceof Command.Context) ? context.message : null,
+    tag: context.metadata && context.metadata.tag,
     user: context.user,
     user_bot: context.client.user,
     variables,

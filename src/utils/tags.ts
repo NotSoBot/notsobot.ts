@@ -185,6 +185,7 @@ export enum TagFunctions {
   STRING_TRANSLATE = 'STRING_TRANSLATE',
   STRING_UPPER = 'STRING_UPPER',
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
+  TAG_NAME = 'TAG_NAME',
   USER_DISCRIMINATOR = 'USER_DISCRIMINATOR',
   USER_MENTION = 'USER_MENTION',
   USER_NAME = 'USER_NAME',
@@ -257,6 +258,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_TRANSLATE]: ['translate'],
   [TagFunctions.STRING_UPPER]: ['upper'],
   [TagFunctions.STRING_URL_ENCODE]: ['url', 'urlencode'],
+  [TagFunctions.TAG_NAME]: ['tagname'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
   [TagFunctions.USER_MENTION]: ['mention'],
   [TagFunctions.USER_NAME]: ['name', 'user'],
@@ -1591,6 +1593,16 @@ const ScriptTags = Object.freeze({
     // {url:text}
 
     tag.text += encodeURIComponent(arg);
+    return true;
+  },
+
+  [TagFunctions.TAG_NAME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {tagname}
+
+    if (context.metadata && context.metadata.tag) {
+      tag.text += context.metadata.tag.name;
+    }
+
     return true;
   },
 

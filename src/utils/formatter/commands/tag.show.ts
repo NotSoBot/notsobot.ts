@@ -17,6 +17,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   // parse it
+  context.metadata = Object.assign({}, context.metadata, {tag: args.tag});
   const parsedTag = await TagFormatter.parse(context, args.tag.content, args.arguments);
 
   const options: Command.EditOrReply = {content: parsedTag.text.slice(0, 2000)};
