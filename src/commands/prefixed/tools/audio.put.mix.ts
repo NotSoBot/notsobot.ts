@@ -33,6 +33,10 @@ export default class AudioPutMixCommand extends BaseImageOrVideoCommand {
     });
   }
 
+  onBeforeRun(context: Command.Context, args: {audioUrl?: null | string, url?: null | string}) {
+    return !!args.audioUrl && super.onBeforeRun(context, args);
+  }
+
   onCancelRun(context: Command.Context, args: {audioUrl?: null | string, url?: null | string}) {
     if (args.audioUrl === undefined) {
       return editOrReply(context, '⚠ Unable to find any audio in the last 50 messages.');
