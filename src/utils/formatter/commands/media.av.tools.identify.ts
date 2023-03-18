@@ -18,6 +18,7 @@ import {
 export const COMMAND_ID = 'audio.identify';
 
 export interface CommandArgs {
+  isEphemeral?: boolean,
   start?: number,
   url: string,
 }
@@ -35,13 +36,14 @@ export async function createMessage(
   if (songs.length) {
     const pageLimit = songs.length || 1;
     const paginator = new Paginator(context, {
+      isEphemeral: args.isEphemeral,
       pageLimit,
       onPage: (page) => {
         const song = songs[page - 1];
 
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
-        embed.setTitle(song.title);
+        embed.setTitle(`${song.title} by ${song.artists[0]!.name}`);
 
         {
           let footer: string;
