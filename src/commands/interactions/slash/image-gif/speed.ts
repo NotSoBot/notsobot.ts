@@ -8,21 +8,21 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'speed';
 
 export class ImageGifSpeedCommand extends BaseInteractionImageCommandOption {
-  description = 'Edit an Animated Image\'s Speed';
+  description = 'Edit an Animated Image/Audio/Video\'s Speed';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsFramesSpeed.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVToolsSpeed.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
   constructor() {
     super({
       options: [
-        {name: 'speed', description: 'Number to double the gif speed by, floats included'},
+        {name: 'speed', description: 'Number to double the speed by, floats included'},
       ],
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsFramesSpeed.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsFramesSpeed.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsSpeed.CommandArgs) {
+    return Formatter.Commands.MediaAIVToolsSpeed.createMessage(context, args);
   }
 }

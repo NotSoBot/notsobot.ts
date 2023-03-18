@@ -8,13 +8,13 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'seesaw';
 
 export class ImageGifSeeSawCommand extends BaseInteractionImageCommandOption {
-  description = 'SeeSaw an Animated Image, add a reversed copy of itself at the end of it';
+  description = 'SeeSaw an Animated Image/Audio/Video, add a reversed copy of itself at the end of it';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsFramesSeeSaw.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVToolsSeeSaw.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsFramesSeeSaw.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsFramesSeeSaw.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsSeeSaw.CommandArgs) {
+    return Formatter.Commands.MediaAIVToolsSeeSaw.createMessage(context, args);
   }
 }

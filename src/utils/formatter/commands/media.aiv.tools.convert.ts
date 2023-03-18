@@ -3,7 +3,7 @@ import { RequestFile } from 'detritus-rest';
 
 import { mediaAIVToolsConvert } from '../../../api';
 import { Mimetypes, MIMETYPES_SAFE_EMBED } from '../../../constants';
-import { imageReply, mediaReply, parseFilenameFromResponse } from '../../../utils';
+import { imageReply, mediaReply, parseFilenameFromResponse } from '../..';
 
 
 export const COMMAND_ID = 'tools.convert';

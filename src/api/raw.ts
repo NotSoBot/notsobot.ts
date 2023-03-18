@@ -1932,7 +1932,7 @@ export async function imageToolsGifReverse(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_GIF_REVERSE,
+      path: Api.MEDIA_AIV_TOOLS_REVERSE,
     },
   });
 }
@@ -1951,7 +1951,7 @@ export async function imageToolsGifSeeSaw(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_GIF_SEE_SAW,
+      path: Api.MEDIA_AIV_TOOLS_SEE_SAW,
     },
   });
 }
@@ -1972,7 +1972,7 @@ export async function imageToolsGifSpeed(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_GIF_SPEED,
+      path: Api.MEDIA_AIV_TOOLS_SPEED,
     },
   });
 }

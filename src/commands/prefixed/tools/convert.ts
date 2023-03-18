@@ -26,7 +26,7 @@ export default class ConvertCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png webp`,
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/1054322096420950097/igVideo.mp4 mov`,
         ],
-        id: Formatter.Commands.ToolsConvert.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVToolsConvert.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>',
       },
       type: [
@@ -36,7 +36,7 @@ export default class ConvertCommand extends BaseMediaCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ToolsConvert.CommandArgs) {
-    return Formatter.Commands.ToolsConvert.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsConvert.CommandArgs) {
+    return Formatter.Commands.MediaAIVToolsConvert.createMessage(context, args);
   }
 }

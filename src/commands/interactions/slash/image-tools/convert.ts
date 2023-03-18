@@ -23,7 +23,6 @@ export class ImageToolsConvertCommand extends BaseInteractionImageCommandOption 
           choices: Formatter.Commands.MediaIVToolsConvert.SLASH_CHOICES,
           default: Formatter.Commands.MediaIVToolsConvert.DEFAULT_MIMETYPE,
         },
-        {name: 'size', description: 'number or (width)x(height)'},
       ],
     });
   }
