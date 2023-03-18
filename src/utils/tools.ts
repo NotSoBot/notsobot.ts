@@ -1039,16 +1039,22 @@ export function generateCodeStdin(
 }
 
 
-export function getCodeLanguage(value?: string): CodeLanguages | null {
+export function getCodeLanguage(value?: string): {language: CodeLanguages, version: string | null} | null {
   if (value) {
-    const insensitive = value.toUpperCase();
-    if (insensitive in CodeLanguages) {
-      return insensitive as CodeLanguages;
+    let version: string | null = null;
+    let insensitive = value.toUpperCase();
+    if (insensitive.includes('-')) {
+      const parts = insensitive.split('-');
+      insensitive = parts.shift()!;
+      version = parts.pop()!;
     }
-    value = value.toLowerCase();
+    if (insensitive in CodeLanguages) {
+      return {language: insensitive as CodeLanguages, version};
+    }
+    insensitive = insensitive.toLowerCase();
     for (let key in CodeLanguagesToName) {
-      if ((CodeLanguagesToName as any)[key].includes(value)) {
-        return key as CodeLanguages;
+      if ((CodeLanguagesToName as any)[key].includes(insensitive)) {
+        return {language: key as CodeLanguages, version};
       }
     }
   }

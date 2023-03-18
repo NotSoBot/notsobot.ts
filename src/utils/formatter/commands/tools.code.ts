@@ -34,6 +34,7 @@ export const COMMAND_ID = 'tools.code';
 export interface CommandArgs {
   code: string,
   language: CodeLanguages,
+  version: string | null,
 }
 
 export async function createMessage(
@@ -48,6 +49,7 @@ export async function createMessage(
     language: args.language,
     stdin: generateCodeStdin(context),
     urls: Object.values(urls),
+    version: args.version || undefined,
   });
 
   const title = args.language.toLowerCase().replace('_plus_plus', '++').replace('_sharp', '#');

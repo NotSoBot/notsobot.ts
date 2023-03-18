@@ -404,9 +404,9 @@ export async function parse(
             if (!found) {
               // parse as script (check if scriptName is a programming language)
               // do this for now
-              const language = getCodeLanguage(scriptName);
-              if (language) {
-                const wasValid = await ScriptTags._code(context, arg, tag, language);
+              const parsed = getCodeLanguage(scriptName);
+              if (parsed) {
+                const wasValid = await ScriptTags._code(context, arg, tag, parsed.language, parsed.version);
                 if (!wasValid) {
                   tag.text += scriptBuffer;
                 }
@@ -515,7 +515,7 @@ function parseInnerScript(value: string): [string, string] {
 
 
 const ScriptTags = Object.freeze({
-  _code: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult, language: CodeLanguages): Promise<boolean> => {
+  _code: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult, language: CodeLanguages, version?: string | null): Promise<boolean> => {
     // {python:code}
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
@@ -531,6 +531,7 @@ const ScriptTags = Object.freeze({
         language,
         stdin: generateCodeStdin(context, variables),
         urls: Object.values(urls),
+        version: version || undefined,
       });
       if (result.error) {
         throw new Error(result.error);

@@ -6,19 +6,13 @@ import { Formatter, Parameters, editOrReply, getCodeLanguage } from '../../../ut
 import { BaseCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  code: {language?: string, text: string},
-  language?: string,
-}
-
 export interface CommandArgs {
-  code: {language?: string, text: string},
-  language: string,
+  code: string,
 }
 
 export const COMMAND_NAME = 'code';
 
-export default class CodeCommand extends BaseCommand<CommandArgs> {
+export default class CodeCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -32,34 +26,42 @@ export default class CodeCommand extends BaseCommand<CommandArgs> {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} \`\`\`js console.log('lol')\`\`\``,
-          `${COMMAND_NAME} console.log('lol'); -language js`,
+          `${COMMAND_NAME} js console.log('lol');`,
         ],
         id: Formatter.Commands.ToolsCode.COMMAND_ID,
-        usage: '<code> (-language <language>)',
+        usage: '<?language> <code>',
       },
-      type: Parameters.codeblock,
     });
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    let code = args.code.text;
-
+    const parts = args.code.split(' ');
+  
+    let code = args.code;
     let language: CodeLanguages | null = null;
-    if (!args.code.language) {
-      const parts = code.split(' ');
-      language = getCodeLanguage(parts[0]);
-      if (language) {
-        code = parts.slice(1).join(' ');
+    let version: string | null = null;
+
+    let parsed = getCodeLanguage(parts[0]);
+    if (parsed) {
+      code = parts.slice(1).join(' ');
+      language = parsed.language;
+      version = parsed.version;
+    }
+
+    const codeblock = Parameters.codeblock(code);
+    if (codeblock.language) {
+      const parsed = getCodeLanguage(codeblock.language);
+      if (parsed) {
+        language = parsed.language;
+        version = parsed.version;
       }
     }
-    if (!language) {
-      language = getCodeLanguage(args.code.language || args.language);
-    }
+    code = codeblock.text;
 
     if (!language) {
       return editOrReply(context, `Give me a valid language! (One of ${Formatter.Commands.ToolsCode.languagesText})`);
     }
 
-    return Formatter.Commands.ToolsCode.createMessage(context, {code, language});
+    return Formatter.Commands.ToolsCode.createMessage(context, {code, language, version});
   }
 }
