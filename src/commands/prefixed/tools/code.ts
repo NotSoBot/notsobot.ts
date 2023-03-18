@@ -53,7 +53,7 @@ export default class CodeCommand extends BaseCommand {
       const parsed = getCodeLanguage(codeblock.language);
       if (parsed) {
         language = parsed.language;
-        version = parsed.version;
+        version = parsed.version || version;
       }
     }
     code = codeblock.text;
