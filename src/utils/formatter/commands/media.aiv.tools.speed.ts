@@ -4,7 +4,7 @@ import { imageToolsGifSpeed } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.gif.speed';
+export const COMMAND_ID = 'media.aiv.tools.speed';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

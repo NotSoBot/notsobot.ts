@@ -4,7 +4,7 @@ import { imageToolsGifSeeSaw } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.gif.seesaw';
+export const COMMAND_ID = 'media.aiv.tools.seesaw';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

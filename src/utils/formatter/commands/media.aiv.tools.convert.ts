@@ -6,7 +6,7 @@ import { Mimetypes, MIMETYPES_SAFE_EMBED } from '../../../constants';
 import { imageReply, mediaReply, parseFilenameFromResponse } from '../..';
 
 
-export const COMMAND_ID = 'tools.convert';
+export const COMMAND_ID = 'media.aiv.tools.convert';
 export const IS_PIPEABLE = true;
 
 export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb

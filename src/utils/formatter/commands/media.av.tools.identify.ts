@@ -15,7 +15,7 @@ import {
 } from '../..';
 
 
-export const COMMAND_ID = 'audio.identify';
+export const COMMAND_ID = 'media.av.tools.identify';
 
 export interface CommandArgs {
   isEphemeral?: boolean,

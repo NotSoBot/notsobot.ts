@@ -4,7 +4,7 @@ import { audioToolsPutMix } from '../../../api';
 import { mediaReply } from '../..';
 
 
-export const COMMAND_ID = 'audio.tools.put.mix';
+export const COMMAND_ID = 'media.a.tools.put.mix';
 
 export interface CommandArgs {
   audioUrl: string,

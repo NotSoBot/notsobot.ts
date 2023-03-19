@@ -4,7 +4,7 @@ import { imageManipulationBlur } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.blur';
+export const COMMAND_ID = 'media.iv.maniplation.blur';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

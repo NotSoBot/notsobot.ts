@@ -4,7 +4,7 @@ import { audioToolsPutReplace } from '../../../api';
 import { mediaReply } from '../..';
 
 
-export const COMMAND_ID = 'audio.tools.put.replace';
+export const COMMAND_ID = 'media.a.tools.put.replace';
 
 export interface CommandArgs {
   audioUrl: string,

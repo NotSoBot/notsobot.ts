@@ -4,7 +4,7 @@ import { imageManipulationAscii } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'ascii.image';
+export const COMMAND_ID = 'media.iv.maniplation.ascii';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

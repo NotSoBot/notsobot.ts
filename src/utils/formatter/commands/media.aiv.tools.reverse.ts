@@ -4,7 +4,7 @@ import { imageToolsGifReverse } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.gif.reverse';
+export const COMMAND_ID = 'media.aiv.tools.reverse';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

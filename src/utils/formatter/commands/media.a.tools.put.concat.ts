@@ -4,7 +4,7 @@ import { audioToolsPutConcat } from '../../../api';
 import { mediaReply } from '../..';
 
 
-export const COMMAND_ID = 'audio.tools.put.concat';
+export const COMMAND_ID = 'media.a.tools.put.concat';
 
 export interface CommandArgs {
   audioUrl: string,
