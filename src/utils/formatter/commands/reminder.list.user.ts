@@ -1,7 +1,9 @@
 import { Command, Interaction } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
+import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Endpoints } from 'detritus-client-rest';
 
-import { createReminder } from '../../../api';
+import { fetchUserReminders } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { Parameters, createTimestampMomentFromGuild, editOrReply, getReminderMessage } from '../../../utils';
 
@@ -16,7 +18,21 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return editOrReply(context, {
-    content: 'wip',
-  });
+  const result = await fetchUserReminders(context, context.userId);
+  const reminders = result.reminders.reverse();
+
+  const embed = new Embed();
+  embed.setTitle('wip');
+  {
+    const description: Array<string> = [];
+    for (let reminder of reminders) {
+      const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.CHANNEL(reminder.guild_id, reminder.channel_id, reminder.message_id);
+      const timestamp = Markup.timestamp(Date.parse(reminder.timestamp_start), MarkupTimestampStyles.RELATIVE);
+      description.push(`${Markup.bold(String(reminder.position))}: ${Markup.url('Message', jumpLink)} ${timestamp}`);
+      description.push(`-> ${(Markup.escape.all(reminder.content) || 'N/A').slice(0, 69)}`);
+    }
+    embed.setDescription(description.join('\n'));
+  }
+  embed.setFooter(`${result.count.toLocaleString()} Reminders`);
+  return editOrReply(context, {embed});
 }

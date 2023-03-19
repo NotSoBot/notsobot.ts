@@ -99,6 +99,7 @@ class ReminderInterval extends Listener {
       users: [reminder.user.id],
     };
 
+    // check to see if the user can see channelId first
     let channelId = reminder.channel_id || reminder.channel_id_backup;
     let dmChannelId = reminder.channel_id_backup;
     try {

@@ -352,6 +352,15 @@ export async function fetchUser(
 }
 
 
+export async function fetchUserReminders(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.FetchUserReminders = {},
+) {
+  return raw.fetchUserReminders(context, userId, options);
+}
+
+
 export async function fetchUserTags(
   context: RequestContext,
   userId: string,

@@ -139,6 +139,15 @@ export namespace RestOptions {
     userId?: string,
   }
 
+  export interface FetchUserReminders {
+    after?: string,
+    before?: string,
+    guildId?: string,
+    limit?: number,
+    timestampMax?: number,
+    timestampMin?: number,
+  }
+
   export interface FetchUserTags {
     after?: string,
     before?: string,
@@ -1568,6 +1577,7 @@ export namespace RestResponsesRaw {
     id: string,
     is_all_day: boolean,
     message_id: string | null,
+    position: number,
     timestamp_end: string | null,
     timestamp_start: string,
     user: User,

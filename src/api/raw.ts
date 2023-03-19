@@ -629,6 +629,30 @@ export async function fetchUser(
   });
 }
 
+export async function fetchUserReminders(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.FetchUserReminders = {},
+): Promise<RestResponsesRaw.FetchReminders> {
+  const params = {userId};
+  const query = {
+    after: options.after,
+    before: options.before,
+    guild_id: options.guildId,
+    limit: options.limit,
+    timestamp_max: options.timestampMax,
+    timestamp_min: options.timestampMin,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.USER_REMINDERS,
+      params,
+    },
+  });
+}
+
 
 export async function fetchUserTags(
   context: RequestContext,
