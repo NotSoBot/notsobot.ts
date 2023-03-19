@@ -35,17 +35,18 @@ export default class CodeCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const parts = args.code.split(' ');
-  
     let code = args.code;
     let language: CodeLanguages | null = null;
     let version: string | null = null;
 
-    let parsed = getCodeLanguage(parts[0]);
-    if (parsed) {
-      code = parts.slice(1).join(' ');
-      language = parsed.language;
-      version = parsed.version;
+    const index = code.search(/\s/);
+    if (index !== -1) {
+      let parsed = getCodeLanguage(code.slice(0, index));
+      if (parsed) {
+        code = code.slice(index);
+        language = parsed.language;
+        version = parsed.version;
+      }
     }
 
     const codeblock = Parameters.codeblock(code);
