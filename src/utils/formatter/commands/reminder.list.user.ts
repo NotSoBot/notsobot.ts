@@ -26,7 +26,7 @@ export async function createMessage(
   {
     const description: Array<string> = [];
     for (let reminder of reminders) {
-      const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.CHANNEL(reminder.guild_id, reminder.channel_id, reminder.message_id);
+      const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(reminder.guild_id, reminder.channel_id, reminder.message_id);
       const timestamp = Markup.timestamp(Date.parse(reminder.timestamp_start), MarkupTimestampStyles.RELATIVE);
       description.push(`${Markup.bold(String(reminder.position))}: ${Markup.url('Message', jumpLink)} ${timestamp}`);
       description.push(`-> ${(Markup.escape.all(reminder.content) || 'N/A').slice(0, 69)}`);
