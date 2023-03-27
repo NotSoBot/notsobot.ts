@@ -15,7 +15,7 @@
     "juration": "^0.1.1",
     "moment": "^2.29.3",
     "moment-duration-format": "^2.3.2",
-    "moment-timezone": "^0.5.34",
+    "moment-timezone": "^0.5.35",
     "redis": "^4.1.0",
     "typescript": "^4.7.2"
   },
