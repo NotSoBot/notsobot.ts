@@ -8,7 +8,7 @@ import { imageReply } from '../..';
 export const COMMAND_ID = 'image.background.remove';
 export const IS_PIPEABLE = true;
 
-export const DEFAULT_MODEL = ImageBackgroundRemovalModels.U2NET;
+export const DEFAULT_MODEL = ImageBackgroundRemovalModels.ISNET_GENERAL_USE;
 
 export const SLASH_CHOICES_MODEL = Object.keys(ImageBackgroundRemovalModelsToText).map((value) => {
   let name = ImageBackgroundRemovalModelsToText[value as ImageBackgroundRemovalModels];

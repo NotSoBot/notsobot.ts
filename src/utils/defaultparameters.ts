@@ -228,7 +228,30 @@ export function noEmbed(context: Command.Context | Interaction.InteractionContex
 }
 
 
-export function safe(context: Command.Context | Interaction.InteractionContext): Boolean {
+export async function replyString(context: Command.Context | Interaction.InteractionContext): Promise<string | undefined> {
+  if (context instanceof Command.Context) {
+    {
+      // check reply
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId) {
+        let message = messageReference.message;
+        if (!message && (context.inDm || (context.channel && context.channel.canReadHistory))) {
+          try {
+            message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          } catch(error) {
+            // /shrug
+          }
+        }
+        if (message && message.content) {
+          return message.content;
+        }
+      }
+    }
+  }
+}
+
+
+export function safe(context: Command.Context | Interaction.InteractionContext): boolean {
   const { channel } = context;
   if (channel) {
     if (channel.isDm) {

@@ -7,6 +7,7 @@ import { ImageObjectGroupCommand } from './object';
 
 import { ImageToolsConvertCommand } from './convert';
 import { ImageToolsCropCommand } from './crop';
+import { ImageToolsCropAutoCommand } from './crop-auto';
 import { ImageToolsCropCircleCommand } from './crop-circle';
 import { ImageToolsCropNFTCommand } from './crop-nft';
 import { ImageJPEGCommand } from './jpeg';
@@ -26,6 +27,7 @@ export default class ImageToolsGroupCommand extends BaseSlashCommand {
         new ImageBackgroundGroupCommand(),
         new ImageToolsConvertCommand(),
         new ImageToolsCropCommand(),
+        new ImageToolsCropAutoCommand(),
         new ImageToolsCropCircleCommand(),
         new ImageToolsCropNFTCommand(),
         new ImageJPEGCommand(),

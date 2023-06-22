@@ -35,7 +35,7 @@ export async function createMessage(
     {
       const { matches } = discordRegex(DiscordRegexNames.EMOJI, value) as {matches: Array<{animated: boolean, id: string}>};
       if (matches.length) {
-        for (let { animated, id} of matches) {
+        for (let { animated, id } of matches) {
           const format = (animated) ? 'gif' : 'png';
           urls.push(DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format));
         }
@@ -92,11 +92,31 @@ export async function createMessage(
   }
 
   if (urls.length) {
-    const [ url ] = urls;
-    // if its a single url, resize
-    // if multiple, merge
-    const response = await imageToolsResize(context, {size: String(args.size), url});
-    return imageReply(context, response, {args: false});
+    const size = String(args.size);
+    const filtered = Array.from(new Set(urls));
+
+    // maybe instead of each one, merge all the emojis?
+    if (filtered.length === 1) {
+      const [ url ] = filtered;
+      // if its a single url, embed it
+      const response = await imageToolsResize(context, {size, url});
+      return imageReply(context, response, {args: false});
+    }
+
+    const promises: Array<Promise<{filename: string, value: Buffer}>> = [];
+    for (let url of filtered.slice(0, 10)) {
+      const promise: Promise<{filename: string, value: Buffer}> = new Promise(async (resolve, reject) => {
+        const response = await imageToolsResize(context, {size, url});
+
+        const filename = url.split('/').pop() || response.headers.get('x-file-name') || 'file';
+        const value = await response.buffer();
+        resolve({filename, value});
+      });
+      promises.push(promise);
+    }
+
+    const files = await Promise.all(promises);
+    return editOrReply(context, {files});
   }
   return editOrReply(context, '⚠ Unable to find any images matching that...');
 }

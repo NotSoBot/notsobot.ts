@@ -204,13 +204,14 @@ export namespace RestOptions {
     url?: string,
   }
 
-  export interface MediaABaseOptions extends MediaBaseOptions {
+  export interface MediaBaseOptionsMultiple extends MediaBaseOptions {
     files?: Array<RequestFile>,
+    urls?: Array<string>,
   }
 
-  export interface MediaAToolsPutBase extends MediaABaseOptions {
-    audioUrl?: string,
+  export interface MediaAToolsPutBase extends MediaBaseOptionsMultiple {
     longest?: boolean,
+    loop?: boolean,
   }
 
   export interface MediaAIVManipulationADHD extends MediaBaseOptions {
@@ -222,13 +223,21 @@ export namespace RestOptions {
     to?: string,
   }
 
-  export interface MediaAVToolsIdentify extends MediaBaseOptions {
+  export interface MediaAIVToolsSnip extends MediaBaseOptions {
+    audioOnly?: boolean,
+    end?: number,
     start?: number,
   }
 
-  export interface MediaAVToolsSnip extends MediaBaseOptions {
-    audioOnly?: boolean,
-    end?: number,
+  export interface MediaAVManipulationCompress extends MediaBaseOptions {
+    norevert?: boolean,
+  }
+
+  export interface MediaAVManipulationVolume extends MediaBaseOptions {
+    volume: number,
+  }
+
+  export interface MediaAVToolsIdentify extends MediaBaseOptions {
     start?: number,
   }
 
@@ -287,6 +296,13 @@ export namespace RestOptions {
     top: string,
   }
 
+  export interface MediaIVManipulationOverlayFlies extends MediaBaseOptions {
+    amount?: number,
+    degrees?: number,
+    flyImage?: string,
+    speed?: number,
+  }
+
   export interface MediaIVManipulationPix2Pix extends MediaBaseOptions {
     model: string,
   }
@@ -309,7 +325,10 @@ export namespace RestOptions {
   }
 
   export interface MediaIVToolsCrop extends MediaBaseOptions {
-    size?: string,
+    height: number,
+    width: number,
+    x?: number,
+    y?: number,
   }
 
   export interface MediaIVToolsCropCircle extends MediaBaseOptions {
@@ -320,9 +339,10 @@ export namespace RestOptions {
     background?: boolean,
   }
 
-  export interface MediaIVToolsGifSpeed extends MediaBaseOptions {
+  export interface MediaIVToolsJoin extends MediaBaseOptionsMultiple {
     loop?: boolean,
-    speed: number,
+    noresize?: boolean,
+    vertical?: boolean,
   }
 
   export interface MediaIVToolsResize extends MediaBaseOptions {
@@ -335,6 +355,11 @@ export namespace RestOptions {
   export interface MediaIVToolsRotate extends MediaBaseOptions {
     crop?: boolean,
     degrees?: number,
+  }
+
+  export interface MediaIVToolsSpeed extends MediaBaseOptions {
+    loop?: boolean,
+    speed: number,
   }
 
 

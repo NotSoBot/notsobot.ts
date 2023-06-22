@@ -26,6 +26,7 @@ import {
   fetchMemberOrUserById,
   findMediaUrlInEmbed,
   findMediaUrlInMessage,
+  findMediaUrlsInMessage,
   findMediaUrlInMessages,
   findMediaUrlsInMessages,
   findMemberByChunkText,
@@ -868,31 +869,34 @@ export function roles(
 
 // maybe don't accept emojis/stickers/user
 export function mediaUrl(
-  mediaSearchOptions: FindMediaUrlOptions = {},
+  mediaSearchOptions: FindMediaUrlOptions & {onlyContent?: boolean} = {},
 ): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<string | null | undefined> {
   const customLastMediaUrl = DefaultParameters.lastMediaUrl(mediaSearchOptions);
 
   const findAudio = (!mediaSearchOptions || mediaSearchOptions.audio || mediaSearchOptions.audio === undefined);
   const findVideo = (!mediaSearchOptions || mediaSearchOptions.video || mediaSearchOptions.video === undefined);
+  const onlyContent = (!!mediaSearchOptions && mediaSearchOptions.onlyContent);
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
     try {
-      if (context instanceof Command.Context) {
-        // check the message's attachments/stickers first
-        {
-          const url = findMediaUrlInMessage(context.message, value, mediaSearchOptions);
-          if (url) {
-            return url;
-          }
-        }
-
-        // check for reply and if it has a url
-        {
-          const { messageReference } = context.message;
-          if (messageReference && messageReference.messageId) {
-            const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-            const url = findUrlInMessages([message], mediaSearchOptions);
+      if (!onlyContent) {
+        if (context instanceof Command.Context) {
+          // check the message's attachments/stickers first, ignoring embed
+          {
+            const url = findMediaUrlInMessage(context.message, value, mediaSearchOptions, true);
             if (url) {
-              return getOrFetchRealUrl(context, url, mediaSearchOptions);
+              return url;
+            }
+          }
+
+          // check for reply and if it has a url
+          {
+            const { messageReference } = context.message;
+            if (messageReference && messageReference.messageId) {
+              const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+              const url = findUrlInMessages([message], mediaSearchOptions);
+              if (url) {
+                return getOrFetchRealUrl(context, url, mediaSearchOptions);
+              }
             }
           }
         }
@@ -1014,6 +1018,249 @@ export function mediaUrl(
 }
 
 
+export interface FindMediaUrlsOptions extends FindMediaUrlOptions {
+  maxAmount?: number,
+  minAmount?: number,
+}
+
+
+export function mediaUrls(
+  mediaSearchOptions: FindMediaUrlsOptions = {},
+): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<Array<string>> {
+  const maxAmount = mediaSearchOptions.maxAmount || 2;
+  const minAmount = mediaSearchOptions.minAmount || 0;
+
+  const customLastMediaUrl = DefaultParameters.lastMediaUrl(mediaSearchOptions);
+
+  const findAudio = (!mediaSearchOptions || mediaSearchOptions.audio || mediaSearchOptions.audio === undefined);
+  const findImage = (!mediaSearchOptions || mediaSearchOptions.image || mediaSearchOptions.image === undefined);
+  const findVideo = (!mediaSearchOptions || mediaSearchOptions.video || mediaSearchOptions.video === undefined);
+  return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
+    const urls: Array<string> = [];
+    if (context instanceof Interaction.InteractionContext) {
+      if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
+        for (let [attachmentId, attachment] of context.data.resolved.attachments) {
+          urls.push(attachment.url);
+        }
+      }
+    } else if (context instanceof Command.Context) {
+      // check the message's attachments/stickers first, ignoring embed
+      for (let url of findMediaUrlsInMessage(context.message, mediaSearchOptions, true)) {
+        urls.push(url);
+      }
+
+      // check for reply and if it has an attachments/embed/stickers
+      if (urls.length < maxAmount) {
+        const { messageReference } = context.message;
+        if (messageReference && messageReference.messageId) {
+          const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
+            urls.push(url);
+          }
+        }
+      }
+    }
+
+    let lastUrl: string | null | undefined;
+    let lastUrlParsed = false;
+    if (urls.length < maxAmount && value) {
+      // split the string then parse the parts
+      for (let part of stringArguments(value)) {
+        if (maxAmount <= urls.length) {
+          break;
+        }
+
+        try {
+          // get last image then
+          if (part === '^') {
+            if (!lastUrlParsed) {
+              lastUrl = await customLastMediaUrl(context);
+              lastUrlParsed = true;
+            }
+            if (lastUrl) {
+              urls.push(String(lastUrl));
+            }
+            continue;
+          }
+
+          // if it's a url
+          {
+            const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, part) as {matches: Array<{text: string}>};
+            if (matches.length) {
+              const [ { text } ] = matches;
+    
+              // if its https://discord.com/channels/:guildId/:channelId/:messageId
+              {
+                const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+                if (messageLink.matches.length) {
+                  const [ { channelId, messageId } ] = messageLink.matches;
+                  if (channelId && messageId) {
+                    const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+                    const url = findMediaUrlInMessages([message], mediaSearchOptions);
+                    if (url) {
+                      urls.push(url);
+                    }
+                  }
+                  continue;
+                }
+              }
+
+              if (context instanceof Command.Context && (!findAudio && !findVideo)) {
+                if (!context.message.embeds.length) {
+                  await Timers.sleep(1000);
+                }
+                const url = findMediaUrlInMessages([context.message], mediaSearchOptions);
+                urls.push(url || text);
+              } else {
+                urls.push(text);
+              }
+              continue;
+            }
+          }
+
+          // it's in the form of username#discriminator
+          if (part.includes('#') && !part.startsWith('#')) {
+            const found = await findMemberByChunkText(context, part);
+            if (found) {
+              urls.push(found.avatarUrlFormat(null, {size: 1024}));
+            }
+            continue;
+          }
+
+          // it's in the form of <@123>
+          {
+            const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, part) as {matches: Array<{id: string}>};
+            if (matches.length) {
+              const [ { id: userId } ] = matches;
+    
+              // pass it onto the next statement
+              if (isSnowflake(userId)) {
+                part = userId;
+              }
+            }
+          }
+
+          // it's just the snowflake of a user
+          if (isSnowflake(part)) {
+            const userId = part;
+
+            let user: Structures.Member | Structures.User;
+            if (context instanceof Command.Context && context.message.mentions.has(userId)) {
+              user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+            } else if (context.guild && context.guild.members.has(userId)) {
+              user = context.guild.members.get(userId)!;
+            } else if (context.users.has(userId)) {
+              user = context.users.get(userId)!;
+            } else {
+              user = await context.rest.fetchUser(userId);
+            }
+            urls.push(user.avatarUrlFormat(null, {size: 1024}));
+            continue;
+          }
+
+          // it's <a:emoji:id>
+          {
+            const { matches } = discordRegex(DiscordRegexNames.EMOJI, part) as {matches: Array<{animated: boolean, id: string}>};
+            if (matches.length) {
+              const [ { animated, id } ] = matches;
+              const format = (animated) ? 'gif' : 'png';
+              urls.push(DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format));
+              continue;
+            }
+          }
+
+          // it's an unicode emoji
+          {
+            const emojis = onlyEmoji(part);
+            if (emojis && emojis.length) {
+              for (let emoji of emojis) {
+                const codepoint = toCodePointForTwemoji(emoji);
+                urls.push(CUSTOM.TWEMOJI_SVG(codepoint));
+                continue;
+              }
+            }
+          }
+
+          // try user search (without the discriminator)
+          {
+            const found = await findMemberByChunkText(context, part);
+            if (found) {
+              urls.push(found.avatarUrlFormat(null, {size: 1024}));
+              continue;
+            }
+          }
+        } catch(error) {
+
+        }
+      }
+    }
+
+    if (urls.length < maxAmount && urls.length < minAmount) {
+      // minAmount amount, fetch messages then go through each one and do `findMediaUrlInMessage` until minAmount are filled up
+      const before = (context instanceof Command.Context) ? context.messageId : undefined;
+      {
+        const beforeId = (before) ? BigInt(before) : null;
+        // we dont get DM channels anymore so we must manually find messages now
+        const messages = context.messages.filter((message) => {
+          if (message.channelId !== context.channelId) {
+            return false;
+          }
+          if (message.interaction && message.hasFlagEphemeral) {
+            return message.interaction.user.id === context.userId;
+          }
+          if (beforeId) {
+            return BigInt(message.id) < beforeId;
+          }
+          return true;
+        }).reverse();
+        for (let message of messages) {
+          if (maxAmount <= urls.length) {
+            break;
+          }
+          for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
+            urls.push(url);
+          }
+        }
+      }
+
+      if (urls.length < maxAmount && urls.length < minAmount && (context.inDm || (context.channel && context.channel.canReadHistory))) {
+        const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
+        for (let [messageId, message] of messages) {
+          if (maxAmount <= urls.length) {
+            break;
+          }
+          for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
+            urls.push(url);
+          }
+        }
+      }
+    }
+
+    if (minAmount && urls.length < minAmount) {
+      throw new Error(`Could not find a minimum of ${minAmount} media urls`);
+    }
+
+    const filteredUrls: Record<string, string | null> = {};
+    const parsedUrls: Array<string> = [];
+    for (let url of urls.slice(0, maxAmount)) {
+      if (!(url in filteredUrls)) {
+        const filtered = await getOrFetchRealUrl(context, url, mediaSearchOptions);
+        filteredUrls[url] = filtered;
+      }
+      if (filteredUrls[url]) {
+        parsedUrls.push(filteredUrls[url] as string);
+      }
+    }
+
+    if (minAmount && urls.length < minAmount) {
+      throw new Error(`Could not find a minimum of ${minAmount} media urls`);
+    }
+
+    return parsedUrls;
+  }
+}
+
+
 export function mediaUrlPositional(
   mediaSearchOptions: FindMediaUrlOptions = {},
 ): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<string | null | undefined | [true, null | string | undefined]> {
@@ -1044,7 +1291,7 @@ export function mediaUrlPositional(
           }
         }
 
-        // check for reply and if it has an image
+        // check for reply and if it has an media
         {
           const { messageReference } = context.message;
           if (messageReference && messageReference.messageId) {

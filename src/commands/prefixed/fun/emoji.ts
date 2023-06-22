@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, EmojiTypes } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -30,6 +30,7 @@ export default class EmojiCommand extends BaseCommand {
           type: Parameters.stringLowerCase(),
         },
       ],
+      default: DefaultParameters.replyString,
       label: 'emojis',
       metadata: {
         category: CommandCategories.FUN,

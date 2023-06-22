@@ -1,25 +1,24 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVToolsCrop } from '../../../api';
+import { mediaIVToolsJoin } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'media.iv.tools.crop';
+export const COMMAND_ID = 'media.iv.tools.join';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  height: number,
-  width: number,
-  x?: number,
-  y?: number,
-  url: string,
+  loop?: boolean,
+  noresize?: boolean,
+  urls: Array<string>,
+  vertical?: boolean,
 }
 
 export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVToolsCrop(context, args);
+  return mediaIVToolsJoin(context, args);
 }
 
 export async function createMessage(

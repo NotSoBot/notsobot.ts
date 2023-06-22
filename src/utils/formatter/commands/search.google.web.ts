@@ -63,8 +63,9 @@ export async function createMessage(
             }
 
             for (let result of page) {
+              const cite = result.cite.replace('https://', '').replace('http://', '');
               const description: Array<string> = [
-                Markup.url(`**${Markup.escape.all(result.cite)}**`, result.url),
+                Markup.url(`**${Markup.escape.all(cite)}**`, result.url),
                 Markup.escape.all(result.description),
               ];
               if (result.footer) {
@@ -222,9 +223,10 @@ export async function createMessage(
               }; break;
               case GoogleCardTypes.WEB_SNIPPET: {
                 if (page.header) {
-                  embed.addField(`**${Markup.escape.all(page.header as string)}**`, [
-                    Markup.url(`**${Markup.escape.all(page.footer as string)}**`, page.url as string),
-                    Markup.escape.all(page.description as string),
+                  const cite = page.footer!.replace('https://', '').replace('http://', '');
+                  embed.addField(`**${Markup.escape.all(page.header!)}**`, [
+                    Markup.url(`**${Markup.escape.all(cite)}**`, page.url!),
+                    Markup.escape.all(page.description!),
                   ].join('\n'));
                 }
               }; break;

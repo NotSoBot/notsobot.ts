@@ -78,21 +78,32 @@ export const Api = Object.freeze({
   MEDIA_AIV_MANIPULATION_ADHD:
     '/image/manipulation/adhd',
 
+  MEDIA_AIV_TOOLS_CONCAT:
+    '/image/tools/concat',
   MEDIA_AIV_TOOLS_CONVERT:
     '/video/tools/convert',
   MEDIA_AIV_TOOLS_REVERSE:
     '/image/tools/gif/reverse',
   MEDIA_AIV_TOOLS_SEE_SAW:
     '/image/tools/gif/see-saw',
+  MEDIA_AIV_TOOLS_SNIP:
+    '/video/tools/snip',
   MEDIA_AIV_TOOLS_SPEED:
     '/image/tools/gif/speed',
+
+  MEDIA_AV_MANIPULATION_BOOST_BASS:
+    '/audio/tools/boost/bass',
+  MEDIA_AV_MANIPULATION_COMPRESS:
+    '/audio/tools/compress',
+  MEDIA_AV_MANIPULATION_DESTROY:
+    '/audio/tools/destroy',
+  MEDIA_AV_MANIPULATION_VOLUME:
+    '/audio/tools/volume',
 
   MEDIA_AV_TOOLS_EXTRACT_AUDIO:
     '/video/tools/extract/audio',
   MEDIA_AV_TOOLS_IDENTIFY:
     '/audio/tools/identify',
-  MEDIA_AV_TOOLS_SNIP:
-    '/video/tools/snip',
 
   MEDIA_IV_MANIPULATION_ASCII:
     '/image/manipulation/ascii',
@@ -146,6 +157,8 @@ export const Api = Object.freeze({
     '/image/manipulation/mirror-right',
   MEDIA_IV_MANIPULATION_MIRROR_TOP:
     '/image/manipulation/mirror-top',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLIES:
+    '/image/manipulation/flies',
   MEDIA_IV_MANIPULATION_PAPER:
     '/image/manipulation/paper',
   MEDIA_IV_MANIPULATION_PIX2PIX:
@@ -196,14 +209,18 @@ export const Api = Object.freeze({
 
   MEDIA_IV_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',
-  MEDIA_IV_TOOLS_OBJECT_REMOVE:
-    '/image/tools/object/remove',
   MEDIA_IV_TOOLS_CROP:
     '/image/tools/crop',
+  MEDIA_IV_TOOLS_CROP_AUTO:
+    '/image/tools/crop/auto',
   MEDIA_IV_TOOLS_CROP_CIRCLE:
     '/image/tools/crop/circle',
   MEDIA_IV_TOOLS_CROP_TWITTER_HEX:
     '/image/tools/crop/twitter-hex',
+  MEDIA_IV_TOOLS_JOIN:
+    '/image/tools/join',
+  MEDIA_IV_TOOLS_OBJECT_REMOVE:
+    '/image/tools/object/remove',
   MEDIA_IV_TOOLS_RESIZE:
     '/image/tools/resize',
   MEDIA_IV_TOOLS_ROTATE:

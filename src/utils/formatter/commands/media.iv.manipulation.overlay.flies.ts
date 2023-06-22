@@ -1,25 +1,31 @@
 import { Command, Interaction } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 
-import { mediaIVToolsCrop } from '../../../api';
+import { mediaIVManipulationOverlayFlies } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'media.iv.tools.crop';
+export const COMMAND_ID = 'media.iv.manipulation.overlay.flies';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  height: number,
-  width: number,
-  x?: number,
-  y?: number,
+  amount?: number,
+  flyImage?: string,
+  speed?: number,
   url: string,
 }
 
 export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: CommandArgs & {file?: RequestFile},
 ) {
-  return mediaIVToolsCrop(context, args);
+  return mediaIVManipulationOverlayFlies(context, {
+    amount: args.amount,
+    file: args.file,
+    flyImage: args.flyImage,
+    speed: args.speed,
+    url: args.url,
+  });
 }
 
 export async function createMessage(

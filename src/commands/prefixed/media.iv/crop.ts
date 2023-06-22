@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -13,19 +13,36 @@ export default class CropCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['crop auto'],
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Crop an Image or Video Automatically',
+        description: 'Crop an Image or Video',
         examples: [
-          COMMAND_NAME,
-          `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} 100 100 0 0`,
+          `${COMMAND_NAME} notsobot 100 100 0 0`,
         ],
         id: Formatter.Commands.MediaIVToolsCrop.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> <width,number> <height,number> ?<x,number> ?<y,number>',
       },
       priority: -1,
+      type: [
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
+        {name: 'width', type: Number},
+        {name: 'height', type: Number},
+        {name: 'x', type: Number},
+        {name: 'y', type: Number},
+      ],
     });
+  }
+
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaIVToolsCrop.CommandArgs) {
+    return !!args.width && !!args.height && super.onBeforeRun(context, args);
+  }
+
+  onCancelRun(context: Command.Context, args: Formatter.Commands.MediaIVToolsCrop.CommandArgs) {
+    if (!args.width || !args.height) {
+      return BaseImageOrVideoCommand.prototype.onCancelRun.call(this, context, args);
+    }
+    return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsCrop.CommandArgs) {

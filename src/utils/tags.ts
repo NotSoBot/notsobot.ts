@@ -7,11 +7,13 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import {
   googleContentVisionOCR,
   googleTranslate,
+  searchGoogleImages,
   utilitiesCodeRun,
   utilitiesFetchMedia,
   utilitiesFetchText,
   utilitiesImagescriptV1,
 } from '../api';
+import { RestResponsesRaw } from '../api/types';
 import { CodeLanguages, GoogleLocales, MAX_MEMBERS_SAFE } from '../constants';
 
 import * as DefaultParameters from './defaultparameters';
@@ -31,7 +33,13 @@ import {
 
 const findChannel = Parameters.channel({inGuild: true});
 const findMemberOrUser = Parameters.memberOrUser();
+
+const lastAudioUrl = Parameters.lastMediaUrl({image: false, video: false});
+const lastAudioOrVideoUrl = Parameters.lastMediaUrl({image: false});
 const lastImageUrl = Parameters.lastMediaUrl({audio: false, video: false});
+const lastImageOrVideoUrl = Parameters.lastMediaUrl({audio: false});
+const lastMediaUrl = Parameters.lastMediaUrl();
+const lastVideoUrl = Parameters.lastMediaUrl({audio: false, image: false});
 
 
 export const TagSymbols = Object.freeze({
@@ -93,6 +101,8 @@ export enum PrivateVariables {
   FILES = '__files',
   ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',
+  RESULTS = '__results',
+  SETTINGS = '__settings',
 }
 
 
@@ -152,9 +162,6 @@ export enum TagFunctions {
   GUILD_COUNT = 'GUILD_COUNT',
   GUILD_ID = 'GUILD_ID',
   HASTEBIN = 'HASTEBIN',
-  IMAGE = 'IMAGE',
-  IMAGESCRIPT = 'IMAGESCRIPT',
-  IMAGESCRIPT_2 = 'IMAGESCRIPT_2',
   IMAGE_OCR = 'IMAGE_OCR',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
   LOGICAL_GET = 'LOGICAL_GET',
@@ -169,10 +176,22 @@ export enum TagFunctions {
   MATH_PI = 'MATH_PI',
   MATH_SIN = 'MATH_SIN',
   MATH_TAN = 'MATH_TAN',
+  MEDIA = 'MEDIA',
+  MEDIA_AUDIO = 'MEDIA_AUDIO',
+  MEDIA_AUDIO_OR_VIDEO = 'MEDIA_AUDIO_OR_VIDEO',
+  MEDIA_IMAGE = 'MEDIA_IMAGE',
+  MEDIA_IMAGE_OR_VIDEO = 'MEDIA_IMAGE_OR_VIDEO',
+  MEDIA_VIDEO = 'MEDIA_VIDEO',
+  MEDIASCRIPT = 'MEDIASCRIPT',
+  MEDIASCRIPT_2 = 'MEDIASCRIPT_2',
   NSFW = 'NSFW',
   PREFIX = 'PREFIX',
+  REPLY_CONTENT = 'REPLY_CONTENT',
+  REPLY_USER_ID = 'REPLY_USER_ID',
   RNG_CHOOSE = 'RNG_CHOOSE',
   RNG_RANGE = 'RNG_RANGE',
+  SEARCH_GOOGLE_IMAGES = 'SEARCH_GOOGLE_IMAGES',
+  SETTINGS = 'SETTINGS',
   STRING_CODEBLOCK = 'STRING_CODEBLOCK',
   STRING_JSONIFY = 'STRING_JSONIFY',
   STRING_LENGTH = 'STRING_LENGTH',
@@ -225,9 +244,6 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.GUILD_COUNT]: ['guildcount', 'membercount', 'servercount'],
   [TagFunctions.GUILD_ID]: ['guildid', 'serverid', 'sid', 'gid'],
   [TagFunctions.HASTEBIN]: ['hastebin', 'haste'],
-  [TagFunctions.IMAGE]: ['image'],
-  [TagFunctions.IMAGESCRIPT]: ['iscript'],
-  [TagFunctions.IMAGESCRIPT_2]: ['image2', 'iscript2', 'imagescript'],
   [TagFunctions.IMAGE_OCR]: ['ocr'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
   [TagFunctions.LOGICAL_GET]: ['get'],
@@ -242,10 +258,22 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MATH_PI]: ['pi'],
   [TagFunctions.MATH_SIN]: ['sin'],
   [TagFunctions.MATH_TAN]: ['tan'],
+  [TagFunctions.MEDIA]: ['media'],
+  [TagFunctions.MEDIA_AUDIO]: ['audio'],
+  [TagFunctions.MEDIA_AUDIO_OR_VIDEO]: ['av'],
+  [TagFunctions.MEDIA_IMAGE]: ['image'],
+  [TagFunctions.MEDIA_IMAGE_OR_VIDEO]: ['iv'],
+  [TagFunctions.MEDIASCRIPT]: ['mediascript', 'mscript', 'imagescript', 'iscript'],
+  [TagFunctions.MEDIASCRIPT_2]: ['iscript2', 'mscript2'],
+  [TagFunctions.MEDIA_VIDEO]: ['video'],
   [TagFunctions.NSFW]: ['nsfw'],
   [TagFunctions.PREFIX]: ['prefix'],
+  [TagFunctions.REPLY_CONTENT]: ['replycontent'],
+  [TagFunctions.REPLY_USER_ID]: ['replyuserid'],
   [TagFunctions.RNG_CHOOSE]: ['choose'],
   [TagFunctions.RNG_RANGE]: ['range', 'random', 'rnd'],
+  [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.g.images'],
+  [TagFunctions.SETTINGS]: ['settings'],
   [TagFunctions.STRING_CODEBLOCK]: ['code'],
   [TagFunctions.STRING_JSONIFY]: ['jsonify'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
@@ -274,13 +302,24 @@ export const TagFunctionsToString = Object.freeze({
 });
 
 
+export enum TagSettings {
+  MEDIA_IV_FALLBACK = 'MEDIA_IV_FALLBACK',
+}
+
+
 export interface TagVariables {
   [PrivateVariables.ARGS]: Array<string>,
   [PrivateVariables.ARGS_STRING]: string,
   [PrivateVariables.FILE_SIZE]: number,
   [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
-  [key: string]: number | string | Array<string>,
+  [PrivateVariables.RESULTS]: {
+    [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponsesRaw.SearchGoogleImages>,
+  },
+  [PrivateVariables.SETTINGS]: {
+    [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.SEARCH_GOOGLE_IMAGES,
+  },
+  [key: string]: number | string | Array<string> | Record<string, any>,
 }
 
 export interface TagResult {
@@ -309,6 +348,12 @@ export async function parse(
   }
   if (!(PrivateVariables.FILE_SIZE in variables)) {
     variables[PrivateVariables.FILE_SIZE] = 0;
+  }
+  if (!(PrivateVariables.RESULTS in variables)) {
+    variables[PrivateVariables.RESULTS] = {};
+  }
+  if (!(PrivateVariables.SETTINGS in variables)) {
+    variables[PrivateVariables.SETTINGS] = {};
   }
   const tag: TagResult = {embeds: [], files: [], text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
@@ -923,66 +968,6 @@ const ScriptTags = Object.freeze({
     return false;
   },
 
-  [TagFunctions.IMAGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // get image from arg or last image
-    // {image}
-    // {image:cake}
-
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-
-    const url = await lastImageUrl(arg.trim(), context);
-    if (url) {
-      tag.text += url;
-    }
-
-    return true;
-  },
-
-  [TagFunctions.IMAGESCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // imagescript 1
-
-    const code = arg.trim();
-    if (!code) {
-      return false;
-    }
-
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-    try {
-      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
-      const response = await utilitiesImagescriptV1(context, {code});
-      const filename = (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
-
-      let data: Buffer | string = await response.buffer();
-      if ((response.headers.get('content-type') || '').startsWith('text/')) {
-        data = data.toString();
-      }
-
-      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-      if (maxFileSize <= currentFileSize + data.length) {
-        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
-      }
-      tag.variables[PrivateVariables.FILE_SIZE] += data.length;
-
-      tag.files.push({
-        buffer: data,
-        filename,
-        spoiler: false,
-        url: '',
-      });
-    } catch(error) {
-      console.log(error);
-      throw error;
-    }
-
-    return true;
-  },
-
-  [TagFunctions.IMAGESCRIPT_2]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // imagescript 2
-
-    return false;
-  },
-
   [TagFunctions.IMAGE_OCR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // ocr an image
     // {ocr:cake}
@@ -1285,6 +1270,151 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.MEDIA]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get media from arg or last media
+    // {media}
+    // {media:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const url = await lastMediaUrl(arg.trim(), context);
+    if (url) {
+      tag.text += url;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_AUDIO]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get audio from arg or last audio
+    // {audio}
+    // {audio:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const url = await lastAudioUrl(arg.trim(), context);
+    if (url) {
+      tag.text += url;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_AUDIO_OR_VIDEO]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get audio/video from arg or last audio/video
+    // {av}
+    // {av:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const url = await lastAudioOrVideoUrl(arg.trim(), context);
+    if (url) {
+      tag.text += url;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_IMAGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get image from arg or last image
+    // {image}
+    // {image:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const url = await lastImageUrl(arg.trim(), context);
+    if (url) {
+      tag.text += url;
+    } else {
+      const fallbackFunction = tag.variables[PrivateVariables.SETTINGS][TagSettings.MEDIA_IV_FALLBACK];
+      if (fallbackFunction && fallbackFunction in ScriptTags) {
+        return ScriptTags[fallbackFunction](context, arg, tag);
+      }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_IMAGE_OR_VIDEO]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get image/video from arg or last image/video
+    // {iv}
+    // {iv:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const url = await lastImageOrVideoUrl(arg.trim(), context);
+    if (url) {
+      tag.text += url;
+    } else {
+      const fallbackFunction = tag.variables[PrivateVariables.SETTINGS][TagSettings.MEDIA_IV_FALLBACK];
+      if (fallbackFunction && fallbackFunction in ScriptTags) {
+        return ScriptTags[fallbackFunction](context, arg, tag);
+      }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_VIDEO]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get video from arg or last video
+    // {video}
+    // {video:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const url = await lastVideoUrl(arg.trim(), context);
+    if (url) {
+      tag.text += url;
+    }
+
+    return true;
+  },
+ 
+  [TagFunctions.MEDIASCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // mediascript 1
+
+    const code = arg.trim();
+    if (!code) {
+      return false;
+    }
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    try {
+      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+      const response = await utilitiesImagescriptV1(context, {code});
+      const filename = (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
+
+      let data: Buffer | string = await response.buffer();
+      if ((response.headers.get('content-type') || '').startsWith('text/')) {
+        data = data.toString();
+      }
+
+      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+      if (maxFileSize <= currentFileSize + data.length) {
+        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+      }
+      tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+      tag.files.push({
+        buffer: data,
+        filename,
+        spoiler: false,
+        url: '',
+      });
+    } catch(error) {
+      console.log(error);
+      throw error;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIASCRIPT_2]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // MEDIASCRIPT 2
+
+    return false;
+  },
+
   [TagFunctions.NSFW]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // errors the command if the channel/user isnt suppose to use nsfw
     // {nsfw}
@@ -1304,6 +1434,28 @@ const ScriptTags = Object.freeze({
       tag.text += '/';
     } else {
       tag.text += context.prefix;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.REPLY_CONTENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {replycontent}
+
+    if (context instanceof Command.Context && context.message && context.message.referencedMessage) {
+      const { content } = context.message.referencedMessage;
+      tag.text += content;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.REPLY_USER_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {replyuserid}
+
+    if (context instanceof Command.Context && context.message && context.message.referencedMessage) {
+      const { author } = context.message.referencedMessage;
+      tag.text += author.id;
     }
 
     return true;
@@ -1350,11 +1502,11 @@ const ScriptTags = Object.freeze({
 
     let firstValue = '0', secondValue = '0';
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      secondValue = arg.split('.').shift() as string;
+      secondValue = arg.split('.').shift()!;
     } else {
       const firstSplitter = arg.indexOf(TagSymbols.SPLITTER_ARGUMENT);
-      firstValue = arg.slice(0, firstSplitter).split('.').shift() as string;
-      secondValue = arg.slice(firstSplitter + 1).split('.').shift() as string;
+      firstValue = arg.slice(0, firstSplitter).split('.').shift()!;
+      secondValue = arg.slice(firstSplitter + 1).split('.').shift()!;
     }
 
     if (isNaN(firstValue as any) || isNaN(secondValue as any)) {
@@ -1362,6 +1514,104 @@ const ScriptTags = Object.freeze({
     }
 
     tag.text += bigIntGenerateBetween(BigInt(firstValue), BigInt(secondValue));
+
+    return true;
+  },
+
+  [TagFunctions.SEARCH_GOOGLE_IMAGES]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {search.google.images:cat}
+    // {search.google.images:1|cat}
+
+    if (!arg) {
+      return true;
+    }
+
+    let page = -1;
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      const firstSplitter = arg.indexOf(TagSymbols.SPLITTER_ARGUMENT);
+      const firstValue = arg.slice(0, firstSplitter).trim().toLowerCase() || '0';
+      if (firstValue === 'random' || !isNaN(firstValue as any)) {
+        if (firstValue === 'random') {
+          page = -1;
+        } else if (!isNaN(firstValue as any)) {
+          page = parseInt(firstValue);
+          if (isNaN(page)) {
+            page = 0;
+          }
+        }
+        arg = arg.slice(firstSplitter + 1);
+      }
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_GOOGLE_IMAGES] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_GOOGLE_IMAGES] ||
+      {}
+    );
+
+    arg = arg.slice(0, 1024);
+    if (!(arg in cachedResults)) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    }
+
+    const results = cachedResults[arg] || await searchGoogleImages(context, {
+      query: arg,
+      safe: DefaultParameters.safe(context),
+    });
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = results;
+    }
+
+    page = Math.min(page, results.length);
+    if (page === -1) {
+      page = Math.floor(Math.random() * results.length);
+    }
+    page = Math.max(page, 0);
+
+    tag.text += results[page].image.url;
+
+    return true;
+  },
+
+  [TagFunctions.SETTINGS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {settings:SETTING|VALUE}
+    // {settings:MEDIA_IV_FALLBACK|search.google.images}
+
+    const parts = split(arg);
+    if (parts.length !== 2) {
+      return false;
+    }
+
+    let [ settingValue, value ] = parts;
+
+    const setting = settingValue.toUpperCase() as TagSettings;
+    if (!(setting in TagSettings)) {
+      return false;
+    }
+
+    switch (setting) {
+      case TagSettings.MEDIA_IV_FALLBACK: {
+        if (value) {
+          value = value.toLowerCase();
+
+          let parsedValue: any = null;
+          for (let tagFunction of [TagFunctions.SEARCH_GOOGLE_IMAGES]) {
+            if (TagFunctionsToString[tagFunction].includes(value)) {
+              parsedValue = tagFunction;
+              break;
+            }
+          }
+
+          if (parsedValue) {
+            tag.variables[PrivateVariables.SETTINGS][setting] = parsedValue;
+          }
+        } else {
+          delete tag.variables[setting];
+        }
+      }; break;
+      default: {
+        return false;
+      };
+    }
 
     return true;
   },

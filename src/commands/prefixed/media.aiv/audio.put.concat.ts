@@ -3,12 +3,12 @@ import { Command, CommandClient } from 'detritus-client';
 import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
-import { BaseMediaCommand } from '../basecommand';
+import { BaseMediasCommand } from '../basecommand';
 
 
 export const COMMAND_NAME = 'audio put concat';
 
-export default class AudioPutConcatCommand extends BaseMediaCommand {
+export default class AudioPutConcatCommand extends BaseMediasCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -16,6 +16,7 @@ export default class AudioPutConcatCommand extends BaseMediaCommand {
       aliases: ['a put concat'],
       args: [
         {name: 'longest', type: Boolean},
+        {name: 'loop', type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,
@@ -24,26 +25,10 @@ export default class AudioPutConcatCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,
         ],
         id: Formatter.Commands.MediaAToolsPutConcat.COMMAND_ID,
-        usage: '?<url> ?<emoji,user:id|mention|name,url> (-longest)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-longest) (-loop)',
       },
-      type: [
-        {name: 'audio', label: 'audioUrl', type: Parameters.mediaUrlPositional({image: false, video: false})},
-        {name: 'url', type: Parameters.lastMediaUrl({audio: false}), consume: true},
-      ],
+      minAmount: 2,
     });
-  }
-
-  onBeforeRun(context: Command.Context, args: {audioUrl?: null | string, url?: null | string}) {
-    return !!args.audioUrl && super.onBeforeRun(context, args);
-  }
-
-  onCancelRun(context: Command.Context, args: {audioUrl?: null | string, url?: null | string}) {
-    if (args.audioUrl === undefined) {
-      return editOrReply(context, '⚠ Unable to find any audio in the last 50 messages.');
-    } else if (args.audioUrl === null) {
-      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
-    }
-    return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.MediaAToolsPutConcat.CommandArgs) {

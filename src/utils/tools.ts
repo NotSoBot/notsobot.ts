@@ -384,9 +384,13 @@ export function findMediaUrlsInMessage(
   }
   if (!ignoreEmbed) {
     for (let [embedId, embed] of message.embeds) {
-      const url = findMediaUrlInEmbed(embed, false, options);
-      if (url) {
-        urls.add(url);
+      if (message.fromMe && embed.url && embed.url.startsWith('https://youtu.be/')) {
+        urls.add(embed.url);
+      } else {
+        const url = findMediaUrlInEmbed(embed, false, options);
+        if (url) {
+          urls.add(url);
+        }
       }
     }
   }
@@ -1200,7 +1204,7 @@ export async function imageReplyFromOptions(
       case Mimetypes.IMAGE_GIF: showFrames = true; break;
       case Mimetypes.IMAGE_WEBP: {
         if (showFrames) {
-          shouldSetImage = false;// discord doesnt support embedding animated webps
+          shouldSetImage = false; // discord doesnt support embedding animated webps
         }
       }; break;
     }
@@ -1209,6 +1213,11 @@ export async function imageReplyFromOptions(
       footer = `${footer}, ${options.framesNew.toLocaleString()} frames`;
     }
   }
+
+  switch (options.mimetype) {
+    case Mimetypes.IMAGE_X_APNG: shouldSetImage = false; break; // discord now only uploads the first frame of an apng, so we will just send a file ending in `.apng`
+  }
+
   footer = `${footer}, ${formatMemory(options.size, 2)}`;
   if (options.took && 2000 <= options.took) {
     const seconds = (options.took / 1000).toFixed(1);

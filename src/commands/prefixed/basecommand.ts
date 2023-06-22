@@ -370,6 +370,58 @@ export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 }
 
 
+export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
+  maxAmount = 2;
+  minAmount = 0;
+  triggerTypingAfter = 250;
+
+  constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions> & {maxAmount?: number, minAmount?: number}) {
+    super(commandClient, {
+      label: 'urls',
+      name: '',
+      permissionsClient: [Permissions.ATTACH_FILES, Permissions.EMBED_LINKS],
+      ratelimits: [
+        {duration: 5000, limit: 5, key: RatelimitKeys.IMAGE, type: 'guild'},
+        {duration: 1000, limit: 1, key: RatelimitKeys.IMAGE, type: 'channel'},
+      ],
+      type: options.type || Parameters.mediaUrls({
+        maxAmount: options.maxAmount,
+        minAmount: options.minAmount,
+      }),
+      ...options,
+    });
+    this.maxAmount = options.maxAmount || this.maxAmount;
+    this.minAmount = options.minAmount || this.minAmount;
+  }
+
+  onBeforeRun(context: Command.Context, args: {urls: Array<string>}) {
+    return !!args.urls.length && args.urls.length <= this.maxAmount && this.minAmount <= args.urls.length;
+  }
+
+  onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
+    if (!args.urls.length) {
+      return editOrReply(context, '⚠ Unable to find any media in the last 50 messages.');
+    } else if (args.urls.length < this.minAmount) {
+      return editOrReply(context, `⚠ Unable to find ${this.maxAmount} media urls in the last 50 messages.`);
+    } else if (this.maxAmount < args.urls.length) {
+      // never should happen
+      return editOrReply(context, `⚠ Found too many media urls in the last 50 messages.`);
+    }
+    return super.onCancelRun(context, args);
+  }
+
+  onSuccess(context: Command.Context, args: ParsedArgsFinished) {
+    if (context.response) {
+      const responseUrl = findMediaUrlInMessages([context.response], {audio: false, video: false});
+      if (responseUrl) {
+        context.metadata = Object.assign({}, context.metadata, {responseUrl});
+      }
+    }
+    return super.onSuccess(context, args);
+  }
+}
+
+
 export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediaCommand<ParsedArgsFinished> {
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {

@@ -1,25 +1,19 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { audioToolsPutMix } from '../../../api';
+import { mediaAVManipulationCompress } from '../../../api';
 import { mediaReply } from '../..';
 
 
-export const COMMAND_ID = 'media.a.tools.put.mix';
+export const COMMAND_ID = 'media.av.manipulation.compress';
 
 export interface CommandArgs {
-  longest?: boolean,
-  loop?: boolean,
-  urls: [string, string],
+  url: string,
 }
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await audioToolsPutMix(context, {
-    longest: args.longest,
-    loop: args.loop,
-    urls: args.urls,
-  });
+  const response = await mediaAVManipulationCompress(context, args);
   return mediaReply(context, response);
 }

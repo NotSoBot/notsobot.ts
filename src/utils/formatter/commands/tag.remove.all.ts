@@ -45,7 +45,10 @@ export async function createMessage(
   const serverId = context.guildId || context.channelId!;
 
   if (!args.user || (args.user && args.user.id !== context.userId)) {
-    const hasPermissionsToForceRemove = context.user.isClientOwner || (context.member && context.member.canManageGuild);
+    const hasPermissionsToForceRemove = (
+      context.user.isClientOwner ||
+      (context.member && (context.member.canManageGuild || context.member.canBanMembers))
+    );
     if (!hasPermissionsToForceRemove) {
       if (!args.user) {
         args.user = context.user;

@@ -24,14 +24,20 @@ import * as MediaAToolsPutReplace from './media.a.tools.put.replace';
 
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
 
+import * as MediaAIVToolsConcat from './media.aiv.tools.concat';
 import * as MediaAIVToolsConvert from './media.aiv.tools.convert';
 import * as MediaAIVToolsReverse from './media.aiv.tools.reverse';
 import * as MediaAIVToolsSeeSaw from './media.aiv.tools.seesaw';
+import * as MediaAIVToolsSnip from './media.aiv.tools.snip';
 import * as MediaAIVToolsSpeed from './media.aiv.tools.speed';
+
+import * as MediaAVManipulationBoostBass from './media.av.manipulation.boost.bass';
+import * as MediaAVManipulationCompress from './media.av.manipulation.compress';
+import * as MediaAVManipulationDestroy from './media.av.manipulation.destroy';
+import * as MediaAVManipulationVolume from './media.av.manipulation.volume';
 
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
 import * as MediaAVToolsIdentify from './media.av.tools.identify';
-import * as MediaAVToolsSnip from './media.av.tools.snip';
 
 import * as MediaIVManipulationASCII from './media.iv.manipulation.ascii';
 import * as MediaIVManipulationBlur from './media.iv.manipulation.blur';
@@ -59,6 +65,7 @@ import * as MediaIVManipulationMirrorBottom from './media.iv.manipulation.mirror
 import * as MediaIVManipulationMirrorLeft from './media.iv.manipulation.mirror.left';
 import * as MediaIVManipulationMirrorRight from './media.iv.manipulation.mirror.right';
 import * as MediaIVManipulationMirrorTop from './media.iv.manipulation.mirror.top';
+import * as MediaIVManipulationOverlayFlies from './media.iv.manipulation.overlay.flies';
 import * as MediaIVManipulationJPEG from './media.iv.manipulation.jpeg';
 import * as MediaIVManipulationPaper from './media.iv.manipulation.paper';
 import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
@@ -71,8 +78,10 @@ import * as MediaIVManipulationWall from './media.iv.manipulation.wall';
 
 import * as MediaIVToolsBackgroundRemove from './media.iv.tools.background.remove';
 import * as MediaIVToolsCrop from './media.iv.tools.crop';
+import * as MediaIVToolsCropAuto from './media.iv.tools.crop.auto';
 import * as MediaIVToolsCropCircle from './media.iv.tools.crop.circle';
 import * as MediaIVToolsCropNFT from './media.iv.tools.crop.nft';
+import * as MediaIVToolsJoin from './media.iv.tools.join';
 import * as MediaIVToolsResize from './media.iv.tools.resize';
 import * as MediaIVToolsRotate from './media.iv.tools.rotate';
 import * as MediaIVToolsTrim from './media.iv.tools.trim';
@@ -162,14 +171,20 @@ export {
 
   MediaAIVManipulationADHD,
 
+  MediaAIVToolsConcat,
   MediaAIVToolsConvert,
   MediaAIVToolsReverse,
   MediaAIVToolsSeeSaw,
+  MediaAIVToolsSnip,
   MediaAIVToolsSpeed,
+
+  MediaAVManipulationBoostBass,
+  MediaAVManipulationCompress,
+  MediaAVManipulationDestroy,
+  MediaAVManipulationVolume,
 
   MediaAVToolsExtractAudio,
   MediaAVToolsIdentify,
-  MediaAVToolsSnip,
 
   MediaIVManipulationASCII,
   MediaIVManipulationBlur,
@@ -197,6 +212,7 @@ export {
   MediaIVManipulationMirrorLeft,
   MediaIVManipulationMirrorRight,
   MediaIVManipulationMirrorTop,
+  MediaIVManipulationOverlayFlies,
   MediaIVManipulationJPEG,
   MediaIVManipulationPaper,
   MediaIVManipulationPixelate,
@@ -209,8 +225,10 @@ export {
 
   MediaIVToolsBackgroundRemove,
   MediaIVToolsCrop,
+  MediaIVToolsCropAuto,
   MediaIVToolsCropCircle,
   MediaIVToolsCropNFT,
+  MediaIVToolsJoin,
   MediaIVToolsResize,
   MediaIVToolsRotate,
   MediaIVToolsTrim,

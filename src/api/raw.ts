@@ -83,16 +83,16 @@ export async function audioToolsPutConcat(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
 ): Promise<Response> {
-  const query = {
-    audio_url: options.audioUrl,
+  const body = {
     longest: options.longest,
-    url: options.url,
+    loop: options.loop,
+    urls: options.urls,
   };
   return request(context, {
+    body,
     dataOnly: false,
     file: options.file,
     files: options.files,
-    query,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_A_TOOLS_PUT_CONCAT,
@@ -105,16 +105,16 @@ export async function audioToolsPutMix(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
 ): Promise<Response> {
-  const query = {
-    audio_url: options.audioUrl,
+  const body = {
     longest: options.longest,
-    url: options.url,
+    loop: options.loop,
+    urls: options.urls,
   };
   return request(context, {
+    body,
     dataOnly: false,
     file: options.file,
     files: options.files,
-    query,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_A_TOOLS_PUT_MIX,
@@ -127,16 +127,16 @@ export async function audioToolsPutReplace(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
 ): Promise<Response> {
-  const query = {
-    audio_url: options.audioUrl,
+  const body = {
     longest: options.longest,
-    url: options.url,
+    loop: options.loop,
+    urls: options.urls,
   };
   return request(context, {
+    body,
     dataOnly: false,
     file: options.file,
     files: options.files,
-    query,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_A_TOOLS_PUT_REPLACE,
@@ -682,11 +682,11 @@ export async function funASCII(
   context: RequestContext,
   options: RestOptions.FunASCII,
 ): Promise<RestResponsesRaw.FunAscii> {
-  const query = {
+  const body = {
     text: options.text,
   };
   return request(context, {
-    query,
+    body,
     route: {
       method: HTTPMethods.POST,
       path: Api.FUN_ASCII,
@@ -965,15 +965,15 @@ export async function imageManipulationCaption(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationCaption,
 ): Promise<Response> {
-  const query = {
+  const body = {
     font: options.font,
     text: options.text,
     url: options.url,
   };
   return request(context, {
+    body,
     dataOnly: false,
     file: options.file,
-    query,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_CAPTION,
@@ -1883,26 +1883,6 @@ export async function imageToolsObjectRemove(
 }
 
 
-export async function imageToolsCrop(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsCrop,
-): Promise<Response> {
-  const query = {
-    size: options.size,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_CROP,
-    },
-  });
-}
-
-
 export async function imageToolsCropCircle(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCropCircle,
@@ -1983,7 +1963,7 @@ export async function imageToolsGifSeeSaw(
 
 export async function imageToolsGifSpeed(
   context: RequestContext,
-  options: RestOptions.MediaIVToolsGifSpeed,
+  options: RestOptions.MediaIVToolsSpeed,
 ): Promise<Response> {
   const query = {
     loop: options.loop,
@@ -2065,6 +2045,26 @@ export async function imageToolsTrim(
 }
 
 
+export async function mediaAIVToolsConcat(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptionsMultiple,
+): Promise<Response> {
+  const body = {
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    dataOnly: false,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_CONCAT,
+    },
+  });
+}
+
+
 export async function mediaAIVToolsConvert(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsConvert,
@@ -2081,6 +2081,106 @@ export async function mediaAIVToolsConvert(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_TOOLS_CONVERT,
+    },
+  });
+}
+
+
+export async function mediaAIVToolsSnip(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsSnip,
+): Promise<Response> {
+  const query = {
+    audio_only: options.audioOnly,
+    end: options.end,
+    start: options.start,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_SNIP,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationBoostBass(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_BOOST_BASS,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationCompress(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationCompress,
+): Promise<Response> {
+  const query = {
+    no_revert: options.norevert,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_COMPRESS,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationDestroy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_DESTROY,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationVolume(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationVolume,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+    volume: options.volume,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_VOLUME,
     },
   });
 }
@@ -2123,14 +2223,37 @@ export async function mediaAVToolsIdentify(
 }
 
 
-export async function mediaAVToolsSnip(
+export async function mediaIVManipulationOverlayFlies(
   context: RequestContext,
-  options: RestOptions.MediaAVToolsSnip,
+  options: RestOptions.MediaIVManipulationOverlayFlies,
+): Promise<Response> {
+  const body = {
+    amount: options.amount,
+    degrees: options.degrees,
+    speed: options.speed,
+    urls: [options.url, options.flyImage].filter(Boolean),
+  };
+  return request(context, {
+    body,
+    dataOnly: false,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLIES,
+    },
+  });
+}
+
+
+export async function mediaIVToolsCrop(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsCrop,
 ): Promise<Response> {
   const query = {
-    audio_only: options.audioOnly,
-    end: options.end,
-    start: options.start,
+    height: options.height,
+    width: options.width,
+    x: options.x,
+    y: options.y,
     url: options.url,
   };
   return request(context, {
@@ -2139,7 +2262,49 @@ export async function mediaAVToolsSnip(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.MEDIA_AV_TOOLS_SNIP,
+      path: Api.MEDIA_IV_TOOLS_CROP,
+    },
+  });
+}
+
+
+export async function mediaIVToolsCropAuto(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_CROP_AUTO,
+    },
+  });
+}
+
+
+export async function mediaIVToolsJoin(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsJoin,
+): Promise<Response> {
+  const body = {
+    loop: options.loop,
+    no_resize: options.noresize,
+    urls: options.urls,
+    vertical: options.vertical,
+  };
+  return request(context, {
+    body,
+    dataOnly: false,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_JOIN,
     },
   });
 }

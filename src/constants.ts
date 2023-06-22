@@ -666,15 +666,23 @@ export enum GuildPremiumTypes {
 
 export enum ImageBackgroundRemovalModels {
   ALPHA_MATTING = 'ALPHA_MATTING',
+  ISNET_ANIME = 'ISNET_ANIME',
+  ISNET_GENERAL_USE = 'ISNET_GENERAL_USE',
+  SILUETA = 'SILUETA',
   U2NET = 'U2NET',
   U2NETP = 'U2NETP',
+  U2NET_CLOTH_SEG = 'U2NET_CLOTH_SEG',
   U2NET_HUMAN_SEG = 'U2NET_HUMAN_SEG',
 };
 
 export const ImageBackgroundRemovalModelsToText: Record<ImageBackgroundRemovalModels, string> = Object.freeze({
   [ImageBackgroundRemovalModels.ALPHA_MATTING]: 'Alpha Matting',
+  [ImageBackgroundRemovalModels.ISNET_ANIME]: 'ISNet Anime (Anime-Orientated ISNet)',
+  [ImageBackgroundRemovalModels.ISNET_GENERAL_USE]: 'ISNet General Use',
+  [ImageBackgroundRemovalModels.SILUETA]: 'U2Net (But Smaller)',
   [ImageBackgroundRemovalModels.U2NET]: 'U2Net',
   [ImageBackgroundRemovalModels.U2NETP]: 'U2Netp (Simpler U2Net)',
+  [ImageBackgroundRemovalModels.U2NET_CLOTH_SEG]: 'U2Netp (Clothing-Orientated U2Net)',
   [ImageBackgroundRemovalModels.U2NET_HUMAN_SEG]: 'U2Net Human Segmentation (Human-Orientated U2Net)',
 });
 

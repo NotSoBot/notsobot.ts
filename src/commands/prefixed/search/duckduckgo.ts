@@ -50,8 +50,9 @@ export default class DuckDuckGoCommand extends BaseSearchCommand<CommandArgs> {
   
           const page = pages[pageNumber - 1];
           for (let result of page) {
+            const cite = result.cite.replace('https://', '').replace('http://', '');
             const description: Array<string> = [
-              Markup.url(`**${Markup.escape.all(result.cite)}**`, result.url),
+              Markup.url(`**${Markup.escape.all(cite)}**`, result.url),
               Markup.escape.all(result.description),
             ];
             embed.addField(`**${Markup.escape.all(result.title)}**`, description.join('\n'));

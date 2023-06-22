@@ -7,9 +7,9 @@ import { mediaReply } from '../..';
 export const COMMAND_ID = 'media.a.tools.put.concat';
 
 export interface CommandArgs {
-  audioUrl: string,
   longest?: boolean,
-  url: string,
+  loop?: boolean,
+  urls: Array<string>,
 }
 
 export async function createMessage(
@@ -17,9 +17,9 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await audioToolsPutConcat(context, {
-    audioUrl: args.audioUrl,
     longest: args.longest,
-    url: args.url,
+    loop: args.loop,
+    urls: args.urls,
   });
   return mediaReply(context, response);
 }

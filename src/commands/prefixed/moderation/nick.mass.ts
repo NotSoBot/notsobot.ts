@@ -20,7 +20,7 @@ export const NAME_REGEXES = Object.values(NameRegexes);
 
 
 export const ERROR_CODES_IGNORE = [400, 403];
-export const MAX_MEMBERS = 1000;
+export const MAX_MEMBERS = 5000;
 export const MAX_NICKNAME_LENGTH = 32;
 export const MAX_TIME_TO_RESPOND = 60 * 1000;
 export const RATELIMIT_TIME = [10, 10]; // 10 members per 10 seconds (use a constant incase it changes in the future)
@@ -71,7 +71,7 @@ export default class NickMassCommand extends BaseCommand {
   }
 
   onBefore(context: Command.Context) {
-    return (context.guild) ? context.guild.memberCount <= MAX_MEMBERS : false;
+    return context.user.isClientOwner || ((context.guild) ? context.guild.memberCount <= MAX_MEMBERS : false);
   }
 
   onCancel(context: Command.Context) {

@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaAVToolsSnip } from '../../../api';
+import { mediaAIVToolsSnip } from '../../../api';
 import { mediaReply } from '../..';
 
 
@@ -17,7 +17,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await mediaAVToolsSnip(context, {
+  const response = await mediaAIVToolsSnip(context, {
     audioOnly: args.audio,
     end: (args.end) ? args.end * 1000 : args.end,
     start: (args.start) ? args.start * 1000 : args.start,

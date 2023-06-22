@@ -857,14 +857,6 @@ export async function imageToolsObjectRemove(
 }
 
 
-export async function imageToolsCrop(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsCrop,
-) {
-  return raw.imageToolsCrop(context, options);
-}
-
-
 export async function imageToolsCropCircle(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCropCircle,
@@ -899,7 +891,7 @@ export async function imageToolsGifSeeSaw(
 
 export async function imageToolsGifSpeed(
   context: RequestContext,
-  options: RestOptions.MediaIVToolsGifSpeed,
+  options: RestOptions.MediaIVToolsSpeed,
 ) {
   return raw.imageToolsGifSpeed(context, options);
 }
@@ -929,11 +921,58 @@ export async function imageToolsTrim(
 }
 
 
+export async function mediaAIVToolsConcat(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptionsMultiple,
+) {
+  return raw.mediaAIVToolsConcat(context, options);
+}
+
+
 export async function mediaAIVToolsConvert(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsConvert,
 ) {
   return raw.mediaAIVToolsConvert(context, options);
+}
+
+
+export async function mediaAIVToolsSnip(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsSnip,
+) {
+  return raw.mediaAIVToolsSnip(context, options);
+}
+
+
+export async function mediaAVManipulationBoostBass(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVManipulationBoostBass(context, options);
+}
+
+export async function mediaAVManipulationCompress(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVManipulationCompress(context, options);
+}
+
+
+export async function mediaAVManipulationDestroy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVManipulationDestroy(context, options);
+}
+
+
+export async function mediaAVManipulationVolume(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationVolume,
+) {
+  return raw.mediaAVManipulationVolume(context, options);
 }
 
 
@@ -953,11 +992,35 @@ export async function mediaAVToolsIdentify(
 }
 
 
-export async function mediaAVToolsSnip(
+export async function mediaIVManipulationOverlayFlies(
   context: RequestContext,
-  options: RestOptions.MediaAVToolsSnip,
+  options: RestOptions.MediaIVManipulationOverlayFlies,
 ) {
-  return raw.mediaAVToolsSnip(context, options);
+  return raw.mediaIVManipulationOverlayFlies(context, options);
+}
+
+
+export async function mediaIVToolsCrop(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsCrop,
+) {
+  return raw.mediaIVToolsCrop(context, options);
+}
+
+
+export async function mediaIVToolsCropAuto(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVToolsCropAuto(context, options);
+}
+
+
+export async function mediaIVToolsJoin(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsJoin,
+) {
+  return raw.mediaIVToolsJoin(context, options);
 }
 
 

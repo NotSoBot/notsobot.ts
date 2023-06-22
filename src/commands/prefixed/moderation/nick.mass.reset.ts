@@ -59,7 +59,7 @@ export default class NickMassResetCommand extends BaseCommand {
   }
 
   onBefore(context: Command.Context) {
-    return (context.guild) ? context.guild.memberCount <= MAX_MEMBERS : false;
+    return context.user.isClientOwner || ((context.guild) ? context.guild.memberCount <= MAX_MEMBERS : false);
   }
 
   onCancel(context: Command.Context) {

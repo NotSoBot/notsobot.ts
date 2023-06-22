@@ -1,25 +1,21 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { audioToolsPutReplace } from '../../../api';
+import { mediaAVManipulationDestroy } from '../../../api';
 import { mediaReply } from '../..';
 
 
-export const COMMAND_ID = 'media.a.tools.put.replace';
+export const COMMAND_ID = 'media.av.manipulation.destroy';
 
 export interface CommandArgs {
-  longest?: boolean,
-  loop?: boolean,
-  urls: Array<string>,
+  url: string,
 }
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await audioToolsPutReplace(context, {
-    longest: args.longest,
-    loop: args.loop,
-    urls: args.urls,
+  const response = await mediaAVManipulationDestroy(context, {
+    url: args.url,
   });
   return mediaReply(context, response);
 }
