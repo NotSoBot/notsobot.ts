@@ -1567,7 +1567,12 @@ const ScriptTags = Object.freeze({
     }
     page = Math.max(page, 0);
 
-    tag.text += results[page].image.url;
+    const result = results[page];
+    if (result.image.isSVG) {
+      tag.text += (result.image) ? result.image.url : result.imageUrl;
+    } else {
+      tag.text += result.imageUrl;
+    }
 
     return true;
   },
