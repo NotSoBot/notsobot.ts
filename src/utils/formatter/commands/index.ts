@@ -26,6 +26,8 @@ import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
 
 import * as MediaAIVToolsConcat from './media.aiv.tools.concat';
 import * as MediaAIVToolsConvert from './media.aiv.tools.convert';
+import * as MediaAIVToolsJoin from './media.aiv.tools.join';
+import * as MediaAIVToolsOverlay from './media.aiv.tools.overlay';
 import * as MediaAIVToolsReverse from './media.aiv.tools.reverse';
 import * as MediaAIVToolsSeeSaw from './media.aiv.tools.seesaw';
 import * as MediaAIVToolsSnip from './media.aiv.tools.snip';
@@ -81,7 +83,6 @@ import * as MediaIVToolsCrop from './media.iv.tools.crop';
 import * as MediaIVToolsCropAuto from './media.iv.tools.crop.auto';
 import * as MediaIVToolsCropCircle from './media.iv.tools.crop.circle';
 import * as MediaIVToolsCropNFT from './media.iv.tools.crop.nft';
-import * as MediaIVToolsJoin from './media.iv.tools.join';
 import * as MediaIVToolsResize from './media.iv.tools.resize';
 import * as MediaIVToolsRotate from './media.iv.tools.rotate';
 import * as MediaIVToolsTrim from './media.iv.tools.trim';
@@ -173,6 +174,8 @@ export {
 
   MediaAIVToolsConcat,
   MediaAIVToolsConvert,
+  MediaAIVToolsJoin,
+  MediaAIVToolsOverlay,
   MediaAIVToolsReverse,
   MediaAIVToolsSeeSaw,
   MediaAIVToolsSnip,
@@ -228,7 +231,6 @@ export {
   MediaIVToolsCropAuto,
   MediaIVToolsCropCircle,
   MediaIVToolsCropNFT,
-  MediaIVToolsJoin,
   MediaIVToolsResize,
   MediaIVToolsRotate,
   MediaIVToolsTrim,

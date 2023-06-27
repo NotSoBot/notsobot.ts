@@ -16,7 +16,7 @@ export default class AudioPutMixCommand extends BaseMediasCommand {
       aliases: ['a put mix'],
       args: [
         {name: 'longest', type: Boolean},
-        {name: 'loop', type: Boolean},
+        {name: 'noloop', type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,
@@ -25,7 +25,7 @@ export default class AudioPutMixCommand extends BaseMediasCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,
         ],
         id: Formatter.Commands.MediaAToolsPutMix.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-longest) (-loop)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-longest) (-noloop)',
       },
       minAmount: 2,
     });

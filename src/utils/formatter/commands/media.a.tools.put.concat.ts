@@ -8,7 +8,7 @@ export const COMMAND_ID = 'media.a.tools.put.concat';
 
 export interface CommandArgs {
   longest?: boolean,
-  loop?: boolean,
+  noloop?: boolean,
   urls: Array<string>,
 }
 
@@ -16,10 +16,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await audioToolsPutConcat(context, {
-    longest: args.longest,
-    loop: args.loop,
-    urls: args.urls,
-  });
+  const response = await audioToolsPutConcat(context, args);
   return mediaReply(context, response);
 }

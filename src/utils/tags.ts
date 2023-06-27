@@ -1,7 +1,7 @@
 import { runInNewContext } from 'vm';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
-import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
+import { Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
@@ -13,7 +13,7 @@ import {
   utilitiesFetchText,
   utilitiesImagescriptV1,
 } from '../api';
-import { RestResponsesRaw } from '../api/types';
+import { RestResponses } from '../api/types';
 import { CodeLanguages, GoogleLocales, MAX_MEMBERS_SAFE } from '../constants';
 
 import * as DefaultParameters from './defaultparameters';
@@ -184,6 +184,9 @@ export enum TagFunctions {
   MEDIA_VIDEO = 'MEDIA_VIDEO',
   MEDIASCRIPT = 'MEDIASCRIPT',
   MEDIASCRIPT_2 = 'MEDIASCRIPT_2',
+  MESSAGE_CONTENT = 'MESSAGE_CONTENT',
+  MESSAGE_RANDOM_ID = 'MESSAGE_RANDOM_ID',
+  MESSAGE_USER_ID = 'MESSAGE_USER_ID',
   NSFW = 'NSFW',
   PREFIX = 'PREFIX',
   REPLY_CONTENT = 'REPLY_CONTENT',
@@ -266,6 +269,9 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MEDIASCRIPT]: ['mediascript', 'mscript', 'imagescript', 'iscript'],
   [TagFunctions.MEDIASCRIPT_2]: ['iscript2', 'mscript2'],
   [TagFunctions.MEDIA_VIDEO]: ['video'],
+  [TagFunctions.MESSAGE_CONTENT]: ['messagecontent'],
+  [TagFunctions.MESSAGE_RANDOM_ID]: ['randmessageid'],
+  [TagFunctions.MESSAGE_USER_ID]: ['messageuserid'],
   [TagFunctions.NSFW]: ['nsfw'],
   [TagFunctions.PREFIX]: ['prefix'],
   [TagFunctions.REPLY_CONTENT]: ['replycontent'],
@@ -314,7 +320,7 @@ export interface TagVariables {
   [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
   [PrivateVariables.RESULTS]: {
-    [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponsesRaw.SearchGoogleImages>,
+    [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
   },
   [PrivateVariables.SETTINGS]: {
     [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.SEARCH_GOOGLE_IMAGES,
@@ -1369,6 +1375,140 @@ const ScriptTags = Object.freeze({
 
     return true;
   },
+
+  [TagFunctions.MESSAGE_CONTENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get message content from a message id
+    // {messagecontent:MESSAGE_ID}
+
+    const channel = context.channel;
+    if (channel) {
+      const member = context.member;
+      if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
+        throw new Error('You cannot view the history of this channel');
+      }
+      if (!channel.canReadHistory) {
+        throw new Error('Bot cannot view the history of this channel');
+      }
+    } else if (!context.inDm) {
+      throw new Error('Bot cannot view the history of this channel');
+    }
+
+    const messageId = arg.trim();
+    if (context.messages.has(messageId)) {
+      const message = context.messages.get(messageId)!;
+      if (message.channelId === context.channelId) {
+        tag.text += message.content;
+      }
+    } else {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      try {
+        const message = await context.rest.fetchMessage(context.channelId!, messageId);
+        tag.text += message.content;
+      } catch(error) {
+
+      }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MESSAGE_RANDOM_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get a random message id from the past 100 messages in the channel
+    // {randmessageid}
+
+    if (!context.channelId) {
+      return true;
+    }
+
+    const channel = context.channel;
+    if (channel) {
+      const member = context.member;
+      if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
+        throw new Error('You cannot view the history of this channel');
+      }
+      if (!channel.canReadHistory) {
+        throw new Error('Bot cannot view the history of this channel');
+      }
+    } else if (!context.inDm) {
+      throw new Error('Bot cannot view the history of this channel');
+    }
+
+    // maybe dont show the bot's messages?
+
+    const MAX_LIMIT = 100;
+
+    const messagesFound: Array<Structures.Message> = [];
+
+    let before: string | undefined;
+    if (channel) {
+      // maybe make this use not the channel object (for dms)?
+      for (let message of channel.messages.toArray().reverse()) {
+        if (context instanceof Command.Context && message.id === context.messageId) {
+          continue;
+        }
+        if (MAX_LIMIT <= messagesFound.length) {
+          break;
+        }
+        messagesFound.push(message);
+        before = message.id;
+      }
+    }
+
+    if (messagesFound.length < MAX_LIMIT) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+      const limit = MAX_LIMIT - messagesFound.length;
+      const messages = await context.rest.fetchMessages(context.channelId!, {before, limit});
+      for (let message of messages.toArray()) {
+        if (limit <= messagesFound.length) {
+          break;
+        }
+        messagesFound.push(message);
+        before = message.id;
+      }
+    }
+
+    const message = randomFromArray(messagesFound);
+    tag.text += message.id;
+
+    return true;
+  },
+
+  [TagFunctions.MESSAGE_USER_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get a message's author's id
+    // {messageuserid:MESSAGE_ID}
+
+    const channel = context.channel;
+    if (channel) {
+      const member = context.member;
+      if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
+        throw new Error('You cannot view the history of this channel');
+      }
+      if (!channel.canReadHistory) {
+        throw new Error('Bot cannot view the history of this channel');
+      }
+    } else if (!context.inDm) {
+      throw new Error('Bot cannot view the history of this channel');
+    }
+
+    const messageId = arg.trim();
+    if (context.messages.has(messageId)) {
+      const message = context.messages.get(messageId)!;
+      if (message.channelId === context.channelId) {
+        tag.text += message.author.id;
+      }
+    } else {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      try {
+        const message = await context.rest.fetchMessage(context.channelId!, messageId);
+        tag.text += message.author.id;
+      } catch(error) {
+
+      }
+    }
+
+    return true;
+  },
  
   [TagFunctions.MEDIASCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // mediascript 1
@@ -1568,9 +1708,7 @@ const ScriptTags = Object.freeze({
     page = Math.max(page, 0);
 
     const result = results[page];
-    if (result.image.isSVG) {
-      tag.text += (result.image) ? result.image.url : result.imageUrl;
-    } else {
+    if (result) {
       tag.text += result.imageUrl;
     }
 

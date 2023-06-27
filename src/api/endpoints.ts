@@ -82,6 +82,10 @@ export const Api = Object.freeze({
     '/image/tools/concat',
   MEDIA_AIV_TOOLS_CONVERT:
     '/video/tools/convert',
+  MEDIA_AIV_TOOLS_JOIN:
+    '/image/tools/join',
+  MEDIA_AIV_TOOLS_OVERLAY:
+    '/image/tools/overlay',
   MEDIA_AIV_TOOLS_REVERSE:
     '/image/tools/gif/reverse',
   MEDIA_AIV_TOOLS_SEE_SAW:
@@ -217,8 +221,6 @@ export const Api = Object.freeze({
     '/image/tools/crop/circle',
   MEDIA_IV_TOOLS_CROP_TWITTER_HEX:
     '/image/tools/crop/twitter-hex',
-  MEDIA_IV_TOOLS_JOIN:
-    '/image/tools/join',
   MEDIA_IV_TOOLS_OBJECT_REMOVE:
     '/image/tools/object/remove',
   MEDIA_IV_TOOLS_RESIZE:

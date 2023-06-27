@@ -48,7 +48,7 @@ export class GoogleSearchImageResult extends BaseStructure {
   }
 
   get imageUrl(): string {
-    if (this.image.isRawImage || this.image.isSVG) {
+    if (this.image.isRawImage || this.image.isSVG || !this.image.extension) {
       return this.thumbnail.url;
     }
     return this.image.url;

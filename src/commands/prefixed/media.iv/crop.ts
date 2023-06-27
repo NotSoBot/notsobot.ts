@@ -21,15 +21,15 @@ export default class CropCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot 100 100 0 0`,
         ],
         id: Formatter.Commands.MediaIVToolsCrop.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> <width,number> <height,number> ?<x,number> ?<y,number>',
+        usage: '?<emoji,user:id|mention,url> <width,expression> <height,expression> ?<x,expression> ?<y,expression>',
       },
       priority: -1,
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
-        {name: 'width', type: Number},
-        {name: 'height', type: Number},
-        {name: 'x', type: Number},
-        {name: 'y', type: Number},
+        {name: 'width'},
+        {name: 'height'},
+        {name: 'x'},
+        {name: 'y'},
       ],
     });
   }

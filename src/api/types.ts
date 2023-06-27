@@ -211,7 +211,7 @@ export namespace RestOptions {
 
   export interface MediaAToolsPutBase extends MediaBaseOptionsMultiple {
     longest?: boolean,
-    loop?: boolean,
+    noloop?: boolean,
   }
 
   export interface MediaAIVManipulationADHD extends MediaBaseOptions {
@@ -221,6 +221,23 @@ export namespace RestOptions {
   export interface MediaAIVToolsConvert extends MediaBaseOptions {
     removeAudio?: boolean,
     to?: string,
+  }
+
+  export interface MediaAIVToolsJoin extends MediaBaseOptionsMultiple {
+    noloop?: boolean,
+    noresize?: boolean,
+    vertical?: boolean,
+  }
+
+  export interface MediaAIVToolsOverlay extends MediaBaseOptionsMultiple {
+    blend?: number,
+    color?: string,
+    noloop?: boolean,
+    opacity?: number,
+    resize?: string,
+    similarity?: number,
+    x?: string,
+    y?: string,
   }
 
   export interface MediaAIVToolsSnip extends MediaBaseOptions {
@@ -325,10 +342,10 @@ export namespace RestOptions {
   }
 
   export interface MediaIVToolsCrop extends MediaBaseOptions {
-    height: number,
-    width: number,
-    x?: number,
-    y?: number,
+    height: string,
+    width: string,
+    x?: string,
+    y?: string,
   }
 
   export interface MediaIVToolsCropCircle extends MediaBaseOptions {
@@ -337,12 +354,6 @@ export namespace RestOptions {
 
   export interface MediaIVToolsCropTwitterHex extends MediaBaseOptions {
     background?: boolean,
-  }
-
-  export interface MediaIVToolsJoin extends MediaBaseOptionsMultiple {
-    loop?: boolean,
-    noresize?: boolean,
-    vertical?: boolean,
   }
 
   export interface MediaIVToolsResize extends MediaBaseOptions {

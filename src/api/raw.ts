@@ -85,7 +85,7 @@ export async function audioToolsPutConcat(
 ): Promise<Response> {
   const body = {
     longest: options.longest,
-    loop: options.loop,
+    loop: !options.noloop,
     urls: options.urls,
   };
   return request(context, {
@@ -107,7 +107,7 @@ export async function audioToolsPutMix(
 ): Promise<Response> {
   const body = {
     longest: options.longest,
-    loop: options.loop,
+    loop: !options.noloop,
     urls: options.urls,
   };
   return request(context, {
@@ -129,7 +129,7 @@ export async function audioToolsPutReplace(
 ): Promise<Response> {
   const body = {
     longest: options.longest,
-    loop: options.loop,
+    loop: !options.noloop,
     urls: options.urls,
   };
   return request(context, {
@@ -2086,6 +2086,57 @@ export async function mediaAIVToolsConvert(
 }
 
 
+export async function mediaAIVToolsJoin(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsJoin,
+): Promise<Response> {
+  const body = {
+    loop: !options.noloop,
+    no_resize: options.noresize,
+    urls: options.urls,
+    vertical: options.vertical,
+  };
+  return request(context, {
+    body,
+    dataOnly: false,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_JOIN,
+    },
+  });
+}
+
+
+export async function mediaAIVToolsOverlay(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsOverlay,
+): Promise<Response> {
+  const body = {
+    blend: options.blend,
+    color: options.color,
+    loop: !options.noloop,
+    opacity: options.opacity,
+    resize: options.resize,
+    similarity: options.similarity,
+    urls: options.urls,
+    x: options.x,
+    y: options.y,
+  };
+  return request(context, {
+    body,
+    dataOnly: false,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_OVERLAY,
+    },
+  });
+}
+
+
 export async function mediaAIVToolsSnip(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsSnip,
@@ -2282,29 +2333,6 @@ export async function mediaIVToolsCropAuto(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_TOOLS_CROP_AUTO,
-    },
-  });
-}
-
-
-export async function mediaIVToolsJoin(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsJoin,
-): Promise<Response> {
-  const body = {
-    loop: options.loop,
-    no_resize: options.noresize,
-    urls: options.urls,
-    vertical: options.vertical,
-  };
-  return request(context, {
-    body,
-    dataOnly: false,
-    file: options.file,
-    files: options.files,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_JOIN,
     },
   });
 }

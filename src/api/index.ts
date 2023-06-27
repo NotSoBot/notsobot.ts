@@ -937,6 +937,22 @@ export async function mediaAIVToolsConvert(
 }
 
 
+export async function mediaAIVToolsJoin(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsJoin,
+) {
+  return raw.mediaAIVToolsJoin(context, options);
+}
+
+
+export async function mediaAIVToolsOverlay(
+  context: RequestContext,
+  options: RestOptions.MediaAIVToolsOverlay,
+) {
+  return raw.mediaAIVToolsOverlay(context, options);
+}
+
+
 export async function mediaAIVToolsSnip(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsSnip,
@@ -1013,14 +1029,6 @@ export async function mediaIVToolsCropAuto(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVToolsCropAuto(context, options);
-}
-
-
-export async function mediaIVToolsJoin(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsJoin,
-) {
-  return raw.mediaIVToolsJoin(context, options);
 }
 
 

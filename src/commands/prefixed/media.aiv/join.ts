@@ -15,7 +15,7 @@ export default class JoinCommand extends BaseMediasCommand {
 
       args: [
         {name: 'noresize', type: Boolean},
-        {name: 'loop', type: Boolean},
+        {name: 'noloop', type: Boolean},
         {name: 'vertical', type: Boolean},
       ],
       metadata: {
@@ -24,14 +24,14 @@ export default class JoinCommand extends BaseMediasCommand {
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
         ],
-        id: Formatter.Commands.MediaIVToolsJoin.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-loop) (-vertical)',
+        id: Formatter.Commands.MediaAIVToolsJoin.COMMAND_ID,
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-noloop) (-vertical)',
       },
       minAmount: 2,
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsJoin.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsJoin.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsJoin.CommandArgs) {
+    return Formatter.Commands.MediaAIVToolsJoin.createMessage(context, args);
   }
 }
