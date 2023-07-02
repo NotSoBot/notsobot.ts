@@ -3,6 +3,7 @@ import { runInNewContext } from 'vm';
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
+import * as mathjs from 'mathjs';
 
 import {
   googleContentVisionOCR,
@@ -77,17 +78,20 @@ export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHM
 
 export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 
+export const ERROR_TIMEOUT_MESSAGE = 'Script execution timed out after';
 export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
-export const MAX_REGEX_TIME = 25;
 export const MAX_REPEAT_AMOUNT = 4000;
 export const MAX_STRING_LENGTH = 10000;
+export const MAX_TIME_MATH = 25;
+export const MAX_TIME_REGEX = 25;
 export const MAX_VARIABLE_KEY_LENGTH = 64;
 export const MAX_VARIABLE_LENGTH = 4000;
 export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
+export const MATH_NON_NUMERIC_REGEX = /[^+\-*\/()0-9.n><&]/g;
 export const SCRIPT_REGEX = /\{((?:(?!:)(?:.|\s))*):([\s\S]+)\}/;
 
 export const REGEX_ARGUMENT_SPLITTER = new RegExp(`(?<!\\\\)[${TagSymbols.SPLITTER_ARGUMENT}]`, 'g');
@@ -329,6 +333,9 @@ export interface TagVariables {
 }
 
 export interface TagResult {
+  context: {
+    parser?: mathjs.Parser,
+  },
   embeds: Array<Embed>,
   files: Array<{buffer: null | string | Buffer, description?: string, filename: string, spoiler?: boolean, url: string}>,
   text: string,
@@ -361,7 +368,7 @@ export async function parse(
   if (!(PrivateVariables.SETTINGS in variables)) {
     variables[PrivateVariables.SETTINGS] = {};
   }
-  const tag: TagResult = {embeds: [], files: [], text: '', variables};
+  const tag: TagResult = {context: {}, embeds: [], files: [], text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   let depth = 0;
@@ -1161,7 +1168,24 @@ const ScriptTags = Object.freeze({
   [TagFunctions.MATH]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {math:5+5}
 
-    return false;
+    const equation = arg.trim();
+
+    const parser = tag.context.parser = tag.context.parser || mathjs.parser();
+    try {
+      tag.text += runInNewContext(
+        `parser.evaluate(equation)`,
+        {equation, parser},
+        {timeout: MAX_TIME_MATH},
+      );
+    } catch(error) {
+      if (error.message.includes(ERROR_TIMEOUT_MESSAGE)) {
+        throw new Error('Math equation timed out')
+      } else {
+        throw new Error(`Math equation errored out (${error.message})`);
+      }
+    }
+
+    return true;
   },
 
   [TagFunctions.MATH_ABS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
@@ -1872,7 +1896,7 @@ const ScriptTags = Object.freeze({
           source,
           replaceWith,
         },
-        {timeout: MAX_REGEX_TIME},
+        {timeout: MAX_TIME_REGEX},
       );
     } catch {
       throw new Error('text replacing errored or timed out');

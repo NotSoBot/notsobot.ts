@@ -133,6 +133,7 @@ import * as ToolsCode from './tools.code';
 import * as ToolsDownload from './tools.download';
 import * as ToolsExif from './tools.exif';
 import * as ToolsHash from './tools.hash';
+import * as ToolsMath from './tools.math';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
 import * as ToolsQrCreate from './tools.qr.create';
@@ -280,6 +281,7 @@ export {
   ToolsDownload,
   ToolsExif,
   ToolsHash,
+  ToolsMath,
   ToolsOCR,
   ToolsOCRTranslate,
   ToolsQrCreate,
