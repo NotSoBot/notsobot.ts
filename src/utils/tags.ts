@@ -178,6 +178,7 @@ export enum TagFunctions {
   MATH_MAX = 'MATH_MAX',
   MATH_MIN = 'MATH_MIN',
   MATH_PI = 'MATH_PI',
+  MATH_SILENT = 'MATH_SILENT',
   MATH_SIN = 'MATH_SIN',
   MATH_TAN = 'MATH_TAN',
   MEDIA = 'MEDIA',
@@ -263,6 +264,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MATH_MAX]: ['max'],
   [TagFunctions.MATH_MIN]: ['min'],
   [TagFunctions.MATH_PI]: ['pi'],
+  [TagFunctions.MATH_SILENT]: ['mathsilent'],
   [TagFunctions.MATH_SIN]: ['sin'],
   [TagFunctions.MATH_TAN]: ['tan'],
   [TagFunctions.MEDIA]: ['media'],
@@ -1184,6 +1186,18 @@ const ScriptTags = Object.freeze({
         throw new Error(`Math equation errored out (${error.message})`);
       }
     }
+
+    return true;
+  },
+
+  [TagFunctions.MATH_SILENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {mathsilent:5+5}
+
+    const text = tag.text;
+
+    await ScriptTags[TagFunctions.MATH](context, arg, tag);
+
+    tag.text = text;
 
     return true;
   },
