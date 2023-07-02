@@ -1,4 +1,4 @@
-import { runInNewContext } from 'vm';
+import * as vm from 'vm';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
@@ -83,8 +83,6 @@ export const MAX_ATTACHMENTS = 10;
 export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
-export const MAX_REPEAT_AMOUNT = 4000;
-export const MAX_STRING_LENGTH = 10000;
 export const MAX_TIME_MATH = 25;
 export const MAX_TIME_REGEX = 25;
 export const MAX_VARIABLE_KEY_LENGTH = 64;
@@ -376,10 +374,16 @@ export async function parse(
   const tag: TagResult = {context: {}, embeds: [], files: [], text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
+  const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+
   let depth = 0;
   let scriptBuffer = '';
   let position = 0;
   while (position < value.length) {
+    if (maxFileSize < tag.text.length) {
+      throw new Error(`Text exceeded ${maxFileSize} bytes`);
+    }
+
     if (tag.variables[PrivateVariables.ITERATIONS_REMAINING] <= 0) {
       tag.text += value.slice(position);
       position = value.length;
@@ -986,9 +990,15 @@ const ScriptTags = Object.freeze({
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
     try {
-      const maxFileSize = (context.guild) ? context.guild.maxAttachmentSize : undefined;
+      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
       const response = await utilitiesFetchText(context, {maxFileSize, url});
-      tag.text += await response.text();
+
+      const text = await response.text();
+      if (maxFileSize < text.length + tag.text.length) {
+        throw new Error(`Text exceeded ${maxFileSize} bytes`);
+      }
+      tag.text += text
+
     } catch(error) {
       console.log(error);
       throw error;
@@ -1229,7 +1239,7 @@ const ScriptTags = Object.freeze({
 
     const parser = tag.context.parser = tag.context.parser || mathjs.parser();
     try {
-      tag.text += runInNewContext(
+      tag.text += vm.runInNewContext(
         `parser.evaluate(equation)`,
         {equation, parser},
         {timeout: MAX_TIME_MATH},
@@ -1911,13 +1921,11 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    if (MAX_REPEAT_AMOUNT < amount) {
-      throw new Error(`really man, more than ${MAX_REPEAT_AMOUNT} repeats?`);
-    }
-
     const text = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
-    if (MAX_STRING_LENGTH < text.length * amount) {
-      throw new Error('ok buddy, dont repeat too much text man');
+
+    const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+    if (maxFileSize < (text.length * amount) + tag.text.length) {
+      throw new Error(`Text exceeded ${maxFileSize} bytes`);
     }
     tag.text += text.repeat(amount);
 
@@ -1959,7 +1967,7 @@ const ScriptTags = Object.freeze({
     }
 
     try {
-      tag.text += runInNewContext(
+      tag.text += vm.runInNewContext(
         `source.replace(new RegExp(regex, 'gi'), replaceWith);`,
         {
           regex: regex.trim(),
