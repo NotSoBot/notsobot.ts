@@ -24,11 +24,11 @@ export async function createMessage(
 
   let content = '';
   try {
-    content = runInNewContext(
+    content = String(runInNewContext(
       `parser.evaluate(equation)`,
       {equation, parser},
       {timeout: MAX_TIME_MATH},
-    );
+    ));
   } catch(error) {
     if (error.message.includes(ERROR_TIMEOUT_MESSAGE)) {
       content = 'Math equation timed out';
