@@ -48,9 +48,10 @@ export class GoogleSearchImageResult extends BaseStructure {
   }
 
   get imageUrl(): string {
-    if (this.image.isRawImage || this.image.isSVG || !this.image.extension) {
+    if (this.image.isRawImage || this.image.isSVG) {
       return this.thumbnail.url;
     }
+    return 'https://proxy.notsobot.com/google-images?url=' + encodeURIComponent(this.image.url) + '&backup=' + encodeURIComponent(this.thumbnail.url);
     return this.image.url;
   }
 
