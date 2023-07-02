@@ -79,6 +79,7 @@ export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHM
 export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 
 export const ERROR_TIMEOUT_MESSAGE = 'Script execution timed out after';
+export const MAX_ATTACHMENTS = 10;
 export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 150;
 export const MAX_NETWORK_REQUESTS = 10;
@@ -152,6 +153,7 @@ export enum TagFunctions {
   ATTACHMENT = 'ATTACHMENT',
   ATTACHMENT_LAST = 'ATTACHMENT_LAST',
   ATTACHMENT_SPOILER = 'ATTACHMENT_SPOILER',
+  ATTACHMENT_TEXT = 'ATTACHMENT_TEXT',
   AVATAR = 'AVATAR',
   CHANNEL = 'CHANNEL',
   CHANNEL_ID = 'CHANNEL_ID',
@@ -238,6 +240,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.ATTACHMENT]: ['attachment', 'attach', 'file'],
   [TagFunctions.ATTACHMENT_LAST]: ['last_attachment', 'lastattachment', 'lattachment', 'lattach'],
   [TagFunctions.ATTACHMENT_SPOILER]: ['attachmentspoiler', 'attachspoiler', 'filespoiler'],
+  [TagFunctions.ATTACHMENT_TEXT]: ['attachmenttext', 'attachtext', 'filetext'],
   [TagFunctions.AVATAR]: ['avatar'],
   [TagFunctions.CHANNEL]: ['channel'],
   [TagFunctions.CHANNEL_ID]: ['channelid'],
@@ -444,10 +447,8 @@ export async function parse(
           } else {
             // check the other tags now
             const argParsed = await parse(context, arg, '', tag.variables);
+            normalizeTagResults(tag, argParsed, false);
             arg = argParsed.text;
-            for (let file of argParsed.files) {
-              tag.files.push(file);
-            }
 
             let found = false;
             for (let TAG_FUNCTION of Object.values(TagFunctions)) {
@@ -573,6 +574,26 @@ function parseInnerScript(value: string): [string, string] {
 }
 
 
+function normalizeTagResults(main: TagResult, other: TagResult, content: boolean = true): void {
+  if (content) {
+    main.text += other.text;
+  }
+
+  if (MAX_EMBEDS < main.embeds.length + other.embeds.length) {
+    throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+  }
+  for (let embed of other.embeds) {
+    main.embeds.push(embed);
+  }
+
+  if (MAX_ATTACHMENTS < main.files.length + other.files.length) {
+    throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+  }
+  for (let file of other.files) {
+    main.files.push(file);
+  }
+}
+
 
 const ScriptTags = Object.freeze({
   _code: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult, language: CodeLanguages, version?: string | null): Promise<boolean> => {
@@ -643,6 +664,10 @@ const ScriptTags = Object.freeze({
               filename,
               url: '',
             });
+
+            if (MAX_ATTACHMENTS < tag.files.length) {
+              throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+            }
           }
         }
 
@@ -739,6 +764,10 @@ const ScriptTags = Object.freeze({
     // {attach:https://google.com/something.png}
     // {attach:https://google.com/something.png|something_lol.png}
 
+    if (MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    }
+
     let [ urlString, filenameArg, ...descriptionValues ] = split(arg);
 
     const url = await Parameters.url(urlString.trim(), context);
@@ -793,6 +822,43 @@ const ScriptTags = Object.freeze({
     // assume the arg is a url and download it
     // {attachspoiler:https://google.com/something.png}
     return ScriptTags[TagFunctions.ATTACHMENT](context, arg, tag, true);
+  },
+
+  [TagFunctions.ATTACHMENT_TEXT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {attachtext:text}
+    // {attachtext:some text here}
+
+    if (MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    }
+
+    let extension = 'txt';
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      // parse the language in the future here
+    }
+
+    let filename = 'content';
+    if (tag.files.length) {
+      filename = `${filename}.${tag.files.length + 1}`;
+    }
+
+    const data = arg;
+    try {
+      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+
+      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+      if (maxFileSize <= currentFileSize + data.length) {
+        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+      }
+      tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+      tag.files.push({buffer: data, filename: `${filename}.${extension}`, spoiler: false, url: ''});
+    } catch(error) {
+      console.log(error);
+      throw error;
+    }
+
+    return true;
   },
 
   [TagFunctions.AVATAR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
@@ -935,13 +1001,7 @@ const ScriptTags = Object.freeze({
     // {eval:{args}}
 
     const argParsed = await parse(context, arg, '', tag.variables);
-    tag.text += argParsed.text;
-    for (let embed of argParsed.embeds) {
-      tag.embeds.push(embed);
-    }
-    for (let file of argParsed.files) {
-      tag.files.push(file);
-    }
+    normalizeTagResults(tag, argParsed);
     return true;
   },
 
@@ -1068,9 +1128,7 @@ const ScriptTags = Object.freeze({
       if (x.includes(TagSymbols.BRACKET_LEFT)) {
         // parse it
         const argParsed = await parse(context, x, '', tag.variables);
-        for (let file of argParsed.files) {
-          tag.files.push(file);
-        }
+        normalizeTagResults(tag, argParsed, false);
         values[i] = argParsed.text;
       } else {
         values[i] = x;
@@ -1127,10 +1185,7 @@ const ScriptTags = Object.freeze({
     if (text.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
       const argParsed = await parse(context, text, '', tag.variables);
-      for (let file of argParsed.files) {
-        tag.files.push(file);
-      }
-      tag.text += argParsed.text;
+      normalizeTagResults(tag, argParsed);
     } else {
       tag.text += text;
     }
@@ -1551,6 +1606,10 @@ const ScriptTags = Object.freeze({
   [TagFunctions.MEDIASCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // mediascript 1
 
+    if (MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    }
+
     const code = arg.trim();
     if (!code) {
       return false;
@@ -1658,10 +1717,7 @@ const ScriptTags = Object.freeze({
     if (value.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
       const argParsed = await parse(context, value, '', tag.variables);
-      tag.text += argParsed.text;
-      for (let file of argParsed.files) {
-        tag.files.push(file);
-      }
+      normalizeTagResults(tag, argParsed);
     } else {
       tag.text += value;
     }
@@ -1942,10 +1998,9 @@ const ScriptTags = Object.freeze({
     let start: number;
     {
       const parsed = await parse(context, startText, '', tag.variables);
+      normalizeTagResults(tag, parsed, false);
+
       start = parseInt(parsed.text.trim());
-      for (let file of parsed.files) {
-        tag.files.push(file);
-      }
       if (isNaN(start)) {
         return false;
       }
@@ -1965,10 +2020,9 @@ const ScriptTags = Object.freeze({
 
     // parse it
     const argParsed = await parse(context, text, '', tag.variables);
+    normalizeTagResults(tag, argParsed, false);
+
     tag.text += argParsed.text.substring(start, end);
-    for (let file of argParsed.files) {
-      tag.files.push(file);
-    }
 
     return true;
   },

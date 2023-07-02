@@ -27,7 +27,7 @@ export async function createMessage(
   }
 
   if (parsedTag.files.length) {
-    options.files = parsedTag.files.map((file) => {
+    options.files = parsedTag.files.slice(0, 10).map((file) => {
       return {
         description: file.description,
         filename: file.filename,

@@ -48,7 +48,7 @@ export async function createMessage(
       options.embeds = parsedTag.embeds.slice(0, 10);
     }
     if (parsedTag.files.length) {
-      options.files = parsedTag.files.map((file) => {
+      options.files = parsedTag.files.slice(0, 10).map((file) => {
         return {filename: file.filename, hasSpoiler: file.spoiler, value: file.buffer};
       });
     }
