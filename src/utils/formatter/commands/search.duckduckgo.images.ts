@@ -6,7 +6,7 @@ import { EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
 
-export const COMMAND_ID = 'search.duckduckgo.image';
+export const COMMAND_ID = 'search.duckduckgo.images';
 
 export const RESULTS_PER_PAGE = 3;
 
