@@ -25,13 +25,13 @@ export default class ObjectRemoveCommand extends BaseImageCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -object person`,
         ],
-        id: Formatter.Commands.ImageObjectRemove.COMMAND_ID,
+        id: Formatter.Commands.MediaIVToolsObjectRemove.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-model <ImageObjectRemovalLabelsToText>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageObjectRemove.CommandArgs) {
-    return Formatter.Commands.ImageObjectRemove.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsObjectRemove.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsObjectRemove.createMessage(context, args);
   }
 }

@@ -22,13 +22,13 @@ export default class RipCommand extends BaseCommand {
           `${COMMAND_NAME} <@300505364032389122> yup he dead`,
           `${COMMAND_NAME} yup he dead`,
         ],
-        id: Formatter.Commands.ImageRip.COMMAND_ID,
+        id: Formatter.Commands.MediaICreateTombstone.COMMAND_ID,
         usage: '?<user:mention> ...?<text>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageRip.CommandArgs) {
-    return Formatter.Commands.ImageRip.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaICreateTombstone.CommandArgs) {
+    return Formatter.Commands.MediaICreateTombstone.createMessage(context, args);
   }
 }

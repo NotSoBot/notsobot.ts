@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { editOrReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'fun.wordcloud.user';
+export const COMMAND_ID = 'media.i.create.wordcloud.user';
 
 export interface CommandArgs {
   channel: Structures.Channel,

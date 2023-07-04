@@ -1,14 +1,14 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { imageCreateWordcloud } from '../../../api';
+import { mediaICreateWordcloud } from '../../../api';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
 import { editOrReply, imageReply } from '../../../utils';
 
 
 export const MAX_FETCHES = 10;
 
-export const COMMAND_ID = 'fun.wordcloud.channel';
+export const COMMAND_ID = 'media.i.create.wordcloud.channel';
 
 export interface CommandArgs {
   before?: string,
@@ -39,7 +39,7 @@ export async function createMessage(
   isExecuting.wordcloud = true;
   try {
     const words = await fetchMessages(context, args).then((x) => x.slice(0, 3000));
-    const response = await imageCreateWordcloud(context, {words});
+    const response = await mediaICreateWordcloud(context, {words});
     isExecuting.wordcloud = false;
     return imageReply(context, response);
   } catch(error) {

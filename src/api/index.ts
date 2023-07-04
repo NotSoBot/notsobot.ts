@@ -426,498 +426,11 @@ export async function googleTranslate(
 }
 
 
-export async function imageCreateRetrowave(
-  context: RequestContext,
-  options: RestOptions.ImageCreateRetrowave,
-) {
-  return raw.imageCreateRetrowave(context, options);
-}
-
-
-export async function imageCreateTombstone(
-  context: RequestContext,
-  options: RestOptions.ImageCreateTombstone,
-) {
-  return raw.imageCreateTombstone(context, options);
-}
-
-
-export async function imageCreateWordcloud(
-  context: RequestContext,
-  options: RestOptions.ImageCreateWordcloud,
-) {
-  return raw.imageCreateWordcloud(context, options);
-}
-
-
-export async function imageInformationExif(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageInformationExif(context, options);
-}
-
-export async function imageManipulationADHD(
+export async function mediaAIVManipulationADHD(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationADHD,
 ) {
-  return raw.imageManipulationADHD(context, options);
-}
-
-
-export async function imageManipulationAscii(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationAscii(context, options);
-}
-
-
-export async function imageManipulationBlur(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationBlur,
-) {
-  return raw.imageManipulationBlur(context, options);
-}
-
-
-export async function imageManipulationBlurple(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationBlurple(context, options);
-}
-
-
-export async function imageManipulationCaption(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationCaption,
-) {
-  return raw.imageManipulationCaption(context, options);
-}
-
-
-export async function imageManipulationCircle(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationCircle,
-) {
-  return raw.imageManipulationCircle(context, options);
-}
-
-
-export async function imageManipulationDeepfry(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationDeepfry,
-) {
-  return raw.imageManipulationDeepfry(context, options);
-}
-
-
-export async function imageManipulationExplode(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationExplode,
-) {
-  return raw.imageManipulationExplode(context, options);
-}
-
-
-export async function imageManipulationEyes(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationEyes,
-) {
-  return raw.imageManipulationEyes(context, options);
-}
-
-
-export async function imageManipulationFlip(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationFlip(context, options);
-}
-
-
-export async function imageManipulationFlop(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationFlop(context, options);
-}
-
-
-export async function imageManipulationGlitch(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationGlitch,
-) {
-  return raw.imageManipulationGlitch(context, options);
-}
-
-
-export async function imageManipulationGlitchGif(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationGlitch,
-) {
-  return raw.imageManipulationGlitchGif(context, options);
-}
-
-
-export async function imageManipulationGlobe(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationGlobe(context, options);
-}
-
-
-export async function imageManipulationGold(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationGold(context, options);
-}
-
-
-export async function imageManipulationGrayscale(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationGrayscale(context, options);
-}
-
-
-export async function imageManipulationImplode(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationImplode,
-) {
-  return raw.imageManipulationImplode(context, options);
-}
-
-
-export async function imageManipulationInvert(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationInvert(context, options);
-}
-
-
-export async function imageManipulationJPEG(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationJPEG,
-) {
-  return raw.imageManipulationJPEG(context, options);
-}
-
-
-export async function imageManipulationLegofy(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationLegofy,
-) {
-  return raw.imageManipulationLegofy(context, options);
-}
-
-
-export async function imageManipulationMagik(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationMagik,
-) {
-  return raw.imageManipulationMagik(context, options);
-}
-
-
-export async function imageManipulationMagikGif(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationMagik,
-) {
-  return raw.imageManipulationMagikGif(context, options);
-}
-
-
-export async function imageManipulationMeme(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationMeme,
-) {
-  return raw.imageManipulationMeme(context, options);
-}
-
-
-export async function imageManipulationMirrorBottom(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationMirrorBottom(context, options);
-}
-
-
-export async function imageManipulationMirrorLeft(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationMirrorLeft(context, options);
-}
-
-
-export async function imageManipulationMirrorRight(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationMirrorRight(context, options);
-}
-
-
-export async function imageManipulationMirrorTop(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationMirrorTop(context, options);
-}
-
-
-export async function imageManipulationPaper(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationPaper(context, options);
-}
-
-
-export async function imageManipulationPix2Pix(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationPix2Pix,
-) {
-  return raw.imageManipulationPix2Pix(context, options);
-}
-
-
-export async function imageManipulationPixelate(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationPixelate,
-) {
-  return raw.imageManipulationPixelate(context, options);
-}
-
-
-export async function imageManipulationRain(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationRain(context, options);
-}
-
-
-export async function imageManipulationRainGold(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationRainGold(context, options);
-}
-
-
-export async function imageManipulationSharpen(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationSharpen,
-) {
-  return raw.imageManipulationSharpen(context, options);
-}
-
-
-export async function imageManipulationSpin(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationSpin(context, options);
-}
-
-
-export async function imageManipulationTrace(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationTrace(context, options);
-}
-
-
-export async function imageManipulationWall(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageManipulationWall(context, options);
-}
-
-
-export async function imageOverlayFlagIsrael(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayFlagIsrael(context, options);
-}
-
-
-export async function imageOverlayFlagLGBT(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayFlagLGBT(context, options);
-}
-
-
-export async function imageOverlayFlagNorthKorea(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayFlagNorthKorea(context, options);
-}
-
-
-export async function imageOverlayFlagRussia(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayFlagRussia(context, options);
-}
-
-
-export async function imageOverlayFlagTrans(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayFlagTrans(context, options);
-}
-
-
-export async function imageOverlayFlagUK(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayFlagUK(context, options);
-}
-
-
-export async function imageOverlayFlagUSA(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayFlagUSA(context, options);
-}
-
-
-export async function imageOverlayFlagUSSR(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayFlagUSSR(context, options);
-}
-
-
-export async function imageOverlayHalfLifePistol(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayHalfLifePistol(context, options);
-}
-
-
-export async function imageOverlayHalfLifeShotgun(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayHalfLifeShotgun(context, options);
-}
-
-
-export async function imageOverlayHalfLifeSMG(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayHalfLifeSMG(context, options);
-}
-
-
-export async function imageOverlayShutterstock(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageOverlayShutterstock(context, options);
-}
-
-
-export async function imageToolsBackgroundRemove(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
-) {
-  return raw.imageToolsBackgroundRemove(context, options);
-}
-
-
-export async function imageToolsObjectRemove(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsObjectRemoveOptions,
-) {
-  return raw.imageToolsObjectRemove(context, options);
-}
-
-
-export async function imageToolsCropCircle(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsCropCircle,
-) {
-  return raw.imageToolsCropCircle(context, options);
-}
-
-
-export async function imageToolsCropTwitterHex(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsCropTwitterHex,
-) {
-  return raw.imageToolsCropTwitterHex(context, options);
-}
-
-
-export async function imageToolsGifReverse(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageToolsGifReverse(context, options);
-}
-
-
-export async function imageToolsGifSeeSaw(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageToolsGifSeeSaw(context, options);
-}
-
-
-export async function imageToolsGifSpeed(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsSpeed,
-) {
-  return raw.imageToolsGifSpeed(context, options);
-}
-
-
-export async function imageToolsResize(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsResize,
-) {
-  return raw.imageToolsResize(context, options);
-}
-
-
-export async function imageToolsRotate(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsRotate,
-) {
-  return raw.imageToolsRotate(context, options);
-}
-
-
-export async function imageToolsTrim(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.imageToolsTrim(context, options);
+  return raw.mediaAIVManipulationADHD(context, options);
 }
 
 
@@ -937,6 +450,14 @@ export async function mediaAIVToolsConvert(
 }
 
 
+export async function mediaAIVToolsExif(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAIVToolsExif(context, options);
+}
+
+
 export async function mediaAIVToolsJoin(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsJoin,
@@ -953,11 +474,35 @@ export async function mediaAIVToolsOverlay(
 }
 
 
+export async function mediaAIVToolsReverse(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAIVToolsReverse(context, options);
+}
+
+
+export async function mediaAIVToolsSeeSaw(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAIVToolsSeeSaw(context, options);
+}
+
+
 export async function mediaAIVToolsSnip(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsSnip,
 ) {
   return raw.mediaAIVToolsSnip(context, options);
+}
+
+
+export async function mediaAIVToolsSpeed(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSpeed,
+) {
+  return raw.mediaAIVToolsSpeed(context, options);
 }
 
 
@@ -1008,11 +553,419 @@ export async function mediaAVToolsIdentify(
 }
 
 
+export async function mediaICreateRetrowave(
+  context: RequestContext,
+  options: RestOptions.MediaICreateRetrowave,
+) {
+  return raw.mediaICreateRetrowave(context, options);
+}
+
+
+export async function mediaICreateTombstone(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTombstone,
+) {
+  return raw.mediaICreateTombstone(context, options);
+}
+
+
+export async function mediaICreateWordcloud(
+  context: RequestContext,
+  options: RestOptions.MediaICreateWordcloud,
+) {
+  return raw.mediaICreateWordcloud(context, options);
+}
+
+
+export async function mediaIVManipulationAscii(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationAscii(context, options);
+}
+
+
+export async function mediaIVManipulationBlur(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationBlur,
+) {
+  return raw.mediaIVManipulationBlur(context, options);
+}
+
+
+export async function mediaIVManipulationBlurple(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationBlurple(context, options);
+}
+
+
+export async function mediaIVManipulationCaption(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCaption,
+) {
+  return raw.mediaIVManipulationCaption(context, options);
+}
+
+
+export async function mediaIVManipulationCircle(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCircle,
+) {
+  return raw.mediaIVManipulationCircle(context, options);
+}
+
+
+export async function mediaIVManipulationDeepfry(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDeepfry,
+) {
+  return raw.mediaIVManipulationDeepfry(context, options);
+}
+
+
+export async function mediaIVManipulationExplode(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationExplode,
+) {
+  return raw.mediaIVManipulationExplode(context, options);
+}
+
+
+export async function mediaIVManipulationEyes(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationEyes,
+) {
+  return raw.mediaIVManipulationEyes(context, options);
+}
+
+
+export async function mediaIVManipulationFlip(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationFlip(context, options);
+}
+
+
+export async function mediaIVManipulationFlop(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationFlop(context, options);
+}
+
+
+export async function mediaIVManipulationGlitch(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationGlitch,
+) {
+  return raw.mediaIVManipulationGlitch(context, options);
+}
+
+
+export async function mediaIVManipulationGlitchGif(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationGlitch,
+) {
+  return raw.mediaIVManipulationGlitchGif(context, options);
+}
+
+
+export async function mediaIVManipulationGlobe(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationGlobe(context, options);
+}
+
+
+export async function mediaIVManipulationGold(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationGold(context, options);
+}
+
+
+export async function mediaIVManipulationGrayscale(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationGrayscale(context, options);
+}
+
+
+export async function mediaIVManipulationImplode(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationImplode,
+) {
+  return raw.mediaIVManipulationImplode(context, options);
+}
+
+
+export async function mediaIVManipulationInvert(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationInvert(context, options);
+}
+
+
+export async function mediaIVManipulationJPEG(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationJPEG,
+) {
+  return raw.mediaIVManipulationJPEG(context, options);
+}
+
+
+export async function mediaIVManipulationLegofy(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationLegofy,
+) {
+  return raw.mediaIVManipulationLegofy(context, options);
+}
+
+
+export async function mediaIVManipulationMagik(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMagik,
+) {
+  return raw.mediaIVManipulationMagik(context, options);
+}
+
+
+export async function mediaIVManipulationMagikGif(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMagik,
+) {
+  return raw.mediaIVManipulationMagikGif(context, options);
+}
+
+
+export async function mediaIVManipulationMeme(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMeme,
+) {
+  return raw.mediaIVManipulationMeme(context, options);
+}
+
+
+export async function mediaIVManipulationMirrorBottom(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationMirrorBottom(context, options);
+}
+
+
+export async function mediaIVManipulationMirrorLeft(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationMirrorLeft(context, options);
+}
+
+
+export async function mediaIVManipulationMirrorRight(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationMirrorRight(context, options);
+}
+
+
+export async function mediaIVManipulationMirrorTop(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationMirrorTop(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagIsrael(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagIsrael(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagLGBT(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagLGBT(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagNorthKorea(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagNorthKorea(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagRussia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagRussia(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagTrans(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagTrans(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagUK(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagUK(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagUSA(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagUSA(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagUSSR(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagUSSR(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayFlies(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationOverlayFlies,
 ) {
   return raw.mediaIVManipulationOverlayFlies(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayHalfLifePistol(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayHalfLifePistol(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayHalfLifeShotgun(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayHalfLifeShotgun(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayHalfLifeSMG(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayHalfLifeSMG(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayShutterstock(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayShutterstock(context, options);
+}
+
+
+export async function mediaIVManipulationPaper(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationPaper(context, options);
+}
+
+
+export async function mediaIVManipulationPix2Pix(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPix2Pix,
+) {
+  return raw.mediaIVManipulationPix2Pix(context, options);
+}
+
+
+export async function mediaIVManipulationPixelate(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPixelate,
+) {
+  return raw.mediaIVManipulationPixelate(context, options);
+}
+
+
+export async function mediaIVManipulationRain(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationRain(context, options);
+}
+
+
+export async function mediaIVManipulationRainGold(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationRainGold(context, options);
+}
+
+
+export async function mediaIVManipulationSharpen(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSharpen,
+) {
+  return raw.mediaIVManipulationSharpen(context, options);
+}
+
+
+export async function mediaIVManipulationSpin(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationSpin(context, options);
+}
+
+
+export async function mediaIVManipulationTrace(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationTrace(context, options);
+}
+
+
+export async function mediaIVManipulationWall(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationWall(context, options);
+}
+
+
+export async function mediaIVToolsBackgroundRemove(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
+) {
+  return raw.mediaIVToolsBackgroundRemove(context, options);
 }
 
 
@@ -1031,6 +984,53 @@ export async function mediaIVToolsCropAuto(
   return raw.mediaIVToolsCropAuto(context, options);
 }
 
+
+export async function mediaIVToolsCropCircle(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsCropCircle,
+) {
+  return raw.mediaIVToolsCropCircle(context, options);
+}
+
+
+export async function mediaIVToolsCropTwitterHex(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsCropTwitterHex,
+) {
+  return raw.mediaIVToolsCropTwitterHex(context, options);
+}
+
+
+export async function mediaIVToolsObjectRemove(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsObjectRemoveOptions,
+) {
+  return raw.mediaIVToolsObjectRemove(context, options);
+}
+
+
+export async function mediaIVToolsResize(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsResize,
+) {
+  return raw.mediaIVToolsResize(context, options);
+}
+
+
+export async function mediaIVToolsRotate(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsRotate,
+) {
+  return raw.mediaIVToolsRotate(context, options);
+}
+
+
+export async function mediaIVToolsTrim(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVToolsTrim(context, options);
+}
 
 
 export async function putGuildSettings(

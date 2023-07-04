@@ -1,11 +1,11 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 
-import { imageCreateRetrowave } from '../../../api';
+import { mediaICreateRetrowave } from '../../../api';
 import { RestOptions } from '../../../api/types';
 import { imageReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'image.create.retrowave';
+export const COMMAND_ID = 'media.i.create.retrowave';
 
 export interface CommandArgs {
   background?: number,
@@ -47,7 +47,7 @@ export async function createMessage(
     }
   }
 
-  const query: RestOptions.ImageCreateRetrowave = {
+  const query: RestOptions.MediaICreateRetrowave = {
     background: args.background,
     line1: '',
     line2: '',
@@ -59,6 +59,6 @@ export async function createMessage(
     (query as any)[`line${i + 1}`] = parts[i];
   }
 
-  const response = await imageCreateRetrowave(context, query);
+  const response = await mediaICreateRetrowave(context, query);
   return imageReply(context, response);
 }

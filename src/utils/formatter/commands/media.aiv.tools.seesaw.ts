@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageToolsGifSeeSaw } from '../../../api';
+import { mediaAIVToolsSeeSaw } from '../../../api';
 import { imageReply } from '../..';
 
 
@@ -15,7 +15,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageToolsGifSeeSaw(context, args);
+  return mediaAIVToolsSeeSaw(context, args);
 }
 
 export async function createMessage(

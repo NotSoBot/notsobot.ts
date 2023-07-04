@@ -1,6 +1,5 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageManipulationJPEG } from '../../../api';
 import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 

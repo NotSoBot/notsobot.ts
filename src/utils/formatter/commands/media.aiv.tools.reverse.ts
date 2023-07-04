@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageToolsGifReverse } from '../../../api';
+import { mediaAIVToolsReverse } from '../../../api';
 import { imageReply } from '../..';
 
 
@@ -15,7 +15,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageToolsGifReverse(context, args);
+  return mediaAIVToolsReverse(context, args);
 }
 
 export async function createMessage(

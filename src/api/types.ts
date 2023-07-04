@@ -177,27 +177,6 @@ export namespace RestOptions {
     to?: GoogleLocales,
   }
 
-  
-  export interface ImageCreateRetrowave {
-    background?: number,
-    line1?: string,
-    line2?: string,
-    line3?: string,
-    textStyle?: number,
-  }
-
-  export interface ImageCreateTombstone {
-    line1?: string,
-    line2?: string,
-    line3?: string,
-    line4?: string,
-    line5?: string,
-  }
-
-  export interface ImageCreateWordcloud {
-    words: Array<string>,
-  }
-
 
   export interface MediaBaseOptions {
     file?: RequestFile,
@@ -256,6 +235,26 @@ export namespace RestOptions {
 
   export interface MediaAVToolsIdentify extends MediaBaseOptions {
     start?: number,
+  }
+
+  export interface MediaICreateRetrowave {
+    background?: number,
+    line1?: string,
+    line2?: string,
+    line3?: string,
+    textStyle?: number,
+  }
+
+  export interface MediaICreateTombstone {
+    line1?: string,
+    line2?: string,
+    line3?: string,
+    line4?: string,
+    line5?: string,
+  }
+
+  export interface MediaICreateWordcloud {
+    words: Array<string>,
   }
 
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
@@ -856,7 +855,7 @@ export namespace RestResponsesRaw {
   }
 
 
-  export interface ImageInformationExif {
+  export interface MediaAIVToolsExif {
     exif: Array<{
       bytes: number,
       description: null | string,

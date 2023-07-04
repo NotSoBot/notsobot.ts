@@ -4,7 +4,7 @@ import { mediaIVToolsCropAuto } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.tools.crop';
+export const COMMAND_ID = 'media.iv.tools.crop';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

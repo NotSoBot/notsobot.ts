@@ -1,12 +1,12 @@
 import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
-import { imageManipulationMeme } from '../../../api';
+import { mediaIVManipulationMeme } from '../../../api';
 import { ImageMemeFonts } from '../../../constants';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.meme';
+export const COMMAND_ID = 'media.iv.manipulation.meme';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -34,7 +34,7 @@ export function createResponse(
     top = text;
   }
 
-  return imageManipulationMeme(context, {bottom, file, font, top, url});
+  return mediaIVManipulationMeme(context, {bottom, file, font, top, url});
 }
 
 export async function createMessage(

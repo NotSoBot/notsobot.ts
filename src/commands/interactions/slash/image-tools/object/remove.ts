@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'remove';
 export class ImageObjectRemoveCommand extends BaseInteractionImageCommandOption {
   description = 'Remove object(s) from an image';
   metadata = {
-    id: Formatter.Commands.ImageObjectRemove.COMMAND_ID,
+    id: Formatter.Commands.MediaIVToolsObjectRemove.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -26,7 +26,7 @@ export class ImageObjectRemoveCommand extends BaseInteractionImageCommandOption 
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageObjectRemove.CommandArgs) {
-    return Formatter.Commands.ImageObjectRemove.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsObjectRemove.CommandArgs) {
+    return Formatter.Commands.MediaIVToolsObjectRemove.createMessage(context, args);
   }
 }

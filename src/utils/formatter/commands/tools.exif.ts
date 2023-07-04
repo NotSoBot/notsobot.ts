@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { imageInformationExif } from '../../../api';
+import { mediaAIVToolsExif } from '../../../api';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import { createUserEmbed, editOrReply, formatMemory, splitArray } from '../../../utils';
 
@@ -19,7 +19,7 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const response = await imageInformationExif(context, args);
+  const response = await mediaAIVToolsExif(context, args);
   const isGif = (response.information.mimetype === 'image/gif');
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);

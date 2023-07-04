@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'convert';
 export class AudioConvertCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Convert an Audio or Video File';
   metadata = {
-    id: Formatter.Commands.MediaAToolsConvert.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.AUDIO.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -20,14 +20,14 @@ export class AudioConvertCommand extends BaseInteractionAudioOrVideoCommandOptio
         {
           name: 'to',
           description: 'Conversion Mimetype',
-          choices: Formatter.Commands.MediaAToolsConvert.SLASH_CHOICES,
-          default: Formatter.Commands.MediaAToolsConvert.DEFAULT_MIMETYPE,
+          choices: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.AUDIO.SLASH_CHOICES,
+          default: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.AUDIO.DEFAULT_MIMETYPE,
         },
       ],
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAToolsConvert.CommandArgs) {
-    return Formatter.Commands.MediaAToolsConvert.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsConvert.CommandArgs) {
+    return Formatter.Commands.MediaAIVToolsConvert.createMessage(context, args);
   }
 }

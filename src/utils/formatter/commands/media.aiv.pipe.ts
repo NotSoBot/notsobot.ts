@@ -19,7 +19,7 @@ import {
 } from '../../../utils';
 
 
-export const COMMAND_ID = 'image.pipe';
+export const COMMAND_ID = 'media.aiv.pipe';
 
 export interface CommandArgs {
   commands: Array<Parameters.PipingCommand>,

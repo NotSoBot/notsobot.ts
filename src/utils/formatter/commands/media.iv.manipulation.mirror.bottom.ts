@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageManipulationMirrorBottom } from '../../../api';
+import { mediaIVManipulationMirrorBottom } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.mirror.bottom';
+export const COMMAND_ID = 'media.iv.manipulation.mirror.bottom';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -15,7 +15,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageManipulationMirrorBottom(context, args);
+  return mediaIVManipulationMirrorBottom(context, args);
 }
 
 export async function createMessage(

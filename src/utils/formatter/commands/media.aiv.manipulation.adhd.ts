@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageManipulationADHD } from '../../../api';
+import { mediaAIVManipulationADHD } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
@@ -16,7 +16,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageManipulationADHD(context, args);
+  return mediaAIVManipulationADHD(context, args);
 }
 
 export async function createMessage(

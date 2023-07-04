@@ -1,11 +1,11 @@
 import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
-import { imageManipulationPixelate } from '../../../api';
+import { mediaIVManipulationPixelate } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.pixelate';
+export const COMMAND_ID = 'media.iv.manipulation.pixelate';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -17,7 +17,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile},
 ) {
-  return imageManipulationPixelate(context, {
+  return mediaIVManipulationPixelate(context, {
     file: args.file,
     pixelWidth: args.width,
     url: args.url,

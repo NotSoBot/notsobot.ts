@@ -6,16 +6,9 @@ import { Formatter, Parameters, DefaultParameters } from '../../../utils';
 import { BaseSearchCommand } from '../basecommand';
 
 
-export interface CommandArgs {
-  locale: GoogleLocales,
-  query: string,
-  randomize: boolean,
-  safe: boolean,
-}
-
 export const COMMAND_NAME = 'image';
 
-export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
+export default class ImageCommand extends BaseSearchCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -42,7 +35,7 @@ export default class ImageCommand extends BaseSearchCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
+  async run(context: Command.Context, args: Formatter.Commands.SearchGoogleImages.CommandArgs) {
     return Formatter.Commands.SearchGoogleImages.createMessage(context, args);
   }
 }

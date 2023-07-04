@@ -56,17 +56,6 @@ export const Api = Object.freeze({
     '/image/create/:height:x:width:/colors/:hex:.:format:',
   IMAGE_CREATE_COLOR_RGB:
     '/image/create/:height:x:width:/colors/:red:.:green:.:blue:.:format:',
-  IMAGE_CREATE_RETROWAVE:
-    '/image/create/retrowave',
-  IMAGE_CREATE_TOMBSTONE:
-    '/image/create/tombstone',
-  IMAGE_CREATE_WORDCLOUD:
-    '/image/create/wordcloud',
-  IMAGE_CREATE_WORDCLOUD_BACKGROUND:
-    '/image/create/wordcloud/background',
-
-  IMAGE_INFORMATION_EXIF:
-    '/image/information/exif',
 
   MEDIA_A_TOOLS_PUT_CONCAT:
     '/audio/tools/put/concat',
@@ -82,6 +71,8 @@ export const Api = Object.freeze({
     '/image/tools/concat',
   MEDIA_AIV_TOOLS_CONVERT:
     '/video/tools/convert',
+  MEDIA_AIV_TOOLS_EXIF:
+    '/image/information/exif',
   MEDIA_AIV_TOOLS_JOIN:
     '/image/tools/join',
   MEDIA_AIV_TOOLS_OVERLAY:
@@ -108,6 +99,15 @@ export const Api = Object.freeze({
     '/video/tools/extract/audio',
   MEDIA_AV_TOOLS_IDENTIFY:
     '/audio/tools/identify',
+
+  MEDIA_I_CREATE_RETROWAVE:
+    '/image/create/retrowave',
+  MEDIA_I_CREATE_TOMBSTONE:
+    '/image/create/tombstone',
+  MEDIA_I_CREATE_WORDCLOUD:
+    '/image/create/wordcloud',
+  MEDIA_I_CREATE_WORDCLOUD_BACKGROUND:
+    '/image/create/wordcloud/background',
 
   MEDIA_IV_MANIPULATION_ASCII:
     '/image/manipulation/ascii',
@@ -161,8 +161,36 @@ export const Api = Object.freeze({
     '/image/manipulation/mirror-right',
   MEDIA_IV_MANIPULATION_MIRROR_TOP:
     '/image/manipulation/mirror-top',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISIS:
+    '/image/overlay/flag-isis',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISRAEL:
+    '/image/overlay/flag-israel',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_LGBT:
+    '/image/overlay/flag-lgbt',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NORTH_KOREA:
+    '/image/overlay/flag-north-korea',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_RUSSIA:
+    '/image/overlay/flag-russia',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TRANS:
+    '/image/overlay/flag-trans',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UK:
+    '/image/overlay/flag-uk',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_USA:
+    '/image/overlay/flag-usa',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_USSR:
+    '/image/overlay/flag-ussr',
   MEDIA_IV_MANIPULATION_OVERLAY_FLIES:
     '/image/manipulation/flies',
+  MEDIA_IV_MANIPULATION_OVERLAY_GOLDSTAR:
+    '/image/overlay/goldstar',
+  MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_PISTOL:
+    '/image/overlay/half-life-pistol',
+  MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SHOTGUN:
+    '/image/overlay/half-life-shotgun',
+  MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SMG:
+    '/image/overlay/half-life-smg',
+  MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK:
+    '/image/overlay/shutterstock',
   MEDIA_IV_MANIPULATION_PAPER:
     '/image/manipulation/paper',
   MEDIA_IV_MANIPULATION_PIX2PIX:
@@ -181,35 +209,6 @@ export const Api = Object.freeze({
     '/image/manipulation/trace',
   MEDIA_IV_MANIPULATION_WALL:
     '/image/manipulation/wall',
-
-  IMAGE_OVERLAY_FLAG_ISIS:
-    '/image/overlay/flag-isis',
-  IMAGE_OVERLAY_FLAG_ISRAEL:
-    '/image/overlay/flag-israel',
-  IMAGE_OVERLAY_FLAG_LGBT:
-    '/image/overlay/flag-lgbt',
-  IMAGE_OVERLAY_FLAG_NORTH_KOREA:
-    '/image/overlay/flag-north-korea',
-  IMAGE_OVERLAY_FLAG_RUSSIA:
-    '/image/overlay/flag-russia',
-  IMAGE_OVERLAY_FLAG_TRANS:
-    '/image/overlay/flag-trans',
-  IMAGE_OVERLAY_FLAG_UK:
-    '/image/overlay/flag-uk',
-  IMAGE_OVERLAY_FLAG_USA:
-    '/image/overlay/flag-usa',
-  IMAGE_OVERLAY_FLAG_USSR:
-    '/image/overlay/flag-ussr',
-  IMAGE_OVERLAY_GOLDSTAR:
-    '/image/overlay/goldstar',
-  IMAGE_OVERLAY_HALF_LIFE_PISTOL:
-    '/image/overlay/half-life-pistol',
-  IMAGE_OVERLAY_HALF_LIFE_SHOTGUN:
-    '/image/overlay/half-life-shotgun',
-  IMAGE_OVERLAY_HALF_LIFE_SMG:
-    '/image/overlay/half-life-smg',
-  IMAGE_OVERLAY_SHUTTERSTOCK:
-    '/image/overlay/shutterstock',
 
   MEDIA_IV_TOOLS_BACKGROUND_REMOVE:
     '/image/tools/background/remove',

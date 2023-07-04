@@ -1,15 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageOverlayFlagTrans } from '../../../api';
 import { CommandCategories } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
-
-export interface CommandArgs {
-  url: string,
-}
 
 export const COMMAND_NAME = 'overlay trans';
 
@@ -20,19 +15,19 @@ export default class OverlayTransCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o trans', 'trans'],
       metadata: {
-        description: 'Overlay a Transgender Flag over an Image or Video',
+        category: CommandCategories.IMAGE,
+        description: 'Overlay a Transgender flag over an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        id: Formatter.Commands.MediaIVManipulationOverlayFlagTrans.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageOverlayFlagTrans(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOverlayFlagRussia.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationOverlayFlagTrans.createMessage(context, args);
   }
 }

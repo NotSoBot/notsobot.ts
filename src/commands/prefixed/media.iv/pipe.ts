@@ -25,7 +25,7 @@ export default class PipeCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} flip; flop`,
         ],
-        id: Formatter.Commands.ImagePipe.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVPipe.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...commands>',
       },
       type: [
@@ -46,7 +46,7 @@ export default class PipeCommand extends BaseImageOrVideoCommand {
     return super.onCancelRun(context, args);
   }
 
-  run(context: Command.Context, args: Formatter.Commands.ImagePipe.CommandArgs) {
-    return Formatter.Commands.ImagePipe.createMessage(context, args);
+  run(context: Command.Context, args: Formatter.Commands.MediaAIVPipe.CommandArgs) {
+    return Formatter.Commands.MediaAIVPipe.createMessage(context, args);
   }
 }

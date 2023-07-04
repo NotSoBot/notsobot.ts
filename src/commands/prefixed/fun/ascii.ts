@@ -1,20 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { funASCII } from '../../../api';
 import { CommandCategories } from '../../../constants';
-import { editOrReply, imageReplyFromOptions } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-
-export interface CommandArgsBefore {
-  text: string,
-}
-
-export interface CommandArgs {
-  text: string,
-}
 
 export const COMMAND_NAME = 'ascii';
 
@@ -25,36 +15,23 @@ export default class AsciiCommand extends BaseCommand {
 
       label: 'text',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Convert text to an ASCII Image',
         examples: [
           `${COMMAND_NAME} NotSoBot`,
         ],
-        category: CommandCategories.FUN,
+        id: Formatter.Commands.FunAscii.COMMAND_ID,
         usage: '<text>',
       },
       priority: -1,
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.FunAscii.CommandArgs) {
     return !!args.text;
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { image, text } = await funASCII(context, args);
-
-    let content: string | undefined;
-    if (text.length <= 560) {
-      content = Markup.codeblock(text, {language: 'fix'});
-    }
-
-    const value = Buffer.from(image.data, 'base64');
-    return imageReplyFromOptions(context, value, {
-      content,
-      filename: image.details.filename,
-      height: image.details.height,
-      size: value.length,
-      width: image.details.width,
-    });
+  async run(context: Command.Context, args: Formatter.Commands.FunAscii.CommandArgs) {
+    return Formatter.Commands.FunAscii.createMessage(context, args);
   }
 }

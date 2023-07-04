@@ -802,87 +802,7 @@ export async function googleTranslate(
 }
 
 
-export async function imageCreateRetrowave(
-  context: RequestContext,
-  options: RestOptions.ImageCreateRetrowave,
-): Promise<Response> {
-  const query = {
-    background: options.background,
-    line_1: options.line1,
-    line_2: options.line2,
-    line_3: options.line3,
-    text_style: options.textStyle,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_CREATE_RETROWAVE,
-    },
-  });
-}
-
-
-export async function imageCreateTombstone(
-  context: RequestContext,
-  options: RestOptions.ImageCreateTombstone,
-): Promise<Response> {
-  const query = {
-    line_1: options.line1,
-    line_2: options.line2,
-    line_3: options.line3,
-    line_4: options.line4,
-    line_5: options.line5,
-  };
-  return request(context, {
-    dataOnly: false,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_CREATE_TOMBSTONE,
-    },
-  });
-}
-
-
-export async function imageCreateWordcloud(
-  context: RequestContext,
-  options: RestOptions.ImageCreateWordcloud,
-): Promise<Response> {
-  const body = {
-    words: options.words,
-  };
-  return request(context, {
-    dataOnly: false,
-    body,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_CREATE_WORDCLOUD,
-    },
-  });
-}
-
-
-export async function imageInformationExif(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.ImageInformationExif> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_INFORMATION_EXIF,
-    },
-  });
-}
-
-
-export async function imageManipulationADHD(
+export async function mediaAIVManipulationADHD(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationADHD,
 ): Promise<Response> {
@@ -897,1149 +817,6 @@ export async function imageManipulationADHD(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_MANIPULATION_ADHD,
-    },
-  });
-}
-
-
-
-export async function imageManipulationAscii(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_ASCII,
-    },
-  });
-}
-
-
-export async function imageManipulationBlur(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationBlur,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_BLUR,
-    },
-  });
-}
-
-
-export async function imageManipulationBlurple(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_BLURPLE,
-    },
-  });
-}
-
-
-export async function imageManipulationCaption(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationCaption,
-): Promise<Response> {
-  const body = {
-    font: options.font,
-    text: options.text,
-    url: options.url,
-  };
-  return request(context, {
-    body,
-    dataOnly: false,
-    file: options.file,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_CAPTION,
-    },
-  });
-}
-
-
-export async function imageManipulationCircle(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationCircle,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_CIRCLE,
-    },
-  });
-}
-
-
-export async function imageManipulationDeepfry(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationDeepfry,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_DEEPFRY,
-    },
-  });
-}
-
-
-export async function imageManipulationExplode(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationExplode,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_EXPLODE,
-    },
-  });
-}
-
-
-export async function imageManipulationEyes(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationEyes,
-): Promise<Response> {
-  const query = {
-    type: options.type,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_EYES,
-    },
-  });
-}
-
-
-export async function imageManipulationFlip(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_FLIP,
-    },
-  });
-}
-
-
-export async function imageManipulationFlop(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_FLOP,
-    },
-  });
-}
-
-
-export async function imageManipulationGlitch(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationGlitch,
-): Promise<Response> {
-  const query = {
-    amount: options.amount,
-    iterations: options.iterations,
-    seed: options.seed,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_GLITCH,
-    },
-  });
-}
-
-
-export async function imageManipulationGlitchGif(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationGlitch,
-): Promise<Response> {
-  const query = {
-    amount: options.amount,
-    iterations: options.iterations,
-    seed: options.seed,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_GLITCH_GIF,
-    },
-  });
-}
-
-
-export async function imageManipulationGlobe(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_GLOBE,
-    },
-  });
-}
-
-
-export async function imageManipulationGold(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_GOLD,
-    },
-  });
-}
-
-
-export async function imageManipulationGrayscale(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_GRAYSCALE,
-    },
-  });
-}
-
-
-export async function imageManipulationImplode(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationImplode,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_IMPLODE,
-    },
-  });
-}
-
-
-export async function imageManipulationInvert(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_INVERT,
-    },
-  });
-}
-
-
-export async function imageManipulationJPEG(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationJPEG,
-): Promise<Response> {
-  const query = {
-    quality: options.quality,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_JPEG,
-    },
-  });
-}
-
-
-export async function imageManipulationLegofy(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationLegofy,
-): Promise<Response> {
-  const query = {
-    dither: options.dither,
-    palette: options.palette,
-    size: options.size,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_LEGOFY,
-    },
-  });
-}
-
-
-export async function imageManipulationMagik(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationMagik,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_MAGIK,
-    },
-  });
-}
-
-
-
-export async function imageManipulationMagikGif(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationMagik,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_MAGIK_GIF,
-    },
-  });
-}
-
-
-export async function imageManipulationMeme(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationMeme,
-): Promise<Response> {
-  const query = {
-    bottom: options.bottom,
-    font: options.font,
-    top: options.top,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_MEME,
-    },
-  });
-}
-
-
-export async function imageManipulationMirrorBottom(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_MIRROR_BOTTOM,
-    },
-  });
-}
-
-
-export async function imageManipulationMirrorLeft(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_MIRROR_LEFT,
-    },
-  });
-}
-
-
-export async function imageManipulationMirrorRight(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_MIRROR_RIGHT,
-    },
-  });
-}
-
-
-export async function imageManipulationMirrorTop(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_MIRROR_TOP,
-    },
-  });
-}
-
-
-export async function imageManipulationPaper(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_PAPER,
-    },
-  });
-}
-
-
-export async function imageManipulationPix2Pix(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationPix2Pix,
-): Promise<Response> {
-  const query = {
-    model: options.model,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_PIX2PIX,
-    },
-  });
-}
-
-
-export async function imageManipulationPixelate(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationPixelate,
-): Promise<Response> {
-  const query = {
-    pixel_width: options.pixelWidth,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_PIXELATE,
-    },
-  });
-}
-
-
-export async function imageManipulationRain(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_RAIN,
-    },
-  });
-}
-
-
-export async function imageManipulationRainGold(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_RAIN_GOLD,
-    },
-  });
-}
-
-
-export async function imageManipulationSharpen(
-  context: RequestContext,
-  options: RestOptions.MediaIVManipulationSharpen,
-): Promise<Response> {
-  const query = {
-    scale: options.scale,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_SHARPEN,
-    },
-  });
-}
-
-
-export async function imageManipulationSpin(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_SPIN,
-    },
-  });
-}
-
-
-export async function imageManipulationTrace(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_TRACE,
-    },
-  });
-}
-
-
-export async function imageManipulationWall(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_WALL,
-    },
-  });
-}
-
-
-export async function imageOverlayFlagIsrael(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_FLAG_ISRAEL,
-    },
-  });
-}
-
-
-export async function imageOverlayFlagLGBT(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_FLAG_LGBT,
-    },
-  });
-}
-
-
-export async function imageOverlayFlagNorthKorea(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_FLAG_NORTH_KOREA,
-    },
-  });
-}
-
-
-export async function imageOverlayFlagTrans(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_FLAG_TRANS,
-    },
-  });
-}
-
-
-export async function imageOverlayFlagRussia(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_FLAG_RUSSIA,
-    },
-  });
-}
-
-
-export async function imageOverlayFlagUK(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_FLAG_UK,
-    },
-  });
-}
-
-
-export async function imageOverlayFlagUSA(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_FLAG_USA,
-    },
-  });
-}
-
-
-export async function imageOverlayFlagUSSR(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_FLAG_USSR,
-    },
-  });
-}
-
-
-export async function imageOverlayGoldstar(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_GOLDSTAR,
-    },
-  });
-}
-
-
-export async function imageOverlayHalfLifePistol(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_HALF_LIFE_PISTOL,
-    },
-  });
-}
-
-
-export async function imageOverlayHalfLifeShotgun(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_HALF_LIFE_SHOTGUN,
-    },
-  });
-}
-
-
-export async function imageOverlayHalfLifeSMG(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_HALF_LIFE_SMG,
-    },
-  });
-}
-
-
-export async function imageOverlayShutterstock(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.IMAGE_OVERLAY_SHUTTERSTOCK,
-    },
-  });
-}
-
-
-export async function imageToolsBackgroundRemove(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
-): Promise<Response> {
-  const query = {
-    model: options.model,
-    trim: options.trim,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_BACKGROUND_REMOVE,
-    },
-  });
-}
-
-
-export async function imageToolsObjectRemove(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsObjectRemoveOptions,
-): Promise<Response> {
-  const query = {
-    label: options.object,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_OBJECT_REMOVE,
-    },
-  });
-}
-
-
-export async function imageToolsCropCircle(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsCropCircle,
-): Promise<Response> {
-  const query = {
-    background: options.background,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_CROP_CIRCLE,
-    },
-  });
-}
-
-
-export async function imageToolsCropTwitterHex(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsCropTwitterHex,
-): Promise<Response> {
-  const query = {
-    background: options.background,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_CROP_TWITTER_HEX,
-    },
-  });
-}
-
-
-export async function imageToolsGifReverse(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_REVERSE,
-    },
-  });
-}
-
-
-export async function imageToolsGifSeeSaw(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_SEE_SAW,
-    },
-  });
-}
-
-
-export async function imageToolsGifSpeed(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsSpeed,
-): Promise<Response> {
-  const query = {
-    loop: options.loop,
-    speed: options.speed,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_SPEED,
-    },
-  });
-}
-
-
-export async function imageToolsResize(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsResize,
-): Promise<Response> {
-  const query = {
-    convert: options.convert,
-    ratio: options.ratio,
-    scale: options.scale,
-    size: options.size,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_RESIZE,
-    },
-  });
-}
-
-
-export async function imageToolsRotate(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsRotate,
-): Promise<Response> {
-  const query = {
-    crop: options.crop,
-    degrees: options.degrees,
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_ROTATE,
-    },
-  });
-}
-
-
-export async function imageToolsTrim(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
-  const query = {
-    url: options.url,
-  };
-  return request(context, {
-    dataOnly: false,
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_TRIM,
     },
   });
 }
@@ -2081,6 +858,24 @@ export async function mediaAIVToolsConvert(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_TOOLS_CONVERT,
+    },
+  });
+}
+
+
+export async function mediaAIVToolsExif(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.MediaAIVToolsExif> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_EXIF,
     },
   });
 }
@@ -2137,6 +932,44 @@ export async function mediaAIVToolsOverlay(
 }
 
 
+export async function mediaAIVToolsReverse(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_REVERSE,
+    },
+  });
+}
+
+
+export async function mediaAIVToolsSeeSaw(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_SEE_SAW,
+    },
+  });
+}
+
+
 export async function mediaAIVToolsSnip(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsSnip,
@@ -2154,6 +987,26 @@ export async function mediaAIVToolsSnip(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_TOOLS_SNIP,
+    },
+  });
+}
+
+export async function mediaAIVToolsSpeed(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSpeed,
+): Promise<Response> {
+  const query = {
+    loop: options.loop,
+    speed: options.speed,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_SPEED,
     },
   });
 }
@@ -2274,6 +1127,737 @@ export async function mediaAVToolsIdentify(
 }
 
 
+export async function mediaICreateRetrowave(
+  context: RequestContext,
+  options: RestOptions.MediaICreateRetrowave,
+): Promise<Response> {
+  const query = {
+    background: options.background,
+    line_1: options.line1,
+    line_2: options.line2,
+    line_3: options.line3,
+    text_style: options.textStyle,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_RETROWAVE,
+    },
+  });
+}
+
+
+export async function mediaICreateTombstone(
+  context: RequestContext,
+  options: RestOptions.MediaICreateTombstone,
+): Promise<Response> {
+  const query = {
+    line_1: options.line1,
+    line_2: options.line2,
+    line_3: options.line3,
+    line_4: options.line4,
+    line_5: options.line5,
+  };
+  return request(context, {
+    dataOnly: false,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_TOMBSTONE,
+    },
+  });
+}
+
+
+export async function mediaICreateWordcloud(
+  context: RequestContext,
+  options: RestOptions.MediaICreateWordcloud,
+): Promise<Response> {
+  const body = {
+    words: options.words,
+  };
+  return request(context, {
+    dataOnly: false,
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_WORDCLOUD,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationAscii(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_ASCII,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationBlur(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationBlur,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_BLUR,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationBlurple(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_BLURPLE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationCaption(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCaption,
+): Promise<Response> {
+  const body = {
+    font: options.font,
+    text: options.text,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    dataOnly: false,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_CAPTION,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationCircle(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCircle,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_CIRCLE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationDeepfry(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDeepfry,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DEEPFRY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationExplode(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationExplode,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_EXPLODE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationEyes(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationEyes,
+): Promise<Response> {
+  const query = {
+    type: options.type,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_EYES,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationFlip(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FLIP,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationFlop(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FLOP,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationGlitch(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationGlitch,
+): Promise<Response> {
+  const query = {
+    amount: options.amount,
+    iterations: options.iterations,
+    seed: options.seed,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_GLITCH,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationGlitchGif(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationGlitch,
+): Promise<Response> {
+  const query = {
+    amount: options.amount,
+    iterations: options.iterations,
+    seed: options.seed,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_GLITCH_GIF,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationGlobe(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_GLOBE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationGold(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_GOLD,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationGrayscale(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_GRAYSCALE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationImplode(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationImplode,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_IMPLODE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationInvert(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_INVERT,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationJPEG(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationJPEG,
+): Promise<Response> {
+  const query = {
+    quality: options.quality,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_JPEG,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationLegofy(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationLegofy,
+): Promise<Response> {
+  const query = {
+    dither: options.dither,
+    palette: options.palette,
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LEGOFY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationMagik(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMagik,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MAGIK,
+    },
+  });
+}
+
+
+
+export async function mediaIVManipulationMagikGif(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMagik,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MAGIK_GIF,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationMeme(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMeme,
+): Promise<Response> {
+  const query = {
+    bottom: options.bottom,
+    font: options.font,
+    top: options.top,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MEME,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationMirrorBottom(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MIRROR_BOTTOM,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationMirrorLeft(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MIRROR_LEFT,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationMirrorRight(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MIRROR_RIGHT,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationMirrorTop(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MIRROR_TOP,
+    },
+  });
+}
+
+export async function mediaIVManipulationOverlayFlagIsrael(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISRAEL,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagLGBT(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_LGBT,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagNorthKorea(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NORTH_KOREA,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagTrans(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TRANS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagRussia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_RUSSIA,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagUK(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UK,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagUSA(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_USA,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayFlagUSSR(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLAG_USSR,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlies(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationOverlayFlies,
@@ -2291,6 +1875,296 @@ export async function mediaIVManipulationOverlayFlies(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLIES,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayGoldstar(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_GOLDSTAR,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayHalfLifePistol(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_PISTOL,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayHalfLifeShotgun(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SHOTGUN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayHalfLifeSMG(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SMG,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayShutterstock(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationPaper(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_PAPER,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationPix2Pix(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPix2Pix,
+): Promise<Response> {
+  const query = {
+    model: options.model,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_PIX2PIX,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationPixelate(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPixelate,
+): Promise<Response> {
+  const query = {
+    pixel_width: options.pixelWidth,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_PIXELATE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationRain(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_RAIN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationRainGold(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_RAIN_GOLD,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationSharpen(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSharpen,
+): Promise<Response> {
+  const query = {
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SHARPEN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationSpin(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SPIN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationTrace(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_TRACE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationWall(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_WALL,
+    },
+  });
+}
+
+
+export async function mediaIVToolsBackgroundRemove(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
+): Promise<Response> {
+  const query = {
+    model: options.model,
+    trim: options.trim,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_BACKGROUND_REMOVE,
     },
   });
 }
@@ -2333,6 +2207,129 @@ export async function mediaIVToolsCropAuto(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_TOOLS_CROP_AUTO,
+    },
+  });
+}
+
+
+export async function mediaIVToolsCropCircle(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsCropCircle,
+): Promise<Response> {
+  const query = {
+    background: options.background,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_CROP_CIRCLE,
+    },
+  });
+}
+
+
+export async function mediaIVToolsCropTwitterHex(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsCropTwitterHex,
+): Promise<Response> {
+  const query = {
+    background: options.background,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_CROP_TWITTER_HEX,
+    },
+  });
+}
+
+
+export async function mediaIVToolsObjectRemove(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsObjectRemoveOptions,
+): Promise<Response> {
+  const query = {
+    label: options.object,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_OBJECT_REMOVE,
+    },
+  });
+}
+
+
+export async function mediaIVToolsResize(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsResize,
+): Promise<Response> {
+  const query = {
+    convert: options.convert,
+    ratio: options.ratio,
+    scale: options.scale,
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_RESIZE,
+    },
+  });
+}
+
+
+export async function mediaIVToolsRotate(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsRotate,
+): Promise<Response> {
+  const query = {
+    crop: options.crop,
+    degrees: options.degrees,
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_ROTATE,
+    },
+  });
+}
+
+
+export async function mediaIVToolsTrim(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<Response> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    dataOnly: false,
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_TRIM,
     },
   });
 }

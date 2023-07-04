@@ -25,13 +25,13 @@ export default class RetroCommand extends BaseCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} line1 | line2 | line3 -type 2`,
         ],
-        id: Formatter.Commands.ImageCreateRetrowave.COMMAND_ID,
+        id: Formatter.Commands.MediaICreateRetrowave.COMMAND_ID,
         usage: '?<text> (-type <retro-type>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageCreateRetrowave.CommandArgs) {
-    return Formatter.Commands.ImageCreateRetrowave.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaICreateRetrowave.CommandArgs) {
+    return Formatter.Commands.MediaICreateRetrowave.createMessage(context, args);
   }
 }

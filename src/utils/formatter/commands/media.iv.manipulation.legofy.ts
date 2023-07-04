@@ -1,11 +1,11 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageManipulationLegofy } from '../../../api';
+import { mediaIVManipulationLegofy } from '../../../api';
 import { ImageLegofyPalettes } from '../../../constants';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.legofy';
+export const COMMAND_ID = 'media.iv.manipulation.legofy';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -19,7 +19,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageManipulationLegofy(context, args);
+  return mediaIVManipulationLegofy(context, args);
 }
 
 export async function createMessage(

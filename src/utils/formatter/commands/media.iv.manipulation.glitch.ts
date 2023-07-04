@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageManipulationGlitch } from '../../../api';
+import { mediaIVManipulationGlitch } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.glitch';
+export const COMMAND_ID = 'media.iv.manipulation.glitch';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -18,7 +18,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageManipulationGlitch(context, args);
+  return mediaIVManipulationGlitch(context, args);
 }
 
 export async function createMessage(

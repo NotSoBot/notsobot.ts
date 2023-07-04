@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageManipulationBlurple } from '../../../api';
+import { mediaIVManipulationBlurple } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.blurple';
+export const COMMAND_ID = 'media.iv.manipulation.blurple';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -15,7 +15,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageManipulationBlurple(context, args);
+  return mediaIVManipulationBlurple(context, args);
 }
 
 export async function createMessage(

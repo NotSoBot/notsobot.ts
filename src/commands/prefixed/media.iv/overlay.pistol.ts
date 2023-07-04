@@ -21,13 +21,13 @@ export default class OverlayPistolCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.ImageOverlayPistol.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ImageOverlayPistol.CommandArgs) {
-    return Formatter.Commands.ImageOverlayPistol.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.createMessage(context, args);
   }
 }

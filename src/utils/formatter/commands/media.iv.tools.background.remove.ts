@@ -1,11 +1,11 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageToolsBackgroundRemove } from '../../../api';
+import { mediaIVToolsBackgroundRemove } from '../../../api';
 import { ImageBackgroundRemovalModels, ImageBackgroundRemovalModelsToText } from '../../../constants';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.background.remove';
+export const COMMAND_ID = 'media.iv.tools.background.remove';
 export const IS_PIPEABLE = true;
 
 export const DEFAULT_MODEL = ImageBackgroundRemovalModels.ISNET_GENERAL_USE;
@@ -29,7 +29,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageToolsBackgroundRemove(context, args);
+  return mediaIVToolsBackgroundRemove(context, args);
 }
 
 export async function createMessage(

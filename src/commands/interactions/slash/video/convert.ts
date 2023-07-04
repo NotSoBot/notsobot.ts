@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'convert';
 export class VideoConvertCommand extends BaseInteractionVideoCommandOption {
   description = 'Convert a Video';
   metadata = {
-    id: Formatter.Commands.VideoConvert.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.VIDEO.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -20,8 +20,8 @@ export class VideoConvertCommand extends BaseInteractionVideoCommandOption {
         {
           name: 'to',
           description: 'Conversion Mimetype',
-          choices: Formatter.Commands.VideoConvert.SLASH_CHOICES,
-          default: Formatter.Commands.VideoConvert.DEFAULT_MIMETYPE,
+          choices: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.VIDEO.SLASH_CHOICES,
+          default: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.VIDEO.DEFAULT_MIMETYPE,
         },
         {
           name: 'noaudio',
@@ -32,7 +32,7 @@ export class VideoConvertCommand extends BaseInteractionVideoCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.VideoConvert.CommandArgs) {
-    return Formatter.Commands.VideoConvert.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsConvert.CommandArgs) {
+    return Formatter.Commands.MediaAIVToolsConvert.createMessage(context, args);
   }
 }

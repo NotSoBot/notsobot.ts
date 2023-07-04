@@ -1,15 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageOverlayFlagNorthKorea } from '../../../api';
 import { CommandCategories } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
-
-export interface CommandArgs {
-  url: string,
-}
 
 export const COMMAND_NAME = 'overlay northkorea';
 
@@ -20,19 +15,19 @@ export default class OverlayNorthKoreaCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o northkorea', 'overlay nk', 'o nk', 'northkorea', 'nk'],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Overlay a North Korean flag over an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        id: Formatter.Commands.MediaIVManipulationOverlayFlagNorthKorea.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageOverlayFlagNorthKorea(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOverlayFlagNorthKorea.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationOverlayFlagNorthKorea.createMessage(context, args);
   }
 }

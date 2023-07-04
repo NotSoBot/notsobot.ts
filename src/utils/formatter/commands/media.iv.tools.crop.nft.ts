@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageToolsCropTwitterHex } from '../../../api';
+import { mediaIVToolsCropTwitterHex } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.tools.crop.nft';
+export const COMMAND_ID = 'media.iv.tools.crop.nft';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -16,7 +16,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageToolsCropTwitterHex(context, args);
+  return mediaIVToolsCropTwitterHex(context, args);
 }
 
 export async function createMessage(

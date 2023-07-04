@@ -5,7 +5,7 @@ import { DiscordRegexNames } from 'detritus-client/lib/constants';
 import { regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
-import { imageToolsResize } from '../../../api';
+import { mediaIVToolsResize } from '../../../api';
 import { CDN, CUSTOM } from '../../../api/endpoints';
 import { EmojiTypes, Mimetypes } from '../../../constants';
 import { editOrReply, imageReply, toCodePoint, toCodePointForTwemoji } from '../../../utils';
@@ -99,14 +99,14 @@ export async function createMessage(
     if (filtered.length === 1) {
       const [ url ] = filtered;
       // if its a single url, embed it
-      const response = await imageToolsResize(context, {size, url});
+      const response = await mediaIVToolsResize(context, {size, url});
       return imageReply(context, response, {args: false});
     }
 
     const promises: Array<Promise<{filename: string, value: Buffer}>> = [];
     for (let url of filtered.slice(0, 10)) {
       const promise: Promise<{filename: string, value: Buffer}> = new Promise(async (resolve, reject) => {
-        const response = await imageToolsResize(context, {size, url});
+        const response = await mediaIVToolsResize(context, {size, url});
 
         const filename = url.split('/').pop() || response.headers.get('x-file-name') || 'file';
         const value = await response.buffer();

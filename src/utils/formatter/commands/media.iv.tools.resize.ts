@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageToolsResize } from '../../../api';
+import { mediaIVToolsResize } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.tools.resize';
+export const COMMAND_ID = 'media.iv.tools.resize';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -19,7 +19,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageToolsResize(context, args);
+  return mediaIVToolsResize(context, args);
 }
 
 export async function createMessage(

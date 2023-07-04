@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageToolsGifSpeed } from '../../../api';
+import { mediaAIVToolsSpeed } from '../../../api';
 import { imageReply } from '../..';
 
 
@@ -16,7 +16,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageToolsGifSpeed(context, args);
+  return mediaAIVToolsSpeed(context, args);
 }
 
 export async function createMessage(

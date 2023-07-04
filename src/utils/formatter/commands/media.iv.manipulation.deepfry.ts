@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageManipulationDeepfry } from '../../../api';
+import { mediaIVManipulationDeepfry } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.deepfry';
+export const COMMAND_ID = 'media.iv.manipulation.deepfry';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -16,7 +16,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageManipulationDeepfry(context, args);
+  return mediaIVManipulationDeepfry(context, args);
 }
 
 export async function createMessage(

@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { imageManipulationGrayscale } from '../../../api';
+import { mediaIVManipulationGrayscale } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.grayscale';
+export const COMMAND_ID = 'media.iv.manipulation.grayscale';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -15,7 +15,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return imageManipulationGrayscale(context, args);
+  return mediaIVManipulationGrayscale(context, args);
 }
 
 export async function createMessage(

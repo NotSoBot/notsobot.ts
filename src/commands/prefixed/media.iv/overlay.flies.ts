@@ -27,6 +27,7 @@ export default class OverlayFliesCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         category: CommandCategories.IMAGE,
+        id: Formatter.Commands.MediaIVManipulationOverlayFlies.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-degrees <number>) (-fly <emoji,user:id|mention|name,url>) (-speed <float>)',
       },
     });

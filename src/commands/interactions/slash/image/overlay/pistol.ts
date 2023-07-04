@@ -8,13 +8,13 @@ import { BaseInteractionImageCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'pistol';
 
 export class ImageOverlayPistolCommand extends BaseInteractionImageCommandOption {
-  description = 'Overlay a pistol on an image';
+  description = 'Overlay a Half Life Pistol on an image';
   metadata = {
-    id: Formatter.Commands.ImageOverlayPistol.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImageOverlayPistol.CommandArgs) {
-    return Formatter.Commands.ImageOverlayPistol.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.createMessage(context, args);
   }
 }

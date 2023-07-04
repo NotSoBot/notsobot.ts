@@ -11,9 +11,16 @@ export const COMMAND_ID_SIMPLE = 'search.google.images.simple';
 
 export const RESULTS_PER_PAGE = 3;
 
+export interface CommandArgs {
+  locale?: GoogleLocales,
+  query: string,
+  randomize?: boolean,
+  safe?: boolean,
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: {locale?: GoogleLocales, query: string, randomize?: boolean, safe?: boolean, simple?: boolean},
+  args: CommandArgs & {simple?: boolean},
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 

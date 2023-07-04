@@ -1,12 +1,12 @@
 import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
-import { imageManipulationPix2Pix } from '../../../api';
+import { mediaIVManipulationPix2Pix } from '../../../api';
 import { ImagePix2PixModels } from '../../../constants';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'image.manipulation.e2p';
+export const COMMAND_ID = 'media.iv.manipulation.e2p';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
@@ -17,7 +17,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile},
 ) {
-  return imageManipulationPix2Pix(context, {
+  return mediaIVManipulationPix2Pix(context, {
     file: args.file,
     model: ImagePix2PixModels.PORN,
     url: args.url,

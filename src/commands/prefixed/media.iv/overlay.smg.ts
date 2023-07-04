@@ -1,15 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { imageOverlayHalfLifeSMG } from '../../../api';
 import { CommandCategories } from '../../../constants';
-import { imageReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
-
-export interface CommandArgs {
-  url: string,
-}
 
 export const COMMAND_NAME = 'overlay smg';
 
@@ -20,19 +15,19 @@ export default class OverlaySMGCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o smg', 'smg'],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Overlay a Half Life SMG over an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        id: Formatter.Commands.MediaIVManipulationOverlayHalfLifeSMG.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await imageOverlayHalfLifeSMG(context, args);
-    return imageReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOverlayHalfLifeSMG.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationOverlayHalfLifeSMG.createMessage(context, args);
   }
 }

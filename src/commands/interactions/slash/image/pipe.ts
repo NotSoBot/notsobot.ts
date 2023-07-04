@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'pipe';
 export class ImagePipeCommand extends BaseInteractionImageCommandOption {
   description = 'Pipe Multiple Image Commands Together';
   metadata = {
-    id: Formatter.Commands.ImagePipe.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVPipe.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class ImagePipeCommand extends BaseInteractionImageCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ImagePipe.CommandArgs) {
-    return Formatter.Commands.ImagePipe.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVPipe.CommandArgs) {
+    return Formatter.Commands.MediaAIVPipe.createMessage(context, args);
   }
 }

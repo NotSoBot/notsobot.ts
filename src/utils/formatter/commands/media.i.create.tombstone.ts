@@ -2,12 +2,12 @@ import { Command, Interaction } from 'detritus-client';
 import { DiscordRegexNames } from 'detritus-client/lib/constants';
 import { regex as discordRegex } from 'detritus-client/lib/utils';
 
-import { imageCreateTombstone } from '../../../api';
+import { mediaICreateTombstone } from '../../../api';
 import { RestOptions } from '../../../api/types';
 import { imageReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'image.rip';
+export const COMMAND_ID = 'media.i.create.tombstone';
 
 export interface CommandArgs {
   text: string,
@@ -30,7 +30,7 @@ export async function createMessage(
   }
   const text = parts.join(' ');
 
-  const query: RestOptions.ImageCreateTombstone = {line1: 'R.I.P'};
+  const query: RestOptions.MediaICreateTombstone = {line1: 'R.I.P'};
   if (text) {
     if (22 < text.length) {
       query.line4 = text.slice(0, 22);
@@ -46,6 +46,6 @@ export async function createMessage(
   }
   query.line2 = username;
 
-  const response = await imageCreateTombstone(context, query);
+  const response = await mediaICreateTombstone(context, query);
   return imageReply(context, response);
 }
