@@ -93,6 +93,11 @@ export namespace RestOptions {
       id: string,
       type: string,
     }>,
+    commandsAllowlist?: Array<{
+      command: string,
+      id: string,
+      type: string,
+    }>,
     commandsBlocklist?: Array<{
       command: string,
       id: string,
@@ -889,6 +894,7 @@ export namespace RestResponsesRaw {
   export interface GuildSettings {
     allowlist: Array<GuildAllowlist>,
     blocklist: Array<GuildBlocklist>,
+    commands_allowlist: Array<GuildCommandsAllowlist>,
     commands_blocklist: Array<GuildCommandsBlocklist>,
     icon: string | null,
     id: string,
@@ -906,6 +912,14 @@ export namespace RestResponsesRaw {
 
   export interface GuildBlocklist {
     added: string,
+    id: string,
+    type: string,
+    user_id: string,
+  }
+
+  export interface GuildCommandsAllowlist {
+    added: string,
+    command: string,
     id: string,
     type: string,
     user_id: string,

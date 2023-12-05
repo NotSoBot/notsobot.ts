@@ -101,6 +101,10 @@ import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
 import * as ModerationAllowlistRemoveUsers from './moderation.allowlist.remove.users';
 import * as ModerationBlocklistAddUsers from './moderation.blocklist.add.users';
 import * as ModerationBlocklistRemoveUsers from './moderation.blocklist.remove.users';
+import * as ModerationCommandsAllowlist from './moderation.commands.allowlist';
+import * as ModerationCommandsAllowlistAdd from './moderation.commands.allowlist.add';
+import * as ModerationCommandsAllowlistClear from './moderation.commands.allowlist.clear';
+import * as ModerationCommandsAllowlistRemove from './moderation.commands.allowlist.remove';
 import * as ModerationCommandsBlocklist from './moderation.commands.blocklist';
 import * as ModerationCommandsBlocklistAdd from './moderation.commands.blocklist.add';
 import * as ModerationCommandsBlocklistClear from './moderation.commands.blocklist.clear';
@@ -273,6 +277,10 @@ export {
   ModerationAllowlistRemoveUsers,
   ModerationBlocklistAddUsers,
   ModerationBlocklistRemoveUsers,
+  ModerationCommandsAllowlist,
+  ModerationCommandsAllowlistAdd,
+  ModerationCommandsAllowlistClear,
+  ModerationCommandsAllowlistRemove,
   ModerationCommandsBlocklist,
   ModerationCommandsBlocklistAdd,
   ModerationCommandsBlocklistClear,

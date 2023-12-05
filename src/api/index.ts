@@ -5,6 +5,7 @@ import { HTTPMethods } from 'detritus-rest/lib/constants';
 import {
   GuildAllowlistTypes,
   GuildBlocklistTypes,
+  GuildCommandsAllowlistTypes,
   GuildCommandsBlocklistTypes,
 } from '../constants';
 import GuildSettingsStore from '../stores/guildsettings';
@@ -70,14 +71,25 @@ export async function createGuildBlocklist(
 }
 
 
+export async function createGuildCommandsAllowlist(
+  context: RequestContext,
+  guildId: string,
+  command: string,
+  allowlistId: string,
+  type: GuildCommandsAllowlistTypes,
+): Promise<RestResponses.CreateGuildCommandsAllowlist> {
+  return raw.createGuildCommandsAllowlist(context, guildId, command, allowlistId, type);
+}
+
+
 export async function createGuildCommandsBlocklist(
   context: RequestContext,
   guildId: string,
   command: string,
-  blocklistdId: string,
+  blocklistId: string,
   type: GuildCommandsBlocklistTypes,
 ): Promise<RestResponses.CreateGuildCommandsBlocklist> {
-  return raw.createGuildCommandsBlocklist(context, guildId, command, blocklistdId, type);
+  return raw.createGuildCommandsBlocklist(context, guildId, command, blocklistId, type);
 }
 
 
@@ -175,14 +187,25 @@ export async function deleteGuildBlocklist(
 }
 
 
+export async function deleteGuildCommandsAllowlist(
+  context: RequestContext,
+  guildId: string,
+  command: string,
+  allowlistId: string,
+  type: GuildCommandsAllowlistTypes,
+): Promise<RestResponses.DeleteGuildCommandsAllowlist> {
+  return raw.deleteGuildCommandsAllowlist(context, guildId, command, allowlistId, type);
+}
+
+
 export async function deleteGuildCommandsBlocklist(
   context: RequestContext,
   guildId: string,
   command: string,
-  blocklistdId: string,
+  blocklistId: string,
   type: GuildCommandsBlocklistTypes,
 ): Promise<RestResponses.DeleteGuildCommandsBlocklist> {
-  return raw.deleteGuildCommandsBlocklist(context, guildId, command, blocklistdId, type);
+  return raw.deleteGuildCommandsBlocklist(context, guildId, command, blocklistId, type);
 }
 
 

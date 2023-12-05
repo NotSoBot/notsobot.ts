@@ -34,10 +34,10 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     }
 
     if (context.inDm) {
-      if (command.disableDm) {
+      if (context.invoker.disableDm) {
         context.metadata.reason = 'Command blocked in Direct Messages.';
       }
-      return !command.disableDm;
+      return !context.invoker.disableDm;
     }
 
     const guildId = context.guildId!;
@@ -56,8 +56,8 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       return true;
     }
 
-    const metadata = command.metadata as InteractionCommandMetadata;
-    const commandId = metadata.id || command.name.split(' ').join('.');
+    const metadata = context.invoker.metadata as InteractionCommandMetadata;
+    const commandId = metadata.id || context.invoker.fullName.split(' ').join('.');
 
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
@@ -66,16 +66,16 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         return allowed.command === commandId;
       });
       if (commandsAllowlist.length) {
-        const shouldAllow = commandsAllowlist.some((allow) => {
-          switch (allow.type) {
+        const shouldAllow = commandsAllowlist.some((allowed) => {
+          switch (allowed.type) {
             case GuildCommandsAllowlistTypes.CHANNEL: {
-              if (allow.id === context.channelId) {
+              if (allowed.id === context.channelId) {
                 return true;
               }
-              if (channel && channel.parentId === allow.id) {
+              if (channel && channel.parentId === allowed.id) {
                 return true;
               }
-              if (parent && parent.parentId === allow.id) {
+              if (parent && parent.parentId === allowed.id) {
                 return true;
               }
             }; break;
@@ -84,11 +84,11 @@ export class NotSoInteractionClient extends InteractionCommandClient {
             }; break;
             case GuildCommandsAllowlistTypes.ROLE: {
               if (member) {
-                return member.roles.has(allow.id);
+                return member.roles.has(allowed.id);
               }
             }; break;
             case GuildCommandsAllowlistTypes.USER: {
-              return allow.id === context.userId;
+              return allowed.id === context.userId;
             };
           }
           return false;

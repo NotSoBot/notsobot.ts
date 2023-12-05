@@ -30,8 +30,10 @@ export const Api = Object.freeze({
     '/guilds/:guildId/allowlist/:allowlistId/:type',
   GUILD_BLOCKLIST:
     '/guilds/:guildId/blocklist/:blocklistId/:type',
+  GUILD_COMMANDS_ALLOWLIST:
+    '/guilds/:guildId/commands/:command/allowlist/:allowlistId/:type',
   GUILD_COMMANDS_BLOCKLIST:
-    '/guilds/:guildId/disabled-commands/:command/:blocklistId/:type',
+    '/guilds/:guildId/commands/:command/blocklist/:blocklistId/:type',
   GUILD_LOGGERS:
     '/guilds/:guildId/loggers',
   GUILD_LOGGERS_DELETE:

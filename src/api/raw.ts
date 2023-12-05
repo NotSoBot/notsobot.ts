@@ -10,6 +10,7 @@ import {
   GoogleLocales,
   GuildAllowlistTypes,
   GuildBlocklistTypes,
+  GuildCommandsAllowlistTypes,
   GuildCommandsBlocklistTypes,
   NotSoHeaders,
 } from '../constants';
@@ -169,6 +170,23 @@ export async function createGuildBlocklist(
       method: HTTPMethods.PUT,
       path: Api.GUILD_BLOCKLIST,
       params: {blocklistId, guildId, type},
+    },
+  });
+}
+
+
+export async function createGuildCommandsAllowlist(
+  context: RequestContext,
+  guildId: string,
+  command: string,
+  allowlistId: string,
+  type: GuildCommandsAllowlistTypes,
+): Promise<RestResponsesRaw.CreateGuildCommandsAllowlist> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_COMMANDS_ALLOWLIST,
+      params: {allowlistId, command, guildId, type},
     },
   });
 }
@@ -353,6 +371,23 @@ export async function deleteGuildBlocklist(
 }
 
 
+export async function deleteGuildCommandsAllowlist(
+  context: RequestContext,
+  guildId: string,
+  command: string,
+  allowlistId: string,
+  type: GuildCommandsAllowlistTypes,
+): Promise<RestResponsesRaw.DeleteGuildCommandsAllowlist> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.GUILD_COMMANDS_ALLOWLIST,
+      params: {allowlistId, command, guildId, type},
+    },
+  });
+}
+
+
 export async function deleteGuildCommandsBlocklist(
   context: RequestContext,
   guildId: string,
@@ -364,7 +399,7 @@ export async function deleteGuildCommandsBlocklist(
     route: {
       method: HTTPMethods.DELETE,
       path: Api.GUILD_COMMANDS_BLOCKLIST,
-      params: {command, blocklistId, guildId, type},
+      params: {blocklistId, command, guildId, type},
     },
   });
 }
@@ -472,6 +507,7 @@ export async function editGuildSettings(
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
     blocklist: options.blocklist,
+    commands_allowlist: options.commandsAllowlist,
     commands_blocklist: options.commandsBlocklist,
     prefixes: options.prefixes,
     timezone: options.timezone,
