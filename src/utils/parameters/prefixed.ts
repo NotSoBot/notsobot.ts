@@ -21,6 +21,7 @@ export { ContextMenu, Slash };
 
 
 export interface BanPayloadOptions {
+  allowBots?: boolean,
   membersOnly?: boolean,
 }
 
@@ -104,7 +105,16 @@ export function banPayload(
         }
       }
     }
-    return {membersOrUsers: membersOrUsers.toArray(), notFound, text: value};
+
+    let membersOrUsersArray = membersOrUsers.toArray();
+    if (!options.allowBots && options.allowBots !== undefined) {
+      membersOrUsersArray = membersOrUsersArray.filter((memberOrUser) => !memberOrUser.bot);
+    }
+    return {
+      membersOrUsers: membersOrUsersArray,
+      notFound,
+      text: value,
+    };
   }
 }
 

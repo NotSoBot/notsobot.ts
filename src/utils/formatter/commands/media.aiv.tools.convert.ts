@@ -2,8 +2,15 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaAIVToolsConvert } from '../../../api';
-import { Mimetypes, MimetypesToExtension, MIMETYPES_AUDIO_EMBEDDABLE, MIMETYPES_IMAGE_EMBEDDABLE, MIMETYPES_VIDEO_EMBEDDABLE, MIMETYPES_SAFE_EMBED } from '../../../constants';
-import { imageReply, mediaReply, parseFilenameFromResponse } from '../..';
+import {
+  Mimetypes,
+  MimetypesToExtension,
+  MIMETYPES_AUDIO_EMBEDDABLE,
+  MIMETYPES_IMAGE_EMBEDDABLE,
+  MIMETYPES_VIDEO_EMBEDDABLE,
+  MIMETYPES_SAFE_EMBED,
+} from '../../../constants';
+import { imageReply, mediaReply } from '../..';
 
 
 export const COMMAND_ID = 'media.aiv.tools.convert';
@@ -67,7 +74,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  const mimetype = (response.headers.get('content-type') || '').toLowerCase();
+  const mimetype = response.file.metadata.mimetype;
 
   if (MIMETYPES_SAFE_EMBED.includes(mimetype as Mimetypes)) {
     return imageReply(context, response);

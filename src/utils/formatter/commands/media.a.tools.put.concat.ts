@@ -16,6 +16,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  args.urls = args.urls.reverse();
   const response = await audioToolsPutConcat(context, args);
   return mediaReply(context, response);
 }

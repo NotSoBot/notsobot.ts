@@ -22,7 +22,7 @@ export async function createMessage(
 ) {
   const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
   const response = await utilitiesFetchMedia(context, {maxFileSize, url: args.url});
-  const mimetype = (response.headers.get('content-type') || '').toLowerCase();
+  const mimetype = response.file.metadata.mimetype;
 
   if (MIMETYPES_SAFE_EMBED.includes(mimetype as Mimetypes)) {
     return imageReply(context, response, {spoiler: args.spoiler});

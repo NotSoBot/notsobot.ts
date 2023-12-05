@@ -448,6 +448,8 @@ export async function url(
 
 /* NotSoBot Stuff */
 
+import * as Sentry from '@sentry/node';
+
 export async function NotSoTag(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
@@ -462,6 +464,7 @@ export async function NotSoTag(
       if (error.response && error.response.statusCode === 404) {
         return false;
       }
+      Sentry.captureException(error);
       throw error;
     }
   }

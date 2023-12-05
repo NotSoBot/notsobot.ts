@@ -20,33 +20,89 @@ export async function createMessage(
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const response = await mediaAIVToolsExif(context, args);
-  const isGif = (response.information.mimetype === 'image/gif');
+  const { channels, metadata } = response;
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Image Exif Information', EmbedBrands.NOTSOBOT);
+  embed.setFooter('Media Exif Information', EmbedBrands.NOTSOBOT);
 
-  {
-    const { information, metadata } = response;
+  if (metadata.mimetype.startsWith('image/')) {
+    const channel = channels.image[0]!;
 
     const description: Array<string> = [];
-    description.push(`**Color Profile**: ${information.interpretation}`);
-    description.push(`**Dimensions**: ${information.width}x${information.height}`);
-    if (isGif) {
-      description.push(`**Frames**: ${information.frames.toLocaleString()}`);
-      description.push(`**Frame Delay**: ${information.delay.toLocaleString()}`);
-      description.push(`**Loops**: ${(information.loop) ? 'Yes' : 'No'}`);
-    }
-    description.push(`**Mimetype**: ${information.mimetype}`);
-    description.push(`**Size**: ${formatMemory(information.size)}`);
+    description.push(`**Color Profile**: ${channel.interpretation}`);
+    description.push(`**Dimensions**: ${metadata.width}x${metadata.height}`);
+    if (channel.frames !== 1) {
+      let delay = channel.delay[0]!.toLocaleString();
+      if (channel.delay.some((x) => x !== channel.delay[0]!)) {
+        delay = channel.delay.join(', ');
+      }
 
-    if (metadata['gif-comment']) {
+      description.push(`**Duration**: ${metadata.duration.toLocaleString()} milliseconds`);
+      description.push(`**Frames**: ${metadata.frames.toLocaleString()}`);
+      description.push(`**Frame Delay**: ${delay}`);
+      description.push(`**Loops**: ${(channel.loop) ? 'Yes' : 'No'}`);
+    }
+    description.push(`**Mimetype**: ${metadata.mimetype}`);
+    description.push(`**Size**: ${formatMemory(metadata.size)}`);
+    
+    if (channel._data['gif-comment']) {
       description.push('');
       description.push(`**Comment**`);
-      description.push(Markup.codeblock(metadata['gif-comment']))
+      description.push(Markup.codeblock(channel._data['gif-comment']))
     }
 
     embed.setDescription(description.join('\n'));
+  } else {
+    {
+      const description: Array<string> = [];
+      if (response.metadata.mimetype.startsWith('video/')) {
+        description.push(`**Dimensions**: ${metadata.width}x${metadata.height}`);
+      }
+      description.push(`**Duration**: ${metadata.duration.toLocaleString()} milliseconds`);
+      description.push(`**Mimetype**: ${metadata.mimetype}`);
+      description.push(`**Size**: ${formatMemory(metadata.size)}`);
+
+      embed.setDescription(description.join('\n'));
+    }
+
+    for (let index in channels.audio) {
+      const channel = channels.audio[index];
+
+      const description: Array<string> = [];
+      description.push(`**Channels**: ${channel.channels}`);
+      description.push(`**Codec**: ${channel.codec} (${channel.codec_tag})`);
+      description.push(`**Codec Description**: ${channel.codec_description}`);
+      description.push(`**Frames**: ${channel.frames.toLocaleString()}`);
+      description.push(`**Sample Rate**: ${channel.sample_rate.toLocaleString()}`);
+
+      let title = 'Audio Stream';
+      if (channels.audio.length !== 1) {
+        title = `${title} ${parseInt(index) + 1}`;
+      }
+      embed.addField(title, description.join('\n'), true);
+    }
+
+    for (let index in channels.video) {
+      const channel = channels.video[index];
+
+      const description: Array<string> = [];
+      description.push(`**Codec**: ${channel.codec} (${channel.codec_tag})`);
+      description.push(`**Codec Description**: ${channel.codec_description}`);
+      if (channel.rotate) {
+        description.push(`**Dimensions**: ${channel.width}x${channel.height} (Rotate ${channel.rotate} Degrees)`);
+      } else {
+        description.push(`**Dimensions**: ${channel.width}x${channel.height}`);
+      }
+      description.push(`**Frames**: ${channel.frames.toLocaleString()}`);
+      description.push(`**Pixel Format**: ${channel.pixel_format}`);
+
+      let title = 'Video Stream';
+      if (channels.video.length !== 1) {
+        title = `${title} ${parseInt(index) + 1}`;
+      }
+      embed.addField(title, description.join('\n'), true);
+    }
   }
 
   if (response.exif.length) {
@@ -85,5 +141,10 @@ export async function createMessage(
     }
   }
 
-  return editOrReply(context, {embed});
+  const options: any = {embed};
+  if (response._raw) {
+    options.file = {filename: 'stuff.json', value: JSON.stringify(response._raw, null, 2)};
+  }
+
+  return editOrReply(context, options);
 }

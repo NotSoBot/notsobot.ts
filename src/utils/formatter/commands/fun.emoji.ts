@@ -108,8 +108,8 @@ export async function createMessage(
       const promise: Promise<{filename: string, value: Buffer}> = new Promise(async (resolve, reject) => {
         const response = await mediaIVToolsResize(context, {size, url});
 
-        const filename = url.split('/').pop() || response.headers.get('x-file-name') || 'file';
-        const value = await response.buffer();
+        const filename = response.file.filename;
+        const value = Buffer.from(response.file.value, 'base64');
         resolve({filename, value});
       });
       promises.push(promise);

@@ -19,7 +19,8 @@ import {
   GuildSettings,
   GuildSettingsAllowlist,
   GuildSettingsBlocklist,
-  GuildSettingsDisabledCommand,
+  GuildSettingsCommandsAllowlist,
+  GuildSettingsCommandsBlocklist,
   GuildSettingsLogger,
   GuildSettingsPrefix,
 } from './structures/guildsettings';
@@ -69,15 +70,15 @@ export namespace RestOptions {
     type: GuildLoggerTypes,
   }
 
-  export interface DeleteTag {
-    name: string,
-    serverId?: string,
-  }
-
-  export interface DeleteTagsServer {
+  export interface DeleteTags {
     content?: string,
     name?: string,
     userId?: string,
+  }
+
+  export interface DeleteTagSearch {
+    name: string,
+    serverId?: string,
   }
 
 
@@ -87,11 +88,12 @@ export namespace RestOptions {
       type: string,
     }>,
     blocked?: boolean,
+    blockedReason?: null | string,
     blocklist?: Array<{
       id: string,
       type: string,
     }>,
-    disabledCommands?: Array<{
+    commandsBlocklist?: Array<{
       command: string,
       id: string,
       type: string,
@@ -102,6 +104,7 @@ export namespace RestOptions {
 
   export interface EditUser {
     blocked?: boolean,
+    blockedReason?: null | string,
     channelId?: null | string,
     locale?: null | string,
     optOutContent?: boolean,
@@ -118,24 +121,24 @@ export namespace RestOptions {
     timestampMin?: number,
   }
 
-  export interface FetchTag {
-    name: string,
-    serverId?: string,
-  }
-
-  export interface FetchTagRandom {
-    content?: string,
-    name?: string,
-    serverId?: string,
-    userId?: string,
-  }
-
-  export interface FetchTagsServer {
+  export interface FetchTags{
     after?: string,
     before?: string,
     content?: string,
     limit?: number,
     name?: string,
+    userId?: string,
+  }
+
+  export interface FetchTagSearch {
+    name: string,
+    serverId?: string,
+  }
+
+  export interface FetchTagSearchRandom {
+    content?: string,
+    name?: string,
+    serverId?: string,
     userId?: string,
   }
 
@@ -418,6 +421,7 @@ export namespace RestOptions {
     avatar: null | string,
     bot: boolean,
     blocked?: boolean,
+    blockedReason?: null | string,
     channelId?: null | string,
     discriminator: string,
     locale?: null | string,
@@ -581,6 +585,25 @@ export namespace RestOptions {
     code: string,
   }
 
+  export interface UtilitiesMLEdit extends MediaBaseOptions {
+    count?: number,
+    guidance?: number,
+    no?: string,
+    query: string,
+    seed?: number,
+    steps?: number,
+    strength?: number,
+  }
+
+  export interface UtilitiesMLImagine {
+    count?: number,
+    guidance?: number,
+    no?: string,
+    query: string,
+    seed?: number,
+    steps?: number,
+  }
+
   export interface UtilitiesQrCreate {
     margin?: number,
     query: string,
@@ -600,14 +623,16 @@ export namespace RestOptions {
 export namespace RestResponses {
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;
-  export type CreateGuildDisabledCommand = null;
+  export type CreateGuildCommandsAllowlist = null;
+  export type CreateGuildCommandsBlocklist = null;
   export type CreateGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type CreateGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   export type DeleteChannel = null;
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
-  export type DeleteGuildDisabledCommand = null;
+  export type DeleteGuildCommandsAllowlist = null;
+  export type DeleteGuildCommandsBlocklist = null;
   export type DeleteGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
@@ -626,6 +651,59 @@ export namespace RestResponses {
 
 
 export namespace RestResponsesRaw {
+  export interface FileResponse {
+    arguments: null | Record<string, any>,
+    file: {
+      filename: string,
+      filename_base: string,
+      metadata: {
+        duration: number,
+        extension: string,
+        framecount: number,
+        height: number,
+        mimetype: string,
+        size: number,
+        width: number,
+      },
+      value: string,
+    },
+    file_old: {
+      metadata: {
+        duration: number,
+        extension: string,
+        framecount: number,
+        height: number,
+        mimetype: string,
+        size: number,
+        width: number,
+      },
+    },
+    storage: null | FileResponseStorage,
+    took: number,
+  }
+
+  export interface FileResponseStorage {
+    filename: string,
+    filename_base: string,
+    id: string,
+    metadata: {
+      duration: number,
+      extension: string,
+      framecount: number,
+      height: number,
+      mimetype: string,
+      size: number,
+      width: number,
+    },
+    urls: {
+      cdn: string,
+      delete?: string,
+      vanity: string,
+    },
+    user: Record<string, any>,
+    vanity: string,
+  }
+
   export interface MediaAVToolsIdentifySong {
     album: {name: string},
     artists: Array<{
@@ -693,7 +771,8 @@ export namespace RestResponsesRaw {
 
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;
-  export type CreateGuildDisabledCommand = null;
+  export type CreateGuildCommandsAllowlist = null;
+  export type CreateGuildCommandsBlocklist = null;
   export type CreateGuildLogger = Array<GuildLogger>;
   export type CreateGuildPrefix = Array<GuildPrefix>;
 
@@ -707,13 +786,14 @@ export namespace RestResponsesRaw {
   export type DeleteChannel = null;
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
-  export type DeleteGuildDisabledCommand = null;
+  export type DeleteGuildCommandsAllowlist = null;
+  export type DeleteGuildCommandsBlocklist = null;
   export type DeleteGuildLogger = Array<GuildLogger>;
   export type DeleteGuildPrefix = Array<GuildPrefix>;
 
   export type DeleteReminder = null;
 
-  export type DeleteTag = null;
+  export type DeleteTagSearch = null;
 
   export type EditGuildSettings = GuildSettings;
   export type EditUser = User;
@@ -725,13 +805,13 @@ export namespace RestResponsesRaw {
     reminders: Array<Reminder>,
   };
 
-  export type FetchTag = Tag;
-  export type FetchTagRandom = Tag;
-
-  export interface FetchTagsServer {
+  export interface FetchTags {
     count: number,
     tags: Array<Tag>,
   }
+
+  export type FetchTagSearch = Tag;
+  export type FetchTagSearchRandom = Tag;
 
   export type FetchUser = User;
 
@@ -809,7 +889,7 @@ export namespace RestResponsesRaw {
   export interface GuildSettings {
     allowlist: Array<GuildAllowlist>,
     blocklist: Array<GuildBlocklist>,
-    disabled_commands: Array<GuildDisabledCommand>,
+    commands_blocklist: Array<GuildCommandsBlocklist>,
     icon: string | null,
     id: string,
     name: string,
@@ -831,7 +911,7 @@ export namespace RestResponsesRaw {
     user_id: string,
   }
 
-  export interface GuildDisabledCommand {
+  export interface GuildCommandsBlocklist {
     added: string,
     command: string,
     id: string,
@@ -856,6 +936,56 @@ export namespace RestResponsesRaw {
 
 
   export interface MediaAIVToolsExif {
+    channels: {
+      audio: Array<{
+        channels: number,
+        codec: string,
+        codec_description: string,
+        codec_tag: string,
+        duration: number,
+        frames: number,
+        sample_rate: number,
+      }>,
+      image: Array<{
+        bands: number,
+        delay: Array<number>,
+        format: string,
+        frames: number,
+        height: number,
+        interpretation: string,
+        loop: boolean,
+        mimetype: string,
+        size: number,
+        width: number,
+        _data: {
+          bands: number,
+          coding: string,
+          filename: string,
+          format: string,
+          'gif-comment'?: string,
+          interpretation: string,
+          height: number,
+          'vips-loader': string,
+          width: number,
+          xoffset: number,
+          xres: number,
+          yoffset: number,
+          yres: number,
+          [key: string]: any,
+        },
+      }>,
+      video: Array<{
+        codec: string,
+        codec_description: string,
+        codec_tag: string,
+        duration: number,
+        frames: number,
+        height: number,
+        pixel_format: string,
+        rotate: number,
+        width: number,
+      }>,
+    },
     exif: Array<{
       bytes: number,
       description: null | string,
@@ -865,35 +995,16 @@ export namespace RestResponsesRaw {
       type: string,
       value: string,
     }>,
-    information: {
-      bands: number,
-      delay: number,
-      format: string,
+    metadata: {
+      duration: number,
       frames: number,
       height: number,
-      interpretation: string,
-      loop: boolean,
       mimetype: string,
       size: number,
       width: number,
     },
-    metadata: {
-      bands: number,
-      coding: string,
-      filename: string,
-      format: string,
-      'gif-comment'?: string,
-      interpretation: string,
-      height: number,
-      'vips-loader': string,
-      width: number,
-      xoffset: number,
-      xres: number,
-      yoffset: number,
-      yres: number,
-      [key: string]: any,
-    },
     url: null | string,
+    _raw?: any,
   }
 
 
@@ -991,7 +1102,9 @@ export namespace RestResponsesRaw {
     url: string,
   }
 
-  export type SearchGoogleImages = Array<SearchGoogleImage>;
+  export interface SearchGoogleImages {
+    results: Array<SearchGoogleImage>,
+  }
 
   export interface SearchGoogleCard {
     description: null | string,
@@ -1635,6 +1748,7 @@ export namespace RestResponsesRaw {
   export interface User {
     avatar: null | string,
     blocked: boolean,
+    blocked_reason: null | string,
     bot: boolean,
     channel_id?: null | string,
     discriminator: string,

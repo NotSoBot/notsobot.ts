@@ -5,17 +5,23 @@ import { mediaReply } from '../..';
 
 
 export const COMMAND_ID = 'media.av.manipulation.destroy';
+export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   url: string,
+}
+
+export function createResponse(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  return mediaAVManipulationDestroy(context, args);
 }
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await mediaAVManipulationDestroy(context, {
-    url: args.url,
-  });
+  const response = await createResponse(context, args);
   return mediaReply(context, response);
 }

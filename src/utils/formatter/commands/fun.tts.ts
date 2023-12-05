@@ -16,9 +16,17 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await funTextToSpeech(context, {text: args.text, voice: args.use && (TTSVoices as any)[args.use]});
-  const filename = response.headers.get('x-file-name') || 'tts.mp3';
+  const response = await funTextToSpeech(context, {
+    text: args.text,
+    voice: args.use && (TTSVoices as any)[args.use],
+  });
+
+  if (response.storage) {
+    return editOrReply(context, response.storage.urls.vanity);
+  }
+
+  const filename = response.file.filename;
   return editOrReply(context, {
-    file: {filename, value: await response.buffer()},
+    file: {filename, value: Buffer.from(response.file.value, 'base64')},
   });
 }

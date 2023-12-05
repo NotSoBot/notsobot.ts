@@ -13,6 +13,7 @@ import { BaseStructure } from './basestructure';
 const keysUser = new Collections.BaseSet<string>([
   NotSoApiKeys.AVATAR,
   NotSoApiKeys.BLOCKED,
+  NotSoApiKeys.BLOCKED_REASON,
   NotSoApiKeys.BOT,
   NotSoApiKeys.DISCRIMINATOR,
   NotSoApiKeys.FLAGS,
@@ -25,6 +26,7 @@ export class User extends BaseStructure {
 
   avatar: string | null = null;
   blocked: boolean = false;
+  blockedReason: string | null = null;
   bot: boolean = false;
   discriminator: string = '0000';
   flags: number = 0;
@@ -51,6 +53,7 @@ export class User extends BaseStructure {
 const keysUserFull = new Collections.BaseSet<string>([
   NotSoApiKeys.AVATAR,
   NotSoApiKeys.BLOCKED,
+  NotSoApiKeys.BLOCKED_REASON,
   NotSoApiKeys.BOT,
   NotSoApiKeys.CHANNEL_ID,
   NotSoApiKeys.DISCRIMINATOR,
@@ -68,6 +71,7 @@ export class UserFull extends User {
 
   avatar: string | null = null;
   blocked: boolean = false;
+  blockedReason: string | null = null;
   bot: boolean = false;
   channelId: string | null = null;
   discriminator: string = '0000';

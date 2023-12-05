@@ -2,7 +2,12 @@ import { Command, CommandClient } from 'detritus-client';
 
 import { CommandMetadata } from './commands/prefixed/basecommand';
 
-import { GuildAllowlistTypes, GuildBlocklistTypes, GuildDisableCommandsTypes } from './constants';
+import {
+  GuildAllowlistTypes,
+  GuildBlocklistTypes,
+  GuildCommandsAllowlistTypes,
+  GuildCommandsBlocklistTypes,
+} from './constants';
 import GuildSettingsStore from './stores/guildsettings';
 import UserStore from './stores/users';
 
@@ -38,39 +43,73 @@ export class NotSoCommandClient extends CommandClient {
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
     if (settings) {
-      const disabledCommands = settings.disabledCommands.filter((disabled) => {
-        return disabled.command === commandId;
+      const commandsAllowlist = settings.commandsAllowlist.filter((allowed) => {
+        return allowed.command === commandId;
       });
-      if (disabledCommands.length) {
-        const shouldIgnore = disabledCommands.some((disabled) => {
-          switch (disabled.type) {
-            case GuildDisableCommandsTypes.CHANNEL: {
-              if (disabled.id === context.channelId) {
+      if (commandsAllowlist.length) {
+        const shouldAllow = commandsAllowlist.some((allow) => {
+          switch (allow.type) {
+            case GuildCommandsAllowlistTypes.CHANNEL: {
+              if (allow.id === context.channelId) {
                 return true;
               }
-              if (channel && channel.parentId === disabled.id) {
+              if (channel && channel.parentId === allow.id) {
                 return true;
               }
-              if (parent && parent.parentId === disabled.id) {
+              if (parent && parent.parentId === allow.id) {
                 return true;
               }
             }; break;
-            case GuildDisableCommandsTypes.GUILD: {
+            case GuildCommandsAllowlistTypes.GUILD: {
               return true;
             }; break;
-            case GuildDisableCommandsTypes.ROLE: {
+            case GuildCommandsAllowlistTypes.ROLE: {
               if (member) {
-                return member.roles.has(disabled.id);
+                return member.roles.has(allow.id);
               }
             }; break;
-            case GuildDisableCommandsTypes.USER: {
-              return disabled.id === context.userId;
+            case GuildCommandsAllowlistTypes.USER: {
+              return allow.id === context.userId;
             };
           }
           return false;
         });
-        if (shouldIgnore) {
-          return false;
+        return shouldAllow;
+      } else {
+        const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => {
+          return blocked.command === commandId;
+        });
+        if (commandsBlocklist.length) {
+          const shouldIgnore = commandsBlocklist.some((blocked) => {
+            switch (blocked.type) {
+              case GuildCommandsBlocklistTypes.CHANNEL: {
+                if (blocked.id === context.channelId) {
+                  return true;
+                }
+                if (channel && channel.parentId === blocked.id) {
+                  return true;
+                }
+                if (parent && parent.parentId === blocked.id) {
+                  return true;
+                }
+              }; break;
+              case GuildCommandsBlocklistTypes.GUILD: {
+                return true;
+              }; break;
+              case GuildCommandsBlocklistTypes.ROLE: {
+                if (member) {
+                  return member.roles.has(blocked.id);
+                }
+              }; break;
+              case GuildCommandsBlocklistTypes.USER: {
+                return blocked.id === context.userId;
+              };
+            }
+            return false;
+          });
+          if (shouldIgnore) {
+            return false;
+          }
         }
       }
       const { allowlist } = settings;

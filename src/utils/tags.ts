@@ -780,10 +780,10 @@ const ScriptTags = Object.freeze({
     try {
       const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
       const response = await utilitiesFetchMedia(context, {maxFileSize, url});
-      const filename = filenameArg || (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
+      const filename = filenameArg || response.file.filename;
 
-      let data: Buffer | string = await response.buffer();
-      if ((response.headers.get('content-type') || '').startsWith('text/')) {
+      let data: Buffer | string = Buffer.from(response.file.value, 'base64');
+      if (response.file.metadata.mimetype.startsWith('text/')) {
         data = data.toString();
       }
 
@@ -1629,10 +1629,10 @@ const ScriptTags = Object.freeze({
     try {
       const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
       const response = await utilitiesImagescriptV1(context, {code});
-      const filename = (response.headers.get('content-disposition') || '').split(';').pop()!.split('filename=').pop()!.slice(1, -1) || 'unknown.lmao';
+      const filename = response.file.filename;
 
-      let data: Buffer | string = await response.buffer();
-      if ((response.headers.get('content-type') || '').startsWith('text/')) {
+      let data: Buffer | string = Buffer.from(response.file.value, 'base64');
+      if (response.file.metadata.mimetype.startsWith('text/')) {
         data = data.toString();
       }
 

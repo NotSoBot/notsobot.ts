@@ -4,12 +4,13 @@ import { Collections, ShardClient, Structures } from 'detritus-client';
 import { DiscordAbortCodes } from 'detritus-client/lib/constants';
 import { RequestTypes } from 'detritus-client-rest';
 
-import { deleteGuildDisabledCommand, deleteGuildLogger } from '../../api';
+import { deleteGuildLogger } from '../../api';
 import {
   EmbedBrands,
   GuildAllowlistTypes,
   GuildBlocklistTypes,
-  GuildDisableCommandsTypes,
+  GuildCommandsAllowlistTypes,
+  GuildCommandsBlocklistTypes,
   GuildLoggerFlags,
   GuildLoggerTypes,
   GuildPremiumTypes,
@@ -22,8 +23,10 @@ import { BaseStructure } from './basestructure';
 const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.ALLOWLIST,
   NotSoApiKeys.BLOCKED,
+  NotSoApiKeys.BLOCKED_REASON,
   NotSoApiKeys.BLOCKLIST,
-  NotSoApiKeys.DISABLED_COMMANDS,
+  NotSoApiKeys.COMMANDS_ALLOWLIST,
+  NotSoApiKeys.COMMANDS_BLOCKLIST,
   NotSoApiKeys.DISABLED_LOGGER_EVENTS,
   NotSoApiKeys.ICON,
   NotSoApiKeys.ID,
@@ -39,11 +42,13 @@ export class GuildSettings extends BaseStructure {
   readonly _keys = keysGuildSettings;
   _allowlist?: Collections.BaseCollection<string, GuildSettingsAllowlist>;
   _blocklist?: Collections.BaseCollection<string, GuildSettingsBlocklist>;
-  _disabledCommands?: Collections.BaseCollection<string, GuildSettingsDisabledCommand>;
+  _commandsAllowlist?: Collections.BaseCollection<string, GuildSettingsCommandsAllowlist>;
+  _commandsBlocklist?: Collections.BaseCollection<string, GuildSettingsCommandsBlocklist>;
   _loggers?: Collections.BaseCollection<string, GuildSettingsLogger>;
   _prefixes?: Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   blocked: boolean = false;
+  blockedReason: string | null = null;
   disabledLoggerEvents: number = 0;
   icon: string | null = null;
   id: string = '';
@@ -70,9 +75,16 @@ export class GuildSettings extends BaseStructure {
     return Collections.emptyBaseCollection;
   }
 
-  get disabledCommands(): Collections.BaseCollection<string, GuildSettingsDisabledCommand> {
-    if (this._disabledCommands) {
-      return this._disabledCommands;
+  get commandsAllowlist(): Collections.BaseCollection<string, GuildSettingsCommandsAllowlist> {
+    if (this._commandsAllowlist) {
+      return this._commandsAllowlist;
+    }
+    return Collections.emptyBaseCollection;
+  }
+
+  get commandsBlocklist(): Collections.BaseCollection<string, GuildSettingsCommandsBlocklist> {
+    if (this._commandsBlocklist) {
+      return this._commandsBlocklist;
     }
     return Collections.emptyBaseCollection;
   }
@@ -132,20 +144,37 @@ export class GuildSettings extends BaseStructure {
             }
           }
         }; return;
-        case NotSoApiKeys.DISABLED_COMMANDS: {
+        case NotSoApiKeys.COMMANDS_ALLOWLIST: {
           if (value.length) {
-            if (!this._disabledCommands) {
-              this._disabledCommands = new Collections.BaseCollection<string, GuildSettingsDisabledCommand>();
+            if (!this._commandsAllowlist) {
+              this._commandsAllowlist = new Collections.BaseCollection<string, GuildSettingsCommandsAllowlist>();
             }
-            this._disabledCommands.clear();
+            this._commandsAllowlist.clear();
             for (let raw of value) {
-              const item = new GuildSettingsDisabledCommand(raw);
-              this._disabledCommands.set(item.key, item);
+              const item = new GuildSettingsCommandsAllowlist(raw);
+              this._commandsAllowlist.set(item.key, item);
             }
           } else {
-            if (this._disabledCommands) {
-              this._disabledCommands.clear();
-              this._disabledCommands = undefined;
+            if (this._commandsAllowlist) {
+              this._commandsAllowlist.clear();
+              this._commandsAllowlist = undefined;
+            }
+          }
+        }; return;
+        case NotSoApiKeys.COMMANDS_BLOCKLIST: {
+          if (value.length) {
+            if (!this._commandsBlocklist) {
+              this._commandsBlocklist = new Collections.BaseCollection<string, GuildSettingsCommandsBlocklist>();
+            }
+            this._commandsBlocklist.clear();
+            for (let raw of value) {
+              const item = new GuildSettingsCommandsBlocklist(raw);
+              this._commandsBlocklist.set(item.key, item);
+            }
+          } else {
+            if (this._commandsBlocklist) {
+              this._commandsBlocklist.clear();
+              this._commandsBlocklist = undefined;
             }
           }
         }; return;
@@ -243,7 +272,7 @@ export class GuildSettingsBlocklist extends BaseStructure {
 }
 
 
-const keysGuildSettingsDisabledCommand = new Collections.BaseSet<string>([
+const keysGuildSettingsCommandsAllowlist = new Collections.BaseSet<string>([
   NotSoApiKeys.ADDED,
   NotSoApiKeys.COMMAND,
   NotSoApiKeys.ID,
@@ -251,13 +280,54 @@ const keysGuildSettingsDisabledCommand = new Collections.BaseSet<string>([
   NotSoApiKeys.USER_ID,
 ]);
 
-export class GuildSettingsDisabledCommand extends BaseStructure {
-  readonly _keys = keysGuildSettingsDisabledCommand;
+export class GuildSettingsCommandsAllowlist extends BaseStructure {
+  readonly _keys = keysGuildSettingsCommandsAllowlist;
 
   added: string = '';
   command: string = '';
   id: string = '';
-  type!: GuildDisableCommandsTypes;
+  type!: GuildCommandsAllowlistTypes;
+  userId: string = '';
+
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
+  }
+
+  get addedAtText(): string {
+    return moment(this.added).fromNow();
+  }
+
+  get key(): string {
+    return `${this.command}.${this.id}.${this.type}`;
+  }
+
+  /*
+  async delete(shard: ShardClient) {
+    return deleteGuildDisabledCommand({client: shard}, this.guildId, {
+      channelId: this.channelId,
+      loggerType: this.type,
+    });
+  }
+  */
+}
+
+
+const keysGuildSettingsCommandsBlocklist = new Collections.BaseSet<string>([
+  NotSoApiKeys.ADDED,
+  NotSoApiKeys.COMMAND,
+  NotSoApiKeys.ID,
+  NotSoApiKeys.TYPE,
+  NotSoApiKeys.USER_ID,
+]);
+
+export class GuildSettingsCommandsBlocklist extends BaseStructure {
+  readonly _keys = keysGuildSettingsCommandsBlocklist;
+
+  added: string = '';
+  command: string = '';
+  id: string = '';
+  type!: GuildCommandsBlocklistTypes;
   userId: string = '';
 
   constructor(data: Structures.BaseStructureData) {

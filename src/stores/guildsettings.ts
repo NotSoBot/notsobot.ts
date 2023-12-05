@@ -98,8 +98,8 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
               }
             }
             {
-              const disabledCommands = settings.disabledCommands.filter((disabledCommand) => disabledCommand.id === channel.id);
-              for (let disabledCommand of disabledCommands) {
+              const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => blocked.id === channel.id);
+              for (let blocked of commandsBlocklist) {
                 //await disabledCommand.delete(shard);
               }
             }
@@ -180,7 +180,16 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_DISABLED_COMMAND_UPDATE, (payload: RedisPayloads.GuildDisabledCommandUpdate) => {
+      const subscription = redis.subscribe(RedisChannels.GUILD_COMMANDS_ALLOWLIST_UPDATE, (payload: RedisPayloads.GuildCommandsAllowlistUpdate) => {
+        if (this.has(payload.id)) {
+          const settings = this.get(payload.id)!;
+          settings.merge(payload);
+        }
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      const subscription = redis.subscribe(RedisChannels.GUILD_COMMANDS_BLOCKLIST_UPDATE, (payload: RedisPayloads.GuildCommandsBlocklistUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);

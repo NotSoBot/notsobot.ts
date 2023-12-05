@@ -44,7 +44,7 @@ export async function createMessage(
   let fetched: number = 0;
   const chunks: Array<Array<RestResponsesRaw.Tag>> = [];
   for (let i = 0; i < MAX_FETCHES; i++) {
-    let response: RestResponsesRaw.FetchTagsServer | RestResponsesRaw.FetchUserTags;
+    let response: RestResponsesRaw.FetchTags | RestResponsesRaw.FetchUserTags;
     if (args.global) {
       response = await fetchUserTags(context, args.user.id, {
         before,

@@ -10,7 +10,7 @@ import {
   GoogleLocales,
   GuildAllowlistTypes,
   GuildBlocklistTypes,
-  GuildDisableCommandsTypes,
+  GuildCommandsBlocklistTypes,
   NotSoHeaders,
 } from '../constants';
 
@@ -82,7 +82,7 @@ export async function request(
 export async function audioToolsPutConcat(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     longest: options.longest,
     loop: !options.noloop,
@@ -90,7 +90,6 @@ export async function audioToolsPutConcat(
   };
   return request(context, {
     body,
-    dataOnly: false,
     file: options.file,
     files: options.files,
     route: {
@@ -104,7 +103,7 @@ export async function audioToolsPutConcat(
 export async function audioToolsPutMix(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     longest: options.longest,
     loop: !options.noloop,
@@ -112,7 +111,6 @@ export async function audioToolsPutMix(
   };
   return request(context, {
     body,
-    dataOnly: false,
     file: options.file,
     files: options.files,
     route: {
@@ -126,7 +124,7 @@ export async function audioToolsPutMix(
 export async function audioToolsPutReplace(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     longest: options.longest,
     loop: !options.noloop,
@@ -134,7 +132,6 @@ export async function audioToolsPutReplace(
   };
   return request(context, {
     body,
-    dataOnly: false,
     file: options.file,
     files: options.files,
     route: {
@@ -177,18 +174,18 @@ export async function createGuildBlocklist(
 }
 
 
-export async function createGuildDisabledCommand(
+export async function createGuildCommandsBlocklist(
   context: RequestContext,
   guildId: string,
   command: string,
-  disabledId: string,
-  type: GuildDisableCommandsTypes,
-): Promise<RestResponsesRaw.CreateGuildDisabledCommand> {
+  blocklistId: string,
+  type: GuildCommandsBlocklistTypes,
+): Promise<RestResponsesRaw.CreateGuildCommandsBlocklist> {
   return request(context, {
     route: {
       method: HTTPMethods.PUT,
-      path: Api.GUILD_DISABLED_COMMAND,
-      params: {command, disabledId, guildId, type},
+      path: Api.GUILD_COMMANDS_BLOCKLIST,
+      params: {command, blocklistId, guildId, type},
     },
   });
 }
@@ -356,18 +353,18 @@ export async function deleteGuildBlocklist(
 }
 
 
-export async function deleteGuildDisabledCommand(
+export async function deleteGuildCommandsBlocklist(
   context: RequestContext,
   guildId: string,
   command: string,
-  disabledId: string,
-  type: GuildDisableCommandsTypes,
-): Promise<RestResponsesRaw.DeleteGuildDisabledCommand> {
+  blocklistId: string,
+  type: GuildCommandsBlocklistTypes,
+): Promise<RestResponsesRaw.DeleteGuildCommandsBlocklist> {
   return request(context, {
     route: {
       method: HTTPMethods.DELETE,
-      path: Api.GUILD_DISABLED_COMMAND,
-      params: {command, disabledId, guildId, type},
+      path: Api.GUILD_COMMANDS_BLOCKLIST,
+      params: {command, blocklistId, guildId, type},
     },
   });
 }
@@ -425,11 +422,11 @@ export async function deleteReminder(
   });
 }
 
-
+// rename
 export async function deleteTag(
   context: RequestContext,
-  options: RestOptions.DeleteTag,
-): Promise<RestResponsesRaw.DeleteTag> {
+  options: RestOptions.DeleteTagSearch,
+): Promise<RestResponsesRaw.DeleteTagSearch> {
   const query = {
     name: options.name,
     server_id: options.serverId,
@@ -438,29 +435,28 @@ export async function deleteTag(
     query,
     route: {
       method: HTTPMethods.DELETE,
-      path: Api.TAGS,
+      path: Api.TAGS_SEARCH,
     },
   });
 }
 
-
+// rename
 export async function deleteTagsServer(
   context: RequestContext,
   serverId: string,
-  options: RestOptions.DeleteTagsServer = {},
+  options: RestOptions.DeleteTags = {},
 ): Promise<{count: number}> {
-  const params = {serverId};
   const query = {
     content: options.content,
     name: options.name,
+    server_id: serverId,
     user_id: options.userId,
   };
   return request(context, {
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.TAGS_SERVER_DELETE,
-      params,
+      path: Api.TAGS_DELETE,
     },
   });
 }
@@ -474,8 +470,9 @@ export async function editGuildSettings(
   const body = {
     allowlist: options.allowlist,
     blocked: options.blocked,
+    blocked_reason: options.blockedReason,
     blocklist: options.blocklist,
-    disabled_commands: options.disabledCommands,
+    commands_blocklist: options.commandsBlocklist,
     prefixes: options.prefixes,
     timezone: options.timezone,
   };
@@ -498,6 +495,7 @@ export async function editUser(
 ): Promise<RestResponsesRaw.EditUser> {
   const body = {
     blocked: options.blocked,
+    blocked_reason: options.blockedReason,
     channel_id: options.channelId,
     locale: options.locale,
     opt_out_content: options.optOutContent,
@@ -551,11 +549,11 @@ export async function fetchReminders(
   });
 }
 
-
+// rename
 export async function fetchTag(
   context: RequestContext,
-  options: RestOptions.FetchTag,
-): Promise<RestResponsesRaw.FetchTag> {
+  options: RestOptions.FetchTagSearch,
+): Promise<RestResponsesRaw.FetchTagSearch> {
   const query = {
     name: options.name,
     server_id: options.serverId,
@@ -564,16 +562,16 @@ export async function fetchTag(
     query,
     route: {
       method: HTTPMethods.GET,
-      path: Api.TAGS,
+      path: Api.TAGS_SEARCH,
     },
   });
 }
 
-
+// rename
 export async function fetchTagRandom(
   context: RequestContext,
-  options: RestOptions.FetchTagRandom = {},
-): Promise<RestResponsesRaw.FetchTagRandom> {
+  options: RestOptions.FetchTagSearchRandom = {},
+): Promise<RestResponsesRaw.FetchTagSearchRandom> {
   const query = {
     content: options.content,
     name: options.name,
@@ -584,32 +582,32 @@ export async function fetchTagRandom(
     query,
     route: {
       method: HTTPMethods.GET,
-      path: Api.TAGS_RANDOM,
+      path: Api.TAGS_SEARCH_RANDOM,
     },
   });
 }
 
 
+// rename
 export async function fetchTagsServer(
   context: RequestContext,
   serverId: string,
-  options: RestOptions.FetchTagsServer = {},
-): Promise<RestResponsesRaw.FetchTagsServer> {
-  const params = {serverId};
+  options: RestOptions.FetchTags = {},
+): Promise<RestResponsesRaw.FetchTags> {
   const query = {
     after: options.after,
     before: options.before,
     content: options.content,
     limit: options.limit,
     name: options.name,
+    server_id: serverId,
     user_id: options.userId,
   };
   return request(context, {
     query,
     route: {
       method: HTTPMethods.GET,
-      path: Api.TAGS_SERVER,
-      params,
+      path: Api.TAGS,
     },
   });
 }
@@ -698,13 +696,12 @@ export async function funASCII(
 export async function funTextToSpeech(
   context: RequestContext,
   options: RestOptions.FunTextToSpeech,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     text: options.text,
     voice: options.voice,
   };
   return request(context, {
-    dataOnly: false,
     query,
     route: {
       method: HTTPMethods.GET,
@@ -788,9 +785,9 @@ export async function googleTranslate(
   options: RestOptions.GoogleTranslate,
 ): Promise<RestResponsesRaw.GoogleTranslate> {
   const query = {
-    from: options.from,
+    from_language: options.from,
     text: options.text,
-    to: options.to,
+    to_language: options.to,
   };
   return request(context, {
     query,
@@ -805,13 +802,12 @@ export async function googleTranslate(
 export async function mediaAIVManipulationADHD(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationADHD,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     horizontal: options.horizontal,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -825,13 +821,12 @@ export async function mediaAIVManipulationADHD(
 export async function mediaAIVToolsConcat(
   context: RequestContext,
   options: RestOptions.MediaBaseOptionsMultiple,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     urls: options.urls,
   };
   return request(context, {
     body,
-    dataOnly: false,
     file: options.file,
     files: options.files,
     route: {
@@ -845,14 +840,13 @@ export async function mediaAIVToolsConcat(
 export async function mediaAIVToolsConvert(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsConvert,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     remove_audio: options.removeAudio,
     to: options.to,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -884,7 +878,7 @@ export async function mediaAIVToolsExif(
 export async function mediaAIVToolsJoin(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsJoin,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     loop: !options.noloop,
     no_resize: options.noresize,
@@ -893,7 +887,6 @@ export async function mediaAIVToolsJoin(
   };
   return request(context, {
     body,
-    dataOnly: false,
     file: options.file,
     files: options.files,
     route: {
@@ -907,7 +900,7 @@ export async function mediaAIVToolsJoin(
 export async function mediaAIVToolsOverlay(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsOverlay,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     blend: options.blend,
     color: options.color,
@@ -921,7 +914,6 @@ export async function mediaAIVToolsOverlay(
   };
   return request(context, {
     body,
-    dataOnly: false,
     file: options.file,
     files: options.files,
     route: {
@@ -935,12 +927,11 @@ export async function mediaAIVToolsOverlay(
 export async function mediaAIVToolsReverse(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -954,12 +945,11 @@ export async function mediaAIVToolsReverse(
 export async function mediaAIVToolsSeeSaw(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -973,7 +963,7 @@ export async function mediaAIVToolsSeeSaw(
 export async function mediaAIVToolsSnip(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsSnip,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     audio_only: options.audioOnly,
     end: options.end,
@@ -981,7 +971,6 @@ export async function mediaAIVToolsSnip(
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -994,14 +983,13 @@ export async function mediaAIVToolsSnip(
 export async function mediaAIVToolsSpeed(
   context: RequestContext,
   options: RestOptions.MediaIVToolsSpeed,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     loop: options.loop,
     speed: options.speed,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1015,12 +1003,11 @@ export async function mediaAIVToolsSpeed(
 export async function mediaAVManipulationBoostBass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1034,13 +1021,12 @@ export async function mediaAVManipulationBoostBass(
 export async function mediaAVManipulationCompress(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationCompress,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     no_revert: options.norevert,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1054,12 +1040,11 @@ export async function mediaAVManipulationCompress(
 export async function mediaAVManipulationDestroy(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1073,13 +1058,12 @@ export async function mediaAVManipulationDestroy(
 export async function mediaAVManipulationVolume(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationVolume,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
     volume: options.volume,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1093,12 +1077,11 @@ export async function mediaAVManipulationVolume(
 export async function mediaAVToolsExtractAudio(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1130,7 +1113,7 @@ export async function mediaAVToolsIdentify(
 export async function mediaICreateRetrowave(
   context: RequestContext,
   options: RestOptions.MediaICreateRetrowave,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     background: options.background,
     line_1: options.line1,
@@ -1139,7 +1122,6 @@ export async function mediaICreateRetrowave(
     text_style: options.textStyle,
   };
   return request(context, {
-    dataOnly: false,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1152,7 +1134,7 @@ export async function mediaICreateRetrowave(
 export async function mediaICreateTombstone(
   context: RequestContext,
   options: RestOptions.MediaICreateTombstone,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     line_1: options.line1,
     line_2: options.line2,
@@ -1161,7 +1143,6 @@ export async function mediaICreateTombstone(
     line_5: options.line5,
   };
   return request(context, {
-    dataOnly: false,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1174,12 +1155,11 @@ export async function mediaICreateTombstone(
 export async function mediaICreateWordcloud(
   context: RequestContext,
   options: RestOptions.MediaICreateWordcloud,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     words: options.words,
   };
   return request(context, {
-    dataOnly: false,
     body,
     route: {
       method: HTTPMethods.POST,
@@ -1192,12 +1172,11 @@ export async function mediaICreateWordcloud(
 export async function mediaIVManipulationAscii(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1211,13 +1190,12 @@ export async function mediaIVManipulationAscii(
 export async function mediaIVManipulationBlur(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationBlur,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     scale: options.scale,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1231,12 +1209,11 @@ export async function mediaIVManipulationBlur(
 export async function mediaIVManipulationBlurple(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1250,7 +1227,7 @@ export async function mediaIVManipulationBlurple(
 export async function mediaIVManipulationCaption(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationCaption,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     font: options.font,
     text: options.text,
@@ -1258,7 +1235,6 @@ export async function mediaIVManipulationCaption(
   };
   return request(context, {
     body,
-    dataOnly: false,
     file: options.file,
     route: {
       method: HTTPMethods.POST,
@@ -1271,13 +1247,12 @@ export async function mediaIVManipulationCaption(
 export async function mediaIVManipulationCircle(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationCircle,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     scale: options.scale,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1291,13 +1266,12 @@ export async function mediaIVManipulationCircle(
 export async function mediaIVManipulationDeepfry(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationDeepfry,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     scale: options.scale,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1311,13 +1285,12 @@ export async function mediaIVManipulationDeepfry(
 export async function mediaIVManipulationExplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationExplode,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     scale: options.scale,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1331,13 +1304,12 @@ export async function mediaIVManipulationExplode(
 export async function mediaIVManipulationEyes(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationEyes,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     type: options.type,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1351,12 +1323,11 @@ export async function mediaIVManipulationEyes(
 export async function mediaIVManipulationFlip(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1370,12 +1341,11 @@ export async function mediaIVManipulationFlip(
 export async function mediaIVManipulationFlop(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1389,7 +1359,7 @@ export async function mediaIVManipulationFlop(
 export async function mediaIVManipulationGlitch(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGlitch,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     amount: options.amount,
     iterations: options.iterations,
@@ -1397,7 +1367,6 @@ export async function mediaIVManipulationGlitch(
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1411,7 +1380,7 @@ export async function mediaIVManipulationGlitch(
 export async function mediaIVManipulationGlitchGif(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGlitch,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     amount: options.amount,
     iterations: options.iterations,
@@ -1419,7 +1388,6 @@ export async function mediaIVManipulationGlitchGif(
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1433,12 +1401,11 @@ export async function mediaIVManipulationGlitchGif(
 export async function mediaIVManipulationGlobe(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1452,12 +1419,11 @@ export async function mediaIVManipulationGlobe(
 export async function mediaIVManipulationGold(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1471,12 +1437,11 @@ export async function mediaIVManipulationGold(
 export async function mediaIVManipulationGrayscale(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1490,13 +1455,12 @@ export async function mediaIVManipulationGrayscale(
 export async function mediaIVManipulationImplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationImplode,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     scale: options.scale,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1510,12 +1474,11 @@ export async function mediaIVManipulationImplode(
 export async function mediaIVManipulationInvert(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1529,13 +1492,12 @@ export async function mediaIVManipulationInvert(
 export async function mediaIVManipulationJPEG(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationJPEG,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     quality: options.quality,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1549,7 +1511,7 @@ export async function mediaIVManipulationJPEG(
 export async function mediaIVManipulationLegofy(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationLegofy,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     dither: options.dither,
     palette: options.palette,
@@ -1557,7 +1519,6 @@ export async function mediaIVManipulationLegofy(
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1571,13 +1532,12 @@ export async function mediaIVManipulationLegofy(
 export async function mediaIVManipulationMagik(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMagik,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     scale: options.scale,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1592,13 +1552,12 @@ export async function mediaIVManipulationMagik(
 export async function mediaIVManipulationMagikGif(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMagik,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     scale: options.scale,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1612,7 +1571,7 @@ export async function mediaIVManipulationMagikGif(
 export async function mediaIVManipulationMeme(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMeme,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     bottom: options.bottom,
     font: options.font,
@@ -1620,7 +1579,6 @@ export async function mediaIVManipulationMeme(
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1634,12 +1592,11 @@ export async function mediaIVManipulationMeme(
 export async function mediaIVManipulationMirrorBottom(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1653,12 +1610,11 @@ export async function mediaIVManipulationMirrorBottom(
 export async function mediaIVManipulationMirrorLeft(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1672,12 +1628,11 @@ export async function mediaIVManipulationMirrorLeft(
 export async function mediaIVManipulationMirrorRight(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1691,12 +1646,11 @@ export async function mediaIVManipulationMirrorRight(
 export async function mediaIVManipulationMirrorTop(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1709,12 +1663,11 @@ export async function mediaIVManipulationMirrorTop(
 export async function mediaIVManipulationOverlayFlagIsrael(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1728,12 +1681,11 @@ export async function mediaIVManipulationOverlayFlagIsrael(
 export async function mediaIVManipulationOverlayFlagLGBT(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1747,12 +1699,11 @@ export async function mediaIVManipulationOverlayFlagLGBT(
 export async function mediaIVManipulationOverlayFlagNorthKorea(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1766,12 +1717,11 @@ export async function mediaIVManipulationOverlayFlagNorthKorea(
 export async function mediaIVManipulationOverlayFlagTrans(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1785,12 +1735,11 @@ export async function mediaIVManipulationOverlayFlagTrans(
 export async function mediaIVManipulationOverlayFlagRussia(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1804,12 +1753,11 @@ export async function mediaIVManipulationOverlayFlagRussia(
 export async function mediaIVManipulationOverlayFlagUK(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1823,12 +1771,11 @@ export async function mediaIVManipulationOverlayFlagUK(
 export async function mediaIVManipulationOverlayFlagUSA(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1842,12 +1789,11 @@ export async function mediaIVManipulationOverlayFlagUSA(
 export async function mediaIVManipulationOverlayFlagUSSR(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1861,7 +1807,7 @@ export async function mediaIVManipulationOverlayFlagUSSR(
 export async function mediaIVManipulationOverlayFlies(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationOverlayFlies,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     amount: options.amount,
     degrees: options.degrees,
@@ -1870,7 +1816,6 @@ export async function mediaIVManipulationOverlayFlies(
   };
   return request(context, {
     body,
-    dataOnly: false,
     file: options.file,
     route: {
       method: HTTPMethods.POST,
@@ -1883,12 +1828,11 @@ export async function mediaIVManipulationOverlayFlies(
 export async function mediaIVManipulationOverlayGoldstar(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1902,12 +1846,11 @@ export async function mediaIVManipulationOverlayGoldstar(
 export async function mediaIVManipulationOverlayHalfLifePistol(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1921,12 +1864,11 @@ export async function mediaIVManipulationOverlayHalfLifePistol(
 export async function mediaIVManipulationOverlayHalfLifeShotgun(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1940,12 +1882,11 @@ export async function mediaIVManipulationOverlayHalfLifeShotgun(
 export async function mediaIVManipulationOverlayHalfLifeSMG(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1959,12 +1900,11 @@ export async function mediaIVManipulationOverlayHalfLifeSMG(
 export async function mediaIVManipulationOverlayShutterstock(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1978,12 +1918,11 @@ export async function mediaIVManipulationOverlayShutterstock(
 export async function mediaIVManipulationPaper(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -1997,13 +1936,12 @@ export async function mediaIVManipulationPaper(
 export async function mediaIVManipulationPix2Pix(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPix2Pix,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     model: options.model,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2017,13 +1955,12 @@ export async function mediaIVManipulationPix2Pix(
 export async function mediaIVManipulationPixelate(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPixelate,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     pixel_width: options.pixelWidth,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2037,12 +1974,11 @@ export async function mediaIVManipulationPixelate(
 export async function mediaIVManipulationRain(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2056,12 +1992,11 @@ export async function mediaIVManipulationRain(
 export async function mediaIVManipulationRainGold(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2075,13 +2010,12 @@ export async function mediaIVManipulationRainGold(
 export async function mediaIVManipulationSharpen(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationSharpen,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     scale: options.scale,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2095,12 +2029,11 @@ export async function mediaIVManipulationSharpen(
 export async function mediaIVManipulationSpin(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2114,12 +2047,11 @@ export async function mediaIVManipulationSpin(
 export async function mediaIVManipulationTrace(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2133,12 +2065,11 @@ export async function mediaIVManipulationTrace(
 export async function mediaIVManipulationWall(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2152,14 +2083,13 @@ export async function mediaIVManipulationWall(
 export async function mediaIVToolsBackgroundRemove(
   context: RequestContext,
   options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     model: options.model,
     trim: options.trim,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2173,7 +2103,7 @@ export async function mediaIVToolsBackgroundRemove(
 export async function mediaIVToolsCrop(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCrop,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     height: options.height,
     width: options.width,
@@ -2182,7 +2112,6 @@ export async function mediaIVToolsCrop(
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2196,12 +2125,11 @@ export async function mediaIVToolsCrop(
 export async function mediaIVToolsCropAuto(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2215,13 +2143,12 @@ export async function mediaIVToolsCropAuto(
 export async function mediaIVToolsCropCircle(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCropCircle,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     background: options.background,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2235,13 +2162,12 @@ export async function mediaIVToolsCropCircle(
 export async function mediaIVToolsCropTwitterHex(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCropTwitterHex,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     background: options.background,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2255,13 +2181,12 @@ export async function mediaIVToolsCropTwitterHex(
 export async function mediaIVToolsObjectRemove(
   context: RequestContext,
   options: RestOptions.MediaIVToolsObjectRemoveOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     label: options.object,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2275,7 +2200,7 @@ export async function mediaIVToolsObjectRemove(
 export async function mediaIVToolsResize(
   context: RequestContext,
   options: RestOptions.MediaIVToolsResize,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     convert: options.convert,
     ratio: options.ratio,
@@ -2284,7 +2209,6 @@ export async function mediaIVToolsResize(
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2298,14 +2222,13 @@ export async function mediaIVToolsResize(
 export async function mediaIVToolsRotate(
   context: RequestContext,
   options: RestOptions.MediaIVToolsRotate,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     crop: options.crop,
     degrees: options.degrees,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2319,12 +2242,11 @@ export async function mediaIVToolsRotate(
 export async function mediaIVToolsTrim(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     file: options.file,
     query,
     route: {
@@ -2429,6 +2351,7 @@ export async function putUser(
     avatar: options.avatar,
     bot: options.bot,
     blocked: options.blocked,
+    blocked_reason: options.blockedReason,
     channel_id: options.channelId,
     discriminator: options.discriminator,
     locale: options.locale,
@@ -2882,13 +2805,12 @@ export async function utilitiesCodeRun(
 export async function utilitiesFetchData(
   context: RequestContext,
   options: RestOptions.UtilitiesFetchData,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     max_file_size: options.maxFileSize,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     query,
     route: {
       method: HTTPMethods.GET,
@@ -2901,13 +2823,12 @@ export async function utilitiesFetchData(
 export async function utilitiesFetchImage(
   context: RequestContext,
   options: RestOptions.UtilitiesFetchImage,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     max_file_size: options.maxFileSize,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     query,
     route: {
       method: HTTPMethods.GET,
@@ -2920,13 +2841,12 @@ export async function utilitiesFetchImage(
 export async function utilitiesFetchMedia(
   context: RequestContext,
   options: RestOptions.UtilitiesFetchMedia,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     max_file_size: options.maxFileSize,
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     query,
     route: {
       method: HTTPMethods.GET,
@@ -2958,12 +2878,11 @@ export async function utilitiesFetchText(
 export async function utilitiesImagescriptV1(
   context: RequestContext,
   options: RestOptions.UtilitiesImagescriptV1,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     code: options.code,
   };
   return request(context, {
-    dataOnly: false,
     body,
     route: {
       method: HTTPMethods.POST,
@@ -2973,10 +2892,57 @@ export async function utilitiesImagescriptV1(
 }
 
 
+export async function utilitiesMLEdit(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLEdit,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    count: options.count,
+    guidance: options.guidance,
+    no: options.no,
+    query: options.query,
+    seed: options.seed,
+    steps: options.steps,
+    strength: options.strength,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_ML_EDIT,
+    },
+  });
+}
+
+
+export async function utilitiesMLImagine(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLImagine,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    count: options.count,
+    guidance: options.guidance,
+    no: options.no,
+    query: options.query,
+    seed: options.seed,
+    steps: options.steps,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_ML_IMAGINE,
+    },
+  });
+}
+
+
 export async function utilitiesQrCreate(
   context: RequestContext,
   options: RestOptions.UtilitiesQrCreate,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     margin: options.margin,
     query: options.query,
@@ -3018,12 +2984,11 @@ export async function utilitiesQrScan(
 export async function utilitiesScreenshot(
   context: RequestContext,
   options: RestOptions.UtilitiesScreenshot,
-): Promise<Response> {
+): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     url: options.url,
   };
   return request(context, {
-    dataOnly: false,
     query,
     route: {
       method: HTTPMethods.GET,

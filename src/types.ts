@@ -12,8 +12,13 @@ export namespace RedisPayloads {
     id: string,
   }
 
-  export interface GuildDisabledCommandUpdate {
-    disabled_commands: Array<RestResponsesRaw.GuildDisabledCommand>,
+  export interface GuildCommandsAllowlistUpdate {
+    commands_allowlist: Array<RestResponsesRaw.GuildCommandsBlocklist>,
+    id: string,
+  }
+
+  export interface GuildCommandsBlocklistUpdate {
+    commands_blocklist: Array<RestResponsesRaw.GuildCommandsBlocklist>,
     id: string,
   }
 

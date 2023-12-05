@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 import { RequestFile, Response } from 'detritus-rest';
 
+import { RestResponsesRaw } from '../../../api/types';
 import {
   EmbedBrands,
   EmbedColors,
@@ -27,7 +28,10 @@ export interface CommandArgs {
 }
 
 export interface PipingCommandExecution extends Parameters.PipingCommand {
-  execute: (context: Command.Context | Interaction.InteractionContext, args: Record<string, any>) => Promise<Response>,
+  execute: (
+    context: Command.Context | Interaction.InteractionContext,
+    args: Record<string, any>,
+  ) => Promise<RestResponsesRaw.FileResponse>,
 }
 
 export async function createMessage(
@@ -81,9 +85,11 @@ export async function createMessage(
       currentImageReplyOptions.options.took = (currentImageReplyOptions.options.took || 0) + (imageReplyOptions.options.took || 0);
     }
     imageReplyOptions = currentImageReplyOptions;
+
+    const buffer = Buffer.from(response.file.value, 'base64');
     file = {
-      filename: `piped-image.${currentImageReplyOptions.options.extension || 'png'}`,
-      value: await response.buffer(),
+      filename: `piped-media.${currentImageReplyOptions.options.extension || 'png'}`,
+      value: buffer,
     };
   }
 

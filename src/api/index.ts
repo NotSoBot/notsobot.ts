@@ -5,7 +5,7 @@ import { HTTPMethods } from 'detritus-rest/lib/constants';
 import {
   GuildAllowlistTypes,
   GuildBlocklistTypes,
-  GuildDisableCommandsTypes,
+  GuildCommandsBlocklistTypes,
 } from '../constants';
 import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
@@ -70,14 +70,14 @@ export async function createGuildBlocklist(
 }
 
 
-export async function createGuildDisabledCommand(
+export async function createGuildCommandsBlocklist(
   context: RequestContext,
   guildId: string,
   command: string,
-  disabledId: string,
-  type: GuildDisableCommandsTypes,
-): Promise<RestResponses.CreateGuildDisabledCommand> {
-  return raw.createGuildDisabledCommand(context, guildId, command, disabledId, type);
+  blocklistdId: string,
+  type: GuildCommandsBlocklistTypes,
+): Promise<RestResponses.CreateGuildCommandsBlocklist> {
+  return raw.createGuildCommandsBlocklist(context, guildId, command, blocklistdId, type);
 }
 
 
@@ -175,14 +175,14 @@ export async function deleteGuildBlocklist(
 }
 
 
-export async function deleteGuildDisabledCommand(
+export async function deleteGuildCommandsBlocklist(
   context: RequestContext,
   guildId: string,
   command: string,
-  disabledId: string,
-  type: GuildDisableCommandsTypes,
-): Promise<RestResponses.DeleteGuildDisabledCommand> {
-  return raw.deleteGuildDisabledCommand(context, guildId, command, disabledId, type);
+  blocklistdId: string,
+  type: GuildCommandsBlocklistTypes,
+): Promise<RestResponses.DeleteGuildCommandsBlocklist> {
+  return raw.deleteGuildCommandsBlocklist(context, guildId, command, blocklistdId, type);
 }
 
 
@@ -234,7 +234,7 @@ export async function deleteReminder(
 
 export async function deleteTag(
   context: RequestContext,
-  options: RestOptions.DeleteTag,
+  options: RestOptions.DeleteTagSearch,
 ) {
   return raw.deleteTag(context, options);
 }
@@ -243,7 +243,7 @@ export async function deleteTag(
 export async function deleteTagsServer(
   context: RequestContext,
   serverId: string,
-  options: RestOptions.DeleteTagsServer = {},
+  options: RestOptions.DeleteTags = {},
 ) {
   return raw.deleteTagsServer(context, serverId, options);
 }
@@ -312,7 +312,7 @@ export async function fetchReminders(
 
 export async function fetchTag(
   context: RequestContext,
-  options: RestOptions.FetchTag,
+  options: RestOptions.FetchTagSearch,
 ) {
   return raw.fetchTag(context, options);
 }
@@ -320,7 +320,7 @@ export async function fetchTag(
 
 export async function fetchTagRandom(
   context: RequestContext,
-  options: RestOptions.FetchTagRandom = {},
+  options: RestOptions.FetchTagSearchRandom = {},
 ) {
   return raw.fetchTagRandom(context, options);
 }
@@ -329,7 +329,7 @@ export async function fetchTagRandom(
 export async function fetchTagsServer(
   context: RequestContext,
   guildId: string,
-  options: RestOptions.FetchTagsServer = {},
+  options: RestOptions.FetchTags = {},
 ) {
   return raw.fetchTagsServer(context, guildId, options);
 }
@@ -1145,7 +1145,7 @@ export async function searchGoogleImages(
   context: RequestContext,
   options: RestOptions.SearchGoogleImages,
 ): Promise<RestResponses.SearchGoogleImages> {
-  const data = await raw.searchGoogleImages(context, options);
+  const { results: data } = await raw.searchGoogleImages(context, options);
   const collection = [];
   for (let raw of data) {
     const result = new GoogleSearchImageResult(raw);
@@ -1326,6 +1326,22 @@ export async function utilitiesImagescriptV1(
   options: RestOptions.UtilitiesImagescriptV1,
 ) {
   return raw.utilitiesImagescriptV1(context, options);
+}
+
+
+export async function utilitiesMLEdit(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLEdit,
+) {
+  return raw.utilitiesMLEdit(context, options);
+}
+
+
+export async function utilitiesMLImagine(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLImagine,
+) {
+  return raw.utilitiesMLImagine(context, options);
 }
 
 

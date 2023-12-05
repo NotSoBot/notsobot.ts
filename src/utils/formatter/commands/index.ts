@@ -101,6 +101,10 @@ import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
 import * as ModerationAllowlistRemoveUsers from './moderation.allowlist.remove.users';
 import * as ModerationBlocklistAddUsers from './moderation.blocklist.add.users';
 import * as ModerationBlocklistRemoveUsers from './moderation.blocklist.remove.users';
+import * as ModerationCommandsBlocklist from './moderation.commands.blocklist';
+import * as ModerationCommandsBlocklistAdd from './moderation.commands.blocklist.add';
+import * as ModerationCommandsBlocklistClear from './moderation.commands.blocklist.clear';
+import * as ModerationCommandsBlocklistRemove from './moderation.commands.blocklist.remove';
 
 import * as PrefixesAdd from './prefixes.add';
 import * as PrefixesClear from './prefixes.clear';
@@ -155,6 +159,8 @@ import * as ToolsDownload from './tools.download';
 import * as ToolsExif from './tools.exif';
 import * as ToolsHash from './tools.hash';
 import * as ToolsMath from './tools.math';
+import * as ToolsMLEdit from './tools.ml.edit';
+import * as ToolsMLImagine from './tools.ml.imagine';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
 import * as ToolsQrCreate from './tools.qr.create';
@@ -267,6 +273,10 @@ export {
   ModerationAllowlistRemoveUsers,
   ModerationBlocklistAddUsers,
   ModerationBlocklistRemoveUsers,
+  ModerationCommandsBlocklist,
+  ModerationCommandsBlocklistAdd,
+  ModerationCommandsBlocklistClear,
+  ModerationCommandsBlocklistRemove,
 
   PrefixesAdd,
   PrefixesClear,
@@ -321,6 +331,8 @@ export {
   ToolsExif,
   ToolsHash,
   ToolsMath,
+  ToolsMLEdit,
+  ToolsMLImagine,
   ToolsOCR,
   ToolsOCRTranslate,
   ToolsQrCreate,

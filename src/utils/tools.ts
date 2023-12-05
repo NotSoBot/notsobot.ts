@@ -12,10 +12,11 @@ import {
   StickerFormats,
 } from 'detritus-client/lib/constants';
 import { Embed, Markup, PermissionTools, intToHex, regex as discordRegex } from 'detritus-client/lib/utils';
-import { Response, replacePathParameters } from 'detritus-rest';
+import { replacePathParameters } from 'detritus-rest';
 import { Snowflake, Timers } from 'detritus-utils';
 
 import { Endpoints } from '../api';
+import { RestResponsesRaw } from '../api/types';
 import {
   CodeLanguages,
   CodeLanguagesToName,
@@ -1077,7 +1078,7 @@ export function htmlDecode(value: string): string {
 
 
 export function generateImageReplyOptionsFromResponse(
-  response: Response,
+  response: RestResponsesRaw.FileResponse,
   options: {
     args?: boolean,
     content?: string,
@@ -1090,13 +1091,11 @@ export function generateImageReplyOptionsFromResponse(
   }
 
   let descriptionText: string | undefined;
-  if (response.headers.has('x-args') && options.args !== false) {
-    const args = JSON.parse(Buffer.from(response.headers.get('x-args') || '', 'base64').toString());
-
+  if (response.arguments) {
     const description: Array<string> = [];
-    for (let key in args) {
+    for (let key in response.arguments) {
       const title = toTitleCase(key);
-      const value = args[key];
+      const value = response.arguments[key];
 
       let text: string;
       if (typeof(value) === 'boolean') {
@@ -1112,29 +1111,28 @@ export function generateImageReplyOptionsFromResponse(
     descriptionText = description.join(' | ');
   }
 
-  const [ width, height ]: [number, number] = JSON.parse(response.headers.get('x-dimensions') || '[0, 0]');
-  const [ framesOld, framesNew ]: [number, number] = JSON.parse(response.headers.get('x-frames') || '[0, 0]');
   return {
     description: descriptionText,
     options: {
       content: options.content,
-      extension: response.headers.get('x-file-extension') || undefined,
+      extension: response.file.metadata.extension,
       filename: options.filename, // we will get the filename based off the command name
-      framesNew,
-      framesOld,
-      height,
-      mimetype: response.headers.get('content-type') || undefined,
-      size: +(response.headers.get('x-file-size') || 0),
+      framesNew: response.file.metadata.framecount,
+      framesOld: response.file_old.metadata.framecount,
+      height: response.file.metadata.height,
+      mimetype: response.file.metadata.mimetype,
+      size: response.file.metadata.size,
       spoiler: options.spoiler,
-      took: +(response.headers.get('x-took') || 0),
-      width,
+      storage: response.storage,
+      took: response.took,//+(response.headers.get('x-took') || 0),
+      width: response.file.metadata.width,
     },
   };
 }
 
 export async function imageReply(
   context: Command.Context | Interaction.InteractionContext,
-  response: Response,
+  response: RestResponsesRaw.FileResponse,
   options: {
     args?: boolean,
     content?: string,
@@ -1148,11 +1146,8 @@ export async function imageReply(
     imageReplyOptions.options.embed.setDescription(imageReplyOptions.description);
   }
 
-  return imageReplyFromOptions(
-    context,
-    await response.buffer(),
-    imageReplyOptions.options,
-  );
+  const buffer = Buffer.from(response.file.value, 'base64');
+  return imageReplyFromOptions(context, buffer, imageReplyOptions.options);
 }
 
 
@@ -1167,6 +1162,7 @@ export interface ImageReplyOptions {
   mimetype?: string,
   size: number,
   spoiler?: boolean,
+  storage?: null | RestResponsesRaw.FileResponseStorage,
   took?: number,
   width: number,
 }
@@ -1187,6 +1183,10 @@ export async function imageReplyFromOptions(
     }
   }
   filename = `${filename}.${options.extension || 'png'}`;
+
+  if (options.storage) {
+    return editOrReply(context, options.storage.urls.vanity);
+  }
 
   let embed: Embed;
   if (options.embed) {
@@ -1225,6 +1225,19 @@ export async function imageReplyFromOptions(
   }
   embed.setFooter(footer);
 
+  /*
+  if (options.storage) {
+    embed.setImage(options.storage.urls.cdn);
+    if (!shouldSetImage) {
+      embed.addField('Image URL', options.storage.urls.cdn);
+    }
+    return editOrReply(context, {
+      content: options.content || '',
+      embed,
+    });
+  }
+  */
+
   if (shouldSetImage) {
     embed.setImage(`attachment://${filename}`);
   }
@@ -1239,7 +1252,7 @@ export async function imageReplyFromOptions(
 
 export async function mediaReply(
   context: Command.Context | Interaction.InteractionContext,
-  response: Response,
+  response: RestResponsesRaw.FileResponse,
   options: {
     content?: string,
     filename?: string,
@@ -1250,15 +1263,17 @@ export async function mediaReply(
     options = {filename: options};
   }
   if (!options.filename) {
-    options.filename = (response.headers.get('x-file-name') || '').split('.').slice(0, -1).join('.');
+    options.filename = response.file.filename_base;
   }
-  return mediaReplyFromOptions(context, await response.buffer(), {
+  const buffer = Buffer.from(response.file.value, 'base64');
+  return mediaReplyFromOptions(context, buffer, {
     content: options.content,
-    extension: response.headers.get('x-file-extension') || undefined,
+    extension: response.file.metadata.extension,
     filename: options.filename, // we will get the filename based off the command name
-    mimetype: response.headers.get('content-type') || undefined,
-    size: +(response.headers.get('x-file-size') || 0),
+    mimetype: response.file.metadata.mimetype,
+    size: response.file.metadata.size,
     spoiler: options.spoiler,
+    storage: response.storage,
   });
 }
 
@@ -1273,6 +1288,7 @@ export async function mediaReplyFromOptions(
     mimetype?: string,
     size: number,
     spoiler?: boolean,
+    storage?: null | RestResponsesRaw.FileResponseStorage,
   },
 ) {
   let filename: string = '';
@@ -1286,6 +1302,12 @@ export async function mediaReplyFromOptions(
     }
   }
   filename = `${filename}.${options.extension || 'unknown'}`;
+
+  if (options.storage) {
+    return editOrReply(context, {
+      content: options.storage.urls.vanity,
+    });
+  }
 
   return editOrReply(context, {
     content: options.content || '',
@@ -1421,12 +1443,6 @@ export function parseContentDisposition(value: string): {disposition: string, fi
   }
 
   return {disposition, filename};
-}
-
-
-export function parseFilenameFromResponse(response: Response): string {
-  const { disposition, filename } = parseContentDisposition(response.headers.get('content-disposition') || '');
-  return filename || parseFilenameFromUrl(response.url);
 }
 
 

@@ -615,7 +615,14 @@ export enum GuildBlocklistTypes {
   USER = 'user',
 };
 
-export enum GuildDisableCommandsTypes {
+export enum GuildCommandsAllowlistTypes {
+  CHANNEL = 'channel',
+  GUILD = 'guild',
+  ROLE = 'role',
+  USER = 'user',
+};
+
+export enum GuildCommandsBlocklistTypes {
   CHANNEL = 'channel',
   GUILD = 'guild',
   ROLE = 'role',
@@ -974,7 +981,8 @@ export enum RedditTimeTypes {
 export enum RedisChannels {
   GUILD_ALLOWLIST_UPDATE = 'GUILD_ALLOWLIST_UPDATE',
   GUILD_BLOCKLIST_UPDATE = 'GUILD_BLOCKLIST_UPDATE',
-  GUILD_DISABLED_COMMAND_UPDATE = 'GUILD_DISABLED_COMMAND_UPDATE',
+  GUILD_COMMANDS_ALLOWLIST_UPDATE = 'GUILD_COMMANDS_ALLOWLIST_UPDATE',
+  GUILD_COMMANDS_BLOCKLIST_UPDATE = 'GUILD_COMMANDS_BLOCKLIST_UPDATE',
   GUILD_LOGGER_UPDATE = 'GUILD_LOGGER_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
@@ -1181,6 +1189,7 @@ export const NotSoApiKeys = Object.freeze({
   ALLOWLIST: 'allowlist',
   AVATAR: 'avatar',
   BLOCKED: 'blocked',
+  BLOCKED_REASON: 'blocked_reason',
   BLOCKLIST: 'blocklist',
   BOT: 'bot',
   BRAND: 'brand',
@@ -1188,10 +1197,11 @@ export const NotSoApiKeys = Object.freeze({
   CHANNEL_ID: 'channel_id',
   COLOR: 'color',
   COMMAND: 'command',
+  COMMANDS_ALLOWLIST: 'commands_allowlist',
+  COMMANDS_BLOCKLIST: 'commands_blocklist',
   CREATED: 'created',
   CURRENCY: 'currency',
   DESCRIPTION: 'description',
-  DISABLED_COMMANDS: 'disabled_commands',
   DISABLED_LOGGER_EVENTS: 'disabled_logger_events',
   DISCRIMINATOR: 'discriminator',
   DURATION: 'duration',
@@ -1249,6 +1259,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ALLOWLIST]: 'allowlist',
   [NotSoApiKeys.AVATAR]: 'avatar',
   [NotSoApiKeys.BLOCKED]: 'blocked',
+  [NotSoApiKeys.BLOCKED_REASON]: 'blockedReason',
   [NotSoApiKeys.BLOCKLIST]: 'blocklist',
   [NotSoApiKeys.BOT]: 'bot',
   [NotSoApiKeys.BRAND]: 'brand',
@@ -1256,10 +1267,11 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.CHANNEL_ID]: 'channelId',
   [NotSoApiKeys.COLOR]: 'color',
   [NotSoApiKeys.COMMAND]: 'command',
+  [NotSoApiKeys.COMMANDS_ALLOWLIST]: 'commandAllowlist',
+  [NotSoApiKeys.COMMANDS_BLOCKLIST]: 'commandBlocklist',
   [NotSoApiKeys.CREATED]: 'created',
   [NotSoApiKeys.CURRENCY]: 'currency',
   [NotSoApiKeys.DESCRIPTION]: 'description',
-  [NotSoApiKeys.DISABLED_COMMANDS]: 'disabledCommands',
   [NotSoApiKeys.DISABLED_LOGGER_EVENTS]: 'disabledLoggerEvents',
   [NotSoApiKeys.DISCRIMINATOR]: 'discriminator',
   [NotSoApiKeys.DURATION]: 'duration',

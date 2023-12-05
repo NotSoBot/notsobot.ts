@@ -24,25 +24,14 @@ export const Api = Object.freeze({
   FUN_TEXT_TO_SPEECH:
     '/fun/text-to-speech',
 
-  GOOGLE_CONTENT_VISION_LABELS:
-    '/google/content-vision/labels',
-  GOOGLE_CONTENT_VISION_OCR:
-    '/google/content-vision/ocr',
-  GOOGLE_CONTENT_VISION_SAFE_SEARCH:
-    '/google/content-vision/safe-search',
-  GOOGLE_CONTENT_VISION_WEB_DETECTION:
-    '/google/content-vision/web-detection',
-  GOOGLE_TRANSLATE:
-    '/google/translate',
-
   GUILD:
     '/guilds/:guildId',
   GUILD_ALLOWLIST:
     '/guilds/:guildId/allowlist/:allowlistId/:type',
   GUILD_BLOCKLIST:
     '/guilds/:guildId/blocklist/:blocklistId/:type',
-  GUILD_DISABLED_COMMAND:
-    '/guilds/:guildId/disabled-commands/:command/:disabledId/:type',
+  GUILD_COMMANDS_BLOCKLIST:
+    '/guilds/:guildId/disabled-commands/:command/:blocklistId/:type',
   GUILD_LOGGERS:
     '/guilds/:guildId/loggers',
   GUILD_LOGGERS_DELETE:
@@ -58,176 +47,176 @@ export const Api = Object.freeze({
     '/image/create/:height:x:width:/colors/:red:.:green:.:blue:.:format:',
 
   MEDIA_A_TOOLS_PUT_CONCAT:
-    '/audio/tools/put/concat',
+    '/media/a/tools/put/concat',
   MEDIA_A_TOOLS_PUT_MIX:
-    '/audio/tools/put/mix',
+    '/media/a/tools/put/mix',
   MEDIA_A_TOOLS_PUT_REPLACE:
-    '/audio/tools/put/replace',
+    '/media/a/tools/put/replace',
 
   MEDIA_AIV_MANIPULATION_ADHD:
-    '/image/manipulation/adhd',
+    '/media/aiv/manipulation/adhd',
 
   MEDIA_AIV_TOOLS_CONCAT:
-    '/image/tools/concat',
+    '/media/aiv/tools/concat',
   MEDIA_AIV_TOOLS_CONVERT:
-    '/video/tools/convert',
+    '/media/aiv/tools/convert',
   MEDIA_AIV_TOOLS_EXIF:
-    '/image/information/exif',
+    '/media/aiv/tools/exif',
   MEDIA_AIV_TOOLS_JOIN:
-    '/image/tools/join',
+    '/media/aiv/tools/join',
   MEDIA_AIV_TOOLS_OVERLAY:
-    '/image/tools/overlay',
+    '/media/aiv/tools/overlay',
   MEDIA_AIV_TOOLS_REVERSE:
-    '/image/tools/gif/reverse',
+    '/media/aiv/tools/reverse',
   MEDIA_AIV_TOOLS_SEE_SAW:
-    '/image/tools/gif/see-saw',
+    '/media/aiv/tools/see-saw',
   MEDIA_AIV_TOOLS_SNIP:
-    '/video/tools/snip',
+    '/media/aiv/tools/snip',
   MEDIA_AIV_TOOLS_SPEED:
-    '/image/tools/gif/speed',
+    '/media/aiv/tools/speed',
 
   MEDIA_AV_MANIPULATION_BOOST_BASS:
-    '/audio/tools/boost/bass',
+    '/media/av/manipulation/boost/bass',
   MEDIA_AV_MANIPULATION_COMPRESS:
-    '/audio/tools/compress',
+    '/media/av/manipulation/compress',
   MEDIA_AV_MANIPULATION_DESTROY:
-    '/audio/tools/destroy',
+    '/media/av/manipulation/destroy',
   MEDIA_AV_MANIPULATION_VOLUME:
-    '/audio/tools/volume',
+    '/media/av/manipulation/volume',
 
   MEDIA_AV_TOOLS_EXTRACT_AUDIO:
-    '/video/tools/extract/audio',
+    '/media/av/tools/extract/audio',
   MEDIA_AV_TOOLS_IDENTIFY:
-    '/audio/tools/identify',
+    '/media/av/tools/identify',
 
   MEDIA_I_CREATE_RETROWAVE:
-    '/image/create/retrowave',
+    '/media/i/create/retrowave',
   MEDIA_I_CREATE_TOMBSTONE:
-    '/image/create/tombstone',
+    '/media/i/create/tombstone',
   MEDIA_I_CREATE_WORDCLOUD:
-    '/image/create/wordcloud',
+    '/media/i/create/wordcloud',
   MEDIA_I_CREATE_WORDCLOUD_BACKGROUND:
-    '/image/create/wordcloud/background',
+    '/media/i/create/wordcloud/background',
 
   MEDIA_IV_MANIPULATION_ASCII:
-    '/image/manipulation/ascii',
+    '/media/iv/manipulation/ascii',
   MEDIA_IV_MANIPULATION_BLUR:
-    '/image/manipulation/blur',
+    '/media/iv/manipulation/blur',
   MEDIA_IV_MANIPULATION_BLURPLE:
-    '/image/manipulation/blurple',
+    '/media/iv/manipulation/blurple',
   MEDIA_IV_MANIPULATION_CAPTION:
-    '/image/manipulation/caption',
+    '/media/iv/manipulation/caption',
   MEDIA_IV_MANIPULATION_CIRCLE:
-    '/image/manipulation/circle',
+    '/media/iv/manipulation/circle',
   MEDIA_IV_MANIPULATION_DEEPFRY:
-    '/image/manipulation/deepfry',
+    '/media/iv/manipulation/deepfry',
   MEDIA_IV_MANIPULATION_EXPLODE:
-    '/image/manipulation/explode',
+    '/media/iv/manipulation/explode',
   MEDIA_IV_MANIPULATION_EYES:
-    '/image/manipulation/eyes',
+    '/media/iv/manipulation/eyes',
   MEDIA_IV_MANIPULATION_FLIP:
-    '/image/manipulation/flip',
+    '/media/iv/manipulation/flip',
   MEDIA_IV_MANIPULATION_FLOP:
-    '/image/manipulation/flop',
+    '/media/iv/manipulation/flop',
   MEDIA_IV_MANIPULATION_GLITCH:
-    '/image/manipulation/glitch',
+    '/media/iv/manipulation/glitch',
   MEDIA_IV_MANIPULATION_GLITCH_GIF:
-    '/image/manipulation/glitch/gif',
+    '/media/iv/manipulation/glitch/gif',
   MEDIA_IV_MANIPULATION_GLOBE:
-    '/image/manipulation/globe',
+    '/media/iv/manipulation/globe',
   MEDIA_IV_MANIPULATION_GOLD:
-    '/image/manipulation/gold',
+    '/media/iv/manipulation/gold',
   MEDIA_IV_MANIPULATION_GRAYSCALE:
-    '/image/manipulation/grayscale',
+    '/media/iv/manipulation/grayscale',
   MEDIA_IV_MANIPULATION_IMPLODE:
-    '/image/manipulation/implode',
+    '/media/iv/manipulation/implode',
   MEDIA_IV_MANIPULATION_INVERT:
-    '/image/manipulation/invert',
+    '/media/iv/manipulation/invert',
   MEDIA_IV_MANIPULATION_JPEG:
-    '/image/manipulation/jpeg',
+    '/media/iv/manipulation/jpeg',
   MEDIA_IV_MANIPULATION_LEGOFY:
-    '/image/manipulation/legofy',
+    '/media/iv/manipulation/legofy',
   MEDIA_IV_MANIPULATION_MAGIK:
-    '/image/manipulation/magik',
+    '/media/iv/manipulation/magik',
   MEDIA_IV_MANIPULATION_MAGIK_GIF:
-    '/image/manipulation/magik/gif',
+    '/media/iv/manipulation/magik/gif',
   MEDIA_IV_MANIPULATION_MEME:
-    '/image/manipulation/meme',
+    '/media/iv/manipulation/meme',
   MEDIA_IV_MANIPULATION_MIRROR_BOTTOM:
-    '/image/manipulation/mirror-bottom',
+    '/media/iv/manipulation/mirror-bottom',
   MEDIA_IV_MANIPULATION_MIRROR_LEFT:
-    '/image/manipulation/mirror-left',
+    '/media/iv/manipulation/mirror-left',
   MEDIA_IV_MANIPULATION_MIRROR_RIGHT:
-    '/image/manipulation/mirror-right',
+    '/media/iv/manipulation/mirror-right',
   MEDIA_IV_MANIPULATION_MIRROR_TOP:
-    '/image/manipulation/mirror-top',
+    '/media/iv/manipulation/mirror-top',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISIS:
-    '/image/overlay/flag-isis',
+    '/media/iv/manipulation/overlay/flag-isis',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISRAEL:
-    '/image/overlay/flag-israel',
+    '/media/iv/manipulation/overlay/flag-israel',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_LGBT:
-    '/image/overlay/flag-lgbt',
+    '/media/iv/manipulation/overlay/flag-lgbt',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NORTH_KOREA:
-    '/image/overlay/flag-north-korea',
+    '/media/iv/manipulation/overlay/flag-north-korea',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_RUSSIA:
-    '/image/overlay/flag-russia',
+    '/media/iv/manipulation/overlay/flag-russia',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TRANS:
-    '/image/overlay/flag-trans',
+    '/media/iv/manipulation/overlay/flag-trans',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UK:
-    '/image/overlay/flag-uk',
+    '/media/iv/manipulation/overlay/flag-uk',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_USA:
-    '/image/overlay/flag-usa',
+    '/media/iv/manipulation/overlay/flag-usa',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_USSR:
-    '/image/overlay/flag-ussr',
+    '/media/iv/manipulation/overlay/flag-ussr',
   MEDIA_IV_MANIPULATION_OVERLAY_FLIES:
-    '/image/manipulation/flies',
+    '/media/iv/manipulation/overlay/flies',
   MEDIA_IV_MANIPULATION_OVERLAY_GOLDSTAR:
-    '/image/overlay/goldstar',
+    '/media/iv/manipulation/overlay/goldstar',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_PISTOL:
-    '/image/overlay/half-life-pistol',
+    '/media/iv/manipulation/overlay/half-life-pistol',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SHOTGUN:
-    '/image/overlay/half-life-shotgun',
+    '/media/iv/manipulation/overlay/half-life-shotgun',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SMG:
-    '/image/overlay/half-life-smg',
+    '/media/iv/manipulation/overlay/half-life-smg',
   MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK:
-    '/image/overlay/shutterstock',
+    '/media/iv/manipulation/overlay/shutterstock',
   MEDIA_IV_MANIPULATION_PAPER:
-    '/image/manipulation/paper',
+    '/media/iv/manipulation/paper',
   MEDIA_IV_MANIPULATION_PIX2PIX:
-    '/image/manipulation/pix2pix',
+    '/media/iv/manipulation/pix2pix',
   MEDIA_IV_MANIPULATION_PIXELATE:
-    '/image/manipulation/pixelate',
+    '/media/iv/manipulation/pixelate',
   MEDIA_IV_MANIPULATION_RAIN:
-    '/image/manipulation/rain',
+    '/media/iv/manipulation/rain',
   MEDIA_IV_MANIPULATION_RAIN_GOLD:
-    '/image/manipulation/rain/gold',
+    '/media/iv/manipulation/rain/gold',
   MEDIA_IV_MANIPULATION_SHARPEN:
-    '/image/manipulation/sharpen',
+    '/media/iv/manipulation/sharpen',
   MEDIA_IV_MANIPULATION_SPIN:
-    '/image/manipulation/spin',
+    '/media/iv/manipulation/spin',
   MEDIA_IV_MANIPULATION_TRACE:
-    '/image/manipulation/trace',
+    '/media/iv/manipulation/trace',
   MEDIA_IV_MANIPULATION_WALL:
-    '/image/manipulation/wall',
+    '/media/iv/manipulation/wall',
 
   MEDIA_IV_TOOLS_BACKGROUND_REMOVE:
-    '/image/tools/background/remove',
+    '/media/iv/tools/background/remove',
   MEDIA_IV_TOOLS_CROP:
-    '/image/tools/crop',
+    '/media/iv/tools/crop',
   MEDIA_IV_TOOLS_CROP_AUTO:
-    '/image/tools/crop/auto',
+    '/media/iv/tools/crop/auto',
   MEDIA_IV_TOOLS_CROP_CIRCLE:
-    '/image/tools/crop/circle',
+    '/media/iv/tools/crop/circle',
   MEDIA_IV_TOOLS_CROP_TWITTER_HEX:
-    '/image/tools/crop/twitter-hex',
+    '/media/iv/tools/crop/twitter-hex',
   MEDIA_IV_TOOLS_OBJECT_REMOVE:
-    '/image/tools/object/remove',
+    '/media/iv/tools/object/remove',
   MEDIA_IV_TOOLS_RESIZE:
-    '/image/tools/resize',
+    '/media/iv/tools/resize',
   MEDIA_IV_TOOLS_ROTATE:
-    '/image/tools/rotate',
+    '/media/iv/tools/rotate',
   MEDIA_IV_TOOLS_TRIM:
-    '/image/tools/trim',
+    '/media/iv/tools/trim',
 
   INFO_DISCORD:
     '/info/discord',
@@ -291,12 +280,12 @@ export const Api = Object.freeze({
 
   TAGS:
     '/tags',
-  TAGS_RANDOM:
-    '/tags/random',
-  TAGS_SERVER:
-    '/tags/servers/:serverId',
-  TAGS_SERVER_DELETE:
-    '/tags/servers/:serverId/delete',
+  TAGS_DELETE:
+    '/tags/delete',
+  TAGS_SEARCH:
+    '/tags/search',
+  TAGS_SEARCH_RANDOM:
+    '/tags/search/random',
   TAG_USE:
     '/tags/:tagId/use',
 
@@ -304,8 +293,8 @@ export const Api = Object.freeze({
     '/users/:userId',
   USER_COMMANDS:
     '/users/:userId/commands',
-  USER_COMMAND:
-    '/users/:userId/commands/:command',
+  USER_COMMAND: // RENAME
+    '/users/:userId/commands/usage/:command',
   USER_REMINDERS:
     '/users/:userId/reminders',
   USER_REMINDERS_EXPIRED:
@@ -323,8 +312,22 @@ export const Api = Object.freeze({
     '/utilities/fetch/media',
   UTILITIES_FETCH_TEXT:
     '/utilities/fetch/text',
-  UTILITIES_IMAGESCRIPT_V1:
-    '/utilities/imagescript/v1',
+  GOOGLE_CONTENT_VISION_LABELS: // RENAME
+    '/utilities/google/content-vision/labels',
+  GOOGLE_CONTENT_VISION_OCR: // RENAME
+    '/utilities/google/content-vision/ocr',
+  GOOGLE_CONTENT_VISION_SAFE_SEARCH: // RENAME
+    '/utilities/google/content-vision/safe-search',
+  GOOGLE_CONTENT_VISION_WEB_DETECTION: // RENAME
+    '/utilities/google/content-vision/web-detection',
+  GOOGLE_TRANSLATE: // RENAME
+    '/utilities/google/translate',
+  UTILITIES_IMAGESCRIPT_V1: // RENAME
+    '/utilities/mediascript',
+  UTILITIES_ML_EDIT:
+    '/utilities/ml/edit',
+  UTILITIES_ML_IMAGINE:
+    '/utilities/ml/imagine',
   UTILITIES_QR_CREATE:
     '/utilities/qr/create',
   UTILITIES_QR_SCAN:

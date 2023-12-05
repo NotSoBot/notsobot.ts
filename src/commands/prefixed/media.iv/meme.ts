@@ -27,7 +27,7 @@ export default class MemeCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} @NotSoBot what an idiot | lmao`,
         ],
         id: Formatter.Commands.MediaIVManipulationMeme.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...text>',
+        usage: '?<emoji,user:id|mention,url> <...text>',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},

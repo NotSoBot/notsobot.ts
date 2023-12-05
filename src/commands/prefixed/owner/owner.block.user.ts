@@ -8,11 +8,11 @@ import { BaseCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  user: Structures.Member | Structures.User | null,
+  payload: Parameters.BanPayloadMembersOnly | null,
 }
 
 export interface CommandArgs {
-  user: Structures.Member | Structures.User,
+  payload: Parameters.BanPayloadMembersOnly,
 }
 
 
@@ -23,7 +23,7 @@ export default class OwnerBlockUserCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      label: 'user',
+      label: 'payload',
       metadata: {
         description: 'Block a user from the bot',
         examples: [
@@ -32,7 +32,7 @@ export default class OwnerBlockUserCommand extends BaseCommand {
         category: CommandCategories.OWNER,
         usage: '<user:id|mention|name>',
       },
-      type: Parameters.memberOrUser({allowBots: false}),
+      type: Parameters.banPayload({allowBots: false}),
     });
   }
 
@@ -41,18 +41,30 @@ export default class OwnerBlockUserCommand extends BaseCommand {
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return !!args.user;
+    return !!args.payload && !!args.payload.membersOrUsers.length;
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    if (!args.user) {
-      return editOrReply(context, '⚠ Unable to find that user.');
+    if (args.payload) {
+      return context.editOrReply('⚠ Couldn\'t find any members. (Use Mentions or User IDs)');
     }
-    return super.onCancelRun(context, args);
+    return context.editOrReply('⚠ Provide some members');
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    await editUser(context, args.user.id, {blocked: true});
-    return editOrReply(context, `Alright, blocked ${createUserString(args.user.id, args.user)}.`);
+    const users: Array<string> = [];
+    for (let memberOrUser of args.payload.membersOrUsers) {
+      await editUser(context, memberOrUser.id, {
+        blocked: true,
+        blockedReason: args.payload.text,
+      });
+      users.push(createUserString(memberOrUser.id, memberOrUser));
+    }
+
+    let content: string = `Successfully blocked ${users.join(', ')}.`;
+    if (args.payload.text) {
+      content = `${content} (Reason: \`${args.payload.text}\`)`;
+    }
+    return editOrReply(context, content);
   }
 }
