@@ -3095,7 +3095,6 @@ export async function utilitiesQrCreate(
     size: options.size,
   };
   return request(context, {
-    dataOnly: false,
     query,
     route: {
       method: HTTPMethods.GET,
