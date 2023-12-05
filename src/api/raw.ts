@@ -1544,6 +1544,24 @@ export async function mediaIVManipulationJPEG(
 }
 
 
+export async function mediaIVManipulationLabelsIFunny(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LABELS_IFUNNY,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationLegofy(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationLegofy,
@@ -1695,6 +1713,7 @@ export async function mediaIVManipulationMirrorTop(
     },
   });
 }
+
 
 export async function mediaIVManipulationOverlayFlagIsrael(
   context: RequestContext,
@@ -1933,6 +1952,79 @@ export async function mediaIVManipulationOverlayHalfLifeSMG(
 }
 
 
+export async function mediaIVManipulationOverlayPersonsBernie1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_BERNIE_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsBobRoss(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_BOB_ROSS,
+    },
+  });
+}
+
+
+
+export async function mediaIVManipulationOverlayPersonsGaben1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_GABEN_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsLTTLinus1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_LTT_LINUS_1,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayShutterstock(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -1946,6 +2038,24 @@ export async function mediaIVManipulationOverlayShutterstock(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayStarman(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_STARMAN,
     },
   });
 }

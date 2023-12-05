@@ -136,6 +136,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/invert',
   MEDIA_IV_MANIPULATION_JPEG:
     '/media/iv/manipulation/jpeg',
+  MEDIA_IV_MANIPULATION_LABELS_IFUNNY:
+    '/media/iv/manipulation/labels/ifunny',
   MEDIA_IV_MANIPULATION_LEGOFY:
     '/media/iv/manipulation/legofy',
   MEDIA_IV_MANIPULATION_MAGIK:
@@ -180,8 +182,18 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/half-life-shotgun',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SMG:
     '/media/iv/manipulation/overlay/half-life-smg',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_BERNIE_1:
+    '/media/iv/manipulation/overlay/persons/bernie-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_BOB_ROSS:
+    '/media/iv/manipulation/overlay/persons/bob-ross',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_GABEN_1:
+    '/media/iv/manipulation/overlay/persons/gaben-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_LTT_LINUS_1:
+    '/media/iv/manipulation/overlay/persons/ltt-linus-1',
   MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK:
     '/media/iv/manipulation/overlay/shutterstock',
+  MEDIA_IV_MANIPULATION_OVERLAY_STARMAN:
+    '/media/iv/manipulation/overlay/starman',
   MEDIA_IV_MANIPULATION_PAPER:
     '/media/iv/manipulation/paper',
   MEDIA_IV_MANIPULATION_PIX2PIX:

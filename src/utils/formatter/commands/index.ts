@@ -57,6 +57,7 @@ import * as MediaIVManipulationGold from './media.iv.manipulation.gold';
 import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationInvert from './media.iv.manipulation.invert';
+import * as MediaIVManipulationLabelsIFunny from './media.iv.manipulation.labels.ifunny';
 import * as MediaIVManipulationLegofy from './media.iv.manipulation.legofy';
 import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
 import * as MediaIVManipulationMagikAnimated from './media.iv.manipulation.magik.animated';
@@ -77,6 +78,11 @@ import * as MediaIVManipulationOverlayFlies from './media.iv.manipulation.overla
 import * as MediaIVManipulationOverlayHalfLifePistol from './media.iv.manipulation.overlay.halflife.pistol';
 import * as MediaIVManipulationOverlayHalfLifeShotgun from './media.iv.manipulation.overlay.halflife.shotgun';
 import * as MediaIVManipulationOverlayHalfLifeSMG from './media.iv.manipulation.overlay.halflife.smg';
+import * as MediaIVManipulationOverlayPersonsBernie1 from './media.iv.manipulation.overlay.persons.bernie.1';
+import * as MediaIVManipulationOverlayPersonsBobRoss from './media.iv.manipulation.overlay.persons.bob.ross';
+import * as MediaIVManipulationOverlayPersonsGaben1 from './media.iv.manipulation.overlay.persons.gaben.1';
+import * as MediaIVManipulationOverlayPersonsLTTLinus1 from './media.iv.manipulation.overlay.persons.ltt.linus.1';
+import * as MediaIVManipulationOverlayStarman from './media.iv.manipulation.overlay.starman';
 import * as MediaIVManipulationJPEG from './media.iv.manipulation.jpeg';
 import * as MediaIVManipulationPaper from './media.iv.manipulation.paper';
 import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
@@ -233,6 +239,7 @@ export {
   MediaIVManipulationGrayscale,
   MediaIVManipulationImplode,
   MediaIVManipulationInvert,
+  MediaIVManipulationLabelsIFunny,
   MediaIVManipulationLegofy,
   MediaIVManipulationMagik,
   MediaIVManipulationMagikAnimated,
@@ -253,6 +260,11 @@ export {
   MediaIVManipulationOverlayHalfLifePistol,
   MediaIVManipulationOverlayHalfLifeShotgun,
   MediaIVManipulationOverlayHalfLifeSMG,
+  MediaIVManipulationOverlayPersonsBernie1,
+  MediaIVManipulationOverlayPersonsBobRoss,
+  MediaIVManipulationOverlayPersonsGaben1,
+  MediaIVManipulationOverlayPersonsLTTLinus1,
+  MediaIVManipulationOverlayStarman,
   MediaIVManipulationJPEG,
   MediaIVManipulationPaper,
   MediaIVManipulationPixelate,
