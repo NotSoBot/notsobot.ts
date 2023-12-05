@@ -43,6 +43,7 @@ export default class TranslateCommand extends BaseCommand {
         usage: '<text> (-to <language>) (-from <language>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.targetText,
     });
   }
 

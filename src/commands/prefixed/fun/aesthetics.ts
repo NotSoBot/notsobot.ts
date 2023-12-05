@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -23,6 +23,7 @@ export default class AestheticsCommand extends BaseCommand {
         id: Formatter.Commands.FunAesthetics.COMMAND_ID,
         usage: '<text>',
       },
+      type: Parameters.targetText,
     });
   }
 

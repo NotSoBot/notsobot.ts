@@ -37,7 +37,7 @@ export default class EditCommand extends BaseImageCommand {
       ],
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
-        {name: 'query', consume: true},
+        {name: 'query', type: Parameters.targetText, consume: true},
       ],
     });
   }

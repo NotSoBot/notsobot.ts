@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -25,6 +25,7 @@ export default class MathCommand extends BaseCommand {
         id: Formatter.Commands.ToolsMath.COMMAND_ID,
         usage: '<equation>',
       },
+      type: Parameters.targetText,
     });
   }
 

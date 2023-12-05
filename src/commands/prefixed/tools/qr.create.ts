@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -29,6 +29,7 @@ export default class QRCreateCommand extends BaseCommand<Formatter.Commands.Tool
         id: Formatter.Commands.ToolsQrCreate.COMMAND_ID,
         usage: '<query> (-margin <number>) (-size <number>)',
       },
+      type: Parameters.targetText,
     });
   }
 

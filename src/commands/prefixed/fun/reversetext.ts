@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -32,6 +32,7 @@ export default class ReverseTextCommand extends BaseCommand {
         category: CommandCategories.FUN,
         usage: '<text>',
       },
+      type: Parameters.targetText,
     });
   }
 

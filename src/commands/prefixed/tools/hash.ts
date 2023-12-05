@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -45,6 +45,7 @@ export default class HashCommand extends BaseCommand<CommandArgs> {
         usage: '<text> (-use <HashTypes>) (-secret <string>)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
+      type: Parameters.targetText,
     });
   }
 

@@ -31,6 +31,7 @@ export default class CodeCommand extends BaseCommand {
         id: Formatter.Commands.ToolsCode.COMMAND_ID,
         usage: '<?language> <code>',
       },
+      type: Parameters.targetText,
     });
   }
 

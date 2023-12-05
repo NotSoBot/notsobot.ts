@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -24,6 +24,7 @@ export default class AsciiCommand extends BaseCommand {
         usage: '<text>',
       },
       priority: -1,
+      type: Parameters.targetText,
     });
   }
 

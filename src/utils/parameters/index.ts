@@ -494,7 +494,7 @@ export async function tagContent(
           ].filter((x) => x).join('\n');
         }
       }
-  
+
       // check for reply and if it has an image
       {
         const { messageReference } = context.message;
@@ -520,6 +520,44 @@ export function tagName(
   value: string,
 ): string {
   return value.replace(/\r?\n|\r/g, '');
+}
+
+
+export async function targetText(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<string> {
+  if (value) {
+    const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+    if (matches.length) {
+      const [ { text } ] = matches;
+    
+      // if its https://discord.com/channels/:guildId/:channelId/:messageId
+      {
+        const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+        if (messageLink.matches.length) {
+          const [ { channelId, messageId } ] = messageLink.matches;
+          if (channelId && messageId) {
+            const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
+            value = message.content;
+          }
+        }
+      }
+    }
+  }
+
+  if (!value) {
+    // check if reply exists
+    if (context instanceof Command.Context) {
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId) {
+        const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+        value = message.content;
+      }
+    }
+  }
+
+  return value;
 }
 
 
