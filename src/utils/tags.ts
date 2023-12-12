@@ -780,7 +780,6 @@ const ScriptTags = Object.freeze({
         indexStop = args.length + indexStop;
       }
 
-      const args = tag.variables[PrivateVariables.ARGS];
       tag.text += args.slice(index, indexStop).join(' ');
     } else {
       tag.text += tag.variables[PrivateVariables.ARGS_STRING];
