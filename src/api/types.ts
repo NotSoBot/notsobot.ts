@@ -11,6 +11,7 @@ import {
   ImageMemeFonts,
   RedditSortTypes,
   RedditTimeTypes,
+  UserUploadThresholdTypes,
   YoutubeResultTypes,
 } from '../constants';
 
@@ -56,6 +57,7 @@ export namespace RestOptions {
   }
 
   export interface CreateTagUse {
+    serverId?: string,
     timestamp: number,
     userId: string,
   }
@@ -107,6 +109,12 @@ export namespace RestOptions {
     timezone?: string,
   }
 
+  export interface EditTag {
+    isCommand?: boolean,
+    name?: string,
+    referenceTagId?: string,
+  }
+
   export interface EditUser {
     blocked?: boolean,
     blockedReason?: null | string,
@@ -114,6 +122,8 @@ export namespace RestOptions {
     locale?: null | string,
     optOutContent?: boolean,
     timezone?: null | string,
+    uploadThreshold?: null | UserUploadThresholdTypes,
+    vanity?: null | string,
   }
 
 
@@ -417,8 +427,9 @@ export namespace RestOptions {
   }
 
   export interface PutTag {
-    content: string,
+    content?: string,
     name: string,
+    referenceTagId?: string,
     serverId?: string,
   }
 
@@ -656,6 +667,11 @@ export namespace RestResponses {
 
 
 export namespace RestResponsesRaw {
+  export interface AddGuildFeature {
+    features: Array<string>,
+    id: string,
+  }
+
   export interface FileResponse {
     arguments: null | Record<string, any>,
     file: {
@@ -801,9 +817,15 @@ export namespace RestResponsesRaw {
   export type DeleteTagSearch = null;
 
   export type EditGuildSettings = GuildSettings;
+  export type EditTag = Tag;
   export type EditUser = User;
 
   export type FetchGuildSettings = GuildSettings;
+
+  export interface FetchGuildTagsCommands {
+    count: number,
+    tags: Array<Tag>,
+  }
 
   export interface FetchReminders {
     count: number,
@@ -821,6 +843,11 @@ export namespace RestResponsesRaw {
   export type FetchUser = User;
 
   export interface FetchUserTags {
+    count: number,
+    tags: Array<Tag>,
+  }
+
+  export interface FetchUserTagsCommands {
     count: number,
     tags: Array<Tag>,
   }
@@ -946,6 +973,11 @@ export namespace RestResponsesRaw {
     guild_id: string,
     prefix: string,
     user_id: string,
+  }
+
+  export interface RemoveGuildFeature {
+    features: Array<string>,
+    id: string,
   }
 
 
@@ -1752,8 +1784,11 @@ export namespace RestResponsesRaw {
     global: boolean,
     guild_id: string | null,
     id: string,
+    is_command: boolean,
+    locked: boolean,
     name: string,
     nsfw: boolean,
+    reference_tag: Tag | null,
     server_id: string | null,
     user: User,
     uses: number,

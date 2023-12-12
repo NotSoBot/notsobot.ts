@@ -630,6 +630,10 @@ export enum GuildCommandsBlocklistTypes {
 };
 
 
+export enum GuildFeatures {
+  FREE_CUSTOM_COMMANDS = 'FREE_CUSTOM_COMMANDS',
+}
+
 
 export enum GuildLoggerFlags {
   MESSAGE_CREATE = 1 << 0,
@@ -983,12 +987,16 @@ export enum RedisChannels {
   GUILD_BLOCKLIST_UPDATE = 'GUILD_BLOCKLIST_UPDATE',
   GUILD_COMMANDS_ALLOWLIST_UPDATE = 'GUILD_COMMANDS_ALLOWLIST_UPDATE',
   GUILD_COMMANDS_BLOCKLIST_UPDATE = 'GUILD_COMMANDS_BLOCKLIST_UPDATE',
+  GUILD_FEATURES_UPDATE = 'GUILD_FEATURES_UPDATE',
   GUILD_LOGGER_UPDATE = 'GUILD_LOGGER_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
   INFO_DISCORD_REQUEST = 'INFO_DISCORD_REQUEST',
   REMINDER_CREATE = 'REMINDER_CREATE',
   REMINDER_DELETE = 'REMINDER_DELETE',
+  TAG_DELETE = 'TAG_DELETE',
+  TAG_DELETE_BULK = 'TAG_DELETE_BULK',
+  TAG_UPDATE = 'TAG_UPDATE',
   USER_UPDATE = 'USER_UPDATE',
 };
 
@@ -1088,6 +1096,7 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
 export enum UserFlags {
   NONE = 0,
   OWNER = 1 << 0,
+  PREMIUM_DISCORD = 1 << 1,
 };
 
 
@@ -1095,6 +1104,12 @@ export enum UserPremiumTypes {
   NONE = 0,
 };
 
+
+export enum UserUploadThresholdTypes {
+  ALWAYS = 0,
+  EXCEEDS_DISCORD_LIMIT = 1,
+  NEVER = 2,
+}
 
 
 export enum YoutubeResultTypes {
@@ -1206,6 +1221,8 @@ export const NotSoApiKeys = Object.freeze({
   DISCRIMINATOR: 'discriminator',
   DURATION: 'duration',
   EXTENSION: 'extension',
+  FEATURES: 'features',
+  FILE: 'file',
   FLAGS: 'flags',
   FOOTER: 'footer',
   GUILD_ID: 'guild_id',
@@ -1242,10 +1259,12 @@ export const NotSoApiKeys = Object.freeze({
   TITLE: 'title',
   TRUSTED: 'trusted',
   TYPE: 'type',
+  UPLOAD_THRESHOLD: 'upload_threshold',
   UPLOADED_AT: 'uploaded_at',
   URL: 'url',
   USER_ID: 'user_id',
   USERNAME: 'username',
+  VANITY: 'vanity',
   VIDEO: 'video',
   VIEWS: 'views',
   WEBHOOK_ID: 'webhook_id',
@@ -1276,6 +1295,8 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.DISCRIMINATOR]: 'discriminator',
   [NotSoApiKeys.DURATION]: 'duration',
   [NotSoApiKeys.EXTENSION]: 'extension',
+  [NotSoApiKeys.FEATURES]: 'features',
+  [NotSoApiKeys.FILE]: 'file',
   [NotSoApiKeys.FLAGS]: 'flags',
   [NotSoApiKeys.FOOTER]: 'footer',
   [NotSoApiKeys.GUILD_ID]: 'guildId',
@@ -1312,10 +1333,12 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.TITLE]: 'title',
   [NotSoApiKeys.TRUSTED]: 'trusted',
   [NotSoApiKeys.TYPE]: 'type',
+  [NotSoApiKeys.UPLOAD_THRESHOLD]: 'uploadThreshold',
   [NotSoApiKeys.UPLOADED_AT]: 'uploadedAt',
   [NotSoApiKeys.URL]: 'url',
   [NotSoApiKeys.USER_ID]: 'userId',
   [NotSoApiKeys.USERNAME]: 'username',
+  [NotSoApiKeys.VANITY]: 'vanity',
   [NotSoApiKeys.VIDEO]: 'video',
   [NotSoApiKeys.VIEWS]: 'views',
   [NotSoApiKeys.WEBHOOK_ID]: 'webhookId',
@@ -1485,18 +1508,11 @@ export const TimezoneText: Record<Timezones, string> = Object.freeze({
 
 
 export enum TTSVoices {
-  BLUE_DE_DE_DIETER = 'BLUE_DE_DE_DIETER',
-  BLUE_EN_GB_KATE = 'BLUE_EN_GB_KATE',
-  BLUE_EN_US_ALLISON = 'BLUE_EN_US_ALLISON',
-  BLUE_EN_US_LISA = 'BLUE_EN_US_LISA',
-  BLUE_EN_US_MICHAEL = 'BLUE_EN_US_MICHAEL',
-  BLUE_ES_ES_ENRIQUE = 'BLUE_ES_ES_ENRIQUE',
-  BLUE_FR_FR_RENEE = 'BLUE_FR_FR_RENEE',
-  BLUE_IT_IT_FRANCESCA = 'BLUE_IT_IT_FRANCESCA',
-  BLUE_JA_JP_EMI = 'BLUE_JA_JP_EMI',
-  BLUE_PT_BR_ISABELA = 'BLUE_PT_BR_ISABELA',
+  TIKTOK_BR_MALE_01 = 'TIKTOK_BR_MALE_01',
   TIKTOK_DE_FEMALE_01 = 'TIKTOK_DE_FEMALE_01',
   TIKTOK_DE_MALE_01 = 'TIKTOK_DE_MALE_01',
+  TIKTOK_EN_AU_FEMALE = 'TIKTOK_EN_AU_FEMALE',
+  TIKTOK_EN_AU_MALE = 'TIKTOK_EN_AU_MALE',
   TIKTOK_EN_FEMALE_EMOTIONAL = 'TIKTOK_EN_FEMALE_EMOTIONAL',
   TIKTOK_EN_FEMALE_SALUT_DAMOUR = 'TIKTOK_EN_FEMALE_SALUT_DAMOUR',
   TIKTOK_EN_FEMALE_WARMY_BREEZE = 'TIKTOK_EN_FEMALE_WARMY_BREEZE',
@@ -1504,6 +1520,8 @@ export enum TTSVoices {
   TIKTOK_EN_MALE_LOBBY = 'TIKTOK_EN_MALE_LOBBY',
   TIKTOK_EN_MALE_NARRATION = 'TIKTOK_EN_MALE_NARRATION',
   TIKTOK_EN_MALE_SUNSHINE_SOON = 'TIKTOK_EN_MALE_SUNSHINE_SOON',
+  TIKTOK_EN_UK_MALE_01 = 'TIKTOK_EN_UK_MALE_01',
+  TIKTOK_EN_UK_MALE_02 = 'TIKTOK_EN_UK_MALE_02',
   TIKTOK_EN_US_C3PO = 'TIKTOK_EN_US_C3PO',
   TIKTOK_EN_US_CHEWBACCA = 'TIKTOK_EN_US_CHEWBACCA',
   TIKTOK_EN_US_FEMALE_01 = 'TIKTOK_EN_US_FEMALE_01',
@@ -1517,6 +1535,7 @@ export enum TTSVoices {
   TIKTOK_EN_US_STITCH = 'TIKTOK_EN_US_STITCH',
   TIKTOK_EN_US_STORMTROOPER = 'TIKTOK_EN_US_STORMTROOPER',
   TIKTOK_ES_MALE_01 = 'TIKTOK_ES_MALE_01',
+  TIKTOK_ES_MX_MALE_01 = 'TIKTOK_ES_MX_MALE_01',
   TIKTOK_FR_MALE_01 = 'TIKTOK_FR_MALE_01',
   TIKTOK_FR_MALE_02 = 'TIKTOK_FR_MALE_02',
   TIKTOK_ID_FEMALE_01 = 'TIKTOK_ID_FEMALE_01',
@@ -1524,6 +1543,9 @@ export enum TTSVoices {
   TIKTOK_JP_FEMALE_02 = 'TIKTOK_JP_FEMALE_02',
   TIKTOK_JP_FEMALE_03 = 'TIKTOK_JP_FEMALE_03',
   TIKTOK_JP_MALE_01 = 'TIKTOK_JP_MALE_01',
+  TIKTOK_KR_FEMALE_01 = 'TIKTOK_KR_FEMALE_01',
+  TIKTOK_KR_MALE_01 = 'TIKTOK_KR_MALE_01',
+  TIKTOK_KR_MALE_02 = 'TIKTOK_KR_MALE_02',
 }
 
 

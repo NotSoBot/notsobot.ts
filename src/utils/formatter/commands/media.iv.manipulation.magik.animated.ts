@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVManipulationMagikGif } from '../../../api';
+import { mediaIVManipulationMagikAnimated } from '../../../api';
 import { imageReply } from '../..';
 
 
@@ -16,7 +16,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVManipulationMagikGif(context, args);
+  return mediaIVManipulationMagikAnimated(context, args);
 }
 
 export async function createMessage(

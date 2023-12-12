@@ -1,4 +1,4 @@
-import { Command, CommandClient } from 'detritus-client';
+import { Command, CommandAttributes, CommandClient } from 'detritus-client';
 
 import { CommandMetadata } from './commands/prefixed/basecommand';
 
@@ -10,6 +10,7 @@ import {
 } from './constants';
 import GuildSettingsStore from './stores/guildsettings';
 import UserStore from './stores/users';
+import { Formatter } from './utils';
 
 
 export class NotSoCommandClient extends CommandClient {
@@ -17,10 +18,12 @@ export class NotSoCommandClient extends CommandClient {
     if (context.user.isClientOwner) {
       return true;
     }
+
     const user = await UserStore.getOrFetch(context, context.userId);
     if (!user || user.blocked) {
       return false;
     }
+
     if (context.inDm) {
       return !command.disableDm;
     }
@@ -38,7 +41,10 @@ export class NotSoCommandClient extends CommandClient {
     }
 
     const metadata = command.metadata as CommandMetadata;
-    const commandId = metadata.id || command.name.split(' ').join('.');
+    let commandId = metadata.id || command.name.split(' ').join('.');
+    if (commandId === Formatter.Commands.TagShowCustomCommand.COMMAND_ID) {
+      commandId = Formatter.Commands.TagShow.COMMAND_ID;
+    }
 
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
@@ -178,15 +184,25 @@ export class NotSoCommandClient extends CommandClient {
     return false;
   }
 
+  getCommand(attributes: CommandAttributes): Command.Command | null {
+    let command = super.getCommand(attributes);
+    if (!command && attributes.content) {
+      command = this.commands.find((x) => !x.name) || null;
+    }
+    return command;
+  }
+
   async onMessageCheck(context: Command.Context) {
     // ignore bots for automod
     if (context.user.bot) {
       return false;
     }
+
     // do automod checks
     if (context.guildId) {
 
     }
+
     return true;
   }
 

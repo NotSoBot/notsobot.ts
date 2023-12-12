@@ -336,8 +336,13 @@ export function findMediaUrlInMessage(
   }
   if (!ignoreEmbed) {
     for (let [embedId, embed] of message.embeds) {
-      if (message.fromMe && embed.url && embed.url.startsWith('https://youtu.be/')) {
-        return embed.url;
+      if (message.fromMe) {
+        if (embed.url && embed.image && embed.title && embed.title === 'Video Post') {
+          return embed.url;
+        }
+        if (embed.url && embed.url.startsWith('https://youtu.be/')) {
+          return embed.url;
+        }
       }
       const url = findMediaUrlInEmbed(embed, false, options);
       if (url) {
@@ -385,13 +390,20 @@ export function findMediaUrlsInMessage(
   }
   if (!ignoreEmbed) {
     for (let [embedId, embed] of message.embeds) {
-      if (message.fromMe && embed.url && embed.url.startsWith('https://youtu.be/')) {
-        urls.add(embed.url);
-      } else {
-        const url = findMediaUrlInEmbed(embed, false, options);
-        if (url) {
-          urls.add(url);
+      if (message.fromMe) {
+        if (embed.url && embed.image && embed.title && embed.title === 'Video Post') {
+          urls.add(embed.url);
+          continue;
         }
+        if (embed.url && embed.url.startsWith('https://youtu.be/')) {
+          urls.add(embed.url);
+          continue;
+        }
+      }
+
+      const url = findMediaUrlInEmbed(embed, false, options);
+      if (url) {
+        urls.add(url);
       }
     }
   }

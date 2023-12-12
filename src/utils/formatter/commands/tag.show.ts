@@ -17,8 +17,10 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   // parse it
-  context.metadata = Object.assign({}, context.metadata, {tag: args.tag});
-  const parsedTag = await TagFormatter.parse(context, args.tag.content, args.arguments);
+  const { tag } = args;
+  context.metadata = Object.assign({}, context.metadata, {tag});
+  const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
+  const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
 
   const options: Command.EditOrReply = {content: parsedTag.text.slice(0, 2000)};
   if (parsedTag.embeds.length) {
@@ -58,6 +60,7 @@ export async function increaseUsage(
 
   try {
     await createTagUse(context, tag.id, {
+      serverId: context.guildId || context.channelId,
       timestamp,
       userId: context.userId,
     });

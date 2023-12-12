@@ -735,12 +735,16 @@ const ScriptTags = Object.freeze({
     // {arg} (defaults to the first one)
     // {arg:0}
 
-    const index = parseInt(arg || '0');
+    let index = parseInt(arg || '0');
     if (isNaN(index)) {
       return false;
     }
 
     const args = tag.variables[PrivateVariables.ARGS];
+    if (index < 0) {
+      index = args.length + index;
+    }
+
     if (index in args) {
       tag.text += args[index];
     }
@@ -750,8 +754,38 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.ARGS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {args}
+    // {args:INDEX|INDEX2} (slice which amount of args you want)
 
-    tag.text += tag.variables[PrivateVariables.ARGS_STRING];
+    if (arg) {
+      const args = tag.variables[PrivateVariables.ARGS];
+
+      let [ indexStartString, ...indexStopStrings ] = split(arg);
+
+      let index = parseInt(indexStartString || '0');
+      if (isNaN(index)) {
+        return false;
+      }
+
+      if (index < 0) {
+        index = args.length + index;
+      }
+
+      const indexStopString = indexStopStrings.join(TagSymbols.SPLITTER_ARGUMENT);
+      let indexStop = parseInt(indexStopString || String(tag.variables[PrivateVariables.ARGS].length));
+      if (isNaN(index)) {
+        return false;
+      }
+
+      if (indexStop < 0) {
+        indexStop = args.length + indexStop;
+      }
+
+      const args = tag.variables[PrivateVariables.ARGS];
+      tag.text += args.slice(index, indexStop).join(' ');
+    } else {
+      tag.text += tag.variables[PrivateVariables.ARGS_STRING];
+    }
+
     return true;
   },
 

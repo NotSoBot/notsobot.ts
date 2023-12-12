@@ -43,7 +43,7 @@ export default class UploadCommandsCommand extends BaseCommand {
       const names = [...command.names];
       let name: string;
       if (command.arg.prefixes.size) {
-        name = names.shift() as string;
+        name = names.shift()!;
       } else {
         name = command.name;
         for (let i = 0; i < names.length; i++) {

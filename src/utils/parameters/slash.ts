@@ -1,6 +1,12 @@
 import { Interaction } from 'detritus-client';
 
-import { GoogleLocales, GoogleLocalesText, ImageMemeFonts, ImageMemeFontsToText } from '../../constants';
+import {
+  GoogleLocales,
+  GoogleLocalesText,
+  ImageMemeFonts,
+  ImageMemeFontsToText,
+  UserUploadThresholdTypes,
+} from '../../constants';
 import { DefaultParameters } from '../../utils';
 
 
@@ -49,6 +55,12 @@ export const IMAGE_MEME_FONTS = [
   ImageMemeFonts.TYPOLINE_DEMO,
 ].map((x) => ({name: ImageMemeFontsToText[x], value: x}));
 
+
+export const USER_UPLOAD_THRESHOLD_TYPES = [
+  {name: 'Always (Default)', value: UserUploadThresholdTypes.ALWAYS},
+  {name: 'Exceeds Discord File Size Limits', value: UserUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT},
+  {name: 'Never', value: UserUploadThresholdTypes.NEVER},
+];
 
 
 export function safe(value: boolean, context: Interaction.InteractionContext): Boolean {

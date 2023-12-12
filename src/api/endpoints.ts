@@ -38,10 +38,16 @@ export const Api = Object.freeze({
     '/guilds/:guildId/loggers',
   GUILD_LOGGERS_DELETE:
     '/guilds/:guildId/loggers/delete',
+  GUILD_FEATURES:
+    '/guilds/:guildId/features',
+  GUILD_FEATURES_REMOVE:
+    '/guilds/:guildId/features/remove',
   GUILD_PREFIXES:
     '/guilds/:guildId/prefixes',
   GUILD_PREFIXES_DELETE:
     '/guilds/:guildId/prefixes/delete',
+  GUILD_TAGS_COMMANDS:
+    '/guilds/:guildId/tags/commands',
 
   IMAGE_CREATE_COLOR_HEX:
     '/image/create/:height:x:width:/colors/:hex:.:format:',
@@ -122,8 +128,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/flop',
   MEDIA_IV_MANIPULATION_GLITCH:
     '/media/iv/manipulation/glitch',
-  MEDIA_IV_MANIPULATION_GLITCH_GIF:
-    '/media/iv/manipulation/glitch/gif',
+  MEDIA_IV_MANIPULATION_GLITCH_ANIMATED:
+    '/media/iv/manipulation/glitch/animated',
   MEDIA_IV_MANIPULATION_GLOBE:
     '/media/iv/manipulation/globe',
   MEDIA_IV_MANIPULATION_GOLD:
@@ -142,8 +148,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/legofy',
   MEDIA_IV_MANIPULATION_MAGIK:
     '/media/iv/manipulation/magik',
-  MEDIA_IV_MANIPULATION_MAGIK_GIF:
-    '/media/iv/manipulation/magik/gif',
+  MEDIA_IV_MANIPULATION_MAGIK_ANIMATED:
+    '/media/iv/manipulation/magik/animated',
   MEDIA_IV_MANIPULATION_MEME:
     '/media/iv/manipulation/meme',
   MEDIA_IV_MANIPULATION_MIRROR_BOTTOM:
@@ -300,21 +306,25 @@ export const Api = Object.freeze({
     '/tags/search',
   TAGS_SEARCH_RANDOM:
     '/tags/search/random',
+  TAG:
+    '/tags/:tagId',
   TAG_USE:
     '/tags/:tagId/use',
 
   USER:
     '/users/:userId',
-  USER_COMMANDS:
-    '/users/:userId/commands',
-  USER_COMMAND: // RENAME
-    '/users/:userId/commands/usage/:command',
   USER_REMINDERS:
     '/users/:userId/reminders',
   USER_REMINDERS_EXPIRED:
     '/users/:userId/reminders/expired',
   USER_TAGS:
     '/users/:userId/tags',
+  USER_TAGS_COMMANDS:
+    '/users/:userId/tags/commands',
+  USER_USAGE_COMMANDS:
+    '/users/:userId/usage/commands',
+  USER_USAGE_COMMAND:
+    '/users/:userId/usage/commands/:command',
 
   UTILITIES_CODE_RUN:
     '/utilities/code/run',

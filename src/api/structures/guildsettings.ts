@@ -28,6 +28,7 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.COMMANDS_ALLOWLIST,
   NotSoApiKeys.COMMANDS_BLOCKLIST,
   NotSoApiKeys.DISABLED_LOGGER_EVENTS,
+  NotSoApiKeys.FEATURES,
   NotSoApiKeys.ICON,
   NotSoApiKeys.ID,
   NotSoApiKeys.LOGGER_FLAGS,
@@ -50,6 +51,7 @@ export class GuildSettings extends BaseStructure {
   blocked: boolean = false;
   blockedReason: string | null = null;
   disabledLoggerEvents: number = 0;
+  features = new Collections.BaseSet<string>();
   icon: string | null = null;
   id: string = '';
   name: string = '';
@@ -101,6 +103,13 @@ export class GuildSettings extends BaseStructure {
       return this._prefixes;
     }
     return Collections.emptyBaseCollection;
+  }
+
+  hasFeature(feature: string): boolean {
+    if (this.features) {
+      return this.features.has(feature);
+    }
+    return false;
   }
 
   hasDisabledLoggerEventFlag(flag: number): boolean {
@@ -176,6 +185,16 @@ export class GuildSettings extends BaseStructure {
               this._commandsBlocklist.clear();
               this._commandsBlocklist = undefined;
             }
+          }
+        }; return;
+        case NotSoApiKeys.FEATURES: {
+          if (this.features) {
+            this.features.clear();
+            for (let raw of value) {
+              this.features.add(raw);
+            }
+          } else {
+            this.features = new Collections.BaseSet<string>(value);
           }
         }; return;
         case NotSoApiKeys.LOGGERS: {

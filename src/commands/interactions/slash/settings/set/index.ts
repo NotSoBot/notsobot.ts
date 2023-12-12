@@ -1,5 +1,7 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
+import { SettingsSetFileUploadThresholdCommand } from './set.file.upload.threshold';
+import { SettingsSetFileVanityCommand } from './set.file.vanity';
 import { SettingsSetLocaleCommand } from './set.locale';
 import { SettingsSetTimezoneCommand } from './set.timezone';
 
@@ -11,6 +13,8 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
+        new SettingsSetFileUploadThresholdCommand(),
+        new SettingsSetFileVanityCommand(),
         new SettingsSetLocaleCommand(),
         new SettingsSetTimezoneCommand(),
       ],

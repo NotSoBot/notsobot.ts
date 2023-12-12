@@ -80,6 +80,26 @@ export async function request(
 }
 
 
+export async function addGuildFeature(
+  context: RequestContext,
+  guildId: string,
+  feature: string,
+): Promise<RestResponsesRaw.AddGuildFeature> {
+  const body = {
+    feature,
+  };
+  const params = {guildId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_FEATURES,
+      params,
+    },
+  });
+}
+
+
 export async function audioToolsPutConcat(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
@@ -279,6 +299,7 @@ export async function createTagUse(
   options: RestOptions.CreateTagUse,
 ): Promise<RestResponsesRaw.CreateTagUse> {
   const body = {
+    server_id: options.serverId,
     timestamp: options.timestamp,
     user_id: options.userId,
   };
@@ -314,7 +335,7 @@ export async function createUserCommand(
     body,
     route: {
       method: HTTPMethods.PUT,
-      path: Api.USER_COMMAND,
+      path: Api.USER_USAGE_COMMAND,
       params,
     },
   });
@@ -524,6 +545,28 @@ export async function editGuildSettings(
 }
 
 
+export async function editTag(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.EditTag,
+): Promise<RestResponsesRaw.EditTag> {
+  const body = {
+    is_command: options.isCommand,
+    name: options.name,
+    reference_tag_id: options.referenceTagId,
+  };
+  const params = {tagId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.TAG,
+      params,
+    },
+  });
+}
+
+
 export async function editUser(
   context: RequestContext,
   userId: string,
@@ -536,6 +579,8 @@ export async function editUser(
     locale: options.locale,
     opt_out_content: options.optOutContent,
     timezone: options.timezone,
+    upload_threshold: options.uploadThreshold,
+    vanity: options.vanity,
   };
   const params = {userId};
   return request(context, {
@@ -558,6 +603,21 @@ export async function fetchGuildSettings(
     route: {
       method: HTTPMethods.GET,
       path: Api.GUILD,
+      params,
+    },
+  });
+}
+
+
+export async function fetchGuildTagsCommands(
+  context: RequestContext,
+  guildId: string,
+): Promise<RestResponsesRaw.FetchGuildTagsCommands> {
+  const params = {guildId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GUILD_TAGS_COMMANDS,
       params,
     },
   });
@@ -706,6 +766,21 @@ export async function fetchUserTags(
     route: {
       method: HTTPMethods.GET,
       path: Api.USER_TAGS,
+      params,
+    },
+  });
+}
+
+
+export async function fetchUserTagsCommands(
+  context: RequestContext,
+  userId: string,
+): Promise<RestResponsesRaw.FetchUserTagsCommands> {
+  const params = {userId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.USER_TAGS_COMMANDS,
       params,
     },
   });
@@ -1413,7 +1488,7 @@ export async function mediaIVManipulationGlitch(
 }
 
 
-export async function mediaIVManipulationGlitchGif(
+export async function mediaIVManipulationGlitchAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGlitch,
 ): Promise<RestResponsesRaw.FileResponse> {
@@ -1428,7 +1503,7 @@ export async function mediaIVManipulationGlitchGif(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_GLITCH_GIF,
+      path: Api.MEDIA_IV_MANIPULATION_GLITCH_ANIMATED,
     },
   });
 }
@@ -1603,7 +1678,7 @@ export async function mediaIVManipulationMagik(
 
 
 
-export async function mediaIVManipulationMagikGif(
+export async function mediaIVManipulationMagikAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMagik,
 ): Promise<RestResponsesRaw.FileResponse> {
@@ -1616,7 +1691,7 @@ export async function mediaIVManipulationMagikGif(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_MAGIK_GIF,
+      path: Api.MEDIA_IV_MANIPULATION_MAGIK_ANIMATED,
     },
   });
 }
@@ -2476,6 +2551,7 @@ export async function putTag(
   const body = {
     content: options.content,
     name: options.name,
+    reference_tag_id: options.referenceTagId,
     server_id: options.serverId,
   };
   return request(context, {
@@ -2510,6 +2586,26 @@ export async function putUser(
     route: {
       method: HTTPMethods.PUT,
       path: Api.USER,
+      params,
+    },
+  });
+}
+
+
+export async function removeGuildFeature(
+  context: RequestContext,
+  guildId: string,
+  feature: string,
+): Promise<RestResponsesRaw.RemoveGuildFeature> {
+  const body = {
+    feature,
+  };
+  const params = {guildId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_FEATURES_REMOVE,
       params,
     },
   });

@@ -21,7 +21,9 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const user = await editUser(context, context.userId, {timezone: args.timezone});
+  const user = await editUser(context, context.userId, {
+    timezone: args.timezone,
+  });
 
   let text: string;
   if (user.timezone) {

@@ -150,9 +150,16 @@ import * as SearchYoutube from './search.youtube';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
+import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
+import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetTimezone from './settings.set.timezone';
 
+import * as TagAlias from './tag.alias';
+import * as TagCommandsAdd from './tag.commands.add';
+import * as TagCommandsList from './tag.commands.list';
+import * as TagCommandsListMe from './tag.commands.list.me';
+import * as TagCommandsRemove from './tag.commands.remove';
 import * as TagCreate from './tag.create';
 import * as TagEdit from './tag.edit';
 import * as TagExport from './tag.export';
@@ -162,7 +169,9 @@ import * as TagListUser from './tag.list.user';
 import * as TagRandom from './tag.random';
 import * as TagRemove from './tag.remove';
 import * as TagRemoveAll from './tag.remove.all';
+import * as TagRename from './tag.rename';
 import * as TagShow from './tag.show';
+import * as TagShowCustomCommand from './tag.show.custom.command';
 
 import * as ToolsCode from './tools.code';
 import * as ToolsDownload from './tools.download';
@@ -332,9 +341,16 @@ export {
 
   SettingsServerSetLocale,
   SettingsServerSetTimezone,
+  SettingsSetFileUploadThreshold,
+  SettingsSetFileVanity,
   SettingsSetLocale,
   SettingsSetTimezone,
 
+  TagAlias,
+  TagCommandsAdd,
+  TagCommandsList,
+  TagCommandsListMe,
+  TagCommandsRemove,
   TagCreate,
   TagEdit,
   TagExport,
@@ -344,7 +360,9 @@ export {
   TagRandom,
   TagRemove,
   TagRemoveAll,
+  TagRename,
   TagShow,
+  TagShowCustomCommand,
 
   ToolsCode,
   ToolsDownload,

@@ -4,6 +4,7 @@ import {
   GoogleLocales,
   UserFlags,
   UserPremiumTypes,
+  UserUploadThresholdTypes,
   NotSoApiKeys,
 } from '../../constants';
 
@@ -44,6 +45,10 @@ export class User extends BaseStructure {
     return this.hasFlag(UserFlags.OWNER);
   }
 
+  hasPremiumDiscord(): boolean {
+    return this.hasFlag(UserFlags.PREMIUM_DISCORD);
+  }
+
   hasFlag(flag: number): boolean {
     return (this.flags & flag) === flag;
   }
@@ -57,6 +62,7 @@ const keysUserFull = new Collections.BaseSet<string>([
   NotSoApiKeys.BOT,
   NotSoApiKeys.CHANNEL_ID,
   NotSoApiKeys.DISCRIMINATOR,
+  NotSoApiKeys.FILE,
   NotSoApiKeys.FLAGS,
   NotSoApiKeys.ID,
   NotSoApiKeys.LOCALE,
@@ -75,6 +81,7 @@ export class UserFull extends User {
   bot: boolean = false;
   channelId: string | null = null;
   discriminator: string = '0000';
+  file!: UserFileSettings;
   flags: number = 0;
   id: string = '';
   locale: GoogleLocales | null = null;
@@ -87,6 +94,39 @@ export class UserFull extends User {
 
   constructor(data: Structures.BaseStructureData) {
     super();
+    this.merge(data);
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (value !== undefined) {
+      switch (key) {
+        case NotSoApiKeys.FILE: {
+          value = new UserFileSettings(this, value);
+        }; break;
+      }
+    }
+    return super.mergeValue(key, value);
+  }
+}
+
+
+const keysUserFileSettings = new Collections.BaseSet<string>([
+  NotSoApiKeys.NAME,
+  NotSoApiKeys.UPLOAD_THRESHOLD,
+  NotSoApiKeys.VANITY,
+]);
+
+export class UserFileSettings extends BaseStructure {
+  readonly _keys = keysUserFileSettings;
+  readonly user: UserFull;
+
+  name: string | null = null;
+  uploadThreshold!: UserUploadThresholdTypes;
+  vanity: string | null = null;
+
+  constructor(user: UserFull, data: Structures.BaseStructureData) {
+    super();
+    this.user = user;
     this.merge(data);
   }
 }

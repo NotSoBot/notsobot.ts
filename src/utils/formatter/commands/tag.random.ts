@@ -40,7 +40,8 @@ export async function createMessage(
 
   try {
     context.metadata = Object.assign({}, context.metadata, {tag});
-    const parsedTag = await TagFormatter.parse(context, tag.content, args.arguments);
+    const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
+    const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
 
     content.push(parsedTag.text.slice(0, 2000));
     if (parsedTag.embeds.length) {

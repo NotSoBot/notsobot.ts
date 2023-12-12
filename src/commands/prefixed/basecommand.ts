@@ -49,7 +49,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     return '';
   }
 
-  onBefore(context: Command.Context) {
+  onBefore(context: Command.Context): Promise<boolean> | boolean {
     if (this.nsfw) {
       if (context.channel) {
         return context.channel.isDm || context.channel.nsfw;

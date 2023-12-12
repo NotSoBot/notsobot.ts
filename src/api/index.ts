@@ -27,6 +27,15 @@ export { request } from './raw';
 export { Endpoints, RequestContext, raw };
 
 
+export async function addGuildFeature(
+  context: RequestContext,
+  guildId: string,
+  feature: string,
+) {
+  return raw.addGuildFeature(context, guildId, feature);
+}
+
+
 export async function audioToolsPutConcat(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
@@ -290,6 +299,15 @@ export async function editGuildSettings(
 }
 
 
+export async function editTag(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.EditTag,
+) {
+  return raw.editTag(context, tagId, options);
+}
+
+
 export async function editUser(
   context: RequestContext,
   userId: string,
@@ -322,6 +340,14 @@ export async function fetchGuildSettings(
     GuildSettingsStore.set(settings.id, settings);
   }
   return settings;
+}
+
+
+export async function fetchGuildTagsCommands(
+  context: RequestContext,
+  guildId: string,
+) {
+  return raw.fetchGuildTagsCommands(context, guildId);
 }
 
 
@@ -390,6 +416,14 @@ export async function fetchUserTags(
   options: RestOptions.FetchUserTags = {},
 ) {
   return raw.fetchUserTags(context, userId, options);
+}
+
+
+export async function fetchUserTagsCommands(
+  context: RequestContext,
+  userId: string,
+) {
+  return raw.fetchUserTagsCommands(context, userId);
 }
 
 
@@ -688,11 +722,11 @@ export async function mediaIVManipulationGlitch(
 }
 
 
-export async function mediaIVManipulationGlitchGif(
+export async function mediaIVManipulationGlitchAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGlitch,
 ) {
-  return raw.mediaIVManipulationGlitchGif(context, options);
+  return raw.mediaIVManipulationGlitchAnimated(context, options);
 }
 
 
@@ -768,11 +802,11 @@ export async function mediaIVManipulationMagik(
 }
 
 
-export async function mediaIVManipulationMagikGif(
+export async function mediaIVManipulationMagikAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMagik,
 ) {
-  return raw.mediaIVManipulationMagikGif(context, options);
+  return raw.mediaIVManipulationMagikAnimated(context, options);
 }
 
 
@@ -1153,6 +1187,15 @@ export async function putUser(
     UserStore.set(user.id, user);
   }
   return user;
+}
+
+
+export async function removeGuildFeature(
+  context: RequestContext,
+  guildId: string,
+  feature: string,
+) {
+  return raw.removeGuildFeature(context, guildId, feature);
 }
 
 
