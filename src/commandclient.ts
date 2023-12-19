@@ -15,6 +15,10 @@ import { Formatter } from './utils';
 
 export class NotSoCommandClient extends CommandClient {
   async onCommandCheck(context: Command.Context, command: Command.Command) {
+    if (context.metadata) {
+      context.metadata.started = Date.now();
+    }
+
     if (context.user.isClientOwner) {
       return true;
     }

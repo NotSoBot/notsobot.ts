@@ -1,7 +1,5 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
 
-import { GoogleLocales } from '../../../../../constants';
 import { Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -20,7 +18,7 @@ export class SettingsSetFileUploadThresholdCommand extends BaseInteractionComman
       options: [
         {
           name: 'threshold',
-          description: 'Upload Threshold (Default: ALWAYS)',
+          description: 'Upload Threshold (Default: Exceeds Discord File Size Limits)',
           choices: Parameters.Slash.USER_UPLOAD_THRESHOLD_TYPES,
           type: Number,
         },

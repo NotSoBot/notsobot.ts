@@ -150,6 +150,7 @@ import * as SearchYoutube from './search.youtube';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
+import * as SettingsSetFallbacksMediaImage from './settings.set.fallbacks.media.image';
 import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
 import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetLocale from './settings.set.locale';
@@ -180,6 +181,7 @@ import * as ToolsHash from './tools.hash';
 import * as ToolsMath from './tools.math';
 import * as ToolsMLEdit from './tools.ml.edit';
 import * as ToolsMLImagine from './tools.ml.imagine';
+import * as ToolsMLInterrogate from './tools.ml.interrogate';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
 import * as ToolsQrCreate from './tools.qr.create';
@@ -341,6 +343,7 @@ export {
 
   SettingsServerSetLocale,
   SettingsServerSetTimezone,
+  SettingsSetFallbacksMediaImage,
   SettingsSetFileUploadThreshold,
   SettingsSetFileVanity,
   SettingsSetLocale,
@@ -371,6 +374,7 @@ export {
   ToolsMath,
   ToolsMLEdit,
   ToolsMLImagine,
+  ToolsMLInterrogate,
   ToolsOCR,
   ToolsOCRTranslate,
   ToolsQrCreate,

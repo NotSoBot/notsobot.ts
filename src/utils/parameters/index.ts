@@ -15,10 +15,17 @@ import { Timers } from 'detritus-utils';
 import * as juration from 'juration';
 import * as moment from 'moment';
 
-import { fetchTag } from '../../api';
+import { fetchTag, searchGoogleImages, utilitiesMLImagine } from '../../api';
 import { CDN, CUSTOM } from '../../api/endpoints';
 import { RestResponsesRaw } from '../../api/types';
-import { CommandCategories, GoogleLocales, GoogleLocalesText } from '../../constants';
+import {
+  CommandCategories,
+  GoogleLocales,
+  GoogleLocalesText,
+  UserFallbacksMediaImageTypes,
+  UserFlags,
+} from '../../constants';
+import UserStore from '../../stores/users';
 import {
   DefaultParameters,
   TagFormatter,
@@ -1050,6 +1057,45 @@ export function mediaUrl(
             return found.avatarUrlFormat(null, {size: 1024});
           }
         }
+
+        const user = await UserStore.getOrFetch(context, context.userId);
+        if (user && user.fallbacks) {
+          let shouldFallback = false;
+          if (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD)) {
+            shouldFallback = true;
+          } else {
+            const guild = context.guild;
+            if (guild) {
+              const owner = await UserStore.getOrFetch(context, guild.ownerId);
+              if (owner && (owner.hasFlag(UserFlags.OWNER) || owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+                shouldFallback = true;
+              }
+            }
+          }
+
+          if (shouldFallback) {
+            switch (user.fallbacks.mediaImage) {
+              case UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
+                const results = await searchGoogleImages(context, {
+                  query: value,
+                  safe: DefaultParameters.safe(context),
+                });
+                const page = Math.floor(Math.random() * results.length);
+                const result = results[page];
+                return result.imageUrl;
+              }; break;
+              case UserFallbacksMediaImageTypes.IMAGINE: {
+                const response = await utilitiesMLImagine(context, {
+                  query: value,
+                  upload: true,
+                });
+                if (response.storage) {
+                  return response.storage.urls.cdn;
+                }
+              }; break;
+            }
+          }
+        }
       }
     } catch(error) {
       return null;
@@ -1232,6 +1278,47 @@ export function mediaUrls(
           }
         } catch(error) {
 
+        }
+      }
+
+      if (minAmount === 1 && urls.length < minAmount) {
+        const user = await UserStore.getOrFetch(context, context.userId);
+        if (user && user.fallbacks) {
+          let shouldFallback = false;
+          if (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD)) {
+            shouldFallback = true;
+          } else {
+            const guild = context.guild;
+            if (guild) {
+              const owner = await UserStore.getOrFetch(context, guild.ownerId);
+              if (owner && (owner.hasFlag(UserFlags.OWNER) || owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+                shouldFallback = true;
+              }
+            }
+          }
+        
+          if (shouldFallback) {
+            switch (user.fallbacks.mediaImage) {
+              case UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
+                const results = await searchGoogleImages(context, {
+                  query: value,
+                  safe: DefaultParameters.safe(context),
+                });
+                const page = Math.floor(Math.random() * results.length);
+                const result = results[page];
+                urls.push(result.imageUrl);
+              }; break;
+              case UserFallbacksMediaImageTypes.IMAGINE: {
+                const response = await utilitiesMLImagine(context, {
+                  query: value,
+                  upload: true,
+                });
+                if (response.storage) {
+                  urls.push(response.storage.urls.cdn);
+                }
+              }; break;
+            }
+          }
         }
       }
     }

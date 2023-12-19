@@ -15,6 +15,10 @@ import { editOrReply } from './utils';
 
 export class NotSoInteractionClient extends InteractionCommandClient {
   async onCommandCheck(context: Interaction.InteractionContext, command: Interaction.InteractionCommand) {
+    if (context.metadata) {
+      context.metadata.started = Date.now();
+    }
+
     if (context.user.isClientOwner) {
       return true;
     }

@@ -1459,6 +1459,14 @@ export async function utilitiesMLImagine(
 }
 
 
+export async function utilitiesMLInterrogate(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.utilitiesMLInterrogate(context, options);
+}
+
+
 export async function utilitiesQrCreate(
   context: RequestContext,
   options: RestOptions.UtilitiesQrCreate,

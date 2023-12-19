@@ -1231,9 +1231,15 @@ export async function imageReplyFromOptions(
   }
 
   footer = `${footer}, ${formatMemory(options.size, 2)}`;
-  if (options.took && 2000 <= options.took) {
-    const seconds = (options.took / 1000).toFixed(1);
-    footer = `${footer}, took ${seconds} seconds`;
+  if (options.took) {
+    let took = options.took;
+    if (context.metadata && context.metadata.started) {
+      took = Date.now() - context.metadata.started;
+    }
+    if (2000 <= took) {
+      const seconds = (options.took / 1000).toFixed(1);
+      footer = `${footer}, took ${seconds} seconds`;
+    }
   }
   embed.setFooter(footer);
 

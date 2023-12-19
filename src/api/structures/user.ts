@@ -4,6 +4,7 @@ import {
   GoogleLocales,
   UserFlags,
   UserPremiumTypes,
+  UserFallbacksMediaImageTypes,
   UserUploadThresholdTypes,
   NotSoApiKeys,
 } from '../../constants';
@@ -41,6 +42,10 @@ export class User extends BaseStructure {
     }
   }
 
+  get isPremium(): boolean {
+    return this.hasOwner() || this.hasPremiumDiscord();
+  }
+
   hasOwner(): boolean {
     return this.hasFlag(UserFlags.OWNER);
   }
@@ -62,6 +67,7 @@ const keysUserFull = new Collections.BaseSet<string>([
   NotSoApiKeys.BOT,
   NotSoApiKeys.CHANNEL_ID,
   NotSoApiKeys.DISCRIMINATOR,
+  NotSoApiKeys.FALLBACKS,
   NotSoApiKeys.FILE,
   NotSoApiKeys.FLAGS,
   NotSoApiKeys.ID,
@@ -81,6 +87,7 @@ export class UserFull extends User {
   bot: boolean = false;
   channelId: string | null = null;
   discriminator: string = '0000';
+  fallbacks!: UserFallbacks;
   file!: UserFileSettings;
   flags: number = 0;
   id: string = '';
@@ -100,12 +107,33 @@ export class UserFull extends User {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
+        case NotSoApiKeys.FALLBACKS: {
+          value = new UserFallbacks(this, value);
+        }; break;
         case NotSoApiKeys.FILE: {
           value = new UserFileSettings(this, value);
         }; break;
       }
     }
     return super.mergeValue(key, value);
+  }
+}
+
+
+const keysUserFallbacks = new Collections.BaseSet<string>([
+  NotSoApiKeys.MEDIA_IMAGE,
+]);
+
+export class UserFallbacks extends BaseStructure {
+  readonly _keys = keysUserFallbacks;
+  readonly user: UserFull;
+
+  mediaImage!: UserFallbacksMediaImageTypes;
+
+  constructor(user: UserFull, data: Structures.BaseStructureData) {
+    super();
+    this.user = user;
+    this.merge(data);
   }
 }
 

@@ -305,7 +305,7 @@ export class BaseInteractionAudioOrVideoCommandOption<ParsedArgsFinished = Inter
       options: [
         ...(data.options || []),
         {name: 'url', description: 'Emoji/Media URL/User', label: 'url', default: DefaultParameters.lastMediaUrl({image: false}), value: Parameters.lastMediaUrl({image: false})},
-        {name: 'file', description: 'Audio/Video File', type: ApplicationCommandOptionTypes.ATTACHMENT},
+        {name: 'attachment', description: 'Audio/Video File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
   }
@@ -335,7 +335,7 @@ export class BaseInteractionImageCommandOption<ParsedArgsFinished = Interaction.
       options: [
         ...(data.options || []),
         {name: 'url', description: 'Emoji/Image URL/User', default: DefaultParameters.lastMediaUrl({audio: false, video: false}), value: Parameters.lastMediaUrl({audio: false, video: false})},
-        {name: 'file', description: 'Image File', type: ApplicationCommandOptionTypes.ATTACHMENT},
+        {name: 'attachment', description: 'Image File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
   }
@@ -365,7 +365,7 @@ export class BaseInteractionMediaCommandOption<ParsedArgsFinished = Interaction.
       options: [
         ...(data.options || []),
         {name: 'url', description: 'Emoji/Media URL/User', default: DefaultParameters.lastMediaUrl(), value: Parameters.lastMediaUrl()},
-        {name: 'file', description: 'Media File', type: ApplicationCommandOptionTypes.ATTACHMENT},
+        {name: 'attachment', description: 'Media File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
   }
@@ -395,7 +395,7 @@ export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.
       options: [
         ...(data.options || []),
         {name: 'url', description: 'Emoji/Media URL/User', default: DefaultParameters.lastMediaUrl({audio: false, image: false}), value: Parameters.lastMediaUrl({audio: false, image: false})},
-        {name: 'file', description: 'Video File', type: ApplicationCommandOptionTypes.ATTACHMENT},
+        {name: 'attachment', description: 'Video File', type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });
   }

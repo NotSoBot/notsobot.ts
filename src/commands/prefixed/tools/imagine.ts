@@ -32,8 +32,8 @@ export default class ImagineCommand extends BaseCommand {
         usage: '<...query> (-count <number>) (-guidance <number>) (-no <query>) (-seed <number>) (-steps <number>) (-strength <number>)',
       },
       ratelimits: [
-        {duration: 10000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},
-        {duration: 5000, limit: 1, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'channel'},
+        {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},
+        {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'channel'},
       ],
       type: Parameters.targetText,
     });

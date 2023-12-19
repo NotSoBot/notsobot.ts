@@ -29,7 +29,15 @@ export async function createMessage(
   embed.setColor(EmbedColors.DEFAULT);
   embed.setTitle(tag.name);
 
-  embed.setDescription(Markup.codeblock(tag.content));
+  if (tag.reference_tag) {
+    if (tag.reference_tag.server_id) {
+      embed.setDescription(`Alias of tag ${Markup.codestring(tag.reference_tag.name)}`);
+    } else {
+      embed.setDescription(`Using a tag from the tag directory. https://notsobot.com/directories/tags/${tag.reference_tag.id}`);
+    }
+  } else {
+    embed.setDescription(Markup.codeblock(tag.content));
+  }
 
   {
     const description: Array<string> = [];
@@ -46,7 +54,6 @@ export async function createMessage(
     }
 
     // look through cache, else use the tag object
-    description.push(`**Global**: ${(tag.global) ? 'Yes' : 'No'}`);
     description.push(`**NSFW**: ${(tag.nsfw) ? 'Yes' : 'No'}`);
 
     {

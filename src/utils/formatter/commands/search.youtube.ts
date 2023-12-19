@@ -78,7 +78,11 @@ export async function createMessage(
             const movie = result.metadata;
 
             const description: Array<string> = [];
-            description.push(`Uploaded by ${Markup.url(Markup.escape.all(movie.channel.name), movie.channel.url)}`);
+            if (movie.channel.url) {
+              description.push(`Uploaded by ${Markup.url(Markup.escape.all(movie.channel.name), movie.channel.url)}`);
+            } else {
+              description.push(`Uploaded by ${Markup.escape.all(movie.channel.name)}`);
+            }
 
             const duration = moment.duration(movie.duration, 'seconds').format(MOMENT_FORMAT, DateMomentOptions);
             description.push(`**Duration**: ${duration}`);
@@ -96,7 +100,11 @@ export async function createMessage(
             const playlist = result.metadata;
 
             const description: Array<string> = [];
-            description.push(`Created by ${Markup.url(Markup.escape.all(playlist.channel.name), playlist.channel.url)}`);
+            if (playlist.channel.url) {
+              description.push(`Created by ${Markup.url(Markup.escape.all(playlist.channel.name), playlist.channel.url)}`);
+            } else {
+              description.push(`Created by ${Markup.escape.all(playlist.channel.name)}`);
+            }
 
             description.push(`**Id**: ${playlist.id}`);
             if (playlist.updated) {
@@ -121,7 +129,11 @@ export async function createMessage(
             const isLive = video.badges.includes('LIVE NOW');
 
             const description: Array<string> = [];
-            description.push(`Uploaded by ${Markup.url(Markup.escape.all(video.channel.name), video.channel.url)}`);
+            if (video.channel.url) {
+              description.push(`Uploaded by ${Markup.url(Markup.escape.all(video.channel.name), video.channel.url)}`);
+            } else {
+              description.push(`Uploaded by ${Markup.escape.all(video.channel.name)}`);
+            }
 
             if (video.badges.length) {
               description.push(`**Badges**: ${video.badges.join(', ')}`);

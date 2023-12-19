@@ -5,6 +5,7 @@ import {
   GoogleLocalesText,
   ImageMemeFonts,
   ImageMemeFontsToText,
+  UserFallbacksMediaImageTypes,
   UserUploadThresholdTypes,
 } from '../../constants';
 import { DefaultParameters } from '../../utils';
@@ -56,9 +57,16 @@ export const IMAGE_MEME_FONTS = [
 ].map((x) => ({name: ImageMemeFontsToText[x], value: x}));
 
 
+export const USER_FALLBACKS_MEDIA_IMAGE_TYPES = [
+  {name: 'Search Google Images', value: UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES},
+  {name: 'Search Duck Duck Go Images', value: UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES},
+  {name: 'Generate Image', value: UserFallbacksMediaImageTypes.IMAGINE},
+];
+
+
 export const USER_UPLOAD_THRESHOLD_TYPES = [
-  {name: 'Always (Default)', value: UserUploadThresholdTypes.ALWAYS},
-  {name: 'Exceeds Discord File Size Limits', value: UserUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT},
+  {name: 'Exceeds Discord File Size Limits (Default)', value: UserUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT},
+  {name: 'Always', value: UserUploadThresholdTypes.ALWAYS},
   {name: 'Never', value: UserUploadThresholdTypes.NEVER},
 ];
 

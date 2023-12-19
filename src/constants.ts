@@ -599,6 +599,7 @@ export const GoogleLocaleFromDiscord = Object.freeze({
   [DiscordLocales.ENGLISH_GB]: GoogleLocales.ENGLISH,
   [DiscordLocales.SPANISH]: GoogleLocales.SPANISH,
   [DiscordLocales.SWEDISH]: GoogleLocales.SWEDISH,
+  'es-419': GoogleLocales.SPANISH,
 });
 
 
@@ -1093,6 +1094,13 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
 
 
 
+export enum UserFallbacksMediaImageTypes {
+  SEARCH_GOOGLE_IMAGES = 0,
+  IMAGINE = 1,
+  SEARCH_DUCK_DUCK_GO_IMAGES = 1,
+}
+
+
 export enum UserFlags {
   NONE = 0,
   OWNER = 1 << 0,
@@ -1106,8 +1114,8 @@ export enum UserPremiumTypes {
 
 
 export enum UserUploadThresholdTypes {
-  ALWAYS = 0,
-  EXCEEDS_DISCORD_LIMIT = 1,
+  EXCEEDS_DISCORD_LIMIT = 0,
+  ALWAYS = 1,
   NEVER = 2,
 }
 
@@ -1221,6 +1229,7 @@ export const NotSoApiKeys = Object.freeze({
   DISCRIMINATOR: 'discriminator',
   DURATION: 'duration',
   EXTENSION: 'extension',
+  FALLBACKS: 'fallbacks',
   FEATURES: 'features',
   FILE: 'file',
   FLAGS: 'flags',
@@ -1240,6 +1249,7 @@ export const NotSoApiKeys = Object.freeze({
   LOGGER_FLAGS: 'logger_flags',
   LOGGER_TYPE: 'logger_type',
   LOGGERS: 'loggers',
+  MEDIA_IMAGE: 'media_image',
   METADATA: 'metadata',
   NAME: 'name',
   OPTED_OUT: 'opted_out',
@@ -1295,6 +1305,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.DISCRIMINATOR]: 'discriminator',
   [NotSoApiKeys.DURATION]: 'duration',
   [NotSoApiKeys.EXTENSION]: 'extension',
+  [NotSoApiKeys.FALLBACKS]: 'fallbacks',
   [NotSoApiKeys.FEATURES]: 'features',
   [NotSoApiKeys.FILE]: 'file',
   [NotSoApiKeys.FLAGS]: 'flags',
@@ -1314,6 +1325,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.LOGGER_FLAGS]: 'loggerFlags',
   [NotSoApiKeys.LOGGER_TYPE]: 'loggerType',
   [NotSoApiKeys.LOGGERS]: 'loggers',
+  [NotSoApiKeys.MEDIA_IMAGE]: 'mediaImage',
   [NotSoApiKeys.METADATA]: 'metadata',
   [NotSoApiKeys.NAME]: 'name',
   [NotSoApiKeys.OPTED_OUT]: 'optedOut',

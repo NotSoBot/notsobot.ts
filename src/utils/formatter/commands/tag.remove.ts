@@ -69,8 +69,6 @@ export async function createMessage(
           description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
         }
 
-        // look through cache, else use the tag object
-        description.push(`**Global**: ${(tag.global) ? 'Yes' : 'No'}`);
         description.push(`**NSFW**: ${(tag.nsfw) ? 'Yes' : 'No'}`);
 
         {

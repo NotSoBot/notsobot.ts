@@ -32,9 +32,6 @@ export async function createMessage(
   const content: Array<string> = [];
   {
     let title = `Showing tag: ${Markup.codestring(tag.name)}`;
-    if (tag.global) {
-      title = `${title} (Global)`;
-    }
     content.push(title + '\n');
   }
 

@@ -11,6 +11,7 @@ import {
   ImageMemeFonts,
   RedditSortTypes,
   RedditTimeTypes,
+  UserFallbacksMediaImageTypes,
   UserUploadThresholdTypes,
   YoutubeResultTypes,
 } from '../constants';
@@ -119,6 +120,7 @@ export namespace RestOptions {
     blocked?: boolean,
     blockedReason?: null | string,
     channelId?: null | string,
+    fallbacksMediaImage?: null | UserFallbacksMediaImageTypes,
     locale?: null | string,
     optOutContent?: boolean,
     timezone?: null | string,
@@ -198,6 +200,7 @@ export namespace RestOptions {
 
   export interface MediaBaseOptions {
     file?: RequestFile,
+    upload?: boolean,
     url?: string,
   }
 
@@ -618,6 +621,7 @@ export namespace RestOptions {
     query: string,
     seed?: number,
     steps?: number,
+    upload?: boolean,
   }
 
   export interface UtilitiesQrCreate {
@@ -1748,6 +1752,10 @@ export namespace RestResponsesRaw {
     },
     took: number,
     version: string,
+  }
+
+  export interface UtilitiesMLInterrogate {
+    prompt: string,
   }
 
   export interface UtilitiesQrScan {

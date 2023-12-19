@@ -50,11 +50,10 @@ export async function createMessage(
       (context.member && (context.member.canManageGuild || context.member.canBanMembers))
     );
     if (!hasPermissionsToForceRemove) {
-      if (!args.user) {
-        args.user = context.user;
-      } else {
+      if (args.user) {
         return editOrReply(context, '⚠ Not enough permissions to force remove other people\'s tags!');
       }
+      args.user = context.user;
     }
   }
 

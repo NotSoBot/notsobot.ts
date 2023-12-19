@@ -576,6 +576,7 @@ export async function editUser(
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
     channel_id: options.channelId,
+    fallbacks_media_image: options.fallbacksMediaImage,
     locale: options.locale,
     opt_out_content: options.optOutContent,
     timezone: options.timezone,
@@ -3146,6 +3147,7 @@ export async function utilitiesMLEdit(
     seed: options.seed,
     steps: options.steps,
     strength: options.strength,
+    upload: options.upload,
     url: options.url,
   };
   return request(context, {
@@ -3170,12 +3172,31 @@ export async function utilitiesMLImagine(
     query: options.query,
     seed: options.seed,
     steps: options.steps,
+    upload: options.upload,
   };
   return request(context, {
     query,
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_ML_IMAGINE,
+    },
+  });
+}
+
+
+export async function utilitiesMLInterrogate(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.UtilitiesMLInterrogate> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_ML_INTERROGATE,
     },
   });
 }

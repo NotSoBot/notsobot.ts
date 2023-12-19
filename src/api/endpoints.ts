@@ -302,6 +302,12 @@ export const Api = Object.freeze({
     '/tags',
   TAGS_DELETE:
     '/tags/delete',
+  TAGS_DIRECTORY:
+    '/tags/directory',
+  TAGS_DIRECTORY_TAG:
+    '/tags/directory/:tagId',
+  TAGS_DIRECTORY_TAG_VERIFY:
+    '/tags/directory/:tagId/verify',
   TAGS_SEARCH:
     '/tags/search',
   TAGS_SEARCH_RANDOM:
@@ -352,6 +358,8 @@ export const Api = Object.freeze({
     '/utilities/ml/edit',
   UTILITIES_ML_IMAGINE:
     '/utilities/ml/imagine',
+  UTILITIES_ML_INTERROGATE:
+    '/utilities/ml/interrogate',
   UTILITIES_QR_CREATE:
     '/utilities/qr/create',
   UTILITIES_QR_SCAN:
@@ -383,5 +391,5 @@ export const CUSTOM = Tools.URIEncodeWrap({
   STEAM_EMOJI: (name: string): string =>
     `https://steamcommunity-a.akamaihd.net/economy/emoticon/${name}`,
   TWEMOJI_SVG: (codepoint: string) =>
-    `https://raw.githubusercontent.com/twitter/twemoji/master/assets/svg/${codepoint}.svg`,
+    `https://raw.githubusercontent.com/jdecked/twemoji/master/assets/svg/${codepoint}.svg`,
 });

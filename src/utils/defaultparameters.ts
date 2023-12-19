@@ -194,6 +194,9 @@ export async function locale(context: Command.Context | Interaction.InteractionC
     const value = guild.preferredLocale;
     if (value in GoogleLocaleFromDiscord) {
       return (GoogleLocaleFromDiscord as any)[value];
+    } else if (!(value in GoogleLocales)) {
+      // todo: log this error
+      return GoogleLocales.ENGLISH;
     }
     return value as unknown as GoogleLocales;
   }

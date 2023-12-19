@@ -1,5 +1,6 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
+import { SettingsSetFallbacksMediaImageCommand } from './set.fallbacks.media.image';
 import { SettingsSetFileUploadThresholdCommand } from './set.file.upload.threshold';
 import { SettingsSetFileVanityCommand } from './set.file.vanity';
 import { SettingsSetLocaleCommand } from './set.locale';
@@ -13,6 +14,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
+        new SettingsSetFallbacksMediaImageCommand(),
         new SettingsSetFileUploadThresholdCommand(),
         new SettingsSetFileVanityCommand(),
         new SettingsSetLocaleCommand(),
