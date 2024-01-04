@@ -32,7 +32,6 @@ export interface ClusterObjectInformation {
   members: number,
   memberCount: number,
   messages: number,
-  notes: number,
   permissionOverwrites: number,
   presences: number,
   presenceActivities: number,
@@ -64,7 +63,6 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           members: 0,
           memberCount: 0,
           messages: 0,
-          notes: 0,
           permissionOverwrites: 0,
           presences: 0,
           presenceActivities: 0,
@@ -95,7 +93,6 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           information.objects.members += shard.members.length;
           information.objects.memberCount += shard.guilds.reduce((x, guild) => x + guild.memberCount, 0);
           information.objects.messages += shard.messages.length;
-          information.objects.notes += shard.notes.length;
           information.objects.permissionOverwrites += shard.channels.reduce((x, channel) => x + channel.permissionOverwrites.length, 0);
           information.objects.presences += shard.presences.length;
           information.objects.presenceActivities += shard.presences.reduce((x, presence) => x + presence.activities.length, 0);

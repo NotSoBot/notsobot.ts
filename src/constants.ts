@@ -1398,6 +1398,7 @@ export const DiscordUserFlagsText: Record<DiscordUserFlags, string> = Object.fre
   [DiscordUserFlags.VERIFIED_BOT]: 'Verified Bot',
   [DiscordUserFlags.VERIFIED_DEVELOPER]: 'Verified Bot Developer',
   [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: 'Discord Certified Moderator',
+  [DiscordUserFlags.BOT_HTTP_INTERACTIONS]: 'Bot HTTP Interactions',
 });
 
 

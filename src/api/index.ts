@@ -1058,6 +1058,14 @@ export async function mediaIVManipulationTrace(
 }
 
 
+export async function mediaIVManipulationUncaption(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationUncaption(context, options);
+}
+
+
 export async function mediaIVManipulationWall(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,

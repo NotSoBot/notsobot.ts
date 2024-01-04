@@ -47,7 +47,8 @@ export async function createMessage(
       case EmojiTypes.APPLE: {
         const codepoints = getEmojiCodePoints(value, args.type);
         for (let codepoint of codepoints) {
-          urls.push(CDN.URL + CDN.EMOJIS_APPLE(codepoint));
+          urls.push(CUSTOM.APPLE_EMOJI(codepoint));
+          //urls.push(CDN.URL + CDN.EMOJIS_APPLE(codepoint));
         }
       }; break;
       case EmojiTypes.EMOJI_ONE: {
@@ -66,12 +67,14 @@ export async function createMessage(
         const codepoints = getEmojiCodePoints(value, args.type);
         for (let codepoint of codepoints) {
           // google emoji
+          urls.push(CUSTOM.GOOGLE_EMOJI(codepoint));
         }
       }; break;
       case EmojiTypes.MICROSOFT: {
         const codepoints = getEmojiCodePoints(value, args.type);
         for (let codepoint of codepoints) {
           // microsoft emoji
+          urls.push(CUSTOM.MICROSOFT_EMOJI(codepoint));
         }
       }; break;
       case EmojiTypes.STEAM: {
@@ -106,11 +109,15 @@ export async function createMessage(
     const promises: Array<Promise<{filename: string, value: Buffer}>> = [];
     for (let url of filtered.slice(0, 10)) {
       const promise: Promise<{filename: string, value: Buffer}> = new Promise(async (resolve, reject) => {
-        const response = await mediaIVToolsResize(context, {size, url});
-
-        const filename = response.file.filename;
-        const value = Buffer.from(response.file.value, 'base64');
-        resolve({filename, value});
+        try {
+          const response = await mediaIVToolsResize(context, {size, url});
+  
+          const filename = response.file.filename;
+          const value = Buffer.from(response.file.value, 'base64');
+          resolve({filename, value});
+        } catch(error) {
+          reject(error);
+        }
       });
       promises.push(promise);
     }
@@ -127,6 +134,8 @@ export function getEmojiCodePoints(value: string, type: EmojiTypes): Array<strin
   if (emojis && emojis.length) {
     return emojis.map((emoji) => {
       switch (type) {
+        case EmojiTypes.APPLE:
+        case EmojiTypes.GOOGLE:
         case EmojiTypes.TWEMOJI: {
           return toCodePointForTwemoji(emoji);
         };

@@ -216,6 +216,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/spin',
   MEDIA_IV_MANIPULATION_TRACE:
     '/media/iv/manipulation/trace',
+  MEDIA_IV_MANIPULATION_UNCAPTION:
+    '/media/iv/manipulation/uncaption',
   MEDIA_IV_MANIPULATION_WALL:
     '/media/iv/manipulation/wall',
 
@@ -388,6 +390,12 @@ export const CDN = Tools.URIEncodeWrap({
 
 
 export const CUSTOM = Tools.URIEncodeWrap({
+  APPLE_EMOJI: (codepoint: string): string =>
+    `https://raw.githubusercontent.com/samuelngs/apple-emoji-linux/ios-16.4/png/160/emoji_u${codepoint.replace(/-/g, '_')}.png`,
+  GOOGLE_EMOJI: (codepoint: string): string =>
+    `https://raw.githubusercontent.com/googlefonts/noto-emoji/main/svg/emoji_u${codepoint.replace(/-/g, '_')}.svg`,
+  MICROSOFT_EMOJI: (codepoint: string): string =>
+    `https://raw.githubusercontent.com/AdvenaHQ/fluent-emoji/main/dist/100x100/${codepoint}.png`,
   STEAM_EMOJI: (name: string): string =>
     `https://steamcommunity-a.akamaihd.net/economy/emoticon/${name}`,
   TWEMOJI_SVG: (codepoint: string) =>

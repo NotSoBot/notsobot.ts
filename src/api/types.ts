@@ -602,6 +602,8 @@ export namespace RestOptions {
 
   export interface UtilitiesImagescriptV1 {
     code: string,
+    maxFileSize?: number,
+    upload?: boolean,
   }
 
   export interface UtilitiesMLEdit extends MediaBaseOptions {

@@ -13,6 +13,9 @@ import {
   utilitiesFetchMedia,
   utilitiesFetchText,
   utilitiesImagescriptV1,
+  utilitiesMLEdit,
+  utilitiesMLImagine,
+  utilitiesMLInterrogate,
 } from '../api';
 import { RestResponses } from '../api/types';
 import { CodeLanguages, GoogleLocales, MAX_MEMBERS_SAFE } from '../constants';
@@ -166,6 +169,7 @@ export enum TagFunctions {
   GUILD_COUNT = 'GUILD_COUNT',
   GUILD_ID = 'GUILD_ID',
   HASTEBIN = 'HASTEBIN',
+  IMAGE_INTERROGATE = 'IMAGE_INTERROGATE',
   IMAGE_OCR = 'IMAGE_OCR',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
   LOGICAL_GET = 'LOGICAL_GET',
@@ -185,9 +189,14 @@ export enum TagFunctions {
   MEDIA_AUDIO = 'MEDIA_AUDIO',
   MEDIA_AUDIO_OR_VIDEO = 'MEDIA_AUDIO_OR_VIDEO',
   MEDIA_IMAGE = 'MEDIA_IMAGE',
+  MEDIA_IMAGE_EDIT = 'MEDIA_IMAGE_EDIT',
+  MEDIA_IMAGE_EDIT_URL = 'MEDIA_IMAGE_EDIT_URL',
+  MEDIA_IMAGE_IMAGINE = 'MEDIA_IMAGE_IMAGINE',
+  MEDIA_IMAGE_IMAGINE_URL = 'MEDIA_IMAGE_IMAGINE_URL',
   MEDIA_IMAGE_OR_VIDEO = 'MEDIA_IMAGE_OR_VIDEO',
   MEDIA_VIDEO = 'MEDIA_VIDEO',
   MEDIASCRIPT = 'MEDIASCRIPT',
+  MEDIASCRIPT_URL = 'MEDIASCRIPT_URL',
   MEDIASCRIPT_2 = 'MEDIASCRIPT_2',
   MESSAGE_CONTENT = 'MESSAGE_CONTENT',
   MESSAGE_RANDOM_ID = 'MESSAGE_RANDOM_ID',
@@ -201,6 +210,7 @@ export enum TagFunctions {
   SEARCH_GOOGLE_IMAGES = 'SEARCH_GOOGLE_IMAGES',
   SETTINGS = 'SETTINGS',
   STRING_CODEBLOCK = 'STRING_CODEBLOCK',
+  STRING_INDEX_OF = 'STRING_INDEX_OF',
   STRING_JSONIFY = 'STRING_JSONIFY',
   STRING_LENGTH = 'STRING_LENGTH',
   STRING_LOWER = 'STRING_LOWER',
@@ -253,6 +263,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.GUILD_COUNT]: ['guildcount', 'membercount', 'servercount'],
   [TagFunctions.GUILD_ID]: ['guildid', 'serverid', 'sid', 'gid'],
   [TagFunctions.HASTEBIN]: ['hastebin', 'haste'],
+  [TagFunctions.IMAGE_INTERROGATE]: ['identify', 'interrogate'],
   [TagFunctions.IMAGE_OCR]: ['ocr'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
   [TagFunctions.LOGICAL_GET]: ['get'],
@@ -272,8 +283,13 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MEDIA_AUDIO]: ['audio'],
   [TagFunctions.MEDIA_AUDIO_OR_VIDEO]: ['av'],
   [TagFunctions.MEDIA_IMAGE]: ['image'],
+  [TagFunctions.MEDIA_IMAGE_EDIT]: ['edit'],
+  [TagFunctions.MEDIA_IMAGE_EDIT_URL]: ['editurl'],
+  [TagFunctions.MEDIA_IMAGE_IMAGINE]: ['imagine'],
+  [TagFunctions.MEDIA_IMAGE_IMAGINE_URL]: ['imagineurl'],
   [TagFunctions.MEDIA_IMAGE_OR_VIDEO]: ['iv'],
   [TagFunctions.MEDIASCRIPT]: ['mediascript', 'mscript', 'imagescript', 'iscript'],
+  [TagFunctions.MEDIASCRIPT_URL]: ['mediascripturl', 'mscripturl', 'imagescripturl', 'iscripturl'],
   [TagFunctions.MEDIASCRIPT_2]: ['iscript2', 'mscript2'],
   [TagFunctions.MEDIA_VIDEO]: ['video'],
   [TagFunctions.MESSAGE_CONTENT]: ['messagecontent'],
@@ -288,6 +304,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.g.images'],
   [TagFunctions.SETTINGS]: ['settings'],
   [TagFunctions.STRING_CODEBLOCK]: ['code'],
+  [TagFunctions.STRING_INDEX_OF]: ['indexof'],
   [TagFunctions.STRING_JSONIFY]: ['jsonify'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
   [TagFunctions.STRING_LOWER]: ['lower'],
@@ -330,7 +347,7 @@ export interface TagVariables {
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
   },
   [PrivateVariables.SETTINGS]: {
-    [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.SEARCH_GOOGLE_IMAGES,
+    [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES,
   },
   [key: string]: number | string | Array<string> | Record<string, any>,
 }
@@ -374,7 +391,7 @@ export async function parse(
   const tag: TagResult = {context: {}, embeds: [], files: [], text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
-  const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+  const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
 
   let depth = 0;
   let scriptBuffer = '';
@@ -440,6 +457,11 @@ export async function parse(
           } else if (TagFunctionsToString.RNG_CHOOSE.includes(scriptName)) {
             // do this separate from below because we don't want our args parsed yet
             const wasValid = await ScriptTags[TagFunctions.RNG_CHOOSE](context, arg, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
+          } else if (TagFunctionsToString.STRING_INDEX_OF.includes(scriptName)) {
+            const wasValid = await ScriptTags[TagFunctions.STRING_INDEX_OF](context, arg, tag);
             if (!wasValid) {
               tag.text += scriptBuffer;
             }
@@ -622,7 +644,7 @@ const ScriptTags = Object.freeze({
         throw new Error(result.error);
       } else {
         if (result.files.length) {
-          const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+          const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
           for (let file of result.files) {
             const { filename, size, value } = file;
             if (filename === 'variables.json') {
@@ -811,7 +833,7 @@ const ScriptTags = Object.freeze({
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
-      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
       const response = await utilitiesFetchMedia(context, {maxFileSize, url});
       const filename = filenameArg || response.file.filename;
 
@@ -881,7 +903,7 @@ const ScriptTags = Object.freeze({
 
     const data = arg;
     try {
-      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
 
       const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
       if (maxFileSize <= currentFileSize + data.length) {
@@ -1023,7 +1045,7 @@ const ScriptTags = Object.freeze({
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
     try {
-      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
       const response = await utilitiesFetchText(context, {maxFileSize, url});
 
       const text = await response.text();
@@ -1086,13 +1108,56 @@ const ScriptTags = Object.freeze({
     return false;
   },
 
+  [TagFunctions.IMAGE_INTERROGATE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // interrogate an image
+    // {interrogate:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    let url = await lastImageUrl(arg.trim(), context);
+    if (!url) {
+      const fallbackFunction = tag.variables[PrivateVariables.SETTINGS][TagSettings.MEDIA_IV_FALLBACK];
+      if (fallbackFunction && fallbackFunction in ScriptTags) {
+        const textCache = tag.text;
+    
+        tag.text = '';
+        await ScriptTags[fallbackFunction](context, arg, tag);
+        url = tag.text;
+        tag.text = textCache;
+      }
+    }
+
+    if (url) {
+      try {
+        const response = await utilitiesMLInterrogate(context, {url});
+        tag.text += response.prompt;
+      } catch(error) {
+
+      }
+    }
+
+    return true;
+  },
+
   [TagFunctions.IMAGE_OCR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // ocr an image
     // {ocr:cake}
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
-    const url = await lastImageUrl(arg.trim(), context);
+    let url = await lastImageUrl(arg.trim(), context);
+    if (!url) {
+      const fallbackFunction = tag.variables[PrivateVariables.SETTINGS][TagSettings.MEDIA_IV_FALLBACK];
+      if (fallbackFunction && fallbackFunction in ScriptTags) {
+        const textCache = tag.text;
+    
+        tag.text = '';
+        await ScriptTags[fallbackFunction](context, arg, tag);
+        url = tag.text;
+        tag.text = textCache;
+      }
+    }
+
     if (url) {
       try {
         const { annotation } = await googleContentVisionOCR(context, {url});
@@ -1477,6 +1542,171 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.MEDIA_IMAGE_EDIT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // edit an image based off a prompt, empty will auto generate one
+    // {edit:PROMPT?|MEDIA_URL?}
+    // {edit:pixelate the image}
+    // {edit:pixelate the image|cake}
+    // {edit:|cake}
+
+    if (MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    }
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+  
+    const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+
+    let prompt: string;
+    let mediaString: string = '';
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      const parts = split(arg);
+
+      mediaString = parts.pop()!;
+      prompt = parts.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    } else {
+      prompt = arg;
+    }
+
+    let url = await lastImageUrl(mediaString.trim(), context);
+    if (!url) {
+      const fallbackFunction = tag.variables[PrivateVariables.SETTINGS][TagSettings.MEDIA_IV_FALLBACK];
+      if (fallbackFunction && fallbackFunction in ScriptTags) {
+        const textCache = tag.text;
+
+        tag.text = '';
+        await ScriptTags[fallbackFunction](context, mediaString, tag);
+        url = tag.text;
+        tag.text = textCache;
+      }
+    }
+
+    if (!url) {
+      return false;
+    }
+
+    const response = await utilitiesMLEdit(context, {query: prompt, url});
+    const filename = response.file.filename;
+
+    const data = Buffer.from(response.file.value, 'base64');
+  
+    const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+    if (maxFileSize <= currentFileSize + data.length) {
+      throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+    }
+    tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+    tag.files.push({
+      buffer: data,
+      filename,
+      spoiler: false,
+      url: '',
+    });
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_IMAGE_EDIT_URL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // edit an image based off a prompt, empty will auto generate one
+    // {editurl:PROMPT?|MEDIA_URL?}
+    // {editurl:pixelate the image}
+    // {editurl:pixelate the image|cake}
+    // {editurl:|cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    let prompt: string;
+    let mediaString: string = '';
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      const parts = split(arg);
+
+      mediaString = parts.pop()!;
+      prompt = parts.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    } else {
+      prompt = arg;
+    }
+
+    let url = await lastImageUrl(mediaString.trim(), context);
+    if (!url) {
+      const fallbackFunction = tag.variables[PrivateVariables.SETTINGS][TagSettings.MEDIA_IV_FALLBACK];
+      if (fallbackFunction && fallbackFunction in ScriptTags) {
+        const textCache = tag.text;
+
+        tag.text = '';
+        await ScriptTags[fallbackFunction](context, mediaString, tag);
+        url = tag.text;
+        tag.text = textCache;
+      }
+    }
+
+    if (!url) {
+      return true;
+    }
+
+    const response = await utilitiesMLEdit(context, {
+      query: prompt,
+      upload: true,
+      url,
+    });
+    if (response.storage) {
+      tag.text += response.storage.urls.cdn;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_IMAGE_IMAGINE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // imagine an image based off a prompt, empty will auto generate one
+    // {imagine}
+    // {imagine:cake}
+
+    if (MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    }
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+
+    const response = await utilitiesMLImagine(context, {query: arg});
+    const filename = response.file.filename;
+
+    const data = Buffer.from(response.file.value, 'base64');
+
+    const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+    if (maxFileSize <= currentFileSize + data.length) {
+      throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+    }
+    tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+    tag.files.push({
+      buffer: data,
+      filename,
+      spoiler: false,
+      url: '',
+    });
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_IMAGE_IMAGINE_URL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // imagine an image based off a prompt, empty will auto generate one, will return a url
+    // {imagineurl}
+    // {imagineurl:cake}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+
+    const response = await utilitiesMLImagine(context, {
+      query: arg,
+      upload: true,
+    });
+    if (response.storage) {
+      tag.text += response.storage.urls.cdn;
+    }
+
+    return true;
+  },
+
   [TagFunctions.MEDIA_IMAGE_OR_VIDEO]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // get image/video from arg or last image/video
     // {iv}
@@ -1648,6 +1878,7 @@ const ScriptTags = Object.freeze({
  
   [TagFunctions.MEDIASCRIPT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // mediascript 1
+    // {mediascript:mediascript code here}
 
     if (MAX_ATTACHMENTS <= tag.files.length) {
       throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
@@ -1660,7 +1891,7 @@ const ScriptTags = Object.freeze({
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
-      const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
       const response = await utilitiesImagescriptV1(context, {code});
       const filename = response.file.filename;
 
@@ -1681,6 +1912,30 @@ const ScriptTags = Object.freeze({
         spoiler: false,
         url: '',
       });
+    } catch(error) {
+      console.log(error);
+      throw error;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIASCRIPT_URL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // mediascripturl 1
+    // {mediascripturl:mediascript code here}
+
+    const code = arg.trim();
+    if (!code) {
+      return false;
+    }
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    try {
+      const response = await utilitiesImagescriptV1(context, {code, upload: true});
+      if (response.storage) {
+        tag.text += response.storage.urls.cdn;
+      }
+
     } catch(error) {
       console.log(error);
       throw error;
@@ -1874,7 +2129,7 @@ const ScriptTags = Object.freeze({
           value = value.toLowerCase();
 
           let parsedValue: any = null;
-          for (let tagFunction of [TagFunctions.SEARCH_GOOGLE_IMAGES]) {
+          for (let tagFunction of [TagFunctions.MEDIA_IMAGE_IMAGINE, TagFunctions.SEARCH_GOOGLE_IMAGES]) {
             if (TagFunctionsToString[tagFunction].includes(value)) {
               parsedValue = tagFunction;
               break;
@@ -1900,6 +2155,34 @@ const ScriptTags = Object.freeze({
     // {code:text}
 
     tag.text += Markup.codeblock(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_INDEX_OF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {indexof:string|text}
+    // {indexof:,|the cat jumped, over a dog}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    let [ string, ...textParts ] = split(arg);
+    let text: string = textParts.join(TagSymbols.SPLITTER_ARGUMENT);
+
+    {
+      const parsed = await parse(context, string, '', tag.variables);
+      normalizeTagResults(tag, parsed, false);
+      string = parsed.text.trim();
+    }
+
+    {
+      const parsed = await parse(context, text, '', tag.variables);
+      normalizeTagResults(tag, parsed, false);
+      text = parsed.text.trim();
+    }
+
+    tag.text += text.indexOf(string);
+
     return true;
   },
 
@@ -1956,7 +2239,7 @@ const ScriptTags = Object.freeze({
 
     const text = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
 
-    const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
+    const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
     if (maxFileSize < (text.length * amount) + tag.text.length) {
       throw new Error(`Text exceeded ${maxFileSize} bytes`);
     }
@@ -2063,7 +2346,7 @@ const ScriptTags = Object.freeze({
     const argParsed = await parse(context, text, '', tag.variables);
     normalizeTagResults(tag, argParsed, false);
 
-    tag.text += argParsed.text.substring(start, end);
+    tag.text += argParsed.text.trim().substring(start, end);
 
     return true;
   },

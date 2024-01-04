@@ -546,7 +546,16 @@ export async function targetText(
           const [ { channelId, messageId } ] = messageLink.matches;
           if (channelId && messageId) {
             const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-            value = message.content;
+            if (message.content) {
+              value = message.content;
+            } else if (message.embeds.length) {
+              for (let [embedId, embed] of message.embeds) {
+                if (embed.description) {
+                  value = embed.description;
+                  break;
+                }
+              }
+            }
           }
         }
       }
@@ -559,7 +568,16 @@ export async function targetText(
       const { messageReference } = context.message;
       if (messageReference && messageReference.messageId) {
         const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-        value = message.content;
+        if (message.content) {
+          value = message.content;
+        } else if (message.embeds.length) {
+          for (let [embedId, embed] of message.embeds) {
+            if (embed.description) {
+              value = embed.description;
+              break;
+            }
+          }
+        }
       }
     }
   }

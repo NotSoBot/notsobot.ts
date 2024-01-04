@@ -88,9 +88,11 @@ import * as MediaIVManipulationPaper from './media.iv.manipulation.paper';
 import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
 import * as MediaIVManipulationRain from './media.iv.manipulation.rain';
 import * as MediaIVManipulationRainGold from './media.iv.manipulation.rain.gold';
+import * as MediaIVManipulationRecaption from './media.iv.manipulation.recaption';
 import * as MediaIVManipulationSharpen from './media.iv.manipulation.sharpen';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
 import * as MediaIVManipulationTrace from './media.iv.manipulation.trace';
+import * as MediaIVManipulationUncaption from './media.iv.manipulation.uncaption';
 import * as MediaIVManipulationWall from './media.iv.manipulation.wall';
 
 import * as MediaIVToolsBackgroundRemove from './media.iv.tools.background.remove';
@@ -182,6 +184,7 @@ import * as ToolsMath from './tools.math';
 import * as ToolsMLEdit from './tools.ml.edit';
 import * as ToolsMLImagine from './tools.ml.imagine';
 import * as ToolsMLInterrogate from './tools.ml.interrogate';
+import * as ToolsMLReimagine from './tools.ml.reimagine';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocrtranslate';
 import * as ToolsQrCreate from './tools.qr.create';
@@ -281,9 +284,11 @@ export {
   MediaIVManipulationPixelate,
   MediaIVManipulationRain,
   MediaIVManipulationRainGold,
+  MediaIVManipulationRecaption,
   MediaIVManipulationSharpen,
   MediaIVManipulationSpin,
   MediaIVManipulationTrace,
+  MediaIVManipulationUncaption,
   MediaIVManipulationWall,
 
   MediaIVToolsBackgroundRemove,
@@ -375,6 +380,7 @@ export {
   ToolsMLEdit,
   ToolsMLImagine,
   ToolsMLInterrogate,
+  ToolsMLReimagine,
   ToolsOCR,
   ToolsOCRTranslate,
   ToolsQrCreate,

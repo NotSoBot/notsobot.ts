@@ -14,8 +14,6 @@ export default class ImagineCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'count', aliases: ['c'], type: Number, metadata: {description: 'grid size (1..4)'}},
-        {name: 'guidance', type: 'float', metadata: {description: 'influence of prompt on sampling (-Inf..Inf)'}},
         {name: 'no', metadata: {escription: 'negative prompt'}},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (2..50)'}},
@@ -23,13 +21,13 @@ export default class ImagineCommand extends BaseCommand {
       label: 'query',
       metadata: {
         category: CommandCategories.TOOLS,
-        description: 'Alter an Image with machine learning (thanks evan)',
+        description: 'Generate an Image based off a prompt (thanks evan)',
         examples: [
           `${COMMAND_NAME} an animal eating strawberries`,
-          `${COMMAND_NAME} an animal eating strawberries -guidance 50`,
+          `${COMMAND_NAME} an animal eating strawberries -seed 5`,
         ],
         id: Formatter.Commands.ToolsMLImagine.COMMAND_ID,
-        usage: '<...query> (-count <number>) (-guidance <number>) (-no <query>) (-seed <number>) (-steps <number>) (-strength <number>)',
+        usage: '<...query> (-no <query>) (-seed <number>) (-steps <number>)',
       },
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},
