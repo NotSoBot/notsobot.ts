@@ -126,7 +126,6 @@ export async function audioToolsPutConcat(
     body,
     file: options.file,
     files: options.files,
-    multipart: true,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_A_TOOLS_PUT_CONCAT,
@@ -148,7 +147,6 @@ export async function audioToolsPutMix(
     body,
     file: options.file,
     files: options.files,
-    multipart: true,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_A_TOOLS_PUT_MIX,
@@ -170,7 +168,6 @@ export async function audioToolsPutReplace(
     body,
     file: options.file,
     files: options.files,
-    multipart: true,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_A_TOOLS_PUT_REPLACE,
@@ -959,7 +956,6 @@ export async function mediaAIVToolsConcat(
   return request(context, {
     body,
     file: options.file,
-    multipart: true,
     files: options.files,
     route: {
       method: HTTPMethods.POST,
@@ -1025,7 +1021,6 @@ export async function mediaAIVToolsJoin(
     body,
     file: options.file,
     files: options.files,
-    multipart: true,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_TOOLS_JOIN,
@@ -1053,7 +1048,6 @@ export async function mediaAIVToolsOverlay(
     body,
     file: options.file,
     files: options.files,
-    multipart: true,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_TOOLS_OVERLAY,
@@ -2019,7 +2013,6 @@ export async function mediaIVManipulationOverlayFlies(
   return request(context, {
     body,
     file: options.file,
-    multipart: true,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FLIES,

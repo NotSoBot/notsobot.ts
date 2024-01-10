@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'flip';
 
-export class ImageFlipCommand extends BaseInteractionImageCommandOption {
-  description = 'Flip an Image (Vertical Flip)';
+export class MediaIVFlipCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Flip an Image or Video (Vertical Flip)';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationFlip.COMMAND_ID,
   };

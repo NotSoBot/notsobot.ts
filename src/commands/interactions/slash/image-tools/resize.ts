@@ -1,4 +1,5 @@
 import { Interaction } from 'detritus-client';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { Formatter } from '../../../../utils';
 
@@ -17,7 +18,7 @@ export class ImageToolsResizeCommand extends BaseInteractionImageCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'scale', description: 'Resize Scale (Default: 2)', default: 2, type: Number},
+        {name: 'scale', description: 'Resize Scale (Default: 2)', default: 2, type: ApplicationCommandOptionTypes.NUMBER},
         {name: 'convert', description: 'Image Type'},
         {name: 'ratio', description: 'Keep the Image\'s Ratio the same', type: Boolean},
         {name: 'size', description: 'number or (width)x(height)'},

@@ -22,7 +22,7 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'eval';
 
-export class OwnerEvalCommand extends BaseInteractionCommandOption<CommandArgs> {
+export class OwnerEvalCommand extends BaseInteractionCommandOption {
   description = 'Eval some code ;)';
   name = COMMAND_NAME;
   triggerLoadingAfter = 2000;

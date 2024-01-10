@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter, Parameters } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionMediaCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'pipe';
 
-export class ImagePipeCommand extends BaseInteractionImageCommandOption {
-  description = 'Pipe Multiple Image Commands Together';
+export class MediaAIVPipeCommand extends BaseInteractionMediaCommandOption {
+  description = 'Pipe Multiple Media Commands Together';
   metadata = {
     id: Formatter.Commands.MediaAIVPipe.COMMAND_ID,
   };
@@ -17,7 +17,7 @@ export class ImagePipeCommand extends BaseInteractionImageCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'commands', description: 'Image Commands (ex: flip; flop)', required: true, value: Parameters.pipingCommands},
+        {name: 'commands', description: 'Media Commands (ex: flip; flop)', required: true, value: Parameters.pipingCommands},
       ],
     });
   }

@@ -20,7 +20,7 @@ export interface InteractionCommandMetadata {
   nsfw?: boolean,
 };
 
-export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommand<ParsedArgsFinished> {
+export class BaseInteractionCommand extends Interaction.InteractionCommand {
   error = 'Command';
 
   onAutoCompleteError(context: Interaction.InteractionAutoCompleteContext, error: any) {
@@ -115,7 +115,7 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
     });
   }
 
-  async onRunError(context: Interaction.InteractionContext, args: ParsedArgsFinished, error: any) {
+  async onRunError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, error: any) {
     const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle(`⚠ ${this.error} Command Error`);
@@ -227,7 +227,7 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
     }
   }
 
-  async onSuccess(context: Interaction.InteractionContext, args: ParsedArgsFinished) {
+  async onSuccess(context: Interaction.InteractionContext, args: Interaction.ParsedArgs) {
     // log usage
     if (context.invoker && context.invoker.metadata) {
       let commandType: null | number = null;
@@ -257,7 +257,7 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
     }
   }
 
-  onValueError(context: Interaction.InteractionContext, args: ParsedArgsFinished, errors: Interaction.ParsedErrors) {
+  onValueError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, errors: Interaction.ParsedErrors) {
     const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
     embed.setTitle(`⚠ ${this.error} Argument Error`);
@@ -284,7 +284,7 @@ export class BaseInteractionCommand<ParsedArgsFinished = Interaction.ParsedArgs>
 }
 
 
-export class BaseInteractionCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
+export class BaseInteractionCommandOption extends Interaction.InteractionCommandOption {
   error = 'Slash';
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
 
@@ -298,7 +298,7 @@ export class BaseInteractionCommandOption<ParsedArgsFinished = Interaction.Parse
 }
 
 
-export class BaseInteractionAudioOrVideoCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommandOption<ParsedArgsFinished> {
+export class BaseInteractionAudioOrVideoCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({
       ...data,
@@ -328,7 +328,7 @@ export class BaseInteractionAudioOrVideoCommandOption<ParsedArgsFinished = Inter
 }
 
 
-export class BaseInteractionImageCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommandOption<ParsedArgsFinished> {
+export class BaseInteractionImageCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({
       ...data,
@@ -358,7 +358,37 @@ export class BaseInteractionImageCommandOption<ParsedArgsFinished = Interaction.
 }
 
 
-export class BaseInteractionMediaCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommandOption<ParsedArgsFinished> {
+export class BaseInteractionImageOrVideoCommandOption extends BaseInteractionCommandOption {
+  constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
+    super({
+      ...data,
+      options: [
+        ...(data.options || []),
+        {name: 'url', description: 'Emoji/Media URL/User', default: DefaultParameters.lastMediaUrl({audio: false}), value: Parameters.lastMediaUrl({audio: false})},
+        {name: 'attachment', description: 'Media File', type: ApplicationCommandOptionTypes.ATTACHMENT},
+      ],
+    });
+  }
+
+  onBeforeRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url) {
+      context.metadata = Object.assign({}, context.metadata, {contentUrl: args.url});
+    }
+    return !!args.url;
+  }
+
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined) {
+      return editOrReply(context, '⚠ Unable to find any images or videos in the last 50 messages.');
+    } else if (args.url === null) {
+      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+    }
+    return super.onCancelRun(context, args);
+  }
+}
+
+
+export class BaseInteractionMediaCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({
       ...data,
@@ -388,7 +418,7 @@ export class BaseInteractionMediaCommandOption<ParsedArgsFinished = Interaction.
 }
 
 
-export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommandOption<ParsedArgsFinished> {
+export class BaseInteractionVideoCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({
       ...data,
@@ -418,7 +448,7 @@ export class BaseInteractionVideoCommandOption<ParsedArgsFinished = Interaction.
 }
 
 
-export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.ParsedArgs> extends Interaction.InteractionCommandOption<ParsedArgsFinished> {
+export class BaseInteractionCommandOptionGroup extends Interaction.InteractionCommandOption {
   error = 'Slash';
   type = ApplicationCommandOptionTypes.SUB_COMMAND_GROUP;
 
@@ -433,7 +463,7 @@ export class BaseInteractionCommandOptionGroup<ParsedArgsFinished = Interaction.
 
 
 
-export class BaseSlashCommand<ParsedArgsFinished = Interaction.ParsedArgs> extends BaseInteractionCommand<ParsedArgsFinished> {
+export class BaseSlashCommand extends BaseInteractionCommand {
   error = 'Slash';
   permissionsIgnoreClientOwner = true;
   type = ApplicationCommandTypes.CHAT_INPUT;
@@ -446,7 +476,7 @@ export interface ContextMenuMessageArgs {
   message: Structures.Message,
 }
 
-export class BaseContextMenuMessageCommand extends BaseInteractionCommand<ContextMenuMessageArgs> {
+export class BaseContextMenuMessageCommand extends BaseInteractionCommand {
   error = 'Message Context Menu';
   type = ApplicationCommandTypes.MESSAGE;
 
@@ -466,7 +496,7 @@ export interface ContextMenuUserArgs {
   user: Structures.User,
 }
 
-export class BaseContextMenuUserCommand extends BaseInteractionCommand<ContextMenuUserArgs> {
+export class BaseContextMenuUserCommand extends BaseInteractionCommand {
   error = 'User Context Menu';
   type = ApplicationCommandTypes.USER;
 

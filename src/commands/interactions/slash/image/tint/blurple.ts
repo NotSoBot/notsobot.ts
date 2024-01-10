@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'blurple';
 
-export class ImageBlurpleCommand extends BaseInteractionImageCommandOption {
-  description = 'Blurple-fy an Image';
+export class ImageBlurpleCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Blurple-fy an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationBlurple.COMMAND_ID,
   };

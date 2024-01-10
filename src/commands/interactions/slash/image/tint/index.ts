@@ -8,7 +8,7 @@ import { ImageRainCommand } from './rain';
 import { ImageRainGoldCommand } from './raingold';
 
 
-export class ImageTintGroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaTintGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'tint';
 

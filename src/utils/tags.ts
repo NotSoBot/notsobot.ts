@@ -85,7 +85,7 @@ export const ERROR_TIMEOUT_MESSAGE = 'Script execution timed out after';
 export const MAX_ATTACHMENTS = 10;
 export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 150;
-export const MAX_NETWORK_REQUESTS = 10;
+export const MAX_NETWORK_REQUESTS = 15;
 export const MAX_TIME_MATH = 25;
 export const MAX_TIME_REGEX = 25;
 export const MAX_VARIABLE_KEY_LENGTH = 64;
@@ -372,21 +372,21 @@ export async function parse(
   if (PrivateVariables.ITERATIONS_REMAINING in variables) {
     isFirstParse = false;
   } else {
-    variables[PrivateVariables.ITERATIONS_REMAINING] = MAX_ITERATIONS;
-    variables[PrivateVariables.ARGS_STRING] = args;
-    variables[PrivateVariables.ARGS] = Parameters.stringArguments(args);
+    (variables as any)[PrivateVariables.ITERATIONS_REMAINING] = MAX_ITERATIONS;
+    (variables as any)[PrivateVariables.ARGS_STRING] = args;
+    (variables as any)[PrivateVariables.ARGS] = Parameters.stringArguments(args);
   }
   if (!(PrivateVariables.NETWORK_REQUESTS in variables)) {
-    variables[PrivateVariables.NETWORK_REQUESTS] = 0;
+    (variables as any)[PrivateVariables.NETWORK_REQUESTS] = 0;
   }
   if (!(PrivateVariables.FILE_SIZE in variables)) {
-    variables[PrivateVariables.FILE_SIZE] = 0;
+    (variables as any)[PrivateVariables.FILE_SIZE] = 0;
   }
   if (!(PrivateVariables.RESULTS in variables)) {
-    variables[PrivateVariables.RESULTS] = {};
+    (variables as any)[PrivateVariables.RESULTS] = {};
   }
   if (!(PrivateVariables.SETTINGS in variables)) {
-    variables[PrivateVariables.SETTINGS] = {};
+    (variables as any)[PrivateVariables.SETTINGS] = {};
   }
   const tag: TagResult = {context: {}, embeds: [], files: [], text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;

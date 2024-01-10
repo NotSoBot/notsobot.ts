@@ -5,7 +5,7 @@ import { MediaIVManipulationOverlayFliesCommand } from './flies';
 import { ImageOverlayPistolCommand } from './pistol';
 
 
-export class ImageOverlayGroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaOverlayGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'overlay';
 

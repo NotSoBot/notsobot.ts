@@ -16,7 +16,7 @@ import { ImageTraceCommand } from './trace';
 import { ImageWallCommand } from './wall';
 
 
-export class ImageFunGroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'fun';
 

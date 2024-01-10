@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'gold';
 
-export class ImageGoldCommand extends BaseInteractionImageCommandOption {
-  description = 'Gold tintify an Image';
+export class ImageGoldCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Gold tintify an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationGold.COMMAND_ID,
   };

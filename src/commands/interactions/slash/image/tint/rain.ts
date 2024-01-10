@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'rain';
 
-export class ImageRainCommand extends BaseInteractionImageCommandOption {
-  description = 'Rainbow tintify an Image';
+export class ImageRainCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Rainbow tintify an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationRain.COMMAND_ID,
   };

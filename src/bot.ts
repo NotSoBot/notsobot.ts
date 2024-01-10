@@ -65,13 +65,13 @@ const cluster = new ClusterClient('', {
       const message = `Shard #${shardId} - ${state}`;
       console.log(message);
       if (state === SocketStates.IDENTIFYING) {
-        Sentry.captureMessage(message, Sentry.Severity.Log);
+        Sentry.captureMessage(message, 'log');
       }
     });
     shard.gateway.on('close', ({code, reason}) => {
       const message = `Shard #${shardId} closed - ${code}, ${reason}`;
       console.log(message);
-      Sentry.captureMessage(message, Sentry.Severity.Debug);
+      Sentry.captureMessage(message, 'debug');
     });
 
     /*

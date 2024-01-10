@@ -8,23 +8,22 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "@sentry/node": "^6.19.7",
-    "chrono-node": "^2.6.3",
+    "@sentry/node": "^7.92.0",
+    "chrono-node": "^2.7.4",
     "detritus-client": "^0.17.0-beta.19",
     "detritus-rest": "^0.9.0-beta.11",
     "emoji-aware": "^3.1.0",
     "juration": "^0.1.1",
-    "mathjs": "^11.8.2",
-    "moment": "^2.29.4",
+    "mathjs": "^12.2.1",
+    "moment": "^2.30.1",
     "moment-duration-format": "^2.3.2",
-    "moment-timezone": "^0.5.43",
-    "redis": "^4.1.0",
-    "typescript": "^4.7.2"
+    "moment-timezone": "^0.5.44",
+    "redis": "^4.6.12",
+    "typescript": "^5.3.3"
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.3",
-    "@types/node": "^18.15.3",
-    "@types/redis": "^4.0.11"
+    "@types/node": "^20.10.8"
   },
   "scripts": {
     "build": "tsc",

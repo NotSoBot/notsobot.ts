@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'rain-gold';
 
-export class ImageRainGoldCommand extends BaseInteractionImageCommandOption {
-  description = 'Rainbowish Gold tintify an Image';
+export class ImageRainGoldCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Rainbowish Gold tintify an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationRainGold.COMMAND_ID,
   };

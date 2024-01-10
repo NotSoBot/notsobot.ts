@@ -16,7 +16,7 @@ export default class ImagineCommand extends BaseCommand {
       args: [
         {name: 'no', metadata: {escription: 'negative prompt'}},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
-        {name: 'steps', type: Number, metadata: {description: 'number of samples to take (2..50)'}},
+        {name: 'steps', type: Number, metadata: {description: 'number of samples to take (2..8)'}},
       ],
       label: 'query',
       metadata: {
