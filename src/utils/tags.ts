@@ -1585,7 +1585,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const response = await utilitiesMLEdit(context, {query: prompt, url});
+    const response = await utilitiesMLEdit(context, {query: prompt, safe: DefaultParameters.safe(context), url});
     const filename = response.file.filename;
 
     const data = Buffer.from(response.file.value, 'base64');
@@ -1645,6 +1645,7 @@ const ScriptTags = Object.freeze({
 
     const response = await utilitiesMLEdit(context, {
       query: prompt,
+      safe: DefaultParameters.safe(context),
       upload: true,
       url,
     });
@@ -1668,7 +1669,7 @@ const ScriptTags = Object.freeze({
 
     const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
 
-    const response = await utilitiesMLImagine(context, {query: arg});
+    const response = await utilitiesMLImagine(context, {query: arg, safe: DefaultParameters.safe(context)});
     const filename = response.file.filename;
 
     const data = Buffer.from(response.file.value, 'base64');
@@ -1698,6 +1699,7 @@ const ScriptTags = Object.freeze({
 
     const response = await utilitiesMLImagine(context, {
       query: arg,
+      safe: DefaultParameters.safe(context),
       upload: true,
     });
     if (response.storage) {

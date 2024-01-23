@@ -355,6 +355,25 @@ export async function createUserCommand(
 }
 
 
+export async function createVoiceClone(
+  context: RequestContext,
+  options: RestOptions.CreateVoiceClone,
+): Promise<RestResponsesRaw.CreateVoiceClone> {
+  const body = {
+    name: options.name,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.VOICE_CLONE,
+    },
+  });
+}
+
+
 export async function deleteChannel(
   context: RequestContext,
   channelId: string,
@@ -526,6 +545,20 @@ export async function deleteTagsServer(
     route: {
       method: HTTPMethods.POST,
       path: Api.TAGS_DELETE,
+    },
+  });
+}
+
+
+export async function deleteVoice(
+  context: RequestContext,
+  voiceId: string,
+): Promise<RestResponses.DeleteVoice> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.VOICE,
+      params: {voiceId},
     },
   });
 }
@@ -795,6 +828,21 @@ export async function fetchUserTagsCommands(
     route: {
       method: HTTPMethods.GET,
       path: Api.USER_TAGS_COMMANDS,
+      params,
+    },
+  });
+}
+
+
+export async function fetchUserVoices(
+  context: RequestContext,
+  userId: string,
+): Promise<RestResponsesRaw.FetchUserVoices> {
+  const params = {userId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.USER_VOICES,
       params,
     },
   });
@@ -3263,6 +3311,7 @@ export async function utilitiesMLEdit(
     guidance: options.guidance,
     no: options.no,
     query: options.query,
+    safe: options.safe,
     seed: options.seed,
     steps: options.steps,
     strength: options.strength,
@@ -3290,6 +3339,7 @@ export async function utilitiesMLImagine(
     guidance: options.guidance,
     no: options.no,
     query: options.query,
+    safe: options.safe,
     seed: options.seed,
     steps: options.steps,
     upload: options.upload,
@@ -3376,6 +3426,27 @@ export async function utilitiesScreenshot(
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_SCREENSHOT,
+    },
+  });
+}
+
+
+export async function voiceCloneAdd(
+  context: RequestContext,
+  voiceId: string,
+  options: RestOptions.VoiceCloneAdd,
+): Promise<RestResponsesRaw.VoiceCloneAdd> {
+  const body = {
+    url: options.url,
+  };
+  const params = {voiceId};
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.VOICE_ADD,
+      params,
     },
   });
 }

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -15,6 +15,7 @@ export default class ImagineCommand extends BaseCommand {
 
       args: [
         {name: 'no', metadata: {escription: 'negative prompt'}},
+        {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (2..8)'}},
       ],

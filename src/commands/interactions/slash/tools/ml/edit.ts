@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter, Parameters } from '../../../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../../basecommand';
 
@@ -18,6 +18,13 @@ export class ToolsMLEditCommand extends BaseInteractionImageCommandOption {
     super({
       options: [
         {name: 'query', description: 'Prompt to edit the Image with'},
+        {
+          name: 'safe',
+          description: 'Safe Generation',
+          type: Boolean,
+          default: DefaultParameters.safe,
+          value: Parameters.Slash.safe,
+        },
       ],
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},

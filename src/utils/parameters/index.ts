@@ -345,14 +345,16 @@ export async function pipingCommands(
 }
 
 
-export function seconds(value: number | string): number {
+export function seconds(value: number | string, allowFloats: boolean = false): number {
   const valueString = String(value);
   try {
-    const duration = durationToMilliseconds(valueString);
+    let duration = durationToMilliseconds(valueString);
     if (duration) {
-      return Math.floor(duration / 1000);
+      duration = duration / 1000;
+    } else {
+      duration = juration.parse(valueString);
     }
-    return juration.parse(valueString);
+    return (allowFloats) ? duration : Math.floor(duration);
   } catch(error) {
     if (typeof(error) === 'string') {
       let text = error.slice(error.indexOf(':', error.indexOf(':') + 1) + 1).trim();
@@ -382,7 +384,7 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
     const valueString = String(value);
     const isNegative = (allowNegatives) ? valueString.startsWith('-') : false;
 
-    let duration = (durationToMilliseconds(valueString) || seconds(valueString)) / 1000;
+    let duration = seconds(valueString, allowFloats);
     if (isNegative) {
       duration = -duration;
     }

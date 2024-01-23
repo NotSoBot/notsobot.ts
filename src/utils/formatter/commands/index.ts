@@ -192,6 +192,11 @@ import * as ToolsQrScan from './tools.qr.scan';
 import * as ToolsScreenshot from './tools.screenshot';
 import * as ToolsTranslate from './tools.translate';
 
+import * as VoiceClone from './voice.clone';
+import * as VoiceCloneAdd from './voice.clone.add';
+import * as VoiceDelete from './voice.delete';
+import * as VoiceRecord from './voice.record';
+
 
 export {
   FunAscii,
@@ -387,4 +392,9 @@ export {
   ToolsQrScan,
   ToolsScreenshot,
   ToolsTranslate,
+
+  VoiceClone,
+  VoiceCloneAdd,
+  VoiceDelete,
+  VoiceRecord,
 };

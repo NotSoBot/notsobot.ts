@@ -11,6 +11,7 @@ export interface CommandArgs {
   guidance?: number,
   no?: string,
   query: string,
+  safe?: boolean,
   seed?: number,
   steps?: number,
 }

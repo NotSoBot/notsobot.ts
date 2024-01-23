@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -15,6 +15,7 @@ export default class EditCommand extends BaseImageCommand {
 
       args: [
         {name: 'no', metadata: {description: 'negative prompt'}},
+        {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (1..16)'}},
         {name: 'strength', type: 'float', metadata: {description: 'strength of prompt (0.05..1)'}},

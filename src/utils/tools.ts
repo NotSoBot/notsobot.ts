@@ -1115,7 +1115,7 @@ export function generateImageReplyOptionsFromResponse(
       } else if (typeof(value) === 'number') {
         text = value.toLocaleString();
       } else {
-        text = String(value);
+        text = Markup.escape.all(String(value));
       }
 
       description.push(`${title}: ${text}`);

@@ -37,16 +37,6 @@ export namespace RestOptions {
     webhookToken: string,
   }
 
-  export interface CreateUserCommand {
-    channelId: string,
-    commandType?: number,
-    editedTimestamp?: null | number,
-    failedReason?: string,
-    guildId?: string,
-    messageId: string,
-    responseId?: string,
-  }
-
   export interface CreateReminder {
     channelId?: string,
     content: string,
@@ -61,6 +51,22 @@ export namespace RestOptions {
     serverId?: string,
     timestamp: number,
     userId: string,
+  }
+
+  export interface CreateUserCommand {
+    channelId: string,
+    commandType?: number,
+    editedTimestamp?: null | number,
+    failedReason?: string,
+    guildId?: string,
+    messageId: string,
+    responseId?: string,
+  }
+
+  export interface CreateVoiceClone {
+    file?: RequestFile,
+    name?: string,
+    url?: string,
   }
 
 
@@ -611,6 +617,7 @@ export namespace RestOptions {
     guidance?: number,
     no?: string,
     query: string,
+    safe?: boolean,
     seed?: number,
     steps?: number,
     strength?: number,
@@ -621,6 +628,7 @@ export namespace RestOptions {
     guidance?: number,
     no?: string,
     query: string,
+    safe?: boolean,
     seed?: number,
     steps?: number,
     upload?: boolean,
@@ -638,6 +646,11 @@ export namespace RestOptions {
 
   export interface UtilitiesScreenshot {
     url: string,
+  }
+
+  export interface VoiceCloneAdd {
+    file?: RequestFile,
+    url?: string,
   }
 }
 
@@ -657,6 +670,7 @@ export namespace RestResponses {
   export type DeleteGuildCommandsBlocklist = null;
   export type DeleteGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
+  export type DeleteVoice = null;
 
   export type EditGuildSettings = GuildSettings;
   export type EditUser = UserFull;
@@ -810,6 +824,8 @@ export namespace RestResponsesRaw {
     
   }
 
+  export type CreateVoiceClone = Voice;
+
   export type DeleteChannel = null;
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
@@ -856,6 +872,11 @@ export namespace RestResponsesRaw {
   export interface FetchUserTagsCommands {
     count: number,
     tags: Array<Tag>,
+  }
+
+  export interface FetchUserVoices {
+    count: number,
+    voices: Array<Voice>,
   }
 
   export type PutTag = Tag;
@@ -1772,6 +1793,9 @@ export namespace RestResponsesRaw {
     url?: string,
   }
 
+  export type VoiceCloneAdd = Voice;
+
+
 
   export interface Reminder {
     channel_id: string | null,
@@ -1819,5 +1843,13 @@ export namespace RestResponsesRaw {
     },
     premium_type?: number,
     username: string,
+  }
+
+  export interface Voice {
+    id: string,
+    name: string,
+    platform_id: string,
+    platform_type: number,
+    user: User,
   }
 }

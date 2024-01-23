@@ -167,6 +167,14 @@ export async function createUserCommand(
 }
 
 
+export async function createVoiceClone(
+  context: RequestContext,
+  options: RestOptions.CreateVoiceClone,
+) {
+  return raw.createVoiceClone(context, options);
+}
+
+
 export async function deleteChannel(
   context: RequestContext,
   channelId: string,
@@ -278,6 +286,14 @@ export async function deleteTagsServer(
   options: RestOptions.DeleteTags = {},
 ) {
   return raw.deleteTagsServer(context, serverId, options);
+}
+
+
+export async function deleteVoice(
+  context: RequestContext,
+  voiceId: string,
+) {
+  return raw.deleteVoice(context, voiceId);
 }
 
 
@@ -424,6 +440,14 @@ export async function fetchUserTagsCommands(
   userId: string,
 ) {
   return raw.fetchUserTagsCommands(context, userId);
+}
+
+
+export async function fetchUserVoices(
+  context: RequestContext,
+  userId: string,
+) {
+  return raw.fetchUserVoices(context, userId);
 }
 
 
@@ -1496,4 +1520,12 @@ export async function utilitiesScreenshot(
   options: RestOptions.UtilitiesScreenshot,
 ) {
   return raw.utilitiesScreenshot(context, options);
+}
+
+export async function voiceCloneAdd(
+  context: RequestContext,
+  voiceId: string,
+  options: RestOptions.VoiceCloneAdd,
+) {
+  return raw.voiceCloneAdd(context, voiceId, options);
 }

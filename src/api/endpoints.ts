@@ -333,6 +333,8 @@ export const Api = Object.freeze({
     '/users/:userId/usage/commands',
   USER_USAGE_COMMAND:
     '/users/:userId/usage/commands/:command',
+  USER_VOICES:
+    '/users/:userId/voices',
 
   UTILITIES_CODE_RUN:
     '/utilities/code/run',
@@ -368,6 +370,15 @@ export const Api = Object.freeze({
     '/utilities/qr/scan',
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
+
+  VOICES:
+    '/voices',
+  VOICE:
+    '/voices/:voiceId',
+  VOICE_ADD:
+    '/voices/:voiceId/add',
+  VOICE_CLONE:
+    '/voices/clone',
 });
 
 

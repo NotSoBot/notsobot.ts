@@ -50,7 +50,9 @@ export default class PruneCommand extends BaseCommand {
         {name: 'after', type: Parameters.snowflake},
         {name: 'before', type: Parameters.snowflake},
         {name: 'from', type: Parameters.membersOrUsers()},
-        {name: 'in', default: DefaultParameters.channel, type: Parameters.channel({types: [ChannelTypes.GUILD_TEXT, ChannelTypes.GUILD_NEWS]})},
+        {name: 'in', default: DefaultParameters.channel, type: Parameters.channel({
+          types: [ChannelTypes.GUILD_TEXT, ChannelTypes.GUILD_NEWS],
+        })},
         {name: 'with', type: Parameters.string({minLength: 1})},
       ],
       default: null,
@@ -182,11 +184,15 @@ export default class PruneCommand extends BaseCommand {
               components: [],
             });
 
-            const deletedTotal = await this.deleteMessages(context, channelId, bulk, manual);
-            if (deletedTotal === total) {
-              await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
-            } else {
-              await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} out of ${total.toLocaleString()} messages`);
+            try {
+              const deletedTotal = await this.deleteMessages(context, channelId, bulk, manual);
+              if (deletedTotal === total) {
+                await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
+              } else {
+                await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} out of ${total.toLocaleString()} messages`);
+              }
+            } catch(error) {
+              await ctx.editOrRespond(`Pruning messages errored out: ${error}`);
             }
 
             isExecuting.prune = false;
@@ -264,6 +270,7 @@ export default class PruneCommand extends BaseCommand {
         await context.rest.deleteMessage(channelId, messageId, {reason});
       }
     }
+
     return deletedTotal;
   }
 

@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { Formatter, Parameters } from '../../../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -18,6 +18,13 @@ export class ToolsMLImagineCommand extends BaseInteractionCommandOption {
       options: [
         {name: 'query', description: 'Prompt to Generate (Empty will auto-generate a prompt)'},
         {name: 'no', description: 'Negative Prompt'},
+        {
+          name: 'safe',
+          description: 'Safe Generation',
+          type: Boolean,
+          default: DefaultParameters.safe,
+          value: Parameters.Slash.safe,
+        },
         {name: 'seed', type: Number, description: 'Initial Noise'},
         {name: 'steps', type: Number, description: 'Number of Samples to take (1..16)'},
       ],

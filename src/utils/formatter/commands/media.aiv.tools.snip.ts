@@ -19,8 +19,8 @@ export async function createMessage(
 ) {
   const response = await mediaAIVToolsSnip(context, {
     audioOnly: args.audio,
-    end: (args.end) ? args.end * 1000 : args.end,
-    start: (args.start) ? args.start * 1000 : args.start,
+    end: (args.end) ? (args.end * 1000) : args.end,
+    start: (args.start) ? (args.start * 1000) : args.start,
     url: args.url,
   });
   return mediaReply(context, response);

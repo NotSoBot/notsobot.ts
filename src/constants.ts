@@ -1521,6 +1521,7 @@ export const TimezoneText: Record<Timezones, string> = Object.freeze({
 
 
 export enum TTSVoices {
+  CLONED = 'CLONED',
   TIKTOK_BR_MALE_01 = 'TIKTOK_BR_MALE_01',
   TIKTOK_DE_FEMALE_01 = 'TIKTOK_DE_FEMALE_01',
   TIKTOK_DE_MALE_01 = 'TIKTOK_DE_MALE_01',
