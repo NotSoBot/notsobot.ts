@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -16,6 +16,7 @@ export default class ReimagineCommand extends BaseImageCommand {
       args: [
         {name: 'add', metadata: {description: 'Add text to generated prompt'}},
         {name: 'no', metadata: {description: 'Negative Prompt'}},
+        {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'Initial Noise'}},
         {name: 'steps', type: Number, metadata: {description: 'Number of Samples to take (1..16)'}},
       ],
@@ -27,7 +28,7 @@ export default class ReimagineCommand extends BaseImageCommand {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
         ],
         id: Formatter.Commands.ToolsMLReimagine.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> (-add <query>) (-no <query>) (-seed <number>) (-steps <number>)',
+        usage: '?<emoji,user:id|mention,url> (-add <query>) (-no <query>) (-safe) (-seed <number>) (-steps <number>)',
       },
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLReimagine.COMMAND_ID, type: 'guild'},

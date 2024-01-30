@@ -834,7 +834,11 @@ const ScriptTags = Object.freeze({
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
       const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
-      const response = await utilitiesFetchMedia(context, {maxFileSize, url});
+      const response = await utilitiesFetchMedia(context, {
+        maxFileSize,
+        safe: DefaultParameters.safe(context),
+        url,
+      });
       const filename = filenameArg || response.file.filename;
 
       let data: Buffer | string = Buffer.from(response.file.value, 'base64');

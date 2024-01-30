@@ -261,12 +261,12 @@ export enum E621Rating {
 
 
 export enum EmbedBrands {
-  AUDD = 'https://dashboard.audd.io/img/transperent.png',
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
   E621 = 'https://cdn.notsobot.com/brands/e621.png',
   GOOGLE_CONTENT_VISION_SAFETY = 'https://cdn.notsobot.com/brands/google-content-vision-safety.png',
   GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
   NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
+  OPENAI_WHISPER = 'https://cdn.discordapp.com/attachments/178313653177548800/1200888138738966740/invert.png?ex=65c7d13b&is=65b55c3b&hm=64723ed2c995d73fd8517c411eb089e501c789e264bfca61c88675ea3796b89c&',
   REDDIT = 'https://cdn.notsobot.com/brands/reddit.png',
   RULE34 = 'https://cdn.notsobot.com/brands/rule34.png',
   RULE34_PAHEAL = 'https://cdn.notsobot.com/brands/rule34-paheal.png',

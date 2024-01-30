@@ -1286,6 +1286,7 @@ export async function mediaAVToolsIdentify(
   options: RestOptions.MediaAVToolsIdentify,
 ): Promise<RestResponsesRaw.MediaAVToolsIdentify> {
   const query = {
+    start: options.start,
     url: options.url,
   };
   return request(context, {
@@ -1295,6 +1296,25 @@ export async function mediaAVToolsIdentify(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_TOOLS_IDENTIFY,
+    },
+  });
+}
+
+
+export async function mediaAVToolsTranscribe(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.MediaAVToolsTranscribe> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_TOOLS_TRANSCRIBE,
     },
   });
 }
@@ -3250,6 +3270,7 @@ export async function utilitiesFetchMedia(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3419,6 +3440,7 @@ export async function utilitiesScreenshot(
   options: RestOptions.UtilitiesScreenshot,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {

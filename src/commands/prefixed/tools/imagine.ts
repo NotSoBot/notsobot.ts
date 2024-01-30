@@ -28,7 +28,7 @@ export default class ImagineCommand extends BaseCommand {
           `${COMMAND_NAME} an animal eating strawberries -seed 5`,
         ],
         id: Formatter.Commands.ToolsMLImagine.COMMAND_ID,
-        usage: '<...query> (-no <query>) (-seed <number>) (-steps <number>)',
+        usage: '<...query> (-no <query>) (-safe) (-seed <number>) (-steps <number>)',
       },
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},

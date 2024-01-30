@@ -10,6 +10,7 @@ export interface CommandArgs {
   add?: string,
   no?: string,
   query: string,
+  safe?: boolean,
   seed?: number,
   steps?: number,
   url: string, 
@@ -26,6 +27,7 @@ export async function createMessage(
   const response = await utilitiesMLImagine(context, {
     no: args.no,
     query: prompt,
+    safe: args.safe,
     seed: args.seed,
     steps: args.steps,
   });

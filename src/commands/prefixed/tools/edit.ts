@@ -28,7 +28,7 @@ export default class EditCommand extends BaseImageCommand {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png an animal eating strawberries -seed 5`,
         ],
         id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> <...query> (-no <query>) (-seed <number>) (-steps <number>) (-strength <number>)',
+        usage: '?<emoji,user:id|mention,url> <...query> (-no <query>) (-safe) (-seed <number>) (-steps <number>) (-strength <number>)',
       },
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},

@@ -598,6 +598,7 @@ export namespace RestOptions {
 
   export interface UtilitiesFetchMedia {
     maxFileSize?: number,
+    safe?: boolean,
     url: string,
   }
 
@@ -645,6 +646,7 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesScreenshot {
+    safe?: boolean,
     url: string,
   }
 
@@ -809,6 +811,17 @@ export namespace RestResponsesRaw {
   }
 
   export type MediaAVToolsIdentify = Array<MediaAVToolsIdentifySong>;
+
+  export interface MediaAVToolsTranscribe {
+    chunks: Array<{
+      language: string,
+      text: string,
+      timestamp: [number | null, number | null],
+    }>,
+    duration: number,
+    languages: Array<string>,
+    text: string,
+  }
 
   export type CreateGuildAllowlist = null;
   export type CreateGuildBlocklist = null;

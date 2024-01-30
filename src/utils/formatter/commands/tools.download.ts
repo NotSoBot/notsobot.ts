@@ -12,6 +12,7 @@ export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 
 
 export interface CommandArgs {
+  safe?: boolean,
   spoiler?: boolean,
   url: string,
 }
@@ -21,7 +22,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE) - FILE_SIZE_BUFFER;
-  const response = await utilitiesFetchMedia(context, {maxFileSize, url: args.url});
+  const response = await utilitiesFetchMedia(context, {maxFileSize, safe: args.safe, url: args.url});
   const mimetype = response.file.metadata.mimetype;
 
   if (MIMETYPES_SAFE_EMBED.includes(mimetype as Mimetypes)) {

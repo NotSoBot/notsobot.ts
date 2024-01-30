@@ -10,7 +10,7 @@ import {
   GoogleContentVisionSafeSearchAttributes,
   GoogleContentVisionSafeSearchAttributeValues,
 } from '../../../constants';
-import { createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { DefaultParameters, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
@@ -40,12 +40,13 @@ export default class SafetyLabelsCommand extends BaseImageCommand<CommandArgs> {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
+    const allowNSFW = !DefaultParameters.safe(context);
+
     const { safe_search_annotation: safeSearchAnnotation } = await googleContentVisionSafeSearch(context, args);
 
     const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
     embed.setFooter('Safe Search Detection', EmbedBrands.GOOGLE_CONTENT_VISION_SAFETY);
-    embed.setThumbnail(args.url);
 
     const safeValues = Object.values(GoogleContentVisionSafeSearchAttributes).map((value) => Markup.codestring(toTitleCase(value))).join(', ');
     embed.setDescription(`Likeliness values are ${safeValues}`);
@@ -70,9 +71,19 @@ export default class SafetyLabelsCommand extends BaseImageCommand<CommandArgs> {
       const blue = (green < red) ? 71 : 129;
       const color = rgbToInt(red, green, blue);
       embed.setColor(color);
+
+      if (allowNSFW) {
+        embed.setThumbnail(args.url);
+      } else if (average < 0.50) {
+        embed.setThumbnail(args.url);
+      }
+
+      const percentage = Math.round(average * 100);
+      embed.addField('NSFW Percentage', `${percentage}%`, true);
     } else {
       const color = rgbToInt(0, 255, 129);
       embed.setColor(color);
+      embed.setThumbnail(args.url);
     }
 
     return editOrReply(context, {embed});

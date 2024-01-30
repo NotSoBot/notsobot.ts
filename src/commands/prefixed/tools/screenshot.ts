@@ -1,23 +1,22 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
 
-export interface CommandArgs {
-  url: string,
-}
-
 export const COMMAND_NAME = 'screenshot';
 
-export default class ScreenshotCommand extends BaseCommand<CommandArgs> {
+export default class ScreenshotCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
       aliases: ['ss'],
+      args: [
+        {name: 'safe', default: DefaultParameters.safe, type: () => true},
+      ],
       label: 'url',
       metadata: {
         category: CommandCategories.TOOLS,
@@ -26,17 +25,17 @@ export default class ScreenshotCommand extends BaseCommand<CommandArgs> {
           `${COMMAND_NAME} https://discordapp.com`,
         ],
         id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
-        usage: '<url>',
+        usage: '<url> (-safe)',
       },
       type: Parameters.url,
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgs) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.ToolsScreenshot.CommandArgs) {
     return !!args.url;
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
+  async run(context: Command.Context, args: Formatter.Commands.ToolsScreenshot.CommandArgs) {
     return Formatter.Commands.ToolsScreenshot.createMessage(context, args);
   }
 }

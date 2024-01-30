@@ -7,6 +7,7 @@ import { imageReply } from '../../../utils';
 export const COMMAND_ID = 'tools.screenshot';
 
 export interface CommandArgs {
+  safe?: boolean,
   url: string,
 }
 

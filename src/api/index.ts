@@ -634,6 +634,14 @@ export async function mediaAVToolsIdentify(
 }
 
 
+export async function mediaAVToolsTranscribe(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVToolsTranscribe(context, options);
+}
+
+
 export async function mediaICreateRetrowave(
   context: RequestContext,
   options: RestOptions.MediaICreateRetrowave,
@@ -1520,7 +1528,8 @@ export async function utilitiesScreenshot(
   options: RestOptions.UtilitiesScreenshot,
 ) {
   return raw.utilitiesScreenshot(context, options);
-}
+}
+
 
 export async function voiceCloneAdd(
   context: RequestContext,

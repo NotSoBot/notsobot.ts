@@ -1343,6 +1343,20 @@ export function isSnowflake(value: string): boolean {
 }
 
 
+export function joinArrayWithNouns(values: Array<string>): string {
+  if (values.length === 1) {
+    return values.pop()!;
+  } else if (values.length === 2) {
+    return values.join(' and ');
+  } else {
+    return [
+      ...values.slice(0, -2),
+      values.slice(-2).join(' and '),
+    ].join(', ');
+  }
+}
+
+
 export function languageCodeToText(code: string): string {
   if (code in GoogleLocalesText) {
     return (GoogleLocalesText as any)[code];

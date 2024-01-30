@@ -13,9 +13,15 @@ import { createUserEmbed, editOrReply, languageCodeToText, splitTextByAmount } f
 
 export const COMMAND_ID = 'tools.ocr.translate';
 
+export interface CommandArgs {
+  isEphemeral?: boolean,
+  to?: GoogleLocales | null,
+  url: string,
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: {isEphemeral?: boolean, to?: GoogleLocales | null, url: string},
+  args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 

@@ -96,6 +96,8 @@ export const Api = Object.freeze({
     '/media/av/tools/extract/audio',
   MEDIA_AV_TOOLS_IDENTIFY:
     '/media/av/tools/identify',
+  MEDIA_AV_TOOLS_TRANSCRIBE:
+    '/media/av/tools/transcribe',
 
   MEDIA_I_CREATE_RETROWAVE:
     '/media/i/create/retrowave',

@@ -12,9 +12,15 @@ import { createUserEmbed, editOrReply, languageCodeToText } from '../../../utils
 
 export const COMMAND_ID = 'tools.ocr';
 
+export interface CommandArgs {
+  isEphemeral?: boolean,
+  noembed?: boolean,
+  url: string,
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: {isEphemeral?: boolean, noembed?: boolean, url: string},
+  args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 

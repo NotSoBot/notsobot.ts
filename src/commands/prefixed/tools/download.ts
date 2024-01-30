@@ -15,6 +15,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
 
       aliases: ['dl'],
       args: [
+        {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'spoiler', aliases: ['s'], type: Boolean},
       ],
       default: DefaultParameters.lastUrl,
@@ -26,7 +27,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
           `${COMMAND_NAME} https://discordapp.com`,
         ],
         id: Formatter.Commands.ToolsDownload.COMMAND_ID,
-        usage: '<url> (-spoiler)',
+        usage: '<url> (-safe) (-spoiler)',
       },
       type: Parameters.url,
     });

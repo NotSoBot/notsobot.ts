@@ -39,7 +39,6 @@ export default class LabelsCommand extends BaseImageCommand<CommandArgs> {
     const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
     embed.setFooter('Image Labels', EmbedBrands.GOOGLE_GO);
-    embed.setThumbnail(args.url);
 
     {
       const description: Array<string> = [];

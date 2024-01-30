@@ -3,6 +3,7 @@ import * as FunAesthetics from './fun.aesthetics';
 import * as FunB1 from './fun.b1';
 import * as FunBadMeme from './fun.badmeme';
 import * as FunEmoji from './fun.emoji';
+import * as FunGameImagine from './fun.game.imagine';
 import * as FunRegional from './fun.regional';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
@@ -186,10 +187,12 @@ import * as ToolsMLImagine from './tools.ml.imagine';
 import * as ToolsMLInterrogate from './tools.ml.interrogate';
 import * as ToolsMLReimagine from './tools.ml.reimagine';
 import * as ToolsOCR from './tools.ocr';
-import * as ToolsOCRTranslate from './tools.ocrtranslate';
+import * as ToolsOCRTranslate from './tools.ocr.translate';
 import * as ToolsQrCreate from './tools.qr.create';
 import * as ToolsQrScan from './tools.qr.scan';
 import * as ToolsScreenshot from './tools.screenshot';
+import * as ToolsTranscribe from './tools.transcribe';
+import * as ToolsTranscribeTranslate from './tools.transcribe.translate';
 import * as ToolsTranslate from './tools.translate';
 
 import * as VoiceClone from './voice.clone';
@@ -204,6 +207,7 @@ export {
   FunB1,
   FunBadMeme,
   FunEmoji,
+  FunGameImagine,
   FunRegional,
   FunTextwall,
   FunTTS,
@@ -391,6 +395,8 @@ export {
   ToolsQrCreate,
   ToolsQrScan,
   ToolsScreenshot,
+  ToolsTranscribe,
+  ToolsTranscribeTranslate,
   ToolsTranslate,
 
   VoiceClone,
