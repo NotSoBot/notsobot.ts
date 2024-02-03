@@ -895,22 +895,6 @@ export namespace RestResponsesRaw {
   export type PutTag = Tag;
   export type PutUser = User;
 
-
-  export interface FunAscii {
-    image: {
-      data: string,
-      details: {
-        extension: string,
-        filename: string,
-        height: number,
-        mimetype: string,
-        width: number,
-      },
-    },
-    text: string,
-  }
-
-
   export interface GoogleContentVisionLabels {
     label_annotations: Array<{
       description: string,

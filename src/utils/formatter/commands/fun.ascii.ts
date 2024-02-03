@@ -15,19 +15,21 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { image, text } = await funASCII(context, args);
+  const response = await funASCII(context, args);
+  const file = response.file;
+  const text = response.arguments?.text;
 
   let content: string | undefined;
-  if (text.length <= 560) {
+  if (text && text.length <= 560) {
     content = Markup.codeblock(text, {language: 'fix'});
   }
 
-  const value = Buffer.from(image.data, 'base64');
+  const value = Buffer.from(file.value, 'base64');
   return imageReplyFromOptions(context, value, {
     content,
-    filename: image.details.filename,
-    height: image.details.height,
+    filename: file.filename,
+    height: file.metadata.height,
     size: value.length,
-    width: image.details.width,
+    width: file.metadata.width,
   });
 }

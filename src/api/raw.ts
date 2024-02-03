@@ -852,7 +852,7 @@ export async function fetchUserVoices(
 export async function funASCII(
   context: RequestContext,
   options: RestOptions.FunASCII,
-): Promise<RestResponsesRaw.FunAscii> {
+): Promise<RestResponsesRaw.FileResponse> {
   const body = {
     text: options.text,
   };
