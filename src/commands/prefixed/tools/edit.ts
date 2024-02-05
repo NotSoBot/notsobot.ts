@@ -41,10 +41,6 @@ export default class EditCommand extends BaseImageCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.ToolsMLEdit.CommandArgs) {
-    return !!args.query && super.onBeforeRun(context, args);
-  }
-
   async run(context: Command.Context, args: Formatter.Commands.ToolsMLEdit.CommandArgs) {
     return Formatter.Commands.ToolsMLEdit.createMessage(context, args);
   }

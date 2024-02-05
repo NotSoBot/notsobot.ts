@@ -38,10 +38,6 @@ export default class ImagineCommand extends BaseCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.ToolsMLImagine.CommandArgs) {
-    return !!args.query;
-  }
-
   async run(context: Command.Context, args: Formatter.Commands.ToolsMLImagine.CommandArgs) {
     return Formatter.Commands.ToolsMLImagine.createMessage(context, args);
   }

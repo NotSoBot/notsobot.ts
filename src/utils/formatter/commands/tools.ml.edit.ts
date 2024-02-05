@@ -5,6 +5,7 @@ import { imageReply } from '../..';
 
 
 export const COMMAND_ID = 'tools.ml.edit';
+export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   count?: number,
@@ -18,10 +19,17 @@ export interface CommandArgs {
   url: string, 
 }
 
+export function createResponse(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  return utilitiesMLEdit(context, args);
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await utilitiesMLEdit(context, args);
+  const response = await createResponse(context, args);
   return imageReply(context, response);
 }

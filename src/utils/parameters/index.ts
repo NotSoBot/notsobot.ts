@@ -341,6 +341,16 @@ export async function pipingCommands(
       throw new Error(`Cannot exceed 5 commands to pipe with`)
     }
   }
+  const mlCount = pipers.reduce((x, y) => {
+    const commandId = (y.command.metadata && y.command.metadata.id) || '';
+    if (commandId.includes('tools.ml')) {
+      return x + 1;
+    }
+    return x;
+  }, 0);
+  if (3 <= mlCount) {
+    throw new Error('Cannot pipe more than 2 ML Commands');
+  }
   return pipers;
 }
 
