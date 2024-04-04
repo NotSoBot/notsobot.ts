@@ -11,6 +11,7 @@ import {
   ImageMemeFonts,
   RedditSortTypes,
   RedditTimeTypes,
+  TagVariableStorageTypes,
   UserFallbacksMediaImageTypes,
   UserUploadThresholdTypes,
   YoutubeResultTypes,
@@ -90,6 +91,10 @@ export namespace RestOptions {
     serverId?: string,
   }
 
+  export interface DeleteTagVariable {
+    name: string,
+  }
+
 
   export interface EditGuildSettings {
     allowlist?: Array<{
@@ -117,7 +122,9 @@ export namespace RestOptions {
   }
 
   export interface EditTag {
+    content?: string,
     isCommand?: boolean,
+    isUrlRefresh?: boolean,
     name?: string,
     referenceTagId?: string,
   }
@@ -163,6 +170,16 @@ export namespace RestOptions {
     name?: string,
     serverId?: string,
     userId?: string,
+  }
+
+  export interface FetchTagVariable {
+    name: string,
+  }
+
+  export interface FetchTagVariables{
+    channelId: string,
+    guildId?: string,
+    userId: string,
   }
 
   export interface FetchUserReminders {
@@ -440,6 +457,23 @@ export namespace RestOptions {
     name: string,
     referenceTagId?: string,
     serverId?: string,
+  }
+
+  export interface PutTagVariable {
+    name: string,
+    value: string,
+  }
+
+  export interface PutTagVariables {
+    channelId: string,
+    guildId?: string,
+    userId: string,
+    variables: Array<{
+      name: string,
+      storageId: string,
+      storageType: TagVariableStorageTypes,
+      value: string,
+    }>,
   }
 
   export interface PutUser {
@@ -850,6 +884,7 @@ export namespace RestResponsesRaw {
   export type DeleteReminder = null;
 
   export type DeleteTagSearch = null;
+  export type DeleteTagVariable = null;
 
   export type EditGuildSettings = GuildSettings;
   export type EditTag = Tag;
@@ -875,6 +910,15 @@ export namespace RestResponsesRaw {
   export type FetchTagSearch = Tag;
   export type FetchTagSearchRandom = Tag;
 
+  export interface FetchTagVariable {
+    name: string,
+    storage_id: string,
+    storage_type: number,
+    value: string,
+  }
+
+  export type FetchTagVariables = Record<TagVariableStorageTypes, Record<string, string>>;
+
   export type FetchUser = User;
 
   export interface FetchUserTags {
@@ -893,6 +937,8 @@ export namespace RestResponsesRaw {
   }
 
   export type PutTag = Tag;
+  export type PutTagVariable = FetchTagVariable;
+  export type PutTagVariables = FetchTagVariables;
   export type PutUser = User;
 
   export interface GoogleContentVisionLabels {

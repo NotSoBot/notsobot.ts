@@ -550,6 +550,28 @@ export async function deleteTagsServer(
 }
 
 
+export async function deleteTagVariable(
+  context: RequestContext,
+  tagId: string,
+  storageType: number,
+  storageId: string,
+  options: RestOptions.DeleteTagVariable,
+): Promise<RestResponsesRaw.DeleteTagVariable> {
+  const params = {tagId, storageType, storageId};
+  const query = {
+    name: options.name,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.TAG_VARIABLE,
+      params,
+    },
+  });
+}
+
+
 export async function deleteVoice(
   context: RequestContext,
   voiceId: string,
@@ -597,7 +619,9 @@ export async function editTag(
   options: RestOptions.EditTag,
 ): Promise<RestResponsesRaw.EditTag> {
   const body = {
+    content: options.content,
     is_command: options.isCommand,
+    is_url_refresh: options.isUrlRefresh,
     name: options.name,
     reference_tag_id: options.referenceTagId,
   };
@@ -710,6 +734,7 @@ export async function fetchTag(
   });
 }
 
+
 // rename
 export async function fetchTagRandom(
   context: RequestContext,
@@ -751,6 +776,50 @@ export async function fetchTagsServer(
     route: {
       method: HTTPMethods.GET,
       path: Api.TAGS,
+    },
+  });
+}
+
+
+export async function fetchTagVariable(
+  context: RequestContext,
+  tagId: string,
+  storageType: number,
+  storageId: string,
+  options: RestOptions.FetchTagVariable,
+): Promise<RestResponsesRaw.FetchTagVariable> {
+  const params = {tagId, storageType, storageId};
+  const query = {
+    name: options.name,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAG_VARIABLE,
+      params,
+    },
+  });
+}
+
+
+export async function fetchTagVariables(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.FetchTagVariables,
+): Promise<RestResponsesRaw.FetchTagVariables> {
+  const params = {tagId};
+  const query = {
+    channel_id: options.channelId,
+    guild_id: options.guildId,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAG_VARIABLES,
+      params,
     },
   });
 }
@@ -2740,6 +2809,59 @@ export async function putTag(
     route: {
       method: HTTPMethods.PUT,
       path: Api.TAGS,
+    },
+  });
+}
+
+
+export async function putTagVariable(
+  context: RequestContext,
+  tagId: string,
+  storageType: number,
+  storageId: string,
+  options: RestOptions.PutTagVariable,
+): Promise<RestResponsesRaw.PutTagVariable> {
+  const body = {
+    name: options.name,
+    value: options.value,
+  };
+  const params = {tagId, storageType, storageId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.TAG_VARIABLE,
+      params,
+    },
+  });
+}
+
+
+export async function putTagVariables(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.PutTagVariables,
+): Promise<RestResponsesRaw.PutTagVariables> {
+  const body = {
+    channel_id: options.channelId,
+    guild_id: options.guildId,
+    user_id: options.userId,
+    variables: options.variables.map((x) => {
+      return {
+        name: x.name,
+        storage_id: x.storageId,
+        storage_type: x.storageType,
+        value: x.value,
+      };
+    }),
+  };
+  const params = {tagId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.TAG_VARIABLES,
+      params,
     },
   });
 }

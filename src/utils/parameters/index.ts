@@ -13,6 +13,7 @@ import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import * as juration from 'juration';
+import MiniSearch from 'minisearch';
 import * as moment from 'moment';
 
 import { fetchTag, searchGoogleImages, utilitiesMLImagine } from '../../api';
@@ -71,6 +72,19 @@ export function days(value: string): number {
 }
 
 
+const localeGoogleSearch = new MiniSearch({
+  fields: ['id', 'name'],
+  storeFields: ['id', 'name'],
+  searchOptions: {
+    boost: {id: 2},
+    fuzzy: true,
+    prefix: true,
+  },
+});
+localeGoogleSearch.addAll(Object.entries(GoogleLocalesText).map(([key, name]) => {
+  return {id: key, name};
+}));
+
 export async function locale(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
@@ -85,19 +99,9 @@ export async function locale(
     return locales[Math.floor(Math.random() * locales.length)];
   }
 
-  for (let key in GoogleLocalesText) {
-    const locale = key as GoogleLocales;
-    if (locale.toLowerCase() === value) {
-      return locale;
-    }
-  }
-
-  for (let key in GoogleLocalesText) {
-    const locale = key as GoogleLocales;
-    const name = GoogleLocalesText[locale].toLowerCase();
-    if (name.includes(value)) {
-      return locale;
-    }
+  const results = localeGoogleSearch.search(value);
+  if (results.length) {
+    return results[0]!.id as GoogleLocales;
   }
 
   const locales = Object.values(GoogleLocalesText).map((locale) => {
@@ -110,30 +114,30 @@ export async function locale(
 }
 
 
+const localeDiscordSearch = new MiniSearch({
+  fields: ['id', 'key', 'name'],
+  storeFields: ['id'],
+  searchOptions: {
+    boost: {id: 2},
+    fuzzy: true,
+    prefix: true,
+  },
+});
+localeDiscordSearch.addAll(Object.entries(DiscordLocales).map(([key, id]) => {
+  const name = DiscordLocalesText[id] || '';
+  return {id, key, name};
+}));
+
 export async function localeDiscord(value: string): Promise<DiscordLocales | null> {
   if (!value) {
     return null;
   }
 
-  value = value.toLowerCase().replace(/ /g, '_');
-  for (let key in DiscordLocales) {
-    const locale = (DiscordLocales as any)[key];
-    if (locale.toLowerCase() === value) {
-      return locale;
-    }
+  const results = localeDiscordSearch.search(value);
+  if (results.length) {
+    return results[0]!.id as DiscordLocales;
   }
-  for (let key in DiscordLocales) {
-    const name = key.toLowerCase();
-    if (name.includes(value)) {
-      return (DiscordLocales as any)[key];
-    }
-  }
-  for (let key in DiscordLocalesText) {
-    const name = (DiscordLocalesText as any)[key].toLowerCase();
-    if (name.includes(value)) {
-      return key as DiscordLocales;
-    }
-  }
+
   const locales = Object.values(DiscordLocalesText).map((locale) => {
     if (locale.includes(',')) {
       return `(\`${locale}\`)`;
@@ -1595,6 +1599,31 @@ export function lastMediaUrl(
     }
     return await customLastMediaUrl(context) || undefined;
   };
+}
+
+
+export function prefixedCommand(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext
+): any | null {
+  let command: Command.Command | null = null;
+  if (!value) {
+    return command;
+  }
+
+  if (context.commandClient) {
+    for (let cmd of context.commandClient.commands) {
+      if (cmd.metadata && cmd.metadata.id === value) {
+        command = cmd;
+        break;
+      }
+    }
+    if (command === null) {
+      command = context.commandClient.getCommand({content: value, prefix: ''});
+    }
+  }
+
+  return command;
 }
 
 

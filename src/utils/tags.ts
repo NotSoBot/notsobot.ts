@@ -6,8 +6,13 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import * as mathjs from 'mathjs';
 
 import {
+  fetchTagVariable,
+  fetchTagVariables,
+  deleteTagVariable,
   googleContentVisionOCR,
   googleTranslate,
+  putTagVariable,
+  putTagVariables,
   searchGoogleImages,
   utilitiesCodeRun,
   utilitiesFetchMedia,
@@ -18,7 +23,7 @@ import {
   utilitiesMLInterrogate,
 } from '../api';
 import { RestResponses } from '../api/types';
-import { CodeLanguages, GoogleLocales, MAX_MEMBERS_SAFE } from '../constants';
+import { CodeLanguages, GoogleLocales, TagVariableStorageTypes, MAX_MEMBERS_SAFE } from '../constants';
 
 import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
@@ -84,8 +89,13 @@ export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 export const ERROR_TIMEOUT_MESSAGE = 'Script execution timed out after';
 export const MAX_ATTACHMENTS = 10;
 export const MAX_EMBEDS = 10;
-export const MAX_ITERATIONS = 150;
+export const MAX_ITERATIONS = 450;
 export const MAX_NETWORK_REQUESTS = 15;
+export const MAX_STORAGE_GUILD_AMOUNT = 5;
+export const MAX_STORAGE_CHANNEL_AMOUNT = 5;
+export const MAX_STORAGE_USER_AMOUNT = 5;
+export const MAX_STORAGE_KEY_LENGTH = 128;
+export const MAX_STORAGE_VALUE_LENGTH = 2048;
 export const MAX_TIME_MATH = 25;
 export const MAX_TIME_REGEX = 25;
 export const MAX_VARIABLE_KEY_LENGTH = 64;
@@ -93,6 +103,7 @@ export const MAX_VARIABLE_LENGTH = 4000;
 export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
+export const ATTACHMENT_URL_REGEX = /(https?:\/\/(?:media\.discordapp\.net|cdn.discordapp.com)\/attachments\/[0-9]*\/[0-9]*\/[A-Za-z0-9_.-]*(?:\?[a-zA-Z0-9&=]*)?)/g;
 export const MATH_NON_NUMERIC_REGEX = /[^+\-*\/()0-9.n><&]/g;
 export const SCRIPT_REGEX = /\{((?:(?!:)(?:.|\s))*):([\s\S]+)\}/;
 
@@ -172,9 +183,18 @@ export enum TagFunctions {
   IMAGE_INTERROGATE = 'IMAGE_INTERROGATE',
   IMAGE_OCR = 'IMAGE_OCR',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
+  LOGICAL_DELETE_CHANNEL = 'LOGICAL_DELETE_CHANNEL',
+  LOGICAL_DELETE_SERVER = 'LOGICAL_DELETE_SERVER',
+  LOGICAL_DELETE_USER = 'LOGICAL_DELETE_USER',
   LOGICAL_GET = 'LOGICAL_GET',
+  LOGICAL_GET_CHANNEL = 'LOGICAL_GET_CHANNEL',
+  LOGICAL_GET_SERVER = 'LOGICAL_GET_SERVER',
+  LOGICAL_GET_USER = 'LOGICAL_GET_USER',
   LOGICAL_IF = 'LOGICAL_IF',
   LOGICAL_SET = 'LOGICAL_SET',
+  LOGICAL_SET_CHANNEL = 'LOGICAL_SET_CHANNEL',
+  LOGICAL_SET_SERVER = 'LOGICAL_SET_SERVER',
+  LOGICAL_SET_USER = 'LOGICAL_SET_USER',
   MATH = 'MATH',
   MATH_ABS = 'MATH_ABS',
   MATH_COS = 'MATH_COS',
@@ -266,9 +286,18 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.IMAGE_INTERROGATE]: ['identify', 'interrogate'],
   [TagFunctions.IMAGE_OCR]: ['ocr'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
+  [TagFunctions.LOGICAL_DELETE_CHANNEL]: ['deletechannel'],
+  [TagFunctions.LOGICAL_DELETE_SERVER]: ['deleteserver'],
+  [TagFunctions.LOGICAL_DELETE_USER]: ['deleteuser'],
   [TagFunctions.LOGICAL_GET]: ['get'],
+  [TagFunctions.LOGICAL_GET_CHANNEL]: ['getchannel'],
+  [TagFunctions.LOGICAL_GET_SERVER]: ['getserver'],
+  [TagFunctions.LOGICAL_GET_USER]: ['getuser'],
   [TagFunctions.LOGICAL_IF]: ['if'],
   [TagFunctions.LOGICAL_SET]: ['set'],
+  [TagFunctions.LOGICAL_SET_CHANNEL]: ['setchannel'],
+  [TagFunctions.LOGICAL_SET_SERVER]: ['setserver'],
+  [TagFunctions.LOGICAL_SET_USER]: ['setuser'],
   [TagFunctions.MATH]: ['math'],
   [TagFunctions.MATH_ABS]: ['abs'],
   [TagFunctions.MATH_COS]: ['cos'],
@@ -358,6 +387,7 @@ export interface TagResult {
   },
   embeds: Array<Embed>,
   files: Array<{buffer: null | string | Buffer, description?: string, filename: string, spoiler?: boolean, url: string}>,
+  replacement: string | null,
   text: string,
   variables: TagVariables,
 }
@@ -388,7 +418,61 @@ export async function parse(
   if (!(PrivateVariables.SETTINGS in variables)) {
     (variables as any)[PrivateVariables.SETTINGS] = {};
   }
-  const tag: TagResult = {context: {}, embeds: [], files: [], text: '', variables};
+
+  let replacement: string | null = null;
+  if (isFirstParse) {
+    // go through the text and replace
+
+    const expired = new Set();
+    // go through them all and see if they are expired, if so then replace
+    for (let match of value.matchAll(ATTACHMENT_URL_REGEX)) {
+      try {
+        const url = new URL(match[0]);
+        const expiresAt = url.searchParams.get('ex');
+        if (expiresAt && (Date.now() / 1000) < parseInt(expiresAt, 16)) {
+          continue;
+        }
+      } catch(error) {
+      }
+      expired.add(match[0]);
+    }
+
+    for (let match of args.matchAll(ATTACHMENT_URL_REGEX)) {
+      try {
+        const url = new URL(match[0]);
+        const expiresAt = url.searchParams.get('ex');
+        if (expiresAt && (Date.now() / 1000) < parseInt(expiresAt, 16)) {
+          continue;
+        }
+      } catch(error) {
+      }
+      expired.add(match[0]);
+    }
+
+    const oldValue = value;
+    if (expired.size && expired.size <= 50) {
+      const { refreshed_urls: refreshedUrls } = await context.rest.request({
+        body: {attachment_urls: Array.from(expired)},
+        route: {
+          method: 'post',
+          path: '/attachments/refresh-urls',
+        },
+      });
+      for (let item of refreshedUrls) {
+        value = value.replace(item.original, item.refreshed);
+        args = args.replace(item.original, item.refreshed);
+      }
+      if (oldValue !== value) {
+        replacement = value;
+      }
+      if ((variables as any)[PrivateVariables.ARGS_STRING] !== args) {
+        (variables as any)[PrivateVariables.ARGS_STRING] = args;
+        (variables as any)[PrivateVariables.ARGS] = Parameters.stringArguments(args);
+      }
+    }
+  }
+
+  const tag: TagResult = {context: {}, embeds: [], files: [], replacement, text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
@@ -626,6 +710,39 @@ const ScriptTags = Object.freeze({
     // {python:code}
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
 
+    const storage: {
+      channel: Record<string, string>,
+      server: Record<string, string>,
+      user: Record<string, string>,
+    } = {channel: {}, server: {}, user: {}};
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+
+    if (tagId) {
+      const response = await fetchTagVariables(context, tagId, {
+        channelId: context.channelId!,
+        guildId: context.guildId,
+        userId: context.userId,
+      });
+      for (let key in Object.keys(response)) {
+        const storageType = parseInt(key) as TagVariableStorageTypes;
+        switch (storageType) {
+          case TagVariableStorageTypes.CHANNEL: {
+            Object.assign(storage.channel, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GUILD: {
+            Object.assign(storage.server, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.USER: {
+            Object.assign(storage.user, response[storageType]);
+          }; break;
+        }
+      }
+    }
+
     const variables = Object.assign({
       [PrivateVariables.FILES]: tag.files.map((file) => {
         return {description: file.description, filename: file.filename};
@@ -636,7 +753,7 @@ const ScriptTags = Object.freeze({
       const { result } = await utilitiesCodeRun(context, {
         code,
         language,
-        stdin: generateCodeStdin(context, variables),
+        stdin: generateCodeStdin(context, variables, storage),
         urls: Object.values(urls),
         version: version || undefined,
       });
@@ -647,33 +764,147 @@ const ScriptTags = Object.freeze({
           const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
           for (let file of result.files) {
             const { filename, size, value } = file;
-            if (filename === 'variables.json') {
+            if (filename === '__internals__.json') {
               if (MAX_ATTACHMENT_SIZE <= size) {
                 continue;
               }
-              let variables = {};
+              let response: any = {};
               try {
-                variables = JSON.parse(Buffer.from(value, 'base64').toString());
+                response = JSON.parse(Buffer.from(value, 'base64').toString());
               } catch(error) {
 
               }
-              if (typeof(variables) === 'object') {
-                for (let key in variables) {
-                  if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
-                    continue;
-                  }
 
-                  if (MAX_VARIABLE_KEY_LENGTH < key.length) {
-                    throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
-                  }
+              if (typeof(response) === 'object') {
+                if (typeof(response.variables) === 'object') {
+                  const variables = response.variables;
+                  for (let key in variables) {
+                    if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
+                      continue;
+                    }
 
-                  if (!(key in tag.variables)) {
-                    if (MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
-                      throw new Error(`Reached max variable amount (Max ${MAX_VARIABLES.toLocaleString()} Variables)`);
+                    if (MAX_VARIABLE_KEY_LENGTH < key.length) {
+                      throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+                    }
+
+                    if (!(key in tag.variables)) {
+                      if (MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
+                        throw new Error(`Reached max variable amount (Max ${MAX_VARIABLES.toLocaleString()} Variables)`);
+                      }
+                    }
+
+                    tag.variables[key] = String((variables as any)[key]);
+                  }
+                }
+
+                if (typeof(response.storage) === 'object') {
+                  const variables = response.storage;
+                  if (Object.keys(variables).length !== 3) {
+                    throw new Error('Storage Variables only supports `server`, `channel`, and `user`');
+                  }
+                  if (typeof(variables.server) !== 'object' || typeof(variables.channel) !== 'object' || typeof(variables.user) !== 'object') {
+                    throw new Error('Storage Variables only supports `server`, `channel`, and `user`');
+                  }
+                  if (MAX_STORAGE_GUILD_AMOUNT < Object.keys(variables.server).length) {
+                    throw new Error(`Server Variables exceeded max amount (${MAX_STORAGE_GUILD_AMOUNT})`);
+                  }
+                  if (MAX_STORAGE_CHANNEL_AMOUNT < Object.keys(variables.channel).length) {
+                    throw new Error(`Channel Variables exceeded max amount (${MAX_STORAGE_CHANNEL_AMOUNT})`);
+                  }
+                  if (MAX_STORAGE_USER_AMOUNT < Object.keys(variables.user).length) {
+                    throw new Error(`User Variables exceeded max amount (${MAX_STORAGE_USER_AMOUNT})`);
+                  }
+  
+                  const formattedVariables: Array<{name: string, storageId: string, storageType: TagVariableStorageTypes, value: string}> = [];
+                  for (let key in variables.server) {
+                    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+                      throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                    }
+                    const value = String(variables.server[key]);
+                    if (MAX_STORAGE_VALUE_LENGTH < value.length) {
+                      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                    }
+                    formattedVariables.push({
+                      name: String(key),
+                      storageId: context.guildId || context.channelId!,
+                      storageType: TagVariableStorageTypes.GUILD,
+                      value,
+                    });
+                  }
+                  for (let key in variables.channel) {
+                    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+                      throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                    }
+                    const value = String(variables.channel[key]);
+                    if (MAX_STORAGE_VALUE_LENGTH < value.length) {
+                      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                    }
+                    formattedVariables.push({
+                      name: String(key),
+                      storageId: context.channelId!,
+                      storageType: TagVariableStorageTypes.CHANNEL,
+                      value,
+                    });
+                  }
+                  for (let key in variables.user) {
+                    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+                      throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                    }
+                    const value = String(variables.user[key]);
+                    if (MAX_STORAGE_VALUE_LENGTH < value.length) {
+                      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                    }
+                    formattedVariables.push({
+                      name: String(key),
+                      storageId: context.userId,
+                      storageType: TagVariableStorageTypes.USER,
+                      value,
+                    });
+                  }
+  
+                  let hasChange = false;
+                  if (Object.keys(storage.server).length !== Object.keys(variables.server).length) {
+                    hasChange = true;
+                  } else if (Object.keys(storage.channel).length !== Object.keys(variables.channel).length) {
+                    hasChange = true;
+                  } else if (Object.keys(storage.user).length !== Object.keys(variables.user).length) {
+                    hasChange = true;
+                  }
+  
+                  if (!hasChange) {
+                    for (let item of formattedVariables) {
+                      switch (item.storageType) {
+                        case TagVariableStorageTypes.CHANNEL: {
+                          if (!(item.name in storage.channel) || storage.channel[item.name] !== item.value) {
+                            hasChange = true;
+                          }
+                        }; break;
+                        case TagVariableStorageTypes.GUILD: {
+                          if (!(item.name in storage.server) || storage.server[item.name] !== item.value) {
+                            hasChange = true;
+                          }
+                        }; break;
+                        case TagVariableStorageTypes.USER: {
+                          if (!(item.name in storage.user) || storage.user[item.name] !== item.value) {
+                            hasChange = true;
+                          }
+                        }; break;
+                      }
+                      if (hasChange) {
+                        break;
+                      }
                     }
                   }
-
-                  tag.variables[key] = String((variables as any)[key]);
+  
+                  if (hasChange && tagId) {
+                    const storageResponse = await putTagVariables(context, tagId, {
+                      channelId: context.channelId!,
+                      guildId: context.guildId,
+                      userId: context.userId,
+                      variables: formattedVariables,
+                    });
+                    // store it in tagresult i guess
+                  }
                 }
               }
               continue;
@@ -1177,6 +1408,7 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.LOGICAL_DELETE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    arg = arg.trim();
     if (arg.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to delete a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
@@ -1184,6 +1416,81 @@ const ScriptTags = Object.freeze({
       throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
     }
     delete tag.variables[arg];
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_DELETE_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    arg = arg.trim();
+    if (MAX_STORAGE_KEY_LENGTH < arg.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+  
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      try {
+        const storageId = context.channelId!;
+        await deleteTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
+          name: arg,
+        });
+      } catch(error) {
+
+      }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_DELETE_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    arg = arg.trim();
+    if (MAX_STORAGE_KEY_LENGTH < arg.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+  
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      try {
+        const storageId = context.guildId || context.channelId!;
+        await deleteTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
+          name: arg,
+        });
+      } catch(error) {
+
+      }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_DELETE_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    arg = arg.trim();
+    if (MAX_STORAGE_KEY_LENGTH < arg.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+  
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      try {
+        const storageId = context.userId;
+        await deleteTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
+          name: arg,
+        });
+      } catch(error) {
+
+      }
+    }
 
     return true;
   },
@@ -1200,6 +1507,90 @@ const ScriptTags = Object.freeze({
     }
     if (key in tag.variables) {
       tag.text += tag.variables[key];
+    }
+  
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_GET_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {getchannel:variable-name}
+
+    const key = arg.trim();
+    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      try {
+        const storageId = context.channelId!;
+        const response = await fetchTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
+          name: key,
+        });
+        tag.text += response.value;
+      } catch(error) {
+
+      }
+    }
+  
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_GET_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {get:variable-name}
+
+    const key = arg.trim();
+    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      try {
+        const storageId = context.guildId || context.channelId!;
+        const response = await fetchTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
+          name: key,
+        });
+        tag.text += response.value;
+      } catch(error) {
+
+      }
+    }
+  
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_GET_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {get:variable-name}
+
+    const key = arg.trim();
+    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      try {
+        const storageId = context.userId;
+        const response = await fetchTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
+          name: key,
+        });
+        tag.text += response.value;
+      } catch(error) {
+
+      }
     }
   
     return true;
@@ -1330,6 +1721,114 @@ const ScriptTags = Object.freeze({
     }
 
     tag.variables[key] = value.join(TagSymbols.SPLITTER_ARGUMENT).slice(0, MAX_VARIABLE_LENGTH).trim();
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_SET_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {setchannel:variable|value}
+    // {setchannel:lastused|{userid}}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    let [ key, ...value ] = split(arg);
+    key = key.trim();
+
+    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+
+    const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    if (MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
+      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+    }
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      const storageId = context.channelId!;
+      const response = await putTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
+        name: key,
+        value: storageValue,
+      });
+    }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_SET_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {setserver:variable|value}
+    // {setserver:lastused|{userid}}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    let [ key, ...value ] = split(arg);
+    key = key.trim();
+
+    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+
+    const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    if (MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
+      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+    }
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      const storageId = context.guildId || context.channelId!;
+      const response = await putTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
+        name: key,
+        value: storageValue,
+      });
+    }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_SET_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {setuser:variable|value}
+    // {setuser:lastused|{userid}}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    let [ key, ...value ] = split(arg);
+    key = key.trim();
+
+    if (MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+
+    const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    if (MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
+      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+    }
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+  
+    if (tagId) {
+      const storageId = context.userId;
+      const response = await putTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
+        name: key,
+        value: storageValue,
+      });
+    }
 
     return true;
   },

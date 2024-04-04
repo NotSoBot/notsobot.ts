@@ -37,7 +37,7 @@ export async function createMessage(
 
   let settings = (await GuildSettingsStore.getOrFetch(context, guildId))!;
 
-  let title = `Blocked ${Markup.codestring(commandId)}`;
+  let title = `Command ${Markup.codestring(commandId)}`;
   if (isServerWide) {
     title = `${title} server-wide`;
     await createGuildCommandsBlocklist(context, guildId, commandId, guildId, GuildCommandsBlocklistTypes.GUILD);
@@ -83,7 +83,7 @@ export async function createMessage(
     if (users) {
       comments.push(`${users.toLocaleString()} Users${(users === 1) ? '' : 's'}`);
     }
-    title = `${title} for ${comments.join(', ')}`;
+    title = `Added ${comments.join(', ')} to the blocklist for ${title}`;
   
     /*
     if (payloads.length === 1) {

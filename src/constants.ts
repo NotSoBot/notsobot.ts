@@ -1022,6 +1022,12 @@ export const ReminderMessages = [
 ];
 
 
+export enum TagVariableStorageTypes {
+  USER = 0,
+  CHANNEL = 1,
+  GUILD = 2,
+}
+
 
 export enum Timezones {
   MIT = 'Pacific/Midway',
@@ -1564,6 +1570,49 @@ export enum TTSVoices {
 
 
 export const TTS_VOICES = Object.values(TTSVoices);
+
+
+export const TTSVoicesToText = Object.freeze({
+  [TTSVoices.CLONED]: 'Cloned',
+  [TTSVoices.TIKTOK_BR_MALE_01]: 'TikTok Brazilian Male One',
+  [TTSVoices.TIKTOK_DE_FEMALE_01]: 'TikTok Denmark Female One',
+  [TTSVoices.TIKTOK_DE_MALE_01]: 'TikTok Denmark Male One',
+  [TTSVoices.TIKTOK_EN_AU_FEMALE]: 'TikTok Australian Female',
+  [TTSVoices.TIKTOK_EN_AU_MALE]: 'TikTok Australian Male',
+  [TTSVoices.TIKTOK_EN_FEMALE_EMOTIONAL]: 'TikTok English Female Emotional',
+  [TTSVoices.TIKTOK_EN_FEMALE_SALUT_DAMOUR]: 'TikTok English Female Salut Damour',
+  [TTSVoices.TIKTOK_EN_FEMALE_WARMY_BREEZE]: 'TikTok English Female Warm Breeze',
+  [TTSVoices.TIKTOK_EN_MALE_FUNNY]: 'TikTok English Male Funny',
+  [TTSVoices.TIKTOK_EN_MALE_LOBBY]: 'TikTok English Male Lobby',
+  [TTSVoices.TIKTOK_EN_MALE_NARRATION]: 'TikTok English Male Narration',
+  [TTSVoices.TIKTOK_EN_MALE_SUNSHINE_SOON]: 'TikTok English Male Sunshine Soon',
+  [TTSVoices.TIKTOK_EN_UK_MALE_01]: 'TikTok English British Male One',
+  [TTSVoices.TIKTOK_EN_UK_MALE_02]: 'TikTok English British Male Two',
+  [TTSVoices.TIKTOK_EN_US_C3PO]: 'TikTok C3P0',
+  [TTSVoices.TIKTOK_EN_US_CHEWBACCA]: 'TikTok Chewbacca',
+  [TTSVoices.TIKTOK_EN_US_FEMALE_01]: 'TikTok English United States USA Female One',
+  [TTSVoices.TIKTOK_EN_US_FEMALE_02]: 'TikTok English United States USA Female Two',
+  [TTSVoices.TIKTOK_EN_US_GHOSTFACE]: 'TikTok Ghostface',
+  [TTSVoices.TIKTOK_EN_US_MALE_01]: 'TikTok English United States USA Male One',
+  [TTSVoices.TIKTOK_EN_US_MALE_02]: 'TikTok English United States USA Male Two',
+  [TTSVoices.TIKTOK_EN_US_MALE_03]: 'TikTok English United States USA Male Three',
+  [TTSVoices.TIKTOK_EN_US_MALE_04]: 'TikTok English United States USA Male Four',
+  [TTSVoices.TIKTOK_EN_US_ROCKET]: 'TikTok Rocket',
+  [TTSVoices.TIKTOK_EN_US_STITCH]: 'TikTok Stitch',
+  [TTSVoices.TIKTOK_EN_US_STORMTROOPER]: 'TikTok Star Wars Stormtrooper',
+  [TTSVoices.TIKTOK_ES_MALE_01]: 'TikTok Spanish Male One',
+  [TTSVoices.TIKTOK_ES_MX_MALE_01]: 'TikTok Spanish Mexican Male One',
+  [TTSVoices.TIKTOK_FR_MALE_01]: 'TikTok French Male One',
+  [TTSVoices.TIKTOK_FR_MALE_02]: 'TikTok French Male Two',
+  [TTSVoices.TIKTOK_ID_FEMALE_01]: 'TikTok Indonesian Female One',
+  [TTSVoices.TIKTOK_JP_FEMALE_01]: 'TikTok Japanese Female One',
+  [TTSVoices.TIKTOK_JP_FEMALE_02]: 'TikTok Japanese Female Two',
+  [TTSVoices.TIKTOK_JP_FEMALE_03]: 'TikTok Japanese Female Three',
+  [TTSVoices.TIKTOK_JP_MALE_01]: 'TikTok Japanese Male One',
+  [TTSVoices.TIKTOK_KR_FEMALE_01]: 'TikTok Korean Female One',
+  [TTSVoices.TIKTOK_KR_MALE_01]: 'TikTok Korean Male One',
+  [TTSVoices.TIKTOK_KR_MALE_02]: 'TikTok Korean Male Two',
+});
 
 
 export const VerificationLevelTexts: Record<string, string> = Object.freeze({

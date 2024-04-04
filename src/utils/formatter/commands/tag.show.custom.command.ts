@@ -1,6 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { createTagUse } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { TagFormatter, editOrReply } from '../../../utils';
 
@@ -29,7 +28,8 @@ export async function createMessage(
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
   const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
 
-  const options: Command.EditOrReply = {content: parsedTag.text.slice(0, 2000)};
+  const content = parsedTag.text.trim().slice(0, 2000).trim();
+  const options: Command.EditOrReply = {content};
   if (parsedTag.embeds.length) {
     // add checks for embed lengths
     options.embeds = parsedTag.embeds.slice(0, 10);
@@ -46,32 +46,11 @@ export async function createMessage(
     });
   }
 
-  if (!parsedTag.text.length && !parsedTag.embeds.length && !parsedTag.files.length) {
+  if (!content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
     options.content = 'Tag returned no content';
   }
 
+  context.metadata = Object.assign({}, context.metadata, {parsedTag});
+
   return editOrReply(context, options);
-}
-
-
-export async function increaseUsage(
-  context: Command.Context | Interaction.InteractionContext,
-  tag: RestResponsesRaw.Tag,
-) {
-  let timestamp: number;
-  if (context instanceof Interaction.InteractionContext) {
-    timestamp = context.interaction.createdAtUnix;
-  } else {
-    timestamp = context.message.editedAtUnix || context.message.createdAtUnix;
-  }
-
-  try {
-    await createTagUse(context, tag.id, {
-      serverId: context.guildId || context.channelId,
-      timestamp,
-      userId: context.userId,
-    });
-  } catch(e) {
-
-  }
 }

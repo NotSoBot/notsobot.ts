@@ -1,12 +1,9 @@
-import { onlyEmoji } from 'emoji-aware';
-
 import { ClusterClient, Collections, Command, Structures } from 'detritus-client';
-import { ChannelTypes, DiscordAbortCodes, DiscordRegexNames } from 'detritus-client/lib/constants';
-import { Markup, regex as discordRegex } from 'detritus-client/lib/utils';
-import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
-import { Timers } from 'detritus-utils';
+import { DiscordRegexNames } from 'detritus-client/lib/constants';
+import { regex as discordRegex } from 'detritus-client/lib/utils';
 
-import { CDN } from '../../api/endpoints';
+import MiniSearch from 'minisearch';
+
 import GuildChannelsStore, { GuildChannelsStored } from '../../stores/guildchannels';
 import GuildMetadataStore, { GuildMetadataStored } from '../../stores/guildmetadata';
 import {
@@ -317,17 +314,23 @@ export async function applications(
       // maybe use rest api?
       return [];
     }
-    return context.applications.filter((application) => {
-      if (application.name.toLowerCase().includes(value)) {
-        return true;
-      }
-      if (application.aliases) {
-        return application.aliases.some((name) => {
-          return name.toLowerCase().includes(value);
-        });
-      }
-      return false;
+
+    const search = new MiniSearch({
+      fields: ['id', 'aliases', 'name'],
+      storeFields: ['id'],
+      searchOptions: {
+        boost: {name: 2},
+        fuzzy: true,
+        prefix: true,
+        weights: {fuzzy: 0.2, prefix: 1},
+      },
     });
+    search.addAll(context.applications.toArray());
+  
+    const results = search.search(value);
+    if (results.length) {
+      return results.map((x) => context.applications.get(x.id)!);
+    }
   }
   return [];
 }
@@ -350,36 +353,31 @@ export function codeblock(
 export interface OneOfOptions<T> {
   choices: Record<string, T>,
   defaultChoice?: T,
+  descriptions?: Record<any, string>,
 }
 
 export function oneOf<T>(options: OneOfOptions<T>) {
+  const search = new MiniSearch({
+    fields: ['id', 'key', 'description'],
+    storeFields: ['id'],
+    searchOptions: {
+      boost: {name: 2},
+      fuzzy: true,
+      prefix: true,
+      weights: {fuzzy: 0.2, prefix: 1},
+    },
+  });
+  search.addAll(Object.entries(options.choices).map(([key, value]) => {
+    const description: string = ((options.descriptions) ? (options.descriptions as any)[value] : '') || '';
+    return {id: value, key, description};
+  }));
+
   return (value: string): null | T => {
     if (value) {
-      value = value.toUpperCase().replace(/ /g, '_');
-
-      // match any values that are exact
-      for (let key in options.choices) {
-        const choice = (options.choices as any)[key];
-        if (choice.toUpperCase() === value) {
-          return choice;
-        }
+      const results = search.search(value);
+      if (results.length) {
+        return results[0].id!;
       }
-
-      // go through the keys next
-      for (let key in options.choices) {
-        if (key.toUpperCase().includes(value)) {
-          return (options.choices as any)[key];
-        }
-      }
-
-      // go through the values then
-      for (let key in options.choices) {
-        const choice = (options.choices as any)[key];
-        if (choice.toUpperCase().includes(value)) {
-          return choice;
-        }
-      }
-
       return null;
     }
     return options.defaultChoice || null;

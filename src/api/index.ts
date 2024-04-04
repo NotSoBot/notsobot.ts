@@ -289,6 +289,17 @@ export async function deleteTagsServer(
 }
 
 
+export async function deleteTagVariable(
+  context: RequestContext,
+  tagId: string,
+  storageType: number,
+  storageId: string,
+  options: RestOptions.DeleteTagVariable,
+) {
+  return raw.deleteTagVariable(context, tagId, storageType, storageId, options);
+}
+
+
 export async function deleteVoice(
   context: RequestContext,
   voiceId: string,
@@ -397,6 +408,26 @@ export async function fetchTagsServer(
   options: RestOptions.FetchTags = {},
 ) {
   return raw.fetchTagsServer(context, guildId, options);
+}
+
+
+export async function fetchTagVariable(
+  context: RequestContext,
+  tagId: string,
+  storageType: number,
+  storageId: string,
+  options: RestOptions.FetchTagVariable,
+) {
+  return raw.fetchTagVariable(context, tagId, storageType, storageId, options);
+}
+
+
+export async function fetchTagVariables(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.FetchTagVariables,
+) {
+  return raw.fetchTagVariables(context, tagId, options);
 }
 
 
@@ -1209,6 +1240,26 @@ export async function putTag(
   options: RestOptions.PutTag,
 ) {
   return raw.putTag(context, options);
+}
+
+
+export async function putTagVariable(
+  context: RequestContext,
+  tagId: string,
+  storageType: number,
+  storageId: string,
+  options: RestOptions.PutTagVariable,
+) {
+  return raw.putTagVariable(context, tagId, storageType, storageId, options);
+}
+
+
+export async function putTagVariables(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.PutTagVariables,
+) {
+  return raw.putTagVariables(context, tagId, options);
 }
 
 

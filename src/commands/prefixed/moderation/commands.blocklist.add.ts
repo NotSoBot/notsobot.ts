@@ -53,9 +53,7 @@ export default class CommandsBlocklistAddCommand extends BaseCommand {
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
-      type: (content: string, context: Command.Context) => {
-        return context.commandClient.getCommand({content, prefix: ''});
-      },
+      type: Parameters.prefixedCommand,
     });
   }
 

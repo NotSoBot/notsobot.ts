@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandCategories, TTSVoices, TTS_VOICES } from '../../../constants';
+import { CommandCategories, TTSVoices, TTSVoicesToText, TTS_VOICES } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -20,7 +20,7 @@ export default class TTSCommand extends BaseCommand {
           name: 'use',
           choices: TTS_VOICES,
           help: `Must be one of (${TTS_VOICES.map((x) => Markup.codestring(x)).join(', ')})`,
-          type: Parameters.oneOf<TTSVoices>({choices: TTSVoices}),
+          type: Parameters.oneOf<TTSVoices>({choices: TTSVoices, descriptions: TTSVoicesToText}),
         },
       ],
       label: 'text',

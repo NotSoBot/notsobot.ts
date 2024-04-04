@@ -102,12 +102,12 @@ export default class TagShowCustomCommand extends BaseCommand {
   }
 
   async onRunError(context: Command.Context, args: Formatter.Commands.TagShowCustomCommand.CommandArgs, error: any) {
-    await Formatter.Commands.TagShowCustomCommand.increaseUsage(context, args.tag);
+    await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
     return super.onRunError(context, args, error);
   }
 
   async onSuccess(context: Command.Context, args: Formatter.Commands.TagShowCustomCommand.CommandArgs) {
-    await Formatter.Commands.TagShowCustomCommand.increaseUsage(context, args.tag);
+    await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
     return super.onSuccess(context, args);
   }
 

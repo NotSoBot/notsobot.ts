@@ -37,7 +37,7 @@ export async function createMessage(
 
   let settings = (await GuildSettingsStore.getOrFetch(context, guildId))!;
 
-  let title = `Allowed ${Markup.codestring(commandId)}`;
+  let title = `Command ${Markup.codestring(commandId)}`;
   if (isServerWide) {
     title = `${title} server-wide`;
     await createGuildCommandsAllowlist(context, guildId, commandId, guildId, GuildCommandsAllowlistTypes.GUILD);

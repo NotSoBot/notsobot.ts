@@ -53,10 +53,13 @@ export async function createMessage(
     if (!parsedTag.text.length && !parsedTag.embeds.length && !parsedTag.files.length) {
       content.push('Tag returned no content');
     }
+
+    context.metadata = Object.assign({}, context.metadata, {parsedTag});
   } catch(error) {
     content.push(error.message);
   }
 
   options.content = content.join('\n').slice(0, 2000);
+
   return editOrReply(context, options);
 }

@@ -320,6 +320,10 @@ export const Api = Object.freeze({
     '/tags/:tagId',
   TAG_USE:
     '/tags/:tagId/use',
+  TAG_VARIABLES:
+    '/tags/:tagId/variables',
+  TAG_VARIABLE:
+    '/tags/:tagId/variables/:storageType/:storageId',
 
   USER:
     '/users/:userId',

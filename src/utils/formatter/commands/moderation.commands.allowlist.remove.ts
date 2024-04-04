@@ -37,7 +37,7 @@ export async function createMessage(
 
   let settings = (await GuildSettingsStore.getOrFetch(context, guildId))!;
 
-  let title = `Removed ${Markup.codestring(commandId)}`;
+  let title = `Command ${Markup.codestring(commandId)}`;
   if (isServerWide) {
     title = `${title} server-wide`;
     await deleteGuildCommandsAllowlist(context, guildId, commandId, guildId, GuildCommandsAllowlistTypes.GUILD);

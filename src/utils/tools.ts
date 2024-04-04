@@ -986,7 +986,7 @@ export function generateCodeFromLanguage(language: CodeLanguages, code: string):
         '(() => {',
         `global.discord = JSON.parse(require('fs').readFileSync(0));`,
         `process.on('beforeExit', () => {`,
-          `(typeof(global.discord) === 'object') ? require('fs').writeFileSync('./output/variables.json', JSON.stringify(global.discord.variables || {})) : null;`,
+          `(typeof(global.discord) === 'object') ? require('fs').writeFileSync('./output/__internals__.json', JSON.stringify({storage: global.discord.storage || {}, variables: global.discord.variables || {}})) : null;`,
         `});`,
         '})();',
       ].join('') + '\n'.repeat(5) + code;
@@ -995,7 +995,7 @@ export function generateCodeFromLanguage(language: CodeLanguages, code: string):
     case CodeLanguages.PYTHON_2: {
       code = [
         `discord = __import__('json').loads(__import__('sys').stdin.read());`,
-        `__import__('atexit').register(lambda:open('./output/variables.json', 'w').write(__import__('json').dumps(discord.get('variables', ''))));`,
+        `__import__('atexit').register(lambda:open('./output/__internals__.json', 'w').write(__import__('json').dumps({'storage': discord.get('storage', '{}'), 'variables': discord.get('variables', '{}')})));`,
       ].join('') + '\n'.repeat(5) + code;
     }; break;
   }
@@ -1006,6 +1006,7 @@ export function generateCodeFromLanguage(language: CodeLanguages, code: string):
 export function generateCodeStdin(
   context: Command.Context | Interaction.InteractionContext,
   variables?: Record<any, any>,
+  storage?: Record<any, any>,
 ): string {
   let guild: any = context.guild;
   if (guild) {
@@ -1048,6 +1049,7 @@ export function generateCodeStdin(
     member: context.member,
     member_bot: context.me,
     message: (context instanceof Command.Context) ? context.message : null,
+    storage: storage,
     tag: context.metadata && context.metadata.tag,
     user: context.user,
     user_bot: context.client.user,
