@@ -1,23 +1,10 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
-import { Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
+import { Command, CommandClient } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, PresenceStatusColors } from '../../../constants';
-import { DefaultParameters, Parameters, createUserEmbed, editOrReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
-
-
-export interface CommandArgsBefore {
-  default: boolean,
-  noembed: boolean,
-  user: Structures.Member | Structures.User | null,
-}
-
-export interface CommandArgs {
-  default: boolean,
-  noembed: boolean,
-  user: Structures.Member | Structures.User,
-}
 
 
 export const COMMAND_NAME = 'avatar';
@@ -34,12 +21,13 @@ export default class AvatarCommand extends BaseCommand {
       default: DefaultParameters.author,
       label: 'user',
       metadata: {
+        category: CommandCategories.INFO,
         description: 'Get the avatar for a user, defaults to self',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.INFO,
+        id: Formatter.Commands.InfoAvatar.COMMAND_ID,
         usage: '?<user:id|mention|name> (-default) (-noembed)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -47,77 +35,15 @@ export default class AvatarCommand extends BaseCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.InfoAvatar.CommandArgsBefore) {
     return !!args.user;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.InfoAvatar.CommandArgsBefore) {
     return editOrReply(context, '⚠ Unable to find that user.');
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { user } = args;
-    const avatarUrl = (args.default) ? user.defaultAvatarUrl : user.avatarUrl;
-
-    let file: {filename: string, value: Buffer} | undefined;
-    if (avatarUrl !== user.defaultAvatarUrl) {
-      try {
-        file = {
-          filename: avatarUrl.split('/').pop()!,
-          value: await context.rest.get(user.avatarUrlFormat(null, {size: 512})),
-        };
-        const maxAttachmentSize = (context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE;
-        if (maxAttachmentSize <= file.value.length) {
-          file = undefined;
-        }
-      } catch(error) {
-
-      }
-    }
-
-    if (!args.noembed) {
-      const embed = createUserEmbed(user);
-      embed.setColor(PresenceStatusColors['offline']);
-
-      {
-        const description: Array<string> = [];
-        description.push(`[**Default**](${user.defaultAvatarUrl})`);
-        if (user instanceof Structures.Member) {
-          if (user.avatar) {
-            description.push(`[**Server**](${user.avatarUrl})`);
-          }
-          if (user.user.avatar) {
-            description.push(`[**User**](${user.user.avatarUrl})`);
-          }
-        } else {
-          if (user.avatar) {
-            description.push(`[**User**](${user.avatarUrl})`);
-          }
-        }
-        embed.setDescription(description.join(', '));
-      }
-
-      if (args.default) {
-        embed.setImage(avatarUrl);
-      } else {
-        const url = (file) ? `attachment://${file.filename}` : user.avatarUrlFormat(null, {size: 512});
-        embed.setImage(url);
-        if (file) {
-          embed.setAuthor(undefined, url);
-        }
-      }
-
-      const presence = user.presence;
-      if (presence && presence.status in PresenceStatusColors) {
-        embed.setColor(PresenceStatusColors[presence.status]);
-      }
-
-      return editOrReply(context, {embed, file});
-    }
-
-    if (file) {
-      return editOrReply(context, {file});
-    }
-    return editOrReply(context, avatarUrl);
+  async run(context: Command.Context, args: Formatter.Commands.InfoAvatar.CommandArgs) {
+    return Formatter.Commands.InfoAvatar.createMessage(context, args);
   }
 }

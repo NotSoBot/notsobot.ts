@@ -14,7 +14,6 @@ export default class VoiceRecordCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['v record'],
       args: [
         {name: 'target', default: DefaultParameters.author, type: Parameters.memberOrUser()},
       ],
@@ -26,7 +25,7 @@ export default class VoiceRecordCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.VoiceRecord.COMMAND_ID,
-        usage: '<duration,number>',
+        usage: '<duration:number>',
       },
       type: Parameters.secondsWithOptions(),
     });

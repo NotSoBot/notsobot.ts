@@ -22,6 +22,7 @@ export const ONE_DAY = 24 * 60 * 60 * 1000;
 
 export enum BooleanEmojis {
   NO = '❌',
+  WARNING = '⚠️',
   YES = '✅',
 };
 
@@ -887,6 +888,7 @@ export enum Mimetypes {
   VIDEO_QUICKTIME = 'video/quicktime',
   VIDEO_WEBM = 'video/webm',
   VIDEO_X_MSVIDEO = 'video/x-msvideo',
+  VIDEO_X_MS_WMV = 'video/x-ms-wmv',
 };
 
 export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
@@ -914,6 +916,7 @@ export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
   [Mimetypes.VIDEO_QUICKTIME]: 'mov',
   [Mimetypes.VIDEO_WEBM]: 'webm',
   [Mimetypes.VIDEO_X_MSVIDEO]: 'avi',
+  [Mimetypes.VIDEO_X_MS_WMV]: 'wmv',
 });
 
 
@@ -1382,6 +1385,7 @@ export const ChannelTypesText: Record<ChannelTypes, string> = Object.freeze({
   [ChannelTypes.GUILD_STAGE_VOICE]: 'Guild Stage Voice',
   [ChannelTypes.GUILD_DIRECTORY]: 'Guild Directory',
   [ChannelTypes.GUILD_FORUM]: 'Guild Forum',
+  [ChannelTypes.GUILD_MEDIA]: 'Guild Media',
 });
 
 
@@ -1405,6 +1409,7 @@ export const DiscordUserFlagsText: Record<DiscordUserFlags, string> = Object.fre
   [DiscordUserFlags.VERIFIED_DEVELOPER]: 'Verified Bot Developer',
   [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: 'Discord Certified Moderator',
   [DiscordUserFlags.BOT_HTTP_INTERACTIONS]: 'Bot HTTP Interactions',
+  [DiscordUserFlags.ACTIVE_DEVELOPER]: 'Active Developer',
 });
 
 
@@ -1575,8 +1580,8 @@ export const TTS_VOICES = Object.values(TTSVoices);
 export const TTSVoicesToText = Object.freeze({
   [TTSVoices.CLONED]: 'Cloned',
   [TTSVoices.TIKTOK_BR_MALE_01]: 'TikTok Brazilian Male One',
-  [TTSVoices.TIKTOK_DE_FEMALE_01]: 'TikTok Denmark Female One',
-  [TTSVoices.TIKTOK_DE_MALE_01]: 'TikTok Denmark Male One',
+  [TTSVoices.TIKTOK_DE_FEMALE_01]: 'TikTok German Female One',
+  [TTSVoices.TIKTOK_DE_MALE_01]: 'TikTok German Male One',
   [TTSVoices.TIKTOK_EN_AU_FEMALE]: 'TikTok Australian Female',
   [TTSVoices.TIKTOK_EN_AU_MALE]: 'TikTok Australian Male',
   [TTSVoices.TIKTOK_EN_FEMALE_EMOTIONAL]: 'TikTok English Female Emotional',

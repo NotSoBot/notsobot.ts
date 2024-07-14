@@ -53,8 +53,12 @@ class UserStore extends Store<string, UserFull> {
           let user: UserFull | null = null;
           if (discordUser) {
             let channelId: string | undefined;
-            if (context.inDm) {
-              // Bots can only be in non-group dms, we also have no checks we can use without fetching the channel
+            if (context instanceof Interaction.InteractionContext) {
+              if (context.inDmWithBot) {
+                channelId = context.channelId;
+              }
+            } else if (context.inDm) {
+              // bot can only receive DM messages in its own DM
               channelId = context.channelId;
             }
             user = await putUser(context, userId, {

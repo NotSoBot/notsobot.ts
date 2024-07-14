@@ -21,7 +21,7 @@ export default class CaptionCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} @NotSoBot what an idiot`,
         ],
         id: Formatter.Commands.MediaIVManipulationCaption.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...text>',
+        usage: '?<emoji,user:id|mention,url> <...text>',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

@@ -1,16 +1,16 @@
 import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { fetchUserVoices, voiceCloneAdd } from '../../../api';
+import { fetchUserVoices, voiceCloneEdit } from '../../../api';
 import { editOrReply } from '../../../utils';
 
 import { findVoice } from './voice.list';
 
 
-export const COMMAND_ID = 'voice.clone.add';
+export const COMMAND_ID = 'voice.rename';
 
 export interface CommandArgs {
-  url: string,
+  name: string,
   voice: string,
 }
 
@@ -28,6 +28,6 @@ export async function createMessage(
     return editOrReply(context, 'No cloned voices found matching that');
   }
 
-  const voice = await voiceCloneAdd(context, result.id, args);
-  return editOrReply(context, `Successfully added another audio file to voice ${Markup.codestring(voice.name)}.`);
+  const voice = await voiceCloneEdit(context, result.id, {name: args.name});
+  return editOrReply(context, `Successfully renamed voice ${Markup.codestring(result.name)} to ${Markup.codestring(voice.name)}.`);
 }

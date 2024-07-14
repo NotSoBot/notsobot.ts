@@ -418,6 +418,7 @@ export class Paginator {
         await context.editOrRespond({
           allowedMentions: {parse: []},
           components: this.components,
+          embeds: undefined,
         });
       } else if (this.context instanceof Interaction.InteractionContext) {
         await this.context.editResponse({

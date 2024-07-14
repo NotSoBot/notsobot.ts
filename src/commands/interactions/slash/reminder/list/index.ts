@@ -1,7 +1,7 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { ReminderListAllCommand } from './all';
-import { ReminderListUserCommand } from './user';
+import { ReminderListMeCommand } from './me';
+import { ReminderListServerCommand } from './server';
 
 
 export class ReminderListGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -11,8 +11,8 @@ export class ReminderListGroupCommand extends BaseInteractionCommandOptionGroup 
   constructor() {
     super({
       options: [
-        new ReminderListAllCommand(),
-        new ReminderListUserCommand(),
+        new ReminderListMeCommand(),
+        new ReminderListServerCommand(),
       ],
     });
   }

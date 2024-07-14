@@ -361,7 +361,7 @@ export function oneOf<T>(options: OneOfOptions<T>) {
     fields: ['id', 'key', 'description'],
     storeFields: ['id'],
     searchOptions: {
-      boost: {name: 2},
+      boost: {description: 2},
       fuzzy: true,
       prefix: true,
       weights: {fuzzy: 0.2, prefix: 1},

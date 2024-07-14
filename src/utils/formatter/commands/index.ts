@@ -8,6 +8,7 @@ import * as FunRegional from './fun.regional';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
 
+import * as InfoAvatar from './info.avatar';
 import * as InfoUser from './info.user';
 
 import * as MediaAToolsPutConcat from './media.a.tools.put.concat';
@@ -118,6 +119,7 @@ import * as ModerationCommandsBlocklist from './moderation.commands.blocklist';
 import * as ModerationCommandsBlocklistAdd from './moderation.commands.blocklist.add';
 import * as ModerationCommandsBlocklistClear from './moderation.commands.blocklist.clear';
 import * as ModerationCommandsBlocklistRemove from './moderation.commands.blocklist.remove';
+import * as ModerationCommandsUsage from './moderation.commands.usage';
 
 import * as PrefixesAdd from './prefixes.add';
 import * as PrefixesClear from './prefixes.clear';
@@ -126,8 +128,10 @@ import * as PrefixesRemove from './prefixes.remove';
 import * as PrefixesReplace from './prefixes.replace';
 
 import * as ReminderCreate from './reminder.create';
-import * as ReminderDelete from './reminder.delete';
-import * as ReminderListUser from './reminder.list.user';
+import * as ReminderDeleteMe from './reminder.delete.me';
+import * as ReminderDeleteServer from './reminder.delete.server';
+import * as ReminderListMe from './reminder.list.me';
+import * as ReminderListServer from './reminder.list.server';
 
 import * as Search4Chan from './search.4chan';
 import * as SearchDiscordEmojis from './search.discord.emojis';
@@ -198,7 +202,9 @@ import * as ToolsTranslate from './tools.translate';
 import * as VoiceClone from './voice.clone';
 import * as VoiceCloneAdd from './voice.clone.add';
 import * as VoiceDelete from './voice.delete';
+import * as VoiceList from './voice.list';
 import * as VoiceRecord from './voice.record';
+import * as VoiceRename from './voice.rename';
 
 
 export {
@@ -212,6 +218,7 @@ export {
   FunTextwall,
   FunTTS,
 
+  InfoAvatar,
   InfoUser,
 
   MediaAToolsPutConcat,
@@ -322,6 +329,7 @@ export {
   ModerationCommandsBlocklistAdd,
   ModerationCommandsBlocklistClear,
   ModerationCommandsBlocklistRemove,
+  ModerationCommandsUsage,
 
   PrefixesAdd,
   PrefixesClear,
@@ -330,8 +338,10 @@ export {
   PrefixesReplace,
 
   ReminderCreate,
-  ReminderDelete,
-  ReminderListUser,
+  ReminderDeleteMe,
+  ReminderDeleteServer,
+  ReminderListMe,
+  ReminderListServer,
 
   Search4Chan,
   SearchDiscordEmojis,
@@ -402,5 +412,7 @@ export {
   VoiceClone,
   VoiceCloneAdd,
   VoiceDelete,
+  VoiceList,
   VoiceRecord,
+  VoiceRename,
 };

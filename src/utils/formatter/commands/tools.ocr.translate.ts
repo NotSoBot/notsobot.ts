@@ -45,7 +45,7 @@ export async function createMessage(
       translated_text: translatedText,
     } = await googleTranslate(context, {
       from: locale,
-      text: annotation.description,
+      text: annotation.description.slice(0, 2000),
       to: args.to || undefined,
     });
 

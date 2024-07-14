@@ -32,7 +32,12 @@ export async function createMessage(
     total_result_count: totalResultCount,
   } = await searchGoogle(context, args);
 
-  const suggestionText = (suggestion) ? `Did you mean: ${Markup.bold(Markup.url(Markup.escape.all(suggestion.text), suggestion.url))}?` : null;
+  const suggestionText = (
+    (suggestion) ?
+    `Did you mean: ${Markup.bold(Markup.url(Markup.escape.all(suggestion.text), suggestion.url))}?` :
+    null
+  );
+
   if (cards.length || results.length) {
     const filteredCards = cards.filter((card) => GOOGLE_CARD_TYPES_SUPPORTED.includes(card.type));
     const chunkedResults = chunkArray<RestResponsesRaw.SearchGoogleResult>(results, RESULTS_PER_PAGE);

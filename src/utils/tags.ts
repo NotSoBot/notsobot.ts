@@ -169,6 +169,7 @@ export enum TagFunctions {
   AVATAR = 'AVATAR',
   CHANNEL = 'CHANNEL',
   CHANNEL_ID = 'CHANNEL_ID',
+  CHANNEL_JSON = 'CHANNEL_JSON',
   CHANNEL_MENTION = 'CHANNEL_MENTION',
   CHANNEL_RANDOM = 'CHANNEL_RANDOM',
   CHANNEL_RANDOM_ID = 'CHANNEL_RANDOM_ID',
@@ -182,6 +183,7 @@ export enum TagFunctions {
   HASTEBIN = 'HASTEBIN',
   IMAGE_INTERROGATE = 'IMAGE_INTERROGATE',
   IMAGE_OCR = 'IMAGE_OCR',
+  LOGICAL_AND = 'LOGICAL_AND',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
   LOGICAL_DELETE_CHANNEL = 'LOGICAL_DELETE_CHANNEL',
   LOGICAL_DELETE_SERVER = 'LOGICAL_DELETE_SERVER',
@@ -191,6 +193,7 @@ export enum TagFunctions {
   LOGICAL_GET_SERVER = 'LOGICAL_GET_SERVER',
   LOGICAL_GET_USER = 'LOGICAL_GET_USER',
   LOGICAL_IF = 'LOGICAL_IF',
+  LOGICAL_OR = 'LOGICAL_OR',
   LOGICAL_SET = 'LOGICAL_SET',
   LOGICAL_SET_CHANNEL = 'LOGICAL_SET_CHANNEL',
   LOGICAL_SET_SERVER = 'LOGICAL_SET_SERVER',
@@ -243,11 +246,14 @@ export enum TagFunctions {
   STRING_UPPER = 'STRING_UPPER',
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
   TAG_NAME = 'TAG_NAME',
+  TIME_UNIX = 'TIME_UNIX',
+  TIME_UNIX_SECONDS = 'TIME_UNIX_SECONDS',
   USER_DISCRIMINATOR = 'USER_DISCRIMINATOR',
+  USER_ID = 'USER_ID',
+  USER_JSON = 'USER_JSON',
   USER_MENTION = 'USER_MENTION',
   USER_NAME = 'USER_NAME',
   USER_NICK = 'USER_NICK',
-  USER_ID = 'USER_ID',
   USER_RANDOM = 'USER_RANDOM',
   USER_RANDOM_ID = 'USER_RANDOM_ID',
   USER_RANDOM_ONLINE = 'USER_RANDOM_ONLINE',
@@ -272,6 +278,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.AVATAR]: ['avatar'],
   [TagFunctions.CHANNEL]: ['channel'],
   [TagFunctions.CHANNEL_ID]: ['channelid'],
+  [TagFunctions.CHANNEL_JSON]: ['channeljson'],
   [TagFunctions.CHANNEL_MENTION]: ['channelmention'],
   [TagFunctions.CHANNEL_RANDOM]: ['randchannel'],
   [TagFunctions.CHANNEL_RANDOM_ID]: ['randchannelid'],
@@ -285,6 +292,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.HASTEBIN]: ['hastebin', 'haste'],
   [TagFunctions.IMAGE_INTERROGATE]: ['identify', 'interrogate'],
   [TagFunctions.IMAGE_OCR]: ['ocr'],
+  [TagFunctions.LOGICAL_AND]: ['and'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
   [TagFunctions.LOGICAL_DELETE_CHANNEL]: ['deletechannel'],
   [TagFunctions.LOGICAL_DELETE_SERVER]: ['deleteserver'],
@@ -294,6 +302,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_GET_SERVER]: ['getserver'],
   [TagFunctions.LOGICAL_GET_USER]: ['getuser'],
   [TagFunctions.LOGICAL_IF]: ['if'],
+  [TagFunctions.LOGICAL_OR]: ['or'],
   [TagFunctions.LOGICAL_SET]: ['set'],
   [TagFunctions.LOGICAL_SET_CHANNEL]: ['setchannel'],
   [TagFunctions.LOGICAL_SET_SERVER]: ['setserver'],
@@ -346,11 +355,14 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_UPPER]: ['upper'],
   [TagFunctions.STRING_URL_ENCODE]: ['url', 'urlencode'],
   [TagFunctions.TAG_NAME]: ['tagname'],
+  [TagFunctions.TIME_UNIX]: ['unix'],
+  [TagFunctions.TIME_UNIX_SECONDS]: ['unixs'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
+  [TagFunctions.USER_ID]: ['id', 'userid'],
+  [TagFunctions.USER_JSON]: ['userjson'],
   [TagFunctions.USER_MENTION]: ['mention'],
   [TagFunctions.USER_NAME]: ['name', 'user'],
   [TagFunctions.USER_NICK]: ['nick'],
-  [TagFunctions.USER_ID]: ['id', 'userid'],
   [TagFunctions.USER_RANDOM]: ['randuser'],
   [TagFunctions.USER_RANDOM_ID]: ['randuserid'],
   [TagFunctions.USER_RANDOM_ONLINE]: ['randonline'],
@@ -532,9 +544,45 @@ export async function parse(
             tag.text += arg;
           } else if (TagFunctionsToString.NOTE.includes(scriptName)) {
             // do nothing
+          } else if (TagFunctionsToString.LOGICAL_AND.includes(scriptName)) {
+            // do this separate because we dont want to parse args yet
+            const wasValid = await ScriptTags[TagFunctions.LOGICAL_AND](context, arg, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
+          } else if (TagFunctionsToString.LOGICAL_GET.includes(scriptName)) {
+            // do this separate because we dont want to parse args yet
+            const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET](context, arg, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
+          } else if (TagFunctionsToString.LOGICAL_GET_CHANNEL.includes(scriptName)) {
+            // do this separate because we dont want to parse args yet
+            const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_CHANNEL](context, arg, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
+          } else if (TagFunctionsToString.LOGICAL_GET_SERVER.includes(scriptName)) {
+            // do this separate because we dont want to parse args yet
+            const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_SERVER](context, arg, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
+          } else if (TagFunctionsToString.LOGICAL_GET_USER.includes(scriptName)) {
+            // do this separate because we dont want to parse args yet
+            const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_USER](context, arg, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
           } else if (TagFunctionsToString.LOGICAL_IF.includes(scriptName)) {
             // do this separate because we dont want to parse args yet
             const wasValid = await ScriptTags[TagFunctions.LOGICAL_IF](context, arg, tag);
+            if (!wasValid) {
+              tag.text += scriptBuffer;
+            }
+          } else if (TagFunctionsToString.LOGICAL_OR.includes(scriptName)) {
+            // do this separate because we dont want to parse args yet
+            const wasValid = await ScriptTags[TagFunctions.LOGICAL_OR](context, arg, tag);
             if (!wasValid) {
               tag.text += scriptBuffer;
             }
@@ -1188,6 +1236,7 @@ const ScriptTags = Object.freeze({
     } else {
       tag.text += (context.channel && context.guildId) ? context.channel.name : 'Direct Message';
     }
+
     return true;
   },
 
@@ -1205,6 +1254,32 @@ const ScriptTags = Object.freeze({
     } else {
       tag.text += context.channelId;
     }
+    return true;
+  },
+
+  [TagFunctions.CHANNEL_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns the channel's name
+    // {channeljson}
+    // {channeljson:general}
+    // {channeljson:560595518129045504}
+
+    if (arg) {
+      const channel = await findChannel(arg, context);
+      if (channel) {
+        tag.text += JSON.stringify(channel);
+      }
+    } else if (context.channel) {
+      tag.text += JSON.stringify(context.channel);
+    } else if (context.channelId) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      try {
+        const channel = await context.rest.fetchChannel(context.channelId);
+        tag.text += JSON.stringify(channel);
+      } catch(error) {
+        
+      }
+    }
+
     return true;
   },
 
@@ -1407,6 +1482,38 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.LOGICAL_AND]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {and:action|action}, unlimited actions
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    const conditionals = split(arg);
+    for (let i = 0; i < conditionals.length; i++) {
+      const conditional = conditionals[i];
+
+      let text: string = '';
+      if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
+        const argParsed = await parse(context, conditional, '', tag.variables);
+        normalizeTagResults(tag, argParsed, false);
+        text = argParsed.text;
+      } else {
+        text = conditional;
+      }
+
+      if (!text) {
+        break;
+      }
+
+      if (i === conditionals.length - 1) {
+        tag.text += text;
+      }
+    }
+
+    return true;
+  },
+
   [TagFunctions.LOGICAL_DELETE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     arg = arg.trim();
     if (arg.startsWith(PRIVATE_VARIABLE_PREFIX)) {
@@ -1497,25 +1604,47 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.LOGICAL_GET]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {get:variable-name}
+    // {get:variable-name|DEFAULT VALUE HERE}
 
-    const key = arg.trim();
+    let [ key, defaultValue ] = split(arg);
+    if (key === undefined) {
+      return false;
+    }
+
+    key = key.trim();
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to access a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
+
     if (MAX_VARIABLE_KEY_LENGTH < key.length) {
       throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
     }
+
     if (key in tag.variables) {
       tag.text += tag.variables[key];
+    } else if (defaultValue) {
+      if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
+        const argParsed = await parse(context, defaultValue, '', tag.variables);
+        normalizeTagResults(tag, argParsed, false);
+        tag.text += argParsed.text;
+      } else {
+        tag.text += defaultValue;
+      }
     }
-  
+
     return true;
   },
 
   [TagFunctions.LOGICAL_GET_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {getchannel:variable-name}
+    // {getchannel:variable-name|DEFAULT VALUE HERE}
 
-    const key = arg.trim();
+    let [ key, defaultValue ] = split(arg);
+    if (key === undefined) {
+      return false;
+    }
+
+    key = key.trim();
     if (MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
     }
@@ -1524,7 +1653,7 @@ const ScriptTags = Object.freeze({
     if (context.metadata && context.metadata.tag) {
       tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
     }
-  
+
     if (tagId) {
       try {
         const storageId = context.channelId!;
@@ -1533,17 +1662,35 @@ const ScriptTags = Object.freeze({
         });
         tag.text += response.value;
       } catch(error) {
-
+        if (error.response && error.response.statusCode === 404) {
+          if (defaultValue) {
+            if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
+              const argParsed = await parse(context, defaultValue, '', tag.variables);
+              normalizeTagResults(tag, argParsed, false);
+              tag.text += argParsed.text;
+            } else {
+              tag.text += defaultValue;
+            }
+          }
+        } else {
+          throw error;
+        }
       }
     }
-  
+
     return true;
   },
 
   [TagFunctions.LOGICAL_GET_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {get:variable-name}
+    // {getchannel:variable-name}
+    // {getchannel:variable-name|DEFAULT VALUE HERE}
 
-    const key = arg.trim();
+    let [ key, defaultValue ] = split(arg);
+    if (key === undefined) {
+      return false;
+    }
+
+    key = key.trim();
     if (MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
     }
@@ -1561,7 +1708,19 @@ const ScriptTags = Object.freeze({
         });
         tag.text += response.value;
       } catch(error) {
-
+        if (error.response && error.response.statusCode === 404) {
+          if (defaultValue) {
+            if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
+              const argParsed = await parse(context, defaultValue, '', tag.variables);
+              normalizeTagResults(tag, argParsed, false);
+              tag.text += argParsed.text;
+            } else {
+              tag.text += defaultValue;
+            }
+          }
+        } else {
+          throw error;
+        }
       }
     }
   
@@ -1569,9 +1728,15 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.LOGICAL_GET_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {get:variable-name}
+    // {getuser:variable-name}
+    // {getuser:variable-name|DEFAULT VALUE HERE}
 
-    const key = arg.trim();
+    let [ key, defaultValue ] = split(arg);
+    if (key === undefined) {
+      return false;
+    }
+
+    key = key.trim();
     if (MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
     }
@@ -1589,7 +1754,19 @@ const ScriptTags = Object.freeze({
         });
         tag.text += response.value;
       } catch(error) {
-
+        if (error.response && error.response.statusCode === 404) {
+          if (defaultValue) {
+            if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
+              const argParsed = await parse(context, defaultValue, '', tag.variables);
+              normalizeTagResults(tag, argParsed, false);
+              tag.text += argParsed.text;
+            } else {
+              tag.text += defaultValue;
+            }
+          }
+        } else {
+          throw error;
+        }
       }
     }
   
@@ -1691,6 +1868,32 @@ const ScriptTags = Object.freeze({
       normalizeTagResults(tag, argParsed);
     } else {
       tag.text += text;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_OR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {or:action|action}, unlimited actions
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    const conditionals = split(arg);
+    for (let conditional of conditionals) {
+      let text: string = '';
+      if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
+        const argParsed = await parse(context, conditional, '', tag.variables);
+        normalizeTagResults(tag, argParsed, false);
+        text = argParsed.text;
+      } else {
+        text = conditional;
+      }
+      if (text) {
+        tag.text += text;
+        return true;
+      }
     }
 
     return true;
@@ -2921,6 +3124,42 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.TIME_UNIX]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {unix}
+    // {unix:time string}
+
+    if (arg) {
+      try {
+        const result = Parameters.nlpTimestamp(arg, context);
+        tag.text += result.start.getTime();
+      } catch(error) {
+        
+      }
+    } else {
+      tag.text += Date.now();
+    }
+
+    return true;
+  },
+
+  [TagFunctions.TIME_UNIX_SECONDS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {unixs}
+    // {unixs:time string}
+
+    if (arg) {
+      try {
+        const result = Parameters.nlpTimestamp(arg, context);
+        tag.text += Math.floor(result.start.getTime() / 1000);
+      } catch(error) {
+        
+      }
+    } else {
+      tag.text += Math.floor(Date.now() / 1000);
+    }
+
+    return true;
+  },
+
   [TagFunctions.USER_DISCRIMINATOR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {discrim}
     // {discrim:user}
@@ -2934,54 +3173,7 @@ const ScriptTags = Object.freeze({
     } else {
       tag.text += context.user.discriminator;
     }
-    return true;
-  },
 
-  [TagFunctions.USER_MENTION]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {mention}
-    // {mention:user}
-
-    if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-      const user = await findMemberOrUser(arg, context);
-      if (user) {
-        tag.text += user.mention;
-      }
-    } else {
-      tag.text += context.user.mention;
-    }
-    return true;
-  },
-
-  [TagFunctions.USER_NAME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {name}
-    // {name:user}
-
-    if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-      const user = await findMemberOrUser(arg, context);
-      if (user) {
-        tag.text += user.username;
-      }
-    } else {
-      tag.text += context.user.username;
-    }
-    return true;
-  },
-
-  [TagFunctions.USER_NICK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {nick}
-    // {nick:user}
-
-    if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-      const user = await findMemberOrUser(arg, context);
-      if (user) {
-        tag.text += user.name;
-      }
-    } else {
-      tag.text += (context.member) ? context.member.name : context.user.name;
-    }
     return true;
   },
 
@@ -2998,6 +3190,81 @@ const ScriptTags = Object.freeze({
     } else {
       tag.text += context.user.id;
     }
+
+    return true;
+  },
+
+  [TagFunctions.USER_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns the a json object of the user
+    // {userjson}
+    // {userjson:user}
+
+    if (arg) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      const user = await findMemberOrUser(arg, context);
+      if (user) {
+        if (user instanceof Structures.Member) {
+          tag.text += JSON.stringify(user.toJSON(true));
+        } else {
+          tag.text += JSON.stringify(user);
+        }
+      }
+    } else if (context.member) {
+      tag.text += JSON.stringify(context.member.toJSON(true));
+    } else {
+      tag.text += JSON.stringify(context.user);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.USER_MENTION]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {mention}
+    // {mention:user}
+  
+    if (arg) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      const user = await findMemberOrUser(arg, context);
+      if (user) {
+        tag.text += user.mention;
+      }
+    } else {
+      tag.text += context.user.mention;
+    }
+    return true;
+  },
+
+  [TagFunctions.USER_NAME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {name}
+    // {name:user}
+  
+    if (arg) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      const user = await findMemberOrUser(arg, context);
+      if (user) {
+        tag.text += user.username;
+      }
+    } else {
+      tag.text += context.user.username;
+    }
+  
+    return true;
+  },
+
+  [TagFunctions.USER_NICK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {nick}
+    // {nick:user}
+  
+    if (arg) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      const user = await findMemberOrUser(arg, context);
+      if (user) {
+        tag.text += user.name;
+      }
+    } else {
+      tag.text += (context.member) ? context.member.name : context.user.name;
+    }
+  
     return true;
   },
 

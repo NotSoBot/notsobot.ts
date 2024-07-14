@@ -1,7 +1,7 @@
 import { BaseSlashCommand } from '../../basecommand';
 
 import { ReminderCreateCommand } from './create';
-import { ReminderDeleteCommand } from './delete';
+import { ReminderDeleteGroupCommand } from './delete';
 import { ReminderListGroupCommand } from './list';
 
 
@@ -13,7 +13,7 @@ export default class ReminderCommand extends BaseSlashCommand {
     super({
       options: [
         new ReminderCreateCommand(),
-        new ReminderDeleteCommand(),
+        new ReminderDeleteGroupCommand(),
         new ReminderListGroupCommand(),
       ],
     });

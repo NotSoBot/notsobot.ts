@@ -87,8 +87,11 @@ export function createUserEmbed(user: Structures.User, embed: Embed = new Embed(
 }
 
 
-export function createUserString(userId: string = '1', user?: Structures.User | null, name: string = 'Unknown?'): string {
-  return `<@!${userId}> ${Markup.spoiler(`(${Markup.escape.all(String(user || name))})`)}`;
+export function createUserString(userId: string = '1', user?: Structures.User | null, name?: string): string {
+  if (user || name) {
+    return `<@${userId}> ${Markup.spoiler(`(${Markup.escape.all(String(user || name))})`)}`;
+  }
+  return `<@${userId}>`;
 }
 
 
@@ -938,23 +941,31 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 }
 
 
-export function generateCodeFromLanguage(language: CodeLanguages, code: string): { code: string, urls: Record<string, string>} {
+export function generateCodeFromLanguage(
+  language: CodeLanguages,
+  code: string,
+): {
+  code: string,
+  urls: Record<string, string | {filname?: string, url: string}>,
+} {
   // parse the urls from the code header
-  const urls: Record<string, string> = {};
+  const urls: Record<string, {filename?: string, url: string}> = {};
 
   const lines = code.split(/\n/g);
   let position = 0;
   for (let i = 0; i < lines.length; i++) {
-    // we are looking for `load URL KEY?`, either split with new spaces or semicolons
+    // we are looking for `load URL FILENAME?`, either split with new spaces or semicolons
     let line = lines[i].split('##')[0]!.trim();
     line = line.replace(/^\s+|\s+$|[;]+$/g, '')
     line = line.replace(/\s+/g, ' ');
     if (line) {
       const args = line.split(' ');
+      let filename: string | undefined;
 
       let key = `file_${i}`;
       if (args.length === 3) {
         key = args.pop()!;
+        filename = key;
       }
 
       if (args.length === 2) {
@@ -963,7 +974,7 @@ export function generateCodeFromLanguage(language: CodeLanguages, code: string):
           break;
         }
 
-        urls[key] = url;
+        urls[key] = {filename, url}
         position = i;
         continue;
       }
@@ -1049,7 +1060,7 @@ export function generateCodeStdin(
     member: context.member,
     member_bot: context.me,
     message: (context instanceof Command.Context) ? context.message : null,
-    storage: storage,
+    storage,
     tag: context.metadata && context.metadata.tag,
     user: context.user,
     user_bot: context.client.user,
@@ -1292,7 +1303,7 @@ export async function mediaReply(
     filename: options.filename, // we will get the filename based off the command name
     mimetype: response.file.metadata.mimetype,
     size: response.file.metadata.size,
-    spoiler: options.spoiler,
+    spoiler: response.file.has_nsfw || options.spoiler,
     storage: response.storage,
   });
 }
@@ -1324,9 +1335,8 @@ export async function mediaReplyFromOptions(
   filename = `${filename}.${options.extension || 'unknown'}`;
 
   if (options.storage) {
-    return editOrReply(context, {
-      content: options.storage.urls.vanity,
-    });
+    const content = (options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity;
+    return editOrReply(context, {content});
   }
 
   return editOrReply(context, {

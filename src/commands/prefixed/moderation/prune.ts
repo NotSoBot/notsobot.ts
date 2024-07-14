@@ -1,5 +1,11 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
-import { ChannelTypes, InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { Collections, Command, CommandClient, Structures } from 'detritus-client';
+import {
+  ChannelTypes,
+  InteractionCallbackTypes,
+  MessageComponentButtonStyles,
+  MessageFlags,
+  Permissions,
+} from 'detritus-client/lib/constants';
 import { ComponentActionRow, ComponentContext, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
@@ -75,22 +81,26 @@ export default class PruneCommand extends BaseCommand {
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    return args.amount !== null && !isNaN(args.amount) && !args.after;
+    // if afterId is after beforeId, error out
+    if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
+      return false;
+    }
+    return args.amount !== null && !isNaN(args.amount);
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
+      return editOrReply(context, '⚠ After message id cannot be after or the same as the Before message id');
+    }
     if (isNaN(args.amount)) {
       return editOrReply(context, '⚠ Amount has to be a number lmao');
-    }
-    if (args.after) {
-      return editOrReply(context, '⚠ After isn\'t supported yet, im so sorry ;(');
     }
     return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const bulk: Array<Structures.Message> = [];
-    const manual: Array<Structures.Message> = [];
+    const bulk = new Collections.BaseCollection<string, Structures.Message>();
+    const manual = new Collections.BaseCollection<string, Structures.Message>();
 
     const channelId = (args.in) ? args.in.id : context.channelId;
 
@@ -101,20 +111,30 @@ export default class PruneCommand extends BaseCommand {
 
     isExecuting.prune = true;
     try {
+      let after: string | undefined;
+      if (args.after) {
+        after = args.after;
+      }
+  
       let before: string;
       if (args.before) {
         before = args.before;
       } else {
         const { messageReference } = context.message;
         if (messageReference && messageReference.messageId && messageReference.channelId === channelId) {
-          before = String(BigInt(messageReference.messageId) + 1n);
+          args.before = before = String(BigInt(messageReference.messageId) + 1n);
         } else {
           before = context.messageId;
         }
       }
 
       if (args.in) {
-        for (let message of args.in.messages.toArray().reverse()) {
+        let messages = args.in.messages.toArray();
+        if (!after) {
+          messages = messages.reverse();
+        }
+  
+        for (let message of messages) {
           if (message.id === context.messageId) {
             continue;
           }
@@ -123,9 +143,9 @@ export default class PruneCommand extends BaseCommand {
           }
           if (this.shouldDelete(message, args)) {
             if (!context.inDm && this.shouldBulkDelete(message.createdAtUnix)) {
-              bulk.push(message);
+              bulk.set(message.id, message);
             } else {
-              manual.push(message);
+              manual.set(message.id, message);
             }
           }
           before = message.id;
@@ -134,19 +154,35 @@ export default class PruneCommand extends BaseCommand {
 
       let tries = 0;
       while (tries++ < MAX_FETCHES && bulk.length + manual.length < args.amount) {
-        const messages = await context.rest.fetchMessages(channelId, {before, limit: 100});
-        for (let message of messages.toArray()) {
+        let messages: Array<Structures.Message>;
+        if (after) {
+          const cache = await context.rest.fetchMessages(channelId, {after, limit: 100});
+          messages = cache.toArray().reverse();
+          if (cache.length) {
+            after = cache.first()!.id;
+            before = messages[0]!.id;
+          }
+        } else {
+          const cache = await context.rest.fetchMessages(channelId, {before, limit: 100});
+          messages = cache.toArray();
+        }
+        if (!messages.length) {
+          break;
+        }
+        for (let message of messages) {
           if (args.amount <= bulk.length + manual.length) {
             break;
           }
           if (this.shouldDelete(message, args)) {
             if (!context.inDm && this.shouldBulkDelete(message.createdAtUnix)) {
-              bulk.push(message);
+              bulk.set(message.id, message);
             } else {
-              manual.push(message);
+              manual.set(message.id, message);
             }
           }
-          before = message.id;
+          if (!after) {
+            before = message.id;
+          }
         }
         if (!this.shouldBulkDelete(Snowflake.timestamp(before))) {
           // check before date to see if it was made before 2 weeks (temporarily)
@@ -156,6 +192,13 @@ export default class PruneCommand extends BaseCommand {
     } catch(error) {
       isExecuting.prune = false;
       throw error;
+    }
+
+    if (bulk.length === 2) {
+      for (let [messageId, message] of bulk) {
+        manual.set(message.id, message);
+      }
+      bulk.clear();
     }
 
     const total = bulk.length + manual.length;
@@ -243,8 +286,8 @@ export default class PruneCommand extends BaseCommand {
   async deleteMessages(
     context: Command.Context,
     channelId: string,
-    bulk: Array<Structures.Message>,
-    manual: Array<Structures.Message>,
+    bulk: Collections.BaseCollection<string, Structures.Message>,
+    manual: Collections.BaseCollection<string, Structures.Message>,
   ): Promise<number> {
     let deletedTotal = 0;
     if (bulk.length) {
@@ -298,6 +341,18 @@ export default class PruneCommand extends BaseCommand {
   shouldDelete(message: Structures.Message, args: CommandArgs): boolean {
     if (!message.canDelete) {
       return false;
+    }
+
+    if (args.after || args.before) {
+      const messageId = BigInt(message.id);
+  
+      if (args.after && messageId <= BigInt(args.after)) {
+        return false;
+      }
+
+      if (args.before && BigInt(args.before) <= messageId) {
+        return false;
+      }
     }
 
     if (args.from && !args.from.some((user) => message.author.id === user.id)) {

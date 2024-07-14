@@ -361,6 +361,7 @@ export default class NickMassCommand extends BaseCommand {
       components.onTimeout = async () => {
         try {
           embed.setColor(EmbedColors.ERROR);
+          embed.setTitle('Mass Nickname Request Expired');
           embed.setFooter('Request expired, press a button next time');
           if (message.canEdit) {
             await message.edit({components: [], embed});

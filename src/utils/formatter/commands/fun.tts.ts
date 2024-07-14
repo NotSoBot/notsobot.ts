@@ -9,7 +9,7 @@ export const COMMAND_ID = 'fun.tts';
 
 export interface CommandArgs {
   text: string,
-  use?: TTSVoices,
+  use?: {voice: TTSVoices, voiceId?: string},
 }
 
 export async function createMessage(
@@ -18,7 +18,8 @@ export async function createMessage(
 ) {
   const response = await funTextToSpeech(context, {
     text: args.text,
-    voice: args.use && (TTSVoices as any)[args.use],
+    voice: args.use && args.use.voice,
+    voiceId: args.use && args.use.voiceId,
   });
 
   if (response.storage) {

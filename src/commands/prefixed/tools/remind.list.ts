@@ -1,6 +1,5 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { RestResponsesRaw } from '../../../api/types';
 import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
@@ -14,22 +13,25 @@ export default class RemindListCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['reminder list'],
+      aliases: ['reminder list', 'reminders'],
+      args: [
+        {name: 'global', aliases: ['g'], type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.TOOLS,
-        description: 'List reminders of a user in this server ',
+        description: 'List of your Reminders in the Server or Globally',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} cake`,
+          `${COMMAND_NAME} -global`,
         ],
-        id: Formatter.Commands.ReminderListUser.COMMAND_ID,
-        usage: '?<user>',
+        id: Formatter.Commands.ReminderListMe.COMMAND_ID,
+        usage: '(-global)',
       },
       priority: -1,
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.ReminderListUser.CommandArgs) {
-    return Formatter.Commands.ReminderListUser.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.ReminderListMe.CommandArgs) {
+    return Formatter.Commands.ReminderListMe.createMessage(context, args);
   }
 }

@@ -18,9 +18,7 @@ export default class TTSCommand extends BaseCommand {
       args: [
         {
           name: 'use',
-          choices: TTS_VOICES,
-          help: `Must be one of (${TTS_VOICES.map((x) => Markup.codestring(x)).join(', ')})`,
-          type: Parameters.oneOf<TTSVoices>({choices: TTSVoices, descriptions: TTSVoicesToText}),
+          type: Parameters.textToSpeechVoice,
         },
       ],
       label: 'text',

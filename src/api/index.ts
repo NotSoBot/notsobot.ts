@@ -272,6 +272,15 @@ export async function deleteReminder(
 }
 
 
+export async function deleteReminderPositional(
+  context: RequestContext,
+  userId: string,
+  position: number | string,
+) {
+  return raw.deleteReminderPositional(context, userId, position);
+}
+
+
 export async function deleteTag(
   context: RequestContext,
   options: RestOptions.DeleteTagSearch,
@@ -353,6 +362,14 @@ export async function editUser(
 }
 
 
+export async function fetchCommandsUsage(
+  context: RequestContext,
+  options: RestOptions.FetchCommandsUsage,
+) {
+  return raw.fetchCommandsUsage(context, options);
+}
+
+
 export async function fetchGuildSettings(
   context: RequestContext,
   guildId: string,
@@ -383,6 +400,15 @@ export async function fetchReminders(
   options: RestOptions.FetchReminders,
 ) {
   return raw.fetchReminders(context, options);
+}
+
+
+export async function fetchReminderPositional(
+  context: RequestContext,
+  userId: string,
+  position: number | string,
+) {
+  return raw.fetchReminderPositional(context, userId, position);
 }
 
 
@@ -1588,4 +1614,13 @@ export async function voiceCloneAdd(
   options: RestOptions.VoiceCloneAdd,
 ) {
   return raw.voiceCloneAdd(context, voiceId, options);
+}
+
+
+export async function voiceCloneEdit(
+  context: RequestContext,
+  voiceId: string,
+  options: RestOptions.VoiceCloneEdit,
+) {
+  return raw.voiceCloneEdit(context, voiceId, options);
 }

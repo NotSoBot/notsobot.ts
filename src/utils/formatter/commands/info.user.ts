@@ -1,7 +1,9 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { InteractionCallbackTypes, MessageFlags } from 'detritus-client/lib/constants';
+import { InteractionCallbackTypes, MessageFlags, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Embed, Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
+import { RequestTypes } from 'detritus-client-rest';
 
+import { utilitiesFetchMedia } from '../../../api';
 import {
   DateMomentLogFormat,
   DiscordEmojis,
@@ -11,7 +13,7 @@ import {
 } from '../../../constants';
 import {
   Paginator,
-  createTimestampMomentFromGuild,
+  createTimestampMomentFromContext,
   getMemberJoinPosition,
   toTitleCase,
 } from '../../../utils';
@@ -30,6 +32,23 @@ export async function createMessage(
   const user = ((isMember) ? member.user : args.user) as Structures.User;
   const userWithBanner = (args.user instanceof Structures.UserWithBanner) ? args.user : await context.rest.fetchUser(user.id);
 
+  const files: Array<RequestTypes.File> = [];
+
+  const avatarUrl = member.avatarUrlFormat(null, {size: 1024});
+  try {
+    const maxFileSize = (context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE;
+    const response = await utilitiesFetchMedia(context, {
+      maxFileSize,
+      url: avatarUrl,
+    });
+    files.push({
+      filename: response.file.filename,
+      value: Buffer.from(response.file.value, 'base64'),
+    });
+  } catch(error) {
+
+  }
+
   const presence = user.presence;
   let activities: Array<Structures.PresenceActivity>;
   if (presence) {
@@ -44,13 +63,19 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     isEphemeral: args.isEphemeral,
-    onPage: (page) => {
+    onPage: async (page) => {
       const embed = new Embed();
-      embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
       embed.setColor(PresenceStatusColors['offline']);
       embed.setDescription(user.mention);
 
-      embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
+      if (files.length) {
+        const file = files[0]!;
+        embed.setAuthor(user.toString(), `attachment://${file.filename}`, user.jumpLink);
+        embed.setThumbnail(`attachment://${file.filename}`);
+      } else {
+        embed.setAuthor(user.toString(), avatarUrl, user.jumpLink);
+        embed.setThumbnail(avatarUrl);
+      }
 
       {
         const description: Array<string> = [];
@@ -99,13 +124,13 @@ export async function createMessage(
       {
         const description: Array<string> = [];
         {
-          const timestamp = createTimestampMomentFromGuild(user.createdAtUnix, context.guildId);
+          const timestamp = createTimestampMomentFromContext(user.createdAtUnix, context);
           description.push(`**Discord**: ${timestamp.fromNow()}`);
           description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
         }
         if (isMember && member.joinedAtUnix) {
           {
-            const timestamp = createTimestampMomentFromGuild(member.joinedAtUnix, context.guildId);
+            const timestamp = createTimestampMomentFromContext(member.joinedAtUnix, context);
             description.push(`**Guild**: ${timestamp.fromNow()}`);
             description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
           }
@@ -122,7 +147,7 @@ export async function createMessage(
         const description: Array<string> = [];
 
         if (member.premiumSinceUnix) {
-          const timestamp = createTimestampMomentFromGuild(member.premiumSinceUnix, context.guildId);
+          const timestamp = createTimestampMomentFromContext(member.premiumSinceUnix, context);
           description.push(`**Boosting Since**: ${timestamp.fromNow()}`);
           description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
         }
@@ -275,7 +300,7 @@ export async function createMessage(
         }
       }
 
-      return embed;
+      return [embed, files];
     },
   });
   return await paginator.start();

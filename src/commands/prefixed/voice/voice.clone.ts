@@ -13,7 +13,6 @@ export default class VoiceCloneCommand extends BaseAudioOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['v clone'],
       args: [
         {name: 'name'},
       ],

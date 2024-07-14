@@ -16,15 +16,18 @@ import * as juration from 'juration';
 import MiniSearch from 'minisearch';
 import * as moment from 'moment';
 
-import { fetchTag, searchGoogleImages, utilitiesMLImagine } from '../../api';
+import { fetchTag, fetchUserVoices, searchGoogleImages, utilitiesMLImagine } from '../../api';
 import { CDN, CUSTOM } from '../../api/endpoints';
 import { RestResponsesRaw } from '../../api/types';
 import {
   CommandCategories,
   GoogleLocales,
   GoogleLocalesText,
+  TTSVoices,
+  TTSVoicesToText,
   UserFallbacksMediaImageTypes,
   UserFlags,
+  TTS_VOICES,
 } from '../../constants';
 import UserStore from '../../stores/users';
 import {
@@ -568,6 +571,13 @@ export async function targetText(
               for (let [embedId, embed] of message.embeds) {
                 if (embed.description) {
                   value = embed.description;
+                  if (value.startsWith('```') && value.endsWith('```')) {
+                    value = value.slice(3, -3).trim();
+                    const newLineIndex = value.indexOf('\n');
+                    if (newLineIndex !== -1) {
+                      value = value.slice(newLineIndex).trim();
+                    }
+                  }
                   break;
                 }
               }
@@ -590,6 +600,13 @@ export async function targetText(
           for (let [embedId, embed] of message.embeds) {
             if (embed.description) {
               value = embed.description;
+              if (value.startsWith('```') && value.endsWith('```')) {
+                value = value.slice(3, -3).trim();
+                const newLineIndex = value.indexOf('\n');
+                if (newLineIndex !== -1) {
+                  value = value.slice(newLineIndex).trim();
+                }
+              }
               break;
             }
           }
@@ -599,6 +616,40 @@ export async function targetText(
   }
 
   return value;
+}
+
+
+const oneOfTextToSpeechVoices = Prefixed.oneOf<TTSVoices>({choices: TTSVoices, descriptions: TTSVoicesToText});
+
+export async function textToSpeechVoice(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<{voice: TTSVoices, voiceId?: string}> {
+  // check if user is premium, then fetch their voices
+  const { count, voices } = await fetchUserVoices(context, context.userId);
+  if (voices.length) {
+    const search = new MiniSearch({
+      fields: ['id', 'name'],
+      storeFields: ['id'],
+      searchOptions: {
+        boost: {name: 2},
+        fuzzy: true,
+        prefix: true,
+        weights: {fuzzy: 0.2, prefix: 1},
+      },
+    });
+    search.addAll(voices);
+    const results = search.search(value);
+    if (results.length) {
+      return {voice: TTSVoices.CLONED, voiceId: results[0].id!};
+    }
+  }
+
+  const voice = oneOfTextToSpeechVoices(value);
+  if (!voice) {
+    throw new Error(`Must be one of (${TTS_VOICES.map((x) => Markup.codestring(x)).join(', ')})`);
+  }
+  return {voice};
 }
 
 

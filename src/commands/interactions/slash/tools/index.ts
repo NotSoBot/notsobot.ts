@@ -1,3 +1,5 @@
+import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { ToolsDownloadCommand } from './download';
@@ -12,6 +14,11 @@ import { ToolsQrGroupCommand } from './qr';
 export default class ToolsGroupCommand extends BaseSlashCommand {
   description = 'Tool-like Commands';
   name = 'tools';
+
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
 
   constructor() {
     super({

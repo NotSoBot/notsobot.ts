@@ -13,21 +13,25 @@ export default class VoiceDeleteCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['v delete'],
+      label: 'voice',
       metadata: {
         category: CommandCategories.TOOLS,
-        description: 'Delete your stored cloned voice',
+        description: 'Delete one of your stored cloned voices',
         examples: [
           COMMAND_NAME,
         ],
         id: Formatter.Commands.VoiceDelete.COMMAND_ID,
-        usage: '',
+        usage: '<voice:string>',
       },
     });
   }
 
   onBefore(context: Command.Context) {
     return context.user.isClientOwner;
+  }
+
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.VoiceDelete.CommandArgs) {
+    return !!args.voice;
   }
 
   async run(context: Command.Context, args: Formatter.Commands.VoiceDelete.CommandArgs) {

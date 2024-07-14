@@ -510,6 +510,22 @@ export async function deleteReminder(
   });
 }
 
+
+export async function deleteReminderPositional(
+  context: RequestContext,
+  userId: string,
+  position: number | string,
+): Promise<RestResponsesRaw.DeleteReminder> {
+  const params = {userId, position};
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.REMINDER_POSITIONAL,
+      params,
+    },
+  });
+}
+
 // rename
 export async function deleteTag(
   context: RequestContext,
@@ -665,6 +681,30 @@ export async function editUser(
 }
 
 
+export async function fetchCommandsUsage(
+  context: RequestContext,
+  options: RestOptions.FetchCommandsUsage = {},
+): Promise<RestResponsesRaw.FetchCommandsUsage> {
+  const query = {
+    after: options.after,
+    before: options.before,
+    channel_id: options.channelId,
+    command_id: options.commandId,
+    command_type: options.commandType,
+    guild_id: options.guildId,
+    limit: options.limit,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.COMMANDS_USAGE,
+    },
+  });
+}
+
+
 export async function fetchGuildSettings(
   context: RequestContext,
   guildId: string,
@@ -706,6 +746,7 @@ export async function fetchReminders(
     limit: options.limit,
     timestamp_max: options.timestampMax,
     timestamp_min: options.timestampMin,
+    user_id: options.userId,
   };
   return request(context, {
     query,
@@ -715,6 +756,23 @@ export async function fetchReminders(
     },
   });
 }
+
+
+export async function fetchReminderPositional(
+  context: RequestContext,
+  userId: string,
+  position: number | string,
+): Promise<RestResponsesRaw.FetchReminderPositional> {
+  const params = {userId, position};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.REMINDER_POSITIONAL,
+      params,
+    },
+  });
+}
+
 
 // rename
 export async function fetchTag(
@@ -942,6 +1000,7 @@ export async function funTextToSpeech(
   const query = {
     text: options.text,
     voice: options.voice,
+    voice_id: options.voiceId,
   };
   return request(context, {
     query,
@@ -1128,8 +1187,10 @@ export async function mediaAIVToolsJoin(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsJoin,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     loop: !options.noloop,
+    max_file_size: maxFileSize,
     no_resize: options.noresize,
     urls: options.urls,
     vertical: options.vertical,
@@ -1150,10 +1211,12 @@ export async function mediaAIVToolsOverlay(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsOverlay,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     blend: options.blend,
     color: options.color,
     loop: !options.noloop,
+    max_file_size: maxFileSize,
     opacity: options.opacity,
     resize: options.resize,
     similarity: options.similarity,
@@ -1177,7 +1240,9 @@ export async function mediaAIVToolsReverse(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1196,7 +1261,9 @@ export async function mediaAIVToolsSeeSaw(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1215,9 +1282,11 @@ export async function mediaAIVToolsSnip(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsSnip,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     audio_only: options.audioOnly,
     end: options.end,
+    max_file_size: maxFileSize,
     start: options.start,
     url: options.url,
   };
@@ -1236,8 +1305,10 @@ export async function mediaAIVToolsSpeed(
   context: RequestContext,
   options: RestOptions.MediaIVToolsSpeed,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     loop: options.loop,
+    max_file_size: maxFileSize,
     speed: options.speed,
     url: options.url,
   };
@@ -1257,7 +1328,9 @@ export async function mediaAVManipulationBoostBass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1276,7 +1349,9 @@ export async function mediaAVManipulationCompress(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationCompress,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     no_revert: options.norevert,
     url: options.url,
   };
@@ -1296,7 +1371,9 @@ export async function mediaAVManipulationDestroy(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1315,7 +1392,9 @@ export async function mediaAVManipulationVolume(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationVolume,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
     volume: options.volume,
   };
@@ -1335,7 +1414,9 @@ export async function mediaAVToolsExtractAudio(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3461,7 +3542,7 @@ export async function utilitiesMLEdit(
     upload: options.upload,
     url: options.url,
   };
-  return request(context, {
+  const response = await request(context, {
     file: options.file,
     multipart: true,
     query,
@@ -3470,6 +3551,10 @@ export async function utilitiesMLEdit(
       path: Api.UTILITIES_ML_EDIT,
     },
   });
+  if (options.safe && response.file.has_nsfw) {
+    throw new Error('Generated Media may contain NSFW content');
+  }
+  return response;
 }
 
 
@@ -3487,13 +3572,17 @@ export async function utilitiesMLImagine(
     steps: options.steps,
     upload: options.upload,
   };
-  return request(context, {
+  const response = await request(context, {
     query,
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_ML_IMAGINE,
     },
   });
+  if (options.safe && response.file.has_nsfw) {
+    throw new Error('Generated Media may contain NSFW content');
+  }
+  return response;
 }
 
 
@@ -3551,7 +3640,7 @@ export async function utilitiesQrScan(
     },
   });
   return {
-    scanned: await response.json(),
+    ...(await response.json()),
     url: response.headers.get('x-unfurled-url'),
   };
 }
@@ -3590,6 +3679,26 @@ export async function voiceCloneAdd(
     route: {
       method: HTTPMethods.POST,
       path: Api.VOICE_ADD,
+      params,
+    },
+  });
+}
+
+
+export async function voiceCloneEdit(
+  context: RequestContext,
+  voiceId: string,
+  options: RestOptions.VoiceCloneEdit,
+): Promise<RestResponsesRaw.VoiceCloneEdit> {
+  const body = {
+    name: options.name,
+  };
+  const params = {voiceId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.VOICE,
       params,
     },
   });

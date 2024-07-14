@@ -1,8 +1,15 @@
 import { Interaction } from 'detritus-client';
 import { BaseSet } from 'detritus-client/lib/collections';
 
-import { fetchTagsServer } from '../../api';
+import MiniSearch from 'minisearch';
+
 import {
+  fetchTagsServer,
+  fetchUserReminders,
+} from '../../api';
+import { RestResponsesRaw } from '../../api/types';
+import {
+  DateMomentLogFormat,
   GoogleLocales,
   GoogleLocalesText,
   ImageMemeFonts,
@@ -11,7 +18,11 @@ import {
   Timezones,
   TimezonesToText,
 } from '../../constants';
-import { toTitleCase } from '../tools';
+import {
+  createTimestampMomentFromContext,
+  getReminderMessage,
+  toTitleCase,
+} from '../tools';
 import GuildSettingsStore from '../../stores/guildsettings';
 
 
@@ -83,8 +94,109 @@ export async function prefix(context: Interaction.InteractionAutoCompleteContext
 }
 
 
+interface StoredReminder {
+  content?: string,
+  guild_id: null | string,
+  id: string,
+  location?: string,
+  position: number,
+  timestamp_start: string,
+}
+
+const REMINDER_TIMESTAMP_FORMAT = 'MM/DD/YYYY, h:mm:ss a z';
+const REMINDER_TIMESTAMP_FILTER_FORMAT = 'dddd, MMMM Do YYYY, MM/DD/YY, h:mm:ss a z';
+
 export async function reminder(context: Interaction.InteractionAutoCompleteContext) {
-  return context.respond({choices: []});
+  const value = (context.value || '').toLowerCase();
+
+  const serverId = context.guildId || null;
+
+  const response = await fetchUserReminders(context, context.userId);
+  const reminders = response.reminders.reverse();
+
+  let filtered: Array<StoredReminder>;
+  if (value) {
+    const search = new MiniSearch({
+      extractField: (document, field) => {
+        switch (field) {
+          case 'content': {
+            if (!document.content) {
+              return getReminderMessage(document.id);
+            }
+          }; break;
+          case 'location': {
+            let location: string;
+            if (document.guild_id === serverId) {
+              location = 'in here';
+            } else if (!document.guild_id) {
+              location = 'in DMs';
+            } else {
+              location = 'in another server';
+            }
+            return location;
+          }; break;
+          case 'timestamp': {
+            const date = new Date(document.timestamp_start);
+            const timestamp = createTimestampMomentFromContext(document.timestamp_start, context);
+            return `${timestamp.fromNow()} ${timestamp.format(REMINDER_TIMESTAMP_FILTER_FORMAT)}`;
+          }; break;
+        }
+        return document[field];
+      },
+      fields: ['content', 'location', 'position', 'timestamp'],
+      storeFields: ['content', 'guild_id', 'id', 'location', 'position', 'timestamp_start'],
+      searchOptions: {
+        boost: {position: 2},
+        combineWith: 'AND',
+        fuzzy: (term) => (Number.isNaN(parseInt(term)) ? 0.2 : false),
+        prefix: true,
+        weights: {fuzzy: 0.2, prefix: 1},
+      },
+    });
+    search.addAll(reminders);
+
+    filtered = search.search(value).slice(0, 25) as unknown as Array<StoredReminder>;
+  } else {
+    filtered = reminders.slice(0, 25);
+  }
+
+  const choices = filtered.map((reminder) => {
+    const date = new Date(reminder.timestamp_start);
+    const timestamp = createTimestampMomentFromContext(reminder.timestamp_start, context);
+    const timestampText = `${timestamp.fromNow()} at ${timestamp.format(REMINDER_TIMESTAMP_FORMAT)}`;
+
+    let content = `${reminder.position}. ${timestampText}`;
+    if (reminder.location) {
+      content = `${content} ${reminder.location}`;
+    } else {
+      if (reminder.guild_id === serverId) {
+        content = `${content} in here`;
+      } else if (!reminder.guild_id) {
+        content = `${content} in DMs`;
+      } else {
+        content = `${content} in another server`;
+      }
+    }
+
+    if (!reminder.content) {
+      content = `${content} (${getReminderMessage(reminder.id)})`;
+    } else if (100 < content.length + 3 + reminder.content.length) {
+      const sliceAmount = 100 - content.length - 6;
+      content = `${content} (${reminder.content.slice(0, sliceAmount)})`;
+    } else {
+      content = `${content} (${reminder.content})`;
+    }
+
+    return {name: content, value: String(reminder.position)};
+  });
+  return context.respond({choices});
+}
+
+
+export async function reminderServer(context: Interaction.InteractionAutoCompleteContext) {
+  // check if user is filled out, then filter out by that
+  // if user is not filled out, show everything
+  // return reminder id
 }
 
 

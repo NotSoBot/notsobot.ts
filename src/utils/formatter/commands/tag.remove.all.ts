@@ -47,7 +47,7 @@ export async function createMessage(
   if (!args.user || (args.user && args.user.id !== context.userId)) {
     const hasPermissionsToForceRemove = (
       context.user.isClientOwner ||
-      (context.member && (context.member.canManageGuild || context.member.canBanMembers))
+      (context.member && context.member.canAdministrator)//(context.member.canManageGuild || context.member.canBanMembers))
     );
     if (!hasPermissionsToForceRemove) {
       if (args.user) {

@@ -80,7 +80,7 @@ export async function createMessage(
     const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE);
     for (let file of result.files) {
       const { filename, size, value } = file;
-      if (filename === 'variables.json') {
+      if (filename === '__internals__.json') {
         continue;
       }
       if (maxFileSize <= currentFileSize + size) {

@@ -142,13 +142,25 @@ export namespace RestOptions {
   }
 
 
+  export interface FetchCommandsUsage {
+    after?: number | string,
+    before?: number | string,
+    channelId?: string,
+    commandId?: string,
+    commandType?: number,
+    guildId?: string,
+    limit?: number,
+    userId?: string,
+  }
+
   export interface FetchReminders {
     after?: string,
     before?: string,
-    guildId?: string,
+    guildId?: number | string,
     limit?: number,
     timestampMax?: number,
     timestampMin?: number,
+    userId?: string,
   }
 
   export interface FetchTags{
@@ -185,7 +197,7 @@ export namespace RestOptions {
   export interface FetchUserReminders {
     after?: string,
     before?: string,
-    guildId?: string,
+    guildId?: number | string,
     limit?: number,
     timestampMax?: number,
     timestampMin?: number,
@@ -207,6 +219,7 @@ export namespace RestOptions {
   export interface FunTextToSpeech {
     text: string,
     voice?: string,
+    voiceId?: string,
   }
 
 
@@ -223,13 +236,14 @@ export namespace RestOptions {
 
   export interface MediaBaseOptions {
     file?: RequestFile,
+    filename?: string,
     upload?: boolean,
     url?: string,
   }
 
   export interface MediaBaseOptionsMultiple extends MediaBaseOptions {
     files?: Array<RequestFile>,
-    urls?: Array<string>,
+    urls?: Array<string | {filename?: string, url: string}>,
   }
 
   export interface MediaAToolsPutBase extends MediaBaseOptionsMultiple {
@@ -616,7 +630,7 @@ export namespace RestOptions {
     code: string,
     language: string,
     stdin?: string,
-    urls?: Array<string>,
+    urls?: Array<string | {filename?: string, url: string}>,
     version?: string,
   }
 
@@ -688,6 +702,10 @@ export namespace RestOptions {
     file?: RequestFile,
     url?: string,
   }
+
+  export interface VoiceCloneEdit {
+    name: string,
+  }
 }
 
 
@@ -742,6 +760,7 @@ export namespace RestResponsesRaw {
         size: number,
         width: number,
       },
+      has_nsfw: boolean,
       value: string,
     },
     file_old: {
@@ -890,6 +909,11 @@ export namespace RestResponsesRaw {
   export type EditTag = Tag;
   export type EditUser = User;
 
+  export interface FetchCommandsUsage {
+    results: Array<CommandUsage>,
+    total: {count: number, since: number},
+  }
+
   export type FetchGuildSettings = GuildSettings;
 
   export interface FetchGuildTagsCommands {
@@ -900,7 +924,9 @@ export namespace RestResponsesRaw {
   export interface FetchReminders {
     count: number,
     reminders: Array<Reminder>,
-  };
+  }
+
+  export type FetchReminderPositional = Reminder;
 
   export interface FetchTags {
     count: number,
@@ -940,6 +966,16 @@ export namespace RestResponsesRaw {
   export type PutTagVariable = FetchTagVariable;
   export type PutTagVariables = FetchTagVariables;
   export type PutUser = User;
+
+
+  export interface CommandUsage {
+    channel_id: string,
+    command_id: string,
+    command_type: number,
+    guild_id: null | string,
+    timestamp: number,
+    user_id: string,
+  }
 
   export interface GoogleContentVisionLabels {
     label_annotations: Array<{
@@ -1096,6 +1132,7 @@ export namespace RestResponsesRaw {
         codec_tag: string,
         duration: number,
         frames: number,
+        frames_per_second: number,
         height: number,
         pixel_format: string,
         rotate: number,
@@ -1825,18 +1862,15 @@ export namespace RestResponsesRaw {
   }
 
   export interface UtilitiesQrScan {
-    scanned: Array<{
+    results: Array<{
       data: string,
-      box: {
-        points: Array<{x: number, y: number}>,
-        rectangle: {height: number, left: number, top: number, width: number},
-      },
       type: string,
     }>,
     url?: string,
   }
 
   export type VoiceCloneAdd = Voice;
+  export type VoiceCloneEdit = Voice;
 
 
 

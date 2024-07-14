@@ -95,6 +95,7 @@ export async function createMessage(
         description.push(`**Dimensions**: ${channel.width}x${channel.height}`);
       }
       description.push(`**Frames**: ${channel.frames.toLocaleString()}`);
+      description.push(`**Frames Per Second**: ${channel.frames_per_second.toLocaleString()}`);
       description.push(`**Pixel Format**: ${channel.pixel_format}`);
 
       let title = 'Video Stream';

@@ -18,6 +18,8 @@ export const Api = Object.freeze({
 
   COMMANDS:
     '/commands',
+  COMMANDS_USAGE:
+    '/commands/usage',
 
   FUN_ASCII:
     '/fun/ascii',
@@ -252,6 +254,8 @@ export const Api = Object.freeze({
     '/reminders',
   REMINDER:
     '/reminders/:reminderId',
+  REMINDER_POSITIONAL:
+    '/reminders/positional/:userId/:position',
 
   SEARCH_4CHAN:
     '/search/4chan',
