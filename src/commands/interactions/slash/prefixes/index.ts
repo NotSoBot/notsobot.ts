@@ -1,3 +1,5 @@
+import { ApplicationIntegrationTypes } from 'detritus-client/lib/constants';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { PrefixesAddCommand } from './prefixes.add';
@@ -11,6 +13,10 @@ export default class PrefixesGroupCommand extends BaseSlashCommand {
   description = 'Prefixes';
   disableDm = true;
   name = 'prefixes';
+
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+  ];
 
   constructor() {
     super({

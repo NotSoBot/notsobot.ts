@@ -1,7 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
+import GuildSettingsStore from '../../../stores/guildsettings';
+
 import { fetchTag, putTag } from '../../../api';
+import { BooleanEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 
@@ -16,6 +19,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const serverId = context.guildId || context.channelId;
 
   let isEdit = false;
@@ -23,7 +27,7 @@ export async function createMessage(
     const tag = await fetchTag(context, {name: args.tag, serverId});
     if (!tag.global) {
       if (tag.user.id !== context.userId) {
-        return editOrReply(context, '⚠ Tag already exists in this server!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Tag already exists in this server!`);
       }
     }
     isEdit = true;
@@ -31,6 +35,11 @@ export async function createMessage(
     if (!error.response || error.response.statusCode !== 404) {
       throw error;
     }
+  }
+
+  if (isFromInteraction && !context.hasServerPermissions && context.guildId && context.guildPartial) {
+    // create server in database
+    const settings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
   }
 
   const tag = await putTag(context, {content: args.content, name: args.tag, serverId});

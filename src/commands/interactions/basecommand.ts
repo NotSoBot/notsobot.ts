@@ -11,7 +11,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { createUserCommand } from '../../api';
-import { CommandTypes, EmbedColors, PermissionsText } from '../../constants';
+import { BooleanEmojis, CommandTypes, EmbedColors, PermissionsText } from '../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 
@@ -44,7 +44,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   onDmBlocked(context: Interaction.InteractionContext) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ ${this.error} \`${command}\` cannot be used in a DM.`,
+      content: `${BooleanEmojis.WARNING} ${this.error} \`${command}\` cannot be used in a DM.`,
       flags: MessageFlags.EPHEMERAL,
     });
   }
@@ -65,7 +65,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     if (metadata && metadata.nsfw) {
       if (!context.inDm && (context.channel && (!context.channel.isDm || !context.channel.nsfw))) {
         return editOrReply(context, {
-          content: '⚠ Not a NSFW channel.',
+          content: `${BooleanEmojis.WARNING} Not a NSFW channel.`,
           flags: MessageFlags.EPHEMERAL,
         });
       }
@@ -75,7 +75,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,
+      content: `${BooleanEmojis.WARNING} ${this.error} \`${command}\` error strangely, give me a report.`,
       flags: MessageFlags.EPHEMERAL,
     });
   }
@@ -93,7 +93,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ ${this.error} ${command} requires the bot to have ${permissions.join(', ')} to work.`,
+      content: `${BooleanEmojis.WARNING} ${this.error} ${command} requires the bot to have ${permissions.join(', ')} to work.`,
     });
   }
 
@@ -110,7 +110,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ ${this.error} ${command} requires you to have ${permissions.join(', ')}.`,
+      content: `${BooleanEmojis.WARNING} ${this.error} ${command} requires you to have ${permissions.join(', ')}.`,
       flags: MessageFlags.EPHEMERAL,
     });
   }
@@ -118,7 +118,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   async onRunError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, error: any) {
     const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
-    embed.setTitle(`⚠ ${this.error} Command Error`);
+    embed.setTitle(`${BooleanEmojis.WARNING} ${this.error} Command Error`);
 
     const description: Array<string> = [];
     if (error.response) {
@@ -260,7 +260,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   onValueError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, errors: Interaction.ParsedErrors) {
     const embed = new Embed();
     embed.setColor(EmbedColors.ERROR);
-    embed.setTitle(`⚠ ${this.error} Argument Error`);
+    embed.setTitle(`${BooleanEmojis.WARNING} ${this.error} Argument Error`);
 
     const store: {[key: string]: string} = {};
 
@@ -291,7 +291,7 @@ export class BaseInteractionCommandOption extends Interaction.InteractionCommand
   onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,
+      content: `${BooleanEmojis.WARNING} ${this.error} \`${command}\` error strangely, give me a report.`,
       flags: MessageFlags.EPHEMERAL,
     });
   }
@@ -319,9 +319,21 @@ export class BaseInteractionAudioOrVideoCommandOption extends BaseInteractionCom
 
   onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any media in the last 50 messages.');
+      if (!context.hasServerPermissions) {
+        return editOrReply(context, {
+          content: `${BooleanEmojis.WARNING} Bot cannot view the history of this channel, you must provide an attachment or URL.`,
+          flags: MessageFlags.EPHEMERAL,
+        });
+      }
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find any audio or videos in the last 50 messages.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     } else if (args.url === null) {
-      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     }
     return super.onCancelRun(context, args);
   }
@@ -349,9 +361,21 @@ export class BaseInteractionImageCommandOption extends BaseInteractionCommandOpt
 
   onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any images in the last 50 messages.');
+      if (!context.hasServerPermissions) {
+        return editOrReply(context, {
+          content: `${BooleanEmojis.WARNING} Bot cannot view the history of this channel, you must provide an attachment or URL.`,
+          flags: MessageFlags.EPHEMERAL,
+        });
+      }
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find any images in the last 50 messages.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     } else if (args.url === null) {
-      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     }
     return super.onCancelRun(context, args);
   }
@@ -379,9 +403,21 @@ export class BaseInteractionImageOrVideoCommandOption extends BaseInteractionCom
 
   onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any images or videos in the last 50 messages.');
+      if (!context.hasServerPermissions) {
+        return editOrReply(context, {
+          content: `${BooleanEmojis.WARNING} Bot cannot view the history of this channel, you must provide an attachment or URL.`,
+          flags: MessageFlags.EPHEMERAL,
+        });
+      }
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find any images or videos in the last 50 messages.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     } else if (args.url === null) {
-      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     }
     return super.onCancelRun(context, args);
   }
@@ -409,9 +445,21 @@ export class BaseInteractionMediaCommandOption extends BaseInteractionCommandOpt
 
   onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any media in the last 50 messages.');
+      if (!context.hasServerPermissions) {
+        return editOrReply(context, {
+          content: `${BooleanEmojis.WARNING} Bot cannot view the history of this channel, you must provide an attachment or URL.`,
+          flags: MessageFlags.EPHEMERAL,
+        });
+      }
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find any media in the last 50 messages.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     } else if (args.url === null) {
-      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     }
     return super.onCancelRun(context, args);
   }
@@ -439,9 +487,21 @@ export class BaseInteractionVideoCommandOption extends BaseInteractionCommandOpt
 
   onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any videos in the last 50 messages.');
+      if (!context.hasServerPermissions) {
+        return editOrReply(context, {
+          content: `${BooleanEmojis.WARNING} Bot cannot view the history of this channel, you must provide an attachment or URL.`,
+          flags: MessageFlags.EPHEMERAL,
+        });
+      }
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find any videos in the last 50 messages.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     } else if (args.url === null) {
-      return editOrReply(context, '⚠ Unable to find that user or it was an invalid url.');
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
     }
     return super.onCancelRun(context, args);
   }
@@ -455,7 +515,7 @@ export class BaseInteractionCommandOptionGroup extends Interaction.InteractionCo
   onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const command = Markup.codestring(context.name);
     return context.editOrRespond({
-      content: `⚠ ${this.error} \`${command}\` error strangely, give me a report.`,
+      content: `${BooleanEmojis.WARNING} ${this.error} \`${command}\` errored strangely, send a report to the devs please.`,
       flags: MessageFlags.EPHEMERAL,
     });
   }

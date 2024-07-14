@@ -2463,7 +2463,7 @@ const ScriptTags = Object.freeze({
       if (!channel.canReadHistory) {
         throw new Error('Bot cannot view the history of this channel');
       }
-    } else if (!context.inDm) {
+    } else if (!context.inDm && !context.hasServerPermissions) {
       throw new Error('Bot cannot view the history of this channel');
     }
 
@@ -2503,7 +2503,7 @@ const ScriptTags = Object.freeze({
       if (!channel.canReadHistory) {
         throw new Error('Bot cannot view the history of this channel');
       }
-    } else if (!context.inDm) {
+    } else if (!context.inDm && !context.hasServerPermissions) {
       throw new Error('Bot cannot view the history of this channel');
     }
 
@@ -2561,7 +2561,7 @@ const ScriptTags = Object.freeze({
       if (!channel.canReadHistory) {
         throw new Error('Bot cannot view the history of this channel');
       }
-    } else if (!context.inDm) {
+    } else if (!context.inDm && !context.hasServerPermissions) {
       throw new Error('Bot cannot view the history of this channel');
     }
 

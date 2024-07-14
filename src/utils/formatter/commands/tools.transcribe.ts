@@ -6,6 +6,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { mediaAVToolsTranscribe } from '../../../api';
 import {
+  BooleanEmojis,
   DateMomentOptions,
   EmbedBrands,
   EmbedColors,
@@ -50,7 +51,7 @@ export async function createMessage(
   if (args.noembed) {
     if (!text) {
       return editOrReply(context, {
-        content: '⚠ No text detected',
+        content: `${BooleanEmojis.WARNING} No text detected`,
         flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
       });
     }

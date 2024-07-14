@@ -1,3 +1,5 @@
+import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { TagCreateCommand } from './create';
@@ -12,6 +14,16 @@ import { TagShowCommand } from './show';
 export default class TagGroupCommand extends BaseSlashCommand {
   description = 'Custom Tags';
   name = 'tag';
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
 
   constructor() {
     super({

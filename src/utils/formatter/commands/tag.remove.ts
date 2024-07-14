@@ -4,7 +4,7 @@ import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib
 
 import { deleteTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { BooleanEmojis, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import {
   createTimestampMomentFromGuild,
   createUserEmbed,
@@ -34,20 +34,25 @@ export async function createMessage(
 
   const { tag } = args;
   if (tag.user.id !== context.userId) {
-    const hasPermissionsToForceRemove = (
-      context.user.isClientOwner ||
-      (!tag.global &&
-        (context.member && (context.member.canManageGuild || context.member.canBanMembers))
-      )
-    );
+    let hasPermissionsToForceRemove = context.user.isClientOwner;
+    if (!hasPermissionsToForceRemove) {
+      if (tag.global) {
+        hasPermissionsToForceRemove = false;
+      } else if (context.member && (context.member.canManageGuild || context.member.canBanMembers)) {
+        hasPermissionsToForceRemove = true;
+      } else if (context.inDm && context.channel && context.channel.ownerId === context.userId) {
+        // most likely a group dm, check to see if is owner of it
+        hasPermissionsToForceRemove = true;
+      }
+    }
 
     if (args.force) {
       if (!hasPermissionsToForceRemove) {
-        return editOrReply(context, '⚠ Not enough permissions to force remove this tag!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Not enough permissions to force remove this tag!`);
       }
     } else {
       if (!hasPermissionsToForceRemove) {
-        return editOrReply(context, '⚠ You\'re not the owner of this tag!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} You\'re not the owner of this tag!`);
       }
 
       const embed = createUserEmbed(context.user);

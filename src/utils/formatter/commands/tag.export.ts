@@ -3,7 +3,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagsServer } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { EmbedColors } from '../../../constants';
+import { BooleanEmojis, EmbedColors } from '../../../constants';
 import {
   DefaultParameters,
   Paginator,
@@ -55,19 +55,28 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   if (args.user && args.user.bot) {
-    return editOrReply(context, '⚠ Bots do not have tags.');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Bots do not have tags.`);
   }
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const serverId = context.guildId || context.channelId!;
 
   if (!args.user || (args.user && args.user.id !== context.userId)) {
-    const hasPermissionsToForceRemove = context.user.isClientOwner || (context.member && context.member.canManageGuild);
+    let hasPermissionsToForceRemove = context.user.isClientOwner;
+    if (!hasPermissionsToForceRemove) {
+      if (context.member && context.member.canManageGuild) {
+        hasPermissionsToForceRemove = true;
+      } else if (context.inDm && context.channel && context.channel.ownerId === context.userId) {
+        // most likely a group dm, check to see if is owner of it
+        hasPermissionsToForceRemove = true;
+      }
+    }
+
     if (!hasPermissionsToForceRemove) {
       if (!args.user) {
         args.user = context.user;
       } else {
-        return editOrReply(context, '⚠ Not enough permissions to export other people\'s tags!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Not enough permissions to export other people's tags!`);
       }
     }
   }

@@ -15,6 +15,11 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
   description = 'Tool-like Commands';
   name = 'tools';
 
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
   integrationTypes = [
     ApplicationIntegrationTypes.GUILD_INSTALL,
     ApplicationIntegrationTypes.USER_INSTALL,

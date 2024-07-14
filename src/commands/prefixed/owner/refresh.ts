@@ -151,7 +151,7 @@ export default class RefreshCommand extends BaseCommand {
     });
     */
 
-    const error = shardIds.find((shardId: any) => shardId instanceof Error);
+    const error = shardIds.find((shardId: any) => shardId instanceof Error) as any;
     if (error) {
       if (error.errors) {
         return message.edit(`${error.message} (${JSON.stringify(error.errors)})`);

@@ -1,5 +1,9 @@
 import { Interaction } from 'detritus-client';
-import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
+import {
+  ApplicationCommandOptionTypes,
+  ApplicationIntegrationTypes,
+  InteractionContextTypes,
+} from 'detritus-client/lib/constants';
 
 import { GoogleLocales } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
@@ -22,6 +26,16 @@ export default class TranslateCommand extends BaseSlashCommand {
     id: Formatter.Commands.ToolsTranslate.COMMAND_ID,
   };
   name = COMMAND_NAME;
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
 
   constructor() {
     super({

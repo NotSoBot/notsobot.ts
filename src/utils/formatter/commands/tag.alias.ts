@@ -1,6 +1,8 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
+import GuildSettingsStore from '../../../stores/guildsettings';
+
 import { putTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { editOrReply } from '../../../utils';
@@ -25,6 +27,11 @@ export async function createMessage(
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   if (args.tag.name === args.name) {
     return editOrReply(context, 'ok');
+  }
+
+  if (isFromInteraction && !context.hasServerPermissions && context.guildId && context.guildPartial) {
+    // create server in database
+    const settings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
   }
 
   const tag = await putTag(context, {

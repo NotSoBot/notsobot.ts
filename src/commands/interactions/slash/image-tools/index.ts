@@ -1,9 +1,12 @@
-import { Permissions } from 'detritus-client/lib/constants';
+import {
+  ApplicationIntegrationTypes,
+  InteractionContextTypes,
+  Permissions,
+} from 'detritus-client/lib/constants';
 
 import { BaseSlashCommand } from '../../basecommand';
 
 import { ImageBackgroundGroupCommand } from './background';
-import { ImageObjectGroupCommand } from './object';
 
 import { ImageToolsConvertCommand } from './convert';
 import { ImageToolsCropCommand } from './crop';
@@ -20,6 +23,16 @@ export default class ImageToolsGroupCommand extends BaseSlashCommand {
   description = 'Image Tools Commands';
   name = 'i-tools';
 
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
+
   constructor() {
     super({
       permissions: [Permissions.ATTACH_FILES],
@@ -31,7 +44,6 @@ export default class ImageToolsGroupCommand extends BaseSlashCommand {
         new ImageToolsCropCircleCommand(),
         new ImageToolsCropNFTCommand(),
         new ImageJPEGCommand(),
-        new ImageObjectGroupCommand(),
         new ImageToolsResizeCommand(),
         new ImageSharpenCommand(),
         new ImageToolsTrimCommand(),

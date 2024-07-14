@@ -1436,7 +1436,10 @@ export function mediaUrls(
         }
       }
 
-      if (urls.length < maxAmount && urls.length < minAmount && (context.inDm || (context.channel && context.channel.canReadHistory))) {
+      if (
+        (urls.length < maxAmount && urls.length < minAmount) &&
+        ((context.inDm && context.hasServerPermissions) || (context.channel && context.channel.canReadHistory))
+      ) {
         const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
         for (let [messageId, message] of messages) {
           if (maxAmount <= urls.length) {

@@ -1,4 +1,8 @@
-import { Permissions } from 'detritus-client/lib/constants';
+import {
+  ApplicationIntegrationTypes,
+  InteractionContextTypes,
+  Permissions,
+} from 'detritus-client/lib/constants';
 
 import { BaseSlashCommand } from '../../basecommand';
 
@@ -9,6 +13,16 @@ import { ImageMemeCommand } from './meme';
 export default class ImageTextGroupCommand extends BaseSlashCommand {
   description = 'Image Text Commands';
   name = 'i-text';
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
 
   constructor() {
     super({

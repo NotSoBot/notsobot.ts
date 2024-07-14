@@ -9,6 +9,11 @@ export default class OwnerGroupCommand extends BaseSlashCommand {
   description = 'Owner Only Commands';
   name = 'owner';
 
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
   integrationTypes = [
     ApplicationIntegrationTypes.GUILD_INSTALL,
     ApplicationIntegrationTypes.USER_INSTALL,

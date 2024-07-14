@@ -1,5 +1,11 @@
 import { Interaction } from 'detritus-client';
-import { InteractionCallbackTypes, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import {
+  ApplicationIntegrationTypes,
+  InteractionCallbackTypes,
+  InteractionContextTypes,
+  MessageFlags,
+  Permissions,
+} from 'detritus-client/lib/constants';
 
 import { BaseSlashCommand } from '../../basecommand';
 
@@ -13,6 +19,16 @@ export default class SearchGroupCommand extends BaseSlashCommand {
   description = 'Search Commands';
   name = 'search';
   triggerLoadingAfter = 100;
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
 
   constructor() {
     super({

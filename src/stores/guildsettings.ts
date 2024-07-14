@@ -50,7 +50,9 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         });
 
         const { client } = context;
-        const guild = client.guilds.get(guildId);
+        const { guildPartial } = context as any; // this will be just {features, id, locale}
+
+        const guild = client.guilds.get(guildId) || guildPartial;
         try {
           let settings: GuildSettings;
           if (guild) {

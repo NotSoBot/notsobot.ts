@@ -9,25 +9,24 @@
   ],
   "dependencies": {
     "@sentry/node": "^8.17.0",
-    "chrono-node": "^2.7.4",
-    "detritus-client": "^0.17.0-beta.21",
-    "detritus-rest": "^0.9.0-beta.13",
+    "chrono-node": "^2.7.6",
+    "detritus-client": "^0.17.0-beta.26",
     "emoji-aware": "^3.1.0",
     "flexsearch": "^0.7.43",
     "juration": "^0.1.1",
-    "mathjs": "^12.2.1",
+    "mathjs": "^13.0.2",
     "minisearch": "^6.3.0",
     "moment": "^2.30.1",
     "moment-duration-format": "^2.3.2",
-    "moment-timezone": "^0.5.44",
+    "moment-timezone": "^0.5.45",
     "opusscript": "^0.1.1",
-    "redis": "^4.6.12",
-    "typescript": "^5.3.3",
+    "redis": "^4.6.15",
+    "typescript": "^5.5.3",
     "wav": "^1.0.2"
   },
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.3",
-    "@types/node": "^20.10.8",
+    "@types/node": "^20.14.10",
     "@types/wav": "^1.0.4"
   },
   "scripts": {
