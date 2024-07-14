@@ -461,7 +461,7 @@ export async function url(
 ): Promise<string> {
   if (value) {
     if (!/^https?:\/\//.test(value)) {
-      value = `http://${value}`;
+      value = `https://${value}`;
     }
     if (!validateUrl(value)) {
       throw new Error('Malformed URL');
