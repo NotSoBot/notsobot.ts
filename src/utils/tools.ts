@@ -1116,7 +1116,7 @@ export function generateImageReplyOptionsFromResponse(
   }
 
   let descriptionText: string | undefined;
-  if (response.arguments) {
+  if ((options.args || options.args === undefined) && response.arguments) {
     const description: Array<string> = [];
     for (let key in response.arguments) {
       const title = toTitleCase(key);
@@ -1285,6 +1285,7 @@ export async function mediaReply(
   context: Command.Context | Interaction.InteractionContext,
   response: RestResponsesRaw.FileResponse,
   options: {
+    args?: boolean,
     content?: string,
     filename?: string,
     spoiler?: boolean,
@@ -1298,6 +1299,7 @@ export async function mediaReply(
   }
   const buffer = Buffer.from(response.file.value, 'base64');
   return mediaReplyFromOptions(context, buffer, {
+    args: options.args,
     content: options.content,
     extension: response.file.metadata.extension,
     filename: options.filename, // we will get the filename based off the command name
@@ -1313,6 +1315,7 @@ export async function mediaReplyFromOptions(
   context: Command.Context | Interaction.InteractionContext,
   value: any,
   options: {
+    args?: boolean,
     content?: string,
     extension?: string,
     filename?: string,

@@ -25,7 +25,7 @@ export default class EmojiCommand extends BaseCommand {
         {
           name: 'type',
           choices: CHOICES,
-          default: EmojiTypes.TWEMOJI,
+          default: Formatter.Commands.FunEmoji.DEFAULT_EMOJI_TYPE,
           help: `Must be one of: (${CHOICES.join(', ')})`,
           type: Parameters.stringLowerCase(),
         },

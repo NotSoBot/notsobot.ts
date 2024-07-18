@@ -3,6 +3,8 @@ import { InteractionCallbackTypes, MessageFlags, MAX_ATTACHMENT_SIZE } from 'det
 import { Embed, Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
+import UserAvatarDecorations from '../../../stores/useravatardecorations';
+
 import { utilitiesFetchMedia } from '../../../api';
 import {
   DateMomentLogFormat,
@@ -31,6 +33,11 @@ export async function createMessage(
   const member = args.user as Structures.Member;
   const user = ((isMember) ? member.user : args.user) as Structures.User;
   const userWithBanner = (args.user instanceof Structures.UserWithBanner) ? args.user : await context.rest.fetchUser(user.id);
+  const avatarDecoration = (
+    (user.avatarDecorationData) ?
+    await UserAvatarDecorations.getOrFetch(context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset) :
+    null
+  );
 
   const files: Array<RequestTypes.File> = [];
 
@@ -79,6 +86,9 @@ export async function createMessage(
 
       {
         const description: Array<string> = [];
+        if (avatarDecoration) {
+          description.push(`**Avatar Decoration**: ${Markup.url(avatarDecoration.name, avatarDecoration.url)}`); 
+        }
         {
           const badges: Array<string> = [];
           for (let key in DiscordEmojis.DISCORD_BADGES) {

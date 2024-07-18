@@ -1,6 +1,9 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
+import { Markup } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
+
+import UserAvatarDecorations from '../../../stores/useravatardecorations';
 
 import { utilitiesFetchMedia } from '../../../api';
 import { PresenceStatusColors } from '../../../constants';
@@ -64,18 +67,30 @@ export async function createMessage(
 
   {
     const description: Array<string> = [];
-    description.push(`[**Default**](${user.defaultAvatarUrl})`);
+    description.push(Markup.url('**Default**', user.defaultAvatarUrl));
     if (user instanceof Structures.Member) {
       if (user.avatar) {
-        description.push(`[**Server**](${user.avatarUrl})`);
+        description.push(Markup.url('**Server**', user.avatarUrl));
       }
       if (user.user.avatar) {
-        description.push(`[**User**](${user.user.avatarUrl})`);
+        description.push(Markup.url('**User**', user.user.avatarUrl));
       }
     } else {
       if (user.avatar) {
-        description.push(`[**User**](${user.avatarUrl})`);
+        description.push(Markup.url('**User**', user.avatarUrl));
       }
+    }
+    if (user.avatarDecorationData) {
+      const avatarDecoration = await UserAvatarDecorations.getOrFetch(
+        context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset,
+      );
+      let name: string;
+      if (avatarDecoration.id === avatarDecoration.name) {
+        name = '**Decoration**';
+      } else {
+        name = `**Decoration (${avatarDecoration.name})**`;
+      }
+      description.push(Markup.url(name, avatarDecoration.url));
     }
     embed.setDescription(description.join(', '));
   }

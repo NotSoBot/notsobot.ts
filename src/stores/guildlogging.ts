@@ -15,6 +15,7 @@ import { Endpoints as DiscordEndpoints, RequestTypes } from 'detritus-client-res
 import { EventSubscription, Timers } from 'detritus-utils';
 
 import GuildSettingsStore from './guildsettings';
+import UserAvatarDecorationStore, { UserAvatarDecorationStored } from './useravatardecorations';
 import { Store } from './store';
 
 import {
@@ -76,6 +77,10 @@ export type GuildLoggingEventItem = {
 } | {
   audits?: GuildLoggingEventItemAudits,
   cached: {
+    avatars?: {
+      current?: {filename: string, value: Buffer},
+      old?: {filename: string, value: Buffer},
+    },
     member: Structures.Member,
     old: Structures.Member,
   },
@@ -125,6 +130,7 @@ export type GuildLoggingEventItem = {
       current?: {filename: string, value: Buffer},
       old?: {filename: string, value: Buffer},
     },
+    avatarDecorations?: {current?: UserAvatarDecorationStored, old?: UserAvatarDecorationStored},
     old: Structures.User,
     user: Structures.User,
   },
@@ -463,6 +469,11 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         }; break;
       }
       if (loggerType !== null && settings.loggers.some((logger) => logger.type === loggerType)) {
+        switch (event.name) {
+          case ClientEvents.USERS_UPDATE: {
+            
+          }; break;
+        }
         this.add(guildId, loggerType, shard, event);
       }
     }
@@ -547,6 +558,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     {
       const keys = [
         DetritusKeys[DiscordKeys.AVATAR],
+        DetritusKeys[DiscordKeys.BANNER],
         DetritusKeys[DiscordKeys.COMMUNICATION_DISABLED_UNTIL],
         DetritusKeys[DiscordKeys.DEAF],
         DetritusKeys[DiscordKeys.HOISTED_ROLE],
@@ -562,12 +574,37 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         const { differences, guildId, member, old, shard } = payload;
         // if differences is not null and its not just {joinedAt}
         if (old && (differences && keys.some((key) => key in differences))) {
+          const cached: {
+            avatars?: {current?: {filename: string, value: Buffer}, old?: {filename: string, value: Buffer}},
+            member: Structures.Member,
+            old: Structures.Member,
+          } = {member: member.clone(), old};
           const happened = Date.now();
+
+          if (old.avatar !== member.avatar) {
+            cached.avatars = {};
+            try {
+              if (old.avatar) {
+                const url = old.avatarUrlFormat(null, {size: 160});
+                cached.avatars.old = {
+                  filename: `${member.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`,
+                  value: await shard.rest.get(url),
+                };
+              }
+              if (member.avatar) {
+                const url = member.avatarUrlFormat(null, {size: 512});
+                cached.avatars.current = {
+                  filename: `${member.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`,
+                  value: await shard.rest.get(url),
+                };
+              }
+            } catch(error) {
+              cached.avatars = undefined;
+            }
+          }
+
           return this.tryAdd(shard, {
-            cached: {
-              member: member.clone(),
-              old,
-            },
+            cached,
             guildId,
             happened,
             name,
@@ -734,10 +771,13 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     {
       const name = ClientEvents.USERS_UPDATE;
       const subscription = cluster.subscribe(name, async (payload) => {
-        const { shard, old, user } = payload;
+        const { shard, differences, old, user } = payload;
         if (old) {
+          const guilds = user.guilds;
+
           const cached: {
             avatars?: {current?: {filename: string, value: Buffer}, old?: {filename: string, value: Buffer}},
+            avatarDecorations?: {current?: UserAvatarDecorationStored, old?: UserAvatarDecorationStored},
             old: Structures.User,
             user: Structures.User,
           } = {old, user: user.clone()};
@@ -747,15 +787,39 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
             cached.avatars = {};
             try {
               if (old.avatar) {
-                const url = old.avatarUrlFormat(null, {size: 512});
-                cached.avatars.old = {filename: `${user.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`, value: await shard.rest.get(url)};
+                const url = old.avatarUrlFormat(null, {size: 160});
+                cached.avatars.old = {
+                  filename: `${user.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`,
+                  value: await shard.rest.get(url),
+                };
               }
               if (user.avatar) {
                 const url = user.avatarUrlFormat(null, {size: 512});
-                cached.avatars.current = {filename: `${user.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`, value: await shard.rest.get(url)};
+                cached.avatars.current = {
+                  filename: `${user.id}-${happened}-${url.split('/').pop()!.split('?').shift()}`,
+                  value: await shard.rest.get(url),
+                };
               }
             } catch(error) {
               cached.avatars = undefined;
+            }
+          }
+
+          if (differences && differences.avatarDecorationData !== undefined) {
+            cached.avatarDecorations = {};
+            if (old.avatarDecorationData) {
+              cached.avatarDecorations.old = await UserAvatarDecorationStore.getOrFetch(
+                shard,
+                old.avatarDecorationData.skuId,
+                old.avatarDecorationData.asset,
+              );
+            }
+            if (user.avatarDecorationData) {
+              cached.avatarDecorations.current = await UserAvatarDecorationStore.getOrFetch(
+                shard,
+                user.avatarDecorationData.skuId,
+                user.avatarDecorationData.asset,
+              );
             }
           }
 
@@ -1004,7 +1068,7 @@ export function createLogPayload(
       }
     }; break;
     case ClientEvents.GUILD_MEMBER_UPDATE: {
-      const { member, old } = event.cached;
+      const { avatars, member, old } = event.cached;
 
       createUserEmbed(member, embed);
       embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
@@ -1014,6 +1078,23 @@ export function createLogPayload(
       {
         const timestamp = createTimestampStringFromGuild(happened, guildId);
         embed.setFooter(`Member Updated • ${timestamp}`);
+      }
+
+      if (avatars) {
+        const guild = shard.guilds.get(guildId);
+        const maxFileSize = (guild) ? guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE;
+      
+        const total = ((avatars.current) ? avatars.current.value.length : 0) + ((avatars.old) ? avatars.old.value.length : 0);
+        if (total && total < maxFileSize) {
+          if (avatars.current) {
+            embed.setAuthor(undefined, `attachment://${avatars.current.filename}`);
+            files.push(avatars.current);
+          }
+          if (avatars.old) {
+            embed.setThumbnail(`attachment://${avatars.old.filename}`);
+            files.push(avatars.old);
+          }
+        }
       }
 
       if (audits) {
@@ -1238,6 +1319,17 @@ export function createLogPayload(
             description.push('-> Set their Server Avatar');
           } else if (!member.avatar && old.avatar) {
             description.push('-> Removed their Server Avatar');
+          }
+        }
+
+        if (member.banner !== old.banner) {
+          description.push('- Server Banner Change');
+          if (member.banner && old.banner) {
+            description.push('-> Changed their Server Banner');
+          } else if (member.banner && !old.banner) {
+            description.push('-> Set their Server Banner');
+          } else if (!member.banner && old.banner) {
+            description.push('-> Removed their Server Banner');
           }
         }
 
@@ -1848,7 +1940,7 @@ export function createLogPayload(
       ].join('\n'));
     }; break;
     case ClientEvents.USERS_UPDATE: {
-      const { avatars, old, user } = event.cached;
+      const { avatars, avatarDecorations, old, user } = event.cached;
       const { differences } = event.payload;
 
       {
@@ -1889,6 +1981,21 @@ export function createLogPayload(
             description.push('- Changed from the default Avatar');
           }
         }
+        if (differences.avatarDecorationData !== undefined) {
+          const newUrl = avatarDecorations && avatarDecorations.current && Markup.url(avatarDecorations.current.name, avatarDecorations.current.url);
+          const oldUrl = avatarDecorations && avatarDecorations.old && Markup.url(avatarDecorations.old.name, avatarDecorations.old.url);
+
+          if (old.avatarDecorationData && user.avatarDecorationData) {
+            description.push('- Changed Avatar Decorations');
+            description.push(`-> From **${oldUrl}** to **${newUrl}**`);
+          } else if (old.avatarDecorationData && !user.avatarDecorationData) {
+            description.push('- Removed Avatar Decoration');
+            description.push(`-> Removed **${oldUrl}**`);
+          } else if (!differences.avatarDecorationData && user.avatarDecorationData) {
+            description.push('- Set Avatar Decoration');
+            description.push(`-> Set to **${newUrl}**`);
+          }
+        }
         if (differences.username !== undefined || differences.discriminator !== undefined) {
           if (differences.username !== undefined) {
             description.push('- Username Change');
@@ -1897,6 +2004,16 @@ export function createLogPayload(
           if (differences.discriminator !== undefined) {
             description.push('- Discriminator Change');
             description.push(`-> **${Markup.codestring(differences.discriminator)}** to **${Markup.codestring(user.discriminator)}**`);
+          }
+        }
+        if (differences.globalName !== undefined) {
+          description.push('- Global Name Change');
+          if (differences.globalName && user.globalName) {
+            description.push(`-> **${Markup.codestring(differences.globalName)}** to **${Markup.codestring(user.globalName)}**`);
+          } else if (differences.globalName && !user.globalName) {
+            description.push(`-> Removed **${Markup.codestring(differences.globalName)}**`);
+          } else if (!differences.globalName && user.globalName) {
+            description.push(`-> Changed to **${Markup.codestring(user.globalName)}**`);
           }
         }
         if (differences.publicFlags !== undefined) {

@@ -7,11 +7,31 @@ import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import { mediaIVToolsResize } from '../../../api';
 import { CDN, CUSTOM } from '../../../api/endpoints';
-import { EmojiTypes, Mimetypes } from '../../../constants';
+import { BooleanEmojis, EmojiTypes, EmojiTypesToText, Mimetypes } from '../../../constants';
 import { editOrReply, imageReply, toCodePoint, toCodePointForTwemoji } from '../../../utils';
 
 
 export const COMMAND_ID = 'fun.emoji';
+
+export const DEFAULT_EMOJI_TYPE = EmojiTypes.TWEMOJI;
+
+export const SLASH_CHOICES = [
+  EmojiTypes.APPLE,
+  //EmojiTypes.EMOJI_ONE,
+  //EmojiTypes.FACEBOOK,
+  EmojiTypes.GOOGLE,
+  EmojiTypes.MICROSOFT,
+  EmojiTypes.STEAM,
+  EmojiTypes.TWEMOJI,
+  //EmojiTypes.TWITCH,
+].map((x) => {
+  let name = EmojiTypesToText[x];
+  if (x === DEFAULT_EMOJI_TYPE) {
+    name = `${name} (Default)`;
+  }
+  return {name, value: x};
+}).sort((x) => (x.value === DEFAULT_EMOJI_TYPE) ? -1 : 0);
+
 
 export interface CommandArgs {
   emojis: string,
@@ -125,7 +145,7 @@ export async function createMessage(
     const files = await Promise.all(promises);
     return editOrReply(context, {files});
   }
-  return editOrReply(context, '⚠ Unable to find any images matching that...');
+  return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any images matching that.`);
 }
 
 

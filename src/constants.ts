@@ -306,6 +306,18 @@ export enum EmojiTypes {
 };
 
 
+export const EmojiTypesToText: Record<EmojiTypes, string> = Object.freeze({
+  [EmojiTypes.APPLE]: 'Apple',
+  [EmojiTypes.EMOJI_ONE]: 'Emoji One',
+  [EmojiTypes.FACEBOOK]: 'Facebook',
+  [EmojiTypes.GOOGLE]: 'Google',
+  [EmojiTypes.MICROSOFT]: 'Microsoft',
+  [EmojiTypes.STEAM]: 'Steam',
+  [EmojiTypes.TWEMOJI]: 'Twemoji',
+  [EmojiTypes.TWITCH]: 'Twitch',
+});
+
+
 
 export enum GoogleCardTypes {
   CALCULATOR = 'CALCULATOR',
