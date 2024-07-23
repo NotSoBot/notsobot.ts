@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandCategories } from '../../../constants';
+import { BooleanEmojis, CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -40,10 +40,10 @@ export default class TagAliasCommand extends BaseCommand {
   onCancelRun(context: Command.Context, args: Formatter.Commands.TagAlias.CommandArgsBefore) {
     if (args.tag !== null || args.name) {
       if (!args.name) {
-        return editOrReply(context, '⚠ Gotta have some sort of tag name to create an alias for');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Gotta have some sort of tag name to create an alias for`);
       }
       if (args.tag === false) {
-        return editOrReply(context, '⚠ Unknown Tag');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
       }
     }
     return super.onCancelRun(context, args);

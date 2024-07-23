@@ -6,6 +6,8 @@ import { ToolsDownloadCommand } from './download';
 import { ToolsHashCommand } from './hash';
 import { ToolsMathCommand } from './math';
 import { ToolsScreenshotCommand } from './screenshot';
+import { ToolsTranscribe } from './transcribe';
+import { ToolsTranslate } from './translate';
 
 import { ToolsMLGroupCommand } from './ml';
 import { ToolsQrGroupCommand } from './qr';
@@ -32,8 +34,10 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
         new ToolsHashCommand(),
         new ToolsMathCommand(),
         new ToolsMLGroupCommand(),
-        new ToolsScreenshotCommand(),
         new ToolsQrGroupCommand(),
+        new ToolsScreenshotCommand(),
+        new ToolsTranscribe(),
+        new ToolsTranslate(),
       ],
     });
   }

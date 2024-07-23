@@ -1,6 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
+import { RequestFile } from 'detritus-rest';
 
 import { googleContentVisionOCR, googleTranslate } from '../../../api';
 import {
@@ -14,23 +15,34 @@ import { createUserEmbed, editOrReply, languageCodeToText, splitTextByAmount } f
 export const COMMAND_ID = 'tools.ocr.translate';
 
 export interface CommandArgs {
+  file?: RequestFile,
   isEphemeral?: boolean,
   to?: GoogleLocales | null,
-  url: string,
+  url?: string,
 }
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  if (!args.file && !args.url) {
+    return editOrReply(context, 'Internal Error, one of file or url must be provided');
+  }
+
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const { annotation } = await googleContentVisionOCR(context, {url: args.url});
+  const { annotation } = await googleContentVisionOCR(context, {
+    file: args.file,
+    url: args.url,
+  });
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
   embed.setFooter('Google Translate from OCR', EmbedBrands.GOOGLE_GO);
-  embed.setThumbnail(args.url);
+
+  if (args.url) {
+    embed.setThumbnail(args.url);
+  }
 
   const files: Array<{filename: string, value: string}> = [];
   if (annotation) {
@@ -45,7 +57,7 @@ export async function createMessage(
       translated_text: translatedText,
     } = await googleTranslate(context, {
       from: locale,
-      text: annotation.description.slice(0, 2000),
+      text: annotation.description,
       to: args.to || undefined,
     });
 

@@ -163,6 +163,7 @@ import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetTimezone from './settings.set.timezone';
 
+import * as TagAdd from './tag.add';
 import * as TagAlias from './tag.alias';
 import * as TagCommandsAdd from './tag.commands.add';
 import * as TagCommandsList from './tag.commands.list';
@@ -373,6 +374,7 @@ export {
   SettingsSetLocale,
   SettingsSetTimezone,
 
+  TagAdd,
   TagAlias,
   TagCommandsAdd,
   TagCommandsList,

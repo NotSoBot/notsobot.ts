@@ -1,7 +1,11 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
+import {
+  ApplicationIntegrationTypes,
+  InteractionContextTypes,
+  MessageFlags,
+} from 'detritus-client/lib/constants';
 
-import { Formatter, findMediaUrlInMessages } from '../../../../utils';
+import { Formatter, findMediaUrlInMessages, getOrFetchRealUrl } from '../../../../utils';
 
 import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
 
@@ -18,8 +22,21 @@ export default class QRScanCommand extends BaseContextMenuMessageCommand {
   };
   name = COMMAND_NAME;
 
-  onBeforeRun(context: Interaction.InteractionContext, args: QRScanCommandArgs) {
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
+
+  async onBeforeRun(context: Interaction.InteractionContext, args: QRScanCommandArgs) {
     args.url = findMediaUrlInMessages([args.message], {audio: false, video: false});
+    if (args.url) {
+      args.url = await getOrFetchRealUrl(context, args.url);
+    }
     return !!args.url;
   }
 

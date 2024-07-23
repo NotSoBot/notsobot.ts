@@ -1,6 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
+import { RequestFile } from 'detritus-rest';
 
 import { googleTranslate, mediaAVToolsTranscribe } from '../../../api';
 import {
@@ -14,21 +15,27 @@ import { createUserEmbed, editOrReply, languageCodeToText, splitTextByAmount } f
 export const COMMAND_ID = 'tools.transcribe.translate';
 
 export interface CommandArgs {
+  file?: RequestFile,
   isEphemeral?: boolean,
   to?: GoogleLocales | null,
-  url: string,
+  url?: string,
 }
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  if (!args.file && !args.url) {
+    return editOrReply(context, 'Internal Error, one of file or url must be provided');
+  }
+
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { duration, text } = await mediaAVToolsTranscribe(context, {
+    file: args.file,
     url: args.url,
   });
-  
+
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
   embed.setFooter('Google Translate from Transcription', EmbedBrands.GOOGLE_GO);

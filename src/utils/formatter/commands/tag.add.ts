@@ -9,7 +9,7 @@ import { BooleanEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'tag.alias';
+export const COMMAND_ID = 'tag.add';
 
 export interface CommandArgsBefore {
   name: string,
@@ -26,9 +26,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
-  if (args.tag.name === args.name) {
-    return editOrReply(context, 'ok');
-  }
+  const tagName = args.name || args.tag.name;
 
   if (isFromInteraction && !context.hasServerPermissions && context.guildId && context.guildPartial) {
     // create server in database
@@ -37,7 +35,7 @@ export async function createMessage(
 
   const serverId = context.guildId || context.channelId;
   try {
-    const oldTag = await fetchTag(context, {name: args.name, serverId});
+    const oldTag = await fetchTag(context, {name: tagName, serverId});
     if (oldTag.user.id !== context.userId) {
       return editOrReply(context, `${BooleanEmojis.WARNING} Tag already exists in this server and you do not own it!`);
     }
@@ -49,13 +47,14 @@ export async function createMessage(
   }
 
   const tag = await putTag(context, {
-    name: args.name,
+    name: tagName,
     referenceTagId: args.tag.id,
     serverId,
   });
 
-  return editOrReply(
-    context,
-    `Ok, created an alias tag called ${Markup.codestring(tag.name)} for tag ${Markup.codestring(args.tag.name)}`,
-  );
+  let message = `Ok, added tag ${Markup.codestring(args.tag.name)} from your DMs`;
+  if (args.tag.name !== tag.name) {
+    message = `${message} as ${Markup.codestring(tag.name)}`;
+  }
+  return editOrReply(context, `${message} to this server.`);
 }

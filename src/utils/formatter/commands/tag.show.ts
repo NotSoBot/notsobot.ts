@@ -71,11 +71,13 @@ export async function increaseUsage(
 
   }
 
+  const tagId = (tag.reference_tag) ? tag.reference_tag.id : tag.id;
+
   const replacementContent = context?.metadata?.parsedTag?.replacement;
   if (replacementContent) {
     try {
       // update tag without updating the edit time
-      await editTag(context, tag.id, {
+      await editTag(context, tagId, {
         content: replacementContent,
         isUrlRefresh: true,
       });

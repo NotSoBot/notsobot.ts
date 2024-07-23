@@ -793,6 +793,21 @@ export async function fetchTag(
 }
 
 
+export async function fetchTagId(
+  context: RequestContext,
+  tagId: string,
+): Promise<RestResponsesRaw.FetchTagId> {
+  const params = {tagId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAG,
+      params,
+    },
+  });
+}
+
+
 // rename
 export async function fetchTagRandom(
   context: RequestContext,
@@ -1017,11 +1032,13 @@ export async function googleContentVisionLabels(
   context: RequestContext,
   options: RestOptions.GoogleContentVisionBase,
 ): Promise<RestResponsesRaw.GoogleContentVisionLabels> {
-  const body = {
+  const query = {
     url: options.url,
   };
   return request(context, {
-    body,
+    file: options.file,
+    multipart: true,
+    query,
     route: {
       method: HTTPMethods.POST,
       path: Api.GOOGLE_CONTENT_VISION_LABELS,
@@ -1034,11 +1051,13 @@ export async function googleContentVisionOCR(
   context: RequestContext,
   options: RestOptions.GoogleContentVisionBase,
 ): Promise<RestResponsesRaw.GoogleContentVisionOCR> {
-  const body = {
+  const query = {
     url: options.url,
   };
   return request(context, {
-    body,
+    file: options.file,
+    multipart: true,
+    query,
     route: {
       method: HTTPMethods.POST,
       path: Api.GOOGLE_CONTENT_VISION_OCR,
@@ -1051,11 +1070,13 @@ export async function googleContentVisionSafeSearch(
   context: RequestContext,
   options: RestOptions.GoogleContentVisionBase,
 ): Promise<RestResponsesRaw.GoogleContentVisionSafeSearch> {
-  const body = {
+  const query = {
     url: options.url,
   };
   return request(context, {
-    body,
+    file: options.file,
+    multipart: true,
+    query,
     route: {
       method: HTTPMethods.POST,
       path: Api.GOOGLE_CONTENT_VISION_SAFE_SEARCH,
@@ -1068,11 +1089,13 @@ export async function googleContentVisionWebDetection(
   context: RequestContext,
   options: RestOptions.GoogleContentVisionBase,
 ): Promise<RestResponsesRaw.GoogleContentVisionWebDetection> {
-  const body = {
+  const query = {
     url: options.url,
   };
   return request(context, {
-    body,
+    file: options.file,
+    multipart: true,
+    query,
     route: {
       method: HTTPMethods.POST,
       path: Api.GOOGLE_CONTENT_VISION_WEB_DETECTION,

@@ -38,7 +38,12 @@ export function exportTags(
     value: JSON.stringify({
       options: (Object.values(options).some(Boolean)) ? options : undefined,
       serverId,
-      tags,
+      tags: tags.map((tag) => {
+        if (tag.reference_tag && tag.reference_tag.server_id) {
+          tag.reference_tag.content = '';
+        }
+        return tag;
+      }),
       timestamp: Date.now(),
     }),
   };

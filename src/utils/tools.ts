@@ -1165,6 +1165,13 @@ export async function imageReply(
     spoiler?: boolean,
   } | string = {},
 ) {
+  if (context instanceof Interaction.InteractionContext) {
+    if (typeof(options) === 'string') {
+      options = {filename: options};
+    }
+    options.args = options.args || false;
+  }
+
   const imageReplyOptions = generateImageReplyOptionsFromResponse(response, options);
   if (imageReplyOptions.description) {
     imageReplyOptions.options.embed = new Embed();

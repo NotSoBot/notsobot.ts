@@ -9,6 +9,7 @@ import { BaseSlashCommand } from '../../basecommand';
 import { B1Command } from './b1';
 import { BadMemeCommand } from './badmeme';
 import { EmojiCommand } from './emoji';
+import { TTSCommand } from './tts';
 
 
 export default class FunGroupCommand extends BaseSlashCommand {
@@ -32,6 +33,7 @@ export default class FunGroupCommand extends BaseSlashCommand {
         new B1Command(),
         new BadMemeCommand(),
         new EmojiCommand(),
+        new TTSCommand(),
       ],
     });
   }

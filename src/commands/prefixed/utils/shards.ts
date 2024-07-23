@@ -22,6 +22,7 @@ export interface ClusterInformation {
 }
 
 export interface ClusterObjectInformation {
+  applicationEmojis: number,
   applications: number,
   channels: number,
   channelThreads: number,
@@ -53,6 +54,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
       const information: ClusterInformation = {
         memory: usage,
         objects: {
+          applicationEmojis: 0,
           applications: 0,
           channels: 0,
           channelThreads: 0,
@@ -83,6 +85,7 @@ export async function getClusterInformation(context: Command.Context): Promise<A
           if (shard.gateway.state === SocketStates.READY) {
             information.shardsIdentified += 1;
           }
+          information.objects.applicationEmojis += shard.applicationEmojis.length;
           information.objects.applications += shard.applications.length;
           information.objects.channels += shard.channels.length;
           information.objects.channelThreads += shard.channels.filter((channel) => channel.isGuildThread).length;

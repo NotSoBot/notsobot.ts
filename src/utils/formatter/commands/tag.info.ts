@@ -1,6 +1,8 @@
 import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
+import UserStore from '../../../stores/users';
+
 import { RestResponsesRaw } from '../../../api/types';
 import { DateMomentLogFormat, EmbedColors } from '../../../constants';
 import {
@@ -31,7 +33,15 @@ export async function createMessage(
 
   if (tag.reference_tag) {
     if (tag.reference_tag.server_id) {
-      embed.setDescription(`Alias of tag ${Markup.codestring(tag.reference_tag.name)}`);
+      let message = `Alias of tag ${Markup.codestring(tag.reference_tag.name)}`;
+
+      const user = await UserStore.getOrFetch(context, tag.reference_tag.user.id);
+      if (user && user.channelId === tag.reference_tag.server_id) {
+        const owner = await fetchMemberOrUserById(context, tag.reference_tag.user.id);
+        message = `${message} from ${createUserString(tag.reference_tag.user.id, owner, 'Deleted User?')}'s DMs`;
+      }
+
+      embed.setDescription(message);
     } else {
       embed.setDescription(`Using a tag from the tag directory. https://notsobot.com/directories/tags/${tag.reference_tag.id}`);
     }

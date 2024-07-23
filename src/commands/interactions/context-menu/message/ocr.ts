@@ -1,5 +1,9 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
+import {
+  ApplicationIntegrationTypes,
+  InteractionContextTypes,
+  MessageFlags,
+} from 'detritus-client/lib/constants';
 
 import { Formatter, findMediaUrlInMessages } from '../../../../utils';
 
@@ -17,6 +21,16 @@ export default class OCRCommand extends BaseContextMenuMessageCommand {
     id: Formatter.Commands.ToolsOCR.COMMAND_ID,
   };
   name = COMMAND_NAME;
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
 
   onBeforeRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {
     args.url = findMediaUrlInMessages([args.message], {audio: false, video: false});

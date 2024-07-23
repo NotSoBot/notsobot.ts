@@ -1,4 +1,5 @@
 import { Interaction } from 'detritus-client';
+import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
 import { Formatter } from '../../../../utils';
 
@@ -12,6 +13,16 @@ export default class InformationCommand extends BaseContextMenuUserCommand {
     id: Formatter.Commands.InfoUser.COMMAND_ID,
   };
   name = COMMAND_NAME;
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
+  ];
 
   async run(context: Interaction.InteractionContext, args: ContextMenuUserArgs) {
     return Formatter.Commands.InfoUser.createMessage(context, {

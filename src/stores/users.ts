@@ -21,7 +21,10 @@ class UserStore extends Store<string, UserFull> {
     this.set(payload.id, payload);
   }
 
-  async getOrFetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<UserFull | null> {
+  async getOrFetch(
+    context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+    userId: string,
+  ): Promise<UserFull | null> {
     let user: UserFull | null = null;
     if (UserPromisesStore.has(userId)) {
       const { promise } = UserPromisesStore.get(userId)!;
@@ -36,7 +39,10 @@ class UserStore extends Store<string, UserFull> {
     return user;
   }
 
-  async fetch(context: Command.Context | Interaction.InteractionContext, userId: string): Promise<UserFull | null> {
+  async fetch(
+    context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+    userId: string,
+  ): Promise<UserFull | null> {
     let promise: Promise<UserFull | null>;
     if (UserPromisesStore.has(userId)) {
       promise = UserPromisesStore.get(userId)!.promise;

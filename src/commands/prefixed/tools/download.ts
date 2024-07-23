@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { BooleanEmojis, CommandCategories } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -39,9 +39,9 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any urls in the last 50 messages.');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any urls in the last 50 messages.`);
     } else if (args.url === null) {
-      return editOrReply(context, '⚠ Invalid url');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Invalid url`);
     }
     return super.onCancelRun(context, args);
   }

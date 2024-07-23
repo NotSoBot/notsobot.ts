@@ -16,7 +16,13 @@ import * as juration from 'juration';
 import MiniSearch from 'minisearch';
 import * as moment from 'moment';
 
-import { fetchTag, fetchUserVoices, searchGoogleImages, utilitiesMLImagine } from '../../api';
+import {
+  fetchTag,
+  fetchTagId,
+  fetchUserVoices,
+  searchGoogleImages,
+  utilitiesMLImagine,
+} from '../../api';
 import { CDN, CUSTOM } from '../../api/endpoints';
 import { RestResponsesRaw } from '../../api/types';
 import {
@@ -546,6 +552,46 @@ export function tagName(
   value: string,
 ): string {
   return value.replace(/\r?\n|\r/g, '');
+}
+
+
+export async function tagToAdd(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<false | null | RestResponsesRaw.Tag> {
+  if (value) {
+    const user = await UserStore.getOrFetch(context, context.userId);
+    if (!user || !user.channelId) {
+      return false;
+    }
+
+    try {
+      // parse it if its a tag directory url
+      if (isSnowflake(value)) {
+        const tag = await fetchTagId(context, value);
+        // add check to see if its a directory tag, if so then allow it
+        if (tag.user.id !== context.userId) {
+          return false;
+        }
+        if (tag.server_id === user.channelId) {
+          return tag;
+        }
+      }
+
+      // now search
+      return await fetchTag(context, {
+        name: value,
+        serverId: user.channelId,
+      });
+    } catch(error) {
+      if (error.response && error.response.statusCode === 404) {
+        return false;
+      }
+      Sentry.captureException(error);
+      throw error;
+    }
+  }
+  return null;
 }
 
 

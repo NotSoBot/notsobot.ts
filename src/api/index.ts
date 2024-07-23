@@ -24,7 +24,7 @@ import { UserFull } from './structures/user';
 import { RestOptions, RestResponses } from './types';
 
 export { request } from './raw';
-export { Endpoints, RequestContext, raw };
+export { Endpoints, RequestContext, RestOptions, RestResponses, raw };
 
 
 export async function addGuildFeature(
@@ -417,6 +417,14 @@ export async function fetchTag(
   options: RestOptions.FetchTagSearch,
 ) {
   return raw.fetchTag(context, options);
+}
+
+
+export async function fetchTagId(
+  context: RequestContext,
+  tagId: string,
+) {
+  return raw.fetchTagId(context, tagId);
 }
 
 

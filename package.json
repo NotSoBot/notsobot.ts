@@ -10,8 +10,7 @@
   "dependencies": {
     "@sentry/node": "^8.17.0",
     "chrono-node": "^2.7.6",
-    "detritus-client": "^0.17.0-beta.29",
-    "detritus-client-rest": "^0.11.0-beta.12",
+    "detritus-client": "^0.17.0-beta.33",
     "emoji-aware": "^3.1.0",
     "flexsearch": "^0.7.43",
     "juration": "^0.1.1",

@@ -51,28 +51,43 @@ export async function createMessage(
   }
   embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
 
-  const shouldShowInput = (isFromInteraction && translatedText !== args.text);
-  if (shouldShowInput) {
-    // 1024 - 10 ('```\n\n```')
-    const parts = splitTextByAmount(args.text, 1014, '');
-    embed.addField(fromLanguageText, Markup.codeblock(parts.shift() as string));
-    for (let part of parts) {
-      embed.addField('\u200b', Markup.codeblock(part));
-    }
-  }
+  const files: Array<{filename: string, value: string}> = [];
 
-  {
-    // 1024 - 10 ('```\n\n```')
-    const parts = splitTextByAmount(translatedText, 1014, '');
-    const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageText : `${fromLanguageText} -> ${translatedLanguageText}`;
-    embed.addField(title, Markup.codeblock(parts.shift() as string));
-    for (let part of parts) {
-      embed.addField('\u200b', Markup.codeblock(part));
+  const shouldShowInput = (isFromInteraction && translatedText !== args.text);
+  const totalLength = args.text.length + translatedText.length;
+  if (totalLength <= 4000) {
+    if (shouldShowInput) {
+      // 1024 - 10 ('```\n\n```')
+      const parts = splitTextByAmount(args.text, 1014, '');
+      embed.addField(fromLanguageText, Markup.codeblock(parts.shift()!));
+      for (let part of parts) {
+        embed.addField('\u200b', Markup.codeblock(part));
+      }
     }
+  
+    {
+      // 1024 - 10 ('```\n\n```')
+      const parts = splitTextByAmount(translatedText, 1014, '');
+      const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageText : `${fromLanguageText} -> ${translatedLanguageText}`;
+      embed.addField(title, Markup.codeblock(parts.shift() as string));
+      for (let part of parts) {
+        embed.addField('\u200b', Markup.codeblock(part));
+      }
+    }
+  } else {
+    if (shouldShowInput) {
+      files.push({filename: `translate-from-${fromLanguageText}.txt`, value: args.text});
+    }
+    files.push({filename: `translate-to-${translatedLanguage}.txt`, value: translatedText});
+    embed.setDescription([
+      `Input: ${args.text.length.toLocaleString()} Characters`,
+      `Result: ${translatedText.length.toLocaleString()} Characters`,
+    ].join('\n'));
   }
 
   return editOrReply(context, {
     embed,
+    files,
     flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
   });
 }

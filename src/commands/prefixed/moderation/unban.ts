@@ -62,7 +62,7 @@ export default class UnbanCommand extends BaseCommand {
 
     const unsure: Array<Structures.Member | Structures.User> = [];
 
-    //const bans = await context.rest.fetchGuildBans(context.guildId as string);
+    // const bans = await context.rest.fetchGuildBans(context.guildId as string);
 
     const admin = context.member;
     const me = context.me;
@@ -79,12 +79,24 @@ export default class UnbanCommand extends BaseCommand {
     }
 
     if (unsure.length) {
-      const bans = await context.rest.fetchGuildBans(context.guildId as string);
+      /*
+      const bans = await context.rest.fetchGuildBans(context.guildId!);
       for (let member of unsure) {
         if (bans.has(member.id)) {
           canEdit.push(member);
         } else {
           cannotEdit.push(member);
+        }
+      }
+      */
+      for (let member of unsure) {
+        try {
+          const ban = await context.rest.fetchGuildBan(context.guildId!, member.id);
+          canEdit.push(member);
+        } catch(error) {
+          if (error.response && error.response.statusCode === 404) {
+            cannotEdit.push(member);
+          }
         }
       }
     }

@@ -261,7 +261,12 @@ export async function replyString(context: Command.Context | Interaction.Interac
 
 
 export function safe(context: Command.Context | Interaction.InteractionContext): boolean {
-  const { channel } = context;
+  // from a user install in a group dm, one-on-one dm (not bot), or server
+  if (!context.hasServerPermissions) {
+    return true;
+  }
+
+  const { channel, guild } = context;
   if (channel) {
     if (channel.isDm) {
       return false;
@@ -269,20 +274,18 @@ export function safe(context: Command.Context | Interaction.InteractionContext):
     if (channel.nsfw) {
       return false;
     }
-
-    const { guild } = channel;
-    if (guild) {
-      switch (guild.explicitContentFilter) {
-        case GuildExplicitContentFilterTypes.MEMBERS_WITHOUT_ROLES: {
-          const { member } = context;
-          if (member && member.roles.length === 1) {
-            return true;
-          }
-        }; break;
-        case GuildExplicitContentFilterTypes.ALL_MEMBERS: {
+  }
+  if (guild) {
+    switch (guild.explicitContentFilter) {
+      case GuildExplicitContentFilterTypes.MEMBERS_WITHOUT_ROLES: {
+        const { member } = context;
+        if (member && member.roles.length === 1) {
           return true;
-        };
-      }
+        }
+      }; break;
+      case GuildExplicitContentFilterTypes.ALL_MEMBERS: {
+        return true;
+      };
     }
   }
   // default to safe filter being off

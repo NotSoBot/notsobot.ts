@@ -224,7 +224,8 @@ export namespace RestOptions {
 
 
   export interface GoogleContentVisionBase {
-    url: string,
+    file?: RequestFile,
+    url?: string,
   }
 
   export interface GoogleTranslate {
@@ -933,6 +934,7 @@ export namespace RestResponsesRaw {
     tags: Array<Tag>,
   }
 
+  export type FetchTagId = Tag;
   export type FetchTagSearch = Tag;
   export type FetchTagSearchRandom = Tag;
 

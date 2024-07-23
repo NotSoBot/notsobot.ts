@@ -6,6 +6,7 @@ import MiniSearch from 'minisearch';
 import {
   fetchTagsServer,
   fetchUserReminders,
+  fetchUserVoices,
 } from '../../api';
 import { RestResponsesRaw } from '../../api/types';
 import {
@@ -17,6 +18,8 @@ import {
   ImageObjectRemovalLabels,
   Timezones,
   TimezonesToText,
+  TTSVoices,
+  TTSVoicesToText,
 } from '../../constants';
 import {
   createTimestampMomentFromContext,
@@ -24,6 +27,8 @@ import {
   toTitleCase,
 } from '../tools';
 import GuildSettingsStore from '../../stores/guildsettings';
+import UserStore from '../../stores/users';
+
 
 
 export function googleLocales(context: Interaction.InteractionAutoCompleteContext) {
@@ -76,6 +81,7 @@ export function googleLocales(context: Interaction.InteractionAutoCompleteContex
 }
 
 
+
 export async function prefix(context: Interaction.InteractionAutoCompleteContext) {
   if (!context.inDm) {
     const guildId = context.guildId!;
@@ -92,6 +98,7 @@ export async function prefix(context: Interaction.InteractionAutoCompleteContext
   }
   return context.respond({choices: []});
 }
+
 
 
 interface StoredReminder {
@@ -193,11 +200,13 @@ export async function reminder(context: Interaction.InteractionAutoCompleteConte
 }
 
 
+
 export async function reminderServer(context: Interaction.InteractionAutoCompleteContext) {
   // check if user is filled out, then filter out by that
   // if user is not filled out, show everything
   // return reminder id
 }
+
 
 
 export async function tags(context: Interaction.InteractionAutoCompleteContext) {
@@ -214,6 +223,37 @@ export async function tags(context: Interaction.InteractionAutoCompleteContext) 
   }
   return context.respond({choices});
 }
+
+
+export async function tagsToAdd(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}> = [];
+  if (context.value) {
+    // if its a tag directory link or tag id, fetch it and return the name here
+  }
+  if (context.inDm && context.hasServerPermissions) {
+    // we are in our one-on-one dms, we cannot add our own tags into here, only support tag directory
+    choices = [];
+  } else {
+    try {
+      const user = await UserStore.getOrFetch(context, context.userId);
+      if (user && user.channelId) {
+        const serverId = user.channelId;
+        // add filter to not allow aliases
+        const { tags } = await fetchTagsServer(context, serverId, {
+          name: context.value,
+          limit: 25,
+        });
+        choices = tags.filter((tag) => !tag.reference_tag).map((tag) => {
+          return {name: tag.name, value: tag.id};
+        });
+      }
+    } catch(error) {
+      choices = [];
+    }
+  }
+  return context.respond({choices});
+}
+
 
 
 // needs better sorting
@@ -250,6 +290,101 @@ export async function timezone(context: Interaction.InteractionAutoCompleteConte
   }
   return context.respond({choices});
 }
+
+
+
+const ttsVoiceSearch = new MiniSearch({
+  fields: ['id', 'name'],
+  storeFields: ['id', 'name'],
+  searchOptions: {
+    boost: {id: 2},
+    fuzzy: true,
+    prefix: true,
+  },
+});
+ttsVoiceSearch.addAll(Object.entries(TTSVoicesToText).filter((x) => {
+  return x[0] !== TTSVoices.CLONED;
+}).map(([key, name]) => {
+  return {id: key, name};
+}));
+
+
+export async function ttsVoices(context: Interaction.InteractionAutoCompleteContext) {
+  // add check to see if user has premium
+  let voices: Array<{id: string, name: string}> = [];
+  try {
+    const response = await fetchUserVoices(context, context.userId);
+    voices = response.voices;
+  } catch(error) {
+    
+  }
+
+  let choices: Array<{name: string, value: string}>;
+  if (context.value) {
+    let search = ttsVoiceSearch;
+
+    if (voices.length) {
+      // clone search and add this
+      search = new MiniSearch({
+        fields: ['id', 'name'],
+        storeFields: ['id', 'name'],
+        searchOptions: {
+          boost: {id: 2},
+          fuzzy: true,
+          prefix: true,
+        },
+      });
+      search.addAll(voices.map((voice) => {
+        return {id: `${TTSVoices.CLONED}.${voice.id}`, name: voice.name};
+      }));
+      search.addAll(Object.entries(TTSVoicesToText).filter((x) => {
+        return x[0] !== TTSVoices.CLONED;
+      }).map(([key, name]) => {
+        return {id: key, name};
+      }));
+    }
+    choices = search.search(context.value).slice(0, 25).map((result) => {
+      return {name: result.name.slice(0, 100), value: result.id};
+    });
+  } else {
+    choices = [
+      TTSVoices.TIKTOK_BR_MALE_01,
+      TTSVoices.TIKTOK_DE_FEMALE_01,
+      TTSVoices.TIKTOK_DE_MALE_01,
+      TTSVoices.TIKTOK_EN_AU_FEMALE,
+      TTSVoices.TIKTOK_EN_AU_MALE,
+      TTSVoices.TIKTOK_EN_MALE_FUNNY,
+      TTSVoices.TIKTOK_EN_MALE_LOBBY,
+      TTSVoices.TIKTOK_EN_MALE_NARRATION,
+      TTSVoices.TIKTOK_EN_MALE_SUNSHINE_SOON,
+      TTSVoices.TIKTOK_EN_UK_MALE_01,
+      TTSVoices.TIKTOK_EN_US_C3PO,
+      TTSVoices.TIKTOK_EN_US_CHEWBACCA,
+      TTSVoices.TIKTOK_EN_US_FEMALE_01,
+      TTSVoices.TIKTOK_EN_US_GHOSTFACE,
+      TTSVoices.TIKTOK_EN_US_MALE_01,
+      TTSVoices.TIKTOK_EN_US_ROCKET,
+      TTSVoices.TIKTOK_EN_US_STITCH,
+      TTSVoices.TIKTOK_EN_US_STORMTROOPER,
+      TTSVoices.TIKTOK_ES_MALE_01,
+      TTSVoices.TIKTOK_FR_MALE_01,
+      TTSVoices.TIKTOK_ID_FEMALE_01,
+      TTSVoices.TIKTOK_JP_FEMALE_01,
+      TTSVoices.TIKTOK_JP_MALE_01,
+      TTSVoices.TIKTOK_KR_FEMALE_01,
+      TTSVoices.TIKTOK_KR_MALE_01,
+    ].map((x) => ({name: TTSVoicesToText[x], value: x}));
+    if (voices.length) {
+      choices = [
+        ...voices.map((x) => ({name: x.name.slice(0, 100), value: `${TTSVoices.CLONED}.${x.id}`})),
+        ...choices,
+      ].slice(0, 25);
+    }
+  }
+  return context.respond({choices});
+}
+
+
 
 export function objectRemovalLabels(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}>;

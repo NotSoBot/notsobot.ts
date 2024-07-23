@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { BooleanEmojis } from '../../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -44,10 +45,10 @@ export class TagCreateCommand extends BaseInteractionCommandOption {
   onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
     if (args.tag || args.content) {
       if (!args.tag) {
-        return editOrReply(context, '⚠ Gotta have some sort of tag name');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Gotta have some sort of tag name`);
       }
       if (!args.content) {
-        return editOrReply(context, '⚠ Must have some sort of content for the tag!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Must have some sort of content for the tag!`);
       }
     }
     return super.onCancelRun(context, args);
