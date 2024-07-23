@@ -13,15 +13,20 @@ export default class TrimCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'margin', aliases: ['m'], type: Number},
+        {name: 'threshold', aliases: ['t'], type: Number},
+      ],
       metadata: {
         category: CommandCategories.IMAGE,
         description: 'Trim an Image or Video\'s excess background',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -margin 0`,
         ],
         id: Formatter.Commands.MediaIVToolsTrim.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-margin <number>) (-threshold <number>)',
       },
     });
   }

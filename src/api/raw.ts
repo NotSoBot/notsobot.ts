@@ -2815,9 +2815,11 @@ export async function mediaIVToolsRotate(
 
 export async function mediaIVToolsTrim(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVToolsTrim,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
+    margin: options.margin,
+    threshold: options.threshold,
     url: options.url,
   };
   return request(context, {

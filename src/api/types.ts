@@ -431,6 +431,11 @@ export namespace RestOptions {
     speed: number,
   }
 
+  export interface MediaIVToolsTrim extends MediaBaseOptions {
+    margin?: number,
+    threshold?: number,
+  }
+
 
   export interface PutGuildSettings {
     icon: null | string,

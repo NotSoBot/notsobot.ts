@@ -1237,7 +1237,7 @@ export async function mediaIVToolsRotate(
 
 export async function mediaIVToolsTrim(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVToolsTrim,
 ) {
   return raw.mediaIVToolsTrim(context, options);
 }
