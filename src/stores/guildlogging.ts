@@ -2006,6 +2006,16 @@ export function createLogPayload(
             description.push(`-> **${Markup.codestring(differences.discriminator)}** to **${Markup.codestring(user.discriminator)}**`);
           }
         }
+        if (differences.clan !== undefined) {
+          description.push('- Clan Change');
+          if (differences.clan && user.clan) {
+            description.push(`-> **${Markup.codestring(differences.clan)}** to **${Markup.codestring(user.clan)}**`);
+          } else if (differences.clan && !user.clan) {
+            description.push(`-> Removed **${Markup.codestring(differences.clan)}**`);
+          } else if (!differences.clan && user.clan) {
+            description.push(`-> Changed to **${Markup.codestring(user.clan)}**`);
+          }
+        }
         if (differences.globalName !== undefined) {
           description.push('- Global Name Change');
           if (differences.globalName && user.globalName) {
