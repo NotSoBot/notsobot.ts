@@ -7,7 +7,7 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'reverse';
 
-export class ImageGifReverseCommand extends BaseInteractionImageCommandOption {
+export class MediaAIVToolsReverseCommand extends BaseInteractionImageCommandOption {
   description = 'Reverse an Animated Image/Audio/Video';
   metadata = {
     id: Formatter.Commands.MediaAIVToolsReverse.COMMAND_ID,

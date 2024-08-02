@@ -652,6 +652,14 @@ export async function mediaAIVToolsSpeed(
 }
 
 
+export async function mediaAVManipulationAudioChannelsCombine(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVManipulationAudioChannelsCombine(context, options);
+}
+
+
 export async function mediaAVManipulationBoostBass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,

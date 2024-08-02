@@ -7,9 +7,11 @@ import { ImageE2ECommand } from './e2e';
 import { ImageE2PCommand } from './e2p';
 import { ImageExplodeCommand } from './explode';
 import { ImageGlitchCommand } from './glitch';
+import { MediaIVGlitchGifCommand } from './glitch-gif';
 import { ImageImplodeCommand } from './implode';
 import { ImageLegofyCommand } from './legofy';
 import { ImageMagikCommand } from './magik';
+import { MediaIVMagikGifCommand } from './magik-gif';
 import { ImagePaperCommand } from './paper';
 import { ImagePixelateCommand } from './pixelate';
 import { ImageTraceCommand } from './trace';
@@ -30,9 +32,11 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new ImageE2PCommand(),
         new ImageExplodeCommand(),
         new ImageGlitchCommand(),
+        new MediaIVGlitchGifCommand(),
         new ImageImplodeCommand(),
         new ImageLegofyCommand(),
         new ImageMagikCommand(),
+        new MediaIVMagikGifCommand(),
         new ImagePaperCommand(),
         new ImagePixelateCommand(),
         new ImageTraceCommand(),

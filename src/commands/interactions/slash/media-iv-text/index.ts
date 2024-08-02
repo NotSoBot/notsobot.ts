@@ -10,9 +10,9 @@ import { ImageCaptionCommand } from './caption';
 import { ImageMemeCommand } from './meme';
 
 
-export default class ImageTextGroupCommand extends BaseSlashCommand {
-  description = 'Image Text Commands';
-  name = 'i-text';
+export default class MediaIVTextGroupCommand extends BaseSlashCommand {
+  description = 'Image and Video Text Commands';
+  name = 'media-iv-text';
 
   contexts = [
     InteractionContextTypes.GUILD,

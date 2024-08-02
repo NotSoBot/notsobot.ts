@@ -7,7 +7,7 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'speed';
 
-export class ImageGifSpeedCommand extends BaseInteractionImageCommandOption {
+export class MediaAIVToolsSpeedCommand extends BaseInteractionImageCommandOption {
   description = 'Edit an Animated Image/Audio/Video\'s Speed';
   metadata = {
     id: Formatter.Commands.MediaAIVToolsSpeed.COMMAND_ID,

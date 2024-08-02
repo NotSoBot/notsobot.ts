@@ -7,7 +7,7 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'jpeg';
 
-export class ImageJPEGCommand extends BaseInteractionImageCommandOption {
+export class MediaIVJPEGCommand extends BaseInteractionImageCommandOption {
   description = 'Needs More JPEG';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationJPEG.COMMAND_ID,

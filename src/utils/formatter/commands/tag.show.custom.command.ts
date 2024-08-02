@@ -1,5 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
+import { TagCustomCommandStored } from '../../../stores/tagcustomcommands';
+
 import { RestResponsesRaw } from '../../../api/types';
 import { TagFormatter, editOrReply } from '../../../utils';
 
@@ -8,7 +10,7 @@ export const COMMAND_ID = 'tag.show.custom.command';
 
 export interface CommandArgsBefore {
   arguments?: string,
-  tag?: RestResponsesRaw.Tag | null,
+  tag: false | null | RestResponsesRaw.Tag,
   text: string,
 }
 
@@ -53,4 +55,18 @@ export async function createMessage(
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
 
   return editOrReply(context, options);
+}
+
+
+export function findTagFromText(text: string, tags: TagCustomCommandStored): RestResponsesRaw.Tag | null {
+  const insensitive = text.trim().toLowerCase();
+  for (let tag of tags.sort((x, y) => y.name.length - x.name.length)) {
+    if (
+      (insensitive.length === tag.name.length && insensitive === tag.name) ||
+      insensitive.startsWith(`${tag.name} `)
+    ) {
+      return tag;
+    }
+  }
+  return null;
 }

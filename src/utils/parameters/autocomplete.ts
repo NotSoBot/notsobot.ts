@@ -13,6 +13,7 @@ import {
   DateMomentLogFormat,
   GoogleLocales,
   GoogleLocalesText,
+  GuildFeatures,
   ImageMemeFonts,
   ImageMemeFontsToText,
   ImageObjectRemovalLabels,
@@ -20,6 +21,7 @@ import {
   TimezonesToText,
   TTSVoices,
   TTSVoicesToText,
+  UserFlags,
 } from '../../constants';
 import {
   createTimestampMomentFromContext,
@@ -27,6 +29,7 @@ import {
   toTitleCase,
 } from '../tools';
 import GuildSettingsStore from '../../stores/guildsettings';
+import TagCustomCommandStore from '../../stores/tagcustomcommands';
 import UserStore from '../../stores/users';
 
 
@@ -220,6 +223,60 @@ export async function tags(context: Interaction.InteractionAutoCompleteContext) 
     choices = tags.map((tag) => ({name: tag.name, value: tag.name}));
   } catch(error) {
     choices = [];
+  }
+  return context.respond({choices});
+}
+
+
+export async function tagsCustomCommands(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}> = [];
+  if (context.value) {
+    let search = new MiniSearch({
+      fields: ['id', 'name'],
+      storeFields: ['id', 'name'],
+      searchOptions: {
+        boost: {id: 2},
+        fuzzy: true,
+        prefix: true,
+      },
+    });
+    if (context.guildId) {
+      const tags = await TagCustomCommandStore.maybeGetOrFetchGuildCommands(context, context.guildId);
+      if (tags) {
+        search.addAll(tags.map((tag) => {
+          return {id: tag.id, name: tag.name};
+        }));
+      }
+    }
+    {
+      const tags = await TagCustomCommandStore.maybeGetOrFetchUserCommands(context, context.userId);
+      if (tags) {
+        search.addAll(tags.map((tag) => {
+          return {id: tag.id, name: tag.name};
+        }));
+      }
+    }
+    choices = search.search(context.value).slice(0, 25).map((result) => {
+      return {name: result.name.slice(0, 100), value: result.id};
+    });
+  } else {
+    // search user custom commands first, then server
+    {
+      const tags = await TagCustomCommandStore.maybeGetOrFetchUserCommands(context, context.userId);
+      if (tags) {
+        choices = tags.toArray().slice(0, 25).map((tag) => {
+          return {name: tag.name.slice(0, 100), value: tag.id};
+        });
+      }
+    }
+    if (context.guildId && choices.length < 25) {
+      const tags = await TagCustomCommandStore.maybeGetOrFetchGuildCommands(context, context.guildId);
+      if (tags) {
+        for (let tag of tags.toArray().slice(0, 25 - choices.length)) {
+          choices.push({name: tag.name.slice(0, 100), value: tag.id});
+        }
+      }
+    }
   }
   return context.respond({choices});
 }

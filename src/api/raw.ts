@@ -1348,6 +1348,27 @@ export async function mediaAIVToolsSpeed(
 }
 
 
+export async function mediaAVManipulationAudioChannelsCombine(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_CHANNELS_COMBINE,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationBoostBass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,

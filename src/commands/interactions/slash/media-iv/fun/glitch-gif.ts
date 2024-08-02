@@ -1,13 +1,13 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../utils';
+import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageCommandOption } from '../../../basecommand';
 
 
-export const COMMAND_NAME = 'glitch';
+export const COMMAND_NAME = 'glitch-gif';
 
-export class ImageGifGlitchCommand extends BaseInteractionImageCommandOption {
+export class MediaIVGlitchGifCommand extends BaseInteractionImageCommandOption {
   description = 'Glitch an Image, Single-framed Images become Animated';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationGlitchAnimated.COMMAND_ID,

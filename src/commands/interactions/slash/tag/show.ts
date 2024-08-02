@@ -1,15 +1,12 @@
 import { Interaction } from 'detritus-client';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { RestResponsesRaw } from '../../../../api/types';
+import { BooleanEmojis } from '../../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../basecommand';
+import { BaseInteractionCommand, BaseInteractionCommandOption } from '../../basecommand';
 
-
-export interface CommandArgsBefore {
-  arguments?: string,
-  tag: false | null | RestResponsesRaw.Tag,
-}
 
 export class TagShowCommand extends BaseInteractionCommandOption {
   description = 'Show a tag';
@@ -33,17 +30,22 @@ export class TagShowCommand extends BaseInteractionCommandOption {
           name: 'arguments',
           description: 'Tag\'s Arguments',
         },
+        {
+          name: 'attachment',
+          description: 'Media File',
+          type: ApplicationCommandOptionTypes.ATTACHMENT,
+        },
       ],
     });
   }
 
-  onBeforeRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
+  onBeforeRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgsBefore) {
     return !!args.tag;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
-    if (args.tag === false) {
-      return editOrReply(context, '⚠ Unknown Tag');
+  onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgsBefore) {
+    if (!args.tag) {
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
     }
     return super.onCancelRun(context, args);
   }
@@ -54,11 +56,11 @@ export class TagShowCommand extends BaseInteractionCommandOption {
 
   async onRunError(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgs, error: any) {
     await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
-    return super.onRunError && super.onRunError(context, args, error);
+    return BaseInteractionCommand.prototype.onRunError.call(this, context, args, error);
   }
 
   async onSuccess(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgs) {
     await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
-    return super.onSuccess && super.onSuccess(context, args);
+    return BaseInteractionCommand.prototype.onSuccess.call(this, context, args);
   }
 }

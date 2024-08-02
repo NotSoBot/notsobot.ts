@@ -16,6 +16,9 @@ import * as juration from 'juration';
 import MiniSearch from 'minisearch';
 import * as moment from 'moment';
 
+import TagCustomCommandStore from '../../stores/tagcustomcommands';
+import UserStore from '../../stores/users';
+
 import {
   fetchTag,
   fetchTagId,
@@ -35,7 +38,6 @@ import {
   UserFlags,
   TTS_VOICES,
 } from '../../constants';
-import UserStore from '../../stores/users';
 import {
   DefaultParameters,
   TagFormatter,
@@ -501,6 +503,59 @@ export async function NotSoTag(
     }
   }
   return null;
+}
+
+
+export async function tagCustomCommand(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<false | null | RestResponsesRaw.Tag> {
+  let tag: false | null | RestResponsesRaw.Tag = null;
+  if (value) {
+    if (isSnowflake(value)) {
+      try {
+        tag = await fetchTagId(context, value);
+        if (!tag.is_command) {
+          // just search the tag names now, someone gave a tag id for another tag
+          tag = null;
+        }
+      } catch(error) {
+        
+      }
+    }
+
+    // problem arises is if someone has a server tag name of someone's user command's id, it will use that instead
+    const insensitive = value.toLowerCase();
+    if (context.guildId) {
+      const tags = await TagCustomCommandStore.maybeGetOrFetchGuildCommands(context, context.guildId);
+      if (tags) {
+        if (tag && tags.has(tag.id)) {
+          // see if tag exists in the guild commands, if not then just search via text
+          return tags.get(tag.id)!;
+        } else {
+          const found = tags.find((x) => x.name === insensitive);
+          if (found) {
+            return found;
+          }
+        }
+      }
+    }
+    {
+      const tags = await TagCustomCommandStore.maybeGetOrFetchUserCommands(context, context.userId);
+      if (tags) {
+        if (tag && tags.has(tag.id)) {
+          // see if tag exists in the user commands, if not then just search via text
+          return tags.get(tag.id)!;
+        } else {
+          const found = tags.find((x) => x.name === insensitive);
+          if (found) {
+            return found;
+          }
+        }
+      }
+    }
+  }
+  return tag;
 }
 
 

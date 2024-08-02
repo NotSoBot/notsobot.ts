@@ -7,7 +7,7 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'seesaw';
 
-export class ImageGifSeeSawCommand extends BaseInteractionImageCommandOption {
+export class MediaAIVToolsSeeSawCommand extends BaseInteractionImageCommandOption {
   description = 'SeeSaw an Animated Image/Audio/Video, add a reversed copy of itself at the end of it';
   metadata = {
     id: Formatter.Commands.MediaAIVToolsSeeSaw.COMMAND_ID,

@@ -10,7 +10,7 @@ import {
 } from './constants';
 import GuildSettingsStore from './stores/guildsettings';
 import UserStore from './stores/users';
-import { editOrReply } from './utils';
+import { Formatter, editOrReply } from './utils';
 
 
 export class NotSoInteractionClient extends InteractionCommandClient {
@@ -61,7 +61,10 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     }
 
     const metadata = context.invoker.metadata as InteractionCommandMetadata;
-    const commandId = metadata.id || context.invoker.fullName.split(' ').join('.');
+    let commandId = metadata.id || context.invoker.fullName.split(' ').join('.');
+    if (commandId === Formatter.Commands.TagShowCustomCommand.COMMAND_ID) {
+      commandId = Formatter.Commands.TagShow.COMMAND_ID;
+    }
 
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;

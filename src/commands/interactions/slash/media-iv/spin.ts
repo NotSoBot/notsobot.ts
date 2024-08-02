@@ -7,8 +7,8 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'spin';
 
-export class ImageSpinCommand extends BaseInteractionImageCommandOption {
-  description = 'Create a Spinning Disk from an Image/Gif';
+export class MediaIVSpinCommand extends BaseInteractionImageCommandOption {
+  description = 'Create a Spinning Disk from an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationSpin.COMMAND_ID,
   };

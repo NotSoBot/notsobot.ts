@@ -13,15 +13,14 @@ import { ImageToolsCropCommand } from './crop';
 import { ImageToolsCropAutoCommand } from './crop-auto';
 import { ImageToolsCropCircleCommand } from './crop-circle';
 import { ImageToolsCropNFTCommand } from './crop-nft';
-import { ImageJPEGCommand } from './jpeg';
 import { ImageToolsResizeCommand } from './resize';
 import { ImageSharpenCommand } from './sharpen';
 import { ImageToolsTrimCommand } from './trim';
 
 
-export default class ImageToolsGroupCommand extends BaseSlashCommand {
-  description = 'Image Tools Commands';
-  name = 'i-tools';
+export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
+  description = 'Image and Video Tool Commands';
+  name = 'media-iv-tools';
 
   contexts = [
     InteractionContextTypes.GUILD,
@@ -43,7 +42,6 @@ export default class ImageToolsGroupCommand extends BaseSlashCommand {
         new ImageToolsCropAutoCommand(),
         new ImageToolsCropCircleCommand(),
         new ImageToolsCropNFTCommand(),
-        new ImageJPEGCommand(),
         new ImageToolsResizeCommand(),
         new ImageSharpenCommand(),
         new ImageToolsTrimCommand(),

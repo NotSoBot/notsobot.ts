@@ -38,54 +38,27 @@ export default class TagShowCustomCommand extends BaseCommand {
       return false;
     }
 
+    // move these shouldSearch checks to their own functions
     if (context.guildId) {
-      let shouldSearchGuild: boolean = false;
-
-      const guildId = context.guildId!;
-      const settings = await GuildSettingsStore.getOrFetch(context, guildId);
-      if (settings && settings.features.has(GuildFeatures.FREE_CUSTOM_COMMANDS)) {
-        shouldSearchGuild = true;
-      } else {
-        const guild = context.guild!;
-        if (guild) {
-          // get owner
-          const owner = await UserStore.getOrFetch(context, guild.ownerId);
-          if (owner && (owner.hasFlag(UserFlags.OWNER) || owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
-            shouldSearchGuild = true;
-          }
-        }
-      }
-
-      if (shouldSearchGuild) {
-        const tags = await TagCustomCommandStore.getOrFetchGuildCommands(context, context.guildId);
-        if (tags) {
-          const tag = findTag(args.text, tags);
-          if (tag) {
-            args.tag = tag;
-            args.arguments = args.text.slice(tag.name.length).trim();
-            return true;
-          }
+      const tags = await TagCustomCommandStore.maybeGetOrFetchGuildCommands(context, context.guildId);
+      if (tags) {
+        const tag = Formatter.Commands.TagShowCustomCommand.findTagFromText(args.text, tags);
+        if (tag) {
+          args.tag = tag;
+          args.arguments = args.text.slice(tag.name.length).trim();
+          return true;
         }
       }
     }
 
     {
-      let shouldSearchUser: boolean = false;
-
-      const user = await UserStore.getOrFetch(context, context.userId);
-      if (user && (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD))) {
-        shouldSearchUser = true;
-      }
-
-      if (shouldSearchUser) {
-        const tags = await TagCustomCommandStore.getOrFetchUserCommands(context, context.userId);
-        if (tags) {
-          const tag = findTag(args.text, tags);
-          if (tag) {
-            args.tag = tag;
-            args.arguments = args.text.slice(tag.name.length).trim();
-            return true;
-          }
+      const tags = await TagCustomCommandStore.maybeGetOrFetchUserCommands(context, context.userId);
+      if (tags) {
+        const tag = Formatter.Commands.TagShowCustomCommand.findTagFromText(args.text, tags);
+        if (tag) {
+          args.tag = tag;
+          args.arguments = args.text.slice(tag.name.length).trim();
+          return true;
         }
       }
     }
@@ -114,18 +87,4 @@ export default class TagShowCustomCommand extends BaseCommand {
   async onRatelimit(context: Command.Context) {
     return;
   }
-}
-
-
-function findTag(text: string, tags: TagCustomCommandStored): RestResponsesRaw.Tag | null {
-  const insensitive = text.trim().toLowerCase();
-  for (let tag of tags.sort((x, y) => y.name.length - x.name.length)) {
-    if (
-      (insensitive.length === tag.name.length && insensitive === tag.name) ||
-      insensitive.startsWith(`${tag.name} `)
-    ) {
-      return tag;
-    }
-  }
-  return null;
 }

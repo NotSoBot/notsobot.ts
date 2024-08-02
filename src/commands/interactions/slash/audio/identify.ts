@@ -7,7 +7,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'identify';
 
-export class AudioIdentifyCommand extends BaseInteractionAudioOrVideoCommandOption {
+export class MediaAVToolsIdentifyCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Identify a song in an audio or video file';
   metadata = {
     id: Formatter.Commands.MediaAVToolsIdentify.COMMAND_ID,

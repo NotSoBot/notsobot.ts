@@ -6,8 +6,9 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MediaAVManipulationAudioChannelsGroupCommand } from './channels';
 import { AudioConvertCommand } from './convert';
-import { AudioIdentifyCommand } from './identify';
+import { MediaAVToolsIdentifyCommand } from './identify';
 
 
 export default class AudioGroupCommand extends BaseSlashCommand {
@@ -28,8 +29,9 @@ export default class AudioGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new MediaAVManipulationAudioChannelsGroupCommand(),
         new AudioConvertCommand(),
-        new AudioIdentifyCommand(),
+        new MediaAVToolsIdentifyCommand(),
       ],
     });
   }

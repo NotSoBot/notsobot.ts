@@ -3,7 +3,7 @@ import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { Formatter, Parameters } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../basecommand';
+import { BaseInteractionCommand, BaseInteractionCommandOption } from '../../basecommand';
 
 
 export class TagRandomCommand extends BaseInteractionCommandOption {
@@ -35,6 +35,11 @@ export class TagRandomCommand extends BaseInteractionCommandOption {
           description: 'User to list tags for',
           type: ApplicationCommandOptionTypes.USER,
         },
+        {
+          name: 'attachment',
+          description: 'Media File',
+          type: ApplicationCommandOptionTypes.ATTACHMENT,
+        },
       ],
     });
   }
@@ -47,13 +52,13 @@ export class TagRandomCommand extends BaseInteractionCommandOption {
     if (context.metadata && context.metadata.tag) {
       await Formatter.Commands.TagShow.increaseUsage(context, context.metadata.tag);
     }
-    return super.onRunError && super.onRunError(context, args, error);
+    return BaseInteractionCommand.prototype.onRunError.call(this, context, args, error);
   }
 
   async onSuccess(context: Interaction.InteractionContext, args: Formatter.Commands.TagRandom.CommandArgs) {
     if (context.metadata && context.metadata.tag) {
       await Formatter.Commands.TagShow.increaseUsage(context, context.metadata.tag);
     }
-    return super.onSuccess && super.onSuccess(context, args);
+    return BaseInteractionCommand.prototype.onSuccess.call(this, context, args);
   }
 }
