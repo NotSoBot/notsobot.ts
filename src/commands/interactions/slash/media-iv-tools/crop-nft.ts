@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'crop-nft';
 
-export class ImageToolsCropNFTCommand extends BaseInteractionImageCommandOption {
+export class MediaIVToolsCropNFTCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Crop out a Twitter NFT Hex from an Image';
   metadata = {
     id: Formatter.Commands.MediaIVToolsCropNFT.COMMAND_ID,

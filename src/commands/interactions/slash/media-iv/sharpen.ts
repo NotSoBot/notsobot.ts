@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'sharpen';
 
-export class ImageSharpenCommand extends BaseInteractionImageCommandOption {
+export class MediaIVSharpenCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Sharpen an Image';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationSharpen.COMMAND_ID,

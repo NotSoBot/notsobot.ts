@@ -7,7 +7,6 @@ import {
 import { BaseSlashCommand } from '../../basecommand';
 
 import { VideoConvertCommand } from './convert';
-import { VideoExtractGroupCommand } from './extract';
 
 
 export default class VideoGroupCommand extends BaseSlashCommand {
@@ -29,7 +28,6 @@ export default class VideoGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new VideoConvertCommand(),
-        new VideoExtractGroupCommand(),
       ],
     });
   }

@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'crop';
 
-export class ImageToolsCropCommand extends BaseInteractionImageCommandOption {
+export class MediaIVToolsCropCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Crop an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVToolsCrop.COMMAND_ID,

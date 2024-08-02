@@ -6,16 +6,15 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { ImageBackgroundGroupCommand } from './background';
+import { MediaIVToolsBackgroundGroupCommand } from './background';
 
-import { ImageToolsConvertCommand } from './convert';
-import { ImageToolsCropCommand } from './crop';
-import { ImageToolsCropAutoCommand } from './crop-auto';
-import { ImageToolsCropCircleCommand } from './crop-circle';
-import { ImageToolsCropNFTCommand } from './crop-nft';
-import { ImageToolsResizeCommand } from './resize';
-import { ImageSharpenCommand } from './sharpen';
-import { ImageToolsTrimCommand } from './trim';
+import { MediaIVToolsConvertCommand } from './convert';
+import { MediaIVToolsCropCommand } from './crop';
+import { MediaIVToolsCropAutoCommand } from './crop-auto';
+import { MediaIVToolsCropCircleCommand } from './crop-circle';
+import { MediaIVToolsCropNFTCommand } from './crop-nft';
+import { MediaIVToolsResizeCommand } from './resize';
+import { MediaIVToolsTrimCommand } from './trim';
 
 
 export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
@@ -36,15 +35,14 @@ export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
-        new ImageBackgroundGroupCommand(),
-        new ImageToolsConvertCommand(),
-        new ImageToolsCropCommand(),
-        new ImageToolsCropAutoCommand(),
-        new ImageToolsCropCircleCommand(),
-        new ImageToolsCropNFTCommand(),
-        new ImageToolsResizeCommand(),
-        new ImageSharpenCommand(),
-        new ImageToolsTrimCommand(),
+        new MediaIVToolsBackgroundGroupCommand(),
+        new MediaIVToolsConvertCommand(),
+        new MediaIVToolsCropCommand(),
+        new MediaIVToolsCropAutoCommand(),
+        new MediaIVToolsCropCircleCommand(),
+        new MediaIVToolsCropNFTCommand(),
+        new MediaIVToolsResizeCommand(),
+        new MediaIVToolsTrimCommand(),
       ],
     });
   }

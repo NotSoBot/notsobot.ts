@@ -3,12 +3,12 @@ import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'resize';
 
-export class ImageToolsResizeCommand extends BaseInteractionImageCommandOption {
+export class MediaIVToolsResizeCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Resize an Image';
   metadata = {
     id: Formatter.Commands.MediaIVToolsResize.COMMAND_ID,

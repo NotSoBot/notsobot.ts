@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'remove';
 
-export class ImageBackgroundRemoveCommand extends BaseInteractionImageCommandOption {
+export class MediaIVToolsBackgroundRemoveCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Remove an image\'s background';
   metadata = {
     id: Formatter.Commands.MediaIVToolsBackgroundRemove.COMMAND_ID,

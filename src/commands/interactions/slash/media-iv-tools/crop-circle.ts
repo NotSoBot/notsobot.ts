@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'crop-circle';
 
-export class ImageToolsCropCircleCommand extends BaseInteractionImageCommandOption {
+export class MediaIVToolsCropCircleCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Crop out a circle from an Image';
   metadata = {
     id: Formatter.Commands.MediaIVToolsCropCircle.COMMAND_ID,

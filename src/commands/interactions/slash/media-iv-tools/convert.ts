@@ -7,7 +7,7 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'convert';
 
-export class ImageToolsConvertCommand extends BaseInteractionImageCommandOption {
+export class MediaIVToolsConvertCommand extends BaseInteractionImageCommandOption {
   description = 'Convert an Image';
   metadata = {
     id: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.IMAGE.COMMAND_ID,

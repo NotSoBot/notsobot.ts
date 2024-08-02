@@ -1,16 +1,16 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { ImageBackgroundRemoveCommand } from './remove';
+import { MediaIVToolsBackgroundRemoveCommand } from './remove';
 
 
-export class ImageBackgroundGroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaIVToolsBackgroundGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'background';
 
   constructor() {
     super({
       options: [
-        new ImageBackgroundRemoveCommand(),
+        new MediaIVToolsBackgroundRemoveCommand(),
       ],
     });
   }

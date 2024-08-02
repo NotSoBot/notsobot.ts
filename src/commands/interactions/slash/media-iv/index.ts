@@ -10,6 +10,7 @@ import { MediaIVFlipCommand } from './flip';
 import { MediaIVFlopCommand } from './flop';
 import { MediaIVJPEGCommand } from './jpeg';
 import { MediaAIVPipeCommand } from './pipe';
+import { MediaIVSharpenCommand } from './sharpen';
 import { MediaIVSpinCommand } from './spin';
 // rip command
 
@@ -43,6 +44,7 @@ export default class MediaIVGroupCommand extends BaseSlashCommand {
         new MediaIVJPEGCommand(),
         new MediaOverlayGroupCommand(),
         new MediaAIVPipeCommand(),
+        new MediaIVSharpenCommand(),
         new MediaIVSpinCommand(),
         new MediaTintGroupCommand(),
       ],
