@@ -3,6 +3,11 @@ import { BaseSet } from 'detritus-client/lib/collections';
 
 import MiniSearch from 'minisearch';
 
+import GuildSettingsStore from '../../stores/guildsettings';
+import TagCustomCommandStore from '../../stores/tagcustomcommands';
+import UserStore from '../../stores/users';
+import UserSettingsStore from '../../stores/usersettings';
+
 import {
   fetchTagsServer,
   fetchUserReminders,
@@ -17,6 +22,8 @@ import {
   ImageMemeFonts,
   ImageMemeFontsToText,
   ImageObjectRemovalLabels,
+  MLDiffusionModels,
+  MLDiffusionModelsToText,
   Timezones,
   TimezonesToText,
   TTSVoices,
@@ -28,10 +35,68 @@ import {
   getReminderMessage,
   toTitleCase,
 } from '../tools';
-import GuildSettingsStore from '../../stores/guildsettings';
-import TagCustomCommandStore from '../../stores/tagcustomcommands';
-import UserStore from '../../stores/users';
 
+
+
+const mlDiffusionModelSearch = new MiniSearch({
+  fields: ['id', 'name'],
+  storeFields: ['id', 'name'],
+  searchOptions: {
+    boost: {id: 2},
+    fuzzy: true,
+    prefix: true,
+  },
+});
+mlDiffusionModelSearch.addAll(Object.values(MLDiffusionModels).map((value) => {
+  return {id: value, name: MLDiffusionModelsToText[value] || value};
+}));
+
+export async function mlDiffusionModel(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}>;
+  if (context.value) {
+    choices = mlDiffusionModelSearch.search(context.value).slice(0, 25).map((result) => {
+      return {name: result.name, value: result.id};
+    });
+  } else {
+    choices = Object.values(MLDiffusionModels).map((value) => {
+      return {name: MLDiffusionModelsToText[value] || value, value};
+    });
+
+    let hasDefault = false;
+
+    const userSettings = await UserSettingsStore.getOrFetch(context, context.userId);
+    if (userSettings && userSettings.ml_diffusion_model) {
+      for (let choice of choices) {
+        if (choice.value === userSettings.ml_diffusion_model) {
+          hasDefault = true;
+          choice.name = `${choice.name} (Default for You)`;
+          break;
+        }
+      }
+    } else if (context.guildId) {
+      const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+      if (guildSettings && guildSettings.settings.mlDiffusionModel) {
+        for (let choice of choices) {
+          if (choice.value === guildSettings.settings.mlDiffusionModel) {
+            hasDefault = true;
+            choice.name = `${choice.name} (Default for this Server)`;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!hasDefault) {
+      for (let choice of choices) {
+        if (choice.value === MLDiffusionModels.FLUX_SCHNELL) {
+          choice.name = `${choice.name} (Default)`;
+          break;
+        }
+      }
+    }
+  }
+  return context.respond({choices});
+}
 
 
 export function googleLocales(context: Interaction.InteractionAutoCompleteContext) {

@@ -17,7 +17,12 @@ export default class ImagineCommand extends BaseCommand {
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (2..8)'}},
-        {name: 'use', label: 'model', type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText})},
+        {
+          name: 'use',
+          label: 'model',
+          default: DefaultParameters.mlDiffusionModel,
+          type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
+        },
       ],
       label: 'query',
       metadata: {

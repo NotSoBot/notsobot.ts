@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
+import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -17,7 +18,12 @@ export class ToolsMLImagineCommand extends BaseInteractionCommandOption {
     super({
       options: [
         {name: 'query', description: 'Prompt to Generate (Empty will auto-generate a prompt)'},
-        {name: 'model', description: 'Diffusion Model', choices: Parameters.Slash.ML_IMAGINE_MODELS},
+        {
+          name: 'model',
+          description: 'Diffusion Model',
+          value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
+          onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
+        },
         {
           name: 'safe',
           description: 'Safe Generation',

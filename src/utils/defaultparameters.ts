@@ -1,8 +1,10 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { GuildExplicitContentFilterTypes } from 'detritus-client/lib/constants';
 
-import { GoogleLocales, GoogleLocaleFromDiscord } from '../constants';
+import GuildSettingsStore from '../stores/guildsettings';
 import UserSettingsStore from '../stores/usersettings';
+
+import { GoogleLocales, GoogleLocaleFromDiscord, MLDiffusionModels } from '../constants';
 
 import {
   findMediaUrlInMessages,
@@ -206,6 +208,25 @@ export async function locale(context: Command.Context | Interaction.InteractionC
   }
 
   return GoogleLocales.ENGLISH;
+}
+
+
+export async function mlDiffusionModel(
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<MLDiffusionModels | undefined> {
+  {
+    const settings = await UserSettingsStore.getOrFetch(context, context.userId);
+    if (settings && settings.ml_diffusion_model) {
+      return settings.ml_diffusion_model as unknown as MLDiffusionModels;
+    }
+  }
+
+  if (context.guildId) {
+    const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+    if (settings && settings.settings.mlDiffusionModel) {
+      return settings.settings.mlDiffusionModel as unknown as MLDiffusionModels;
+    }
+  }
 }
 
 

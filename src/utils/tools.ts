@@ -15,6 +15,12 @@ import { Embed, Markup, PermissionTools, intToHex, regex as discordRegex } from 
 import { replacePathParameters } from 'detritus-rest';
 import { Snowflake, Timers } from 'detritus-utils';
 
+import ChannelMembersStore, { ChannelMembersStored } from '../stores/channelmembers';
+import GuildMembersStore, { GuildMembersStored } from '../stores/guildmembers';
+import GuildSettingsStore from '../stores/guildsettings';
+import UserStore from '../stores/users';
+import UserSettingsStore from '../stores/usersettings';
+
 import { Endpoints } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import {
@@ -33,12 +39,6 @@ import {
   SNOWFLAKE_EPOCH,
   TRUSTED_URLS,
 } from '../constants';
-
-import ChannelMembersStore, { ChannelMembersStored } from '../stores/channelmembers';
-import GuildMembersStore, { GuildMembersStored } from '../stores/guildmembers';
-import GuildSettingsStore from '../stores/guildsettings';
-import UserStore from '../stores/users';
-import UserSettingsStore from '../stores/usersettings';
 
 
 export function createColorUrl(color: number): string {

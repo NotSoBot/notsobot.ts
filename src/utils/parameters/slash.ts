@@ -58,12 +58,6 @@ export const IMAGE_MEME_FONTS = [
 ].map((x) => ({name: ImageMemeFontsToText[x], value: x}));
 
 
-export const ML_IMAGINE_MODELS = [
-  {name: 'Flux Schnell (Realistic) (Default)', value: MLDiffusionModels.FLUX_SCHNELL},
-  {name: 'SDXL Turbo (Funny)', value: MLDiffusionModels.SDXL_TURBO},
-];
-
-
 export const USER_FALLBACKS_MEDIA_IMAGE_TYPES = [
   {name: 'Search Google Images', value: UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES},
   {name: 'Search Duck Duck Go Images', value: UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES},

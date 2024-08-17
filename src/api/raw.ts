@@ -615,6 +615,7 @@ export async function editGuildSettings(
     blocklist: options.blocklist,
     commands_allowlist: options.commandsAllowlist,
     commands_blocklist: options.commandsBlocklist,
+    ml_diffusion_model: options.mlDiffusionModel,
     prefixes: options.prefixes,
     timezone: options.timezone,
   };
@@ -696,7 +697,7 @@ export async function editUserSettings(
     body,
     route: {
       method: HTTPMethods.PATCH,
-      path: Api.USER,
+      path: Api.USER_SETTINGS,
       params,
     },
   });

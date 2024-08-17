@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../../basecommand';
@@ -18,7 +19,12 @@ export class ToolsMLEditCommand extends BaseInteractionImageCommandOption {
     super({
       options: [
         {name: 'query', description: 'Prompt to edit the Image with'},
-        {name: 'model', description: 'Diffusion Model', choices: Parameters.Slash.ML_IMAGINE_MODELS},
+        {
+          name: 'model',
+          description: 'Diffusion Model',
+          value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
+          onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
+        },
         {
           name: 'safe',
           description: 'Safe Generation',

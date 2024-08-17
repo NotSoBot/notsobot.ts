@@ -18,7 +18,12 @@ export default class EditCommand extends BaseImageCommand {
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (1..16)'}},
         {name: 'strength', type: 'float', metadata: {description: 'strength of prompt (0.05..1)'}},
-        {name: 'use', label: 'model', type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText})},
+        {
+          name: 'use',
+          label: 'model',
+          default: DefaultParameters.mlDiffusionModel,
+          type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
+        },
       ],
       metadata: {
         category: CommandCategories.TOOLS,

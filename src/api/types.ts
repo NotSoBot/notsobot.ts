@@ -117,6 +117,7 @@ export namespace RestOptions {
       id: string,
       type: string,
     }>,
+    mlDiffusionModel?: string,
     prefixes?: Array<string>,
     timezone?: string,
   }

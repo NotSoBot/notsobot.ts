@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
 import { Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -19,7 +20,8 @@ export class SettingsSetMLImagineModelCommand extends BaseInteractionCommandOpti
       {
         name: 'model',
         description: 'Diffusion Model',
-        choices: Parameters.Slash.ML_IMAGINE_MODELS,
+        value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
+        onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
       },
     ],
   });

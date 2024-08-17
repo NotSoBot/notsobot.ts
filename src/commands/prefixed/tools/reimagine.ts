@@ -18,7 +18,12 @@ export default class ReimagineCommand extends BaseImageCommand {
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'Initial Noise'}},
         {name: 'steps', type: Number, metadata: {description: 'Number of Samples to take (1..16)'}},
-        {name: 'use', label: 'model', type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText})},
+        {
+          name: 'use',
+          label: 'model',
+          default: DefaultParameters.mlDiffusionModel,
+          type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
+        },
       ],
       metadata: {
         category: CommandCategories.TOOLS,

@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
 
+import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
 import { Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../../basecommand';
@@ -18,7 +19,12 @@ export class ToolsMLReimagineCommand extends BaseInteractionImageCommandOption {
     super({
       options: [
         {name: 'add', description: 'Add text to generated prompt'},
-        {name: 'model', description: 'Diffusion Model', choices: Parameters.Slash.ML_IMAGINE_MODELS},
+        {
+          name: 'model',
+          description: 'Diffusion Model',
+          value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
+          onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
+        },
         {name: 'seed', type: Number, description: 'Initial Noise'},
         {name: 'steps', type: Number, description: 'Number of Samples to take (1..8)'},
       ],
