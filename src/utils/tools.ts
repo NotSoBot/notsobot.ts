@@ -27,6 +27,7 @@ import {
   Mimetypes,
   ReminderMessages,
   Timezones,
+  TimezonesToText,
   MAX_MEMBERS_SAFE,
   MIMETYPES_SAFE_EMBED,
   SNOWFLAKE_EPOCH,
@@ -37,6 +38,7 @@ import ChannelMembersStore, { ChannelMembersStored } from '../stores/channelmemb
 import GuildMembersStore, { GuildMembersStored } from '../stores/guildmembers';
 import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
+import UserSettingsStore from '../stores/usersettings';
 
 
 export function createColorUrl(color: number): string {
@@ -847,9 +849,9 @@ export function getTimezoneFromContext(options: {guildId?: string, userId?: stri
   // add user timezones
   let timezone: string | undefined;
   if (options.userId) {
-    const user = UserStore.get(options.userId);
-    if (user && user.timezone) {
-      timezone = user.timezone;
+    const settings = UserSettingsStore.get(options.userId);
+    if (settings && settings.timezone) {
+      timezone = settings.timezone;
     }
   }
   if (!timezone && options.guildId) {
@@ -1561,6 +1563,14 @@ export function splitTextToDiscordHandle(text: string): [string, string | null] 
     discriminator = (parts.shift() as string).padStart(4, '0');
   }
   return [username, discriminator];
+}
+
+
+export function timezoneCodeToText(timezone: string): string {
+  if (timezone in TimezonesToText) {
+    return (TimezonesToText as any)[timezone];
+  }
+  return timezone;
 }
 
 

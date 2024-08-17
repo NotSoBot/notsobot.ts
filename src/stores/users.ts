@@ -112,8 +112,8 @@ export default new UserStore();
 export type UserPromiseItem = {promise: Promise<UserFull | null>, timeout: Timers.Timeout};
 
 class UserPromises extends Store<string, UserPromiseItem> {
-  insert(guildId: string, item: UserPromiseItem): void {
-    this.set(guildId, item);
+  insert(userId: string, item: UserPromiseItem): void {
+    this.set(userId, item);
   }
 }
 

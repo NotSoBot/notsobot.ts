@@ -7,3 +7,5 @@ export { default as GuildMembersStore } from './guildmembers';
 export { default as GuildMetadataStore } from './guildmetadata';
 export { default as GuildSettingsStore } from './guildsettings';
 export { default as PaginatorsStore } from './paginators';
+export { default as UserStore } from './users';
+export { default as UserSettingsStore } from './usersettings';

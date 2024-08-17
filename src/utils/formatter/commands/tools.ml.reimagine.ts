@@ -8,7 +8,7 @@ export const COMMAND_ID = 'tools.ml.reimagine';
 
 export interface CommandArgs {
   add?: string,
-  no?: string,
+  model?: string,
   query: string,
   safe?: boolean,
   seed?: number,
@@ -25,7 +25,7 @@ export async function createMessage(
     prompt = `${prompt}, ${args.add}`;
   }
   const response = await utilitiesMLImagine(context, {
-    no: args.no,
+    model: args.model,
     query: prompt,
     safe: args.safe,
     seed: args.seed,

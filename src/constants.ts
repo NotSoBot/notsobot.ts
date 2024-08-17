@@ -962,6 +962,18 @@ export const MIMETYPES_VIDEO_EMBEDDABLE = Object.freeze([
 
 export const MIMETYPES_SAFE_EMBED = MIMETYPES_IMAGE_EMBEDDABLE;
 
+
+export enum MLDiffusionModels {
+  FLUX_SCHNELL = 'FLUX_SCHNELL',
+  SDXL_TURBO = 'SDXL_TURBO',
+}
+
+export const MLDiffusionModelsToText = Object.freeze({
+  [MLDiffusionModels.FLUX_SCHNELL]: 'Flux Schnell (Realistic)',
+  [MLDiffusionModels.SDXL_TURBO]: 'SDXL Turbo (Funny)',
+});
+
+
 export const RatelimitKeys = Object.freeze({
   IMAGE: Math.random().toString(36).substring(7),
   SEARCH: Math.random().toString(36).substring(7),
@@ -1013,6 +1025,7 @@ export enum RedisChannels {
   TAG_DELETE = 'TAG_DELETE',
   TAG_DELETE_BULK = 'TAG_DELETE_BULK',
   TAG_UPDATE = 'TAG_UPDATE',
+  USER_SETTINGS_UPDATE = 'USER_SETTINGS_UPDATE',
   USER_UPDATE = 'USER_UPDATE',
 };
 
@@ -1118,7 +1131,7 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
 export enum UserFallbacksMediaImageTypes {
   SEARCH_GOOGLE_IMAGES = 0,
   IMAGINE = 1,
-  SEARCH_DUCK_DUCK_GO_IMAGES = 1,
+  SEARCH_DUCK_DUCK_GO_IMAGES = 2,
 }
 
 
@@ -1272,6 +1285,7 @@ export const NotSoApiKeys = Object.freeze({
   LOGGERS: 'loggers',
   MEDIA_IMAGE: 'media_image',
   METADATA: 'metadata',
+  ML_IMAGINE_MODEL: 'ml_imagine_model',
   NAME: 'name',
   OPTED_OUT: 'opted_out',
   PREFIX: 'prefix',
@@ -1282,6 +1296,7 @@ export const NotSoApiKeys = Object.freeze({
   PROXY_URL: 'proxy_url',
   RECIPE: 'recipe',
   SERVINGS: 'servings',
+  SETTINGS: 'settings',
   STARS: 'stars',
   STARS_AMOUNT: 'stars_amount',
   TEXT: 'text',
@@ -1348,6 +1363,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.LOGGERS]: 'loggers',
   [NotSoApiKeys.MEDIA_IMAGE]: 'mediaImage',
   [NotSoApiKeys.METADATA]: 'metadata',
+  [NotSoApiKeys.ML_IMAGINE_MODEL]: 'mlImagineModel',
   [NotSoApiKeys.NAME]: 'name',
   [NotSoApiKeys.OPTED_OUT]: 'optedOut',
   [NotSoApiKeys.PREFIX]: 'prefix',
@@ -1358,6 +1374,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.PROXY_URL]: 'proxyUrl',
   [NotSoApiKeys.RECIPE]: 'recipe',
   [NotSoApiKeys.SERVINGS]: 'servings',
+  [NotSoApiKeys.SETTINGS]: 'settings',
   [NotSoApiKeys.STARS]: 'stars',
   [NotSoApiKeys.STARS_AMOUNT]: 'starsAmount',
   [NotSoApiKeys.TEXT]: 'text',

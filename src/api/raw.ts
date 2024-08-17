@@ -663,11 +663,32 @@ export async function editUser(
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
     channel_id: options.channelId,
+  };
+  const params = {userId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.USER,
+      params,
+    },
+  });
+}
+
+
+export async function editUserSettings(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.EditUserSettings,
+): Promise<RestResponsesRaw.EditUserSettings> {
+  const body = {
     fallbacks_media_image: options.fallbacksMediaImage,
+    file_upload_threshold: options.fileUploadThreshold,
     locale: options.locale,
+    ml_diffusion_model: options.mlDiffusionModel,
     opt_out_content: options.optOutContent,
     timezone: options.timezone,
-    upload_threshold: options.uploadThreshold,
+    tts_voice: options.ttsVoice,
     vanity: options.vanity,
   };
   const params = {userId};
@@ -913,6 +934,7 @@ export async function fetchUser(
   });
 }
 
+
 export async function fetchUserReminders(
   context: RequestContext,
   userId: string,
@@ -932,6 +954,21 @@ export async function fetchUserReminders(
     route: {
       method: HTTPMethods.GET,
       path: Api.USER_REMINDERS,
+      params,
+    },
+  });
+}
+
+
+export async function fetchUserSettings(
+  context: RequestContext,
+  userId: string,
+): Promise<RestResponsesRaw.FetchUserSettings> {
+  const params = {userId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.USER_SETTINGS,
       params,
     },
   });
@@ -2111,6 +2148,26 @@ export async function mediaIVManipulationMirrorTop(
 }
 
 
+export async function mediaIVManipulationOverlayFace(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptionsMultiple,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_FACE,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayFlagIsrael(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -3007,8 +3064,6 @@ export async function putUser(
     blocked_reason: options.blockedReason,
     channel_id: options.channelId,
     discriminator: options.discriminator,
-    locale: options.locale,
-    timezone: options.timezone,
     username: options.username,
   };
   const params = {userId};
@@ -3100,6 +3155,7 @@ export async function searchDuckDuckGoImages(
 ): Promise<any> {
   const query = {
     query: options.query,
+    safe: options.safe,
   };
   return request(context, {
     query,
@@ -3578,9 +3634,7 @@ export async function utilitiesMLEdit(
   options: RestOptions.UtilitiesMLEdit,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
-    count: options.count,
-    guidance: options.guidance,
-    no: options.no,
+    model: options.model,
     query: options.query,
     safe: options.safe,
     seed: options.seed,
@@ -3610,9 +3664,7 @@ export async function utilitiesMLImagine(
   options: RestOptions.UtilitiesMLImagine,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
-    count: options.count,
-    guidance: options.guidance,
-    no: options.no,
+    model: options.model,
     query: options.query,
     safe: options.safe,
     seed: options.seed,

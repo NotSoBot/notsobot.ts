@@ -7,6 +7,7 @@ import { editOrReply } from '../..';
 export const COMMAND_ID = 'tools.ml.interrogate';
 
 export interface CommandArgs {
+  model?: string,
   url: string, 
 }
 

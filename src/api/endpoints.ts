@@ -166,6 +166,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/mirror-right',
   MEDIA_IV_MANIPULATION_MIRROR_TOP:
     '/media/iv/manipulation/mirror-top',
+  MEDIA_IV_MANIPULATION_OVERLAY_FACE:
+    '/media/iv/manipulation/overlay/face',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISIS:
     '/media/iv/manipulation/overlay/flag-isis',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISRAEL:
@@ -337,6 +339,8 @@ export const Api = Object.freeze({
     '/users/:userId/reminders',
   USER_REMINDERS_EXPIRED:
     '/users/:userId/reminders/expired',
+  USER_SETTINGS:
+    '/users/:userId/settings',
   USER_TAGS:
     '/users/:userId/tags',
   USER_TAGS_COMMANDS:

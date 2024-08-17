@@ -8,7 +8,7 @@ import { BaseInteractionImageCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'edit';
 
 export class ToolsMLEditCommand extends BaseInteractionImageCommandOption {
-  description = 'Alter an Image with machine learning';
+  description = 'Alter an Image with Machine Learning';
   metadata = {
     id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
   };
@@ -18,6 +18,7 @@ export class ToolsMLEditCommand extends BaseInteractionImageCommandOption {
     super({
       options: [
         {name: 'query', description: 'Prompt to edit the Image with'},
+        {name: 'model', description: 'Diffusion Model', choices: Parameters.Slash.ML_IMAGINE_MODELS},
         {
           name: 'safe',
           description: 'Safe Generation',
@@ -25,6 +26,8 @@ export class ToolsMLEditCommand extends BaseInteractionImageCommandOption {
           default: DefaultParameters.safe,
           value: Parameters.Slash.safe,
         },
+        {name: 'seed', type: Number, description: 'Initial Noise'},
+        {name: 'steps', type: Number, description: 'Number of Samples to take (1..16)'},
       ],
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},

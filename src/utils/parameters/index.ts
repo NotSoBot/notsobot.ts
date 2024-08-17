@@ -18,11 +18,13 @@ import * as moment from 'moment';
 
 import TagCustomCommandStore from '../../stores/tagcustomcommands';
 import UserStore from '../../stores/users';
+import UserSettingsStore from '../../stores/usersettings';
 
 import {
   fetchTag,
   fetchTagId,
   fetchUserVoices,
+  searchDuckDuckGoImages,
   searchGoogleImages,
   utilitiesMLImagine,
 } from '../../api';
@@ -1245,7 +1247,8 @@ export function mediaUrl(
         }
 
         const user = await UserStore.getOrFetch(context, context.userId);
-        if (user && user.fallbacks) {
+        const settings = await UserSettingsStore.getOrFetch(context, context.userId);
+        if (user && settings) {
           let shouldFallback = false;
           if (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD)) {
             shouldFallback = true;
@@ -1260,7 +1263,7 @@ export function mediaUrl(
           }
 
           if (shouldFallback) {
-            switch (user.fallbacks.mediaImage) {
+            switch (settings.fallbacks_media_image) {
               case UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
                 const results = await searchGoogleImages(context, {
                   query: value,
@@ -1278,6 +1281,15 @@ export function mediaUrl(
                 if (response.storage) {
                   return response.storage.urls.cdn;
                 }
+              }; break;
+              case UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
+                const results = await searchDuckDuckGoImages(context, {
+                  query: value,
+                  safe: DefaultParameters.safe(context),
+                });
+                const page = Math.floor(Math.random() * results.length);
+                const result = results[page];
+                return result.image;
               }; break;
             }
           }
@@ -1469,7 +1481,8 @@ export function mediaUrls(
 
       if (minAmount === 1 && urls.length < minAmount) {
         const user = await UserStore.getOrFetch(context, context.userId);
-        if (user && user.fallbacks) {
+        const settings = await UserSettingsStore.getOrFetch(context, context.userId);
+        if (user && settings) {
           let shouldFallback = false;
           if (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD)) {
             shouldFallback = true;
@@ -1484,7 +1497,7 @@ export function mediaUrls(
           }
         
           if (shouldFallback) {
-            switch (user.fallbacks.mediaImage) {
+            switch (settings.fallbacks_media_image) {
               case UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
                 const results = await searchGoogleImages(context, {
                   query: value,
@@ -1502,6 +1515,15 @@ export function mediaUrls(
                 if (response.storage) {
                   urls.push(response.storage.urls.cdn);
                 }
+              }; break;
+              case UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
+                const results = await searchDuckDuckGoImages(context, {
+                  query: value,
+                  safe: DefaultParameters.safe(context),
+                });
+                const page = Math.floor(Math.random() * results.length);
+                const result = results[page];
+                return result.image;
               }; break;
             }
           }

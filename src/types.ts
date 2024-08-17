@@ -56,5 +56,10 @@ export namespace RedisPayloads {
 
   export type TagUpdate = RestResponsesRaw.Tag;
 
+  export interface UserSettingsUpdate {
+    id: string,
+    settings: RestResponsesRaw.UserSettings,
+  }
+
   export type UserUpdate = RestResponsesRaw.User;
 }

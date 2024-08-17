@@ -5,6 +5,7 @@ import {
   GoogleLocalesText,
   ImageMemeFonts,
   ImageMemeFontsToText,
+  MLDiffusionModels,
   UserFallbacksMediaImageTypes,
   UserUploadThresholdTypes,
 } from '../../constants';
@@ -55,6 +56,12 @@ export const IMAGE_MEME_FONTS = [
   ImageMemeFonts.TITILLIUMWEB_BOLD,
   ImageMemeFonts.TYPOLINE_DEMO,
 ].map((x) => ({name: ImageMemeFontsToText[x], value: x}));
+
+
+export const ML_IMAGINE_MODELS = [
+  {name: 'Flux Schnell (Realistic) (Default)', value: MLDiffusionModels.FLUX_SCHNELL},
+  {name: 'SDXL Turbo (Funny)', value: MLDiffusionModels.SDXL_TURBO},
+];
 
 
 export const USER_FALLBACKS_MEDIA_IMAGE_TYPES = [

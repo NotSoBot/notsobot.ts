@@ -44,7 +44,7 @@ export async function createMessage(
           embed.setImage(image);
         }
 
-        for (let field of fields) {
+        for (let field of fields.slice(0, 25)) {
           embed.addField(field.name, field.value, true);
         }
 

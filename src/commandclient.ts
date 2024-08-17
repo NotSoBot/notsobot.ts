@@ -2,14 +2,16 @@ import { Command, CommandAttributes, CommandClient } from 'detritus-client';
 
 import { CommandMetadata } from './commands/prefixed/basecommand';
 
+import GuildSettingsStore from './stores/guildsettings';
+import UserStore from './stores/users';
+import UserSettingsStore from './stores/usersettings';
+
 import {
   GuildAllowlistTypes,
   GuildBlocklistTypes,
   GuildCommandsAllowlistTypes,
   GuildCommandsBlocklistTypes,
 } from './constants';
-import GuildSettingsStore from './stores/guildsettings';
-import UserStore from './stores/users';
 import { Formatter } from './utils';
 
 
@@ -181,6 +183,11 @@ export class NotSoCommandClient extends CommandClient {
           }
         }
       }
+
+      await UserSettingsStore.getOrFetch(context, context.userId);
+      // load their settings into cache, todo: maybe only load it as needed?
+      // loading as needed breaks the timestamp function in certain situations
+
       return true;
     } else {
       // Failed to fetch, got null, just block it lol

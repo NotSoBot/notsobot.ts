@@ -133,14 +133,18 @@ export namespace RestOptions {
     blocked?: boolean,
     blockedReason?: null | string,
     channelId?: null | string,
-    fallbacksMediaImage?: null | UserFallbacksMediaImageTypes,
-    locale?: null | string,
-    optOutContent?: boolean,
-    timezone?: null | string,
-    uploadThreshold?: null | UserUploadThresholdTypes,
-    vanity?: null | string,
   }
 
+  export interface EditUserSettings {
+    fallbacksMediaImage?: null | UserFallbacksMediaImageTypes,
+    fileUploadThreshold?: null | UserUploadThresholdTypes,
+    locale?: null | string,
+    optOutContent?: boolean,
+    mlDiffusionModel?: null | string,
+    timezone?: null | string,
+    ttsVoice?: null | string,
+    vanity?: null | string,
+  }
 
   export interface FetchCommandsUsage {
     after?: number | string,
@@ -503,8 +507,6 @@ export namespace RestOptions {
     blockedReason?: null | string,
     channelId?: null | string,
     discriminator: string,
-    locale?: null | string,
-    timezone?: null | string,
     username: string,
   }
 
@@ -523,6 +525,7 @@ export namespace RestOptions {
 
   export interface SearchDuckDuckGoImages {
     query: string,
+    safe?: boolean,
   }
 
   export interface SearchE621 {
@@ -668,9 +671,7 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesMLEdit extends MediaBaseOptions {
-    count?: number,
-    guidance?: number,
-    no?: string,
+    model?: string,
     query: string,
     safe?: boolean,
     seed?: number,
@@ -679,9 +680,7 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesMLImagine {
-    count?: number,
-    guidance?: number,
-    no?: string,
+    model?: string,
     query: string,
     safe?: boolean,
     seed?: number,
@@ -914,6 +913,7 @@ export namespace RestResponsesRaw {
   export type EditGuildSettings = GuildSettings;
   export type EditTag = Tag;
   export type EditUser = User;
+  export type EditUserSettings = UserSettings;
 
   export interface FetchCommandsUsage {
     results: Array<CommandUsage>,
@@ -953,6 +953,7 @@ export namespace RestResponsesRaw {
   export type FetchTagVariables = Record<TagVariableStorageTypes, Record<string, string>>;
 
   export type FetchUser = User;
+  export type FetchUserSettings = UserSettings;
 
   export interface FetchUserTags {
     count: number,
@@ -1921,12 +1922,20 @@ export namespace RestResponsesRaw {
     discriminator: string,
     flags: number,
     id: string,
-    locale?: GoogleLocales | null,
-    opted_out?: {
-      content: null | string,
-    },
     premium_type?: number,
     username: string,
+  }
+
+  export interface UserSettings {
+    fallbacks_media_image: number,
+    file_upload_name: string | null,
+    file_upload_threshold: number,
+    file_upload_vanity: string | null,
+    locale: string | null,
+    ml_diffusion_model: string | null,
+    opted_out_content: string | null,
+    timezone: string | null,
+    tts_voice: string | null,
   }
 
   export interface Voice {

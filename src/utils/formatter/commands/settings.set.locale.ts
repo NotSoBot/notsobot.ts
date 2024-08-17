@@ -2,12 +2,11 @@ import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { editUser } from '../../../api';
-import {
-  GoogleLocales,
-  GoogleLocalesText,
-} from '../../../constants';
-import { editOrReply } from '../..';
+import UserSettingsStore from '../../../stores/usersettings';
+
+import { editUserSettings } from '../../../api';
+import { GoogleLocales } from '../../../constants';
+import { editOrReply, languageCodeToText } from '../../../utils';
 
 
 export const COMMAND_ID = 'settings.set.locale';
@@ -22,19 +21,43 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const user = await editUser(context, context.userId, {
-    locale: args.locale,
-  });
+  const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (user.locale) {
-    let languageText: string = user.locale;
-    if (languageText in GoogleLocalesText) {
-      languageText = GoogleLocalesText[user.locale];
+  if (args.locale) {
+    if (oldSettings && oldSettings.locale === args.locale) {
+      if (oldSettings.locale) {
+        const languageText = languageCodeToText(oldSettings.locale);
+        text = `Your locale is already ${Markup.bold(languageText)}`;
+      } else {
+        text = 'You currently do not have a locale preference.';
+      }
+    } else {
+      // update it
+      const settings = await editUserSettings(context, context.userId, {
+        locale: args.locale,
+      });
+      UserSettingsStore.insert(context.userId, settings);
+
+      if (settings.locale) {
+        const languageText = languageCodeToText(settings.locale);
+        text = `Ok, set your locale preference to ${Markup.bold(languageText)}`;
+      } else {
+        // this should never happen currently
+        text = 'Ok, cleared out your locale preference';
+      }
     }
-    text = `Ok, set your default language preference to ${Markup.bold(languageText)}`;
   } else {
-    text = 'Ok, cleared out your default language preference';
+    if (oldSettings) {
+      if (oldSettings.locale) {
+        const languageText = languageCodeToText(oldSettings.locale);
+        text = `Your current locale is ${Markup.bold(languageText)}`;
+      } else {
+        text = 'You currently do not have a locale preference.';
+      }
+    } else {
+      text = 'Error fetching your current locale.';
+    }
   }
 
   return editOrReply(context, {

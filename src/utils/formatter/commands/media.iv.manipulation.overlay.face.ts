@@ -1,27 +1,21 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { utilitiesMLEdit } from '../../../api';
+import { mediaIVManipulationOverlayFace } from '../../../api';
 import { imageReply } from '../..';
 
 
-export const COMMAND_ID = 'tools.ml.edit';
+export const COMMAND_ID = 'media.iv.manipulation.overlay.face';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  model?: string,
-  query: string,
-  safe?: boolean,
-  seed?: number,
-  steps?: number,
-  strength?: number,
-  url: string, 
+  urls: Array<string>,
 }
 
 export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return utilitiesMLEdit(context, args);
+  return mediaIVManipulationOverlayFace(context, args);
 }
 
 export async function createMessage(

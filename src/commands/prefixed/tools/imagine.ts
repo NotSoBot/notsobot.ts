@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -14,10 +14,10 @@ export default class ImagineCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'no', metadata: {escription: 'negative prompt'}},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (2..8)'}},
+        {name: 'use', label: 'model', type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText})},
       ],
       label: 'query',
       metadata: {
@@ -28,7 +28,7 @@ export default class ImagineCommand extends BaseCommand {
           `${COMMAND_NAME} an animal eating strawberries -seed 5`,
         ],
         id: Formatter.Commands.ToolsMLImagine.COMMAND_ID,
-        usage: '<...query> (-no <query>) (-safe) (-seed <number>) (-steps <number>)',
+        usage: '<...query> (-safe) (-seed <number>) (-steps <number>) (-use <MLDiffusionModel>)',
       },
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},

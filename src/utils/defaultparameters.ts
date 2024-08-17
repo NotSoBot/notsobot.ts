@@ -2,7 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { GuildExplicitContentFilterTypes } from 'detritus-client/lib/constants';
 
 import { GoogleLocales, GoogleLocaleFromDiscord } from '../constants';
-import UserStore from '../stores/users';
+import UserSettingsStore from '../stores/usersettings';
 
 import {
   findMediaUrlInMessages,
@@ -188,9 +188,9 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
 
 
 export async function locale(context: Command.Context | Interaction.InteractionContext): Promise<GoogleLocales> {
-  const user = await UserStore.getOrFetch(context, context.userId);
-  if (user && user.locale) {
-    return user.locale;
+  const settings = await UserSettingsStore.getOrFetch(context, context.userId);
+  if (settings && settings.locale) {
+    return settings.locale as unknown as GoogleLocales;
   }
 
   const guild = context.guild;

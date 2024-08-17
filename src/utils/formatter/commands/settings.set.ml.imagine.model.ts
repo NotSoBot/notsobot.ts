@@ -8,10 +8,10 @@ import { editUserSettings } from '../../../api';
 import { editOrReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'settings.set.file.vanity';
+export const COMMAND_ID = 'settings.set.ml.imagine.model';
 
 export interface CommandArgs {
-  vanity?: string | null,
+  model?: string | null,
 }
 
 export async function createMessage(
@@ -23,36 +23,36 @@ export async function createMessage(
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (args.vanity) {
-    if (oldSettings && oldSettings.file_upload_vanity === args.vanity) {
-      if (oldSettings.file_upload_vanity) {
-        text = `Your file upload vanity is already ${Markup.bold(oldSettings.file_upload_vanity)}`;
+  if (args.model) {
+    if (oldSettings && oldSettings.ml_diffusion_model === args.model) {
+      if (oldSettings.ml_diffusion_model) {
+        text = `Your ML Diffusion Model preference is already ${Markup.bold(oldSettings.ml_diffusion_model)}`;
       } else {
-        text = 'You currently do not have a file upload vanity set.';
+        text = 'You currently do not have a ML Diffusion Model preference.';
       }
     } else {
       // update it
       const settings = await editUserSettings(context, context.userId, {
-        vanity: args.vanity,
+        mlDiffusionModel: args.model,
       });
       UserSettingsStore.insert(context.userId, settings);
 
-      if (settings.file_upload_vanity) {
-        text = `Ok, set your file upload vanity to ${Markup.bold(settings.file_upload_vanity)}`;
+      if (settings.ml_diffusion_model) {
+        text = `Ok, set your ML Diffusion Model preference to ${Markup.bold(settings.ml_diffusion_model)}`;
       } else {
         // this should never happen currently
-        text = 'Ok, cleared out your file upload vanity.';
+        text = 'Ok, cleared out your ML Diffusion Model preference.';
       }
     }
   } else {
     if (oldSettings) {
-      if (oldSettings.file_upload_vanity) {
-        text = `Your current file upload vanity is ${Markup.bold(oldSettings.file_upload_vanity)}`;
+      if (oldSettings.ml_diffusion_model) {
+        text = `Your current ML Diffusion Model preference is ${Markup.bold(oldSettings.ml_diffusion_model)}`;
       } else {
-        text = 'You currently do not have a file upload vanity set.';
+        text = 'You currently do not have a ML Diffusion Model preference.';
       }
     } else {
-      text = 'Error fetching your current file upload vanity.';
+      text = 'Error fetching your current ML Diffusion Model preference.';
     }
   }
 

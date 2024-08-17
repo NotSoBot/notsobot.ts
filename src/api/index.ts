@@ -21,10 +21,10 @@ import {
   GuildSettingsPrefix,
 } from './structures/guildsettings';
 import { UserFull } from './structures/user';
-import { RestOptions, RestResponses } from './types';
+import { RestOptions, RestResponses, RestResponsesRaw } from './types';
 
 export { request } from './raw';
-export { Endpoints, RequestContext, RestOptions, RestResponses, raw };
+export { Endpoints, RequestContext, RestOptions, RestResponses, RestResponsesRaw, raw };
 
 
 export async function addGuildFeature(
@@ -362,6 +362,15 @@ export async function editUser(
 }
 
 
+export async function editUserSettings(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.EditUserSettings,
+) {
+  return raw.editUserSettings(context, userId, options);
+}
+
+
 export async function fetchCommandsUsage(
   context: RequestContext,
   options: RestOptions.FetchCommandsUsage,
@@ -488,6 +497,14 @@ export async function fetchUserReminders(
   options: RestOptions.FetchUserReminders = {},
 ) {
   return raw.fetchUserReminders(context, userId, options);
+}
+
+
+export async function fetchUserSettings(
+  context: RequestContext,
+  userId: string,
+) {
+  return raw.fetchUserSettings(context, userId);
 }
 
 
@@ -952,6 +969,14 @@ export async function mediaIVManipulationMirrorTop(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationMirrorTop(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFace(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptionsMultiple,
+) {
+  return raw.mediaIVManipulationOverlayFace(context, options);
 }
 
 

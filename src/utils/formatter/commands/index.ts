@@ -69,6 +69,7 @@ import * as MediaIVManipulationMirrorBottom from './media.iv.manipulation.mirror
 import * as MediaIVManipulationMirrorLeft from './media.iv.manipulation.mirror.left';
 import * as MediaIVManipulationMirrorRight from './media.iv.manipulation.mirror.right';
 import * as MediaIVManipulationMirrorTop from './media.iv.manipulation.mirror.top';
+import * as MediaIVManipulationOverlayFace from './media.iv.manipulation.overlay.face';
 import * as MediaIVManipulationOverlayFlagIsrael from './media.iv.manipulation.overlay.flag.israel';
 import * as MediaIVManipulationOverlayFlagLGBT from './media.iv.manipulation.overlay.flag.lgbt';
 import * as MediaIVManipulationOverlayFlagNorthKorea from './media.iv.manipulation.overlay.flag.northkorea';
@@ -162,6 +163,7 @@ import * as SettingsSetFallbacksMediaImage from './settings.set.fallbacks.media.
 import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
 import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetLocale from './settings.set.locale';
+import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
 import * as SettingsSetTimezone from './settings.set.timezone';
 
 import * as TagAdd from './tag.add';
@@ -281,6 +283,7 @@ export {
   MediaIVManipulationMirrorLeft,
   MediaIVManipulationMirrorRight,
   MediaIVManipulationMirrorTop,
+  MediaIVManipulationOverlayFace,
   MediaIVManipulationOverlayFlagIsrael,
   MediaIVManipulationOverlayFlagLGBT,
   MediaIVManipulationOverlayFlagNorthKorea,
@@ -373,6 +376,7 @@ export {
   SettingsSetFallbacksMediaImage,
   SettingsSetFileUploadThreshold,
   SettingsSetFileVanity,
+  SettingsSetMLImagineModel,
   SettingsSetLocale,
   SettingsSetTimezone,
 

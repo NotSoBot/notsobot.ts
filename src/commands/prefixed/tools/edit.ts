@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
@@ -14,11 +14,11 @@ export default class EditCommand extends BaseImageCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'no', metadata: {description: 'negative prompt'}},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (1..16)'}},
         {name: 'strength', type: 'float', metadata: {description: 'strength of prompt (0.05..1)'}},
+        {name: 'use', label: 'model', type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText})},
       ],
       metadata: {
         category: CommandCategories.TOOLS,
@@ -28,7 +28,7 @@ export default class EditCommand extends BaseImageCommand {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png an animal eating strawberries -seed 5`,
         ],
         id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> <...query> (-no <query>) (-safe) (-seed <number>) (-steps <number>) (-strength <number>)',
+        usage: '?<emoji,user:id|mention,url> <...query> (-safe) (-seed <number>) (-steps <number>) (-strength <number>) (-use <MLDiffusionModel>)',
       },
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},

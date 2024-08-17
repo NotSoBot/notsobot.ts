@@ -7,9 +7,7 @@ import { imageReply } from '../..';
 export const COMMAND_ID = 'tools.ml.imagine';
 
 export interface CommandArgs {
-  count?: number,
-  guidance?: number,
-  no?: string,
+  model?: string,
   query: string,
   safe?: boolean,
   seed?: number,

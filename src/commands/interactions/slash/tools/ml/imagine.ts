@@ -17,7 +17,7 @@ export class ToolsMLImagineCommand extends BaseInteractionCommandOption {
     super({
       options: [
         {name: 'query', description: 'Prompt to Generate (Empty will auto-generate a prompt)'},
-        {name: 'no', description: 'Negative Prompt'},
+        {name: 'model', description: 'Diffusion Model', choices: Parameters.Slash.ML_IMAGINE_MODELS},
         {
           name: 'safe',
           description: 'Safe Generation',
@@ -26,7 +26,7 @@ export class ToolsMLImagineCommand extends BaseInteractionCommandOption {
           value: Parameters.Slash.safe,
         },
         {name: 'seed', type: Number, description: 'Initial Noise'},
-        {name: 'steps', type: Number, description: 'Number of Samples to take (1..16)'},
+        {name: 'steps', type: Number, description: 'Number of Samples to take (1..8)'},
       ],
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},
