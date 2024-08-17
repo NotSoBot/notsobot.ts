@@ -36,6 +36,7 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.NAME,
   NotSoApiKeys.PREFIXES,
   NotSoApiKeys.PREMIUM_TYPE,
+  NotSoApiKeys.SETTINGS,
   NotSoApiKeys.TIMEZONE,
 ]);
 
@@ -56,6 +57,7 @@ export class GuildSettings extends BaseStructure {
   id: string = '';
   name: string = '';
   premiumType: GuildPremiumTypes = GuildPremiumTypes.NONE;
+  settings!: GuildSettingsChild;
   timezone: string | null = null;
 
   constructor(data: Structures.BaseStructureData) {
@@ -231,6 +233,9 @@ export class GuildSettings extends BaseStructure {
             }
           }
         }; return;
+        case NotSoApiKeys.SETTINGS: {
+          value = new GuildSettingsChild(value);
+        }; break;
       }
     }
     return super.mergeValue(key, value);
@@ -471,5 +476,21 @@ export class GuildSettingsPrefix extends BaseStructure {
 
   get addedAtText(): string {
     return moment(this.added).fromNow();
+  }
+}
+
+
+const keysGuildSettingsChild = new Collections.BaseSet<string>([
+  NotSoApiKeys.ML_DIFFUSION_MODEL,
+]);
+
+export class GuildSettingsChild extends BaseStructure {
+  readonly _keys = keysGuildSettingsChild;
+
+  mlDiffusionModel: null | string = null;
+
+  constructor(data: Structures.BaseStructureData) {
+    super();
+    this.merge(data);
   }
 }
