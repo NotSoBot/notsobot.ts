@@ -7,6 +7,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 
 export class TagExportCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Export tags from a server with filters';
   metadata = {
     id: Formatter.Commands.TagExport.COMMAND_ID,

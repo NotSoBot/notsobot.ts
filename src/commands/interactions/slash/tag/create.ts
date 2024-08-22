@@ -12,6 +12,7 @@ export interface CommandArgsBefore {
 }
 
 export class TagCreateCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Create a tag';
   metadata = {
     id: Formatter.Commands.TagCreate.COMMAND_ID,

@@ -33,7 +33,8 @@ export class ToolsMLEditCommand extends BaseInteractionImageCommandOption {
           value: Parameters.Slash.safe,
         },
         {name: 'seed', type: Number, description: 'Initial Noise'},
-        {name: 'steps', type: Number, description: 'Number of Samples to take (1..16)'},
+        {name: 'steps', type: Number, description: 'Number of Samples to take (1 to 16)'},
+        {name: 'strength', description: 'Strength of Prompt (0.01 to 1)'},
       ],
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},

@@ -9,6 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'add';
 
 export class TagAddCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Add a Tag from your DMs with NotSoBot';
   metadata = {
     id: Formatter.Commands.TagAdd.COMMAND_ID,

@@ -21,6 +21,7 @@ export interface InteractionCommandMetadata {
 };
 
 export class BaseInteractionCommand extends Interaction.InteractionCommand {
+  blockedCommandShouldStillExecute = true;
   error = 'Command';
 
   onAutoCompleteError(context: Interaction.InteractionAutoCompleteContext, error: any) {
@@ -285,6 +286,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
 
 export class BaseInteractionCommandOption extends Interaction.InteractionCommandOption {
+  blockedCommandShouldStillExecute = true;
   error = 'Slash';
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
 

@@ -52,9 +52,9 @@ export const Api = Object.freeze({
     '/guilds/:guildId/tags/commands',
 
   IMAGE_CREATE_COLOR_HEX:
-    '/image/create/:height:x:width:/colors/:hex:.:format:',
+    '/image/create/:width:x:height:/colors/:hex:.:format:',
   IMAGE_CREATE_COLOR_RGB:
-    '/image/create/:height:x:width:/colors/:red:.:green:.:blue:.:format:',
+    '/image/create/:width:x:height:/colors/:red:.:green:.:blue:.:format:',
 
   MEDIA_A_TOOLS_PUT_CONCAT:
     '/media/a/tools/put/concat',

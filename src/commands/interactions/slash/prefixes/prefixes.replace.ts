@@ -9,6 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'replace';
 
 export class PrefixesReplaceCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Replace all prefixes on this Server';
   metadata = {
     id: Formatter.Commands.PrefixesReplace.COMMAND_ID,

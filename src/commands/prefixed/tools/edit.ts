@@ -16,8 +16,8 @@ export default class EditCommand extends BaseImageCommand {
       args: [
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
-        {name: 'steps', type: Number, metadata: {description: 'number of samples to take (1..16)'}},
-        {name: 'strength', type: 'float', metadata: {description: 'strength of prompt (0.05..1)'}},
+        {name: 'steps', type: Number, metadata: {description: 'number of samples to take (1 to 16)'}},
+        {name: 'strength', type: 'float', metadata: {description: 'strength of prompt (0.01 to 1)'}},
         {
           name: 'use',
           label: 'model',

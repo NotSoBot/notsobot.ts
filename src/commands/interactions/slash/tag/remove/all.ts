@@ -7,6 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class TagRemoveAllCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Remove all of a Server\'s tags, with filters';
   metadata = {
     id: Formatter.Commands.TagRemoveAll.COMMAND_ID,

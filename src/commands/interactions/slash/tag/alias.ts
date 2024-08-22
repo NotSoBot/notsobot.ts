@@ -9,6 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'alias';
 
 export class TagAliasCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Create a Tag Alias';
   metadata = {
     id: Formatter.Commands.TagAlias.COMMAND_ID,

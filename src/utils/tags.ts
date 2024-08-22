@@ -23,7 +23,13 @@ import {
   utilitiesMLInterrogate,
 } from '../api';
 import { RestResponses } from '../api/types';
-import { CodeLanguages, GoogleLocales, TagVariableStorageTypes, MAX_MEMBERS_SAFE } from '../constants';
+import {
+  CodeLanguages,
+  GoogleLocales,
+  MLDiffusionModels,
+  TagVariableStorageTypes,
+  MAX_MEMBERS_SAFE,
+} from '../constants';
 
 import * as DefaultParameters from './defaultparameters';
 import * as Parameters from './parameters';
@@ -37,6 +43,7 @@ import {
   languageCodeToText,
   randomFromArray,
   randomFromIterator,
+  textToBoolean,
 } from './tools';
 
 
@@ -375,6 +382,8 @@ export const TagFunctionsToString = Object.freeze({
 
 export enum TagSettings {
   MEDIA_IV_FALLBACK = 'MEDIA_IV_FALLBACK',
+  ML_IMAGINE_DO_NOT_ERROR = 'ML_IMAGINE_DO_NOT_ERROR',
+  ML_IMAGINE_MODEL = 'ML_IMAGINE_MODEL',
 }
 
 
@@ -389,6 +398,8 @@ export interface TagVariables {
   },
   [PrivateVariables.SETTINGS]: {
     [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES,
+    [TagSettings.ML_IMAGINE_DO_NOT_ERROR]?: boolean,
+    [TagSettings.ML_IMAGINE_MODEL]?: MLDiffusionModels,
   },
   [key: string]: number | string | Array<string> | Record<string, any>,
 }
@@ -2291,7 +2302,12 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const response = await utilitiesMLEdit(context, {query: prompt, safe: DefaultParameters.safe(context), url});
+    const response = await utilitiesMLEdit(context, {
+      query: prompt,
+      doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
+      model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
+      safe: DefaultParameters.safe(context), url},
+    );
     const filename = response.file.filename;
 
     const data = Buffer.from(response.file.value, 'base64');
@@ -2351,6 +2367,8 @@ const ScriptTags = Object.freeze({
 
     const response = await utilitiesMLEdit(context, {
       query: prompt,
+      doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
+      model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
       upload: true,
       url,
@@ -2375,7 +2393,12 @@ const ScriptTags = Object.freeze({
 
     const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
 
-    const response = await utilitiesMLImagine(context, {query: arg, safe: DefaultParameters.safe(context)});
+    const response = await utilitiesMLImagine(context, {
+      query: arg,
+      doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
+      model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
+      safe: DefaultParameters.safe(context),
+    });
     const filename = response.file.filename;
 
     const data = Buffer.from(response.file.value, 'base64');
@@ -2405,6 +2428,8 @@ const ScriptTags = Object.freeze({
 
     const response = await utilitiesMLImagine(context, {
       query: arg,
+      doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
+      model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
       upload: true,
     });
@@ -2600,7 +2625,10 @@ const ScriptTags = Object.freeze({
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
       const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
-      const response = await utilitiesImagescriptV1(context, {code});
+      const response = await utilitiesImagescriptV1(context, {
+        code,
+        mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
+      });
       const filename = response.file.filename;
 
       let data: Buffer | string = Buffer.from(response.file.value, 'base64');
@@ -2846,6 +2874,25 @@ const ScriptTags = Object.freeze({
 
           if (parsedValue) {
             tag.variables[PrivateVariables.SETTINGS][setting] = parsedValue;
+          }
+        } else {
+          delete tag.variables[setting];
+        }
+      }; break;
+      case TagSettings.ML_IMAGINE_DO_NOT_ERROR: {
+        if (value) {
+          tag.variables[PrivateVariables.SETTINGS][setting] = textToBoolean(value);
+        } else {
+          delete tag.variables[setting];
+        }
+      }; break;
+      case TagSettings.ML_IMAGINE_MODEL: {
+        if (value) {
+          value = value.toUpperCase();
+          if (value in MLDiffusionModels) {
+            tag.variables[PrivateVariables.SETTINGS][setting] = value as MLDiffusionModels;
+          } else {
+            throw new Error(`ML Imagine Model must be one of: (${Object.values(MLDiffusionModels)})`);
           }
         } else {
           delete tag.variables[setting];

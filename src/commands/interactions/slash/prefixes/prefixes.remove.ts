@@ -9,6 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'remove';
 
 export class PrefixesRemoveCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Remove a custom prefix on this Server';
   metadata = {
     id: Formatter.Commands.PrefixesRemove.COMMAND_ID,

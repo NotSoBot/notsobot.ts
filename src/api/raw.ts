@@ -15,6 +15,7 @@ import {
   GuildCommandsBlocklistTypes,
   NotSoHeaders,
 } from '../constants';
+import { createColorUrl } from '../utils';
 
 
 
@@ -3618,6 +3619,7 @@ export async function utilitiesImagescriptV1(
   const body = {
     code: options.code,
     max_file_size: maxFileSize,
+    ml_diffusion_model: options.mlDiffusionModel,
     upload: options.upload,
   };
   return request(context, {
@@ -3635,6 +3637,7 @@ export async function utilitiesMLEdit(
   options: RestOptions.UtilitiesMLEdit,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
+    do_not_error: options.doNotError,
     model: options.model,
     query: options.query,
     safe: options.safe,
@@ -3654,6 +3657,11 @@ export async function utilitiesMLEdit(
     },
   });
   if (options.safe && response.file.has_nsfw) {
+    if (options.doNotError) {
+      return await utilitiesFetchMedia(context, {
+        url: createColorUrl(0, 512, 512),
+      });
+    }
     throw new Error('Generated Media may contain NSFW content');
   }
   return response;
@@ -3665,6 +3673,7 @@ export async function utilitiesMLImagine(
   options: RestOptions.UtilitiesMLImagine,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
+    do_not_error: options.doNotError,
     model: options.model,
     query: options.query,
     safe: options.safe,
@@ -3680,6 +3689,11 @@ export async function utilitiesMLImagine(
     },
   });
   if (options.safe && response.file.has_nsfw) {
+    if (options.doNotError) {
+      return await utilitiesFetchMedia(context, {
+        url: createColorUrl(0, 512, 512),
+      });
+    }
     throw new Error('Generated Media may contain NSFW content');
   }
   return response;

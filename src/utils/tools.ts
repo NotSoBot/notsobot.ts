@@ -41,13 +41,13 @@ import {
 } from '../constants';
 
 
-export function createColorUrl(color: number): string {
+export function createColorUrl(color: number, width: number = 2, height: number = 2): string {
   return replacePathParameters(
     Endpoints.Api.URL_PUBLIC + Endpoints.Api.PATH + Endpoints.Api.IMAGE_CREATE_COLOR_HEX, {
     format: 'png',
-    height: 2,
+    height: height,
     hex: intToHex(color),
-    width: 2,
+    width: width,
   });
 }
 
@@ -1563,6 +1563,20 @@ export function splitTextToDiscordHandle(text: string): [string, string | null] 
     discriminator = (parts.shift() as string).padStart(4, '0');
   }
   return [username, discriminator];
+}
+
+
+const TEXT_TO_BOOLEAN_TRUE = ['true', '+', 'y', 'yes'];
+const TEXT_TO_BOOLEAN_FALSE = ['false', '-', 'n', 'no'];
+
+export function textToBoolean(value: string, defaultValue: boolean = false): boolean {
+  value = value.toLowerCase();
+  if (TEXT_TO_BOOLEAN_TRUE.includes(value)) {
+    return true;
+  } else if (TEXT_TO_BOOLEAN_FALSE.includes(value)) {
+    return false;
+  }
+  return defaultValue;
 }
 
 

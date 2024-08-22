@@ -11,6 +11,7 @@ export interface CommandArgs {
 }
 
 export class ReminderCreateCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Create a reminder';
   metadata = {
     id: Formatter.Commands.ReminderCreate.COMMAND_ID,

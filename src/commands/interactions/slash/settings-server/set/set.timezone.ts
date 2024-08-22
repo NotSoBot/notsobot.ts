@@ -11,6 +11,7 @@ export interface CommandArgs {
 }
 
 export class SettingsServerSetTimezoneCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Set the server\'s default timezone for the bot';
   metadata = {
     id: Formatter.Commands.SettingsServerSetTimezone.COMMAND_ID,

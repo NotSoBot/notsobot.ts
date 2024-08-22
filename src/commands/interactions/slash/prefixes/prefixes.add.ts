@@ -9,6 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'add';
 
 export class PrefixesAddCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Add a custom prefix for this Server';
   metadata = {
     id: Formatter.Commands.PrefixesAdd.COMMAND_ID,

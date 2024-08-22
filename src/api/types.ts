@@ -668,10 +668,12 @@ export namespace RestOptions {
   export interface UtilitiesImagescriptV1 {
     code: string,
     maxFileSize?: number,
+    mlDiffusionModel?: string,
     upload?: boolean,
   }
 
   export interface UtilitiesMLEdit extends MediaBaseOptions {
+    doNotError?: boolean,
     model?: string,
     query: string,
     safe?: boolean,
@@ -681,6 +683,7 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesMLImagine {
+    doNotError?: boolean,
     model?: string,
     query: string,
     safe?: boolean,

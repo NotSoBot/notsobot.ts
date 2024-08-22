@@ -13,7 +13,7 @@ export default class MathCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['m', 'calculate', 'c'],
+      aliases: ['calculate', 'calc'],
       label: 'equation',
       metadata: {
         category: CommandCategories.TOOLS,

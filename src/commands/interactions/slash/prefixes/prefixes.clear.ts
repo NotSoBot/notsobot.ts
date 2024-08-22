@@ -9,6 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'clear';
 
 export class PrefixesClearCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Clear all custom prefixes in the Server';
   metadata = {
     id: Formatter.Commands.PrefixesClear.COMMAND_ID,

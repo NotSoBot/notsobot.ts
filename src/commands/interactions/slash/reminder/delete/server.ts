@@ -7,6 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class ReminderDeleteServerCommand extends BaseInteractionCommandOption {
+  blockedCommandShouldStillExecute = false;
   description = 'Delete a Reminder from the Server';
   metadata = {
     id: Formatter.Commands.ReminderDeleteServer.COMMAND_ID,
