@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'sharpen';
 
 export class MediaIVSharpenCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Sharpen an Image';
+  description = 'Sharpen an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationSharpen.COMMAND_ID,
   };

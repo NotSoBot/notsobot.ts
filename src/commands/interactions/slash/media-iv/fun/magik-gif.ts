@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'magik-gif';
 
-export class MediaIVMagikGifCommand extends BaseInteractionImageCommandOption {
-  description = 'Magikfy an Image, Single-framed Images become Animated';
+export class MediaIVMagikGifCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Magikfy an Image or Video, Single-framed Images become Animated';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationMagikAnimated.COMMAND_ID,
   };

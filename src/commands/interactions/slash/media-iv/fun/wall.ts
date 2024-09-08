@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'wall';
 
-export class ImageWallCommand extends BaseInteractionImageCommandOption {
-  description = 'Create a wall with an Image';
+export class MediaIVWallCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Create a wall out of an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationWall.COMMAND_ID,
   };

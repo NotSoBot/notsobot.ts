@@ -15,6 +15,7 @@ import { MediaIVSpinCommand } from './spin';
 // rip command
 
 import { MediaFunGroupCommand } from './fun';
+import { MediaLabelsGroupCommand } from './labels';
 import { MediaOverlayGroupCommand } from './overlay';
 import { MediaTintGroupCommand } from './tint';
 // mirror
@@ -42,6 +43,7 @@ export default class MediaIVGroupCommand extends BaseSlashCommand {
         new MediaIVFlopCommand(),
         new MediaFunGroupCommand(),
         new MediaIVJPEGCommand(),
+        new MediaLabelsGroupCommand(),
         new MediaOverlayGroupCommand(),
         new MediaAIVPipeCommand(),
         new MediaIVSharpenCommand(),

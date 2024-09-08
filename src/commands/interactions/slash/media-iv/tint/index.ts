@@ -1,11 +1,11 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { ImageBlurpleCommand } from './blurple';
-import { ImageGoldCommand } from './gold';
-import { ImageGrayscaleCommand } from './grayscale';
-import { ImageInvertCommand } from './invert';
-import { ImageRainCommand } from './rain';
-import { ImageRainGoldCommand } from './raingold';
+import { MediaIVBlurpleCommand } from './blurple';
+import { MediaIVGoldCommand } from './gold';
+import { MediaIVGrayscaleCommand } from './grayscale';
+import { MediaIVInvertCommand } from './invert';
+import { MediaIVRainCommand } from './rain';
+import { MediaIVRainGoldCommand } from './raingold';
 
 
 export class MediaTintGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -15,12 +15,12 @@ export class MediaTintGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
-        new ImageBlurpleCommand(),
-        new ImageGoldCommand(),
-        new ImageGrayscaleCommand(),
-        new ImageInvertCommand(),
-        new ImageRainCommand(),
-        new ImageRainGoldCommand(),
+        new MediaIVBlurpleCommand(),
+        new MediaIVGoldCommand(),
+        new MediaIVGrayscaleCommand(),
+        new MediaIVInvertCommand(),
+        new MediaIVRainCommand(),
+        new MediaIVRainGoldCommand(),
       ],
     });
   }

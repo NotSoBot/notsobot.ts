@@ -7,7 +7,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 export const COMMAND_NAME = 'gold';
 
-export class ImageGoldCommand extends BaseInteractionImageOrVideoCommandOption {
+export class MediaIVGoldCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Gold tintify an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationGold.COMMAND_ID,

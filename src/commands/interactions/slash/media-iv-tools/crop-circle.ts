@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'crop-circle';
 
 export class MediaIVToolsCropCircleCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Crop out a circle from an Image';
+  description = 'Crop out a circle from an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVToolsCropCircle.COMMAND_ID,
   };

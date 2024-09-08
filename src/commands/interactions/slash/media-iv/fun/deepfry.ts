@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'deepfry';
 
-export class ImageDeepfryCommand extends BaseInteractionImageCommandOption {
-  description = 'Deepfry an Image';
+export class MediaIVDeepfryCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Deepfry an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationDeepfry.COMMAND_ID,
   };

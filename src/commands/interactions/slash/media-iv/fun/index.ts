@@ -1,21 +1,22 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { ImageBlurCommand } from './blur';
-import { ImageCircleCommand } from './circle';
-import { ImageDeepfryCommand } from './deepfry';
-import { ImageE2ECommand } from './e2e';
-import { ImageE2PCommand } from './e2p';
-import { ImageExplodeCommand } from './explode';
-import { ImageGlitchCommand } from './glitch';
+import { MediaIVAsciiCommand } from './ascii';
+import { MediaIVBlurCommand } from './blur';
+import { MediaIVCircleCommand } from './circle';
+import { MediaIVDeepfryCommand } from './deepfry';
+import { MediaIVE2ECommand } from './e2e';
+import { MediaIVE2PCommand } from './e2p';
+import { MediaIVExplodeCommand } from './explode';
+import { MediaIVGlitchCommand } from './glitch';
 import { MediaIVGlitchGifCommand } from './glitch-gif';
-import { ImageImplodeCommand } from './implode';
-import { ImageLegofyCommand } from './legofy';
-import { ImageMagikCommand } from './magik';
+import { MediaIVImplodeCommand } from './implode';
+import { MediaIVLegofyCommand } from './legofy';
+import { MediaIVMagikCommand } from './magik';
 import { MediaIVMagikGifCommand } from './magik-gif';
-import { ImagePaperCommand } from './paper';
-import { ImagePixelateCommand } from './pixelate';
-import { ImageTraceCommand } from './trace';
-import { ImageWallCommand } from './wall';
+import { MediaIVPaperCommand } from './paper';
+import { MediaIVPixelateCommand } from './pixelate';
+import { MediaIVTraceCommand } from './trace';
+import { MediaIVWallCommand } from './wall';
 
 
 export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -25,22 +26,23 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
-        new ImageBlurCommand(),
-        new ImageCircleCommand(),
-        new ImageDeepfryCommand(),
-        new ImageE2ECommand(),
-        new ImageE2PCommand(),
-        new ImageExplodeCommand(),
-        new ImageGlitchCommand(),
+        new MediaIVAsciiCommand(),
+        new MediaIVBlurCommand(),
+        new MediaIVCircleCommand(),
+        new MediaIVDeepfryCommand(),
+        new MediaIVE2ECommand(),
+        new MediaIVE2PCommand(),
+        new MediaIVExplodeCommand(),
+        new MediaIVGlitchCommand(),
         new MediaIVGlitchGifCommand(),
-        new ImageImplodeCommand(),
-        new ImageLegofyCommand(),
-        new ImageMagikCommand(),
+        new MediaIVImplodeCommand(),
+        new MediaIVLegofyCommand(),
+        new MediaIVMagikCommand(),
         new MediaIVMagikGifCommand(),
-        new ImagePaperCommand(),
-        new ImagePixelateCommand(),
-        new ImageTraceCommand(),
-        new ImageWallCommand(),
+        new MediaIVPaperCommand(),
+        new MediaIVPixelateCommand(),
+        new MediaIVTraceCommand(),
+        new MediaIVWallCommand(),
       ],
     });
   }

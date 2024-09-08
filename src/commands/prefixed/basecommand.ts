@@ -409,7 +409,7 @@ export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
     if (!args.urls.length) {
       return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any media in the last 50 messages.`);
     } else if (args.urls.length < this.minAmount) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find ${this.maxAmount} media urls in the last 50 messages.`);
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find ${this.minAmount} media urls in the last 50 messages.`);
     } else if (this.maxAmount < args.urls.length) {
       // never should happen
       return editOrReply(context, `${BooleanEmojis.WARNING} Found too many media urls in the last 50 messages.`);

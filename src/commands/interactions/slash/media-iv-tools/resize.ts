@@ -9,7 +9,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'resize';
 
 export class MediaIVToolsResizeCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Resize an Image';
+  description = 'Resize an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVToolsResize.COMMAND_ID,
   };

@@ -6,7 +6,8 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { MediaAVExtractGroupCommand } from './extract';
+import { MediaAVAudioGroupCommand } from './audio';
+import { MediaAVBoostBassCommand } from './boost-bass';
 
 
 export default class MediaAVGroupCommand extends BaseSlashCommand {
@@ -14,20 +15,21 @@ export default class MediaAVGroupCommand extends BaseSlashCommand {
   name = 'media-av';
 
   contexts = [
-	InteractionContextTypes.GUILD,
-	InteractionContextTypes.BOT_DM,
-	InteractionContextTypes.PRIVATE_CHANNEL,
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
   ];
   integrationTypes = [
-	ApplicationIntegrationTypes.GUILD_INSTALL,
-	ApplicationIntegrationTypes.USER_INSTALL,
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
   ];
 
   constructor() {
 	super({
 	  permissions: [Permissions.ATTACH_FILES],
 	  options: [
-		new MediaAVExtractGroupCommand(),
+        new MediaAVAudioGroupCommand(),
+        new MediaAVBoostBassCommand(),
 	  ],
 	});
   }

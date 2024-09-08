@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionMediaCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'reverse';
 
-export class MediaAIVToolsReverseCommand extends BaseInteractionImageCommandOption {
+export class MediaAIVToolsReverseCommand extends BaseInteractionMediaCommandOption {
   description = 'Reverse an Animated Image/Audio/Video';
   metadata = {
     id: Formatter.Commands.MediaAIVToolsReverse.COMMAND_ID,

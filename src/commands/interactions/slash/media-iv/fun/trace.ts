@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'trace';
 
-export class ImageTraceCommand extends BaseInteractionImageCommandOption {
-  description = 'Trace an Image/Gif';
+export class MediaIVTraceCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Trace an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationTrace.COMMAND_ID,
   };

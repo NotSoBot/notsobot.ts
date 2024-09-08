@@ -9,7 +9,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'trim';
 
 export class MediaIVToolsTrimCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Trim an Image\'s Excess Background';
+  description = 'Trim an Image or Video\'s Excess Background';
   metadata = {
     id: Formatter.Commands.MediaIVToolsTrim.COMMAND_ID,
   };

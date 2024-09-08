@@ -15,12 +15,12 @@ export default class RegionalCommand extends BaseCommand {
 
       label: 'text',
       metadata: {
+        category: CommandCategories.FUN,
         description: 'Convert text to regional emojis',
         examples: [
           `${COMMAND_NAME} lol`,
         ],
         id: Formatter.Commands.FunRegional.COMMAND_ID,
-        category: CommandCategories.FUN,
         usage: '<text>',
       },
       type: Parameters.targetText,

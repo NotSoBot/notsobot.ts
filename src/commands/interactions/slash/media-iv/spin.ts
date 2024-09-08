@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'spin';
 
-export class MediaIVSpinCommand extends BaseInteractionImageCommandOption {
+export class MediaIVSpinCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Create a Spinning Disk from an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationSpin.COMMAND_ID,

@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'blur';
 
-export class ImageBlurCommand extends BaseInteractionImageCommandOption {
-  description = 'Blur an Image';
+export class MediaIVBlurCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Blur an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationBlur.COMMAND_ID,
   };

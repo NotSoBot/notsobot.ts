@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'circle';
 
-export class ImageCircleCommand extends BaseInteractionImageCommandOption {
-  description = 'Put a Radial Blur on an Image';
+export class MediaIVCircleCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Put a Radial Blur on an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationCircle.COMMAND_ID,
   };

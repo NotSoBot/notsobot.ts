@@ -3,15 +3,15 @@ import { Interaction } from 'detritus-client';
 import { ImageMemeFonts, ImageMemeFontsToText } from '../../../../constants';
 import { Formatter, Parameters } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
-const DEFAULT_FONT_TEXT = ImageMemeFontsToText[ImageMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD];
+export const DEFAULT_FONT_TEXT = ImageMemeFontsToText[ImageMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD];
 
 export const COMMAND_NAME = 'caption';
 
-export class ImageCaptionCommand extends BaseInteractionImageCommandOption {
-  description = 'Add Caption Text to an Image';
+export class MediaIVCaptionCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Add Caption Text to an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationCaption.COMMAND_ID,
   };

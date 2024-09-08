@@ -1,14 +1,14 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../utils';
+import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionVideoCommandOption } from '../../basecommand';
+import { BaseInteractionAudioOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'extract';
 
-export class AudioExtractCommand extends BaseInteractionVideoCommandOption {
-  description = 'Extract Audio from Media';
+export class MediaAVExtractAudioCommand extends BaseInteractionAudioOrVideoCommandOption {
+  description = 'Extract Audio from an Audio or Video File';
   metadata = {
     id: Formatter.Commands.MediaAVToolsExtractAudio.COMMAND_ID,
   };

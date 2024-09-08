@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'pistol';
 
-export class ImageOverlayPistolCommand extends BaseInteractionImageCommandOption {
-  description = 'Overlay a Half Life Pistol on an image';
+export class MediaIVOverlayPistolCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Overlay a Half Life Pistol on an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.COMMAND_ID,
   };

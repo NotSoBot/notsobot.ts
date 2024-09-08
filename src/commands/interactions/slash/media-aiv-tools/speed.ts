@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionMediaCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'speed';
 
-export class MediaAIVToolsSpeedCommand extends BaseInteractionImageCommandOption {
+export class MediaAIVToolsSpeedCommand extends BaseInteractionMediaCommandOption {
   description = 'Edit an Animated Image/Audio/Video\'s Speed';
   metadata = {
     id: Formatter.Commands.MediaAIVToolsSpeed.COMMAND_ID,

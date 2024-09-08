@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'jpeg';
 
-export class MediaIVJPEGCommand extends BaseInteractionImageCommandOption {
+export class MediaIVJPEGCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Needs More JPEG';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationJPEG.COMMAND_ID,

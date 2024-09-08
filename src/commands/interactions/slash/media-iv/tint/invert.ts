@@ -7,7 +7,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 export const COMMAND_NAME = 'invert';
 
-export class ImageInvertCommand extends BaseInteractionImageOrVideoCommandOption {
+export class MediaIVInvertCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Invert an Image or Video\'s Color';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationInvert.COMMAND_ID,

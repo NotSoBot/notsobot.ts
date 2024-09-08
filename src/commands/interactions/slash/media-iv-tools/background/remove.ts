@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'remove';
 
 export class MediaIVToolsBackgroundRemoveCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Remove an image\'s background';
+  description = 'Remove an Image or Video\'s background';
   metadata = {
     id: Formatter.Commands.MediaIVToolsBackgroundRemove.COMMAND_ID,
   };

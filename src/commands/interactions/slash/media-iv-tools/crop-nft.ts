@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'crop-nft';
 
 export class MediaIVToolsCropNFTCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Crop out a Twitter NFT Hex from an Image';
+  description = 'Crop out a Twitter NFT Hex from an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVToolsCropNFT.COMMAND_ID,
   };

@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'paper';
 
-export class ImagePaperCommand extends BaseInteractionImageCommandOption {
-  description = 'Create a Paper out of an Image/Gif';
+export class MediaIVPaperCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Overlay an Image or Video on some paper';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationPaper.COMMAND_ID,
   };

@@ -7,7 +7,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 export const COMMAND_NAME = 'blurple';
 
-export class ImageBlurpleCommand extends BaseInteractionImageOrVideoCommandOption {
+export class MediaIVBlurpleCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Blurple-fy an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationBlurple.COMMAND_ID,

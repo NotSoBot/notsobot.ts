@@ -468,6 +468,75 @@ export class BaseInteractionMediaCommandOption extends BaseInteractionCommandOpt
 }
 
 
+export class BaseInteractionMediasCommandOption extends BaseInteractionCommandOption {
+  maxAmount = 2;
+  minAmount = 0;
+
+  constructor(data: Partial<Interaction.InteractionCommandOptionOptions> & {maxAmount?: number, minAmount?: number}) {
+    const mediaUrls = Parameters.mediaUrls({
+      maxAmount: data.maxAmount,
+      minAmount: data.minAmount,
+    });
+
+    const attachmentOptions = Array.from({length: data.maxAmount || 2}).map((x, key) => {
+      return {
+        name: `attachment-${key + 1}`,
+        description: 'Media File',
+        type: ApplicationCommandOptionTypes.ATTACHMENT,
+      };
+    });
+
+    super({
+      ...data,
+      options: [
+        ...(data.options || []),
+        {
+          name: 'urls',
+          description: 'Emoji/Media URLs/Users',
+          default: (context: Interaction.InteractionContext) => mediaUrls('', context),
+          value: mediaUrls,
+        },
+        ...attachmentOptions,
+      ],
+    });
+
+    this.maxAmount = data.maxAmount || this.maxAmount;
+    this.minAmount = data.minAmount || this.minAmount;
+  }
+
+  onBeforeRun(context: Interaction.InteractionContext, args: {urls: Array<string>}) {
+    return !!args.urls.length && args.urls.length <= this.maxAmount && this.minAmount <= args.urls.length;
+  }
+
+  onCancelRun(context: Interaction.InteractionContext, args: {urls: Array<string>}) {
+    if (!args.urls.length) {
+      if (!context.hasServerPermissions) {
+        return editOrReply(context, {
+          content: `${BooleanEmojis.WARNING} Bot cannot view the history of this channel, you must provide an attachment or URL.`,
+          flags: MessageFlags.EPHEMERAL,
+        });
+      }
+      return editOrReply(context, {
+        content: `${BooleanEmojis.WARNING} Unable to find any media in the last 50 messages.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
+    } else if (args.urls.length < this.minAmount) {
+      if (!context.hasServerPermissions) {
+        return editOrReply(context, {
+          content: `${BooleanEmojis.WARNING} Bot cannot view the history of this channel, you must provide an attachment or URL to reach ${this.minAmount} media urls.`,
+          flags: MessageFlags.EPHEMERAL,
+        });
+      }
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find ${this.minAmount} media urls in the last 50 messages.`);
+    } else if (this.maxAmount < args.urls.length) {
+      // never should happen
+      return editOrReply(context, `${BooleanEmojis.WARNING} Found too many media urls in the last 50 messages.`);
+    }
+    return super.onCancelRun(context, args);
+  }
+}
+
+
 export class BaseInteractionVideoCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({

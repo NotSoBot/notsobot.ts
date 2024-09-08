@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'legofy';
 
-export class ImageLegofyCommand extends BaseInteractionImageCommandOption {
-  description = 'Legofy an Image';
+export class MediaIVLegofyCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Legofy an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationLegofy.COMMAND_ID,
   };

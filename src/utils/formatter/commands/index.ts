@@ -5,6 +5,7 @@ import * as FunBadMeme from './fun.badmeme';
 import * as FunEmoji from './fun.emoji';
 import * as FunGameImagine from './fun.game.imagine';
 import * as FunRegional from './fun.regional';
+import * as FunReverseText from './fun.reversetext';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
 
@@ -220,6 +221,7 @@ export {
   FunEmoji,
   FunGameImagine,
   FunRegional,
+  FunReverseText,
   FunTextwall,
   FunTTS,
 

@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'explode';
 
-export class ImageExplodeCommand extends BaseInteractionImageCommandOption {
-  description = 'Explode an Image from the center';
+export class MediaIVExplodeCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Explode an Image or Video from the center';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationExplode.COMMAND_ID,
   };

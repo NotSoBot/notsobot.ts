@@ -1,8 +1,9 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { MediaIVManipulationOverlayBobRossCommand } from './bob.ross';
-import { MediaIVManipulationOverlayFliesCommand } from './flies';
-import { ImageOverlayPistolCommand } from './pistol';
+import { MediaIVOverlayBobRossCommand } from './bob.ross';
+import { MediaIVOverlayFaceCommand } from './face';
+import { MediaIVOverlayFliesCommand } from './flies';
+import { MediaIVOverlayPistolCommand } from './pistol';
 
 
 export class MediaOverlayGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -12,9 +13,10 @@ export class MediaOverlayGroupCommand extends BaseInteractionCommandOptionGroup 
   constructor() {
     super({
       options: [
-        new MediaIVManipulationOverlayBobRossCommand(),
-        new MediaIVManipulationOverlayFliesCommand(),
-        new ImageOverlayPistolCommand(),
+        new MediaIVOverlayBobRossCommand(),
+        new MediaIVOverlayFaceCommand(),
+        new MediaIVOverlayFliesCommand(),
+        new MediaIVOverlayPistolCommand(),
       ],
     });
   }

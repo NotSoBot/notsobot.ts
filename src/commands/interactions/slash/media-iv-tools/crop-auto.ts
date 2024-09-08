@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'crop-auto';
 
 export class MediaIVToolsCropAutoCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Crop an Image automatically';
+  description = 'Crop an Image or Video automatically';
   metadata = {
     id: Formatter.Commands.MediaIVToolsCropAuto.COMMAND_ID,
   };

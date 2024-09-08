@@ -3,15 +3,15 @@ import { Interaction } from 'detritus-client';
 import { ImageMemeFonts, ImageMemeFontsToText } from '../../../../constants';
 import { Formatter, Parameters } from '../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
 
 const DEFAULT_FONT_TEXT = ImageMemeFontsToText[ImageMemeFonts.IMPACT];
 
 export const COMMAND_NAME = 'meme';
 
-export class ImageMemeCommand extends BaseInteractionImageCommandOption {
-  description = 'Add Meme Text to an Image';
+export class MediaIVMemeCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Add Meme Text to an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationMeme.COMMAND_ID,
   };

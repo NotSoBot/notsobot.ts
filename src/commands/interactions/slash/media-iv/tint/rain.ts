@@ -7,7 +7,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 export const COMMAND_NAME = 'rain';
 
-export class ImageRainCommand extends BaseInteractionImageOrVideoCommandOption {
+export class MediaIVRainCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Rainbow tintify an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationRain.COMMAND_ID,

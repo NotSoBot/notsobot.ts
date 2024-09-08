@@ -14,20 +14,20 @@ export default class RotateCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'degrees', aliases: ['d'], type: Number},
         {name: 'crop', type: Boolean},
+        {name: 'degrees', aliases: ['d'], type: Number},
       ],
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Rotate an Image (default 90 degrees)',
+        description: 'Rotate an Image or Video (default: 90 degrees)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -degrees 90`,
-          `${COMMAND_NAME} notsobot -degrees 90 -nocrop`,
+          `${COMMAND_NAME} notsobot -crop -degrees 45`,
         ],
         id:  Formatter.Commands.MediaIVToolsRotate.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-degrees <number>) (-nocrop)',
+        usage: '?<emoji,user:id|mention|name,url> (-crop) (-degrees <number>)',
       },
     });
   }

@@ -25,7 +25,7 @@ export default class OverlayCommand extends BaseMediasCommand {
       ],
       metadata: {
         category: CommandCategories.TOOLS,
-        description: 'Overlay two medias together',
+        description: 'Overlay one media on top of another',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
           `${COMMAND_NAME} @cakedan @notsobot -resize fit(mw, mh) -x (mw/2)-(ow/2) -y (mh/2)-(oh/2)`,

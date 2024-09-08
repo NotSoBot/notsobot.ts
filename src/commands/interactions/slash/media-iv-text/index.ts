@@ -6,8 +6,9 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { ImageCaptionCommand } from './caption';
-import { ImageMemeCommand } from './meme';
+import { MediaIVCaptionCommand } from './caption';
+import { MediaIVMemeCommand } from './meme';
+import { MediaIVRecaptionCommand } from './recaption';
 
 
 export default class MediaIVTextGroupCommand extends BaseSlashCommand {
@@ -28,8 +29,9 @@ export default class MediaIVTextGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
-        new ImageCaptionCommand(),
-        new ImageMemeCommand(),
+        new MediaIVCaptionCommand(),
+        new MediaIVMemeCommand(),
+        new MediaIVRecaptionCommand(),
       ],
     });
   }

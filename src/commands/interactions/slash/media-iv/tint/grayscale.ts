@@ -7,7 +7,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 export const COMMAND_NAME = 'grayscale';
 
-export class ImageGrayscaleCommand extends BaseInteractionImageOrVideoCommandOption {
+export class MediaIVGrayscaleCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Grayscale an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationGrayscale.COMMAND_ID,

@@ -2,12 +2,12 @@ import { Interaction } from 'detritus-client';
 
 import { Formatter, Parameters } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'flies';
 
-export class MediaIVManipulationOverlayFliesCommand extends BaseInteractionImageCommandOption {
+export class MediaIVOverlayFliesCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Overlay some flies on an Image or Video';
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayFlies.COMMAND_ID,
@@ -19,7 +19,12 @@ export class MediaIVManipulationOverlayFliesCommand extends BaseInteractionImage
       options: [
         {name: 'amount', description: 'Amount of Flies', type: Number},
         {name: 'degrees', description: 'Custom Fly Starting Angle', type: Number},
-        {name: 'fly', description: 'Custom Fly Image', label: 'flyImage', value: Parameters.mediaUrl({audio: false, video: false, onlyContent: true})},
+        {
+          name: 'fly',
+          description: 'Custom Fly Image',
+          label: 'flyImage',
+          value: Parameters.mediaUrl({audio: false, video: false, onlyContent: true}),
+        },
         {name: 'speed', description: 'Fly Speed', type: Number},
       ],
     });
