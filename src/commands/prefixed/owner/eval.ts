@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
-import { DefaultParameters, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Parameters, editOrReply, replaceToken } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -78,6 +78,7 @@ export default class EvalCommand extends BaseCommand {
       let content: string;
       if (args.upload) {
         try {
+          message = replaceToken(context, message);
           return await editOrReply(context, {
             file: {filename: `eval.${language}`, value: message},
           });
@@ -90,6 +91,7 @@ export default class EvalCommand extends BaseCommand {
         content = String(message);
       }
 
+      content = replaceToken(context, content);
       if (!args.noembed) {
         const embed = new Embed();
         if (errored) {

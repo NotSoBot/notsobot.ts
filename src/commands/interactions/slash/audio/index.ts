@@ -8,7 +8,9 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAVManipulationAudioChannelsGroupCommand } from './channels';
 import { AudioConvertCommand } from './convert';
+import { AudioExtractCommand } from './extract';
 import { MediaAVToolsIdentifyCommand } from './identify';
+import { AudioPitchCommand } from './pitch';
 
 
 export default class AudioGroupCommand extends BaseSlashCommand {
@@ -31,7 +33,9 @@ export default class AudioGroupCommand extends BaseSlashCommand {
       options: [
         new MediaAVManipulationAudioChannelsGroupCommand(),
         new AudioConvertCommand(),
+        new AudioExtractCommand(),
         new MediaAVToolsIdentifyCommand(),
+        new AudioPitchCommand(),
       ],
     });
   }

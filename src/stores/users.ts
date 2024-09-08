@@ -54,18 +54,24 @@ class UserStore extends Store<string, UserFull> {
           resolve(null);
         });
 
-        const discordUser = context.users.get(userId);
+        let discordUser = context.users.get(userId);
         try {
+          if (!discordUser) {
+            discordUser = await context.rest.fetchUser(userId);
+          }
+
           let user: UserFull | null = null;
           if (discordUser) {
             let channelId: string | undefined;
-            if (context instanceof Interaction.InteractionContext) {
-              if (context.inDmWithBot) {
+            if (discordUser.id === context.userId) {
+              if (context instanceof Interaction.InteractionContext) {
+                if (context.inDmWithBot) {
+                  channelId = context.channelId;
+                }
+              } else if (context.inDm) {
+                // bot can only receive DM messages in its own DM
                 channelId = context.channelId;
               }
-            } else if (context.inDm) {
-              // bot can only receive DM messages in its own DM
-              channelId = context.channelId;
             }
             user = await putUser(context, userId, {
               avatar: discordUser.avatar,

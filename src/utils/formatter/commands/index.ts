@@ -29,6 +29,7 @@ import * as MediaAIVToolsSnip from './media.aiv.tools.snip';
 import * as MediaAIVToolsSpeed from './media.aiv.tools.speed';
 
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
+import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
 import * as MediaAVManipulationBoostBass from './media.av.manipulation.boost.bass';
 import * as MediaAVManipulationCompress from './media.av.manipulation.compress';
 import * as MediaAVManipulationDestroy from './media.av.manipulation.destroy';
@@ -243,6 +244,7 @@ export {
   MediaAIVToolsSpeed,
 
   MediaAVManipulationAudioChannelsCombine,
+  MediaAVManipulationAudioPitch,
   MediaAVManipulationBoostBass,
   MediaAVManipulationCompress,
   MediaAVManipulationDestroy,

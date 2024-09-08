@@ -69,6 +69,8 @@ export default class UsageCommand extends BaseCommand {
       rows.push(['ShardsIdentified:', `${info.shardsIdentified} of ${context.shardCount}`]);
       rows.push(['RamUsage:', `${Math.round(info.ramUsage / 1024 / 1024).toLocaleString()} MB`]);
       rows.push(['RamTotal:', `${Math.round(os.totalmem() / 1024 / 1024).toLocaleString()} MB`]);
+      rows.push(['ApproxGuildCount', (context.application?.approximateGuildCount || 0).toLocaleString()]);
+      rows.push(['ApproxUserInstallCount', (context.application?.approximateUserInstallCount || 0).toLocaleString()]);
       for (let key in info.objects) {
         const title = key.slice(0, 1).toUpperCase() + key.slice(1);
 

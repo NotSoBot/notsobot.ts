@@ -1,22 +1,22 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVManipulationOverlayFace } from '../../../api';
-import { imageReply } from '../..';
+import { mediaAVManipulationAudioPitch } from '../../../api';
+import { mediaReply } from '../..';
 
 
-export const COMMAND_ID = 'media.iv.manipulation.overlay.face';
+export const COMMAND_ID = 'media.av.manipulation.audio.pitch';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   scale?: number,
-  urls: Array<string>,
+  url: string,
 }
 
 export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVManipulationOverlayFace(context, args);
+  return mediaAVManipulationAudioPitch(context, args);
 }
 
 export async function createMessage(
@@ -24,5 +24,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

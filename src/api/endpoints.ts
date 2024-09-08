@@ -87,6 +87,8 @@ export const Api = Object.freeze({
 
   MEDIA_AV_MANIPULATION_AUDIO_CHANNELS_COMBINE:
     '/media/av/manipulation/audio/channels/combine',
+  MEDIA_AV_MANIPULATION_AUDIO_PITCH:
+    '/media/av/manipulation/audio/pitch',
   MEDIA_AV_MANIPULATION_BOOST_BASS:
     '/media/av/manipulation/boost/bass',
   MEDIA_AV_MANIPULATION_COMPRESS:

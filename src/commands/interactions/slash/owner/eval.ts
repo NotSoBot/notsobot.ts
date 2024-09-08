@@ -3,7 +3,7 @@ import { ApplicationCommandOptionTypes, InteractionCallbackTypes } from 'detritu
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, EmbedBrands, EmbedColors } from '../../../../constants';
-import { DefaultParameters, Parameters, editOrReply } from '../../../../utils';
+import { DefaultParameters, Parameters, editOrReply, replaceToken } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -77,6 +77,7 @@ export class OwnerEvalCommand extends BaseInteractionCommandOption {
       let content: string;
       if (args.upload) {
         try {
+          message = replaceToken(context, message);
           return await editOrReply(context, {
             file: {filename: `eval.${language}`, value: message},
           });
@@ -89,6 +90,7 @@ export class OwnerEvalCommand extends BaseInteractionCommandOption {
         content = String(message);
       }
 
+      content = replaceToken(context, content);
       if (!args.noembed) {
         const embed = new Embed();
         if (errored) {

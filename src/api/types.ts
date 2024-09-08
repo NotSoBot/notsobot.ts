@@ -289,12 +289,16 @@ export namespace RestOptions {
     start?: number,
   }
 
+  export interface MediaAVManipulationAudioPitch extends MediaBaseOptions {
+    scale?: number,
+  }
+
   export interface MediaAVManipulationCompress extends MediaBaseOptions {
     norevert?: boolean,
   }
 
   export interface MediaAVManipulationVolume extends MediaBaseOptions {
-    volume: number,
+    volume?: number,
   }
 
   export interface MediaAVToolsIdentify extends MediaBaseOptions {
@@ -374,6 +378,10 @@ export namespace RestOptions {
     bottom?: string,
     font?: ImageMemeFonts,
     top: string,
+  }
+
+  export interface MediaIVManipulationOverlayFace extends MediaBaseOptionsMultiple {
+    scale?: number,
   }
 
   export interface MediaIVManipulationOverlayFlies extends MediaBaseOptions {

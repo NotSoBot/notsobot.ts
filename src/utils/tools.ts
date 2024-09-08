@@ -1071,6 +1071,15 @@ export function generateCodeStdin(
 }
 
 
+export function generateFakeToken(userId: string): string {
+  return (
+    Buffer.from(userId).toString('base64').replace(/=/g, '') +
+    '.PQytTz.' +
+    Buffer.from('https://notsobot.com').toString('base64').replace(/=/g, '')
+  );
+}
+
+
 export function getCodeLanguage(value?: string): {language: CodeLanguages, version: string | null} | null {
   if (value) {
     let version: string | null = null;
@@ -1520,6 +1529,11 @@ export function permissionsToObject(permissions: bigint | number): Record<string
     result[String(check)] = PermissionTools.checkPermissions(permissions, check);
   }
   return result;
+}
+
+
+export function replaceToken(context: Command.Context | Interaction.InteractionContext, text: string): string {
+  return text.replace(new RegExp(context.client.token, 'g'), generateFakeToken(context.client.userId));
 }
 
 

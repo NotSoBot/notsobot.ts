@@ -1408,6 +1408,28 @@ export async function mediaAVManipulationAudioChannelsCombine(
 }
 
 
+export async function mediaAVManipulationAudioPitch(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioPitch,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    scale: options.scale,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_PITCH,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationBoostBass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2152,10 +2174,11 @@ export async function mediaIVManipulationMirrorTop(
 
 export async function mediaIVManipulationOverlayFace(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptionsMultiple,
+  options: RestOptions.MediaIVManipulationOverlayFace,
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    scale: options.scale,
     urls: options.urls,
   };
   return request(context, {

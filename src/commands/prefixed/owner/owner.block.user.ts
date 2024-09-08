@@ -1,5 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 
+import UserStore from '../../../stores/users';
+
 import { editUser } from '../../../api';
 import { CommandCategories } from '../../../constants';
 import { Parameters, createUserString, editOrReply } from '../../../utils';
@@ -54,6 +56,7 @@ export default class OwnerBlockUserCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const users: Array<string> = [];
     for (let memberOrUser of args.payload.membersOrUsers) {
+      await UserStore.getOrFetch(context, memberOrUser.id);
       await editUser(context, memberOrUser.id, {
         blocked: true,
         blockedReason: args.payload.text,

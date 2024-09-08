@@ -677,12 +677,21 @@ export async function mediaAVManipulationAudioChannelsCombine(
 }
 
 
+export async function mediaAVManipulationAudioPitch(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioPitch,
+) {
+  return raw.mediaAVManipulationAudioPitch(context, options);
+}
+
+
 export async function mediaAVManipulationBoostBass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaAVManipulationBoostBass(context, options);
 }
+
 
 export async function mediaAVManipulationCompress(
   context: RequestContext,
@@ -974,7 +983,7 @@ export async function mediaIVManipulationMirrorTop(
 
 export async function mediaIVManipulationOverlayFace(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptionsMultiple,
+  options: RestOptions.MediaIVManipulationOverlayFace,
 ) {
   return raw.mediaIVManipulationOverlayFace(context, options);
 }
