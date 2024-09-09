@@ -885,6 +885,14 @@ export async function mediaIVManipulationGrayscale(
 }
 
 
+export async function mediaIVManipulationHueShift(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueShift,
+) {
+  return raw.mediaIVManipulationHueShift(context, options);
+}
+
+
 export async function mediaIVManipulationImplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationImplode,

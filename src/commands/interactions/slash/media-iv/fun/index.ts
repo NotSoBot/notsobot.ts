@@ -9,6 +9,7 @@ import { MediaIVE2PCommand } from './e2p';
 import { MediaIVExplodeCommand } from './explode';
 import { MediaIVGlitchCommand } from './glitch';
 import { MediaIVGlitchGifCommand } from './glitch-gif';
+import { MediaIVHueShiftCommand } from './hue-shift';
 import { MediaIVImplodeCommand } from './implode';
 import { MediaIVLegofyCommand } from './legofy';
 import { MediaIVMagikCommand } from './magik';
@@ -35,6 +36,7 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVExplodeCommand(),
         new MediaIVGlitchCommand(),
         new MediaIVGlitchGifCommand(),
+        new MediaIVHueShiftCommand(),
         new MediaIVImplodeCommand(),
         new MediaIVLegofyCommand(),
         new MediaIVMagikCommand(),

@@ -470,12 +470,71 @@ export async function url(
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<string> {
   if (value) {
+    // it's in the form of <@123>
+    {
+      const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
+      if (matches.length) {
+        const [ { id: userId } ] = matches;
+    
+        // pass it onto the next statement
+        if (isSnowflake(userId)) {
+          value = userId;
+        }
+      }
+    }
+
+    // it's just the snowflake of a user
+    if (isSnowflake(value)) {
+      const userId = value;
+    
+      let user: Structures.Member | Structures.User | null = null;
+      if (context instanceof Command.Context && context.message.mentions.has(userId)) {
+        user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
+      } else if (context.guild && context.guild.members.has(userId)) {
+        user = context.guild.members.get(userId)!;
+      } else if (context.users.has(userId)) {
+        user = context.users.get(userId)!;
+      } else {
+        try {
+          user = await context.rest.fetchUser(userId);
+        } catch(error) {
+          
+        }
+      }
+      if (user) {
+        return user.avatarUrlFormat(null, {size: 1024});
+      }
+    }
+
+    // it's <a:emoji:id>
+    {
+      const { matches } = discordRegex(DiscordRegexNames.EMOJI, value) as {matches: Array<{animated: boolean, id: string}>};
+      if (matches.length) {
+        const [ { animated, id } ] = matches;
+        const format = (animated) ? 'gif' : 'png';
+        return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format);
+      }
+    }
+
+    // it's an unicode emoji
+    {
+      const emojis = onlyEmoji(value);
+      if (emojis && emojis.length) {
+        for (let emoji of emojis) {
+          const codepoint = toCodePointForTwemoji(emoji);
+          return CUSTOM.TWEMOJI_SVG(codepoint) + '?convert=true';
+        }
+      }
+    }
+
     if (!/^https?:\/\//.test(value)) {
       value = `https://${value}`;
     }
+
     if (!validateUrl(value)) {
       throw new Error('Malformed URL');
     }
+
     return (await getOrFetchRealUrl(context, value)) || value;
   }
   return value;
@@ -1204,7 +1263,7 @@ export function mediaUrl(
         if (isSnowflake(value)) {
           const userId = value;
 
-          let user: Structures.Member | Structures.User;
+          let user: Structures.Member | Structures.User | null = null;
           if (context instanceof Command.Context && context.message.mentions.has(userId)) {
             user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
           } else if (context.guild && context.guild.members.has(userId)) {
@@ -1212,9 +1271,15 @@ export function mediaUrl(
           } else if (context.users.has(userId)) {
             user = context.users.get(userId)!;
           } else {
-            user = await context.rest.fetchUser(userId);
+            try {
+              user = await context.rest.fetchUser(userId);
+            } catch(error) {
+              
+            }
           }
-          return user.avatarUrlFormat(null, {size: 1024});
+          if (user) {
+            return user.avatarUrlFormat(null, {size: 1024});
+          }
         }
 
         // it's <a:emoji:id>
@@ -1429,7 +1494,7 @@ export function mediaUrls(
           if (isSnowflake(part)) {
             const userId = part;
 
-            let user: Structures.Member | Structures.User;
+            let user: Structures.Member | Structures.User | null = null;
             if (context instanceof Command.Context && context.message.mentions.has(userId)) {
               user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
             } else if (context.guild && context.guild.members.has(userId)) {
@@ -1437,10 +1502,16 @@ export function mediaUrls(
             } else if (context.users.has(userId)) {
               user = context.users.get(userId)!;
             } else {
-              user = await context.rest.fetchUser(userId);
+              try {
+                user = await context.rest.fetchUser(userId);
+              } catch(error) {
+                
+              }
             }
-            urls.push(user.avatarUrlFormat(null, {size: 1024}));
-            continue;
+            if (user) {
+              urls.push(user.avatarUrlFormat(null, {size: 1024}));
+              continue;
+            }
           }
 
           // it's <a:emoji:id>
@@ -1710,7 +1781,7 @@ export function mediaUrlPositional(
         if (isSnowflake(value)) {
           const userId = value;
 
-          let user: Structures.Member | Structures.User;
+          let user: Structures.Member | Structures.User | null = null;
           if (context instanceof Command.Context && context.message.mentions.has(userId)) {
             user = context.message.mentions.get(userId) as Structures.Member | Structures.User;
           } else if (context.guild && context.guild.members.has(userId)) {
@@ -1718,9 +1789,15 @@ export function mediaUrlPositional(
           } else if (context.users.has(userId)) {
             user = context.users.get(userId)!;
           } else {
-            user = await context.rest.fetchUser(userId);
+            try {
+              user = await context.rest.fetchUser(userId);
+            } catch(error) {
+              
+            }
           }
-          return user.avatarUrlFormat(null, {size: 1024});
+          if (user) {
+            return user.avatarUrlFormat(null, {size: 1024});
+          }
         }
 
         // it's <a:emoji:id>

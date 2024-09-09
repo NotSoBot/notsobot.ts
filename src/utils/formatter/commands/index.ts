@@ -60,6 +60,7 @@ import * as MediaIVManipulationGlitchAnimated from './media.iv.manipulation.glit
 import * as MediaIVManipulationGlobe from './media.iv.manipulation.globe';
 import * as MediaIVManipulationGold from './media.iv.manipulation.gold';
 import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale';
+import * as MediaIVManipulationHueShift from './media.iv.manipulation.hue.shift';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationInvert from './media.iv.manipulation.invert';
 import * as MediaIVManipulationLabelsIFunny from './media.iv.manipulation.labels.ifunny';
@@ -276,6 +277,7 @@ export {
   MediaIVManipulationGlobe,
   MediaIVManipulationGold,
   MediaIVManipulationGrayscale,
+  MediaIVManipulationHueShift,
   MediaIVManipulationImplode,
   MediaIVManipulationInvert,
   MediaIVManipulationLabelsIFunny,

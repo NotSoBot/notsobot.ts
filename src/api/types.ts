@@ -356,6 +356,12 @@ export namespace RestOptions {
     seed?: number,
   }
 
+  export interface MediaIVManipulationHueShift extends MediaBaseOptions {
+    blue?: number,
+    green?: number,
+    red?: number,
+  }
+
   export interface MediaIVManipulationImplode extends MediaBaseOptions {
     scale?: number,
   }

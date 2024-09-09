@@ -144,6 +144,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/gold',
   MEDIA_IV_MANIPULATION_GRAYSCALE:
     '/media/iv/manipulation/grayscale',
+  MEDIA_IV_MANIPULATION_HUE_SHIFT:
+    '/media/iv/manipulation/hue-shift',
   MEDIA_IV_MANIPULATION_IMPLODE:
     '/media/iv/manipulation/implode',
   MEDIA_IV_MANIPULATION_INVERT:

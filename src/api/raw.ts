@@ -1933,6 +1933,28 @@ export async function mediaIVManipulationGrayscale(
 }
 
 
+export async function mediaIVManipulationHueShift(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueShift,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    blue: options.blue,
+    green: options.green,
+    red: options.red,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_HUE_SHIFT,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationImplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationImplode,

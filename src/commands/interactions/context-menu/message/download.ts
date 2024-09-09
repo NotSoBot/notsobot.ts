@@ -42,7 +42,7 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
   ];
 
   async onBeforeRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
-	  args.url = findMediaUrlInMessages([args.message]);
+	args.url = findMediaUrlInMessages([args.message], undefined, undefined, false);
     if (args.url) {
       args.url = await getOrFetchRealUrl(context, args.url);
     }

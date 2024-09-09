@@ -1,5 +1,6 @@
 import { URL } from 'url';
 
+import { onlyEmoji } from 'emoji-aware';
 import moment from 'moment';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
@@ -12,6 +13,7 @@ import {
   StickerFormats,
 } from 'detritus-client/lib/constants';
 import { Embed, Markup, PermissionTools, intToHex, regex as discordRegex } from 'detritus-client/lib/utils';
+import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { replacePathParameters } from 'detritus-rest';
 import { Snowflake, Timers } from 'detritus-utils';
 
@@ -323,6 +325,7 @@ export function findMediaUrlInMessage(
   url?: null | string,
   options?: FindMediaUrlOptions,
   ignoreEmbed?: boolean,
+  ignoreContent?: boolean,
 ): null | string {
   const findImage = (!options || options.image || options.image === undefined);
 
@@ -360,6 +363,66 @@ export function findMediaUrlInMessage(
       return sticker.assetUrl;
     }
   }
+  if (ignoreContent !== undefined && !ignoreContent) {
+    let value = message.content;
+
+    {
+      const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
+      if (matches.length) {
+        const [ { id: userId } ] = matches;
+    
+        // pass it onto the next statement
+        if (isSnowflake(userId)) {
+          value = userId;
+        }
+      }
+    }
+
+    // it's just the snowflake of a user
+    if (isSnowflake(value)) {
+      const userId = value;
+
+      let user: Structures.Member | Structures.User | null = null;
+      if (message.mentions.has(userId)) {
+        user = message.mentions.get(userId) as Structures.Member | Structures.User;
+      } else if (message.guild && message.guild.members.has(userId)) {
+        user = message.guild.members.get(userId)!;
+      } else if (message.client.users.has(userId)) {
+        user = message.client.users.get(userId)!;
+      }
+
+      if (user) {
+        return user.avatarUrlFormat(null, {size: 1024});
+      }
+    }
+
+    // it's <a:emoji:id>
+    {
+      const { matches } = discordRegex(DiscordRegexNames.EMOJI, value) as {matches: Array<{animated: boolean, id: string}>};
+      if (matches.length) {
+        const [ { animated, id } ] = matches;
+        const format = (animated) ? 'gif' : 'png';
+        return DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format);
+      }
+    }
+
+    // it's an unicode emoji
+    {
+      const emojis = onlyEmoji(value);
+      if (emojis && emojis.length) {
+        for (let emoji of emojis) {
+          const codepoint = toCodePointForTwemoji(emoji);
+          return Endpoints.CUSTOM.TWEMOJI_SVG(codepoint) + '?convert=true';
+        }
+      }
+    }
+  }
+  for (let snapshot of message.messageSnapshots.values()) {
+    const text = findMediaUrlInMessage(snapshot.message, url, options, ignoreEmbed, ignoreContent);
+    if (text) {
+      return text;
+    }
+  }
   return null;
 }
 
@@ -368,9 +431,10 @@ export function findMediaUrlInMessages(
   messages: Collections.BaseCollection<string, Structures.Message> | Array<Structures.Message>,
   options?: FindMediaUrlOptions,
   ignoreEmbed?: boolean,
+  ignoreContent?: boolean,
 ): null | string {
   for (const message of messages.values()) {
-    const url = findMediaUrlInMessage(message, null, options, ignoreEmbed);
+    const url = findMediaUrlInMessage(message, null, options, ignoreEmbed, ignoreContent);
     if (url) {
       return url;
     }
@@ -447,6 +511,12 @@ export function findUrlInMessage(
     const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, message.content) as {matches: Array<{text: string}>};
     if (matches.length) {
       const [ { text } ] = matches;
+      return text;
+    }
+  }
+  for (let snapshot of message.messageSnapshots.values()) {
+    const text = findUrlInMessage(snapshot.message, url, options);
+    if (text) {
       return text;
     }
   }
