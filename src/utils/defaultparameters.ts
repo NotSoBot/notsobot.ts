@@ -73,7 +73,7 @@ export function lastMediaUrl(
             }
           }
           if (message) {
-            const url = findMediaUrlInMessages([message], mediaSearchOptions);
+            const url = findMediaUrlInMessages([message], mediaSearchOptions, undefined, false);
             if (url) {
               return getOrFetchRealUrl(context, url);
             }
