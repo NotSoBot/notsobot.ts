@@ -2763,6 +2763,25 @@ export async function mediaIVManipulationRainGold(
 }
 
 
+export async function mediaIVManipulationRecolor(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_RECOLOR,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationShake(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationShake,
@@ -2938,6 +2957,26 @@ export async function mediaIVManipulationUncaption(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_UNCAPTION,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationVaporwave(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationVaporwave,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    text: options.text,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_VAPORWAVE,
     },
   });
 }

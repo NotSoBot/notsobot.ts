@@ -100,6 +100,7 @@ import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
 import * as MediaIVManipulationRain from './media.iv.manipulation.rain';
 import * as MediaIVManipulationRainGold from './media.iv.manipulation.rain.gold';
 import * as MediaIVManipulationRecaption from './media.iv.manipulation.recaption';
+import * as MediaIVManipulationRecolor from './media.iv.manipulation.recolor';
 import * as MediaIVManipulationShake from './media.iv.manipulation.shake';
 import * as MediaIVManipulationSharpen from './media.iv.manipulation.sharpen';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
@@ -109,6 +110,7 @@ import * as MediaIVManipulationSwapRGBA from './media.iv.manipulation.swap.rgba'
 import * as MediaIVManipulationSwirl from './media.iv.manipulation.swirl';
 import * as MediaIVManipulationTrace from './media.iv.manipulation.trace';
 import * as MediaIVManipulationUncaption from './media.iv.manipulation.uncaption';
+import * as MediaIVManipulationVaporwave from './media.iv.manipulation.vaporwave';
 import * as MediaIVManipulationWall from './media.iv.manipulation.wall';
 import * as MediaIVManipulationWave from './media.iv.manipulation.wave';
 import * as MediaIVManipulationWaveAnimated from './media.iv.manipulation.wave.animated';
@@ -328,6 +330,7 @@ export {
   MediaIVManipulationRain,
   MediaIVManipulationRainGold,
   MediaIVManipulationRecaption,
+  MediaIVManipulationRecolor,
   MediaIVManipulationShake,
   MediaIVManipulationSharpen,
   MediaIVManipulationSpin,
@@ -337,6 +340,7 @@ export {
   MediaIVManipulationSwirl,
   MediaIVManipulationTrace,
   MediaIVManipulationUncaption,
+  MediaIVManipulationVaporwave,
   MediaIVManipulationWall,
   MediaIVManipulationWave,
   MediaIVManipulationWaveAnimated,

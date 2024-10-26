@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationWave } from '../../../api';
-import { imageReply } from '../..';
+import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.wave';

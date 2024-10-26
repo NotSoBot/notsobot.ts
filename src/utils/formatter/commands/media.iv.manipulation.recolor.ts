@@ -1,24 +1,21 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVManipulationWaveAnimated } from '../../../api';
+import { mediaIVManipulationRecolor } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.manipulation.wave.animated';
+export const COMMAND_ID = 'media.iv.manipulation.recolor';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  amplitude?: number,
-  speed?: number,
   url: string,
-  waveLength?: number,
 }
 
 export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVManipulationWaveAnimated(context, args);
+  return mediaIVManipulationRecolor(context, args);
 }
 
 export async function createMessage(

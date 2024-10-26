@@ -6,6 +6,7 @@ import { MediaIVGrayscaleCommand } from './grayscale';
 import { MediaIVInvertCommand } from './invert';
 import { MediaIVRainCommand } from './rain';
 import { MediaIVRainGoldCommand } from './raingold';
+import { MediaIVRecolorCommand } from './recolor';
 
 
 export class MediaTintGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -21,6 +22,7 @@ export class MediaTintGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVInvertCommand(),
         new MediaIVRainCommand(),
         new MediaIVRainGoldCommand(),
+        new MediaIVRecolorCommand(),
       ],
     });
   }

@@ -449,6 +449,10 @@ export namespace RestOptions {
     degrees?: number,
   }
 
+  export interface MediaIVManipulationVaporwave extends MediaBaseOptions {
+    text?: string,
+  }
+
   export interface MediaIVManipulationWave extends MediaBaseOptions {
     amplitude?: number,
     waveLength?: number,

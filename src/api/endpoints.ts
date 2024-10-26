@@ -230,6 +230,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/rain',
   MEDIA_IV_MANIPULATION_RAIN_GOLD:
     '/media/iv/manipulation/rain/gold',
+  MEDIA_IV_MANIPULATION_RECOLOR:
+    '/media/iv/manipulation/recolor',
   MEDIA_IV_MANIPULATION_SHAKE:
     '/media/iv/manipulation/shake',
   MEDIA_IV_MANIPULATION_SHARPEN:
@@ -248,6 +250,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/trace',
   MEDIA_IV_MANIPULATION_UNCAPTION:
     '/media/iv/manipulation/uncaption',
+  MEDIA_IV_MANIPULATION_VAPORWAVE:
+    '/media/iv/manipulation/vaporwave',
   MEDIA_IV_MANIPULATION_WALL:
     '/media/iv/manipulation/wall',
   MEDIA_IV_MANIPULATION_WAVE:

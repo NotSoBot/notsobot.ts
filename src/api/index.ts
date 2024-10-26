@@ -1213,6 +1213,14 @@ export async function mediaIVManipulationRainGold(
 }
 
 
+export async function mediaIVManipulationRecolor(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationRecolor(context, options);
+}
+
+
 export async function mediaIVManipulationShake(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationShake,
@@ -1282,6 +1290,14 @@ export async function mediaIVManipulationUncaption(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationUncaption(context, options);
+}
+
+
+export async function mediaIVManipulationVaporwave(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationVaporwave,
+) {
+  return raw.mediaIVManipulationVaporwave(context, options);
 }
 
 
