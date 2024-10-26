@@ -10,7 +10,7 @@ export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   url: string,
-  width: number,
+  width?: number,
 }
 
 export function createResponse(

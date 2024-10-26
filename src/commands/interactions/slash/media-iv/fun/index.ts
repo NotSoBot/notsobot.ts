@@ -9,13 +9,17 @@ import { MediaIVE2PCommand } from './e2p';
 import { MediaIVExplodeCommand } from './explode';
 import { MediaIVGlitchCommand } from './glitch';
 import { MediaIVGlitchGifCommand } from './glitch-gif';
-import { MediaIVHueShiftCommand } from './hue-shift';
+import { MediaIVHueShiftHSVCommand } from './hue-shift-hsv';
+import { MediaIVHueShiftRGBCommand } from './hue-shift-rgb';
 import { MediaIVImplodeCommand } from './implode';
 import { MediaIVLegofyCommand } from './legofy';
 import { MediaIVMagikCommand } from './magik';
 import { MediaIVMagikGifCommand } from './magik-gif';
 import { MediaIVPaperCommand } from './paper';
 import { MediaIVPixelateCommand } from './pixelate';
+import { MediaIVSwapColorsCommand } from './swap-colors';
+import { MediaIVSwapPixelsCommand } from './swap-pixels';
+import { MediaIVSwapRGBACommand } from './swap-rgba';
 import { MediaIVTraceCommand } from './trace';
 import { MediaIVWallCommand } from './wall';
 
@@ -36,13 +40,17 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVExplodeCommand(),
         new MediaIVGlitchCommand(),
         new MediaIVGlitchGifCommand(),
-        new MediaIVHueShiftCommand(),
+        new MediaIVHueShiftHSVCommand(),
+        new MediaIVHueShiftRGBCommand(),
         new MediaIVImplodeCommand(),
         new MediaIVLegofyCommand(),
         new MediaIVMagikCommand(),
         new MediaIVMagikGifCommand(),
         new MediaIVPaperCommand(),
         new MediaIVPixelateCommand(),
+        new MediaIVSwapColorsCommand(),
+        new MediaIVSwapPixelsCommand(),
+        new MediaIVSwapRGBACommand(),
         new MediaIVTraceCommand(),
         new MediaIVWallCommand(),
       ],

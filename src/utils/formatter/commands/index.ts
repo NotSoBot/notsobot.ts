@@ -17,6 +17,8 @@ import * as MediaAToolsPutMix from './media.a.tools.put.mix';
 import * as MediaAToolsPutReplace from './media.a.tools.put.replace';
 
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
+import * as MediaAIVManipulationFadeIn from './media.aiv.manipulation.fade.in';
+import * as MediaAIVManipulationFadeOut from './media.aiv.manipulation.fade.out';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
 
@@ -31,6 +33,7 @@ import * as MediaAIVToolsSpeed from './media.aiv.tools.speed';
 
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
+import * as MediaAVManipulationAudioVibrato from './media.av.manipulation.audio.vibrato';
 import * as MediaAVManipulationBoostBass from './media.av.manipulation.boost.bass';
 import * as MediaAVManipulationCompress from './media.av.manipulation.compress';
 import * as MediaAVManipulationDestroy from './media.av.manipulation.destroy';
@@ -60,7 +63,8 @@ import * as MediaIVManipulationGlitchAnimated from './media.iv.manipulation.glit
 import * as MediaIVManipulationGlobe from './media.iv.manipulation.globe';
 import * as MediaIVManipulationGold from './media.iv.manipulation.gold';
 import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale';
-import * as MediaIVManipulationHueShift from './media.iv.manipulation.hue.shift';
+import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
+import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shift.rgb';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationInvert from './media.iv.manipulation.invert';
 import * as MediaIVManipulationLabelsIFunny from './media.iv.manipulation.labels.ifunny';
@@ -96,11 +100,18 @@ import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
 import * as MediaIVManipulationRain from './media.iv.manipulation.rain';
 import * as MediaIVManipulationRainGold from './media.iv.manipulation.rain.gold';
 import * as MediaIVManipulationRecaption from './media.iv.manipulation.recaption';
+import * as MediaIVManipulationShake from './media.iv.manipulation.shake';
 import * as MediaIVManipulationSharpen from './media.iv.manipulation.sharpen';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
+import * as MediaIVManipulationSwapColors from './media.iv.manipulation.swap.colors';
+import * as MediaIVManipulationSwapPixels from './media.iv.manipulation.swap.pixels';
+import * as MediaIVManipulationSwapRGBA from './media.iv.manipulation.swap.rgba';
+import * as MediaIVManipulationSwirl from './media.iv.manipulation.swirl';
 import * as MediaIVManipulationTrace from './media.iv.manipulation.trace';
 import * as MediaIVManipulationUncaption from './media.iv.manipulation.uncaption';
 import * as MediaIVManipulationWall from './media.iv.manipulation.wall';
+import * as MediaIVManipulationWave from './media.iv.manipulation.wave';
+import * as MediaIVManipulationWaveAnimated from './media.iv.manipulation.wave.animated';
 
 import * as MediaIVToolsBackgroundRemove from './media.iv.tools.background.remove';
 import * as MediaIVToolsCrop from './media.iv.tools.crop';
@@ -234,6 +245,8 @@ export {
   MediaAToolsPutReplace,
 
   MediaAIVManipulationADHD,
+  MediaAIVManipulationFadeIn,
+  MediaAIVManipulationFadeOut,
 
   MediaAIVPipe,
 
@@ -248,6 +261,7 @@ export {
 
   MediaAVManipulationAudioChannelsCombine,
   MediaAVManipulationAudioPitch,
+  MediaAVManipulationAudioVibrato,
   MediaAVManipulationBoostBass,
   MediaAVManipulationCompress,
   MediaAVManipulationDestroy,
@@ -277,7 +291,8 @@ export {
   MediaIVManipulationGlobe,
   MediaIVManipulationGold,
   MediaIVManipulationGrayscale,
-  MediaIVManipulationHueShift,
+  MediaIVManipulationHueShiftHSV,
+  MediaIVManipulationHueShiftRGB,
   MediaIVManipulationImplode,
   MediaIVManipulationInvert,
   MediaIVManipulationLabelsIFunny,
@@ -313,11 +328,18 @@ export {
   MediaIVManipulationRain,
   MediaIVManipulationRainGold,
   MediaIVManipulationRecaption,
+  MediaIVManipulationShake,
   MediaIVManipulationSharpen,
   MediaIVManipulationSpin,
+  MediaIVManipulationSwapColors,
+  MediaIVManipulationSwapPixels,
+  MediaIVManipulationSwapRGBA,
+  MediaIVManipulationSwirl,
   MediaIVManipulationTrace,
   MediaIVManipulationUncaption,
   MediaIVManipulationWall,
+  MediaIVManipulationWave,
+  MediaIVManipulationWaveAnimated,
 
   MediaIVToolsBackgroundRemove,
   MediaIVToolsCrop,

@@ -13,6 +13,11 @@ export default class SpinCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'counterclockwise', type: Boolean},
+        {name: 'nocircle', type: Boolean},
+        {name: 'nocrop', type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.IMAGE,
         description: 'Create a spinning disk from an Image/Gif',
@@ -21,7 +26,7 @@ export default class SpinCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.MediaIVManipulationSpin.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-counterclockwise) (-nocircle) (-nocrop)',
       },
     });
   }

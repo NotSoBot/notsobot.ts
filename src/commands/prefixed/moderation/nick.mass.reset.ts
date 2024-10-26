@@ -102,8 +102,9 @@ export default class NickMassResetCommand extends BaseCommand {
       if (args.role && !member.roles.has(args.role.id)) {
         return false;
       }
-      return !!member.nick && me.canEdit(member);
+      return me.canEdit(member);
     });
+    const membersThatWillBeSkipped = members.filter((x) => !x.nick).length;
 
     const [ amount, time ] = RATELIMIT_TIME;
 
@@ -113,10 +114,15 @@ export default class NickMassResetCommand extends BaseCommand {
     }
 
     if (members.length) {
+      const membersThatWillBeEdited = members.length - membersThatWillBeSkipped;
+
       const embed = createUserEmbed(context.user);
       embed.setColor(EmbedColors.DEFAULT);
-      embed.setTitle(`Can clear the nickname of ${members.length.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
-      embed.setDescription(`Should take about ${((members.length / amount) * time).toLocaleString()} seconds`);
+      embed.setTitle(`Can clear the nickname of ${membersThatWillBeEdited.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
+      embed.setDescription([
+        `Should take about ${((membersThatWillBeEdited / amount) * time).toLocaleString()} seconds`,
+        `-> ${membersThatWillBeSkipped.toLocaleString()} members do not have nicknames`,
+      ].join('\n'));
 
       const components = new Components({timeout: 5 * (60 * 1000)});
       components.createButton({
@@ -135,7 +141,7 @@ export default class NickMassResetCommand extends BaseCommand {
           const reason = `Mass Nickname Reset by ${context.user} (${context.user.id})`;
 
           {
-            embed.setDescription(`Ok, starting to clear ${members.length.toLocaleString()} member\'s nicknames. (Should take about ${((members.length / amount) * time).toLocaleString()} seconds)`);
+            embed.setDescription(`Ok, starting to clear ${membersThatWillBeEdited.toLocaleString()} member\'s nicknames. (Should take about ${((membersThatWillBeEdited / amount) * time).toLocaleString()} seconds)`);
             embed.setColor(EmbedColors.LOG_UPDATE);
 
             const components = new Components({timeout: 20 * (60 * 1000)});
@@ -152,7 +158,7 @@ export default class NickMassResetCommand extends BaseCommand {
                     description.push(`- Cleared ${amounts.changed.toLocaleString()} members successfully`);
                   }
                   if (amounts.skipped) {
-                    description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                    description.push(`- Skipped ${amounts.skipped.toLocaleString()} members that did not have a nickname`);
                   }
                   if (amounts.failed) {
                     description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
@@ -192,7 +198,7 @@ export default class NickMassResetCommand extends BaseCommand {
                       description.push(`- Cleared ${amounts.changed.toLocaleString()} members successfully`);
                     }
                     if (amounts.skipped) {
-                      description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                      description.push(`- Skipped ${amounts.skipped.toLocaleString()} members that did not have a nickname`);
                     }
                     if (amounts.failed) {
                       description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
@@ -289,7 +295,7 @@ export default class NickMassResetCommand extends BaseCommand {
                 description.push(`- Reset ${amounts.changed.toLocaleString()} members successfully`);
               }
               if (amounts.skipped) {
-                description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                description.push(`- Skipped ${amounts.skipped.toLocaleString()} members that did not have a nickname`);
               }
               if (amounts.failed) {
                 description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);

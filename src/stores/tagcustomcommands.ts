@@ -125,7 +125,6 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
           resolve(null);
         });
 
-        const discordUser = context.users.get(userId);
         try {
           const payload = await fetchUserTagsCommands(context, userId);
 

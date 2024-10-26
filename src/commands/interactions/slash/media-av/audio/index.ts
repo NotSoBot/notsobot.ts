@@ -6,6 +6,7 @@ import { MediaAVAudioDestroyCommand } from './destroy';
 import { MediaAVExtractAudioCommand } from './extract';
 import { MediaAVToolsIdentifyCommand } from './identify';
 import { MediaAVAudioPitchCommand } from './pitch';
+import { MediaAVAudioVibratoCommand } from './vibrato';
 import { MediaAVVolumeCommand } from './volume';
 
 
@@ -22,6 +23,7 @@ export class MediaAVAudioGroupCommand extends BaseInteractionCommandOptionGroup 
           new MediaAVExtractAudioCommand(),
           new MediaAVToolsIdentifyCommand(),
           new MediaAVAudioPitchCommand(),
+          new MediaAVAudioVibratoCommand(),
           new MediaAVVolumeCommand(),
 	    ],
 	  });

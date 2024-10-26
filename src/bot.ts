@@ -18,7 +18,7 @@ if (process.env.SENTRY_DSN) {
 }
 
 const cluster = new ClusterClient('', {
-  cache: {messages: {expire: 60 * 60 * 1000}}, // messages expire after 1 hour
+  cache: {messages: {expire: 120 * 60 * 1000}}, // messages expire after 2 hours
   gateway: {
     compress: false,
     identifyProperties: {
@@ -115,6 +115,7 @@ const cluster = new ClusterClient('', {
     {
       const notSoCommandBot = new NotSoCommandClient(cluster, {
         activateOnEdits: true,
+        maxEditDuration: 10 * 60 * 1000,
         mentionsEnabled: true,
         prefix: '.',
         ratelimits: [

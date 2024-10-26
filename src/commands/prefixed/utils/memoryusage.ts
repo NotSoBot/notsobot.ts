@@ -81,6 +81,12 @@ export default class MemoryUsageCommand extends BaseCommand {
       paddedRows.join('\n'),
     ].join('\n');
 
+    if (5900 < content.length) {
+      return await editOrReply(context, {
+        file: {filename: `usage.json`, value: content},
+      });
+    }
+
     const embed = new Embed();
     {
       const parts = splitTextByAmount(content, 1988, '\n');

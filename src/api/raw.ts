@@ -1183,6 +1183,48 @@ export async function mediaAIVManipulationADHD(
 }
 
 
+export async function mediaAIVManipulationFadeIn(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationFadeIn,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    color: options.color,
+    duration: options.duration,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_FADE_IN,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationFadeOut(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationFadeOut,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    color: options.color,
+    duration: options.duration,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_FADE_OUT,
+    },
+  });
+}
+
+
 export async function mediaAIVToolsConcat(
   context: RequestContext,
   options: RestOptions.MediaBaseOptionsMultiple,
@@ -1425,6 +1467,29 @@ export async function mediaAVManipulationAudioPitch(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_MANIPULATION_AUDIO_PITCH,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationAudioVibrato(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioVibrato,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    depth: options.depth,
+    frequency: options.frequency,
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_VIBRATO,
     },
   });
 }
@@ -1933,9 +1998,31 @@ export async function mediaIVManipulationGrayscale(
 }
 
 
-export async function mediaIVManipulationHueShift(
+export async function mediaIVManipulationHueShiftHSV(
   context: RequestContext,
-  options: RestOptions.MediaIVManipulationHueShift,
+  options: RestOptions.MediaIVManipulationHueShiftHSV,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    brightness: options.brightness,
+    hue: options.hue,
+    saturation: options.saturation,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationHueShiftRGB(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueShiftRGB,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     blue: options.blue,
@@ -1949,7 +2036,7 @@ export async function mediaIVManipulationHueShift(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_HUE_SHIFT,
+      path: Api.MEDIA_IV_MANIPULATION_HUE_SHIFT_RGB,
     },
   });
 }
@@ -2676,6 +2763,28 @@ export async function mediaIVManipulationRainGold(
 }
 
 
+export async function mediaIVManipulationShake(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationShake,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    horizontal: options.horizontal,
+    randomize: options.randomize,
+    url: options.url,
+    vertical: options.vertical,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SHAKE,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationSharpen(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationSharpen,
@@ -2698,6 +2807,28 @@ export async function mediaIVManipulationSharpen(
 
 export async function mediaIVManipulationSpin(
   context: RequestContext,
+  options: RestOptions.MediaIVManipulationSpin,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    circle: options.circle,
+    clockwise: options.clockwise,
+    crop: options.crop,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SPIN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationSwapColors(
+  context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
@@ -2709,7 +2840,66 @@ export async function mediaIVManipulationSpin(
     query,
     route: {
       method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_SPIN,
+      path: Api.MEDIA_IV_MANIPULATION_SWAP_COLORS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationSwapPixels(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SWAP_PIXELS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationSwapRGBA(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSwapRGBA,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    channels: options.channels,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SWAP_RGBA,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationSwirl(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSwirl,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    degrees: options.degrees,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SWIRL,
     },
   });
 }
@@ -2767,6 +2957,49 @@ export async function mediaIVManipulationWall(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_WALL,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationWave(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWave,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    amplitude: options.amplitude,
+    url: options.url,
+    wave_length: options.waveLength,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_WAVE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationWaveAnimated(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWaveAnimated,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    amplitude: options.amplitude,
+    speed: options.speed,
+    url: options.url,
+    wave_length: options.waveLength,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_WAVE_ANIMATED,
     },
   });
 }

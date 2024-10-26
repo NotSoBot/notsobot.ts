@@ -5,12 +5,12 @@ import { Formatter } from '../../../../../utils';
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
-export const COMMAND_NAME = 'hue-shift';
+export const COMMAND_NAME = 'hue-shift-rgb';
 
-export class MediaIVHueShiftCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Shift the Image or Video\'s Pixel Color by X amount';
+export class MediaIVHueShiftRGBCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Shift the Image or Video\'s RGB Pixel Color by X amount';
   metadata = {
-    id: Formatter.Commands.MediaIVManipulationHueShift.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationHueShiftRGB.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -24,7 +24,7 @@ export class MediaIVHueShiftCommand extends BaseInteractionImageOrVideoCommandOp
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationHueShift.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationHueShift.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationHueShiftRGB.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationHueShiftRGB.createMessage(context, args);
   }
 }

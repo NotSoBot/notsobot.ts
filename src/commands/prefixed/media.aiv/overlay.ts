@@ -31,7 +31,7 @@ export default class OverlayCommand extends BaseMediasCommand {
           `${COMMAND_NAME} @cakedan @notsobot -resize fit(mw, mh) -x (mw/2)-(ow/2) -y (mh/2)-(oh/2)`,
         ],
         id: Formatter.Commands.MediaAIVToolsOverlay.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-blend <float>) (-color <HEX|RGBA?>) (-noloop) (-opacity <number>) (-resize <expression>) (-similarity <float>) (-x <expression>) (-y <expression>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-blend <float>) (-color <string:FFMPEGColors|HEX|RGBA?>) (-noloop) (-opacity <number>) (-resize <expression>) (-similarity <float>) (-x <expression>) (-y <expression>)',
       },
       minAmount: 2,
       priority: -1,

@@ -13,6 +13,7 @@ export default class TranscribeCommand extends BaseAudioOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      aliases: ['tc'],
       args: [
         {name: 'noembed', type: Boolean},
       ],

@@ -3,6 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
+  BooleanEmojis,
   CommandCategories,
   DateMomentLogFormat,
   DiscordEmojis,
@@ -79,9 +80,9 @@ export default class UsersCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.role === null) {
-      return editOrReply(context, '⚠ Unknown Role');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Role`);
     }
-    return editOrReply(context, '⚠ Unable to find that user.');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any users.`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {
@@ -117,6 +118,10 @@ export default class UsersCommand extends BaseCommand {
     });
 
     const pageLimit = membersOrUsers.length;
+    if (pageLimit === 0) {
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any users.`);
+    }
+
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {

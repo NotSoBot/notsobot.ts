@@ -2007,13 +2007,17 @@ export function createLogPayload(
           }
         }
         if (differences.clan !== undefined) {
-          description.push('- Clan Change');
-          if (differences.clan && user.clan) {
-            description.push(`-> **${Markup.codestring(differences.clan)}** to **${Markup.codestring(user.clan)}**`);
-          } else if (differences.clan && !user.clan) {
-            description.push(`-> Removed **${Markup.codestring(differences.clan)}**`);
-          } else if (!differences.clan && user.clan) {
-            description.push(`-> Changed to **${Markup.codestring(user.clan)}**`);
+          const oldTag = differences.clan && differences.clan.tag;
+          const newTag = user.clan && user.clan.tag;
+          if (!!oldTag !== !!newTag) {
+            description.push('- Clan Tag Change');
+            if (oldTag && newTag) {
+              description.push(`-> **${Markup.codestring(oldTag)}** to **${Markup.codestring(newTag)}**`);
+            } else if (oldTag && !newTag) {
+              description.push(`-> Removed **${Markup.codestring(oldTag)}**`);
+            } else if (!oldTag && newTag) {
+              description.push(`-> Changed to **${Markup.codestring(newTag)}**`);
+            }
           }
         }
         if (differences.globalName !== undefined) {

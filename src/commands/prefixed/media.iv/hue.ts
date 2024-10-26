@@ -15,13 +15,13 @@ export default class HueCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Shift the Image or Video\'s Pixel Color by X amount',
+        description: 'Shift an Image or Video\'s RGB Pixel Color by X amount',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
-          `${COMMAND_NAME} notsobot 90`,
+          `${COMMAND_NAME} notsobot 90 45 180`,
         ],
-        id: Formatter.Commands.MediaIVManipulationHueShift.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationHueShiftRGB.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> ?<red:number> ?<green:number> ?<blue:number>',
       },
       type: [
@@ -33,7 +33,7 @@ export default class HueCommand extends BaseImageOrVideoCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationHueShift.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationHueShift.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationHueShiftRGB.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationHueShiftRGB.createMessage(context, args);
   }
 }

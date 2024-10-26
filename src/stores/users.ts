@@ -64,12 +64,7 @@ class UserStore extends Store<string, UserFull> {
           if (discordUser) {
             let channelId: string | undefined;
             if (discordUser.id === context.userId) {
-              if (context instanceof Interaction.InteractionContext) {
-                if (context.inDmWithBot) {
-                  channelId = context.channelId;
-                }
-              } else if (context.inDm) {
-                // bot can only receive DM messages in its own DM
+              if (context.inDm && context.hasServerPermissions) {
                 channelId = context.channelId;
               }
             }

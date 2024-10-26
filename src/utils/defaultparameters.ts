@@ -63,9 +63,11 @@ export function lastMediaUrl(
         const { messageReference } = context.message;
         if (messageReference && messageReference.messageId) {
           let message = messageReference.message;
-          if (!message && (
-            (context.inDm && context.hasServerPermissions) || (context.channel && context.channel.canReadHistory)
-          )) {
+
+          const shouldFetchMessage = !message && (
+            (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+          );
+          if (shouldFetchMessage) {
             try {
               message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
             } catch(error) {
@@ -104,7 +106,10 @@ export function lastMediaUrl(
       }
     }
 
-    if ((context.inDm && context.hasServerPermissions) || (context.channel && context.channel.canReadHistory)) {
+    const shouldFetchMessages = (
+      (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+    );
+    if (shouldFetchMessages) {
       const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
       const url = findMediaUrlInMessages(messages, mediaSearchOptions);
       if (url) {
@@ -136,9 +141,11 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
       const { messageReference } = context.message;
       if (messageReference && messageReference.messageId) {
         let message = messageReference.message;
-        if (!message && (
-          (context.inDm && context.hasServerPermissions) || (context.channel && context.channel.canReadHistory)
-        )) {
+
+        const shouldFetchMessage = !message && (
+          (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+        );
+        if (shouldFetchMessage) {
           try {
             message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
           } catch(error) {
@@ -177,7 +184,10 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
     }
   }
 
-  if ((context.inDm && context.hasServerPermissions) || (context.channel && context.channel.canReadHistory)) {
+  const shouldFetchMessages = (
+    (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+  );
+  if (shouldFetchMessages) {
     const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
     const url = findUrlInMessages(messages);
     if (url) {
@@ -263,9 +273,11 @@ export async function replyString(context: Command.Context | Interaction.Interac
       const { messageReference } = context.message;
       if (messageReference && messageReference.messageId) {
         let message = messageReference.message;
-        if (!message && (
-          (context.inDm && context.hasServerPermissions) || (context.channel && context.channel.canReadHistory)
-        )) {
+
+        const shouldFetchMessage = !message && (
+          (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+        );
+        if (shouldFetchMessage) {
           try {
             message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
           } catch(error) {

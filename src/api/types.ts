@@ -261,6 +261,15 @@ export namespace RestOptions {
     horizontal?: boolean,
   }
 
+  export interface MediaAIVManipulationFadeIn extends MediaBaseOptions {
+    color?: string,
+    duration?: number,
+  }
+
+  export interface MediaAIVManipulationFadeOut extends MediaAIVManipulationFadeIn {
+
+  }
+
   export interface MediaAIVToolsConvert extends MediaBaseOptions {
     removeAudio?: boolean,
     to?: string,
@@ -291,6 +300,11 @@ export namespace RestOptions {
 
   export interface MediaAVManipulationAudioPitch extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaAVManipulationAudioVibrato extends MediaBaseOptions {
+    depth?: number,
+    frequency?: number,
   }
 
   export interface MediaAVManipulationCompress extends MediaBaseOptions {
@@ -356,7 +370,13 @@ export namespace RestOptions {
     seed?: number,
   }
 
-  export interface MediaIVManipulationHueShift extends MediaBaseOptions {
+  export interface MediaIVManipulationHueShiftHSV extends MediaBaseOptions {
+    brightness?: number,
+    hue?: number,
+    saturation?: number,
+  }
+
+  export interface MediaIVManipulationHueShiftRGB extends MediaBaseOptions {
     blue?: number,
     green?: number,
     red?: number,
@@ -404,9 +424,38 @@ export namespace RestOptions {
   export interface MediaIVManipulationPixelate extends MediaBaseOptions {
     pixelWidth?: number,
   }
+  
+  export interface MediaIVManipulationShake extends MediaBaseOptions {
+    horizontal?: number,
+    randomize?: boolean,
+    vertical?: number,
+  }
+
+  export interface MediaIVManipulationSpin extends MediaBaseOptions {
+    circle?: boolean,
+    clockwise?: boolean,
+    crop?: boolean,
+  }
 
   export interface MediaIVManipulationSharpen extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaIVManipulationSwapRGBA extends MediaBaseOptions {
+    channels?: string,
+  }
+
+  export interface MediaIVManipulationSwirl extends MediaBaseOptions {
+    degrees?: number,
+  }
+
+  export interface MediaIVManipulationWave extends MediaBaseOptions {
+    amplitude?: number,
+    waveLength?: number,
+  }
+
+  export interface MediaIVManipulationWaveAnimated extends MediaIVManipulationWave {
+    speed?: number,
   }
 
   export interface MediaIVToolsBackgroundRemoveOptions extends MediaBaseOptions {

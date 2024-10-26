@@ -255,6 +255,7 @@ export enum TagFunctions {
   TAG_NAME = 'TAG_NAME',
   TIME_UNIX = 'TIME_UNIX',
   TIME_UNIX_SECONDS = 'TIME_UNIX_SECONDS',
+  USER_AVATAR = 'USER_AVATAR',
   USER_DISCRIMINATOR = 'USER_DISCRIMINATOR',
   USER_ID = 'USER_ID',
   USER_JSON = 'USER_JSON',
@@ -364,6 +365,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.TAG_NAME]: ['tagname'],
   [TagFunctions.TIME_UNIX]: ['unix'],
   [TagFunctions.TIME_UNIX_SECONDS]: ['unixs'],
+  [TagFunctions.USER_AVATAR]: ['useravatar'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
   [TagFunctions.USER_ID]: ['id', 'userid'],
   [TagFunctions.USER_JSON]: ['userjson'],
@@ -1223,12 +1225,13 @@ const ScriptTags = Object.freeze({
 
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-      const user = await findMemberOrUser(arg, context);
-      if (user) {
-        tag.text += user.avatarUrlFormat({size: 1024});
+      const memberOrUser = await findMemberOrUser(arg, context);
+      if (memberOrUser) {
+        tag.text += memberOrUser.avatarUrlFormat({size: 1024});
       }
     } else {
-      tag.text += context.user.avatarUrlFormat({size: 1024});
+      const memberOrUser = context.member || context.user;
+      tag.text += memberOrUser.avatarUrlFormat({size: 1024});
     }
     return true;
   },
@@ -3207,6 +3210,27 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.USER_AVATAR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {useravatar}
+    // {useravatar:user}
+  
+    if (arg) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      const memberOrUser = await findMemberOrUser(arg, context);
+      if (memberOrUser) {
+        if (memberOrUser instanceof Structures.Member) {
+          tag.text += memberOrUser.user.avatarUrlFormat({size: 1024});
+        } else {
+          tag.text += memberOrUser.avatarUrlFormat({size: 1024});
+        }
+      }
+    } else {
+      tag.text += context.user.avatarUrlFormat({size: 1024});
+    }
+  
+    return true;
+  },
+
   [TagFunctions.USER_DISCRIMINATOR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {discrim}
     // {discrim:user}
@@ -3248,18 +3272,21 @@ const ScriptTags = Object.freeze({
 
     if (arg) {
       tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-      const user = await findMemberOrUser(arg, context);
-      if (user) {
-        if (user instanceof Structures.Member) {
-          tag.text += JSON.stringify(user.toJSON(true));
+      const memberOrUser = await findMemberOrUser(arg, context);
+      if (memberOrUser) {
+        if (memberOrUser instanceof Structures.Member) {
+          tag.text += JSON.stringify(memberOrUser.toJSON(true));
         } else {
-          tag.text += JSON.stringify(user);
+          tag.text += JSON.stringify(memberOrUser);
         }
       }
-    } else if (context.member) {
-      tag.text += JSON.stringify(context.member.toJSON(true));
     } else {
-      tag.text += JSON.stringify(context.user);
+      const memberOrUser = context.member || context.user;
+      if (memberOrUser instanceof Structures.Member) {
+        tag.text += JSON.stringify(memberOrUser.toJSON(true));
+      } else {
+        tag.text += JSON.stringify(memberOrUser);
+      }
     }
 
     return true;

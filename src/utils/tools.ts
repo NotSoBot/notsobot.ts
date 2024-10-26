@@ -1079,7 +1079,7 @@ export function generateCodeFromLanguage(
       code = [
         `discord = __import__('json').loads(__import__('sys').stdin.read());`,
         `__import__('atexit').register(lambda:open('./output/__internals__.json', 'w').write(__import__('json').dumps({'storage': discord.get('storage', '{}'), 'variables': discord.get('variables', '{}')})));`,
-      ].join('') + '\n'.repeat(5) + code;
+      ].join('') + '\n'.repeat(5) + code.trim();
     }; break;
   }
   return { code, urls };

@@ -65,6 +65,10 @@ export const Api = Object.freeze({
 
   MEDIA_AIV_MANIPULATION_ADHD:
     '/media/aiv/manipulation/adhd',
+  MEDIA_AIV_MANIPULATION_FADE_IN:
+    '/media/aiv/manipulation/fade-in',
+  MEDIA_AIV_MANIPULATION_FADE_OUT:
+    '/media/aiv/manipulation/fade-out',
 
   MEDIA_AIV_TOOLS_CONCAT:
     '/media/aiv/tools/concat',
@@ -89,6 +93,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/audio/channels/combine',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:
     '/media/av/manipulation/audio/pitch',
+  MEDIA_AV_MANIPULATION_AUDIO_VIBRATO:
+    '/media/av/manipulation/audio/vibrato',
   MEDIA_AV_MANIPULATION_BOOST_BASS:
     '/media/av/manipulation/boost/bass',
   MEDIA_AV_MANIPULATION_COMPRESS:
@@ -144,8 +150,10 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/gold',
   MEDIA_IV_MANIPULATION_GRAYSCALE:
     '/media/iv/manipulation/grayscale',
-  MEDIA_IV_MANIPULATION_HUE_SHIFT:
-    '/media/iv/manipulation/hue-shift',
+  MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV:
+    '/media/iv/manipulation/hue-shift/hsv',
+  MEDIA_IV_MANIPULATION_HUE_SHIFT_RGB:
+    '/media/iv/manipulation/hue-shift/rgb',
   MEDIA_IV_MANIPULATION_IMPLODE:
     '/media/iv/manipulation/implode',
   MEDIA_IV_MANIPULATION_INVERT:
@@ -222,16 +230,30 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/rain',
   MEDIA_IV_MANIPULATION_RAIN_GOLD:
     '/media/iv/manipulation/rain/gold',
+  MEDIA_IV_MANIPULATION_SHAKE:
+    '/media/iv/manipulation/shake',
   MEDIA_IV_MANIPULATION_SHARPEN:
     '/media/iv/manipulation/sharpen',
   MEDIA_IV_MANIPULATION_SPIN:
     '/media/iv/manipulation/spin',
+  MEDIA_IV_MANIPULATION_SWAP_COLORS:
+    '/media/iv/manipulation/swap/colors',
+  MEDIA_IV_MANIPULATION_SWAP_PIXELS:
+    '/media/iv/manipulation/swap/pixels',
+  MEDIA_IV_MANIPULATION_SWAP_RGBA:
+    '/media/iv/manipulation/swap/rgba',
+  MEDIA_IV_MANIPULATION_SWIRL:
+    '/media/iv/manipulation/swirl',
   MEDIA_IV_MANIPULATION_TRACE:
     '/media/iv/manipulation/trace',
   MEDIA_IV_MANIPULATION_UNCAPTION:
     '/media/iv/manipulation/uncaption',
   MEDIA_IV_MANIPULATION_WALL:
     '/media/iv/manipulation/wall',
+  MEDIA_IV_MANIPULATION_WAVE:
+    '/media/iv/manipulation/wave',
+  MEDIA_IV_MANIPULATION_WAVE_ANIMATED:
+    '/media/iv/manipulation/wave/animated',
 
   MEDIA_IV_TOOLS_BACKGROUND_REMOVE:
     '/media/iv/tools/background/remove',

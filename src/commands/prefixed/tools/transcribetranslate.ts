@@ -13,7 +13,7 @@ export default class TranscribeTranslateCommand extends BaseAudioOrVideoCommand 
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['transcribetr', 'trtranscribe', 'translatetranscribe'],
+      aliases: ['tctr', 'tctranslate', 'transcribetr', 'trtranscribe', 'trtc', 'translatetranscribe', 'translatetc'],
       args: [
         {name: 'to', default: DefaultParameters.locale, type: Parameters.locale},
       ],

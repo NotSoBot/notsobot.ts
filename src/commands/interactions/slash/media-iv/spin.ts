@@ -14,6 +14,16 @@ export class MediaIVSpinCommand extends BaseInteractionImageOrVideoCommandOption
   };
   name = COMMAND_NAME;
 
+  constructor() {
+    super({
+      options: [
+        {name: 'counterclockwise', description: 'Rotate the Media counter-clockwise', type: Boolean},
+        {name: 'nocircle', description: 'Do not turn the Media into a Circle', type: Boolean},
+        {name: 'nocrop', description: 'Do not Crop', type: Boolean},
+      ],
+    });
+  }
+
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationSpin.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationSpin.createMessage(context, args);
   }
