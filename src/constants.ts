@@ -645,6 +645,7 @@ export enum GuildCommandsBlocklistTypes {
 
 
 export enum GuildFeatures {
+  AI_ACCESS = 'AI_ACCESS',
   FREE_CUSTOM_COMMANDS = 'FREE_CUSTOM_COMMANDS',
 }
 
@@ -1048,6 +1049,12 @@ export const ReminderMessages = [
   'ur face',
   'water',
 ];
+
+
+export enum TagGenerationModels {
+  CLAUDE_3_5_SONNET = 'CLAUDE_3_5_SONNET',
+  CLAUDE_3_HAIKU = 'CLAUDE_3_HAIKU',
+}
 
 
 export enum TagVariableStorageTypes {

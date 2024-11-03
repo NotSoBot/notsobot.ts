@@ -16,6 +16,7 @@ export default class ScreenshotCommand extends BaseCommand {
       aliases: ['ss'],
       args: [
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
+        {name: 'timeout', aliases: ['t'], type: 'float'},
       ],
       label: 'url',
       metadata: {
@@ -25,7 +26,7 @@ export default class ScreenshotCommand extends BaseCommand {
           `${COMMAND_NAME} https://discordapp.com`,
         ],
         id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
-        usage: '<url> (-safe)',
+        usage: '<url> (-safe) (-timeout <seconds>)',
       },
       type: Parameters.url,
     });

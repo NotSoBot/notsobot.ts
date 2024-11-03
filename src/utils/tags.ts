@@ -1,8 +1,8 @@
 import * as vm from 'vm';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
-import { Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { MarkupTimestampStyles, Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
+import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
 import * as mathjs from 'mathjs';
 
 import {
@@ -98,6 +98,7 @@ export const MAX_ATTACHMENTS = 10;
 export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 450;
 export const MAX_NETWORK_REQUESTS = 15;
+export const MAX_PAGES = 1000;
 export const MAX_STORAGE_GUILD_AMOUNT = 5;
 export const MAX_STORAGE_CHANNEL_AMOUNT = 5;
 export const MAX_STORAGE_USER_AMOUNT = 5;
@@ -239,11 +240,12 @@ export enum TagFunctions {
   RNG_RANGE = 'RNG_RANGE',
   SEARCH_GOOGLE_IMAGES = 'SEARCH_GOOGLE_IMAGES',
   SETTINGS = 'SETTINGS',
-  STRING_CODEBLOCK = 'STRING_CODEBLOCK',
   STRING_INDEX_OF = 'STRING_INDEX_OF',
   STRING_JSONIFY = 'STRING_JSONIFY',
   STRING_LENGTH = 'STRING_LENGTH',
   STRING_LOWER = 'STRING_LOWER',
+  STRING_MARKUP_CODEBLOCK = 'STRING_MARKUP_CODEBLOCK',
+  STRING_MARKUP_TIME = 'STRING_MARKUP_TIME',
   STRING_NEWLINE = 'STRING_NEWLINE',
   STRING_REPEAT = 'STRING_REPEAT',
   STRING_REPLACE = 'STRING_REPLACE',
@@ -254,6 +256,7 @@ export enum TagFunctions {
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
   TAG_NAME = 'TAG_NAME',
   TIME_UNIX = 'TIME_UNIX',
+  TIME_UNIX_FROM_SNOWFLAKE = 'TIME_UNIX_FROM_SNOWFLAKE',
   TIME_UNIX_SECONDS = 'TIME_UNIX_SECONDS',
   USER_AVATAR = 'USER_AVATAR',
   USER_DISCRIMINATOR = 'USER_DISCRIMINATOR',
@@ -349,11 +352,12 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.RNG_RANGE]: ['range', 'random', 'rnd'],
   [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.g.images'],
   [TagFunctions.SETTINGS]: ['settings'],
-  [TagFunctions.STRING_CODEBLOCK]: ['code'],
   [TagFunctions.STRING_INDEX_OF]: ['indexof'],
   [TagFunctions.STRING_JSONIFY]: ['jsonify'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
   [TagFunctions.STRING_LOWER]: ['lower'],
+  [TagFunctions.STRING_MARKUP_CODEBLOCK]: ['code', 'markupcodeblock'],
+  [TagFunctions.STRING_MARKUP_TIME]: ['markuptime'],
   [TagFunctions.STRING_NEWLINE]: ['newline'],
   [TagFunctions.STRING_REPEAT]: ['repeat'],
   [TagFunctions.STRING_REPLACE]: ['replace', 'replaceregex'],
@@ -364,6 +368,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_URL_ENCODE]: ['url', 'urlencode'],
   [TagFunctions.TAG_NAME]: ['tagname'],
   [TagFunctions.TIME_UNIX]: ['unix'],
+  [TagFunctions.TIME_UNIX_FROM_SNOWFLAKE]: ['unixsnowflake'],
   [TagFunctions.TIME_UNIX_SECONDS]: ['unixs'],
   [TagFunctions.USER_AVATAR]: ['useravatar'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
@@ -412,6 +417,7 @@ export interface TagResult {
   },
   embeds: Array<Embed>,
   files: Array<{buffer: null | string | Buffer, description?: string, filename: string, spoiler?: boolean, url: string}>,
+  pages: Array<{embed: Embed}>,
   replacement: string | null,
   text: string,
   variables: TagVariables,
@@ -497,7 +503,7 @@ export async function parse(
     }
   }
 
-  const tag: TagResult = {context: {}, embeds: [], files: [], replacement, text: '', variables};
+  const tag: TagResult = {context: {}, embeds: [], files: [], pages: [], replacement, text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
@@ -763,6 +769,13 @@ function normalizeTagResults(main: TagResult, other: TagResult, content: boolean
   for (let file of other.files) {
     main.files.push(file);
   }
+
+  if (MAX_PAGES < main.pages.length + other.pages.length) {
+    throw new Error(`Pages surpassed max page length of ${MAX_PAGES}`);
+  }
+  for (let page of other.pages) {
+    main.pages.push(page);
+  }
 }
 
 
@@ -999,39 +1012,62 @@ const ScriptTags = Object.freeze({
             
           }
 
-          if (object && typeof(object) === 'object' && Object.keys(object).length <= 2 && (('embed' in object) || ('embeds' in object))) {
-            const embeds: Array<Record<string, any>> = [];
-            if ('embed' in object && typeof(object.embed) === 'object') {
-              embeds.push(object.embed);
-            }
-            if ('embeds' in object && Array.isArray(object.embeds)) {
-              for (let embed of object.embeds) {
-                if (typeof(embed) === 'object') {
-                  embeds.push(embed);
+          if (object && typeof(object) === 'object') {
+            const keysLength = Object.keys(object).length;
+            if (keysLength === 1 && 'pages' in object && Array.isArray(object.pages)) {
+              // parse them
+              // [{embed}]
+              for (let page of object.pages) {
+                if (typeof(page) !== 'object' || !('embed' in page) || typeof(page.embed) !== 'object') {
+                  throw new Error('Invalid Page Given');
+                }
+                try {
+                  const embed = new Embed(page.embed);
+                  if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+                    throw new Error('this error doesn\'t matter');
+                  }
+                  tag.pages.push({embed});
+                } catch(error) {
+                  throw new Error('Invalid Page Given');
+                }
+                if (MAX_PAGES < tag.pages.length) {
+                  throw new Error(`Pages surpassed max pages length of ${MAX_PAGES}`);
                 }
               }
-            }
-
-            if (MAX_EMBEDS < embeds.length) {
-              throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
-            }
-
-            isEmbed = true;
-            for (let raw of embeds) {
-              // todo: maybe add embed length checks here?
-              try {
-                const embed = new Embed(raw);
-                if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
-                  throw new Error('this error doesn\'t matter');
-                }
-                tag.embeds.push(embed);
-              } catch(error) {
-                throw new Error('Invalid Embed Given');
+            } else if (keysLength <= 2 && (('embed' in object) || ('embeds' in object))) {
+              const embeds: Array<Record<string, any>> = [];
+              if ('embed' in object && typeof(object.embed) === 'object') {
+                embeds.push(object.embed);
               }
-            }
-
-            if (MAX_EMBEDS < tag.embeds.length) {
-              throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+              if ('embeds' in object && Array.isArray(object.embeds)) {
+                for (let embed of object.embeds) {
+                  if (typeof(embed) === 'object') {
+                    embeds.push(embed);
+                  }
+                }
+              }
+  
+              if (MAX_EMBEDS < embeds.length) {
+                throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+              }
+  
+              isEmbed = true;
+              for (let raw of embeds) {
+                // todo: maybe add embed length checks here?
+                try {
+                  const embed = new Embed(raw);
+                  if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+                    throw new Error('this error doesn\'t matter');
+                  }
+                  tag.embeds.push(embed);
+                } catch(error) {
+                  throw new Error('Invalid Embed Given');
+                }
+              }
+  
+              if (MAX_EMBEDS < tag.embeds.length) {
+                throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+              }
             }
           }
         }
@@ -2909,13 +2945,6 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.STRING_CODEBLOCK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {code:text}
-
-    tag.text += Markup.codeblock(arg);
-    return true;
-  },
-
   [TagFunctions.STRING_INDEX_OF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {indexof:string|text}
     // {indexof:,|the cat jumped, over a dog}
@@ -2979,6 +3008,46 @@ const ScriptTags = Object.freeze({
     // {lower:text}
 
     tag.text += arg.toLowerCase();
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_CODEBLOCK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupcodeblock:text}
+  
+    tag.text += Markup.codeblock(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_TIME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markuptime:text?|format?}
+
+    let format: MarkupTimestampStyles | undefined;
+    let timestamp: string = '';
+    if (arg.length) {
+      if (arg in MarkupTimestampStyles) {
+        // do it
+      } else if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+        const parts = split(arg);
+
+        const suspectedFormat = parts.pop()!;
+        if (suspectedFormat in MarkupTimestampStyles) {
+          
+        } else {
+          parts.push(suspectedFormat);
+        }
+        timestamp = parts.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+      } else {
+        timestamp = arg;
+      }
+    } else {
+      timestamp = String(Date.now());
+    }
+
+    if (format && format.length !== 1) {
+      format = (MarkupTimestampStyles as any)[format] as MarkupTimestampStyles;
+    }
+
+    tag.text += Markup.timestamp(timestamp, format);
     return true;
   },
 
@@ -3111,6 +3180,7 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.STRING_TRANSLATE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // translate some text
+    // {translate:TEXT|LANGUAGE?}
     // {translate:cake}
     // {translate:cake|russian}
 
@@ -3187,6 +3257,16 @@ const ScriptTags = Object.freeze({
       }
     } else {
       tag.text += Date.now();
+    }
+
+    return true;
+  },
+
+  [TagFunctions.TIME_UNIX_FROM_SNOWFLAKE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {unixsnowflake:SNOWFLAKE}
+
+    if (arg) {
+      tag.text += Snowflake.timestamp(arg);
     }
 
     return true;

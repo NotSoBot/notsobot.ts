@@ -50,26 +50,27 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     });
   }
 
-  onBefore(context: Interaction.InteractionContext) {
+  async onBefore(context: Interaction.InteractionContext) {
+    const contextMetadata = context.metadata = context.metadata || {};
+
     const metadata = context.invoker.metadata;
     if (metadata && metadata.nsfw) {
-      if (context.channel) {
-        return context.channel.isDm || context.channel.nsfw;
+      const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
+      if (!isNSFWAllowed) {
+        contextMetadata.reason = `${BooleanEmojis.WARNING} Not a NSFW channel.`;
+        return isNSFWAllowed;
       }
-      return context.inDm;
     }
     return true;
   }
 
   onCancel(context: Interaction.InteractionContext) {
-    const metadata = context.invoker.metadata;
-    if (metadata && metadata.nsfw) {
-      if (!context.inDm && (context.channel && (!context.channel.isDm || !context.channel.nsfw))) {
-        return editOrReply(context, {
-          content: `${BooleanEmojis.WARNING} Not a NSFW channel.`,
-          flags: MessageFlags.EPHEMERAL,
-        });
-      }
+    const contextMetadata = context.metadata = context.metadata || {};
+    if (contextMetadata.reason) {
+      return editOrReply(context, {
+        content: contextMetadata.reason,
+        flags: MessageFlags.EPHEMERAL,
+      });
     }
   }
 

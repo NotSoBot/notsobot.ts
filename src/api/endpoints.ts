@@ -158,6 +158,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/implode',
   MEDIA_IV_MANIPULATION_INVERT:
     '/media/iv/manipulation/invert',
+  MEDIA_IV_MANIPULATION_INVERT_RGBA:
+    '/media/iv/manipulation/invert/rgba',
   MEDIA_IV_MANIPULATION_JPEG:
     '/media/iv/manipulation/jpeg',
   MEDIA_IV_MANIPULATION_LABELS_IFUNNY:
@@ -350,6 +352,8 @@ export const Api = Object.freeze({
     '/tags/directory/:tagId',
   TAGS_DIRECTORY_TAG_VERIFY:
     '/tags/directory/:tagId/verify',
+  TAGS_GENERATE:
+    '/tags/generate',
   TAGS_SEARCH:
     '/tags/search',
   TAGS_SEARCH_RANDOM:

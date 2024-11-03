@@ -1,4 +1,4 @@
-import { Command, CommandAttributes, CommandClient } from 'detritus-client';
+import { Command, CommandAttributes, CommandClient, Interaction } from 'detritus-client';
 
 import { CommandMetadata } from './commands/prefixed/basecommand';
 
@@ -11,6 +11,7 @@ import {
   GuildBlocklistTypes,
   GuildCommandsAllowlistTypes,
   GuildCommandsBlocklistTypes,
+  UserFlags,
 } from './constants';
 import { Formatter } from './utils';
 
@@ -195,8 +196,21 @@ export class NotSoCommandClient extends CommandClient {
     return false;
   }
 
-  getCommand(attributes: CommandAttributes): Command.Command | null {
-    let command = super.getCommand(attributes);
+  async getCommand(attributes: CommandAttributes, context?: Command.Context): Promise<Command.Command | null> {
+    let command: Command.Command | null = null;
+
+    if (context && this.prefixes.mention.has(attributes.prefix)) {
+      command = this.commands.find((x) => x.name === 'ai') || null;
+      if (command && typeof(command.onBefore) === 'function') {
+        const hasPremium = await Promise.resolve(command.onBefore(context));
+        if (!hasPremium) {
+          command = null;
+        }
+      }
+    }
+    if (!command) {
+      command = await Promise.resolve(super.getCommand(attributes, context));
+    }
     if (!command && attributes.content) {
       command = this.commands.find((x) => !x.name) || null;
     }

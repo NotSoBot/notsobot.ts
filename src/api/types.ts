@@ -227,6 +227,11 @@ export namespace RestOptions {
     voiceId?: string,
   }
 
+  
+  export interface GenerateTag {
+    model?: string,
+    prompt: string,
+  }
 
   export interface GoogleContentVisionBase {
     file?: RequestFile,
@@ -384,6 +389,13 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationImplode extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaIVManipulationInvertRGBA extends MediaBaseOptions {
+    alpha?: number,
+    blue?: number,
+    green?: number,
+    red?: number,
   }
 
   export interface MediaIVManipulationJPEG extends MediaBaseOptions {
@@ -771,6 +783,7 @@ export namespace RestOptions {
 
   export interface UtilitiesScreenshot {
     safe?: boolean,
+    timeout?: number,
     url: string,
   }
 
@@ -1054,6 +1067,18 @@ export namespace RestResponsesRaw {
     guild_id: null | string,
     timestamp: number,
     user_id: string,
+  }
+
+  export interface GenerateTag {
+    model: string,
+    prompt_complexity_level: number,
+    text: string,
+    usage: {
+      cache_creation_input_tokens: number,
+      cache_read_input_tokens: number,
+      input_tokens: number,
+      output_tokens: number,
+    },
   }
 
   export interface GoogleContentVisionLabels {

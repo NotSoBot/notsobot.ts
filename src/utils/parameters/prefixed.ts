@@ -1,6 +1,6 @@
 import { ClusterClient, Collections, Command, Structures } from 'detritus-client';
 import { DiscordRegexNames } from 'detritus-client/lib/constants';
-import { regex as discordRegex } from 'detritus-client/lib/utils';
+import { Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 
 import MiniSearch from 'minisearch';
 
@@ -354,6 +354,7 @@ export interface OneOfOptions<T> {
   choices: Record<string, T>,
   defaultChoice?: T,
   descriptions?: Record<any, string>,
+  error?: boolean,
 }
 
 export function oneOf<T>(options: OneOfOptions<T>) {
@@ -372,11 +373,19 @@ export function oneOf<T>(options: OneOfOptions<T>) {
     return {id: value, key, description};
   }));
 
+  const shouldError = (options.error === undefined) ? options.defaultChoice === undefined : !!options.error;
   return (value: string): null | T => {
     if (value) {
       const results = search.search(value);
       if (results.length) {
         return results[0].id!;
+      }
+      if (shouldError) {
+        const text = Object.entries(options.choices).map(([key, value]) => {
+          const description: string = ((options.descriptions) ? (options.descriptions as any)[value] : '') || '';
+          return Markup.codestring(description || String(value));
+        }).join(', ');
+        throw new Error(`Must be one of (${text})`);
       }
       return null;
     }

@@ -1067,6 +1067,23 @@ export async function funTextToSpeech(
 }
 
 
+export async function generateTag(
+  context: RequestContext,
+  options: RestOptions.GenerateTag,
+): Promise<RestResponsesRaw.GenerateTag> {
+  const body = {
+    model: options.model,
+    prompt: options.prompt,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.TAGS_GENERATE,
+    },
+  });
+}
+
 
 export async function googleContentVisionLabels(
   context: RequestContext,
@@ -2076,6 +2093,29 @@ export async function mediaIVManipulationInvert(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_INVERT,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationInvertRGBA(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationInvertRGBA,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    alpha: options.alpha,
+    blue: options.blue,
+    green: options.green,
+    red: options.red,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_INVERT_RGBA,
     },
   });
 }
@@ -4083,6 +4123,7 @@ export async function utilitiesScreenshot(
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
     safe: options.safe,
+    timeout: options.timeout,
     url: options.url,
   };
   return request(context, {

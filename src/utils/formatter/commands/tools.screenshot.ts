@@ -8,6 +8,7 @@ export const COMMAND_ID = 'tools.screenshot';
 
 export interface CommandArgs {
   safe?: boolean,
+  timeout?: number,
   url: string,
 }
 

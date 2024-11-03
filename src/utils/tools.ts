@@ -212,6 +212,7 @@ export async function fetchMemberOrUserById(
 export interface FindMediaUrlOptions {
   audio?: boolean,
   image?: boolean,
+  text?: boolean,
   video?: boolean,
 }
 
@@ -222,18 +223,19 @@ export function findMediaUrlInAttachment(
 ): null | string {
   const findAudio = (!options || options.audio || options.audio === undefined);
   const findImage = (!options || options.image || options.image === undefined);
+  const findText = (!options || !!options.text);
   const findVideo = (!options || options.video || options.video === undefined);
 
   // Has proxy url
   // is Audio or is Image/Video w/ height or width
   if (attachment.proxyUrl) {
-    if (attachment.isAudio && !findAudio) {
+    if (!findText && attachment.contentType && attachment.contentType.startsWith('text/')) {
       return null;
-    }
-    if (attachment.isImage && (!findImage || !(attachment.height || attachment.width))) {
+    } else if (!findAudio && attachment.isAudio) {
       return null;
-    }
-    if (attachment.isVideo) {
+    } else if ((!findImage || !(attachment.height || attachment.width)) && attachment.isImage) {
+      return null;
+    } else if (attachment.isVideo) {
       if ((!findImage && !findVideo) || !(attachment.height || attachment.width)) {
         return null;
       }
@@ -837,12 +839,17 @@ export function getMemberJoinPosition(
 }
 
 
+const DEFAULT_FIND_URL_OPTIONS: FindMediaUrlOptions = Object.freeze({audio: true, image: true, text: true, video: true});
+
 export async function getOrFetchRealUrl(
   context: Command.Context | Interaction.InteractionContext,
   value: string,
   options?: FindMediaUrlOptions,
   onlyJumpMessage: boolean = false,
 ): Promise<string | null> {
+  if (!options) {
+    options = DEFAULT_FIND_URL_OPTIONS;
+  }
   const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
   if (matches.length) {
     const [ { text } ] = matches;

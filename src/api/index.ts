@@ -549,6 +549,14 @@ export async function funTextToSpeech(
 }
 
 
+export async function generateTag(
+  context: RequestContext,
+  options: RestOptions.GenerateTag,
+) {
+  return raw.generateTag(context, options);
+}
+
+
 export async function googleContentVisionLabels(
   context: RequestContext,
   options: RestOptions.GoogleContentVisionBase,
@@ -938,6 +946,14 @@ export async function mediaIVManipulationInvert(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationInvert(context, options);
+}
+
+
+export async function mediaIVManipulationInvertRGBA(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationInvertRGBA,
+) {
+  return raw.mediaIVManipulationInvertRGBA(context, options);
 }
 
 

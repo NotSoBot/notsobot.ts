@@ -28,7 +28,7 @@ export default class PrivacyCommand extends BaseSlashCommand {
 
   run(context: Interaction.InteractionContext) {
     return editOrReply(context, {
-      content: '<https://beta.notsobot.com/legal/privacy>',
+      content: '<https://notsobot.com/legal/privacy>',
       flags: MessageFlags.EPHEMERAL,
     });
   }

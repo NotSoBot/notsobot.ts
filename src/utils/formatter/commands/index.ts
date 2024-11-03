@@ -67,6 +67,7 @@ import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shi
 import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shift.rgb';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationInvert from './media.iv.manipulation.invert';
+import * as MediaIVManipulationInvertRGBA from './media.iv.manipulation.invert.rgba';
 import * as MediaIVManipulationLabelsIFunny from './media.iv.manipulation.labels.ifunny';
 import * as MediaIVManipulationLegofy from './media.iv.manipulation.legofy';
 import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
@@ -191,6 +192,7 @@ import * as TagCommandsRemove from './tag.commands.remove';
 import * as TagCreate from './tag.create';
 import * as TagEdit from './tag.edit';
 import * as TagExport from './tag.export';
+import * as TagGenerate from './tag.generate';
 import * as TagInfo from './tag.info';
 import * as TagListServer from './tag.list.server';
 import * as TagListUser from './tag.list.user';
@@ -297,6 +299,7 @@ export {
   MediaIVManipulationHueShiftRGB,
   MediaIVManipulationImplode,
   MediaIVManipulationInvert,
+  MediaIVManipulationInvertRGBA,
   MediaIVManipulationLabelsIFunny,
   MediaIVManipulationLegofy,
   MediaIVManipulationMagik,
@@ -421,6 +424,7 @@ export {
   TagCreate,
   TagEdit,
   TagExport,
+  TagGenerate,
   TagInfo,
   TagListServer,
   TagListUser,

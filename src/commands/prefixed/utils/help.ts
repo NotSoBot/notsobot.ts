@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
+import { CommandCategories, BooleanEmojis, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
@@ -79,7 +79,7 @@ export default class HelpCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.commands) {
-      return editOrReply(context, '⚠ Unknown Command');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Command`);
     }
     return editOrReply(context, '<https://notsobot.com/commands> (Join our support server <https://notsobot.com/support/invite>)');
   }

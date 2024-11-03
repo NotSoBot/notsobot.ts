@@ -342,7 +342,7 @@ export async function pipingCommands(
         break;
       }
       const attributes = {content, prefix: ''};
-      const command = commandClient.getCommand(attributes);
+      const command = await commandClient.getCommand(attributes);
       if (command && command.metadata && command.metadata.id && (command.metadata.category === CommandCategories.IMAGE || command.metadata.category === CommandCategories.TOOLS)) {
         attributes.content = `https://notsobot.com/ ${attributes.content}`; // inject a url at the beginning for image url parsing (to basically skip it)
         const {errors, parsed: commandArgs} = await command.getArgs(attributes, context as any);
@@ -524,6 +524,14 @@ export async function url(
           const codepoint = toCodePointForTwemoji(emoji);
           return CUSTOM.TWEMOJI_SVG(codepoint) + '?convert=true';
         }
+      }
+    }
+
+    {
+      const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+      if (matches.length) {
+        const [ { text } ] = matches;
+        value = text;
       }
     }
 
@@ -1856,10 +1864,10 @@ export function lastMediaUrl(
 }
 
 
-export function prefixedCommand(
+export async function prefixedCommand(
   value: string,
   context: Command.Context | Interaction.InteractionContext
-): any | null {
+): Promise<Command.Command | null> {
   let command: Command.Command | null = null;
   if (!value) {
     return command;
@@ -1873,7 +1881,7 @@ export function prefixedCommand(
       }
     }
     if (command === null) {
-      command = context.commandClient.getCommand({content: value, prefix: ''});
+      command = await context.commandClient.getCommand({content: value, prefix: ''});
     }
   }
 

@@ -23,6 +23,11 @@ export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
           required: true,
           value: Parameters.url,
         },
+        {
+          name: 'timeout',
+          description: 'Max amount of seconds to wait before screenshotting',
+          value: Number,
+        },
       ],
     });
   }

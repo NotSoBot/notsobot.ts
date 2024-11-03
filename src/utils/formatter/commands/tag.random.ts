@@ -2,7 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagRandom } from '../../../api';
-import { TagFormatter, editOrReply } from '../../../utils';
+import { Paginator, TagFormatter, editOrReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.random';
@@ -39,6 +39,15 @@ export async function createMessage(
     context.metadata = Object.assign({}, context.metadata, {tag});
     const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
     const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
+    context.metadata = Object.assign({}, context.metadata, {parsedTag});
+  
+    if (parsedTag.pages.length) {
+      // show the content here
+      const paginator = new Paginator(context, {
+        pages: parsedTag.pages.map((x) => x.embed),
+      })
+      return await paginator.start();
+    }
 
     content.push(parsedTag.text.slice(0, 2000));
     if (parsedTag.embeds.length) {
@@ -53,8 +62,6 @@ export async function createMessage(
     if (!parsedTag.text.length && !parsedTag.embeds.length && !parsedTag.files.length) {
       content.push('Tag returned no content');
     }
-
-    context.metadata = Object.assign({}, context.metadata, {parsedTag});
   } catch(error) {
     content.push(error.message);
   }
