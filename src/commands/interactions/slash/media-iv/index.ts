@@ -6,6 +6,7 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MediaIVDistortCommand } from './distort';
 import { MediaIVFlipCommand } from './flip';
 import { MediaIVFlopCommand } from './flop';
 import { MediaIVJPEGCommand } from './jpeg';
@@ -43,6 +44,7 @@ export default class MediaIVGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new MediaIVDistortCommand(),
         new MediaIVFlipCommand(),
         new MediaIVFlopCommand(),
         new MediaFunGroupCommand(),

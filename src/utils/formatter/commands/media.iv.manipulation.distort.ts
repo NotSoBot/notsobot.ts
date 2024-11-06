@@ -1,16 +1,15 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVManipulationHueShiftRGB } from '../../../api';
+import { mediaIVManipulationDistort } from '../../../api';
 import { imageReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.manipulation.hue.shift';
+export const COMMAND_ID = 'media.iv.manipulation.distort';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  blue?: number,
-  green?: number,
-  red?: number,
+  arguments?: Array<number>,
+  method: string,
   url: string,
 }
 
@@ -18,7 +17,7 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVManipulationHueShiftRGB(context, args);
+  return mediaIVManipulationDistort(context, args);
 }
 
 export async function createMessage(

@@ -1927,7 +1927,8 @@ const ScriptTags = Object.freeze({
     // {or:action|action}, unlimited actions
 
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      return false;
+      tag.text += arg;
+      return true;
     }
 
     const conditionals = split(arg);

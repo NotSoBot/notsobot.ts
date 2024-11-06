@@ -845,6 +845,14 @@ export async function mediaIVManipulationDeepfry(
 }
 
 
+export async function mediaIVManipulationDistort(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDistort,
+) {
+  return raw.mediaIVManipulationDistort(context, options);
+}
+
+
 export async function mediaIVManipulationExplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationExplode,
@@ -914,6 +922,14 @@ export async function mediaIVManipulationGrayscale(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationGrayscale(context, options);
+}
+
+
+export async function mediaIVManipulationHueCurveRGBA(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueCurveRGBA,
+) {
+  return raw.mediaIVManipulationHueCurveRGBA(context, options);
 }
 
 

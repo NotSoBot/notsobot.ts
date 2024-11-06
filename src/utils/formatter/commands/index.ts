@@ -53,6 +53,7 @@ import * as MediaIVManipulationBlurple from './media.iv.manipulation.blurple';
 import * as MediaIVManipulationCaption from './media.iv.manipulation.caption';
 import * as MediaIVManipulationCircle from './media.iv.manipulation.circle';
 import * as MediaIVManipulationDeepfry from './media.iv.manipulation.deepfry';
+import * as MediaIVManipulationDistort from './media.iv.manipulation.distort';
 import * as MediaIVManipulationE2E from './media.iv.manipulation.e2e';
 import * as MediaIVManipulationE2P from './media.iv.manipulation.e2p';
 import * as MediaIVManipulationExplode from './media.iv.manipulation.explode';
@@ -63,6 +64,7 @@ import * as MediaIVManipulationGlitchAnimated from './media.iv.manipulation.glit
 import * as MediaIVManipulationGlobe from './media.iv.manipulation.globe';
 import * as MediaIVManipulationGold from './media.iv.manipulation.gold';
 import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale';
+import * as MediaIVManipulationHueCurveRGBA from './media.iv.manipulation.hue.curve.rgba';
 import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
 import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shift.rgb';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
@@ -285,6 +287,7 @@ export {
   MediaIVManipulationCaption,
   MediaIVManipulationCircle,
   MediaIVManipulationDeepfry,
+  MediaIVManipulationDistort,
   MediaIVManipulationE2E,
   MediaIVManipulationE2P,
   MediaIVManipulationExplode,
@@ -295,6 +298,7 @@ export {
   MediaIVManipulationGlobe,
   MediaIVManipulationGold,
   MediaIVManipulationGrayscale,
+  MediaIVManipulationHueCurveRGBA,
   MediaIVManipulationHueShiftHSV,
   MediaIVManipulationHueShiftRGB,
   MediaIVManipulationImplode,

@@ -74,6 +74,27 @@ export { AutoComplete, ContextMenu, Prefixed, Slash };
 export * from './prefixed';
 
 
+
+const ARRAY_OF_FLOATS_REGEX = /-?\d*\.?\d+(?:[eE][-+]?\d+)?/g;
+
+export function arrayOfFloats(value: string): Array<number> | null {
+  const floats: Array<number> = [];
+  if (value) {
+    const matches = value.match(ARRAY_OF_FLOATS_REGEX);
+    if (matches) {
+      for (let match of matches) {
+        const number = parseFloat(match);
+        if (isNaN(number)) {
+          throw new Error('Invalid Float Given');
+        }
+        floats.push(number);
+      }
+    }
+  }
+  return (floats.length) ? floats : null;
+}
+
+
 export function days(value: string): number {
   let days: number;
   if (isNaN(value as any)) {
@@ -82,6 +103,30 @@ export function days(value: string): number {
     days = parseInt(value);
   }
   return days;
+}
+
+
+const COORDINATE_REGEX = /[\(]?(-?\d*\.?\d+|\d)(?:\s*,\s*(-?\d*\.?\d+|\d))?[\)]?/g;
+
+export function hueCurveCoordinates(value: string): Array<[number, number]> | null {
+  const coordinates: Array<[number, number]> = [];
+  if (value) {
+    for (let match of value.matchAll(COORDINATE_REGEX)) {
+      let x = 0;
+      let y = 0;
+      if (match[2]) {
+        x = parseFloat(match[1]);
+        y = parseFloat(match[2]);
+      } else {
+        y = parseFloat(match[1]);
+      }
+      if (isNaN(x) || isNaN(y)) {
+        throw new Error('Invalid (x,y) Coordinate Given');
+      }
+      coordinates.push([x, y]);
+    }
+  }
+  return (coordinates.length) ? coordinates : null;
 }
 
 
@@ -1170,6 +1215,7 @@ export function roles(
 
 /* Custom Values */
 
+
 // maybe don't accept emojis/stickers/user
 export function mediaUrl(
   mediaSearchOptions: FindMediaUrlOptions & {onlyContent?: boolean} = {},
@@ -1914,7 +1960,7 @@ const Quotes = {
   START: Object.keys(QuotesAll),
 };
 
-export function stringArguments(value: string) {
+export function stringArguments(value: string): Array<string> {
   const results: Array<string> = [];
   while (value.length) {
     let result = value.slice(0, 1);

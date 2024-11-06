@@ -361,6 +361,11 @@ export namespace RestOptions {
     scale?: number,
   }
 
+  export interface MediaIVManipulationDistort extends MediaBaseOptions {
+    arguments?: Array<number>,
+    method: string,
+  }
+
   export interface MediaIVManipulationExplode extends MediaBaseOptions {
     scale?: number,
   }
@@ -373,6 +378,14 @@ export namespace RestOptions {
     amount?: number,
     iterations?: number,
     seed?: number,
+  }
+
+  export interface MediaIVManipulationHueCurveRGBA extends MediaBaseOptions {
+    all?: Array<[number, number]>,
+    alpha?: Array<[number, number]>,
+    blue?: Array<[number, number]>,
+    green?: Array<[number, number]>,
+    red?: Array<[number, number]>,
   }
 
   export interface MediaIVManipulationHueShiftHSV extends MediaBaseOptions {

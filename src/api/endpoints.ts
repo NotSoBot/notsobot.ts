@@ -132,6 +132,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/circle',
   MEDIA_IV_MANIPULATION_DEEPFRY:
     '/media/iv/manipulation/deepfry',
+  MEDIA_IV_MANIPULATION_DISTORT:
+    '/media/iv/manipulation/distort',
   MEDIA_IV_MANIPULATION_EXPLODE:
     '/media/iv/manipulation/explode',
   MEDIA_IV_MANIPULATION_EYES:
@@ -150,10 +152,12 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/gold',
   MEDIA_IV_MANIPULATION_GRAYSCALE:
     '/media/iv/manipulation/grayscale',
+  MEDIA_IV_MANIPULATION_HUE_CURVE_RGBA:
+    '/media/iv/manipulation/hue/curve/rgba',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV:
-    '/media/iv/manipulation/hue-shift/hsv',
+    '/media/iv/manipulation/hue/shift/hsv',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_RGB:
-    '/media/iv/manipulation/hue-shift/rgb',
+    '/media/iv/manipulation/hue/shift/rgb',
   MEDIA_IV_MANIPULATION_IMPLODE:
     '/media/iv/manipulation/implode',
   MEDIA_IV_MANIPULATION_INVERT:

@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationHueShiftHSV } from '../../../api';
-import { imageReply } from '../..';
+import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.hue.shift.hsv';

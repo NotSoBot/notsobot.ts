@@ -1836,6 +1836,26 @@ export async function mediaIVManipulationDeepfry(
 }
 
 
+export async function mediaIVManipulationDistort(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDistort,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    arguments: options.arguments,
+    method: options.method,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DISTORT,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationExplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationExplode,
@@ -2010,6 +2030,29 @@ export async function mediaIVManipulationGrayscale(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_GRAYSCALE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationHueCurveRGBA(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueCurveRGBA,
+): Promise<RestResponsesRaw.FileResponse> {
+  const body = {
+    all: options.all,
+    alpha: options.alpha,
+    blue: options.blue,
+    green: options.green,
+    red: options.red,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_HUE_CURVE_RGBA,
     },
   });
 }
