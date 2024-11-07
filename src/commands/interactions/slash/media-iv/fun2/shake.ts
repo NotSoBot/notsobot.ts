@@ -1,8 +1,8 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../utils';
+import { Formatter } from '../../../../../utils';
 
-import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'shake';

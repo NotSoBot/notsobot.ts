@@ -132,12 +132,18 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/circle',
   MEDIA_IV_MANIPULATION_DEEPFRY:
     '/media/iv/manipulation/deepfry',
+  MEDIA_IV_MANIPULATION_DETUNNEL:
+    '/media/iv/manipulation/detunnel',
   MEDIA_IV_MANIPULATION_DISTORT:
     '/media/iv/manipulation/distort',
+  MEDIA_IV_MANIPULATION_EXO:
+    '/media/iv/manipulation/exo',
   MEDIA_IV_MANIPULATION_EXPLODE:
     '/media/iv/manipulation/explode',
   MEDIA_IV_MANIPULATION_EYES:
     '/media/iv/manipulation/eyes',
+  MEDIA_IV_MANIPULATION_FISHEYE:
+    '/media/iv/manipulation/fisheye',
   MEDIA_IV_MANIPULATION_FLIP:
     '/media/iv/manipulation/flip',
   MEDIA_IV_MANIPULATION_FLOP:
@@ -226,6 +232,10 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/shutterstock',
   MEDIA_IV_MANIPULATION_OVERLAY_STARMAN:
     '/media/iv/manipulation/overlay/starman',
+  MEDIA_IV_MANIPULATION_PAINT:
+    '/media/iv/manipulation/paint',
+  MEDIA_IV_MANIPULATION_PAINT_ANIMATED:
+    '/media/iv/manipulation/paint/animated',
   MEDIA_IV_MANIPULATION_PAPER:
     '/media/iv/manipulation/paper',
   MEDIA_IV_MANIPULATION_PIX2PIX:
@@ -254,6 +264,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/swirl',
   MEDIA_IV_MANIPULATION_TRACE:
     '/media/iv/manipulation/trace',
+  MEDIA_IV_MANIPULATION_TUNNEL:
+    '/media/iv/manipulation/tunnel',
   MEDIA_IV_MANIPULATION_UNCAPTION:
     '/media/iv/manipulation/uncaption',
   MEDIA_IV_MANIPULATION_VAPORWAVE:

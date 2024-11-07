@@ -366,6 +366,11 @@ export namespace RestOptions {
     method: string,
   }
 
+  export interface MediaIVManipulationExo extends MediaBaseOptions {
+    rain?: boolean,
+    swirl?: boolean,
+  }
+
   export interface MediaIVManipulationExplode extends MediaBaseOptions {
     scale?: number,
   }
@@ -442,6 +447,10 @@ export namespace RestOptions {
     speed?: number,
   }
 
+  export interface MediaIVManipulationPaint extends MediaBaseOptions {
+    radius?: number,
+  }
+
   export interface MediaIVManipulationPix2Pix extends MediaBaseOptions {
     model: string,
   }
@@ -472,6 +481,10 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationSwirl extends MediaBaseOptions {
     degrees?: number,
+  }
+
+  export interface MediaIVManipulationTunnel extends MediaBaseOptions {
+    spiral?: boolean,
   }
 
   export interface MediaIVManipulationVaporwave extends MediaBaseOptions {

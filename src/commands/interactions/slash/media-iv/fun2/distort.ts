@@ -1,9 +1,9 @@
 import { Interaction } from 'detritus-client';
 
-import { MediaDistortMethods } from '../../../../constants';
-import { Formatter, Parameters } from '../../../../utils';
+import { MediaDistortMethods } from '../../../../../constants';
+import { Formatter, Parameters } from '../../../../../utils';
 
-import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
+import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'distort';

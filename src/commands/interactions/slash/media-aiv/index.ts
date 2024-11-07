@@ -9,6 +9,7 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaAIVADHDCommand } from './adhd';
 import { MediaAIVFadeInCommand } from './fade-in';
 import { MediaAIVFadeOutCommand } from './fade-out';
+import { MediaAIVPipeCommand } from './pipe';
 
 
 export default class MediaAIVGroupCommand extends BaseSlashCommand {
@@ -32,6 +33,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
         new MediaAIVADHDCommand(),
         new MediaAIVFadeInCommand(),
         new MediaAIVFadeOutCommand(),
+        new MediaAIVPipeCommand(),
 	  ],
 	});
   }

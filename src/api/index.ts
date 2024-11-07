@@ -845,11 +845,26 @@ export async function mediaIVManipulationDeepfry(
 }
 
 
+export async function mediaIVManipulationDetunnel(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTunnel,
+) {
+  return raw.mediaIVManipulationDetunnel(context, options);
+}
+
+
 export async function mediaIVManipulationDistort(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationDistort,
 ) {
   return raw.mediaIVManipulationDistort(context, options);
+}
+
+export async function mediaIVManipulationExo(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationExo,
+) {
+  return raw.mediaIVManipulationExo(context, options);
 }
 
 
@@ -866,6 +881,14 @@ export async function mediaIVManipulationEyes(
   options: RestOptions.MediaIVManipulationEyes,
 ) {
   return raw.mediaIVManipulationEyes(context, options);
+}
+
+
+export async function mediaIVManipulationFisheye(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationFisheye(context, options);
 }
 
 
@@ -1205,6 +1228,22 @@ export async function mediaIVManipulationOverlayStarman(
 }
 
 
+export async function mediaIVManipulationPaint(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPaint,
+) {
+  return raw.mediaIVManipulationPaint(context, options);
+}
+
+
+export async function mediaIVManipulationPaintAnimated(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPaint,
+) {
+  return raw.mediaIVManipulationPaintAnimated(context, options);
+}
+
+
 export async function mediaIVManipulationPaper(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -1315,6 +1354,15 @@ export async function mediaIVManipulationTrace(
 ) {
   return raw.mediaIVManipulationTrace(context, options);
 }
+
+
+export async function mediaIVManipulationTunnel(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTunnel,
+) {
+  return raw.mediaIVManipulationTunnel(context, options);
+}
+
 
 
 export async function mediaIVManipulationUncaption(

@@ -53,10 +53,13 @@ import * as MediaIVManipulationBlurple from './media.iv.manipulation.blurple';
 import * as MediaIVManipulationCaption from './media.iv.manipulation.caption';
 import * as MediaIVManipulationCircle from './media.iv.manipulation.circle';
 import * as MediaIVManipulationDeepfry from './media.iv.manipulation.deepfry';
+import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
 import * as MediaIVManipulationDistort from './media.iv.manipulation.distort';
 import * as MediaIVManipulationE2E from './media.iv.manipulation.e2e';
 import * as MediaIVManipulationE2P from './media.iv.manipulation.e2p';
+import * as MediaIVManipulationExo from './media.iv.manipulation.exo';
 import * as MediaIVManipulationExplode from './media.iv.manipulation.explode';
+import * as MediaIVManipulationFisheye from './media.iv.manipulation.fisheye';
 import * as MediaIVManipulationFlip from './media.iv.manipulation.flip';
 import * as MediaIVManipulationFlop from './media.iv.manipulation.flop';
 import * as MediaIVManipulationGlitch from './media.iv.manipulation.glitch';
@@ -70,6 +73,8 @@ import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shi
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationInvert from './media.iv.manipulation.invert';
 import * as MediaIVManipulationInvertRGBA from './media.iv.manipulation.invert.rgba';
+import * as MediaIVManipulationKek from './media.iv.manipulation.kek';
+import * as MediaIVManipulationKekRain from './media.iv.manipulation.kek.rain';
 import * as MediaIVManipulationLabelsIFunny from './media.iv.manipulation.labels.ifunny';
 import * as MediaIVManipulationLegofy from './media.iv.manipulation.legofy';
 import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
@@ -98,6 +103,8 @@ import * as MediaIVManipulationOverlayPersonsGaben1 from './media.iv.manipulatio
 import * as MediaIVManipulationOverlayPersonsLTTLinus1 from './media.iv.manipulation.overlay.persons.ltt.linus.1';
 import * as MediaIVManipulationOverlayStarman from './media.iv.manipulation.overlay.starman';
 import * as MediaIVManipulationJPEG from './media.iv.manipulation.jpeg';
+import * as MediaIVManipulationPaint from './media.iv.manipulation.paint';
+import * as MediaIVManipulationPaintAnimated from './media.iv.manipulation.paint.animated';
 import * as MediaIVManipulationPaper from './media.iv.manipulation.paper';
 import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
 import * as MediaIVManipulationRain from './media.iv.manipulation.rain';
@@ -112,6 +119,7 @@ import * as MediaIVManipulationSwapPixels from './media.iv.manipulation.swap.pix
 import * as MediaIVManipulationSwapRGBA from './media.iv.manipulation.swap.rgba';
 import * as MediaIVManipulationSwirl from './media.iv.manipulation.swirl';
 import * as MediaIVManipulationTrace from './media.iv.manipulation.trace';
+import * as MediaIVManipulationTunnel from './media.iv.manipulation.tunnel';
 import * as MediaIVManipulationUncaption from './media.iv.manipulation.uncaption';
 import * as MediaIVManipulationVaporwave from './media.iv.manipulation.vaporwave';
 import * as MediaIVManipulationWall from './media.iv.manipulation.wall';
@@ -287,10 +295,13 @@ export {
   MediaIVManipulationCaption,
   MediaIVManipulationCircle,
   MediaIVManipulationDeepfry,
+  MediaIVManipulationDetunnel,
   MediaIVManipulationDistort,
   MediaIVManipulationE2E,
   MediaIVManipulationE2P,
+  MediaIVManipulationExo,
   MediaIVManipulationExplode,
+  MediaIVManipulationFisheye,
   MediaIVManipulationFlip,
   MediaIVManipulationFlop,
   MediaIVManipulationGlitch,
@@ -304,6 +315,8 @@ export {
   MediaIVManipulationImplode,
   MediaIVManipulationInvert,
   MediaIVManipulationInvertRGBA,
+  MediaIVManipulationKek,
+  MediaIVManipulationKekRain,
   MediaIVManipulationLabelsIFunny,
   MediaIVManipulationLegofy,
   MediaIVManipulationMagik,
@@ -332,6 +345,8 @@ export {
   MediaIVManipulationOverlayPersonsLTTLinus1,
   MediaIVManipulationOverlayStarman,
   MediaIVManipulationJPEG,
+  MediaIVManipulationPaint,
+  MediaIVManipulationPaintAnimated,
   MediaIVManipulationPaper,
   MediaIVManipulationPixelate,
   MediaIVManipulationRain,
@@ -346,6 +361,7 @@ export {
   MediaIVManipulationSwapRGBA,
   MediaIVManipulationSwirl,
   MediaIVManipulationTrace,
+  MediaIVManipulationTunnel,
   MediaIVManipulationUncaption,
   MediaIVManipulationVaporwave,
   MediaIVManipulationWall,
