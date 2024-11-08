@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTag, putTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { CommandCategories } from '../../../constants';
+import { BooleanEmojis, CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -54,13 +54,13 @@ export default class TagEditCommand extends BaseCommand {
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.tag !== null || args.content) {
       if (args.tag === false) {
-        return editOrReply(context, '⚠ Unknown Tag');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
       }
       if (!args.content) {
-        return editOrReply(context, '⚠ Must have some sort of content for the tag!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Must have some sort of content for the tag!`);
       }
       if (args.tag && args.tag.user.id !== context.userId) {
-        return editOrReply(context, '⚠ You don\'t own that tag!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} You don\'t own that tag!`);
       }
     }
     return super.onCancelRun(context, args);

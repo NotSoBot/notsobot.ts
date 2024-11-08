@@ -22,6 +22,7 @@ export class MediaIVRecaptionCommand extends BaseInteractionImageOrVideoCommandO
       options: [
         {name: 'text', description: 'Caption Text', required: true},
         {name: 'font', description: `Default: ${DEFAULT_FONT_TEXT}`, choices: Parameters.Slash.IMAGE_MEME_FONTS},
+        {name: 'tolerance', description: `White Color Tolerance (0..255) (Default: 35)`, type: Number},
       ],
     });
   }

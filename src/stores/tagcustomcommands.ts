@@ -163,7 +163,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       if (guild) {
         // get owner
         const owner = await UserStore.getOrFetch(context, guild.ownerId);
-        if (owner && (owner.hasFlag(UserFlags.OWNER) || owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+        if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
           shouldSearchGuild = true;
         }
       }
@@ -186,7 +186,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     let shouldSearchUser: boolean = false;
 
     const user = await UserStore.getOrFetch(context, userId);
-    if (user && (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+    if (user && (user.premiumType || user.hasFlag(UserFlags.OWNER))) {
       shouldSearchUser = true;
     }
 

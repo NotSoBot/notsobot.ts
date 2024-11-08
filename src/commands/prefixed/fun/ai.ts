@@ -43,7 +43,7 @@ export default class AiCommand extends BaseCommand {
     let hasPremium: boolean = false;
 
     const user = await UserStore.getOrFetch(context, context.userId);
-    if (user && (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+    if (user && (user.premiumType || user.hasFlag(UserFlags.OWNER))) {
       hasPremium = true;
     }
 
@@ -56,7 +56,7 @@ export default class AiCommand extends BaseCommand {
           const guild = context.guild;
           if (guild) {
             const owner = await UserStore.getOrFetch(context, guild.ownerId);
-            if (owner && (owner.hasFlag(UserFlags.OWNER) || owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+            if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
               hasPremium = true;
             }
           }
@@ -64,7 +64,7 @@ export default class AiCommand extends BaseCommand {
       } else if (context.inDm && context.channel && context.channel.ownerId) {
         // most likely a group dm, check to see if is owner of it
         const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
-        if (owner && (owner.hasFlag(UserFlags.OWNER) || owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+        if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
           hasPremium = true;
         }
       }

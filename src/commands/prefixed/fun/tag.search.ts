@@ -1,6 +1,6 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { BooleanEmojis, CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -24,7 +24,9 @@ export default class TagSearchCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['t search'],
-      args: [{name: 'user', type: Parameters.memberOrUser({allowBots: false})}],
+      args: [
+        {name: 'user', type: Parameters.memberOrUser({allowBots: false})}
+      ],
       label: 'name',
       metadata: {
         category: CommandCategories.FUN,
@@ -47,7 +49,7 @@ export default class TagSearchCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, '⚠ Must provide some sort of search term or a user.');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Must provide some sort of search term or a user.`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

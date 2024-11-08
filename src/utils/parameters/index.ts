@@ -1369,15 +1369,21 @@ export function mediaUrl(
         const settings = await UserSettingsStore.getOrFetch(context, context.userId);
         if (user && settings) {
           let shouldFallback = false;
-          if (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD)) {
+          if (user.premiumType || user.hasFlag(UserFlags.OWNER)) {
             shouldFallback = true;
-          } else {
+          } else if (context.guildId) {
             const guild = context.guild;
             if (guild) {
               const owner = await UserStore.getOrFetch(context, guild.ownerId);
-              if (owner && (owner.hasFlag(UserFlags.OWNER) || owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+              if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
                 shouldFallback = true;
               }
+            }
+          } else if (context.inDm && context.channel && context.channel.ownerId) {
+            // most likely a group dm, check to see if is owner of it
+            const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
+            if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+              shouldFallback = true;
             }
           }
 
@@ -1609,15 +1615,21 @@ export function mediaUrls(
         const settings = await UserSettingsStore.getOrFetch(context, context.userId);
         if (user && settings) {
           let shouldFallback = false;
-          if (user.hasFlag(UserFlags.OWNER) || user.hasFlag(UserFlags.PREMIUM_DISCORD)) {
+          if (user.premiumType || user.hasFlag(UserFlags.OWNER)) {
             shouldFallback = true;
-          } else {
+          } else if (context.guildId) {
             const guild = context.guild;
             if (guild) {
               const owner = await UserStore.getOrFetch(context, guild.ownerId);
-              if (owner && (owner.hasFlag(UserFlags.OWNER) || owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+              if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
                 shouldFallback = true;
               }
+            }
+          } else if (context.inDm && context.channel && context.channel.ownerId) {
+            // most likely a group dm, check to see if is owner of it
+            const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
+            if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+              shouldFallback = true;
             }
           }
         

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandCategories } from '../../../constants';
+import { BooleanEmojis, CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -43,13 +43,13 @@ export default class TagRenameCommand extends BaseCommand {
   onCancelRun(context: Command.Context, args: Formatter.Commands.TagRename.CommandArgsBefore) {
     if (args.tag !== null || args.name) {
       if (args.tag === false) {
-        return editOrReply(context, '⚠ Unknown Tag');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
       }
       if (!args.name) {
-        return editOrReply(context, '⚠ Gotta have some sort of tag name to rename to');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Gotta have some sort of tag name to rename to`);
       }
       if (args.tag && args.tag.user.id !== context.userId) {
-        return editOrReply(context, '⚠ You don\'t own that tag!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} You don\'t own that tag!`);
       }
     }
     return super.onCancelRun(context, args);

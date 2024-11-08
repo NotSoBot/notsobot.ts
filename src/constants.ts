@@ -254,6 +254,11 @@ export const DiscordReactionEmojis = Object.freeze({
 });
 
 
+export enum DiscordSkuIds {
+  USER_NOTSOPREMIUM = '1182569865735831582',
+}
+
+
 export enum E621Rating {
   EXPLICIT = 'e',
   QUESTIONABLE = 'q',
@@ -861,14 +866,6 @@ export const ImageMemeFontsToText: Record<ImageMemeFonts, string> = Object.freez
 });
 
 
-export enum ImageLegofyPalettes {
-  ALL = 'all',
-  EFFECTS = 'effects',
-  MONO = 'mono',
-  TRANSPARENT = 'transparent',
-};
-
-
 export enum ImagePix2PixModels {
   EDGES = 'EDGES',
   EMOJI = 'EMOJI',
@@ -896,6 +893,14 @@ export enum MediaDistortMethods {
   SCALE_ROTATE_TRANSLATE = 'SCALE_ROTATE_TRANSLATE',
   SENTINEL = 'SENTINEL',
   SHEPARDS = 'SHEPARDS',
+};
+
+
+export enum MediaLegofyPalettes {
+  ALL = 'ALL',
+  EFFECTS = 'EFFECTS',
+  MONO = 'MONO',
+  TRANSPARENT = 'TRANSPARENT',
 };
 
 
@@ -1264,6 +1269,7 @@ export const TRUSTED_URLS = Object.freeze([
 export enum NotSoHeaders {
   AUTHORIZATION = 'authorization',
   CHANNEL_ID = 'x-channel-id',
+  ENTITLEMENTS = 'x-entitlements',
   GUILD_ID = 'x-guild-id',
   USER = 'x-user',
   USER_ID = 'x-user-id',

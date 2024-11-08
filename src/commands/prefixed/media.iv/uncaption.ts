@@ -13,15 +13,19 @@ export default class UncaptionCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'tolerance', aliases: ['t'], type: Number},
+      ],
       metadata: {
         category: CommandCategories.IMAGE,
         description: 'Uncaption an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -tolerance 50`,
         ],
         id: Formatter.Commands.MediaIVManipulationUncaption.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-tolerance <number>)',
       },
     });
   }

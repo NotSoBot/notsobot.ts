@@ -26,6 +26,7 @@ export interface RequestContext {
   guildId?: string,
   hasServerPermissions?: boolean,
   inDm?: boolean,
+  interaction?: Structures.Interaction,
   user?: Structures.User,
 }
 
@@ -70,6 +71,11 @@ export async function request(
       username: user.username,
     });
     options.headers.set(NotSoHeaders.USER, Buffer.from(bareUser).toString('base64'));
+  }
+
+  if (context.interaction && context.interaction.entitlements && context.interaction.entitlements.length) {
+    const entitlements = JSON.stringify(context.interaction.entitlements);
+    options.headers.set(NotSoHeaders.ENTITLEMENTS, Buffer.from(entitlements).toString('base64'));
   }
 
   if (options.file) {
@@ -3147,9 +3153,10 @@ export async function mediaIVManipulationTunnel(
 
 export async function mediaIVManipulationUncaption(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationUncaption,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
+    tolerance: options.tolerance,
     url: options.url,
   };
   return request(context, {

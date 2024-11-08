@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { BooleanEmojis, CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -38,10 +38,10 @@ export default class TagCreateCommand extends BaseCommand {
   onCancelRun(context: Command.Context, args: Formatter.Commands.TagCreate.CommandArgs) {
     if (args.tag || args.content) {
       if (!args.tag) {
-        return editOrReply(context, '⚠ Gotta have some sort of tag name');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Gotta have some sort of tag name`);
       }
       if (!args.content) {
-        return editOrReply(context, '⚠ Must have some sort of content for the tag!');
+        return editOrReply(context, `${BooleanEmojis.WARNING} Must have some sort of content for the tag!`);
       }
     }
     return super.onCancelRun(context, args);

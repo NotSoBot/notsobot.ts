@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { BooleanEmojis, CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -40,7 +40,7 @@ export default class TagExportCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.TagExport.CommandArgs) {
     if (args.user === null) {
-      return editOrReply(context, '⚠ Unable to find that user.');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user.`);
     }
     return super.onCancelRun(context, args);
   }

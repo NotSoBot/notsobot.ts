@@ -13,15 +13,19 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'tolerance', aliases: ['t'], type: Number},
+      ],
       metadata: {
         category: CommandCategories.IMAGE,
         description: 'Remove Caption Text then Add Caption Text to an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} @NotSoBot what an idiot`,
+          `${COMMAND_NAME} @NotSoBot what an idiot -tolerance 50`,
         ],
         id: Formatter.Commands.MediaIVManipulationRecaption.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...text>',
+        usage: '<emoji,user:id|mention,url> <...text> (-tolerance <number>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

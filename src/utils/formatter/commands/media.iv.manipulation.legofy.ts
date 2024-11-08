@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationLegofy } from '../../../api';
-import { ImageLegofyPalettes } from '../../../constants';
+import { MediaLegofyPalettes } from '../../../constants';
 import { imageReply } from '../..';
 
 
@@ -9,8 +9,8 @@ export const COMMAND_ID = 'media.iv.manipulation.legofy';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  dither: boolean,
-  palette?: ImageLegofyPalettes,
+  dither?: boolean,
+  palette?: MediaLegofyPalettes,
   size?: number,
   url: string,
 }

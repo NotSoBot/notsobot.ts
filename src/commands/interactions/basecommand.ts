@@ -5,13 +5,14 @@ import {
   ApplicationCommandTypes,
   ApplicationCommandOptionTypes,
   InteractionCallbackTypes,
+  MessageComponentButtonStyles,
   MessageFlags,
 } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Components, Embed, Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { createUserCommand } from '../../api';
-import { BooleanEmojis, CommandTypes, EmbedColors, PermissionsText } from '../../constants';
+import { BooleanEmojis, CommandTypes, DiscordSkuIds, EmbedColors, PermissionsText } from '../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 
@@ -67,7 +68,16 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   onCancel(context: Interaction.InteractionContext) {
     const contextMetadata = context.metadata = context.metadata || {};
     if (contextMetadata.reason) {
+      let components: Components | undefined;
+      if (contextMetadata.reasonIsPremiumRequired) {
+        components = new Components();
+        components.createButton({
+          skuId: DiscordSkuIds.USER_NOTSOPREMIUM,
+          style: MessageComponentButtonStyles.PREMIUM,
+        });
+      }
       return editOrReply(context, {
+        components,
         content: contextMetadata.reason,
         flags: MessageFlags.EPHEMERAL,
       });

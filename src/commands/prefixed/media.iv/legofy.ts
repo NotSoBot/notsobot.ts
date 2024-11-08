@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, ImageLegofyPalettes } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { CommandCategories, MediaLegofyPalettes } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -16,7 +16,7 @@ export default class LegofyCommand extends BaseImageOrVideoCommand {
       aliases: ['lego'],
       args: [
         {name: 'dither', type: Boolean},
-        {name: 'palette', choices: Object.values(ImageLegofyPalettes), help: `Must be one of: (${Object.values(ImageLegofyPalettes).join(', ')})`},
+        {name: 'palette', type: Parameters.oneOf({choices: MediaLegofyPalettes})},
         {name: 'size', type: Number},
       ],
       metadata: {
@@ -29,7 +29,7 @@ export default class LegofyCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -dither`,
         ],
         id: Formatter.Commands.MediaIVManipulationLegofy.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-dither) (-palette <ImageLegofyPalettes>) (-size <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-dither) (-palette <MediaLegofyPalettes>) (-size <number>)',
       },
     });
   }

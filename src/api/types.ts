@@ -7,7 +7,6 @@ import {
   GoogleLocales,
   GuildLoggerTypes,
   ImageEyeTypes,
-  ImageLegofyPalettes,
   ImageMemeFonts,
   RedditSortTypes,
   RedditTimeTypes,
@@ -422,7 +421,7 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationLegofy extends MediaBaseOptions {
     dither?: boolean,
-    palette?: ImageLegofyPalettes,
+    palette?: string,
     size?: number,
   }
 
@@ -485,6 +484,10 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationTunnel extends MediaBaseOptions {
     spiral?: boolean,
+  }
+
+  export interface MediaIVManipulationUncaption extends MediaBaseOptions {
+    tolerance?: number,
   }
 
   export interface MediaIVManipulationVaporwave extends MediaBaseOptions {

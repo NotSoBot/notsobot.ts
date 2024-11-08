@@ -43,15 +43,11 @@ export class User extends BaseStructure {
   }
 
   get isPremium(): boolean {
-    return this.hasOwner() || this.hasPremiumDiscord();
+    return this.hasOwner();
   }
 
   hasOwner(): boolean {
     return this.hasFlag(UserFlags.OWNER);
-  }
-
-  hasPremiumDiscord(): boolean {
-    return this.hasFlag(UserFlags.PREMIUM_DISCORD);
   }
 
   hasFlag(flag: number): boolean {
@@ -89,5 +85,9 @@ export class UserFull extends User {
   constructor(data: Structures.BaseStructureData) {
     super();
     this.merge(data);
+  }
+
+  get isPremium(): boolean {
+    return !!this.premiumType || this.hasOwner();
   }
 }

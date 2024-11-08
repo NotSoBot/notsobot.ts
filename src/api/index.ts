@@ -1367,7 +1367,7 @@ export async function mediaIVManipulationTunnel(
 
 export async function mediaIVManipulationUncaption(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationUncaption,
 ) {
   return raw.mediaIVManipulationUncaption(context, options);
 }

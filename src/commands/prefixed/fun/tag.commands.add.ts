@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, GuildFeatures, UserFlags } from '../../../constants';
+import { BooleanEmojis, CommandCategories, GuildFeatures, UserFlags } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserStore from '../../../stores/users';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
@@ -41,7 +41,7 @@ export default class TagCommandsAddCommand extends BaseCommand {
 
     if (context.inDm) {
       const user = await UserStore.getOrFetch(context, context.userId);
-      if (!user || (!user.hasFlag(UserFlags.OWNER) && !user.hasFlag(UserFlags.PREMIUM_DISCORD))) {
+      if (!user || (!user.premiumType && !user.hasFlag(UserFlags.OWNER))) {
         context.metadata = context.metadata || {};
         context.metadata.content = 'You must have NotSoPremium to have custom commands!';
         return false;
@@ -81,7 +81,7 @@ export default class TagCommandsAddCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.TagCommandsAdd.CommandArgsBefore) {
     if (args.tag === false) {
-      return editOrReply(context, '⚠ Unknown Tag');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
     }
     return super.onCancelRun(context, args);
   }

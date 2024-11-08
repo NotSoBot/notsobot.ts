@@ -8,6 +8,7 @@ export const COMMAND_ID = 'media.iv.manipulation.uncaption';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  tolerance?: number,
   url: string,
 }
 
