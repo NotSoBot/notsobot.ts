@@ -904,6 +904,14 @@ export enum MediaLegofyPalettes {
 };
 
 
+export enum MediaWiggleDirections {
+  DOWN = 'DOWN',
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
+  UP = 'UP',
+};
+
+
 export enum Mimetypes {
   AUDIO_AAC = 'audio/aac',
   AUDIO_FLAC = 'audio/flac',

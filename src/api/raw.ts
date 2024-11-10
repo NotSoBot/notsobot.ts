@@ -2970,6 +2970,31 @@ export async function mediaIVManipulationRecolor(
 }
 
 
+export async function mediaIVManipulationRipple(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationRipple,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    amplitude: options.amplitude,
+    offset: options.offset,
+    power: options.power,
+    rmin: options.rmin,
+    type: options.type,
+    url: options.url,
+    width: options.width,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_RIPPLE,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationShake(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationShake,
@@ -3248,6 +3273,28 @@ export async function mediaIVManipulationWaveAnimated(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_WAVE_ANIMATED,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationWiggle(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWiggle,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    amount: options.amount,
+    direction: options.direction,
+    url: options.url,
+    wavelengths: options.wavelengths,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_WIGGLE,
     },
   });
 }
@@ -4240,6 +4287,34 @@ export async function utilitiesMLInterrogate(
     route: {
       method: HTTPMethods.POST,
       path: Api.UTILITIES_ML_INTERROGATE,
+    },
+  });
+}
+
+
+export async function utilitiesMLMashup(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLMashup,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    do_not_error: options.doNotError,
+    model: options.model,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    seed: options.seed,
+    steps: options.steps,
+    strength: options.strength,
+    upload: options.upload,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_ML_MASHUP,
     },
   });
 }

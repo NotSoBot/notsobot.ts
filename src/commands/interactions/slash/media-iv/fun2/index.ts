@@ -13,6 +13,7 @@ import { MediaIVSpinCommand } from './spin';
 import { MediaIVSwirlCommand } from './swirl';
 import { MediaIVWaveCommand } from './wave';
 import { MediaIVWavesCommand } from './waves';
+import { MediaIVWiggleCommand } from './wiggle';
 // rip command
 
 
@@ -36,6 +37,7 @@ export class MediaFun2GroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVSwirlCommand,
         new MediaIVWaveCommand(),
         new MediaIVWavesCommand(),
+        new MediaIVWiggleCommand(),
       ],
     });
   }

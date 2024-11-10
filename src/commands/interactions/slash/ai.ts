@@ -92,6 +92,7 @@ export default class AICommand extends BaseSlashCommand {
     if (!hasPremium) {
       context.metadata = context.metadata || {};
       context.metadata.reason = 'You or the Server Owner must have NotSoPremium to use NotSoAI!';
+      context.metadata.reasonIsPremiumRequired = true;
     }
     return hasPremium;
   }

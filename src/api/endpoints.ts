@@ -248,6 +248,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/rain/gold',
   MEDIA_IV_MANIPULATION_RECOLOR:
     '/media/iv/manipulation/recolor',
+  MEDIA_IV_MANIPULATION_RIPPLE:
+    '/media/iv/manipulation/ripple',
   MEDIA_IV_MANIPULATION_SHAKE:
     '/media/iv/manipulation/shake',
   MEDIA_IV_MANIPULATION_SHARPEN:
@@ -276,6 +278,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/wave',
   MEDIA_IV_MANIPULATION_WAVE_ANIMATED:
     '/media/iv/manipulation/wave/animated',
+  MEDIA_IV_MANIPULATION_WIGGLE:
+    '/media/iv/manipulation/wiggle',
 
   MEDIA_IV_TOOLS_BACKGROUND_REMOVE:
     '/media/iv/tools/background/remove',
@@ -430,6 +434,8 @@ export const Api = Object.freeze({
     '/utilities/ml/imagine',
   UTILITIES_ML_INTERROGATE:
     '/utilities/ml/interrogate',
+  UTILITIES_ML_MASHUP:
+    '/utilities/ml/mashup',
   UTILITIES_QR_CREATE:
     '/utilities/qr/create',
   UTILITIES_QR_SCAN:
@@ -466,7 +472,11 @@ export const CDN = Tools.URIEncodeWrap({
 });
 
 
+
+const TWEMOJI_SVG_BASE = 'https://raw.githubusercontent.com/jdecked/twemoji/master/assets/svg/';
+
 export const CUSTOM = Tools.URIEncodeWrap({
+  TWEMOJI_SVG_BASE,
   APPLE_EMOJI: (codepoint: string): string =>
     `https://raw.githubusercontent.com/samuelngs/apple-emoji-linux/ios-16.4/png/160/emoji_u${codepoint.replace(/-/g, '_')}.png`,
   GOOGLE_EMOJI: (codepoint: string): string =>
@@ -476,5 +486,5 @@ export const CUSTOM = Tools.URIEncodeWrap({
   STEAM_EMOJI: (name: string): string =>
     `https://steamcommunity-a.akamaihd.net/economy/emoticon/${name}`,
   TWEMOJI_SVG: (codepoint: string) =>
-    `https://raw.githubusercontent.com/jdecked/twemoji/master/assets/svg/${codepoint}.svg`,
+    TWEMOJI_SVG_BASE + `${codepoint}.svg`,
 });

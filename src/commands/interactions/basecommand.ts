@@ -9,6 +9,7 @@ import {
   MessageFlags,
 } from 'detritus-client/lib/constants';
 import { Components, Embed, Markup } from 'detritus-client/lib/utils';
+import { Endpoints } from 'detritus-client-rest';
 import { Response } from 'detritus-rest';
 
 import { createUserCommand } from '../../api';
@@ -68,16 +69,27 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   onCancel(context: Interaction.InteractionContext) {
     const contextMetadata = context.metadata = context.metadata || {};
     if (contextMetadata.reason) {
-      let components: Components | undefined;
       if (contextMetadata.reasonIsPremiumRequired) {
+        const storePageUrl = (
+          Endpoints.Routes.URL +
+          Endpoints.Routes.APPLICATION_DIRECTORY(context.applicationId) +
+          `/${DiscordSkuIds.USER_NOTSOPREMIUM}`
+        );
+
+        contextMetadata.reason = [
+          contextMetadata.reason,
+          `Buy it here: ${storePageUrl}`,
+        ].join('\n').trim();
+
+        /*
         components = new Components();
         components.createButton({
           skuId: DiscordSkuIds.USER_NOTSOPREMIUM,
           style: MessageComponentButtonStyles.PREMIUM,
         });
+        */
       }
       return editOrReply(context, {
-        components,
         content: contextMetadata.reason,
         flags: MessageFlags.EPHEMERAL,
       });
@@ -172,7 +184,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         }
 
       } catch(e) {
-        if (response.statusCode === 502) {
+        if (response.statusCode === 502 || response.statusCode === 521) {
           description.push('Our api is restarting, might take a bit. Sorry ;(');
         } else {
           description.push(`HTTP Exception: ${response.statusCode}`);

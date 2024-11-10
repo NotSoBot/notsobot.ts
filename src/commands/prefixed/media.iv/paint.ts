@@ -14,7 +14,7 @@ export default class PaintCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'radius', type: Number},
+        {aliases: ['r'], name: 'radius', type: Number},
       ],
       metadata: {
         description: 'Apply an Oil Paint effect to an Image or Video',

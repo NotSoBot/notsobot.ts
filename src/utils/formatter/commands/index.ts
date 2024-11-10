@@ -111,6 +111,7 @@ import * as MediaIVManipulationRain from './media.iv.manipulation.rain';
 import * as MediaIVManipulationRainGold from './media.iv.manipulation.rain.gold';
 import * as MediaIVManipulationRecaption from './media.iv.manipulation.recaption';
 import * as MediaIVManipulationRecolor from './media.iv.manipulation.recolor';
+import * as MediaIVManipulationRipple from './media.iv.manipulation.ripple';
 import * as MediaIVManipulationShake from './media.iv.manipulation.shake';
 import * as MediaIVManipulationSharpen from './media.iv.manipulation.sharpen';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
@@ -125,6 +126,7 @@ import * as MediaIVManipulationVaporwave from './media.iv.manipulation.vaporwave
 import * as MediaIVManipulationWall from './media.iv.manipulation.wall';
 import * as MediaIVManipulationWave from './media.iv.manipulation.wave';
 import * as MediaIVManipulationWaveAnimated from './media.iv.manipulation.wave.animated';
+import * as MediaIVManipulationWiggle from './media.iv.manipulation.wiggle';
 
 import * as MediaIVToolsBackgroundRemove from './media.iv.tools.background.remove';
 import * as MediaIVToolsCrop from './media.iv.tools.crop';
@@ -221,6 +223,7 @@ import * as ToolsMath from './tools.math';
 import * as ToolsMLEdit from './tools.ml.edit';
 import * as ToolsMLImagine from './tools.ml.imagine';
 import * as ToolsMLInterrogate from './tools.ml.interrogate';
+import * as ToolsMLMashup from './tools.ml.mashup';
 import * as ToolsMLReimagine from './tools.ml.reimagine';
 import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocr.translate';
@@ -353,6 +356,7 @@ export {
   MediaIVManipulationRainGold,
   MediaIVManipulationRecaption,
   MediaIVManipulationRecolor,
+  MediaIVManipulationRipple,
   MediaIVManipulationShake,
   MediaIVManipulationSharpen,
   MediaIVManipulationSpin,
@@ -367,6 +371,7 @@ export {
   MediaIVManipulationWall,
   MediaIVManipulationWave,
   MediaIVManipulationWaveAnimated,
+  MediaIVManipulationWiggle,
 
   MediaIVToolsBackgroundRemove,
   MediaIVToolsCrop,
@@ -463,6 +468,7 @@ export {
   ToolsMLEdit,
   ToolsMLImagine,
   ToolsMLInterrogate,
+  ToolsMLMashup,
   ToolsMLReimagine,
   ToolsOCR,
   ToolsOCRTranslate,

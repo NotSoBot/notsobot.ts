@@ -229,7 +229,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         }
 
       } catch(e) {
-        if (response.statusCode === 502) {
+        if (response.statusCode === 502 || response.statusCode === 521) {
           description.push('Our api is restarting, might take a bit. Sorry ;(');
         } else {
           description.push(`HTTP Exception: ${response.statusCode}`);
@@ -480,6 +480,36 @@ export class BaseImageOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> ex
       return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any images or videos in the last 50 messages.`);
     } else if (args.url === null) {
       return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`);
+    }
+    return super.onCancelRun(context, args);
+  }
+}
+
+
+export class BaseImageOrVideosCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediasCommand<ParsedArgsFinished> {
+  constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions> & {maxAmount?: number, minAmount?: number}) {
+    super(commandClient, {
+      type: options.type || Parameters.mediaUrls({
+        audio: false,
+        maxAmount: options.maxAmount,
+        minAmount: options.minAmount,
+        image: true,
+        video: true,
+      }),
+      ...options,
+    });
+    this.maxAmount = options.maxAmount || this.maxAmount;
+    this.minAmount = options.minAmount || this.minAmount;
+  }
+
+  onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
+    if (!args.urls.length) {
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any image or videos in the last 50 messages.`);
+    } else if (args.urls.length < this.minAmount) {
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find ${this.minAmount} image or video urls in the last 50 messages.`);
+    } else if (this.maxAmount < args.urls.length) {
+      // never should happen
+      return editOrReply(context, `${BooleanEmojis.WARNING} Found too many image or video urls in the last 50 messages.`);
     }
     return super.onCancelRun(context, args);
   }

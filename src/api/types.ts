@@ -457,6 +457,15 @@ export namespace RestOptions {
   export interface MediaIVManipulationPixelate extends MediaBaseOptions {
     pixelWidth?: number,
   }
+
+  export interface MediaIVManipulationRipple extends MediaBaseOptions {
+    amplitude?: number,
+    offset?: number,
+    power?: number,
+    rmin?: number,
+    type?: string,
+    width?: number,
+  }
   
   export interface MediaIVManipulationShake extends MediaBaseOptions {
     horizontal?: number,
@@ -501,6 +510,12 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationWaveAnimated extends MediaIVManipulationWave {
     speed?: number,
+  }
+
+  export interface MediaIVManipulationWiggle extends MediaBaseOptions {
+    amount?: number,
+    direction?: string,
+    wavelengths?: number,
   }
 
   export interface MediaIVToolsBackgroundRemoveOptions extends MediaBaseOptions {
@@ -798,6 +813,15 @@ export namespace RestOptions {
     seed?: number,
     steps?: number,
     upload?: boolean,
+  }
+
+  export interface UtilitiesMLMashup extends MediaBaseOptionsMultiple {
+    doNotError?: boolean,
+    model?: string,
+    safe?: boolean,
+    seed?: number,
+    steps?: number,
+    strength?: number,
   }
 
   export interface UtilitiesQrCreate {

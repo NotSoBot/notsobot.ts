@@ -14,6 +14,7 @@ import {
   putTagVariable,
   putTagVariables,
   searchGoogleImages,
+  searchYoutube,
   utilitiesCodeRun,
   utilitiesFetchMedia,
   utilitiesFetchText,
@@ -22,12 +23,13 @@ import {
   utilitiesMLImagine,
   utilitiesMLInterrogate,
 } from '../api';
-import { RestResponses } from '../api/types';
+import { RestResponses, RestResponsesRaw } from '../api/types';
 import {
   CodeLanguages,
   GoogleLocales,
   MLDiffusionModels,
   TagVariableStorageTypes,
+  YoutubeResultTypes,
   MAX_MEMBERS_SAFE,
 } from '../constants';
 
@@ -239,6 +241,7 @@ export enum TagFunctions {
   RNG_CHOOSE = 'RNG_CHOOSE',
   RNG_RANGE = 'RNG_RANGE',
   SEARCH_GOOGLE_IMAGES = 'SEARCH_GOOGLE_IMAGES',
+  SEARCH_YOUTUBE = 'SEARCH_YOUTUBE',
   SETTINGS = 'SETTINGS',
   STRING_INDEX_OF = 'STRING_INDEX_OF',
   STRING_JSONIFY = 'STRING_JSONIFY',
@@ -350,7 +353,8 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.REPLY_USER_ID]: ['replyuserid'],
   [TagFunctions.RNG_CHOOSE]: ['choose'],
   [TagFunctions.RNG_RANGE]: ['range', 'random', 'rnd'],
-  [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.g.images'],
+  [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.google.images', 's.g.images'],
+  [TagFunctions.SEARCH_YOUTUBE]: ['search.youtube', 'search.yt', 's.youtube', 's.yt'],
   [TagFunctions.SETTINGS]: ['settings'],
   [TagFunctions.STRING_INDEX_OF]: ['indexof'],
   [TagFunctions.STRING_JSONIFY]: ['jsonify'],
@@ -402,9 +406,10 @@ export interface TagVariables {
   [PrivateVariables.NETWORK_REQUESTS]: number,
   [PrivateVariables.RESULTS]: {
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
+    [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
   },
   [PrivateVariables.SETTINGS]: {
-    [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES,
+    [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES | TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.ML_IMAGINE_DO_NOT_ERROR]?: boolean,
     [TagSettings.ML_IMAGINE_MODEL]?: MLDiffusionModels,
   },
@@ -2878,6 +2883,38 @@ const ScriptTags = Object.freeze({
     const result = results[page];
     if (result) {
       tag.text += result.imageUrl;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.SEARCH_YOUTUBE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {search.youtube:cat}
+
+    if (!arg) {
+      return true;
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_YOUTUBE] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_YOUTUBE] ||
+      {}
+    );
+
+    arg = arg.slice(0, 1024);
+    if (!(arg in cachedResults)) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    }
+
+    const response = cachedResults[arg] || await searchYoutube(context, {
+      query: arg,
+    });
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = response;
+    }
+
+    const result = response.results.find((x) => x.type === YoutubeResultTypes.VIDEO);
+    if (result) {
+      tag.text += result.url;
     }
 
     return true;

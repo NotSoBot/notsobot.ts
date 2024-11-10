@@ -1006,7 +1006,10 @@ export function memberOrUser(
           }
 
           if (isSnowflake(value)) {
-            return await fetchMemberOrUserById(context, value, options.memberOnly);
+            const found = await fetchMemberOrUserById(context, value, options.memberOnly);
+            if (found) {
+              return found;
+            }
           }
 
           const found = await findMemberByChunkText(context, value);
@@ -1292,7 +1295,10 @@ export function mediaUrl(
         }
 
         // it's in the form of username#discriminator
-        if (value.includes('#') && !value.startsWith('#')) {
+        if ((value.includes('#') && !value.startsWith('#')) || value.startsWith('@')) {
+          if (value.startsWith('@')) {
+            value = value.slice(1);
+          }
           const found = await findMemberByChunkText(context, value);
           if (found) {
             return found.avatarUrlFormat(null, {size: 1024});
@@ -1529,7 +1535,10 @@ export function mediaUrls(
           }
 
           // it's in the form of username#discriminator
-          if (part.includes('#') && !part.startsWith('#')) {
+          if ((part.includes('#') && !part.startsWith('#')) || part.startsWith('@')) {
+            if (part.startsWith('@')) {
+              part = part.slice(1);
+            }
             const found = await findMemberByChunkText(context, part);
             if (found) {
               urls.push(found.avatarUrlFormat(null, {size: 1024}));
@@ -1822,7 +1831,10 @@ export function mediaUrlPositional(
         }
 
         // it's in the form of username#discriminator
-        if (value.includes('#') && !value.startsWith('#')) {
+        if ((value.includes('#') && !value.startsWith('#')) || value.startsWith('@')) {
+          if (value.startsWith('@')) {
+            value = value.slice(1);
+          }
           const found = await findMemberByChunkText(context, value);
           if (found) {
             return found.avatarUrlFormat(null, {size: 1024});

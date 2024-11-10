@@ -9,7 +9,36 @@ import {
   UserFallbacksMediaImageTypes,
   UserUploadThresholdTypes,
 } from '../../constants';
-import { DefaultParameters } from '../../utils';
+import { DefaultParameters, toTitleCase } from '../../utils';
+
+
+
+export interface OneOfOptions<T> {
+  choices: Record<string, T>,
+  defaultChoice?: T,
+  descriptions?: Record<any, string>,
+}
+
+export function oneOf<T>(options: OneOfOptions<T>): Array<{name: string, value: number | string}> {
+  let choices: Array<{name: string, value: number | string}> = [];
+  for (let [key, value] of Object.entries(options.choices)) {
+    let name: string = ((options.descriptions) ? (options.descriptions as any)[value] : '') || '';
+    if (!name) {
+      name = toTitleCase(key);
+    }
+    if (options.defaultChoice && options.defaultChoice === value) {
+      name = `${name} (Default)`;
+    }
+    choices.push({name, value: value as any});
+  }
+  choices = choices.sort((x, y) => {
+    return x.name.localeCompare(y.name);
+  });
+  if (options.defaultChoice) {
+    choices = choices.sort((x, y) => (x.value === options.defaultChoice) ? -1 : 0);
+  }
+  return choices.slice(0, 25);
+}
 
 
 export const GOOGLE_LOCALES = [

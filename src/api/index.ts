@@ -1292,6 +1292,14 @@ export async function mediaIVManipulationRecolor(
 }
 
 
+export async function mediaIVManipulationRipple(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationRipple,
+) {
+  return raw.mediaIVManipulationRipple(context, options);
+}
+
+
 export async function mediaIVManipulationShake(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationShake,
@@ -1402,6 +1410,14 @@ export async function mediaIVManipulationWaveAnimated(
   options: RestOptions.MediaIVManipulationWaveAnimated,
 ) {
   return raw.mediaIVManipulationWaveAnimated(context, options);
+}
+
+
+export async function mediaIVManipulationWiggle(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWiggle,
+) {
+  return raw.mediaIVManipulationWiggle(context, options);
 }
 
 
@@ -1823,6 +1839,14 @@ export async function utilitiesMLInterrogate(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.utilitiesMLInterrogate(context, options);
+}
+
+
+export async function utilitiesMLMashup(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLMashup,
+) {
+  return raw.utilitiesMLMashup(context, options);
 }
 
 

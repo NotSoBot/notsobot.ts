@@ -413,8 +413,9 @@ export function findMediaUrlInMessage(
       const emojis = onlyEmoji(value);
       if (emojis && emojis.length) {
         for (let emoji of emojis) {
-          const codepoint = toCodePointForTwemoji(emoji);
-          return Endpoints.CUSTOM.TWEMOJI_SVG(codepoint) + '?convert=true';
+          const codepoint = toCodePoint(emoji);
+          const codepointForTwemoji = toCodePointForTwemoji(emoji);
+          return Endpoints.CUSTOM.TWEMOJI_SVG(codepointForTwemoji) + '?codepoint=' + encodeURIComponent(codepoint);
         }
       }
     }
@@ -784,12 +785,46 @@ export function findMemberByUsername(
   for (const memberOrUser of members.values()) {
     if (memberOrUser) {
       if (discriminator) {
-        if (memberOrUser.username.toLowerCase().startsWith(username) && memberOrUser.discriminator === discriminator) {
+        const nameStartsWith = (
+          memberOrUser.username.toLowerCase().startsWith(username) &&
+          memberOrUser.discriminator === discriminator
+        );
+        if (nameStartsWith) {
           return memberOrUser;
         }
       } else {
-        const nameMatches = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
+        const nameStartsWith = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
+        if (nameStartsWith) {
+          return memberOrUser;
+        }
+      }
+    }
+  }
+  // now do another look over, matching the username instead of startswith since nobody matched
+  for (const memberOrUser of members.values()) {
+    if (memberOrUser) {
+      if (discriminator) {
+        const nameMatches = (
+          memberOrUser.username.toLowerCase().includes(username) &&
+          memberOrUser.discriminator === discriminator
+        );
         if (nameMatches) {
+          return memberOrUser;
+        }
+      } else {
+        const nameMatches = memberOrUser.names.some((n: string) => n.toLowerCase().includes(username));
+        if (nameMatches) {
+          return memberOrUser;
+        }
+      }
+    }
+  }
+  if (8 <= username.length && 21 <= username.length && !isNaN(username as any)) {
+    // search the ids now, cause harrisson19 (692547945697902592) asked for it
+    for (const memberOrUser of members.values()) {
+      if (memberOrUser) {
+        const idStartsWith = memberOrUser.id.startsWith(username);
+        if (idStartsWith) {
           return memberOrUser;
         }
       }
@@ -806,12 +841,16 @@ export function findMembersByUsername(
   for (const memberOrUser of members.values()) {
     if (memberOrUser) {
       if (discriminator) {
-        if (memberOrUser.username.toLowerCase().startsWith(username) && memberOrUser.discriminator === discriminator) {
+        const nameStartsWith = (
+          memberOrUser.username.toLowerCase().startsWith(username) &&
+          memberOrUser.discriminator === discriminator
+        );
+        if (nameStartsWith) {
           found.push(memberOrUser);
         }
       } else {
-        const nameMatches = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
-        if (nameMatches) {
+        const nameStartsWith = memberOrUser.names.some((n: string) => n.toLowerCase().startsWith(username));
+        if (nameStartsWith) {
           found.push(memberOrUser);
         }
       }
@@ -1647,6 +1686,9 @@ export function splitTextByAmount(text: string, amount: number, character = '\n'
 
 
 export function splitTextToDiscordHandle(text: string): [string, string | null] {
+  if (text.startsWith('@')) {
+    text = text.slice(1);
+  }
   const parts = text.split('#');
   const username = (parts.shift() as string).slice(0, 32).toLowerCase();
   let discriminator: null | string = null;
@@ -1704,6 +1746,7 @@ const U200D = String.fromCharCode(0x200D);
 const UFE0F_REGEX = /\uFE0F/g;
 
 export function toCodePointForTwemoji(unicodeSurrogates: string): string {
+  // emojis like 2639-fe0f.svg must be converted to 2639.svg
   if (unicodeSurrogates.indexOf(U200D) < 0) {
     unicodeSurrogates = unicodeSurrogates.replace(UFE0F_REGEX, '');
   }
