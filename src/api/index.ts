@@ -751,7 +751,7 @@ export async function mediaAVManipulationVolume(
 
 export async function mediaAVToolsExtractAudio(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaAVToolsExtractAudio,
 ) {
   return raw.mediaAVToolsExtractAudio(context, options);
 }
@@ -1394,6 +1394,14 @@ export async function mediaIVManipulationWall(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationWall(context, options);
+}
+
+
+export async function mediaIVManipulationWatercolor(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWatercolor,
+) {
+  return raw.mediaIVManipulationWatercolor(context, options);
 }
 
 

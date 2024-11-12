@@ -1606,12 +1606,15 @@ export async function mediaAVManipulationVolume(
 
 export async function mediaAVToolsExtractAudio(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaAVToolsExtractAudio,
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    allowed_mimetypes: options.allowedMimetypes,
     max_file_size: maxFileSize,
+    mimetype: options.mimetype,
     url: options.url,
+    waveform: options.waveform,
   };
   return request(context, {
     file: options.file,
@@ -3230,6 +3233,29 @@ export async function mediaIVManipulationWall(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_WALL,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationWatercolor(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationWatercolor,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    contrast: options.contrast,
+    edge: options.edge,
+    mixing: options.mixing,
+    smoothing: options.smoothing,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_WATERCOLOR,
     },
   });
 }

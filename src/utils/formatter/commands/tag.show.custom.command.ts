@@ -1,9 +1,13 @@
 import { Command, Interaction } from 'detritus-client';
+import { MessageFlags } from 'detritus-client/lib/constants';
 
 import { TagCustomCommandStored } from '../../../stores/tagcustomcommands';
 
 import { RestResponsesRaw } from '../../../api/types';
 import { Paginator, TagFormatter, editOrReply } from '../../../utils';
+
+import { maybeCheckNSFW } from './tag.show';
+
 
 
 export const COMMAND_ID = 'tag.show.custom.command';
@@ -47,17 +51,27 @@ export async function createMessage(
 
   if (parsedTag.files.length) {
     options.files = parsedTag.files.slice(0, 10).map((file) => {
+      if (file.waveform) {
+        options.flags = MessageFlags.IS_VOICE_MESSAGE;
+      }
       return {
         description: file.description,
+        durationSecs: file.durationSecs,
         filename: file.filename,
         hasSpoiler: file.spoiler,
+        waveform: file.waveform,
         value: file.buffer,
       };
     });
   }
 
+  await maybeCheckNSFW(context, tag, options);
   if (!content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
     options.content = 'Tag returned no content';
+  }
+
+  if (options.flags && (content.length || parsedTag.embeds.length || parsedTag.files.length !== 1)) {
+    options.flags = undefined;
   }
 
   return editOrReply(context, options);

@@ -11,6 +11,7 @@ import {
   deleteTagVariable,
   googleContentVisionOCR,
   googleTranslate,
+  mediaAVToolsExtractAudio,
   putTagVariable,
   putTagVariables,
   searchGoogleImages,
@@ -27,6 +28,7 @@ import { RestResponses, RestResponsesRaw } from '../api/types';
 import {
   CodeLanguages,
   GoogleLocales,
+  Mimetypes,
   MLDiffusionModels,
   TagVariableStorageTypes,
   YoutubeResultTypes,
@@ -41,12 +43,14 @@ import {
   bigIntMin,
   generateCodeFromLanguage,
   generateCodeStdin,
+  generateWaveformFromAudioBuffer,
   getCodeLanguage,
   languageCodeToText,
   randomFromArray,
   randomFromIterator,
   textToBoolean,
 } from './tools';
+
 
 
 const findChannel = Parameters.channel({inGuild: true});
@@ -176,6 +180,7 @@ export enum TagFunctions {
   ATTACHMENT_LAST = 'ATTACHMENT_LAST',
   ATTACHMENT_SPOILER = 'ATTACHMENT_SPOILER',
   ATTACHMENT_TEXT = 'ATTACHMENT_TEXT',
+  ATTACHMENT_VOICE = 'ATTACHMENT_VOICE',
   AVATAR = 'AVATAR',
   CHANNEL = 'CHANNEL',
   CHANNEL_ID = 'CHANNEL_ID',
@@ -289,6 +294,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.ATTACHMENT_LAST]: ['last_attachment', 'lastattachment', 'lattachment', 'lattach'],
   [TagFunctions.ATTACHMENT_SPOILER]: ['attachmentspoiler', 'attachspoiler', 'filespoiler'],
   [TagFunctions.ATTACHMENT_TEXT]: ['attachmenttext', 'attachtext', 'filetext'],
+  [TagFunctions.ATTACHMENT_VOICE]: ['attachmentvoice', 'attachvoice', 'filevoice'],
   [TagFunctions.AVATAR]: ['avatar'],
   [TagFunctions.CHANNEL]: ['channel'],
   [TagFunctions.CHANNEL_ID]: ['channelid'],
@@ -421,7 +427,15 @@ export interface TagResult {
     parser?: mathjs.Parser,
   },
   embeds: Array<Embed>,
-  files: Array<{buffer: null | string | Buffer, description?: string, filename: string, spoiler?: boolean, url: string}>,
+  files: Array<{
+    buffer: null | string | Buffer,
+    description?: string,
+    durationSecs?: number,
+    filename: string,
+    spoiler?: boolean,
+    waveform?: string,
+    url: string,
+  }>,
   pages: Array<{embed: Embed}>,
   replacement: string | null,
   text: string,
@@ -1249,6 +1263,56 @@ const ScriptTags = Object.freeze({
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({buffer: data, filename: `${filename}.${extension}`, spoiler: false, url: ''});
+    } catch(error) {
+      console.log(error);
+      throw error;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.ATTACHMENT_VOICE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // assume the arg is a url and download it
+    // {attach:url|filename}
+    // {attach:https://google.com/something.mp3}
+    // {attach:https://google.com/something.mp3|voice-message}
+  
+    if (MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    }
+
+    let [ urlString, ...filenameValues ] = split(arg);
+
+    const url = await Parameters.url(urlString.trim(), context);
+    const filenameArg = (filenameValues.length) ? filenameValues.join(TagSymbols.SPLITTER_ARGUMENT) : undefined;
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    try {
+      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+      const response = await mediaAVToolsExtractAudio(context, {
+        maxFileSize,
+        mimetype: Mimetypes.AUDIO_OGG,
+        url,
+        waveform: true,
+      });
+      const filename = filenameArg || response.file.filename;
+      const waveform = response.arguments && response.arguments.waveform;
+
+      const data: Buffer = Buffer.from(response.file.value, 'base64');
+      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+      if (maxFileSize <= currentFileSize + data.length) {
+        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+      }
+      tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+      tag.files.push({
+        buffer: data,
+        durationSecs: 2147483647, //response.file.metadata.duration / 1000,
+        filename,
+        spoiler: false,
+        waveform,
+        url,
+      });
     } catch(error) {
       console.log(error);
       throw error;

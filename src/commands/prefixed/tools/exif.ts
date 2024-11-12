@@ -3,12 +3,12 @@ import { Command, CommandClient } from 'detritus-client';
 import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
-import { BaseImageCommand } from '../basecommand';
+import { BaseMediaCommand } from '../basecommand';
 
 
 export const COMMAND_NAME = 'exif';
 
-export default class ExifCommand extends BaseImageCommand {
+export default class ExifCommand extends BaseMediaCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

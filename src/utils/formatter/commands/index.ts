@@ -124,6 +124,7 @@ import * as MediaIVManipulationTunnel from './media.iv.manipulation.tunnel';
 import * as MediaIVManipulationUncaption from './media.iv.manipulation.uncaption';
 import * as MediaIVManipulationVaporwave from './media.iv.manipulation.vaporwave';
 import * as MediaIVManipulationWall from './media.iv.manipulation.wall';
+import * as MediaIVManipulationWatercolor from './media.iv.manipulation.watercolor';
 import * as MediaIVManipulationWave from './media.iv.manipulation.wave';
 import * as MediaIVManipulationWaveAnimated from './media.iv.manipulation.wave.animated';
 import * as MediaIVManipulationWiggle from './media.iv.manipulation.wiggle';
@@ -369,6 +370,7 @@ export {
   MediaIVManipulationUncaption,
   MediaIVManipulationVaporwave,
   MediaIVManipulationWall,
+  MediaIVManipulationWatercolor,
   MediaIVManipulationWave,
   MediaIVManipulationWaveAnimated,
   MediaIVManipulationWiggle,

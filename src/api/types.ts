@@ -247,6 +247,7 @@ export namespace RestOptions {
   export interface MediaBaseOptions {
     file?: RequestFile,
     filename?: string,
+    maxFileSize?: number,
     upload?: boolean,
     url?: string,
   }
@@ -317,6 +318,12 @@ export namespace RestOptions {
 
   export interface MediaAVManipulationVolume extends MediaBaseOptions {
     volume?: number,
+  }
+
+  export interface MediaAVToolsExtractAudio extends MediaBaseOptions {
+    allowedMimetypes?: Array<string>,
+    mimetype?: string,
+    waveform?: boolean,
   }
 
   export interface MediaAVToolsIdentify extends MediaBaseOptions {
@@ -501,6 +508,13 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationVaporwave extends MediaBaseOptions {
     text?: string,
+  }
+
+  export interface MediaIVManipulationWatercolor extends MediaBaseOptions {
+    contrast?: number,
+    edge?: number,
+    mixing?: number,
+    smoothing?: number,
   }
 
   export interface MediaIVManipulationWave extends MediaBaseOptions {

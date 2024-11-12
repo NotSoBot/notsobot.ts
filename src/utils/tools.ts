@@ -12,7 +12,14 @@ import {
   Permissions,
   StickerFormats,
 } from 'detritus-client/lib/constants';
-import { Embed, Markup, PermissionTools, intToHex, regex as discordRegex } from 'detritus-client/lib/utils';
+import {
+  Embed,
+  Markup,
+  PermissionTools,
+  intToHex,
+  generateWaveform,
+  regex as discordRegex,
+} from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { replacePathParameters } from 'detritus-rest';
 import { Snowflake, Timers } from 'detritus-utils';
@@ -1193,6 +1200,22 @@ export function generateFakeToken(userId: string): string {
     '.PQytTz.' +
     Buffer.from('https://notsobot.com').toString('base64').replace(/=/g, '')
   );
+}
+
+
+export function generateWaveformFromAudioBuffer(audioData: AudioBuffer): string {
+  let samples: Float32Array;
+  if (1 < audioData.numberOfChannels) {
+    const left = audioData.getChannelData(0);
+    const right = audioData.getChannelData(1);
+    samples = new Float32Array(left.length);
+    for (let i = 0; i < left.length; i++) {
+      samples[i] = (left[i] + right[i]) / 2;
+    }
+  } else {
+    samples = audioData.getChannelData(0);
+  }
+  return generateWaveform(samples, audioData.sampleRate);
 }
 
 

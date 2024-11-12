@@ -274,6 +274,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/vaporwave',
   MEDIA_IV_MANIPULATION_WALL:
     '/media/iv/manipulation/wall',
+  MEDIA_IV_MANIPULATION_WATERCOLOR:
+    '/media/iv/manipulation/watercolor',
   MEDIA_IV_MANIPULATION_WAVE:
     '/media/iv/manipulation/wave',
   MEDIA_IV_MANIPULATION_WAVE_ANIMATED:

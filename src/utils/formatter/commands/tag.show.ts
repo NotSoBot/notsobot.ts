@@ -1,8 +1,11 @@
 import { Command, Interaction } from 'detritus-client';
+import { MessageFlags } from 'detritus-client/lib/constants';
 
 import { createTagUse, editTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { Paginator, TagFormatter, editOrReply } from '../../../utils';
+
+import { OPENAI_API_KEY } from '../../../../config.json';
 
 
 export const COMMAND_ID = 'tag.show';
@@ -44,20 +47,84 @@ export async function createMessage(
 
   if (parsedTag.files.length) {
     options.files = parsedTag.files.slice(0, 10).map((file) => {
+      if (file.waveform) {
+        options.flags = MessageFlags.IS_VOICE_MESSAGE;
+      }
       return {
         description: file.description,
+        durationSecs: file.durationSecs,
         filename: file.filename,
         hasSpoiler: file.spoiler,
+        waveform: file.waveform,
         value: file.buffer,
       };
     });
   }
 
+  await maybeCheckNSFW(context, tag, options);
   if (!content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
     options.content = 'Tag returned no content';
   }
 
+  if (options.flags && (content.length || parsedTag.embeds.length || parsedTag.files.length !== 1)) {
+    options.flags = undefined;
+  }
+
   return editOrReply(context, options);
+}
+
+
+
+export async function maybeCheckNSFW(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: RestResponsesRaw.Tag,
+  options: Command.EditOrReply,
+): Promise<void> {
+  if (options.content) {
+    const [ isAwfulNSFW ] = await checkNSFW(context, options.content);
+    if (isAwfulNSFW) {
+      options.content = 'i love cats';
+    }
+  }
+}
+
+
+import OpenAI from 'openai';
+
+
+const client = new OpenAI({
+  apiKey: OPENAI_API_KEY,
+});
+
+
+const CATEGORIES_TO_CHECK_ALL = ['harassment', 'hate'];
+const CATEGORIES_TO_CHECK_SOME = ['harassment/threatening', 'hate/threatening', 'sexual/minors'];
+
+export async function checkNSFW(
+  context: Command.Context | Interaction.InteractionContext,
+  content: string,
+): Promise<[boolean, any]> {
+  if (!OPENAI_API_KEY) {
+    return [false, null];
+  }
+
+  const response = await client.moderations.create({
+    model: 'omni-moderation-latest',
+    input: [
+      {type: 'text', text: content},
+    ],
+  });
+  for (let result of response.results) {
+    let isAwfulNSFW = CATEGORIES_TO_CHECK_ALL.every((category) => (result.categories as any)[category]);
+    if (isAwfulNSFW) {
+      return [true, response];
+    }
+    isAwfulNSFW = CATEGORIES_TO_CHECK_SOME.some((category) => (result.categories as any)[category]);
+    if (isAwfulNSFW) {
+      return [true, response];
+    }
+  }
+  return [false, response];
 }
 
 

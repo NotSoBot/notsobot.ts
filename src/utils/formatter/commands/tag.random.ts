@@ -1,8 +1,11 @@
 import { Command, Interaction, Structures } from 'detritus-client';
+import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagRandom } from '../../../api';
 import { Paginator, TagFormatter, editOrReply } from '../../../utils';
+
+import { maybeCheckNSFW } from './tag.show';
 
 
 export const COMMAND_ID = 'tag.random';
@@ -28,12 +31,7 @@ export async function createMessage(
 
   // parse it
   const options: Command.EditOrReply = {content: ''};
-
-  const content: Array<string> = [];
-  {
-    let title = `Showing tag: ${Markup.codestring(tag.name)}`;
-    content.push(title + '\n');
-  }
+  const title = `Showing tag: ${Markup.codestring(tag.name)}`;
 
   try {
     context.metadata = Object.assign({}, context.metadata, {tag});
@@ -49,24 +47,39 @@ export async function createMessage(
       return await paginator.start();
     }
 
-    content.push(parsedTag.text.slice(0, 2000));
+    options.content = parsedTag.text.slice(0, 2000);
+
     if (parsedTag.embeds.length) {
       // add checks for embed lengths
       options.embeds = parsedTag.embeds.slice(0, 10);
     }
+
     if (parsedTag.files.length) {
       options.files = parsedTag.files.slice(0, 10).map((file) => {
-        return {filename: file.filename, hasSpoiler: file.spoiler, value: file.buffer};
+        // tag.random can never be a voice message since the content will always be set
+        return {
+          description: file.description,
+          durationSecs: file.durationSecs,
+          filename: file.filename,
+          hasSpoiler: file.spoiler,
+          waveform: file.waveform,
+          value: file.buffer,
+        };
       });
     }
-    if (!parsedTag.text.length && !parsedTag.embeds.length && !parsedTag.files.length) {
-      content.push('Tag returned no content');
+
+    await maybeCheckNSFW(context, tag, options);
+    if (!options.content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
+      options.content = 'Tag returned no content';
     }
   } catch(error) {
-    content.push(error.message);
+    options.content = error.message;
   }
 
-  options.content = content.join('\n').slice(0, 2000);
+  options.content = [
+    title + '\n',
+    options.content,
+  ].join('\n').slice(0, 2000);
 
   return editOrReply(context, options);
 }
