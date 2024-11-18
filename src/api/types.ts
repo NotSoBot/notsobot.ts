@@ -173,6 +173,7 @@ export namespace RestOptions {
     content?: string,
     limit?: number,
     name?: string,
+    sortBy?: number,
     userId?: string,
   }
 
@@ -568,6 +569,13 @@ export namespace RestOptions {
     degrees?: number,
   }
 
+  export interface MediaIVToolsRotate3d extends MediaBaseOptions {
+    crop?: string,
+    pan?: number,
+    roll?: number,
+    tilt?: number,
+  }
+
   export interface MediaIVToolsSpeed extends MediaBaseOptions {
     loop?: boolean,
     speed: number,
@@ -849,9 +857,12 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesScreenshot {
+    darkmode?: boolean,
+    height?: number,
     safe?: boolean,
     timeout?: number,
     url: string,
+    width?: number,
   }
 
   export interface VoiceCloneAdd {
@@ -1040,7 +1051,10 @@ export namespace RestResponsesRaw {
   export type CreateGuildPrefix = Array<GuildPrefix>;
 
   export type CreateReminder = Reminder;
-  export type CreateTagUse = null;
+
+  export interface CreateTagUse {
+    last_used: string,
+  }
 
   export interface CreateUserCommand {
     
@@ -1402,6 +1416,19 @@ export namespace RestResponsesRaw {
     url: string,
   }
 
+  export interface SearchDuckDuckGoImages {
+    results: Array<{
+      height: number,
+      image: string,
+      image_token: string,
+      source: string,
+      thumbnail: string,
+      thumbnail_token: string,
+      title: string,
+      url: string,
+      width: number,
+    }>,
+  }
 
   export interface SearchGoogle {
     cards: Array<SearchGoogleCard>,
@@ -2067,6 +2094,7 @@ export namespace RestResponsesRaw {
     guild_id: string | null,
     id: string,
     is_command: boolean,
+    last_used: string | null,
     locked: boolean,
     name: string,
     nsfw: boolean,

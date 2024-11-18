@@ -6,7 +6,7 @@ import { BaseInteractionImageCommandOption } from '../../../basecommand';
 
 
 export class ToolsMLInterrogateCommand extends BaseInteractionImageCommandOption {
-  description = 'Interrogate an Image for a Prompt';
+  description = 'Interrogate an Image for a prompt';
   metadata = {
     id: Formatter.Commands.ToolsMLInterrogate.COMMAND_ID,
   };

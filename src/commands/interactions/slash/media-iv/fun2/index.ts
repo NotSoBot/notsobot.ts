@@ -2,8 +2,9 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVDistortCommand } from './distort';
 import { MediaIVFisheyeCommand } from './fisheye';
-import { MediaIVFlipCommand } from './flip';
-import { MediaIVFlopCommand } from './flop';
+import { MediaIVHueShiftHSVCommand } from './hue-shift-hsv';
+import { MediaIVHueShiftHSVFFMPEGCommand } from './hue-shift-hsv-ffmpeg';
+import { MediaIVHueShiftRGBCommand } from './hue-shift-rgb';
 import { MediaIVJPEGCommand } from './jpeg';
 import { MediaIVPaintCommand } from './paint';
 import { MediaIVPaintGifCommand } from './paint-gif';
@@ -27,8 +28,9 @@ export class MediaFun2GroupCommand extends BaseInteractionCommandOptionGroup {
       options: [
         new MediaIVDistortCommand(),
         new MediaIVFisheyeCommand(),
-        new MediaIVFlipCommand(),
-        new MediaIVFlopCommand(),
+        new MediaIVHueShiftHSVCommand(),
+        new MediaIVHueShiftHSVFFMPEGCommand(),
+        new MediaIVHueShiftRGBCommand(),
         new MediaIVJPEGCommand(),
         new MediaIVPaintCommand(),
         new MediaIVPaintGifCommand(),

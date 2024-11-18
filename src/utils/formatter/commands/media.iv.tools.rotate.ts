@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVToolsRotate } from '../../../api';
-import { imageReply } from '../..';
+import { imageReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.tools.rotate';

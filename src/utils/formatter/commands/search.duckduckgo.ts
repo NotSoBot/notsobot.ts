@@ -22,7 +22,7 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const results = await searchDuckDuckGo(context, args);
+  const { results } = await searchDuckDuckGo(context, args);
   if (args.randomize) {
     shuffleArray(results);
   }

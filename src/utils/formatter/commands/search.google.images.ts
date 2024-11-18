@@ -5,6 +5,9 @@ import { searchGoogleImages } from '../../../api';
 import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
+//import { createMessage } from './search.duckduckgo.images';
+//export { createMessage };
+
 
 export const COMMAND_ID = 'search.google.images';
 export const COMMAND_ID_SIMPLE = 'search.google.images.simple';
@@ -16,11 +19,12 @@ export interface CommandArgs {
   query: string,
   randomize?: boolean,
   safe?: boolean,
+  simple?: boolean,
 }
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs & {simple?: boolean},
+  args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 

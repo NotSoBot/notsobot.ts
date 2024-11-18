@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { fetchTagRandom } from '../../../api';
 import { Paginator, TagFormatter, editOrReply } from '../../../utils';
 
-import { maybeCheckNSFW } from './tag.show';
+import { increaseUsage, maybeCheckNSFW, maybeReplaceContent } from './tag.show';
 
 
 export const COMMAND_ID = 'tag.random';
@@ -27,7 +27,7 @@ export async function createMessage(
     serverId: (context.guildId || context.channelId)!,
     userId: (args.user) ? args.user.id : undefined,
   });
-
+  await increaseUsage(context, tag);
 
   // parse it
   const options: Command.EditOrReply = {content: ''};
@@ -37,7 +37,9 @@ export async function createMessage(
     context.metadata = Object.assign({}, context.metadata, {tag});
     const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
     const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
+
     context.metadata = Object.assign({}, context.metadata, {parsedTag});
+    await maybeReplaceContent(context, tag);
   
     if (parsedTag.pages.length) {
       // show the content here

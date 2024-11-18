@@ -69,6 +69,7 @@ import * as MediaIVManipulationGold from './media.iv.manipulation.gold';
 import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale';
 import * as MediaIVManipulationHueCurveRGBA from './media.iv.manipulation.hue.curve.rgba';
 import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
+import * as MediaIVManipulationHueShiftHSVFFMPEG from './media.iv.manipulation.hue.shift.hsv.ffmpeg';
 import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shift.rgb';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationInvert from './media.iv.manipulation.invert';
@@ -137,6 +138,7 @@ import * as MediaIVToolsCropNFT from './media.iv.tools.crop.nft';
 import * as MediaIVToolsObjectRemove from './media.iv.tools.object.remove';
 import * as MediaIVToolsResize from './media.iv.tools.resize';
 import * as MediaIVToolsRotate from './media.iv.tools.rotate';
+import * as MediaIVToolsRotate3d from './media.iv.tools.rotate.3d';
 import * as MediaIVToolsTrim from './media.iv.tools.trim';
 
 import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
@@ -315,6 +317,7 @@ export {
   MediaIVManipulationGrayscale,
   MediaIVManipulationHueCurveRGBA,
   MediaIVManipulationHueShiftHSV,
+  MediaIVManipulationHueShiftHSVFFMPEG,
   MediaIVManipulationHueShiftRGB,
   MediaIVManipulationImplode,
   MediaIVManipulationInvert,
@@ -383,6 +386,7 @@ export {
   MediaIVToolsObjectRemove,
   MediaIVToolsResize,
   MediaIVToolsRotate,
+  MediaIVToolsRotate3d,
   MediaIVToolsTrim,
 
   ModerationAllowlistAddUsers,

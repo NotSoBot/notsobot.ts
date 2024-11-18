@@ -24,6 +24,7 @@ import {
   ImageObjectRemovalLabels,
   MLDiffusionModels,
   MLDiffusionModelsToText,
+  TagSearchSortByFilters,
   Timezones,
   TimezonesToText,
   TTSVoices,
@@ -284,6 +285,7 @@ export async function tags(context: Interaction.InteractionAutoCompleteContext) 
     const { tags } = await fetchTagsServer(context, serverId, {
       name: context.value,
       limit: 25,
+      sortBy: TagSearchSortByFilters.LAST_USED,
     });
     choices = tags.map((tag) => ({name: tag.name, value: tag.name}));
   } catch(error) {
@@ -294,11 +296,13 @@ export async function tags(context: Interaction.InteractionAutoCompleteContext) 
 
 
 export async function tagsCustomCommands(context: Interaction.InteractionAutoCompleteContext) {
+  const sortBy = TagSearchSortByFilters.LAST_USED;
+
   let choices: Array<{name: string, value: string}> = [];
   if (context.value) {
     let search = new MiniSearch({
       fields: ['id', 'name'],
-      storeFields: ['id', 'name'],
+      storeFields: ['id', 'name', 'last_used'],
       searchOptions: {
         boost: {id: 2},
         fuzzy: true,
@@ -309,7 +313,7 @@ export async function tagsCustomCommands(context: Interaction.InteractionAutoCom
       const tags = await TagCustomCommandStore.maybeGetOrFetchGuildCommands(context, context.guildId);
       if (tags) {
         search.addAll(tags.map((tag) => {
-          return {id: tag.id, name: tag.name};
+          return {id: tag.id, last_used: tag.last_used, name: tag.name};
         }));
       }
     }
@@ -317,29 +321,48 @@ export async function tagsCustomCommands(context: Interaction.InteractionAutoCom
       const tags = await TagCustomCommandStore.maybeGetOrFetchUserCommands(context, context.userId);
       if (tags) {
         search.addAll(tags.map((tag) => {
-          return {id: tag.id, name: tag.name};
+          return {id: tag.id, last_used: tag.last_used, name: tag.name};
         }));
       }
     }
-    choices = search.search(context.value).slice(0, 25).map((result) => {
+    choices = search.search(context.value).sort((x, y) => {
+      switch (sortBy) {
+        case TagSearchSortByFilters.LAST_USED: {
+          const lastUsedX = (x.last_used) ? (new Date(x.last_used)).getTime() : 0;
+          const lastUsedY = (y.last_used) ? (new Date(y.last_used)).getTime() : 0;
+          return lastUsedY - lastUsedX;
+        }; break;
+      }
+    }).slice(0, 25).map((result) => {
       return {name: result.name.slice(0, 100), value: result.id};
     });
   } else {
     // search user custom commands first, then server
+    let allTags: Array<RestResponsesRaw.Tag> | undefined;
     {
       const tags = await TagCustomCommandStore.maybeGetOrFetchUserCommands(context, context.userId);
       if (tags) {
-        choices = tags.toArray().slice(0, 25).map((tag) => {
-          return {name: tag.name.slice(0, 100), value: tag.id};
-        });
+        allTags = (allTags) ? allTags.concat(tags.toArray()) : tags.toArray();
       }
     }
-    if (context.guildId && choices.length < 25) {
+    if (context.guildId) {
       const tags = await TagCustomCommandStore.maybeGetOrFetchGuildCommands(context, context.guildId);
       if (tags) {
-        for (let tag of tags.toArray().slice(0, 25 - choices.length)) {
-          choices.push({name: tag.name.slice(0, 100), value: tag.id});
+        allTags = (allTags) ? allTags.concat(tags.toArray()) : tags.toArray();
+      }
+    }
+    if (allTags) {
+      allTags = allTags.sort((x, y) => {
+        switch (sortBy) {
+          case TagSearchSortByFilters.LAST_USED: {
+            const lastUsedX = (x.last_used) ? (new Date(x.last_used)).getTime() : 0;
+            const lastUsedY = (y.last_used) ? (new Date(y.last_used)).getTime() : 0;
+            return lastUsedY - lastUsedX;
+          }; break;
         }
+      }).slice(0, 25);
+      for (let tag of allTags) {
+        choices.push({name: tag.name.slice(0, 100), value: tag.id});
       }
     }
   }
@@ -364,6 +387,7 @@ export async function tagsToAdd(context: Interaction.InteractionAutoCompleteCont
         const { tags } = await fetchTagsServer(context, serverId, {
           name: context.value,
           limit: 25,
+          sortBy: TagSearchSortByFilters.LAST_USED,
         });
         choices = tags.filter((tag) => !tag.reference_tag).map((tag) => {
           return {name: tag.name, value: tag.id};

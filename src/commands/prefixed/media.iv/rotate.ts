@@ -32,7 +32,7 @@ export default class RotateCommand extends BaseImageOrVideoCommand {
     });
   }
 
-  async run(context: Command.Context, args:  Formatter.Commands.MediaIVToolsRotate.CommandArgs) {
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsRotate.CommandArgs) {
     return Formatter.Commands.MediaIVToolsRotate.createMessage(context, args);
   }
 }

@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'hue-shift-hsv';
 
 export class MediaIVHueShiftHSVCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Shift the Image or Video\'s Hue, Saturation, and Brightness by X amount';
+  description = 'Shift the Image or Video\'s Hue, Saturation, and Brightness by X amount using ImageMagick';
   metadata = {
 	id: Formatter.Commands.MediaIVManipulationHueShiftHSV.COMMAND_ID,
   };

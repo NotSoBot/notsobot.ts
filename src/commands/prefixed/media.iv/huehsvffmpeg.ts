@@ -6,22 +6,23 @@ import { Formatter, Parameters } from '../../../utils';
 import { BaseImageOrVideoCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'huehsv';
+export const COMMAND_NAME = 'huehsvffmpeg';
 
-export default class HueHSVCommand extends BaseImageOrVideoCommand {
+export default class HueHSVFFMPEGCommand extends BaseImageOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
+      aliases: ['huehsvf'],
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Shift an Image or Video\'s HSV Hue, Saturation, and Brightness by X amount using ImageMagick',
+        description: 'Shift an Image or Video\'s HSV Hue, Saturation, and Brightness by X amount using FFMPEG',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
-          `${COMMAND_NAME} notsobot 90 80 180`,
+          `${COMMAND_NAME} notsobot 90 1 2.5`,
         ],
-        id: Formatter.Commands.MediaIVManipulationHueShiftHSV.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationHueShiftHSVFFMPEG.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> ?<hue:number> ?<saturation:float> ?<brightness:float>',
       },
       type: [
@@ -33,7 +34,7 @@ export default class HueHSVCommand extends BaseImageOrVideoCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationHueShiftHSV.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationHueShiftHSV.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationHueShiftHSVFFMPEG.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationHueShiftHSVFFMPEG.createMessage(context, args);
   }
 }

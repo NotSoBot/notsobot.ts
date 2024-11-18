@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { generateTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { TagFormatter, editOrReply } from '../../../utils';
+import { TagFormatter, checkNSFW, editOrReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.generate';
@@ -62,7 +62,14 @@ export async function createMessage(
         };
       });
     }
-  
+
+    if (options.content) {
+      const [ isAwfulNSFW ] = await checkNSFW(context, options.content);
+      if (isAwfulNSFW) {
+        options.content = 'i love cats';
+      }
+    }
+
     if (!content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
       options.content = 'No content returned';
     }

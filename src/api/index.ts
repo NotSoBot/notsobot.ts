@@ -964,6 +964,14 @@ export async function mediaIVManipulationHueShiftHSV(
 }
 
 
+export async function mediaIVManipulationHueShiftHSVFFMPEG(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueShiftHSV,
+) {
+  return raw.mediaIVManipulationHueShiftHSVFFMPEG(context, options);
+}
+
+
 export async function mediaIVManipulationHueShiftRGB(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftRGB,
@@ -1490,6 +1498,14 @@ export async function mediaIVToolsRotate(
   options: RestOptions.MediaIVToolsRotate,
 ) {
   return raw.mediaIVToolsRotate(context, options);
+}
+
+
+export async function mediaIVToolsRotate3d(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsRotate3d,
+) {
+  return raw.mediaIVToolsRotate3d(context, options);
 }
 
 

@@ -1,11 +1,11 @@
 import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
+import TagCustomCommandStore from '../../../stores/tagcustomcommands';
+
 import { createTagUse, editTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { Paginator, TagFormatter, editOrReply } from '../../../utils';
-
-import { OPENAI_API_KEY } from '../../../../config.json';
+import { Paginator, TagFormatter, checkNSFW, editOrReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.show';
@@ -26,10 +26,14 @@ export async function createMessage(
 ) {
   // parse it
   const { tag } = args;
+  await increaseUsage(context, tag);
+
   context.metadata = Object.assign({}, context.metadata, {tag});
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
   const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
+
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
+  await maybeReplaceContent(context, tag);
 
   if (parsedTag.pages.length) {
     const paginator = new Paginator(context, {
@@ -89,45 +93,6 @@ export async function maybeCheckNSFW(
 }
 
 
-import OpenAI from 'openai';
-
-
-const client = new OpenAI({
-  apiKey: OPENAI_API_KEY,
-});
-
-
-const CATEGORIES_TO_CHECK_ALL = ['harassment', 'hate'];
-const CATEGORIES_TO_CHECK_SOME = ['harassment/threatening', 'hate/threatening', 'sexual/minors'];
-
-export async function checkNSFW(
-  context: Command.Context | Interaction.InteractionContext,
-  content: string,
-): Promise<[boolean, any]> {
-  if (!OPENAI_API_KEY) {
-    return [false, null];
-  }
-
-  const response = await client.moderations.create({
-    model: 'omni-moderation-latest',
-    input: [
-      {type: 'text', text: content},
-    ],
-  });
-  for (let result of response.results) {
-    let isAwfulNSFW = CATEGORIES_TO_CHECK_ALL.every((category) => (result.categories as any)[category]);
-    if (isAwfulNSFW) {
-      return [true, response];
-    }
-    isAwfulNSFW = CATEGORIES_TO_CHECK_SOME.some((category) => (result.categories as any)[category]);
-    if (isAwfulNSFW) {
-      return [true, response];
-    }
-  }
-  return [false, response];
-}
-
-
 export async function increaseUsage(
   context: Command.Context | Interaction.InteractionContext,
   tag: RestResponsesRaw.Tag,
@@ -140,15 +105,23 @@ export async function increaseUsage(
   }
 
   try {
-    await createTagUse(context, tag.id, {
+    const response = await createTagUse(context, tag.id, {
       serverId: context.guildId || context.channelId,
       timestamp,
       userId: context.userId,
     });
+    tag.last_used = response.last_used;
+    // update TagCustomCommandStore using server_id or user.id, problem is that its only for this cluster
   } catch(e) {
 
   }
+}
 
+
+export async function maybeReplaceContent(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: RestResponsesRaw.Tag,
+) {
   const tagId = (tag.reference_tag) ? tag.reference_tag.id : tag.id;
 
   const replacementContent = context?.metadata?.parsedTag?.replacement;
@@ -160,7 +133,7 @@ export async function increaseUsage(
         isUrlRefresh: true,
       });
     } catch(e) {
-
+  
     }
   }
 }

@@ -14,6 +14,7 @@ export const RESULTS_PER_PAGE = 3;
 export interface CommandArgs {
   query: string,
   randomize?: boolean,
+  simple?: boolean,
 }
 
 export async function createMessage(
@@ -22,7 +23,7 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const results = await searchDuckDuckGoImages(context, args);
+  const { results } = await searchDuckDuckGoImages(context, args);
   if (args.randomize) {
     shuffleArray(results);
   }
@@ -37,8 +38,10 @@ export async function createMessage(
         embed.setFooter(`Page ${page}/${pageLimit} of Duck Duck Go Image Results`, EmbedBrands.DUCK_DUCK_GO);
 
         const result = results[page - 1];
-        embed.setTitle(`Found from ${result.source}`);
-        embed.setDescription(Markup.url(Markup.escape.all(result.title), result.url));
+        if (!args.simple) {
+          embed.setTitle(`Found from ${result.source}`);
+          embed.setDescription(Markup.url(Markup.escape.all(result.title), result.url));
+        }
         embed.setImage(result.image);
 
         return embed;

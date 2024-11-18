@@ -20,8 +20,10 @@ export interface OneOfOptions<T> {
 }
 
 export function oneOf<T>(options: OneOfOptions<T>): Array<{name: string, value: number | string}> {
+  const entries = (Array.isArray(options.choices)) ? options.choices.map((x) => [x, x]) : Object.entries(options.choices);
+
   let choices: Array<{name: string, value: number | string}> = [];
-  for (let [key, value] of Object.entries(options.choices)) {
+  for (let [key, value] of entries) {
     let name: string = ((options.descriptions) ? (options.descriptions as any)[value] : '') || '';
     if (!name) {
       name = toTitleCase(key);

@@ -6,7 +6,7 @@ import { TagCustomCommandStored } from '../../../stores/tagcustomcommands';
 import { RestResponsesRaw } from '../../../api/types';
 import { Paginator, TagFormatter, editOrReply } from '../../../utils';
 
-import { maybeCheckNSFW } from './tag.show';
+import { increaseUsage, maybeCheckNSFW, maybeReplaceContent } from './tag.show';
 
 
 
@@ -30,10 +30,14 @@ export async function createMessage(
 ) {
   // parse it
   const { tag } = args;
+  await increaseUsage(context, tag);
+
   context.metadata = Object.assign({}, context.metadata, {tag});
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
   const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
+
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
+  await maybeReplaceContent(context, tag);
 
   if (parsedTag.pages.length) {
     const paginator = new Paginator(context, {

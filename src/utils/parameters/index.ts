@@ -1414,7 +1414,7 @@ export function mediaUrl(
                 }
               }; break;
               case UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
-                const results = await searchDuckDuckGoImages(context, {
+                const { results } = await searchDuckDuckGoImages(context, {
                   query: value,
                   safe: DefaultParameters.safe(context),
                 });
@@ -1663,13 +1663,13 @@ export function mediaUrls(
                 }
               }; break;
               case UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
-                const results = await searchDuckDuckGoImages(context, {
+                const { results } = await searchDuckDuckGoImages(context, {
                   query: value,
                   safe: DefaultParameters.safe(context),
                 });
                 const page = Math.floor(Math.random() * results.length);
                 const result = results[page];
-                return result.image;
+                urls.push(result.image);
               }; break;
             }
           }

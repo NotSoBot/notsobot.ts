@@ -2,6 +2,7 @@ import { URL } from 'url';
 
 import { onlyEmoji } from 'emoji-aware';
 import moment from 'moment';
+import OpenAI from 'openai';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import {
@@ -48,6 +49,45 @@ import {
   SNOWFLAKE_EPOCH,
   TRUSTED_URLS,
 } from '../constants';
+
+import { OPENAI_API_KEY } from '../../config.json';
+
+
+
+const client = new OpenAI({
+  apiKey: OPENAI_API_KEY,
+});
+
+
+const CATEGORIES_TO_CHECK_ALL = ['harassment', 'hate'];
+const CATEGORIES_TO_CHECK_SOME = ['harassment/threatening', 'hate/threatening', 'sexual/minors'];
+
+export async function checkNSFW(
+  context: Command.Context | Interaction.InteractionContext,
+  content: string,
+): Promise<[boolean, any]> {
+  if (!OPENAI_API_KEY) {
+    return [false, null];
+  }
+
+  const response = await client.moderations.create({
+    model: 'omni-moderation-latest',
+    input: [
+      {type: 'text', text: content},
+    ],
+  });
+  for (let result of response.results) {
+    let isAwfulNSFW = CATEGORIES_TO_CHECK_ALL.every((category) => (result.categories as any)[category]);
+    if (isAwfulNSFW) {
+      return [true, response];
+    }
+    isAwfulNSFW = CATEGORIES_TO_CHECK_SOME.some((category) => (result.categories as any)[category]);
+    if (isAwfulNSFW) {
+      return [true, response];
+    }
+  }
+  return [false, response];
+}
 
 
 export function createColorUrl(color: number, width: number = 2, height: number = 2): string {
@@ -1203,22 +1243,6 @@ export function generateFakeToken(userId: string): string {
 }
 
 
-export function generateWaveformFromAudioBuffer(audioData: AudioBuffer): string {
-  let samples: Float32Array;
-  if (1 < audioData.numberOfChannels) {
-    const left = audioData.getChannelData(0);
-    const right = audioData.getChannelData(1);
-    samples = new Float32Array(left.length);
-    for (let i = 0; i < left.length; i++) {
-      samples[i] = (left[i] + right[i]) / 2;
-    }
-  } else {
-    samples = audioData.getChannelData(0);
-  }
-  return generateWaveform(samples, audioData.sampleRate);
-}
-
-
 export function getCodeLanguage(value?: string): {language: CodeLanguages, version: string | null} | null {
   if (value) {
     let version: string | null = null;
@@ -1460,10 +1484,13 @@ export async function mediaReply(
     content: options.content,
     extension: response.file.metadata.extension,
     filename: options.filename, // we will get the filename based off the command name
+    height: response.file.metadata.height,
     mimetype: response.file.metadata.mimetype,
     size: response.file.metadata.size,
     spoiler: response.file.has_nsfw || options.spoiler,
     storage: response.storage,
+    took: response.took,
+    width: response.file.metadata.width,
   });
 }
 
@@ -1476,10 +1503,13 @@ export async function mediaReplyFromOptions(
     content?: string,
     extension?: string,
     filename?: string,
+    height?: number,
     mimetype?: string,
     size: number,
     spoiler?: boolean,
     storage?: null | RestResponsesRaw.FileResponseStorage,
+    took?: number,
+    width?: number,
   },
 ) {
   let filename: string = '';
@@ -1494,13 +1524,36 @@ export async function mediaReplyFromOptions(
   }
   filename = `${filename}.${options.extension || 'unknown'}`;
 
+  let footer = '';
+  if (options.width || options.height) {
+    footer = `${options.width || 0}x${options.height || 0}, `;
+  }
+  footer += formatMemory(options.size, 2);
+  if (options.took) {
+    let took = options.took;
+    if (context.metadata && context.metadata.started) {
+      took = Date.now() - context.metadata.started;
+    }
+    if (2000 <= took) {
+      const seconds = (options.took / 1000).toFixed(1);
+      footer = `${footer}, took ${seconds} seconds`;
+    }
+  }
+
   if (options.storage) {
-    const content = (options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity;
-    return editOrReply(context, {content});
+    return editOrReply(context, {
+      content: [
+        (options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity,
+        `-# ${footer}`,
+      ].join('\n'),
+    });
   }
 
   return editOrReply(context, {
-    content: options.content || '',
+    content: [
+      options.content || '',
+      `-# ${footer}`,
+    ].filter(Boolean).join('\n'),
     file: {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value},
   });
 }

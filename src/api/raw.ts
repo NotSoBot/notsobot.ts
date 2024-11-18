@@ -872,6 +872,7 @@ export async function fetchTagsServer(
     limit: options.limit,
     name: options.name,
     server_id: serverId,
+    sort_by: options.sortBy,
     user_id: options.userId,
   };
   return request(context, {
@@ -2143,6 +2144,28 @@ export async function mediaIVManipulationHueShiftHSV(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationHueShiftHSVFFMPEG(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHueShiftHSV,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    brightness: options.brightness,
+    hue: options.hue,
+    saturation: options.saturation,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV_FFMPEG,
     },
   });
 }
@@ -3493,6 +3516,29 @@ export async function mediaIVToolsRotate(
 }
 
 
+export async function mediaIVToolsRotate3d(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsRotate3d,
+): Promise<RestResponsesRaw.FileResponse> {
+  const query = {
+    crop: options.crop,
+    pan: options.pan,
+    roll: options.roll,
+    tilt: options.tilt,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_ROTATE_3d,
+    },
+  });
+}
+
+
 export async function mediaIVToolsTrim(
   context: RequestContext,
   options: RestOptions.MediaIVToolsTrim,
@@ -3753,7 +3799,7 @@ export async function searchDuckDuckGo(
 export async function searchDuckDuckGoImages(
   context: RequestContext,
   options: RestOptions.SearchDuckDuckGoImages,
-): Promise<any> {
+): Promise<RestResponsesRaw.SearchDuckDuckGoImages> {
   const query = {
     query: options.query,
     safe: options.safe,
@@ -4392,9 +4438,11 @@ export async function utilitiesScreenshot(
   options: RestOptions.UtilitiesScreenshot,
 ): Promise<RestResponsesRaw.FileResponse> {
   const query = {
+    height: options.height,
     safe: options.safe,
     timeout: options.timeout,
     url: options.url,
+    width: options.width,
   };
   return request(context, {
     query,

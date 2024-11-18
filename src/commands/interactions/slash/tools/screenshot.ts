@@ -24,6 +24,21 @@ export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
           value: Parameters.url,
         },
         {
+          name: 'width',
+          description: 'Page Width',
+          value: Number,
+        },
+        {
+          name: 'height',
+          description: 'Page Height',
+          value: Number,
+        },
+        {
+          name: 'lightmode',
+          description: 'Opposite of darkmode',
+          value: Boolean,
+        },
+        {
           name: 'timeout',
           description: 'Max amount of seconds to wait before screenshotting',
           value: Number,

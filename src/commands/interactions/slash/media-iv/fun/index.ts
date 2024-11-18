@@ -8,10 +8,10 @@ import { MediaIVE2ECommand } from './e2e';
 import { MediaIVE2PCommand } from './e2p';
 import { MediaIVExoCommand } from './exo';
 import { MediaIVExplodeCommand } from './explode';
+import { MediaIVFlipCommand } from './flip';
+import { MediaIVFlopCommand } from './flop';
 import { MediaIVGlitchCommand } from './glitch';
 import { MediaIVGlitchGifCommand } from './glitch-gif';
-import { MediaIVHueShiftHSVCommand } from './hue-shift-hsv';
-import { MediaIVHueShiftRGBCommand } from './hue-shift-rgb';
 import { MediaIVImplodeCommand } from './implode';
 import { MediaIVKekCommand } from './kek';
 import { MediaIVKek2Command } from './kek2';
@@ -42,10 +42,10 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVE2PCommand(),
         new MediaIVExoCommand(),
         new MediaIVExplodeCommand(),
+        new MediaIVFlipCommand(),
+        new MediaIVFlopCommand(),
         new MediaIVGlitchCommand(),
         new MediaIVGlitchGifCommand(),
-        new MediaIVHueShiftHSVCommand(),
-        new MediaIVHueShiftRGBCommand(),
         new MediaIVImplodeCommand(),
         new MediaIVKekCommand(),
         new MediaIVKek2Command(),

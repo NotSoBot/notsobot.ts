@@ -30,18 +30,4 @@ export default class TagRandomCommand extends BaseCommand {
   async run(context: Command.Context, args: Formatter.Commands.TagRandom.CommandArgs) {
     return Formatter.Commands.TagRandom.createMessage(context, args);
   }
-
-  async onRunError(context: Command.Context, args: Formatter.Commands.TagRandom.CommandArgs, error: any) {
-    if (context.metadata && context.metadata.tag) {
-      await Formatter.Commands.TagShow.increaseUsage(context, context.metadata.tag);
-    }
-    return super.onRunError(context, args, error);
-  }
-
-  async onSuccess(context: Command.Context, args: Formatter.Commands.TagRandom.CommandArgs) {
-    if (context.metadata && context.metadata.tag) {
-      await Formatter.Commands.TagShow.increaseUsage(context, context.metadata.tag);
-    }
-    return super.onSuccess(context, args);
-  }
 }

@@ -13,6 +13,7 @@ import {
 
 export const MAX_MEMBERS_SAFE = 1000;
 
+export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/'
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
 export const SNOWFLAKE_EPOCH = 1564790400000;
 export const ZERO_WIDTH_SPACE = '\u200b';
@@ -904,6 +905,14 @@ export enum MediaLegofyPalettes {
 };
 
 
+export enum MediaRotate3dCropModes {
+  AUTO = 'auto',
+  CENTER = 'center',
+  NONE = 'none',
+  ZOOM_CENTER = 'zoomcenter',
+};
+
+
 export enum MediaWiggleDirections {
   DOWN = 'DOWN',
   LEFT = 'LEFT',
@@ -1091,6 +1100,14 @@ export enum TagGenerationModels {
   CLAUDE_3_5_SONNET = 'CLAUDE_3_5_SONNET',
   CLAUDE_3_5_HAIKU = 'CLAUDE_3_5_HAIKU',
   //CLAUDE_3_HAIKU = 'CLAUDE_3_HAIKU',
+}
+
+
+export enum TagSearchSortByFilters {
+  CREATED = 0,
+  EDITED = 1,
+  LAST_USED = 2,
+  USES = 3,
 }
 
 

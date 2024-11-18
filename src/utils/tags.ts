@@ -14,6 +14,7 @@ import {
   mediaAVToolsExtractAudio,
   putTagVariable,
   putTagVariables,
+  searchDuckDuckGoImages,
   searchGoogleImages,
   searchYoutube,
   utilitiesCodeRun,
@@ -32,6 +33,7 @@ import {
   MLDiffusionModels,
   TagVariableStorageTypes,
   YoutubeResultTypes,
+  CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   MAX_MEMBERS_SAFE,
 } from '../constants';
 
@@ -41,9 +43,9 @@ import {
   bigIntGenerateBetween,
   bigIntMax,
   bigIntMin,
+  checkNSFW,
   generateCodeFromLanguage,
   generateCodeStdin,
-  generateWaveformFromAudioBuffer,
   getCodeLanguage,
   languageCodeToText,
   randomFromArray,
@@ -104,6 +106,8 @@ export const MAX_ATTACHMENTS = 10;
 export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 450;
 export const MAX_NETWORK_REQUESTS = 15;
+export const MAX_NETWORK_REQUESTS_ML = 5;
+export const MAX_NETWORK_REQUESTS_OPENAI = 2;
 export const MAX_PAGES = 1000;
 export const MAX_STORAGE_GUILD_AMOUNT = 5;
 export const MAX_STORAGE_CHANNEL_AMOUNT = 5;
@@ -132,6 +136,8 @@ export enum PrivateVariables {
   FILES = '__files',
   ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',
+  NETWORK_REQUESTS_ML = '__networkRequestsML',
+  NETWORK_REQUESTS_OPENAI = '__networkRequestsOpenAI',
   RESULTS = '__results',
   SETTINGS = '__settings',
 }
@@ -240,11 +246,13 @@ export enum TagFunctions {
   MESSAGE_RANDOM_ID = 'MESSAGE_RANDOM_ID',
   MESSAGE_USER_ID = 'MESSAGE_USER_ID',
   NSFW = 'NSFW',
+  NSFW_FILTER = 'NSFW_FILTER',
   PREFIX = 'PREFIX',
   REPLY_CONTENT = 'REPLY_CONTENT',
   REPLY_USER_ID = 'REPLY_USER_ID',
   RNG_CHOOSE = 'RNG_CHOOSE',
   RNG_RANGE = 'RNG_RANGE',
+  SEARCH_DUCKDUCKGO_IMAGES = 'SEARCH_DUCKDUCKGO_IMAGES',
   SEARCH_GOOGLE_IMAGES = 'SEARCH_GOOGLE_IMAGES',
   SEARCH_YOUTUBE = 'SEARCH_YOUTUBE',
   SETTINGS = 'SETTINGS',
@@ -354,11 +362,13 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MESSAGE_RANDOM_ID]: ['randmessageid'],
   [TagFunctions.MESSAGE_USER_ID]: ['messageuserid'],
   [TagFunctions.NSFW]: ['nsfw'],
+  [TagFunctions.NSFW_FILTER]: ['nsfwfilter'],
   [TagFunctions.PREFIX]: ['prefix'],
   [TagFunctions.REPLY_CONTENT]: ['replycontent'],
   [TagFunctions.REPLY_USER_ID]: ['replyuserid'],
   [TagFunctions.RNG_CHOOSE]: ['choose'],
   [TagFunctions.RNG_RANGE]: ['range', 'random', 'rnd'],
+  [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES]: ['search.duckduckgo.images', 'search.ddg.images', 's.duckduckgo.images', 's.ddg.images'],
   [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.google.images', 's.g.images'],
   [TagFunctions.SEARCH_YOUTUBE]: ['search.youtube', 'search.yt', 's.youtube', 's.yt'],
   [TagFunctions.SETTINGS]: ['settings'],
@@ -410,7 +420,10 @@ export interface TagVariables {
   [PrivateVariables.FILE_SIZE]: number,
   [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
+  [PrivateVariables.NETWORK_REQUESTS_ML]: number,
+  [PrivateVariables.NETWORK_REQUESTS_OPENAI]: number,
   [PrivateVariables.RESULTS]: {
+    [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
     [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
   },
@@ -458,6 +471,12 @@ export async function parse(
   }
   if (!(PrivateVariables.NETWORK_REQUESTS in variables)) {
     (variables as any)[PrivateVariables.NETWORK_REQUESTS] = 0;
+  }
+  if (!(PrivateVariables.NETWORK_REQUESTS_ML in variables)) {
+    (variables as any)[PrivateVariables.NETWORK_REQUESTS_ML] = 0;
+  }
+  if (!(PrivateVariables.NETWORK_REQUESTS_OPENAI in variables)) {
+    (variables as any)[PrivateVariables.NETWORK_REQUESTS_OPENAI] = 0;
   }
   if (!(PrivateVariables.FILE_SIZE in variables)) {
     (variables as any)[PrivateVariables.FILE_SIZE] = 0;
@@ -555,6 +574,14 @@ export async function parse(
 
     if (MAX_NETWORK_REQUESTS <= tag.variables[PrivateVariables.NETWORK_REQUESTS]) {
       throw new Error(`Tag attempted to use too many network requests (Max ${MAX_NETWORK_REQUESTS.toLocaleString()} Requests)`);
+    }
+
+    if (MAX_NETWORK_REQUESTS_ML <= tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]) {
+      throw new Error(`Tag attempted to use too many machine learning network requests (Max ${MAX_NETWORK_REQUESTS_ML.toLocaleString()} Requests)`);
+    }
+
+    if (MAX_NETWORK_REQUESTS_OPENAI <= tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI]) {
+      throw new Error(`Tag attempted to use too many machine learning network requests (Max ${MAX_NETWORK_REQUESTS_OPENAI.toLocaleString()} Requests)`);
     }
 
     // add network checks
@@ -850,7 +877,7 @@ const ScriptTags = Object.freeze({
         urls: Object.values(urls),
         version: version || undefined,
       });
-      if (result.error) {
+      if (result.error && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
         throw new Error(result.error);
       } else {
         if (result.files.length) {
@@ -2380,6 +2407,7 @@ const ScriptTags = Object.freeze({
     }
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]++;
   
     const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
 
@@ -2445,6 +2473,7 @@ const ScriptTags = Object.freeze({
     // {editurl:|cake}
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]++;
 
     let prompt: string;
     let mediaString: string = '';
@@ -2499,6 +2528,7 @@ const ScriptTags = Object.freeze({
     }
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]++;
 
     const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
 
@@ -2534,6 +2564,7 @@ const ScriptTags = Object.freeze({
     // {imagineurl:cake}
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]++;
 
     const response = await utilitiesMLImagine(context, {
       query: arg,
@@ -2806,6 +2837,23 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.NSFW_FILTER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns an empty string if the content is deemed NSFW, will cut to 2000 characters
+    // {nsfwfilter:text}
+
+    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI]++;
+
+    if (arg) {
+      const [ isAwfulNSFW ] = await checkNSFW(context, arg.slice(0, 2000));
+      if (!isAwfulNSFW) {
+        tag.text += arg.slice(0, 2000);
+      }
+    }
+  
+    return true;
+  },
+
   [TagFunctions.PREFIX]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // the prefix used
     // {prefix}
@@ -2892,6 +2940,64 @@ const ScriptTags = Object.freeze({
 
     tag.text += bigIntGenerateBetween(BigInt(firstValue), BigInt(secondValue));
 
+    return true;
+  },
+
+  [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {search.duckduckgo.images:cat}
+    // {search.duckduckgo.images:1|cat}
+
+    if (!arg) {
+      return true;
+    }
+
+    let page = -1;
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      const firstSplitter = arg.indexOf(TagSymbols.SPLITTER_ARGUMENT);
+      const firstValue = arg.slice(0, firstSplitter).trim().toLowerCase() || '0';
+      if (firstValue === 'random' || !isNaN(firstValue as any)) {
+        if (firstValue === 'random') {
+          page = -1;
+        } else if (!isNaN(firstValue as any)) {
+          page = parseInt(firstValue);
+          if (isNaN(page)) {
+            page = 0;
+          }
+        }
+        arg = arg.slice(firstSplitter + 1);
+      }
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_DUCKDUCKGO_IMAGES] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.SEARCH_DUCKDUCKGO_IMAGES] ||
+      {}
+    );
+
+    arg = arg.slice(0, 1024);
+    if (!(arg in cachedResults)) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    }
+
+    const response = cachedResults[arg] || await searchDuckDuckGoImages(context, {
+      query: arg,
+      safe: DefaultParameters.safe(context),
+    });
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = response;
+    }
+
+    const { results } = response;
+    page = Math.min(page, results.length);
+    if (page === -1) {
+      page = Math.floor(Math.random() * results.length);
+    }
+    page = Math.max(page, 0);
+
+    const result = results[page];
+    if (result) {
+      tag.text += result.image;
+    }
+  
     return true;
   },
 
@@ -3006,7 +3112,7 @@ const ScriptTags = Object.freeze({
           value = value.toLowerCase();
 
           let parsedValue: any = null;
-          for (let tagFunction of [TagFunctions.MEDIA_IMAGE_IMAGINE, TagFunctions.SEARCH_GOOGLE_IMAGES]) {
+          for (let tagFunction of [TagFunctions.MEDIA_IMAGE_IMAGINE, TagFunctions.SEARCH_DUCKDUCKGO_IMAGES, TagFunctions.SEARCH_GOOGLE_IMAGES]) {
             if (TagFunctionsToString[tagFunction].includes(value)) {
               parsedValue = tagFunction;
               break;

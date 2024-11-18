@@ -162,6 +162,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/hue/curve/rgba',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV:
     '/media/iv/manipulation/hue/shift/hsv',
+  MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV_FFMPEG:
+    '/media/iv/manipulation/hue/shift/hsv/ffmpeg',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_RGB:
     '/media/iv/manipulation/hue/shift/rgb',
   MEDIA_IV_MANIPULATION_IMPLODE:
@@ -299,6 +301,8 @@ export const Api = Object.freeze({
     '/media/iv/tools/resize',
   MEDIA_IV_TOOLS_ROTATE:
     '/media/iv/tools/rotate',
+  MEDIA_IV_TOOLS_ROTATE_3d:
+    '/media/iv/tools/rotate/3d',
   MEDIA_IV_TOOLS_TRIM:
     '/media/iv/tools/trim',
 

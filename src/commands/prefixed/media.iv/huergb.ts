@@ -6,9 +6,9 @@ import { Formatter, Parameters } from '../../../utils';
 import { BaseImageOrVideoCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'hue';
+export const COMMAND_NAME = 'huergb';
 
-export default class HueCommand extends BaseImageOrVideoCommand {
+export default class HueRGBCommand extends BaseImageOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
