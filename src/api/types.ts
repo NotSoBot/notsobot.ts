@@ -571,9 +571,11 @@ export namespace RestOptions {
 
   export interface MediaIVToolsRotate3d extends MediaBaseOptions {
     crop?: string,
+    order?: string,
     pan?: number,
     roll?: number,
     tilt?: number,
+    zoom?: number,
   }
 
   export interface MediaIVToolsSpeed extends MediaBaseOptions {
@@ -800,6 +802,7 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesFetchMedia {
+    downloadQuality?: string,
     maxFileSize?: number,
     safe?: boolean,
     url: string,
@@ -1275,6 +1278,7 @@ export namespace RestResponsesRaw {
   export interface MediaAIVToolsExif {
     channels: {
       audio: Array<{
+        bit_rate: number,
         channels: number,
         codec: string,
         codec_description: string,
@@ -1312,6 +1316,7 @@ export namespace RestResponsesRaw {
         },
       }>,
       video: Array<{
+        bit_rate: number,
         codec: string,
         codec_description: string,
         codec_tag: string,

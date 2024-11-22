@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
+import { DownloadQualities } from '../../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -22,6 +23,11 @@ export class ToolsDownloadCommand extends BaseInteractionCommandOption {
           name: 'url',
           description: 'URL to download',
           value: Parameters.url,
+        },
+        {
+          name: 'quality',
+          description: 'Choose Max Video Quality',
+          choices: Parameters.Slash.oneOf({choices: DownloadQualities}),
         },
         {
           name: 'spoiler',

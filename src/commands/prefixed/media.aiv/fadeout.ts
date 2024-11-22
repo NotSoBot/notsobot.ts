@@ -14,8 +14,8 @@ export default class FadeOutCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['c'], name: 'color'},
-        {aliases: ['d'], name: 'duration', type: 'float'},
+        {name: 'color', aliases: ['c']},
+        {name: 'duration', aliases: ['d'], type: 'float'},
       ],
       metadata: {
         category: CommandCategories.IMAGE,

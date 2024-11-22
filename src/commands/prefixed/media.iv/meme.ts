@@ -30,7 +30,7 @@ export default class MemeCommand extends BaseImageOrVideoCommand {
         usage: '?<emoji,user:id|mention,url> <...text>',
       },
       type: [
-        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
         {name: 'text', consume: true},
       ],
     });

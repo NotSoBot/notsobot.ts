@@ -14,22 +14,25 @@ export default class Rotate3dCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'crop', type: Parameters.oneOf({choices: MediaRotate3dCropModes})},
+        {name: 'crop', aliases: ['c'], type: Parameters.oneOf({choices: MediaRotate3dCropModes})},
+        {name: 'order', aliases: ['o']},
+        {name: 'zoom', aliases: ['z'], type: 'float'},
       ],
       metadata: {
         category: CommandCategories.IMAGE,
         description: 'Rotate an Image or Video on a 3d axis',
         examples: [
           `${COMMAND_NAME} notsobot 45 0 45`,
+          `${COMMAND_NAME} notsobot 45 45 0 -order tpr`,
         ],
         id:  Formatter.Commands.MediaIVToolsRotate3d.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> <pan:number> <tilt:number> <roll:number> (-crop <MediaRotate3dCropModes>)',
+        usage: '?<emoji,user:id|mention|name,url> <pan:number> <tilt:number> <roll:number> (-crop <MediaRotate3dCropModes>) (-order <RotationSequence>) (-zoom <float>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
-        {name: 'pan', type: Number},
-        {name: 'tilt', type: Number},
-        {name: 'roll', type: Number, consume: true},
+        {name: 'pan', default: 0, type: Number},
+        {name: 'tilt', default: 0, type: Number},
+        {name: 'roll', default: 0, type: Number},
       ],
     });
   }

@@ -14,7 +14,7 @@ export default class ADHDCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['h'], name: 'horizontal', type: Boolean},
+        {name: 'horizontal', aliases: ['h'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.IMAGE,

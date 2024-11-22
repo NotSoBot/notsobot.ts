@@ -24,7 +24,7 @@ export default class SpeedCommand extends BaseMediaCommand {
         usage: '<emoji,user:id|mention,url> <...speed:milliseconds>',
       },
       type: [
-        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
+        {name: 'url', type: Parameters.mediaUrlPositional()},
         {name: 'speed', consume: true, type: 'float'},
       ],
     });

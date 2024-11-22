@@ -25,7 +25,7 @@ export default class CropCommand extends BaseImageOrVideoCommand {
       },
       priority: -1,
       type: [
-        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
         {name: 'width'},
         {name: 'height'},
         {name: 'x'},

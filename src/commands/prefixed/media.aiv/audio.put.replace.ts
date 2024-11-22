@@ -15,8 +15,8 @@ export default class AudioPutReplaceCommand extends BaseMediasCommand {
 
       aliases: ['a put replace'],
       args: [
-        {name: 'longest', type: Boolean},
-        {name: 'noloop', type: Boolean},
+        {name: 'longest', aliases: ['l'], type: Boolean},
+        {name: 'noloop', aliases: ['nl'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,

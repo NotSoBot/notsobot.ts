@@ -14,9 +14,9 @@ export default class JoinCommand extends BaseMediasCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'noresize', type: Boolean},
-        {name: 'noloop', type: Boolean},
-        {name: 'vertical', type: Boolean},
+        {name: 'noresize', aliases: ['nr'], type: Boolean},
+        {name: 'noloop', aliases: ['nl'], type: Boolean},
+        {name: 'vertical', aliases: ['v'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,

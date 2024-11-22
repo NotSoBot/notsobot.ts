@@ -70,6 +70,7 @@ export async function createMessage(
       const channel = channels.audio[index];
 
       const description: Array<string> = [];
+      description.push(`**Bitrate**: ${channel.bit_rate.toLocaleString()}`);
       description.push(`**Channels**: ${channel.channels}`);
       description.push(`**Codec**: ${channel.codec} (${channel.codec_tag})`);
       description.push(`**Codec Description**: ${channel.codec_description}`);
@@ -87,6 +88,7 @@ export async function createMessage(
       const channel = channels.video[index];
 
       const description: Array<string> = [];
+      description.push(`**Bitrate**: ${channel.bit_rate.toLocaleString()}`);
       description.push(`**Codec**: ${channel.codec} (${channel.codec_tag})`);
       description.push(`**Codec Description**: ${channel.codec_description}`);
       if (channel.rotate) {

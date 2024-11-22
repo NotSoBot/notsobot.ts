@@ -15,8 +15,8 @@ export default class AudioPutConcatCommand extends BaseMediasCommand {
 
       aliases: ['a put concat'],
       args: [
-        {name: 'longest', type: Boolean},
-        {name: 'noloop', type: Boolean},
+        {name: 'longest', aliases: ['l'], type: Boolean},
+        {name: 'noloop', aliases: ['nl'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,

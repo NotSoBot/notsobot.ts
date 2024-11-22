@@ -1339,10 +1339,13 @@ export async function imageReply(
     spoiler?: boolean,
   } | string = {},
 ) {
+  if (typeof(options) === 'string') {
+    options = {filename: options};
+  }
+  if (!options.filename) {
+    options.filename = response.file.filename_base;
+  }
   if (context instanceof Interaction.InteractionContext) {
-    if (typeof(options) === 'string') {
-      options = {filename: options};
-    }
     options.args = options.args || false;
   }
 
@@ -1483,7 +1486,7 @@ export async function mediaReply(
     args: options.args,
     content: options.content,
     extension: response.file.metadata.extension,
-    filename: options.filename, // we will get the filename based off the command name
+    filename: options.filename,
     height: response.file.metadata.height,
     mimetype: response.file.metadata.mimetype,
     size: response.file.metadata.size,

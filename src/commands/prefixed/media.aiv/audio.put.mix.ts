@@ -15,8 +15,8 @@ export default class AudioPutMixCommand extends BaseMediasCommand {
 
       aliases: ['a put mix'],
       args: [
-        {name: 'longest', type: Boolean},
-        {name: 'noloop', type: Boolean},
+        {name: 'longest', aliases: ['l'], type: Boolean},
+        {name: 'noloop', aliases: ['nl'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,

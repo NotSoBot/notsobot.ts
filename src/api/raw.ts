@@ -125,9 +125,11 @@ export async function audioToolsPutConcat(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     longest: options.longest,
     loop: !options.noloop,
+    max_file_size: maxFileSize,
     urls: options.urls,
   };
   return request(context, {
@@ -146,9 +148,11 @@ export async function audioToolsPutMix(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     longest: options.longest,
     loop: !options.noloop,
+    max_file_size: maxFileSize,
     urls: options.urls,
   };
   return request(context, {
@@ -167,9 +171,11 @@ export async function audioToolsPutReplace(
   context: RequestContext,
   options: RestOptions.MediaAToolsPutBase,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     longest: options.longest,
     loop: !options.noloop,
+    max_file_size: maxFileSize,
     urls: options.urls,
   };
   return request(context, {
@@ -1042,7 +1048,9 @@ export async function funASCII(
   context: RequestContext,
   options: RestOptions.FunASCII,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    max_file_size: maxFileSize,
     text: options.text,
   };
   return request(context, {
@@ -1059,7 +1067,9 @@ export async function funTextToSpeech(
   context: RequestContext,
   options: RestOptions.FunTextToSpeech,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     text: options.text,
     voice: options.voice,
     voice_id: options.voiceId,
@@ -1191,8 +1201,10 @@ export async function mediaAIVManipulationADHD(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationADHD,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     horizontal: options.horizontal,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1211,9 +1223,11 @@ export async function mediaAIVManipulationFadeIn(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationFadeIn,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     color: options.color,
     duration: options.duration,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1232,9 +1246,11 @@ export async function mediaAIVManipulationFadeOut(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationFadeOut,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     color: options.color,
     duration: options.duration,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1672,11 +1688,13 @@ export async function mediaICreateRetrowave(
   context: RequestContext,
   options: RestOptions.MediaICreateRetrowave,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     background: options.background,
     line_1: options.line1,
     line_2: options.line2,
     line_3: options.line3,
+    max_file_size: maxFileSize,
     text_style: options.textStyle,
   };
   return request(context, {
@@ -1693,12 +1711,14 @@ export async function mediaICreateTombstone(
   context: RequestContext,
   options: RestOptions.MediaICreateTombstone,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     line_1: options.line1,
     line_2: options.line2,
     line_3: options.line3,
     line_4: options.line4,
     line_5: options.line5,
+    max_file_size: maxFileSize,
   };
   return request(context, {
     query,
@@ -1714,7 +1734,9 @@ export async function mediaICreateWordcloud(
   context: RequestContext,
   options: RestOptions.MediaICreateWordcloud,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    max_file_size: maxFileSize,
     words: options.words,
   };
   return request(context, {
@@ -1731,7 +1753,9 @@ export async function mediaIVManipulationAscii(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1750,7 +1774,9 @@ export async function mediaIVManipulationBlur(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationBlur,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     url: options.url,
   };
@@ -1770,7 +1796,9 @@ export async function mediaIVManipulationBlurple(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1789,8 +1817,10 @@ export async function mediaIVManipulationCaption(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationCaption,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     font: options.font,
+    max_file_size: maxFileSize,
     text: options.text,
     url: options.url,
   };
@@ -1810,7 +1840,9 @@ export async function mediaIVManipulationCircle(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationCircle,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     url: options.url,
   };
@@ -1830,7 +1862,9 @@ export async function mediaIVManipulationDeepfry(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationDeepfry,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     url: options.url,
   };
@@ -1849,7 +1883,9 @@ export async function mediaIVManipulationDetunnel(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationTunnel,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     spiral: options.spiral,
     url: options.url,
   };
@@ -1869,8 +1905,10 @@ export async function mediaIVManipulationDistort(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationDistort,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     arguments: options.arguments,
+    max_file_size: maxFileSize,
     method: options.method,
     url: options.url,
   };
@@ -1889,7 +1927,9 @@ export async function mediaIVManipulationExo(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationExo,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     rain: options.rain,
     swirl: options.swirl,
     url: options.url,
@@ -1910,7 +1950,9 @@ export async function mediaIVManipulationExplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationExplode,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     url: options.url,
   };
@@ -1930,7 +1972,9 @@ export async function mediaIVManipulationEyes(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationEyes,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     type: options.type,
     url: options.url,
   };
@@ -1950,7 +1994,9 @@ export async function mediaIVManipulationFisheye(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1969,7 +2015,9 @@ export async function mediaIVManipulationFlip(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -1988,7 +2036,9 @@ export async function mediaIVManipulationFlop(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2007,9 +2057,11 @@ export async function mediaIVManipulationGlitch(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGlitch,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     amount: options.amount,
     iterations: options.iterations,
+    max_file_size: maxFileSize,
     seed: options.seed,
     url: options.url,
   };
@@ -2029,9 +2081,11 @@ export async function mediaIVManipulationGlitchAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGlitch,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     amount: options.amount,
     iterations: options.iterations,
+    max_file_size: maxFileSize,
     seed: options.seed,
     url: options.url,
   };
@@ -2051,7 +2105,9 @@ export async function mediaIVManipulationGlobe(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2070,7 +2126,9 @@ export async function mediaIVManipulationGold(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2089,7 +2147,9 @@ export async function mediaIVManipulationGrayscale(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2108,11 +2168,13 @@ export async function mediaIVManipulationHueCurveRGBA(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueCurveRGBA,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     all: options.all,
     alpha: options.alpha,
     blue: options.blue,
     green: options.green,
+    max_file_size: maxFileSize,
     red: options.red,
     url: options.url,
   };
@@ -2131,9 +2193,11 @@ export async function mediaIVManipulationHueShiftHSV(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftHSV,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     brightness: options.brightness,
     hue: options.hue,
+    max_file_size: maxFileSize,
     saturation: options.saturation,
     url: options.url,
   };
@@ -2153,9 +2217,11 @@ export async function mediaIVManipulationHueShiftHSVFFMPEG(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftHSV,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     brightness: options.brightness,
     hue: options.hue,
+    max_file_size: maxFileSize,
     saturation: options.saturation,
     url: options.url,
   };
@@ -2175,9 +2241,11 @@ export async function mediaIVManipulationHueShiftRGB(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftRGB,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     blue: options.blue,
     green: options.green,
+    max_file_size: maxFileSize,
     red: options.red,
     url: options.url,
   };
@@ -2197,7 +2265,9 @@ export async function mediaIVManipulationImplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationImplode,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     url: options.url,
   };
@@ -2217,7 +2287,9 @@ export async function mediaIVManipulationInvert(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2236,10 +2308,12 @@ export async function mediaIVManipulationInvertRGBA(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationInvertRGBA,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     alpha: options.alpha,
     blue: options.blue,
     green: options.green,
+    max_file_size: maxFileSize,
     red: options.red,
     url: options.url,
   };
@@ -2259,7 +2333,9 @@ export async function mediaIVManipulationJPEG(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationJPEG,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     quality: options.quality,
     url: options.url,
   };
@@ -2279,7 +2355,9 @@ export async function mediaIVManipulationLabelsIFunny(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2298,8 +2376,10 @@ export async function mediaIVManipulationLegofy(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationLegofy,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     dither: options.dither,
+    max_file_size: maxFileSize,
     palette: options.palette,
     size: options.size,
     url: options.url,
@@ -2320,7 +2400,9 @@ export async function mediaIVManipulationMagik(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMagik,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     url: options.url,
   };
@@ -2341,7 +2423,9 @@ export async function mediaIVManipulationMagikAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMagik,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     url: options.url,
   };
@@ -2361,9 +2445,11 @@ export async function mediaIVManipulationMeme(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMeme,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     bottom: options.bottom,
     font: options.font,
+    max_file_size: maxFileSize,
     top: options.top,
     url: options.url,
   };
@@ -2383,7 +2469,9 @@ export async function mediaIVManipulationMirrorBottom(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2402,7 +2490,9 @@ export async function mediaIVManipulationMirrorLeft(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2421,7 +2511,9 @@ export async function mediaIVManipulationMirrorRight(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2440,7 +2532,9 @@ export async function mediaIVManipulationMirrorTop(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2461,6 +2555,7 @@ export async function mediaIVManipulationOverlayFace(
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     urls: options.urls,
   };
@@ -2480,7 +2575,9 @@ export async function mediaIVManipulationOverlayFlagIsrael(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2499,7 +2596,9 @@ export async function mediaIVManipulationOverlayFlagLGBT(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2518,7 +2617,9 @@ export async function mediaIVManipulationOverlayFlagNorthKorea(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2537,7 +2638,9 @@ export async function mediaIVManipulationOverlayFlagTrans(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2556,7 +2659,9 @@ export async function mediaIVManipulationOverlayFlagRussia(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2575,7 +2680,9 @@ export async function mediaIVManipulationOverlayFlagUK(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2594,7 +2701,9 @@ export async function mediaIVManipulationOverlayFlagUSA(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2613,7 +2722,9 @@ export async function mediaIVManipulationOverlayFlagUSSR(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2632,9 +2743,11 @@ export async function mediaIVManipulationOverlayFlies(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationOverlayFlies,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     amount: options.amount,
     degrees: options.degrees,
+    max_file_size: maxFileSize,
     speed: options.speed,
     urls: [options.url, options.flyImage].filter(Boolean),
   };
@@ -2653,7 +2766,9 @@ export async function mediaIVManipulationOverlayGoldstar(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2672,7 +2787,9 @@ export async function mediaIVManipulationOverlayHalfLifePistol(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2691,7 +2808,9 @@ export async function mediaIVManipulationOverlayHalfLifeShotgun(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2710,7 +2829,9 @@ export async function mediaIVManipulationOverlayHalfLifeSMG(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2729,7 +2850,9 @@ export async function mediaIVManipulationOverlayPersonsBernie1(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2748,7 +2871,9 @@ export async function mediaIVManipulationOverlayPersonsBobRoss(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2768,7 +2893,9 @@ export async function mediaIVManipulationOverlayPersonsGaben1(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2787,7 +2914,9 @@ export async function mediaIVManipulationOverlayPersonsLTTLinus1(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2806,7 +2935,9 @@ export async function mediaIVManipulationOverlayShutterstock(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2825,7 +2956,9 @@ export async function mediaIVManipulationOverlayStarman(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2844,7 +2977,9 @@ export async function mediaIVManipulationPaint(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPaint,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     radius: options.radius,
     url: options.url,
   };
@@ -2864,7 +2999,9 @@ export async function mediaIVManipulationPaintAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPaint,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     radius: options.radius,
     url: options.url,
   };
@@ -2884,7 +3021,9 @@ export async function mediaIVManipulationPaper(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2903,7 +3042,9 @@ export async function mediaIVManipulationPix2Pix(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPix2Pix,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     model: options.model,
     url: options.url,
   };
@@ -2923,7 +3064,9 @@ export async function mediaIVManipulationPixelate(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPixelate,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     pixel_width: options.pixelWidth,
     url: options.url,
   };
@@ -2943,7 +3086,9 @@ export async function mediaIVManipulationRain(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2962,7 +3107,9 @@ export async function mediaIVManipulationRainGold(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -2981,7 +3128,9 @@ export async function mediaIVManipulationRecolor(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3000,8 +3149,10 @@ export async function mediaIVManipulationRipple(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationRipple,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     amplitude: options.amplitude,
+    max_file_size: maxFileSize,
     offset: options.offset,
     power: options.power,
     rmin: options.rmin,
@@ -3025,8 +3176,10 @@ export async function mediaIVManipulationShake(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationShake,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     horizontal: options.horizontal,
+    max_file_size: maxFileSize,
     randomize: options.randomize,
     url: options.url,
     vertical: options.vertical,
@@ -3047,7 +3200,9 @@ export async function mediaIVManipulationSharpen(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationSharpen,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     scale: options.scale,
     url: options.url,
   };
@@ -3067,10 +3222,12 @@ export async function mediaIVManipulationSpin(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationSpin,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     circle: options.circle,
     clockwise: options.clockwise,
     crop: options.crop,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3089,7 +3246,9 @@ export async function mediaIVManipulationSwapColors(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3108,7 +3267,9 @@ export async function mediaIVManipulationSwapPixels(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3127,8 +3288,10 @@ export async function mediaIVManipulationSwapRGBA(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationSwapRGBA,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     channels: options.channels,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3147,8 +3310,10 @@ export async function mediaIVManipulationSwirl(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationSwirl,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     degrees: options.degrees,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3167,7 +3332,9 @@ export async function mediaIVManipulationTrace(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3186,7 +3353,9 @@ export async function mediaIVManipulationTunnel(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationTunnel,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     spiral: options.spiral,
     url: options.url,
   };
@@ -3206,7 +3375,9 @@ export async function mediaIVManipulationUncaption(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationUncaption,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     tolerance: options.tolerance,
     url: options.url,
   };
@@ -3226,7 +3397,9 @@ export async function mediaIVManipulationVaporwave(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationVaporwave,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     text: options.text,
     url: options.url,
   };
@@ -3246,7 +3419,9 @@ export async function mediaIVManipulationWall(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3265,9 +3440,11 @@ export async function mediaIVManipulationWatercolor(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationWatercolor,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     contrast: options.contrast,
     edge: options.edge,
+    max_file_size: maxFileSize,
     mixing: options.mixing,
     smoothing: options.smoothing,
     url: options.url,
@@ -3288,8 +3465,10 @@ export async function mediaIVManipulationWave(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationWave,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     amplitude: options.amplitude,
+    max_file_size: maxFileSize,
     url: options.url,
     wave_length: options.waveLength,
   };
@@ -3309,8 +3488,10 @@ export async function mediaIVManipulationWaveAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationWaveAnimated,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     amplitude: options.amplitude,
+    max_file_size: maxFileSize,
     speed: options.speed,
     url: options.url,
     wave_length: options.waveLength,
@@ -3331,9 +3512,11 @@ export async function mediaIVManipulationWiggle(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationWiggle,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     amount: options.amount,
     direction: options.direction,
+    max_file_size: maxFileSize,
     url: options.url,
     wavelengths: options.wavelengths,
   };
@@ -3353,7 +3536,9 @@ export async function mediaIVToolsBackgroundRemove(
   context: RequestContext,
   options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     model: options.model,
     trim: options.trim,
     url: options.url,
@@ -3374,12 +3559,14 @@ export async function mediaIVToolsCrop(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCrop,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     height: options.height,
+    max_file_size: maxFileSize,
+    url: options.url,
     width: options.width,
     x: options.x,
     y: options.y,
-    url: options.url,
   };
   return request(context, {
     file: options.file,
@@ -3397,7 +3584,9 @@ export async function mediaIVToolsCropAuto(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3416,8 +3605,10 @@ export async function mediaIVToolsCropCircle(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCropCircle,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     background: options.background,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3436,8 +3627,10 @@ export async function mediaIVToolsCropTwitterHex(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCropTwitterHex,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     background: options.background,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3456,8 +3649,10 @@ export async function mediaIVToolsObjectRemove(
   context: RequestContext,
   options: RestOptions.MediaIVToolsObjectRemoveOptions,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     label: options.object,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3476,8 +3671,10 @@ export async function mediaIVToolsResize(
   context: RequestContext,
   options: RestOptions.MediaIVToolsResize,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     convert: options.convert,
+    max_file_size: maxFileSize,
     ratio: options.ratio,
     scale: options.scale,
     size: options.size,
@@ -3499,9 +3696,11 @@ export async function mediaIVToolsRotate(
   context: RequestContext,
   options: RestOptions.MediaIVToolsRotate,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     crop: options.crop,
     degrees: options.degrees,
+    max_file_size: maxFileSize,
     url: options.url,
   };
   return request(context, {
@@ -3520,12 +3719,16 @@ export async function mediaIVToolsRotate3d(
   context: RequestContext,
   options: RestOptions.MediaIVToolsRotate3d,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     crop: options.crop,
+    max_file_size: maxFileSize,
+    order: options.order,
     pan: options.pan,
     roll: options.roll,
     tilt: options.tilt,
     url: options.url,
+    zoom: options.zoom,
   };
   return request(context, {
     file: options.file,
@@ -3543,8 +3746,10 @@ export async function mediaIVToolsTrim(
   context: RequestContext,
   options: RestOptions.MediaIVToolsTrim,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     margin: options.margin,
+    max_file_size: maxFileSize,
     threshold: options.threshold,
     url: options.url,
   };
@@ -4222,6 +4427,7 @@ export async function utilitiesFetchMedia(
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    download_quality: options.downloadQuality,
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
@@ -4281,8 +4487,10 @@ export async function utilitiesMLEdit(
   context: RequestContext,
   options: RestOptions.UtilitiesMLEdit,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     do_not_error: options.doNotError,
+    max_file_size: maxFileSize,
     model: options.model,
     query: options.query,
     safe: options.safe,
@@ -4317,8 +4525,10 @@ export async function utilitiesMLImagine(
   context: RequestContext,
   options: RestOptions.UtilitiesMLImagine,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     do_not_error: options.doNotError,
+    max_file_size: maxFileSize,
     model: options.model,
     query: options.query,
     safe: options.safe,
@@ -4396,8 +4606,10 @@ export async function utilitiesQrCreate(
   context: RequestContext,
   options: RestOptions.UtilitiesQrCreate,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     margin: options.margin,
+    max_file_size: maxFileSize,
     query: options.query,
     size: options.size,
   };
@@ -4437,8 +4649,10 @@ export async function utilitiesScreenshot(
   context: RequestContext,
   options: RestOptions.UtilitiesScreenshot,
 ): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     height: options.height,
+    max_file_size: maxFileSize,
     safe: options.safe,
     timeout: options.timeout,
     url: options.url,

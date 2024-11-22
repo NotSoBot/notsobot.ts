@@ -260,6 +260,19 @@ export enum DiscordSkuIds {
 }
 
 
+export enum DownloadQualities {
+  QUALITY_8K = '8k',
+  QUALITY_4K = '4k',
+  QUALITY_1440 = '1440p',
+  QUALITY_1080 = '1080p',
+  QUALITY_720 = '720p',
+  QUALITY_480 = '480p',
+  QUALITY_360 = '360p',
+  QUALITY_240 = '240p',
+  QUALITY_144 = '144p',
+}
+
+
 export enum E621Rating {
   EXPLICIT = 'e',
   QUESTIONABLE = 'q',
@@ -1100,6 +1113,7 @@ export enum TagGenerationModels {
   CLAUDE_3_5_SONNET = 'CLAUDE_3_5_SONNET',
   CLAUDE_3_5_HAIKU = 'CLAUDE_3_5_HAIKU',
   //CLAUDE_3_HAIKU = 'CLAUDE_3_HAIKU',
+  OPENAI_CHATGPT_4O = 'OPENAI_CHATGPT_4O',
 }
 
 

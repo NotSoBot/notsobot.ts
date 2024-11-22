@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { generateTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { TagFormatter, checkNSFW, editOrReply } from '../../../utils';
+import { Parameters, TagFormatter, checkNSFW, editOrReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.generate';
@@ -26,6 +26,12 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  {
+    const replyText = await Parameters.targetText('', context);
+    if (replyText) {
+      args.prompt = [args.prompt, `Message Reply Context: ${replyText}`].join('\n');
+    }
+  }
   const now = Date.now();
   const response = await generateTag(context, {
     model: args.model,

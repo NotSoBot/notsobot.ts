@@ -9,10 +9,12 @@ export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   cropMode?: string,
+  order?: string,
   pan?: number,
   roll?: number,
   tilt?: number,
   url: string,
+  zoom?: number,
 }
 
 export function createResponse(

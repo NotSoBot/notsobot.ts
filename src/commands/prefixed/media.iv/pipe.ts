@@ -29,7 +29,7 @@ export default class PipeCommand extends BaseImageOrVideoCommand {
         usage: '<emoji,user:id|mention,url> <...commands>',
       },
       type: [
-        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
         {name: 'commands', type: Parameters.pipingCommands, consume: true},
       ],
     });

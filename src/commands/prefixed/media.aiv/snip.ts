@@ -14,7 +14,7 @@ export default class SnipCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'audio', type: Boolean},
+        {name: 'audio', aliases: ['a'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,

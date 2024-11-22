@@ -22,6 +22,8 @@ export class MediaIVToolsRotate3dCommand extends BaseInteractionImageOrVideoComm
         {name: 'pan', description: 'Vertical Centerline Rotation (-360..360)', type: Number},
         {name: 'tilt', description: 'Horizontal Centerline Rotation (-360..360)', type: Number},
         {name: 'roll', description: 'Regular Rotation (-360..360)', type: Number},
+        {name: 'order', description: 'Rotation Sequence (Default is \'ptr\', pan→tilt→roll)'},
+        {name: 'zoom', description: 'Zoom Amount (-3.0..3.0)', type: Number},
         {
           name: 'crop',
           description: 'Crop Modes',
