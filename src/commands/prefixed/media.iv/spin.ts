@@ -14,7 +14,7 @@ export default class SpinCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'counterclockwise', type: Boolean},
+        {name: 'counterclockwise', aliases: ['cc'], type: Boolean},
         {name: 'nocircle', type: Boolean},
         {name: 'nocrop', type: Boolean},
       ],

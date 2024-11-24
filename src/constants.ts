@@ -261,8 +261,6 @@ export enum DiscordSkuIds {
 
 
 export enum DownloadQualities {
-  QUALITY_8K = '8k',
-  QUALITY_4K = '4k',
   QUALITY_1440 = '1440p',
   QUALITY_1080 = '1080p',
   QUALITY_720 = '720p',

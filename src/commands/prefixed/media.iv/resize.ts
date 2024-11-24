@@ -15,10 +15,10 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
 
       aliases: ['enlarge', 'rescale'],
       args: [
-        {name: 'convert'},
-        {name: 'ratio', type: Boolean},
-        {name: 'scale', default: 2, type: 'float'},
-        {name: 'size'},
+        {name: 'convert', aliases: ['c']},
+        {name: 'ratio', aliases: ['r'], type: Boolean},
+        {name: 'scale', aliases: ['sc'], default: 2, type: 'float'},
+        {name: 'size', aliases: ['sz']},
       ],
       metadata: {
         category: CommandCategories.IMAGE,

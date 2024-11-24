@@ -12,12 +12,14 @@ export const COMMAND_ID = 'tag.generate';
 
 export interface CommandArgsBefore {
   debug?: boolean,
+  debugFull?: boolean,
   model?: string,
   prompt: string,
 }
 
 export interface CommandArgs {
   debug?: boolean,
+  debugFull?: boolean,
   model?: string,
   prompt: string,
 }
@@ -37,7 +39,18 @@ export async function createMessage(
     model: args.model,
     prompt: args.prompt,
   });
-  if (args.debug) {
+  if (args.debugFull) {
+    return editOrReply(context, {
+      content: [
+        'Model: ' + response.model,
+        'Prompt Complexity Level: ' + response.prompt_complexity_level,
+        `Token Count: (Input: ${response.usage.input_tokens}) (Output: ${response.usage.output_tokens})`,
+        `Token Count Cached: (Input: ${response.usage.cache_creation_input_tokens + response.usage.cache_read_input_tokens})`,
+        `Took: ${Date.now() - now}`,
+      ].join('\n'),
+      file: {filename: 'response.txt', value: response.text_full},
+    });
+  } else if (args.debug) {
     return editOrReply(context, {
       content: [
         'Model: ' + response.model,

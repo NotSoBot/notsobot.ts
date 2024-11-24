@@ -14,7 +14,7 @@ export default class RotateCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'crop', type: Boolean},
+        {name: 'crop', aliases: ['c'], type: Boolean},
         {name: 'degrees', aliases: ['d'], type: Number},
       ],
       metadata: {

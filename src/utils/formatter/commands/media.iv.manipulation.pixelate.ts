@@ -9,6 +9,7 @@ export const COMMAND_ID = 'media.iv.manipulation.pixelate';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  noLines?: boolean,
   url: string,
   width?: number,
 }
@@ -19,6 +20,7 @@ export function createResponse(
 ) {
   return mediaIVManipulationPixelate(context, {
     file: args.file,
+    noLines: args.noLines,
     pixelWidth: args.width,
     url: args.url,
   });

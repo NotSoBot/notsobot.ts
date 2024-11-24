@@ -15,7 +15,8 @@ export default class PixelateCommand extends BaseImageOrVideoCommand {
 
       aliases: ['pixel'],
       args: [
-        {name: 'width', type: Number},
+        {name: 'nolines', aliases: ['nl'], label: 'noLines', type: Boolean},
+        {name: 'width', aliases: ['w'], type: Number},
       ],
       metadata: {
         description: 'Pixelate an Image or Video',
@@ -26,7 +27,7 @@ export default class PixelateCommand extends BaseImageOrVideoCommand {
         ],
         id: Formatter.Commands.MediaIVManipulationPixelate.COMMAND_ID,
         category: CommandCategories.IMAGE,
-        usage: '?<emoji,user:id|mention|name,url> (-width <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-nolines) (-width <number>)',
       },
     });
   }

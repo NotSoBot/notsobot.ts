@@ -14,7 +14,7 @@ export default class SharpenCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['s'], name: 'scale', type: 'float'},
+        {name: 'scale', aliases: ['s'], type: 'float'},
       ],
       metadata: {
         category: CommandCategories.IMAGE,

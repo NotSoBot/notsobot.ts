@@ -14,7 +14,7 @@ export default class SwirlCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['d'], name: 'degrees', type: Number},
+        {name: 'degrees', aliases: ['d'], type: Number},
       ],
       metadata: {
         category: CommandCategories.IMAGE,

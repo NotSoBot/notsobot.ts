@@ -15,7 +15,7 @@ export default class AudioCompressCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['a compress'],
       args: [
-        {name: 'norevert', type: Boolean},
+        {name: 'norevert', aliases: ['nr'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.TOOLS,

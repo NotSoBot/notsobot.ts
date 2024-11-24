@@ -14,9 +14,9 @@ export default class GlitchCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'amount', type: Number},
-        {name: 'iterations', type: Number},
-        {name: 'seed', type: Number},
+        {name: 'amount', aliases: ['a'], type: Number},
+        {name: 'iterations', aliases: ['i'], type: Number},
+        {name: 'seed', aliases: ['s'], type: Number},
         //{name: 'type'}, // theres glitch2, but maybe get rid of it?
       ],
       metadata: {

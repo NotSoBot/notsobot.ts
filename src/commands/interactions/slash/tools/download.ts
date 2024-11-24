@@ -27,7 +27,7 @@ export class ToolsDownloadCommand extends BaseInteractionCommandOption {
         {
           name: 'quality',
           description: 'Choose Max Video Quality',
-          choices: Parameters.Slash.oneOf({choices: DownloadQualities}),
+          choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_720, doNotSort: true}),
         },
         {
           name: 'spoiler',

@@ -3067,6 +3067,7 @@ export async function mediaIVManipulationPixelate(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    no_lines: options.noLines,
     pixel_width: options.pixelWidth,
     url: options.url,
   };

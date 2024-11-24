@@ -17,6 +17,8 @@ export interface OneOfOptions<T> {
   choices: Record<string, T>,
   defaultChoice?: T,
   descriptions?: Record<any, string>,
+  doNotSort?: boolean,
+  doNotSortDefault?: boolean,
 }
 
 export function oneOf<T>(options: OneOfOptions<T>): Array<{name: string, value: number | string}> {
@@ -33,10 +35,12 @@ export function oneOf<T>(options: OneOfOptions<T>): Array<{name: string, value: 
     }
     choices.push({name, value: value as any});
   }
-  choices = choices.sort((x, y) => {
-    return x.name.localeCompare(y.name);
-  });
-  if (options.defaultChoice) {
+  if (!options.doNotSort) {
+    choices = choices.sort((x, y) => {
+      return x.name.localeCompare(y.name);
+    });
+  }
+  if (options.defaultChoice && !options.doNotSortDefault) {
     choices = choices.sort((x, y) => (x.value === options.defaultChoice) ? -1 : 0);
   }
   return choices.slice(0, 25);

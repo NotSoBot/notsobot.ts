@@ -15,7 +15,7 @@ export default class AudioIdentifyCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['a identify'],
       args: [
-        {name: 'start', type: Parameters.secondsWithOptions({negatives: true})},
+        {name: 'start', aliases: ['s'], type: Parameters.secondsWithOptions({negatives: true})},
       ],
       metadata: {
         category: CommandCategories.TOOLS,

@@ -15,8 +15,8 @@ export default class BackgroundRemoveCommand extends BaseImageOrVideoCommand {
 
       aliases: ['background rm', 'bg remove', 'bg rm'],
       args: [
-        {name: 'model', choices: Object.values(ImageBackgroundRemovalModels), help: `Must be one of: (${Object.values(ImageBackgroundRemovalModels).join(', ')})`},
-        {name: 'trim', type: Boolean},
+        {name: 'model', aliases: ['m', 'use'], choices: Object.values(ImageBackgroundRemovalModels), help: `Must be one of: (${Object.values(ImageBackgroundRemovalModels).join(', ')})`},
+        {name: 'trim', aliases: ['t'], type: Boolean},
       ],
       metadata: {
         category: CommandCategories.IMAGE,

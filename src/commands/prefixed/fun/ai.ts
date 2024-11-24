@@ -18,6 +18,7 @@ export default class AiCommand extends BaseCommand {
 
       args: [
         {name: 'debug', type: Boolean},
+        {name: 'debug2', aliases: ['d2'], label: 'debugFull', type: Boolean},
         {
           name: 'use',
           label: 'model',

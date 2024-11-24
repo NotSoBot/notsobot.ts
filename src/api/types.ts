@@ -463,6 +463,7 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationPixelate extends MediaBaseOptions {
+    noLines?: boolean,
     pixelWidth?: number,
   }
 
@@ -1154,9 +1155,11 @@ export namespace RestResponsesRaw {
   }
 
   export interface GenerateTag {
+    external_id: string,
     model: string,
     prompt_complexity_level: number,
     text: string,
+    text_full: string,
     usage: {
       cache_creation_input_tokens: number,
       cache_read_input_tokens: number,

@@ -18,6 +18,7 @@ export class MediaIVPixelateCommand extends BaseInteractionImageOrVideoCommandOp
     super({
       options: [
         {name: 'width', description: 'Size of each pixel', type: Number},
+        {name: 'nolines', description: 'Do not the pixel lines (Default: False)', label: 'noLines', type: Boolean},
       ],
     });
   }
