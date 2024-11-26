@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, ImageBackgroundRemovalModels } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -15,7 +15,7 @@ export default class BackgroundRemoveCommand extends BaseImageOrVideoCommand {
 
       aliases: ['background rm', 'bg remove', 'bg rm'],
       args: [
-        {name: 'model', aliases: ['m', 'use'], choices: Object.values(ImageBackgroundRemovalModels), help: `Must be one of: (${Object.values(ImageBackgroundRemovalModels).join(', ')})`},
+        {name: 'model', aliases: ['m', 'use'], type: Parameters.oneOf({choices: ImageBackgroundRemovalModels})},
         {name: 'trim', aliases: ['t'], type: Boolean},
       ],
       metadata: {

@@ -584,6 +584,14 @@ export namespace RestOptions {
     speed: number,
   }
 
+  export interface MediaIVToolsSetFPS extends MediaBaseOptions {
+    fps: number,
+  }
+
+  export interface MediaIVToolsSetFrameCount extends MediaBaseOptions {
+    count: number,
+  }
+
   export interface MediaIVToolsTrim extends MediaBaseOptions {
     margin?: number,
     threshold?: number,

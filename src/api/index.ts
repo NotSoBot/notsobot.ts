@@ -645,6 +645,14 @@ export async function mediaAIVToolsExif(
 }
 
 
+export async function mediaAIVToolsExtractMedia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAIVToolsExtractMedia(context, options);
+}
+
+
 export async function mediaAIVToolsJoin(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsJoin,
@@ -1506,6 +1514,22 @@ export async function mediaIVToolsRotate3d(
   options: RestOptions.MediaIVToolsRotate3d,
 ) {
   return raw.mediaIVToolsRotate3d(context, options);
+}
+
+
+export async function mediaIVToolsSetFPS(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSetFPS,
+) {
+  return raw.mediaIVToolsSetFPS(context, options);
+}
+
+
+export async function mediaIVToolsSetFrameCount(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSetFrameCount,
+) {
+  return raw.mediaIVToolsSetFrameCount(context, options);
 }
 
 

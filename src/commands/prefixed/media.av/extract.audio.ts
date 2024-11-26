@@ -6,14 +6,14 @@ import { Formatter } from '../../../utils';
 import { BaseAudioOrVideoCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'video extract audio';
+export const COMMAND_NAME = 'extract audio';
 
-export default class VideoExtractAudioCommand extends BaseAudioOrVideoCommand {
+export default class ExtractAudioCommand extends BaseAudioOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['v extract audio', 'v e audio'],
+      aliases: ['ex audio'],
       metadata: {
         category: CommandCategories.TOOLS,
         description: 'Extract audio from a video',

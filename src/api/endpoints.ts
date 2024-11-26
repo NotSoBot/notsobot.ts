@@ -76,6 +76,8 @@ export const Api = Object.freeze({
     '/media/aiv/tools/convert',
   MEDIA_AIV_TOOLS_EXIF:
     '/media/aiv/tools/exif',
+  MEDIA_AIV_TOOLS_EXTRACT_MEDIA:
+    '/media/aiv/tools/extract/media',
   MEDIA_AIV_TOOLS_JOIN:
     '/media/aiv/tools/join',
   MEDIA_AIV_TOOLS_OVERLAY:
@@ -303,6 +305,10 @@ export const Api = Object.freeze({
     '/media/iv/tools/rotate',
   MEDIA_IV_TOOLS_ROTATE_3d:
     '/media/iv/tools/rotate/3d',
+  MEDIA_IV_TOOLS_SET_FPS:
+    '/media/iv/tools/set/fps',
+  MEDIA_IV_TOOLS_SET_FRAME_COUNT:
+    '/media/iv/tools/set/framecount',
   MEDIA_IV_TOOLS_TRIM:
     '/media/iv/tools/trim',
 

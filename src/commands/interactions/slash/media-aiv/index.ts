@@ -6,6 +6,8 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MediaAIVExtractGroupCommand } from './extract';
+
 import { MediaAIVADHDCommand } from './adhd';
 import { MediaAIVFadeInCommand } from './fade-in';
 import { MediaAIVFadeOutCommand } from './fade-out';
@@ -31,6 +33,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
 	  permissions: [Permissions.ATTACH_FILES],
 	  options: [
         new MediaAIVADHDCommand(),
+        new MediaAIVExtractGroupCommand(),
         new MediaAIVFadeInCommand(),
         new MediaAIVFadeOutCommand(),
         new MediaAIVPipeCommand(),

@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { ImageBackgroundRemovalModels } from '../../../../../constants';
+import { Formatter, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
@@ -20,7 +21,10 @@ export class MediaIVToolsBackgroundRemoveCommand extends BaseInteractionImageOrV
         {
           name: 'model',
           description: 'Background Removal Model',
-          choices: Formatter.Commands.MediaIVToolsBackgroundRemove.SLASH_CHOICES_MODEL,
+          choices: Parameters.Slash.oneOf({
+            choices: ImageBackgroundRemovalModels,
+            defaultChoice: Formatter.Commands.MediaIVToolsBackgroundRemove.DEFAULT_MODEL,
+          }),
           default: Formatter.Commands.MediaIVToolsBackgroundRemove.DEFAULT_MODEL,
         },
         {

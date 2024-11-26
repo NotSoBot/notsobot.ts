@@ -1328,6 +1328,27 @@ export async function mediaAIVToolsExif(
 }
 
 
+export async function mediaAIVToolsExtractMedia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_TOOLS_EXTRACT_MEDIA,
+    },
+  });
+}
+
+
 export async function mediaAIVToolsJoin(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsJoin,
@@ -3738,6 +3759,50 @@ export async function mediaIVToolsRotate3d(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_TOOLS_ROTATE_3d,
+    },
+  });
+}
+
+
+export async function mediaIVToolsSetFPS(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSetFPS,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    fps: options.fps,
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_SET_FPS,
+    },
+  });
+}
+
+
+export async function mediaIVToolsSetFrameCount(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSetFrameCount,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    count: options.count,
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_SET_FRAME_COUNT,
     },
   });
 }

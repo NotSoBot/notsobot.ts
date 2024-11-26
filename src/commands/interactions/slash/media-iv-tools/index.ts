@@ -7,6 +7,7 @@ import {
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaIVToolsBackgroundGroupCommand } from './background';
+import { MediaIVToolsSetGroupCommand } from './set';
 
 import { MediaIVToolsConvertCommand } from './convert';
 import { MediaIVToolsCropCommand } from './crop';
@@ -47,6 +48,7 @@ export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
         new MediaIVToolsRotateCommand(),
         new MediaIVToolsRotate3dCommand(),
         new MediaIVToolsResizeCommand(),
+        new MediaIVToolsSetGroupCommand(),
         new MediaIVToolsTrimCommand(),
         new MediaIVToolsUncaptionCommand(),
       ],

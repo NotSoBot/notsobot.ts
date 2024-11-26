@@ -3,7 +3,6 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { MediaAVAudioChannelsCombineCommand } from './channels-combine';
 import { MediaAVAudioCompressCommand } from './compress';
 import { MediaAVAudioDestroyCommand } from './destroy';
-import { MediaAVExtractAudioCommand } from './extract';
 import { MediaAVToolsIdentifyCommand } from './identify';
 import { MediaAVAudioPitchCommand } from './pitch';
 import { MediaAVAudioVibratoCommand } from './vibrato';
@@ -20,7 +19,6 @@ export class MediaAVAudioGroupCommand extends BaseInteractionCommandOptionGroup 
           new MediaAVAudioChannelsCombineCommand(),
           new MediaAVAudioCompressCommand(),
           new MediaAVAudioDestroyCommand(),
-          new MediaAVExtractAudioCommand(),
           new MediaAVToolsIdentifyCommand(),
           new MediaAVAudioPitchCommand(),
           new MediaAVAudioVibratoCommand(),

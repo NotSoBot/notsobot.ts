@@ -40,7 +40,7 @@ class ReminderInterval extends Listener {
 
   createReminderText(reminder: RestResponsesRaw.Reminder, expired: boolean = false): string {
     const createdAtUnix = Snowflake.timestamp(reminder.id, {epoch: SNOWFLAKE_EPOCH});
-    const text = (reminder.content) ? Markup.codestring(reminder.content) : getReminderMessage(reminder.id);
+    const text = reminder.content && Markup.codestring(reminder.content); //(reminder.content) ? Markup.codestring(reminder.content) : getReminderMessage(reminder.id);
 
     const mention = `<@${reminder.user.id}>`;
     const timestampText = Markup.timestamp(createdAtUnix, MarkupTimestampStyles.RELATIVE);
@@ -48,7 +48,10 @@ class ReminderInterval extends Listener {
       const expiredTimestampText = Markup.timestamp(Date.parse(reminder.timestamp_start));
       return `${mention}, an expired reminder from ${timestampText} for ${expiredTimestampText}: ${text}`;
     }
-    return `${mention}, reminder from ${timestampText}: ${text}`;
+    if (text) {
+      return `${mention}, reminder from ${timestampText}: ${text}`;
+    }
+    return `${mention}, reminder from ${timestampText}.`;
   }
 
   insertReminder(cluster: ClusterClient, reminder: RestResponsesRaw.Reminder): void {

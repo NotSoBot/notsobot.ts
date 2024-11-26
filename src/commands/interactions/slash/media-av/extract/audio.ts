@@ -5,7 +5,7 @@ import { Formatter } from '../../../../../utils';
 import { BaseInteractionAudioOrVideoCommandOption } from '../../../basecommand';
 
 
-export const COMMAND_NAME = 'extract';
+export const COMMAND_NAME = 'audio';
 
 export class MediaAVExtractAudioCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Extract Audio from an Audio or Video File';

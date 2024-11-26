@@ -24,6 +24,7 @@ import * as MediaAIVPipe from './media.aiv.pipe';
 
 import * as MediaAIVToolsConcat from './media.aiv.tools.concat';
 import * as MediaAIVToolsConvert from './media.aiv.tools.convert';
+import * as MediaAIVToolsExtractMedia from './media.aiv.tools.extract.media';
 import * as MediaAIVToolsJoin from './media.aiv.tools.join';
 import * as MediaAIVToolsOverlay from './media.aiv.tools.overlay';
 import * as MediaAIVToolsReverse from './media.aiv.tools.reverse';
@@ -139,6 +140,8 @@ import * as MediaIVToolsObjectRemove from './media.iv.tools.object.remove';
 import * as MediaIVToolsResize from './media.iv.tools.resize';
 import * as MediaIVToolsRotate from './media.iv.tools.rotate';
 import * as MediaIVToolsRotate3d from './media.iv.tools.rotate.3d';
+import * as MediaIVToolsSetFPS from './media.iv.tools.set.fps';
+import * as MediaIVToolsSetFrameCount from './media.iv.tools.set.frame.count';
 import * as MediaIVToolsTrim from './media.iv.tools.trim';
 
 import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
@@ -272,6 +275,7 @@ export {
 
   MediaAIVToolsConcat,
   MediaAIVToolsConvert,
+  MediaAIVToolsExtractMedia,
   MediaAIVToolsJoin,
   MediaAIVToolsOverlay,
   MediaAIVToolsReverse,
@@ -387,6 +391,8 @@ export {
   MediaIVToolsResize,
   MediaIVToolsRotate,
   MediaIVToolsRotate3d,
+  MediaIVToolsSetFPS,
+  MediaIVToolsSetFrameCount,
   MediaIVToolsTrim,
 
   ModerationAllowlistAddUsers,
