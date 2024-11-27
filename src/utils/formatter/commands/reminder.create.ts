@@ -62,7 +62,7 @@ export async function createMessage(
   */
 
   if (!reminder.content) {
-    text = `${text}: ${getReminderMessage(reminder.id)}`;
+    //text = `${text}: ${getReminderMessage(reminder.id)}`;
   } else if (128 < reminder.content.length) {
     text = `${text}: ${Markup.codestring(reminder.content.slice(0, 126))}...`;
   } else {
