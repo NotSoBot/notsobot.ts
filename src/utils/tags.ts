@@ -274,6 +274,7 @@ export enum TagFunctions {
   TIME_UNIX = 'TIME_UNIX',
   TIME_UNIX_FROM_SNOWFLAKE = 'TIME_UNIX_FROM_SNOWFLAKE',
   TIME_UNIX_SECONDS = 'TIME_UNIX_SECONDS',
+  TRAVERSE_JSON = 'TRAVERSE_JSON',
   USER_AVATAR = 'USER_AVATAR',
   USER_DISCRIMINATOR = 'USER_DISCRIMINATOR',
   USER_ID = 'USER_ID',
@@ -390,6 +391,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.TIME_UNIX]: ['unix'],
   [TagFunctions.TIME_UNIX_FROM_SNOWFLAKE]: ['unixsnowflake'],
   [TagFunctions.TIME_UNIX_SECONDS]: ['unixs'],
+  [TagFunctions.TRAVERSE_JSON]: ['json'],
   [TagFunctions.USER_AVATAR]: ['useravatar'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
   [TagFunctions.USER_ID]: ['id', 'userid'],
@@ -714,7 +716,7 @@ export async function parse(
 }
 
 
-export function split(value: string): Array<string> {
+export function split(value: string, amount: number = 0): Array<string> {
   if (!value.includes(TagSymbols.SPLITTER_ARGUMENT)) {
     return [value];
   }
@@ -725,6 +727,10 @@ export function split(value: string): Array<string> {
 
   const args: Array<string> = [];
   while (position < value.length) {
+    if (amount && amount <= args.length) {
+      break;
+    }
+
     if (depth === 0 && !text) {
       // find next left bracket
       const nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
@@ -1155,7 +1161,7 @@ const ScriptTags = Object.freeze({
     if (arg) {
       const args = tag.variables[PrivateVariables.ARGS];
 
-      let [ indexStartString, ...indexStopStrings ] = split(arg);
+      let [ indexStartString, indexStopString ] = split(arg, 2);
 
       let index = parseInt(indexStartString || '0');
       if (isNaN(index)) {
@@ -1166,7 +1172,6 @@ const ScriptTags = Object.freeze({
         index = args.length + index;
       }
 
-      const indexStopString = indexStopStrings.join(TagSymbols.SPLITTER_ARGUMENT);
       let indexStop = parseInt(indexStopString || String(tag.variables[PrivateVariables.ARGS].length));
       if (isNaN(index)) {
         return false;
@@ -1201,7 +1206,7 @@ const ScriptTags = Object.freeze({
       throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
     }
 
-    let [ urlString, filenameArg, ...descriptionValues ] = split(arg);
+    let [ urlString, filenameArg, descriptionValue ] = split(arg, 3);
 
     const url = await Parameters.url(urlString.trim(), context);
 
@@ -1228,7 +1233,7 @@ const ScriptTags = Object.freeze({
 
       tag.files.push({
         buffer: data,
-        description: (descriptionValues.length) ? descriptionValues.join(TagSymbols.SPLITTER_ARGUMENT) : undefined,
+        description: descriptionValue,
         filename,
         spoiler,
         url,
@@ -1308,10 +1313,9 @@ const ScriptTags = Object.freeze({
       throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
     }
 
-    let [ urlString, ...filenameValues ] = split(arg);
+    let [ urlString, filenameArg ] = split(arg, 2);
 
     const url = await Parameters.url(urlString.trim(), context);
-    const filenameArg = (filenameValues.length) ? filenameValues.join(TagSymbols.SPLITTER_ARGUMENT) : undefined;
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
@@ -1752,7 +1756,7 @@ const ScriptTags = Object.freeze({
     // {get:variable-name}
     // {get:variable-name|DEFAULT VALUE HERE}
 
-    let [ key, defaultValue ] = split(arg);
+    let [ key, defaultValue ] = split(arg, 2);
     if (key === undefined) {
       return false;
     }
@@ -1785,7 +1789,7 @@ const ScriptTags = Object.freeze({
     // {getchannel:variable-name}
     // {getchannel:variable-name|DEFAULT VALUE HERE}
 
-    let [ key, defaultValue ] = split(arg);
+    let [ key, defaultValue ] = split(arg, 2);
     if (key === undefined) {
       return false;
     }
@@ -1831,7 +1835,7 @@ const ScriptTags = Object.freeze({
     // {getchannel:variable-name}
     // {getchannel:variable-name|DEFAULT VALUE HERE}
 
-    let [ key, defaultValue ] = split(arg);
+    let [ key, defaultValue ] = split(arg, 2);
     if (key === undefined) {
       return false;
     }
@@ -1877,7 +1881,7 @@ const ScriptTags = Object.freeze({
     // {getuser:variable-name}
     // {getuser:variable-name|DEFAULT VALUE HERE}
 
-    let [ key, defaultValue ] = split(arg);
+    let [ key, defaultValue ] = split(arg, 2);
     if (key === undefined) {
       return false;
     }
@@ -1927,7 +1931,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [ value1, comparison, value2, conditional1, conditional2 ] = split(arg);
+    let [ value1, comparison, value2, conditional1, conditional2 ] = split(arg, 5);
     if (value1 === undefined || comparison === undefined || value2 === undefined || (conditional1 === undefined && conditional2 === undefined)) {
       return false;
     }
@@ -2054,7 +2058,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [ key, ...value ] = split(arg);
+    let [ key, value ] = split(arg, 2);
     key = key.trim();
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
@@ -2070,7 +2074,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    tag.variables[key] = value.join(TagSymbols.SPLITTER_ARGUMENT).slice(0, MAX_VARIABLE_LENGTH).trim();
+    tag.variables[key] = (value || '').slice(0, MAX_VARIABLE_LENGTH).trim();
 
     return true;
   },
@@ -3493,6 +3497,32 @@ const ScriptTags = Object.freeze({
       }
     } else {
       tag.text += Math.floor(Date.now() / 1000);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.TRAVERSE_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {json:string|json}
+    // {json:cake[0].test|{"cake":[{"test":"a"}]}}
+  
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    const [ path, text ] = split(arg, 2);
+    if (!path || !text) {
+      return false;
+    }
+
+    try {
+      const object = JSON.parse(text);
+      const result = path.split(/[\.\[\]]+/).filter(Boolean).reduce((current, key) => {
+        return current?.[key];
+      }, object);
+      tag.text += (typeof(result) === 'object') ? JSON.stringify(result) : result;
+    } catch(error) {
+      return false;
     }
 
     return true;

@@ -1,14 +1,14 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVToolsBackgroundRemove } from '../../../api';
-import { ImageBackgroundRemovalModels, ImageBackgroundRemovalModelsToText } from '../../../constants';
+import { MediaBackgroundRemovalModels, MediaBackgroundRemovalModelsToText } from '../../../constants';
 import { imageReply } from '../..';
 
 
 export const COMMAND_ID = 'media.iv.tools.background.remove';
 export const IS_PIPEABLE = true;
 
-export const DEFAULT_MODEL = ImageBackgroundRemovalModels.ISNET_GENERAL_USE;
+export const DEFAULT_MODEL = MediaBackgroundRemovalModels.ISNET_GENERAL_USE;
 
 
 export interface CommandArgs {

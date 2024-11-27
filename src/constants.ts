@@ -13,7 +13,7 @@ import {
 
 export const MAX_MEMBERS_SAFE = 1000;
 
-export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version 7.0.2-static https://johnvansickle.com/ffmpeg/'
+export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version n7.1-36-g20c8a3f5ff-20241125';
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
 export const SNOWFLAKE_EPOCH = 1564790400000;
 export const ZERO_WIDTH_SPACE = '\u200b';
@@ -707,28 +707,6 @@ export enum GuildPremiumTypes {
 };
 
 
-export enum ImageBackgroundRemovalModels {
-  ALPHA_MATTING = 'ALPHA_MATTING',
-  ISNET_ANIME = 'ISNET_ANIME',
-  ISNET_GENERAL_USE = 'ISNET_GENERAL_USE',
-  SILUETA = 'SILUETA',
-  U2NET = 'U2NET',
-  U2NETP = 'U2NETP',
-  U2NET_CLOTH_SEG = 'U2NET_CLOTH_SEG',
-  U2NET_HUMAN_SEG = 'U2NET_HUMAN_SEG',
-};
-
-export const ImageBackgroundRemovalModelsToText: Record<ImageBackgroundRemovalModels, string> = Object.freeze({
-  [ImageBackgroundRemovalModels.ALPHA_MATTING]: 'Alpha Matting',
-  [ImageBackgroundRemovalModels.ISNET_ANIME]: 'ISNet Anime (Anime-Orientated ISNet)',
-  [ImageBackgroundRemovalModels.ISNET_GENERAL_USE]: 'ISNet General Use',
-  [ImageBackgroundRemovalModels.SILUETA]: 'U2Net (But Smaller)',
-  [ImageBackgroundRemovalModels.U2NET]: 'U2Net',
-  [ImageBackgroundRemovalModels.U2NETP]: 'U2Netp (Simpler U2Net)',
-  [ImageBackgroundRemovalModels.U2NET_CLOTH_SEG]: 'U2Netp (Clothing-Orientated U2Net)',
-  [ImageBackgroundRemovalModels.U2NET_HUMAN_SEG]: 'U2Net Human Segmentation (Human-Orientated U2Net)',
-});
-
 export enum ImageObjectRemovalLabels {
   PERSON = "PERSON",
   BICYCLE = "BICYCLE",
@@ -823,6 +801,7 @@ export enum ImageObjectRemovalLabels {
   HAIR_BRUSH = "HAIR_BRUSH",
 }
 
+
 export enum ImageEyeTypes {
   BIG = 'BIG',
   BLOODSHOT = 'BLOODSHOT',
@@ -883,6 +862,43 @@ export enum ImagePix2PixModels {
   EMOJI = 'EMOJI',
   PORN = 'PORN',
 };
+
+
+export enum MediaBackgroundRemovalModels {
+  ALPHA_MATTING = 'ALPHA_MATTING',
+  BIREFNET_COD = 'BIREFNET_COD',
+  BIREFNET_DIS = 'BIREFNET_DIS',
+  BIREFNET_GENERAL = 'BIREFNET_GENERAL',
+  BIREFNET_GENERAL_LITE = 'BIREFNET_GENERAL_LITE',
+  BIREFNET_HRSOD = 'BIREFNET_HRSOD',
+  BIREFNET_MASSIVE = 'BIREFNET_MASSIVE',
+  BIREFNET_PORTRAIT = 'BIREFNET_PORTRAIT',
+  ISNET_ANIME = 'ISNET_ANIME',
+  ISNET_GENERAL_USE = 'ISNET_GENERAL_USE',
+  SILUETA = 'SILUETA',
+  U2NET = 'U2NET',
+  U2NETP = 'U2NETP',
+  U2NET_CLOTH_SEG = 'U2NET_CLOTH_SEG',
+  U2NET_HUMAN_SEG = 'U2NET_HUMAN_SEG',
+};
+
+export const MediaBackgroundRemovalModelsToText: Record<MediaBackgroundRemovalModels, string> = Object.freeze({
+  [MediaBackgroundRemovalModels.ALPHA_MATTING]: 'Alpha Matting',
+  [MediaBackgroundRemovalModels.BIREFNET_COD]: 'BiRefNet COD (Hidden Object Detection)',
+  [MediaBackgroundRemovalModels.BIREFNET_DIS]: 'BiRefNet DIS (Foreground/Background Separation)',
+  [MediaBackgroundRemovalModels.BIREFNET_GENERAL]: 'BiRefNet General',
+  [MediaBackgroundRemovalModels.BIREFNET_GENERAL_LITE]: 'BiRefNet General Lite',
+  [MediaBackgroundRemovalModels.BIREFNET_HRSOD]: 'BiRefNet HRSOD (High Resolution)',
+  [MediaBackgroundRemovalModels.BIREFNET_MASSIVE]: 'BiRefNet Massive (Advanced Multi-Object)',
+  [MediaBackgroundRemovalModels.BIREFNET_PORTRAIT]: 'BiRefNet Portrait (People Optimized)',
+  [MediaBackgroundRemovalModels.ISNET_ANIME]: 'ISNet Anime (Anime/Cartoon Optimized)',
+  [MediaBackgroundRemovalModels.ISNET_GENERAL_USE]: 'ISNet General Use',
+  [MediaBackgroundRemovalModels.SILUETA]: 'U2Net Lite (Faster, Smaller Version)',
+  [MediaBackgroundRemovalModels.U2NET]: 'U2Net',
+  [MediaBackgroundRemovalModels.U2NETP]: 'U2Netp (Lightweight U2Net)',
+  [MediaBackgroundRemovalModels.U2NET_CLOTH_SEG]: 'U2Net Fashion (Clothing Optimized)',
+  [MediaBackgroundRemovalModels.U2NET_HUMAN_SEG]: 'U2Net Human (People Optimized)',
+});
 
 
 export enum MediaDistortMethods {
@@ -1636,6 +1652,7 @@ export const TimezoneText: Record<Timezones, string> = Object.freeze({
 
 export enum TTSVoices {
   CLONED = 'CLONED',
+  PHONEME_MORSHU = 'PHONEME_MORSHU',
   TIKTOK_BR_MALE_01 = 'TIKTOK_BR_MALE_01',
   TIKTOK_DE_FEMALE_01 = 'TIKTOK_DE_FEMALE_01',
   TIKTOK_DE_MALE_01 = 'TIKTOK_DE_MALE_01',
@@ -1682,6 +1699,7 @@ export const TTS_VOICES = Object.values(TTSVoices);
 
 export const TTSVoicesToText = Object.freeze({
   [TTSVoices.CLONED]: 'Cloned',
+  [TTSVoices.PHONEME_MORSHU]: 'Phoneme Morshu',
   [TTSVoices.TIKTOK_BR_MALE_01]: 'TikTok Brazilian Male One',
   [TTSVoices.TIKTOK_DE_FEMALE_01]: 'TikTok German Female One',
   [TTSVoices.TIKTOK_DE_MALE_01]: 'TikTok German Male One',

@@ -54,7 +54,7 @@ import { OPENAI_API_KEY } from '../../config.json';
 
 
 
-const client = new OpenAI({
+export const openAIClient = new OpenAI({
   apiKey: OPENAI_API_KEY,
 });
 
@@ -70,7 +70,7 @@ export async function checkNSFW(
     return [false, null];
   }
 
-  const response = await client.moderations.create({
+  const response = await openAIClient.moderations.create({
     model: 'omni-moderation-latest',
     input: [
       {type: 'text', text: content},
@@ -276,7 +276,9 @@ export function findMediaUrlInAttachment(
   // Has proxy url
   // is Audio or is Image/Video w/ height or width
   if (attachment.proxyUrl) {
-    if (!findText && attachment.contentType && attachment.contentType.startsWith('text/')) {
+    if (!findText && attachment.contentType && (
+      attachment.contentType.startsWith('text/') || attachment.contentType.startsWith('application/json')
+    )) {
       return null;
     } else if (!findAudio && attachment.isAudio) {
       return null;

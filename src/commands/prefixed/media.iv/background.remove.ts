@@ -1,6 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, ImageBackgroundRemovalModels } from '../../../constants';
+import {
+  CommandCategories,
+  MediaBackgroundRemovalModels,
+  MediaBackgroundRemovalModelsToText,
+} from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
@@ -15,7 +19,14 @@ export default class BackgroundRemoveCommand extends BaseImageOrVideoCommand {
 
       aliases: ['background rm', 'bg remove', 'bg rm'],
       args: [
-        {name: 'model', aliases: ['m', 'use'], type: Parameters.oneOf({choices: ImageBackgroundRemovalModels})},
+        {
+          name: 'model',
+          aliases: ['m', 'use'],
+          type: Parameters.oneOf({
+            choices: MediaBackgroundRemovalModels,
+            descriptions: MediaBackgroundRemovalModelsToText,
+          }),
+        },
         {name: 'trim', aliases: ['t'], type: Boolean},
       ],
       metadata: {
@@ -28,7 +39,7 @@ export default class BackgroundRemoveCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -trim`,
         ],
         id: Formatter.Commands.MediaIVToolsBackgroundRemove.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-model <ImageBackgroundRemovalModels>) (-trim)',
+        usage: '?<emoji,user:id|mention|name,url> (-model <MediaBackgroundRemovalModels>) (-trim)',
       },
     });
   }
