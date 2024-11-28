@@ -287,6 +287,7 @@ export enum TagFunctions {
   TIME_UNIX_SECONDS = 'TIME_UNIX_SECONDS',
   TRANSCRIBE = 'TRANSCRIBE',
   TRAVERSE_JSON = 'TRAVERSE_JSON',
+  TYPE = 'TYPE',
   USER_AVATAR = 'USER_AVATAR',
   USER_DISCRIMINATOR = 'USER_DISCRIMINATOR',
   USER_ID = 'USER_ID',
@@ -409,6 +410,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.TIME_UNIX_SECONDS]: ['unixs'],
   [TagFunctions.TRANSCRIBE]: ['transcribe'],
   [TagFunctions.TRAVERSE_JSON]: ['traversejson'],
+  [TagFunctions.TYPE]: ['type'],
   [TagFunctions.USER_AVATAR]: ['useravatar'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
   [TagFunctions.USER_ID]: ['id', 'userid'],
@@ -3741,6 +3743,54 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
+    return true;
+  },
+
+  [TagFunctions.TYPE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {type:type|variable|default?}
+    // {type:number|asd|0}
+  
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    let [ type, text, defaultValue ] = split(arg, 3);
+    if (!type) {
+      return false;
+    }
+
+    switch (type.toLowerCase()) {
+      case 'float': {
+        let value = parseFloat(text);
+        if (isNaN(value)) {
+          if (!defaultValue) {
+            return true;
+          }
+          value = parseFloat(defaultValue);
+        }
+        if (isNaN(value)) {
+          return false;
+        }
+        tag.text += value;
+      }; break;
+      case 'number': {
+        let value = parseInt(text);
+        if (isNaN(value)) {
+          if (!defaultValue) {
+            return true;
+          }
+          value = parseInt(defaultValue);
+        }
+        if (isNaN(value)) {
+          return false;
+        }
+        tag.text += value;
+      }; break;
+      default: {
+        return false;
+      };
+    }
+  
     return true;
   },
 
