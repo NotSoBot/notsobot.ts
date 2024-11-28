@@ -12,14 +12,14 @@ export interface CommandArgsBefore {
   tag: false | null | RestResponsesRaw.Tag,
 }
 
-export const COMMAND_NAME = 'tag raw';
+export const COMMAND_NAME = 'tag info';
 
-export default class TagCommand extends BaseCommand {
+export default class TagInfoCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['t raw', 'tag owner', 't owner'],
+      aliases: ['t info', 'tag owner', 't owner', 'tag raw', 't raw'],
       label: 'tag',
       metadata: {
         category: CommandCategories.FUN,

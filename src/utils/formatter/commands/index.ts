@@ -201,7 +201,6 @@ import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
 import * as SettingsSetTimezone from './settings.set.timezone';
 
-import * as TagAdd from './tag.add';
 import * as TagAlias from './tag.alias';
 import * as TagCommandsAdd from './tag.commands.add';
 import * as TagCommandsList from './tag.commands.list';
@@ -211,6 +210,7 @@ import * as TagCreate from './tag.create';
 import * as TagEdit from './tag.edit';
 import * as TagExport from './tag.export';
 import * as TagGenerate from './tag.generate';
+import * as TagImportDM from './tag.import.dm';
 import * as TagInfo from './tag.info';
 import * as TagListServer from './tag.list.server';
 import * as TagListUser from './tag.list.user';
@@ -452,7 +452,6 @@ export {
   SettingsSetLocale,
   SettingsSetTimezone,
 
-  TagAdd,
   TagAlias,
   TagCommandsAdd,
   TagCommandsList,
@@ -462,6 +461,7 @@ export {
   TagEdit,
   TagExport,
   TagGenerate,
+  TagImportDM,
   TagInfo,
   TagListServer,
   TagListUser,

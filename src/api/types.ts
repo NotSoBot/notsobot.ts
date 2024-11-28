@@ -1433,6 +1433,7 @@ export namespace RestResponsesRaw {
   }
 
   export interface SearchDuckDuckGoImages {
+    amount: number,
     results: Array<{
       height: number,
       image: string,
@@ -1582,7 +1583,10 @@ export namespace RestResponsesRaw {
     views: number,
   }
 
-  export type SearchImgur = Array<SearchImgurResult>;
+  export interface SearchImgur {
+    amount: number,
+    results: Array<SearchImgurResult>,
+  }
 
   export type SearchRule34 = Array<SearchRule34Result>;
   export interface SearchRule34Result {

@@ -339,17 +339,6 @@ export async function applications(
 /* ----- Values ----- */
 
 
-export function codeblock(
-  value: string,
-): {language?: string, text: string} {
-  const { matches } = discordRegex(DiscordRegexNames.TEXT_CODEBLOCK, value) as {matches: Array<{language?: string, text: string}>};
-  if (matches.length) {
-    return matches[0];
-  }
-  return {text: value};
-}
-
-
 export interface OneOfOptions<T> {
   choices: Record<string, T>,
   defaultChoice?: T,

@@ -32,7 +32,7 @@ export class TagRandomCommand extends BaseInteractionCommandOption {
         },
         {
           name: 'user',
-          description: 'User to list tags for',
+          description: 'Pick a tag made by this User',
           type: ApplicationCommandOptionTypes.USER,
         },
         {
@@ -46,19 +46,5 @@ export class TagRandomCommand extends BaseInteractionCommandOption {
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.TagRandom.CommandArgs) {
     return Formatter.Commands.TagRandom.createMessage(context, args);
-  }
-
-  async onRunError(context: Interaction.InteractionContext, args: Formatter.Commands.TagRandom.CommandArgs, error: any) {
-    if (context.metadata && context.metadata.tag) {
-      await Formatter.Commands.TagShow.increaseUsage(context, context.metadata.tag);
-    }
-    return BaseInteractionCommand.prototype.onRunError.call(this, context, args, error);
-  }
-
-  async onSuccess(context: Interaction.InteractionContext, args: Formatter.Commands.TagRandom.CommandArgs) {
-    if (context.metadata && context.metadata.tag) {
-      await Formatter.Commands.TagShow.increaseUsage(context, context.metadata.tag);
-    }
-    return BaseInteractionCommand.prototype.onSuccess.call(this, context, args);
   }
 }

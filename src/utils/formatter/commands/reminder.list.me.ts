@@ -57,7 +57,7 @@ export async function createMessage(
       embed.setFooter(footer);
 
       const reminders = pages[pageNumber - 1];
-      if (reminders.length) {
+      if (reminders && reminders.length) {
         const description: Array<string> = [];
         for (let reminder of reminders) {
           const title = (reminder.guild_id === serverId) ? 'Message in this Server' : 'Message';

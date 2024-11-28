@@ -20,13 +20,14 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const results = shuffleArray<RestResponsesRaw.SearchImgurResult>(await searchImgur(context, {query: 'meme'}));
-  if (results.length) {
+  const { results } = await searchImgur(context, {query: 'meme'});
+  const shuffled = shuffleArray<RestResponsesRaw.SearchImgurResult>(results);
+  if (shuffled.length) {
     const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
-    embed.setImage(results[0].thumbnail);
+    embed.setImage(shuffled[0].thumbnail);
 
-    const url = results[0].thumbnail;
+    const url = shuffled[0].thumbnail;
     const filename = url.split('/').pop()!;
     embed.setImage(`attachment://${filename}`);
     return editOrReply(context, {

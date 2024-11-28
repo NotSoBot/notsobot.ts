@@ -62,21 +62,4 @@ export class TagCommandsShowCommand extends BaseInteractionCommandOption {
   ) {
     return Formatter.Commands.TagShowCustomCommand.createMessage(context, args);
   }
-
-  async onRunError(
-    context: Interaction.InteractionContext,
-    args: Formatter.Commands.TagShowCustomCommand.CommandArgs,
-    error: any,
-  ) {
-    await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
-    return BaseInteractionCommand.prototype.onRunError.call(this, context, args, error);
-  }
-
-  async onSuccess(
-    context: Interaction.InteractionContext,
-    args: Formatter.Commands.TagShowCustomCommand.CommandArgs,
-  ) {
-    await Formatter.Commands.TagShow.increaseUsage(context, args.tag);
-    return BaseInteractionCommand.prototype.onSuccess.call(this, context, args);
-  }
 }

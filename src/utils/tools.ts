@@ -1159,6 +1159,15 @@ export function generateCodeFromLanguage(
   }
 
   switch (language) {
+    case CodeLanguages.LUA: {
+      code = [
+        'local function __main__()local f=io.open("/dev/stdin","r")local c=f:read("*all")f:close()local j=require("dkjson")_G.discord=j.decode(c)local function e()if type(_G.discord)=="table"then local o={storage=_G.discord.storage or{},variables=_G.discord.variables or{}}local w=io.open("./output/__internals__.json","w")w:write(j.encode(o))w:close()end end return e end local __onExit__=__main__()',
+        '\n'.repeat(5),
+        code,
+        '\n'.repeat(5),
+        '__onExit__()',
+      ].join('');
+    }; break;
     case CodeLanguages.NODE: {
       code = [
         '(() => {',

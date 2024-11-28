@@ -2,11 +2,11 @@ import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-c
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { TagAddCommand } from './add';
 import { TagAliasCommand } from './alias';
 import { TagCommandsGroupCommand } from './commands';
 import { TagCreateCommand } from './create';
 import { TagExportCommand } from './export';
+import { TagImportGroupCommand } from './import';
 import { TagInfoCommand } from './info';
 import { TagListGroupCommand } from './list';
 import { TagRandomCommand } from './random';
@@ -32,11 +32,11 @@ export default class TagGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new TagShowCommand(),
-        new TagAddCommand(),
         new TagAliasCommand(),
         new TagCommandsGroupCommand(),
         new TagCreateCommand(),
         new TagExportCommand(),
+        new TagImportGroupCommand(),
         new TagInfoCommand(),
         new TagRandomCommand(),
         new TagRemoveGroupCommand(),

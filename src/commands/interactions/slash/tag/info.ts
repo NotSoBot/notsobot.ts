@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../../api/types';
+import { BooleanEmojis } from '../../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -26,6 +27,7 @@ export class TagInfoCommand extends BaseInteractionCommandOption {
           label: 'tag',
           required: true,
           value: Parameters.NotSoTag,
+          onAutoComplete: Parameters.AutoComplete.tags,
         },
       ],
     });
@@ -37,7 +39,7 @@ export class TagInfoCommand extends BaseInteractionCommandOption {
 
   onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
     if (args.tag === false) {
-      return editOrReply(context, '⚠ Unknown Tag');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
     }
     return super.onCancelRun(context, args);
   }
