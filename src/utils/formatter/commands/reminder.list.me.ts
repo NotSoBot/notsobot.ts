@@ -64,7 +64,7 @@ export async function createMessage(
   
           let content: string;
           if (!reminder.content) {
-            content = getReminderMessage(reminder.id);
+            content = ''; //getReminderMessage(reminder.id);
           } else if (128 < reminder.content.length) {
             // maybe make this 69?
             content = `${Markup.codestring(reminder.content.slice(0, 126))}...`;
@@ -75,7 +75,9 @@ export async function createMessage(
           const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(reminder.guild_id, reminder.channel_id, reminder.message_id);
           const timestamp = Markup.timestamp(Date.parse(reminder.timestamp_start), MarkupTimestampStyles.RELATIVE);
           description.push(`${Markup.bold(String(reminder.position))}: ${timestamp} (${Markup.url(title, jumpLink)})`);
-          description.push(`-> ${content}`);
+          if (content) {
+            description.push(`-> ${content}`);
+          }
         }
         embed.setDescription(description.join('\n'));
       } else {

@@ -454,6 +454,8 @@ export const Api = Object.freeze({
     '/utilities/qr/scan',
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
+  UTILITIES_WEATHER:
+    '/utilities/weather',
 
   VOICES:
     '/voices',

@@ -4734,6 +4734,24 @@ export async function utilitiesScreenshot(
 }
 
 
+export async function utilitiesWeather(
+  context: RequestContext,
+  options: RestOptions.UtilitiesWeather,
+): Promise<RestResponsesRaw.UtilitiesWeather> {
+  const query = {
+    query: options.query,
+    units: options.units,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_WEATHER,
+    },
+  });
+}
+
+
 export async function voiceCloneAdd(
   context: RequestContext,
   voiceId: string,

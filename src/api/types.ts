@@ -877,6 +877,11 @@ export namespace RestOptions {
     width?: number,
   }
 
+  export interface UtilitiesWeather {
+    query?: string,
+    units?: string,
+  }
+
   export interface VoiceCloneAdd {
     file?: RequestFile,
     url?: string,
@@ -2085,6 +2090,87 @@ export namespace RestResponsesRaw {
       type: string,
     }>,
     url?: string,
+  }
+
+  export interface UtilitiesWeather {
+    location: {
+      address: {
+        city: string | null,
+        continent: string | null,
+        country: string | null,
+        country_code: string | null,
+        county: string | null,
+        full: string,
+        state: string | null,
+        state_district: string | null,
+        suburb: string | null,
+        zipcode: string | null,
+        'ISO3166-2-lvl4': string | null,
+      },
+      latitude: number,
+      longitude: number,
+    },
+    timezone: string,
+    weather: {
+      current: {
+        clouds: number,
+        conditions: Array<{
+          description: string,
+          title: string,
+        }>,
+        dew_point: number,
+        feels_like: number,
+        humidity: number,
+        pressure: number,
+        sunrise: number,
+        sunset: number,
+        temperature: number,
+        uv_index: number,
+        visibility: number,
+        wind: {
+          degrees: number,
+          gust: number,
+          speed: number,
+        },
+      },
+      daily: Array<{
+        clouds: number,
+        conditions: Array<{
+          description: string,
+          title: string,
+        }>,
+        dew_point: number,
+        feels_like: {
+          day: number,
+          evening: number,
+          morning: number,
+          night: number,
+        },
+        humidity: number,
+        moonphase: number,
+        moonrise: number,
+        moonset: number,
+        pressure: number,
+        sunrise: number,
+        sunset: number,
+        temperature: {
+          day: number,
+          evening: number,
+          max: number,
+          min: number,
+          morning: number,
+          night: number,
+        },
+        timestamp: number,
+        uv_index: number,
+        visibility: number,
+        wind: {
+          degrees: number,
+          gust: number,
+          speed: number,
+        },
+      }>,
+    },
   }
 
   export type VoiceCloneAdd = Voice;

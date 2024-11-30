@@ -27,6 +27,7 @@ import {
   utilitiesMLEdit,
   utilitiesMLImagine,
   utilitiesMLInterrogate,
+  utilitiesWeather,
 } from '../../api';
 import { RestResponses, RestResponsesRaw } from '../../api/types';
 import {
@@ -35,6 +36,7 @@ import {
   Mimetypes,
   MLDiffusionModels,
   TagVariableStorageTypes,
+  WeatherUnits,
   YoutubeResultTypes,
   CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   MAX_MEMBERS_SAFE,
@@ -188,6 +190,7 @@ export const TAG_IF_COMPARISONS = [
 export enum TagFunctions {
   API_SEARCH_DUCKDUCKGO_IMAGES = 'API_SEARCH_DUCKDUCKGO_IMAGES',
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
+  API_UTILITIES_WEATHER = 'API_UTILITIES_WEATHER',
   ARG = 'ARG',
   ARGS = 'ARGS',
   ARGSLEN = 'ARGSLEN',
@@ -219,6 +222,7 @@ export enum TagFunctions {
   LOGICAL_DELETE_CHANNEL = 'LOGICAL_DELETE_CHANNEL',
   LOGICAL_DELETE_SERVER = 'LOGICAL_DELETE_SERVER',
   LOGICAL_DELETE_USER = 'LOGICAL_DELETE_USER',
+  LOGICAL_FOR_EACH = 'LOGICAL_FOR_EACH',
   LOGICAL_GET = 'LOGICAL_GET',
   LOGICAL_GET_CHANNEL = 'LOGICAL_GET_CHANNEL',
   LOGICAL_GET_SERVER = 'LOGICAL_GET_SERVER',
@@ -311,6 +315,7 @@ export const TagFunctionsToString = Object.freeze({
 
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: ['api.search.duckduckgo.images'],
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
+  [TagFunctions.API_UTILITIES_WEATHER]: ['api.utilities.weather'],
   [TagFunctions.ARG]: ['arg'],
   [TagFunctions.ARGS]: ['args'],
   [TagFunctions.ARGSLEN]: ['argslen'],
@@ -342,6 +347,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_DELETE_CHANNEL]: ['deletechannel'],
   [TagFunctions.LOGICAL_DELETE_SERVER]: ['deleteserver'],
   [TagFunctions.LOGICAL_DELETE_USER]: ['deleteuser'],
+  [TagFunctions.LOGICAL_FOR_EACH]: ['foreach'],
   [TagFunctions.LOGICAL_GET]: ['get'],
   [TagFunctions.LOGICAL_GET_CHANNEL]: ['getchannel'],
   [TagFunctions.LOGICAL_GET_SERVER]: ['getserver'],
@@ -447,6 +453,7 @@ export interface TagVariables {
   [PrivateVariables.RESULTS]: {
     [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
     [TagFunctions.API_SEARCH_IMGUR]?: Record<string, RestResponsesRaw.SearchImgur>,
+    [TagFunctions.API_UTILITIES_WEATHER]?: Record<string, RestResponsesRaw.UtilitiesWeather>,
     [TagFunctions.ATTACHMENT]?: Record<string, RestResponsesRaw.FileResponse>,
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
     [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
@@ -485,6 +492,7 @@ export async function parse(
   value: string,
   args: string = '',
   variables: TagVariables = Object.create(null),
+  shouldTrim: boolean = true,
 ): Promise<TagResult> {
   let isFirstParse = true;
   if (PrivateVariables.ITERATIONS_REMAINING in variables) {
@@ -630,7 +638,7 @@ export async function parse(
           // end of the script
           depth--;
           if (depth <= 0) {
-            let [scriptName, arg] = parseInnerScript(scriptBuffer);
+            let [scriptName, arg] = parseInnerScript(scriptBuffer, shouldTrim);
             if (TagFunctionsToString.IGNORE.includes(scriptName)) {
               tag.text += arg;
             } else if (TagFunctionsToString.NOTE.includes(scriptName)) {
@@ -638,6 +646,11 @@ export async function parse(
             } else if (TagFunctionsToString.LOGICAL_AND.includes(scriptName)) {
               // do this separate because we dont want to parse args yet
               const wasValid = await ScriptTags[TagFunctions.LOGICAL_AND](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.LOGICAL_FOR_EACH.includes(scriptName)) {
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_FOR_EACH](context, arg, tag);
               if (!wasValid) {
                 tag.text += scriptBuffer;
               }
@@ -819,12 +832,15 @@ export function split(value: string, amount: number = 0): Array<string> {
 }
 
 
-function parseInnerScript(value: string): [string, string] {
+function parseInnerScript(value: string, shouldTrim: boolean = true): [string, string] {
   let scriptName: string;
   let arg: string;
 
   // remove the brackets from both sides of the value
-  value = value.slice(1, value.length - 1).trim();
+  value = value.slice(1, value.length - 1);
+  if (shouldTrim) {
+    value = value.trim();
+  }
 
   const firstSplitter = value.indexOf(TagSymbols.SPLITTER_FUNCTION);
   if (firstSplitter === -1) {
@@ -1230,6 +1246,47 @@ const ScriptTags = Object.freeze({
     }
 
     const response = cachedResults[arg] || await searchImgur(context, {query: arg});
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = response;
+    }
+
+    tag.text += JSON.stringify(response);
+
+    return true;
+  },
+
+  [TagFunctions.API_UTILITIES_WEATHER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.utilities.weather:query|units?}
+  
+    if (!arg) {
+      return true;
+    }
+
+    let units: WeatherUnits | undefined;
+    if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      const parts = split(arg);
+      const insensitive = parts[parts.length - 1].toUpperCase();
+      if (insensitive in WeatherUnits) {
+        units = insensitive as WeatherUnits;
+        parts.pop();
+        arg = parts.join(TagSymbols.SPLITTER_ARGUMENT);
+      }
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_WEATHER] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_WEATHER] ||
+      {}
+    );
+
+    arg = arg.slice(0, 1024);
+    if (!(arg in cachedResults)) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    }
+
+    const response = cachedResults[arg] || await utilitiesWeather(context, {
+      query: arg,
+      units: units,
+    });
     if (!(arg in cachedResults)) {
       cachedResults[arg] = response;
     }
@@ -1789,6 +1846,76 @@ const ScriptTags = Object.freeze({
       }
     }
 
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_FOR_EACH]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {foreach:jsonarray|code}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    let [ text, code ] = split(arg, 2);
+    if (!text || !code) {
+      return true;
+    }
+
+    let values: Array<any>;
+    if (text.includes(TagSymbols.BRACKET_LEFT)) {
+      const argParsed = await parse(context, text, '', tag.variables);
+      normalizeTagResults(tag, argParsed, false);
+      text = argParsed.text;
+    }
+
+    if (isNaN(parseInt(text))) {
+      try {
+        const object = JSON.parse(text);
+        if (!Array.isArray(object)) {
+          return true;
+        }
+        values = object;
+      } catch(error) {
+        return true;
+      }
+    } else {
+      const count = parseInt(text);
+      if (count < 1 || 200 < count) {
+        throw new Error(`Cannot have a for loop that is less than 0 or bigger than 200.`);
+      }
+      values = Array.from({length: count});
+    }
+
+    if (values.length < 1 || 200 < values.length) {
+      throw new Error(`Cannot have a for loop that is less than 0 or bigger than 200.`);
+    }
+
+    const idx = tag.variables['idx'];
+    const valuex = tag.variables['valuex'];
+    for (let i = 0; i < values.length; i++) {
+      let text: string = '';
+      if (code.includes(TagSymbols.BRACKET_LEFT)) {
+        tag.variables['idx'] = String(i);
+        tag.variables['valuex'] = (typeof(values[i]) === 'object') ? JSON.stringify(values[i]) : String(values[i]);
+        const argParsed = await parse(context, code, '', tag.variables, false);
+        normalizeTagResults(tag, argParsed, false);
+        text = argParsed.text;
+      } else {
+        text = code;
+      }
+      tag.text += text;
+    }
+    if (idx === undefined) {
+      delete tag.variables['idx'];
+    } else {
+      tag.variables['idx'] = idx;
+    }
+    if (valuex === undefined) {
+      delete tag.variables['valuex'];
+    } else {
+      tag.variables['valuex'] = idx;
+    }
+  
     return true;
   },
 

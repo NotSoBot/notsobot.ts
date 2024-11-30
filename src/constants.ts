@@ -1243,6 +1243,12 @@ export enum UserUploadThresholdTypes {
 }
 
 
+export enum WeatherUnits {
+  IMPERIAL = 'IMPERIAL',
+  METRIC = 'METRIC',
+}
+
+
 export enum YoutubeResultTypes {
   CHANNEL = 0,
   VIDEO = 1,

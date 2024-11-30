@@ -1922,6 +1922,14 @@ export async function utilitiesScreenshot(
 }
 
 
+export async function utilitiesWeather(
+  context: RequestContext,
+  options: RestOptions.UtilitiesWeather,
+) {
+  return raw.utilitiesWeather(context, options);
+}
+
+
 export async function voiceCloneAdd(
   context: RequestContext,
   voiceId: string,
