@@ -21,6 +21,7 @@ export async function createMessage(
 ) {
   const response = await utilitiesScreenshot(context, {
     darkmode: !args.lightmode,
+    height: args.height,
     safe: args.safe,
     timeout: args.timeout,
     url: args.url,

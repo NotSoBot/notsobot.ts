@@ -192,8 +192,10 @@ export enum TagFunctions {
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
   API_UTILITIES_WEATHER = 'API_UTILITIES_WEATHER',
   ARG = 'ARG',
+  ARG_SAFE = 'ARG_SAFE',
   ARGS = 'ARGS',
-  ARGSLEN = 'ARGSLEN',
+  ARGS_LEN = 'ARGS_LEN',
+  ARGS_SAFE = 'ARGS_SAFE',
   ATTACHMENT = 'ATTACHMENT',
   ATTACHMENT_LAST = 'ATTACHMENT_LAST',
   ATTACHMENT_SPOILER = 'ATTACHMENT_SPOILER',
@@ -317,8 +319,10 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
   [TagFunctions.API_UTILITIES_WEATHER]: ['api.utilities.weather'],
   [TagFunctions.ARG]: ['arg'],
+  [TagFunctions.ARG_SAFE]: ['argsafe'],
   [TagFunctions.ARGS]: ['args'],
-  [TagFunctions.ARGSLEN]: ['argslen'],
+  [TagFunctions.ARGS_LEN]: ['argslen'],
+  [TagFunctions.ARGS_SAFE]: ['argssafe'],
   [TagFunctions.ATTACHMENT]: ['attachment', 'attach', 'file'],
   [TagFunctions.ATTACHMENT_LAST]: ['last_attachment', 'lastattachment', 'lattachment', 'lattach'],
   [TagFunctions.ATTACHMENT_SPOILER]: ['attachmentspoiler', 'attachspoiler', 'filespoiler'],
@@ -1317,6 +1321,27 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.ARG_SAFE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {argsafe} (defaults to the first one)
+    // {argsafe:0}
+  
+    let index = parseInt(arg || '0');
+    if (isNaN(index)) {
+      return false;
+    }
+  
+    const args = tag.variables[PrivateVariables.ARGS];
+    if (index < 0) {
+      index = args.length + index;
+    }
+
+    if (index in args) {
+      tag.text += args[index].replace(/(?<!\\)\|/g, '\\|');
+    }
+
+    return true;
+  },
+
   [TagFunctions.ARGS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {args}
     // {args:INDEX|INDEX2} (slice which amount of args you want)
@@ -1346,13 +1371,13 @@ const ScriptTags = Object.freeze({
 
       tag.text += args.slice(index, indexStop).join(' ');
     } else {
-      tag.text += tag.variables[PrivateVariables.ARGS_STRING];
+      tag.text += tag.variables[PrivateVariables.ARGS_STRING]
     }
 
     return true;
   },
 
-  [TagFunctions.ARGSLEN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+  [TagFunctions.ARGS_LEN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {argslen}
 
     tag.text += tag.variables[PrivateVariables.ARGS].length;
@@ -1420,6 +1445,41 @@ const ScriptTags = Object.freeze({
       throw error;
     }
 
+    return true;
+  },
+
+  [TagFunctions.ARGS_SAFE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {argssafe}
+    // {argssafe:INDEX|INDEX2} (slice which amount of args you want)
+  
+    if (arg) {
+      const args = tag.variables[PrivateVariables.ARGS];
+  
+      let [ indexStartString, indexStopString ] = split(arg, 2);
+  
+      let index = parseInt(indexStartString || '0');
+      if (isNaN(index)) {
+        return false;
+      }
+  
+      if (index < 0) {
+        index = args.length + index;
+      }
+  
+      let indexStop = parseInt(indexStopString || String(tag.variables[PrivateVariables.ARGS].length));
+      if (isNaN(index)) {
+        return false;
+      }
+  
+      if (indexStop < 0) {
+        indexStop = args.length + indexStop;
+      }
+  
+      tag.text += args.slice(index, indexStop).join(' ').replace(/(?<!\\)\|/g, '\\|');
+    } else {
+      tag.text += tag.variables[PrivateVariables.ARGS_STRING].replace(/(?<!\\)\|/g, '\\|');
+    }
+  
     return true;
   },
 
