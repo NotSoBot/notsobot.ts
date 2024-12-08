@@ -4,7 +4,7 @@ import { regex as discordRegex } from 'detritus-client/lib/utils';
 
 import { mediaICreateTombstone } from '../../../api';
 import { RestOptions } from '../../../api/types';
-import { imageReply } from '../../../utils';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.i.create.tombstone';
@@ -47,5 +47,5 @@ export async function createMessage(
   query.line2 = username;
 
   const response = await mediaICreateTombstone(context, query);
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

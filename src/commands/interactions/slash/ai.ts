@@ -18,6 +18,8 @@ export default class AICommand extends BaseSlashCommand {
   description = 'Use NotSoAI to generate and execute TagScript code';
   metadata = {
     id: Formatter.Commands.TagGenerate.COMMAND_ID,
+    premium: true,
+    premiumServer: GuildFeatures.AI_ACCESS,
   };
   name = 'ai';
 
@@ -51,6 +53,10 @@ export default class AICommand extends BaseSlashCommand {
         },
       ],
     });
+  }
+
+  get fullName(): string {
+    return 'NotSoAI';
   }
 
   async onBefore(context: Interaction.InteractionContext) {

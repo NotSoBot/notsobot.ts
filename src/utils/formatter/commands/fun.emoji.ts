@@ -133,7 +133,7 @@ export async function createMessage(
           const response = await mediaIVToolsResize(context, {size, url});
   
           const filename = response.file.filename;
-          const value = Buffer.from(response.file.value, 'base64');
+          const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
           resolve({filename, value});
         } catch(error) {
           reject(error);

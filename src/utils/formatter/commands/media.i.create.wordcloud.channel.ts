@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { mediaICreateWordcloud } from '../../../api';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { editOrReply, imageReply } from '../../../utils';
+import { editOrReply, mediaReply } from '../../../utils';
 
 
 export const MAX_FETCHES = 10;
@@ -41,7 +41,7 @@ export async function createMessage(
     const words = await fetchMessages(context, args).then((x) => x.slice(0, 3000));
     const response = await mediaICreateWordcloud(context, {words});
     isExecuting.wordcloud = false;
-    return imageReply(context, response);
+    return mediaReply(context, response);
   } catch(error) {
     isExecuting.wordcloud = false;
     throw error;

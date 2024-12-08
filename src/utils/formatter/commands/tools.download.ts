@@ -29,10 +29,5 @@ export async function createMessage(
     safe: args.safe,
     url: args.url,
   });
-  const mimetype = response.file.metadata.mimetype;
-
-  if (MIMETYPES_SAFE_EMBED.includes(mimetype as Mimetypes)) {
-    return imageReply(context, response, {spoiler: args.spoiler});
-  }
   return mediaReply(context, response, {spoiler: args.spoiler});
 }

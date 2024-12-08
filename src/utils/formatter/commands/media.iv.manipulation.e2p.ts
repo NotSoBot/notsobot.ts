@@ -3,7 +3,7 @@ import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationPix2Pix } from '../../../api';
 import { ImagePix2PixModels } from '../../../constants';
-import { imageReply } from '../..';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.e2p';
@@ -29,5 +29,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

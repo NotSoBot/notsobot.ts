@@ -7,7 +7,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'transcribe';
 
-export class ToolsTranscribe extends BaseInteractionAudioOrVideoCommandOption {
+export class ToolsTranscribeCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Transcribe an Audio or Video File';
   metadata = {
     id: Formatter.Commands.ToolsTranscribe.COMMAND_ID,

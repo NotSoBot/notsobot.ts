@@ -21,7 +21,7 @@ import {
   generateWaveform,
   regex as discordRegex,
 } from 'detritus-client/lib/utils';
-import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
+import { Endpoints as DiscordEndpoints, RequestTypes } from 'detritus-client-rest';
 import { replacePathParameters } from 'detritus-rest';
 import { Snowflake, Timers } from 'detritus-utils';
 
@@ -1366,7 +1366,7 @@ export async function imageReply(
     imageReplyOptions.options.embed.setDescription(imageReplyOptions.description);
   }
 
-  const buffer = Buffer.from(response.file.value, 'base64');
+  const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   return imageReplyFromOptions(context, buffer, imageReplyOptions.options);
 }
 
@@ -1492,12 +1492,13 @@ export async function mediaReply(
   if (!options.filename) {
     options.filename = response.file.filename_base;
   }
-  const buffer = Buffer.from(response.file.value, 'base64');
+  const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   return mediaReplyFromOptions(context, buffer, {
     args: options.args,
     content: options.content,
     extension: response.file.metadata.extension,
     filename: options.filename,
+    framecount: response.file.metadata.framecount,
     height: response.file.metadata.height,
     mimetype: response.file.metadata.mimetype,
     size: response.file.metadata.size,
@@ -1517,6 +1518,7 @@ export async function mediaReplyFromOptions(
     content?: string,
     extension?: string,
     filename?: string,
+    framecount?: number,
     height?: number,
     mimetype?: string,
     size: number,
@@ -1542,6 +1544,9 @@ export async function mediaReplyFromOptions(
   if (options.width || options.height) {
     footer = `${options.width || 0}x${options.height || 0}, `;
   }
+  if (options.framecount && options.framecount !== 1) {
+    footer += `${options.framecount.toLocaleString()} frames, `;
+  }
   footer += formatMemory(options.size, 2);
   if (options.took) {
     let took = options.took;
@@ -1554,12 +1559,32 @@ export async function mediaReplyFromOptions(
     }
   }
 
+  const shouldBeEmbed = MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes) && !options.spoiler;
+  // we used to check if it was an animated webp but its supported now
+
+  if (shouldBeEmbed) {
+    const embed = new Embed();
+    embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
+    embed.setFooter(footer);
+
+    let file: RequestTypes.File | undefined;
+    if (options.storage) {
+      embed.setImage(options.storage.urls.cdn);
+    } else {
+      embed.setImage(`attachment://${filename}`);
+      file = {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value};
+    }
+
+    return editOrReply(context, {content: options.content || '', embed, file});
+  }
+
   if (options.storage) {
     return editOrReply(context, {
       content: [
         (options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity,
+        (options.content || ''),
         `-# ${footer}`,
-      ].join('\n'),
+      ].filter(Boolean).join('\n'),
     });
   }
 

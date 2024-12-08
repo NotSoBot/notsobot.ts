@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationExo } from '../../../api';
-import { imageReply } from '../../../utils';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.kek';
@@ -28,5 +28,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

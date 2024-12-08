@@ -3,7 +3,7 @@ import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationCaption, mediaIVManipulationUncaption } from '../../../api';
 import { ImageMemeFonts } from '../../../constants';
-import { imageReply } from '../..';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.recaption';
@@ -29,11 +29,11 @@ export async function createMessage(
     file: {
       contentType: uncaptionResponse.file.metadata.mimetype,
       filename: uncaptionResponse.file.filename,
-      value: Buffer.from(uncaptionResponse.file.value, 'base64'),
+      value: (uncaptionResponse.file.value) ? Buffer.from(uncaptionResponse.file.value, 'base64') : Buffer.alloc(0),
     },
     font: args.font,
     text: args.text,
   })
   
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

@@ -12,14 +12,27 @@ import { Components, Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Response } from 'detritus-rest';
 
+import GuildSettingsStore from '../../stores/guildsettings';
+import UserStore from '../../stores/users';
+
 import { createUserCommand } from '../../api';
-import { BooleanEmojis, CommandTypes, DiscordSkuIds, EmbedColors, PermissionsText } from '../../constants';
+import {
+  BooleanEmojis,
+  CommandTypes,
+  DiscordSkuIds,
+  EmbedColors,
+  GuildFeatures,
+  PermissionsText,
+  UserFlags,
+} from '../../constants';
 import { DefaultParameters, Parameters, editOrReply } from '../../utils';
 
 
 export interface InteractionCommandMetadata {
   id: string,
   nsfw?: boolean,
+  premium?: boolean,
+  premiumServer?: boolean,
 };
 
 export class BaseInteractionCommand extends Interaction.InteractionCommand {
@@ -52,18 +65,63 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     });
   }
 
-  async onBefore(context: Interaction.InteractionContext) {
-    const contextMetadata = context.metadata = context.metadata || {};
-
-    const metadata = context.invoker.metadata;
-    if (metadata && metadata.nsfw) {
-      const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
-      if (!isNSFWAllowed) {
-        contextMetadata.reason = `${BooleanEmojis.WARNING} Not a NSFW channel.`;
-        return isNSFWAllowed;
+  onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
+    return new Promise(async (resolve) => {
+      const contextMetadata = context.metadata = context.metadata || {};
+  
+      const metadata = context.invoker.metadata;
+      if (metadata) {
+        if (metadata.nsfw) {
+          const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
+          if (!isNSFWAllowed) {
+            contextMetadata.reason = `${BooleanEmojis.WARNING} Not a NSFW channel.`;
+            return resolve(isNSFWAllowed);
+          }
+        }
+        if (metadata.premium || metadata.premiumServer) {
+          let hasPremium: boolean = false;
+          const user = await UserStore.getOrFetch(context, context.userId);
+          if (user && (user.premiumType || user.hasFlag(UserFlags.OWNER))) {
+            hasPremium = true;
+          }
+  
+          if (!hasPremium && metadata.premiumServer) {
+            if (context.guildId) {
+              const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+              if (settings && (typeof(metadata.premiumServer) === 'string' && settings.features.has(metadata.premiumServer))) {
+                hasPremium = true;
+              } else {
+                const guild = context.guild;
+                if (guild) {
+                  const owner = await UserStore.getOrFetch(context, guild.ownerId);
+                  if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+                    hasPremium = true;
+                  }
+                }
+              }
+            } else if (context.inDm && context.channel && context.channel.ownerId) {
+              // most likely a group dm, check to see if is owner of it
+              const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
+              if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+                hasPremium = true;
+              }
+            }
+          }
+  
+          if (!hasPremium) {
+            context.metadata = context.metadata || {};
+            if (metadata.premiumServer) {
+              context.metadata.reason = `You or the Server Owner must have NotSoPremium to use ${Markup.codestring(context.name)}!`;
+            } else {
+              context.metadata.reason = `You must have NotSoPremium to use ${Markup.codestring(context.name)}!`;
+            }
+            context.metadata.reasonIsPremiumRequired = true;
+            return resolve(hasPremium);
+          }
+        }
       }
-    }
-    return true;
+      return resolve(true);
+    });
   }
 
   onCancel(context: Interaction.InteractionContext) {
@@ -207,7 +265,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         description.push(message);
       }
     }
-    embed.setDescription(description.join('\n'));
+    embed.setDescription(description.join('\n').slice(0, 4096));
 
     if (error.metadata) {
       embed.addField('Metadata', [

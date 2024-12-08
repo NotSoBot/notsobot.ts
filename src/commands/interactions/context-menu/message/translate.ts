@@ -61,7 +61,7 @@ export default class TranslateCommand extends BaseContextMenuMessageCommand {
       const response = await utilitiesFetchMedia(context, {url: args.url});
       const file = {
         filename: response.file.filename,
-        value: Buffer.from(response.file.value, 'base64'),
+        value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
       };
 
       const { mimetype } = response.file.metadata;

@@ -70,6 +70,8 @@ export const Api = Object.freeze({
   MEDIA_AIV_MANIPULATION_FADE_OUT:
     '/media/aiv/manipulation/fade-out',
 
+  MEDIA_AIV_TOOLS_ANALYZE:
+    '/media/aiv/tools/analyze',
   MEDIA_AIV_TOOLS_CONCAT:
     '/media/aiv/tools/concat',
   MEDIA_AIV_TOOLS_CONVERT:
@@ -93,6 +95,8 @@ export const Api = Object.freeze({
 
   MEDIA_AV_MANIPULATION_AUDIO_CHANNELS_COMBINE:
     '/media/av/manipulation/audio/channels/combine',
+  MEDIA_AV_MANIPULATION_AUDIO_DELAY:
+    '/media/av/manipulation/audio/delay',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:
     '/media/av/manipulation/audio/pitch',
   MEDIA_AV_MANIPULATION_AUDIO_VIBRATO:
@@ -286,6 +290,10 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/wave/animated',
   MEDIA_IV_MANIPULATION_WIGGLE:
     '/media/iv/manipulation/wiggle',
+  MEDIA_IV_MANIPULATION_ZOOM:
+    '/media/iv/manipulation/zoom',
+  MEDIA_IV_MANIPULATION_ZOOM_BLUR:
+    '/media/iv/manipulation/zoom/blur',
 
   MEDIA_IV_TOOLS_BACKGROUND_REMOVE:
     '/media/iv/tools/background/remove',
@@ -309,6 +317,8 @@ export const Api = Object.freeze({
     '/media/iv/tools/set/fps',
   MEDIA_IV_TOOLS_SET_FRAME_COUNT:
     '/media/iv/tools/set/framecount',
+  MEDIA_IV_TOOLS_SNIP_FRAMES:
+    '/media/iv/tools/snip/frames',
   MEDIA_IV_TOOLS_TRIM:
     '/media/iv/tools/trim',
 
@@ -440,6 +450,8 @@ export const Api = Object.freeze({
     '/utilities/google/translate',
   UTILITIES_IMAGESCRIPT_V1: // RENAME
     '/utilities/mediascript',
+  UTILITIES_LOCATIONS:
+    '/utilities/locations',
   UTILITIES_ML_EDIT:
     '/utilities/ml/edit',
   UTILITIES_ML_IMAGINE:

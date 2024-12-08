@@ -2,6 +2,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaAVAudioChannelsCombineCommand } from './channels-combine';
 import { MediaAVAudioCompressCommand } from './compress';
+import { MediaAVAudioDelayCommand } from './delay';
 import { MediaAVAudioDestroyCommand } from './destroy';
 import { MediaAVToolsIdentifyCommand } from './identify';
 import { MediaAVAudioPitchCommand } from './pitch';
@@ -18,6 +19,7 @@ export class MediaAVAudioGroupCommand extends BaseInteractionCommandOptionGroup 
 	    options: [
           new MediaAVAudioChannelsCombineCommand(),
           new MediaAVAudioCompressCommand(),
+          new MediaAVAudioDelayCommand(),
           new MediaAVAudioDestroyCommand(),
           new MediaAVToolsIdentifyCommand(),
           new MediaAVAudioPitchCommand(),

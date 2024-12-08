@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesScreenshot } from '../../../api';
-import { imageReply } from '../../../utils';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.screenshot';
@@ -27,5 +27,5 @@ export async function createMessage(
     url: args.url,
     width: args.width,
   });
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

@@ -50,7 +50,7 @@ export async function createMessage(
     });
     files.push({
       filename: response.file.filename,
-      value: Buffer.from(response.file.value, 'base64'),
+      value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),
     });
   } catch(error) {
 

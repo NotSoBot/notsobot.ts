@@ -285,6 +285,7 @@ export enum EmbedBrands {
   GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
   NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
   OPENAI_WHISPER = 'https://cdn.discordapp.com/attachments/178313653177548800/1200888138738966740/invert.png?ex=65c7d13b&is=65b55c3b&hm=64723ed2c995d73fd8517c411eb089e501c789e264bfca61c88675ea3796b89c&',
+  OPEN_WEATHER_MAP = 'https://cdn.discordapp.com/attachments/560593330270896129/1313023240096055306/android-app-top-banner.png?ex=674e9faf&is=674d4e2f&hm=34dcea3c52bd67f79a337f49f38d2f89f8ea7017f22358093c8d7f163f429d17&',
   REDDIT = 'https://cdn.notsobot.com/brands/reddit.png',
   RULE34 = 'https://cdn.notsobot.com/brands/rule34.png',
   RULE34_PAHEAL = 'https://cdn.notsobot.com/brands/rule34-paheal.png',
@@ -864,6 +865,12 @@ export enum ImagePix2PixModels {
 };
 
 
+export enum MeasurementUnits {
+  IMPERIAL = 'IMPERIAL',
+  METRIC = 'METRIC',
+}
+
+
 export enum MediaBackgroundRemovalModels {
   ALPHA_MATTING = 'ALPHA_MATTING',
   BIREFNET_COD = 'BIREFNET_COD',
@@ -1240,12 +1247,6 @@ export enum UserUploadThresholdTypes {
   EXCEEDS_DISCORD_LIMIT = 0,
   ALWAYS = 1,
   NEVER = 2,
-}
-
-
-export enum WeatherUnits {
-  IMPERIAL = 'IMPERIAL',
-  METRIC = 'METRIC',
 }
 
 

@@ -16,6 +16,8 @@ import { MediaIVWatercolorCommand } from './watercolor';
 import { MediaIVWaveCommand } from './wave';
 import { MediaIVWavesCommand } from './waves';
 import { MediaIVWiggleCommand } from './wiggle';
+import { MediaIVZoomCommand } from './zoom';
+import { MediaIVZoomBlurCommand } from './zoom-blur';
 // rip command
 
 
@@ -42,6 +44,8 @@ export class MediaFun2GroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVWaveCommand(),
         new MediaIVWavesCommand(),
         new MediaIVWiggleCommand(),
+        new MediaIVZoomCommand(),
+        new MediaIVZoomBlurCommand(),
       ],
     });
   }

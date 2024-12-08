@@ -18,7 +18,7 @@ export default class SnipCommand extends BaseMediaCommand {
       ],
       metadata: {
         category: CommandCategories.TOOLS,
-        description: 'Snip an audio/video file',
+        description: 'Snip an Animated Image/Audio/Video',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 10 50`,
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -50`,

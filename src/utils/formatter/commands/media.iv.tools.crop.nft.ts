@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVToolsCropTwitterHex } from '../../../api';
-import { imageReply } from '../..';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.tools.crop.nft';
@@ -24,5 +24,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

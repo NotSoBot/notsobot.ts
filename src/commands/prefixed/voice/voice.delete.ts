@@ -21,13 +21,10 @@ export default class VoiceDeleteCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.VoiceDelete.COMMAND_ID,
+        premium: true,
         usage: '<voice:string>',
       },
     });
-  }
-
-  onBefore(context: Command.Context) {
-    return context.user.isClientOwner;
   }
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.VoiceDelete.CommandArgs) {

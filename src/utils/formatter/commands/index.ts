@@ -33,6 +33,7 @@ import * as MediaAIVToolsSnip from './media.aiv.tools.snip';
 import * as MediaAIVToolsSpeed from './media.aiv.tools.speed';
 
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
+import * as MediaAVManipulationAudioDelay from './media.av.manipulation.audio.delay';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
 import * as MediaAVManipulationAudioVibrato from './media.av.manipulation.audio.vibrato';
 import * as MediaAVManipulationBoostBass from './media.av.manipulation.boost.bass';
@@ -130,6 +131,8 @@ import * as MediaIVManipulationWatercolor from './media.iv.manipulation.watercol
 import * as MediaIVManipulationWave from './media.iv.manipulation.wave';
 import * as MediaIVManipulationWaveAnimated from './media.iv.manipulation.wave.animated';
 import * as MediaIVManipulationWiggle from './media.iv.manipulation.wiggle';
+import * as MediaIVManipulationZoom from './media.iv.manipulation.zoom';
+import * as MediaIVManipulationZoomBlur from './media.iv.manipulation.zoom.blur';
 
 import * as MediaIVToolsBackgroundRemove from './media.iv.tools.background.remove';
 import * as MediaIVToolsCrop from './media.iv.tools.crop';
@@ -142,6 +145,7 @@ import * as MediaIVToolsRotate from './media.iv.tools.rotate';
 import * as MediaIVToolsRotate3d from './media.iv.tools.rotate.3d';
 import * as MediaIVToolsSetFPS from './media.iv.tools.set.fps';
 import * as MediaIVToolsSetFrameCount from './media.iv.tools.set.frame.count';
+import * as MediaIVToolsSnipFrames from './media.iv.tools.snip.frames';
 import * as MediaIVToolsTrim from './media.iv.tools.trim';
 
 import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
@@ -194,12 +198,14 @@ import * as SearchYoutube from './search.youtube';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
+import * as SettingsSetDownloadQuality from './settings.set.download.quality';
 import * as SettingsSetFallbacksMediaImage from './settings.set.fallbacks.media.image';
 import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
 import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
 import * as SettingsSetTimezone from './settings.set.timezone';
+import * as SettingsSetUnits from './settings.set.units';
 
 import * as TagAlias from './tag.alias';
 import * as TagCommandsAdd from './tag.commands.add';
@@ -239,6 +245,7 @@ import * as ToolsScreenshot from './tools.screenshot';
 import * as ToolsTranscribe from './tools.transcribe';
 import * as ToolsTranscribeTranslate from './tools.transcribe.translate';
 import * as ToolsTranslate from './tools.translate';
+import * as ToolsWeather from './tools.weather';
 
 import * as VoiceClone from './voice.clone';
 import * as VoiceCloneAdd from './voice.clone.add';
@@ -284,6 +291,7 @@ export {
   MediaAIVToolsSpeed,
 
   MediaAVManipulationAudioChannelsCombine,
+  MediaAVManipulationAudioDelay,
   MediaAVManipulationAudioPitch,
   MediaAVManipulationAudioVibrato,
   MediaAVManipulationBoostBass,
@@ -381,6 +389,8 @@ export {
   MediaIVManipulationWave,
   MediaIVManipulationWaveAnimated,
   MediaIVManipulationWiggle,
+  MediaIVManipulationZoom,
+  MediaIVManipulationZoomBlur,
 
   MediaIVToolsBackgroundRemove,
   MediaIVToolsCrop,
@@ -393,6 +403,7 @@ export {
   MediaIVToolsRotate3d,
   MediaIVToolsSetFPS,
   MediaIVToolsSetFrameCount,
+  MediaIVToolsSnipFrames,
   MediaIVToolsTrim,
 
   ModerationAllowlistAddUsers,
@@ -445,12 +456,14 @@ export {
 
   SettingsServerSetLocale,
   SettingsServerSetTimezone,
+  SettingsSetDownloadQuality,
   SettingsSetFallbacksMediaImage,
   SettingsSetFileUploadThreshold,
   SettingsSetFileVanity,
   SettingsSetMLImagineModel,
   SettingsSetLocale,
   SettingsSetTimezone,
+  SettingsSetUnits,
 
   TagAlias,
   TagCommandsAdd,
@@ -490,6 +503,7 @@ export {
   ToolsTranscribe,
   ToolsTranscribeTranslate,
   ToolsTranslate,
+  ToolsWeather,
 
   VoiceClone,
   VoiceCloneAdd,

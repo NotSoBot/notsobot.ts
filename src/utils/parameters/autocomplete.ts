@@ -12,6 +12,7 @@ import {
   fetchTagsServer,
   fetchUserReminders,
   fetchUserVoices,
+  utilitiesLocations,
 } from '../../api';
 import { RestResponsesRaw } from '../../api/types';
 import {
@@ -145,6 +146,38 @@ export function googleLocales(context: Interaction.InteractionAutoCompleteContex
       GoogleLocales.TURKISH,
       GoogleLocales.VIETNAMESE,
     ].map((x) => ({name: GoogleLocalesText[x], value: x}));
+  }
+  return context.respond({choices});
+}
+
+
+
+export async function locations(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}>;
+  if (context.value) {
+    const { count, results } = await utilitiesLocations(context, {query: context.value, limit: 25});
+    choices = results.map((location) => {
+      let name = location.name;
+      if (location.name_official && location.name_official !== location.name && !location.name_official.toLowerCase().includes(location.name.toLowerCase())) {
+        name = `${location.name_official} (${location.name})`;
+      }
+      return {name: name.slice(0, 100), value: location.address.full.slice(0, 100)};
+    });
+  } else {
+    choices = [
+      'North America',
+      'South America',
+      'Europe',
+      'Africa',
+      'Antarctica',
+      'Asia',
+      'Australia',
+      'Iceland',
+      'Hawaii',
+      'North Korea',
+    ].map((name) => {
+      return {name, value: name};
+    });
   }
   return context.respond({choices});
 }

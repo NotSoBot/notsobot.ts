@@ -28,6 +28,6 @@ export async function createMessage(
 
   const filename = response.file.filename;
   return editOrReply(context, {
-    file: {filename, value: Buffer.from(response.file.value, 'base64')},
+    file: {filename, value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0)},
   });
 }

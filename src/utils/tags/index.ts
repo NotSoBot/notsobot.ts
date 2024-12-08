@@ -24,6 +24,7 @@ import {
   utilitiesFetchMedia,
   utilitiesFetchText,
   utilitiesImagescriptV1,
+  utilitiesLocations,
   utilitiesMLEdit,
   utilitiesMLImagine,
   utilitiesMLInterrogate,
@@ -33,10 +34,10 @@ import { RestResponses, RestResponsesRaw } from '../../api/types';
 import {
   CodeLanguages,
   GoogleLocales,
+  MeasurementUnits,
   Mimetypes,
   MLDiffusionModels,
   TagVariableStorageTypes,
-  WeatherUnits,
   YoutubeResultTypes,
   CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   MAX_MEMBERS_SAFE,
@@ -190,6 +191,7 @@ export const TAG_IF_COMPARISONS = [
 export enum TagFunctions {
   API_SEARCH_DUCKDUCKGO_IMAGES = 'API_SEARCH_DUCKDUCKGO_IMAGES',
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
+  API_UTILITIES_LOCATIONS = 'API_UTILITIES_LOCATIONS',
   API_UTILITIES_WEATHER = 'API_UTILITIES_WEATHER',
   ARG = 'ARG',
   ARG_SAFE = 'ARG_SAFE',
@@ -317,6 +319,7 @@ export const TagFunctionsToString = Object.freeze({
 
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: ['api.search.duckduckgo.images'],
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
+  [TagFunctions.API_UTILITIES_LOCATIONS]: ['api.utilities.locations'],
   [TagFunctions.API_UTILITIES_WEATHER]: ['api.utilities.weather'],
   [TagFunctions.ARG]: ['arg'],
   [TagFunctions.ARG_SAFE]: ['argsafe'],
@@ -457,6 +460,7 @@ export interface TagVariables {
   [PrivateVariables.RESULTS]: {
     [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
     [TagFunctions.API_SEARCH_IMGUR]?: Record<string, RestResponsesRaw.SearchImgur>,
+    [TagFunctions.API_UTILITIES_LOCATIONS]?: Record<string, RestResponsesRaw.UtilitiesLocations>,
     [TagFunctions.API_UTILITIES_WEATHER]?: Record<string, RestResponsesRaw.UtilitiesWeather>,
     [TagFunctions.ATTACHMENT]?: Record<string, RestResponsesRaw.FileResponse>,
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
@@ -960,10 +964,10 @@ const ScriptTags = Object.freeze({
         const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
         for (let file of result.files) {
           const { filename, size, value } = file;
+          if (MAX_ATTACHMENT_SIZE <= size) {
+            continue;
+          }
           if (filename === '__internals__.json') {
-            if (MAX_ATTACHMENT_SIZE <= size) {
-              continue;
-            }
             let response: any = {};
             try {
               response = JSON.parse(Buffer.from(value, 'base64').toString());
@@ -1259,6 +1263,35 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_UTILITIES_LOCATIONS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.utilities.locations:query}
+
+    if (!arg) {
+      return true;
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_LOCATIONS] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_LOCATIONS] ||
+      {}
+    );
+
+    arg = arg.slice(0, 1024);
+    if (!(arg in cachedResults)) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    }
+
+    const response = cachedResults[arg] || await utilitiesLocations(context, {
+      query: arg,
+    });
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = response;
+    }
+
+    tag.text += JSON.stringify(response);
+  
+    return true;
+  },
+
   [TagFunctions.API_UTILITIES_WEATHER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.utilities.weather:query|units?}
   
@@ -1266,12 +1299,12 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    let units: WeatherUnits | undefined;
+    let units: MeasurementUnits | undefined;
     if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       const parts = split(arg);
       const insensitive = parts[parts.length - 1].toUpperCase();
-      if (insensitive in WeatherUnits) {
-        units = insensitive as WeatherUnits;
+      if (insensitive in MeasurementUnits) {
+        units = insensitive as MeasurementUnits;
         parts.pop();
         arg = parts.join(TagSymbols.SPLITTER_ARGUMENT);
       }
@@ -1422,7 +1455,7 @@ const ScriptTags = Object.freeze({
 
       const filename = filenameArg || response.file.filename;
 
-      let data: Buffer | string = Buffer.from(response.file.value, 'base64');
+      let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
       if (response.file.metadata.mimetype.startsWith('text/')) {
         data = data.toString();
       }
@@ -1566,7 +1599,7 @@ const ScriptTags = Object.freeze({
       const filename = filenameArg || response.file.filename;
       const waveform = response.arguments && response.arguments.waveform;
 
-      const data: Buffer = Buffer.from(response.file.value, 'base64');
+      const data: Buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
       const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
       if (maxFileSize <= currentFileSize + data.length) {
         throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
@@ -1930,7 +1963,10 @@ const ScriptTags = Object.freeze({
 
     if (isNaN(parseInt(text))) {
       try {
-        const object = JSON.parse(text);
+        let object = JSON.parse(text);
+        if (typeof(object) === 'string') {
+          object = Parameters.stringArguments(object);
+        }
         if (!Array.isArray(object)) {
           return true;
         }
@@ -1940,14 +1976,18 @@ const ScriptTags = Object.freeze({
       }
     } else {
       const count = parseInt(text);
-      if (count < 1 || 200 < count) {
-        throw new Error(`Cannot have a for loop that is less than 0 or bigger than 200.`);
+      if (200 < count) {
+        throw new Error(`Cannot have a for loop that is less than 1 or bigger than 200.`);
       }
       values = Array.from({length: count});
     }
 
-    if (values.length < 1 || 200 < values.length) {
-      throw new Error(`Cannot have a for loop that is less than 0 or bigger than 200.`);
+    if (!values.length) {
+      return true;
+    }
+
+    if (200 < values.length) {
+      throw new Error(`Cannot have a for loop that is less than 1 or bigger than 200.`);
     }
 
     const idx = tag.variables['idx'];
@@ -2762,7 +2802,7 @@ const ScriptTags = Object.freeze({
     );
     const filename = response.file.filename;
 
-    const data = Buffer.from(response.file.value, 'base64');
+    const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   
     const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
     if (maxFileSize <= currentFileSize + data.length) {
@@ -2855,7 +2895,7 @@ const ScriptTags = Object.freeze({
     });
     const filename = response.file.filename;
 
-    const data = Buffer.from(response.file.value, 'base64');
+    const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
 
     const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
     if (maxFileSize <= currentFileSize + data.length) {
@@ -3086,7 +3126,7 @@ const ScriptTags = Object.freeze({
       });
       const filename = response.file.filename;
 
-      let data: Buffer | string = Buffer.from(response.file.value, 'base64');
+      let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
       if (response.file.metadata.mimetype.startsWith('text/')) {
         data = data.toString();
       }

@@ -8,6 +8,7 @@ import {
   GuildLoggerTypes,
   ImageEyeTypes,
   ImageMemeFonts,
+  MeasurementUnits,
   RedditSortTypes,
   RedditTimeTypes,
   TagVariableStorageTypes,
@@ -136,6 +137,7 @@ export namespace RestOptions {
   }
 
   export interface EditUserSettings {
+    downloadQuality?: null | string,
     fallbacksMediaImage?: null | UserFallbacksMediaImageTypes,
     fileUploadThreshold?: null | UserUploadThresholdTypes,
     locale?: null | string,
@@ -143,6 +145,7 @@ export namespace RestOptions {
     mlDiffusionModel?: null | string,
     timezone?: null | string,
     ttsVoice?: null | string,
+    units?: null | string,
     vanity?: null | string,
   }
 
@@ -231,6 +234,7 @@ export namespace RestOptions {
   export interface GenerateTag {
     model?: string,
     prompt: string,
+    promptExtra?: Array<string>,
   }
 
   export interface GoogleContentVisionBase {
@@ -306,6 +310,11 @@ export namespace RestOptions {
 
   export interface MediaAVManipulationAudioPitch extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaAVManipulationAudioDelay extends MediaBaseOptions {
+    delay?: number,
+    snip?: boolean,
   }
 
   export interface MediaAVManipulationAudioVibrato extends MediaBaseOptions {
@@ -534,6 +543,15 @@ export namespace RestOptions {
     wavelengths?: number,
   }
 
+  export interface MediaIVManipulationZoom extends MediaBaseOptions {
+    amount?: number,
+  }
+
+  export interface MediaIVManipulationZoomBlur extends MediaBaseOptions {
+    amount?: number,
+    expand?: boolean,
+  }
+
   export interface MediaIVToolsBackgroundRemoveOptions extends MediaBaseOptions {
     model?: string,
     trim?: boolean,
@@ -590,6 +608,11 @@ export namespace RestOptions {
 
   export interface MediaIVToolsSetFrameCount extends MediaBaseOptions {
     count: number,
+  }
+
+  export interface MediaIVToolsSnipFrames extends MediaBaseOptions {
+    end?: number,
+    start?: number,
   }
 
   export interface MediaIVToolsTrim extends MediaBaseOptions {
@@ -829,6 +852,11 @@ export namespace RestOptions {
     upload?: boolean,
   }
 
+  export interface UtilitiesLocations {
+    limit?: number,
+    query: string,
+  }
+
   export interface UtilitiesMLEdit extends MediaBaseOptions {
     doNotError?: boolean,
     model?: string,
@@ -945,7 +973,7 @@ export namespace RestResponsesRaw {
         width: number,
       },
       has_nsfw: boolean,
-      value: string,
+      value: null | string,
     },
     file_old: {
       metadata: {
@@ -1290,6 +1318,23 @@ export namespace RestResponsesRaw {
     id: string,
   }
 
+  export interface MediaAIVToolsAnalyze {
+    interrogation: string,
+    ocr: string,
+    songs: Array<{
+      album: string,
+      artists: Array<string>,
+      duration: number,
+      match: number,
+      timestamp: number,
+      title: string,
+    }>,
+    transcription: Array<{
+      l: string,
+      t: [number, number],
+      txt: string,
+    }>,
+  }
 
   export interface MediaAIVToolsExif {
     channels: {
@@ -2080,6 +2125,30 @@ export namespace RestResponsesRaw {
     version: string,
   }
 
+  export interface UtilitiesLocations {
+    count: number,
+    results: Array<{
+      address: {
+        city: string | null,
+        continent: string | null,
+        country: string | null,
+        country_code: string | null,
+        county: string | null,
+        full: string,
+        state: string | null,
+        state_district: string | null,
+        suburb: string | null,
+        zipcode: string | null,
+        'ISO3166-2-lvl4': string | null,
+      },
+      latitude: number,
+      longitude: number,
+      name: string,
+      name_official: string,
+      urls: {place: string, search: string},
+    }>
+  }
+
   export interface UtilitiesMLInterrogate {
     prompt: string,
   }
@@ -2109,8 +2178,12 @@ export namespace RestResponsesRaw {
       },
       latitude: number,
       longitude: number,
+      name: string,
+      name_official: string,
+      urls: {place: string, search: string},
     },
     timezone: string,
+    thumbnail: null | {url: string},
     weather: {
       current: {
         clouds: number,
@@ -2128,7 +2201,7 @@ export namespace RestResponsesRaw {
         uv_index: number,
         visibility: number,
         wind: {
-          degrees: number,
+          direction: number,
           gust: number,
           speed: number,
         },
@@ -2165,11 +2238,12 @@ export namespace RestResponsesRaw {
         uv_index: number,
         visibility: number,
         wind: {
-          degrees: number,
+          direction: number,
           gust: number,
           speed: number,
         },
       }>,
+      units: MeasurementUnits,
     },
   }
 
@@ -2224,6 +2298,7 @@ export namespace RestResponsesRaw {
   }
 
   export interface UserSettings {
+    download_quality: string | null,
     fallbacks_media_image: number,
     file_upload_name: string | null,
     file_upload_threshold: number,
@@ -2233,6 +2308,7 @@ export namespace RestResponsesRaw {
     opted_out_content: string | null,
     timezone: string | null,
     tts_voice: string | null,
+    units: string | null,
   }
 
   export interface Voice {

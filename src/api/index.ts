@@ -621,6 +621,14 @@ export async function mediaAIVManipulationFadeOut(
 }
 
 
+export async function mediaAIVToolsAnalyze(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAIVToolsAnalyze(context, options);
+}
+
+
 export async function mediaAIVToolsConcat(
   context: RequestContext,
   options: RestOptions.MediaBaseOptionsMultiple,
@@ -714,6 +722,14 @@ export async function mediaAVManipulationAudioPitch(
   options: RestOptions.MediaAVManipulationAudioPitch,
 ) {
   return raw.mediaAVManipulationAudioPitch(context, options);
+}
+
+
+export async function mediaAVManipulationAudioDelay(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioDelay,
+) {
+  return raw.mediaAVManipulationAudioDelay(context, options);
 }
 
 
@@ -1445,6 +1461,22 @@ export async function mediaIVManipulationWiggle(
 }
 
 
+export async function mediaIVManipulationZoom(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationZoom,
+) {
+  return raw.mediaIVManipulationZoom(context, options);
+}
+
+
+export async function mediaIVManipulationZoomBlur(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationZoomBlur,
+) {
+  return raw.mediaIVManipulationZoomBlur(context, options);
+}
+
+
 export async function mediaIVToolsBackgroundRemove(
   context: RequestContext,
   options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
@@ -1530,6 +1562,14 @@ export async function mediaIVToolsSetFrameCount(
   options: RestOptions.MediaIVToolsSetFrameCount,
 ) {
   return raw.mediaIVToolsSetFrameCount(context, options);
+}
+
+
+export async function mediaIVToolsSnipFrames(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsSnipFrames,
+) {
+  return raw.mediaIVToolsSnipFrames(context, options);
 }
 
 
@@ -1863,6 +1903,14 @@ export async function utilitiesImagescriptV1(
   options: RestOptions.UtilitiesImagescriptV1,
 ) {
   return raw.utilitiesImagescriptV1(context, options);
+}
+
+
+export async function utilitiesLocations(
+  context: RequestContext,
+  options: RestOptions.UtilitiesLocations,
+) {
+  return raw.utilitiesLocations(context, options);
 }
 
 

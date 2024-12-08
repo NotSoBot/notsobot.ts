@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationMirrorRight } from '../../../api';
-import { imageReply } from '../..';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.mirror.right';
@@ -23,5 +23,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  return imageReply(context, response, 'mirror-right');
+  return mediaReply(context, response);
 }

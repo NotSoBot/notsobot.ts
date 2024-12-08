@@ -24,7 +24,7 @@ export async function createMessage(
     content = Markup.codeblock(text, {language: 'fix'});
   }
 
-  const value = Buffer.from(file.value, 'base64');
+  const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   return imageReplyFromOptions(context, value, {
     content,
     filename: file.filename,

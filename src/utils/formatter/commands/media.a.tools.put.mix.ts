@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { audioToolsPutMix } from '../../../api';
-import { mediaReply } from '../..';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.a.tools.put.mix';

@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAIVToolsExtractMedia } from '../../../api';
-import { mediaReply } from '../..';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.tools.extract.media';

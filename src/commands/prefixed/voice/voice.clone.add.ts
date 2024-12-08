@@ -21,6 +21,7 @@ export default class VoiceCloneAddCommand extends BaseAudioOrVideoCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],
         id: Formatter.Commands.VoiceCloneAdd.COMMAND_ID,
+        premium: true,
         usage: '?<emoji,user:id|mention,url> <...voice:string>',
       },
       type: [
@@ -28,10 +29,6 @@ export default class VoiceCloneAddCommand extends BaseAudioOrVideoCommand {
         {name: 'voice', consume: true},
       ],
     });
-  }
-
-  onBefore(context: Command.Context) {
-    return context.user.isClientOwner;
   }
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.VoiceCloneAdd.CommandArgs) {

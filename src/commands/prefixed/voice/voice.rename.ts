@@ -20,6 +20,7 @@ export default class VoiceRenameCommand extends BaseCommand {
           `${COMMAND_NAME} chewbacca ralph`,
         ],
         id: Formatter.Commands.VoiceRename.COMMAND_ID,
+        premium: true,
         usage: '<voice:string> <...name:string>',
       },
       type: [
@@ -27,10 +28,6 @@ export default class VoiceRenameCommand extends BaseCommand {
         {name: 'name', consume: true},
       ],
     });
-  }
-
-  onBefore(context: Command.Context) {
-    return context.user.isClientOwner;
   }
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.VoiceRename.CommandArgs) {

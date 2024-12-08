@@ -12,7 +12,7 @@ import {
   editOrReply,
   fetchMemberOrUserById,
   formatTime,
-} from '../..';
+} from '../../../utils';
 
 
 export const COMMAND_ID = 'media.av.tools.identify';

@@ -20,13 +20,10 @@ export default class VoiceListCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.VoiceList.COMMAND_ID,
+        premium: true,
         usage: '',
       },
     });
-  }
-
-  onBefore(context: Command.Context) {
-    return context.user.isClientOwner;
   }
 
   async run(context: Command.Context, args: Formatter.Commands.VoiceList.CommandArgs) {

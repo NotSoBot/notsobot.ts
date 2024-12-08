@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVToolsObjectRemove } from '../../../api';
 import { ImageObjectRemovalLabels} from '../../../constants';
-import { imageReply, toTitleCase } from '../../../utils';
+import { mediaReply, toTitleCase } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.tools.object.remove';
@@ -27,5 +27,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

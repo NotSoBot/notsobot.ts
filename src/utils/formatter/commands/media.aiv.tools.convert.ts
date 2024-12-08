@@ -10,7 +10,7 @@ import {
   MIMETYPES_VIDEO_EMBEDDABLE,
   MIMETYPES_SAFE_EMBED,
 } from '../../../constants';
-import { imageReply, mediaReply } from '../..';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.tools.convert';
@@ -88,10 +88,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  const mimetype = response.file.metadata.mimetype;
-
-  if (MIMETYPES_SAFE_EMBED.includes(mimetype as Mimetypes)) {
-    return imageReply(context, response);
-  }
   return mediaReply(context, response);
 }

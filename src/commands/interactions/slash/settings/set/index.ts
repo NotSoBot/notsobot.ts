@@ -1,11 +1,13 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { SettingsSetFallbacksMediaImageCommand } from './set.fallbacks.media.image';
-import { SettingsSetFileUploadThresholdCommand } from './set.file.upload.threshold';
-import { SettingsSetFileVanityCommand } from './set.file.vanity';
-import { SettingsSetLocaleCommand } from './set.locale';
-import { SettingsSetMLImagineModelCommand } from './set.ml.imagine.model';
-import { SettingsSetTimezoneCommand } from './set.timezone';
+import { SettingsSetDownloadQualityCommand } from './download-quality';
+import { SettingsSetFallbacksMediaImageCommand } from './fallbacks-media-image';
+import { SettingsSetFileUploadThresholdCommand } from './file-upload-threshold';
+import { SettingsSetFileVanityCommand } from './file-vanity';
+import { SettingsSetLocaleCommand } from './locale';
+import { SettingsSetMLImagineModelCommand } from './ml-imagine-model';
+import { SettingsSetTimezoneCommand } from './timezone';
+import { SettingsSetUnitsCommand } from './units';
 
 
 export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -15,12 +17,14 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
+        new SettingsSetDownloadQualityCommand(),
         new SettingsSetFallbacksMediaImageCommand(),
         new SettingsSetFileUploadThresholdCommand(),
         new SettingsSetFileVanityCommand(),
         new SettingsSetLocaleCommand(),
         new SettingsSetMLImagineModelCommand(),
         new SettingsSetTimezoneCommand(),
+        new SettingsSetUnitsCommand(),
       ],
     });
   }

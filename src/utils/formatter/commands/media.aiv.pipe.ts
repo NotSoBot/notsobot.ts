@@ -86,7 +86,7 @@ export async function createMessage(
     }
     imageReplyOptions = currentImageReplyOptions;
 
-    const buffer = Buffer.from(response.file.value, 'base64');
+    const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
     file = {
       filename: `piped-media.${currentImageReplyOptions.options.extension || 'png'}`,
       value: buffer,

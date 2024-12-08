@@ -3,17 +3,24 @@ import { URL } from 'url';
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Endpoints } from 'detritus-client-rest';
 import { Response } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
+
+import GuildSettingsStore from '../../stores/guildsettings';
+import UserStore from '../../stores/users';
 
 import { createUserCommand } from '../../api';
 import {
   BooleanEmojis,
   CommandCategories,
   DiscordReactionEmojis,
+  DiscordSkuIds,
   EmbedColors,
+  GuildFeatures,
   PermissionsText,
   RatelimitKeys,
+  UserFlags,
 } from '../../constants';
 import { Parameters, createUserEmbed, editOrReply, findMediaUrlInMessages } from '../../utils';
 
@@ -25,6 +32,8 @@ export interface CommandMetadata {
   examples?: Array<string>,
   id?: string,
   nsfw?: boolean,
+  premium?: boolean,
+  premiumServer?: GuildFeatures | boolean,
   usage?: string,
 }
 
@@ -57,20 +66,88 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   onBefore(context: Command.Context): Promise<boolean> | boolean {
-    if (this.nsfw) {
-      if (context.channel) {
-        return context.channel.isDm || context.channel.nsfw;
+    return new Promise(async (resolve) => {
+      const contextMetadata = context.metadata = context.metadata || {};
+  
+      const metadata = (context.command || {}).metadata;
+      if (metadata) {
+        if (metadata.nsfw) {
+          const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
+          if (!isNSFWAllowed) {
+            contextMetadata.reason = `${BooleanEmojis.WARNING} Not a NSFW channel.`;
+            return resolve(isNSFWAllowed);
+          }
+        }
+        if (metadata.premium || metadata.premiumServer) {
+          let hasPremium: boolean = false;
+          const user = await UserStore.getOrFetch(context, context.userId);
+          if (user && (user.premiumType || user.hasFlag(UserFlags.OWNER))) {
+            hasPremium = true;
+          }
+  
+          if (!hasPremium && metadata.premiumServer) {
+            if (context.guildId) {
+              const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+              if (settings && (typeof(metadata.premiumServer) === 'string' && settings.features.has(metadata.premiumServer))) {
+                hasPremium = true;
+              } else {
+                const guild = context.guild;
+                if (guild) {
+                  const owner = await UserStore.getOrFetch(context, guild.ownerId);
+                  if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+                    hasPremium = true;
+                  }
+                }
+              }
+            } else if (context.inDm && context.channel && context.channel.ownerId) {
+              // most likely a group dm, check to see if is owner of it
+              const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
+              if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+                hasPremium = true;
+              }
+            }
+          }
+  
+          if (!hasPremium) {
+            context.metadata = context.metadata || {};
+            if (metadata.premiumServer) {
+              context.metadata.reason = `You or the Server Owner must have NotSoPremium to use ${Markup.codestring(this.fullName)}!`;
+            } else {
+              context.metadata.reason = `You must have NotSoPremium to use ${Markup.codestring(this.fullName)}!`;
+            }
+            context.metadata.reasonIsPremiumRequired = true;
+            return resolve(hasPremium);
+          }
+        }
       }
-      return context.inDm;
-    }
-    return true;
+      return resolve(true);
+    });
   }
 
   onCancel(context: Command.Context) {
-    if (this.nsfw) {
-      if (!context.inDm && (context.channel && (!context.channel.isDm || !context.channel.nsfw))) {
-        return editOrReply(context, `${BooleanEmojis.WARNING} Not a NSFW channel.`);
+    const contextMetadata = context.metadata = context.metadata || {};
+    if (contextMetadata.reason) {
+      if (contextMetadata.reasonIsPremiumRequired) {
+        const storePageUrl = (
+          Endpoints.Routes.URL +
+          Endpoints.Routes.APPLICATION_DIRECTORY(context.applicationId) +
+          `/${DiscordSkuIds.USER_NOTSOPREMIUM}`
+        );
+  
+        contextMetadata.reason = [
+          contextMetadata.reason,
+          `Buy it here: ${storePageUrl}`,
+        ].join('\n').trim();
+  
+        /*
+        components = new Components();
+        components.createButton({
+          skuId: DiscordSkuIds.USER_NOTSOPREMIUM,
+          style: MessageComponentButtonStyles.PREMIUM,
+        });
+        */
       }
+      return editOrReply(context, contextMetadata.reason);
     }
   }
 
@@ -252,7 +329,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         description.push(message);
       }
     }
-    embed.setDescription(description.join('\n'));
+    embed.setDescription(description.join('\n').slice(0, 4096));
 
     if (error.metadata) {
       embed.addField('Metadata', [

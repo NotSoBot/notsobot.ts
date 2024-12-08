@@ -2,7 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 
 import { mediaICreateRetrowave } from '../../../api';
 import { RestOptions } from '../../../api/types';
-import { imageReply } from '../../../utils';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.i.create.retrowave';
@@ -60,5 +60,5 @@ export async function createMessage(
   }
 
   const response = await mediaICreateRetrowave(context, query);
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }
