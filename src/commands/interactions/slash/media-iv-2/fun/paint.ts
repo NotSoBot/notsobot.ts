@@ -17,7 +17,7 @@ export class MediaIVPaintCommand extends BaseInteractionImageOrVideoCommandOptio
   constructor() {
     super({
       options: [
-        {name: 'radius', description: 'Paint Blob Radius', type: Number},
+        {name: 'radius', description: 'Paint Blob Radius (Default: 3)', type: Number},
       ],
     });
   }

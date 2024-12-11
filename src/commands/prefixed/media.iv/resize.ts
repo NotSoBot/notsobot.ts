@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -17,7 +17,7 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
       args: [
         {name: 'convert', aliases: ['c']},
         {name: 'ratio', aliases: ['r'], type: Boolean},
-        {name: 'scale', aliases: ['sc'], default: 2, type: 'float'},
+        {name: 'scale', aliases: ['sc'], type: 'float'},
         {name: 'size', aliases: ['sz']},
       ],
       metadata: {
@@ -32,8 +32,12 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} https://apng.onevcat.com/assets/elephant.png -ratio -size 320x320`,
         ],
         id: Formatter.Commands.MediaIVToolsResize.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-convert <format>) (-ratio) (-scale <number>) (-size <number>)',
+        usage: '?<emoji,user:id|mention|name,url> <SizeOrScale:Size,float> (-convert <format>) (-ratio)',
       },
+      type: [
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, image: true, video: true})},
+        {name: 'sizeorscale', default: 2, type: Parameters.sizeOrScale, consume: true},
+      ],
     });
   }
 

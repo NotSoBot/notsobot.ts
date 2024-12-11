@@ -1,11 +1,14 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVDistortCommand } from './distort';
+import { MediaIVEmbossCommand } from './emboss';
 import { MediaIVFisheyeCommand } from './fisheye';
 import { MediaIVHueShiftHSVCommand } from './hue-shift-hsv';
 import { MediaIVHueShiftHSVFFMPEGCommand } from './hue-shift-hsv-ffmpeg';
 import { MediaIVHueShiftRGBCommand } from './hue-shift-rgb';
 import { MediaIVJPEGCommand } from './jpeg';
+import { MediaIVMandalaScopeCommand } from './mandalascope';
+import { MediaIVMotionBlurCommand } from './motion-blur';
 import { MediaIVPaintCommand } from './paint';
 import { MediaIVPaintGifCommand } from './paint-gif';
 import { MediaIVShakeCommand } from './shake';
@@ -21,19 +24,22 @@ import { MediaIVZoomBlurCommand } from './zoom-blur';
 // rip command
 
 
-export class MediaFun2GroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
-  name = 'fun2';
+  name = 'fun';
 
   constructor() {
     super({
       options: [
         new MediaIVDistortCommand(),
+        new MediaIVEmbossCommand(),
         new MediaIVFisheyeCommand(),
         new MediaIVHueShiftHSVCommand(),
         new MediaIVHueShiftHSVFFMPEGCommand(),
         new MediaIVHueShiftRGBCommand(),
         new MediaIVJPEGCommand(),
+        new MediaIVMandalaScopeCommand(),
+        new MediaIVMotionBlurCommand(),
         new MediaIVPaintCommand(),
         new MediaIVPaintGifCommand(),
         new MediaIVShakeCommand(),

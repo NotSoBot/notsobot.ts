@@ -17,7 +17,7 @@ export class MediaIVImplodeCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'scale', description: 'Implode Scale', type: Number},
+        {name: 'scale', description: 'Implode Scale (Default: 1.0)', type: 'number'},
       ],
     });
   }

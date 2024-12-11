@@ -17,7 +17,7 @@ export class MediaIVSharpenCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'scale', description: 'Sharpen Scale', type: Number},
+        {name: 'scale', description: 'Sharpen Scale (Default: 15.0)', type: 'number'},
       ],
     });
   }

@@ -17,8 +17,8 @@ export class MediaAIVFadeInCommand extends BaseInteractionMediaCommandOption {
   constructor() {
     super({
       options: [
+        {name: 'duration', description: 'Fade Duration (Default: 0.5)', type: 'number'},
         {name: 'color', description: 'Color to Use'},
-        {name: 'duration', description: 'Fade In Duration', type: Number},
       ],
     });
   }

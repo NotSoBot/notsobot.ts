@@ -1580,6 +1580,29 @@ export async function mediaAVManipulationAudioPitch(
 }
 
 
+export async function mediaAVManipulationAudioTremolo(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioTremolo,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    depth: options.depth,
+    frequency: options.frequency,
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_TREMOLO,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationAudioVibrato(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioVibrato,
@@ -1989,6 +2012,35 @@ export async function mediaIVManipulationDistort(
     },
   });
 }
+
+
+export async function mediaIVManipulationEmboss(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationEmboss,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    azimuth: options.azimuth,
+    cmpose: options.compose,
+    elevation: options.elevation,
+    depth: options.depth,
+    intensity: options.intensity,
+    gray: options.gray,
+    max_file_size: maxFileSize,
+    method: options.method,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_EMBOSS,
+    },
+  });
+}
+
 
 
 export async function mediaIVManipulationExo(
@@ -2509,6 +2561,32 @@ export async function mediaIVManipulationMagikAnimated(
 }
 
 
+export async function mediaIVManipulationMandalaScope(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMandalaScope,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    amount: options.amount,
+    max_file_size: maxFileSize,
+    rotation: options.rotation,
+    scale: options.scale,
+    translation: options.translation,
+    url: options.url,
+    zoom: options.zoom,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MANDALASCOPE,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationMeme(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMeme,
@@ -2612,6 +2690,29 @@ export async function mediaIVManipulationMirrorTop(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_MIRROR_TOP,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationMotionBlur(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMotionBlur,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    strength: options.strength,
+    url: options.url,
+    vertical: options.vertical,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_MOTION_BLUR,
     },
   });
 }
@@ -4556,6 +4657,9 @@ export async function utilitiesCodeRun(
   };
   return request(context, {
     body,
+    //file: options.file,
+    //files: options.files,
+    //multipart: true, # multipart does not support arrays correctly so far, we need to parse the json data key
     route: {
       method: HTTPMethods.POST,
       path: Api.UTILITIES_CODE_RUN,
@@ -4656,6 +4760,9 @@ export async function utilitiesImagescriptV1(
   };
   return request(context, {
     body,
+    file: options.file,
+    files: options.files,
+    multipart: true,
     route: {
       method: HTTPMethods.POST,
       path: Api.UTILITIES_IMAGESCRIPT_V1,

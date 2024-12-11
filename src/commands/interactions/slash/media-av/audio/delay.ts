@@ -17,7 +17,7 @@ export class MediaAVAudioDelayCommand extends BaseInteractionAudioOrVideoCommand
   constructor() {
     super({
       options: [
-        {name: 'delay', description: 'Delay Amount', required: true, type: Number},
+        {name: 'delay', description: 'Delay Amount', required: true, type: 'number'},
         {name: 'nosnip', description: 'Avoid Snipping Excess Audio', type: Boolean},
       ],
     });

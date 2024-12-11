@@ -35,6 +35,7 @@ import * as MediaAIVToolsSpeed from './media.aiv.tools.speed';
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
 import * as MediaAVManipulationAudioDelay from './media.av.manipulation.audio.delay';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
+import * as MediaAVManipulationAudioTremolo from './media.av.manipulation.audio.tremolo';
 import * as MediaAVManipulationAudioVibrato from './media.av.manipulation.audio.vibrato';
 import * as MediaAVManipulationBoostBass from './media.av.manipulation.boost.bass';
 import * as MediaAVManipulationCompress from './media.av.manipulation.compress';
@@ -59,6 +60,7 @@ import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
 import * as MediaIVManipulationDistort from './media.iv.manipulation.distort';
 import * as MediaIVManipulationE2E from './media.iv.manipulation.e2e';
 import * as MediaIVManipulationE2P from './media.iv.manipulation.e2p';
+import * as MediaIVManipulationEmboss from './media.iv.manipulation.emboss';
 import * as MediaIVManipulationExo from './media.iv.manipulation.exo';
 import * as MediaIVManipulationExplode from './media.iv.manipulation.explode';
 import * as MediaIVManipulationFisheye from './media.iv.manipulation.fisheye';
@@ -82,11 +84,13 @@ import * as MediaIVManipulationLabelsIFunny from './media.iv.manipulation.labels
 import * as MediaIVManipulationLegofy from './media.iv.manipulation.legofy';
 import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
 import * as MediaIVManipulationMagikAnimated from './media.iv.manipulation.magik.animated';
+import * as MediaIVManipulationMandalaScope from './media.iv.manipulation.mandalascope';
 import * as MediaIVManipulationMeme from './media.iv.manipulation.meme';
 import * as MediaIVManipulationMirrorBottom from './media.iv.manipulation.mirror.bottom';
 import * as MediaIVManipulationMirrorLeft from './media.iv.manipulation.mirror.left';
 import * as MediaIVManipulationMirrorRight from './media.iv.manipulation.mirror.right';
 import * as MediaIVManipulationMirrorTop from './media.iv.manipulation.mirror.top';
+import * as MediaIVManipulationMotionBlur from './media.iv.manipulation.motion.blur';
 import * as MediaIVManipulationOverlayFace from './media.iv.manipulation.overlay.face';
 import * as MediaIVManipulationOverlayFlagIsrael from './media.iv.manipulation.overlay.flag.israel';
 import * as MediaIVManipulationOverlayFlagLGBT from './media.iv.manipulation.overlay.flag.lgbt';
@@ -293,6 +297,7 @@ export {
   MediaAVManipulationAudioChannelsCombine,
   MediaAVManipulationAudioDelay,
   MediaAVManipulationAudioPitch,
+  MediaAVManipulationAudioTremolo,
   MediaAVManipulationAudioVibrato,
   MediaAVManipulationBoostBass,
   MediaAVManipulationCompress,
@@ -317,6 +322,7 @@ export {
   MediaIVManipulationDistort,
   MediaIVManipulationE2E,
   MediaIVManipulationE2P,
+  MediaIVManipulationEmboss,
   MediaIVManipulationExo,
   MediaIVManipulationExplode,
   MediaIVManipulationFisheye,
@@ -340,11 +346,13 @@ export {
   MediaIVManipulationLegofy,
   MediaIVManipulationMagik,
   MediaIVManipulationMagikAnimated,
+  MediaIVManipulationMandalaScope,
   MediaIVManipulationMeme,
   MediaIVManipulationMirrorBottom,
   MediaIVManipulationMirrorLeft,
   MediaIVManipulationMirrorRight,
   MediaIVManipulationMirrorTop,
+  MediaIVManipulationMotionBlur,
   MediaIVManipulationOverlayFace,
   MediaIVManipulationOverlayFlagIsrael,
   MediaIVManipulationOverlayFlagLGBT,

@@ -7,7 +7,6 @@ import {
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaFunGroupCommand } from './fun';
-import { MediaFun2GroupCommand } from './fun2';
 import { MediaLabelsGroupCommand } from './labels';
 import { MediaOverlayGroupCommand } from './overlay';
 import { MediaTintGroupCommand } from './tint';
@@ -33,7 +32,6 @@ export default class MediaIVGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new MediaFunGroupCommand(),
-        new MediaFun2GroupCommand(),
         new MediaLabelsGroupCommand(),
         new MediaOverlayGroupCommand(),
         new MediaTintGroupCommand(),

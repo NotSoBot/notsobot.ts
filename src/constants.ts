@@ -931,6 +931,29 @@ export enum MediaDistortMethods {
 };
 
 
+export enum MediaEmbossComposeMethods {
+  BUMPMAP = 'BUMPMAP',
+  COLOR_BURN = 'COLOR_BURN',
+  COLOR_DODGE = 'COLOR_DODGE',
+  HARD_LIGHT = 'HARD_LIGHT',
+  LINEAR_BURN = 'LINEAR_BURN',
+  LINEAR_DODGE = 'LINEAR_DODGE',
+  LINEAR_LIGHT = 'LINEAR_LIGHT',
+  MULTIPLY = 'MULTIPLY',
+  OVERLAY = 'OVERLAY',
+  PEGTOP_LIGHT = 'PEGTOP_LIGHT',
+  PIN_LIGHT = 'PIN_LIGHT',
+  SOFT_LIGHT = 'SOFT_LIGHT',
+  VIVID_LIGHT = 'VIVID_LIGHT',
+}
+
+
+export enum MediaEmbossMethods {
+  GIMP = 'GIMP',
+  PHOTOSHOP = 'PHOTOSHOP',  
+}
+
+
 export enum MediaLegofyPalettes {
   ALL = 'ALL',
   EFFECTS = 'EFFECTS',

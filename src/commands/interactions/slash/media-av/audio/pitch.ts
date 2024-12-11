@@ -17,7 +17,7 @@ export class MediaAVAudioPitchCommand extends BaseInteractionAudioOrVideoCommand
   constructor() {
     super({
       options: [
-        {name: 'scale', description: 'Pitch Scale (Default: 2.0)'},
+        {name: 'scale', description: 'Pitch Scale (Default: 2.0)', type: 'number'},
       ],
     });
   }

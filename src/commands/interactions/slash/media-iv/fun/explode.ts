@@ -17,7 +17,7 @@ export class MediaIVExplodeCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'scale', description: 'Explode Scale', type: Number},
+        {name: 'scale', description: 'Explode Scale (Default: 1.0)', type: 'number'},
       ],
     });
   }

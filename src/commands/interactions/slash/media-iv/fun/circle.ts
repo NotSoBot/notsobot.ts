@@ -17,7 +17,7 @@ export class MediaIVCircleCommand extends BaseInteractionImageOrVideoCommandOpti
   constructor() {
     super({
       options: [
-        {name: 'scale', description: 'Blur Scale', type: Number},
+        {name: 'scale', description: 'Blur Scale (Default: 8)', type: Number},
       ],
     });
   }

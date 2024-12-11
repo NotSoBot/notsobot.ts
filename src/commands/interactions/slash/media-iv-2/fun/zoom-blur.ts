@@ -17,7 +17,7 @@ export class MediaIVZoomBlurCommand extends BaseInteractionImageOrVideoCommandOp
   constructor() {
     super({
       options: [
-        {name: 'amount', description: 'Zoom Amount (Default: 1.2)', type: Number},
+        {name: 'amount', description: 'Zoom Amount (Default: 1.2)', type: 'number'},
         {name: 'expand', description: 'Expand back to Original Size', type: Boolean},
       ],
     });

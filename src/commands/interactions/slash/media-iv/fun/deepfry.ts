@@ -17,7 +17,7 @@ export class MediaIVDeepfryCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'scale', description: 'Deepfry Scale', type: Number},
+        {name: 'scale', description: 'Deepfry Scale (Default: 10.0)', type: 'number'},
       ],
     });
   }

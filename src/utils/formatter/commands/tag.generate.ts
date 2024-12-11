@@ -80,7 +80,7 @@ export async function createMessage(
 
       if (url) {
         const response = await mediaAIVToolsAnalyze(context, {url});
-        if (response.interrogation || response.ocr || response.songs.length || response.transcription.length) {
+        if (response.interrogation || response.ocr || response.labels.length || response.songs.length || response.transcription.length) {
           promptExtra.push(`Message Reply Media Analyzation: ${JSON.stringify(response)}`);
         }
       }

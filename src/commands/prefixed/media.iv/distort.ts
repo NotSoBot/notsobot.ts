@@ -21,7 +21,7 @@ export default class DistortCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot perspective 7 40 4 30 4 124 4 123 85 122 100 123 85 2 100 30`,
         ],
         id: Formatter.Commands.MediaIVManipulationDistort.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> ?<red:number> ?<green:number> ?<blue:number> ?<alpha:number>',
+        usage: '?<emoji,user:id|mention,url> <method:string> ...<arguments:float>',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

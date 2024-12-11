@@ -3,6 +3,7 @@ import * as vm from 'vm';
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { MarkupTimestampStyles, Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
+import { RequestFile } from 'detritus-rest';
 import * as mathjs from 'mathjs';
 import MiniSearch from 'minisearch';
 
@@ -53,6 +54,7 @@ import {
   generateCodeFromLanguage,
   generateCodeStdin,
   getCodeLanguage,
+  getGuildObjectForJSONSerialization,
   languageCodeToText,
   randomFromArray,
   randomFromIterator,
@@ -134,6 +136,7 @@ export const PRIVATE_VARIABLE_PREFIX = '__';
 export const ATTACHMENT_URL_REGEX = /(https?:\/\/(?:media\.discordapp\.net|cdn.discordapp.com)\/attachments\/[0-9]*\/[0-9]*\/[A-Za-z0-9_.-]*(?:\?[a-zA-Z0-9&=]*)?)/g;
 export const MATH_NON_NUMERIC_REGEX = /[^+\-*\/()0-9.n><&]/g;
 export const SCRIPT_REGEX = /\{((?:(?!:)(?:.|\s))*):([\s\S]+)\}/;
+export const URL_FILE_REPLACEMENT_REGEX = /FILE_([0-9]+)(_COPY)?/g;
 
 export const REGEX_ARGUMENT_SPLITTER = new RegExp(`(?<!\\\\)[${TagSymbols.SPLITTER_ARGUMENT}]`, 'g');
 export const REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT = new RegExp(`\\\\\\${TagSymbols.SPLITTER_ARGUMENT}`, 'g');
@@ -206,7 +209,6 @@ export enum TagFunctions {
   AVATAR = 'AVATAR',
   CHANNEL = 'CHANNEL',
   CHANNEL_ID = 'CHANNEL_ID',
-  CHANNEL_JSON = 'CHANNEL_JSON',
   CHANNEL_MENTION = 'CHANNEL_MENTION',
   CHANNEL_RANDOM = 'CHANNEL_RANDOM',
   CHANNEL_RANDOM_ID = 'CHANNEL_RANDOM_ID',
@@ -221,6 +223,13 @@ export enum TagFunctions {
   HASTEBIN = 'HASTEBIN',
   IMAGE_INTERROGATE = 'IMAGE_INTERROGATE',
   IMAGE_OCR = 'IMAGE_OCR',
+  JSON_CHANNEL = 'JSON_CHANNEL',
+  JSON_GUILD = 'JSON_GUILD',
+  JSON_MEMBER = 'JSON_MEMBER',
+  JSON_MEMBER_OR_USER = 'JSON_MEMBER_OR_USER',
+  JSON_MESSAGE = 'JSON_MESSAGE',
+  JSON_MESSAGE_REPLY = 'JSON_MESSAGE_REPLY',
+  JSON_USER = 'JSON_USER',
   LOGICAL_AND = 'LOGICAL_AND',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
   LOGICAL_DELETE_CHANNEL = 'LOGICAL_DELETE_CHANNEL',
@@ -259,7 +268,6 @@ export enum TagFunctions {
   MEDIA_VIDEO = 'MEDIA_VIDEO',
   MEDIASCRIPT = 'MEDIASCRIPT',
   MEDIASCRIPT_URL = 'MEDIASCRIPT_URL',
-  MEDIASCRIPT_2 = 'MEDIASCRIPT_2',
   MESSAGE_CONTENT = 'MESSAGE_CONTENT',
   MESSAGE_RANDOM_ID = 'MESSAGE_RANDOM_ID',
   MESSAGE_USER_ID = 'MESSAGE_USER_ID',
@@ -299,7 +307,6 @@ export enum TagFunctions {
   USER_AVATAR = 'USER_AVATAR',
   USER_DISCRIMINATOR = 'USER_DISCRIMINATOR',
   USER_ID = 'USER_ID',
-  USER_JSON = 'USER_JSON',
   USER_MENTION = 'USER_MENTION',
   USER_NAME = 'USER_NAME',
   USER_NICK = 'USER_NICK',
@@ -334,7 +341,6 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.AVATAR]: ['avatar'],
   [TagFunctions.CHANNEL]: ['channel'],
   [TagFunctions.CHANNEL_ID]: ['channelid'],
-  [TagFunctions.CHANNEL_JSON]: ['channeljson'],
   [TagFunctions.CHANNEL_MENTION]: ['channelmention'],
   [TagFunctions.CHANNEL_RANDOM]: ['randchannel'],
   [TagFunctions.CHANNEL_RANDOM_ID]: ['randchannelid'],
@@ -349,6 +355,13 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.HASTEBIN]: ['hastebin', 'haste'],
   [TagFunctions.IMAGE_INTERROGATE]: ['identify', 'interrogate'],
   [TagFunctions.IMAGE_OCR]: ['ocr'],
+  [TagFunctions.JSON_CHANNEL]: ['json.channel', 'channeljson'],
+  [TagFunctions.JSON_GUILD]: ['json.guild'],
+  [TagFunctions.JSON_MEMBER]: ['json.member'],
+  [TagFunctions.JSON_MEMBER_OR_USER]: ['json.memberoruser'],
+  [TagFunctions.JSON_MESSAGE]: ['json.message'],
+  [TagFunctions.JSON_MESSAGE_REPLY]: ['json.messagereply'],
+  [TagFunctions.JSON_USER]: ['json.user', 'userjson'],
   [TagFunctions.LOGICAL_AND]: ['and'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
   [TagFunctions.LOGICAL_DELETE_CHANNEL]: ['deletechannel'],
@@ -386,7 +399,6 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MEDIA_IMAGE_OR_VIDEO]: ['iv'],
   [TagFunctions.MEDIASCRIPT]: ['mediascript', 'mscript', 'imagescript', 'iscript'],
   [TagFunctions.MEDIASCRIPT_URL]: ['mediascripturl', 'mscripturl', 'imagescripturl', 'iscripturl'],
-  [TagFunctions.MEDIASCRIPT_2]: ['iscript2', 'mscript2'],
   [TagFunctions.MEDIA_VIDEO]: ['video'],
   [TagFunctions.MESSAGE_CONTENT]: ['messagecontent'],
   [TagFunctions.MESSAGE_RANDOM_ID]: ['randmessageid'],
@@ -427,7 +439,6 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.USER_AVATAR]: ['useravatar'],
   [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
   [TagFunctions.USER_ID]: ['id', 'userid'],
-  [TagFunctions.USER_JSON]: ['userjson'],
   [TagFunctions.USER_MENTION]: ['mention'],
   [TagFunctions.USER_NAME]: ['name', 'user'],
   [TagFunctions.USER_NICK]: ['nick'],
@@ -482,6 +493,7 @@ export interface TagResult {
   embeds: Array<Embed>,
   files: Array<{
     buffer: null | string | Buffer,
+    deleted?: boolean,
     description?: string,
     durationSecs?: number,
     filename: string,
@@ -950,11 +962,44 @@ const ScriptTags = Object.freeze({
       }),
     });
     const { code, urls } = generateCodeFromLanguage(language, arg);
+
+    const files: Array<RequestFile> = [];
+    const cache = new Set<number>();
+    for (let urlObj of Object.values(urls)) {
+      for (let match of urlObj.url.matchAll(URL_FILE_REPLACEMENT_REGEX)) {
+        const fileKey = parseInt(match[1]) - 1;
+        if (!cache.has(fileKey)) {
+          cache.add(fileKey);
+          const file = tag.files[fileKey];
+          if (!file) {
+            throw new Error('Invalid FILE_ Provied');
+          }
+          if (!file.buffer) {
+            urlObj.url = file.url;
+            continue;
+          }
+          files.push({filename: file.filename, value: file.buffer});
+          if (!match[2]) {
+            file.deleted = true;
+          }
+        }
+        urlObj.url = '';
+        break;
+      }
+    }
+
+    for (let i = 0; i < tag.files.length; i++) {
+      if (tag.files[i].deleted) {
+        tag.files.splice(i, 1);
+      }
+    }
+
     const { result } = await utilitiesCodeRun(context, {
       code,
+      files,
       language,
       stdin: generateCodeStdin(context, variables, storage),
-      urls: Object.values(urls),
+      urls: Object.values(urls).filter(Boolean),
       version: version || undefined,
     });
     if (result.error && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
@@ -1677,32 +1722,6 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.CHANNEL_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // returns the channel's name
-    // {channeljson}
-    // {channeljson:general}
-    // {channeljson:560595518129045504}
-
-    if (arg) {
-      const channel = await findChannel(arg, context);
-      if (channel) {
-        tag.text += JSON.stringify(channel);
-      }
-    } else if (context.channel) {
-      tag.text += JSON.stringify(context.channel);
-    } else if (context.channelId) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-      try {
-        const channel = await context.rest.fetchChannel(context.channelId);
-        tag.text += JSON.stringify(channel);
-      } catch(error) {
-        
-      }
-    }
-
-    return true;
-  },
-
   [TagFunctions.CHANNEL_MENTION]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // returns the channel's mention
     // {channelmention}
@@ -1905,6 +1924,164 @@ const ScriptTags = Object.freeze({
       } catch(error) {
 
       }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.JSON_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns a json object of the channel
+    // {json.channel}
+    // {json.channel:general}
+    // {json.channel:560595518129045504}
+  
+    if (arg) {
+      const channel = await findChannel(arg, context);
+      if (channel) {
+        tag.text += JSON.stringify(channel);
+      }
+    } else if (context.channel) {
+      tag.text += JSON.stringify(context.channel);
+    } else if (context.channelId) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      try {
+        const channel = await context.rest.fetchChannel(context.channelId);
+        tag.text += JSON.stringify(channel);
+      } catch(error) {
+        
+      }
+    }
+  
+    return true;
+  },
+
+  [TagFunctions.JSON_GUILD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns a json object of the current guild
+    // {json.guild}
+
+    const guild = getGuildObjectForJSONSerialization(context);
+    if (guild) {
+      tag.text += JSON.stringify(guild);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.JSON_MEMBER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns a json object of the member
+    // {json.member}
+    // {json.member:user}
+
+    if (arg) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      const memberOrUser = await findMemberOrUser(arg, context);
+      if (memberOrUser && memberOrUser instanceof Structures.Member) {
+        tag.text += JSON.stringify(memberOrUser.toJSON(true));
+      }
+    } else {
+      const memberOrUser = context.member;
+      if (memberOrUser && memberOrUser instanceof Structures.Member) {
+        tag.text += JSON.stringify(memberOrUser.toJSON(true));
+      }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.JSON_MEMBER_OR_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns a json object of the member or user
+    // {json.memberoruser}
+    // {json.memberoruser:user}
+
+    if (arg) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      const memberOrUser = await findMemberOrUser(arg, context);
+      if (memberOrUser) {
+        if (memberOrUser instanceof Structures.Member) {
+          tag.text += JSON.stringify(memberOrUser.toJSON(true));
+        } else {
+          tag.text += JSON.stringify(memberOrUser);
+        }
+      }
+    } else {
+      const memberOrUser = context.member || context.user;
+      if (memberOrUser instanceof Structures.Member) {
+        tag.text += JSON.stringify(memberOrUser.toJSON(true));
+      } else {
+        tag.text += JSON.stringify(memberOrUser);
+      }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.JSON_MESSAGE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns a json object of the message
+    // {json.message:MESSAGE_ID?}
+
+    if (arg) {
+      const channel = context.channel;
+      if (channel) {
+        const member = context.member;
+        if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
+          throw new Error('You cannot view the history of this channel');
+        }
+        if (!channel.canReadHistory) {
+          throw new Error('Bot cannot view the history of this channel');
+        }
+      } else if (!context.inDm && !context.hasServerPermissions) {
+        throw new Error('Bot cannot view the history of this channel');
+      }
+
+      const messageId = arg.trim();
+      if (context.messages.has(messageId)) {
+        const message = context.messages.get(messageId)!;
+        if (message.channelId === context.channelId) {
+          tag.text += JSON.stringify(message);
+        }
+      } else {
+        tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+        try {
+          const message = await context.rest.fetchMessage(context.channelId!, messageId);
+          tag.text += JSON.stringify(message);
+        } catch(error) {
+    
+        }
+      }
+    } else if (context instanceof Command.Context) {
+      tag.text += JSON.stringify(context.message);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.JSON_MESSAGE_REPLY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {json.messagereply}
+
+    if (context instanceof Command.Context && context.message && context.message.referencedMessage) {
+      tag.text += JSON.stringify(context.message.referencedMessage);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.JSON_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns a json object of the user
+    // {json.user}
+    // {json.user:user}
+
+    if (arg) {
+      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      const memberOrUser = await findMemberOrUser(arg, context);
+      if (memberOrUser) {
+        if (memberOrUser instanceof Structures.Member) {
+          tag.text += JSON.stringify(memberOrUser.user);
+        } else {
+          tag.text += JSON.stringify(memberOrUser);
+        }
+      }
+    } else {
+      tag.text += JSON.stringify(context.user);
     }
 
     return true;
@@ -2972,35 +3149,39 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.MESSAGE_CONTENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // get message content from a message id
-    // {messagecontent:MESSAGE_ID}
+    // {messagecontent:MESSAGE_ID?}
 
-    const channel = context.channel;
-    if (channel) {
-      const member = context.member;
-      if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
-        throw new Error('You cannot view the history of this channel');
-      }
-      if (!channel.canReadHistory) {
+    if (arg) {
+      const channel = context.channel;
+      if (channel) {
+        const member = context.member;
+        if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
+          throw new Error('You cannot view the history of this channel');
+        }
+        if (!channel.canReadHistory) {
+          throw new Error('Bot cannot view the history of this channel');
+        }
+      } else if (!context.inDm && !context.hasServerPermissions) {
         throw new Error('Bot cannot view the history of this channel');
       }
-    } else if (!context.inDm && !context.hasServerPermissions) {
-      throw new Error('Bot cannot view the history of this channel');
-    }
-
-    const messageId = arg.trim();
-    if (context.messages.has(messageId)) {
-      const message = context.messages.get(messageId)!;
-      if (message.channelId === context.channelId) {
-        tag.text += message.content;
+  
+      const messageId = arg.trim();
+      if (context.messages.has(messageId)) {
+        const message = context.messages.get(messageId)!;
+        if (message.channelId === context.channelId) {
+          tag.text += message.content;
+        }
+      } else {
+        tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+        try {
+          const message = await context.rest.fetchMessage(context.channelId!, messageId);
+          tag.text += message.content;
+        } catch(error) {
+  
+        }
       }
-    } else {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-      try {
-        const message = await context.rest.fetchMessage(context.channelId!, messageId);
-        tag.text += message.content;
-      } catch(error) {
-
-      }
+    } else if (context instanceof Command.Context) {
+      tag.text += context.message.content;
     }
 
     return true;
@@ -3112,9 +3293,38 @@ const ScriptTags = Object.freeze({
       throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
     }
 
-    const code = arg.trim();
+    let code = arg.trim();
     if (!code) {
       return false;
+    }
+
+    const files: Array<RequestFile> = [];
+    const keyCache: Record<string, string> = {};
+    code = code.replace(URL_FILE_REPLACEMENT_REGEX, (match, group1, group2, offset) => {
+      if (!(group1 in keyCache)) {
+        keyCache[group1] = `FILE_${files.length + 1}`;
+
+        const file = tag.files[parseInt(group1) - 1];
+        if (!file) {
+          throw new Error('Invalid FILE_ Provided');
+        }
+        if (!file.buffer) {
+          return file.url;
+        }
+
+        files.push({filename: file.filename, value: file.buffer});
+        if (!group2) {
+          // kill it from tag.files
+          file.deleted = true;
+        }
+      }
+      return keyCache[group1];
+    });
+
+    for (let i = 0; i < tag.files.length; i++) {
+      if (tag.files[i].deleted) {
+        tag.files.splice(i, 1);
+      }
     }
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
@@ -3122,6 +3332,7 @@ const ScriptTags = Object.freeze({
       const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
       const response = await utilitiesImagescriptV1(context, {
         code,
+        files,
         mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       });
       const filename = response.file.filename;
@@ -3155,14 +3366,43 @@ const ScriptTags = Object.freeze({
     // mediascripturl 1
     // {mediascripturl:mediascript code here}
 
-    const code = arg.trim();
+    let code = arg.trim();
     if (!code) {
       return false;
     }
 
+    const files: Array<RequestFile> = [];
+    const keyCache: Record<string, string> = {};
+    code = code.replace(URL_FILE_REPLACEMENT_REGEX, (match, group1, group2, offset) => {
+      if (!(group1 in keyCache)) {
+        keyCache[group1] = `FILE_${files.length + 1}`;
+    
+        const file = tag.files[parseInt(group1) - 1];
+        if (!file) {
+          throw new Error('Invalid FILE_ Provided');
+        }
+        if (!file.buffer) {
+          return file.url;
+        }
+    
+        files.push({filename: file.filename, value: file.buffer});
+        if (!group2) {
+          // kill it from tag.files
+          file.deleted = true;
+        }
+      }
+      return keyCache[group1];
+    });
+
+    for (let i = 0; i < tag.files.length; i++) {
+      if (tag.files[i].deleted) {
+        tag.files.splice(i, 1);
+      }
+    }
+
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
-      const response = await utilitiesImagescriptV1(context, {code, upload: true});
+      const response = await utilitiesImagescriptV1(context, {code, files, upload: true});
       if (response.storage) {
         tag.text += response.storage.urls.cdn;
       }
@@ -3173,12 +3413,6 @@ const ScriptTags = Object.freeze({
     }
 
     return true;
-  },
-
-  [TagFunctions.MEDIASCRIPT_2]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // MEDIASCRIPT 2
-
-    return false;
   },
 
   [TagFunctions.NSFW]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
@@ -4071,33 +4305,6 @@ const ScriptTags = Object.freeze({
       }
     } else {
       tag.text += context.user.id;
-    }
-
-    return true;
-  },
-
-  [TagFunctions.USER_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // returns the a json object of the user
-    // {userjson}
-    // {userjson:user}
-
-    if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-      const memberOrUser = await findMemberOrUser(arg, context);
-      if (memberOrUser) {
-        if (memberOrUser instanceof Structures.Member) {
-          tag.text += JSON.stringify(memberOrUser.toJSON(true));
-        } else {
-          tag.text += JSON.stringify(memberOrUser);
-        }
-      }
-    } else {
-      const memberOrUser = context.member || context.user;
-      if (memberOrUser instanceof Structures.Member) {
-        tag.text += JSON.stringify(memberOrUser.toJSON(true));
-      } else {
-        tag.text += JSON.stringify(memberOrUser);
-      }
     }
 
     return true;

@@ -1113,7 +1113,7 @@ export function generateCodeFromLanguage(
   code: string,
 ): {
   code: string,
-  urls: Record<string, string | {filname?: string, url: string}>,
+  urls: Record<string, {filename?: string, url: string}>,
 } {
   // parse the urls from the code header
   const urls: Record<string, {filename?: string, url: string}> = {};
@@ -1190,11 +1190,9 @@ export function generateCodeFromLanguage(
 }
 
 
-export function generateCodeStdin(
+export function getGuildObjectForJSONSerialization(
   context: Command.Context | Interaction.InteractionContext,
-  variables?: Record<any, any>,
-  storage?: Record<any, any>,
-): string {
+): null | Record<string, any> {
   let guild: any = context.guild;
   if (guild) {
     guild = guild.toJSON();
@@ -1206,14 +1204,13 @@ export function generateCodeStdin(
         guild.members.set(userId, voiceState.member!);
       }
     }
-
     guild.presences = new Collections.BaseCollection<string, any>();
     for (let [userId, member] of guild.members) {
       const presence = member.presence;
       if (presence) {
         const data = presence.toJSON() as any;
         const guildIds = [guild.id];
-
+  
         data.guild_ids = guildIds;
         data.activities = data.activities.toArray().map((x: any) => x.toJSON());
         for (let x of data.activities) {
@@ -1222,16 +1219,24 @@ export function generateCodeStdin(
         if (data.game) {
           data.game.guild_ids = guildIds;
         }
-
+  
         guild.presences.set(userId, data);
       }
     }
   }
+  return guild;
+}
 
+
+export function generateCodeStdin(
+  context: Command.Context | Interaction.InteractionContext,
+  variables?: Record<any, any>,
+  storage?: Record<any, any>,
+): string {
   return JSON.stringify({
     channel: context.channel,
     channel_id: context.channelId,
-    guild,
+    guild: getGuildObjectForJSONSerialization(context),
     guild_id: context.guildId,
     member: context.member,
     member_bot: context.me,

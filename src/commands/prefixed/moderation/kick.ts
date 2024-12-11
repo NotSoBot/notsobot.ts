@@ -32,6 +32,7 @@ export default class KickCommand extends BaseCommand {
       disableDm: true,
       label: 'payload',
       metadata: {
+        category: CommandCategories.MODERATION,
         description: 'Kick multiple members, add a reason, and clean their messages.',
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
@@ -39,7 +40,7 @@ export default class KickCommand extends BaseCommand {
           `${COMMAND_NAME} 300505364032389122 <@439205512425504771>`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
         ],
-        category: CommandCategories.MODERATION,
+        id: 'kick',
         usage: '...?<user:id|mention> <reason (string)> (-clean <days>)',
       },
       permissionsClient: [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS, Permissions.KICK_MEMBERS],

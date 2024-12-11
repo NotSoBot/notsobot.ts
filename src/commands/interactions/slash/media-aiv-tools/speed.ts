@@ -17,7 +17,7 @@ export class MediaAIVToolsSpeedCommand extends BaseInteractionMediaCommandOption
   constructor() {
     super({
       options: [
-        {name: 'speed', description: 'Number to double the speed by, floats included'},
+        {name: 'speed', description: 'Number to double the speed by, floats included', type: 'number'},
       ],
     });
   }

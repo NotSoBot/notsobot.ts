@@ -317,6 +317,11 @@ export namespace RestOptions {
     snip?: boolean,
   }
 
+  export interface MediaAVManipulationAudioTremolo extends MediaBaseOptions {
+    depth?: number,
+    frequency?: number,
+  }
+
   export interface MediaAVManipulationAudioVibrato extends MediaBaseOptions {
     depth?: number,
     frequency?: number,
@@ -380,6 +385,16 @@ export namespace RestOptions {
   export interface MediaIVManipulationDistort extends MediaBaseOptions {
     arguments?: Array<number>,
     method: string,
+  }
+
+  export interface MediaIVManipulationEmboss extends MediaBaseOptions {
+    azimuth?: number,
+    compose?: string,
+    elevation?: number,
+    depth?: number,
+    intensity?: number,
+    gray?: number,
+    method?: string,
   }
 
   export interface MediaIVManipulationExo extends MediaBaseOptions {
@@ -446,10 +461,24 @@ export namespace RestOptions {
     scale?: number,
   }
 
+  export interface MediaIVManipulationMandalaScope extends MediaBaseOptions {
+    amount?: number,
+    rotation?: number,
+    scale?: number,
+    translation?: number,
+    zoom?: number,
+  }
+
+
   export interface MediaIVManipulationMeme extends MediaBaseOptions {
     bottom?: string,
     font?: ImageMemeFonts,
     top: string,
+  }
+
+  export interface MediaIVManipulationMotionBlur extends MediaBaseOptionsMultiple {
+    strength?: number,
+    vertical?: boolean,
   }
 
   export interface MediaIVManipulationOverlayFace extends MediaBaseOptionsMultiple {
@@ -815,7 +844,7 @@ export namespace RestOptions {
   }
 
 
-  export interface UtilitiesCodeRun {
+  export interface UtilitiesCodeRun extends MediaBaseOptionsMultiple {
     code: string,
     language: string,
     stdin?: string,
@@ -845,7 +874,7 @@ export namespace RestOptions {
     url: string,
   }
 
-  export interface UtilitiesImagescriptV1 {
+  export interface UtilitiesImagescriptV1 extends MediaBaseOptionsMultiple {
     code: string,
     maxFileSize?: number,
     mlDiffusionModel?: string,
@@ -1320,6 +1349,11 @@ export namespace RestResponsesRaw {
 
   export interface MediaAIVToolsAnalyze {
     interrogation: string,
+    labels: Array<{
+      name: string,
+      score: number,
+      topicality: number,
+    }>,
     ocr: string,
     songs: Array<{
       album: string,

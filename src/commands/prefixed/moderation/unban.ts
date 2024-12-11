@@ -27,13 +27,14 @@ export default class UnbanCommand extends BaseCommand {
       disableDm: true,
       label: 'payload',
       metadata: {
+        category: CommandCategories.MODERATION,
         description: 'Unban multiple users and add a reason',
         examples: [
           `${COMMAND_NAME} 300505364032389122`,
           `${COMMAND_NAME} 300505364032389122 <@439205512425504771>`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
         ],
-        category: CommandCategories.MODERATION,
+        id: 'unban',
         usage: '...?<user:id|mention> <reason:string>',
       },
       permissionsClient: [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS],

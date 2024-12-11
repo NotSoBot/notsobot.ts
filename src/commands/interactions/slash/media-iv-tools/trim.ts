@@ -1,5 +1,4 @@
 import { Interaction } from 'detritus-client';
-import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { Formatter } from '../../../../utils';
 
@@ -18,8 +17,8 @@ export class MediaIVToolsTrimCommand extends BaseInteractionImageOrVideoCommandO
   constructor() {
     super({
       options: [
-        {name: 'margin', description: 'Trim Margins (Default: 16px)', type: ApplicationCommandOptionTypes.NUMBER},
-        {name: 'threshold', description: 'Color Threshold (Default: 10)', type: ApplicationCommandOptionTypes.NUMBER},
+        {name: 'margin', description: 'Trim Margins (Default: 16px)', type: Number},
+        {name: 'threshold', description: 'Color Threshold (Default: 10)', type: Number},
       ],
     });
   }

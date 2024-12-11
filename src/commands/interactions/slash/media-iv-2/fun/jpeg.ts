@@ -17,7 +17,7 @@ export class MediaIVJPEGCommand extends BaseInteractionImageOrVideoCommandOption
   constructor() {
     super({
       options: [
-        {name: 'quality', description: 'JPEG Quality', type: Number},
+        {name: 'quality', description: 'JPEG Quality (Default: 1)', type: Number},
       ],
     });
   }

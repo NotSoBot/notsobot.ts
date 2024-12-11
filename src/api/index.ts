@@ -733,6 +733,14 @@ export async function mediaAVManipulationAudioDelay(
 }
 
 
+export async function mediaAVManipulationAudioTremolo(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioTremolo,
+) {
+  return raw.mediaAVManipulationAudioTremolo(context, options);
+}
+
+
 export async function mediaAVManipulationAudioVibrato(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioVibrato,
@@ -883,6 +891,15 @@ export async function mediaIVManipulationDistort(
 ) {
   return raw.mediaIVManipulationDistort(context, options);
 }
+
+
+export async function mediaIVManipulationEmboss(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationEmboss,
+) {
+  return raw.mediaIVManipulationEmboss(context, options);
+}
+
 
 export async function mediaIVManipulationExo(
   context: RequestContext,
@@ -1068,6 +1085,14 @@ export async function mediaIVManipulationMagikAnimated(
 }
 
 
+export async function mediaIVManipulationMandalaScope(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMandalaScope,
+) {
+  return raw.mediaIVManipulationMandalaScope(context, options);
+}
+
+
 export async function mediaIVManipulationMeme(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMeme,
@@ -1105,6 +1130,14 @@ export async function mediaIVManipulationMirrorTop(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationMirrorTop(context, options);
+}
+
+
+export async function mediaIVManipulationMotionBlur(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationMotionBlur,
+) {
+  return raw.mediaIVManipulationMotionBlur(context, options);
 }
 
 

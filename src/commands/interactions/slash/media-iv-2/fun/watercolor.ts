@@ -17,8 +17,8 @@ export class MediaIVWatercolorCommand extends BaseInteractionImageOrVideoCommand
   constructor() {
     super({
       options: [
-        {name: 'contrast', description: 'Contrast (Default: 0)', type: Number},
-        {name: 'edge', description: 'Edge Gain (Default: 2)', type: Number},
+        {name: 'contrast', description: 'Contrast (Default: 0.0)', type: 'number'},
+        {name: 'edge', description: 'Edge Gain (Default: 2.0)', type: 'number'},
         {name: 'mixing', description: 'Edge Mixing (Default: 33)', type: Number},
         {name: 'smoothing', description: 'Texture Smoothing (Default: 0)', type: Number},
       ],

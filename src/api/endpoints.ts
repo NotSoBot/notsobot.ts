@@ -99,6 +99,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/audio/delay',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:
     '/media/av/manipulation/audio/pitch',
+  MEDIA_AV_MANIPULATION_AUDIO_TREMOLO:
+    '/media/av/manipulation/audio/tremolo',
   MEDIA_AV_MANIPULATION_AUDIO_VIBRATO:
     '/media/av/manipulation/audio/vibrato',
   MEDIA_AV_MANIPULATION_BOOST_BASS:
@@ -142,6 +144,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/detunnel',
   MEDIA_IV_MANIPULATION_DISTORT:
     '/media/iv/manipulation/distort',
+  MEDIA_IV_MANIPULATION_EMBOSS:
+    '/media/iv/manipulation/emboss',
   MEDIA_IV_MANIPULATION_EXO:
     '/media/iv/manipulation/exo',
   MEDIA_IV_MANIPULATION_EXPLODE:
@@ -188,6 +192,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/magik',
   MEDIA_IV_MANIPULATION_MAGIK_ANIMATED:
     '/media/iv/manipulation/magik/animated',
+  MEDIA_IV_MANIPULATION_MANDALASCOPE:
+    '/media/iv/manipulation/mandalascope',
   MEDIA_IV_MANIPULATION_MEME:
     '/media/iv/manipulation/meme',
   MEDIA_IV_MANIPULATION_MIRROR_BOTTOM:
@@ -198,6 +204,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/mirror-right',
   MEDIA_IV_MANIPULATION_MIRROR_TOP:
     '/media/iv/manipulation/mirror-top',
+  MEDIA_IV_MANIPULATION_MOTION_BLUR:
+    '/media/iv/manipulation/motion/blur',
   MEDIA_IV_MANIPULATION_OVERLAY_FACE:
     '/media/iv/manipulation/overlay/face',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISIS:

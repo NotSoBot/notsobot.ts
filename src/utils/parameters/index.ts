@@ -1970,6 +1970,46 @@ export function codeblock(
 }
 
 
+export interface SizeOrScale {
+  scale?: number,
+  size?: string,
+}
+
+export function sizeOrScale(value: string): SizeOrScale {
+  const response: SizeOrScale = {};
+  if (!value) {
+    return response;
+  }
+  if (isNaN(value as any)) {
+    value = value.replace(/\(|\)/g, '').replace(/x/g, ',');
+    if (value.includes(',')) {
+      const parts = value.split(',');
+      if (2 <= parts.length) {
+        const width = parseInt(parts.shift()!) || -1;
+        const height = parseInt(parts.shift()!) || -1;
+        response.size = `${width}x${height}`;
+      } else {
+        response.size = String(parts.shift()!);
+      }
+    } else {
+      throw new Error('Size must be a format of WIDTHxHEIGHT or an integer');
+    }
+  } else {
+    if (value.includes('.')) {
+      response.scale = parseFloat(value);
+    } else {
+      const x = parseInt(value);
+      if (x < 8) {
+        // if its under 8, assume its a scale
+        response.scale = x;
+      } else {
+        response.size = String(x);
+      }
+    }
+  }
+  return response;
+}
+
 
 const QuotesAll = {
   '"': '"',

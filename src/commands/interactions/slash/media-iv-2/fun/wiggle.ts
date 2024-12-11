@@ -29,7 +29,7 @@ export class MediaIVWiggleCommand extends BaseInteractionImageOrVideoCommandOpti
             defaultChoice: DEFAULT_DIRECTION,
           }),
         },
-        {name: 'wavelengths', description: 'Sinusoidal Wavelengths Amount (Default: 0.5)', type: Number},
+        {name: 'wavelengths', description: 'Sinusoidal Wavelengths Amount (Default: 0.5)', type: 'number'},
       ],
     });
   }

@@ -165,12 +165,13 @@ export default class BlocklistAddCommand extends BaseCommand {
       disableDm: true,
       label: 'payloads',
       metadata: {
+        category: CommandCategories.MODERATION,
         description: 'Add an item based on mention type to the blocklist.',
         examples: [
           `${COMMAND_NAME} <#585639594574217232>`,
           `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
         ],
-        category: CommandCategories.MODERATION,
+        id: 'blocklist.add',
         usage: '...<channel:mention,role:mention,user:mention>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],

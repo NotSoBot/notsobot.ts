@@ -17,7 +17,7 @@ export class MediaAVVolumeCommand extends BaseInteractionAudioOrVideoCommandOpti
   constructor() {
     super({
       options: [
-        {name: 'volume', description: 'Volume Scale (Default: 2.0)'},
+        {name: 'volume', description: 'Volume Scale (Default: 2.0)', type: 'number'},
       ],
     });
   }

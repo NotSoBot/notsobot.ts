@@ -8,6 +8,7 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAVAudioGroupCommand } from './audio';
 import { MediaAVBoostBassCommand } from './boost-bass';
+import { MediaAVExtractGroupCommand } from './extract';
 
 
 export default class MediaAVGroupCommand extends BaseSlashCommand {
@@ -30,6 +31,7 @@ export default class MediaAVGroupCommand extends BaseSlashCommand {
 	  options: [
         new MediaAVAudioGroupCommand(),
         new MediaAVBoostBassCommand(),
+        new MediaAVExtractGroupCommand(),
 	  ],
 	});
   }
