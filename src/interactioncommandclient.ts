@@ -13,7 +13,7 @@ import {
   GuildCommandsAllowlistTypes,
   GuildCommandsBlocklistTypes,
 } from './constants';
-import { Formatter, editOrReply } from './utils';
+import { Formatter, editOrReply, getCommandIdFromInvoker } from './utils';
 
 
 export class NotSoInteractionClient extends InteractionCommandClient {
@@ -62,11 +62,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     }
 
     const invoker = context.invoker as BaseInteractionCommand | BaseInteractionCommandOption;
-    const metadata = invoker.metadata as InteractionCommandMetadata;
-    let commandId = metadata.id || context.invoker.fullName.split(' ').join('.');
-    if (commandId === Formatter.Commands.TagShowCustomCommand.COMMAND_ID) {
-      commandId = Formatter.Commands.TagShow.COMMAND_ID;
-    }
+    const commandId = getCommandIdFromInvoker(invoker);
 
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;

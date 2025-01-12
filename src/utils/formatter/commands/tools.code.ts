@@ -66,11 +66,13 @@ export async function createMessage(
   embed.setFooter(footer, EmbedBrands.NOTSOBOT);
 
   const languageMarkupString = language.extension;
-  if (result.error && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
+  if (result.error) {// && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
     embed.setColor(EmbedColors.ERROR);
     embed.setDescription(Markup.codeblock(result.error, {language: languageMarkupString}));
   } else if (result.output) {
     embed.setDescription(Markup.codeblock(result.output, {language: languageMarkupString}));
+  } else if (result.files.length) {
+    embed.setDescription(`${result.files.length.toLocaleString()} File Outputted`);
   } else if (!result.files.length) {
     embed.setDescription('No Content');
   }

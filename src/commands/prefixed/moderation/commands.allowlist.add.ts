@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, GuildCommandsAllowlistTypes } from '../../../constants';
+import { BooleanEmojis, CommandCategories, GuildCommandsAllowlistTypes } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -57,6 +57,22 @@ export default class CommandsAllowlistAddCommand extends BaseCommand {
     });
   }
 
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.ModerationCommandsAllowlistAdd.CommandArgsBefore) {
+    if (!args.command) {
+      return false;
+    }
+    if (args.channels && !args.channels.length) {
+      return false;
+    }
+    if (args.roles && !args.roles.length) {
+      return false;
+    }
+    if (args.users && !args.users.length) {
+      return false;
+    }
+    return true;
+  }
+
   onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationCommandsAllowlistAdd.CommandArgsBefore) {
     if (args.command) {
       let errors: Array<string> = [];
@@ -69,9 +85,9 @@ export default class CommandsAllowlistAddCommand extends BaseCommand {
       if (args.users && !args.users.length) {
         errors.push('users');
       }
-      return editOrReply(context, `⚠ Unable to find the provided ${errors.join(', ')}.`);
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find the provided ${errors.join(', ')}.`);
     }
-    return editOrReply(context, '⚠ Unknown Command');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Command`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationCommandsAllowlistAdd.CommandArgs) {

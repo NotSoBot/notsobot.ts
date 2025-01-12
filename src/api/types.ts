@@ -231,10 +231,9 @@ export namespace RestOptions {
   }
 
   
-  export interface GenerateTag {
+  export interface GenerateTag extends MediaBaseOptionsMultiple {
     model?: string,
     prompt: string,
-    promptExtra?: Array<string>,
   }
 
   export interface GoogleContentVisionBase {
@@ -345,6 +344,11 @@ export namespace RestOptions {
     start?: number,
   }
 
+  export interface MediaAVToolsSetBitRate extends MediaBaseOptions {
+    audio?: number,
+    video?: number,
+  }
+
   export interface MediaICreateRetrowave {
     background?: number,
     line1?: string,
@@ -379,6 +383,7 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationDeepfry extends MediaBaseOptions {
+    keepTransparency?: boolean,
     scale?: number,
   }
 
@@ -413,7 +418,13 @@ export namespace RestOptions {
   export interface MediaIVManipulationGlitch extends MediaBaseOptions {
     amount?: number,
     iterations?: number,
+    keepTransparency?: boolean,
     seed?: number,
+  }
+
+  export interface MediaIVManipulationGrain extends MediaBaseOptions {
+    flags?: string,
+    strength?: number,
   }
 
   export interface MediaIVManipulationHueCurveRGBA extends MediaBaseOptions {
@@ -448,6 +459,7 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationJPEG extends MediaBaseOptions {
+    keepTransparency?: boolean,
     quality?: number,
   }
 
@@ -518,6 +530,11 @@ export namespace RestOptions {
     horizontal?: number,
     randomize?: boolean,
     vertical?: number,
+  }
+
+  export interface MediaIVManipulationSlide extends MediaBaseOptions {
+    direction?: string,
+    speed?: number,
   }
 
   export interface MediaIVManipulationSpin extends MediaBaseOptions {
@@ -649,6 +666,10 @@ export namespace RestOptions {
     threshold?: number,
   }
 
+
+  export interface PutGeneratedTagError {
+    error: string,
+  }
 
   export interface PutGuildSettings {
     icon: null | string,
@@ -865,6 +886,7 @@ export namespace RestOptions {
   export interface UtilitiesFetchMedia {
     downloadQuality?: string,
     maxFileSize?: number,
+    mediaPosition?: number,
     safe?: boolean,
     url: string,
   }
@@ -1226,6 +1248,7 @@ export namespace RestResponsesRaw {
 
   export interface GenerateTag {
     external_id: string,
+    id?: string,
     model: string,
     prompt_complexity_level: number,
     text: string,
@@ -1348,6 +1371,7 @@ export namespace RestResponsesRaw {
   }
 
   export interface MediaAIVToolsAnalyze {
+    image?: {mimetype: string, value: string},
     interrogation: string,
     labels: Array<{
       name: string,

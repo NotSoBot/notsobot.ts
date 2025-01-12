@@ -453,11 +453,11 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
   const allowNegatives = !!options.negatives;
 
   return (value: number | string): number => {
-    const valueString = String(value);
+    const valueString = String(value).trim();
     const isNegative = (allowNegatives) ? valueString.startsWith('-') : false;
 
     let duration = seconds(valueString, allowFloats);
-    if (isNegative) {
+    if (isNegative && 0 < duration) {
       duration = -duration;
     }
 
@@ -1952,6 +1952,9 @@ export async function prefixedCommand(
     }
     if (command === null) {
       command = await context.commandClient.getCommand({content: value, prefix: ''});
+      if (command && !command.name) {
+        command = null;
+      }
     }
   }
 

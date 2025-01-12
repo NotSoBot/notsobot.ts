@@ -14,6 +14,7 @@ export default class DeepfryCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
+        {aliases: ['nt'], name: 'notransparency', type: Boolean},
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
@@ -25,7 +26,7 @@ export default class DeepfryCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -scale 5`,
         ],
         id: Formatter.Commands.MediaIVManipulationDeepfry.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-scale <float>)',
+        usage: '?<emoji,user:id|mention|name,url> (-notransparency) (-scale <float>)',
       },
     });
   }

@@ -44,6 +44,7 @@ import * as MediaAVManipulationVolume from './media.av.manipulation.volume';
 
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
 import * as MediaAVToolsIdentify from './media.av.tools.identify';
+import * as MediaAVToolsSetBitRate from './media.av.tools.set.bitrate';
 
 import * as MediaICreateRetrowave from './media.i.create.retrowave';
 import * as MediaICreateTombstone from './media.i.create.tombstone';
@@ -70,6 +71,7 @@ import * as MediaIVManipulationGlitch from './media.iv.manipulation.glitch';
 import * as MediaIVManipulationGlitchAnimated from './media.iv.manipulation.glitch.animated';
 import * as MediaIVManipulationGlobe from './media.iv.manipulation.globe';
 import * as MediaIVManipulationGold from './media.iv.manipulation.gold';
+import * as MediaIVManipulationGrain from './media.iv.manipulation.grain';
 import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale';
 import * as MediaIVManipulationHueCurveRGBA from './media.iv.manipulation.hue.curve.rgba';
 import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
@@ -119,8 +121,11 @@ import * as MediaIVManipulationRainGold from './media.iv.manipulation.rain.gold'
 import * as MediaIVManipulationRecaption from './media.iv.manipulation.recaption';
 import * as MediaIVManipulationRecolor from './media.iv.manipulation.recolor';
 import * as MediaIVManipulationRipple from './media.iv.manipulation.ripple';
+import * as MediaIVManipulationSepia from './media.iv.manipulation.sepia';
 import * as MediaIVManipulationShake from './media.iv.manipulation.shake';
 import * as MediaIVManipulationSharpen from './media.iv.manipulation.sharpen';
+import * as MediaIVManipulationSlide from './media.iv.manipulation.slide';
+import * as MediaIVManipulationSolarize from './media.iv.manipulation.solarize';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
 import * as MediaIVManipulationSwapColors from './media.iv.manipulation.swap.colors';
 import * as MediaIVManipulationSwapPixels from './media.iv.manipulation.swap.pixels';
@@ -306,6 +311,7 @@ export {
 
   MediaAVToolsExtractAudio,
   MediaAVToolsIdentify,
+  MediaAVToolsSetBitRate,
 
   MediaICreateRetrowave,
   MediaICreateTombstone,
@@ -332,6 +338,7 @@ export {
   MediaIVManipulationGlitchAnimated,
   MediaIVManipulationGlobe,
   MediaIVManipulationGold,
+  MediaIVManipulationGrain,
   MediaIVManipulationGrayscale,
   MediaIVManipulationHueCurveRGBA,
   MediaIVManipulationHueShiftHSV,
@@ -381,8 +388,11 @@ export {
   MediaIVManipulationRecaption,
   MediaIVManipulationRecolor,
   MediaIVManipulationRipple,
+  MediaIVManipulationSepia,
   MediaIVManipulationShake,
   MediaIVManipulationSharpen,
+  MediaIVManipulationSlide,
+  MediaIVManipulationSolarize,
   MediaIVManipulationSpin,
   MediaIVManipulationSwapColors,
   MediaIVManipulationSwapPixels,

@@ -3,6 +3,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { MediaIVDistortCommand } from './distort';
 import { MediaIVEmbossCommand } from './emboss';
 import { MediaIVFisheyeCommand } from './fisheye';
+import { MediaIVGrainCommand } from './grain';
 import { MediaIVHueShiftHSVCommand } from './hue-shift-hsv';
 import { MediaIVHueShiftHSVFFMPEGCommand } from './hue-shift-hsv-ffmpeg';
 import { MediaIVHueShiftRGBCommand } from './hue-shift-rgb';
@@ -13,6 +14,7 @@ import { MediaIVPaintCommand } from './paint';
 import { MediaIVPaintGifCommand } from './paint-gif';
 import { MediaIVShakeCommand } from './shake';
 import { MediaIVSharpenCommand } from './sharpen';
+import { MediaIVSlideCommand } from './slide';
 import { MediaIVSpinCommand } from './spin';
 import { MediaIVSwirlCommand } from './swirl';
 import { MediaIVWatercolorCommand } from './watercolor';
@@ -34,6 +36,7 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVDistortCommand(),
         new MediaIVEmbossCommand(),
         new MediaIVFisheyeCommand(),
+        new MediaIVGrainCommand(),
         new MediaIVHueShiftHSVCommand(),
         new MediaIVHueShiftHSVFFMPEGCommand(),
         new MediaIVHueShiftRGBCommand(),
@@ -44,6 +47,7 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVPaintGifCommand(),
         new MediaIVShakeCommand(),
         new MediaIVSharpenCommand(),
+        new MediaIVSlideCommand(),
         new MediaIVSpinCommand(),
         new MediaIVSwirlCommand,
         new MediaIVWatercolorCommand(),

@@ -25,6 +25,12 @@ export class ToolsDownloadCommand extends BaseInteractionCommandOption {
           value: Parameters.url,
         },
         {
+          name: 'position',
+          description: 'Media Position in Gallery/Playlist',
+          label: 'mediaPosition',
+          type: Number,
+        },
+        {
           name: 'quality',
           description: 'Choose Max Video Quality',
           choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_720, doNotSort: true}),

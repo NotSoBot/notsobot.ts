@@ -33,6 +33,8 @@ import UserSettingsStore from '../stores/usersettings';
 
 import { Endpoints } from '../api';
 import { RestResponsesRaw } from '../api/types';
+import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
+import { CommandMetadata } from '../commands/prefixed/basecommand';
 import {
   CodeLanguages,
   CodeLanguagesToName,
@@ -49,6 +51,8 @@ import {
   SNOWFLAKE_EPOCH,
   TRUSTED_URLS,
 } from '../constants';
+
+import * as Formatter from './formatter';
 
 import { OPENAI_API_KEY } from '../../config.json';
 
@@ -909,6 +913,24 @@ export function findMembersByUsername(
 }
 
 
+export function getCommandIdFromInvoker(
+  invoker: Command.Command | Interaction.InteractionCommand | Interaction.InteractionCommandOption,
+): string {
+  let commandId = '';
+  if (invoker instanceof Command.Command) {
+    const metadata = invoker.metadata as CommandMetadata;
+    commandId = metadata.id || invoker.name.split(' ').join('.');
+  } else {
+    const metadata = invoker.metadata as InteractionCommandMetadata;
+    commandId = metadata.id || invoker.fullName.split(' ').join('.');
+  }
+  if (commandId === Formatter.Commands.TagShowCustomCommand.COMMAND_ID) {
+    commandId = Formatter.Commands.TagShow.COMMAND_ID;
+  }
+  return commandId;
+}
+
+
 export function getMemberJoinPosition(
   guild: Structures.Guild,
   userId: string,
@@ -1564,8 +1586,11 @@ export async function mediaReplyFromOptions(
     }
   }
 
-  const shouldBeEmbed = MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes) && !options.spoiler;
-  // we used to check if it was an animated webp but its supported now
+  let shouldBeEmbed = MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes) && !options.spoiler;
+  // we used to check if it was an animated webp but its supported now (apparently)
+  switch (options.mimetype) {
+    case Mimetypes.IMAGE_X_APNG: shouldBeEmbed = false; break; // discord now only uploads the first frame of an apng, so we will just send a file ending in `.apng`
+  }
 
   if (shouldBeEmbed) {
     const embed = new Embed();

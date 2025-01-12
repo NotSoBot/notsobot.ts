@@ -797,6 +797,14 @@ export async function mediaAVToolsIdentify(
 }
 
 
+export async function mediaAVToolsSetBitRate(
+  context: RequestContext,
+  options: RestOptions.MediaAVToolsSetBitRate,
+) {
+  return raw.mediaAVToolsSetBitRate(context, options);
+}
+
+
 export async function mediaAVToolsTranscribe(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -978,6 +986,14 @@ export async function mediaIVManipulationGold(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationGold(context, options);
+}
+
+
+export async function mediaIVManipulationGrain(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationGrain,
+) {
+  return raw.mediaIVManipulationGrain(context, options);
 }
 
 
@@ -1365,6 +1381,14 @@ export async function mediaIVManipulationRipple(
 }
 
 
+export async function mediaIVManipulationSepia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationSepia(context, options);
+}
+
+
 export async function mediaIVManipulationShake(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationShake,
@@ -1378,6 +1402,22 @@ export async function mediaIVManipulationSharpen(
   options: RestOptions.MediaIVManipulationSharpen,
 ) {
   return raw.mediaIVManipulationSharpen(context, options);
+}
+
+
+export async function mediaIVManipulationSlide(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSlide,
+) {
+  return raw.mediaIVManipulationSlide(context, options);
+}
+
+
+export async function mediaIVManipulationSolarize(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationSolarize(context, options);
 }
 
 
@@ -1611,6 +1651,15 @@ export async function mediaIVToolsTrim(
   options: RestOptions.MediaIVToolsTrim,
 ) {
   return raw.mediaIVToolsTrim(context, options);
+}
+
+
+export async function putGeneratedTagError(
+  context: RequestContext,
+  responseId: string,
+  options: RestOptions.PutGeneratedTagError,
+) {
+  return raw.putGeneratedTagError(context, responseId, options);
 }
 
 

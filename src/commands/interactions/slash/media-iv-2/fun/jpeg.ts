@@ -17,6 +17,7 @@ export class MediaIVJPEGCommand extends BaseInteractionImageOrVideoCommandOption
   constructor() {
     super({
       options: [
+        {name: 'notransparency', description: 'Do not keep transparency', type: Boolean},
         {name: 'quality', description: 'JPEG Quality (Default: 1)', type: Number},
       ],
     });

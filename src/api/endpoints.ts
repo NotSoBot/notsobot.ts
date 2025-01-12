@@ -116,6 +116,8 @@ export const Api = Object.freeze({
     '/media/av/tools/extract/audio',
   MEDIA_AV_TOOLS_IDENTIFY:
     '/media/av/tools/identify',
+  MEDIA_AV_TOOLS_SET_BITRATE:
+    '/media/av/tools/set/bitrate',
   MEDIA_AV_TOOLS_TRANSCRIBE:
     '/media/av/tools/transcribe',
 
@@ -166,6 +168,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/globe',
   MEDIA_IV_MANIPULATION_GOLD:
     '/media/iv/manipulation/gold',
+  MEDIA_IV_MANIPULATION_GRAIN:
+    '/media/iv/manipulation/grain',
   MEDIA_IV_MANIPULATION_GRAYSCALE:
     '/media/iv/manipulation/grayscale',
   MEDIA_IV_MANIPULATION_HUE_CURVE_RGBA:
@@ -266,10 +270,16 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/recolor',
   MEDIA_IV_MANIPULATION_RIPPLE:
     '/media/iv/manipulation/ripple',
+  MEDIA_IV_MANIPULATION_SEPIA:
+    '/media/iv/manipulation/sepia',
   MEDIA_IV_MANIPULATION_SHAKE:
     '/media/iv/manipulation/shake',
   MEDIA_IV_MANIPULATION_SHARPEN:
     '/media/iv/manipulation/sharpen',
+  MEDIA_IV_MANIPULATION_SLIDE:
+    '/media/iv/manipulation/slide',
+  MEDIA_IV_MANIPULATION_SOLARIZE:
+    '/media/iv/manipulation/solarize',
   MEDIA_IV_MANIPULATION_SPIN:
     '/media/iv/manipulation/spin',
   MEDIA_IV_MANIPULATION_SWAP_COLORS:
@@ -404,6 +414,8 @@ export const Api = Object.freeze({
     '/tags/directory/:tagId/verify',
   TAGS_GENERATE:
     '/tags/generate',
+  TAGS_GENERATE_RESPONSE:
+    '/tags/generate/:responseId',
   TAGS_SEARCH:
     '/tags/search',
   TAGS_SEARCH_RANDOM:

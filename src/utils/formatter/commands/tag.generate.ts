@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/node';
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { generateTag, mediaAIVToolsAnalyze } from '../../../api';
+import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
 
@@ -28,71 +28,72 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const urls: Array<string> = [];
   const promptExtra: Array<string> = [];
-  {
-    if (context instanceof Command.Context) {
-      let url = findMediaUrlInMessage(context.message);
+  if (context instanceof Command.Context) {
+    let url = findMediaUrlInMessage(context.message);
 
-      const { messageReference } = context.message;
-      if (messageReference && messageReference.messageId) {
-        const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-        if (!url) {
-          url = findMediaUrlInMessage(message);
-        }
+    const { messageReference } = context.message;
+    if (messageReference && messageReference.messageId) {
+      const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+      if (!url) {
+        url = findMediaUrlInMessage(message);
+      }
 
-        const content: Array<string> = [];
-        if (message.content) {
-          content.push(message.content);
-        }
-        if (message.embeds.length) {
-          for (let [embedId, embed] of message.embeds) {
-            const description: Array<string> = [];
-            if (embed.title) {
-              description.push(embed.title);
-            }
-            if (embed.description) {
-              let value = embed.description;
-              if (value.startsWith('```') && value.endsWith('```')) {
-                value = value.slice(3, -3).trim();
-                const newLineIndex = value.indexOf('\n');
-                if (newLineIndex !== -1) {
-                  value = value.slice(newLineIndex).trim();
-                }
+      const content: Array<string> = [];
+      if (message.content) {
+        content.push(message.content);
+      }
+      if (message.embeds.length) {
+        for (let [embedId, embed] of message.embeds) {
+          const description: Array<string> = [];
+          if (embed.title) {
+            description.push(embed.title);
+          }
+          if (embed.description) {
+            let value = embed.description;
+            if (value.startsWith('```') && value.endsWith('```')) {
+              value = value.slice(3, -3).trim();
+              const newLineIndex = value.indexOf('\n');
+              if (newLineIndex !== -1) {
+                value = value.slice(newLineIndex).trim();
               }
-              description.push(value);
             }
-            if (embed.footer && embed.footer.text.length) {
-              description.push(embed.footer.text);
-            }
-            const text = description.filter(Boolean).join('\n').trim();
-            if (text) {
-              content.push(text);
-              break;
-            }
+            description.push(value);
+          }
+          if (embed.footer && embed.footer.text.length) {
+            description.push(embed.footer.text);
+          }
+          const text = description.filter(Boolean).join('\n').trim();
+          if (text) {
+            content.push(text);
+            break;
           }
         }
-
-        const replyText = content.filter(Boolean).join('\n\n').trim();
-        if (replyText) {
-          promptExtra.push(`Message Reply Context: ${replyText}`);
-        }
       }
 
-      if (url) {
-        const response = await mediaAIVToolsAnalyze(context, {url});
-        if (response.interrogation || response.ocr || response.labels.length || response.songs.length || response.transcription.length) {
-          promptExtra.push(`Message Reply Media Analyzation: ${JSON.stringify(response)}`);
-        }
+      const replyText = content.filter(Boolean).join('\n\n').trim();
+      if (replyText) {
+        promptExtra.push(`Message Reply Context: ${replyText}`);
       }
-      promptExtra.reverse(); // for prompt caching, the analyzation is more likely to stay the same
+    }
+
+    if (url) {
+      urls.push(url);
+    }
+  } else if (context instanceof Interaction.InteractionContext) {
+    if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
+      for (let [attachmentId, attachment] of context.data.resolved.attachments) {
+        urls.push(attachment.url);
+      }
     }
   }
 
   const now = Date.now();
   const response = await generateTag(context, {
     model: args.model,
-    prompt: args.prompt,
-    promptExtra: promptExtra,
+    prompt: [args.prompt, ...promptExtra].join('\n'),
+    urls,
   });
   if (args.debugFull) {
     return editOrReply(context, {
@@ -152,6 +153,14 @@ export async function createMessage(
 
     return editOrReply(context, options);
   } catch(error) {
+    if (response.id) {
+      try {
+        await putGeneratedTagError(context, response.id, {error: error.message.slice(0, 6000)});
+      } catch(e) {
+        
+      }
+    }
+
     Sentry.withScope((scope) => {
       scope.setUser({ id: context.userId });
       scope.setTags({

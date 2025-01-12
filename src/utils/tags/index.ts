@@ -4,7 +4,6 @@ import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { MarkupTimestampStyles, Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
-import * as mathjs from 'mathjs';
 import MiniSearch from 'minisearch';
 
 import {
@@ -45,6 +44,7 @@ import {
 } from '../../constants';
 
 import * as DefaultParameters from '../defaultparameters';
+import { MathWorker, MATH_ERROR_TIMEOUT_MESSAGE } from '../math';
 import * as Parameters from '../parameters';
 import {
   bigIntGenerateBetween,
@@ -113,7 +113,6 @@ export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHM
 
 export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 
-export const ERROR_TIMEOUT_MESSAGE = 'Script execution timed out after';
 export const MAX_ATTACHMENTS = 10;
 export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 450;
@@ -126,10 +125,9 @@ export const MAX_STORAGE_CHANNEL_AMOUNT = 5;
 export const MAX_STORAGE_USER_AMOUNT = 5;
 export const MAX_STORAGE_KEY_LENGTH = 128;
 export const MAX_STORAGE_VALUE_LENGTH = 2048;
-export const MAX_TIME_MATH = 25;
 export const MAX_TIME_REGEX = 25;
 export const MAX_VARIABLE_KEY_LENGTH = 64;
-export const MAX_VARIABLE_LENGTH = 16 * 1024;
+export const MAX_VARIABLE_LENGTH = 1 * 1024 * 1024;
 export const MAX_VARIABLES = 100;
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
@@ -253,7 +251,6 @@ export enum TagFunctions {
   MATH_MAX = 'MATH_MAX',
   MATH_MIN = 'MATH_MIN',
   MATH_PI = 'MATH_PI',
-  MATH_SILENT = 'MATH_SILENT',
   MATH_SIN = 'MATH_SIN',
   MATH_TAN = 'MATH_TAN',
   MEDIA = 'MEDIA',
@@ -385,7 +382,6 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MATH_MAX]: ['max'],
   [TagFunctions.MATH_MIN]: ['min'],
   [TagFunctions.MATH_PI]: ['pi'],
-  [TagFunctions.MATH_SILENT]: ['mathsilent'],
   [TagFunctions.MATH_SIN]: ['sin'],
   [TagFunctions.MATH_TAN]: ['tan'],
   [TagFunctions.MEDIA]: ['media'],
@@ -486,10 +482,12 @@ export interface TagVariables {
   [key: string]: number | string | Array<string> | Record<string, any>,
 }
 
+export interface TagContext {
+  mathWorker?: MathWorker,
+}
+
 export interface TagResult {
-  context: {
-    parser?: mathjs.Parser,
-  },
+  context: TagContext,
   embeds: Array<Embed>,
   files: Array<{
     buffer: null | string | Buffer,
@@ -512,6 +510,7 @@ export async function parse(
   value: string,
   args: string = '',
   variables: TagVariables = Object.create(null),
+  tagContext: TagContext = Object.create(null),
   shouldTrim: boolean = true,
 ): Promise<TagResult> {
   let isFirstParse = true;
@@ -594,7 +593,7 @@ export async function parse(
     }
   }
 
-  const tag: TagResult = {context: {}, embeds: [], files: [], pages: [], replacement, text: '', variables};
+  const tag: TagResult = {context: tagContext, embeds: [], files: [], pages: [], replacement, text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
@@ -728,7 +727,7 @@ export async function parse(
               }
             } else {
               // check the other tags now
-              const argParsed = await parse(context, arg, '', tag.variables);
+              const argParsed = await parse(context, arg, '', tag.variables, tag.context);
               normalizeTagResults(tag, argParsed, false);
               arg = argParsed.text;
   
@@ -914,7 +913,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (!arg) {
-      return false;
+      return true;
     }
 
     tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
@@ -1814,7 +1813,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.EVAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {eval:{args}}
 
-    const argParsed = await parse(context, arg, '', tag.variables);
+    const argParsed = await parse(context, arg, '', tag.variables, tag.context);
     normalizeTagResults(tag, argParsed);
     return true;
   },
@@ -2100,7 +2099,7 @@ const ScriptTags = Object.freeze({
 
       let text: string = '';
       if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, conditional, '', tag.variables);
+        const argParsed = await parse(context, conditional, '', tag.variables, tag.context);
         normalizeTagResults(tag, argParsed, false);
         text = argParsed.text;
       } else {
@@ -2133,7 +2132,7 @@ const ScriptTags = Object.freeze({
 
     let values: Array<any>;
     if (text.includes(TagSymbols.BRACKET_LEFT)) {
-      const argParsed = await parse(context, text, '', tag.variables);
+      const argParsed = await parse(context, text, '', tag.variables, tag.context);
       normalizeTagResults(tag, argParsed, false);
       text = argParsed.text;
     }
@@ -2174,7 +2173,7 @@ const ScriptTags = Object.freeze({
       if (code.includes(TagSymbols.BRACKET_LEFT)) {
         tag.variables['idx'] = String(i);
         tag.variables['valuex'] = (typeof(values[i]) === 'object') ? JSON.stringify(values[i]) : String(values[i]);
-        const argParsed = await parse(context, code, '', tag.variables, false);
+        const argParsed = await parse(context, code, '', tag.variables, tag.context, false);
         normalizeTagResults(tag, argParsed, false);
         text = argParsed.text;
       } else {
@@ -2302,7 +2301,7 @@ const ScriptTags = Object.freeze({
       tag.text += tag.variables[key];
     } else if (defaultValue) {
       if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, defaultValue, '', tag.variables);
+        const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
         normalizeTagResults(tag, argParsed, false);
         tag.text += argParsed.text;
       } else {
@@ -2343,7 +2342,7 @@ const ScriptTags = Object.freeze({
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
             if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables);
+              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
               normalizeTagResults(tag, argParsed, false);
               tag.text += argParsed.text;
             } else {
@@ -2389,7 +2388,7 @@ const ScriptTags = Object.freeze({
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
             if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables);
+              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
               normalizeTagResults(tag, argParsed, false);
               tag.text += argParsed.text;
             } else {
@@ -2435,7 +2434,7 @@ const ScriptTags = Object.freeze({
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
             if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables);
+              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
               normalizeTagResults(tag, argParsed, false);
               tag.text += argParsed.text;
             } else {
@@ -2485,7 +2484,7 @@ const ScriptTags = Object.freeze({
       const x = values[i];
       if (x.includes(TagSymbols.BRACKET_LEFT)) {
         // parse it
-        const argParsed = await parse(context, x, '', tag.variables);
+        const argParsed = await parse(context, x, '', tag.variables, tag.context);
         normalizeTagResults(tag, argParsed, false);
         values[i] = argParsed.text;
       } else {
@@ -2542,7 +2541,7 @@ const ScriptTags = Object.freeze({
     const text = (compared) ? then.slice(5) : (elseValue || '').slice(5);
     if (text.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
-      const argParsed = await parse(context, text, '', tag.variables);
+      const argParsed = await parse(context, text, '', tag.variables, tag.context);
       normalizeTagResults(tag, argParsed);
     } else {
       tag.text += text;
@@ -2563,7 +2562,7 @@ const ScriptTags = Object.freeze({
     for (let conditional of conditionals) {
       let text: string = '';
       if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, conditional, '', tag.variables);
+        const argParsed = await parse(context, conditional, '', tag.variables, tag.context);
         normalizeTagResults(tag, argParsed, false);
         text = argParsed.text;
       } else {
@@ -2720,32 +2719,16 @@ const ScriptTags = Object.freeze({
 
     const equation = arg.trim();
 
-    const parser = tag.context.parser = tag.context.parser || mathjs.parser();
+    const mathWorker = tag.context.mathWorker = tag.context.mathWorker || new MathWorker();
     try {
-      tag.text += vm.runInNewContext(
-        `parser.evaluate(equation)`,
-        {equation, parser},
-        {timeout: MAX_TIME_MATH},
-      );
+      tag.text += await mathWorker.evaluate(equation);
     } catch(error) {
-      if (error.message.includes(ERROR_TIMEOUT_MESSAGE)) {
+      if (error.message.includes(MATH_ERROR_TIMEOUT_MESSAGE)) {
         throw new Error('Math equation timed out')
       } else {
         throw new Error(`Math equation errored out (${error.message})`);
       }
     }
-
-    return true;
-  },
-
-  [TagFunctions.MATH_SILENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {mathsilent:5+5}
-
-    const text = tag.text;
-
-    await ScriptTags[TagFunctions.MATH](context, arg, tag);
-
-    tag.text = text;
 
     return true;
   },
@@ -3496,7 +3479,7 @@ const ScriptTags = Object.freeze({
 
     if (value.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
-      const argParsed = await parse(context, value, '', tag.variables);
+      const argParsed = await parse(context, value, '', tag.variables, tag.context);
       normalizeTagResults(tag, argParsed);
     } else {
       tag.text += value;
@@ -3773,13 +3756,13 @@ const ScriptTags = Object.freeze({
     let text: string = textParts.join(TagSymbols.SPLITTER_ARGUMENT);
 
     {
-      const parsed = await parse(context, string, '', tag.variables);
+      const parsed = await parse(context, string, '', tag.variables, tag.context);
       normalizeTagResults(tag, parsed, false);
       string = parsed.text.trim();
     }
 
     {
-      const parsed = await parse(context, text, '', tag.variables);
+      const parsed = await parse(context, text, '', tag.variables, tag.context);
       normalizeTagResults(tag, parsed, false);
       text = parsed.text.trim();
     }
@@ -4004,7 +3987,7 @@ const ScriptTags = Object.freeze({
 
     let start: number;
     {
-      const parsed = await parse(context, startText, '', tag.variables);
+      const parsed = await parse(context, startText, '', tag.variables, tag.context);
       normalizeTagResults(tag, parsed, false);
 
       start = parseInt(parsed.text.trim());
@@ -4015,7 +3998,7 @@ const ScriptTags = Object.freeze({
 
     let end: number | undefined;
     if (endText !== undefined) {
-      const parsed = await parse(context, endText, '', tag.variables);
+      const parsed = await parse(context, endText, '', tag.variables, tag.context);
       end = parseInt(parsed.text.trim());
       for (let file of parsed.files) {
         tag.files.push(file);
@@ -4026,7 +4009,7 @@ const ScriptTags = Object.freeze({
     }
 
     // parse it
-    const argParsed = await parse(context, text, '', tag.variables);
+    const argParsed = await parse(context, text, '', tag.variables, tag.context);
     normalizeTagResults(tag, argParsed, false);
 
     tag.text += argParsed.text.trim().substring(start, end);

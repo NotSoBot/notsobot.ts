@@ -5,5 +5,6 @@ import * as Parameters from './parameters';
 import * as TagFormatter from './tags';
 
 export { Formatter, DefaultParameters, EmojiKitchen, Parameters, TagFormatter };
+export * from './math';
 export * from './paginator';
 export * from './tools';

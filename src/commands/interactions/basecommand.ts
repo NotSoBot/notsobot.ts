@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/node';
 
-import { Interaction, Structures } from 'detritus-client';
+import { Collections, Interaction, Structures } from 'detritus-client';
 import {
   ApplicationCommandTypes,
   ApplicationCommandOptionTypes,
@@ -25,7 +25,7 @@ import {
   PermissionsText,
   UserFlags,
 } from '../../constants';
-import { DefaultParameters, Parameters, editOrReply } from '../../utils';
+import { DefaultParameters, Parameters, editOrReply, getCommandIdFromInvoker } from '../../utils';
 
 
 export interface InteractionCommandMetadata {
@@ -36,8 +36,20 @@ export interface InteractionCommandMetadata {
 };
 
 export class BaseInteractionCommand extends Interaction.InteractionCommand {
+  _commandIds?: Collections.BaseSet<string>;
   blockedCommandShouldStillExecute = true;
   error = 'Command';
+
+  get commandIds() {
+    if (!this._commandIds) {
+      this._commandIds = new Collections.BaseSet<string>();
+      for (let invoker of this.invokers) {
+        const commandId = getCommandIdFromInvoker(invoker);
+        this.commandIds.add(commandId);
+      }
+    }
+    return this._commandIds;
+  }
 
   onAutoCompleteError(context: Interaction.InteractionAutoCompleteContext, error: any) {
     Sentry.captureException(error);

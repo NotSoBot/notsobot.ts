@@ -40,6 +40,21 @@ export default class CodeCommand extends BaseCommand {
     let language: CodeLanguages | null = null;
     let version: string | null = null;
 
+    for (let [attachmentId, attachment] of context.message.attachments) {
+      if (attachment.contentType && attachment.contentType.split('/')[0] === 'text') {
+        const response = await context.rest.get(attachment.url, {dataOnly: false});
+        code = await response.text();
+
+        const parsed = getCodeLanguage(attachment.filename.split('.').pop()!);
+        if (parsed) {
+          language = parsed.language;
+        }
+        break;
+      } else {
+        // maybe add it to the code headers, `load URL`
+      }
+    }
+
     const index = code.search(/\s/);
     if (index !== -1) {
       let parsed = getCodeLanguage(code.slice(0, index));

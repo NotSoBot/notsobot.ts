@@ -8,8 +8,8 @@ import {
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserStore from '../../../stores/users';
 
-import { CommandCategories, GuildFeatures, UserFlags } from '../../../constants';
-import { Formatter, editOrReply } from '../../../utils';
+import { CommandCategories, GuildFeatures, TagGenerationModels, UserFlags } from '../../../constants';
+import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -40,6 +40,11 @@ export default class AICommand extends BaseSlashCommand {
           name: 'prompt',
           description: 'Prompt to ask NotSoAI',
           required: true,
+        },
+        {
+          name: 'model',
+          description: 'LLM Model',
+          choices: Parameters.Slash.oneOf({choices: TagGenerationModels}),
         },
         {
           name: 'debug',

@@ -8,6 +8,8 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAVToolsConvertCommand } from './convert';
 
+import { MediaAVToolsSetGroupCommand } from './set';
+
 
 export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
   description = 'Audio and Video Tool Commands';
@@ -28,6 +30,7 @@ export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new MediaAVToolsConvertCommand(),
+        new MediaAVToolsSetGroupCommand(),
       ],
     });
   }

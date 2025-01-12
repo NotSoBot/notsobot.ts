@@ -1,5 +1,7 @@
 import { Command, CommandAttributes, CommandClient, Interaction } from 'detritus-client';
+import { LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
+import { BaseInteractionCommand } from './commands/interactions/basecommand';
 import { CommandMetadata } from './commands/prefixed/basecommand';
 
 import GuildSettingsStore from './stores/guildsettings';
@@ -13,7 +15,7 @@ import {
   GuildCommandsBlocklistTypes,
   UserFlags,
 } from './constants';
-import { Formatter } from './utils';
+import { Formatter, getCommandIdFromInvoker } from './utils';
 
 
 export class NotSoCommandClient extends CommandClient {
@@ -42,18 +44,38 @@ export class NotSoCommandClient extends CommandClient {
       return false;
     }
 
-    const { member } = context;
+    const { channel, member } = context;
     if (member && (member.isOwner || member.canAdministrator)) {
       return true;
     }
 
-    const metadata = command.metadata as CommandMetadata;
-    let commandId = metadata.id || command.name.split(' ').join('.');
-    if (commandId === Formatter.Commands.TagShowCustomCommand.COMMAND_ID) {
-      commandId = Formatter.Commands.TagShow.COMMAND_ID;
+    const commandId = getCommandIdFromInvoker(command);
+    if (context.interactionCommandClient && context.channel && member) {
+      const interactionCommand = context.interactionCommandClient.commands.find((x): x is BaseInteractionCommand => {
+        return x instanceof BaseInteractionCommand && x.commandIds.has(commandId);
+      });
+      if (interactionCommand) {
+        try {
+          await context.client.applicationCommandPermissions.fill(guildId);
+        } catch(error) {
+          
+        }
+        const applicationCommandPermissions = context.client.applicationCommandPermissions.get(guildId);
+        if (applicationCommandPermissions && applicationCommandPermissions.length) {
+          const applicationCommandIds = [
+            interactionCommand.ids.get(LOCAL_GUILD_ID),
+            interactionCommand.ids.get(guildId),
+          ].filter(Boolean) as Array<string>;
+          for (let applicationCommandId of applicationCommandIds) {
+            const applicationCommandPermission = applicationCommandPermissions.get(applicationCommandId);
+            if (applicationCommandPermission && !applicationCommandPermission.isAllowed(context.channel, member)) {
+              return false;
+            }
+          }
+        }
+      }
     }
 
-    const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
     if (settings) {
       const commandsAllowlist = settings.commandsAllowlist.filter((allowed) => {

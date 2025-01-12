@@ -16,6 +16,7 @@ export default class GlitchAnimatedCommand extends BaseImageOrVideoCommand {
       args: [
         {name: 'amount', aliases: ['a'], type: Number},
         {name: 'iterations', aliases: ['i'], type: Number},
+        {name: 'notransparency', aliases: ['nt'], type: Boolean},
         {name: 'seed', aliases: ['s'], type: Number},
         //{name: 'type'}, // theres glitch2, but maybe get rid of it?
       ],
@@ -28,7 +29,7 @@ export default class GlitchAnimatedCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -seed 68`,
         ],
         id: Formatter.Commands.MediaIVManipulationGlitchAnimated.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-iterations <number>) (-seed <number>)', // (-type <glitch-type>)
+        usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-iterations <number>) (-notransparency) (-seed <number>)', // (-type <glitch-type>)
       },
     });
   }

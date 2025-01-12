@@ -17,6 +17,7 @@ export class MediaIVDeepfryCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
+        {name: 'notransparency', description: 'Do not keep transparency', type: Boolean},
         {name: 'scale', description: 'Deepfry Scale (Default: 10.0)', type: 'number'},
       ],
     });
