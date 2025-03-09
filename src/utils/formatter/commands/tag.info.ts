@@ -63,6 +63,8 @@ export async function createMessage(
       description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
     }
 
+    description.push(`**Id**: ${Markup.codestring(tag.id)}`);
+
     // look through cache, else use the tag object
     description.push(`**NSFW**: ${(tag.nsfw) ? 'Yes' : 'No'}`);
 

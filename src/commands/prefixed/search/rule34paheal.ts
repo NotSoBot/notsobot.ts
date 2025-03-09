@@ -9,8 +9,6 @@ import { BaseSearchCommand } from '../basecommand';
 export const COMMAND_NAME = 'rule34paheal';
 
 export default class Rule34PahealCommand extends BaseSearchCommand {
-  nsfw = true;
-
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -21,13 +19,14 @@ export default class Rule34PahealCommand extends BaseSearchCommand {
       ],
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Search https://rule34.paheal.net',
+        description: 'Search rule34.paheal.net',
         examples: [
           `${COMMAND_NAME} overwatch`,
           `${COMMAND_NAME} overwatch -randomize`,
           `${COMMAND_NAME} overwatch -r`,
         ],
         id: Formatter.Commands.SearchRule34Paheal.COMMAND_ID,
+        nsfw: true,
         usage: '<query> (-randomize)',
       },
     });

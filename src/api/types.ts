@@ -279,6 +279,10 @@ export namespace RestOptions {
 
   }
 
+  export interface MediaAIVManipulationShuffle extends MediaBaseOptions {
+    segment?: number,
+  }
+
   export interface MediaAIVToolsConvert extends MediaBaseOptions {
     removeAudio?: boolean,
     to?: string,
@@ -314,6 +318,12 @@ export namespace RestOptions {
   export interface MediaAVManipulationAudioDelay extends MediaBaseOptions {
     delay?: number,
     snip?: boolean,
+  }
+
+  export interface MediaAVManipulationAudioReverb extends MediaBaseOptions {
+    decay?: number,
+    delay?: number,
+    volume?: number,
   }
 
   export interface MediaAVManipulationAudioTremolo extends MediaBaseOptions {
@@ -886,6 +896,7 @@ export namespace RestOptions {
   export interface UtilitiesFetchMedia {
     downloadQuality?: string,
     maxFileSize?: number,
+    mediaFormat?: string,
     mediaPosition?: number,
     safe?: boolean,
     url: string,
@@ -953,6 +964,7 @@ export namespace RestOptions {
     safe?: boolean,
     timeout?: number,
     url: string,
+    wait?: number,
     width?: number,
   }
 

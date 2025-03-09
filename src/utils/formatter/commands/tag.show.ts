@@ -5,7 +5,7 @@ import TagCustomCommandStore from '../../../stores/tagcustomcommands';
 
 import { createTagUse, editTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { Paginator, TagFormatter, checkNSFW, editOrReply } from '../../../utils';
+import { Page, Paginator, TagFormatter, checkNSFW, editOrReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.show';
@@ -36,9 +36,8 @@ export async function createMessage(
   await maybeReplaceContent(context, tag);
 
   if (parsedTag.pages.length) {
-    const paginator = new Paginator(context, {
-      pages: parsedTag.pages.map((x) => x.embed),
-    })
+    const pages = generatePages(context, parsedTag);
+    const paginator = new Paginator(context, {pages});
     return await paginator.start();
   }
 
@@ -78,18 +77,70 @@ export async function createMessage(
 }
 
 
-
-export async function maybeCheckNSFW(
+export function generatePages(
   context: Command.Context | Interaction.InteractionContext,
-  tag: RestResponsesRaw.Tag,
-  options: Command.EditOrReply,
-): Promise<void> {
-  if (options.content) {
-    const [ isAwfulNSFW ] = await checkNSFW(context, options.content);
-    if (isAwfulNSFW) {
-      options.content = 'i love cats';
+  parsedTag: TagFormatter.TagResult,
+): Array<Page> {
+  const pages: Array<Page> = parsedTag.pages.map((x) => x.embed);
+  if (parsedTag.files.length) {
+    const used = new Set<string>();
+    const files: Record<string, any> = {};
+    for (let file of parsedTag.files.slice(0, 10)) {
+      files[file.filename] = {
+        description: file.description,
+        durationSecs: file.durationSecs,
+        filename: file.filename,
+        hasSpoiler: file.spoiler,
+        value: file.buffer,
+      };
+    }
+
+    for (let i = 0; i < parsedTag.pages.length; i++) {
+      const embed = parsedTag.pages[i].embed;
+      const page: Page = pages[i] = [embed, []];
+      if (embed.author && embed.author.iconUrl && embed.author.iconUrl.startsWith('attachment://')) {
+        const filename = embed.author.iconUrl.split('attachment://')[1]!;
+        if (filename in files) {
+          page[1].push(files[filename]);
+          used.add(filename);
+        }
+      }
+      if (embed.footer && embed.footer.iconUrl && embed.footer.iconUrl.startsWith('attachment://')) {
+        const filename = embed.footer.iconUrl.split('attachment://')[1]!;
+        if (filename in files) {
+          page[1].push(files[filename]);
+          used.add(filename);
+        }
+      }
+      if (embed.thumbnail && embed.thumbnail.url.startsWith('attachment://')) {
+        const filename = embed.thumbnail.url.split('attachment://')[1]!;
+        if (filename in files) {
+          page[1].push(files[filename]);
+          used.add(filename);
+        }
+      }
+      if (embed.image && embed.image.url.startsWith('attachment://')) {
+        const filename = embed.image.url.split('attachment://')[1]!;
+        if (filename in files) {
+          page[1].push(files[filename]);
+          used.add(filename);
+        }
+      }
+    }
+
+    for (let filename in files) {
+      if (!used.has(filename)) {
+        for (let page of pages) {
+          if (!Array.isArray(page)) {
+            page = [page, []];
+          }
+          page[1].push(files[filename]);
+        }
+      }
     }
   }
+
+  return pages;
 }
 
 
@@ -114,6 +165,20 @@ export async function increaseUsage(
     // update TagCustomCommandStore using server_id or user.id, problem is that its only for this cluster
   } catch(e) {
 
+  }
+}
+
+
+export async function maybeCheckNSFW(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: RestResponsesRaw.Tag,
+  options: Command.EditOrReply,
+): Promise<void> {
+  if (options.content) {
+    const [ isAwfulNSFW ] = await checkNSFW(context, options.content);
+    if (isAwfulNSFW) {
+      options.content = 'i love cats';
+    }
   }
 }
 

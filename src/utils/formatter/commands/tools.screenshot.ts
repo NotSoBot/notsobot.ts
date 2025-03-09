@@ -12,6 +12,7 @@ export interface CommandArgs {
   safe?: boolean,
   timeout?: number,
   url: string,
+  wait?: number,
   width?: number,
 }
 
@@ -25,6 +26,7 @@ export async function createMessage(
     safe: args.safe,
     timeout: args.timeout,
     url: args.url,
+    wait: args.wait,
     width: args.width,
   });
   return mediaReply(context, response);

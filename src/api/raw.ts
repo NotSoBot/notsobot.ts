@@ -1278,6 +1278,28 @@ export async function mediaAIVManipulationFadeOut(
 }
 
 
+export async function mediaAIVManipulationShuffle(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationShuffle,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    segment: options.segment,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_SHUFFLE,
+    },
+  });
+}
+
+
 export async function mediaAIVToolsAnalyze(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -1585,6 +1607,29 @@ export async function mediaAVManipulationAudioPitch(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_MANIPULATION_AUDIO_PITCH,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationAudioReverb(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioReverb,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    decay: options.decay,
+    delay: options.delay,
+    max_file_size: maxFileSize,
+    url: options.url,
+    volume: options.volume,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_REVERB,
     },
   });
 }
@@ -4859,6 +4904,7 @@ export async function utilitiesFetchMedia(
   const query = {
     download_quality: options.downloadQuality,
     max_file_size: maxFileSize,
+    media_format: options.mediaFormat,
     media_position: options.mediaPosition,
     safe: options.safe,
     url: options.url,
@@ -5108,6 +5154,7 @@ export async function utilitiesScreenshot(
     safe: options.safe,
     timeout: options.timeout,
     url: options.url,
+    wait: options.wait,
     width: options.width,
   };
   return request(context, {

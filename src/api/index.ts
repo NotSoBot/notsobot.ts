@@ -621,6 +621,14 @@ export async function mediaAIVManipulationFadeOut(
 }
 
 
+export async function mediaAIVManipulationShuffle(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationShuffle,
+) {
+  return raw.mediaAIVManipulationShuffle(context, options);
+}
+
+
 export async function mediaAIVToolsAnalyze(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -730,6 +738,14 @@ export async function mediaAVManipulationAudioDelay(
   options: RestOptions.MediaAVManipulationAudioDelay,
 ) {
   return raw.mediaAVManipulationAudioDelay(context, options);
+}
+
+
+export async function mediaAVManipulationAudioReverb(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioReverb,
+) {
+  return raw.mediaAVManipulationAudioReverb(context, options);
 }
 
 

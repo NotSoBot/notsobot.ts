@@ -9,8 +9,6 @@ import { BaseSearchCommand } from '../basecommand';
 export const COMMAND_NAME = 'e621';
 
 export default class E621Command extends BaseSearchCommand {
-  nsfw = true;
-
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -27,6 +25,7 @@ export default class E621Command extends BaseSearchCommand {
           `${COMMAND_NAME} discord -r`,
         ],
         id: Formatter.Commands.SearchE621.COMMAND_ID,
+        nsfw: true,
         usage: '<query> (-randomize)',
       },
     });

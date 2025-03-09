@@ -773,6 +773,10 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       const subscription = cluster.subscribe(name, async (payload) => {
         const { shard, differences, old, user } = payload;
         if (old) {
+          if (differences && Object.keys(differences).length === 1 && differences.clan && Object.keys(differences.clan).length === 1 && differences.clan.badge) {
+            return;
+          }
+
           const guilds = user.guilds;
 
           const cached: {

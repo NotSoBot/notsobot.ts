@@ -6,7 +6,7 @@ import { TagCustomCommandStored } from '../../../stores/tagcustomcommands';
 import { RestResponsesRaw } from '../../../api/types';
 import { Paginator, TagFormatter, editOrReply } from '../../../utils';
 
-import { increaseUsage, maybeCheckNSFW, maybeReplaceContent } from './tag.show';
+import { generatePages, increaseUsage, maybeCheckNSFW, maybeReplaceContent } from './tag.show';
 
 
 
@@ -40,9 +40,8 @@ export async function createMessage(
   await maybeReplaceContent(context, tag);
 
   if (parsedTag.pages.length) {
-    const paginator = new Paginator(context, {
-      pages: parsedTag.pages.map((x) => x.embed),
-    })
+    const pages = generatePages(context, parsedTag);
+    const paginator = new Paginator(context, {pages});
     return await paginator.start();
   }
 

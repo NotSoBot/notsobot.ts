@@ -12,6 +12,7 @@ import { MediaAIVADHDCommand } from './adhd';
 import { MediaAIVFadeInCommand } from './fade-in';
 import { MediaAIVFadeOutCommand } from './fade-out';
 import { MediaAIVPipeCommand } from './pipe';
+import { MediaAIVShuffleCommand } from './shuffle';
 
 
 export default class MediaAIVGroupCommand extends BaseSlashCommand {
@@ -37,6 +38,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
         new MediaAIVFadeInCommand(),
         new MediaAIVFadeOutCommand(),
         new MediaAIVPipeCommand(),
+        new MediaAIVShuffleCommand,
 	  ],
 	});
   }

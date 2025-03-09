@@ -38,8 +38,6 @@ export interface CommandMetadata {
 }
 
 export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Command.Command<ParsedArgsFinished> {
-  nsfw = false;
-
   permissionsIgnoreClientOwner = true;
   triggerTypingAfter = 2000;
 
@@ -51,10 +49,6 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         {duration: 500, limit: 1, type: 'channel'},
       ],
     }, options));
-    if (this.metadata) {
-      this.nsfw = this.metadata.nsfw || this.nsfw;
-      this.metadata.nsfw = this.nsfw;
-    }
   }
 
   get commandDescription(): string {

@@ -26,22 +26,27 @@ export class ToolsScreenshotCommand extends BaseInteractionCommandOption {
         {
           name: 'width',
           description: 'Page Width',
-          value: Number,
+          type: Number,
         },
         {
           name: 'height',
           description: 'Page Height',
-          value: Number,
+          type: Number,
         },
         {
           name: 'lightmode',
           description: 'Opposite of darkmode',
-          value: Boolean,
+          type: Boolean,
         },
         {
           name: 'timeout',
           description: 'Max amount of seconds to wait before screenshotting',
-          value: Number,
+          type: 'number',
+        },
+        {
+          name: 'wait',
+          description: 'Wait time after loading',
+          type: 'number',
         },
       ],
     });

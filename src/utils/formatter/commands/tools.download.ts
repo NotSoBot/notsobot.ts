@@ -12,6 +12,7 @@ export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
 
 
 export interface CommandArgs {
+  mediaFormat?: string,
   mediaPosition?: number,
   quality?: string,
   safe?: boolean,
@@ -27,6 +28,7 @@ export async function createMessage(
   const response = await utilitiesFetchMedia(context, {
     downloadQuality: args.quality,
     maxFileSize,
+    mediaFormat: args.mediaFormat,
     mediaPosition: args.mediaPosition,
     safe: args.safe,
     url: args.url,

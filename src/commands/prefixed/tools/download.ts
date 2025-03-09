@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { BooleanEmojis, CommandCategories, DownloadQualities } from '../../../constants';
+import { BooleanEmojis, CommandCategories, DownloadQualities, Mimetypes, MimetypesToExtension } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -15,6 +15,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
 
       aliases: ['dl'],
       args: [
+        {name: 'format', aliases: ['f'], label: 'mediaFormat', type: Parameters.oneOf({choices: Mimetypes, descriptions: MimetypesToExtension})},
         {name: 'position', aliases: ['p'], label: 'mediaPosition', type: Number},
         {name: 'quality', aliases: ['q'], type: Parameters.oneOf({choices: DownloadQualities})},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
@@ -29,7 +30,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
           `${COMMAND_NAME} https://discordapp.com`,
         ],
         id: Formatter.Commands.ToolsDownload.COMMAND_ID,
-        usage: '<url> (-position <number>) (-quality <DownloadQualities>) (-safe) (-spoiler)',
+        usage: '<url> (-format <Mimetypes>) (-position <number>) (-quality <DownloadQualities>) (-safe) (-spoiler)',
       },
       type: Parameters.url,
     });

@@ -23,6 +23,8 @@ import {
   ImageMemeFonts,
   ImageMemeFontsToText,
   ImageObjectRemovalLabels,
+  Mimetypes,
+  MimetypesToExtension,
   MLDiffusionModels,
   MLDiffusionModelsToText,
   TagSearchSortByFilters,
@@ -38,6 +40,34 @@ import {
   toTitleCase,
 } from '../tools';
 
+
+
+const downloadMediaFormatsSearch = new MiniSearch({
+  fields: ['id', 'name'],
+  storeFields: ['id', 'name'],
+  searchOptions: {
+    boost: {id: 2},
+    fuzzy: true,
+    prefix: true,
+  },
+});
+downloadMediaFormatsSearch.addAll(Object.values(Mimetypes).map((value) => {
+  return {id: value, name: `.${MimetypesToExtension[value]} (${value})`};
+}));
+
+export async function downloadMediaFormats(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}>;
+  if (context.value) {
+    choices = downloadMediaFormatsSearch.search(context.value).slice(0, 25).map((result) => {
+      return {name: result.name, value: result.id};
+    });
+  } else {
+    choices = Object.values(Mimetypes).map((value) => {
+      return {name: `.${MimetypesToExtension[value]} (${value})`, value};
+    }).slice(0, 25);
+  }
+  return context.respond({choices});
+}
 
 
 const mlDiffusionModelSearch = new MiniSearch({

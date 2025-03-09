@@ -19,6 +19,7 @@ import * as MediaAToolsPutReplace from './media.a.tools.put.replace';
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
 import * as MediaAIVManipulationFadeIn from './media.aiv.manipulation.fade.in';
 import * as MediaAIVManipulationFadeOut from './media.aiv.manipulation.fade.out';
+import * as MediaAIVManipulationShuffle from './media.aiv.manipulation.fade.out';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
 
@@ -35,6 +36,7 @@ import * as MediaAIVToolsSpeed from './media.aiv.tools.speed';
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
 import * as MediaAVManipulationAudioDelay from './media.av.manipulation.audio.delay';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
+import * as MediaAVManipulationAudioReverb from './media.av.manipulation.audio.reverb';
 import * as MediaAVManipulationAudioTremolo from './media.av.manipulation.audio.tremolo';
 import * as MediaAVManipulationAudioVibrato from './media.av.manipulation.audio.vibrato';
 import * as MediaAVManipulationBoostBass from './media.av.manipulation.boost.bass';
@@ -286,6 +288,7 @@ export {
   MediaAIVManipulationADHD,
   MediaAIVManipulationFadeIn,
   MediaAIVManipulationFadeOut,
+  MediaAIVManipulationShuffle,
 
   MediaAIVPipe,
 
@@ -302,6 +305,7 @@ export {
   MediaAVManipulationAudioChannelsCombine,
   MediaAVManipulationAudioDelay,
   MediaAVManipulationAudioPitch,
+  MediaAVManipulationAudioReverb,
   MediaAVManipulationAudioTremolo,
   MediaAVManipulationAudioVibrato,
   MediaAVManipulationBoostBass,

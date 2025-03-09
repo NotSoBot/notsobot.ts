@@ -73,8 +73,16 @@ export async function createMessage(
   for (let {command, commandArgs, execute} of pipers) {
     if (file) {
       commandArgs.file = file;
+      if (commandArgs.urls) {
+        commandArgs.urls.shift();
+      }
+      commandArgs.url = undefined;
     } else {
-      commandArgs.url = args.url;
+      if (commandArgs.urls) {
+        commandArgs.urls[0] = args.url;
+      } else {
+        commandArgs.url = args.url;
+      }
     }
 
     const response = await execute(context, commandArgs);

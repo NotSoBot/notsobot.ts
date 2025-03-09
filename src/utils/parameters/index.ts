@@ -389,7 +389,9 @@ export async function pipingCommands(
       const attributes = {content, prefix: ''};
       const command = await commandClient.getCommand(attributes);
       if (command && command.metadata && command.metadata.id && (command.metadata.category === CommandCategories.IMAGE || command.metadata.category === CommandCategories.TOOLS)) {
-        attributes.content = `https://notsobot.com/ ${attributes.content}`; // inject a url at the beginning for image url parsing (to basically skip it)
+        context.metadata = context.metadata || {};
+        context.metadata.shouldSkipMediaCheck = true;
+
         const {errors, parsed: commandArgs} = await command.getArgs(attributes, context as any);
         if (Object.keys(errors).length) {
           throw new Error(`Error parsing piping args for \`${command.name}\``);
@@ -1229,6 +1231,10 @@ export function mediaUrl(
   const findVideo = (!mediaSearchOptions || mediaSearchOptions.video || mediaSearchOptions.video === undefined);
   const onlyContent = (!!mediaSearchOptions && mediaSearchOptions.onlyContent);
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
+    if (context.metadata && context.metadata.shouldSkipMediaCheck) {
+      return 'https://notsobot.com';
+    }
+
     try {
       if (!onlyContent) {
         if (context instanceof Command.Context) {
@@ -1453,25 +1459,29 @@ export function mediaUrls(
   const findVideo = (!mediaSearchOptions || mediaSearchOptions.video || mediaSearchOptions.video === undefined);
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
     const urls: Array<string> = [];
-    if (context instanceof Interaction.InteractionContext) {
-      if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
-        for (let [attachmentId, attachment] of context.data.resolved.attachments) {
-          urls.push(attachment.url);
+    if (context.metadata && context.metadata.shouldSkipMediaCheck) {
+      urls.push('https://notsobot.com');
+    } else {
+      if (context instanceof Interaction.InteractionContext) {
+        if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
+          for (let [attachmentId, attachment] of context.data.resolved.attachments) {
+            urls.push(attachment.url);
+          }
         }
-      }
-    } else if (context instanceof Command.Context) {
-      // check the message's attachments/stickers first, ignoring embed
-      for (let url of findMediaUrlsInMessage(context.message, mediaSearchOptions, true)) {
-        urls.push(url);
-      }
-
-      // check for reply and if it has an attachments/embed/stickers
-      if (urls.length < maxAmount) {
-        const { messageReference } = context.message;
-        if (messageReference && messageReference.messageId) {
-          const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-          for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
-            urls.push(url);
+      } else if (context instanceof Command.Context) {
+        // check the message's attachments/stickers first, ignoring embed
+        for (let url of findMediaUrlsInMessage(context.message, mediaSearchOptions, true)) {
+          urls.push(url);
+        }
+  
+        // check for reply and if it has an attachments/embed/stickers
+        if (urls.length < maxAmount) {
+          const { messageReference } = context.message;
+          if (messageReference && messageReference.messageId) {
+            const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+            for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
+              urls.push(url);
+            }
           }
         }
       }
@@ -1754,6 +1764,10 @@ export function mediaUrlPositional(
   const findAudio = (!mediaSearchOptions || mediaSearchOptions.audio || mediaSearchOptions.audio === undefined);
   const findVideo = (!mediaSearchOptions || mediaSearchOptions.video || mediaSearchOptions.video === undefined);
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
+    if (context.metadata && context.metadata.shouldSkipMediaCheck) {
+      return [true, 'https://notsobot.com'];
+    }
+
     try {
       if (context instanceof Command.Context) {
         // check the message's attachments/stickers first

@@ -6,7 +6,10 @@ import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 import MiniSearch from 'minisearch';
 
+import UserStore from '../../stores/users';
+
 import {
+  fetchTagId,
   fetchTagVariable,
   fetchTagVariables,
   deleteTagVariable,
@@ -43,6 +46,8 @@ import {
   MAX_MEMBERS_SAFE,
 } from '../../constants';
 
+import { increaseUsage } from '../formatter/commands/tag.show';
+
 import * as DefaultParameters from '../defaultparameters';
 import { MathWorker, MATH_ERROR_TIMEOUT_MESSAGE } from '../math';
 import * as Parameters from '../parameters';
@@ -55,6 +60,7 @@ import {
   generateCodeStdin,
   getCodeLanguage,
   getGuildObjectForJSONSerialization,
+  isSnowflake,
   languageCodeToText,
   randomFromArray,
   randomFromIterator,
@@ -125,6 +131,7 @@ export const MAX_STORAGE_CHANNEL_AMOUNT = 5;
 export const MAX_STORAGE_USER_AMOUNT = 5;
 export const MAX_STORAGE_KEY_LENGTH = 128;
 export const MAX_STORAGE_VALUE_LENGTH = 2048;
+export const MAX_TAG_EXECUTIONS = 1;
 export const MAX_TIME_REGEX = 25;
 export const MAX_VARIABLE_KEY_LENGTH = 64;
 export const MAX_VARIABLE_LENGTH = 1 * 1024 * 1024;
@@ -151,6 +158,7 @@ export enum PrivateVariables {
   NETWORK_REQUESTS_OPENAI = '__networkRequestsOpenAI',
   RESULTS = '__results',
   SETTINGS = '__settings',
+  TAG_EXECUTIONS = '__tagExecutions',
 }
 
 
@@ -213,6 +221,7 @@ export enum TagFunctions {
   CHANNEL_RANDOM_MENTION = 'CHANNEL_RANDOM_MENTION',
   DISCORD = 'DISCORD',
   DOWNLOAD = 'DOWNLOAD',
+  EMBED_JSON = 'EMBED_JSON',
   EVAL = 'EVAL',
   EXIT = 'EXIT',
   GUILD = 'GUILD',
@@ -270,6 +279,7 @@ export enum TagFunctions {
   MESSAGE_USER_ID = 'MESSAGE_USER_ID',
   NSFW = 'NSFW',
   NSFW_FILTER = 'NSFW_FILTER',
+  PAGE_JSON = 'PAGE_JSON',
   PREFIX = 'PREFIX',
   REPLY_CONTENT = 'REPLY_CONTENT',
   REPLY_USER_ID = 'REPLY_USER_ID',
@@ -294,6 +304,8 @@ export enum TagFunctions {
   STRING_TRANSLATE = 'STRING_TRANSLATE',
   STRING_UPPER = 'STRING_UPPER',
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
+  TAG = 'TAG',
+  TAG_ID = 'TAG_ID',
   TAG_NAME = 'TAG_NAME',
   TIME_UNIX = 'TIME_UNIX',
   TIME_UNIX_FROM_SNOWFLAKE = 'TIME_UNIX_FROM_SNOWFLAKE',
@@ -344,6 +356,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.CHANNEL_RANDOM_MENTION]: ['randchannelmention'],
   [TagFunctions.DISCORD]: ['discord'],
   [TagFunctions.DOWNLOAD]: ['download', 'text'],
+  [TagFunctions.EMBED_JSON]: ['embedjson'],
   [TagFunctions.EVAL]: ['eval'],
   [TagFunctions.EXIT]: ['exit'],
   [TagFunctions.GUILD]: ['guild', 'server'],
@@ -401,6 +414,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MESSAGE_USER_ID]: ['messageuserid'],
   [TagFunctions.NSFW]: ['nsfw'],
   [TagFunctions.NSFW_FILTER]: ['nsfwfilter'],
+  [TagFunctions.PAGE_JSON]: ['pagejson'],
   [TagFunctions.PREFIX]: ['prefix'],
   [TagFunctions.REPLY_CONTENT]: ['replycontent'],
   [TagFunctions.REPLY_USER_ID]: ['replyuserid'],
@@ -425,6 +439,8 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_TRANSLATE]: ['translate'],
   [TagFunctions.STRING_UPPER]: ['upper'],
   [TagFunctions.STRING_URL_ENCODE]: ['url', 'urlencode'],
+  [TagFunctions.TAG]: ['tag'],
+  [TagFunctions.TAG_ID]: ['tagid'],
   [TagFunctions.TAG_NAME]: ['tagname'],
   [TagFunctions.TIME_UNIX]: ['unix'],
   [TagFunctions.TIME_UNIX_FROM_SNOWFLAKE]: ['unixsnowflake'],
@@ -479,6 +495,7 @@ export interface TagVariables {
     [TagSettings.ML_IMAGINE_DO_NOT_ERROR]?: boolean,
     [TagSettings.ML_IMAGINE_MODEL]?: MLDiffusionModels,
   },
+  [PrivateVariables.TAG_EXECUTIONS]: number,
   [key: string]: number | string | Array<string> | Record<string, any>,
 }
 
@@ -538,6 +555,9 @@ export async function parse(
   }
   if (!(PrivateVariables.SETTINGS in variables)) {
     (variables as any)[PrivateVariables.SETTINGS] = {};
+  }
+  if (!(PrivateVariables.TAG_EXECUTIONS in variables)) {
+    (variables as any)[PrivateVariables.TAG_EXECUTIONS] = 0;
   }
 
   let replacement: string | null = null;
@@ -624,17 +644,10 @@ export async function parse(
       position = nextLeftBracket;
     }
 
-    if (MAX_NETWORK_REQUESTS <= tag.variables[PrivateVariables.NETWORK_REQUESTS]) {
-      throw new Error(`Tag attempted to use too many network requests (Max ${MAX_NETWORK_REQUESTS.toLocaleString()} Requests)`);
-    }
-
-    if (MAX_NETWORK_REQUESTS_ML <= tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]) {
-      throw new Error(`Tag attempted to use too many machine learning network requests (Max ${MAX_NETWORK_REQUESTS_ML.toLocaleString()} Requests)`);
-    }
-
-    if (MAX_NETWORK_REQUESTS_OPENAI <= tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI]) {
-      throw new Error(`Tag attempted to use too many machine learning network requests (Max ${MAX_NETWORK_REQUESTS_OPENAI.toLocaleString()} Requests)`);
-    }
+    increaseNetworkRequests(tag, 0);
+    increaseNetworkRequestsML(tag, 0);
+    increaseNetworkRequestsOpenAI(tag, 0);
+    increaseTagExecutions(tag, 0);
 
     // add network checks
     try {
@@ -784,6 +797,46 @@ export async function parse(
 }
 
 
+export function increaseNetworkRequests(tag: TagResult, amount: number = 1) {
+  if (amount) {
+    tag.variables[PrivateVariables.NETWORK_REQUESTS] += amount;
+  }
+  if (MAX_NETWORK_REQUESTS < tag.variables[PrivateVariables.NETWORK_REQUESTS]) {
+    throw new Error(`Tag attempted to use too many network requests (Max ${MAX_NETWORK_REQUESTS.toLocaleString()} Requests)`);
+  }
+}
+
+
+export function increaseNetworkRequestsML(tag: TagResult, amount: number = 1) {
+  if (amount) {
+    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML] += amount;
+  }
+  if (MAX_NETWORK_REQUESTS_ML < tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]) {
+    throw new Error(`Tag attempted to use too many machine learning network requests (Max ${MAX_NETWORK_REQUESTS_ML.toLocaleString()} Requests)`);
+  }
+}
+
+
+export function increaseNetworkRequestsOpenAI(tag: TagResult, amount: number = 1) {
+  if (amount) {
+    tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI] += amount;
+  }
+  if (MAX_NETWORK_REQUESTS_OPENAI < tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI]) {
+    throw new Error(`Tag attempted to use too many OpenAI network requests (Max ${MAX_NETWORK_REQUESTS_OPENAI.toLocaleString()} Requests)`);
+  }
+}
+
+
+export function increaseTagExecutions(tag: TagResult, amount: number = 1) {
+  if (amount) {
+    tag.variables[PrivateVariables.TAG_EXECUTIONS] += amount;
+  }
+  if (MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.TAG_EXECUTIONS]) {
+    throw new Error(`Tag attempted to use too many tag executions (Max ${MAX_TAG_EXECUTIONS.toLocaleString()} Executions)`);
+  }
+}
+
+
 export function split(value: string, amount: number = 0): Array<string> {
   if (!value.includes(TagSymbols.SPLITTER_ARGUMENT)) {
     return [value];
@@ -916,7 +969,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     const storage: {
       channel: Record<string, string>,
@@ -1264,7 +1317,7 @@ const ScriptTags = Object.freeze({
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
     }
 
     const response = cachedResults[arg] || await searchDuckDuckGoImages(context, {
@@ -1294,7 +1347,7 @@ const ScriptTags = Object.freeze({
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
     }
 
     const response = cachedResults[arg] || await searchImgur(context, {query: arg});
@@ -1321,7 +1374,7 @@ const ScriptTags = Object.freeze({
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
     }
 
     const response = cachedResults[arg] || await utilitiesLocations(context, {
@@ -1361,7 +1414,7 @@ const ScriptTags = Object.freeze({
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
     }
 
     const response = cachedResults[arg] || await utilitiesWeather(context, {
@@ -1481,11 +1534,9 @@ const ScriptTags = Object.freeze({
     );
 
     if (!(url in cachedResults)) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
     }
-    
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
     try {
       const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
       const response = cachedResults[url] || await utilitiesFetchMedia(context, {
@@ -1564,7 +1615,7 @@ const ScriptTags = Object.freeze({
     // return last image url
     // {lastattachment}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     const url = await lastImageUrl('', context);
     if (url) {
@@ -1631,7 +1682,7 @@ const ScriptTags = Object.freeze({
 
     const url = await Parameters.url(urlString.trim(), context);
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
     try {
       const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
       const response = await mediaAVToolsExtractAudio(context, {
@@ -1674,7 +1725,7 @@ const ScriptTags = Object.freeze({
     // {avatar:439205512425504771}
 
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const memberOrUser = await findMemberOrUser(arg, context);
       if (memberOrUser) {
         tag.text += memberOrUser.avatarUrlFormat({size: 1024});
@@ -1790,7 +1841,7 @@ const ScriptTags = Object.freeze({
     // {download:https://google.com}
 
     const url = await Parameters.url(arg.trim(), context);
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     try {
       const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
@@ -1805,6 +1856,31 @@ const ScriptTags = Object.freeze({
     } catch(error) {
       console.log(error);
       throw error;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.EMBED_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {embedjson:{"title": "asd"}}
+
+    try {
+      let object = JSON.parse(arg);
+      if (typeof(object) !== 'object') {
+        throw new Error('Invalid Embed Given');
+      }
+
+      const embed = new Embed(object);
+      if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+        throw new Error('this error doesn\'t matter');
+      }
+      tag.embeds.push(embed);
+    } catch(error) {
+      return false;
+    }
+
+    if (MAX_EMBEDS < tag.embeds.length) {
+      throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
     }
 
     return true;
@@ -1868,7 +1944,7 @@ const ScriptTags = Object.freeze({
     // interrogate an image
     // {interrogate:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     let url = await lastImageUrl(arg.trim(), context);
     if (!url) {
@@ -1899,7 +1975,7 @@ const ScriptTags = Object.freeze({
     // ocr an image
     // {ocr:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     let url = await lastImageUrl(arg.trim(), context);
     if (!url) {
@@ -1942,7 +2018,7 @@ const ScriptTags = Object.freeze({
     } else if (context.channel) {
       tag.text += JSON.stringify(context.channel);
     } else if (context.channelId) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       try {
         const channel = await context.rest.fetchChannel(context.channelId);
         tag.text += JSON.stringify(channel);
@@ -1972,7 +2048,7 @@ const ScriptTags = Object.freeze({
     // {json.member:user}
 
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const memberOrUser = await findMemberOrUser(arg, context);
       if (memberOrUser && memberOrUser instanceof Structures.Member) {
         tag.text += JSON.stringify(memberOrUser.toJSON(true));
@@ -1993,7 +2069,7 @@ const ScriptTags = Object.freeze({
     // {json.memberoruser:user}
 
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const memberOrUser = await findMemberOrUser(arg, context);
       if (memberOrUser) {
         if (memberOrUser instanceof Structures.Member) {
@@ -2039,7 +2115,7 @@ const ScriptTags = Object.freeze({
           tag.text += JSON.stringify(message);
         }
       } else {
-        tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+        increaseNetworkRequests(tag);
         try {
           const message = await context.rest.fetchMessage(context.channelId!, messageId);
           tag.text += JSON.stringify(message);
@@ -2070,7 +2146,7 @@ const ScriptTags = Object.freeze({
     // {json.user:user}
 
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const memberOrUser = await findMemberOrUser(arg, context);
       if (memberOrUser) {
         if (memberOrUser instanceof Structures.Member) {
@@ -2850,7 +2926,7 @@ const ScriptTags = Object.freeze({
     // {media}
     // {media:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     const url = await lastMediaUrl(arg.trim(), context);
     if (url) {
@@ -2865,7 +2941,7 @@ const ScriptTags = Object.freeze({
     // {audio}
     // {audio:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     const url = await lastAudioUrl(arg.trim(), context);
     if (url) {
@@ -2880,7 +2956,7 @@ const ScriptTags = Object.freeze({
     // {av}
     // {av:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     const url = await lastAudioOrVideoUrl(arg.trim(), context);
     if (url) {
@@ -2895,7 +2971,7 @@ const ScriptTags = Object.freeze({
     // {image}
     // {image:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     const url = await lastImageUrl(arg.trim(), context);
     if (url) {
@@ -2921,8 +2997,8 @@ const ScriptTags = Object.freeze({
       throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
     }
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]++;
+    increaseNetworkRequests(tag);
+    increaseNetworkRequestsML(tag);
   
     const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
 
@@ -2987,8 +3063,8 @@ const ScriptTags = Object.freeze({
     // {editurl:pixelate the image|cake}
     // {editurl:|cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]++;
+    increaseNetworkRequests(tag);
+    increaseNetworkRequestsML(tag);
 
     let prompt: string;
     let mediaString: string = '';
@@ -3042,8 +3118,8 @@ const ScriptTags = Object.freeze({
       throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
     }
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]++;
+    increaseNetworkRequests(tag);
+    increaseNetworkRequestsML(tag);
 
     const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
 
@@ -3078,8 +3154,8 @@ const ScriptTags = Object.freeze({
     // {imagineurl}
     // {imagineurl:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-    tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]++;
+    increaseNetworkRequests(tag);
+    increaseNetworkRequestsML(tag);
 
     const response = await utilitiesMLImagine(context, {
       query: arg,
@@ -3100,7 +3176,7 @@ const ScriptTags = Object.freeze({
     // {iv}
     // {iv:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     const url = await lastImageOrVideoUrl(arg.trim(), context);
     if (url) {
@@ -3120,7 +3196,7 @@ const ScriptTags = Object.freeze({
     // {video}
     // {video:cake}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     const url = await lastVideoUrl(arg.trim(), context);
     if (url) {
@@ -3155,7 +3231,7 @@ const ScriptTags = Object.freeze({
           tag.text += message.content;
         }
       } else {
-        tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+        increaseNetworkRequests(tag);
         try {
           const message = await context.rest.fetchMessage(context.channelId!, messageId);
           tag.text += message.content;
@@ -3213,7 +3289,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (messagesFound.length < MAX_LIMIT) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
 
       const limit = MAX_LIMIT - messagesFound.length;
       const messages = await context.rest.fetchMessages(context.channelId!, {before, limit});
@@ -3256,7 +3332,7 @@ const ScriptTags = Object.freeze({
         tag.text += message.author.id;
       }
     } else {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       try {
         const message = await context.rest.fetchMessage(context.channelId!, messageId);
         tag.text += message.author.id;
@@ -3310,7 +3386,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
     try {
       const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
       const response = await utilitiesImagescriptV1(context, {
@@ -3383,7 +3459,7 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
     try {
       const response = await utilitiesImagescriptV1(context, {code, files, upload: true});
       if (response.storage) {
@@ -3413,8 +3489,8 @@ const ScriptTags = Object.freeze({
     // returns an empty string if the content is deemed NSFW, will cut to 2000 characters
     // {nsfwfilter:text}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
-    tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI]++;
+    increaseNetworkRequests(tag);
+    increaseNetworkRequestsOpenAI(tag);
 
     if (arg) {
       const [ isAwfulNSFW ] = await checkNSFW(context, arg.slice(0, 2000));
@@ -3423,6 +3499,30 @@ const ScriptTags = Object.freeze({
       }
     }
   
+    return true;
+  },
+
+  [TagFunctions.PAGE_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {pagejson:{"embed": {"title": "asd"}}}
+
+    try {
+      let page = JSON.parse(arg);
+      if (typeof(page) !== 'object' || !('embed' in page) || typeof(page.embed) !== 'object') {
+        throw new Error('Invalid Page Given');
+      }
+      const embed = new Embed(page.embed);
+      if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+        throw new Error('this error doesn\'t matter');
+      }
+      tag.pages.push({embed});
+    } catch(error) {
+      return false;
+    }
+
+    if (MAX_PAGES < tag.pages.length) {
+      throw new Error(`Pages surpassed max pages length of ${MAX_PAGES}`);
+    }
+
     return true;
   },
 
@@ -3547,7 +3647,7 @@ const ScriptTags = Object.freeze({
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
     }
 
     const response = cachedResults[arg] || await searchDuckDuckGoImages(context, {
@@ -3605,7 +3705,7 @@ const ScriptTags = Object.freeze({
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
     }
 
     const results = cachedResults[arg] || await searchGoogleImages(context, {
@@ -3644,7 +3744,7 @@ const ScriptTags = Object.freeze({
 
     arg = arg.slice(0, 1024);
     if (!(arg in cachedResults)) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
     }
 
     const response = cachedResults[arg] || await searchYoutube(context, {
@@ -4023,7 +4123,7 @@ const ScriptTags = Object.freeze({
     // {translate:cake}
     // {translate:cake|russian}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     if (arg.length) {
       const parts = split(arg);
@@ -4070,6 +4170,92 @@ const ScriptTags = Object.freeze({
     // {url:text}
 
     tag.text += encodeURIComponent(arg);
+    return true;
+  },
+
+  [TagFunctions.TAG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {tag:tag_id|arguments}
+
+    let [ tagId, tagArguments ] = split(arg, 2);
+    tagId = tagId.trim();
+    tagArguments = tagArguments || '';
+    if (!tagId || !isSnowflake(tagId)) {
+      throw new Error('Invalid Tag Id');
+    }
+
+    if (context.metadata && context.metadata.tag && context.metadata.tag.id === tagId) {
+      throw new Error('Tag attempted to call itself');
+    }
+
+    increaseTagExecutions(tag);
+    increaseNetworkRequests(tag);
+
+    try {
+      const fetchedTag = await fetchTagId(context, tagId);
+
+      let isAllowed = (fetchedTag.server_id === (context.guildId || context.channelId));
+      if (!isAllowed && (context.metadata && context.metadata.tag)) {
+        // see if it's from the current tag owner's dms
+        const user = await UserStore.getOrFetch(context, context.metadata.tag.user.id);
+        if (user) {
+          isAllowed = (fetchedTag.server_id === user.channelId);
+        }
+      }
+      if (!isAllowed) {
+        // check to see if its a public directory tag
+      }
+
+      if (!isAllowed) {
+        throw new Error('Cannot call this tag');
+        return false;
+      }
+
+      await increaseUsage(context, fetchedTag);
+
+      const oldTag = context.metadata && context.metadata.tag;
+      try {
+        const oldVariables = Object.assign({}, tag.variables);
+        const variables = Object.create(null);
+        for (let key in PrivateVariables) {
+          variables[key] = tag.variables[key];
+        }
+        variables[PrivateVariables.ARGS_STRING] = tagArguments;
+        variables[PrivateVariables.ARGS] = Parameters.stringArguments(tagArguments);
+
+        if (context.metadata) {
+          context.metadata.tag = fetchedTag;
+        }
+
+        const tagContent = (fetchedTag.reference_tag) ? fetchedTag.reference_tag.content : fetchedTag.content;
+        const argParsed = await parse(context, tagContent, tagArguments, variables, tag.context);
+        normalizeTagResults(tag, argParsed);
+  
+        for (let key in PrivateVariables) {
+          tag.variables[key] = variables[key];
+        }
+        tag.variables[PrivateVariables.ARGS_STRING] = oldVariables[PrivateVariables.ARGS_STRING];
+        tag.variables[PrivateVariables.ARGS] = oldVariables[PrivateVariables.ARGS];
+      } catch(error) {
+        return false;
+      }
+      if (context.metadata) {
+        context.metadata.tag = oldTag;
+      }
+    } catch(error) {
+      throw error;
+      return false;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.TAG_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {tagid}
+  
+    if (context.metadata && context.metadata.tag) {
+      tag.text += context.metadata.tag.id;
+    }
+  
     return true;
   },
 
@@ -4133,7 +4319,7 @@ const ScriptTags = Object.freeze({
     // transcribe an audio/video clip
     // {transcribe:URL?}
 
-    tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+    increaseNetworkRequests(tag);
 
     let url = await lastAudioOrVideoUrl(arg.trim(), context);
     if (!url) {
@@ -4243,7 +4429,7 @@ const ScriptTags = Object.freeze({
     // {useravatar:user}
   
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const memberOrUser = await findMemberOrUser(arg, context);
       if (memberOrUser) {
         if (memberOrUser instanceof Structures.Member) {
@@ -4264,7 +4450,7 @@ const ScriptTags = Object.freeze({
     // {discrim:user}
 
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const user = await findMemberOrUser(arg, context);
       if (user) {
         tag.text += user.discriminator;
@@ -4281,7 +4467,7 @@ const ScriptTags = Object.freeze({
     // {id:user}
 
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const user = await findMemberOrUser(arg, context);
       if (user) {
         tag.text += user.id;
@@ -4298,7 +4484,7 @@ const ScriptTags = Object.freeze({
     // {mention:user}
   
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const user = await findMemberOrUser(arg, context);
       if (user) {
         tag.text += user.mention;
@@ -4314,7 +4500,7 @@ const ScriptTags = Object.freeze({
     // {name:user}
   
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const user = await findMemberOrUser(arg, context);
       if (user) {
         tag.text += user.username;
@@ -4331,7 +4517,7 @@ const ScriptTags = Object.freeze({
     // {nick:user}
   
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const user = await findMemberOrUser(arg, context);
       if (user) {
         tag.text += user.name;
@@ -4462,7 +4648,7 @@ const ScriptTags = Object.freeze({
     // {usertag:user}
 
     if (arg) {
-      tag.variables[PrivateVariables.NETWORK_REQUESTS]++;
+      increaseNetworkRequests(tag);
       const user = await findMemberOrUser(arg, context);
       if (user) {
         tag.text += user.toString();

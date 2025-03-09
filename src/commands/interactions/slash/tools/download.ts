@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { DownloadQualities } from '../../../../constants';
+import { BooleanEmojis, DownloadQualities } from '../../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -23,6 +23,12 @@ export class ToolsDownloadCommand extends BaseInteractionCommandOption {
           name: 'url',
           description: 'URL to download',
           value: Parameters.url,
+        },
+        {
+          name: 'format',
+          description: 'Media Mimetype Format',
+          label: 'mediaFormat',
+          onAutoComplete: Parameters.AutoComplete.downloadMediaFormats,
         },
         {
           name: 'position',
@@ -50,9 +56,9 @@ export class ToolsDownloadCommand extends BaseInteractionCommandOption {
 
   onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, '⚠ Unable to find any urls in the last 50 messages.');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any urls in the last 50 messages.`);
     } else if (args.url === null) {
-      return editOrReply(context, '⚠ Invalid url');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Invalid url`);
     }
     return super.onCancelRun(context, args);
   }

@@ -5,7 +5,9 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
+import { Paginator, Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
+
+import { generatePages } from './tag.show';
 
 
 export const COMMAND_ID = 'tag.generate';
@@ -119,7 +121,13 @@ export async function createMessage(
 
   try {
     const parsedTag = await TagFormatter.parse(context, response.text, '');
-  
+
+    if (parsedTag.pages.length) {
+      const pages = generatePages(context, parsedTag);
+      const paginator = new Paginator(context, {pages});
+      return await paginator.start();
+    }
+
     const content = parsedTag.text.trim().slice(0, 2000).trim();
     const options: Command.EditOrReply = {content};
     if (parsedTag.embeds.length) {
