@@ -209,6 +209,7 @@ import * as SearchYoutube from './search.youtube';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
+import * as SettingsSetAIModel from './settings.set.ai.model';
 import * as SettingsSetDownloadQuality from './settings.set.download.quality';
 import * as SettingsSetFallbacksMediaImage from './settings.set.fallbacks.media.image';
 import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
@@ -478,6 +479,7 @@ export {
 
   SettingsServerSetLocale,
   SettingsServerSetTimezone,
+  SettingsSetAIModel,
   SettingsSetDownloadQuality,
   SettingsSetFallbacksMediaImage,
   SettingsSetFileUploadThreshold,

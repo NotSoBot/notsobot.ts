@@ -28,6 +28,7 @@ export interface RequestContext {
   hasServerPermissions?: boolean,
   inDm?: boolean,
   interaction?: Structures.Interaction,
+  maxAttachmentSize?: number,
   user?: Structures.User,
 }
 
@@ -103,7 +104,13 @@ function getDefaultMaxFileSize(
   if (options && options.maxFileSize !== undefined) {
     return options.maxFileSize;
   }
-  return (context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE;
+  if (context.maxAttachmentSize) {
+    return context.maxAttachmentSize;
+  }
+  if (context.guild) {
+    return context.guild.maxAttachmentSize;
+  }
+  return MAX_ATTACHMENT_SIZE;
 }
 
 
@@ -707,6 +714,7 @@ export async function editUserSettings(
     file_upload_threshold: options.fileUploadThreshold,
     locale: options.locale,
     ml_diffusion_model: options.mlDiffusionModel,
+    ml_llm_model: options.mlLLMModel,
     opt_out_content: options.optOutContent,
     timezone: options.timezone,
     tts_voice: options.ttsVoice,
@@ -4903,6 +4911,7 @@ export async function utilitiesFetchMedia(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     download_quality: options.downloadQuality,
+    locale: options.locale,
     max_file_size: maxFileSize,
     media_format: options.mediaFormat,
     media_position: options.mediaPosition,

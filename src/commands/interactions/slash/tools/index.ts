@@ -2,7 +2,6 @@ import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-c
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { ToolsDownloadCommand } from './download';
 import { ToolsHashCommand } from './hash';
 import { ToolsMathCommand } from './math';
 import { ToolsScreenshotCommand } from './screenshot';
@@ -31,7 +30,6 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
   constructor() {
     super({
       options: [
-        new ToolsDownloadCommand(),
         new ToolsHashCommand(),
         new ToolsMathCommand(),
         new ToolsMLGroupCommand(),

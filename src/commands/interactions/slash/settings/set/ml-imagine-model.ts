@@ -15,16 +15,16 @@ export class SettingsSetMLImagineModelCommand extends BaseInteractionCommandOpti
   name = 'ml-imagine-model';
 
   constructor() {
-  super({
-    options: [
-      {
-        name: 'model',
-        description: 'Diffusion Model',
-        value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
-        onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
-      },
-    ],
-  });
+    super({
+      options: [
+        {
+          name: 'model',
+          description: 'Diffusion Model',
+          value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
+          onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
+        },
+      ],
+    });
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.SettingsSetMLImagineModel.CommandArgs) {

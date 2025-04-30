@@ -27,6 +27,8 @@ import {
   MimetypesToExtension,
   MLDiffusionModels,
   MLDiffusionModelsToText,
+  TagGenerationModels,
+  TagGenerationModelsToText,
   TagSearchSortByFilters,
   Timezones,
   TimezonesToText,
@@ -126,6 +128,59 @@ export async function mlDiffusionModel(context: Interaction.InteractionAutoCompl
         }
       }
     }
+  }
+  return context.respond({choices});
+}
+
+
+const mlLLMModelSearch = new MiniSearch({
+  fields: ['id', 'name'],
+  storeFields: ['id', 'name'],
+  searchOptions: {
+    boost: {id: 2},
+    fuzzy: true,
+    prefix: true,
+  },
+});
+mlLLMModelSearch.addAll(Object.values(TagGenerationModels).map((value) => {
+  return {id: value, name: TagGenerationModelsToText[value] || value};
+}));
+
+export async function mlLLMModel(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}>;
+  if (context.value) {
+    choices = mlLLMModelSearch.search(context.value).slice(0, 25).map((result) => {
+      return {name: result.name, value: result.id};
+    });
+  } else {
+    choices = Object.values(TagGenerationModels).map((value) => {
+      return {name: TagGenerationModelsToText[value] || value, value};
+    });
+
+    let hasDefault = false;
+
+    const userSettings = await UserSettingsStore.getOrFetch(context, context.userId);
+    if (userSettings && userSettings.ml_llm_model) {
+      for (let choice of choices) {
+        if (choice.value === userSettings.ml_llm_model) {
+          hasDefault = true;
+          choice.name = `${choice.name} (Default for You)`;
+          break;
+        }
+      }
+    }
+
+    /*
+    // change this so itll see what their default will be here in this servee
+    if (!hasDefault) {
+      for (let choice of choices) {
+        if (choice.value === TagGenerationModels.OPENAI_CHATGPT_4O) {
+          choice.name = `${choice.name} (Default)`;
+          break;
+        }
+      }
+    }
+    */
   }
   return context.respond({choices});
 }

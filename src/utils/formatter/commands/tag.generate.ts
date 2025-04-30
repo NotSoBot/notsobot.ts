@@ -120,7 +120,11 @@ export async function createMessage(
   }
 
   try {
-    const parsedTag = await TagFormatter.parse(context, response.text, '');
+    const parsedTag = await TagFormatter.parse(context, response.text, '', {
+      [TagFormatter.PrivateVariables.SETTINGS]: {
+        [TagFormatter.TagSettings.AI_MODEL]: args.model,
+      },
+    } as any);
 
     if (parsedTag.pages.length) {
       const pages = generatePages(context, parsedTag);

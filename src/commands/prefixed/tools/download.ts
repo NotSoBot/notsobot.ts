@@ -16,6 +16,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
       aliases: ['dl'],
       args: [
         {name: 'format', aliases: ['f'], label: 'mediaFormat', type: Parameters.oneOf({choices: Mimetypes, descriptions: MimetypesToExtension})},
+        {name: 'locale', aliases: ['language'], type: Parameters.locale},
         {name: 'position', aliases: ['p'], label: 'mediaPosition', type: Number},
         {name: 'quality', aliases: ['q'], type: Parameters.oneOf({choices: DownloadQualities})},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
@@ -30,7 +31,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
           `${COMMAND_NAME} https://discordapp.com`,
         ],
         id: Formatter.Commands.ToolsDownload.COMMAND_ID,
-        usage: '<url> (-format <Mimetypes>) (-position <number>) (-quality <DownloadQualities>) (-safe) (-spoiler)',
+        usage: '<url> (-format <Mimetypes>) (-locale <language>) (-position <number>) (-quality <DownloadQualities>) (-safe) (-spoiler)',
       },
       type: Parameters.url,
     });
