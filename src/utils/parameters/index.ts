@@ -847,7 +847,7 @@ export async function textToSpeechVoice(
   if (voices.length) {
     const search = new MiniSearch({
       fields: ['id', 'name'],
-      storeFields: ['id'],
+      storeFields: ['key', 'id', 'name'],
       searchOptions: {
         boost: {name: 2},
         fuzzy: true,
@@ -855,10 +855,19 @@ export async function textToSpeechVoice(
         weights: {fuzzy: 0.2, prefix: 1},
       },
     });
-    search.addAll(voices);
-    const results = search.search(value);
-    if (results.length) {
-      return {voice: TTSVoices.CLONED, voiceId: results[0].id!};
+    search.addAll(voices.map((x) => ({key: TTSVoices.CLONED, id: x.id, name: x.name})));
+    search.addAll(Object.entries(TTSVoicesToText).filter((x) => {
+      return x[0] !== TTSVoices.CLONED;
+    }).map(([key, name]) => {
+      return {key, id: key, name};
+    }));
+
+    const [ result ] = search.search(value);
+    if (result) {
+      if (result.key === TTSVoices.CLONED) {
+        return {voice: TTSVoices.CLONED, voiceId: result.id!};
+      }
+      return {voice: result.key};
     }
   }
 

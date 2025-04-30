@@ -8,7 +8,7 @@ import {
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserStore from '../../../stores/users';
 
-import { CommandCategories, GuildFeatures, TagGenerationModels, UserFlags } from '../../../constants';
+import { CommandCategories, GuildFeatures, TagGenerationModels, TagGenerationModelsToText, UserFlags } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
@@ -43,8 +43,8 @@ export default class AICommand extends BaseSlashCommand {
         },
         {
           name: 'model',
-          description: 'LLM Model',
-          choices: Parameters.Slash.oneOf({choices: TagGenerationModels}),
+          description: 'AI Model',
+          choices: Parameters.Slash.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToText}),
         },
         {
           name: 'debug',

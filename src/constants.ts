@@ -1336,18 +1336,33 @@ export const ReminderMessages = [
 
 
 export enum TagGenerationModels {
-  CLAUDE_3_5_SONNET = 'CLAUDE_3_5_SONNET',
+  CLAUDE_3_7_SONNET = 'CLAUDE_3_7_SONNET',
   CLAUDE_3_5_HAIKU = 'CLAUDE_3_5_HAIKU',
   DEEPSEEK_CHAT = 'DEEPSEEK_CHAT',
-  DEEPSEEK_REASONER = 'DEEPSEEK_REASONER',
-  GEMINI_2_0_FLASH = 'GEMINI_2_0_FLASH',
-  GEMINI_2_0_FLASH_THINKING = 'GEMINI_2_0_FLASH_THINKING',
+  GOOGLE_GEMINI_2_5_PRO = 'GOOGLE_GEMINI_2_5_PRO',
+  GOOGLE_GEMINI_2_0_FLASH = 'GOOGLE_GEMINI_2_0_FLASH',
+  GOOGLE_GEMMA_3_0 = 'GOOGLE_GEMMA_3_0',
   META_LLAMA = 'META_LLAMA',
   OPENAI_CHATGPT_4O = 'OPENAI_CHATGPT_4O',
   OPENAI_CHATGPT_4O_MINI = 'OPENAI_CHATGPT_4O_MINI',
   QWEN_2_5_CODER = 'QWEN_2_5_CODER',
   XAI_GROK_2 = 'XAI_GROK_2',
 }
+
+
+export const TagGenerationModelsToText = Object.freeze({
+  [TagGenerationModels.CLAUDE_3_7_SONNET]: 'Claude 3.7 Sonnet',
+  [TagGenerationModels.CLAUDE_3_5_HAIKU]: 'Claude 3.5 Haiku',
+  [TagGenerationModels.DEEPSEEK_CHAT]: 'DeepSeek Chat',
+  [TagGenerationModels.GOOGLE_GEMINI_2_5_PRO]: 'Google Gemini 2.5 Pro',
+  [TagGenerationModels.GOOGLE_GEMINI_2_0_FLASH]: 'Google Gemini 2.0 Flash',
+  [TagGenerationModels.GOOGLE_GEMMA_3_0]: 'Google Gemma 3.0',
+  [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
+  [TagGenerationModels.OPENAI_CHATGPT_4O]: 'OpenAI ChatGPT 4o',
+  [TagGenerationModels.OPENAI_CHATGPT_4O_MINI]: 'OpenAI ChatGPT 4o Mini',
+  [TagGenerationModels.QWEN_2_5_CODER]: 'Qwen 2.5 Coder',
+  [TagGenerationModels.XAI_GROK_2]: 'xAI Grok 2',
+});
 
 
 export enum TagSearchSortByFilters {
@@ -1872,6 +1887,10 @@ export const TimezoneText: Record<Timezones, string> = Object.freeze({
 
 export enum TTSVoices {
   CLONED = 'CLONED',
+  FLITE_US_FEMALE_STEPHANIE = 'FLITE_US_FEMALE_STEPHANIE',
+  FLITE_US_MALE_ALAN = 'FLITE_US_MALE_ALAN',
+  FLITE_US_MALE_KAL = 'FLITE_US_MALE_KAL',
+  FLITE_US_MALE_RICH = 'FLITE_US_MALE_RICH',
   PHONEME_MORSHU = 'PHONEME_MORSHU',
   TIKTOK_BR_MALE_01 = 'TIKTOK_BR_MALE_01',
   TIKTOK_DE_FEMALE_01 = 'TIKTOK_DE_FEMALE_01',
@@ -1919,6 +1938,10 @@ export const TTS_VOICES = Object.values(TTSVoices);
 
 export const TTSVoicesToText = Object.freeze({
   [TTSVoices.CLONED]: 'Cloned',
+  [TTSVoices.FLITE_US_FEMALE_STEPHANIE]: 'Flite English United States USA Female Stephanie Lankton (slt)',
+  [TTSVoices.FLITE_US_MALE_ALAN]: 'Flite English United States USA Male Alan W. Black (awb) (Scottish Accent)',
+  [TTSVoices.FLITE_US_MALE_KAL]: 'Flite English United States USA Male (kal) (small size, low quality)',
+  [TTSVoices.FLITE_US_MALE_RICH]: 'Flite English United States USA Male Rich Stern (rwb)',
   [TTSVoices.PHONEME_MORSHU]: 'Phoneme Morshu',
   [TTSVoices.TIKTOK_BR_MALE_01]: 'TikTok Brazilian Male One',
   [TTSVoices.TIKTOK_DE_FEMALE_01]: 'TikTok German Female One',

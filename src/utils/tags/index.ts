@@ -13,6 +13,7 @@ import {
   fetchTagVariable,
   fetchTagVariables,
   deleteTagVariable,
+  generateTag,
   googleContentVisionOCR,
   googleTranslate,
   mediaAVToolsExtractAudio,
@@ -117,8 +118,7 @@ export const ATTACHMENT_EXTENSIONS_MEDIA = [
 
 export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHMENT_EXTENSIONS_MEDIA];
 
-export const FILE_SIZE_BUFFER = 10 * 1024; // 10 kb
-
+export const MAX_API_MANIPULATIONS = 1;
 export const MAX_ATTACHMENTS = 10;
 export const MAX_EMBEDS = 10;
 export const MAX_ITERATIONS = 450;
@@ -131,6 +131,7 @@ export const MAX_STORAGE_CHANNEL_AMOUNT = 5;
 export const MAX_STORAGE_USER_AMOUNT = 5;
 export const MAX_STORAGE_KEY_LENGTH = 128;
 export const MAX_STORAGE_VALUE_LENGTH = 2048;
+export const MAX_AI_EXECUTIONS = 1;
 export const MAX_TAG_EXECUTIONS = 1;
 export const MAX_TIME_REGEX = 25;
 export const MAX_VARIABLE_KEY_LENGTH = 64;
@@ -148,6 +149,8 @@ export const REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT = new RegExp(`\\\\\\${Ta
 
 
 export enum PrivateVariables {
+  AI_EXECUTIONS = '__aiExecutions',
+  API_MANIPULATIONS = '__apiManipulations',
   ARGS = '__args',
   ARGS_STRING = '__argsString',
   FILE_SIZE = '__fileSize',
@@ -198,6 +201,8 @@ export const TAG_IF_COMPARISONS = [
 
 // maybe make {argattachment}
 export enum TagFunctions {
+  AI = 'AI',
+  API_CREATE_REMINDER = 'API_CREATE_REMINDER',
   API_SEARCH_DUCKDUCKGO_IMAGES = 'API_SEARCH_DUCKDUCKGO_IMAGES',
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
   API_UTILITIES_LOCATIONS = 'API_UTILITIES_LOCATIONS',
@@ -223,6 +228,7 @@ export enum TagFunctions {
   DOWNLOAD = 'DOWNLOAD',
   EMBED_JSON = 'EMBED_JSON',
   EVAL = 'EVAL',
+  EVAL_SILENT = 'EVAL_SILENT',
   EXIT = 'EXIT',
   GUILD = 'GUILD',
   GUILD_COUNT = 'GUILD_COUNT',
@@ -248,6 +254,7 @@ export enum TagFunctions {
   LOGICAL_GET_SERVER = 'LOGICAL_GET_SERVER',
   LOGICAL_GET_USER = 'LOGICAL_GET_USER',
   LOGICAL_IF = 'LOGICAL_IF',
+  LOGICAL_IF_ERROR = 'LOGICAL_IF_ERROR',
   LOGICAL_OR = 'LOGICAL_OR',
   LOGICAL_SET = 'LOGICAL_SET',
   LOGICAL_SET_CHANNEL = 'LOGICAL_SET_CHANNEL',
@@ -333,6 +340,8 @@ export const TagFunctionsToString = Object.freeze({
   IGNORE: ['ignore'],
   NOTE: ['note'],
 
+  [TagFunctions.AI]: ['ai'],
+  [TagFunctions.API_CREATE_REMINDER]: ['api.create.reminder'],
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: ['api.search.duckduckgo.images'],
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
   [TagFunctions.API_UTILITIES_LOCATIONS]: ['api.utilities.locations'],
@@ -358,6 +367,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.DOWNLOAD]: ['download', 'text'],
   [TagFunctions.EMBED_JSON]: ['embedjson'],
   [TagFunctions.EVAL]: ['eval'],
+  [TagFunctions.EVAL_SILENT]: ['evalsilent'],
   [TagFunctions.EXIT]: ['exit'],
   [TagFunctions.GUILD]: ['guild', 'server'],
   [TagFunctions.GUILD_COUNT]: ['guildcount', 'membercount', 'servercount'],
@@ -383,6 +393,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_GET_SERVER]: ['getserver'],
   [TagFunctions.LOGICAL_GET_USER]: ['getuser'],
   [TagFunctions.LOGICAL_IF]: ['if'],
+  [TagFunctions.LOGICAL_IF_ERROR]: ['iferror'],
   [TagFunctions.LOGICAL_OR]: ['or'],
   [TagFunctions.LOGICAL_SET]: ['set'],
   [TagFunctions.LOGICAL_SET_CHANNEL]: ['setchannel'],
@@ -465,6 +476,7 @@ export const TagFunctionsToString = Object.freeze({
 
 
 export enum TagSettings {
+  AI_MODEL = 'AI_MODEL',
   MEDIA_AV_FALLBACK = 'MEDIA_AV_FALLBACK',
   MEDIA_IV_FALLBACK = 'MEDIA_IV_FALLBACK',
   ML_IMAGINE_DO_NOT_ERROR = 'ML_IMAGINE_DO_NOT_ERROR',
@@ -473,6 +485,8 @@ export enum TagSettings {
 
 
 export interface TagVariables {
+  [PrivateVariables.AI_EXECUTIONS]: number,
+  [PrivateVariables.API_MANIPULATIONS]: number,
   [PrivateVariables.ARGS]: Array<string>,
   [PrivateVariables.ARGS_STRING]: string,
   [PrivateVariables.FILE_SIZE]: number,
@@ -481,6 +495,7 @@ export interface TagVariables {
   [PrivateVariables.NETWORK_REQUESTS_ML]: number,
   [PrivateVariables.NETWORK_REQUESTS_OPENAI]: number,
   [PrivateVariables.RESULTS]: {
+    [TagFunctions.AI]?: RestResponsesRaw.GenerateTag,
     [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
     [TagFunctions.API_SEARCH_IMGUR]?: Record<string, RestResponsesRaw.SearchImgur>,
     [TagFunctions.API_UTILITIES_LOCATIONS]?: Record<string, RestResponsesRaw.UtilitiesLocations>,
@@ -490,6 +505,7 @@ export interface TagVariables {
     [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
   },
   [PrivateVariables.SETTINGS]: {
+    [TagSettings.AI_MODEL]?: string,
     [TagSettings.MEDIA_AV_FALLBACK]?: TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES | TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.ML_IMAGINE_DO_NOT_ERROR]?: boolean,
@@ -537,6 +553,12 @@ export async function parse(
     (variables as any)[PrivateVariables.ITERATIONS_REMAINING] = MAX_ITERATIONS;
     (variables as any)[PrivateVariables.ARGS_STRING] = args;
     (variables as any)[PrivateVariables.ARGS] = Parameters.stringArguments(args);
+  }
+  if (!(PrivateVariables.AI_EXECUTIONS in variables)) {
+    (variables as any)[PrivateVariables.AI_EXECUTIONS] = 0;
+  }
+  if (!(PrivateVariables.API_MANIPULATIONS in variables)) {
+    (variables as any)[PrivateVariables.API_MANIPULATIONS] = 0;
   }
   if (!(PrivateVariables.NETWORK_REQUESTS in variables)) {
     (variables as any)[PrivateVariables.NETWORK_REQUESTS] = 0;
@@ -616,7 +638,7 @@ export async function parse(
   const tag: TagResult = {context: tagContext, embeds: [], files: [], pages: [], replacement, text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
-  const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+  const maxFileSize = context.maxAttachmentSize;
 
   let depth = 0;
   let scriptBuffer = '';
@@ -644,6 +666,8 @@ export async function parse(
       position = nextLeftBracket;
     }
 
+    increaseAIExecutions(tag, 0);
+    increaseAPIManipulations(tag, 0);
     increaseNetworkRequests(tag, 0);
     increaseNetworkRequestsML(tag, 0);
     increaseNetworkRequestsOpenAI(tag, 0);
@@ -671,7 +695,12 @@ export async function parse(
           depth--;
           if (depth <= 0) {
             let [scriptName, arg] = parseInnerScript(scriptBuffer, shouldTrim);
-            if (TagFunctionsToString.IGNORE.includes(scriptName)) {
+            if (TagFunctionsToString.EVAL_SILENT.includes(scriptName)) {
+              const wasValid = await ScriptTags[TagFunctions.EVAL_SILENT](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.IGNORE.includes(scriptName)) {
               tag.text += arg;
             } else if (TagFunctionsToString.NOTE.includes(scriptName)) {
               // do nothing
@@ -716,6 +745,12 @@ export async function parse(
               if (!wasValid) {
                 tag.text += scriptBuffer;
               }
+            } else if (TagFunctionsToString.LOGICAL_IF_ERROR.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_IF_ERROR](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
             } else if (TagFunctionsToString.LOGICAL_OR.includes(scriptName)) {
               // do this separate because we dont want to parse args yet
               const wasValid = await ScriptTags[TagFunctions.LOGICAL_OR](context, arg, tag);
@@ -742,8 +777,14 @@ export async function parse(
               // check the other tags now
               const argParsed = await parse(context, arg, '', tag.variables, tag.context);
               normalizeTagResults(tag, argParsed, false);
-              arg = argParsed.text;
-  
+              if (arg !== argParsed.text) {
+                arg = argParsed.text;
+                const firstSplitter = scriptBuffer.indexOf(TagSymbols.SPLITTER_FUNCTION);
+                if (firstSplitter !== -1) {
+                  scriptBuffer = scriptBuffer.slice(0, firstSplitter) + TagSymbols.SPLITTER_FUNCTION + arg + TagSymbols.BRACKET_RIGHT;
+                }
+              }
+
               let found = false;
               for (let TAG_FUNCTION of Object.values(TagFunctions)) {
                 if (TagFunctionsToString[TAG_FUNCTION].includes(scriptName)) {
@@ -755,7 +796,7 @@ export async function parse(
                   break;
                 }
               }
-  
+
               if (!found) {
                 // parse as script (check if scriptName is a programming language)
                 // do this for now
@@ -770,7 +811,7 @@ export async function parse(
                 }
               }
             }
-  
+
             scriptBuffer = '';
           }
         }; break;
@@ -794,6 +835,26 @@ export async function parse(
     tag.text = tag.text.replace(/\u200B/g, '\n');
   }
   return tag;
+}
+
+
+export function increaseAIExecutions(tag: TagResult, amount: number = 1) {
+  if (amount) {
+    tag.variables[PrivateVariables.AI_EXECUTIONS] += amount;
+  }
+  if (MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.AI_EXECUTIONS]) {
+    throw new Error(`Tag attempted to use too many AI executions (Max ${MAX_AI_EXECUTIONS.toLocaleString()} Executions)`);
+  }
+}
+
+
+export function increaseAPIManipulations(tag: TagResult, amount: number = 1) {
+  if (amount) {
+    tag.variables[PrivateVariables.API_MANIPULATIONS] += amount;
+  }
+  if (MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.API_MANIPULATIONS]) {
+    throw new Error(`Tag attempted to use too many API Manipulations (Max ${MAX_API_MANIPULATIONS.toLocaleString()} Manipulations)`);
+  }
 }
 
 
@@ -916,7 +977,7 @@ function parseInnerScript(value: string, shouldTrim: boolean = true): [string, s
 
   const firstSplitter = value.indexOf(TagSymbols.SPLITTER_FUNCTION);
   if (firstSplitter === -1) {
-    scriptName = value.toLowerCase();
+    scriptName = value;
     arg = '';
   } else {
     scriptName = value.slice(0, firstSplitter);
@@ -1014,6 +1075,9 @@ const ScriptTags = Object.freeze({
       }),
     });
     const { code, urls } = generateCodeFromLanguage(language, arg);
+    if (!code) {
+      return true;
+    }
 
     const files: Array<RequestFile> = [];
     const cache = new Set<number>();
@@ -1058,10 +1122,10 @@ const ScriptTags = Object.freeze({
       throw new Error(result.error);
     } else {
       if (result.files.length) {
-        const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+        const maxFileSize = context.maxAttachmentSize;
         for (let file of result.files) {
           const { filename, size, value } = file;
-          if (MAX_ATTACHMENT_SIZE <= size) {
+          if (maxFileSize < size) {
             continue;
           }
           if (filename === '__internals__.json') {
@@ -1207,10 +1271,16 @@ const ScriptTags = Object.freeze({
             continue;
           }
 
+          if (maxFileSize < size) {
+            throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+          }
+
+          /*
           const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
           if (maxFileSize <= currentFileSize + size) {
             throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
           }
+          */
           tag.variables[PrivateVariables.FILE_SIZE] += size;
 
           tag.files.push({
@@ -1299,6 +1369,110 @@ const ScriptTags = Object.freeze({
         tag.text += result.output;
       }
     }
+
+    return true;
+  },
+
+  [TagFunctions.AI]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {ai:question}
+
+    arg = arg.trim();
+    if (arg.startsWith('```') && arg.endsWith('```')) {
+      const { language, text } = Parameters.codeblock(arg);
+      arg = text;
+    }
+
+    if (!arg) {
+      return true;
+    }
+
+    const { code: prompt, urls } = generateCodeFromLanguage(null, arg);
+    if (!prompt) {
+      return true;
+    }
+
+    const files: Array<RequestFile> = [];
+    const cache = new Set<number>();
+    for (let urlObj of Object.values(urls)) {
+      for (let match of urlObj.url.matchAll(URL_FILE_REPLACEMENT_REGEX)) {
+        const fileKey = parseInt(match[1]) - 1;
+        if (!cache.has(fileKey)) {
+          cache.add(fileKey);
+          const file = tag.files[fileKey];
+          if (!file) {
+            throw new Error('Invalid FILE_ Provied');
+          }
+          if (!file.buffer) {
+            urlObj.url = file.url;
+            continue;
+          }
+          files.push({filename: file.filename, value: file.buffer});
+          if (!match[2]) {
+            file.deleted = true;
+          }
+        }
+        urlObj.url = '';
+        break;
+      }
+    }
+
+    for (let i = 0; i < tag.files.length; i++) {
+      if (tag.files[i].deleted) {
+        tag.files.splice(i, 1);
+      }
+    }
+
+    increaseAIExecutions(tag);
+    increaseNetworkRequests(tag);
+
+    const response = await generateTag(context, {
+      files,
+      model: tag.variables[PrivateVariables.SETTINGS][TagSettings.AI_MODEL],
+      prompt: prompt,//[prompt, ...promptExtra].join('\n'),
+      urls: Object.values(urls).filter(Boolean),
+    });
+
+    tag.text += response.text;
+    tag.variables[PrivateVariables.RESULTS][TagFunctions.AI] = response;
+
+    return true;
+  },
+
+  [TagFunctions.API_CREATE_REMINDER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.create.reminder:time} {api.create.reminder:time|text}
+
+    if (!arg) {
+      return true;
+    }
+
+    let [ timeText, text ] = split(arg, 2);
+    if (!timeText) {
+      return true;
+    }
+
+    const result = Parameters.nlpTimestamp(timeText, context);
+    if (!text) {
+      text = result.content;
+    }
+
+    increaseAPIManipulations(tag);
+    increaseNetworkRequests(tag);
+
+    /*
+    // todo: add a tag id to this
+    const reminder = await createReminder(context, {
+      channelId: context.channelId,
+      content: result.content,
+      guildId: context.guildId,
+      messageId: (context instanceof Command.Context) ? context.messageId : null,
+      timestampEnd: (result.end) ? result.end.getTime() : undefined,
+      timestampStart: result.start.getTime(),
+    });
+    */
+
+    // maybe store it in tag.variables[PrivateVariables][TagFunctions.API_CREATE_REMINDER]
+
+    tag.text += result.start + ' ' + text;
 
     return true;
   },
@@ -1538,7 +1712,7 @@ const ScriptTags = Object.freeze({
     }
 
     try {
-      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize;
       const response = cachedResults[url] || await utilitiesFetchMedia(context, {
         maxFileSize,
         safe: DefaultParameters.safe(context),
@@ -1555,10 +1729,16 @@ const ScriptTags = Object.freeze({
         data = data.toString();
       }
 
+      if (maxFileSize < data.length) {
+        throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+      }
+
+      /*
       const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
       if (maxFileSize <= currentFileSize + data.length) {
         throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
       }
+      */
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({
@@ -1651,12 +1831,17 @@ const ScriptTags = Object.freeze({
 
     const data = arg;
     try {
-      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize;
+      if (maxFileSize < data.length) {
+        throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+      }
 
+      /*
       const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
       if (maxFileSize <= currentFileSize + data.length) {
         throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
       }
+      */
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({buffer: data, filename: `${filename}.${extension}`, spoiler: false, url: ''});
@@ -1684,7 +1869,7 @@ const ScriptTags = Object.freeze({
 
     increaseNetworkRequests(tag);
     try {
-      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize;
       const response = await mediaAVToolsExtractAudio(context, {
         maxFileSize,
         mimetype: Mimetypes.AUDIO_OGG,
@@ -1695,10 +1880,16 @@ const ScriptTags = Object.freeze({
       const waveform = response.arguments && response.arguments.waveform;
 
       const data: Buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+      if (maxFileSize < data.length) {
+        throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+      }
+
+      /*
       const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
       if (maxFileSize <= currentFileSize + data.length) {
         throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
       }
+      */
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({
@@ -1844,7 +2035,7 @@ const ScriptTags = Object.freeze({
     increaseNetworkRequests(tag);
 
     try {
-      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize;
       const response = await utilitiesFetchText(context, {maxFileSize, url});
 
       const text = await response.text();
@@ -1891,6 +2082,24 @@ const ScriptTags = Object.freeze({
 
     const argParsed = await parse(context, arg, '', tag.variables, tag.context);
     normalizeTagResults(tag, argParsed);
+    return true;
+  },
+
+  [TagFunctions.EVAL_SILENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {evalsilent:{args}}
+
+    try {
+      let argParsed = await parse(context, arg, '', tag.variables, tag.context);
+      normalizeTagResults(tag, argParsed, false);
+
+      if (argParsed.text) {
+        argParsed = await parse(context, argParsed.text, '', tag.variables, tag.context);
+        normalizeTagResults(tag, argParsed, false);
+      }
+    } catch(error) {
+      
+    }
+
     return true;
   },
 
@@ -2374,7 +2583,11 @@ const ScriptTags = Object.freeze({
     }
 
     if (key in tag.variables) {
-      tag.text += tag.variables[key];
+      let value = tag.variables[key];
+      if (typeof(value) === 'object') {
+        value = JSON.stringify(value);
+      }
+      tag.text += value;
     } else if (defaultValue) {
       if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
         const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
@@ -2621,6 +2834,37 @@ const ScriptTags = Object.freeze({
       normalizeTagResults(tag, argParsed);
     } else {
       tag.text += text;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_IF_ERROR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {iferror:action|action}, unlimited actions
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      tag.text += arg;
+      return true;
+    }
+
+    const conditionals = split(arg);
+    for (let conditional of conditionals) {
+      let text: string = '';
+      if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
+        try {
+          const argParsed = await parse(context, conditional, '', tag.variables, tag.context);
+          normalizeTagResults(tag, argParsed, false);
+          text = argParsed.text;
+        } catch(error) {
+          // go to the next one if it errors
+          continue;
+        }
+      } else {
+        text = conditional;
+      }
+
+      tag.text += text;
+      return true;
     }
 
     return true;
@@ -3000,7 +3244,7 @@ const ScriptTags = Object.freeze({
     increaseNetworkRequests(tag);
     increaseNetworkRequestsML(tag);
   
-    const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+    const maxFileSize = context.maxAttachmentSize;
 
     let prompt: string;
     let mediaString: string = '';
@@ -3039,11 +3283,16 @@ const ScriptTags = Object.freeze({
     const filename = response.file.filename;
 
     const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-  
+    if (maxFileSize < data.length) {
+      throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+    }
+
+    /*
     const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
     if (maxFileSize <= currentFileSize + data.length) {
       throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
     }
+    */
     tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
     tag.files.push({
@@ -3121,7 +3370,7 @@ const ScriptTags = Object.freeze({
     increaseNetworkRequests(tag);
     increaseNetworkRequestsML(tag);
 
-    const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+    const maxFileSize = context.maxAttachmentSize;
 
     const response = await utilitiesMLImagine(context, {
       query: arg,
@@ -3132,11 +3381,16 @@ const ScriptTags = Object.freeze({
     const filename = response.file.filename;
 
     const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+    if (maxFileSize < data.length) {
+      throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+    }
 
+    /*
     const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
     if (maxFileSize <= currentFileSize + data.length) {
       throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
     }
+    */
     tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
     tag.files.push({
@@ -3387,8 +3641,9 @@ const ScriptTags = Object.freeze({
     }
 
     increaseNetworkRequests(tag);
+
     try {
-      const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+      const maxFileSize = context.maxAttachmentSize;
       const response = await utilitiesImagescriptV1(context, {
         code,
         files,
@@ -3401,10 +3656,22 @@ const ScriptTags = Object.freeze({
         data = data.toString();
       }
 
+      if (maxFileSize < data.length) {
+        throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+      }
+
+      if (response.arguments) {
+        for (let key in response.arguments) {
+          await ScriptTags[TagFunctions.LOGICAL_SET](context, [key, response.arguments[key]].join(TagSymbols.SPLITTER_ARGUMENT), tag);
+        }
+      }
+
+      /*
       const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
       if (maxFileSize <= currentFileSize + data.length) {
         throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
       }
+      */
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({
@@ -3460,10 +3727,23 @@ const ScriptTags = Object.freeze({
     }
 
     increaseNetworkRequests(tag);
+
     try {
-      const response = await utilitiesImagescriptV1(context, {code, files, upload: true});
+      const response = await utilitiesImagescriptV1(context, {
+        code,
+        files,
+        mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
+        upload: true,
+      });
+
       if (response.storage) {
         tag.text += response.storage.urls.cdn;
+      }
+
+      if (response.arguments) {
+        for (let key in response.arguments) {
+          await ScriptTags[TagFunctions.LOGICAL_SET](context, [key, response.arguments[key]].join(TagSymbols.SPLITTER_ARGUMENT), tag);
+        }
       }
 
     } catch(error) {
@@ -3779,6 +4059,13 @@ const ScriptTags = Object.freeze({
     }
 
     switch (setting) {
+      case TagSettings.AI_MODEL: {
+        if (value) {
+          // todo: set the ai model
+        } else {
+          delete tag.variables[setting];
+        }
+      }; break;
       case TagSettings.MEDIA_AV_FALLBACK: {
         if (value) {
           value = value.toLowerCase();
@@ -4005,7 +4292,7 @@ const ScriptTags = Object.freeze({
 
     const text = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
 
-    const maxFileSize = context.maxAttachmentSize - FILE_SIZE_BUFFER;
+    const maxFileSize = context.maxAttachmentSize;
     if (maxFileSize < (text.length * amount) + tag.text.length) {
       throw new Error(`Text exceeded ${maxFileSize} bytes`);
     }

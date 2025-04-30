@@ -143,6 +143,7 @@ export namespace RestOptions {
     locale?: null | string,
     optOutContent?: boolean,
     mlDiffusionModel?: null | string,
+    mlLLMModel?: null | string,
     timezone?: null | string,
     ttsVoice?: null | string,
     units?: null | string,
@@ -895,6 +896,7 @@ export namespace RestOptions {
 
   export interface UtilitiesFetchMedia {
     downloadQuality?: string,
+    locale?: string,
     maxFileSize?: number,
     mediaFormat?: string,
     mediaPosition?: number,
@@ -2375,6 +2377,7 @@ export namespace RestResponsesRaw {
     file_upload_vanity: string | null,
     locale: string | null,
     ml_diffusion_model: string | null,
+    ml_llm_model: string | null,
     opted_out_content: string | null,
     timezone: string | null,
     tts_voice: string | null,

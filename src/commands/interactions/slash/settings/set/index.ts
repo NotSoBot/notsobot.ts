@@ -1,5 +1,6 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
+import { SettingsSetAIModelCommand } from './ai-model';
 import { SettingsSetDownloadQualityCommand } from './download-quality';
 import { SettingsSetFallbacksMediaImageCommand } from './fallbacks-media-image';
 import { SettingsSetFileUploadThresholdCommand } from './file-upload-threshold';
@@ -17,6 +18,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
+        new SettingsSetAIModelCommand(),
         new SettingsSetDownloadQualityCommand(),
         new SettingsSetFallbacksMediaImageCommand(),
         new SettingsSetFileUploadThresholdCommand(),

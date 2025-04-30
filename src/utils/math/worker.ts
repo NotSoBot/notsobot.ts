@@ -30,12 +30,21 @@ function isComplex(value: any): value is mathjs.Complex {
 }
 
 
+function isString(value: any): value is string {
+  return mathjs.typeOf(value) === 'string';
+}
+
+
 function isUnits(value: any): value is mathjs.Unit {
   return value && typeof value === 'object' && 'units' in value;
 }
 
 
 function formatNumber(value: number | bigint | mathjs.Complex | mathjs.BigNumber | mathjs.Unit, places: number = 2, maxPrecision: number = 20): string {
+  if (isString(value)) {
+    return value.toString();
+  }
+
   if (MathJS.isNaN(value as any)) {
     return 'NaN';
   }

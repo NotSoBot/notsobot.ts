@@ -1131,7 +1131,7 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 
 
 export function generateCodeFromLanguage(
-  language: CodeLanguages,
+  language: CodeLanguages | null,
   code: string,
 ): {
   code: string,
@@ -1208,7 +1208,7 @@ export function generateCodeFromLanguage(
       ].join('') + '\n'.repeat(5) + code.trim();
     }; break;
   }
-  return { code, urls };
+  return { code: code.trim(), urls };
 }
 
 
