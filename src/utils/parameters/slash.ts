@@ -7,6 +7,7 @@ import {
   ImageMemeFontsToText,
   MLDiffusionModels,
   UserFallbacksMediaImageTypes,
+  UserSettingsResponseDisplayTypes,
   UserUploadThresholdTypes,
 } from '../../constants';
 import { DefaultParameters, toTitleCase } from '../../utils';
@@ -97,6 +98,13 @@ export const USER_FALLBACKS_MEDIA_IMAGE_TYPES = [
   {name: 'Search Google Images', value: UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES},
   {name: 'Search Duck Duck Go Images', value: UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES},
   {name: 'Generate Image', value: UserFallbacksMediaImageTypes.IMAGINE},
+];
+
+
+export const USER_SETTINGS_RESPONSE_DISPLAY = [
+  {name: 'Latest (Default)', value: UserSettingsResponseDisplayTypes.DEFAULT},
+  {name: 'No Embeds (Text Only)', value: UserSettingsResponseDisplayTypes.NO_EMBED},
+  {name: 'Legacy (Embeds)', value: UserSettingsResponseDisplayTypes.LEGACY},
 ];
 
 

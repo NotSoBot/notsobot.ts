@@ -4,7 +4,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
 
-import { ChannelTypesText, CommandCategories, DateMomentLogFormat } from '../../../constants';
+import { BooleanEmojis, ChannelTypesText, CommandCategories, DateMomentLogFormat } from '../../../constants';
 import { GuildChannelsStored } from '../../../stores/guildchannels';
 import { Parameters, createTimestampMomentFromGuild, editOrReply } from '../../../utils';
 
@@ -55,7 +55,7 @@ export default class ChannelCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, '⚠ Unable to find that channel.');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that channel.`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

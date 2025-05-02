@@ -6,7 +6,7 @@ import UserStore from '../../../stores/users';
 import { CommandCategories, GuildFeatures, TagGenerationModels, UserFlags } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
-import { BaseCommand } from '../basecommand';
+import { BaseCommand, CommandMetadata } from '../basecommand';
 
 
 export const COMMAND_NAME = 'ai';
@@ -39,6 +39,8 @@ export default class AiCommand extends BaseCommand {
       type: Parameters.targetText,
     });
   }
+
+  // replace get commandDescription():
 
   async onBefore(context: Command.Context) {
     let hasPremium: boolean = false;

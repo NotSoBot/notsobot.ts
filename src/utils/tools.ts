@@ -14,6 +14,7 @@ import {
   StickerFormats,
 } from 'detritus-client/lib/constants';
 import {
+  Components,
   Embed,
   Markup,
   PermissionTools,
@@ -46,8 +47,11 @@ import {
   ReminderMessages,
   Timezones,
   TimezonesToText,
+  UserSettingsResponseDisplayTypes,
   MAX_MEMBERS_SAFE,
+  MIMETYPES_IMAGE_EMBEDDABLE,
   MIMETYPES_SAFE_EMBED,
+  MIMETYPES_VIDEO_EMBEDDABLE,
   SNOWFLAKE_EPOCH,
   TRUSTED_URLS,
 } from '../constants';
@@ -260,6 +264,12 @@ export async function fetchMemberOrUserById(
 }
 
 
+function isURLTrusted(value: string): boolean {
+  const url = new URL(value);
+  return TRUSTED_URLS.includes(url.host);
+}
+
+
 export interface FindMediaUrlOptions {
   audio?: boolean,
   image?: boolean,
@@ -296,6 +306,111 @@ export function findMediaUrlInAttachment(
         return attachment.proxyUrl + '?format=png';
       }
     }
+    return (attachment.url && isURLTrusted(attachment.url)) ? attachment.url : attachment.proxyUrl;
+  }
+  return null;
+}
+
+
+export function findMediaUrlInComponent(
+  component: Structures.ComponentsTopLevel | Structures.ComponentMediaGalleryItem,
+  options?: FindMediaUrlOptions,
+): null | string {
+  if (component instanceof Structures.ComponentMediaGallery) {
+    for (let item of component.items.values()) {
+      const url = findMediaUrlInComponent(item, options);
+      if (url) {
+        return url;
+      }
+    }
+  } else if (component instanceof Structures.ComponentContainer) {
+    const components = component.components.toArray().sort((x, y) => {
+      // put gallery first, then file, then the rest
+      if (x instanceof Structures.ComponentMediaGallery) {
+        return 2;
+      } else if (x instanceof Structures.ComponentFile) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    for (let child of components) {
+      const url = findMediaUrlInComponent(child, options);
+      if (url) {
+        return url;
+      }
+    }
+  }
+
+  const findAudio = (!options || options.audio || options.audio === undefined);
+  const findImage = (!options || options.image || options.image === undefined);
+  const findText = (!options || !!options.text);
+  const findVideo = (!options || options.video || options.video === undefined);
+
+  if (component instanceof Structures.ComponentFile) {
+    const { file } = component;
+    if (file.isAudio) {
+      if (findAudio) {
+        return (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
+      }
+    } else if (file.isImage) {
+      if (findImage && (file.height || file.width)) {
+        return (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
+      }
+    } else if (file.isText) {
+      if (findText) {
+        return (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
+      }
+    } else if (file.isVideo) {
+      if (findVideo && (file.height || file.width)) {
+        return (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
+      }
+    }
+  } else if (component instanceof Structures.ComponentMediaGalleryItem) {
+    const { media } = component;
+    if (media.isImage) {
+      if (findImage && (media.height || media.width)) {
+        return (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
+      }
+    } else if (media.isVideo) {
+      if (findVideo && (media.height || media.width)) {
+        return (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
+      }
+    }
+  } else if (component instanceof Structures.ComponentSection) {
+    if (component.accessory instanceof Structures.ComponentThumbnail) {
+      const { media } = component.accessory;
+      if (media.isImage) {
+        if (findImage && (media.height || media.width)) {
+          return (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
+        }
+      } else if (media.isVideo) {
+        // should not happen
+        if (findVideo && (media.height || media.width)) {
+          return (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
+        }
+      }
+    }
+  }
+
+  /*
+  if (attachment.proxyUrl) {
+    if (!findText && attachment.contentType && (
+      attachment.contentType.startsWith('text/') || attachment.contentType.startsWith('application/json')
+    )) {
+      return null;
+    } else if (!findAudio && attachment.isAudio) {
+      return null;
+    } else if ((!findImage || !(attachment.height || attachment.width)) && attachment.isImage) {
+      return null;
+    } else if (attachment.isVideo) {
+      if ((!findImage && !findVideo) || !(attachment.height || attachment.width)) {
+        return null;
+      }
+      if (findImage && !findVideo) {
+        return attachment.proxyUrl + '?format=png';
+      }
+    }
     if (attachment.url) {
       const url = new URL(attachment.url);
       if (TRUSTED_URLS.includes(url.host)) {
@@ -304,6 +419,7 @@ export function findMediaUrlInAttachment(
     }
     return attachment.proxyUrl;
   }
+  */
   return null;
 }
 
@@ -395,6 +511,24 @@ export function findMediaUrlInMessage(
     const url = findMediaUrlInAttachment(attachment, options);
     if (url) {
       return url;
+    }
+  }
+  if (message.hasFlagComponentsV2) {
+    const components = message.components.toArray().sort((x, y) => {
+      // put gallery first, then container, then the rest
+      if (x instanceof Structures.ComponentMediaGallery) {
+        return 2;
+      } else if (x instanceof Structures.ComponentFile || x instanceof Structures.ComponentContainer) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    for (let component of components) {
+      const url = findMediaUrlInComponent(component, options);
+      if (url) {
+        return url;
+      }
     }
   }
   if (!ignoreEmbed) {
@@ -511,6 +645,51 @@ export function findMediaUrlsInMessage(
     const url = findMediaUrlInAttachment(attachment, options);
     if (url) {
       urls.add(url);
+    }
+  }
+
+  if (message.hasFlagComponentsV2) {
+    const components = message.components.toArray().sort((x, y) => {
+      // put gallery first, then container, then the rest
+      if (x instanceof Structures.ComponentMediaGallery) {
+        return 2;
+      } else if (x instanceof Structures.ComponentFile || x instanceof Structures.ComponentContainer) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    for (let component of components) {
+      if (component instanceof Structures.ComponentContainer) {
+        const children = component.components.toArray().sort((x, y) => {
+          // put gallery first, then file, then the rest
+          if (x instanceof Structures.ComponentMediaGallery) {
+            return 2;
+          } else if (x instanceof Structures.ComponentFile) {
+            return 1;
+          } else {
+            return 0;
+          }
+        });
+        for (let child of children) {
+          const url = findMediaUrlInComponent(child, options);
+          if (url) {
+            urls.add(url);
+          }
+        }
+      } else if (component instanceof Structures.ComponentMediaGallery) {
+        for (let item of component.items) {
+          const url = findMediaUrlInComponent(component, options);
+          if (url) {
+            urls.add(url);
+          }
+        }
+      } else {
+        const url = findMediaUrlInComponent(component, options);
+        if (url) {
+          urls.add(url);
+        }
+      }
     }
   }
   if (!ignoreEmbed) {
@@ -1586,13 +1765,58 @@ export async function mediaReplyFromOptions(
     }
   }
 
+  let displaySettings = UserSettingsResponseDisplayTypes.DEFAULT;
+
+  const settings = UserSettingsStore.get(context.userId);
+  if (settings) {
+    displaySettings = settings.response_display as UserSettingsResponseDisplayTypes;
+  }
+
   let shouldBeEmbed = MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes) && !options.spoiler;
   // we used to check if it was an animated webp but its supported now (apparently)
   switch (options.mimetype) {
     case Mimetypes.IMAGE_X_APNG: shouldBeEmbed = false; break; // discord now only uploads the first frame of an apng, so we will just send a file ending in `.apng`
   }
 
-  if (shouldBeEmbed) {
+  if (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT) {
+    let canBeMedia = (
+      MIMETYPES_IMAGE_EMBEDDABLE.includes(options.mimetype as Mimetypes) ||
+      MIMETYPES_VIDEO_EMBEDDABLE.includes(options.mimetype as Mimetypes)
+    );
+    let shouldUseComponents = true;
+    if (!canBeMedia && (options.storage || (options.mimetype && options.mimetype.startsWith('audio/')))) {
+      shouldUseComponents = false;
+    }
+
+    if (shouldUseComponents) {
+      let file: RequestTypes.File | undefined;
+
+      const components = new Components();
+      const container = components.createContainer();
+      if (canBeMedia) {
+        const mediaGallery = container.createMediaGallery();
+        if (options.storage) {
+          mediaGallery.addItem({media: {url: options.storage.urls.cdn}, spoiler: options.spoiler});
+        } else {
+          mediaGallery.addItem({media: {url: `attachment://${filename}`}, spoiler: options.spoiler});
+          file = {contentType: options.mimetype, filename, value};
+        }
+      } else {
+        if (options.storage) {
+          container.addTextDisplay({content: options.storage.urls.vanity});
+        } else {
+          container.createFile({file: {url: `attachment://${filename}`}, spoiler: options.spoiler});
+          file = {contentType: options.mimetype, filename, value};
+        }
+      }
+      container.addSeparator();
+      container.addTextDisplay({content: `-# ${footer}`});
+
+      return editOrReply(context, {components, file});
+    }
+  }
+  
+  if (shouldBeEmbed && (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT || displaySettings === UserSettingsResponseDisplayTypes.LEGACY)) {
     const embed = new Embed();
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
     embed.setFooter(footer);

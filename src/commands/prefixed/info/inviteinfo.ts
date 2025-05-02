@@ -4,8 +4,8 @@ import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 
 import { Endpoints } from 'detritus-client-rest';
 
-
 import {
+  BooleanEmojis,
   CommandCategories,
   DateMomentLogFormat,
   VerificationLevelTexts,
@@ -146,9 +146,9 @@ export default class InviteInfoCommand extends BaseCommand {
     } catch(error) {
       let message: string;
       if (error.response && error.response.statusCode === 404) {
-        message = '⚠ Unknown Invite';
+        message = `${BooleanEmojis.WARNING} Unknown Invite`;
       } else {
-        message = `⚠ ${error}`;
+        message = `${BooleanEmojis.WARNING} ${error}`;
       }
       return editOrReply(context, message);
     }

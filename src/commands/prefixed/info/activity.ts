@@ -3,6 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import {
+  BooleanEmojis,
   CommandCategories,
   PresenceStatusColors,
   PresenceStatusTexts,
@@ -59,7 +60,7 @@ export default class ActivityCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, '⚠ Unable to find that user.');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user.`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

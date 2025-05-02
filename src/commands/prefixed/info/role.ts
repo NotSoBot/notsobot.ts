@@ -60,9 +60,9 @@ export default class RoleCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (!args.channel) {
-      return editOrReply(context, '⚠ Unable to find that channel');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that channel`);
     } else if (!args.role) {
-      return editOrReply(context, '⚠ Unable to find that role');
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that role`);
     } else {
       return super.onCancelRun(context, args);
     }

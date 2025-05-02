@@ -6,6 +6,7 @@ import { Endpoints } from 'detritus-client-rest';
 
 
 import {
+  BooleanEmojis,
   CommandCategories,
   DateMomentLogFormat,
   GuildExplicitContentFilterTypeTexts,
@@ -69,7 +70,7 @@ export default class GuildCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, '⚠ Unable to find that guild.');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that guild.`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

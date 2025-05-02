@@ -7,6 +7,7 @@ import { SettingsSetFileUploadThresholdCommand } from './file-upload-threshold';
 import { SettingsSetFileVanityCommand } from './file-vanity';
 import { SettingsSetLocaleCommand } from './locale';
 import { SettingsSetMLImagineModelCommand } from './ml-imagine-model';
+import { SettingsSetResponseDisplayCommand } from './response-display';
 import { SettingsSetTimezoneCommand } from './timezone';
 import { SettingsSetUnitsCommand } from './units';
 
@@ -25,6 +26,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new SettingsSetFileVanityCommand(),
         new SettingsSetLocaleCommand(),
         new SettingsSetMLImagineModelCommand(),
+        new SettingsSetResponseDisplayCommand(),
         new SettingsSetTimezoneCommand(),
         new SettingsSetUnitsCommand(),
       ],

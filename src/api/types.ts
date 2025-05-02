@@ -13,6 +13,7 @@ import {
   RedditTimeTypes,
   TagVariableStorageTypes,
   UserFallbacksMediaImageTypes,
+  UserSettingsResponseDisplayTypes,
   UserUploadThresholdTypes,
   YoutubeResultTypes,
 } from '../constants';
@@ -144,6 +145,7 @@ export namespace RestOptions {
     optOutContent?: boolean,
     mlDiffusionModel?: null | string,
     mlLLMModel?: null | string,
+    responseDisplay?: null | UserSettingsResponseDisplayTypes,
     timezone?: null | string,
     ttsVoice?: null | string,
     units?: null | string,
@@ -2379,6 +2381,7 @@ export namespace RestResponsesRaw {
     ml_diffusion_model: string | null,
     ml_llm_model: string | null,
     opted_out_content: string | null,
+    response_display: number,
     timezone: string | null,
     tts_voice: string | null,
     units: string | null,

@@ -2,7 +2,7 @@ import { Collections, Command, CommandClient, Structures } from 'detritus-client
 import { Colors, Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
-import { CommandCategories } from '../../../constants';
+import { BooleanEmojis, CommandCategories } from '../../../constants';
 import { Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -60,7 +60,7 @@ export default class GuildIconCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, '⚠ Unable to find that guild.');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that guild.`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

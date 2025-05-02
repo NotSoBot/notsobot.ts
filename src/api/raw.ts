@@ -716,6 +716,7 @@ export async function editUserSettings(
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
     opt_out_content: options.optOutContent,
+    response_display: options.responseDisplay,
     timezone: options.timezone,
     tts_voice: options.ttsVoice,
     units: options.units,
@@ -4855,9 +4856,8 @@ export async function utilitiesCodeRun(
   };
   return request(context, {
     body,
-    //file: options.file,
-    //files: options.files,
-    //multipart: true, # multipart does not support arrays correctly so far, we need to parse the json data key
+    file: options.file,
+    files: options.files,
     route: {
       method: HTTPMethods.POST,
       path: Api.UTILITIES_CODE_RUN,

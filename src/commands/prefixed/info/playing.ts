@@ -3,6 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import {
+  BooleanEmojis,
   CommandCategories,
   DateMomentLogFormat,
   DiscordEmojis,
@@ -310,6 +311,6 @@ export default class PlayingCommand extends BaseCommand {
       });
       return await paginator.start();
     }
-    return editOrReply(context, '⚠ Unable to find any members playing that game.');
+    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any members playing that game.`);
   }
 }

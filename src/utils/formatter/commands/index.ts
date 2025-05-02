@@ -216,6 +216,7 @@ import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.thre
 import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
+import * as SettingsSetResponseDisplay from './settings.set.response.display';
 import * as SettingsSetTimezone from './settings.set.timezone';
 import * as SettingsSetUnits from './settings.set.units';
 
@@ -484,8 +485,9 @@ export {
   SettingsSetFallbacksMediaImage,
   SettingsSetFileUploadThreshold,
   SettingsSetFileVanity,
-  SettingsSetMLImagineModel,
   SettingsSetLocale,
+  SettingsSetMLImagineModel,
+  SettingsSetResponseDisplay,
   SettingsSetTimezone,
   SettingsSetUnits,
 

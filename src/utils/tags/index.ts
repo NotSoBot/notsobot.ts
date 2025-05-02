@@ -1115,7 +1115,7 @@ const ScriptTags = Object.freeze({
       files,
       language,
       stdin: generateCodeStdin(context, variables, storage),
-      urls: Object.values(urls).filter(Boolean),
+      urls: Object.values(urls).filter((x) => x.url),
       version: version || undefined,
     });
     if (result.error && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {

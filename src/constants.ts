@@ -1458,6 +1458,13 @@ export enum UserFallbacksMediaImageTypes {
 }
 
 
+export enum UserSettingsResponseDisplayTypes {
+  DEFAULT = 0,
+  NO_EMBED = 1,
+  LEGACY = 2,
+}
+
+
 export enum UserFlags {
   NONE = 0,
   OWNER = 1 << 0,
