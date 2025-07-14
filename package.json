@@ -22,6 +22,7 @@
     "openai": "^4.77.0",
     "opusscript": "^0.1.1",
     "redis": "^4.7.0",
+    "string-similarity": "^4.0.4",
     "typescript": "^5.7.2",
     "wav": "^1.0.2"
   },
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.6",
     "@types/node": "^22.10.2",
+    "@types/string-similarity": "^4.0.2",
     "@types/wav": "^1.0.4"
   },
   "scripts": {
