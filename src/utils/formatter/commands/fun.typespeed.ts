@@ -1,4 +1,4 @@
-import { Command, Interaction } from 'detritus-client';
+import { Command } from 'detritus-client';
 import { Components } from 'detritus-client/lib/utils';
 
 import { compareTwoStrings } from 'string-similarity';
@@ -16,11 +16,11 @@ export interface CommandArgs {
 
 
 export async function createMessage(
-    context: Command.Context | Interaction.InteractionContext,
+    context: Command.Context,
     args: CommandArgs,
 ) {
-    const q: Response = await fetch('https://dummyjson.com/quotes/random');
-    const text: string = (await q.json()).quote;
+    const response: Response = await fetch('https://dummyjson.com/quotes/random');
+    const text: string = (await response.json()).quote;
 
     // didn't see a text-to-image endpoint anywhere,
     // so i'm using mscript instead
@@ -32,11 +32,12 @@ export async function createMessage(
         overlay bg text
         render bg
     `;
-    const resp = await utilitiesImagescriptV1(context, { code });
-    const filename: string = resp.file.filename;
+    
+    const image = await utilitiesImagescriptV1(context, { code });
+    const filename: string = image.file.filename;
     let data: Buffer | string = (
-        (resp.file.value)
-        ? Buffer.from(resp.file.value, 'base64')
+        (image.file.value)
+        ? Buffer.from(image.file.value, 'base64')
         : Buffer.alloc(0)
     );
 
@@ -67,16 +68,18 @@ export async function createMessage(
         const wpm: number = (words * 60) / end;
         
         await message.reply({
-            content: `${percent.toFixed(1)}%, ${wpm.toFixed(1)} wpm, in ${end.toFixed(2)} seconds`,
-            messageReference: { messageId: message.id }
+            content: `${percent.toFixed(1)}% accuracy, ${wpm.toFixed(1)} wpm, in ${end.toFixed(2)} seconds`,
+            messageReference: { messageId: message.id },
+            allowedMentions: { repliedUser: false }
         });
     });
 
     const timeout = setTimeout(async () => {
         sub.remove();
-        return await initial?.reply({
+        await initial?.reply({
             content: 'Timed out waiting for a message.',
-            messageReference: { messageId: initial.id }
+            messageReference: { messageId: initial.id },
+            allowedMentions: { repliedUser: false }
         });
-    }, 45000);
+    }, 60000);
 }
