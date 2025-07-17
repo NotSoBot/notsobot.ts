@@ -16,9 +16,14 @@ export default class TypeSpeed extends BaseCommand {
             metadata: {
                 category: CommandCategories.FUN,
                 description: 'Measure how fast you type',
-                examples: [COMMAND_NAME],
+                examples: [
+                    COMMAND_NAME,
+                    `${COMMAND_NAME} -dates`,
+                    `${COMMAND_NAME} -words`
+                ],
                 id: Formatter.Commands.FunTypeSpeed.COMMAND_ID,
-                usage: '',
+                usage: '(-dates)',
+                aliases: ['speedtype']
             },
         });
     }

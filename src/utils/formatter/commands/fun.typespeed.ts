@@ -2,16 +2,36 @@ import { Command } from 'detritus-client';
 import { Components } from 'detritus-client/lib/utils';
 
 import { compareTwoStrings } from 'string-similarity';
+import { randomInt } from 'mathjs';
 
 import { utilitiesImagescriptV1 } from '../../../api';
 import { editOrReply } from '../..';
+import { BooleanEmojis } from '../../../constants';
 
 
-export const COMMAND_ID = 'fun.typerace';
+export const COMMAND_ID = 'fun.typespeed';
 
 
 export interface CommandArgs {
+    dates?: boolean,
+    words?: boolean,
+}
 
+
+function dates(): string {
+    const amount: number = randomInt(10, 15);
+    const dates: string[] = [];
+
+    for (let i = 0; i < amount; i++) {
+        const time = new Date(+new Date() - Math.floor(Math.random() * 10000000000));
+        const mm = String(time.getMonth() + 1).padStart(2, '0');
+        const dd = String(time.getDate()).padStart(2, '0');
+        const yyyy = time.getFullYear();
+        
+        dates.push(`${mm}/${dd}/${yyyy}`);
+    }
+
+    return dates.join(', ');
 }
 
 
@@ -19,8 +39,13 @@ export async function createMessage(
     context: Command.Context,
     args: CommandArgs,
 ) {
-    const response: Response = await fetch('https://dummyjson.com/quotes/random');
-    const text: string = (await response.json()).quote;
+    let text: string;
+    if (args.dates) {
+        text = dates();
+    } else {
+        const response = await fetch('https://dummyjson.com/quotes/random');
+        text = (await response.json()).quote;
+    }
 
     // didn't see a text-to-image endpoint anywhere,
     // so i'm using mscript instead
@@ -45,6 +70,7 @@ export async function createMessage(
     const container = components.createContainer();
     container.addTextDisplay({ content: 'Type the text below as fast as you can!' });
     container.addSeparator();
+    container.addTextDisplay({ content: text })
     container.createMediaGallery()
         .addItem({ media: { url: `attachment://${filename}` } });
 
@@ -77,7 +103,7 @@ export async function createMessage(
     const timeout = setTimeout(async () => {
         sub.remove();
         await initial?.reply({
-            content: 'Timed out waiting for a message.',
+            content: `${BooleanEmojis.WARNING} Didn't get a message from you in time`,
             messageReference: { messageId: initial.id },
             allowedMentions: { repliedUser: false }
         });
