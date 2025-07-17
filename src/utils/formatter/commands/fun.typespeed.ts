@@ -14,7 +14,6 @@ export const COMMAND_ID = 'fun.typespeed';
 
 export interface CommandArgs {
     dates?: boolean,
-    words?: boolean,
 }
 
 
