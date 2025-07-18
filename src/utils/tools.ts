@@ -2195,6 +2195,20 @@ export function randomFromArray<T>(
 }
 
 
+export function randomMultipleFromArray<T>(array: T[], amount: number): T[] {
+  const arr = [...array];
+  const result = [];
+
+  let n = Math.min(amount, arr.length);
+  for (let i = 0; i < n; i++) {
+    const index = Math.floor(Math.random() * arr.length);
+    result.push(arr.splice(index, 1)[0]);
+  }
+
+  return result;
+}
+
+
 export function randomFromIterator<T>(
   size: number,
   iterator: IterableIterator<T>,

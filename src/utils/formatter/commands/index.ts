@@ -8,6 +8,7 @@ import * as FunRegional from './fun.regional';
 import * as FunReverseText from './fun.reversetext';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
+import * as FunTypeSpeed from './fun.typespeed';
 
 import * as InfoAvatar from './info.avatar';
 import * as InfoUser from './info.user';
@@ -279,6 +280,7 @@ export {
   FunReverseText,
   FunTextwall,
   FunTTS,
+  FunTypeSpeed,
 
   InfoAvatar,
   InfoUser,
