@@ -8,6 +8,7 @@ import { randomInt } from 'mathjs';
 import { utilitiesImagescriptV1 } from '../../../api';
 import { editOrReply } from '../..';
 import { BooleanEmojis } from '../../../constants';
+import ServerExecutionsStore from '../../../stores/serverexecutions';
 
 
 export const COMMAND_ID = 'fun.typespeed';
@@ -29,6 +30,13 @@ export async function createMessage(
     context: Command.Context,
     args: CommandArgs,
 ) {
+    const store = ServerExecutionsStore.getOrCreate(context.channelId);
+    if (store.typespeed) {
+        return editOrReply(context, 'This channel has an ongoing race, wait for it to finish');
+    }
+
+    store.typespeed = true;
+
     let text: string;
     if (args.dates) {
         text = dates();
@@ -88,6 +96,7 @@ export async function createMessage(
     });
 
     const timeout = setTimeout(async () => {
+        store.typespeed = false;
         sub.remove();
         const options = {
             messageReference: { messageId: initial.id },
