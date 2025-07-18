@@ -1,12 +1,11 @@
 import { Command } from 'detritus-client';
-import { Components } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
 import { compareTwoStrings } from 'string-similarity';
 import { randomInt } from 'mathjs';
 
 import { utilitiesImagescriptV1 } from '../../../api';
-import { editOrReply } from '../..';
+import { editOrReply, randomMultipleFromArray } from '../..';
 import { BooleanEmojis } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
 
@@ -16,6 +15,7 @@ export const COMMAND_ID = 'fun.typespeed';
 
 export interface CommandArgs {
     dates?: boolean,
+    words?: boolean,
 }
 
 
@@ -40,7 +40,14 @@ export async function createMessage(
     let text: string;
     if (args.dates) {
         text = dates();
+    } else if (args.words) {
+        // cakedan pls upload the stuff below to the cdn
+        const response = await fetch(
+            'https://raw.githubusercontent.com/RazorSh4rk/random-word-api/refs/heads/master/words.json'
+        );
+        text = (randomMultipleFromArray(await response.json(), 20)).join(' ').toLowerCase();
     } else {
+        // maybe put this in the api?
         const response = await fetch('https://dummyjson.com/quotes/random');
         text = (await response.json()).quote;
     }
