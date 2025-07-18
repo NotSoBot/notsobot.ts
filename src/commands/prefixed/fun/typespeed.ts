@@ -1,4 +1,5 @@
 import { Command, CommandClient } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
@@ -15,20 +16,20 @@ export default class TypeSpeed extends BaseCommand {
             name: COMMAND_NAME,
             metadata: {
                 category: CommandCategories.FUN,
-                description: 'Measure how fast you type',
+                description: 'See who can type the fastest and accurately in 60 seconds',
                 examples: [
                     COMMAND_NAME,
                     `${COMMAND_NAME} -dates`,
-                    `${COMMAND_NAME} -words`
                 ],
                 id: Formatter.Commands.FunTypeSpeed.COMMAND_ID,
                 usage: '(-dates)',
-                aliases: ['speedtype']
+                aliases: ['speedtype', 'typerace'],
+                permissionsClient: [Permissions.READ_MESSAGE_HISTORY]
             },
         });
     }
 
-    run(context: Command.Context, args: Formatter.Commands.FunTypeSpeed.CommandArgs) {
+    async run(context: Command.Context, args: Formatter.Commands.FunTypeSpeed.CommandArgs) {
         return Formatter.Commands.FunTypeSpeed.createMessage(context, args);
     }
 }

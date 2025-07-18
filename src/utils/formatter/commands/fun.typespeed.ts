@@ -1,5 +1,6 @@
 import { Command } from 'detritus-client';
 import { Components } from 'detritus-client/lib/utils';
+import { Timers } from 'detritus-utils';
 
 import { compareTwoStrings } from 'string-similarity';
 import { randomInt } from 'mathjs';
@@ -17,20 +18,10 @@ export interface CommandArgs {
 }
 
 
-function dates(): string {
-    const amount: number = randomInt(10, 15);
-    const dates: string[] = [];
-
-    for (let i = 0; i < amount; i++) {
-        const time = new Date(+new Date() - Math.floor(Math.random() * 10000000000));
-        const mm = String(time.getMonth() + 1).padStart(2, '0');
-        const dd = String(time.getDate()).padStart(2, '0');
-        const yyyy = time.getFullYear();
-        
-        dates.push(`${mm}/${dd}/${yyyy}`);
-    }
-
-    return dates.join(', ');
+interface Winner {
+    accuracy: string,
+    time: string,
+    wpm: string,
 }
 
 
@@ -65,46 +56,76 @@ export async function createMessage(
         : Buffer.alloc(0)
     );
 
-    const components = new Components();
-    const container = components.createContainer();
-    container.addTextDisplay({ content: 'Type the text below as fast as you can!' });
-    container.addSeparator();
-    container.addTextDisplay({ content: text })
-    container.createMediaGallery()
-        .addItem({ media: { url: `attachment://${filename}` } });
-
-    const initial = await editOrReply(context, {
+    const initial = await editOrReply(context, 'Race will begin in 5 seconds...');
+    await Timers.sleep(5000);
+    await initial.edit({
         file: { filename: filename, value: data },
-        components: components
+        content: `Type the text below as fast and accurately as you can`,
+        allowedMentions: { repliedUser: false }
     });
 
     const start = Date.now();
+    const winners: Record<string, Winner> = {};
+
     const sub = context.client.subscribe('messageCreate', async (msg) => {
         const message = msg.message;
-        if (message.author.id !== context.user.id) return;
+        
+        if (message.author.bot) return;
+        if (message.author.id in winners) return;
         if (message.channelId !== context.channelId) return;
 
-        clearTimeout(timeout);
-        sub.remove();
-
-        const end: number = (Date.now() - start) / 1000;
-        const percent: number = compareTwoStrings(message.content, text) * 100;
+        const time: number = (Date.now() - start) / 1000;
+        const accuracy: number = compareTwoStrings(message.content, text) * 100;
         const words: number = message.content.trim().split(/\s+/).length;
-        const wpm: number = (words * 60) / end;
-        
-        await message.reply({
-            content: `${percent.toFixed(1)}% accuracy, ${wpm.toFixed(1)} wpm, in ${end.toFixed(2)} seconds`,
-            messageReference: { messageId: message.id },
-            allowedMentions: { repliedUser: false }
-        });
+        const wpm: number = (words * 60) / time;
+        winners[message.author.id] = {
+            accuracy: accuracy.toFixed(1),
+            time: time.toFixed(2),
+            wpm: wpm.toFixed(1)
+        };
+
+        if (message.canReact) await message.react(BooleanEmojis.YES);
     });
 
     const timeout = setTimeout(async () => {
         sub.remove();
-        await initial?.reply({
-            content: `${BooleanEmojis.WARNING} Didn't get a message from you in time`,
+        const options = {
             messageReference: { messageId: initial.id },
             allowedMentions: { repliedUser: false }
-        });
+        };
+
+        if (Object.keys(winners).length === 0) {
+            return await initial.reply({
+                content: `${BooleanEmojis.WARNING} Didn't get a message from anyone`,
+                ...options
+            });
+        }
+
+        const content: string[] = [];
+        for (const [id, stats] of Object.entries(winners)) {
+            content.push(`<@${id}>: ${stats.accuracy}% accuracy, ${stats.wpm} wpm, in ${stats.time}s`);
+        }
+
+        await initial.reply({
+            content: content.join('\n'),
+            ...options
+        })
     }, 60000);
+}
+
+
+function dates(): string {
+    const amount: number = randomInt(10, 15);
+    const dates: string[] = [];
+
+    for (let i = 0; i < amount; i++) {
+        const time = new Date(+new Date() - Math.floor(Math.random() * 10000000000));
+        const mm = String(time.getMonth() + 1).padStart(2, '0');
+        const dd = String(time.getDate()).padStart(2, '0');
+        const yyyy = time.getFullYear();
+        
+        dates.push(`${mm}/${dd}/${yyyy}`);
+    }
+
+    return dates.join(', ');
 }
