@@ -17,10 +17,10 @@ export class MediaIVToolsCropCommand extends BaseInteractionImageOrVideoCommandO
   constructor() {
     super({
       options: [
-        {name: 'width', description: 'Crop Width', required: true, type: Number},
-        {name: 'height', description: 'Crop Height', required: true, type: Number},
-        {name: 'x', description: 'Crop X Position', type: Number},
-        {name: 'y', description: 'Crop Y Position', type: Number},
+        {name: 'width', description: 'Crop Width', required: true},
+        {name: 'height', description: 'Crop Height', required: true},
+        {name: 'x', description: 'Crop X Position'},
+        {name: 'y', description: 'Crop Y Position'},
       ],
     });
   }

@@ -113,6 +113,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/compress',
   MEDIA_AV_MANIPULATION_DESTROY:
     '/media/av/manipulation/destroy',
+  MEDIA_AV_MANIPULATION_STAMMER:
+    '/media/av/manipulation/stammer',
   MEDIA_AV_MANIPULATION_VOLUME:
     '/media/av/manipulation/volume',
 
@@ -133,6 +135,31 @@ export const Api = Object.freeze({
     '/media/i/create/wordcloud',
   MEDIA_I_CREATE_WORDCLOUD_BACKGROUND:
     '/media/i/create/wordcloud/background',
+
+  MEDIA_I_MANIPULATION_BILL:
+    '/media/i/manipulation/bill',
+  MEDIA_I_MANIPULATION_BURN:
+    '/media/i/manipulation/burn',
+  MEDIA_I_MANIPULATION_FACE_ALIEN:
+    '/media/i/manipulation/face/alien',
+  MEDIA_I_MANIPULATION_FACE_ANIME:
+    '/media/i/manipulation/face/anime',
+  MEDIA_I_MANIPULATION_FACE_CLOWN:
+    '/media/i/manipulation/face/clown',
+  MEDIA_I_MANIPULATION_FACE_FAT:
+    '/media/i/manipulation/face/fat',
+  MEDIA_I_MANIPULATION_FACE_MOUNT_RUSHMORE:
+    '/media/i/manipulation/face/mount-rushmore',
+  MEDIA_I_MANIPULATION_LATTE:
+    '/media/i/manipulation/latte',
+  MEDIA_I_MANIPULATION_MUSEUM:
+    '/media/i/manipulation/museum',
+  MEDIA_I_MANIPULATION_POP_ART:
+    '/media/i/manipulation/popart',
+  MEDIA_I_MANIPULATION_TIMESQUARE:
+    '/media/i/manipulation/timesquare',
+  MEDIA_I_MANIPULATION_UNIVERSE:
+    '/media/i/manipulation/universe',
 
   MEDIA_IV_MANIPULATION_ASCII:
     '/media/iv/manipulation/ascii',
@@ -329,6 +356,8 @@ export const Api = Object.freeze({
     '/media/iv/tools/crop/twitter-hex',
   MEDIA_IV_TOOLS_OBJECT_REMOVE:
     '/media/iv/tools/object/remove',
+  MEDIA_IV_TOOLS_OFFSET:
+    '/media/iv/tools/offset',
   MEDIA_IV_TOOLS_RESIZE:
     '/media/iv/tools/resize',
   MEDIA_IV_TOOLS_ROTATE:

@@ -519,6 +519,36 @@ export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> ex
 }
 
 
+export class BaseAudioOrVideosCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediasCommand<ParsedArgsFinished> {
+  constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions> & {maxAmount?: number, minAmount?: number}) {
+    super(commandClient, {
+      type: options.type || Parameters.mediaUrls({
+        audio: true,
+        maxAmount: options.maxAmount,
+        minAmount: options.minAmount,
+        image: false,
+        video: true,
+      }),
+      ...options,
+    });
+    this.maxAmount = options.maxAmount || this.maxAmount;
+    this.minAmount = options.minAmount || this.minAmount;
+  }
+
+  onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
+    if (!args.urls.length) {
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any audio or videos in the last 50 messages.`);
+    } else if (args.urls.length < this.minAmount) {
+      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find ${this.minAmount} audio or video urls in the last 50 messages.`);
+    } else if (this.maxAmount < args.urls.length) {
+      // never should happen
+      return editOrReply(context, `${BooleanEmojis.WARNING} Found too many audio or video urls in the last 50 messages.`);
+    }
+    return super.onCancelRun(context, args);
+  }
+}
+
+
 export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediaCommand<ParsedArgsFinished> {
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {

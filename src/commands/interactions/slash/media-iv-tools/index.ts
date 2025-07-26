@@ -14,6 +14,7 @@ import { MediaIVToolsCropCommand } from './crop';
 import { MediaIVToolsCropAutoCommand } from './crop-auto';
 import { MediaIVToolsCropCircleCommand } from './crop-circle';
 import { MediaIVToolsCropNFTCommand } from './crop-nft';
+import { MediaIVToolsOffsetCommand } from './offset';
 import { MediaIVToolsRotateCommand } from './rotate';
 import { MediaIVToolsRotate3dCommand } from './rotate-3d';
 import { MediaIVToolsResizeCommand } from './resize';
@@ -46,6 +47,7 @@ export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
         new MediaIVToolsCropAutoCommand(),
         new MediaIVToolsCropCircleCommand(),
         new MediaIVToolsCropNFTCommand(),
+        new MediaIVToolsOffsetCommand(),
         new MediaIVToolsRotateCommand(),
         new MediaIVToolsRotate3dCommand(),
         new MediaIVToolsResizeCommand(),

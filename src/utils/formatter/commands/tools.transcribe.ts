@@ -35,7 +35,7 @@ export async function createMessage(
 
   const durationText = moment.duration(duration, 'milliseconds').format(MOMENT_FORMAT, DateMomentOptions);
   const languageTitle = joinArrayWithNouns(languages.map((x) => toTitleCase(x)));
-  const title = `${languageTitle} Transcription from Audio (${durationText})`;
+  const title = `${languageTitle} Transcription from Audio (${durationText})`.trim();
 
   let description: string = '';
   let file: {filename: string, value: string} | undefined;

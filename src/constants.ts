@@ -13,7 +13,7 @@ import {
 
 export const MAX_MEMBERS_SAFE = 1000;
 
-export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version n7.1-36-g20c8a3f5ff-20241125';
+export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version n7.';
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
 export const SNOWFLAKE_EPOCH = 1564790400000;
 export const ZERO_WIDTH_SPACE = '\u200b';
@@ -25,7 +25,7 @@ export enum BooleanEmojis {
   NO = '❌',
   WARNING = '⚠️',
   YES = '✅',
-};
+}
 
 
 export enum CodeLanguages {
@@ -294,7 +294,7 @@ export enum EmbedBrands {
   WIKIHOW = 'https://cdn.notsobot.com/brands/wikihow.png',
   WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
   YOUTUBE = 'https://cdn.notsobot.com/brands/youtube.png',
-};
+}
 
 
 
@@ -308,7 +308,7 @@ export enum EmbedColors {
   STEAM_IN_GAME = 9484860,
   STEAM_OFFLINE = 9013641,
   STEAM_ONLINE = 5753822,
-};
+}
 
 
 
@@ -321,7 +321,7 @@ export enum EmojiTypes {
   STEAM = 'steam',
   TWEMOJI = 'twemoji',
   TWITCH = 'twitch',
-};
+}
 
 
 export const EmojiTypesToText: Record<EmojiTypes, string> = Object.freeze({
@@ -351,7 +351,7 @@ export enum GoogleCardTypes {
   UNKNOWN = 'UNKNOWN',
   WEATHER = 'WEATHER',
   WEB_SNIPPET = 'WEB_SNIPPET',
-};
+}
 
 export const GOOGLE_CARD_TYPES_SUPPORTED = Object.freeze([
   GoogleCardTypes.CALCULATOR,
@@ -592,7 +592,7 @@ export enum GoogleLocales {
   YORUBA = 'yo',
   YUCATEC_MAYA = 'yua',
   ZULU = 'zu',
-};
+}
 
 export const GOOGLE_LOCALES = Object.freeze(Object.values(GoogleLocales));
 
@@ -801,7 +801,7 @@ export enum LanguageCodes {
   MULTIPLE_LANGUAGES = 'mul',
   PORTUGUESE_PORTUGAL_OTHER = 'pt',
   UNDEFINED = 'und',
-};
+}
 
 
 
@@ -819,27 +819,27 @@ export enum GuildAllowlistTypes {
   CHANNEL = 'channel',
   ROLE = 'role',
   USER = 'user',
-};
+}
 
 export enum GuildBlocklistTypes {
   CHANNEL = 'channel',
   ROLE = 'role',
   USER = 'user',
-};
+}
 
 export enum GuildCommandsAllowlistTypes {
   CHANNEL = 'channel',
   GUILD = 'guild',
   ROLE = 'role',
   USER = 'user',
-};
+}
 
 export enum GuildCommandsBlocklistTypes {
   CHANNEL = 'channel',
   GUILD = 'guild',
   ROLE = 'role',
   USER = 'user',
-};
+}
 
 
 export enum GuildFeatures {
@@ -868,7 +868,7 @@ export enum GuildLoggerFlags {
   GUILD_ROLE_CREATE = 1 << 16,
   GUILD_ROLE_DELETE = 1 << 17,
   GUILD_ROLE_UPDATE = 1 << 18,
-};
+}
 
 
 export enum GuildLoggerTypes {
@@ -879,13 +879,13 @@ export enum GuildLoggerTypes {
   CHANNELS = 4,
   BANS = 5,
   ROLES = 6,
-};
+}
 
 
 export enum GuildPremiumTypes {
   NONE = 0,
   LEVEL_1 = 1,
-};
+}
 
 
 export enum ImageObjectRemovalLabels {
@@ -1002,7 +1002,7 @@ export enum ImageEyeTypes {
   SMALL = 'SMALL',
   SPINNER = 'SPINNER',
   SPONGEBOB = 'SPONGEBOB',
-};
+}
 
 
 export enum ImageMemeFonts {
@@ -1019,7 +1019,7 @@ export enum ImageMemeFonts {
   TITILLIUMWEB_BLACK = 'TITILLIUMWEB_BLACK',
   TITILLIUMWEB_BOLD = 'TITILLIUMWEB_BOLD',
   TYPOLINE_DEMO = 'TYPOLINE_DEMO',
-};
+}
 
 export const ImageMemeFontsToText: Record<ImageMemeFonts, string> = Object.freeze({
   [ImageMemeFonts.ARIAL]: 'Arial',
@@ -1042,7 +1042,7 @@ export enum ImagePix2PixModels {
   EDGES = 'EDGES',
   EMOJI = 'EMOJI',
   PORN = 'PORN',
-};
+}
 
 
 export enum MeasurementUnits {
@@ -1067,7 +1067,7 @@ export enum MediaBackgroundRemovalModels {
   U2NETP = 'U2NETP',
   U2NET_CLOTH_SEG = 'U2NET_CLOTH_SEG',
   U2NET_HUMAN_SEG = 'U2NET_HUMAN_SEG',
-};
+}
 
 export const MediaBackgroundRemovalModelsToText: Record<MediaBackgroundRemovalModels, string> = Object.freeze({
   [MediaBackgroundRemovalModels.ALPHA_MATTING]: 'Alpha Matting',
@@ -1086,6 +1086,13 @@ export const MediaBackgroundRemovalModelsToText: Record<MediaBackgroundRemovalMo
   [MediaBackgroundRemovalModels.U2NET_CLOTH_SEG]: 'U2Net Fashion (Clothing Optimized)',
   [MediaBackgroundRemovalModels.U2NET_HUMAN_SEG]: 'U2Net Human (People Optimized)',
 });
+
+
+export enum MediaFaceFatSizes {
+  XL = 'XL',
+  XXL = 'XXL',
+  XXXL = 'XXXL',
+}
 
 
 export enum MediaDistortMethods {
@@ -1108,7 +1115,7 @@ export enum MediaDistortMethods {
   SCALE_ROTATE_TRANSLATE = 'SCALE_ROTATE_TRANSLATE',
   SENTINEL = 'SENTINEL',
   SHEPARDS = 'SHEPARDS',
-};
+}
 
 
 export enum MediaEmbossComposeMethods {
@@ -1139,7 +1146,7 @@ export enum MediaLegofyPalettes {
   EFFECTS = 'EFFECTS',
   MONO = 'MONO',
   TRANSPARENT = 'TRANSPARENT',
-};
+}
 
 
 export enum MediaRotate3dCropModes {
@@ -1147,7 +1154,7 @@ export enum MediaRotate3dCropModes {
   CENTER = 'center',
   NONE = 'none',
   ZOOM_CENTER = 'zoomcenter',
-};
+}
 
 
 export enum MediaSlideDirections {
@@ -1155,7 +1162,35 @@ export enum MediaSlideDirections {
   LEFT = 'LEFT',
   RIGHT = 'RIGHT',
   UP = 'UP',
-};
+}
+
+
+export enum MediaStammerColorModes {
+  FAST_8 = 'FAST_8',
+  FULL_8 = 'FULL_8',
+  FULL = 'FULL',
+}
+
+export const MediaStammerColorModesToText: Record<MediaStammerColorModes, string> = Object.freeze({
+  [MediaStammerColorModes.FAST_8]: 'Fast 8-bit Color (Fastest)',
+  [MediaStammerColorModes.FULL_8]: 'Full 8-bit Color (Slow)',
+  [MediaStammerColorModes.FULL]: 'Full 16-bit Color (Fast)',
+});
+
+
+export enum MediaStammerMatcherModes {
+  BASIC = 'BASIC',
+  COMBINATION = 'COMBINATION',
+  UNIQUE = 'UNIQUE',
+  WEIGHTED = 'WEIGHTED',
+}
+
+export const MediaStammerMatcherModesToText: Record<MediaStammerMatcherModes, string> = Object.freeze({
+  [MediaStammerMatcherModes.BASIC]: 'Basic (replace with most similar frame)',
+  [MediaStammerMatcherModes.COMBINATION]: 'Combination (blend multiple frames)',
+  [MediaStammerMatcherModes.UNIQUE]: 'Unique (each carrier frame used once)',
+  [MediaStammerMatcherModes.WEIGHTED]: 'Weighted (A-weighted audio matching)',
+});
 
 
 export enum MediaWiggleDirections {
@@ -1163,7 +1198,7 @@ export enum MediaWiggleDirections {
   LEFT = 'LEFT',
   RIGHT = 'RIGHT',
   UP = 'UP',
-};
+}
 
 
 export enum Mimetypes {
@@ -1190,7 +1225,7 @@ export enum Mimetypes {
   VIDEO_X_MATROSKA = 'video/x-matroska',
   VIDEO_X_MSVIDEO = 'video/x-msvideo',
   VIDEO_X_MS_WMV = 'video/x-ms-wmv',
-};
+}
 
 export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
   [Mimetypes.AUDIO_AAC]: 'm4a',
@@ -1272,7 +1307,7 @@ export enum RedditKindTypes {
   MESSAGE = 't4',
   SUBREDDIT = 't5',
   AWARD = 't6',
-};
+}
 
 
 export enum RedditSortTypes {
@@ -1281,7 +1316,7 @@ export enum RedditSortTypes {
   NEW = 'NEW',
   RELEVANCE = 'RELEVANCE',
   TOP = 'TOP',
-};
+}
 
 
 export enum RedditTimeTypes {
@@ -1291,7 +1326,7 @@ export enum RedditTimeTypes {
   MONTH = 'MONTH',
   YEAR = 'YEAR',
   ALL = 'ALL',
-};
+}
 
 
 
@@ -1312,7 +1347,7 @@ export enum RedisChannels {
   TAG_UPDATE = 'TAG_UPDATE',
   USER_SETTINGS_UPDATE = 'USER_SETTINGS_UPDATE',
   USER_UPDATE = 'USER_UPDATE',
-};
+}
 
 
 export const ReminderMessages = [
@@ -1336,31 +1371,41 @@ export const ReminderMessages = [
 
 
 export enum TagGenerationModels {
-  CLAUDE_3_7_SONNET = 'CLAUDE_3_7_SONNET',
+  CLAUDE_4_0_SONNET = 'CLAUDE_4_0_SONNET',
   CLAUDE_3_5_HAIKU = 'CLAUDE_3_5_HAIKU',
   DEEPSEEK_CHAT = 'DEEPSEEK_CHAT',
   GOOGLE_GEMINI_2_5_PRO = 'GOOGLE_GEMINI_2_5_PRO',
   GOOGLE_GEMINI_2_0_FLASH = 'GOOGLE_GEMINI_2_0_FLASH',
   GOOGLE_GEMMA_3_0 = 'GOOGLE_GEMMA_3_0',
   META_LLAMA = 'META_LLAMA',
+  OPENAI_CHATGPT_4_1 = 'OPENAI_CHATGPT_4_1',
+  OPENAI_CHATGPT_4_1_MINI = 'OPENAI_CHATGPT_4_1_MINI',
   OPENAI_CHATGPT_4O = 'OPENAI_CHATGPT_4O',
   OPENAI_CHATGPT_4O_MINI = 'OPENAI_CHATGPT_4O_MINI',
   QWEN_2_5_CODER = 'QWEN_2_5_CODER',
+  XAI_GROK_4 = 'XAI_GROK_4',
+  XAI_GROK_3 = 'XAI_GROK_3',
+  XAI_GROK_3_MINI = 'XAI_GROK_3_MINI',
   XAI_GROK_2 = 'XAI_GROK_2',
 }
 
 
 export const TagGenerationModelsToText = Object.freeze({
-  [TagGenerationModels.CLAUDE_3_7_SONNET]: 'Claude 3.7 Sonnet',
+  [TagGenerationModels.CLAUDE_4_0_SONNET]: 'Claude 4.0 Sonnet',
   [TagGenerationModels.CLAUDE_3_5_HAIKU]: 'Claude 3.5 Haiku',
   [TagGenerationModels.DEEPSEEK_CHAT]: 'DeepSeek Chat',
   [TagGenerationModels.GOOGLE_GEMINI_2_5_PRO]: 'Google Gemini 2.5 Pro',
   [TagGenerationModels.GOOGLE_GEMINI_2_0_FLASH]: 'Google Gemini 2.0 Flash',
   [TagGenerationModels.GOOGLE_GEMMA_3_0]: 'Google Gemma 3.0',
   [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
+  [TagGenerationModels.OPENAI_CHATGPT_4_1]: 'OpenAI ChatGPT 4.1',
+  [TagGenerationModels.OPENAI_CHATGPT_4_1_MINI]: 'OpenAI ChatGPT 4.1 Mini',
   [TagGenerationModels.OPENAI_CHATGPT_4O]: 'OpenAI ChatGPT 4o',
   [TagGenerationModels.OPENAI_CHATGPT_4O_MINI]: 'OpenAI ChatGPT 4o Mini',
   [TagGenerationModels.QWEN_2_5_CODER]: 'Qwen 2.5 Coder',
+  [TagGenerationModels.XAI_GROK_4]: 'xAI Grok 4',
+  [TagGenerationModels.XAI_GROK_3]: 'xAI Grok 3',
+  [TagGenerationModels.XAI_GROK_3_MINI]: 'xAI Grok 3 Mini',
   [TagGenerationModels.XAI_GROK_2]: 'xAI Grok 2',
 });
 
@@ -1412,7 +1457,7 @@ export enum Timezones {
   AET = 'Etc/GMT+10',
   SST = 'Etc/GMT+11',
   NST = 'Etc/GMT+12',
-};
+}
 
 
 export const TimezonesToText: Record<Timezones, string> = Object.freeze({
@@ -1469,12 +1514,12 @@ export enum UserFlags {
   NONE = 0,
   OWNER = 1 << 0,
   PREMIUM_DISCORD = 1 << 1,
-};
+}
 
 
 export enum UserPremiumTypes {
   NONE = 0,
-};
+}
 
 
 export enum UserUploadThresholdTypes {
@@ -1489,7 +1534,7 @@ export enum YoutubeResultTypes {
   VIDEO = 1,
   MOVIE = 2,
   PLAYLIST = 3,
-};
+}
 
 
 
@@ -1568,7 +1613,7 @@ export enum NotSoHeaders {
   SERVER_OWNER_ID = 'x-server-owner-id',
   USER = 'x-user',
   USER_ID = 'x-user-id',
-};
+}
 
 
 

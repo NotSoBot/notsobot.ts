@@ -10,6 +10,7 @@ import {
 } from '../constants';
 import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
+import UserSettingsStore from '../stores/usersettings';
 
 import * as Endpoints from './endpoints';
 import * as raw from './raw';
@@ -367,7 +368,11 @@ export async function editUserSettings(
   userId: string,
   options: RestOptions.EditUserSettings,
 ) {
-  return raw.editUserSettings(context, userId, options);
+  const data = await raw.editUserSettings(context, userId, options);
+  if (UserSettingsStore.has(userId)) {
+    UserSettingsStore.insert(userId, data);
+  }
+  return data;
 }
 
 
@@ -789,6 +794,14 @@ export async function mediaAVManipulationDestroy(
 }
 
 
+export async function mediaAVManipulationStammer(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationStammer,
+) {
+  return raw.mediaAVManipulationStammer(context, options);
+}
+
+
 export async function mediaAVManipulationVolume(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationVolume,
@@ -850,6 +863,102 @@ export async function mediaICreateWordcloud(
   options: RestOptions.MediaICreateWordcloud,
 ) {
   return raw.mediaICreateWordcloud(context, options);
+}
+
+
+export async function mediaIManipulationBill(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationBill(context, options);
+}
+
+
+export async function mediaIManipulationBurn(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationBurn(context, options);
+}
+
+
+export async function mediaIManipulationFaceAlien(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationFaceAlien(context, options);
+}
+
+
+export async function mediaIManipulationFaceAnime(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationFaceAnime(context, options);
+}
+
+
+export async function mediaIManipulationFaceClown(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationFaceClown(context, options);
+}
+
+
+export async function mediaIManipulationFaceFat(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationFaceFat(context, options);
+}
+
+
+export async function mediaIManipulationFaceMountRushmore(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationFaceMountRushmore(context, options);
+}
+
+
+export async function mediaIManipulationLatte(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationLatte(context, options);
+}
+
+
+export async function mediaIManipulationMuseum(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationMuseum(context, options);
+}
+
+
+export async function mediaIManipulationPopArt(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationPopArt(context, options);
+}
+
+
+export async function mediaIManipulationTimesquare(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationTimesquare(context, options);
+}
+
+
+export async function mediaIManipulationUniverse(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIManipulationUniverse(context, options);
 }
 
 
@@ -1611,6 +1720,14 @@ export async function mediaIVToolsObjectRemove(
   options: RestOptions.MediaIVToolsObjectRemoveOptions,
 ) {
   return raw.mediaIVToolsObjectRemove(context, options);
+}
+
+
+export async function mediaIVToolsOffset(
+  context: RequestContext,
+  options: RestOptions.MediaIVToolsOffset,
+) {
+  return raw.mediaIVToolsOffset(context, options);
 }
 
 

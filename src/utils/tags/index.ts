@@ -1094,7 +1094,7 @@ const ScriptTags = Object.freeze({
             urlObj.url = file.url;
             continue;
           }
-          files.push({filename: file.filename, value: file.buffer});
+          files.push({filename: urlObj.filename || file.filename, value: file.buffer});
           if (!match[2]) {
             file.deleted = true;
           }
@@ -1118,249 +1118,250 @@ const ScriptTags = Object.freeze({
       urls: Object.values(urls).filter((x) => x.url),
       version: version || undefined,
     });
+
     if (result.error && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
       throw new Error(result.error);
-    } else {
-      if (result.files.length) {
-        const maxFileSize = context.maxAttachmentSize;
-        for (let file of result.files) {
-          const { filename, size, value } = file;
-          if (maxFileSize < size) {
-            continue;
-          }
-          if (filename === '__internals__.json') {
-            let response: any = {};
-            try {
-              response = JSON.parse(Buffer.from(value, 'base64').toString());
-            } catch(error) {
+    }
 
+    if (result.files.length) {
+      const maxFileSize = context.maxAttachmentSize;
+      for (let file of result.files) {
+        const { filename, size, value } = file;
+        if (maxFileSize < size) {
+          continue;
+        }
+        if (filename === '__internals__.json') {
+          let response: any = {};
+          try {
+            response = JSON.parse(Buffer.from(value, 'base64').toString());
+          } catch(error) {
+
+          }
+
+          if (typeof(response) === 'object') {
+            if (typeof(response.variables) === 'object') {
+              const variables = response.variables;
+              for (let key in variables) {
+                if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
+                  continue;
+                }
+
+                if (MAX_VARIABLE_KEY_LENGTH < key.length) {
+                  throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+                }
+
+                if (!(key in tag.variables)) {
+                  if (MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
+                    throw new Error(`Reached max variable amount (Max ${MAX_VARIABLES.toLocaleString()} Variables)`);
+                  }
+                }
+
+                tag.variables[key] = String((variables as any)[key]).slice(0, MAX_VARIABLE_LENGTH);
+              }
             }
 
-            if (typeof(response) === 'object') {
-              if (typeof(response.variables) === 'object') {
-                const variables = response.variables;
-                for (let key in variables) {
-                  if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
-                    continue;
-                  }
+            if (typeof(response.storage) === 'object') {
+              const variables = response.storage;
+              if (Object.keys(variables).length !== 3) {
+                throw new Error('Storage Variables only supports `server`, `channel`, and `user`');
+              }
+              if (typeof(variables.server) !== 'object' || typeof(variables.channel) !== 'object' || typeof(variables.user) !== 'object') {
+                throw new Error('Storage Variables only supports `server`, `channel`, and `user`');
+              }
+              if (MAX_STORAGE_GUILD_AMOUNT < Object.keys(variables.server).length) {
+                throw new Error(`Server Variables exceeded max amount (${MAX_STORAGE_GUILD_AMOUNT})`);
+              }
+              if (MAX_STORAGE_CHANNEL_AMOUNT < Object.keys(variables.channel).length) {
+                throw new Error(`Channel Variables exceeded max amount (${MAX_STORAGE_CHANNEL_AMOUNT})`);
+              }
+              if (MAX_STORAGE_USER_AMOUNT < Object.keys(variables.user).length) {
+                throw new Error(`User Variables exceeded max amount (${MAX_STORAGE_USER_AMOUNT})`);
+              }
 
-                  if (MAX_VARIABLE_KEY_LENGTH < key.length) {
-                    throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
-                  }
+              const formattedVariables: Array<{name: string, storageId: string, storageType: TagVariableStorageTypes, value: string}> = [];
+              for (let key in variables.server) {
+                if (MAX_STORAGE_KEY_LENGTH < key.length) {
+                  throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                }
+                const value = String(variables.server[key]);
+                if (MAX_STORAGE_VALUE_LENGTH < value.length) {
+                  throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                }
+                formattedVariables.push({
+                  name: String(key),
+                  storageId: context.guildId || context.channelId!,
+                  storageType: TagVariableStorageTypes.GUILD,
+                  value,
+                });
+              }
+              for (let key in variables.channel) {
+                if (MAX_STORAGE_KEY_LENGTH < key.length) {
+                  throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                }
+                const value = String(variables.channel[key]);
+                if (MAX_STORAGE_VALUE_LENGTH < value.length) {
+                  throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                }
+                formattedVariables.push({
+                  name: String(key),
+                  storageId: context.channelId!,
+                  storageType: TagVariableStorageTypes.CHANNEL,
+                  value,
+                });
+              }
+              for (let key in variables.user) {
+                if (MAX_STORAGE_KEY_LENGTH < key.length) {
+                  throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                }
+                const value = String(variables.user[key]);
+                if (MAX_STORAGE_VALUE_LENGTH < value.length) {
+                  throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                }
+                formattedVariables.push({
+                  name: String(key),
+                  storageId: context.userId,
+                  storageType: TagVariableStorageTypes.USER,
+                  value,
+                });
+              }
 
-                  if (!(key in tag.variables)) {
-                    if (MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
-                      throw new Error(`Reached max variable amount (Max ${MAX_VARIABLES.toLocaleString()} Variables)`);
-                    }
-                  }
+              let hasChange = false;
+              if (Object.keys(storage.server).length !== Object.keys(variables.server).length) {
+                hasChange = true;
+              } else if (Object.keys(storage.channel).length !== Object.keys(variables.channel).length) {
+                hasChange = true;
+              } else if (Object.keys(storage.user).length !== Object.keys(variables.user).length) {
+                hasChange = true;
+              }
 
-                  tag.variables[key] = String((variables as any)[key]).slice(0, MAX_VARIABLE_LENGTH);
+              if (!hasChange) {
+                for (let item of formattedVariables) {
+                  switch (item.storageType) {
+                    case TagVariableStorageTypes.CHANNEL: {
+                      if (!(item.name in storage.channel) || storage.channel[item.name] !== item.value) {
+                        hasChange = true;
+                      }
+                    }; break;
+                    case TagVariableStorageTypes.GUILD: {
+                      if (!(item.name in storage.server) || storage.server[item.name] !== item.value) {
+                        hasChange = true;
+                      }
+                    }; break;
+                    case TagVariableStorageTypes.USER: {
+                      if (!(item.name in storage.user) || storage.user[item.name] !== item.value) {
+                        hasChange = true;
+                      }
+                    }; break;
+                  }
+                  if (hasChange) {
+                    break;
+                  }
                 }
               }
 
-              if (typeof(response.storage) === 'object') {
-                const variables = response.storage;
-                if (Object.keys(variables).length !== 3) {
-                  throw new Error('Storage Variables only supports `server`, `channel`, and `user`');
-                }
-                if (typeof(variables.server) !== 'object' || typeof(variables.channel) !== 'object' || typeof(variables.user) !== 'object') {
-                  throw new Error('Storage Variables only supports `server`, `channel`, and `user`');
-                }
-                if (MAX_STORAGE_GUILD_AMOUNT < Object.keys(variables.server).length) {
-                  throw new Error(`Server Variables exceeded max amount (${MAX_STORAGE_GUILD_AMOUNT})`);
-                }
-                if (MAX_STORAGE_CHANNEL_AMOUNT < Object.keys(variables.channel).length) {
-                  throw new Error(`Channel Variables exceeded max amount (${MAX_STORAGE_CHANNEL_AMOUNT})`);
-                }
-                if (MAX_STORAGE_USER_AMOUNT < Object.keys(variables.user).length) {
-                  throw new Error(`User Variables exceeded max amount (${MAX_STORAGE_USER_AMOUNT})`);
-                }
-
-                const formattedVariables: Array<{name: string, storageId: string, storageType: TagVariableStorageTypes, value: string}> = [];
-                for (let key in variables.server) {
-                  if (MAX_STORAGE_KEY_LENGTH < key.length) {
-                    throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
-                  }
-                  const value = String(variables.server[key]);
-                  if (MAX_STORAGE_VALUE_LENGTH < value.length) {
-                    throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
-                  }
-                  formattedVariables.push({
-                    name: String(key),
-                    storageId: context.guildId || context.channelId!,
-                    storageType: TagVariableStorageTypes.GUILD,
-                    value,
-                  });
-                }
-                for (let key in variables.channel) {
-                  if (MAX_STORAGE_KEY_LENGTH < key.length) {
-                    throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
-                  }
-                  const value = String(variables.channel[key]);
-                  if (MAX_STORAGE_VALUE_LENGTH < value.length) {
-                    throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
-                  }
-                  formattedVariables.push({
-                    name: String(key),
-                    storageId: context.channelId!,
-                    storageType: TagVariableStorageTypes.CHANNEL,
-                    value,
-                  });
-                }
-                for (let key in variables.user) {
-                  if (MAX_STORAGE_KEY_LENGTH < key.length) {
-                    throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
-                  }
-                  const value = String(variables.user[key]);
-                  if (MAX_STORAGE_VALUE_LENGTH < value.length) {
-                    throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
-                  }
-                  formattedVariables.push({
-                    name: String(key),
-                    storageId: context.userId,
-                    storageType: TagVariableStorageTypes.USER,
-                    value,
-                  });
-                }
-
-                let hasChange = false;
-                if (Object.keys(storage.server).length !== Object.keys(variables.server).length) {
-                  hasChange = true;
-                } else if (Object.keys(storage.channel).length !== Object.keys(variables.channel).length) {
-                  hasChange = true;
-                } else if (Object.keys(storage.user).length !== Object.keys(variables.user).length) {
-                  hasChange = true;
-                }
-
-                if (!hasChange) {
-                  for (let item of formattedVariables) {
-                    switch (item.storageType) {
-                      case TagVariableStorageTypes.CHANNEL: {
-                        if (!(item.name in storage.channel) || storage.channel[item.name] !== item.value) {
-                          hasChange = true;
-                        }
-                      }; break;
-                      case TagVariableStorageTypes.GUILD: {
-                        if (!(item.name in storage.server) || storage.server[item.name] !== item.value) {
-                          hasChange = true;
-                        }
-                      }; break;
-                      case TagVariableStorageTypes.USER: {
-                        if (!(item.name in storage.user) || storage.user[item.name] !== item.value) {
-                          hasChange = true;
-                        }
-                      }; break;
-                    }
-                    if (hasChange) {
-                      break;
-                    }
-                  }
-                }
-
-                if (hasChange && tagId) {
-                  const storageResponse = await putTagVariables(context, tagId, {
-                    channelId: context.channelId!,
-                    guildId: context.guildId,
-                    userId: context.userId,
-                    variables: formattedVariables,
-                  });
-                  // store it in tagresult i guess
-                }
+              if (hasChange && tagId) {
+                const storageResponse = await putTagVariables(context, tagId, {
+                  channelId: context.channelId!,
+                  guildId: context.guildId,
+                  userId: context.userId,
+                  variables: formattedVariables,
+                });
+                // store it in tagresult i guess
               }
             }
-            continue;
           }
+          continue;
+        }
 
-          if (maxFileSize < size) {
-            throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
-          }
+        if (maxFileSize < size) {
+          throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+        }
 
-          /*
-          const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-          if (maxFileSize <= currentFileSize + size) {
-            throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
-          }
-          */
-          tag.variables[PrivateVariables.FILE_SIZE] += size;
+        /*
+        const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
+        if (maxFileSize <= currentFileSize + size) {
+          throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+        }
+        */
+        tag.variables[PrivateVariables.FILE_SIZE] += size;
 
-          tag.files.push({
-            buffer: Buffer.from(value, 'base64'),
-            filename,
-            url: '',
-          });
+        tag.files.push({
+          buffer: Buffer.from(value, 'base64'),
+          filename,
+          url: '',
+        });
 
-          if (MAX_ATTACHMENTS < tag.files.length) {
-            throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
-          }
+        if (MAX_ATTACHMENTS < tag.files.length) {
+          throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
         }
       }
+    }
 
-      let isEmbed = false;
-      if (result.output.length <= 12000) {
-        // just incase its a big content lol
-        let object: any = null;
-        try {
-          object = JSON.parse(result.output);
-        } catch(error) {
-          
-        }
-
-        if (object && typeof(object) === 'object') {
-          const keysLength = Object.keys(object).length;
-          if (keysLength === 1 && 'pages' in object && Array.isArray(object.pages)) {
-            // parse them
-            // [{embed}]
-            for (let page of object.pages) {
-              if (typeof(page) !== 'object' || !('embed' in page) || typeof(page.embed) !== 'object') {
-                throw new Error('Invalid Page Given');
-              }
-              try {
-                const embed = new Embed(page.embed);
-                if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
-                  throw new Error('this error doesn\'t matter');
-                }
-                tag.pages.push({embed});
-              } catch(error) {
-                throw new Error('Invalid Page Given');
-              }
-              if (MAX_PAGES < tag.pages.length) {
-                throw new Error(`Pages surpassed max pages length of ${MAX_PAGES}`);
-              }
+    let isEmbed = false;
+    if (result.output.length <= 12000) {
+      // just incase its a big content lol
+      let object: any = null;
+      try {
+        object = JSON.parse(result.output);
+      } catch(error) {
+        
+      }
+      
+      if (object && typeof(object) === 'object') {
+        const keysLength = Object.keys(object).length;
+        if (keysLength === 1 && 'pages' in object && Array.isArray(object.pages)) {
+          // parse them
+          // [{embed}]
+          for (let page of object.pages) {
+            if (typeof(page) !== 'object' || !('embed' in page) || typeof(page.embed) !== 'object') {
+              throw new Error('Invalid Page Given');
             }
-          } else if (keysLength <= 2 && (('embed' in object) || ('embeds' in object))) {
-            const embeds: Array<Record<string, any>> = [];
-            if ('embed' in object && typeof(object.embed) === 'object') {
-              embeds.push(object.embed);
-            }
-            if ('embeds' in object && Array.isArray(object.embeds)) {
-              for (let embed of object.embeds) {
-                if (typeof(embed) === 'object') {
-                  embeds.push(embed);
-                }
+            try {
+              const embed = new Embed(page.embed);
+              if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+                throw new Error('this error doesn\'t matter');
               }
+              tag.pages.push({embed});
+            } catch(error) {
+              throw new Error('Invalid Page Given');
             }
-
-            if (MAX_EMBEDS < embeds.length) {
-              throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+            if (MAX_PAGES < tag.pages.length) {
+              throw new Error(`Pages surpassed max pages length of ${MAX_PAGES}`);
             }
-
-            isEmbed = true;
-            for (let raw of embeds) {
-              // todo: maybe add embed length checks here?
-              try {
-                const embed = new Embed(raw);
-                if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
-                  throw new Error('this error doesn\'t matter');
-                }
-                tag.embeds.push(embed);
-              } catch(error) {
-                throw new Error('Invalid Embed Given');
+          }
+        } else if (keysLength <= 2 && (('embed' in object) || ('embeds' in object))) {
+          const embeds: Array<Record<string, any>> = [];
+          if ('embed' in object && typeof(object.embed) === 'object') {
+            embeds.push(object.embed);
+          }
+          if ('embeds' in object && Array.isArray(object.embeds)) {
+            for (let embed of object.embeds) {
+              if (typeof(embed) === 'object') {
+                embeds.push(embed);
               }
             }
+          }
 
-            if (MAX_EMBEDS < tag.embeds.length) {
-              throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+          if (MAX_EMBEDS < embeds.length) {
+            throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+          }
+
+          isEmbed = true;
+          for (let raw of embeds) {
+            // todo: maybe add embed length checks here?
+            try {
+              const embed = new Embed(raw);
+              if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+                throw new Error('this error doesn\'t matter');
+              }
+              tag.embeds.push(embed);
+            } catch(error) {
+              throw new Error('Invalid Embed Given');
             }
+          }
+
+          if (MAX_EMBEDS < tag.embeds.length) {
+            throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
           }
         }
       }
@@ -1406,7 +1407,7 @@ const ScriptTags = Object.freeze({
             urlObj.url = file.url;
             continue;
           }
-          files.push({filename: file.filename, value: file.buffer});
+          files.push({filename: urlObj.filename || file.filename, value: file.buffer});
           if (!match[2]) {
             file.deleted = true;
           }

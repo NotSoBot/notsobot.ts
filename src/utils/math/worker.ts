@@ -14,11 +14,14 @@ MathJS.import({
 }, {override: true});
 
 export const ERROR_TIMEOUT_MESSAGE = 'Script execution timed out after';
-export const MAX_TIME_MATH = 500;
+export const MAX_TIME_MATH = 750;
 
 
 export function executeEquation(equation: string, parser: mathjs.Parser | null = null): string {
   equation = equation.replace(/\*\*/g, '^');
+  equation = equation.replace(/\b(\d{1,3}(?:,\d{3})+(?:\.\d+)?)\b/g, (match) => {
+    return match.replace(/,/g, '');
+  });
   parser = parser || MathJS.parser();
   const result = parser.evaluate(equation);
   return formatNumber(result);

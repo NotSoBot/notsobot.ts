@@ -343,6 +343,11 @@ export namespace RestOptions {
     norevert?: boolean,
   }
 
+  export interface MediaAVManipulationStammer extends MediaBaseOptionsMultiple {
+    colorMode?: string,
+    matcherMode?: string,
+  }
+
   export interface MediaAVManipulationVolume extends MediaBaseOptions {
     volume?: number,
   }
@@ -380,6 +385,10 @@ export namespace RestOptions {
 
   export interface MediaICreateWordcloud {
     words: Array<string>,
+  }
+
+  export interface MediaIManipulationFaceFat extends MediaBaseOptions {
+    size?: number,
   }
 
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
@@ -633,6 +642,11 @@ export namespace RestOptions {
 
   export interface MediaIVToolsCropTwitterHex extends MediaBaseOptions {
     background?: boolean,
+  }
+
+  export interface MediaIVToolsOffset extends MediaBaseOptions {
+    x?: string,
+    y?: string,
   }
 
   export interface MediaIVToolsResize extends MediaBaseOptions {
@@ -1146,7 +1160,7 @@ export namespace RestResponsesRaw {
 
   export interface MediaAVToolsTranscribe {
     chunks: Array<{
-      language: string,
+      language: string | null,
       text: string,
       timestamp: [number | null, number | null],
     }>,

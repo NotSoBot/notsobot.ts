@@ -1322,7 +1322,7 @@ export function generateCodeFromLanguage(
   const lines = code.split(/\n/g);
   let position = 0;
   for (let i = 0; i < lines.length; i++) {
-    // we are looking for `load URL FILENAME?`, either split with new spaces or semicolons
+    // we are looking for `load URL FILENAME?`, split with new spaces
     let line = lines[i].split('##')[0]!.trim();
     line = line.replace(/^\s+|\s+$|[;]+$/g, '')
     line = line.replace(/\s+/g, ' ');
@@ -1767,7 +1767,7 @@ export async function mediaReplyFromOptions(
 
   let displaySettings = UserSettingsResponseDisplayTypes.DEFAULT;
 
-  const settings = UserSettingsStore.get(context.userId);
+  const settings = await UserSettingsStore.getOrFetch(context, context.userId);
   if (settings) {
     displaySettings = settings.response_display as UserSettingsResponseDisplayTypes;
   }

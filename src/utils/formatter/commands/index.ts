@@ -42,6 +42,7 @@ import * as MediaAVManipulationAudioVibrato from './media.av.manipulation.audio.
 import * as MediaAVManipulationBoostBass from './media.av.manipulation.boost.bass';
 import * as MediaAVManipulationCompress from './media.av.manipulation.compress';
 import * as MediaAVManipulationDestroy from './media.av.manipulation.destroy';
+import * as MediaAVManipulationStammer from './media.av.manipulation.stammer';
 import * as MediaAVManipulationVolume from './media.av.manipulation.volume';
 
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
@@ -52,6 +53,14 @@ import * as MediaICreateRetrowave from './media.i.create.retrowave';
 import * as MediaICreateTombstone from './media.i.create.tombstone';
 import * as MediaICreateWordcloudChannel from './media.i.create.wordcloud.channel';
 import * as MediaICreateWordcloudUser from './media.i.create.wordcloud.user';
+
+import * as MediaIManipulationBill from './media.i.manipulation.bill';
+import * as MediaIManipulationBurn from './media.i.manipulation.burn';
+import * as MediaIManipulationFaceAlien from './media.i.manipulation.face.alien';
+import * as MediaIManipulationFaceAnime from './media.i.manipulation.face.anime';
+import * as MediaIManipulationFaceClown from './media.i.manipulation.face.clown';
+import * as MediaIManipulationFaceFat from './media.i.manipulation.face.fat';
+import * as MediaIManipulationLatte from './media.i.manipulation.latte';
 
 import * as MediaIVManipulationASCII from './media.iv.manipulation.ascii';
 import * as MediaIVManipulationBlur from './media.iv.manipulation.blur';
@@ -151,6 +160,7 @@ import * as MediaIVToolsCropAuto from './media.iv.tools.crop.auto';
 import * as MediaIVToolsCropCircle from './media.iv.tools.crop.circle';
 import * as MediaIVToolsCropNFT from './media.iv.tools.crop.nft';
 import * as MediaIVToolsObjectRemove from './media.iv.tools.object.remove';
+import * as MediaIVToolsOffset from './media.iv.tools.offset';
 import * as MediaIVToolsResize from './media.iv.tools.resize';
 import * as MediaIVToolsRotate from './media.iv.tools.rotate';
 import * as MediaIVToolsRotate3d from './media.iv.tools.rotate.3d';
@@ -313,6 +323,7 @@ export {
   MediaAVManipulationBoostBass,
   MediaAVManipulationCompress,
   MediaAVManipulationDestroy,
+  MediaAVManipulationStammer,
   MediaAVManipulationVolume,
 
   MediaAVToolsExtractAudio,
@@ -323,6 +334,14 @@ export {
   MediaICreateTombstone,
   MediaICreateWordcloudChannel,
   MediaICreateWordcloudUser,
+
+  MediaIManipulationBill,
+  MediaIManipulationBurn,
+  MediaIManipulationFaceAlien,
+  MediaIManipulationFaceAnime,
+  MediaIManipulationFaceClown,
+  MediaIManipulationFaceFat,
+  MediaIManipulationLatte,
 
   MediaIVManipulationASCII,
   MediaIVManipulationBlur,
@@ -422,6 +441,7 @@ export {
   MediaIVToolsCropCircle,
   MediaIVToolsCropNFT,
   MediaIVToolsObjectRemove,
+  MediaIVToolsOffset,
   MediaIVToolsResize,
   MediaIVToolsRotate,
   MediaIVToolsRotate3d,
