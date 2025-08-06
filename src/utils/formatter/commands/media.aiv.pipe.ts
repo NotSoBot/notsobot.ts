@@ -17,6 +17,8 @@ import {
   generateImageReplyOptionsFromResponse,
   imageReplyFromOptions,
   ImageReplyOptions,
+  jobWaitForResult,
+  mediaReply,
 } from '../../../utils';
 
 
@@ -28,7 +30,11 @@ export interface CommandArgs {
 }
 
 export interface PipingCommandExecution extends Parameters.PipingCommand {
-  execute: (
+  createJob?: (
+    context: Command.Context | Interaction.InteractionContext,
+    args: Record<string, any>,
+  ) => Promise<RestResponsesRaw.JobResponse>,
+  createResponse?: (
     context: Command.Context | Interaction.InteractionContext,
     args: Record<string, any>,
   ) => Promise<RestResponsesRaw.FileResponse>,
@@ -39,9 +45,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-
-  embed.setDescription('piping wip');
 
   const pipers: Array<PipingCommandExecution> = [];
   for (let {command, commandArgs} of args.commands) {
@@ -53,8 +56,13 @@ export async function createMessage(
     for (let key in Formatter.Commands) {
       const formatter = (Formatter.Commands as any)[key];
       if (formatter.COMMAND_ID === commandId) {
-        if (formatter.IS_PIPEABLE && typeof(formatter.createResponse) === 'function') {
-          pipers.push({command, commandArgs, execute: formatter.createResponse});
+        if (formatter.IS_PIPEABLE && (typeof(formatter.createResponse) === 'function' || typeof(formatter.createJob) === 'function')) {
+          pipers.push({
+            command,
+            commandArgs,
+            createJob: formatter.createJob,
+            createResponse: formatter.createResponse,
+          });
           found = true;
         } else {
           throw new Error(`${command.name} is not a valid piping command`);
@@ -68,9 +76,9 @@ export async function createMessage(
   }
 
   let file: RequestFile | undefined;
-  let imageReplyOptions: {description?: string, options: ImageReplyOptions} | undefined;
+  let fileResponse: RestResponsesRaw.FileResponse | undefined;
   // set an interval and set the current image, like every 3 seconds?
-  for (let {command, commandArgs, execute} of pipers) {
+  for (let {command, commandArgs, createJob, createResponse} of pipers) {
     if (file) {
       commandArgs.file = file;
       if (commandArgs.urls) {
@@ -85,31 +93,42 @@ export async function createMessage(
       }
     }
 
-    const response = await execute(context, commandArgs);
-    const currentImageReplyOptions = generateImageReplyOptionsFromResponse(response);
-    if (imageReplyOptions) {
-      // add imageReplyOptions.description maybe?
-      currentImageReplyOptions.options.framesOld = imageReplyOptions.options.framesOld;
-      currentImageReplyOptions.options.took = (currentImageReplyOptions.options.took || 0) + (imageReplyOptions.options.took || 0);
+    if (createJob) {
+      const job = await createJob(context, commandArgs).then((x) => jobWaitForResult(context, x));
+      if (job.result.response) {
+        if (fileResponse) {
+          job.result.response.file_old = fileResponse.file_old;
+          job.result.response.took += fileResponse.took;
+        }
+        fileResponse = job.result.response;
+      } else if (job.result.error) {
+        throw new Error(`Job Failed: ${job.result.error}`);
+      } else {
+        throw new Error('Job Failed for some reason');
+      }
+    } else if (createResponse) {
+      const response = await createResponse(context, commandArgs);
+      if (fileResponse) {
+        response.file_old = fileResponse.file_old;
+        response.took += fileResponse.took;
+      }
+      fileResponse = response;
+    } else {
+      throw new Error('Unknown Piping Error');
     }
-    imageReplyOptions = currentImageReplyOptions;
 
-    const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-    file = {
-      filename: `piped-media.${currentImageReplyOptions.options.extension || 'png'}`,
-      value: buffer,
-    };
+    if (fileResponse) {
+      const buffer = (fileResponse.file.value) ? Buffer.from(fileResponse.file.value, 'base64') : Buffer.alloc(0);
+      file = {
+        filename: `piped-media.${fileResponse.file.metadata.extension || 'png'}`,
+        value: buffer,
+      };
+    }
   }
 
-  embed.setDescription(`piped: ${pipers.map((x) => x.command.name).join(' -> ')}`);
-
-  // include piping command names in embed description
-  if (file && imageReplyOptions) {
-    imageReplyOptions.options.embed = embed;
-    return imageReplyFromOptions(context, file.value, imageReplyOptions.options);
+  if (fileResponse) {
+    return mediaReply(context, fileResponse, {description: `piped: ${pipers.map((x) => x.command.name).join(' -> ')}`});
   }
 
-  embed.setDescription('failed to pipe?');
-
-  return editOrReply(context, {embed});
+  return editOrReply(context, 'failed to pipe?');
 }

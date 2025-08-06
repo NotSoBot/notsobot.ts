@@ -409,6 +409,14 @@ export async function fetchGuildTagsCommands(
 }
 
 
+export async function fetchJob(
+  context: RequestContext,
+  jobId: string,
+) {
+  return raw.fetchJob(context, jobId);
+}
+
+
 export async function fetchReminders(
   context: RequestContext,
   options: RestOptions.FetchReminders,

@@ -5,7 +5,7 @@ import TagCustomCommandStore from '../../../stores/tagcustomcommands';
 
 import { createTagUse, editTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { Page, Paginator, TagFormatter, checkNSFW, editOrReply } from '../../../utils';
+import { Page, PageObject, Paginator, TagFormatter, checkNSFW, editOrReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.show';
@@ -81,7 +81,7 @@ export function generatePages(
   context: Command.Context | Interaction.InteractionContext,
   parsedTag: TagFormatter.TagResult,
 ): Array<Page> {
-  const pages: Array<Page> = parsedTag.pages.map((x) => x.embed);
+  const pages = parsedTag.pages;
   if (parsedTag.files.length) {
     const used = new Set<string>();
     const files: Record<string, any> = {};
@@ -95,35 +95,59 @@ export function generatePages(
       };
     }
 
-    for (let i = 0; i < parsedTag.pages.length; i++) {
-      const embed = parsedTag.pages[i].embed;
-      const page: Page = pages[i] = [embed, []];
-      if (embed.author && embed.author.iconUrl && embed.author.iconUrl.startsWith('attachment://')) {
-        const filename = embed.author.iconUrl.split('attachment://')[1]!;
-        if (filename in files) {
-          page[1].push(files[filename]);
-          used.add(filename);
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      if ((!page.filenames || !page.filenames.length) && (!page.embeds || !page.embeds[0])) {
+        continue;
+      }
+
+      if (page.embeds && page.embeds.length) {
+        const embed = page.embeds[0];
+        if (!Array.isArray(page.files)) {
+          page.files = [];
+        }
+  
+        if (embed.author && embed.author.iconUrl && embed.author.iconUrl.startsWith('attachment://')) {
+          const filename = embed.author.iconUrl.split('attachment://')[1]!;
+          if (filename in files) {
+            page.files.push(files[filename]);
+            used.add(filename);
+          }
+        }
+        if (embed.footer && embed.footer.iconUrl && embed.footer.iconUrl.startsWith('attachment://')) {
+          const filename = embed.footer.iconUrl.split('attachment://')[1]!;
+          if (filename in files) {
+            page.files.push(files[filename]);
+            used.add(filename);
+          }
+        }
+        if (embed.thumbnail && embed.thumbnail.url.startsWith('attachment://')) {
+          const filename = embed.thumbnail.url.split('attachment://')[1]!;
+          if (filename in files) {
+            page.files.push(files[filename]);
+            used.add(filename);
+          }
+        }
+        if (embed.image && embed.image.url.startsWith('attachment://')) {
+          const filename = embed.image.url.split('attachment://')[1]!;
+          if (filename in files) {
+            page.files.push(files[filename]);
+            used.add(filename);
+          }
         }
       }
-      if (embed.footer && embed.footer.iconUrl && embed.footer.iconUrl.startsWith('attachment://')) {
-        const filename = embed.footer.iconUrl.split('attachment://')[1]!;
-        if (filename in files) {
-          page[1].push(files[filename]);
-          used.add(filename);
+      if (page.filenames && page.filenames.length) {
+        if (!Array.isArray(page.files)) {
+          page.files = [];
         }
-      }
-      if (embed.thumbnail && embed.thumbnail.url.startsWith('attachment://')) {
-        const filename = embed.thumbnail.url.split('attachment://')[1]!;
-        if (filename in files) {
-          page[1].push(files[filename]);
-          used.add(filename);
-        }
-      }
-      if (embed.image && embed.image.url.startsWith('attachment://')) {
-        const filename = embed.image.url.split('attachment://')[1]!;
-        if (filename in files) {
-          page[1].push(files[filename]);
-          used.add(filename);
+        for (let filename of page.filenames) {
+          if (filename.startsWith('attachment://')) {
+            filename = filename.split('attachment://')[1]!;
+          }
+          if (filename in files) {
+            page.files.push(files[filename]);
+            used.add(filename);
+          }
         }
       }
     }
@@ -131,10 +155,10 @@ export function generatePages(
     for (let filename in files) {
       if (!used.has(filename)) {
         for (let page of pages) {
-          if (!Array.isArray(page)) {
-            page = [page, []];
+          if (!Array.isArray(page.files)) {
+            page.files = [];
           }
-          page[1].push(files[filename]);
+          page.files.push(files[filename]);
         }
       }
     }

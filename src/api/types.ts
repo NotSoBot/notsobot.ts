@@ -1093,6 +1093,16 @@ export namespace RestResponsesRaw {
     vanity: string,
   }
 
+  export interface JobResponse {
+    id: string,
+    result: {
+      error: string | null,
+      response: FileResponse | null,
+    },
+    status: string,
+    user_id: string,
+  }
+
   export interface MediaAVToolsIdentifySong {
     album: {name: string},
     artists: Array<{

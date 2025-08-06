@@ -47,7 +47,13 @@ export const PageButtons: Record<PageButtonNames, PageButton> = Object.freeze({
   [PageButtonNames.STOP]: {emoji: '<:b_stop_delete:945057641103753377>'},//{emoji: '<:b_stop:848383585873428520>'},
 });
 
-export type Page = Utils.Embed | [Utils.Embed, Array<RequestTypes.File>];
+export type PageObject = {content?: string, embeds?: Array<Utils.Embed>, files?: Array<RequestTypes.File>};
+
+export type Page = (
+  Utils.Embed |
+  [Utils.Embed, Array<RequestTypes.File>] |
+  PageObject
+);
 
 export type OnErrorCallback = (error: any, paginator: Paginator) => Promise<any> | any;
 export type OnExpireCallback = (paginator: Paginator) => Promise<any> | any;
@@ -348,7 +354,13 @@ export class Paginator {
     }
   }
 
-  async getPage(pageNumber: number): Promise<[Utils.Embed, Array<RequestTypes.File> | undefined]> {
+  async getPage(
+    pageNumber: number,
+  ): Promise<{
+    content: string | undefined,
+    embeds: Array<Utils.Embed>,
+    files: Array<RequestTypes.File> | undefined,
+  }> {
     let page: Page | undefined;
     if (typeof(this.onPage) === 'function') {
       page = await Promise.resolve(this.onPage(this.page));
@@ -364,17 +376,31 @@ export class Paginator {
       throw new Error(`Page ${pageNumber} not found`);
     }
 
+    let content: string | undefined;
+    let embeds: Array<Utils.Embed> = [];
     let files: Array<RequestTypes.File> | undefined;
-    let embed: Utils.Embed;
     if (Array.isArray(page) && page.length === 2) {
-      embed = page[0];
+      embeds.push(page[0]);
       files = page[1];
     } else if (page instanceof Utils.Embed) {
-      embed = page; 
+      embeds.push(page);
+    } else if (typeof(page) === 'object') {
+      if ('content' in page && typeof(page.content) === 'string') {
+        content = page.content;
+      }
+      if ('embeds' in page && Array.isArray(page.embeds)) {
+        embeds = page.embeds;
+      }
+      if ('files' in page && Array.isArray(page.files)) {
+        files = page.files;
+      }
     } else {
-      throw new Error('Invalid Page Given');
+      throw new Error(`Page ${pageNumber} is invalid (2)`);
     }
-    return [embed, files];
+    if (!embeds.length && (!files || !files.length) && !content) {
+      throw new Error(`Page ${pageNumber} is invalid (3)`);
+    }
+    return {content, embeds, files};
   }
 
   async setPage(pageNumber: number, context?: ComponentContext): Promise<void> {
@@ -386,19 +412,21 @@ export class Paginator {
       return;
     }
     this.page = pageNumber;
-    const [ embed, files ] = await this.getPage(this.page);
+    const {content, embeds, files} = await this.getPage(this.page);
     if (context) {
       await context.editOrRespond({
         allowedMentions: {parse: []},
         components: this.components,
-        embed,
+        content,
+        embeds,
         files,
       });
     } else if (this.context instanceof Interaction.InteractionContext) {
       await this.context.editOrRespond({
         allowedMentions: {parse: []},
         components: this.components,
-        embed,
+        content,
+        embeds,
         files,
       });
     } else if (this.message) {
@@ -406,7 +434,8 @@ export class Paginator {
         allowedMentions: {parse: []},
         attachments: [],
         components: this.components,
-        embed,
+        content,
+        embeds,
         files,
       });
     }
@@ -575,11 +604,12 @@ export class Paginator {
         }
       } else if (clearButtons) {
         if (context) {
-          const [ embed, files ] = await this.getPage(this.page);
+          const {content, embeds, files} = await this.getPage(this.page);
           await context.editOrRespond({
             allowedMentions: {parse: []},
             components: [],
-            embed,  // temporarily here until they fix ephemeral message component clearing on button press
+            content, // temporarily here until they fix ephemeral message component clearing on button press
+            embeds,  // temporarily here until they fix ephemeral message component clearing on button press
             files, // temporarily here until they fix ephemeral message component clearing on button press
           });
         } else if (this.message && !this.message.deleted && this.message.components.length) {
@@ -614,10 +644,11 @@ export class Paginator {
 
     let message: Structures.Message | null = null;
     if (this.context instanceof Interaction.InteractionContext) {
-      const [ embed, files ] = await this.getPage(this.page);
+      const {content, embeds, files} = await this.getPage(this.page);
       await this.context.editOrRespond({
         components: this.components,
-        embed,
+        content,
+        embeds,
         files,
         flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
       });
@@ -625,11 +656,12 @@ export class Paginator {
     } else if (this.message) {
       message = this.message;
       if (message.canEdit) {
-        const [ embed, files ] = await this.getPage(this.page);
+        const {content, embeds, files} = await this.getPage(this.page);
         message = this.message = await message.edit({
           attachments: [],
           components: this.components,
-          embed,
+          content,
+          embeds,
           files,
         });
       }
@@ -638,17 +670,19 @@ export class Paginator {
         throw new Error('Cannot create messages in this channel');
       }
 
-      const [ embed, files ] = await this.getPage(this.page);
+      const {content, embeds, files} = await this.getPage(this.page);
       if (this.context instanceof Command.Context) {
         message = this._message = await editOrReply(this.context, {
           components: this.components,
-          embed,
+          content,
+          embeds,
           files,
         });
       } else {
         message = this._message = await this.context.reply({
           components: this.components,
-          embed,
+          content,
+          embeds,
           files,
         });
       }

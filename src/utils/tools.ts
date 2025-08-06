@@ -32,7 +32,7 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
-import { Endpoints } from '../api';
+import { Endpoints, fetchJob } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
@@ -1682,12 +1682,84 @@ export async function imageReplyFromOptions(
 }
 
 
+export async function jobReply(
+  context: Command.Context | Interaction.InteractionContext,
+  job: RestResponsesRaw.JobResponse,
+  pollingTime: number = 500,
+) {
+  if (job.result.error) {
+    throw new Error(`Job Failed: ${job.result.error}`);
+  }
+  if (job.result.response) {
+    return mediaReply(context, job.result.response);
+  }
+
+  const message = await editOrReply(context, 'Thinking...');
+  const messageEditedAtUnix = message && message.editedAtUnix;
+
+  const timer = new Timers.Timeout();
+  const pollingFunction = async () => {
+    if (message) {
+      if (messageEditedAtUnix !== message.editedAtUnix || !message.canEdit) {
+        return;
+      }
+    }
+    // todo: if message is null, it means the context is an interaction, check that
+    const refreshedJob = await fetchJob(context, job.id);
+    if (refreshedJob.result.error) {
+      return editOrReply(context, `Job Failed: ${refreshedJob.result.error}`);
+    }
+    if (refreshedJob.result.response) {
+      return mediaReply(context, refreshedJob.result.response);
+    }
+    if (refreshedJob.status !== 'started') {
+      return editOrReply(context, `Unknown Job Status: ${refreshedJob.status}`);
+    }
+    timer.start(pollingTime, pollingFunction);
+  };
+  timer.start(pollingTime, pollingFunction);
+
+  return message;
+}
+
+
+export async function jobWaitForResult(
+  context: Command.Context | Interaction.InteractionContext,
+  job: RestResponsesRaw.JobResponse,
+  pollingTime: number = 500,
+): Promise<RestResponsesRaw.JobResponse> {
+  if (job.result.error || job.result.response) {
+    return job;
+  }
+  return new Promise((resolve, reject) => {
+    const timer = new Timers.Timeout();
+    const pollingFunction = async () => {
+      try {
+        const refreshedJob = await fetchJob(context, job.id);
+        if (refreshedJob.result.error || refreshedJob.result.response) {
+          return resolve(refreshedJob);
+        }
+        if (refreshedJob.status !== 'started') {
+          return resolve(refreshedJob);
+        }
+        // todo: this has the potential to go on forever, fix this?
+      } catch(error) {
+        return reject(error);
+      }
+      timer.start(pollingTime, pollingFunction);
+    };
+    timer.start(pollingTime, pollingFunction);
+  });
+}
+
+
 export async function mediaReply(
   context: Command.Context | Interaction.InteractionContext,
   response: RestResponsesRaw.FileResponse,
   options: {
     args?: boolean,
     content?: string,
+    description?: string,
     filename?: string,
     spoiler?: boolean,
   } | string = {},
@@ -1702,6 +1774,7 @@ export async function mediaReply(
   return mediaReplyFromOptions(context, buffer, {
     args: options.args,
     content: options.content,
+    description: options.description,
     extension: response.file.metadata.extension,
     filename: options.filename,
     framecount: response.file.metadata.framecount,
@@ -1722,6 +1795,7 @@ export async function mediaReplyFromOptions(
   options: {
     args?: boolean,
     content?: string,
+    description?: string,
     extension?: string,
     filename?: string,
     framecount?: number,
@@ -1793,6 +1867,14 @@ export async function mediaReplyFromOptions(
 
       const components = new Components();
       const container = components.createContainer();
+      if (options.content) {
+        container.addTextDisplay({content: options.content});
+        container.addSeparator();
+      }
+      if (options.description) {
+        container.addTextDisplay({content: options.description});
+        container.addSeparator();
+      }
       if (canBeMedia) {
         const mediaGallery = container.createMediaGallery();
         if (options.storage) {
@@ -1821,6 +1903,10 @@ export async function mediaReplyFromOptions(
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
     embed.setFooter(footer);
 
+    if (options.description) {
+      embed.setDescription(options.description);
+    }
+
     let file: RequestTypes.File | undefined;
     if (options.storage) {
       embed.setImage(options.storage.urls.cdn);
@@ -1837,6 +1923,7 @@ export async function mediaReplyFromOptions(
       content: [
         (options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity,
         (options.content || ''),
+        options.description || '',
         `-# ${footer}`,
       ].filter(Boolean).join('\n'),
     });
@@ -1845,6 +1932,7 @@ export async function mediaReplyFromOptions(
   return editOrReply(context, {
     content: [
       options.content || '',
+      options.description || '',
       `-# ${footer}`,
     ].filter(Boolean).join('\n'),
     file: {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value},
@@ -1858,6 +1946,39 @@ export function isSnowflake(value: string): boolean {
     return !!parseInt(value);
   }
   return false;
+}
+
+
+const IS_HEX_REGEX = /^[0-9a-fA-F]+$/;
+
+export function isValidAttachmentUrl(urlString: string): boolean {
+  const url = new URL(urlString);
+  const expiresAtString = url.searchParams.get('ex');
+  const issuedAtString = url.searchParams.get('is');
+  const hmacString = url.searchParams.get('hm');
+  if (!expiresAtString || !issuedAtString || !hmacString) {
+    return false;
+  }
+
+  if (!IS_HEX_REGEX.test(expiresAtString) || !IS_HEX_REGEX.test(issuedAtString) || !IS_HEX_REGEX.test(hmacString)) {
+    return false;
+  }
+
+  const expiresAt = parseInt(expiresAtString, 16);
+  if (isNaN(expiresAt) || expiresAt < (Date.now() / 1000)) {
+    return false;
+  }
+
+  const issuedAt = parseInt(issuedAtString, 16);
+  if (isNaN(issuedAt)) {
+    return false;
+  }
+
+  if (hmacString.length !== 64 || isNaN(parseInt(hmacString, 16))) {
+    return false;
+  }
+
+  return true;
 }
 
 

@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationCaption } from '../../../api';
 import { ImageMemeFonts } from '../../../constants';
-import { mediaReply } from '../../../utils';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.caption';
@@ -14,7 +14,7 @@ export interface CommandArgs {
   url: string,
 }
 
-export function createResponse(
+export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
@@ -25,8 +25,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
-
-  const response = await createResponse(context, args);
-  return mediaReply(context, response);
+  const job = await createJob(context, args);
+  return jobReply(context, job);
 }

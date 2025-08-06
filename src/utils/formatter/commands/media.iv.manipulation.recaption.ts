@@ -3,7 +3,7 @@ import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationCaption, mediaIVManipulationUncaption } from '../../../api';
 import { ImageMemeFonts } from '../../../constants';
-import { mediaReply } from '../../../utils';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.recaption';
@@ -25,7 +25,7 @@ export async function createMessage(
     url: args.url,
   });
 
-  const response = await mediaIVManipulationCaption(context, {
+  const job = await mediaIVManipulationCaption(context, {
     file: {
       contentType: uncaptionResponse.file.metadata.mimetype,
       filename: uncaptionResponse.file.filename,
@@ -34,6 +34,5 @@ export async function createMessage(
     font: args.font,
     text: args.text,
   })
-  
-  return mediaReply(context, response);
+  return jobReply(context, job);
 }

@@ -56,6 +56,9 @@ export const Api = Object.freeze({
   IMAGE_CREATE_COLOR_RGB:
     '/image/create/:width:x:height:/colors/:red:.:green:.:blue:.:format:',
 
+  JOB:
+    '/jobs/:jobId',
+
   MEDIA_A_TOOLS_PUT_CONCAT:
     '/media/a/tools/put/concat',
   MEDIA_A_TOOLS_PUT_MIX:

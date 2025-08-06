@@ -51,6 +51,7 @@ import { increaseUsage } from '../formatter/commands/tag.show';
 
 import * as DefaultParameters from '../defaultparameters';
 import { MathWorker, MATH_ERROR_TIMEOUT_MESSAGE } from '../math';
+import { PageObject } from '../paginator';
 import * as Parameters from '../parameters';
 import {
   bigIntGenerateBetween,
@@ -62,6 +63,7 @@ import {
   getCodeLanguage,
   getGuildObjectForJSONSerialization,
   isSnowflake,
+  isValidAttachmentUrl,
   languageCodeToText,
   randomFromArray,
   randomFromIterator,
@@ -282,6 +284,7 @@ export enum TagFunctions {
   MEDIASCRIPT = 'MEDIASCRIPT',
   MEDIASCRIPT_URL = 'MEDIASCRIPT_URL',
   MESSAGE_CONTENT = 'MESSAGE_CONTENT',
+  MESSAGE_LAST_ID = 'MESSAGE_LAST_ID',
   MESSAGE_RANDOM_ID = 'MESSAGE_RANDOM_ID',
   MESSAGE_USER_ID = 'MESSAGE_USER_ID',
   NSFW = 'NSFW',
@@ -421,6 +424,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MEDIASCRIPT_URL]: ['mediascripturl', 'mscripturl', 'imagescripturl', 'iscripturl'],
   [TagFunctions.MEDIA_VIDEO]: ['video'],
   [TagFunctions.MESSAGE_CONTENT]: ['messagecontent'],
+  [TagFunctions.MESSAGE_LAST_ID]: ['messagelastid'],
   [TagFunctions.MESSAGE_RANDOM_ID]: ['randmessageid'],
   [TagFunctions.MESSAGE_USER_ID]: ['messageuserid'],
   [TagFunctions.NSFW]: ['nsfw'],
@@ -532,7 +536,7 @@ export interface TagResult {
     waveform?: string,
     url: string,
   }>,
-  pages: Array<{embed: Embed}>,
+  pages: Array<PageObject & {filenames?: Array<string>}>,
   replacement: string | null,
   text: string,
   variables: TagVariables,
@@ -589,27 +593,17 @@ export async function parse(
     const expired = new Set();
     // go through them all and see if they are expired, if so then replace
     for (let match of value.matchAll(ATTACHMENT_URL_REGEX)) {
-      try {
-        const url = new URL(match[0]);
-        const expiresAt = url.searchParams.get('ex');
-        if (expiresAt && (Date.now() / 1000) < parseInt(expiresAt, 16)) {
-          continue;
-        }
-      } catch(error) {
+      const isValid = isValidAttachmentUrl(match[0]);
+      if (!isValidAttachmentUrl(match[0])) {
+        expired.add(match[0]);
       }
-      expired.add(match[0]);
     }
 
     for (let match of args.matchAll(ATTACHMENT_URL_REGEX)) {
-      try {
-        const url = new URL(match[0]);
-        const expiresAt = url.searchParams.get('ex');
-        if (expiresAt && (Date.now() / 1000) < parseInt(expiresAt, 16)) {
-          continue;
-        }
-      } catch(error) {
+      const isValid = isValidAttachmentUrl(match[0]);
+      if (!isValidAttachmentUrl(match[0])) {
+        expired.add(match[0]);
       }
-      expired.add(match[0]);
     }
 
     const oldValue = value;
@@ -1313,18 +1307,40 @@ const ScriptTags = Object.freeze({
           // parse them
           // [{embed}]
           for (let page of object.pages) {
-            if (typeof(page) !== 'object' || !('embed' in page) || typeof(page.embed) !== 'object') {
+            let content: string | undefined;
+            let embeds: Array<Embed> | undefined;
+            let filenames: Array<string> | undefined;
+            if (typeof(page) !== 'object') {
               throw new Error('Invalid Page Given');
             }
-            try {
-              const embed = new Embed(page.embed);
-              if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
-                throw new Error('this error doesn\'t matter');
+            if ('content' in page && typeof(page.content) === 'string') {
+              content = page.content;
+            }
+            if ('embed' in page && typeof(page.embed) === 'object') {
+              try {
+                const embed = new Embed(page.embed);
+                if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+                  throw new Error('this error doesn\'t matter');
+                }
+                embeds = [embed];
+              } catch(error) {
+                throw new Error('Invalid Page Given');
               }
-              tag.pages.push({embed});
-            } catch(error) {
+            }
+            if ('files' in page && Array.isArray(page.files)) {
+              for (let filename of page.files) {
+                if (filename && typeof(filename) === 'string' && filename.startsWith('attachment://')) {
+                  if (!filenames) {
+                    filenames = [];
+                  }
+                  filenames.push(filename);
+                }
+              }
+            }
+            if (!content && !embeds && !filenames) {
               throw new Error('Invalid Page Given');
             }
+            tag.pages.push({content, embeds, filenames});
             if (MAX_PAGES < tag.pages.length) {
               throw new Error(`Pages surpassed max pages length of ${MAX_PAGES}`);
             }
@@ -3463,10 +3479,28 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.MESSAGE_CONTENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // get message content from a message id
-    // {messagecontent:MESSAGE_ID?}
+    // {messagecontent:MESSAGE_ID?|CHANNEL?}
 
     if (arg) {
-      const channel = context.channel;
+      const [ messageId, channelQuery ] = split(arg, 2);
+      if (!messageId) {
+        return true;
+      }
+
+      let channelId: string = '';
+      let channel: Structures.Channel | null = null;
+      if (channelQuery) {
+        increaseNetworkRequests(tag); // if its a snowflake, just check cache?
+        channel = await findChannel(channelQuery, context);
+        if (!channel || !channel.isText) {
+          return true;
+        }
+        channelId = channel.id;
+      } else {
+        channel = context.channel;
+        channelId = context.channelId!; // we dont get channel objects in dms
+      }
+
       if (channel) {
         const member = context.member;
         if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
@@ -3478,21 +3512,23 @@ const ScriptTags = Object.freeze({
       } else if (!context.inDm && !context.hasServerPermissions) {
         throw new Error('Bot cannot view the history of this channel');
       }
-  
-      const messageId = arg.trim();
+
+      let message: Structures.Message | undefined;
       if (context.messages.has(messageId)) {
-        const message = context.messages.get(messageId)!;
-        if (message.channelId === context.channelId) {
-          tag.text += message.content;
-        }
+        message = context.messages.get(messageId)!;
       } else {
         increaseNetworkRequests(tag);
         try {
-          const message = await context.rest.fetchMessage(context.channelId!, messageId);
-          tag.text += message.content;
+          message = await context.rest.fetchMessage(channelId, messageId);
         } catch(error) {
-  
+
         }
+      }
+      if (message && message.channelId === channelId) {
+        if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
+          return true;
+        }
+        tag.text += message.content;
       }
     } else if (context instanceof Command.Context) {
       tag.text += context.message.content;
@@ -3501,15 +3537,128 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.MESSAGE_RANDOM_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // get a random message id from the past 100 messages in the channel
-    // {randmessageid}
+  [TagFunctions.MESSAGE_LAST_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get a random message id from the past 100 messages in a channel
+    // {messagelastid:NUMBER?|CHANNEL_ID?}
 
-    if (!context.channelId) {
-      return true;
+    const [ indexQuery, channelQuery ] = split(arg, 2);
+
+    let index: number = 0;
+    if (indexQuery === 'random' || !isNaN(indexQuery as any)) {
+      if (indexQuery === 'random') {
+        index = -1;
+      } else if (!isNaN(indexQuery as any)) {
+        index = parseInt(indexQuery);
+        if (isNaN(index)) {
+          index = 0;
+        }
+      }
     }
 
-    const channel = context.channel;
+    if (100 <= index) {
+      throw new Error('Message index cannot be over 99');
+    }
+
+    let channelId: string = '';
+    let channel: Structures.Channel | null = null;
+    if (channelQuery) {
+      increaseNetworkRequests(tag); // if its a snowflake, just check cache?
+      channel = await findChannel(channelQuery, context);
+      if (!channel || !channel.isText) {
+        return true;
+      }
+      channelId = channel.id;
+    } else {
+      channel = context.channel;
+      channelId = context.channelId!; // we dont get channel objects in dms
+    }
+
+    if (channel) {
+      const member = context.member;
+      if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
+        throw new Error('You cannot view the history of this channel');
+      }
+      if (!channel.canReadHistory) {
+        throw new Error('Bot cannot view the history of this channel');
+      }
+    } else if (!context.inDm && !context.hasServerPermissions) {
+      throw new Error('Bot cannot view the history of this channel');
+    }
+
+    // maybe dont show the bot's messages?
+
+    const MAX_LIMIT = (index === -1) ? 100 : Math.min(100, index + 1);
+
+    const messagesFound: Array<Structures.Message> = [];
+
+    let before: string | undefined;
+    if (channel) {
+      // maybe make this use not the channel object (for dms)?
+      for (let message of channel.messages.toArray().reverse()) {
+        if (MAX_LIMIT <= messagesFound.length) {
+          break;
+        }
+        if (context instanceof Command.Context && message.id === context.messageId) {
+          continue;
+        }
+        if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
+          continue;
+        }
+        messagesFound.push(message);
+        before = message.id;
+      }
+    }
+
+    if (messagesFound.length < MAX_LIMIT) {
+      increaseNetworkRequests(tag);
+
+      const limit = MAX_LIMIT - messagesFound.length;
+      const messages = await context.rest.fetchMessages(channelId, {before, limit});
+      for (let message of messages.toArray()) {
+        if (limit <= messagesFound.length) {
+          break;
+        }
+        if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
+          continue;
+        }
+        messagesFound.push(message);
+        before = message.id;
+      }
+    }
+
+    if (index === -1) {
+      const message = randomFromArray(messagesFound);
+      tag.text += message.id;
+    } else if (index in messagesFound) {
+      const message = messagesFound[index];
+      if (message) {
+        tag.text += message.id;
+      }
+    }
+  
+    return true;
+  },
+
+  [TagFunctions.MESSAGE_RANDOM_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // get a random message id from the past 100 messages in a channel
+    // {randmessageid:CHANNEL_ID?}
+
+    const channelQuery = arg.trim();
+
+    let channelId: string = '';
+    let channel: Structures.Channel | null = null;
+    if (channelQuery) {
+      increaseNetworkRequests(tag); // if its a snowflake, just check cache?
+      channel = await findChannel(channelQuery, context);
+      if (!channel || !channel.isText) {
+        return true;
+      }
+      channelId = channel.id;
+    } else {
+      channel = context.channel;
+      channelId = context.channelId!; // we dont get channel objects in dms
+    }
+
     if (channel) {
       const member = context.member;
       if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
@@ -3532,11 +3681,14 @@ const ScriptTags = Object.freeze({
     if (channel) {
       // maybe make this use not the channel object (for dms)?
       for (let message of channel.messages.toArray().reverse()) {
+        if (MAX_LIMIT <= messagesFound.length) {
+          break;
+        }
         if (context instanceof Command.Context && message.id === context.messageId) {
           continue;
         }
-        if (MAX_LIMIT <= messagesFound.length) {
-          break;
+        if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
+          continue;
         }
         messagesFound.push(message);
         before = message.id;
@@ -3547,10 +3699,13 @@ const ScriptTags = Object.freeze({
       increaseNetworkRequests(tag);
 
       const limit = MAX_LIMIT - messagesFound.length;
-      const messages = await context.rest.fetchMessages(context.channelId!, {before, limit});
+      const messages = await context.rest.fetchMessages(channelId, {before, limit});
       for (let message of messages.toArray()) {
         if (limit <= messagesFound.length) {
           break;
+        }
+        if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
+          continue;
         }
         messagesFound.push(message);
         before = message.id;
@@ -3565,35 +3720,59 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.MESSAGE_USER_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // get a message's author's id
-    // {messageuserid:MESSAGE_ID}
+    // {messageuserid:MESSAGE_ID?|CHANNEL_ID?}
 
-    const channel = context.channel;
-    if (channel) {
-      const member = context.member;
-      if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
-        throw new Error('You cannot view the history of this channel');
+    if (arg) {
+      const [ messageId, channelQuery ] = split(arg, 2);
+      if (!messageId) {
+        return true;
       }
-      if (!channel.canReadHistory) {
+
+      let channelId: string = '';
+      let channel: Structures.Channel | null = null;
+      if (channelQuery) {
+        increaseNetworkRequests(tag); // if its a snowflake, just check cache?
+        channel = await findChannel(channelQuery, context);
+        if (!channel || !channel.isText) {
+          return true;
+        }
+        channelId = channel.id;
+      } else {
+        channel = context.channel;
+        channelId = context.channelId!; // we dont get channel objects in dms
+      }
+
+      if (channel) {
+        const member = context.member;
+        if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
+          throw new Error('You cannot view the history of this channel');
+        }
+        if (!channel.canReadHistory) {
+          throw new Error('Bot cannot view the history of this channel');
+        }
+      } else if (!context.inDm && !context.hasServerPermissions) {
         throw new Error('Bot cannot view the history of this channel');
       }
-    } else if (!context.inDm && !context.hasServerPermissions) {
-      throw new Error('Bot cannot view the history of this channel');
-    }
 
-    const messageId = arg.trim();
-    if (context.messages.has(messageId)) {
-      const message = context.messages.get(messageId)!;
-      if (message.channelId === context.channelId) {
+      let message: Structures.Message | undefined;
+      if (context.messages.has(messageId)) {
+        message = context.messages.get(messageId)!;
+      } else {
+        increaseNetworkRequests(tag);
+        try {
+          message = await context.rest.fetchMessage(channelId, messageId);
+        } catch(error) {
+      
+        }
+      }
+      if (message && message.channelId === channelId) {
+        if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
+          return true;
+        }
         tag.text += message.author.id;
       }
-    } else {
-      increaseNetworkRequests(tag);
-      try {
-        const message = await context.rest.fetchMessage(context.channelId!, messageId);
-        tag.text += message.author.id;
-      } catch(error) {
-
-      }
+    } else if (context instanceof Command.Context) {
+      tag.text += context.message.author.id;
     }
 
     return true;
@@ -3748,7 +3927,6 @@ const ScriptTags = Object.freeze({
       }
 
     } catch(error) {
-      console.log(error);
       throw error;
     }
 
@@ -3786,19 +3964,47 @@ const ScriptTags = Object.freeze({
   [TagFunctions.PAGE_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {pagejson:{"embed": {"title": "asd"}}}
 
+    let page: any = null;
     try {
-      let page = JSON.parse(arg);
-      if (typeof(page) !== 'object' || !('embed' in page) || typeof(page.embed) !== 'object') {
+      page = JSON.parse(arg);
+    } catch(error) {
+      throw new Error('Invalid Page Given');
+    }
+
+    let content: string | undefined;
+    let embeds: Array<Embed> | undefined;
+    let filenames: Array<string> | undefined;
+    if (typeof(page) !== 'object') {
+      throw new Error('Invalid Page Given');
+    }
+    if ('content' in page && typeof(page.content) === 'string') {
+      content = page.content;
+    }
+    if ('embed' in page && typeof(page.embed) === 'object') {
+      try {
+        const embed = new Embed(page.embed);
+        if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+          throw new Error('this error doesn\'t matter');
+        }
+        embeds = [embed];
+      } catch(error) {
         throw new Error('Invalid Page Given');
       }
-      const embed = new Embed(page.embed);
-      if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
-        throw new Error('this error doesn\'t matter');
-      }
-      tag.pages.push({embed});
-    } catch(error) {
-      return false;
     }
+    if ('files' in page && Array.isArray(page.files)) {
+      for (let filename of page.files) {
+        if (filename && typeof(filename) === 'string' && filename.startsWith('attachment://')) {
+          if (!filenames) {
+            filenames = [];
+          }
+          filenames.push(filename);
+        }
+      }
+    }
+    if (!content && !embeds && !filenames) {
+      throw new Error('Invalid Page Given');
+    }
+    tag.pages.push({content, embeds, filenames});
 
     if (MAX_PAGES < tag.pages.length) {
       throw new Error(`Pages surpassed max pages length of ${MAX_PAGES}`);
