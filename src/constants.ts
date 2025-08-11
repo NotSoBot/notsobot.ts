@@ -1294,6 +1294,14 @@ export const MLDiffusionModelsToText = Object.freeze({
 });
 
 
+export enum ProxyRequestMethods {
+  GET = 'GET',
+  PATCH = 'PATCH',
+  POST = 'POST',
+  PUT = 'PUT',
+}
+
+
 export const RatelimitKeys = Object.freeze({
   IMAGE: Math.random().toString(36).substring(7),
   SEARCH: Math.random().toString(36).substring(7),
@@ -1375,13 +1383,14 @@ export enum TagGenerationModels {
   CLAUDE_3_5_HAIKU = 'CLAUDE_3_5_HAIKU',
   DEEPSEEK_CHAT = 'DEEPSEEK_CHAT',
   GOOGLE_GEMINI_2_5_PRO = 'GOOGLE_GEMINI_2_5_PRO',
-  GOOGLE_GEMINI_2_0_FLASH = 'GOOGLE_GEMINI_2_0_FLASH',
+  GOOGLE_GEMINI_2_5_FLASH = 'GOOGLE_GEMINI_2_5_FLASH',
+  GOOGLE_GEMINI_2_5_FLASH_LITE = 'GOOGLE_GEMINI_2_5_FLASH_LITE',
   GOOGLE_GEMMA_3_0 = 'GOOGLE_GEMMA_3_0',
   META_LLAMA = 'META_LLAMA',
+  OPENAI_CHATGPT_5 = 'OPENAI_CHATGPT_5',
+  OPENAI_CHATGPT_5_MINI = 'OPENAI_CHATGPT_5_MINI',
   OPENAI_CHATGPT_4_1 = 'OPENAI_CHATGPT_4_1',
   OPENAI_CHATGPT_4_1_MINI = 'OPENAI_CHATGPT_4_1_MINI',
-  OPENAI_CHATGPT_4O = 'OPENAI_CHATGPT_4O',
-  OPENAI_CHATGPT_4O_MINI = 'OPENAI_CHATGPT_4O_MINI',
   QWEN_2_5_CODER = 'QWEN_2_5_CODER',
   XAI_GROK_4 = 'XAI_GROK_4',
   XAI_GROK_3 = 'XAI_GROK_3',
@@ -1395,18 +1404,35 @@ export const TagGenerationModelsToText = Object.freeze({
   [TagGenerationModels.CLAUDE_3_5_HAIKU]: 'Claude 3.5 Haiku',
   [TagGenerationModels.DEEPSEEK_CHAT]: 'DeepSeek Chat',
   [TagGenerationModels.GOOGLE_GEMINI_2_5_PRO]: 'Google Gemini 2.5 Pro',
-  [TagGenerationModels.GOOGLE_GEMINI_2_0_FLASH]: 'Google Gemini 2.0 Flash',
+  [TagGenerationModels.GOOGLE_GEMINI_2_5_FLASH]: 'Google Gemini 2.5 Flash',
+  [TagGenerationModels.GOOGLE_GEMINI_2_5_FLASH_LITE]: 'Google Gemini 2.5 Flash Lite',
   [TagGenerationModels.GOOGLE_GEMMA_3_0]: 'Google Gemma 3.0',
   [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
+  [TagGenerationModels.OPENAI_CHATGPT_5]: 'OpenAI ChatGPT 5',
+  [TagGenerationModels.OPENAI_CHATGPT_5_MINI]: 'OpenAI ChatGPT 5 Mini',
   [TagGenerationModels.OPENAI_CHATGPT_4_1]: 'OpenAI ChatGPT 4.1',
   [TagGenerationModels.OPENAI_CHATGPT_4_1_MINI]: 'OpenAI ChatGPT 4.1 Mini',
-  [TagGenerationModels.OPENAI_CHATGPT_4O]: 'OpenAI ChatGPT 4o',
-  [TagGenerationModels.OPENAI_CHATGPT_4O_MINI]: 'OpenAI ChatGPT 4o Mini',
   [TagGenerationModels.QWEN_2_5_CODER]: 'Qwen 2.5 Coder',
   [TagGenerationModels.XAI_GROK_4]: 'xAI Grok 4',
   [TagGenerationModels.XAI_GROK_3]: 'xAI Grok 3',
   [TagGenerationModels.XAI_GROK_3_MINI]: 'xAI Grok 3 Mini',
   [TagGenerationModels.XAI_GROK_2]: 'xAI Grok 2',
+});
+
+
+export enum TagGenerationPersonalityPreferences {
+  AUTOMATIC = 'AUTOMATIC',
+  DEFAULT = 'DEFAULT',
+  GUILD = 'GUILD',
+  USER = 'USER',
+}
+
+
+export const TagGenerationPersonalityPreferencesToText = Object.freeze({
+  [TagGenerationPersonalityPreferences.AUTOMATIC]: 'Automatic (User -> Server -> Default)',
+  [TagGenerationPersonalityPreferences.DEFAULT]: 'Default Personality',
+  [TagGenerationPersonalityPreferences.GUILD]: 'Server Personality',
+  [TagGenerationPersonalityPreferences.USER]: 'User Personality',
 });
 
 
@@ -1422,6 +1448,7 @@ export enum TagVariableStorageTypes {
   USER = 0,
   CHANNEL = 1,
   GUILD = 2,
+  GLOBAL = 3,
 }
 
 
@@ -1663,6 +1690,8 @@ export const NotSoApiKeys = Object.freeze({
   MEDIA_IMAGE: 'media_image',
   METADATA: 'metadata',
   ML_DIFFUSION_MODEL: 'ml_diffusion_model',
+  ML_LLM_MODEL: 'ml_llm_model',
+  ML_LLM_PERSONALITY: 'ml_llm_personality',
   NAME: 'name',
   OPTED_OUT: 'opted_out',
   PREFIX: 'prefix',
@@ -1741,6 +1770,8 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.MEDIA_IMAGE]: 'mediaImage',
   [NotSoApiKeys.METADATA]: 'metadata',
   [NotSoApiKeys.ML_DIFFUSION_MODEL]: 'mlDiffusionModel',
+  [NotSoApiKeys.ML_LLM_MODEL]: 'mlLLMModel',
+  [NotSoApiKeys.ML_LLM_PERSONALITY]: 'mlLLMPersonality',
   [NotSoApiKeys.NAME]: 'name',
   [NotSoApiKeys.OPTED_OUT]: 'optedOut',
   [NotSoApiKeys.PREFIX]: 'prefix',

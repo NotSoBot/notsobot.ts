@@ -15,6 +15,7 @@ import {
 } from 'detritus-client/lib/constants';
 import {
   Components,
+  ComponentContext,
   Embed,
   Markup,
   PermissionTools,
@@ -171,17 +172,23 @@ export function durationToMilliseconds(duration: string): number {
 }
 
 
+export function editOrReply(context: ComponentContext, options: Command.EditOrReply | string): Promise<null>
 export function editOrReply(context: Command.Context, options: Command.EditOrReply | string): Promise<Structures.Message>
 export function editOrReply(context: Interaction.InteractionContext, options: Structures.InteractionEditOrRespond | string): Promise<null>
-export function editOrReply(context: Command.Context | Interaction.InteractionContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | null>
+export function editOrReply(context: Command.Context | Interaction.InteractionContext | ComponentContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | null>
 export function editOrReply(
-  context: Command.Context | Interaction.InteractionContext,
+  context: Command.Context | Interaction.InteractionContext | ComponentContext,
   options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
 ): Promise<Structures.Message | null> {
   if (typeof(options) === 'string') {
     options = {content: options};
   }
-  if (context instanceof Interaction.InteractionContext) {
+  if (context instanceof ComponentContext) {
+    return context.editOrRespond({
+      ...options,
+      allowedMentions: {parse: [], ...options.allowedMentions},
+    }) as Promise<Structures.Message | null>;
+  } else if (context instanceof Interaction.InteractionContext) {
     return context.editOrRespond({
       ...options,
       allowedMentions: {parse: [], ...options.allowedMentions},

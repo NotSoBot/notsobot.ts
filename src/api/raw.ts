@@ -642,6 +642,8 @@ export async function editGuildSettings(
     commands_allowlist: options.commandsAllowlist,
     commands_blocklist: options.commandsBlocklist,
     ml_diffusion_model: options.mlDiffusionModel,
+    ml_llm_model: options.mlLLMModel,
+    ml_llm_personality: options.mlLLMPersonality,
     prefixes: options.prefixes,
     timezone: options.timezone,
   };
@@ -715,6 +717,7 @@ export async function editUserSettings(
     locale: options.locale,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
+    ml_llm_personality: options.mlLLMPersonality,
     opt_out_content: options.optOutContent,
     response_display: options.responseDisplay,
     timezone: options.timezone,
@@ -1124,6 +1127,8 @@ export async function generateTag(
   const body = {
     max_file_size: maxFileSize,
     model: options.model,
+    personality: options.personality,
+    personality_preference: options.personalityPreference,
     prompt: options.prompt,
     urls: options.urls,
   };
@@ -2307,7 +2312,7 @@ export async function mediaIVManipulationCaption(
 export async function mediaIVManipulationCircle(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationCircle,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2351,7 +2356,7 @@ export async function mediaIVManipulationDeepfry(
 export async function mediaIVManipulationDetunnel(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationTunnel,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2373,7 +2378,7 @@ export async function mediaIVManipulationDetunnel(
 export async function mediaIVManipulationDistort(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationDistort,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     arguments: options.arguments,
@@ -3876,6 +3881,29 @@ export async function mediaIVManipulationSpin(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_SPIN,
+    },
+  });
+}
+
+export async function mediaIVManipulationStretch(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationStretch,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    crop: options.crop,
+    height: options.height,
+    max_file_size: maxFileSize,
+    url: options.url,
+    width: options.width,
+  };
+  return request(context, {
+    file: options.file,
+    multipart: true,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_STRETCH,
     },
   });
 }
@@ -5416,6 +5444,29 @@ export async function utilitiesMLMashup(
     route: {
       method: HTTPMethods.POST,
       path: Api.UTILITIES_ML_MASHUP,
+    },
+  });
+}
+
+
+export async function utilitiesProxyRequest(
+  context: RequestContext,
+  options: RestOptions.UtilitiesProxyRequest,
+): Promise<RestResponsesRaw.UtilitiesProxyRequest> {
+  const body = {
+    data: options.data,
+    data_json: options.dataJSON,
+    headers: options.headers,
+    method: options.method,
+    query: options.query,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_PROXY_REQUEST,
     },
   });
 }

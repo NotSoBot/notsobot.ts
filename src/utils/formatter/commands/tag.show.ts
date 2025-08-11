@@ -1,5 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
+import { InteractionCallbackTypes, MessageComponentTypes, MessageFlags } from 'detritus-client/lib/constants';
+import { Components, ComponentActionRow, ComponentButton, ComponentContext } from 'detritus-client/lib/utils';
 
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
 
@@ -31,18 +32,42 @@ export async function createMessage(
   context.metadata = Object.assign({}, context.metadata, {tag});
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
   const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
-
-  context.metadata = Object.assign({}, context.metadata, {parsedTag});
   await maybeReplaceContent(context, tag);
+  return await createTagMessage(context, parsedTag);
+}
+
+
+export async function createTagMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  parsedTag: TagFormatter.TagResult,
+  title?: string,
+  componentContext?: ComponentContext,
+) {
+  context.metadata = Object.assign({}, context.metadata, {parsedTag});
 
   if (parsedTag.pages.length) {
+    if (context instanceof ComponentContext) {
+      throw new Error('TagScript does not support pages inside of components currently');
+    }
+
     const pages = generatePages(context, parsedTag);
     const paginator = new Paginator(context, {pages});
     return await paginator.start();
   }
 
-  const content = parsedTag.text.trim().slice(0, 2000).trim();
+  let content = parsedTag.text.trim().slice(0, 2000).trim();
+  if (title) {
+    content = [title + '\n', content].join('\n').slice(0, 2000).trim();
+  }
+
   const options: Command.EditOrReply = {content};
+  if (parsedTag.components) {
+    const components = generateComponents(context, parsedTag);
+    if (components) {
+      options.components = components;
+    }
+  }
+
   if (parsedTag.embeds.length) {
     // add checks for embed lengths
     options.embeds = parsedTag.embeds.slice(0, 10);
@@ -64,16 +89,102 @@ export async function createMessage(
     });
   }
 
-  await maybeCheckNSFW(context, tag, options);
-  if (!content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
+  await maybeCheckNSFW(context, options);
+  if (!content.length && (!parsedTag.components || !parsedTag.components.components.length) && !parsedTag.embeds.length && !parsedTag.files.length) {
     options.content = 'Tag returned no content';
   }
 
-  if (options.flags && (content.length || parsedTag.embeds.length || parsedTag.files.length !== 1)) {
+  if (options.flags && (content.length || parsedTag.embeds.length || parsedTag.files.length !== 1 || parsedTag.components)) {
     options.flags = undefined;
   }
 
-  return editOrReply(context, options);
+  return editOrReply(componentContext || context, options);
+}
+
+
+export function generateComponents(
+  context: Command.Context | Interaction.InteractionContext,
+  parsedTag: TagFormatter.TagResult,
+): Components | null {
+  if (!parsedTag.components || !parsedTag.components.components.length) {
+    return null;
+  }
+
+  let isExecuting = false;
+
+  const components = new Components({
+    timeout: 1 * (60 * 1000),
+    onError: (componentContext: ComponentContext, error: Error) => {
+      return componentContext.editOrRespond(`TagScript error has occured: ${error}`);
+    },
+    onTimeout: async () => {
+      if (parsedTag.components && parsedTag.components.onTimeout) {
+        await TagFormatter.increaseComponentExecutions(parsedTag);
+        const newParsedTag = await TagFormatter.parse(context, parsedTag.components.onTimeout, '', parsedTag.variables, parsedTag.context, parsedTag.limits);
+        return createTagMessage(context, newParsedTag);
+      }
+      if (context instanceof Command.Context) {
+        const response = context.response;
+        if (response && response.canEdit) {
+          await response.edit({components: []});
+        }
+      } else {
+        return editOrReply(context, {
+          attachments: undefined,
+          content: undefined,
+          components: [],
+          embeds: undefined,
+        });
+      }
+    },
+  });
+  for (let x of parsedTag.components.components) {
+    switch (x.type) {
+      case MessageComponentTypes.BUTTON: {
+        if (x.run) {
+          const runTagScript = x.run;
+          x.run = async (componentContext: ComponentContext) => {
+            if (componentContext.userId !== context.userId) {
+              await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+              return;
+            }
+            if (isExecuting) {
+              return;
+            }
+
+            isExecuting = true;
+
+            for (let x of components.components) {
+              if (x instanceof ComponentActionRow) {
+                for (let v of x.components) {
+                  if (v instanceof ComponentButton) {
+                    v.disabled = true;
+                  }
+                }
+              }
+            }
+
+            await componentContext.editOrRespond({
+              attachments: undefined,
+              content: undefined,
+              components,
+              embeds: undefined,
+            });
+
+            await TagFormatter.resetTagLimits(parsedTag);
+            await TagFormatter.increaseComponentExecutions(parsedTag);
+            const newParsedTag = await TagFormatter.parse(context, runTagScript, '', parsedTag.variables, parsedTag.context, parsedTag.limits);
+            return createTagMessage(context, newParsedTag, '', componentContext);
+          };
+        }
+        components.createButton(x);
+      }; break;
+      default: {
+        throw new Error(`Unknown Component Type: ${x.type}`);
+      };
+    }
+  }
+  return components;
 }
 
 
@@ -195,7 +306,6 @@ export async function increaseUsage(
 
 export async function maybeCheckNSFW(
   context: Command.Context | Interaction.InteractionContext,
-  tag: RestResponsesRaw.Tag,
   options: Command.EditOrReply,
 ): Promise<void> {
   if (options.content) {

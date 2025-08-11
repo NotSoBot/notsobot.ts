@@ -522,7 +522,7 @@ export async function url(
       const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
       if (matches.length) {
         const [ { id: userId } ] = matches;
-    
+
         // pass it onto the next statement
         if (isSnowflake(userId)) {
           value = userId;
@@ -892,6 +892,7 @@ export function channel(options: ChannelOptions = {}) {
     value: string,
     context: Command.Context | Interaction.InteractionContext,
   ): Structures.Channel | null => {
+    value = value.trim();
     if (value) {
       {
         const { matches } = discordRegex(DiscordRegexNames.MENTION_CHANNEL, value) as {matches: Array<{id: string}>};
@@ -1003,6 +1004,7 @@ export function memberOrUser(
     value: string,
     context: Command.Context | Interaction.InteractionContext,
   ): Promise<Structures.Member | Structures.User | null> => {
+    value = value.trim();
     if (value) {
       return Promise.resolve((async () => {
         try {
@@ -1078,6 +1080,7 @@ export function membersOrUsers(
     value: string,
     context: Command.Context | Interaction.InteractionContext,
   ): Promise<Array<Structures.Member | Structures.User> | null> => {
+    value = value.trim();
     if (value) {
       const args = new Set<string>(stringArguments(value));
       if ((options.max as number) < args.size) {
@@ -1105,6 +1108,7 @@ export function membersOrUsersSearch(
     value: string,
     context: Command.Context | Interaction.InteractionContext,
   ): Promise<Array<Structures.Member | Structures.User> | null> => {
+    value = value.trim();
     if (value) {
       return Promise.resolve((async () => {
         try {

@@ -1,7 +1,12 @@
 import * as vm from 'vm';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
-import { MarkupTimestampStyles, Permissions, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
+import {
+  MarkupTimestampStyles,
+  MessageComponentButtonStyles,
+  MessageComponentTypes,
+  Permissions,
+} from 'detritus-client/lib/constants';
 import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 import MiniSearch from 'minisearch';
@@ -32,15 +37,17 @@ import {
   utilitiesMLEdit,
   utilitiesMLImagine,
   utilitiesMLInterrogate,
+  utilitiesProxyRequest,
   utilitiesWeather,
 } from '../../api';
-import { RestResponses, RestResponsesRaw } from '../../api/types';
+import { RestOptions, RestResponses, RestResponsesRaw } from '../../api/types';
 import {
   CodeLanguages,
   GoogleLocales,
   MeasurementUnits,
   Mimetypes,
   MLDiffusionModels,
+  ProxyRequestMethods,
   TagVariableStorageTypes,
   YoutubeResultTypes,
   CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
@@ -70,9 +77,9 @@ import {
   textToBoolean,
 } from '../tools';
 
-import { TagExitError } from './exceptions';
+import { TagExitError, TagRequestError } from './exceptions';
 
-export { TagExitError };
+export { TagExitError, TagRequestError };
 
 
 
@@ -120,25 +127,54 @@ export const ATTACHMENT_EXTENSIONS_MEDIA = [
 
 export const ATTACHMENT_EXTENSIONS = [...ATTACHMENT_EXTENSIONS_IMAGE, ...ATTACHMENT_EXTENSIONS_MEDIA];
 
-export const MAX_API_MANIPULATIONS = 1;
-export const MAX_ATTACHMENTS = 10;
-export const MAX_EMBEDS = 10;
-export const MAX_ITERATIONS = 450;
-export const MAX_NETWORK_REQUESTS = 15;
-export const MAX_NETWORK_REQUESTS_ML = 5;
-export const MAX_NETWORK_REQUESTS_OPENAI = 2;
-export const MAX_PAGES = 1000;
-export const MAX_STORAGE_GUILD_AMOUNT = 5;
-export const MAX_STORAGE_CHANNEL_AMOUNT = 5;
-export const MAX_STORAGE_USER_AMOUNT = 5;
-export const MAX_STORAGE_KEY_LENGTH = 128;
-export const MAX_STORAGE_VALUE_LENGTH = 2048;
-export const MAX_AI_EXECUTIONS = 1;
-export const MAX_TAG_EXECUTIONS = 1;
-export const MAX_TIME_REGEX = 25;
-export const MAX_VARIABLE_KEY_LENGTH = 64;
-export const MAX_VARIABLE_LENGTH = 1 * 1024 * 1024;
-export const MAX_VARIABLES = 100;
+export interface TagLimits {
+  MAX_AI_EXECUTIONS: number,
+  MAX_API_MANIPULATIONS: number,
+  MAX_ATTACHMENTS: number,
+  MAX_COMPONENT_EXECUTIONS: number,
+  MAX_EMBEDS: number,
+  MAX_ITERATIONS: number,
+  MAX_NETWORK_REQUESTS: number,
+  MAX_NETWORK_REQUESTS_ML: number,
+  MAX_NETWORK_REQUESTS_OPENAI: number,
+  MAX_PAGES: number,
+  MAX_STORAGE_GLOBAL_AMOUNT: number,
+  MAX_STORAGE_GUILD_AMOUNT: number,
+  MAX_STORAGE_CHANNEL_AMOUNT: number,
+  MAX_STORAGE_USER_AMOUNT: number,
+  MAX_STORAGE_KEY_LENGTH: number,
+  MAX_STORAGE_VALUE_LENGTH: number,
+  MAX_TAG_EXECUTIONS: number,
+  MAX_TIME_REGEX: number,
+  MAX_VARIABLE_KEY_LENGTH: number,
+  MAX_VARIABLE_LENGTH: number,
+  MAX_VARIABLES: number,
+}
+
+export const TagLimitDefaults: TagLimits = Object.freeze({
+  MAX_AI_EXECUTIONS: 1,
+  MAX_API_MANIPULATIONS: 1,
+  MAX_ATTACHMENTS: 10,
+  MAX_COMPONENT_EXECUTIONS: 2,
+  MAX_EMBEDS: 10,
+  MAX_ITERATIONS: 450,
+  MAX_NETWORK_REQUESTS: 15,
+  MAX_NETWORK_REQUESTS_ML: 5,
+  MAX_NETWORK_REQUESTS_OPENAI: 2,
+  MAX_PAGES: 1000,
+  MAX_STORAGE_GLOBAL_AMOUNT: 5,
+  MAX_STORAGE_GUILD_AMOUNT: 5,
+  MAX_STORAGE_CHANNEL_AMOUNT: 5,
+  MAX_STORAGE_USER_AMOUNT: 5,
+  MAX_STORAGE_KEY_LENGTH: 128,
+  MAX_STORAGE_VALUE_LENGTH: 16384,
+  MAX_TAG_EXECUTIONS: 1,
+  MAX_TIME_REGEX: 25,
+  MAX_VARIABLE_KEY_LENGTH: 64,
+  MAX_VARIABLE_LENGTH: 1 * 1024 * 1024,
+  MAX_VARIABLES: 100,
+});
+
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
 export const ATTACHMENT_URL_REGEX = /(https?:\/\/(?:media\.discordapp\.net|cdn.discordapp.com)\/attachments\/[0-9]*\/[0-9]*\/[A-Za-z0-9_.-]*(?:\?[a-zA-Z0-9&=]*)?)/g;
@@ -155,6 +191,7 @@ export enum PrivateVariables {
   API_MANIPULATIONS = '__apiManipulations',
   ARGS = '__args',
   ARGS_STRING = '__argsString',
+  COMPONENT_EXECUTIONS = '__componentExecutions',
   FILE_SIZE = '__fileSize',
   FILES = '__files',
   ITERATIONS_REMAINING = '__iterationsRemaining',
@@ -226,6 +263,8 @@ export enum TagFunctions {
   CHANNEL_RANDOM = 'CHANNEL_RANDOM',
   CHANNEL_RANDOM_ID = 'CHANNEL_RANDOM_ID',
   CHANNEL_RANDOM_MENTION = 'CHANNEL_RANDOM_MENTION',
+  COMPONENT_JSON = 'COMPONENT_JSON',
+  COMPONENTS_ON_TIMEOUT = 'COMPONENTS_ON_TIMEOUT',
   DISCORD = 'DISCORD',
   DOWNLOAD = 'DOWNLOAD',
   EMBED_JSON = 'EMBED_JSON',
@@ -253,6 +292,7 @@ export enum TagFunctions {
   LOGICAL_FOR_EACH = 'LOGICAL_FOR_EACH',
   LOGICAL_GET = 'LOGICAL_GET',
   LOGICAL_GET_CHANNEL = 'LOGICAL_GET_CHANNEL',
+  LOGICAL_GET_GLOBAL = 'LOGICAL_GET_GLOBAL',
   LOGICAL_GET_SERVER = 'LOGICAL_GET_SERVER',
   LOGICAL_GET_USER = 'LOGICAL_GET_USER',
   LOGICAL_IF = 'LOGICAL_IF',
@@ -260,6 +300,7 @@ export enum TagFunctions {
   LOGICAL_OR = 'LOGICAL_OR',
   LOGICAL_SET = 'LOGICAL_SET',
   LOGICAL_SET_CHANNEL = 'LOGICAL_SET_CHANNEL',
+  LOGICAL_SET_GLOBAL = 'LOGICAL_SET_GLOBAL',
   LOGICAL_SET_SERVER = 'LOGICAL_SET_SERVER',
   LOGICAL_SET_USER = 'LOGICAL_SET_USER',
   MATH = 'MATH',
@@ -293,6 +334,7 @@ export enum TagFunctions {
   PREFIX = 'PREFIX',
   REPLY_CONTENT = 'REPLY_CONTENT',
   REPLY_USER_ID = 'REPLY_USER_ID',
+  REQUEST = 'REQUEST',
   RNG_CHOOSE = 'RNG_CHOOSE',
   RNG_RANGE = 'RNG_RANGE',
   SEARCH_DUCKDUCKGO_IMAGES = 'SEARCH_DUCKDUCKGO_IMAGES',
@@ -366,6 +408,8 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.CHANNEL_RANDOM]: ['randchannel'],
   [TagFunctions.CHANNEL_RANDOM_ID]: ['randchannelid'],
   [TagFunctions.CHANNEL_RANDOM_MENTION]: ['randchannelmention'],
+  [TagFunctions.COMPONENT_JSON]: ['componentjson'],
+  [TagFunctions.COMPONENTS_ON_TIMEOUT]: ['componentsontimeout'],
   [TagFunctions.DISCORD]: ['discord'],
   [TagFunctions.DOWNLOAD]: ['download', 'text'],
   [TagFunctions.EMBED_JSON]: ['embedjson'],
@@ -393,6 +437,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_FOR_EACH]: ['foreach'],
   [TagFunctions.LOGICAL_GET]: ['get'],
   [TagFunctions.LOGICAL_GET_CHANNEL]: ['getchannel'],
+  [TagFunctions.LOGICAL_GET_GLOBAL]: ['getglobal'],
   [TagFunctions.LOGICAL_GET_SERVER]: ['getserver'],
   [TagFunctions.LOGICAL_GET_USER]: ['getuser'],
   [TagFunctions.LOGICAL_IF]: ['if'],
@@ -400,6 +445,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_OR]: ['or'],
   [TagFunctions.LOGICAL_SET]: ['set'],
   [TagFunctions.LOGICAL_SET_CHANNEL]: ['setchannel'],
+  [TagFunctions.LOGICAL_SET_GLOBAL]: ['setglobal'],
   [TagFunctions.LOGICAL_SET_SERVER]: ['setserver'],
   [TagFunctions.LOGICAL_SET_USER]: ['setuser'],
   [TagFunctions.MATH]: ['math'],
@@ -433,6 +479,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.PREFIX]: ['prefix'],
   [TagFunctions.REPLY_CONTENT]: ['replycontent'],
   [TagFunctions.REPLY_USER_ID]: ['replyuserid'],
+  [TagFunctions.REQUEST]: ['request'],
   [TagFunctions.RNG_CHOOSE]: ['choose'],
   [TagFunctions.RNG_RANGE]: ['range', 'random', 'rnd'],
   [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES]: ['search.duckduckgo.images', 'search.ddg.images', 's.duckduckgo.images', 's.ddg.images'],
@@ -493,6 +540,7 @@ export interface TagVariables {
   [PrivateVariables.API_MANIPULATIONS]: number,
   [PrivateVariables.ARGS]: Array<string>,
   [PrivateVariables.ARGS_STRING]: string,
+  [PrivateVariables.COMPONENT_EXECUTIONS]: number,
   [PrivateVariables.FILE_SIZE]: number,
   [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
@@ -523,7 +571,13 @@ export interface TagContext {
   mathWorker?: MathWorker,
 }
 
+export interface TagResultComponents {
+  components: Array<any>,
+  onTimeout?: string,
+}
+
 export interface TagResult {
+  components: TagResultComponents | null,
   context: TagContext,
   embeds: Array<Embed>,
   files: Array<{
@@ -536,6 +590,7 @@ export interface TagResult {
     waveform?: string,
     url: string,
   }>,
+  limits: TagLimits,
   pages: Array<PageObject & {filenames?: Array<string>}>,
   replacement: string | null,
   text: string,
@@ -548,13 +603,21 @@ export async function parse(
   args: string = '',
   variables: TagVariables = Object.create(null),
   tagContext: TagContext = Object.create(null),
+  limits: Partial<TagLimits> = Object.create(null),
   shouldTrim: boolean = true,
 ): Promise<TagResult> {
+  const tagLimits: TagLimits = Object.assign({}, TagLimitDefaults);
+  for (let key in limits) {
+    if (key in tagLimits) {
+      (tagLimits as any)[key] = (limits as any)[key];
+    }
+  }
+
   let isFirstParse = true;
   if (PrivateVariables.ITERATIONS_REMAINING in variables) {
     isFirstParse = false;
   } else {
-    (variables as any)[PrivateVariables.ITERATIONS_REMAINING] = MAX_ITERATIONS;
+    (variables as any)[PrivateVariables.ITERATIONS_REMAINING] = tagLimits.MAX_ITERATIONS;
     (variables as any)[PrivateVariables.ARGS_STRING] = args;
     (variables as any)[PrivateVariables.ARGS] = Parameters.stringArguments(args);
   }
@@ -563,6 +626,9 @@ export async function parse(
   }
   if (!(PrivateVariables.API_MANIPULATIONS in variables)) {
     (variables as any)[PrivateVariables.API_MANIPULATIONS] = 0;
+  }
+  if (!(PrivateVariables.COMPONENT_EXECUTIONS in variables)) {
+    (variables as any)[PrivateVariables.COMPONENT_EXECUTIONS] = 0;
   }
   if (!(PrivateVariables.NETWORK_REQUESTS in variables)) {
     (variables as any)[PrivateVariables.NETWORK_REQUESTS] = 0;
@@ -629,7 +695,7 @@ export async function parse(
     }
   }
 
-  const tag: TagResult = {context: tagContext, embeds: [], files: [], pages: [], replacement, text: '', variables};
+  const tag: TagResult = {components: null, context: tagContext, embeds: [], files: [], limits: tagLimits, pages: [], replacement, text: '', variables};
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   const maxFileSize = context.maxAttachmentSize;
@@ -662,6 +728,7 @@ export async function parse(
 
     increaseAIExecutions(tag, 0);
     increaseAPIManipulations(tag, 0);
+    increaseComponentExecutions(tag, 0);
     increaseNetworkRequests(tag, 0);
     increaseNetworkRequestsML(tag, 0);
     increaseNetworkRequestsOpenAI(tag, 0);
@@ -721,6 +788,12 @@ export async function parse(
               if (!wasValid) {
                 tag.text += scriptBuffer;
               }
+            } else if (TagFunctionsToString.LOGICAL_GET_GLOBAL.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_GLOBAL](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
             } else if (TagFunctionsToString.LOGICAL_GET_SERVER.includes(scriptName)) {
               // do this separate because we dont want to parse args yet
               const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_SERVER](context, arg, tag);
@@ -767,9 +840,14 @@ export async function parse(
               if (!wasValid) {
                 tag.text += scriptBuffer;
               }
+            } else if (TagFunctionsToString.COMPONENTS_ON_TIMEOUT.includes(scriptName)) {
+              const wasValid = await ScriptTags[TagFunctions.COMPONENTS_ON_TIMEOUT](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
             } else {
               // check the other tags now
-              const argParsed = await parse(context, arg, '', tag.variables, tag.context);
+              const argParsed = await parse(context, arg, '', tag.variables, tag.context, tag.limits);
               normalizeTagResults(tag, argParsed, false);
               if (arg !== argParsed.text) {
                 arg = argParsed.text;
@@ -812,6 +890,7 @@ export async function parse(
       }
     } catch(error) {
       if (isFirstParse && error instanceof TagExitError) {
+        tag.components = null;
         tag.embeds = (tag.embeds.length) ? [] : tag.embeds;
         tag.files = (tag.files.length) ? [] : tag.files;
         tag.pages = (tag.pages.length) ? [] : tag.pages;
@@ -836,8 +915,8 @@ export function increaseAIExecutions(tag: TagResult, amount: number = 1) {
   if (amount) {
     tag.variables[PrivateVariables.AI_EXECUTIONS] += amount;
   }
-  if (MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.AI_EXECUTIONS]) {
-    throw new Error(`Tag attempted to use too many AI executions (Max ${MAX_AI_EXECUTIONS.toLocaleString()} Executions)`);
+  if (tag.limits.MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.AI_EXECUTIONS]) {
+    throw new Error(`Tag attempted to use too many AI executions (Max ${tag.limits.MAX_AI_EXECUTIONS.toLocaleString()} Executions)`);
   }
 }
 
@@ -846,8 +925,18 @@ export function increaseAPIManipulations(tag: TagResult, amount: number = 1) {
   if (amount) {
     tag.variables[PrivateVariables.API_MANIPULATIONS] += amount;
   }
-  if (MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.API_MANIPULATIONS]) {
-    throw new Error(`Tag attempted to use too many API Manipulations (Max ${MAX_API_MANIPULATIONS.toLocaleString()} Manipulations)`);
+  if (tag.limits.MAX_API_MANIPULATIONS < tag.variables[PrivateVariables.API_MANIPULATIONS]) {
+    throw new Error(`Tag attempted to use too many API Manipulations (Max ${tag.limits.MAX_API_MANIPULATIONS.toLocaleString()} Manipulations)`);
+  }
+}
+
+
+export function increaseComponentExecutions(tag: TagResult, amount: number = 1) {
+  if (amount) {
+    tag.variables[PrivateVariables.COMPONENT_EXECUTIONS] += amount;
+  }
+  if (tag.limits.MAX_COMPONENT_EXECUTIONS < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS]) {
+    throw new Error(`Tag attempted to use too many Component Executions (Max ${tag.limits.MAX_COMPONENT_EXECUTIONS.toLocaleString()} Executions)`);
   }
 }
 
@@ -856,8 +945,8 @@ export function increaseNetworkRequests(tag: TagResult, amount: number = 1) {
   if (amount) {
     tag.variables[PrivateVariables.NETWORK_REQUESTS] += amount;
   }
-  if (MAX_NETWORK_REQUESTS < tag.variables[PrivateVariables.NETWORK_REQUESTS]) {
-    throw new Error(`Tag attempted to use too many network requests (Max ${MAX_NETWORK_REQUESTS.toLocaleString()} Requests)`);
+  if (tag.limits.MAX_NETWORK_REQUESTS < tag.variables[PrivateVariables.NETWORK_REQUESTS]) {
+    throw new Error(`Tag attempted to use too many network requests (Max ${tag.limits.MAX_NETWORK_REQUESTS.toLocaleString()} Requests)`);
   }
 }
 
@@ -866,8 +955,8 @@ export function increaseNetworkRequestsML(tag: TagResult, amount: number = 1) {
   if (amount) {
     tag.variables[PrivateVariables.NETWORK_REQUESTS_ML] += amount;
   }
-  if (MAX_NETWORK_REQUESTS_ML < tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]) {
-    throw new Error(`Tag attempted to use too many machine learning network requests (Max ${MAX_NETWORK_REQUESTS_ML.toLocaleString()} Requests)`);
+  if (tag.limits.MAX_NETWORK_REQUESTS_ML < tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]) {
+    throw new Error(`Tag attempted to use too many machine learning network requests (Max ${tag.limits.MAX_NETWORK_REQUESTS_ML.toLocaleString()} Requests)`);
   }
 }
 
@@ -876,8 +965,8 @@ export function increaseNetworkRequestsOpenAI(tag: TagResult, amount: number = 1
   if (amount) {
     tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI] += amount;
   }
-  if (MAX_NETWORK_REQUESTS_OPENAI < tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI]) {
-    throw new Error(`Tag attempted to use too many OpenAI network requests (Max ${MAX_NETWORK_REQUESTS_OPENAI.toLocaleString()} Requests)`);
+  if (tag.limits.MAX_NETWORK_REQUESTS_OPENAI < tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI]) {
+    throw new Error(`Tag attempted to use too many OpenAI network requests (Max ${tag.limits.MAX_NETWORK_REQUESTS_OPENAI.toLocaleString()} Requests)`);
   }
 }
 
@@ -886,9 +975,23 @@ export function increaseTagExecutions(tag: TagResult, amount: number = 1) {
   if (amount) {
     tag.variables[PrivateVariables.TAG_EXECUTIONS] += amount;
   }
-  if (MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.TAG_EXECUTIONS]) {
-    throw new Error(`Tag attempted to use too many tag executions (Max ${MAX_TAG_EXECUTIONS.toLocaleString()} Executions)`);
+  if (tag.limits.MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.TAG_EXECUTIONS]) {
+    throw new Error(`Tag attempted to use too many tag executions (Max ${tag.limits.MAX_TAG_EXECUTIONS.toLocaleString()} Executions)`);
   }
+}
+
+
+export function resetTagLimits(tag: TagResult) {
+  const variables = tag.variables;
+  (variables as any)[PrivateVariables.ITERATIONS_REMAINING] = tag.limits.MAX_ITERATIONS;
+  (variables as any)[PrivateVariables.AI_EXECUTIONS] = 0;
+  (variables as any)[PrivateVariables.API_MANIPULATIONS] = 0;
+  (variables as any)[PrivateVariables.COMPONENT_EXECUTIONS] = 0;
+  (variables as any)[PrivateVariables.NETWORK_REQUESTS] = 0;
+  (variables as any)[PrivateVariables.NETWORK_REQUESTS_ML] = 0;
+  (variables as any)[PrivateVariables.NETWORK_REQUESTS_OPENAI] = 0;
+  (variables as any)[PrivateVariables.FILE_SIZE] = 0;
+  (variables as any)[PrivateVariables.TAG_EXECUTIONS] = 0;
 }
 
 
@@ -904,6 +1007,9 @@ export function split(value: string, amount: number = 0): Array<string> {
   const args: Array<string> = [];
   while (position < value.length) {
     if (amount && amount <= args.length) {
+      if (args.length) {
+        args[args.length - 1] += value.slice(position - 1);
+      }
       break;
     }
 
@@ -987,22 +1093,36 @@ function normalizeTagResults(main: TagResult, other: TagResult, content: boolean
     main.text += other.text;
   }
 
-  if (MAX_EMBEDS < main.embeds.length + other.embeds.length) {
-    throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+  if (other.components) {
+    if (main.components) {
+      main.components.components = [...main.components.components, ...other.components.components];
+      if (5 <= main.components.components.length) {
+        throw new Error('TagScript only supports up to 5 buttons currently');
+      }
+      if (other.components.onTimeout) {
+        main.components.onTimeout = other.components.onTimeout;
+      }
+    } else {
+      main.components = other.components;
+    }
+  }
+
+  if (main.limits.MAX_EMBEDS < main.embeds.length + other.embeds.length) {
+    throw new Error(`Embeds surpassed max embeds length of ${main.limits.MAX_EMBEDS}`);
   }
   for (let embed of other.embeds) {
     main.embeds.push(embed);
   }
 
-  if (MAX_ATTACHMENTS < main.files.length + other.files.length) {
-    throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+  if (main.limits.MAX_ATTACHMENTS < main.files.length + other.files.length) {
+    throw new Error(`Attachments surpassed max attachments length of ${main.limits.MAX_ATTACHMENTS}`);
   }
   for (let file of other.files) {
     main.files.push(file);
   }
 
-  if (MAX_PAGES < main.pages.length + other.pages.length) {
-    throw new Error(`Pages surpassed max page length of ${MAX_PAGES}`);
+  if (main.limits.MAX_PAGES < main.pages.length + other.pages.length) {
+    throw new Error(`Pages surpassed max page length of ${main.limits.MAX_PAGES}`);
   }
   for (let page of other.pages) {
     main.pages.push(page);
@@ -1028,9 +1148,10 @@ const ScriptTags = Object.freeze({
 
     const storage: {
       channel: Record<string, string>,
+      global: Record<string, string>,
       server: Record<string, string>,
       user: Record<string, string>,
-    } = {channel: {}, server: {}, user: {}};
+    } = {channel: {}, global: {}, server: {}, user: {}};
 
     let tagId: string | null = null;
     if (context.metadata && context.metadata.tag) {
@@ -1054,6 +1175,9 @@ const ScriptTags = Object.freeze({
           }; break;
           case TagVariableStorageTypes.USER: {
             Object.assign(storage.user, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GLOBAL: {
+            Object.assign(storage.global, response[storageType]);
           }; break;
         }
       }
@@ -1140,46 +1264,69 @@ const ScriptTags = Object.freeze({
                   continue;
                 }
 
-                if (MAX_VARIABLE_KEY_LENGTH < key.length) {
-                  throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+                if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
+                  throw new Error(`Variable cannot be more than ${tag.limits.MAX_VARIABLE_KEY_LENGTH} characters`);
                 }
 
                 if (!(key in tag.variables)) {
-                  if (MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
-                    throw new Error(`Reached max variable amount (Max ${MAX_VARIABLES.toLocaleString()} Variables)`);
+                  if (tag.limits.MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
+                    throw new Error(`Reached max variable amount (Max ${tag.limits.MAX_VARIABLES.toLocaleString()} Variables)`);
                   }
                 }
 
-                tag.variables[key] = String((variables as any)[key]).slice(0, MAX_VARIABLE_LENGTH);
+                tag.variables[key] = String((variables as any)[key]).slice(0, tag.limits.MAX_VARIABLE_LENGTH);
               }
             }
 
             if (typeof(response.storage) === 'object') {
               const variables = response.storage;
-              if (Object.keys(variables).length !== 3) {
-                throw new Error('Storage Variables only supports `server`, `channel`, and `user`');
+              if (Object.keys(variables).length !== 4) {
+                throw new Error('Storage Variables only supports `global`, `server`, `channel`, and `user`');
               }
-              if (typeof(variables.server) !== 'object' || typeof(variables.channel) !== 'object' || typeof(variables.user) !== 'object') {
-                throw new Error('Storage Variables only supports `server`, `channel`, and `user`');
+              if (
+                typeof(variables.global) !== 'object' ||
+                typeof(variables.server) !== 'object' ||
+                typeof(variables.channel) !== 'object' ||
+                typeof(variables.user) !== 'object'
+              ) {
+                throw new Error('Storage Variables only supports `global`, `server`, `channel`, and `user`');
               }
-              if (MAX_STORAGE_GUILD_AMOUNT < Object.keys(variables.server).length) {
-                throw new Error(`Server Variables exceeded max amount (${MAX_STORAGE_GUILD_AMOUNT})`);
+              if (tag.limits.MAX_STORAGE_GLOBAL_AMOUNT < Object.keys(variables.global).length) {
+                throw new Error(`Global Variables exceeded max amount (${tag.limits.MAX_STORAGE_GLOBAL_AMOUNT})`);
               }
-              if (MAX_STORAGE_CHANNEL_AMOUNT < Object.keys(variables.channel).length) {
-                throw new Error(`Channel Variables exceeded max amount (${MAX_STORAGE_CHANNEL_AMOUNT})`);
+              if (tag.limits.MAX_STORAGE_GUILD_AMOUNT < Object.keys(variables.server).length) {
+                throw new Error(`Server Variables exceeded max amount (${tag.limits.MAX_STORAGE_GUILD_AMOUNT})`);
               }
-              if (MAX_STORAGE_USER_AMOUNT < Object.keys(variables.user).length) {
-                throw new Error(`User Variables exceeded max amount (${MAX_STORAGE_USER_AMOUNT})`);
+              if (tag.limits.MAX_STORAGE_CHANNEL_AMOUNT < Object.keys(variables.channel).length) {
+                throw new Error(`Channel Variables exceeded max amount (${tag.limits.MAX_STORAGE_CHANNEL_AMOUNT})`);
+              }
+              if (tag.limits.MAX_STORAGE_USER_AMOUNT < Object.keys(variables.user).length) {
+                throw new Error(`User Variables exceeded max amount (${tag.limits.MAX_STORAGE_USER_AMOUNT})`);
               }
 
               const formattedVariables: Array<{name: string, storageId: string, storageType: TagVariableStorageTypes, value: string}> = [];
+              for (let key in variables.global) {
+                if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+                  throw new Error(`Storage Variable Key cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
+                }
+                const value = String(variables.global[key]);
+                if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
+                  throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
+                }
+                formattedVariables.push({
+                  name: String(key),
+                  storageId: '0',
+                  storageType: TagVariableStorageTypes.GLOBAL,
+                  value,
+                });
+              }
               for (let key in variables.server) {
-                if (MAX_STORAGE_KEY_LENGTH < key.length) {
-                  throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+                  throw new Error(`Storage Variable Key cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
                 }
                 const value = String(variables.server[key]);
-                if (MAX_STORAGE_VALUE_LENGTH < value.length) {
-                  throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
+                  throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
                 }
                 formattedVariables.push({
                   name: String(key),
@@ -1189,12 +1336,12 @@ const ScriptTags = Object.freeze({
                 });
               }
               for (let key in variables.channel) {
-                if (MAX_STORAGE_KEY_LENGTH < key.length) {
-                  throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+                  throw new Error(`Storage Variable Key cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
                 }
                 const value = String(variables.channel[key]);
-                if (MAX_STORAGE_VALUE_LENGTH < value.length) {
-                  throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
+                  throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
                 }
                 formattedVariables.push({
                   name: String(key),
@@ -1204,12 +1351,12 @@ const ScriptTags = Object.freeze({
                 });
               }
               for (let key in variables.user) {
-                if (MAX_STORAGE_KEY_LENGTH < key.length) {
-                  throw new Error(`Storage Variable Key cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+                if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+                  throw new Error(`Storage Variable Key cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
                 }
                 const value = String(variables.user[key]);
-                if (MAX_STORAGE_VALUE_LENGTH < value.length) {
-                  throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+                if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
+                  throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
                 }
                 formattedVariables.push({
                   name: String(key),
@@ -1220,7 +1367,9 @@ const ScriptTags = Object.freeze({
               }
 
               let hasChange = false;
-              if (Object.keys(storage.server).length !== Object.keys(variables.server).length) {
+              if (Object.keys(storage.global).length !== Object.keys(variables.global).length) {
+                hasChange = true;
+              } else if (Object.keys(storage.server).length !== Object.keys(variables.server).length) {
                 hasChange = true;
               } else if (Object.keys(storage.channel).length !== Object.keys(variables.channel).length) {
                 hasChange = true;
@@ -1233,6 +1382,11 @@ const ScriptTags = Object.freeze({
                   switch (item.storageType) {
                     case TagVariableStorageTypes.CHANNEL: {
                       if (!(item.name in storage.channel) || storage.channel[item.name] !== item.value) {
+                        hasChange = true;
+                      }
+                    }; break;
+                    case TagVariableStorageTypes.GLOBAL: {
+                      if (!(item.name in storage.global) || storage.global[item.name] !== item.value) {
                         hasChange = true;
                       }
                     }; break;
@@ -1285,14 +1439,15 @@ const ScriptTags = Object.freeze({
           url: '',
         });
 
-        if (MAX_ATTACHMENTS < tag.files.length) {
-          throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+        if (tag.limits.MAX_ATTACHMENTS < tag.files.length) {
+          throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
         }
       }
     }
 
+    let isComponents = false;
     let isEmbed = false;
-    if (result.output.length <= 12000) {
+    if (result.output.length <= 16000) {
       // just incase its a big content lol
       let object: any = null;
       try {
@@ -1341,11 +1496,71 @@ const ScriptTags = Object.freeze({
               throw new Error('Invalid Page Given');
             }
             tag.pages.push({content, embeds, filenames});
-            if (MAX_PAGES < tag.pages.length) {
-              throw new Error(`Pages surpassed max pages length of ${MAX_PAGES}`);
+            if (tag.limits.MAX_PAGES < tag.pages.length) {
+              throw new Error(`Pages surpassed max pages length of ${tag.limits.MAX_PAGES}`);
             }
           }
-        } else if (keysLength <= 2 && (('embed' in object) || ('embeds' in object))) {
+        }
+        if ('components' in object && Array.isArray(object.components)) {
+          const components: TagResultComponents = {components: []};
+          for (let x of object.components) {
+            if (typeof(x) !== 'object') {
+              continue;
+            }
+            if (5 <= components.components.length) {
+              throw new Error('TagScript only supports up to 5 buttons currently');
+            }
+            switch (x.type) {
+              case MessageComponentTypes.ACTION_ROW: {
+                throw new Error('TagScript does not support action rows yet');
+              }; break;
+              case MessageComponentTypes.BUTTON: {
+                const button: Record<string, any> = {
+                  style: MessageComponentButtonStyles.PRIMARY,
+                  type: MessageComponentTypes.BUTTON,
+                };
+                if ('style' in x && !isNaN(x.style) && x.style in MessageComponentButtonStyles && x.style !== MessageComponentButtonStyles.PREMIUM) {
+                  // todo: add better checks against MessageComponentButtonStyles since rn the enum is {...{value: key}, ...{key: value}}
+                  button.style = x.style;
+                }
+                if ('disabled' in x) {
+                  button.disabled = !!x.disabled;
+                }
+                if ('url' in x && typeof(x.url) === 'string') {
+                  button.url = x.url.slice(0, 512);
+                  button.style = MessageComponentButtonStyles.LINK;
+                } else if ('label' in x && typeof(x.label) === 'string') {
+                  button.label = x.label.slice(0, 80);
+                  if (button.style === MessageComponentButtonStyles.LINK) {
+                    button.style = MessageComponentButtonStyles.PRIMARY;
+                  }
+                }
+                if ('emoji' in x && typeof(x.emoji) === 'object') {
+                  // todo: do stuff here
+                }
+                if ('run' in x && typeof(x.run) === 'string') {
+                  button.run = x.run;
+                }
+                if ((button.label && button.run) || button.url) {
+                  components.components.push(button);
+                } else {
+                  throw new Error('Buttons must contain a url or a label + run');
+                }
+              }; break;
+              default: {
+                throw new Error('TagScript does not support this kind of component');
+              };
+            }
+          }
+          if ('componentsOnTimeout' in object && typeof(object.componentsOnTimeout) === 'string') {
+            components.onTimeout = object.componentsOnTimeout;
+          }
+          if (components.components.length) {
+            tag.components = components;
+            isComponents = true;
+          }
+        }
+        if (('embed' in object) || ('embeds' in object)) {
           const embeds: Array<Record<string, any>> = [];
           if ('embed' in object && typeof(object.embed) === 'object') {
             embeds.push(object.embed);
@@ -1358,8 +1573,8 @@ const ScriptTags = Object.freeze({
             }
           }
 
-          if (MAX_EMBEDS < embeds.length) {
-            throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+          if (tag.limits.MAX_EMBEDS < embeds.length) {
+            throw new Error(`Embeds surpassed max embeds length of ${tag.limits.MAX_EMBEDS}`);
           }
 
           isEmbed = true;
@@ -1376,13 +1591,13 @@ const ScriptTags = Object.freeze({
             }
           }
 
-          if (MAX_EMBEDS < tag.embeds.length) {
-            throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+          if (tag.limits.MAX_EMBEDS < tag.embeds.length) {
+            throw new Error(`Embeds surpassed max embeds length of ${tag.limits.MAX_EMBEDS}`);
           }
         }
       }
 
-      if (!isEmbed) {
+      if (!isComponents && !isEmbed) {
         tag.text += result.output;
       }
     }
@@ -1711,8 +1926,8 @@ const ScriptTags = Object.freeze({
     // {attach:https://google.com/something.png}
     // {attach:https://google.com/something.png|something_lol.png}
 
-    if (MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
 
     let [ urlString, filenameArg, descriptionValue ] = split(arg, 3);
@@ -1832,8 +2047,8 @@ const ScriptTags = Object.freeze({
     // {attachtext:text}
     // {attachtext:some text here}
 
-    if (MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
 
     let extension = 'txt';
@@ -1876,8 +2091,8 @@ const ScriptTags = Object.freeze({
     // {attach:https://google.com/something.mp3}
     // {attach:https://google.com/something.mp3|voice-message}
   
-    if (MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
 
     let [ urlString, filenameArg ] = split(arg, 2);
@@ -2010,6 +2225,91 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.COMPONENT_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {componentjson:COMPONENT_JSON}
+
+    let component : any = null;
+    try {
+      component = JSON.parse(arg);
+    } catch(error) {
+      throw new Error('Invalid Component Given');
+    }
+
+    if (typeof(component) !== 'object') {
+      throw new Error('Invalid Component Given');
+    }
+
+    const components: TagResultComponents = tag.components || {components: []};
+    if (5 <= components.components.length) {
+      throw new Error('TagScript only supports up to 5 buttons currently');
+    }
+
+    switch (component.type) {
+      case MessageComponentTypes.ACTION_ROW: {
+        throw new Error('TagScript does not support action rows yet');
+      }; break;
+      case MessageComponentTypes.BUTTON: {
+        const button: Record<string, any> = {
+          style: MessageComponentButtonStyles.PRIMARY,
+          type: MessageComponentTypes.BUTTON,
+        };
+        if ('style' in component && !isNaN(component.style) && component.style in MessageComponentButtonStyles && component.style !== MessageComponentButtonStyles.PREMIUM) {
+          // todo: add better checks against MessageComponentButtonStyles since rn the enum is {...{value: key}, ...{key: value}}
+          button.style = component.style;
+        }
+        if ('disabled' in component) {
+          button.disabled = !!component.disabled;
+        }
+        if ('url' in component && typeof(component.url) === 'string') {
+          button.url = component.url.slice(0, 512);
+          button.style = MessageComponentButtonStyles.LINK;
+        } else if ('label' in component && typeof(component.label) === 'string') {
+          button.label = component.label.slice(0, 80);
+          if (button.style === MessageComponentButtonStyles.LINK) {
+            button.style = MessageComponentButtonStyles.PRIMARY;
+          }
+        }
+        if ('emoji' in component && typeof(component.emoji) === 'object') {
+          // todo: do stuff here
+        }
+        if ('run' in component && typeof(component.run) === 'string') {
+          button.run = component.run;
+        }
+        if ((button.label && button.run) || button.url) {
+          components.components.push(button);
+        } else {
+          throw new Error('Buttons must contain a url or a label + run');
+        }
+      }; break;
+      default: {
+        throw new Error('TagScript does not support this kind of component');
+      };
+    }
+
+    if (components.components.length) {
+      tag.components = components;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.COMPONENTS_ON_TIMEOUT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // execute this tagscript code on component expire
+    // {componentsontimeout:TAGSCRIPT}
+
+    arg = arg.trim();
+    if (!arg) {
+      return false;
+    }
+
+    if (!tag.components) {
+      tag.components = {components: []};
+    }
+    tag.components.onTimeout = arg;
+
+    return true;
+  },
+
   [TagFunctions.CHANNEL_RANDOM_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // return a random channel's id
     // {randchannelid}
@@ -2087,8 +2387,8 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    if (MAX_EMBEDS < tag.embeds.length) {
-      throw new Error(`Embeds surpassed max embeds length of ${MAX_EMBEDS}`);
+    if (tag.limits.MAX_EMBEDS < tag.embeds.length) {
+      throw new Error(`Embeds surpassed max embeds length of ${tag.limits.MAX_EMBEDS}`);
     }
 
     return true;
@@ -2097,7 +2397,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.EVAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {eval:{args}}
 
-    const argParsed = await parse(context, arg, '', tag.variables, tag.context);
+    const argParsed = await parse(context, arg, '', tag.variables, tag.context, tag.limits);
     normalizeTagResults(tag, argParsed);
     return true;
   },
@@ -2106,11 +2406,11 @@ const ScriptTags = Object.freeze({
     // {evalsilent:{args}}
 
     try {
-      let argParsed = await parse(context, arg, '', tag.variables, tag.context);
+      let argParsed = await parse(context, arg, '', tag.variables, tag.context, tag.limits);
       normalizeTagResults(tag, argParsed, false);
 
       if (argParsed.text) {
-        argParsed = await parse(context, argParsed.text, '', tag.variables, tag.context);
+        argParsed = await parse(context, argParsed.text, '', tag.variables, tag.context, tag.limits);
         normalizeTagResults(tag, argParsed, false);
       }
     } catch(error) {
@@ -2401,7 +2701,7 @@ const ScriptTags = Object.freeze({
 
       let text: string = '';
       if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, conditional, '', tag.variables, tag.context);
+        const argParsed = await parse(context, conditional, '', tag.variables, tag.context, tag.limits);
         normalizeTagResults(tag, argParsed, false);
         text = argParsed.text;
       } else {
@@ -2434,7 +2734,7 @@ const ScriptTags = Object.freeze({
 
     let values: Array<any>;
     if (text.includes(TagSymbols.BRACKET_LEFT)) {
-      const argParsed = await parse(context, text, '', tag.variables, tag.context);
+      const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
       normalizeTagResults(tag, argParsed, false);
       text = argParsed.text;
     }
@@ -2475,7 +2775,7 @@ const ScriptTags = Object.freeze({
       if (code.includes(TagSymbols.BRACKET_LEFT)) {
         tag.variables['idx'] = String(i);
         tag.variables['valuex'] = (typeof(values[i]) === 'object') ? JSON.stringify(values[i]) : String(values[i]);
-        const argParsed = await parse(context, code, '', tag.variables, tag.context, false);
+        const argParsed = await parse(context, code, '', tag.variables, tag.context, tag.limits, false);
         normalizeTagResults(tag, argParsed, false);
         text = argParsed.text;
       } else {
@@ -2502,8 +2802,8 @@ const ScriptTags = Object.freeze({
     if (arg.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to delete a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
-    if (MAX_VARIABLE_KEY_LENGTH < arg.length) {
-      throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_VARIABLE_KEY_LENGTH < arg.length) {
+      throw new Error(`Variable cannot be more than ${tag.limits.MAX_VARIABLE_KEY_LENGTH} characters`);
     }
     delete tag.variables[arg];
 
@@ -2512,8 +2812,8 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.LOGICAL_DELETE_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     arg = arg.trim();
-    if (MAX_STORAGE_KEY_LENGTH < arg.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < arg.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
   
     let tagId: string | null = null;
@@ -2537,8 +2837,8 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.LOGICAL_DELETE_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     arg = arg.trim();
-    if (MAX_STORAGE_KEY_LENGTH < arg.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < arg.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
   
     let tagId: string | null = null;
@@ -2562,8 +2862,8 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.LOGICAL_DELETE_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     arg = arg.trim();
-    if (MAX_STORAGE_KEY_LENGTH < arg.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < arg.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
   
     let tagId: string | null = null;
@@ -2595,11 +2895,16 @@ const ScriptTags = Object.freeze({
     }
 
     key = key.trim();
-    if (MAX_VARIABLE_KEY_LENGTH < key.length) {
-      throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
+      throw new Error(`Variable cannot be more than ${tag.limits.MAX_VARIABLE_KEY_LENGTH} characters`);
     }
 
-    if (key in tag.variables) {
+    if (key === PrivateVariables.FILES) {
+      const files = tag.files.map((file) => {
+        return {description: file.description, filename: file.filename};
+      });
+      tag.text += JSON.stringify(files);
+    } else if (key in tag.variables) {
       let value = tag.variables[key];
       if (typeof(value) === 'object') {
         value = JSON.stringify(value);
@@ -2607,7 +2912,7 @@ const ScriptTags = Object.freeze({
       tag.text += value;
     } else if (defaultValue) {
       if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
+        const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
         normalizeTagResults(tag, argParsed, false);
         tag.text += argParsed.text;
       } else {
@@ -2628,8 +2933,8 @@ const ScriptTags = Object.freeze({
     }
 
     key = key.trim();
-    if (MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
     let tagId: string | null = null;
@@ -2648,7 +2953,53 @@ const ScriptTags = Object.freeze({
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
             if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
+              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
+              normalizeTagResults(tag, argParsed, false);
+              tag.text += argParsed.text;
+            } else {
+              tag.text += defaultValue;
+            }
+          }
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_GET_GLOBAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {getglobal:variable-name}
+    // {getglobal:variable-name|DEFAULT VALUE HERE}
+
+    let [ key, defaultValue ] = split(arg, 2);
+    if (key === undefined) {
+      return false;
+    }
+
+    key = key.trim();
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+
+    if (tagId) {
+      try {
+        const storageId = '0';
+        const response = await fetchTagVariable(context, tagId, TagVariableStorageTypes.GLOBAL, storageId, {
+          name: key,
+        });
+        tag.text += response.value;
+      } catch(error) {
+        if (error.response && error.response.statusCode === 404) {
+          if (defaultValue) {
+            if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
+              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
               normalizeTagResults(tag, argParsed, false);
               tag.text += argParsed.text;
             } else {
@@ -2674,8 +3025,8 @@ const ScriptTags = Object.freeze({
     }
 
     key = key.trim();
-    if (MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
     let tagId: string | null = null;
@@ -2694,7 +3045,7 @@ const ScriptTags = Object.freeze({
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
             if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
+              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
               normalizeTagResults(tag, argParsed, false);
               tag.text += argParsed.text;
             } else {
@@ -2720,8 +3071,8 @@ const ScriptTags = Object.freeze({
     }
 
     key = key.trim();
-    if (MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
     let tagId: string | null = null;
@@ -2740,7 +3091,7 @@ const ScriptTags = Object.freeze({
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
             if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context);
+              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
               normalizeTagResults(tag, argParsed, false);
               tag.text += argParsed.text;
             } else {
@@ -2790,7 +3141,7 @@ const ScriptTags = Object.freeze({
       const x = values[i];
       if (x.includes(TagSymbols.BRACKET_LEFT)) {
         // parse it
-        const argParsed = await parse(context, x, '', tag.variables, tag.context);
+        const argParsed = await parse(context, x, '', tag.variables, tag.context, tag.limits);
         normalizeTagResults(tag, argParsed, false);
         values[i] = argParsed.text;
       } else {
@@ -2847,7 +3198,7 @@ const ScriptTags = Object.freeze({
     const text = (compared) ? then.slice(5) : (elseValue || '').slice(5);
     if (text.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
-      const argParsed = await parse(context, text, '', tag.variables, tag.context);
+      const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
       normalizeTagResults(tag, argParsed);
     } else {
       tag.text += text;
@@ -2869,7 +3220,7 @@ const ScriptTags = Object.freeze({
       let text: string = '';
       if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
         try {
-          const argParsed = await parse(context, conditional, '', tag.variables, tag.context);
+          const argParsed = await parse(context, conditional, '', tag.variables, tag.context, tag.limits);
           normalizeTagResults(tag, argParsed, false);
           text = argParsed.text;
         } catch(error) {
@@ -2899,7 +3250,7 @@ const ScriptTags = Object.freeze({
     for (let conditional of conditionals) {
       let text: string = '';
       if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, conditional, '', tag.variables, tag.context);
+        const argParsed = await parse(context, conditional, '', tag.variables, tag.context, tag.limits);
         normalizeTagResults(tag, argParsed, false);
         text = argParsed.text;
       } else {
@@ -2928,17 +3279,17 @@ const ScriptTags = Object.freeze({
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
 
-    if (MAX_VARIABLE_KEY_LENGTH < key.length) {
-      throw new Error(`Variable cannot be more than ${MAX_VARIABLE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
+      throw new Error(`Variable cannot be more than ${tag.limits.MAX_VARIABLE_KEY_LENGTH} characters`);
     }
 
     if (!(key in tag.variables)) {
-      if (MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
-        throw new Error(`Reached max variable amount (Max ${MAX_VARIABLES.toLocaleString()} Variables)`);
+      if (tag.limits.MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
+        throw new Error(`Reached max variable amount (Max ${tag.limits.MAX_VARIABLES.toLocaleString()} Variables)`);
       }
     }
 
-    tag.variables[key] = (value || '').slice(0, MAX_VARIABLE_LENGTH).trim();
+    tag.variables[key] = (value || '').slice(0, tag.limits.MAX_VARIABLE_LENGTH).trim();
 
     return true;
   },
@@ -2954,13 +3305,13 @@ const ScriptTags = Object.freeze({
     let [ key, ...value ] = split(arg);
     key = key.trim();
 
-    if (MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
     const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
-    if (MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
-      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
+      throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
     }
 
     let tagId: string | null = null;
@@ -2971,6 +3322,42 @@ const ScriptTags = Object.freeze({
     if (tagId) {
       const storageId = context.channelId!;
       const response = await putTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
+        name: key,
+        value: storageValue,
+      });
+    }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_SET_GLOBAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {setglobal:variable|value}
+    // {setglobal:lastused|{userid}}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    let [ key, ...value ] = split(arg);
+    key = key.trim();
+
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
+    }
+
+    const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
+      throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
+    }
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+
+    if (tagId) {
+      const storageId = '0';
+      const response = await putTagVariable(context, tagId, TagVariableStorageTypes.GLOBAL, storageId, {
         name: key,
         value: storageValue,
       });
@@ -2990,13 +3377,13 @@ const ScriptTags = Object.freeze({
     let [ key, ...value ] = split(arg);
     key = key.trim();
 
-    if (MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
     const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
-    if (MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
-      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
+      throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
     }
 
     let tagId: string | null = null;
@@ -3026,13 +3413,13 @@ const ScriptTags = Object.freeze({
     let [ key, ...value ] = split(arg);
     key = key.trim();
 
-    if (MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(`Storage Variable cannot be more than ${MAX_STORAGE_KEY_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
+      throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
     const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
-    if (MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
-      throw new Error(`Storage Variable Value cannot be more than ${MAX_STORAGE_VALUE_LENGTH} characters`);
+    if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
+      throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
     }
 
     let tagId: string | null = null;
@@ -3254,8 +3641,8 @@ const ScriptTags = Object.freeze({
     // {edit:pixelate the image|cake}
     // {edit:|cake}
 
-    if (MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
 
     increaseNetworkRequests(tag);
@@ -3380,8 +3767,8 @@ const ScriptTags = Object.freeze({
     // {imagine}
     // {imagine:cake}
 
-    if (MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
 
     increaseNetworkRequests(tag);
@@ -3782,8 +4169,8 @@ const ScriptTags = Object.freeze({
     // mediascript 1
     // {mediascript:mediascript code here}
 
-    if (MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(`Attachments surpassed max attachments length of ${MAX_ATTACHMENTS}`);
+    if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+      throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
 
     let code = arg.trim();
@@ -4006,8 +4393,8 @@ const ScriptTags = Object.freeze({
     }
     tag.pages.push({content, embeds, filenames});
 
-    if (MAX_PAGES < tag.pages.length) {
-      throw new Error(`Pages surpassed max pages length of ${MAX_PAGES}`);
+    if (tag.limits.MAX_PAGES < tag.pages.length) {
+      throw new Error(`Pages surpassed max pages length of ${tag.limits.MAX_PAGES}`);
     }
 
     return true;
@@ -4048,6 +4435,106 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.REQUEST]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {request:{headers, method, url}} jsonify body
+
+    const options: RestOptions.UtilitiesProxyRequest = {method: '', url: ''};
+    try {
+      let object = JSON.parse(arg);
+      if (typeof(object) !== 'object') {
+        throw new TagRequestError('Request options are invalid.');
+      }
+
+      if (!('method' in object) || typeof(object.method) !== 'string') {
+        throw new TagRequestError('Request method is invalid.');
+      }
+
+      options.method = object.method.trim().toUpperCase();
+      if (!options.method || !(options.method in ProxyRequestMethods)) {
+        throw new TagRequestError('Request method is invalid.');
+      }
+
+      if (!('url' in object) || typeof(object.url) !== 'string') {
+        throw new TagRequestError('Request url is invalid.');
+      }
+
+      options.url = await Parameters.url(object.url.trim(), context);
+      if (!options.url) {
+        throw new TagRequestError('Request url is invalid.');
+      }
+
+      switch (options.method) {
+        case ProxyRequestMethods.PATCH:
+        case ProxyRequestMethods.POST:
+        case ProxyRequestMethods.PUT: {
+          // support multipart in 'data'
+          // support {files: {key: filename}}
+          if ('json' in object) {
+            if (typeof(object.json) !== 'object') {
+              throw new TagRequestError('Request json is invalid. (allowed: Object, Array)');
+            }
+            options.dataJSON = object.json;
+          }
+        }; break;
+      }
+
+      if ('headers' in object) {
+        if (typeof(object.headers) !== 'object' || Array.isArray(object.headers)) {
+          throw new TagRequestError('Request headers are invalid. (allowed: Record<string, string>)');
+        }
+        options.headers = object.headers;
+      }
+
+      if ('query' in object) {
+        if (typeof(object.query) !== 'object' || Array.isArray(object.query)) {
+          throw new TagRequestError('Request query is invalid. (allowed: Record<string, string>)');
+        }
+        options.query = object.query;
+      }
+
+    } catch(error) {
+      if (error instanceof TagRequestError) {
+        throw error;
+      }
+      throw new Error('Request options failed to parse.');
+    }
+
+    try {
+      const response = await utilitiesProxyRequest(context, options);
+      tag.text += JSON.stringify(response);
+    } catch(error) {
+      if (error.response) {
+        try {
+          const information = await error.response.json() as any;
+          if ('errors' in information) {
+            const description: Array<string> = [];
+            for (let key in information.errors) {
+              const value = information.errors[key];
+              let message: string;
+              if (typeof(value) === 'object') {
+                message = JSON.stringify(value);
+              } else {
+                message = String(value);
+              }
+              description.push(`**${key}**: ${message}`);
+            }
+            if (description.length) {
+              throw new Error(`Requested Failed: ${description.join('\n')}`);
+            }
+          }
+          if ('message' in information) {
+            throw new Error(information.message);
+          }
+        } catch(error) {
+          
+        }
+      }
+      throw new Error('Request Failed');
+    }
+
+    return true;
+  },
+
   [TagFunctions.RNG_CHOOSE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {choose:50|100}
     // {choose:most frags|least frags}
@@ -4066,7 +4553,7 @@ const ScriptTags = Object.freeze({
 
     if (value.includes(TagSymbols.BRACKET_LEFT)) {
       // parse it
-      const argParsed = await parse(context, value, '', tag.variables, tag.context);
+      const argParsed = await parse(context, value, '', tag.variables, tag.context, tag.limits);
       normalizeTagResults(tag, argParsed);
     } else {
       tag.text += value;
@@ -4350,13 +4837,13 @@ const ScriptTags = Object.freeze({
     let text: string = textParts.join(TagSymbols.SPLITTER_ARGUMENT);
 
     {
-      const parsed = await parse(context, string, '', tag.variables, tag.context);
+      const parsed = await parse(context, string, '', tag.variables, tag.context, tag.limits);
       normalizeTagResults(tag, parsed, false);
       string = parsed.text.trim();
     }
 
     {
-      const parsed = await parse(context, text, '', tag.variables, tag.context);
+      const parsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
       normalizeTagResults(tag, parsed, false);
       text = parsed.text.trim();
     }
@@ -4550,7 +5037,7 @@ const ScriptTags = Object.freeze({
           source,
           replaceWith,
         },
-        {timeout: MAX_TIME_REGEX},
+        {timeout: tag.limits.MAX_TIME_REGEX},
       );
     } catch {
       throw new Error('text replacing errored or timed out');
@@ -4581,7 +5068,7 @@ const ScriptTags = Object.freeze({
 
     let start: number;
     {
-      const parsed = await parse(context, startText, '', tag.variables, tag.context);
+      const parsed = await parse(context, startText, '', tag.variables, tag.context, tag.limits);
       normalizeTagResults(tag, parsed, false);
 
       start = parseInt(parsed.text.trim());
@@ -4592,7 +5079,7 @@ const ScriptTags = Object.freeze({
 
     let end: number | undefined;
     if (endText !== undefined) {
-      const parsed = await parse(context, endText, '', tag.variables, tag.context);
+      const parsed = await parse(context, endText, '', tag.variables, tag.context, tag.limits);
       end = parseInt(parsed.text.trim());
       for (let file of parsed.files) {
         tag.files.push(file);
@@ -4603,7 +5090,7 @@ const ScriptTags = Object.freeze({
     }
 
     // parse it
-    const argParsed = await parse(context, text, '', tag.variables, tag.context);
+    const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
     normalizeTagResults(tag, argParsed, false);
 
     tag.text += argParsed.text.trim().substring(start, end);
@@ -4677,7 +5164,7 @@ const ScriptTags = Object.freeze({
       throw new Error('Invalid Tag Id');
     }
 
-    if (context.metadata && context.metadata.tag && context.metadata.tag.id === tagId) {
+    if (!tag.variables[PrivateVariables.COMPONENT_EXECUTIONS] && context.metadata && context.metadata.tag && context.metadata.tag.id === tagId) {
       throw new Error('Tag attempted to call itself');
     }
 
@@ -4721,7 +5208,7 @@ const ScriptTags = Object.freeze({
         }
 
         const tagContent = (fetchedTag.reference_tag) ? fetchedTag.reference_tag.content : fetchedTag.content;
-        const argParsed = await parse(context, tagContent, tagArguments, variables, tag.context);
+        const argParsed = await parse(context, tagContent, tagArguments, variables, tag.context, tag.limits);
         normalizeTagResults(tag, argParsed);
   
         for (let key in PrivateVariables) {

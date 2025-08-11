@@ -138,6 +138,7 @@ import * as MediaIVManipulationSharpen from './media.iv.manipulation.sharpen';
 import * as MediaIVManipulationSlide from './media.iv.manipulation.slide';
 import * as MediaIVManipulationSolarize from './media.iv.manipulation.solarize';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
+import * as MediaIVManipulationStretch from './media.iv.manipulation.stretch';
 import * as MediaIVManipulationSwapColors from './media.iv.manipulation.swap.colors';
 import * as MediaIVManipulationSwapPixels from './media.iv.manipulation.swap.pixels';
 import * as MediaIVManipulationSwapRGBA from './media.iv.manipulation.swap.rgba';
@@ -216,10 +217,12 @@ import * as SearchWikihow from './search.wikihow';
 import * as SearchWolframAlpha from './search.wolframalpha';
 import * as SearchYoutube from './search.youtube';
 
+import * as SettingsServerSetAIPersonality from './settings.server.set.ai.personality';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
 import * as SettingsSetAIModel from './settings.set.ai.model';
+import * as SettingsSetAIPersonality from './settings.set.ai.personality';
 import * as SettingsSetDownloadQuality from './settings.set.download.quality';
 import * as SettingsSetFallbacksMediaImage from './settings.set.fallbacks.media.image';
 import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
@@ -419,6 +422,7 @@ export {
   MediaIVManipulationSlide,
   MediaIVManipulationSolarize,
   MediaIVManipulationSpin,
+  MediaIVManipulationStretch,
   MediaIVManipulationSwapColors,
   MediaIVManipulationSwapPixels,
   MediaIVManipulationSwapRGBA,
@@ -498,9 +502,11 @@ export {
   SearchWolframAlpha,
   SearchYoutube,
 
+  SettingsServerSetAIPersonality,
   SettingsServerSetLocale,
   SettingsServerSetTimezone,
   SettingsSetAIModel,
+  SettingsSetAIPersonality,
   SettingsSetDownloadQuality,
   SettingsSetFallbacksMediaImage,
   SettingsSetFileUploadThreshold,

@@ -1,23 +1,25 @@
 import { Command, Interaction } from 'detritus-client';
+import { RequestFile } from 'detritus-rest';
 
-import { mediaIVManipulationDistort } from '../../../api';
+import { mediaIVManipulationStretch } from '../../../api';
 import { jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.manipulation.distort';
+export const COMMAND_ID = 'media.iv.manipulation.stretch';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  arguments?: Array<number>,
-  method: string,
+  crop?: boolean,
+  height?: number,
   url: string,
+  width?: number,
 }
 
 export function createJob(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs,
+  args: CommandArgs & {file?: RequestFile},
 ) {
-  return mediaIVManipulationDistort(context, args);
+  return mediaIVManipulationStretch(context, args);
 }
 
 export async function createMessage(

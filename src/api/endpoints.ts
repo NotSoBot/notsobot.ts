@@ -316,6 +316,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/solarize',
   MEDIA_IV_MANIPULATION_SPIN:
     '/media/iv/manipulation/spin',
+  MEDIA_IV_MANIPULATION_STRETCH:
+    '/media/iv/manipulation/stretch',
   MEDIA_IV_MANIPULATION_SWAP_COLORS:
     '/media/iv/manipulation/swap/colors',
   MEDIA_IV_MANIPULATION_SWAP_PIXELS:
@@ -516,6 +518,8 @@ export const Api = Object.freeze({
     '/utilities/ml/interrogate',
   UTILITIES_ML_MASHUP:
     '/utilities/ml/mashup',
+  UTILITIES_PROXY_REQUEST:
+    '/utilities/proxy/request',
   UTILITIES_QR_CREATE:
     '/utilities/qr/create',
   UTILITIES_QR_SCAN:

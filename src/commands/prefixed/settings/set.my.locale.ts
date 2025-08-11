@@ -34,10 +34,6 @@ export default class SetMyLocaleCommand extends BaseCommand {
     return !!args.locale;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.SettingsSetLocale.CommandArgs) {
-    return context.editOrReply('⚠ Provide some kind of language');
-  }
-
   async run(context: Command.Context, args: Formatter.Commands.SettingsSetLocale.CommandArgs) {
     return Formatter.Commands.SettingsSetLocale.createMessage(context, {locale: args.locale});
   }

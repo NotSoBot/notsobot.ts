@@ -1562,6 +1562,14 @@ export async function mediaIVManipulationSpin(
 }
 
 
+export async function mediaIVManipulationStretch(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationStretch,
+) {
+  return raw.mediaIVManipulationStretch(context, options);
+}
+
+
 export async function mediaIVManipulationSwapColors(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2166,6 +2174,14 @@ export async function utilitiesMLMashup(
   options: RestOptions.UtilitiesMLMashup,
 ) {
   return raw.utilitiesMLMashup(context, options);
+}
+
+
+export async function utilitiesProxyRequest(
+  context: RequestContext,
+  options: RestOptions.UtilitiesProxyRequest,
+) {
+  return raw.utilitiesProxyRequest(context, options);
 }
 
 

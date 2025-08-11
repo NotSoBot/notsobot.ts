@@ -3,11 +3,15 @@ import * as Sentry from '@sentry/node';
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
+import GuildSettingsStore from '../../../stores/guildsettings';
+import UserSettingsStore from '../../../stores/usersettings';
+
 import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
+import { TagGenerationPersonalityPreferences } from '../../../constants';
 import { Paginator, Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
 
-import { generatePages } from './tag.show';
+import { createTagMessage } from './tag.show';
 
 
 export const COMMAND_ID = 'tag.generate';
@@ -16,6 +20,7 @@ export interface CommandArgsBefore {
   debug?: boolean,
   debugFull?: boolean,
   model?: string,
+  personalityPreference?: string,
   prompt: string,
 }
 
@@ -23,6 +28,7 @@ export interface CommandArgs {
   debug?: boolean,
   debugFull?: boolean,
   model?: string,
+  personalityPreference?: string,
   prompt: string,
 }
 
@@ -91,9 +97,60 @@ export async function createMessage(
     }
   }
 
+  let personality: string | null | undefined;
+
+  const defaultPersonality = 'Make sure to answer extremely informally and to use a lot of lowercase and some shortened words and do not use any emojis or terms like "my dude", "bruh", "bestie", "fr", "like", "yo".';
+  let serverPersonality: string | undefined;
+  let userPersonality: string | undefined;
+
+  {
+    const settings = await UserSettingsStore.getOrFetch(context, context.userId);
+    if (settings && settings.ml_llm_personality) {
+      userPersonality = settings.ml_llm_personality;
+    }
+  }
+
+  {
+    const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
+    if (guildSettings && guildSettings.settings.mlLLMPersonality) {
+      serverPersonality = guildSettings.settings.mlLLMPersonality;
+    }
+  }
+
+  switch (args.personalityPreference) {
+    case TagGenerationPersonalityPreferences.DEFAULT: {
+      personality = null;
+    }; break;
+    case TagGenerationPersonalityPreferences.GUILD: {
+      personality = serverPersonality || null;
+    }; break;
+    case TagGenerationPersonalityPreferences.USER: {
+      personality = userPersonality || null;
+    }; break;
+    case TagGenerationPersonalityPreferences.AUTOMATIC:
+    default: {
+      personality = userPersonality || serverPersonality || null;
+    };
+  }
+
+  if (personality && personality.includes('{') && personality.includes('}')) {
+    const parsedTag = await TagFormatter.parse(context, personality, args.prompt, {
+      defaultPersonality,
+      personality: personality || defaultPersonality,
+      serverPersonality,
+      userPersonality,
+    } as any, {} as any, {
+      MAX_AI_EXECUTIONS: 0,
+      MAX_ATTACHMENTS: 0,
+    });
+    personality = parsedTag.text.slice(0, 1024);
+  }
+
   const now = Date.now();
   const response = await generateTag(context, {
     model: args.model,
+    personality,
+    personalityPreference: args.personalityPreference,
     prompt: [args.prompt, ...promptExtra].join('\n'),
     urls,
   });
@@ -121,49 +178,15 @@ export async function createMessage(
 
   try {
     const parsedTag = await TagFormatter.parse(context, response.text, '', {
+      defaultPersonality,
+      personality: personality || defaultPersonality,
+      serverPersonality,
+      userPersonality,
       [TagFormatter.PrivateVariables.SETTINGS]: {
         [TagFormatter.TagSettings.AI_MODEL]: args.model,
       },
     } as any);
-
-    if (parsedTag.pages.length) {
-      const pages = generatePages(context, parsedTag);
-      const paginator = new Paginator(context, {pages});
-      return await paginator.start();
-    }
-
-    const content = parsedTag.text.trim().slice(0, 2000).trim();
-    const options: Command.EditOrReply = {content};
-    if (parsedTag.embeds.length) {
-      // add checks for embed lengths
-      options.embeds = parsedTag.embeds.slice(0, 10);
-    }
-  
-    if (parsedTag.files.length) {
-      options.files = parsedTag.files.slice(0, 10).map((file) => {
-        return {
-          description: file.description,
-          filename: file.filename,
-          hasSpoiler: file.spoiler,
-          value: file.buffer,
-        };
-      });
-    }
-
-    if (options.content) {
-      const [ isAwfulNSFW ] = await checkNSFW(context, options.content);
-      if (isAwfulNSFW) {
-        options.content = 'i love cats';
-      }
-    }
-
-    if (!content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
-      options.content = 'No content returned';
-    }
-
-    context.metadata = Object.assign({}, context.metadata, {parsedTag});
-
-    return editOrReply(context, options);
+    return await createTagMessage(context, parsedTag);
   } catch(error) {
     if (response.id) {
       try {

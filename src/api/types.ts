@@ -119,6 +119,8 @@ export namespace RestOptions {
       type: string,
     }>,
     mlDiffusionModel?: string,
+    mlLLMModel?: string | null,
+    mlLLMPersonality?: string | null,
     prefixes?: Array<string>,
     timezone?: string,
   }
@@ -145,6 +147,7 @@ export namespace RestOptions {
     optOutContent?: boolean,
     mlDiffusionModel?: null | string,
     mlLLMModel?: null | string,
+    mlLLMPersonality?: null | string,
     responseDisplay?: null | UserSettingsResponseDisplayTypes,
     timezone?: null | string,
     ttsVoice?: null | string,
@@ -236,6 +239,8 @@ export namespace RestOptions {
   
   export interface GenerateTag extends MediaBaseOptionsMultiple {
     model?: string,
+    personality?: null | string,
+    personalityPreference?: string,
     prompt: string,
   }
 
@@ -554,6 +559,10 @@ export namespace RestOptions {
     vertical?: number,
   }
 
+  export interface MediaIVManipulationSharpen extends MediaBaseOptions {
+    scale?: number,
+  }
+
   export interface MediaIVManipulationSlide extends MediaBaseOptions {
     direction?: string,
     speed?: number,
@@ -565,8 +574,10 @@ export namespace RestOptions {
     crop?: boolean,
   }
 
-  export interface MediaIVManipulationSharpen extends MediaBaseOptions {
-    scale?: number,
+  export interface MediaIVManipulationStretch extends MediaBaseOptions {
+    crop?: boolean,
+    height?: number,
+    width?: number,
   }
 
   export interface MediaIVManipulationSwapRGBA extends MediaBaseOptions {
@@ -966,6 +977,16 @@ export namespace RestOptions {
     strength?: number,
   }
 
+  export interface UtilitiesProxyRequest {
+    data?: any,
+    dataJSON?: Record<string, any>,
+    files?: Array<RequestFile>,
+    headers?: Record<string, string>,
+    method: string,
+    query?: Record<string, string>,
+    url: string,
+  }
+
   export interface UtilitiesQrCreate {
     margin?: number,
     query: string,
@@ -1358,6 +1379,12 @@ export namespace RestResponsesRaw {
     name: string,
     prefixes: Array<GuildPrefix>,
     premium_type: number,
+    settings: {
+      ml_diffusion_model: string | null,
+      ml_llm_model: string | null,
+      ml_llm_personality: string | null,
+    },
+    timezone: string | null,
   }
 
   export interface GuildAllowlist {
@@ -2251,6 +2278,15 @@ export namespace RestResponsesRaw {
     prompt: string,
   }
 
+  export interface UtilitiesProxyRequest {
+    cookies: Record<string, string>,
+    data: any,
+    data_is_bytes: boolean,
+    headers: Record<string, string>,
+    status: number,
+    url: string,
+  }
+
   export interface UtilitiesQrScan {
     results: Array<{
       data: string,
@@ -2404,6 +2440,7 @@ export namespace RestResponsesRaw {
     locale: string | null,
     ml_diffusion_model: string | null,
     ml_llm_model: string | null,
+    ml_llm_personality: string | null,
     opted_out_content: string | null,
     response_display: number,
     timezone: string | null,

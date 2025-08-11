@@ -34,13 +34,6 @@ export default class CaptionCommand extends BaseImageOrVideoCommand {
     return !!args.text && super.onBeforeRun(context, args);
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCaption.CommandArgs) {
-    if (!args.text) {
-      return BaseCommand.prototype.onCancelRun.call(this, context, args);
-    }
-    return super.onCancelRun(context, args);
-  }
-
   run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCaption.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationCaption.createMessage(context, args);
   }

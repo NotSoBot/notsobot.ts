@@ -3,7 +3,15 @@ import { Command, CommandClient } from 'detritus-client';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserStore from '../../../stores/users';
 
-import { CommandCategories, GuildFeatures, TagGenerationModels, UserFlags } from '../../../constants';
+import {
+  CommandCategories,
+  GuildFeatures,
+  TagGenerationModels,
+  TagGenerationModelsToText,
+  TagGenerationPersonalityPreferences,
+  TagGenerationPersonalityPreferencesToText,
+  UserFlags,
+} from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
@@ -20,9 +28,15 @@ export default class AiCommand extends BaseCommand {
         {name: 'debug', type: Boolean},
         {name: 'debug2', aliases: ['d2'], label: 'debugFull', type: Boolean},
         {
+          name: 'personalitypreference',
+          aliases: ['pp'],
+          label: 'personalityPreference',
+          type: Parameters.oneOf({choices: TagGenerationPersonalityPreferences, descriptions: TagGenerationPersonalityPreferencesToText}),
+        },
+        {
           name: 'use',
           label: 'model',
-          type: Parameters.oneOf({choices: TagGenerationModels}),
+          type: Parameters.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToText}),
         },
       ],
       label: 'prompt',
@@ -33,7 +47,7 @@ export default class AiCommand extends BaseCommand {
           `${COMMAND_NAME} what is cake\'s user id`,
         ],
         id: Formatter.Commands.TagGenerate.COMMAND_ID,
-        usage: '<text> (-debug) (-use TagGenerationModels)',
+        usage: '<text> (-debug) (-personalitypreference <TagGenerationPersonalityPreferences>) (-use TagGenerationModels)',
       },
       priority: -1,
       type: Parameters.targetText,

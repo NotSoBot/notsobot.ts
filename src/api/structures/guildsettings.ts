@@ -482,12 +482,16 @@ export class GuildSettingsPrefix extends BaseStructure {
 
 const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.ML_DIFFUSION_MODEL,
+  NotSoApiKeys.ML_LLM_MODEL,
+  NotSoApiKeys.ML_LLM_PERSONALITY,
 ]);
 
 export class GuildSettingsChild extends BaseStructure {
   readonly _keys = keysGuildSettingsChild;
 
   mlDiffusionModel: null | string = null;
+  mlLLMModel: null | string = null;
+  mlLLMPersonality: null | string = null;
 
   constructor(data: Structures.BaseStructureData) {
     super();

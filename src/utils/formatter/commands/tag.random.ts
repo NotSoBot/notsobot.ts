@@ -68,7 +68,7 @@ export async function createMessage(
       });
     }
 
-    await maybeCheckNSFW(context, tag, options);
+    await maybeCheckNSFW(context, options);
     if (!options.content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
       options.content = 'Tag returned no content';
     }
