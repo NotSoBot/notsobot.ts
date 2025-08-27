@@ -14,6 +14,9 @@ export default class SetAIPersonalityCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'clear', aliases: ['c'], type: Boolean},
+      ],
       disableDm: true,
       label: 'personality',
       metadata: {
@@ -23,7 +26,7 @@ export default class SetAIPersonalityCommand extends BaseCommand {
           `${COMMAND_NAME} Be very cutesy and dumb`,
         ],
         id: Formatter.Commands.SettingsServerSetAIPersonality.COMMAND_ID,
-        usage: '<personality-description>',
+        usage: '<personality-description> (-clear)',
       },
       permissions: [Permissions.MANAGE_GUILD],
     });

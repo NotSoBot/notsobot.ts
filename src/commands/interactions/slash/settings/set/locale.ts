@@ -24,22 +24,15 @@ export class SettingsSetLocaleCommand extends BaseInteractionCommandOption {
         {
           name: 'language',
           description: 'Language',
-          required: true,
           value: Parameters.locale,
           onAutoComplete: Parameters.AutoComplete.googleLocales,
         },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          type: Boolean,
+        },
       ],
-    });
-  }
-
-  onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {
-    return !!args.language;
-  }
-
-  onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
-    return editOrReply(context, {
-      content: '⚠ Give me some sort of language to set!',
-      flags: MessageFlags.EPHEMERAL,
     });
   }
 

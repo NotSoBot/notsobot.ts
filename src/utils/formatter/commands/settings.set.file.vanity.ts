@@ -11,6 +11,7 @@ import { editOrReply } from '../../../utils';
 export const COMMAND_ID = 'settings.set.file.vanity';
 
 export interface CommandArgs {
+  clear?: boolean,
   vanity?: string | null,
 }
 
@@ -23,7 +24,10 @@ export async function createMessage(
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (args.vanity) {
+  if (args.vanity || args.clear) {
+    if (args.clear) {
+      args.vanity = null;
+    }
     if (oldSettings && oldSettings.file_upload_vanity === args.vanity) {
       if (oldSettings.file_upload_vanity) {
         text = `Your file upload vanity is already ${Markup.bold(oldSettings.file_upload_vanity)}`;
@@ -40,7 +44,6 @@ export async function createMessage(
       if (settings.file_upload_vanity) {
         text = `Ok, set your file upload vanity to ${Markup.bold(settings.file_upload_vanity)}`;
       } else {
-        // this should never happen currently
         text = 'Ok, cleared out your file upload vanity.';
       }
     }

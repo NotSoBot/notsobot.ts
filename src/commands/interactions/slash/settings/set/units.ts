@@ -22,6 +22,11 @@ export class SettingsSetUnitsCommand extends BaseInteractionCommandOption {
           description: 'Measurement Unit (Default: Imperial)',
           choices: Parameters.Slash.oneOf({choices: MeasurementUnits}),
         },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          type: Boolean,
+        },
       ],
     });
   }

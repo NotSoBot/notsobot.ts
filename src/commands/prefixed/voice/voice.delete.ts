@@ -21,7 +21,7 @@ export default class VoiceDeleteCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.VoiceDelete.COMMAND_ID,
-        premium: true,
+        premiumPlus: true,
         usage: '<voice:string>',
       },
     });

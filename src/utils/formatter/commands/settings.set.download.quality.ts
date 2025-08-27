@@ -11,6 +11,7 @@ import { editOrReply } from '../../../utils';
 export const COMMAND_ID = 'settings.set.download.quality';
 
 export interface CommandArgs {
+  clear?: boolean,
   quality?: string | null,
 }
 
@@ -23,7 +24,10 @@ export async function createMessage(
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (args.quality) {
+  if (args.quality || args.clear) {
+    if (args.clear) {
+      args.quality = null;
+    }
     if (oldSettings && oldSettings.download_quality === args.quality) {
       if (oldSettings.download_quality) {
         text = `Your Download Quality preference is already ${Markup.bold(oldSettings.download_quality)}`;
@@ -40,7 +44,6 @@ export async function createMessage(
       if (settings.download_quality) {
         text = `Ok, set your Download Quality preference to ${Markup.bold(settings.download_quality)}`;
       } else {
-        // this should never happen currently
         text = 'Ok, cleared out your Download Quality preference.';
       }
     }

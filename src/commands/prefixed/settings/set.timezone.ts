@@ -14,6 +14,9 @@ export default class SetTimezoneCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'clear', aliases: ['c'], type: Boolean},
+      ],
       disableDm: true,
       label: 'timezone',
       metadata: {
@@ -24,16 +27,12 @@ export default class SetTimezoneCommand extends BaseCommand {
           `${COMMAND_NAME} mst`,
         ],
         id: Formatter.Commands.SettingsServerSetTimezone.COMMAND_ID,
-        usage: '<timezone>',
+        usage: '<timezone> (-clear)',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       type: Parameters.string({maxLength: 128}),
     });
-  }
-
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.SettingsServerSetTimezone.CommandArgs) {
-    return !!args.timezone;
   }
 
   async run(context: Command.Context, args: Formatter.Commands.SettingsServerSetTimezone.CommandArgs) {

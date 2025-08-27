@@ -1546,6 +1546,9 @@ export enum UserFlags {
 
 export enum UserPremiumTypes {
   NONE = 0,
+  PREMIUM_FREE = 1,
+  PREMIUM = 2,
+  PREMIUM_PLUS = 3,
 }
 
 

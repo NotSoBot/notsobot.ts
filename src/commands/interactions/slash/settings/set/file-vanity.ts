@@ -22,6 +22,11 @@ export class SettingsSetFileVanityCommand extends BaseInteractionCommandOption {
           name: 'vanity',
           description: 'File Upload Vanity (Ex: {3-8}/{1-3}) (Default: 5/5)',
         },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          type: Boolean,
+        },
       ],
     });
   }

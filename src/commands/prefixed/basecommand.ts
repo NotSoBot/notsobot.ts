@@ -21,6 +21,7 @@ import {
   PermissionsText,
   RatelimitKeys,
   UserFlags,
+  UserPremiumTypes,
 } from '../../constants';
 import { Parameters, createUserEmbed, editOrReply, findMediaUrlInMessages } from '../../utils';
 
@@ -33,6 +34,7 @@ export interface CommandMetadata {
   id?: string,
   nsfw?: boolean,
   premium?: boolean,
+  premiumPlus?: boolean,
   premiumServer?: GuildFeatures | boolean,
   usage?: string,
 }
@@ -72,11 +74,19 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
             return resolve(isNSFWAllowed);
           }
         }
-        if (metadata.premium || metadata.premiumServer) {
+        if (metadata.premium || metadata.premiumPlus || metadata.premiumServer) {
           let hasPremium: boolean = false;
           const user = await UserStore.getOrFetch(context, context.userId);
-          if (user && (user.premiumType || user.hasFlag(UserFlags.OWNER))) {
-            hasPremium = true;
+          if (user) {
+            if (metadata.premiumPlus) {
+              hasPremium = (
+                (user.premiumType === UserPremiumTypes.PREMIUM_FREE) ||
+                (user.premiumType === UserPremiumTypes.PREMIUM_PLUS) ||
+                (user.hasFlag(UserFlags.OWNER))
+              );
+            } else {
+              hasPremium = !!user.premiumType || user.hasFlag(UserFlags.OWNER);
+            }
           }
   
           if (!hasPremium && metadata.premiumServer) {
@@ -106,6 +116,8 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
             context.metadata = context.metadata || {};
             if (metadata.premiumServer) {
               context.metadata.reason = `You or the Server Owner must have NotSoPremium to use ${Markup.codestring(this.fullName)}!`;
+            } else if (metadata.premiumPlus) {
+              context.metadata.reason = `You must have NotSoPremium Plus to use ${Markup.codestring(this.fullName)}!`;
             } else {
               context.metadata.reason = `You must have NotSoPremium to use ${Markup.codestring(this.fullName)}!`;
             }
@@ -127,10 +139,10 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           Endpoints.Routes.APPLICATION_DIRECTORY(context.applicationId) +
           `/${DiscordSkuIds.USER_NOTSOPREMIUM}`
         );
-  
+
         contextMetadata.reason = [
           contextMetadata.reason,
-          `Buy it here: ${storePageUrl}`,
+          //`Buy it here: ${storePageUrl}`,
         ].join('\n').trim();
   
         /*

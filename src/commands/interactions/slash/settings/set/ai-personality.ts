@@ -20,6 +20,11 @@ export class SettingsSetAIPersonalityCommand extends BaseInteractionCommandOptio
           name: 'personality',
           description: 'AI Personality',
         },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          type: Boolean,
+        },
       ],
     });
   }

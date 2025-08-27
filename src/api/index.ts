@@ -2129,19 +2129,19 @@ export async function utilitiesFetchText(
 }
 
 
-export async function utilitiesImagescriptV1(
-  context: RequestContext,
-  options: RestOptions.UtilitiesImagescriptV1,
-) {
-  return raw.utilitiesImagescriptV1(context, options);
-}
-
-
 export async function utilitiesLocations(
   context: RequestContext,
   options: RestOptions.UtilitiesLocations,
 ) {
   return raw.utilitiesLocations(context, options);
+}
+
+
+export async function utilitiesMediascript(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMediascript,
+) {
+  return raw.utilitiesMediascript(context, options);
 }
 
 

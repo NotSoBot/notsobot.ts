@@ -1567,7 +1567,7 @@ export async function imageReply(
     options = {filename: options};
   }
   if (!options.filename) {
-    options.filename = response.file.filename_base;
+    options.filename = response.file.filename_safe_base;
   }
   if (context instanceof Interaction.InteractionContext) {
     options.args = options.args || false;
@@ -1775,7 +1775,7 @@ export async function mediaReply(
     options = {filename: options};
   }
   if (!options.filename) {
-    options.filename = response.file.filename_base;
+    options.filename = response.file.filename_safe_base;
   }
   const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   return mediaReplyFromOptions(context, buffer, {

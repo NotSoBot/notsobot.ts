@@ -11,6 +11,7 @@ import { editOrReply } from '../../../utils';
 export const COMMAND_ID = 'settings.set.ml.imagine.model';
 
 export interface CommandArgs {
+  clear?: boolean,
   model?: string | null,
 }
 
@@ -23,7 +24,10 @@ export async function createMessage(
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (args.model) {
+  if (args.model || args.clear) {
+    if (args.clear) {
+      args.model = null;
+    }
     if (oldSettings && oldSettings.ml_diffusion_model === args.model) {
       if (oldSettings.ml_diffusion_model) {
         text = `Your ML Diffusion Model preference is already ${Markup.bold(oldSettings.ml_diffusion_model)}`;
@@ -40,7 +44,6 @@ export async function createMessage(
       if (settings.ml_diffusion_model) {
         text = `Ok, set your ML Diffusion Model preference to ${Markup.bold(settings.ml_diffusion_model)}`;
       } else {
-        // this should never happen currently
         text = 'Ok, cleared out your ML Diffusion Model preference.';
       }
     }

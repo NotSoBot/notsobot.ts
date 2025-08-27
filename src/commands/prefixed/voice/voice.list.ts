@@ -20,7 +20,7 @@ export default class VoiceListCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.VoiceList.COMMAND_ID,
-        premium: true,
+        premiumPlus: true,
         usage: '',
       },
     });

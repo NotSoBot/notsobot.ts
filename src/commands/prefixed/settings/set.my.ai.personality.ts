@@ -13,6 +13,9 @@ export default class SetMyAIPersonalityCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'clear', aliases: ['c'], type: Boolean},
+      ],
       label: 'personality',
       metadata: {
         category: CommandCategories.SETTINGS,
@@ -21,7 +24,7 @@ export default class SetMyAIPersonalityCommand extends BaseCommand {
           `${COMMAND_NAME} Be very cutesy and dumb`,
         ],
         id: Formatter.Commands.SettingsSetAIPersonality.COMMAND_ID,
-        usage: '<personality-description>',
+        usage: '<personality-description> (-clear)',
       },
     });
   }

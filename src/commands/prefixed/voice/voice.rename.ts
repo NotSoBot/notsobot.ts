@@ -20,7 +20,7 @@ export default class VoiceRenameCommand extends BaseCommand {
           `${COMMAND_NAME} chewbacca ralph`,
         ],
         id: Formatter.Commands.VoiceRename.COMMAND_ID,
-        premium: true,
+        premiumPlus: true,
         usage: '<voice:string> <...name:string>',
       },
       type: [

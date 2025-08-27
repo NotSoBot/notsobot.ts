@@ -11,6 +11,7 @@ import { editOrReply } from '../../../utils';
 export const COMMAND_ID = 'settings.server.set.ai.personality';
 
 export interface CommandArgs {
+  clear?: boolean,
   personality?: string | null,
 }
 
@@ -23,8 +24,8 @@ export async function createMessage(
   const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
 
   let text: string;
-  if (args.personality) {
-    if (args.personality.toLowerCase() === 'clear') {
+  if (args.personality || args.clear) {
+    if (args.clear || (args.personality && args.personality.toLowerCase() === 'clear')) {
       args.personality = null;
     }
     if (guildSettings && guildSettings.settings.mlLLMPersonality === args.personality) {
@@ -42,7 +43,6 @@ export async function createMessage(
       if (settings.mlLLMPersonality) {
         text = `Ok, set this server\'s AI Personality to ${Markup.codeblock(settings.mlLLMPersonality)}`;
       } else {
-        // this should never happen currently
         text = 'Ok, cleared out this server\'s AI Personality.';
       }
     }

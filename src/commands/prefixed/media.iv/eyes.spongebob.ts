@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 
 import { mediaIVManipulationEyes } from '../../../api';
 import { CommandCategories, ImageEyeTypes } from '../../../constants';
-import { mediaReply } from '../../../utils';
+import { jobReply } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -41,6 +41,6 @@ export default class EyesCommand extends BaseImageOrVideoCommand<CommandArgs> {
       type: ImageEyeTypes.SPONGEBOB,
       url: args.url,
     });
-    return mediaReply(context, response);
+    return jobReply(context, response);
   }
 }

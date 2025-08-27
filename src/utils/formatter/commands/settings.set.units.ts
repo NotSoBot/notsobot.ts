@@ -11,6 +11,7 @@ import { editOrReply } from '../../../utils';
 export const COMMAND_ID = 'settings.set.units';
 
 export interface CommandArgs {
+  clear?: boolean,
   units?: string | null,
 }
 
@@ -23,7 +24,10 @@ export async function createMessage(
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (args.units) {
+  if (args.units || args.clear) {
+    if (args.clear) {
+      args.units = null;
+    }
     if (oldSettings && oldSettings.units === args.units) {
       if (oldSettings.units) {
         text = `Your Measurement Units preference is already ${Markup.bold(oldSettings.units)}`;

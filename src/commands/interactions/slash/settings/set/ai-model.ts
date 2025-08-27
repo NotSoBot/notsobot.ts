@@ -23,6 +23,11 @@ export class SettingsSetAIModelCommand extends BaseInteractionCommandOption {
           value: Parameters.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToText}),
           onAutoComplete: Parameters.AutoComplete.mlLLMModel,
         },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          type: Boolean,
+        },
       ],
     });
   }

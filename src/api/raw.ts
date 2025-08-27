@@ -1153,7 +1153,6 @@ export async function googleContentVisionLabels(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1172,7 +1171,6 @@ export async function googleContentVisionOCR(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1191,7 +1189,6 @@ export async function googleContentVisionSafeSearch(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1210,7 +1207,6 @@ export async function googleContentVisionWebDetection(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1251,7 +1247,6 @@ export async function mediaAIVManipulationADHD(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1274,7 +1269,6 @@ export async function mediaAIVManipulationFadeIn(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1297,7 +1291,6 @@ export async function mediaAIVManipulationFadeOut(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1319,7 +1312,6 @@ export async function mediaAIVManipulationShuffle(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1383,7 +1375,6 @@ export async function mediaAIVToolsConvert(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1402,7 +1393,6 @@ export async function mediaAIVToolsExif(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1423,7 +1413,6 @@ export async function mediaAIVToolsExtractMedia(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1497,7 +1486,6 @@ export async function mediaAIVToolsReverse(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1518,7 +1506,6 @@ export async function mediaAIVToolsSeeSaw(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1542,7 +1529,6 @@ export async function mediaAIVToolsSnip(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1565,7 +1551,6 @@ export async function mediaAIVToolsSpeed(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1586,7 +1571,6 @@ export async function mediaAVManipulationAudioChannelsCombine(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1609,7 +1593,6 @@ export async function mediaAVManipulationAudioDelay(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1631,7 +1614,6 @@ export async function mediaAVManipulationAudioPitch(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1677,7 +1659,6 @@ export async function mediaAVManipulationAudioTremolo(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1700,7 +1681,6 @@ export async function mediaAVManipulationAudioVibrato(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1721,7 +1701,6 @@ export async function mediaAVManipulationBoostBass(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1743,7 +1722,6 @@ export async function mediaAVManipulationCompress(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1764,7 +1742,6 @@ export async function mediaAVManipulationDestroy(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1809,7 +1786,6 @@ export async function mediaAVManipulationVolume(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1833,7 +1809,6 @@ export async function mediaAVToolsExtractAudio(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1853,7 +1828,6 @@ export async function mediaAVToolsIdentify(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1876,7 +1850,6 @@ export async function mediaAVToolsSetBitRate(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1895,7 +1868,6 @@ export async function mediaAVToolsTranscribe(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -1981,7 +1953,6 @@ export async function mediaIManipulationBill(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2002,7 +1973,6 @@ export async function mediaIManipulationBurn(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2023,7 +1993,6 @@ export async function mediaIManipulationFaceAlien(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2044,7 +2013,6 @@ export async function mediaIManipulationFaceAnime(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2065,7 +2033,6 @@ export async function mediaIManipulationFaceClown(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2087,7 +2054,6 @@ export async function mediaIManipulationFaceFat(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2108,7 +2074,6 @@ export async function mediaIManipulationFaceMountRushmore(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2129,7 +2094,6 @@ export async function mediaIManipulationLatte(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2149,7 +2113,6 @@ export async function mediaIManipulationMuseum(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2170,7 +2133,6 @@ export async function mediaIManipulationPopArt(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2191,7 +2153,6 @@ export async function mediaIManipulationTimesquare(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2212,7 +2173,6 @@ export async function mediaIManipulationUniverse(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2233,7 +2193,6 @@ export async function mediaIVManipulationAscii(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2255,7 +2214,6 @@ export async function mediaIVManipulationBlur(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2276,7 +2234,6 @@ export async function mediaIVManipulationBlurple(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2300,7 +2257,6 @@ export async function mediaIVManipulationCaption(
   return request(context, {
     body,
     file: options.file,
-    multipart: true,
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_CAPTION,
@@ -2321,7 +2277,6 @@ export async function mediaIVManipulationCircle(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2344,7 +2299,6 @@ export async function mediaIVManipulationDeepfry(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2365,7 +2319,6 @@ export async function mediaIVManipulationDetunnel(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2400,7 +2353,7 @@ export async function mediaIVManipulationDistort(
 export async function mediaIVManipulationEmboss(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationEmboss,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     azimuth: options.azimuth,
@@ -2415,7 +2368,6 @@ export async function mediaIVManipulationEmboss(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2429,7 +2381,7 @@ export async function mediaIVManipulationEmboss(
 export async function mediaIVManipulationExo(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationExo,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2439,7 +2391,6 @@ export async function mediaIVManipulationExo(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2452,7 +2403,7 @@ export async function mediaIVManipulationExo(
 export async function mediaIVManipulationExplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationExplode,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2461,7 +2412,6 @@ export async function mediaIVManipulationExplode(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2474,7 +2424,7 @@ export async function mediaIVManipulationExplode(
 export async function mediaIVManipulationEyes(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationEyes,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2483,7 +2433,6 @@ export async function mediaIVManipulationEyes(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2496,7 +2445,7 @@ export async function mediaIVManipulationEyes(
 export async function mediaIVManipulationFisheye(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2504,7 +2453,6 @@ export async function mediaIVManipulationFisheye(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2517,7 +2465,7 @@ export async function mediaIVManipulationFisheye(
 export async function mediaIVManipulationFlip(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2525,7 +2473,6 @@ export async function mediaIVManipulationFlip(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2538,7 +2485,7 @@ export async function mediaIVManipulationFlip(
 export async function mediaIVManipulationFlop(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2546,7 +2493,6 @@ export async function mediaIVManipulationFlop(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2559,7 +2505,7 @@ export async function mediaIVManipulationFlop(
 export async function mediaIVManipulationGlitch(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGlitch,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     amount: options.amount,
@@ -2571,7 +2517,6 @@ export async function mediaIVManipulationGlitch(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2584,7 +2529,7 @@ export async function mediaIVManipulationGlitch(
 export async function mediaIVManipulationGlitchAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGlitch,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     amount: options.amount,
@@ -2596,7 +2541,6 @@ export async function mediaIVManipulationGlitchAnimated(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2609,7 +2553,7 @@ export async function mediaIVManipulationGlitchAnimated(
 export async function mediaIVManipulationGlobe(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2617,7 +2561,6 @@ export async function mediaIVManipulationGlobe(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2630,7 +2573,7 @@ export async function mediaIVManipulationGlobe(
 export async function mediaIVManipulationGold(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2638,7 +2581,6 @@ export async function mediaIVManipulationGold(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2651,7 +2593,7 @@ export async function mediaIVManipulationGold(
 export async function mediaIVManipulationGrain(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationGrain,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     flags: options.flags,
@@ -2661,7 +2603,6 @@ export async function mediaIVManipulationGrain(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2674,7 +2615,7 @@ export async function mediaIVManipulationGrain(
 export async function mediaIVManipulationGrayscale(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2682,7 +2623,6 @@ export async function mediaIVManipulationGrayscale(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2695,7 +2635,7 @@ export async function mediaIVManipulationGrayscale(
 export async function mediaIVManipulationHueCurveRGBA(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueCurveRGBA,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     all: options.all,
@@ -2720,7 +2660,7 @@ export async function mediaIVManipulationHueCurveRGBA(
 export async function mediaIVManipulationHueShiftHSV(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftHSV,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     brightness: options.brightness,
@@ -2731,7 +2671,6 @@ export async function mediaIVManipulationHueShiftHSV(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2744,7 +2683,7 @@ export async function mediaIVManipulationHueShiftHSV(
 export async function mediaIVManipulationHueShiftHSVFFMPEG(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftHSV,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     brightness: options.brightness,
@@ -2755,7 +2694,6 @@ export async function mediaIVManipulationHueShiftHSVFFMPEG(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2768,7 +2706,7 @@ export async function mediaIVManipulationHueShiftHSVFFMPEG(
 export async function mediaIVManipulationHueShiftRGB(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationHueShiftRGB,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     blue: options.blue,
@@ -2779,7 +2717,6 @@ export async function mediaIVManipulationHueShiftRGB(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2792,7 +2729,7 @@ export async function mediaIVManipulationHueShiftRGB(
 export async function mediaIVManipulationImplode(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationImplode,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2801,7 +2738,6 @@ export async function mediaIVManipulationImplode(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2822,7 +2758,6 @@ export async function mediaIVManipulationInvert(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2835,7 +2770,7 @@ export async function mediaIVManipulationInvert(
 export async function mediaIVManipulationInvertRGBA(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationInvertRGBA,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     alpha: options.alpha,
@@ -2847,7 +2782,6 @@ export async function mediaIVManipulationInvertRGBA(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2860,7 +2794,7 @@ export async function mediaIVManipulationInvertRGBA(
 export async function mediaIVManipulationJPEG(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationJPEG,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     keep_transparency: options.keepTransparency,
@@ -2870,7 +2804,6 @@ export async function mediaIVManipulationJPEG(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2891,7 +2824,6 @@ export async function mediaIVManipulationLabelsIFunny(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2904,7 +2836,7 @@ export async function mediaIVManipulationLabelsIFunny(
 export async function mediaIVManipulationLegofy(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationLegofy,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     dither: options.dither,
@@ -2915,7 +2847,6 @@ export async function mediaIVManipulationLegofy(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2928,7 +2859,7 @@ export async function mediaIVManipulationLegofy(
 export async function mediaIVManipulationMagik(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMagik,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2937,7 +2868,6 @@ export async function mediaIVManipulationMagik(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2951,7 +2881,7 @@ export async function mediaIVManipulationMagik(
 export async function mediaIVManipulationMagikAnimated(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationMagik,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2960,7 +2890,6 @@ export async function mediaIVManipulationMagikAnimated(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -2986,7 +2915,6 @@ export async function mediaIVManipulationMandalaScope(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3010,7 +2938,6 @@ export async function mediaIVManipulationMeme(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3031,7 +2958,6 @@ export async function mediaIVManipulationMirrorBottom(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3052,7 +2978,6 @@ export async function mediaIVManipulationMirrorLeft(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3073,7 +2998,6 @@ export async function mediaIVManipulationMirrorRight(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3094,7 +3018,6 @@ export async function mediaIVManipulationMirrorTop(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3117,7 +3040,6 @@ export async function mediaIVManipulationMotionBlur(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3160,7 +3082,6 @@ export async function mediaIVManipulationOverlayFlagIsrael(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3181,7 +3102,6 @@ export async function mediaIVManipulationOverlayFlagLGBT(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3202,7 +3122,6 @@ export async function mediaIVManipulationOverlayFlagNorthKorea(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3223,7 +3142,6 @@ export async function mediaIVManipulationOverlayFlagTrans(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3244,7 +3162,6 @@ export async function mediaIVManipulationOverlayFlagRussia(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3265,7 +3182,6 @@ export async function mediaIVManipulationOverlayFlagUK(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3286,7 +3202,6 @@ export async function mediaIVManipulationOverlayFlagUSA(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3307,7 +3222,6 @@ export async function mediaIVManipulationOverlayFlagUSSR(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3351,7 +3265,6 @@ export async function mediaIVManipulationOverlayGoldstar(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3372,7 +3285,6 @@ export async function mediaIVManipulationOverlayHalfLifePistol(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3393,7 +3305,6 @@ export async function mediaIVManipulationOverlayHalfLifeShotgun(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3414,7 +3325,6 @@ export async function mediaIVManipulationOverlayHalfLifeSMG(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3435,7 +3345,6 @@ export async function mediaIVManipulationOverlayPersonsBernie1(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3456,7 +3365,6 @@ export async function mediaIVManipulationOverlayPersonsBobRoss(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3478,7 +3386,6 @@ export async function mediaIVManipulationOverlayPersonsGaben1(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3499,7 +3406,6 @@ export async function mediaIVManipulationOverlayPersonsLTTLinus1(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3520,7 +3426,6 @@ export async function mediaIVManipulationOverlayShutterstock(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3541,7 +3446,6 @@ export async function mediaIVManipulationOverlayStarman(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3563,7 +3467,6 @@ export async function mediaIVManipulationPaint(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3585,7 +3488,6 @@ export async function mediaIVManipulationPaintAnimated(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3606,7 +3508,6 @@ export async function mediaIVManipulationPaper(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3628,7 +3529,6 @@ export async function mediaIVManipulationPix2Pix(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3651,7 +3551,6 @@ export async function mediaIVManipulationPixelate(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3672,7 +3571,6 @@ export async function mediaIVManipulationRain(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3693,7 +3591,6 @@ export async function mediaIVManipulationRainGold(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3714,7 +3611,6 @@ export async function mediaIVManipulationRecolor(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3741,7 +3637,6 @@ export async function mediaIVManipulationRipple(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3762,7 +3657,6 @@ export async function mediaIVManipulationSepia(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3786,7 +3680,6 @@ export async function mediaIVManipulationShake(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3808,7 +3701,6 @@ export async function mediaIVManipulationSharpen(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3831,7 +3723,6 @@ export async function mediaIVManipulationSlide(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3852,7 +3743,6 @@ export async function mediaIVManipulationSolarize(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3876,7 +3766,6 @@ export async function mediaIVManipulationSpin(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3899,7 +3788,6 @@ export async function mediaIVManipulationStretch(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3920,7 +3808,6 @@ export async function mediaIVManipulationSwapColors(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3941,7 +3828,6 @@ export async function mediaIVManipulationSwapPixels(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3963,7 +3849,6 @@ export async function mediaIVManipulationSwapRGBA(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -3985,7 +3870,6 @@ export async function mediaIVManipulationSwirl(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4006,7 +3890,6 @@ export async function mediaIVManipulationTrace(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4028,7 +3911,6 @@ export async function mediaIVManipulationTunnel(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4050,7 +3932,6 @@ export async function mediaIVManipulationUncaption(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4072,7 +3953,6 @@ export async function mediaIVManipulationVaporwave(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4093,7 +3973,6 @@ export async function mediaIVManipulationWall(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4118,7 +3997,6 @@ export async function mediaIVManipulationWatercolor(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4141,7 +4019,6 @@ export async function mediaIVManipulationWave(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4165,7 +4042,6 @@ export async function mediaIVManipulationWaveAnimated(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4189,7 +4065,6 @@ export async function mediaIVManipulationWiggle(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4211,7 +4086,6 @@ export async function mediaIVManipulationZoom(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4234,7 +4108,6 @@ export async function mediaIVManipulationZoomBlur(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4257,7 +4130,6 @@ export async function mediaIVToolsBackgroundRemove(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4282,7 +4154,6 @@ export async function mediaIVToolsCrop(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4303,7 +4174,6 @@ export async function mediaIVToolsCropAuto(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4325,7 +4195,6 @@ export async function mediaIVToolsCropCircle(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4347,7 +4216,6 @@ export async function mediaIVToolsCropTwitterHex(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4369,7 +4237,6 @@ export async function mediaIVToolsObjectRemove(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4416,7 +4283,6 @@ export async function mediaIVToolsResize(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4439,7 +4305,6 @@ export async function mediaIVToolsRotate(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4466,7 +4331,6 @@ export async function mediaIVToolsRotate3d(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4488,7 +4352,6 @@ export async function mediaIVToolsSetFPS(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4510,7 +4373,6 @@ export async function mediaIVToolsSetFrameCount(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4533,7 +4395,6 @@ export async function mediaIVToolsSnipFrames(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -4556,7 +4417,6 @@ export async function mediaIVToolsTrim(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -5288,30 +5148,6 @@ export async function utilitiesFetchText(
 }
 
 
-export async function utilitiesImagescriptV1(
-  context: RequestContext,
-  options: RestOptions.UtilitiesImagescriptV1,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const body = {
-    code: options.code,
-    max_file_size: maxFileSize,
-    ml_diffusion_model: options.mlDiffusionModel,
-    upload: options.upload,
-  };
-  return request(context, {
-    body,
-    file: options.file,
-    files: options.files,
-    multipart: true,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.UTILITIES_IMAGESCRIPT_V1,
-    },
-  });
-}
-
-
 export async function utilitiesLocations(
   context: RequestContext,
   options: RestOptions.UtilitiesLocations,
@@ -5325,6 +5161,30 @@ export async function utilitiesLocations(
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_LOCATIONS,
+    },
+  });
+}
+
+
+export async function utilitiesMediascript(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMediascript,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    code: options.code,
+    max_file_size: maxFileSize,
+    max_file_size_strict: options.maxFileSizeStrict,
+    ml_diffusion_model: options.mlDiffusionModel,
+    upload: options.upload,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_MEDIASCRIPT,
     },
   });
 }
@@ -5349,7 +5209,6 @@ export async function utilitiesMLEdit(
   };
   const response = await request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,
@@ -5411,7 +5270,6 @@ export async function utilitiesMLInterrogate(
   };
   return request(context, {
     file: options.file,
-    multipart: true,
     query,
     route: {
       method: HTTPMethods.POST,

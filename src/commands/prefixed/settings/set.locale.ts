@@ -15,6 +15,9 @@ export default class SetLocaleCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['set language'],
+      args: [
+        {name: 'clear', aliases: ['c'], type: Boolean},
+      ],
       disableDm: true,
       label: 'locale',
       metadata: {
@@ -25,16 +28,12 @@ export default class SetLocaleCommand extends BaseCommand {
           `${COMMAND_NAME} german`,
         ],
         id: Formatter.Commands.SettingsServerSetLocale.COMMAND_ID,
-        usage: '<locale>',
+        usage: '<locale> (-clear)',
       },
       permissionsClient: [Permissions.MANAGE_GUILD],
       permissions: [Permissions.MANAGE_GUILD],
       type: Parameters.localeDiscord,
     });
-  }
-
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.SettingsServerSetLocale.CommandArgs) {
-    return !!args.locale;
   }
 
   async run(context: Command.Context, args: Formatter.Commands.SettingsServerSetLocale.CommandArgs) {

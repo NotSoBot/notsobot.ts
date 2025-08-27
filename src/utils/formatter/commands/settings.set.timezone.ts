@@ -11,6 +11,7 @@ import { editOrReply, timezoneCodeToText } from '../../../utils';
 export const COMMAND_ID = 'settings.set.timezone';
 
 export interface CommandArgs {
+  clear?: boolean,
   timezone?: string | null,
 }
 
@@ -23,7 +24,10 @@ export async function createMessage(
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (args.timezone) {
+  if (args.timezone || args.clear) {
+    if (args.clear) {
+      args.timezone = null;
+    }
     if (oldSettings && oldSettings.timezone === args.timezone) {
       if (oldSettings.timezone) {
         const languageText = timezoneCodeToText(oldSettings.timezone);
@@ -43,7 +47,7 @@ export async function createMessage(
         text = `Ok, set your timezone preference to ${Markup.bold(languageText)}`;
       } else {
         // this should never happen currently
-        text = 'Ok, cleared out your default timezone preference';
+        text = 'Ok, cleared out your default timezone preference.';
       }
     }
   } else {

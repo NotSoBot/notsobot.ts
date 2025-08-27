@@ -11,6 +11,7 @@ import { editOrReply } from '../../../utils';
 export const COMMAND_ID = 'settings.set.ai.personality';
 
 export interface CommandArgs {
+  clear?: boolean,
   personality?: string | null,
 }
 
@@ -23,8 +24,8 @@ export async function createMessage(
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (args.personality) {
-    if (args.personality.toLowerCase() === 'clear') {
+  if (args.personality || args.clear) {
+    if (args.clear || (args.personality && args.personality.toLowerCase() === 'clear')) {
       args.personality = null;
     }
     if (oldSettings && oldSettings.ml_llm_personality === args.personality) {

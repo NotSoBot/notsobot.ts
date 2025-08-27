@@ -506,10 +506,10 @@ export const Api = Object.freeze({
     '/utilities/google/content-vision/web-detection',
   GOOGLE_TRANSLATE: // RENAME
     '/utilities/google/translate',
-  UTILITIES_IMAGESCRIPT_V1: // RENAME
-    '/utilities/mediascript',
   UTILITIES_LOCATIONS:
     '/utilities/locations',
+  UTILITIES_MEDIASCRIPT:
+    '/utilities/mediascript',
   UTILITIES_ML_EDIT:
     '/utilities/ml/edit',
   UTILITIES_ML_IMAGINE:

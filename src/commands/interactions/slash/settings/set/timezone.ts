@@ -25,6 +25,11 @@ export class SettingsSetTimezoneCommand extends BaseInteractionCommandOption {
           description: 'Timezone to choose from',
           onAutoComplete: Parameters.AutoComplete.timezone,
         },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          type: Boolean,
+        },
       ],
     });
   }

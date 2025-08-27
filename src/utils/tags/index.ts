@@ -32,7 +32,7 @@ import {
   utilitiesCodeRun,
   utilitiesFetchMedia,
   utilitiesFetchText,
-  utilitiesImagescriptV1,
+  utilitiesMediascript,
   utilitiesLocations,
   utilitiesMLEdit,
   utilitiesMLImagine,
@@ -198,6 +198,7 @@ export enum PrivateVariables {
   NETWORK_REQUESTS = '__networkRequests',
   NETWORK_REQUESTS_ML = '__networkRequestsML',
   NETWORK_REQUESTS_OPENAI = '__networkRequestsOpenAI',
+  PARENT_TAG_ID = '__parentTagId',
   RESULTS = '__results',
   SETTINGS = '__settings',
   TAG_EXECUTIONS = '__tagExecutions',
@@ -297,6 +298,7 @@ export enum TagFunctions {
   LOGICAL_GET_USER = 'LOGICAL_GET_USER',
   LOGICAL_IF = 'LOGICAL_IF',
   LOGICAL_IF_ERROR = 'LOGICAL_IF_ERROR',
+  LOGICAL_IS_MAIN_TAG = 'LOGICAL_IS_MAIN_TAG',
   LOGICAL_OR = 'LOGICAL_OR',
   LOGICAL_SET = 'LOGICAL_SET',
   LOGICAL_SET_CHANNEL = 'LOGICAL_SET_CHANNEL',
@@ -323,6 +325,7 @@ export enum TagFunctions {
   MEDIA_IMAGE_OR_VIDEO = 'MEDIA_IMAGE_OR_VIDEO',
   MEDIA_VIDEO = 'MEDIA_VIDEO',
   MEDIASCRIPT = 'MEDIASCRIPT',
+  MEDIASCRIPT_MAYBE_URL = 'MEDIASCRIPT_MAYBE_URL',
   MEDIASCRIPT_URL = 'MEDIASCRIPT_URL',
   MESSAGE_CONTENT = 'MESSAGE_CONTENT',
   MESSAGE_LAST_ID = 'MESSAGE_LAST_ID',
@@ -359,6 +362,7 @@ export enum TagFunctions {
   TAG = 'TAG',
   TAG_ID = 'TAG_ID',
   TAG_NAME = 'TAG_NAME',
+  TAG_OWNER_ID = 'TAG_OWNER_ID',
   TIME_UNIX = 'TIME_UNIX',
   TIME_UNIX_FROM_SNOWFLAKE = 'TIME_UNIX_FROM_SNOWFLAKE',
   TIME_UNIX_SECONDS = 'TIME_UNIX_SECONDS',
@@ -442,6 +446,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_GET_USER]: ['getuser'],
   [TagFunctions.LOGICAL_IF]: ['if'],
   [TagFunctions.LOGICAL_IF_ERROR]: ['iferror'],
+  [TagFunctions.LOGICAL_IS_MAIN_TAG]: ['ismaintag'],
   [TagFunctions.LOGICAL_OR]: ['or'],
   [TagFunctions.LOGICAL_SET]: ['set'],
   [TagFunctions.LOGICAL_SET_CHANNEL]: ['setchannel'],
@@ -467,6 +472,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MEDIA_IMAGE_IMAGINE_URL]: ['imagineurl'],
   [TagFunctions.MEDIA_IMAGE_OR_VIDEO]: ['iv'],
   [TagFunctions.MEDIASCRIPT]: ['mediascript', 'mscript', 'imagescript', 'iscript'],
+  [TagFunctions.MEDIASCRIPT_MAYBE_URL]: ['mediascriptmaybeurl', 'mscriptmaybeurl', 'imagescriptmaybeurl', 'iscriptmaybeurl'],
   [TagFunctions.MEDIASCRIPT_URL]: ['mediascripturl', 'mscripturl', 'imagescripturl', 'iscripturl'],
   [TagFunctions.MEDIA_VIDEO]: ['video'],
   [TagFunctions.MESSAGE_CONTENT]: ['messagecontent'],
@@ -504,6 +510,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.TAG]: ['tag'],
   [TagFunctions.TAG_ID]: ['tagid'],
   [TagFunctions.TAG_NAME]: ['tagname'],
+  [TagFunctions.TAG_OWNER_ID]: ['tagownerid'],
   [TagFunctions.TIME_UNIX]: ['unix'],
   [TagFunctions.TIME_UNIX_FROM_SNOWFLAKE]: ['unixsnowflake'],
   [TagFunctions.TIME_UNIX_SECONDS]: ['unixs'],
@@ -546,6 +553,7 @@ export interface TagVariables {
   [PrivateVariables.NETWORK_REQUESTS]: number,
   [PrivateVariables.NETWORK_REQUESTS_ML]: number,
   [PrivateVariables.NETWORK_REQUESTS_OPENAI]: number,
+  [PrivateVariables.PARENT_TAG_ID]: string,
   [PrivateVariables.RESULTS]: {
     [TagFunctions.AI]?: RestResponsesRaw.GenerateTag,
     [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
@@ -630,6 +638,9 @@ export async function parse(
   if (!(PrivateVariables.COMPONENT_EXECUTIONS in variables)) {
     (variables as any)[PrivateVariables.COMPONENT_EXECUTIONS] = 0;
   }
+  if (!(PrivateVariables.FILE_SIZE in variables)) {
+    (variables as any)[PrivateVariables.FILE_SIZE] = 0;
+  }
   if (!(PrivateVariables.NETWORK_REQUESTS in variables)) {
     (variables as any)[PrivateVariables.NETWORK_REQUESTS] = 0;
   }
@@ -639,8 +650,8 @@ export async function parse(
   if (!(PrivateVariables.NETWORK_REQUESTS_OPENAI in variables)) {
     (variables as any)[PrivateVariables.NETWORK_REQUESTS_OPENAI] = 0;
   }
-  if (!(PrivateVariables.FILE_SIZE in variables)) {
-    (variables as any)[PrivateVariables.FILE_SIZE] = 0;
+  if (!(PrivateVariables.PARENT_TAG_ID in variables)) {
+    (variables as any)[PrivateVariables.PARENT_TAG_ID] = '';
   }
   if (!(PrivateVariables.RESULTS in variables)) {
     (variables as any)[PrivateVariables.RESULTS] = {};
@@ -1954,7 +1965,7 @@ const ScriptTags = Object.freeze({
         cachedResults[url] = response;
       }
 
-      const filename = filenameArg || response.file.filename;
+      const filename = filenameArg || response.file.filename_safe;
 
       let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
       if (response.file.metadata.mimetype.startsWith('text/')) {
@@ -2108,7 +2119,7 @@ const ScriptTags = Object.freeze({
         url,
         waveform: true,
       });
-      const filename = filenameArg || response.file.filename;
+      const filename = filenameArg || response.file.filename_safe;
       const waveform = response.arguments && response.arguments.waveform;
 
       const data: Buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
@@ -3238,6 +3249,18 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.LOGICAL_IS_MAIN_TAG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {ismaintag}
+
+    if (tag.variables[PrivateVariables.PARENT_TAG_ID]) {
+      tag.text += String(false);
+    } else {
+      tag.text += String(true);
+    }
+
+    return true;
+  },
+
   [TagFunctions.LOGICAL_OR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {or:action|action}, unlimited actions
 
@@ -3684,7 +3707,7 @@ const ScriptTags = Object.freeze({
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context), url},
     );
-    const filename = response.file.filename;
+    const filename = response.file.filename_safe;
 
     const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
     if (maxFileSize < data.length) {
@@ -3782,7 +3805,7 @@ const ScriptTags = Object.freeze({
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
     });
-    const filename = response.file.filename;
+    const filename = response.file.filename_safe;
 
     const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
     if (maxFileSize < data.length) {
@@ -4211,21 +4234,12 @@ const ScriptTags = Object.freeze({
 
     try {
       const maxFileSize = context.maxAttachmentSize;
-      const response = await utilitiesImagescriptV1(context, {
+      const response = await utilitiesMediascript(context, {
         code,
         files,
+        maxFileSizeStrict: true,
         mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       });
-      const filename = response.file.filename;
-
-      let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-      if (response.file.metadata.mimetype.startsWith('text/')) {
-        data = data.toString();
-      }
-
-      if (maxFileSize < data.length) {
-        throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
-      }
 
       if (response.arguments) {
         for (let key in response.arguments) {
@@ -4233,22 +4247,112 @@ const ScriptTags = Object.freeze({
         }
       }
 
-      /*
-      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-      if (maxFileSize <= currentFileSize + data.length) {
-        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+      const filename = response.file.filename_safe;
+      
+      let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+      if (response.file.metadata.mimetype.startsWith('text/')) {
+        data = data.toString();
       }
-      */
+      
+      if (maxFileSize < data.length) {
+        throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+      }
+      
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
-
+      
       tag.files.push({
         buffer: data,
         filename,
         spoiler: false,
         url: '',
       });
+
     } catch(error) {
       console.log(error);
+      throw error;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIASCRIPT_MAYBE_URL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {mediascriptmaybeurl:mediascript code here}
+
+    let code = arg.trim();
+    if (!code) {
+      return false;
+    }
+
+    const files: Array<RequestFile> = [];
+    const keyCache: Record<string, string> = {};
+    code = code.replace(URL_FILE_REPLACEMENT_REGEX, (match, group1, group2, offset) => {
+      if (!(group1 in keyCache)) {
+        keyCache[group1] = `FILE_${files.length + 1}`;
+    
+        const file = tag.files[parseInt(group1) - 1];
+        if (!file) {
+          throw new Error('Invalid FILE_ Provided');
+        }
+        if (!file.buffer) {
+          return file.url;
+        }
+  
+        files.push({filename: file.filename, value: file.buffer});
+        if (!group2) {
+          // kill it from tag.files
+          file.deleted = true;
+        }
+      }
+      return keyCache[group1];
+    });
+
+    for (let i = 0; i < tag.files.length; i++) {
+      if (tag.files[i].deleted) {
+        tag.files.splice(i, 1);
+      }
+    }
+
+    increaseNetworkRequests(tag);
+
+    try {
+      const response = await utilitiesMediascript(context, {
+        code,
+        files,
+        maxFileSizeStrict: false,
+        mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
+      });
+
+      if (response.arguments) {
+        for (let key in response.arguments) {
+          await ScriptTags[TagFunctions.LOGICAL_SET](context, [key, response.arguments[key]].join(TagSymbols.SPLITTER_ARGUMENT), tag);
+        }
+      }
+
+      if (response.storage) {
+        tag.text += response.storage.urls.cdn;
+      } else {
+        const maxFileSize = context.maxAttachmentSize;
+        const filename = response.file.filename_safe;
+
+        let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+        if (response.file.metadata.mimetype.startsWith('text/')) {
+          data = data.toString();
+        }
+
+        if (maxFileSize < data.length) {
+          throw new Error(`Attachment surpassed max file size of ${maxFileSize} bytes`);
+        }
+
+        tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+        tag.files.push({
+          buffer: data,
+          filename,
+          spoiler: false,
+          url: '',
+        });
+      }
+    } catch(error) {
       throw error;
     }
 
@@ -4296,9 +4400,10 @@ const ScriptTags = Object.freeze({
     increaseNetworkRequests(tag);
 
     try {
-      const response = await utilitiesImagescriptV1(context, {
+      const response = await utilitiesMediascript(context, {
         code,
         files,
+        maxFileSizeStrict: false,
         mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
         upload: true,
       });
@@ -5165,7 +5270,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (!tag.variables[PrivateVariables.COMPONENT_EXECUTIONS] && context.metadata && context.metadata.tag && context.metadata.tag.id === tagId) {
-      throw new Error('Tag attempted to call itself');
+      return false;
     }
 
     increaseTagExecutions(tag);
@@ -5203,6 +5308,10 @@ const ScriptTags = Object.freeze({
         variables[PrivateVariables.ARGS_STRING] = tagArguments;
         variables[PrivateVariables.ARGS] = Parameters.stringArguments(tagArguments);
 
+        if (context.metadata && context.metadata.tag) {
+          variables[PrivateVariables.PARENT_TAG_ID] = context.metadata.tag.id;
+        }
+
         if (context.metadata) {
           context.metadata.tag = fetchedTag;
         }
@@ -5216,6 +5325,7 @@ const ScriptTags = Object.freeze({
         }
         tag.variables[PrivateVariables.ARGS_STRING] = oldVariables[PrivateVariables.ARGS_STRING];
         tag.variables[PrivateVariables.ARGS] = oldVariables[PrivateVariables.ARGS];
+        tag.variables[PrivateVariables.PARENT_TAG_ID] = oldVariables[PrivateVariables.PARENT_TAG_ID];
       } catch(error) {
         return false;
       }
@@ -5245,6 +5355,16 @@ const ScriptTags = Object.freeze({
 
     if (context.metadata && context.metadata.tag) {
       tag.text += context.metadata.tag.name;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.TAG_OWNER_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {tagownerid}
+
+    if (context.metadata && context.metadata.tag) {
+      tag.text += context.metadata.tag.user.id;
     }
 
     return true;

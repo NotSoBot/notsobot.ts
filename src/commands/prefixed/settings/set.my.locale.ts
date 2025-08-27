@@ -14,7 +14,9 @@ export default class SetMyLocaleCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['set my language'],
-      default: null,
+      args: [
+        {name: 'clear', aliases: ['c'], type: Boolean},
+      ],
       label: 'locale',
       metadata: {
         category: CommandCategories.SETTINGS,
@@ -24,17 +26,13 @@ export default class SetMyLocaleCommand extends BaseCommand {
           `${COMMAND_NAME} german`,
         ],
         id: Formatter.Commands.SettingsSetLocale.COMMAND_ID,
-        usage: '<locale>',
+        usage: '<locale> (-clear)',
       },
       type: Parameters.locale,
     });
   }
 
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.SettingsSetLocale.CommandArgs) {
-    return !!args.locale;
-  }
-
   async run(context: Command.Context, args: Formatter.Commands.SettingsSetLocale.CommandArgs) {
-    return Formatter.Commands.SettingsSetLocale.createMessage(context, {locale: args.locale});
+    return Formatter.Commands.SettingsSetLocale.createMessage(context, args);
   }
 }

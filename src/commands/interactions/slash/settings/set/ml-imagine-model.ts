@@ -23,6 +23,11 @@ export class SettingsSetMLImagineModelCommand extends BaseInteractionCommandOpti
           value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
           onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
         },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          type: Boolean,
+        },
       ],
     });
   }

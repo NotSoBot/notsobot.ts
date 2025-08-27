@@ -936,16 +936,17 @@ export namespace RestOptions {
     url: string,
   }
 
-  export interface UtilitiesImagescriptV1 extends MediaBaseOptionsMultiple {
-    code: string,
-    maxFileSize?: number,
-    mlDiffusionModel?: string,
-    upload?: boolean,
-  }
-
   export interface UtilitiesLocations {
     limit?: number,
     query: string,
+  }
+
+  export interface UtilitiesMediascript extends MediaBaseOptionsMultiple {
+    code: string,
+    maxFileSize?: number,
+    maxFileSizeStrict?: boolean,
+    mlDiffusionModel?: string,
+    upload?: boolean,
   }
 
   export interface UtilitiesMLEdit extends MediaBaseOptions {
@@ -1065,6 +1066,8 @@ export namespace RestResponsesRaw {
     file: {
       filename: string,
       filename_base: string,
+      filename_safe: string,
+      filename_safe_base: string,
       metadata: {
         duration: number,
         extension: string,

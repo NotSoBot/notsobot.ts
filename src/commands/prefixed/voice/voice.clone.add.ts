@@ -21,7 +21,7 @@ export default class VoiceCloneAddCommand extends BaseAudioOrVideoCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],
         id: Formatter.Commands.VoiceCloneAdd.COMMAND_ID,
-        premium: true,
+        premiumPlus: true,
         usage: '?<emoji,user:id|mention,url> <...voice:string>',
       },
       type: [

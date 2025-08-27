@@ -12,6 +12,7 @@ import { editOrReply, languageCodeToText } from '../../../utils';
 export const COMMAND_ID = 'settings.set.locale';
 
 export interface CommandArgs {
+  clear?: boolean,
   locale?: GoogleLocales | null,
 }
 
@@ -24,7 +25,10 @@ export async function createMessage(
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
 
   let text: string;
-  if (args.locale) {
+  if (args.locale || args.clear) {
+    if (args.clear) {
+      args.locale = null;
+    }
     if (oldSettings && oldSettings.locale === args.locale) {
       if (oldSettings.locale) {
         const languageText = languageCodeToText(oldSettings.locale);
@@ -43,8 +47,7 @@ export async function createMessage(
         const languageText = languageCodeToText(settings.locale);
         text = `Ok, set your locale preference to ${Markup.bold(languageText)}`;
       } else {
-        // this should never happen currently
-        text = 'Ok, cleared out your locale preference';
+        text = 'Ok, cleared out your locale preference.';
       }
     }
   } else {
