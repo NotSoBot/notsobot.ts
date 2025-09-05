@@ -14,7 +14,7 @@ export default class RemindCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['reminder', 'remind create', 'reminder create'],
+      aliases: ['reminder', 'remind create', 'reminder create', 'remindme'],
       label: 'result',
       metadata: {
         category: CommandCategories.TOOLS,

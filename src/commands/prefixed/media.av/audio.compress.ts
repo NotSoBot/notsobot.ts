@@ -23,13 +23,13 @@ export default class AudioCompressCommand extends BaseAudioOrVideoCommand {
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],
-        id: Formatter.Commands.MediaAVManipulationCompress.COMMAND_ID,
+        id: Formatter.Commands.MediaAVManipulationAudioCompress.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-norevert)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAVManipulationCompress.CommandArgs) {
-    return Formatter.Commands.MediaAVManipulationCompress.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAVManipulationAudioCompress.CommandArgs) {
+    return Formatter.Commands.MediaAVManipulationAudioCompress.createMessage(context, args);
   }
 }

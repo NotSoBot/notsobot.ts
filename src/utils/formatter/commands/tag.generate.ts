@@ -69,6 +69,11 @@ export async function createMessage(
             }
             description.push(value);
           }
+          if (embed.fields) {
+            for (let [fieldId, field] of embed.fields) {
+              description.push(`${field.name}: ${field.value}`);
+            }
+          }
           if (embed.footer && embed.footer.text.length) {
             description.push(embed.footer.text);
           }

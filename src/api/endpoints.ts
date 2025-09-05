@@ -68,6 +68,8 @@ export const Api = Object.freeze({
 
   MEDIA_AIV_MANIPULATION_ADHD:
     '/media/aiv/manipulation/adhd',
+  MEDIA_AIV_MANIPULATION_ANDROID:
+    '/media/aiv/manipulation/android',
   MEDIA_AIV_MANIPULATION_FADE_IN:
     '/media/aiv/manipulation/fade-in',
   MEDIA_AIV_MANIPULATION_FADE_OUT:
@@ -98,28 +100,34 @@ export const Api = Object.freeze({
   MEDIA_AIV_TOOLS_SPEED:
     '/media/aiv/tools/speed',
 
+  MEDIA_AV_MANIPULATION_AUDIO_BOOST_BASS:
+    '/media/av/manipulation/audio/boost/bass',
   MEDIA_AV_MANIPULATION_AUDIO_CHANNELS_COMBINE:
     '/media/av/manipulation/audio/channels/combine',
+  MEDIA_AV_MANIPULATION_AUDIO_COMPRESS:
+    '/media/av/manipulation/audio/compress',
   MEDIA_AV_MANIPULATION_AUDIO_DELAY:
     '/media/av/manipulation/audio/delay',
+  MEDIA_AV_MANIPULATION_AUDIO_DESTROY:
+    '/media/av/manipulation/audio/destroy',
+  MEDIA_AV_MANIPULATION_AUDIO_EQUALIZER:
+    '/media/av/manipulation/audio/equalizer',
+  MEDIA_AV_MANIPULATION_AUDIO_FLANGER:
+    '/media/av/manipulation/audio/flanger',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:
     '/media/av/manipulation/audio/pitch',
   MEDIA_AV_MANIPULATION_AUDIO_REVERB:
     '/media/av/manipulation/audio/reverb',
+  MEDIA_AV_MANIPULATION_AUDIO_REVERSE:
+    '/media/av/manipulation/audio/reverse',
   MEDIA_AV_MANIPULATION_AUDIO_TREMOLO:
     '/media/av/manipulation/audio/tremolo',
   MEDIA_AV_MANIPULATION_AUDIO_VIBRATO:
     '/media/av/manipulation/audio/vibrato',
-  MEDIA_AV_MANIPULATION_BOOST_BASS:
-    '/media/av/manipulation/boost/bass',
-  MEDIA_AV_MANIPULATION_COMPRESS:
-    '/media/av/manipulation/compress',
-  MEDIA_AV_MANIPULATION_DESTROY:
-    '/media/av/manipulation/destroy',
+  MEDIA_AV_MANIPULATION_AUDIO_VOLUME:
+    '/media/av/manipulation/audio/volume',
   MEDIA_AV_MANIPULATION_STAMMER:
     '/media/av/manipulation/stammer',
-  MEDIA_AV_MANIPULATION_VOLUME:
-    '/media/av/manipulation/volume',
 
   MEDIA_AV_TOOLS_EXTRACT_AUDIO:
     '/media/av/tools/extract/audio',

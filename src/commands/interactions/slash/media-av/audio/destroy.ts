@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'destroy';
 export class MediaAVAudioDestroyCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Destroy Audio';
   metadata = {
-    id: Formatter.Commands.MediaAVManipulationDestroy.COMMAND_ID,
+    id: Formatter.Commands.MediaAVManipulationAudioDestroy.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAVManipulationDestroy.CommandArgs) {
-    return Formatter.Commands.MediaAVManipulationDestroy.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAVManipulationAudioDestroy.CommandArgs) {
+    return Formatter.Commands.MediaAVManipulationAudioDestroy.createMessage(context, args);
   }
 }

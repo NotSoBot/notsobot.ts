@@ -133,6 +133,11 @@ export namespace RestOptions {
     referenceTagId?: string,
   }
 
+  export interface EditTagsDirectoryTag {
+    description?: string,
+    title?: string,
+  }
+
   export interface EditUser {
     blocked?: boolean,
     blockedReason?: null | string,
@@ -278,6 +283,10 @@ export namespace RestOptions {
     horizontal?: boolean,
   }
 
+  export interface MediaAIVManipulationAndroid extends MediaBaseOptions {
+    scale?: number,
+  }
+
   export interface MediaAIVManipulationFadeIn extends MediaBaseOptions {
     color?: string,
     duration?: number,
@@ -313,19 +322,46 @@ export namespace RestOptions {
     y?: string,
   }
 
+  export interface MediaAIVToolsReverse extends MediaBaseOptions {
+    noaudio?: boolean,
+  }
+
   export interface MediaAIVToolsSnip extends MediaBaseOptions {
     audioOnly?: boolean,
     end?: number,
     start?: number,
   }
 
-  export interface MediaAVManipulationAudioPitch extends MediaBaseOptions {
-    scale?: number,
+  export interface MediaAVManipulationAudioCompress extends MediaBaseOptions {
+    norevert?: boolean,
   }
 
   export interface MediaAVManipulationAudioDelay extends MediaBaseOptions {
     delay?: number,
     snip?: boolean,
+  }
+
+  export interface MediaAVManipulationAudioEqualizer extends MediaBaseOptions {
+    air?: number,
+    bass?: number,
+    highMids?: number,
+    lowMids?: number,
+    mids?: number,
+    subBass?: number,
+    treble?: number,
+  }
+
+  export interface MediaAVManipulationAudioFlanger extends MediaBaseOptions {
+    delay?: number,
+    depth?: number,
+    phase?: number,
+    regen?: number,
+    speed?: number,
+    width?: number,
+  }
+
+  export interface MediaAVManipulationAudioPitch extends MediaBaseOptions {
+    scale?: number,
   }
 
   export interface MediaAVManipulationAudioReverb extends MediaBaseOptions {
@@ -344,17 +380,13 @@ export namespace RestOptions {
     frequency?: number,
   }
 
-  export interface MediaAVManipulationCompress extends MediaBaseOptions {
-    norevert?: boolean,
+  export interface MediaAVManipulationAudioVolume extends MediaBaseOptions {
+    volume?: number,
   }
 
   export interface MediaAVManipulationStammer extends MediaBaseOptionsMultiple {
     colorMode?: string,
     matcherMode?: string,
-  }
-
-  export interface MediaAVManipulationVolume extends MediaBaseOptions {
-    volume?: number,
   }
 
   export interface MediaAVToolsExtractAudio extends MediaBaseOptions {
@@ -749,6 +781,11 @@ export namespace RestOptions {
     name: string,
     referenceTagId?: string,
     serverId?: string,
+  }
+
+  export interface PutTagsDirectoryTag {
+    description?: string,
+    title?: string,
   }
 
   export interface PutTagVariable {
@@ -1237,6 +1274,7 @@ export namespace RestResponsesRaw {
 
   export type EditGuildSettings = GuildSettings;
   export type EditTag = Tag;
+  export type EditTagsDirectoryTag = TagDirectory;
   export type EditUser = User;
   export type EditUserSettings = UserSettings;
 
@@ -1296,6 +1334,7 @@ export namespace RestResponsesRaw {
   }
 
   export type PutTag = Tag;
+  export type PutTagsDirectoryTag = TagDirectory;
   export type PutTagVariable = FetchTagVariable;
   export type PutTagVariables = FetchTagVariables;
   export type PutUser = User;
@@ -2411,6 +2450,7 @@ export namespace RestResponsesRaw {
     guild_id: string | null,
     id: string,
     is_command: boolean,
+    is_on_directory: boolean,
     last_used: string | null,
     locked: boolean,
     name: string,
@@ -2419,6 +2459,20 @@ export namespace RestResponsesRaw {
     server_id: string | null,
     user: User,
     uses: number,
+  }
+
+  export interface TagDirectory {
+    assets: Array<{
+      // todo: fill this in
+    }>,
+    created: string,
+    description: string,
+    edited: string | null,
+    id: string,
+    server_count: number,
+    tag: Tag,
+    title: string,
+    verified: number,
   }
 
   export interface User {

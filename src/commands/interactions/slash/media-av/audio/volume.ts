@@ -7,10 +7,10 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../../basecommand';
 
 export const COMMAND_NAME = 'volume';
 
-export class MediaAVVolumeCommand extends BaseInteractionAudioOrVideoCommandOption {
+export class MediaAVAudioVolumeCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Manipulate an Audio or Video\'s Volume';
   metadata = {
-  id: Formatter.Commands.MediaAVManipulationVolume.COMMAND_ID,
+  id: Formatter.Commands.MediaAVManipulationAudioVolume.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class MediaAVVolumeCommand extends BaseInteractionAudioOrVideoCommandOpti
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAVManipulationVolume.CommandArgs) {
-  return Formatter.Commands.MediaAVManipulationVolume.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAVManipulationAudioVolume.CommandArgs) {
+  return Formatter.Commands.MediaAVManipulationAudioVolume.createMessage(context, args);
   }
 }

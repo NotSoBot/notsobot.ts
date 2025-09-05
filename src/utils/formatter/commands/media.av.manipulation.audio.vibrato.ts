@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAVManipulationAudioVibrato } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.vibrato';
@@ -13,7 +13,7 @@ export interface CommandArgs {
   url: string,
 }
 
-export function createResponse(
+export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
@@ -24,6 +24,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await createResponse(context, args);
-  return mediaReply(context, response);
+  const response = await createJob(context, args);
+  return jobReply(context, response);
 }

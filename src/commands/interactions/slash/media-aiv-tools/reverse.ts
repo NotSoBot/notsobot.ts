@@ -14,6 +14,14 @@ export class MediaAIVToolsReverseCommand extends BaseInteractionMediaCommandOpti
   };
   name = COMMAND_NAME;
 
+  constructor() {
+    super({
+      options: [
+        {name: 'noaudio', description: 'Do not reverse audio', type: Boolean},
+      ],
+    });
+  }
+
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsReverse.CommandArgs) {
     return Formatter.Commands.MediaAIVToolsReverse.createMessage(context, args);
   }

@@ -9,6 +9,7 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaAIVExtractGroupCommand } from './extract';
 
 import { MediaAIVADHDCommand } from './adhd';
+import { MediaAIVAndroidCommand } from './android';
 import { MediaAIVFadeInCommand } from './fade-in';
 import { MediaAIVFadeOutCommand } from './fade-out';
 import { MediaAIVPipeCommand } from './pipe';
@@ -34,6 +35,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
 	  permissions: [Permissions.ATTACH_FILES],
 	  options: [
         new MediaAIVADHDCommand(),
+        new MediaAIVAndroidCommand(),
         new MediaAIVExtractGroupCommand(),
         new MediaAIVFadeInCommand(),
         new MediaAIVFadeOutCommand(),

@@ -8,6 +8,7 @@ export const COMMAND_ID = 'media.aiv.tools.reverse';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  noaudio?: boolean,
   url: string,
 }
 

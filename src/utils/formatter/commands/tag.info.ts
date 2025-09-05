@@ -32,7 +32,13 @@ export async function createMessage(
   embed.setTitle(tag.name);
 
   if (tag.reference_tag) {
-    if (tag.reference_tag.server_id) {
+    if (tag.reference_tag.is_on_directory) {
+      // embed.setDescription(`Using a tag from the tag directory. https://notsobot.com/directories/tags/${tag.reference_tag.id}`);
+      embed.setDescription([
+        `Using tag ${Markup.codestring(tag.reference_tag.id)} from the tag directory.`,
+        `-> Name: ${Markup.codestring(tag.reference_tag.name)}`,
+      ].join('\n'));
+    } else {
       let message = `Alias of tag ${Markup.codestring(tag.reference_tag.name)}`;
 
       const user = await UserStore.getOrFetch(context, tag.reference_tag.user.id);
@@ -42,8 +48,6 @@ export async function createMessage(
       }
 
       embed.setDescription(message);
-    } else {
-      embed.setDescription(`Using a tag from the tag directory. https://notsobot.com/directories/tags/${tag.reference_tag.id}`);
     }
   } else {
     embed.setDescription(Markup.codeblock(tag.content));

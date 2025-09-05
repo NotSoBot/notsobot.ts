@@ -13,6 +13,9 @@ export default class ReverseCommand extends BaseMediaCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'noaudio', aliases: ['na'], type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.IMAGE,
         description: 'Reverse an animated image/audio/video',
@@ -21,7 +24,7 @@ export default class ReverseCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
         id: Formatter.Commands.MediaAIVToolsReverse.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-noaudio)',
       },
     });
   }

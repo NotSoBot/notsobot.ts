@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'pitch';
 export class MediaAVAudioPitchCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Manipulate an Audio or Video\'s Pitch';
   metadata = {
-	id: Formatter.Commands.MediaAVManipulationAudioPitch.COMMAND_ID,
+    id: Formatter.Commands.MediaAVManipulationAudioPitch.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -23,6 +23,6 @@ export class MediaAVAudioPitchCommand extends BaseInteractionAudioOrVideoCommand
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAVManipulationAudioPitch.CommandArgs) {
-	return Formatter.Commands.MediaAVManipulationAudioPitch.createMessage(context, args);
+    return Formatter.Commands.MediaAVManipulationAudioPitch.createMessage(context, args);
   }
 }

@@ -20,13 +20,13 @@ export default class AudioDestroyCommand extends BaseAudioOrVideoCommand {
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],
-        id: Formatter.Commands.MediaAVManipulationDestroy.COMMAND_ID,
+        id: Formatter.Commands.MediaAVManipulationAudioDestroy.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAVManipulationDestroy.CommandArgs) {
-    return Formatter.Commands.MediaAVManipulationDestroy.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAVManipulationAudioDestroy.CommandArgs) {
+    return Formatter.Commands.MediaAVManipulationAudioDestroy.createMessage(context, args);
   }
 }

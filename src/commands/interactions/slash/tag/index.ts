@@ -5,6 +5,7 @@ import { BaseSlashCommand } from '../../basecommand';
 import { TagAliasCommand } from './alias';
 import { TagCommandsGroupCommand } from './commands';
 import { TagCreateCommand } from './create';
+import { TagDirectoryGroupCommand } from './directory';
 import { TagExportCommand } from './export';
 import { TagImportGroupCommand } from './import';
 import { TagInfoCommand } from './info';
@@ -35,6 +36,7 @@ export default class TagGroupCommand extends BaseSlashCommand {
         new TagAliasCommand(),
         new TagCommandsGroupCommand(),
         new TagCreateCommand(),
+        new TagDirectoryGroupCommand(),
         new TagExportCommand(),
         new TagImportGroupCommand(),
         new TagInfoCommand(),

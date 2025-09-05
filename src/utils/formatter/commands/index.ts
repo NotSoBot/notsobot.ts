@@ -17,6 +17,7 @@ import * as MediaAToolsPutMix from './media.a.tools.put.mix';
 import * as MediaAToolsPutReplace from './media.a.tools.put.replace';
 
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
+import * as MediaAIVManipulationAndroid from './media.aiv.manipulation.android';
 import * as MediaAIVManipulationFadeIn from './media.aiv.manipulation.fade.in';
 import * as MediaAIVManipulationFadeOut from './media.aiv.manipulation.fade.out';
 import * as MediaAIVManipulationShuffle from './media.aiv.manipulation.fade.out';
@@ -33,17 +34,20 @@ import * as MediaAIVToolsSeeSaw from './media.aiv.tools.seesaw';
 import * as MediaAIVToolsSnip from './media.aiv.tools.snip';
 import * as MediaAIVToolsSpeed from './media.aiv.tools.speed';
 
+import * as MediaAVManipulationAudioBoostBass from './media.av.manipulation.audio.boost.bass';
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
+import * as MediaAVManipulationAudioCompress from './media.av.manipulation.audio.compress';
 import * as MediaAVManipulationAudioDelay from './media.av.manipulation.audio.delay';
+import * as MediaAVManipulationAudioDestroy from './media.av.manipulation.audio.destroy';
+import * as MediaAVManipulationAudioEqualizer from './media.av.manipulation.audio.equalizer';
+import * as MediaAVManipulationAudioFlanger from './media.av.manipulation.audio.flanger';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
 import * as MediaAVManipulationAudioReverb from './media.av.manipulation.audio.reverb';
+import * as MediaAVManipulationAudioReverse from './media.av.manipulation.audio.reverse';
 import * as MediaAVManipulationAudioTremolo from './media.av.manipulation.audio.tremolo';
 import * as MediaAVManipulationAudioVibrato from './media.av.manipulation.audio.vibrato';
-import * as MediaAVManipulationBoostBass from './media.av.manipulation.boost.bass';
-import * as MediaAVManipulationCompress from './media.av.manipulation.compress';
-import * as MediaAVManipulationDestroy from './media.av.manipulation.destroy';
+import * as MediaAVManipulationAudioVolume from './media.av.manipulation.audio.volume';
 import * as MediaAVManipulationStammer from './media.av.manipulation.stammer';
-import * as MediaAVManipulationVolume from './media.av.manipulation.volume';
 
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
 import * as MediaAVToolsIdentify from './media.av.tools.identify';
@@ -239,6 +243,8 @@ import * as TagCommandsList from './tag.commands.list';
 import * as TagCommandsListMe from './tag.commands.list.me';
 import * as TagCommandsRemove from './tag.commands.remove';
 import * as TagCreate from './tag.create';
+import * as TagDirectoryAdd from './tag.directory.add';
+import * as TagDirectoryEdit from './tag.directory.edit';
 import * as TagEdit from './tag.edit';
 import * as TagExport from './tag.export';
 import * as TagGenerate from './tag.generate';
@@ -301,6 +307,7 @@ export {
   MediaAToolsPutReplace,
 
   MediaAIVManipulationADHD,
+  MediaAIVManipulationAndroid,
   MediaAIVManipulationFadeIn,
   MediaAIVManipulationFadeOut,
   MediaAIVManipulationShuffle,
@@ -317,17 +324,20 @@ export {
   MediaAIVToolsSnip,
   MediaAIVToolsSpeed,
 
+  MediaAVManipulationAudioBoostBass,
   MediaAVManipulationAudioChannelsCombine,
+  MediaAVManipulationAudioCompress,
   MediaAVManipulationAudioDelay,
+  MediaAVManipulationAudioDestroy,
+  MediaAVManipulationAudioEqualizer,
+  MediaAVManipulationAudioFlanger,
   MediaAVManipulationAudioPitch,
   MediaAVManipulationAudioReverb,
+  MediaAVManipulationAudioReverse,
   MediaAVManipulationAudioTremolo,
   MediaAVManipulationAudioVibrato,
-  MediaAVManipulationBoostBass,
-  MediaAVManipulationCompress,
-  MediaAVManipulationDestroy,
+  MediaAVManipulationAudioVolume,
   MediaAVManipulationStammer,
-  MediaAVManipulationVolume,
 
   MediaAVToolsExtractAudio,
   MediaAVToolsIdentify,
@@ -523,6 +533,8 @@ export {
   TagCommandsListMe,
   TagCommandsRemove,
   TagCreate,
+  TagDirectoryAdd,
+  TagDirectoryEdit,
   TagEdit,
   TagExport,
   TagGenerate,

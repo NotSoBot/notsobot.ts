@@ -138,45 +138,61 @@ export function generateComponents(
       }
     },
   });
-  for (let x of parsedTag.components.components) {
-    switch (x.type) {
-      case MessageComponentTypes.BUTTON: {
-        if (x.run) {
-          const runTagScript = x.run;
-          x.run = async (componentContext: ComponentContext) => {
-            if (componentContext.userId !== context.userId) {
-              await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-              return;
-            }
-            if (isExecuting) {
-              return;
-            }
 
-            isExecuting = true;
-
-            for (let x of components.components) {
-              if (x instanceof ComponentActionRow) {
-                for (let v of x.components) {
-                  if (v instanceof ComponentButton) {
-                    v.disabled = true;
-                  }
-                }
+  function injectRunIntoButton(x: Record<string, any>): void {
+    if (x.run || !x.url) {
+      const runTagScript = x.run;
+      x.run = async (componentContext: ComponentContext) => {
+        if (componentContext.userId !== context.userId || !runTagScript) {
+          // is not the tagscript executor or the button is a filler button
+          await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+          return;
+        }
+        if (isExecuting) {
+          return;
+        }
+    
+        isExecuting = true;
+    
+        for (let x of components.components) {
+          if (x instanceof ComponentActionRow) {
+            for (let v of x.components) {
+              if (v instanceof ComponentButton) {
+                v.disabled = true;
               }
             }
-
-            await componentContext.editOrRespond({
-              attachments: undefined,
-              content: undefined,
-              components,
-              embeds: undefined,
-            });
-
-            await TagFormatter.resetTagLimits(parsedTag);
-            await TagFormatter.increaseComponentExecutions(parsedTag);
-            const newParsedTag = await TagFormatter.parse(context, runTagScript, '', parsedTag.variables, parsedTag.context, parsedTag.limits);
-            return createTagMessage(context, newParsedTag, '', componentContext);
-          };
+          }
         }
+    
+        await componentContext.editOrRespond({
+          attachments: undefined,
+          content: undefined,
+          components,
+          embeds: undefined,
+        });
+    
+        await TagFormatter.resetTagLimits(parsedTag);
+        await TagFormatter.increaseComponentExecutions(parsedTag);
+        const newParsedTag = await TagFormatter.parse(context, runTagScript, '', parsedTag.variables, parsedTag.context, parsedTag.limits);
+        return createTagMessage(context, newParsedTag, '', componentContext);
+      };
+    }
+  }
+
+  for (let x of parsedTag.components.components) {
+    switch (x.type) {
+      case MessageComponentTypes.ACTION_ROW: {
+        for (let v of x.components) {
+          switch (v.type) {
+            case MessageComponentTypes.BUTTON: {
+              injectRunIntoButton(v);
+            }; break;
+          }
+        }
+        components.createActionRow(x);
+      }; break;
+      case MessageComponentTypes.BUTTON: {
+        injectRunIntoButton(x);
         components.createButton(x);
       }; break;
       default: {

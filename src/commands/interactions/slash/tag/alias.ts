@@ -21,7 +21,7 @@ export class TagAliasCommand extends BaseInteractionCommandOption {
       options: [
         {
           name: 'tag',
-          description: 'Tag to add from DM',
+          description: 'Tag to alias from',
           required: true,
           value: Parameters.NotSoTag,
           onAutoComplete: Parameters.AutoComplete.tags,

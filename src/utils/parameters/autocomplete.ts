@@ -9,6 +9,7 @@ import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
 
 import {
+  fetchTagId,
   fetchTagsServer,
   fetchUserReminders,
   fetchUserVoices,
@@ -39,6 +40,7 @@ import {
 import {
   createTimestampMomentFromContext,
   getReminderMessage,
+  isSnowflake,
   toTitleCase,
 } from '../tools';
 
@@ -397,17 +399,36 @@ export async function reminderServer(context: Interaction.InteractionAutoComplet
 
 
 export async function tags(context: Interaction.InteractionAutoCompleteContext) {
-  let choices: Array<{name: string, value: string}>;
-  try {
-    const serverId = context.guildId || context.channelId!;
-    const { tags } = await fetchTagsServer(context, serverId, {
-      name: context.value,
-      limit: 25,
-      sortBy: TagSearchSortByFilters.LAST_USED,
-    });
-    choices = tags.map((tag) => ({name: tag.name, value: tag.name}));
-  } catch(error) {
-    choices = [];
+  let choices: Array<{name: string, value: string}> = [];
+  if (context.value) {
+    let maybeTagId = context.value;
+
+    // todo: add tag directory link support
+
+    if (isSnowflake(maybeTagId)) {
+      try {
+        const tag = await fetchTagId(context, maybeTagId);
+        if (tag.is_on_directory) {
+          choices.push({name: tag.name, value: tag.id});
+        }
+      } catch(error) {
+        
+      }
+    }
+  }
+
+  if (!choices.length) {
+    try {
+      const serverId = context.guildId || context.channelId!;
+      const { tags } = await fetchTagsServer(context, serverId, {
+        name: context.value,
+        limit: 25,
+        sortBy: TagSearchSortByFilters.LAST_USED,
+      });
+      choices = tags.map((tag) => ({name: tag.name, value: tag.name}));
+    } catch(error) {
+      choices = [];
+    }
   }
   return context.respond({choices});
 }
@@ -491,28 +512,44 @@ export async function tagsCustomCommands(context: Interaction.InteractionAutoCom
 export async function tagsToAdd(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}> = [];
   if (context.value) {
-    // if its a tag directory link or tag id, fetch it and return the name here
-  }
-  if (context.inDm && context.hasServerPermissions) {
-    // we are in our one-on-one dms, we cannot add our own tags into here, only support tag directory
-    choices = [];
-  } else {
-    try {
-      const user = await UserStore.getOrFetch(context, context.userId);
-      if (user && user.channelId) {
-        const serverId = user.channelId;
-        // add filter to not allow aliases
-        const { tags } = await fetchTagsServer(context, serverId, {
-          name: context.value,
-          limit: 25,
-          sortBy: TagSearchSortByFilters.LAST_USED,
-        });
-        choices = tags.filter((tag) => !tag.reference_tag).map((tag) => {
-          return {name: tag.name, value: tag.id};
-        });
+    let maybeTagId = context.value;
+
+    // todo: add tag directory link support
+
+    if (isSnowflake(maybeTagId)) {
+      try {
+        const tag = await fetchTagId(context, maybeTagId);
+        if (tag.is_on_directory) {
+          choices.push({name: tag.name, value: tag.id});
+        }
+      } catch(error) {
+        
       }
-    } catch(error) {
+    }
+  }
+
+  if (!choices.length) {
+    if (context.inDm && context.hasServerPermissions) {
+      // we are in our one-on-one dms, we cannot add our own tags into here, only support tag directory
       choices = [];
+    } else {
+      try {
+        const user = await UserStore.getOrFetch(context, context.userId);
+        if (user && user.channelId) {
+          const serverId = user.channelId;
+          // add filter to not allow aliases
+          const { tags } = await fetchTagsServer(context, serverId, {
+            name: context.value,
+            limit: 25,
+            sortBy: TagSearchSortByFilters.LAST_USED,
+          });
+          choices = tags.filter((tag) => !tag.reference_tag).map((tag) => {
+            return {name: tag.name, value: tag.id};
+          });
+        }
+      } catch(error) {
+        choices = [];
+      }
     }
   }
   return context.respond({choices});

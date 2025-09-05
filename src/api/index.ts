@@ -345,6 +345,15 @@ export async function editTag(
 }
 
 
+export async function editTagsDirectoryTag(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.EditTagsDirectoryTag,
+) {
+  return raw.editTagsDirectoryTag(context, tagId, options);
+}
+
+
 export async function editUser(
   context: RequestContext,
   userId: string,
@@ -618,6 +627,14 @@ export async function mediaAIVManipulationADHD(
 }
 
 
+export async function mediaAIVManipulationAndroid(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAndroid,
+) {
+  return raw.mediaAIVManipulationAndroid(context, options);
+}
+
+
 export async function mediaAIVManipulationFadeIn(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationFadeIn,
@@ -700,7 +717,7 @@ export async function mediaAIVToolsOverlay(
 
 export async function mediaAIVToolsReverse(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaAIVToolsReverse,
 ) {
   return raw.mediaAIVToolsReverse(context, options);
 }
@@ -730,11 +747,51 @@ export async function mediaAIVToolsSpeed(
 }
 
 
+export async function mediaAVManipulationAudioBoostBass(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVManipulationAudioBoostBass(context, options);
+}
+
+
 export async function mediaAVManipulationAudioChannelsCombine(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaAVManipulationAudioChannelsCombine(context, options);
+}
+
+
+export async function mediaAVManipulationAudioCompress(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioCompress,
+) {
+  return raw.mediaAVManipulationAudioCompress(context, options);
+}
+
+
+export async function mediaAVManipulationAudioDestroy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVManipulationAudioDestroy(context, options);
+}
+
+
+export async function mediaAVManipulationAudioEqualizer(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioEqualizer,
+) {
+  return raw.mediaAVManipulationAudioEqualizer(context, options);
+}
+
+
+export async function mediaAVManipulationAudioFlanger(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioFlanger,
+) {
+  return raw.mediaAVManipulationAudioFlanger(context, options);
 }
 
 
@@ -762,6 +819,14 @@ export async function mediaAVManipulationAudioReverb(
 }
 
 
+export async function mediaAVManipulationAudioReverse(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAVManipulationAudioReverse(context, options);
+}
+
+
 export async function mediaAVManipulationAudioTremolo(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioTremolo,
@@ -778,27 +843,11 @@ export async function mediaAVManipulationAudioVibrato(
 }
 
 
-export async function mediaAVManipulationBoostBass(
+export async function mediaAVManipulationAudioVolume(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaAVManipulationAudioVolume,
 ) {
-  return raw.mediaAVManipulationBoostBass(context, options);
-}
-
-
-export async function mediaAVManipulationCompress(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaAVManipulationCompress(context, options);
-}
-
-
-export async function mediaAVManipulationDestroy(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaAVManipulationDestroy(context, options);
+  return raw.mediaAVManipulationAudioVolume(context, options);
 }
 
 
@@ -807,14 +856,6 @@ export async function mediaAVManipulationStammer(
   options: RestOptions.MediaAVManipulationStammer,
 ) {
   return raw.mediaAVManipulationStammer(context, options);
-}
-
-
-export async function mediaAVManipulationVolume(
-  context: RequestContext,
-  options: RestOptions.MediaAVManipulationVolume,
-) {
-  return raw.mediaAVManipulationVolume(context, options);
 }
 
 
@@ -1843,6 +1884,15 @@ export async function putTag(
   options: RestOptions.PutTag,
 ) {
   return raw.putTag(context, options);
+}
+
+
+export async function putTagsDirectoryTag(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.PutTagsDirectoryTag,
+) {
+  return raw.putTagsDirectoryTag(context, tagId, options);
 }
 
 

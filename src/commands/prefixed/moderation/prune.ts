@@ -205,13 +205,18 @@ export default class PruneCommand extends BaseCommand {
     const timeout = new Timers.Timeout();
     if (total) {
       if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && total === args.amount) {
-        const message = await editOrReply(context, `Ok, pruning ${total.toLocaleString()} messages.`);
-        const deletedTotal = await this.deleteMessages(context, channelId, bulk, manual);
-        if (message.canEdit) {
-          await message.edit(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
+        try {
+          const message = await editOrReply(context, `Ok, pruning ${total.toLocaleString()} messages.`);
+          const deletedTotal = await this.deleteMessages(context, channelId, bulk, manual);
+          if (message.canEdit) {
+            await message.edit(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
+          }
+          await this.clearMessages(timeout, [context.message, message]);
+        } catch(error) {
+          
+        } finally {
+          isExecuting.prune = false;
         }
-        isExecuting.prune = false;
-        await this.clearMessages(timeout, [context.message, message]);
       } else {
         const actionRow = new ComponentActionRow();
         actionRow.createButton({
@@ -236,9 +241,10 @@ export default class PruneCommand extends BaseCommand {
               }
             } catch(error) {
               await ctx.editOrRespond(`Pruning messages errored out: ${error}`);
+            } finally {
+              isExecuting.prune = false;
             }
 
-            isExecuting.prune = false;
             await this.clearMessages(timeout, [context.message, message]);
           },
         });

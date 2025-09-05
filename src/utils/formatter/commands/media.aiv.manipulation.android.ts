@@ -1,15 +1,14 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaAIVManipulationFadeIn } from '../../../api';
+import { mediaAIVManipulationAndroid } from '../../../api';
 import { jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.aiv.manipulation.fade.in';
+export const COMMAND_ID = 'media.aiv.manipulation.android';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  color?: string,
-  duration?: number,
+  scale?: number,
   url: string,
 }
 
@@ -17,7 +16,7 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaAIVManipulationFadeIn(context, args);
+  return mediaAIVManipulationAndroid(context, args);
 }
 
 export async function createMessage(

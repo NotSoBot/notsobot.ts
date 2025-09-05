@@ -606,6 +606,17 @@ export async function NotSoTag(
 ): Promise<false | null | RestResponsesRaw.Tag> {
   if (value) {
     try {
+      if (isSnowflake(value)) {
+        try {
+          const tag = await fetchTagId(context, value);
+          if (tag.is_on_directory) {
+            return tag;
+          }
+        } catch(error) {
+          
+        }
+      }
+
       return await fetchTag(context, {
         name: value,
         serverId: context.guildId || context.channelId,
@@ -753,6 +764,38 @@ export async function tagToAdd(
       return await fetchTag(context, {
         name: value,
         serverId: user.channelId,
+      });
+    } catch(error) {
+      if (error.response && error.response.statusCode === 404) {
+        return false;
+      }
+      Sentry.captureException(error);
+      throw error;
+    }
+  }
+  return null;
+}
+
+
+export async function tagFromDirectoryToEdit(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<false | null | RestResponsesRaw.Tag> {
+  if (value) {
+    try {
+      // todo: parse it if its a tag directory url
+
+      if (isSnowflake(value)) {
+        const tag = await fetchTagId(context, value);
+        if (tag.is_on_directory && tag.user.id === context.userId) {
+          return tag;
+        }
+      }
+
+      // now search
+      return await fetchTag(context, {
+        name: value,
+        serverId: context.userId,
       });
     } catch(error) {
       if (error.response && error.response.statusCode === 404) {

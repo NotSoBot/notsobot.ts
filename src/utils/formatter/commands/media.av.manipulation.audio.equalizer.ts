@@ -1,15 +1,20 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaAIVManipulationFadeIn } from '../../../api';
+import { mediaAVManipulationAudioEqualizer } from '../../../api';
 import { jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.aiv.manipulation.fade.in';
+export const COMMAND_ID = 'media.av.manipulation.audio.equalizer';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  color?: string,
-  duration?: number,
+  air?: number,
+  bass?: number,
+  highMids?: number,
+  lowMids?: number,
+  mids?: number,
+  subBass?: number,
+  treble?: number,
   url: string,
 }
 
@@ -17,7 +22,7 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaAIVManipulationFadeIn(context, args);
+  return mediaAVManipulationAudioEqualizer(context, args);
 }
 
 export async function createMessage(

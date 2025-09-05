@@ -19,7 +19,7 @@ export default class VolumeCommand extends BaseAudioOrVideoCommand {
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],
-        id: Formatter.Commands.MediaAVManipulationVolume.COMMAND_ID,
+        id: Formatter.Commands.MediaAVManipulationAudioVolume.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<volume,float>',
       },
       type: [
@@ -29,7 +29,7 @@ export default class VolumeCommand extends BaseAudioOrVideoCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAVManipulationVolume.CommandArgs) {
-    return Formatter.Commands.MediaAVManipulationVolume.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAVManipulationAudioVolume.CommandArgs) {
+    return Formatter.Commands.MediaAVManipulationAudioVolume.createMessage(context, args);
   }
 }

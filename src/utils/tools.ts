@@ -1719,7 +1719,7 @@ export async function jobReply(
     if (refreshedJob.result.response) {
       return mediaReply(context, refreshedJob.result.response);
     }
-    if (refreshedJob.status !== 'started') {
+    if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
       return editOrReply(context, `Unknown Job Status: ${refreshedJob.status}`);
     }
     timer.start(pollingTime, pollingFunction);
