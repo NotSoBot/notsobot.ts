@@ -3,7 +3,7 @@ import { InteractionCallbackTypes, MessageFlags, MAX_ATTACHMENT_SIZE } from 'det
 import { Embed, Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
-import UserAvatarDecorations from '../../../stores/useravatardecorations';
+import UserAvatarDecorations, { UserAvatarDecorationStored } from '../../../stores/useravatardecorations';
 
 import { utilitiesFetchMedia } from '../../../api';
 import {
@@ -33,11 +33,34 @@ export async function createMessage(
   const member = args.user as Structures.Member;
   const user = ((isMember) ? member.user : args.user) as Structures.User;
   const userWithBanner = (args.user instanceof Structures.UserWithBanner) ? args.user : await context.rest.fetchUser(user.id);
-  const avatarDecoration = (
-    (user.avatarDecorationData) ?
-    await UserAvatarDecorations.getOrFetch(context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset) :
-    null
-  );
+
+  let avatarDecorationServer: UserAvatarDecorationStored | null = null;
+  let avatarDecorationUser: UserAvatarDecorationStored | null = null;
+
+  if (isMember) {
+    if (member.avatarDecorationData) {
+      avatarDecorationServer = await UserAvatarDecorations.getOrFetch(
+        context.client,
+        member.avatarDecorationData.skuId,
+        member.avatarDecorationData.asset,
+      );
+    }
+    if (member.user.avatarDecorationData) {
+      avatarDecorationUser = await UserAvatarDecorations.getOrFetch(
+        context.client,
+        member.user.avatarDecorationData.skuId,
+        member.user.avatarDecorationData.asset,
+      );
+    }
+  } else {
+    if (args.user.avatarDecorationData) {
+      avatarDecorationUser = await UserAvatarDecorations.getOrFetch(
+        context.client,
+        args.user.avatarDecorationData.skuId,
+        args.user.avatarDecorationData.asset,
+      );
+    }
+  }
 
   const files: Array<RequestTypes.File> = [];
 
@@ -86,8 +109,11 @@ export async function createMessage(
 
       {
         const description: Array<string> = [];
-        if (avatarDecoration) {
-          description.push(`**Avatar Decoration**: ${Markup.url(avatarDecoration.name, avatarDecoration.url)}`); 
+        if (avatarDecorationServer) {
+          description.push(`**Avatar Decoration (Server)**: ${Markup.url(avatarDecorationServer.name, avatarDecorationServer.url)}`); 
+        }
+        if (avatarDecorationUser) {
+          description.push(`**Avatar Decoration* (User)*: ${Markup.url(avatarDecorationUser.name, avatarDecorationUser.url)}`); 
         }
         {
           const badges: Array<string> = [];

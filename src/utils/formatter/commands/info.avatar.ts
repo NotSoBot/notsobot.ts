@@ -75,22 +75,46 @@ export async function createMessage(
       if (user.user.avatar) {
         description.push(Markup.url('**User**', user.user.avatarUrl));
       }
+      if (user.avatarDecorationData) {
+        const avatarDecoration = await UserAvatarDecorations.getOrFetch(
+          context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset,
+        );
+        let name: string;
+        if (avatarDecoration.id === avatarDecoration.name) {
+          name = '**Server Decoration**';
+        } else {
+          name = `**Server Decoration (${avatarDecoration.name})**`;
+        }
+        description.push(Markup.url(name, avatarDecoration.url));
+      }
+      if (user.user.avatarDecorationData) {
+        const avatarDecoration = await UserAvatarDecorations.getOrFetch(
+          context.client, user.user.avatarDecorationData.skuId, user.user.avatarDecorationData.asset,
+        );
+        let name: string;
+        if (avatarDecoration.id === avatarDecoration.name) {
+          name = '**User Decoration**';
+        } else {
+          name = `**User Decoration (${avatarDecoration.name})**`;
+        }
+        description.push(Markup.url(name, avatarDecoration.url));
+      }
     } else {
       if (user.avatar) {
         description.push(Markup.url('**User**', user.avatarUrl));
       }
-    }
-    if (user.avatarDecorationData) {
-      const avatarDecoration = await UserAvatarDecorations.getOrFetch(
-        context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset,
-      );
-      let name: string;
-      if (avatarDecoration.id === avatarDecoration.name) {
-        name = '**Decoration**';
-      } else {
-        name = `**Decoration (${avatarDecoration.name})**`;
+      if (user.avatarDecorationData) {
+        const avatarDecoration = await UserAvatarDecorations.getOrFetch(
+          context.client, user.avatarDecorationData.skuId, user.avatarDecorationData.asset,
+        );
+        let name: string;
+        if (avatarDecoration.id === avatarDecoration.name) {
+          name = '**User Decoration**';
+        } else {
+          name = `**User Decoration (${avatarDecoration.name})**`;
+        }
+        description.push(Markup.url(name, avatarDecoration.url));
       }
-      description.push(Markup.url(name, avatarDecoration.url));
     }
     embed.setDescription(description.join(', '));
   }

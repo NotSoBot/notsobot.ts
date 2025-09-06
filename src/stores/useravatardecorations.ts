@@ -19,8 +19,8 @@ class UserAvatarDecorationStore extends Store<string, UserAvatarDecorationStored
 
   async getOrFetch(
     shard: ShardClient,
-	  skuId: string,
-	  hash: string,
+    skuId: string,
+    hash: string,
   ): Promise<UserAvatarDecorationStored> {
     if (this.has(skuId)) {
       return this.get(skuId)!;

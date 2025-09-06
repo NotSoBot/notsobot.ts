@@ -11,7 +11,7 @@
     "@sentry/node": "^10.10.0",
     "cheerio": "^1.1.2",
     "chrono-node": "^2.8.4",
-    "detritus-client": "^0.17.0-beta.87",
+    "detritus-client": "^0.17.0-beta.89",
     "emoji-aware": "^3.1.0",
     "juration": "^0.1.1",
     "mathjs": "^14.6.0",
