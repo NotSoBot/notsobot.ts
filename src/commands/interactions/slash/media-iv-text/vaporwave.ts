@@ -1,6 +1,5 @@
 import { Interaction } from 'detritus-client';
 
-import { ImageMemeFonts, ImageMemeFontsToText } from '../../../../constants';
 import { Formatter, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';

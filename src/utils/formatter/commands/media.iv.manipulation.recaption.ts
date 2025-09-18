@@ -3,14 +3,14 @@ import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationCaption, mediaIVManipulationUncaption } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { ImageMemeFonts } from '../../../constants';
+import { MediaMemeFonts } from '../../../constants';
 import { jobReply, jobWaitForResult } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.recaption';
 
 export interface CommandArgs {
-  font?: ImageMemeFonts,
+  font?: MediaMemeFonts,
   text: string,
   tolerance?: number,
   url: string,

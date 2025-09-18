@@ -1772,14 +1772,6 @@ export async function mediaIVToolsCropTwitterHex(
 }
 
 
-export async function mediaIVToolsObjectRemove(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsObjectRemoveOptions,
-) {
-  return raw.mediaIVToolsObjectRemove(context, options);
-}
-
-
 export async function mediaIVToolsOffset(
   context: RequestContext,
   options: RestOptions.MediaIVToolsOffset,

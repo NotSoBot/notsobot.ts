@@ -367,8 +367,6 @@ export const Api = Object.freeze({
     '/media/iv/tools/crop/circle',
   MEDIA_IV_TOOLS_CROP_TWITTER_HEX:
     '/media/iv/tools/crop/twitter-hex',
-  MEDIA_IV_TOOLS_OBJECT_REMOVE:
-    '/media/iv/tools/object/remove',
   MEDIA_IV_TOOLS_OFFSET:
     '/media/iv/tools/offset',
   MEDIA_IV_TOOLS_RESIZE:

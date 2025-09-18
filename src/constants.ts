@@ -888,163 +888,6 @@ export enum GuildPremiumTypes {
 }
 
 
-export enum ImageObjectRemovalLabels {
-  PERSON = "PERSON",
-  BICYCLE = "BICYCLE",
-  CAR = "CAR",
-  MOTORCYCLE = "MOTORCYCLE",
-  AIRPLANE = "AIRPLANE",
-  BUS = "BUS",
-  TRAIN = "TRAIN",
-  TRUCK = "TRUCK",
-  BOAT = "BOAT",
-  TRAFFIC_LIGHT = "TRAFFIC_LIGHT",
-  FIRE_HYDRANT = "FIRE_HYDRANT",
-  STREET_SIGN = "STREET_SIGN",
-  STOP_SIGN = "STOP_SIGN",
-  PARKING_METER = "PARKING_METER",
-  BENCH = "BENCH",
-  BIRD = "BIRD",
-  CAT = "CAT",
-  DOG = "DOG",
-  HORSE = "HORSE",
-  SHEEP = "SHEEP",
-  COW = "COW",
-  ELEPHANT = "ELEPHANT",
-  BEAR = "BEAR",
-  ZEBRA = "ZEBRA",
-  GIRAFFE = "GIRAFFE",
-  HAT = "HAT",
-  BACKPACK = "BACKPACK",
-  UMBRELLA = "UMBRELLA",
-  SHOE = "SHOE",
-  EYE_GLASSES = "EYE_GLASSES",
-  HANDBAG = "HANDBAG",
-  TIE = "TIE",
-  SUITCASE = "SUITCASE",
-  FRISBEE = "FRISBEE",
-  SKIS = "SKIS",
-  SNOWBOARD = "SNOWBOARD",
-  SPORTS_BALL = "SPORTS_BALL",
-  KITE = "KITE",
-  BASEBALL_BAT = "BASEBALL_BAT",
-  BASEBALL_GLOVE = "BASEBALL_GLOVE",
-  SKATEBOARD = "SKATEBOARD",
-  SURFBOARD = "SURFBOARD",
-  TENNIS_RACKET = "TENNIS_RACKET",
-  BOTTLE = "BOTTLE",
-  PLATE = "PLATE",
-  WINE_GLASS = "WINE_GLASS",
-  CUP = "CUP",
-  FORK = "FORK",
-  KNIFE = "KNIFE",
-  SPOON = "SPOON",
-  BOWL = "BOWL",
-  BANANA = "BANANA",
-  APPLE = "APPLE",
-  SANDWICH = "SANDWICH",
-  ORANGE = "ORANGE",
-  BROCCOLI = "BROCCOLI",
-  CARROT = "CARROT",
-  HOT_DOG = "HOT_DOG",
-  PIZZA = "PIZZA",
-  DONUT = "DONUT",
-  CAKE = "CAKE",
-  CHAIR = "CHAIR",
-  COUCH = "COUCH",
-  POTTED_PLANT = "POTTED_PLANT",
-  BED = "BED",
-  MIRROR = "MIRROR",
-  DINING_TABLE = "DINING_TABLE",
-  WINDOW = "WINDOW",
-  DESK = "DESK",
-  TOILET = "TOILET",
-  DOOR = "DOOR",
-  TV = "TV",
-  LAPTOP = "LAPTOP",
-  MOUSE = "MOUSE",
-  REMOTE = "REMOTE",
-  KEYBOARD = "KEYBOARD",
-  CELL_PHONE = "CELL_PHONE",
-  MICROWAVE = "MICROWAVE",
-  OVEN = "OVEN",
-  TOASTER = "TOASTER",
-  SINK = "SINK",
-  REFRIGERATOR = "REFRIGERATOR",
-  BLENDER = "BLENDER",
-  BOOK = "BOOK",
-  CLOCK = "CLOCK",
-  VASE = "VASE",
-  SCISSORS = "SCISSORS",
-  TEDDY_BEAR = "TEDDY_BEAR",
-  HAIR_DRIER = "HAIR_DRIER",
-  TOOTHBRUSH = "TOOTHBRUSH",
-  HAIR_BRUSH = "HAIR_BRUSH",
-}
-
-
-export enum ImageEyeTypes {
-  BIG = 'BIG',
-  BLOODSHOT = 'BLOODSHOT',
-  CENTER = 'CENTER',
-  EYE = 'EYE',
-  FLARE_BLACK = 'FLARE_BLACK',
-  FLARE_BLUE = 'FLARE_BLUE',
-  FLARE_GREEN = 'FLARE_GREEN',
-  FLARE_PINK = 'FLARE_PINK',
-  FLARE_RED = 'FLARE_RED',
-  FLARE_WHITE = 'FLARE_WHITE',
-  FLARE_YELLOW = 'FLARE_YELLOW',
-  GOOGLY = 'GOOGLY',
-  ILLUMINATI = 'ILLUMINATI',
-  MONEY = 'MONEY',
-  RED = 'RED',
-  SMALL = 'SMALL',
-  SPINNER = 'SPINNER',
-  SPONGEBOB = 'SPONGEBOB',
-}
-
-
-export enum ImageMemeFonts {
-  ARIAL = 'ARIAL',
-  FUTURA_CONDENSED_EXTRA_BOLD = 'FUTURA_CONDENSED_EXTRA_BOLD',
-  IMPACT = 'IMPACT',
-  MONTSERRAT_BOLD = 'MONTSERRAT_BOLD',
-  MONTSERRAT_REGULAR = 'MONTSERRAT_REGULAR',
-  MONTSERRAT_SEMIBOLD = 'MONTSERRAT_SEMIBOLD',
-  MPLUS_1C_BLACK = 'MPLUS_1C_BLACK',
-  MPLUS_2P_BLACK = 'MPLUS_2P_BLACK',
-  RUBIK_BLACK = 'RUBIK_BLACK',
-  TAHOMA_BOLD = 'TAHOMA_BOLD',
-  TITILLIUMWEB_BLACK = 'TITILLIUMWEB_BLACK',
-  TITILLIUMWEB_BOLD = 'TITILLIUMWEB_BOLD',
-  TYPOLINE_DEMO = 'TYPOLINE_DEMO',
-}
-
-export const ImageMemeFontsToText: Record<ImageMemeFonts, string> = Object.freeze({
-  [ImageMemeFonts.ARIAL]: 'Arial',
-  [ImageMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD]: 'Futura Condensed Extra Bold',
-  [ImageMemeFonts.IMPACT]: 'Impact',
-  [ImageMemeFonts.MONTSERRAT_BOLD]: 'Montserrat Bold',
-  [ImageMemeFonts.MONTSERRAT_REGULAR]: 'Montserrat Regular',
-  [ImageMemeFonts.MONTSERRAT_SEMIBOLD]: 'Montserrat SemiBold',
-  [ImageMemeFonts.MPLUS_1C_BLACK]: 'M+ 1c',
-  [ImageMemeFonts.MPLUS_2P_BLACK]: 'M+ 2p',
-  [ImageMemeFonts.RUBIK_BLACK]: 'Rubik Black',
-  [ImageMemeFonts.TAHOMA_BOLD]: 'Tahoma Bold',
-  [ImageMemeFonts.TITILLIUMWEB_BLACK]: 'Titillium Black',
-  [ImageMemeFonts.TITILLIUMWEB_BOLD]: 'Titillium Bold',
-  [ImageMemeFonts.TYPOLINE_DEMO]: 'Typoline',
-});
-
-
-export enum ImagePix2PixModels {
-  EDGES = 'EDGES',
-  EMOJI = 'EMOJI',
-  PORN = 'PORN',
-}
-
-
 export enum MeasurementUnits {
   IMPERIAL = 'IMPERIAL',
   METRIC = 'METRIC',
@@ -1086,13 +929,6 @@ export const MediaBackgroundRemovalModelsToText: Record<MediaBackgroundRemovalMo
   [MediaBackgroundRemovalModels.U2NET_CLOTH_SEG]: 'U2Net Fashion (Clothing Optimized)',
   [MediaBackgroundRemovalModels.U2NET_HUMAN_SEG]: 'U2Net Human (People Optimized)',
 });
-
-
-export enum MediaFaceFatSizes {
-  XL = 'XL',
-  XXL = 'XXL',
-  XXXL = 'XXXL',
-}
 
 
 export enum MediaDistortMethods {
@@ -1141,11 +977,80 @@ export enum MediaEmbossMethods {
 }
 
 
+export enum MediaEyeTypes {
+  BIG = 'BIG',
+  BLOODSHOT = 'BLOODSHOT',
+  CENTER = 'CENTER',
+  EYE = 'EYE',
+  FLARE_BLACK = 'FLARE_BLACK',
+  FLARE_BLUE = 'FLARE_BLUE',
+  FLARE_GREEN = 'FLARE_GREEN',
+  FLARE_PINK = 'FLARE_PINK',
+  FLARE_RED = 'FLARE_RED',
+  FLARE_WHITE = 'FLARE_WHITE',
+  FLARE_YELLOW = 'FLARE_YELLOW',
+  GOOGLY = 'GOOGLY',
+  ILLUMINATI = 'ILLUMINATI',
+  MONEY = 'MONEY',
+  RED = 'RED',
+  SMALL = 'SMALL',
+  SPINNER = 'SPINNER',
+  SPONGEBOB = 'SPONGEBOB',
+}
+
+
+export enum MediaFaceFatSizes {
+  XL = 'XL',
+  XXL = 'XXL',
+  XXXL = 'XXXL',
+}
+
+
 export enum MediaLegofyPalettes {
   ALL = 'ALL',
   EFFECTS = 'EFFECTS',
   MONO = 'MONO',
   TRANSPARENT = 'TRANSPARENT',
+}
+
+
+export enum MediaMemeFonts {
+  ARIAL = 'ARIAL',
+  FUTURA_CONDENSED_EXTRA_BOLD = 'FUTURA_CONDENSED_EXTRA_BOLD',
+  IMPACT = 'IMPACT',
+  MONTSERRAT_BOLD = 'MONTSERRAT_BOLD',
+  MONTSERRAT_REGULAR = 'MONTSERRAT_REGULAR',
+  MONTSERRAT_SEMIBOLD = 'MONTSERRAT_SEMIBOLD',
+  MPLUS_1C_BLACK = 'MPLUS_1C_BLACK',
+  MPLUS_2P_BLACK = 'MPLUS_2P_BLACK',
+  RUBIK_BLACK = 'RUBIK_BLACK',
+  TAHOMA_BOLD = 'TAHOMA_BOLD',
+  TITILLIUMWEB_BLACK = 'TITILLIUMWEB_BLACK',
+  TITILLIUMWEB_BOLD = 'TITILLIUMWEB_BOLD',
+  TYPOLINE_DEMO = 'TYPOLINE_DEMO',
+}
+
+export const MediaMemeFontsToText: Record<MediaMemeFonts, string> = Object.freeze({
+  [MediaMemeFonts.ARIAL]: 'Arial',
+  [MediaMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD]: 'Futura Condensed Extra Bold',
+  [MediaMemeFonts.IMPACT]: 'Impact',
+  [MediaMemeFonts.MONTSERRAT_BOLD]: 'Montserrat Bold',
+  [MediaMemeFonts.MONTSERRAT_REGULAR]: 'Montserrat Regular',
+  [MediaMemeFonts.MONTSERRAT_SEMIBOLD]: 'Montserrat SemiBold',
+  [MediaMemeFonts.MPLUS_1C_BLACK]: 'M+ 1c',
+  [MediaMemeFonts.MPLUS_2P_BLACK]: 'M+ 2p',
+  [MediaMemeFonts.RUBIK_BLACK]: 'Rubik Black',
+  [MediaMemeFonts.TAHOMA_BOLD]: 'Tahoma Bold',
+  [MediaMemeFonts.TITILLIUMWEB_BLACK]: 'Titillium Black',
+  [MediaMemeFonts.TITILLIUMWEB_BOLD]: 'Titillium Bold',
+  [MediaMemeFonts.TYPOLINE_DEMO]: 'Typoline',
+});
+
+
+export enum MediaPix2PixModels {
+  EDGES = 'EDGES',
+  EMOJI = 'EMOJI',
+  PORN = 'PORN',
 }
 
 

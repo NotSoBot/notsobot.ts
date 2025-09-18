@@ -21,9 +21,6 @@ import {
   GoogleLocales,
   GoogleLocalesText,
   GuildFeatures,
-  ImageMemeFonts,
-  ImageMemeFontsToText,
-  ImageObjectRemovalLabels,
   Mimetypes,
   MimetypesToExtension,
   MLDiffusionModels,
@@ -681,40 +678,6 @@ export async function ttsVoices(context: Interaction.InteractionAutoCompleteCont
         ...choices,
       ].slice(0, 25);
     }
-  }
-  return context.respond({choices});
-}
-
-
-
-export function objectRemovalLabels(context: Interaction.InteractionAutoCompleteContext) {
-  let choices: Array<{name: string, value: string}>;
-  if (context.value) {
-    const values = new BaseSet<ImageObjectRemovalLabels>();
-
-    const value = context.value.toUpperCase().replace(/\s/g, '_');
-    for (let key in ImageObjectRemovalLabels) {
-      const label = key as ImageObjectRemovalLabels;
-      if (label.includes(value)) {
-        values.add(label);
-      }
-    }
-
-    choices = values.toArray().slice(0, 25).map((label) => {
-      return {name: toTitleCase(label), value: label};
-    });
-  } else {
-    choices = [
-      ImageObjectRemovalLabels.PERSON,
-      ImageObjectRemovalLabels.CAT,
-      ImageObjectRemovalLabels.DOG,
-      ImageObjectRemovalLabels.CAR,
-      ImageObjectRemovalLabels.BICYCLE,
-      ImageObjectRemovalLabels.AIRPLANE,
-      ImageObjectRemovalLabels.MOTORCYCLE,
-      ImageObjectRemovalLabels.BUS,
-      ImageObjectRemovalLabels.TRUCK
-    ].map((x) => ({name: ImageObjectRemovalLabels[x], value: x}));
   }
   return context.respond({choices});
 }

@@ -1,15 +1,17 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationCaption } from '../../../api';
-import { ImageMemeFonts } from '../../../constants';
+import { MediaMemeFonts } from '../../../constants';
 import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.caption';
 export const IS_PIPEABLE = true;
 
+export const DEFAULT_FONT = MediaMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD;
+
 export interface CommandArgs {
-  font?: ImageMemeFonts,
+  font?: MediaMemeFonts,
   text: string,
   url: string,
 }

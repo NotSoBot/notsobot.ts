@@ -1407,7 +1407,7 @@ export async function mediaAIVToolsConcat(
 export async function mediaAIVToolsConvert(
   context: RequestContext,
   options: RestOptions.MediaAIVToolsConvert,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -2217,6 +2217,7 @@ export async function mediaIManipulationLatte(
     },
   });
 }
+
 
 export async function mediaIManipulationMuseum(
   context: RequestContext,
@@ -4258,7 +4259,7 @@ export async function mediaIVToolsBackgroundRemove(
 export async function mediaIVToolsCrop(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCrop,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     height: options.height,
@@ -4282,7 +4283,7 @@ export async function mediaIVToolsCrop(
 export async function mediaIVToolsCropAuto(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -4302,7 +4303,7 @@ export async function mediaIVToolsCropAuto(
 export async function mediaIVToolsCropCircle(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCropCircle,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     background: options.background,
@@ -4323,7 +4324,7 @@ export async function mediaIVToolsCropCircle(
 export async function mediaIVToolsCropTwitterHex(
   context: RequestContext,
   options: RestOptions.MediaIVToolsCropTwitterHex,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     background: options.background,
@@ -4341,31 +4342,10 @@ export async function mediaIVToolsCropTwitterHex(
 }
 
 
-export async function mediaIVToolsObjectRemove(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsObjectRemoveOptions,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    label: options.object,
-    max_file_size: maxFileSize,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_TOOLS_OBJECT_REMOVE,
-    },
-  });
-}
-
-
 export async function mediaIVToolsOffset(
   context: RequestContext,
   options: RestOptions.MediaIVToolsOffset,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -4387,7 +4367,7 @@ export async function mediaIVToolsOffset(
 export async function mediaIVToolsResize(
   context: RequestContext,
   options: RestOptions.MediaIVToolsResize,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     convert: options.convert,
@@ -4411,7 +4391,7 @@ export async function mediaIVToolsResize(
 export async function mediaIVToolsRotate(
   context: RequestContext,
   options: RestOptions.MediaIVToolsRotate,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     crop: options.crop,
@@ -4433,7 +4413,7 @@ export async function mediaIVToolsRotate(
 export async function mediaIVToolsRotate3d(
   context: RequestContext,
   options: RestOptions.MediaIVToolsRotate3d,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     crop: options.crop,
@@ -4459,7 +4439,7 @@ export async function mediaIVToolsRotate3d(
 export async function mediaIVToolsSetFPS(
   context: RequestContext,
   options: RestOptions.MediaIVToolsSetFPS,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     fps: options.fps,
@@ -4480,7 +4460,7 @@ export async function mediaIVToolsSetFPS(
 export async function mediaIVToolsSetFrameCount(
   context: RequestContext,
   options: RestOptions.MediaIVToolsSetFrameCount,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     count: options.count,
@@ -4501,7 +4481,7 @@ export async function mediaIVToolsSetFrameCount(
 export async function mediaIVToolsSnipFrames(
   context: RequestContext,
   options: RestOptions.MediaIVToolsSnipFrames,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     end: options.end,
@@ -4523,7 +4503,7 @@ export async function mediaIVToolsSnipFrames(
 export async function mediaIVToolsTrim(
   context: RequestContext,
   options: RestOptions.MediaIVToolsTrim,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     margin: options.margin,

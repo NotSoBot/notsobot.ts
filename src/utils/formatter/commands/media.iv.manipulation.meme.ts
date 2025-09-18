@@ -2,15 +2,17 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationMeme } from '../../../api';
-import { ImageMemeFonts } from '../../../constants';
+import { MediaMemeFonts } from '../../../constants';
 import { jobReply } from '../..';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.meme';
 export const IS_PIPEABLE = true;
 
+export const DEFAULT_FONT = MediaMemeFonts.IMPACT;
+
 export interface CommandArgs {
-  font?: ImageMemeFonts,
+  font?: MediaMemeFonts,
   text: string,
   url: string,
 }
@@ -41,8 +43,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
-
   const response = await createJob(context, args);
   return jobReply(context, response);
 }

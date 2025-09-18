@@ -1,19 +1,19 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { mediaIVManipulationEyes } from '../../../api';
-import { CommandCategories, ImageEyeTypes } from '../../../constants';
+import { CommandCategories, MediaEyeTypes } from '../../../constants';
 import { jobReply } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  type?: ImageEyeTypes,
+  type?: MediaEyeTypes,
   url?: null | string,
 }
 
 export interface CommandArgs {
-  type?: ImageEyeTypes,
+  type?: MediaEyeTypes,
   url: string,
 }
 
@@ -26,7 +26,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand<CommandArgs> {
 
       aliases: ['eye'],
       args: [
-        {name: 'type', choices: Object.values(ImageEyeTypes), help: `Must be one of: (${Object.values(ImageEyeTypes).join(', ')})`},
+        {name: 'type', choices: Object.values(MediaEyeTypes), help: `Must be one of: (${Object.values(MediaEyeTypes).join(', ')})`},
       ],
       metadata: {
         description: 'Attach eyes to people\'s faces in an Image or Video',
@@ -36,7 +36,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand<CommandArgs> {
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg -type spongebob`,
         ],
         category: CommandCategories.IMAGE,
-        usage: '?<emoji,user:id|mention|name,url> (-type <ImageEyeTypes>)',
+        usage: '?<emoji,user:id|mention|name,url> (-type <MediaEyeTypes>)',
       },
       priority: -1,
     });

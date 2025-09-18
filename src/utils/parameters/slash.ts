@@ -3,8 +3,6 @@ import { Interaction } from 'detritus-client';
 import {
   GoogleLocales,
   GoogleLocalesText,
-  ImageMemeFonts,
-  ImageMemeFontsToText,
   MLDiffusionModels,
   UserFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
@@ -75,23 +73,6 @@ export const GOOGLE_LOCALES = [
   GoogleLocales.TURKISH,
   GoogleLocales.VIETNAMESE,
 ].map((x) => ({name: GoogleLocalesText[x], value: x}));
-
-
-export const IMAGE_MEME_FONTS = [
-  ImageMemeFonts.ARIAL,
-  ImageMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD,
-  ImageMemeFonts.IMPACT,
-  ImageMemeFonts.MONTSERRAT_BOLD,
-  ImageMemeFonts.MONTSERRAT_REGULAR,
-  ImageMemeFonts.MONTSERRAT_SEMIBOLD,
-  ImageMemeFonts.MPLUS_1C_BLACK,
-  ImageMemeFonts.MPLUS_2P_BLACK,
-  ImageMemeFonts.RUBIK_BLACK,
-  ImageMemeFonts.TAHOMA_BOLD,
-  ImageMemeFonts.TITILLIUMWEB_BLACK,
-  ImageMemeFonts.TITILLIUMWEB_BOLD,
-  ImageMemeFonts.TYPOLINE_DEMO,
-].map((x) => ({name: ImageMemeFontsToText[x], value: x}));
 
 
 export const USER_FALLBACKS_MEDIA_IMAGE_TYPES = [

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { mediaIVManipulationEyes } from '../../../api';
-import { CommandCategories, ImageEyeTypes } from '../../../constants';
+import { CommandCategories, MediaEyeTypes } from '../../../constants';
 import { jobReply } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
@@ -38,7 +38,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand<CommandArgs> {
 
   async run(context: Command.Context, args: CommandArgs) {
     const response = await mediaIVManipulationEyes(context, {
-      type: ImageEyeTypes.FLARE_RED,
+      type: MediaEyeTypes.FLARE_RED,
       url: args.url,
     });
     return jobReply(context, response);

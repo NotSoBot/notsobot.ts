@@ -8,7 +8,7 @@ import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { mediaIVToolsResize } from '../../../api';
 import { CDN, CUSTOM } from '../../../api/endpoints';
 import { BooleanEmojis, EmojiTypes, EmojiTypesToText, Mimetypes } from '../../../constants';
-import { editOrReply, imageReply, toCodePoint, toCodePointForTwemoji } from '../../../utils';
+import { editOrReply, jobReply, jobWaitForResult, toCodePoint, toCodePointForTwemoji } from '../../../utils';
 
 
 export const COMMAND_ID = 'fun.emoji';
@@ -122,19 +122,25 @@ export async function createMessage(
     if (filtered.length === 1) {
       const [ url ] = filtered;
       // if its a single url, embed it
-      const response = await mediaIVToolsResize(context, {size, url});
-      return imageReply(context, response, {args: false});
+      const job = await mediaIVToolsResize(context, {size, url});
+      return jobReply(context, job); // todo: disable showing args here
     }
 
     const promises: Array<Promise<{filename: string, value: Buffer}>> = [];
     for (let url of filtered.slice(0, 10)) {
       const promise: Promise<{filename: string, value: Buffer}> = new Promise(async (resolve, reject) => {
         try {
-          const response = await mediaIVToolsResize(context, {size, url});
-  
-          const filename = response.file.filename;
-          const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-          resolve({filename, value});
+          const job = await mediaIVToolsResize(context, {size, url}).then((x) => jobWaitForResult(context, x));
+          if (job.result.response) {
+            resolve({
+              filename: job.result.response.file.filename,
+              value: (job.result.response.file.value) ? Buffer.from(job.result.response.file.value, 'base64') : Buffer.alloc(0),
+            });
+          } else if (job.result.error) {
+            throw new Error(`Emoji Resize Job Failed: ${job.result.error}`);
+          } else {
+            throw new Error('Emoji Resize Job Failed for some reason');
+          }
         } catch(error) {
           reject(error);
         }

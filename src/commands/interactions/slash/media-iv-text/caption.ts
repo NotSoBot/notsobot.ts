@@ -1,12 +1,10 @@
 import { Interaction } from 'detritus-client';
 
-import { ImageMemeFonts, ImageMemeFontsToText } from '../../../../constants';
+import { MediaMemeFonts, MediaMemeFontsToText } from '../../../../constants';
 import { Formatter, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
-
-export const DEFAULT_FONT_TEXT = ImageMemeFontsToText[ImageMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD];
 
 export const COMMAND_NAME = 'caption';
 
@@ -21,7 +19,15 @@ export class MediaIVCaptionCommand extends BaseInteractionImageOrVideoCommandOpt
     super({
       options: [
         {name: 'text', description: 'Caption Text', required: true},
-        {name: 'font', description: `Default: ${DEFAULT_FONT_TEXT}`, choices: Parameters.Slash.IMAGE_MEME_FONTS},
+        {
+          name: 'font',
+          description: 'Font Choice',
+          choices: Parameters.Slash.oneOf({
+            choices: MediaMemeFonts,
+            defaultChoice: Formatter.Commands.MediaIVManipulationCaption.DEFAULT_FONT,
+            descriptions: MediaMemeFontsToText,
+          }),
+        },
       ],
     });
   }

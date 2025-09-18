@@ -164,7 +164,6 @@ import * as MediaIVToolsCrop from './media.iv.tools.crop';
 import * as MediaIVToolsCropAuto from './media.iv.tools.crop.auto';
 import * as MediaIVToolsCropCircle from './media.iv.tools.crop.circle';
 import * as MediaIVToolsCropNFT from './media.iv.tools.crop.nft';
-import * as MediaIVToolsObjectRemove from './media.iv.tools.object.remove';
 import * as MediaIVToolsOffset from './media.iv.tools.offset';
 import * as MediaIVToolsResize from './media.iv.tools.resize';
 import * as MediaIVToolsRotate from './media.iv.tools.rotate';
@@ -454,7 +453,6 @@ export {
   MediaIVToolsCropAuto,
   MediaIVToolsCropCircle,
   MediaIVToolsCropNFT,
-  MediaIVToolsObjectRemove,
   MediaIVToolsOffset,
   MediaIVToolsResize,
   MediaIVToolsRotate,

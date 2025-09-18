@@ -6,9 +6,9 @@ import {
   GoogleImageVideoTypes,
   GoogleLocales,
   GuildLoggerTypes,
-  ImageEyeTypes,
-  ImageMemeFonts,
   MeasurementUnits,
+  MediaEyeTypes,
+  MediaMemeFonts,
   RedditSortTypes,
   RedditTimeTypes,
   TagVariableStorageTypes,
@@ -433,7 +433,7 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationCaption extends MediaBaseOptions {
-    font?: ImageMemeFonts,
+    font?: MediaMemeFonts,
     text: string,
   }
 
@@ -471,7 +471,7 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationEyes extends MediaBaseOptions {
-    type?: ImageEyeTypes,
+    type?: MediaEyeTypes,
   }
 
   export interface MediaIVManipulationGlitch extends MediaBaseOptions {
@@ -543,7 +543,7 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationMeme extends MediaBaseOptions {
     bottom?: string,
-    font?: ImageMemeFonts,
+    font?: MediaMemeFonts,
     top: string,
   }
 

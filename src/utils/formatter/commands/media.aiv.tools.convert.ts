@@ -10,7 +10,7 @@ import {
   MIMETYPES_VIDEO_EMBEDDABLE,
   MIMETYPES_SAFE_EMBED,
 } from '../../../constants';
-import { mediaReply } from '../../../utils';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.tools.convert';
@@ -72,7 +72,7 @@ export interface CommandArgs {
   url: string,
 }
 
-export async function createResponse(
+export async function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
@@ -87,6 +87,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await createResponse(context, args);
-  return mediaReply(context, response);
+  const response = await createJob(context, args);
+  return jobReply(context, response);
 }

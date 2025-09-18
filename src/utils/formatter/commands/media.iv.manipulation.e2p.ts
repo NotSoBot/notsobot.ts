@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationPix2Pix } from '../../../api';
-import { ImagePix2PixModels } from '../../../constants';
+import { MediaPix2PixModels } from '../../../constants';
 import { jobReply } from '../../../utils';
 
 
@@ -19,7 +19,7 @@ export function createJob(
 ) {
   return mediaIVManipulationPix2Pix(context, {
     file: args.file,
-    model: ImagePix2PixModels.PORN,
+    model: MediaPix2PixModels.PORN,
     url: args.url,
   });
 }
