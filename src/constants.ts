@@ -1436,6 +1436,9 @@ export const TagGenerationPersonalityPreferencesToText = Object.freeze({
 });
 
 
+export const TAG_GENERATION_PERSONALITY_DEFAULT = 'Make sure to answer extremely informally and to use a lot of lowercase and some shortened words and do not use any emojis or terms like "my dude", "bruh", "bestie", "fr", "like", "yo".';
+
+
 export enum TagSearchSortByFilters {
   CREATED = 0,
   EDITED = 1,

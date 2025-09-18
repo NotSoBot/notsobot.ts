@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationSpin } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.spin';
@@ -15,7 +15,7 @@ export interface CommandArgs {
   url: string,
 }
 
-export function createResponse(
+export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile},
 ) {
@@ -32,6 +32,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await createResponse(context, args);
-  return mediaReply(context, response);
+  const response = await createJob(context, args);
+  return jobReply(context, response);
 }

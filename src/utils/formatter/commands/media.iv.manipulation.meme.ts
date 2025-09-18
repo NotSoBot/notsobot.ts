@@ -3,7 +3,7 @@ import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationMeme } from '../../../api';
 import { ImageMemeFonts } from '../../../constants';
-import { mediaReply } from '../..';
+import { jobReply } from '../..';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.meme';
@@ -15,7 +15,7 @@ export interface CommandArgs {
   url: string,
 }
 
-export function createResponse(
+export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile},
 ) {
@@ -43,6 +43,6 @@ export async function createMessage(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  const response = await createResponse(context, args);
-  return mediaReply(context, response);
+  const response = await createJob(context, args);
+  return jobReply(context, response);
 }

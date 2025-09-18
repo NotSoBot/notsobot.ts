@@ -49,12 +49,14 @@ import {
   Mimetypes,
   MLDiffusionModels,
   ProxyRequestMethods,
+  TagGenerationModels,
   TagVariableStorageTypes,
   YoutubeResultTypes,
   CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   MAX_MEMBERS_SAFE,
 } from '../../constants';
 
+import { getAIPersonality } from '../formatter/commands/tag.generate';
 import { increaseUsage } from '../formatter/commands/tag.show';
 
 import * as DefaultParameters from '../defaultparameters';
@@ -553,6 +555,7 @@ export const TagFunctionsToString = Object.freeze({
 
 export enum TagSettings {
   AI_MODEL = 'AI_MODEL',
+  AI_PERSONALITY = 'AI_PERSONALITY',
   MEDIA_AV_FALLBACK = 'MEDIA_AV_FALLBACK',
   MEDIA_IV_FALLBACK = 'MEDIA_IV_FALLBACK',
   ML_IMAGINE_DO_NOT_ERROR = 'ML_IMAGINE_DO_NOT_ERROR',
@@ -585,6 +588,7 @@ export interface TagVariables {
   },
   [PrivateVariables.SETTINGS]: {
     [TagSettings.AI_MODEL]?: string,
+    [TagSettings.AI_PERSONALITY]?: string,
     [TagSettings.MEDIA_AV_FALLBACK]?: TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES | TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.ML_IMAGINE_DO_NOT_ERROR]?: boolean,
@@ -1777,12 +1781,21 @@ const ScriptTags = Object.freeze({
       }
     }
 
+    let personality: string | null | undefined;
+    if (tag.variables[PrivateVariables.SETTINGS][TagSettings.AI_PERSONALITY]) {
+      personality = tag.variables[PrivateVariables.SETTINGS][TagSettings.AI_PERSONALITY];
+    } else {
+      const personalities = await getAIPersonality(context, arg);
+      personality = personalities[0];
+    }
+
     increaseAIExecutions(tag);
     increaseNetworkRequests(tag);
 
     const response = await generateTag(context, {
       files,
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.AI_MODEL],
+      personality,
       prompt: [
         `${PrivateVariables.AI_EXECUTIONS} count: ${tag.variables[PrivateVariables.AI_EXECUTIONS]}`,
         prompt,
@@ -5059,9 +5072,21 @@ const ScriptTags = Object.freeze({
     }
 
     switch (setting) {
+      case TagSettings.AI_PERSONALITY: {
+        if (value) {
+          tag.variables[PrivateVariables.SETTINGS][setting] = value;
+        } else {
+          delete tag.variables[setting];
+        }
+      }; break;
       case TagSettings.AI_MODEL: {
         if (value) {
-          // todo: set the ai model
+          value = value.toUpperCase();
+          if (value in TagGenerationModels) {
+            tag.variables[PrivateVariables.SETTINGS][setting] = value as TagGenerationModels;
+          } else {
+            throw new Error(`AI Model must be one of: (${Object.values(TagGenerationModels).map((x) => Markup.codestring(x)).join(', ')})`);
+          }
         } else {
           delete tag.variables[setting];
         }
@@ -5117,7 +5142,7 @@ const ScriptTags = Object.freeze({
           if (value in MLDiffusionModels) {
             tag.variables[PrivateVariables.SETTINGS][setting] = value as MLDiffusionModels;
           } else {
-            throw new Error(`ML Imagine Model must be one of: (${Object.values(MLDiffusionModels)})`);
+            throw new Error(`ML Imagine Model must be one of: (${Object.values(MLDiffusionModels).map((x) => Markup.codestring(x)).join(', ')})`);
           }
         } else {
           delete tag.variables[setting];

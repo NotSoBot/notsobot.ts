@@ -8,7 +8,7 @@ import UserSettingsStore from '../../../stores/usersettings';
 
 import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { TagGenerationPersonalityPreferences } from '../../../constants';
+import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
 import { Paginator, Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
 
 import { createTagMessage } from './tag.show';
@@ -102,54 +102,7 @@ export async function createMessage(
     }
   }
 
-  let personality: string | null | undefined;
-
-  const defaultPersonality = 'Make sure to answer extremely informally and to use a lot of lowercase and some shortened words and do not use any emojis or terms like "my dude", "bruh", "bestie", "fr", "like", "yo".';
-  let serverPersonality: string | undefined;
-  let userPersonality: string | undefined;
-
-  {
-    const settings = await UserSettingsStore.getOrFetch(context, context.userId);
-    if (settings && settings.ml_llm_personality) {
-      userPersonality = settings.ml_llm_personality;
-    }
-  }
-
-  {
-    const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
-    if (guildSettings && guildSettings.settings.mlLLMPersonality) {
-      serverPersonality = guildSettings.settings.mlLLMPersonality;
-    }
-  }
-
-  switch (args.personalityPreference) {
-    case TagGenerationPersonalityPreferences.DEFAULT: {
-      personality = null;
-    }; break;
-    case TagGenerationPersonalityPreferences.GUILD: {
-      personality = serverPersonality || null;
-    }; break;
-    case TagGenerationPersonalityPreferences.USER: {
-      personality = userPersonality || null;
-    }; break;
-    case TagGenerationPersonalityPreferences.AUTOMATIC:
-    default: {
-      personality = userPersonality || serverPersonality || null;
-    };
-  }
-
-  if (personality && personality.includes('{') && personality.includes('}')) {
-    const parsedTag = await TagFormatter.parse(context, personality, args.prompt, {
-      defaultPersonality,
-      personality: personality || defaultPersonality,
-      serverPersonality,
-      userPersonality,
-    } as any, {} as any, {
-      MAX_AI_EXECUTIONS: 0,
-      MAX_ATTACHMENTS: 0,
-    });
-    personality = parsedTag.text.slice(0, 1024);
-  }
+  const [ personality, serverPersonality, userPersonality ] = await getAIPersonality(context, args.prompt, args.personalityPreference);
 
   const now = Date.now();
   const response = await generateTag(context, {
@@ -183,8 +136,8 @@ export async function createMessage(
 
   try {
     const parsedTag = await TagFormatter.parse(context, response.text, '', {
-      defaultPersonality,
-      personality: personality || defaultPersonality,
+      defaultPersonality: TAG_GENERATION_PERSONALITY_DEFAULT,
+      personality: personality || TAG_GENERATION_PERSONALITY_DEFAULT,
       serverPersonality,
       userPersonality,
       [TagFormatter.PrivateVariables.SETTINGS]: {
@@ -229,4 +182,62 @@ export async function createMessage(
       file: {filename: 'response.txt', value: response.text},
     }); 
   }
+}
+
+
+
+export async function getAIPersonality(
+  context: Command.Context | Interaction.InteractionContext,
+  prompt?: string,
+  personalityPreference?: string,
+): Promise<[string | null | undefined, string | undefined, string | undefined]> {
+  let personality: string | null | undefined;
+
+  let serverPersonality: string | undefined;
+  let userPersonality: string | undefined;
+
+  {
+    const settings = await UserSettingsStore.getOrFetch(context, context.userId);
+    if (settings && settings.ml_llm_personality) {
+      userPersonality = settings.ml_llm_personality;
+    }
+  }
+
+  {
+    const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
+    if (guildSettings && guildSettings.settings.mlLLMPersonality) {
+      serverPersonality = guildSettings.settings.mlLLMPersonality;
+    }
+  }
+
+  switch (personalityPreference) {
+    case TagGenerationPersonalityPreferences.DEFAULT: {
+      personality = null;
+    }; break;
+    case TagGenerationPersonalityPreferences.GUILD: {
+      personality = serverPersonality || null;
+    }; break;
+    case TagGenerationPersonalityPreferences.USER: {
+      personality = userPersonality || null;
+    }; break;
+    case TagGenerationPersonalityPreferences.AUTOMATIC:
+    default: {
+      personality = userPersonality || serverPersonality || null;
+    };
+  }
+
+  if (personality && personality.includes('{') && personality.includes('}')) {
+    const parsedTag = await TagFormatter.parse(context, personality, prompt, {
+      defaultPersonality: TAG_GENERATION_PERSONALITY_DEFAULT,
+      personality: personality || TAG_GENERATION_PERSONALITY_DEFAULT,
+      serverPersonality,
+      userPersonality,
+    } as any, {} as any, {
+      MAX_AI_EXECUTIONS: 0,
+      MAX_ATTACHMENTS: 0,
+    });
+    personality = parsedTag.text.slice(0, 1024);
+  }
+
+  return [ personality, serverPersonality, userPersonality ];
 }
