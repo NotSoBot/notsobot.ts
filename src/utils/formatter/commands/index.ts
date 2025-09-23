@@ -76,6 +76,7 @@ import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
 import * as MediaIVManipulationDistort from './media.iv.manipulation.distort';
 import * as MediaIVManipulationE2E from './media.iv.manipulation.e2e';
 import * as MediaIVManipulationE2P from './media.iv.manipulation.e2p';
+import * as MediaIVManipulationEdgeDetect from './media.iv.manipulation.edge.detect';
 import * as MediaIVManipulationEmboss from './media.iv.manipulation.emboss';
 import * as MediaIVManipulationExo from './media.iv.manipulation.exo';
 import * as MediaIVManipulationExplode from './media.iv.manipulation.explode';
@@ -365,6 +366,7 @@ export {
   MediaIVManipulationDistort,
   MediaIVManipulationE2E,
   MediaIVManipulationE2P,
+  MediaIVManipulationEdgeDetect,
   MediaIVManipulationEmboss,
   MediaIVManipulationExo,
   MediaIVManipulationExplode,

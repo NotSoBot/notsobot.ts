@@ -1075,6 +1075,14 @@ export async function mediaIVManipulationDistort(
 }
 
 
+export async function mediaIVManipulationEdgeDetect(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationEdgeDetect,
+) {
+  return raw.mediaIVManipulationEdgeDetect(context, options);
+}
+
+
 export async function mediaIVManipulationEmboss(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationEmboss,

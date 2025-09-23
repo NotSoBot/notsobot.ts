@@ -68,6 +68,7 @@ import {
   bigIntMax,
   bigIntMin,
   checkNSFW,
+  convertToBigIntFloats,
   generateCodeFromLanguage,
   generateCodeStdin,
   getCodeLanguage,
@@ -3343,7 +3344,7 @@ const ScriptTags = Object.freeze({
       case TagIfComparisons.LESS_THAN_OR_EQUAL:
       case TagIfComparisons.TILDE: {
         try {
-          const [ int1, int2 ] = values.map(BigInt) as [bigint, bigint];
+          const [ [ int1, int2 ] ] = convertToBigIntFloats(...values);
           switch (comparison) {
             case TagIfComparisons.GREATER_THAN: {
               compared = int1 > int2;

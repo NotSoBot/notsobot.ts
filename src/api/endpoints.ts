@@ -188,6 +188,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/detunnel',
   MEDIA_IV_MANIPULATION_DISTORT:
     '/media/iv/manipulation/distort',
+  MEDIA_IV_MANIPULATION_EDGE_DETECT:
+    '/media/iv/manipulation/edge/detect',
   MEDIA_IV_MANIPULATION_EMBOSS:
     '/media/iv/manipulation/emboss',
   MEDIA_IV_MANIPULATION_EXO:

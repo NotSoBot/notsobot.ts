@@ -2316,6 +2316,34 @@ export function chunkArray<T>(
 }
 
 
+export const MAX_BIGINT_DECIMAL_PLACES = 10;
+
+export function convertToBigIntFloats(...args: Array<string>): [Array<bigint>, number] {
+  const getDecimalPlaces = (str: string): number => {
+    const decimalIndex = str.indexOf('.');
+    return decimalIndex === -1 ? 0 : Math.min(str.length - decimalIndex - 1, MAX_BIGINT_DECIMAL_PLACES);
+  };
+
+  const stringToBigInt = (str: string, decimalPlaces: number): bigint => {
+    const [integerPart = '0', fractionalPart = ''] = str.split('.');
+    const paddedFractional = (fractionalPart + '0'.repeat(decimalPlaces)).slice(0, decimalPlaces);
+    const combined = integerPart + paddedFractional;
+    return BigInt(combined);
+  };
+
+  const maxDecimalPlaces = Math.max(...args.map(getDecimalPlaces));
+  const hasDecimals = 0 < maxDecimalPlaces;
+  const values = args.map((value) => {
+    if (hasDecimals) {
+      return stringToBigInt(value, maxDecimalPlaces);
+    } else {
+      return BigInt(value);
+    }
+  }) as Array<bigint>;
+  return [values, maxDecimalPlaces];
+}
+
+
 export function randomFromArray<T>(
   array: Array<T>,
 ): T {

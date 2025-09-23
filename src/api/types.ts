@@ -451,6 +451,13 @@ export namespace RestOptions {
     method: string,
   }
 
+  export interface MediaIVManipulationEdgeDetect extends MediaBaseOptions {
+    invert?: boolean,
+    method?: string,
+    mix?: number,
+    strength?: number,
+  }
+
   export interface MediaIVManipulationEmboss extends MediaBaseOptions {
     azimuth?: number,
     compose?: string,

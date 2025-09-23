@@ -2467,6 +2467,30 @@ export async function mediaIVManipulationDistort(
 }
 
 
+export async function mediaIVManipulationEdgeDetect(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationEdgeDetect,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    invert: options.invert,
+    max_file_size: maxFileSize,
+    method: options.method,
+    mix: options.mix,
+    strength: options.strength,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_EDGE_DETECT,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationEmboss(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationEmboss,
