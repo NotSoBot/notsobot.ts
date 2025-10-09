@@ -70,6 +70,7 @@ import * as MediaIVManipulationASCII from './media.iv.manipulation.ascii';
 import * as MediaIVManipulationBlur from './media.iv.manipulation.blur';
 import * as MediaIVManipulationBlurple from './media.iv.manipulation.blurple';
 import * as MediaIVManipulationCaption from './media.iv.manipulation.caption';
+import * as MediaIVManipulationCartoon from './media.iv.manipulation.cartoon';
 import * as MediaIVManipulationCircle from './media.iv.manipulation.circle';
 import * as MediaIVManipulationDeepfry from './media.iv.manipulation.deepfry';
 import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
@@ -360,6 +361,7 @@ export {
   MediaIVManipulationBlur,
   MediaIVManipulationBlurple,
   MediaIVManipulationCaption,
+  MediaIVManipulationCartoon,
   MediaIVManipulationCircle,
   MediaIVManipulationDeepfry,
   MediaIVManipulationDetunnel,

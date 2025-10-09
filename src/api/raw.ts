@@ -2382,6 +2382,32 @@ export async function mediaIVManipulationCaption(
 }
 
 
+export async function mediaIVManipulationCartoon(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCartoon,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    amount: options.amount,
+    brightness: options.brightness,
+    levels: options.levels,
+    max_file_size: maxFileSize,
+    method: options.method,
+    pattern: options.pattern,
+    saturation: options.saturation,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_CARTOON,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationCircle(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationCircle,
@@ -5334,7 +5360,7 @@ export async function utilitiesMediascript(
 export async function utilitiesMLEdit(
   context: RequestContext,
   options: RestOptions.UtilitiesMLEdit,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     do_not_error: options.doNotError,
@@ -5356,14 +5382,6 @@ export async function utilitiesMLEdit(
       path: Api.UTILITIES_ML_EDIT,
     },
   });
-  if (options.safe && response.file.has_nsfw) {
-    if (options.doNotError) {
-      return await utilitiesFetchMedia(context, {
-        url: createColorUrl(0, 512, 512),
-      });
-    }
-    throw new Error('Generated Media may contain NSFW content');
-  }
   return response;
 }
 
@@ -5371,7 +5389,7 @@ export async function utilitiesMLEdit(
 export async function utilitiesMLImagine(
   context: RequestContext,
   options: RestOptions.UtilitiesMLImagine,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     do_not_error: options.doNotError,
@@ -5390,14 +5408,6 @@ export async function utilitiesMLImagine(
       path: Api.UTILITIES_ML_IMAGINE,
     },
   });
-  if (options.safe && response.file.has_nsfw) {
-    if (options.doNotError) {
-      return await utilitiesFetchMedia(context, {
-        url: createColorUrl(0, 512, 512),
-      });
-    }
-    throw new Error('Generated Media may contain NSFW content');
-  }
   return response;
 }
 
@@ -5423,7 +5433,7 @@ export async function utilitiesMLInterrogate(
 export async function utilitiesMLMashup(
   context: RequestContext,
   options: RestOptions.UtilitiesMLMashup,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     do_not_error: options.doNotError,
@@ -5436,7 +5446,7 @@ export async function utilitiesMLMashup(
     upload: options.upload,
     urls: options.urls,
   };
-  return request(context, {
+  const response = await request(context, {
     body,
     file: options.file,
     files: options.files,
@@ -5445,6 +5455,7 @@ export async function utilitiesMLMashup(
       path: Api.UTILITIES_ML_MASHUP,
     },
   });
+  return response;
 }
 
 

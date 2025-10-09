@@ -59,6 +59,7 @@ import {
   getTimezoneAbbreviation,
   getTimezoneFromContext,
   isSnowflake,
+  jobWaitForResult,
   toCodePointForTwemoji,
   validateUrl,
   FindMediaUrlOptions,
@@ -1467,10 +1468,17 @@ export function mediaUrl(
                 return result.imageUrl;
               }; break;
               case UserFallbacksMediaImageTypes.IMAGINE: {
-                const response = await utilitiesMLImagine(context, {
+                const job = await utilitiesMLImagine(context, {
                   query: value,
                   upload: true,
-                });
+                }).then((x) => jobWaitForResult(context, x));
+                if (job.result.error) {
+                  throw new Error(`**Imagine Error**: ${job.result.error}`);
+                }
+                if (!job.result.response) {
+                  throw new Error('Imagine did not return a response (Should not happen, report this)');
+                }
+                const response = job.result.response;
                 if (response.storage) {
                   return response.storage.urls.cdn;
                 }
@@ -1720,10 +1728,17 @@ export function mediaUrls(
                 urls.push(result.imageUrl);
               }; break;
               case UserFallbacksMediaImageTypes.IMAGINE: {
-                const response = await utilitiesMLImagine(context, {
+                const job = await utilitiesMLImagine(context, {
                   query: value,
                   upload: true,
-                });
+                }).then((x) => jobWaitForResult(context, x));
+                if (job.result.error) {
+                  throw new Error(`**Imagine Error**: ${job.result.error}`);
+                }
+                if (!job.result.response) {
+                  throw new Error('Imagine did not return a response (Should not happen, report this)');
+                }
+                const response = job.result.response;
                 if (response.storage) {
                   urls.push(response.storage.urls.cdn);
                 }

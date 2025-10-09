@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesFetchMedia, utilitiesMLMashup } from '../../../api';
-import { EmojiKitchen, imageReply } from '../..';
+import { EmojiKitchen, jobWaitForResult, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.ml.mashup';
@@ -16,7 +16,7 @@ export interface CommandArgs {
   urls: Array<string>,
 }
 
-export function createResponse(
+export async function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
@@ -33,7 +33,14 @@ export function createResponse(
       }
     }
   }
-  return utilitiesMLMashup(context, args);
+  const job = await utilitiesMLMashup(context, args).then((x) => jobWaitForResult(context, x));
+  if (job.result.error) {
+    throw new Error(`**Mashup Error**: ${job.result.error}`);
+  }
+  if (!job.result.response) {
+    throw new Error('Mashup did not return a response (Should not happen, report this)');
+  }
+  return job.result.response;
 }
 
 export async function createMessage(
@@ -41,5 +48,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await createResponse(context, args);
-  return imageReply(context, response);
+  return mediaReply(context, response);
 }

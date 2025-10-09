@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesMLEdit } from '../../../api';
-import { imageReply } from '../..';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.ml.edit';
@@ -17,7 +17,7 @@ export interface CommandArgs {
   url: string, 
 }
 
-export function createResponse(
+export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
@@ -28,6 +28,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await createResponse(context, args);
-  return imageReply(context, response);
+  const response = await createJob(context, args);
+  return jobReply(context, response);
 }

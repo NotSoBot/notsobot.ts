@@ -262,6 +262,7 @@ export namespace RestOptions {
 
 
   export interface MediaBaseOptions {
+    doNotError?: boolean,
     file?: RequestFile,
     filename?: string,
     maxFileSize?: number,
@@ -435,6 +436,15 @@ export namespace RestOptions {
   export interface MediaIVManipulationCaption extends MediaBaseOptions {
     font?: MediaMemeFonts,
     text: string,
+  }
+
+  export interface MediaIVManipulationCartoon extends MediaBaseOptions {
+    amount?: number,
+    brightness?: number,
+    levels?: number,
+    method?: string,
+    pattern?: number,
+    saturation?: number,
   }
 
   export interface MediaIVManipulationCircle extends MediaBaseOptions {
@@ -990,7 +1000,6 @@ export namespace RestOptions {
     maxFileSize?: number,
     maxFileSizeStrict?: boolean,
     mlDiffusionModel?: string,
-    upload?: boolean,
   }
 
   export interface UtilitiesMLEdit extends MediaBaseOptions {

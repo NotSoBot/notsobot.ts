@@ -931,6 +931,22 @@ export const MediaBackgroundRemovalModelsToText: Record<MediaBackgroundRemovalMo
 });
 
 
+export enum MediaCartoonMethods {
+  COLOR_DODGE_BLUR = 'COLOR_DODGE_BLUR',
+  HIGH_PASS_FILTER = 'HIGH_PASS_FILTER',
+  MORPHOLOGY_EDGES = 'MORPHOLOGY_EDGES',
+  SOBEL_EDGES = 'SOBEL_EDGES',
+}
+
+
+export const MediaCartoonMethodsToText: Record<MediaCartoonMethods, string> = Object.freeze({
+  [MediaCartoonMethods.COLOR_DODGE_BLUR]: 'Color Dodge w/ Negated Blur',
+  [MediaCartoonMethods.HIGH_PASS_FILTER]: 'High Pass Filter (DoG)',
+  [MediaCartoonMethods.MORPHOLOGY_EDGES]: 'Morphology Edge Detection',
+  [MediaCartoonMethods.SOBEL_EDGES]: 'Sobel Edge Detection',
+});
+
+
 export enum MediaDistortMethods {
   ARC = 'ARC',
   AFFINE = 'AFFINE',
@@ -1218,11 +1234,13 @@ export const MIMETYPES_SAFE_EMBED = MIMETYPES_IMAGE_EMBEDDABLE;
 
 export enum MLDiffusionModels {
   FLUX_SCHNELL = 'FLUX_SCHNELL',
+  QWEN_IMAGE_EDIT_2509_LIGHTNING = 'QWEN_IMAGE_EDIT_2509_LIGHTNING',
   SDXL_TURBO = 'SDXL_TURBO',
 }
 
 export const MLDiffusionModelsToText = Object.freeze({
   [MLDiffusionModels.FLUX_SCHNELL]: 'Flux Schnell (Realistic)',
+  [MLDiffusionModels.QWEN_IMAGE_EDIT_2509_LIGHTNING]: 'Qwen Image Edit 2509 Lightning (Amazing)',
   [MLDiffusionModels.SDXL_TURBO]: 'SDXL Turbo (Funny)',
 });
 
@@ -1312,7 +1330,7 @@ export const ReminderMessages = [
 
 
 export enum TagGenerationModels {
-  CLAUDE_4_0_SONNET = 'CLAUDE_4_0_SONNET',
+  CLAUDE_4_5_SONNET = 'CLAUDE_4_5_SONNET',
   CLAUDE_3_5_HAIKU = 'CLAUDE_3_5_HAIKU',
   DEEPSEEK_CHAT = 'DEEPSEEK_CHAT',
   GOOGLE_GEMINI_2_5_PRO = 'GOOGLE_GEMINI_2_5_PRO',
@@ -1322,18 +1340,14 @@ export enum TagGenerationModels {
   META_LLAMA = 'META_LLAMA',
   OPENAI_CHATGPT_5 = 'OPENAI_CHATGPT_5',
   OPENAI_CHATGPT_5_MINI = 'OPENAI_CHATGPT_5_MINI',
-  OPENAI_CHATGPT_4_1 = 'OPENAI_CHATGPT_4_1',
-  OPENAI_CHATGPT_4_1_MINI = 'OPENAI_CHATGPT_4_1_MINI',
-  QWEN_2_5_CODER = 'QWEN_2_5_CODER',
-  XAI_GROK_4 = 'XAI_GROK_4',
-  XAI_GROK_3 = 'XAI_GROK_3',
-  XAI_GROK_3_MINI = 'XAI_GROK_3_MINI',
-  XAI_GROK_2 = 'XAI_GROK_2',
+  QWEN_3_CODER = 'QWEN_3_CODER',
+  XAI_GROK_4_FAST = 'XAI_GROK_4_FAST',
+  XAI_GROK_CODE_1_FAST = 'XAI_GROK_CODE_1_FAST',
 }
 
 
 export const TagGenerationModelsToText = Object.freeze({
-  [TagGenerationModels.CLAUDE_4_0_SONNET]: 'Claude 4.0 Sonnet',
+  [TagGenerationModels.CLAUDE_4_5_SONNET]: 'Claude 4.5 Sonnet',
   [TagGenerationModels.CLAUDE_3_5_HAIKU]: 'Claude 3.5 Haiku',
   [TagGenerationModels.DEEPSEEK_CHAT]: 'DeepSeek Chat',
   [TagGenerationModels.GOOGLE_GEMINI_2_5_PRO]: 'Google Gemini 2.5 Pro',
@@ -1343,13 +1357,9 @@ export const TagGenerationModelsToText = Object.freeze({
   [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
   [TagGenerationModels.OPENAI_CHATGPT_5]: 'OpenAI ChatGPT 5',
   [TagGenerationModels.OPENAI_CHATGPT_5_MINI]: 'OpenAI ChatGPT 5 Mini',
-  [TagGenerationModels.OPENAI_CHATGPT_4_1]: 'OpenAI ChatGPT 4.1',
-  [TagGenerationModels.OPENAI_CHATGPT_4_1_MINI]: 'OpenAI ChatGPT 4.1 Mini',
-  [TagGenerationModels.QWEN_2_5_CODER]: 'Qwen 2.5 Coder',
-  [TagGenerationModels.XAI_GROK_4]: 'xAI Grok 4',
-  [TagGenerationModels.XAI_GROK_3]: 'xAI Grok 3',
-  [TagGenerationModels.XAI_GROK_3_MINI]: 'xAI Grok 3 Mini',
-  [TagGenerationModels.XAI_GROK_2]: 'xAI Grok 2',
+  [TagGenerationModels.QWEN_3_CODER]: 'Qwen 3 Coder',
+  [TagGenerationModels.XAI_GROK_4_FAST]: 'xAI Grok 4 Fast',
+  [TagGenerationModels.XAI_GROK_CODE_1_FAST]: 'xAI Grok Code 1 Fast',
 });
 
 

@@ -1,7 +1,7 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
+import { MediaIVDetunnelCommand } from './detunnel';
 import { MediaIVDistortCommand } from './distort';
-import { MediaIVEdgeDetectCommand } from './edge-detect';
 import { MediaIVEmbossCommand } from './emboss';
 import { MediaIVFisheyeCommand } from './fisheye';
 import { MediaIVGrainCommand } from './grain';
@@ -35,8 +35,8 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
+        new MediaIVDetunnelCommand(),
         new MediaIVDistortCommand(),
-        new MediaIVEdgeDetectCommand(),
         new MediaIVEmbossCommand(),
         new MediaIVFisheyeCommand(),
         new MediaIVGrainCommand(),

@@ -49,6 +49,8 @@ export async function createMessage(
 
       embed.setDescription(message);
     }
+  } else if (tag.is_on_directory) {
+    embed.setDescription(`Tag from the tag directory.`);
   } else {
     embed.setDescription(Markup.codeblock(tag.content));
   }

@@ -1043,6 +1043,14 @@ export async function mediaIVManipulationCaption(
 }
 
 
+export async function mediaIVManipulationCartoon(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCartoon,
+) {
+  return raw.mediaIVManipulationCartoon(context, options);
+}
+
+
 export async function mediaIVManipulationCircle(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationCircle,

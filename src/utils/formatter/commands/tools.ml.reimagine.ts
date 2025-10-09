@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesMLImagine, utilitiesMLInterrogate } from '../../../api';
-import { imageReply } from '../..';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.ml.reimagine';
@@ -31,5 +31,5 @@ export async function createMessage(
     seed: args.seed,
     steps: args.steps,
   });
-  return imageReply(context, response);
+  return jobReply(context, response);
 }

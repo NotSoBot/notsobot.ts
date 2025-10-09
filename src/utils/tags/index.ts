@@ -3895,12 +3895,20 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const response = await utilitiesMLEdit(context, {
+    const job = await utilitiesMLEdit(context, {
       query: prompt,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context), url},
-    );
+    ).then((x) => jobWaitForResult(context, x));
+    if (job.result.error) {
+      throw new Error(`**Job Error**: ${job.result.error}`);
+    }
+    if (!job.result.response) {
+      throw new Error('Edit did not return a response (Should not happen, report this)');
+    }
+
+    const response = job.result.response;
     const filename = response.file.filename_safe;
 
     const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
@@ -3964,14 +3972,22 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const response = await utilitiesMLEdit(context, {
+    const job = await utilitiesMLEdit(context, {
       query: prompt,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
       upload: true,
       url,
-    });
+    }).then((x) => jobWaitForResult(context, x));
+    if (job.result.error) {
+      throw new Error(`**Job Error**: ${job.result.error}`);
+    }
+    if (!job.result.response) {
+      throw new Error('Edit did not return a response (Should not happen, report this)');
+    }
+
+    const response = job.result.response;
     if (response.storage) {
       tag.text += response.storage.urls.cdn;
     }
@@ -3993,12 +4009,20 @@ const ScriptTags = Object.freeze({
 
     const maxFileSize = context.maxAttachmentSize;
 
-    const response = await utilitiesMLImagine(context, {
+    const job = await utilitiesMLImagine(context, {
       query: arg,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
-    });
+    }).then((x) => jobWaitForResult(context, x));
+    if (job.result.error) {
+      throw new Error(`**Job Error**: ${job.result.error}`);
+    }
+    if (!job.result.response) {
+      throw new Error('Imagine did not return a response (Should not happen, report this)');
+    }
+
+    const response = job.result.response;
     const filename = response.file.filename_safe;
 
     const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
@@ -4032,13 +4056,21 @@ const ScriptTags = Object.freeze({
     increaseNetworkRequests(tag);
     increaseNetworkRequestsML(tag);
 
-    const response = await utilitiesMLImagine(context, {
+    const job = await utilitiesMLImagine(context, {
       query: arg,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
       upload: true,
-    });
+    }).then((x) => jobWaitForResult(context, x));
+    if (job.result.error) {
+      throw new Error(`**Job Error**: ${job.result.error}`);
+    }
+    if (!job.result.response) {
+      throw new Error('Imagine did not return a response (Should not happen, report this)');
+    }
+
+    const response = job.result.response;
     if (response.storage) {
       tag.text += response.storage.urls.cdn;
     }

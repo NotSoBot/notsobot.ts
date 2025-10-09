@@ -180,6 +180,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/blurple',
   MEDIA_IV_MANIPULATION_CAPTION:
     '/media/iv/manipulation/caption',
+  MEDIA_IV_MANIPULATION_CARTOON:
+    '/media/iv/manipulation/cartoon',
   MEDIA_IV_MANIPULATION_CIRCLE:
     '/media/iv/manipulation/circle',
   MEDIA_IV_MANIPULATION_DEEPFRY:
