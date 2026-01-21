@@ -132,6 +132,7 @@ import * as MediaIVManipulationJPEG from './media.iv.manipulation.jpeg';
 import * as MediaIVManipulationPaint from './media.iv.manipulation.paint';
 import * as MediaIVManipulationPaintAnimated from './media.iv.manipulation.paint.animated';
 import * as MediaIVManipulationPaper from './media.iv.manipulation.paper';
+import * as MediaIVManipulationPhoSimp from './media.iv.manipulation.phosimp';
 import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
 import * as MediaIVManipulationRain from './media.iv.manipulation.rain';
 import * as MediaIVManipulationRainGold from './media.iv.manipulation.rain.gold';
@@ -142,6 +143,7 @@ import * as MediaIVManipulationSepia from './media.iv.manipulation.sepia';
 import * as MediaIVManipulationShake from './media.iv.manipulation.shake';
 import * as MediaIVManipulationSharpen from './media.iv.manipulation.sharpen';
 import * as MediaIVManipulationSlide from './media.iv.manipulation.slide';
+import * as MediaIVManipulationSmile from './media.iv.manipulation.smile';
 import * as MediaIVManipulationSolarize from './media.iv.manipulation.solarize';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
 import * as MediaIVManipulationStretch from './media.iv.manipulation.stretch';
@@ -166,6 +168,7 @@ import * as MediaIVToolsCrop from './media.iv.tools.crop';
 import * as MediaIVToolsCropAuto from './media.iv.tools.crop.auto';
 import * as MediaIVToolsCropCircle from './media.iv.tools.crop.circle';
 import * as MediaIVToolsCropNFT from './media.iv.tools.crop.nft';
+import * as MediaIVToolsCropTriangle from './media.iv.tools.crop.triangle';
 import * as MediaIVToolsOffset from './media.iv.tools.offset';
 import * as MediaIVToolsResize from './media.iv.tools.resize';
 import * as MediaIVToolsRotate from './media.iv.tools.rotate';
@@ -267,6 +270,7 @@ import * as ToolsHash from './tools.hash';
 import * as ToolsMath from './tools.math';
 import * as ToolsMLEdit from './tools.ml.edit';
 import * as ToolsMLImagine from './tools.ml.imagine';
+import * as ToolsMLImagineVideo from './tools.ml.imagine.video';
 import * as ToolsMLInterrogate from './tools.ml.interrogate';
 import * as ToolsMLMashup from './tools.ml.mashup';
 import * as ToolsMLReimagine from './tools.ml.reimagine';
@@ -423,6 +427,7 @@ export {
   MediaIVManipulationPaint,
   MediaIVManipulationPaintAnimated,
   MediaIVManipulationPaper,
+  MediaIVManipulationPhoSimp,
   MediaIVManipulationPixelate,
   MediaIVManipulationRain,
   MediaIVManipulationRainGold,
@@ -433,6 +438,7 @@ export {
   MediaIVManipulationShake,
   MediaIVManipulationSharpen,
   MediaIVManipulationSlide,
+  MediaIVManipulationSmile,
   MediaIVManipulationSolarize,
   MediaIVManipulationSpin,
   MediaIVManipulationStretch,
@@ -457,6 +463,7 @@ export {
   MediaIVToolsCropAuto,
   MediaIVToolsCropCircle,
   MediaIVToolsCropNFT,
+  MediaIVToolsCropTriangle,
   MediaIVToolsOffset,
   MediaIVToolsResize,
   MediaIVToolsRotate,
@@ -558,6 +565,7 @@ export {
   ToolsMath,
   ToolsMLEdit,
   ToolsMLImagine,
+  ToolsMLImagineVideo,
   ToolsMLInterrogate,
   ToolsMLMashup,
   ToolsMLReimagine,

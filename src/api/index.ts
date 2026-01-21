@@ -1523,6 +1523,14 @@ export async function mediaIVManipulationPaper(
 }
 
 
+export async function mediaIVManipulationPhoSimp(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPhoSimp,
+) {
+  return raw.mediaIVManipulationPhoSimp(context, options);
+}
+
+
 export async function mediaIVManipulationPix2Pix(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPix2Pix,
@@ -1600,6 +1608,14 @@ export async function mediaIVManipulationSlide(
   options: RestOptions.MediaIVManipulationSlide,
 ) {
   return raw.mediaIVManipulationSlide(context, options);
+}
+
+
+export async function mediaIVManipulationSmile(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationSmile(context, options);
 }
 
 
@@ -1774,15 +1790,23 @@ export async function mediaIVToolsCropAuto(
 
 export async function mediaIVToolsCropCircle(
   context: RequestContext,
-  options: RestOptions.MediaIVToolsCropCircle,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVToolsCropCircle(context, options);
 }
 
 
+export async function mediaIVToolsCropTriangle(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVToolsCropTriangle(context, options);
+}
+
+
 export async function mediaIVToolsCropTwitterHex(
   context: RequestContext,
-  options: RestOptions.MediaIVToolsCropTwitterHex,
+  options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVToolsCropTwitterHex(context, options);
 }
@@ -2216,6 +2240,14 @@ export async function utilitiesMLImagine(
   options: RestOptions.UtilitiesMLImagine,
 ) {
   return raw.utilitiesMLImagine(context, options);
+}
+
+
+export async function utilitiesMLImagineVideo(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLImagine,
+) {
+  return raw.utilitiesMLImagineVideo(context, options);
 }
 
 

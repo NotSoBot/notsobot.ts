@@ -110,7 +110,7 @@ export function createColorUrl(color: number, width: number = 2, height: number 
 }
 
 
-export function createTimestampMoment(timestamp: number | string, timezone: string = Timezones.EST): moment.Moment {
+export function createTimestampMoment(timestamp: number | string, timezone: string = Timezones.AMERICA_NEW_YORK): moment.Moment {
   return moment(timestamp).tz(timezone);
 }
 
@@ -1233,12 +1233,12 @@ export function getTimezoneFromContext(options: {guildId?: string, userId?: stri
       timezone = settings.timezone;
     }
   }
-  return timezone || Timezones.EST;
+  return timezone || Timezones.AMERICA_NEW_YORK;
 }
 
 
 export function getTimezoneFromGuild(guildId?: string): string {
-  let timezone: string = Timezones.EST;
+  let timezone: string = Timezones.AMERICA_NEW_YORK;
   if (guildId) {
     const settings = GuildSettingsStore.get(guildId);
     if (settings && settings.timezone) {
@@ -2215,6 +2215,89 @@ export function timezoneCodeToText(timezone: string): string {
     return (TimezonesToText as any)[timezone];
   }
   return timezone;
+}
+
+
+export function traverseJSON(data: any, path: string): any {
+  if (!path || typeof(path) !== 'string') {
+    return data;
+  }
+
+  const segments = traverseJSONParsePath(path);
+
+  let current = data;
+  try {
+    for (const segment of segments) {
+      current = current[segment];
+    }
+  } catch(error) {
+    return undefined;
+  }
+
+  return current;
+}
+
+
+export function traverseJSONParsePath(path: string): Array<string> {
+  const segments = [];
+  let current = '';
+  let i = 0;
+
+  while (i < path.length) {
+    const character = path[i];
+    if (character === '.') {
+      // first key is done being read from `keyone.keytwo`.
+      if (current) {
+        segments.push(current);
+        current = '';
+      }
+      i++;
+    } else if (character === '[') {
+      // read characters in brackets, `[0]`, `[asd]`, `["asd.asd"]`, `['123']`
+      if (current) {
+        segments.push(current);
+        current = '';
+      }
+      i++;
+
+      let bracketContent = '';
+      let quoteCharacter = null;
+      if (path[i] === '"' || path[i] === '\'') {
+        quoteCharacter = path[i];
+        i++;
+
+        // read characters in the brackets that are surrounded by quotes
+        // ["asd.asd"], ['123']
+        while (i < path.length && path[i] !== quoteCharacter) {
+          if (path[i] === '\\' && i + 1 < path.length) {
+            i++;
+            bracketContent += path[i];
+          } else {
+            bracketContent += path[i];
+          }
+          i++;
+        }
+        i++;
+      } else {
+        // read the characters in the brackets, e.g. `[0]` or `[asd]`
+        while (i < path.length && path[i] !== ']') {
+          bracketContent += path[i];
+          i++;
+        }
+      }
+
+      segments.push(bracketContent);
+      i++;
+    } else {
+      // read it as a normal key, e.g. `somekeyvalue`
+      current += character;
+      i++;
+    }
+  }
+  if (current) {
+    segments.push(current);
+  }
+  return segments;
 }
 
 

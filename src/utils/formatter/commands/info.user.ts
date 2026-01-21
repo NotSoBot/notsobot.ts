@@ -113,7 +113,7 @@ export async function createMessage(
           description.push(`**Avatar Decoration (Server)**: ${Markup.url(avatarDecorationServer.name, avatarDecorationServer.url)}`); 
         }
         if (avatarDecorationUser) {
-          description.push(`**Avatar Decoration* (User)*: ${Markup.url(avatarDecorationUser.name, avatarDecorationUser.url)}`); 
+          description.push(`**Avatar Decoration* (User)**: ${Markup.url(avatarDecorationUser.name, avatarDecorationUser.url)}`); 
         }
         {
           const badges: Array<string> = [];

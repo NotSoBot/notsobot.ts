@@ -114,7 +114,7 @@ export async function fetchMessages(
   const words: Array<string> = [];
   for (let message of messagesFound) {
     if (message.content) {
-      const text = message.content.split(' ').map((x) => x.trim()).filter((x) => x).slice(0, 30);
+      const text = message.content.split(' ').map((x) => x.trim()).filter((x) => x && x.length <= 50).slice(0, 30);
       for (let word of text) {
         words.push(word);
       }

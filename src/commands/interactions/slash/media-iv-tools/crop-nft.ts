@@ -14,18 +14,6 @@ export class MediaIVToolsCropNFTCommand extends BaseInteractionImageOrVideoComma
   };
   name = COMMAND_NAME;
 
-  constructor() {
-    super({
-      options: [
-        {
-          name: 'background',
-          description: 'Include a dark background (default: False)',
-          type: Boolean,
-        },
-      ],
-    });
-  }
-
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsCropNFT.CommandArgs) {
     return Formatter.Commands.MediaIVToolsCropNFT.createMessage(context, args);
   }

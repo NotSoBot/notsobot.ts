@@ -3684,6 +3684,27 @@ export async function mediaIVManipulationPaper(
 }
 
 
+export async function mediaIVManipulationPhoSimp(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationPhoSimp,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    filters: options.filters,
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_PHOSIMP,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationPix2Pix(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPix2Pix,
@@ -3894,6 +3915,26 @@ export async function mediaIVManipulationSlide(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_SLIDE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationSmile(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SMILE,
     },
   });
 }
@@ -4352,11 +4393,10 @@ export async function mediaIVToolsCropAuto(
 
 export async function mediaIVToolsCropCircle(
   context: RequestContext,
-  options: RestOptions.MediaIVToolsCropCircle,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
-    background: options.background,
     max_file_size: maxFileSize,
     url: options.url,
   };
@@ -4371,13 +4411,32 @@ export async function mediaIVToolsCropCircle(
 }
 
 
-export async function mediaIVToolsCropTwitterHex(
+export async function mediaIVToolsCropTriangle(
   context: RequestContext,
-  options: RestOptions.MediaIVToolsCropTwitterHex,
+  options: RestOptions.MediaBaseOptions,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
-    background: options.background,
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_CROP_TRIANGLE,
+    },
+  });
+}
+
+
+export async function mediaIVToolsCropTwitterHex(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
     max_file_size: maxFileSize,
     url: options.url,
   };
@@ -5362,7 +5421,7 @@ export async function utilitiesMLEdit(
   options: RestOptions.UtilitiesMLEdit,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
+  const body = {
     do_not_error: options.doNotError,
     max_file_size: maxFileSize,
     model: options.model,
@@ -5372,11 +5431,12 @@ export async function utilitiesMLEdit(
     steps: options.steps,
     strength: options.strength,
     upload: options.upload,
-    url: options.url,
+    urls: options.urls,
   };
   const response = await request(context, {
+    body,
     file: options.file,
-    query,
+    files: options.files,
     route: {
       method: HTTPMethods.POST,
       path: Api.UTILITIES_ML_EDIT,
@@ -5406,6 +5466,32 @@ export async function utilitiesMLImagine(
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_ML_IMAGINE,
+    },
+  });
+  return response;
+}
+
+
+export async function utilitiesMLImagineVideo(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLImagine,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    do_not_error: options.doNotError,
+    max_file_size: maxFileSize,
+    model: options.model,
+    query: options.query,
+    safe: options.safe,
+    seed: options.seed,
+    steps: options.steps,
+    upload: options.upload,
+  };
+  const response = await request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.UTILITIES_ML_IMAGINE_VIDEO,
     },
   });
   return response;

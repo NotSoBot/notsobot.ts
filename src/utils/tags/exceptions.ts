@@ -1,7 +1,10 @@
 export class TagExitError extends Error {
-  constructor(message: string) {
+  isSilent: boolean = false;
+
+  constructor(message: string, isSilent: boolean = false) {
     super(message);
     this.name = 'TagExitError';
+    this.isSilent = isSilent;
   }
 }
 

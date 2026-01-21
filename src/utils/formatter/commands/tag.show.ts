@@ -151,9 +151,9 @@ export function generateComponents(
         if (isExecuting) {
           return;
         }
-    
+
         isExecuting = true;
-    
+
         for (let x of components.components) {
           if (x instanceof ComponentActionRow) {
             for (let v of x.components) {
@@ -163,14 +163,14 @@ export function generateComponents(
             }
           }
         }
-    
+
         await componentContext.editOrRespond({
           attachments: undefined,
           content: undefined,
           components,
           embeds: undefined,
         });
-    
+
         await TagFormatter.resetTagLimits(parsedTag);
         await TagFormatter.increaseComponentExecutions(parsedTag);
         const newParsedTag = await TagFormatter.parse(context, runTagScript, '', parsedTag.variables, parsedTag.context, parsedTag.limits);

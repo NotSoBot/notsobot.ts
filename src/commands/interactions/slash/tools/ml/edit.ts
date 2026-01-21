@@ -3,12 +3,12 @@ import { Interaction } from 'detritus-client';
 import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
 
-import { BaseInteractionImageCommandOption } from '../../../basecommand';
+import { BaseInteractionMediasCommandOption } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'edit';
 
-export class ToolsMLEditCommand extends BaseInteractionImageCommandOption {
+export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
   description = 'Alter an Image with Machine Learning';
   metadata = {
     id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
@@ -36,6 +36,8 @@ export class ToolsMLEditCommand extends BaseInteractionImageCommandOption {
         {name: 'steps', type: Number, description: 'Number of Samples to take (1 to 16)'},
         {name: 'strength', description: 'Strength of Prompt (0.01 to 1)'},
       ],
+      maxAmount: 3,
+      minAmount: 1,
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},
         {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'channel'},

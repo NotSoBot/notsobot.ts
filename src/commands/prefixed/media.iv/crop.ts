@@ -35,11 +35,11 @@ export default class CropCommand extends BaseImageOrVideoCommand {
   }
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaIVToolsCrop.CommandArgs) {
-    return !!args.width && !!args.height && super.onBeforeRun(context, args);
+    return (!!args.width || !!args.height) && super.onBeforeRun(context, args);
   }
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.MediaIVToolsCrop.CommandArgs) {
-    if (!args.width || !args.height) {
+    if (!args.width && !args.height) {
       return BaseImageOrVideoCommand.prototype.onCancelRun.call(this, context, args);
     }
     return super.onCancelRun(context, args);

@@ -584,6 +584,10 @@ export namespace RestOptions {
     radius?: number,
   }
 
+  export interface MediaIVManipulationPhoSimp extends MediaBaseOptions {
+    filters: Array<number>,
+  }
+
   export interface MediaIVManipulationPix2Pix extends MediaBaseOptions {
     model: string,
   }
@@ -694,14 +698,6 @@ export namespace RestOptions {
     width: string,
     x?: string,
     y?: string,
-  }
-
-  export interface MediaIVToolsCropCircle extends MediaBaseOptions {
-    background?: boolean,
-  }
-
-  export interface MediaIVToolsCropTwitterHex extends MediaBaseOptions {
-    background?: boolean,
   }
 
   export interface MediaIVToolsOffset extends MediaBaseOptions {
@@ -1002,7 +998,7 @@ export namespace RestOptions {
     mlDiffusionModel?: string,
   }
 
-  export interface UtilitiesMLEdit extends MediaBaseOptions {
+  export interface UtilitiesMLEdit extends MediaBaseOptionsMultiple {
     doNotError?: boolean,
     model?: string,
     query: string,

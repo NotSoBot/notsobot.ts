@@ -80,6 +80,7 @@ import {
   randomFromArray,
   randomFromIterator,
   textToBoolean,
+  traverseJSON,
 } from '../tools';
 
 import { TagExitError, TagRequestError } from './exceptions';
@@ -278,6 +279,7 @@ export enum TagFunctions {
   EVAL = 'EVAL',
   EVAL_SILENT = 'EVAL_SILENT',
   EXIT = 'EXIT',
+  EXIT_SILENT = 'EXIT_SILENT',
   GUILD = 'GUILD',
   GUILD_COUNT = 'GUILD_COUNT',
   GUILD_ID = 'GUILD_ID',
@@ -361,8 +363,23 @@ export enum TagFunctions {
   STRING_JSONIFY = 'STRING_JSONIFY',
   STRING_LENGTH = 'STRING_LENGTH',
   STRING_LOWER = 'STRING_LOWER',
+  STRING_MARKUP_BOLD = 'STRING_MARKUP_BOLD',
   STRING_MARKUP_CODEBLOCK = 'STRING_MARKUP_CODEBLOCK',
+  STRING_MARKUP_CODESTRING = 'STRING_MARKUP_CODESTRING',
+  STRING_MARKUP_ESCAPE = 'STRING_MARKUP_ESCAPE',
+  STRING_MARKUP_HEADER_BIG = 'STRING_MARKUP_HEADER_BIG',
+  STRING_MARKUP_HEADER_MEDIUM = 'STRING_MARKUP_HEADER_MEDIUM',
+  STRING_MARKUP_HEADER_SMALL = 'STRING_MARKUP_HEADER_SMALL',
+  STRING_MARKUP_ITALICS = 'STRING_MARKUP_ITALICS',
+  STRING_MARKUP_LIST_DOTTED = 'STRING_MARKUP_LIST_DOTTED',
+  STRING_MARKUP_LIST_NUMBERED = 'STRING_MARKUP_LIST_NUMBERED',
+  STRING_MARKUP_QUOTE = 'STRING_MARKUP_QUOTE',
+  STRING_MARKUP_SPOILER = 'STRING_MARKUP_SPOILER',
+  STRING_MARKUP_STRIKE = 'STRING_MARKUP_STRIKE',
+  STRING_MARKUP_SUBTEXT = 'STRING_MARKUP_SUBTEXT',
   STRING_MARKUP_TIME = 'STRING_MARKUP_TIME',
+  STRING_MARKUP_UNDERLINE = 'STRING_MARKUP_UNDERLINE',
+  STRING_MARKUP_URL = 'STRING_MARKUP_URL',
   STRING_ONE_OF = 'STRING_ONE_OF',
   STRING_REPEAT = 'STRING_REPEAT',
   STRING_REPLACE = 'STRING_REPLACE',
@@ -396,6 +413,11 @@ export enum TagFunctions {
   USER_RANDOM_ONLINE_TAG = 'USER_RANDOM_ONLINE_TAG',
   USER_RANDOM_TAG = 'USER_RANDOM_TAG',
   USER_TAG = 'USER_TAG',
+  VARIABLES = 'VARIABLES',
+  VARIABLES_CHANNEL = 'VARIABLES_CHANNEL',
+  VARIABLES_GLOBAL = 'VARIABLES_GLOBAL',
+  VARIABLES_SERVER = 'VARIABLES_SERVER',
+  VARIABLES_USER = 'VARIABLES_USER',
 }
 
 
@@ -433,6 +455,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.EVAL]: ['eval'],
   [TagFunctions.EVAL_SILENT]: ['evalsilent'],
   [TagFunctions.EXIT]: ['exit'],
+  [TagFunctions.EXIT_SILENT]: ['exitsilent'],
   [TagFunctions.GUILD]: ['guild', 'server'],
   [TagFunctions.GUILD_COUNT]: ['guildcount', 'membercount', 'servercount'],
   [TagFunctions.GUILD_ID]: ['guildid', 'serverid', 'sid', 'gid'],
@@ -516,8 +539,23 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_JSONIFY]: ['jsonify'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
   [TagFunctions.STRING_LOWER]: ['lower'],
+  [TagFunctions.STRING_MARKUP_BOLD]: ['markupbold'],
   [TagFunctions.STRING_MARKUP_CODEBLOCK]: ['code', 'markupcodeblock'],
+  [TagFunctions.STRING_MARKUP_CODESTRING]: ['markupcodestring'],
+  [TagFunctions.STRING_MARKUP_ESCAPE]: ['markupescape'],
+  [TagFunctions.STRING_MARKUP_HEADER_BIG]: ['markupheaderbig'],
+  [TagFunctions.STRING_MARKUP_HEADER_MEDIUM]: ['markupheadermedium'],
+  [TagFunctions.STRING_MARKUP_HEADER_SMALL]: ['markupheadersmall'],
+  [TagFunctions.STRING_MARKUP_ITALICS]: ['markupitalics'],
+  [TagFunctions.STRING_MARKUP_LIST_DOTTED]: ['markuplistdotted'],
+  [TagFunctions.STRING_MARKUP_LIST_NUMBERED]: ['markuplistnumbered'],
+  [TagFunctions.STRING_MARKUP_QUOTE]: ['markupquote'],
+  [TagFunctions.STRING_MARKUP_SPOILER]: ['markupspoiler'],
+  [TagFunctions.STRING_MARKUP_STRIKE]: ['markupstrike'],
+  [TagFunctions.STRING_MARKUP_SUBTEXT]: ['markupsubtext'],
   [TagFunctions.STRING_MARKUP_TIME]: ['markuptime'],
+  [TagFunctions.STRING_MARKUP_UNDERLINE]: ['markupunderline'],
+  [TagFunctions.STRING_MARKUP_URL]: ['markupurl'],
   [TagFunctions.STRING_ONE_OF]: ['oneof'],
   [TagFunctions.STRING_REPEAT]: ['repeat'],
   [TagFunctions.STRING_REPLACE]: ['replace', 'replaceregex'],
@@ -551,6 +589,11 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.USER_RANDOM_ONLINE_TAG]: ['randonlinetag'],
   [TagFunctions.USER_RANDOM_TAG]: ['randusertag'],
   [TagFunctions.USER_TAG]: ['usertag'],
+  [TagFunctions.VARIABLES]: ['variables'],
+  [TagFunctions.VARIABLES_CHANNEL]: ['variableschannel'],
+  [TagFunctions.VARIABLES_GLOBAL]: ['variablesglobal'],
+  [TagFunctions.VARIABLES_SERVER]: ['variablesserver'],
+  [TagFunctions.VARIABLES_USER]: ['variablesuser'],
 });
 
 
@@ -935,11 +978,15 @@ export async function parse(
       }
     } catch(error) {
       if (isFirstParse && error instanceof TagExitError) {
-        tag.components = null;
-        tag.embeds = (tag.embeds.length) ? [] : tag.embeds;
-        tag.files = (tag.files.length) ? [] : tag.files;
-        tag.pages = (tag.pages.length) ? [] : tag.pages;
-        tag.text = error.message || 'Tag Exited';
+        if (error.isSilent) {
+          tag.text += error.message;
+        } else {
+          tag.components = null;
+          tag.embeds = (tag.embeds.length) ? [] : tag.embeds;
+          tag.files = (tag.files.length) ? [] : tag.files;
+          tag.pages = (tag.pages.length) ? [] : tag.pages;
+          tag.text = error.message || 'Tag Exited';
+        }
         scriptBuffer = '';
         break;
       } else {
@@ -2509,6 +2556,14 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.EXIT_SILENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {exitsilent}
+
+    throw new TagExitError(arg, true);
+
+    return true;
+  },
+
   [TagFunctions.GUILD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {guild}
     // todo: {guild:178313653177548800}
@@ -2913,7 +2968,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    let values: Array<any>;
+    let values: Array<[string, any]>;
     if (text.includes(TagSymbols.BRACKET_LEFT)) {
       const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
       normalizeTagResults(tag, argParsed, false);
@@ -2926,10 +2981,19 @@ const ScriptTags = Object.freeze({
         if (typeof(object) === 'string') {
           object = Parameters.stringArguments(object);
         }
-        if (!Array.isArray(object)) {
+        if (typeof(object) === 'object') {
+          if (Array.isArray(object)) {
+            values = object.map((x, i) => {
+              return [String(i), x];
+            });
+          } else {
+            values = Object.keys(object).map((x) => {
+              return [String(x), object[x]];
+            });
+          }
+        } else {
           return true;
         }
-        values = object;
       } catch(error) {
         return true;
       }
@@ -2938,7 +3002,9 @@ const ScriptTags = Object.freeze({
       if (200 < count) {
         throw new Error(`Cannot have a for loop that is less than 1 or bigger than 200.`);
       }
-      values = Array.from({length: count});
+      values = Array.from({length: count}).map((x, i) => {
+        return [String(i), i];
+      });
     }
 
     if (!values.length) {
@@ -2951,11 +3017,11 @@ const ScriptTags = Object.freeze({
 
     const idx = tag.variables['idx'];
     const valuex = tag.variables['valuex'];
-    for (let i = 0; i < values.length; i++) {
+    for (let [key, value] of values) {
       let text: string = '';
       if (code.includes(TagSymbols.BRACKET_LEFT)) {
-        tag.variables['idx'] = String(i);
-        tag.variables['valuex'] = (typeof(values[i]) === 'object') ? JSON.stringify(values[i]) : String(values[i]);
+        tag.variables['idx'] = String(key);
+        tag.variables['valuex'] = (typeof(value) === 'object') ? JSON.stringify(value) : String(value);
         const argParsed = await parse(context, code, '', tag.variables, tag.context, tag.limits, false);
         normalizeTagResults(tag, argParsed, false);
         text = argParsed.text;
@@ -2974,7 +3040,7 @@ const ScriptTags = Object.freeze({
     } else {
       tag.variables['valuex'] = idx;
     }
-  
+
     return true;
   },
 
@@ -3289,28 +3355,48 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.LOGICAL_IF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {if:statement|comparison|value|then:action|else:action}
-    // {if:statement|comparison|value|else:action|then:action}
+    // {if:statement|comparison|value|then:action|else:action|finally:action}
+    // {if:statement|comparison|value|else:action|then:action|finally:action}
 
     if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
       return false;
     }
 
-    let [ value1, comparison, value2, conditional1, conditional2 ] = split(arg, 5);
-    if (value1 === undefined || comparison === undefined || value2 === undefined || (conditional1 === undefined && conditional2 === undefined)) {
+    let [ value1, comparison, value2, conditional1, conditional2, conditional3 ] = split(arg, 6);
+    if (
+      value1 === undefined ||
+      comparison === undefined ||
+      value2 === undefined ||
+      (conditional1 === undefined && conditional2 === undefined && conditional3 === undefined)
+    ) {
       return false;
     }
 
     let then = ''
     let elseValue = '';
-    if (conditional1 && conditional1.startsWith('then:')) {
-      then = conditional1;
-      elseValue = conditional2 || elseValue;
-    } else if (conditional2 && conditional2.startsWith('then:')) {
-      then = conditional2;
-      elseValue = conditional1 || elseValue;
-    } else {
-      return false;
+    let finallyValue = '';
+    for (let x of [conditional1, conditional2, conditional3]) {
+      if (!x) {
+        continue;
+      }
+      if (x.startsWith('then:')) {
+        if (then) {
+          throw new Error(`IF statement must have only one \`then:\``);
+        }
+        then = x;
+      } else if (x.startsWith('else:')) {
+        if (elseValue) {
+          throw new Error(`IF statement must have only one \`else:\``);
+        }
+        elseValue = x;
+      } else if (x.startsWith('finally:')) {
+        if (finallyValue) {
+          throw new Error(`IF statement must have only one \`finally:\``);
+        }
+        finallyValue = x;
+      } else {
+        return false;
+      }
     }
 
     if (!TAG_IF_COMPARISONS.includes(comparison as TagIfComparisons)) {
@@ -3376,13 +3462,26 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const text = (compared) ? then.slice(5) : (elseValue || '').slice(5);
-    if (text.includes(TagSymbols.BRACKET_LEFT)) {
-      // parse it
-      const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
-      normalizeTagResults(tag, argParsed);
-    } else {
-      tag.text += text;
+    {
+      const text = (compared) ? then.slice(5) : (elseValue || '').slice(5);
+      if (text.includes(TagSymbols.BRACKET_LEFT)) {
+        // parse it
+        const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
+        normalizeTagResults(tag, argParsed);
+      } else {
+        tag.text += text;
+      }
+    }
+
+    if (finallyValue) {
+      const text = finallyValue;
+      if (text.includes(TagSymbols.BRACKET_LEFT)) {
+        // parse it
+        const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
+        normalizeTagResults(tag, argParsed);
+      } else {
+        tag.text += text;
+      }
     }
 
     return true;
@@ -3899,7 +3998,9 @@ const ScriptTags = Object.freeze({
       query: prompt,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
-      safe: DefaultParameters.safe(context), url},
+      safe: DefaultParameters.safe(context),
+      urls: [url],
+    },
     ).then((x) => jobWaitForResult(context, x));
     if (job.result.error) {
       throw new Error(`**Job Error**: ${job.result.error}`);
@@ -3978,7 +4079,7 @@ const ScriptTags = Object.freeze({
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
       upload: true,
-      url,
+      urls: [url],
     }).then((x) => jobWaitForResult(context, x));
     if (job.result.error) {
       throw new Error(`**Job Error**: ${job.result.error}`);
@@ -4702,51 +4803,63 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.PAGE_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {pagejson:{"embed": {"title": "asd"}}}
+    // {pagejson:[{"embed": {"title": "asd"}}]}
 
-    let page: any = null;
+    const pages: Array<any> = [];
     try {
-      page = JSON.parse(arg);
+      let data = JSON.parse(arg);
+      if (Array.isArray(data)) {
+        for (let child of data) {
+          pages.push(child);
+        }
+      } else {
+        pages.push(data);
+      }
     } catch(error) {
       throw new Error('Invalid Page Given');
     }
 
-    let content: string | undefined;
-    let embeds: Array<Embed> | undefined;
-    let filenames: Array<string> | undefined;
-    if (typeof(page) !== 'object') {
-      throw new Error('Invalid Page Given');
-    }
-    if ('content' in page && typeof(page.content) === 'string') {
-      content = page.content;
-    }
-    if ('embed' in page && typeof(page.embed) === 'object') {
-      try {
-        const embed = new Embed(page.embed);
-        if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
-          throw new Error('this error doesn\'t matter');
-        }
-        embeds = [embed];
-      } catch(error) {
+    for (let page of pages) {
+      let content: string | undefined;
+      let embeds: Array<Embed> | undefined;
+      let filenames: Array<string> | undefined;
+      if (typeof(page) !== 'object') {
         throw new Error('Invalid Page Given');
       }
-    }
-    if ('files' in page && Array.isArray(page.files)) {
-      for (let filename of page.files) {
-        if (filename && typeof(filename) === 'string' && filename.startsWith('attachment://')) {
-          if (!filenames) {
-            filenames = [];
+      if ('content' in page && typeof(page.content) === 'string') {
+        content = page.content;
+      }
+      if ('embed' in page && typeof(page.embed) === 'object') {
+        try {
+          const embed = new Embed(page.embed);
+          if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+            throw new Error('this error doesn\'t matter');
           }
-          filenames.push(filename);
+          embeds = [embed];
+        } catch(error) {
+          throw new Error('Invalid Page Given');
         }
       }
-    }
-    if (!content && !embeds && !filenames) {
-      throw new Error('Invalid Page Given');
-    }
-    tag.pages.push({content, embeds, filenames});
+      if ('files' in page && Array.isArray(page.files)) {
+        for (let filename of page.files) {
+          if (filename && typeof(filename) === 'string' && filename.startsWith('attachment://')) {
+            if (!filenames) {
+              filenames = [];
+            }
+            filenames.push(filename);
+          }
+        }
+      }
 
-    if (tag.limits.MAX_PAGES < tag.pages.length) {
-      throw new Error(`Pages surpassed max pages length of ${tag.limits.MAX_PAGES}`);
+      if (!content && !embeds && !filenames) {
+        throw new Error('Invalid Page Given');
+      }
+
+      tag.pages.push({content, embeds, filenames});
+
+      if (tag.limits.MAX_PAGES < tag.pages.length) {
+        throw new Error(`Pages surpassed max pages length of ${tag.limits.MAX_PAGES}`);
+      }
     }
 
     return true;
@@ -5182,6 +5295,7 @@ const ScriptTags = Object.freeze({
         }
       }; break;
       default: {
+        throw new Error(`Settings must be one of: (${Object.values(TagSettings).join(', ')})`);
         return false;
       };
     }
@@ -5278,10 +5392,107 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.STRING_MARKUP_BOLD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupbold:text}
+
+    tag.text += Markup.bold(arg);
+    return true;
+  },
+
   [TagFunctions.STRING_MARKUP_CODEBLOCK]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {markupcodeblock:text}
   
     tag.text += Markup.codeblock(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_CODESTRING]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupcodestring:text}
+
+    tag.text += Markup.codestring(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_ESCAPE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupescape:text}
+
+    tag.text += Markup.escape.all(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_HEADER_BIG]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupheaderbig:text}
+
+    tag.text += Markup.headerBig(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_HEADER_MEDIUM]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupheadermedium:text}
+
+    tag.text += Markup.headerMedium(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_HEADER_SMALL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupheadersmall:text}
+
+    tag.text += Markup.headerSmall(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_ITALICS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupitalics:text}
+  
+    tag.text += Markup.italics(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_LIST_DOTTED]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markuplistdotted:text|text|...}
+
+    tag.text += split(arg).map((x) => {
+      return Markup.list(x);
+    }).join('\n');
+
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_LIST_NUMBERED]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markuplistnumbered:text|text|...}
+
+    tag.text += split(arg).map((x, i) => {
+      return Markup.list(x, {ordered: i});
+    }).join('\n');
+  
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_QUOTE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupquote:text}
+
+    tag.text += Markup.quote(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_SPOILER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupspoiler:text}
+
+    tag.text += Markup.spoiler(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_STRIKE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupstrike:text}
+
+    tag.text += Markup.strike(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_SUBTEXT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupsubtext:text}
+
+    tag.text += Markup.subtext(arg);
     return true;
   },
 
@@ -5315,6 +5526,22 @@ const ScriptTags = Object.freeze({
     }
 
     tag.text += Markup.timestamp(timestamp, format);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_UNDERLINE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupunderline:text}
+
+    tag.text += Markup.underline(arg);
+    return true;
+  },
+
+  [TagFunctions.STRING_MARKUP_URL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {markupurl:text|url|comment?}
+
+    let [ text, url, comment ] = split(arg, 3);
+
+    tag.text += Markup.url(text, url, comment);
     return true;
   },
 
@@ -5542,9 +5769,13 @@ const ScriptTags = Object.freeze({
 
       const oldVariables = Object.assign({}, tag.variables);
       const variables = Object.create(null);
-      for (let key in PrivateVariables) {
-        const storedKey = (PrivateVariables as any)[key];
-        variables[storedKey] = tag.variables[storedKey];
+      if (oldTag && oldTag.id === fetchedTag.id) {
+        Object.assign(variables, oldVariables);
+      } else {
+        for (let key in PrivateVariables) {
+          const storedKey = (PrivateVariables as any)[key];
+          variables[storedKey] = tag.variables[storedKey];
+        }
       }
       variables[PrivateVariables.ARGS_STRING] = tagArguments;
       variables[PrivateVariables.ARGS] = Parameters.stringArguments(tagArguments);
@@ -5561,10 +5792,15 @@ const ScriptTags = Object.freeze({
       const argParsed = await parse(context, tagContent, tagArguments, variables, tag.context, tag.limits);
       normalizeTagResults(tag, argParsed);
 
-      for (let key in PrivateVariables) {
-        const storedKey = (PrivateVariables as any)[key];
-        tag.variables[storedKey] = variables[storedKey];
+      if (oldTag && oldTag.id === fetchedTag.id) {
+        Object.assign(tag.variables, argParsed.variables);
+      } else {
+        for (let key in PrivateVariables) {
+          const storedKey = (PrivateVariables as any)[key];
+          tag.variables[storedKey] = argParsed.variables[storedKey];
+        }
       }
+
       tag.variables[PrivateVariables.ARGS_STRING] = oldVariables[PrivateVariables.ARGS_STRING];
       tag.variables[PrivateVariables.ARGS] = oldVariables[PrivateVariables.ARGS];
       tag.variables[PrivateVariables.PARENT_TAG_ID] = oldVariables[PrivateVariables.PARENT_TAG_ID];
@@ -5762,9 +5998,7 @@ const ScriptTags = Object.freeze({
 
     try {
       const object = JSON.parse(text);
-      const result = path.split(/[\.\[\]]+/).filter(Boolean).reduce((current, key) => {
-        return current?.[key];
-      }, object);
+      const result = traverseJSON(object, path);
       if (result !== undefined) {
         tag.text += (typeof(result) === 'object') ? JSON.stringify(result) : result;
       }
@@ -6055,6 +6289,194 @@ const ScriptTags = Object.freeze({
     } else {
       tag.text += context.user.toString();
     }
+    return true;
+  },
+
+  [TagFunctions.VARIABLES]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {variables}
+
+    tag.text += JSON.stringify(tag.variables);
+
+    return true;
+  },
+
+  [TagFunctions.VARIABLES_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {variableschannel}
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+
+    const storage: {
+      channel: Record<string, string>,
+      global: Record<string, string>,
+      server: Record<string, string>,
+      user: Record<string, string>,
+    } = {channel: {}, global: {}, server: {}, user: {}};
+
+    if (tagId) {
+      const response = await fetchTagVariables(context, tagId, {
+        channelId: context.channelId!,
+        guildId: context.guildId,
+        userId: context.userId,
+      });
+      for (let key in Object.keys(response)) {
+        const storageType = parseInt(key) as TagVariableStorageTypes;
+        switch (storageType) {
+          case TagVariableStorageTypes.CHANNEL: {
+            Object.assign(storage.channel, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GUILD: {
+            Object.assign(storage.server, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.USER: {
+            Object.assign(storage.user, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GLOBAL: {
+            Object.assign(storage.global, response[storageType]);
+          }; break;
+        }
+      }
+    }
+
+    tag.text += JSON.stringify(storage.channel);
+
+    return true;
+  },
+
+  [TagFunctions.VARIABLES_GLOBAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {variablesglobal}
+  
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+
+    const storage: {
+      channel: Record<string, string>,
+      global: Record<string, string>,
+      server: Record<string, string>,
+      user: Record<string, string>,
+    } = {channel: {}, global: {}, server: {}, user: {}};
+
+    if (tagId) {
+      const response = await fetchTagVariables(context, tagId, {
+        channelId: context.channelId!,
+        guildId: context.guildId,
+        userId: context.userId,
+      });
+      for (let key in Object.keys(response)) {
+        const storageType = parseInt(key) as TagVariableStorageTypes;
+        switch (storageType) {
+          case TagVariableStorageTypes.CHANNEL: {
+            Object.assign(storage.channel, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GUILD: {
+            Object.assign(storage.server, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.USER: {
+            Object.assign(storage.user, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GLOBAL: {
+            Object.assign(storage.global, response[storageType]);
+          }; break;
+        }
+      }
+    }
+
+    tag.text += JSON.stringify(storage.global);
+
+    return true;
+  },
+
+  [TagFunctions.VARIABLES_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {variablesserver}
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+
+    const storage: {
+      channel: Record<string, string>,
+      global: Record<string, string>,
+      server: Record<string, string>,
+      user: Record<string, string>,
+    } = {channel: {}, global: {}, server: {}, user: {}};
+
+    if (tagId) {
+      const response = await fetchTagVariables(context, tagId, {
+        channelId: context.channelId!,
+        guildId: context.guildId,
+        userId: context.userId,
+      });
+      for (let key in Object.keys(response)) {
+        const storageType = parseInt(key) as TagVariableStorageTypes;
+        switch (storageType) {
+          case TagVariableStorageTypes.CHANNEL: {
+            Object.assign(storage.channel, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GUILD: {
+            Object.assign(storage.server, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.USER: {
+            Object.assign(storage.user, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GLOBAL: {
+            Object.assign(storage.global, response[storageType]);
+          }; break;
+        }
+      }
+    }
+
+    tag.text += JSON.stringify(storage.server);
+
+    return true;
+  },
+
+  [TagFunctions.VARIABLES_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {variablesuser}
+
+    let tagId: string | null = null;
+    if (context.metadata && context.metadata.tag) {
+      tagId = (context.metadata.tag.reference_tag) ? context.metadata.tag.reference_tag.id : context.metadata.tag.id;
+    }
+
+    const storage: {
+      channel: Record<string, string>,
+      global: Record<string, string>,
+      server: Record<string, string>,
+      user: Record<string, string>,
+    } = {channel: {}, global: {}, server: {}, user: {}};
+
+    if (tagId) {
+      const response = await fetchTagVariables(context, tagId, {
+        channelId: context.channelId!,
+        guildId: context.guildId,
+        userId: context.userId,
+      });
+      for (let key in Object.keys(response)) {
+        const storageType = parseInt(key) as TagVariableStorageTypes;
+        switch (storageType) {
+          case TagVariableStorageTypes.CHANNEL: {
+            Object.assign(storage.channel, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GUILD: {
+            Object.assign(storage.server, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.USER: {
+            Object.assign(storage.user, response[storageType]);
+          }; break;
+          case TagVariableStorageTypes.GLOBAL: {
+            Object.assign(storage.global, response[storageType]);
+          }; break;
+        }
+      }
+    }
+
+    tag.text += JSON.stringify(storage.user);
+
     return true;
   },
 });

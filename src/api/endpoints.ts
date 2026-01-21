@@ -304,6 +304,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/paint/animated',
   MEDIA_IV_MANIPULATION_PAPER:
     '/media/iv/manipulation/paper',
+  MEDIA_IV_MANIPULATION_PHOSIMP:
+    '/media/iv/manipulation/phosimp',
   MEDIA_IV_MANIPULATION_PIX2PIX:
     '/media/iv/manipulation/pix2pix',
   MEDIA_IV_MANIPULATION_PIXELATE:
@@ -324,6 +326,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/sharpen',
   MEDIA_IV_MANIPULATION_SLIDE:
     '/media/iv/manipulation/slide',
+  MEDIA_IV_MANIPULATION_SMILE:
+    '/media/iv/manipulation/smile',
   MEDIA_IV_MANIPULATION_SOLARIZE:
     '/media/iv/manipulation/solarize',
   MEDIA_IV_MANIPULATION_SPIN:
@@ -369,6 +373,8 @@ export const Api = Object.freeze({
     '/media/iv/tools/crop/auto',
   MEDIA_IV_TOOLS_CROP_CIRCLE:
     '/media/iv/tools/crop/circle',
+  MEDIA_IV_TOOLS_CROP_TRIANGLE:
+    '/media/iv/tools/crop/triangle',
   MEDIA_IV_TOOLS_CROP_TWITTER_HEX:
     '/media/iv/tools/crop/twitter-hex',
   MEDIA_IV_TOOLS_OFFSET:
@@ -524,6 +530,8 @@ export const Api = Object.freeze({
     '/utilities/ml/edit',
   UTILITIES_ML_IMAGINE:
     '/utilities/ml/imagine',
+  UTILITIES_ML_IMAGINE_VIDEO:
+    '/utilities/ml/imagine/video',
   UTILITIES_ML_INTERROGATE:
     '/utilities/ml/interrogate',
   UTILITIES_ML_MASHUP:

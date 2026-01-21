@@ -8,7 +8,6 @@ export const COMMAND_ID = 'media.iv.tools.crop.nft';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  background?: boolean,
   url: string,
 }
 

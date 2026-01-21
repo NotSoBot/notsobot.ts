@@ -366,6 +366,23 @@ export function percentage(value: number | string): number {
 }
 
 
+export function phosimpFilters(value: string): Array<number> {
+  if (value) {
+    return value.split(' ').map((x) => x.trim()).filter((x) => x).map((x) => {
+      const filter = parseInt(x);
+      if (isNaN(filter)) {
+        throw new Error('PhoSimp Filter must be a number');
+      }
+      if (filter < 0) {
+        throw new Error('PhoSimp Filter range is between 0 and 999');
+      }
+      return filter;
+    });
+  }
+  return [];
+}
+
+
 export interface PipingCommand {
   command: Command.Command,
   commandArgs: Record<string, any>

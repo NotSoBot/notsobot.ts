@@ -1191,7 +1191,7 @@ export const MimetypesToExtension: Record<Mimetypes, string> = Object.freeze({
   [Mimetypes.IMAGE_PNG]: 'png',
   [Mimetypes.IMAGE_TIFF]: 'tiff',
   [Mimetypes.IMAGE_WEBP]: 'webp',
-  [Mimetypes.IMAGE_X_APNG]: 'apng',
+  [Mimetypes.IMAGE_X_APNG]: 'x-apng',
   [Mimetypes.VIDEO_M4V]: 'm4v',
   [Mimetypes.VIDEO_MP4]: 'mp4',
   [Mimetypes.VIDEO_MPEG]: 'mpeg',
@@ -1218,7 +1218,7 @@ export const MIMETYPES_IMAGE_EMBEDDABLE = Object.freeze([
   Mimetypes.IMAGE_JPEG,
   Mimetypes.IMAGE_PNG,
   Mimetypes.IMAGE_WEBP,
-  Mimetypes.IMAGE_X_APNG,
+  // Mimetypes.IMAGE_X_APNG, // Discord does not like user uploaded apngs still
 ]);
 
 export const MIMETYPES_VIDEO_EMBEDDABLE = Object.freeze([
@@ -1233,12 +1233,14 @@ export const MIMETYPES_SAFE_EMBED = MIMETYPES_IMAGE_EMBEDDABLE;
 
 
 export enum MLDiffusionModels {
+  FLUX_KLEIN = 'FLUX_KLEIN',
   FLUX_SCHNELL = 'FLUX_SCHNELL',
   QWEN_IMAGE_EDIT_2509_LIGHTNING = 'QWEN_IMAGE_EDIT_2509_LIGHTNING',
   SDXL_TURBO = 'SDXL_TURBO',
 }
 
 export const MLDiffusionModelsToText = Object.freeze({
+  [MLDiffusionModels.FLUX_KLEIN]: 'Flux Klein (Realistic)',
   [MLDiffusionModels.FLUX_SCHNELL]: 'Flux Schnell (Realistic)',
   [MLDiffusionModels.QWEN_IMAGE_EDIT_2509_LIGHTNING]: 'Qwen Image Edit 2509 Lightning (Amazing)',
   [MLDiffusionModels.SDXL_TURBO]: 'SDXL Turbo (Funny)',
@@ -1331,34 +1333,34 @@ export const ReminderMessages = [
 
 export enum TagGenerationModels {
   CLAUDE_4_5_SONNET = 'CLAUDE_4_5_SONNET',
-  CLAUDE_3_5_HAIKU = 'CLAUDE_3_5_HAIKU',
+  CLAUDE_4_5_HAIKU = 'CLAUDE_4_5_HAIKU',
   DEEPSEEK_CHAT = 'DEEPSEEK_CHAT',
   GOOGLE_GEMINI_2_5_PRO = 'GOOGLE_GEMINI_2_5_PRO',
   GOOGLE_GEMINI_2_5_FLASH = 'GOOGLE_GEMINI_2_5_FLASH',
   GOOGLE_GEMINI_2_5_FLASH_LITE = 'GOOGLE_GEMINI_2_5_FLASH_LITE',
   GOOGLE_GEMMA_3_0 = 'GOOGLE_GEMMA_3_0',
   META_LLAMA = 'META_LLAMA',
-  OPENAI_CHATGPT_5 = 'OPENAI_CHATGPT_5',
+  OPENAI_CHATGPT_5_2 = 'OPENAI_CHATGPT_5_2',
   OPENAI_CHATGPT_5_MINI = 'OPENAI_CHATGPT_5_MINI',
   QWEN_3_CODER = 'QWEN_3_CODER',
-  XAI_GROK_4_FAST = 'XAI_GROK_4_FAST',
+  XAI_GROK_4_1_FAST = 'XAI_GROK_4_1_FAST',
   XAI_GROK_CODE_1_FAST = 'XAI_GROK_CODE_1_FAST',
 }
 
 
 export const TagGenerationModelsToText = Object.freeze({
   [TagGenerationModels.CLAUDE_4_5_SONNET]: 'Claude 4.5 Sonnet',
-  [TagGenerationModels.CLAUDE_3_5_HAIKU]: 'Claude 3.5 Haiku',
+  [TagGenerationModels.CLAUDE_4_5_HAIKU]: 'Claude 4.5 Haiku',
   [TagGenerationModels.DEEPSEEK_CHAT]: 'DeepSeek Chat',
   [TagGenerationModels.GOOGLE_GEMINI_2_5_PRO]: 'Google Gemini 2.5 Pro',
   [TagGenerationModels.GOOGLE_GEMINI_2_5_FLASH]: 'Google Gemini 2.5 Flash',
   [TagGenerationModels.GOOGLE_GEMINI_2_5_FLASH_LITE]: 'Google Gemini 2.5 Flash Lite',
   [TagGenerationModels.GOOGLE_GEMMA_3_0]: 'Google Gemma 3.0',
   [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
-  [TagGenerationModels.OPENAI_CHATGPT_5]: 'OpenAI ChatGPT 5',
+  [TagGenerationModels.OPENAI_CHATGPT_5_2]: 'OpenAI ChatGPT 5.2',
   [TagGenerationModels.OPENAI_CHATGPT_5_MINI]: 'OpenAI ChatGPT 5 Mini',
   [TagGenerationModels.QWEN_3_CODER]: 'Qwen 3 Coder',
-  [TagGenerationModels.XAI_GROK_4_FAST]: 'xAI Grok 4 Fast',
+  [TagGenerationModels.XAI_GROK_4_1_FAST]: 'xAI Grok 4.1 Fast',
   [TagGenerationModels.XAI_GROK_CODE_1_FAST]: 'xAI Grok Code 1 Fast',
 });
 
@@ -1399,74 +1401,229 @@ export enum TagVariableStorageTypes {
 
 
 export enum Timezones {
-  MIT = 'Pacific/Midway',
-  HST = 'US/Hawaii',
-  AST = 'US/Alaska',
-  PST = 'US/Pacific',
-  PNT = 'America/Phoenix',
-  MST = 'US/Mountain',
-  CST = 'US/Central',
-  EST = 'US/Eastern',
-  IET = 'US/East-Indiana',
-  PRT = 'Etc/GMT-4',
-  CNT = 'Canada/Newfoundland',
-  AGT = 'Etc/GMT-3',
-  BET = 'Brazil/East',
-  CAT = 'Etc/GMT-1',
-  GMT = 'GMT',
-  ECT = 'Etc/GMT-5',
-  EET = 'EET',
-  ART = 'Egypt',
-  EAT = 'Etc/GMT+3',
-  MET = 'MET',
-  NET = 'Etc/GMT+4',
-  PLT = 'Etc/GMT+5',
-  IST = 'Etc/GMT+5:30',
-  BST = 'Etc/GMT+6',
-  VST = 'Etc/GMT+7',
-  CTT = 'Etc/GMT+8',
-  JST = 'Japan',
-  ACT = 'Australia/ACT',
-  AET = 'Etc/GMT+10',
-  SST = 'Etc/GMT+11',
-  NST = 'Etc/GMT+12',
+  // Pacific (far west)
+  PACIFIC_MIDWAY = 'Pacific/Midway',
+  PACIFIC_HONOLULU = 'Pacific/Honolulu',
+  PACIFIC_MARQUESAS = 'Pacific/Marquesas',
+  PACIFIC_GAMBIER = 'Pacific/Gambier',
+  PACIFIC_PITCAIRN = 'Pacific/Pitcairn',
+  
+  // Americas - North America
+  AMERICA_ANCHORAGE = 'America/Anchorage',
+  AMERICA_LOS_ANGELES = 'America/Los_Angeles',
+  AMERICA_PHOENIX = 'America/Phoenix',
+  AMERICA_DENVER = 'America/Denver',
+  AMERICA_CHICAGO = 'America/Chicago',
+  AMERICA_NEW_YORK = 'America/New_York',
+  AMERICA_TORONTO = 'America/Toronto',
+  AMERICA_MEXICO_CITY = 'America/Mexico_City',
+  
+  // Americas - Caribbean & Atlantic
+  AMERICA_PUERTO_RICO = 'America/Puerto_Rico',
+  AMERICA_HALIFAX = 'America/Halifax',
+  AMERICA_ST_JOHNS = 'America/St_Johns',
+  
+  // Americas - South America
+  AMERICA_CARACAS = 'America/Caracas',
+  AMERICA_SANTIAGO = 'America/Santiago',
+  AMERICA_BOGOTA = 'America/Bogota',
+  AMERICA_LIMA = 'America/Lima',
+  AMERICA_LA_PAZ = 'America/La_Paz',
+  AMERICA_SAO_PAULO = 'America/Sao_Paulo',
+  AMERICA_ARGENTINA_BUENOS_AIRES = 'America/Argentina/Buenos_Aires',
+
+  // Atlantic
+  ATLANTIC_AZORES = 'Atlantic/Azores',
+  ATLANTIC_CAPE_VERDE = 'Atlantic/Cape_Verde',
+
+  // Europe
+  EUROPE_LONDON = 'Europe/London',
+  EUROPE_LISBON = 'Europe/Lisbon',
+  EUROPE_DUBLIN = 'Europe/Dublin',
+  EUROPE_PARIS = 'Europe/Paris',
+  EUROPE_BERLIN = 'Europe/Berlin',
+  EUROPE_ROME = 'Europe/Rome',
+  EUROPE_MADRID = 'Europe/Madrid',
+  EUROPE_AMSTERDAM = 'Europe/Amsterdam',
+  EUROPE_ZURICH = 'Europe/Zurich',
+  EUROPE_WARSAW = 'Europe/Warsaw',
+  EUROPE_PRAGUE = 'Europe/Prague',
+  EUROPE_VIENNA = 'Europe/Vienna',
+  EUROPE_ATHENS = 'Europe/Athens',
+  EUROPE_BUCHAREST = 'Europe/Bucharest',
+  EUROPE_HELSINKI = 'Europe/Helsinki',
+  EUROPE_ISTANBUL = 'Europe/Istanbul',
+  EUROPE_MOSCOW = 'Europe/Moscow',
+  EUROPE_MINSK = 'Europe/Minsk',
+  EUROPE_KYIV = 'Europe/Kiev',
+
+  // Africa
+  AFRICA_CASABLANCA = 'Africa/Casablanca',
+  AFRICA_LAGOS = 'Africa/Lagos',
+  AFRICA_CAIRO = 'Africa/Cairo',
+  AFRICA_JOHANNESBURG = 'Africa/Johannesburg',
+  AFRICA_NAIROBI = 'Africa/Nairobi',
+
+  // Middle East
+  ASIA_DUBAI = 'Asia/Dubai',
+  ASIA_TEHRAN = 'Asia/Tehran',
+  ASIA_JERUSALEM = 'Asia/Jerusalem',
+  ASIA_RIYADH = 'Asia/Riyadh',
+  ASIA_BAGHDAD = 'Asia/Baghdad',
+  ASIA_BAKU = 'Asia/Baku',
+
+  // Central Asia
+  ASIA_KABUL = 'Asia/Kabul',
+  ASIA_YEKATERINBURG = 'Asia/Yekaterinburg',
+  ASIA_KARACHI = 'Asia/Karachi',
+  ASIA_TASHKENT = 'Asia/Tashkent',
+  ASIA_KOLKATA = 'Asia/Kolkata',
+  ASIA_KATHMANDU = 'Asia/Kathmandu',
+  ASIA_DHAKA = 'Asia/Dhaka',
+  ASIA_YANGON = 'Asia/Yangon',
+
+  // East & Southeast Asia
+  ASIA_BANGKOK = 'Asia/Bangkok',
+  ASIA_JAKARTA = 'Asia/Jakarta',
+  ASIA_KRASNOYARSK = 'Asia/Krasnoyarsk',
+  ASIA_SINGAPORE = 'Asia/Singapore',
+  ASIA_HONG_KONG = 'Asia/Hong_Kong',
+  ASIA_SHANGHAI = 'Asia/Shanghai',
+  ASIA_TAIPEI = 'Asia/Taipei',
+  ASIA_MANILA = 'Asia/Manila',
+  ASIA_IRKUTSK = 'Asia/Irkutsk',
+  ASIA_TOKYO = 'Asia/Tokyo',
+  ASIA_SEOUL = 'Asia/Seoul',
+  ASIA_VLADIVOSTOK = 'Asia/Vladivostok',
+
+  // Australia & Pacific
+  AUSTRALIA_PERTH = 'Australia/Perth',
+  AUSTRALIA_DARWIN = 'Australia/Darwin',
+  AUSTRALIA_ADELAIDE = 'Australia/Adelaide',
+  AUSTRALIA_BRISBANE = 'Australia/Brisbane',
+  AUSTRALIA_SYDNEY = 'Australia/Sydney',
+  AUSTRALIA_MELBOURNE = 'Australia/Melbourne',
+  PACIFIC_AUCKLAND = 'Pacific/Auckland',
+  PACIFIC_FIJI = 'Pacific/Fiji',
+  PACIFIC_TONGATAPU = 'Pacific/Tongatapu',
+  PACIFIC_CHATHAM = 'Pacific/Chatham',
+
+  // Special
+  UTC = 'UTC',
 }
 
 
 export const TimezonesToText: Record<Timezones, string> = Object.freeze({
-  [Timezones.HST]: '(GMT-10:00) Hawaii Standard Time (HST)',
-  [Timezones.MIT]: '(GMT-09:30) Marquesas Islands Time (MIT)',
-  [Timezones.PST]: '(GMT-08:00) Pacific Standard Time (PST)',
-  [Timezones.PNT]: '(GMT-07:00) Phoenix Standard Time (PNT)',
-  [Timezones.AST]: '(GMT-04:00) Atlantic Standard Time (AST)',
-  [Timezones.MST]: '(GMT-07:00) Mountain Standard Time (MST)',
-  [Timezones.CST]: '(GMT-06:00) Central Standard Time (CST)',
-  [Timezones.EST]: '(GMT-05:00) Eastern Standard Time (EST)',
-  [Timezones.IET]: '(GMT-05:00) Indiana Eastern Standard Time (IET)',
-  [Timezones.PRT]: '(GMT+01:00) Western European Summer Time (CNT)',
-  [Timezones.CNT]: '(GMT-03:30) Canada Newfoundland Time (CNT)',
-  [Timezones.AGT]: '(GMT-03:00) Argentina Standard Time(AGT)',
-  [Timezones.BET]: '(GMT-11:00) Bering Standard Time (BET)',
-  [Timezones.CAT]: '(GMT+02:00) Central Africa Time (CAT)',
-  [Timezones.GMT]: '(GMT+00:00) Greenwich Mean Time (GMT)',
-  [Timezones.ECT]: '(GMT-05:00) Ecuador Central Time (ECT)',
-  [Timezones.EET]: '(GMT+03:00) Eastern European Time (EET)',
-  [Timezones.ART]: '(GMT-03:00) Argentina Time (ART)',
-  [Timezones.EAT]: '(GMT+03:00) Eastern Africa Time (EAT)',
-  [Timezones.MET]: '(GMT+01:00) Middle European Time (MET)', // duplicate of CET
-  [Timezones.NET]: '',
-  [Timezones.PLT]: '',
-  [Timezones.IST]: '(GMT+05:30) India Standard Time (IST)',
-  [Timezones.BST]: '(GMT+06:00) Bangladesh Standard Time (BST)',
-  [Timezones.VST]: '(GMT-04:30) Venezuela Standard Time (VST)',
-  [Timezones.CTT]: '',
-  [Timezones.JST]: '(GMT+09:00) Japan Standard Time (JST)',
-  [Timezones.ACT]: '(GMT+09:30) Australian Central Time (ACT)',
-  [Timezones.AET]: '',
-  [Timezones.SST]: '(GMT+02:00) Syria Standard Time (SST)',
-  [Timezones.NST]: '(GMT-03:30) Newfoundland Standard Time (NST)', // duplicate of CNT
-});
+  // Pacific (far west)
+  [Timezones.PACIFIC_MIDWAY]: '(GMT-11:00) Midway Island (SST)',
+  [Timezones.PACIFIC_HONOLULU]: '(GMT-10:00) Hawaii (HST)',
+  [Timezones.PACIFIC_MARQUESAS]: '(GMT-09:30) Marquesas Islands (MART)',
+  [Timezones.PACIFIC_GAMBIER]: '(GMT-09:00) Gambier Islands (GAMT)',
+  [Timezones.PACIFIC_PITCAIRN]: '(GMT-08:00) Pitcairn Islands (PST)',
 
+  // Americas - North America
+  [Timezones.AMERICA_ANCHORAGE]: '(GMT-09:00) Alaska (AKST)',
+  [Timezones.AMERICA_LOS_ANGELES]: '(GMT-08:00) Pacific Time (PST)',
+  [Timezones.AMERICA_PHOENIX]: '(GMT-07:00) Arizona (MST)',
+  [Timezones.AMERICA_DENVER]: '(GMT-07:00) Mountain Time (MST)',
+  [Timezones.AMERICA_CHICAGO]: '(GMT-06:00) Central Time (CST)',
+  [Timezones.AMERICA_NEW_YORK]: '(GMT-05:00) Eastern Time (EST)',
+  [Timezones.AMERICA_TORONTO]: '(GMT-05:00) Toronto (EST)',
+  [Timezones.AMERICA_MEXICO_CITY]: '(GMT-06:00) Mexico City (CST)',
+
+  // Americas - Caribbean & Atlantic
+  [Timezones.AMERICA_PUERTO_RICO]: '(GMT-04:00) Puerto Rico (AST)',
+  [Timezones.AMERICA_HALIFAX]: '(GMT-04:00) Atlantic Time (AST)',
+  [Timezones.AMERICA_ST_JOHNS]: '(GMT-03:30) Newfoundland (NST)',
+
+  // Americas - South America
+  [Timezones.AMERICA_CARACAS]: '(GMT-04:00) Caracas (VET)',
+  [Timezones.AMERICA_SANTIAGO]: '(GMT-04:00) Santiago (CLT)',
+  [Timezones.AMERICA_BOGOTA]: '(GMT-05:00) Bogota (COT)',
+  [Timezones.AMERICA_LIMA]: '(GMT-05:00) Lima (PET)',
+  [Timezones.AMERICA_LA_PAZ]: '(GMT-04:00) La Paz (BOT)',
+  [Timezones.AMERICA_SAO_PAULO]: '(GMT-03:00) São Paulo (BRT)',
+  [Timezones.AMERICA_ARGENTINA_BUENOS_AIRES]: '(GMT-03:00) Buenos Aires (ART)',
+
+  // Atlantic
+  [Timezones.ATLANTIC_AZORES]: '(GMT-01:00) Azores (AZOT)',
+  [Timezones.ATLANTIC_CAPE_VERDE]: '(GMT-01:00) Cape Verde (CVT)',
+
+  // Europe
+  [Timezones.EUROPE_LONDON]: '(GMT+00:00) London (GMT)',
+  [Timezones.EUROPE_LISBON]: '(GMT+00:00) Lisbon (WET)',
+  [Timezones.EUROPE_DUBLIN]: '(GMT+00:00) Dublin (GMT)',
+  [Timezones.EUROPE_PARIS]: '(GMT+01:00) Paris (CET)',
+  [Timezones.EUROPE_BERLIN]: '(GMT+01:00) Berlin (CET)',
+  [Timezones.EUROPE_ROME]: '(GMT+01:00) Rome (CET)',
+  [Timezones.EUROPE_MADRID]: '(GMT+01:00) Madrid (CET)',
+  [Timezones.EUROPE_AMSTERDAM]: '(GMT+01:00) Amsterdam (CET)',
+  [Timezones.EUROPE_ZURICH]: '(GMT+01:00) Zurich (CET)',
+  [Timezones.EUROPE_WARSAW]: '(GMT+01:00) Warsaw (CET)',
+  [Timezones.EUROPE_PRAGUE]: '(GMT+01:00) Prague (CET)',
+  [Timezones.EUROPE_VIENNA]: '(GMT+01:00) Vienna (CET)',
+  [Timezones.EUROPE_ATHENS]: '(GMT+02:00) Athens (EET)',
+  [Timezones.EUROPE_BUCHAREST]: '(GMT+02:00) Bucharest (EET)',
+  [Timezones.EUROPE_HELSINKI]: '(GMT+02:00) Helsinki (EET)',
+  [Timezones.EUROPE_ISTANBUL]: '(GMT+03:00) Istanbul (TRT)',
+  [Timezones.EUROPE_MOSCOW]: '(GMT+03:00) Moscow (MSK)',
+  [Timezones.EUROPE_MINSK]: '(GMT+03:00) Minsk (MSK)',
+  [Timezones.EUROPE_KYIV]: '(GMT+02:00) Kyiv (EET)',
+
+  // Africa
+  [Timezones.AFRICA_CASABLANCA]: '(GMT+00:00) Casablanca (WET)',
+  [Timezones.AFRICA_LAGOS]: '(GMT+01:00) Lagos (WAT)',
+  [Timezones.AFRICA_CAIRO]: '(GMT+02:00) Cairo (EET)',
+  [Timezones.AFRICA_JOHANNESBURG]: '(GMT+02:00) Johannesburg (SAST)',
+  [Timezones.AFRICA_NAIROBI]: '(GMT+03:00) Nairobi (EAT)',
+
+  // Middle East
+  [Timezones.ASIA_DUBAI]: '(GMT+04:00) Dubai (GST)',
+  [Timezones.ASIA_TEHRAN]: '(GMT+03:30) Tehran (IRST)',
+  [Timezones.ASIA_JERUSALEM]: '(GMT+02:00) Jerusalem (IST)',
+  [Timezones.ASIA_RIYADH]: '(GMT+03:00) Riyadh (AST)',
+  [Timezones.ASIA_BAGHDAD]: '(GMT+03:00) Baghdad (AST)',
+  [Timezones.ASIA_BAKU]: '(GMT+04:00) Baku (AZT)',
+
+  // Central Asia
+  [Timezones.ASIA_KABUL]: '(GMT+04:30) Kabul (AFT)',
+  [Timezones.ASIA_YEKATERINBURG]: '(GMT+05:00) Yekaterinburg (YEKT)',
+  [Timezones.ASIA_KARACHI]: '(GMT+05:00) Karachi (PKT)',
+  [Timezones.ASIA_TASHKENT]: '(GMT+05:00) Tashkent (UZT)',
+  [Timezones.ASIA_KOLKATA]: '(GMT+05:30) Kolkata (IST)',
+  [Timezones.ASIA_KATHMANDU]: '(GMT+05:45) Kathmandu (NPT)',
+  [Timezones.ASIA_DHAKA]: '(GMT+06:00) Dhaka (BST)',
+  [Timezones.ASIA_YANGON]: '(GMT+06:30) Yangon (MMT)',
+
+  // East & Southeast Asia
+  [Timezones.ASIA_BANGKOK]: '(GMT+07:00) Bangkok (ICT)',
+  [Timezones.ASIA_JAKARTA]: '(GMT+07:00) Jakarta (WIB)',
+  [Timezones.ASIA_KRASNOYARSK]: '(GMT+07:00) Krasnoyarsk (KRAT)',
+  [Timezones.ASIA_SINGAPORE]: '(GMT+08:00) Singapore (SGT)',
+  [Timezones.ASIA_HONG_KONG]: '(GMT+08:00) Hong Kong (HKT)',
+  [Timezones.ASIA_SHANGHAI]: '(GMT+08:00) Shanghai (CST)',
+  [Timezones.ASIA_TAIPEI]: '(GMT+08:00) Taipei (CST)',
+  [Timezones.ASIA_MANILA]: '(GMT+08:00) Manila (PHT)',
+  [Timezones.ASIA_IRKUTSK]: '(GMT+08:00) Irkutsk (IRKT)',
+  [Timezones.ASIA_TOKYO]: '(GMT+09:00) Tokyo (JST)',
+  [Timezones.ASIA_SEOUL]: '(GMT+09:00) Seoul (KST)',
+  [Timezones.ASIA_VLADIVOSTOK]: '(GMT+10:00) Vladivostok (VLAT)',
+
+  // Australia & Pacific
+  [Timezones.AUSTRALIA_PERTH]: '(GMT+08:00) Perth (AWST)',
+  [Timezones.AUSTRALIA_DARWIN]: '(GMT+09:30) Darwin (ACST)',
+  [Timezones.AUSTRALIA_ADELAIDE]: '(GMT+09:30) Adelaide (ACST)',
+  [Timezones.AUSTRALIA_BRISBANE]: '(GMT+10:00) Brisbane (AEST)',
+  [Timezones.AUSTRALIA_SYDNEY]: '(GMT+10:00) Sydney (AEST)',
+  [Timezones.AUSTRALIA_MELBOURNE]: '(GMT+10:00) Melbourne (AEST)',
+  [Timezones.PACIFIC_AUCKLAND]: '(GMT+12:00) Auckland (NZST)',
+  [Timezones.PACIFIC_FIJI]: '(GMT+12:00) Fiji (FJT)',
+  [Timezones.PACIFIC_TONGATAPU]: '(GMT+13:00) Tongatapu (TOT)',
+  [Timezones.PACIFIC_CHATHAM]: '(GMT+12:45) Chatham Islands (CHAST)',
+
+  // Special
+  [Timezones.UTC]: '(GMT+00:00) UTC',
+});
 
 
 export enum UserFallbacksMediaImageTypes {
@@ -1873,47 +2030,12 @@ export const PresenceStatusColors: Record<string, number> = Object.freeze({
   [Statuses.OFFLINE]: 7634829,
 });
 
+
 export const PresenceStatusTexts: Record<string, string> = Object.freeze({
   [Statuses.ONLINE]: 'Online',
   [Statuses.DND]: 'Do Not Disturb',
   [Statuses.IDLE]: 'Idle',
   [Statuses.OFFLINE]: 'Offline',
-});
-
-
-
-export const TimezoneText: Record<Timezones, string> = Object.freeze({
-  [Timezones.MIT]: 'Midway Islands Time, -11:00',
-  [Timezones.HST]: 'Hawaii Standard Time, -10:00',
-  [Timezones.AST]: 'Alaska Standard Time, -9:00',
-  [Timezones.PST]: 'Pacific Standard Time, -8:00',
-  [Timezones.PNT]: 'Phoenix Standard Time, -7:00',
-  [Timezones.MST]: 'Mountain Standard Time, -7:00',
-  [Timezones.CST]: 'Central Standard Time, -6:00',
-  [Timezones.EST]: 'Eastern Standard Time, -5:00',
-  [Timezones.IET]: 'Indiana Eastern Standard Time, -5:00',
-  [Timezones.PRT]: 'Puetro Rico and US Virgin Islands Time, -4:00',
-  [Timezones.CNT]: 'Canada Newfoundland Time, -3:30',
-  [Timezones.AGT]: 'Argentina Standard Time, -3:00',
-  [Timezones.BET]: 'Brazil Eastern Time, -3:00',
-  [Timezones.CAT]: 'Central African Time, -1:00',
-  [Timezones.GMT]: 'Greenwich Mean Time',
-  [Timezones.ECT]: 'European Central Time, +1:00',
-  [Timezones.EET]: 'Eastern European Time, +2:00',
-  [Timezones.ART]: 'Arabic/Egypt Standard Time, +2:00',
-  [Timezones.EAT]: 'Eastern African Time, +3:00',
-  [Timezones.MET]: 'Middle East Time, +3:30',
-  [Timezones.NET]: 'Near East Time, +4:00',
-  [Timezones.PLT]: 'Pakistan Lahore Time, +5:00',
-  [Timezones.IST]: 'India Standard Time, +5:30',
-  [Timezones.BST]: 'Bangladesh Standard Time, +6:00',
-  [Timezones.VST]: 'Vietnam Standard Time, +7:00',
-  [Timezones.CTT]: 'China Taiwan Time, +8:00',
-  [Timezones.JST]: 'Japan Standard Time, +9:00',
-  [Timezones.ACT]: 'Australia Central Time, +9:30',
-  [Timezones.AET]: 'Australia Eastern Time, +10:00',
-  [Timezones.SST]: 'Solomon Standard Time, +11:00',
-  [Timezones.NST]: 'New Zealand Standard Time, +12:00',
 });
 
 
