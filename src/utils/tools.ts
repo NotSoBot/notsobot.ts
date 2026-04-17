@@ -52,6 +52,8 @@ import {
   Mimetypes,
   ReminderMessages,
   ReuploadStatuses,
+  TagBlobStorageTypes,
+  TagVariableStorageTypes,
   Timezones,
   TimezonesToText,
   UserSettingsResponseDisplayTypes,
@@ -1443,7 +1445,7 @@ export function generateCodeFromLanguage(
   switch (language) {
     case CodeLanguages.LUA: {
       code = [
-        'local function __main__()local f=io.open("/dev/stdin","r")local c=f:read("*all")f:close()local j=require("dkjson")_G.discord=j.decode(c)local function e()if type(_G.discord)=="table"then local o={storage=_G.discord.storage or{},variables=_G.discord.variables or{}}local w=io.open("./output/__internals__.json","w")w:write(j.encode(o))w:close()end end return e end local __onExit__=__main__()',
+        'local function __main__()local f=io.open("/dev/stdin","r")local c=f:read("*all")f:close()local j=require("dkjson")local b64=require("base64")_G.discord=j.decode(c)if type(_G.discord.blobs)=="table" then for k,v in pairs(_G.discord.blobs) do if v then _G.discord.blobs[k]=b64.decode(v)end end end;local function e()if type(_G.discord)=="table" then local blobs={}if type(_G.discord.blobs)=="table" then for k,v in pairs(_G.discord.blobs) do if v==nil then blobs[k]=j.null else blobs[k]=b64.encode(type(v)=="string" and v or j.encode(v))end end end;local o={storage=_G.discord.storage or{},variables=_G.discord.variables or{},blobs=blobs}local w=io.open("./output/__internals__.json","w")w:write(j.encode(o))w:close()end end return e end local __onExit__=__main__()',
         '\n'.repeat(5),
         code,
         '\n'.repeat(5),
@@ -1454,8 +1456,9 @@ export function generateCodeFromLanguage(
       code = [
         '(() => {',
         `global.discord = JSON.parse(require('fs').readFileSync(0));`,
+        `for (let key in global.discord.blobs) {if (global.discord.blobs[key]) {global.discord.blobs[key] = Buffer.from(global.discord.blobs[key], 'base64')}}`,
         `process.on('beforeExit', () => {`,
-          `(typeof(global.discord) === 'object') ? require('fs').writeFileSync('./output/__internals__.json', JSON.stringify({storage: global.discord.storage || {}, variables: global.discord.variables || {}})) : null;`,
+          `(typeof(global.discord) === 'object') && require('fs').writeFileSync('./output/__internals__.json', JSON.stringify({storage: global.discord.storage || {}, variables: global.discord.variables || {}, blobs: (typeof global.discord.blobs === 'object' && global.discord.blobs !== null) ? Object.fromEntries(Object.entries(global.discord.blobs).map(([k,v]) => [k, (v == null) ? null : (Buffer.isBuffer(v) ? v : Buffer.from((typeof(v) === 'string') ? v : JSON.stringify(v))).toString('base64')])) : {}}));`,
         `});`,
         '})();',
       ].join('') + '\n'.repeat(5) + code;
@@ -1463,8 +1466,9 @@ export function generateCodeFromLanguage(
     case CodeLanguages.PYTHON:
     case CodeLanguages.PYTHON_2: {
       code = [
-        `discord = __import__('json').loads(__import__('sys').stdin.read());`,
-        `__import__('atexit').register(lambda:open('./output/__internals__.json', 'w').write(__import__('json').dumps({'storage': discord.get('storage', '{}'), 'variables': discord.get('variables', '{}')})));`,
+        `discord=__import__('json').loads(__import__('sys').stdin.read());`,
+        `[discord['blobs'].__setitem__(k,__import__('base64').b64decode(v)) for k,v in discord.get('blobs',{}).items() if v];`,
+        `__import__('atexit').register(lambda:open('./output/__internals__.json','w').write(__import__('json').dumps({'storage':discord.get('storage',{}),'variables':discord.get('variables',{}),'blobs':{k:(None if v is None else __import__('base64').b64encode(v if isinstance(v,bytes) else v.encode() if isinstance(v,str) else __import__('json').dumps(v).encode()).decode()) for k,v in discord.get('blobs',{}).items()} if isinstance(discord.get('blobs',{}),dict) else {}})))`,
       ].join('') + '\n'.repeat(5) + code.trim();
     }; break;
   }
@@ -1513,9 +1517,11 @@ export function getGuildObjectForJSONSerialization(
 export function generateCodeStdin(
   context: Command.Context | Interaction.InteractionContext,
   variables?: Record<any, any>,
-  storage?: Record<any, any>,
+  storage?: {channel: Record<string, string>, global: Record<string, string>, server: Record<string, string>, user: Record<string, string>},
+  blobs?: {channel: string | null, global: string | null, server: string | null, user: string | null},
 ): string {
   return JSON.stringify({
+    blobs,
     channel: context.channel,
     channel_id: context.channelId,
     guild: getGuildObjectForJSONSerialization(context),
@@ -2000,6 +2006,9 @@ export async function mediaReplyFromOptions(
   const components: Components = new Components({
     timeout: (reuploadButton) ? (2 * (60 * 1000)) : 0, // todo: fix this in detritus
     onTimeout: () => {
+      if (options.reuploading === ReuploadStatuses.CANCELLED) {
+        return;
+      }
       options.reuploading = ReuploadStatuses.CANCELLED;
       return mediaReplyFromOptions(context, value, options);
     },

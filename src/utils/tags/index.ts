@@ -15,6 +15,7 @@ import MiniSearch from 'minisearch';
 import UserStore from '../../stores/users';
 
 import {
+  fetchTagBlobs,
   fetchTagId,
   fetchTagVariable,
   fetchTagVariables,
@@ -24,6 +25,7 @@ import {
   googleTranslate,
   mediaAVToolsExtractAudio,
   mediaAVToolsTranscribe,
+  putTagBlobs,
   putTagVariable,
   putTagVariables,
   searchDuckDuckGoImages,
@@ -49,6 +51,7 @@ import {
   Mimetypes,
   MLDiffusionModels,
   ProxyRequestMethods,
+  TagBlobStorageTypes,
   TagGenerationModels,
   TagVariableStorageTypes,
   YoutubeResultTypes,
@@ -138,6 +141,7 @@ export interface TagLimits {
   MAX_AI_EXECUTIONS: number,
   MAX_API_MANIPULATIONS: number,
   MAX_ATTACHMENTS: number,
+  MAX_BLOB_VALUE_LENGTH: number,
   MAX_COMPONENT_EXECUTIONS: number,
   MAX_EMBEDS: number,
   MAX_ITERATIONS: number,
@@ -162,6 +166,7 @@ export const TagLimitDefaults: TagLimits = Object.freeze({
   MAX_AI_EXECUTIONS: 1,
   MAX_API_MANIPULATIONS: 1,
   MAX_ATTACHMENTS: 10,
+  MAX_BLOB_VALUE_LENGTH: 256 * 1024,
   MAX_COMPONENT_EXECUTIONS: 2,
   MAX_EMBEDS: 10,
   MAX_ITERATIONS: 450,
@@ -210,6 +215,9 @@ export enum PrivateVariables {
   RESULTS = '__results',
   SETTINGS = '__settings',
   TAG_EXECUTIONS = '__tagExecutions',
+  VALUES = '__values',
+  ID_X = 'idx',
+  VALUE_X = 'valuex',
 }
 
 
@@ -602,6 +610,7 @@ export const TagFunctionsToString = Object.freeze({
 export enum TagSettings {
   AI_MODEL = 'AI_MODEL',
   AI_PERSONALITY = 'AI_PERSONALITY',
+  ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE = 'ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE',
   MEDIA_AV_FALLBACK = 'MEDIA_AV_FALLBACK',
   MEDIA_IV_FALLBACK = 'MEDIA_IV_FALLBACK',
   ML_IMAGINE_DO_NOT_ERROR = 'ML_IMAGINE_DO_NOT_ERROR',
@@ -635,6 +644,7 @@ export interface TagVariables {
   [PrivateVariables.SETTINGS]: {
     [TagSettings.AI_MODEL]?: string,
     [TagSettings.AI_PERSONALITY]?: string,
+    [TagSettings.ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE]?: boolean,
     [TagSettings.MEDIA_AV_FALLBACK]?: TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES | TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.ML_IMAGINE_DO_NOT_ERROR]?: boolean,
@@ -920,6 +930,11 @@ export async function parse(
               }
             } else if (TagFunctionsToString.STRING_SUB.includes(scriptName)) {
               const wasValid = await ScriptTags[TagFunctions.STRING_SUB](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.COMPONENT_JSON.includes(scriptName)) {
+              const wasValid = await ScriptTags[TagFunctions.COMPONENT_JSON](context, arg, tag);
               if (!wasValid) {
                 tag.text += scriptBuffer;
               }
@@ -1283,6 +1298,13 @@ const ScriptTags = Object.freeze({
 
     increaseNetworkRequests(tag);
 
+    const blobs: {
+      channel: string | null,
+      global: string | null,
+      server: string | null,
+      user: string | null,
+    } = {channel: null, global: null, server: null, user: null};
+
     const storage: {
       channel: Record<string, string>,
       global: Record<string, string>,
@@ -1296,26 +1318,52 @@ const ScriptTags = Object.freeze({
     }
 
     if (tagId) {
-      const response = await fetchTagVariables(context, tagId, {
-        channelId: context.channelId!,
-        guildId: context.guildId,
-        userId: context.userId,
-      });
-      for (let key in Object.keys(response)) {
-        const storageType = parseInt(key) as TagVariableStorageTypes;
-        switch (storageType) {
-          case TagVariableStorageTypes.CHANNEL: {
-            Object.assign(storage.channel, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GUILD: {
-            Object.assign(storage.server, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.USER: {
-            Object.assign(storage.user, response[storageType]);
-          }; break;
-          case TagVariableStorageTypes.GLOBAL: {
-            Object.assign(storage.global, response[storageType]);
-          }; break;
+      {
+        const response = await fetchTagBlobs(context, tagId, {
+          channelId: context.channelId!,
+          guildId: context.guildId,
+          userId: context.userId,
+        });
+        for (let key in Object.keys(response)) {
+          const storageType = parseInt(key) as TagBlobStorageTypes;
+          switch (storageType) {
+            case TagBlobStorageTypes.CHANNEL: {
+              blobs.channel = response[storageType];
+            }; break;
+            case TagBlobStorageTypes.GUILD: {
+              blobs.server = response[storageType];
+            }; break;
+            case TagBlobStorageTypes.USER: {
+              blobs.user = response[storageType];
+            }; break;
+            case TagBlobStorageTypes.GLOBAL: {
+              blobs.global = response[storageType];
+            }; break;
+          }
+        }
+      }
+      {
+        const response = await fetchTagVariables(context, tagId, {
+          channelId: context.channelId!,
+          guildId: context.guildId,
+          userId: context.userId,
+        });
+        for (let key in Object.keys(response)) {
+          const storageType = parseInt(key) as TagVariableStorageTypes;
+          switch (storageType) {
+            case TagVariableStorageTypes.CHANNEL: {
+              Object.assign(storage.channel, response[storageType]);
+            }; break;
+            case TagVariableStorageTypes.GUILD: {
+              Object.assign(storage.server, response[storageType]);
+            }; break;
+            case TagVariableStorageTypes.USER: {
+              Object.assign(storage.user, response[storageType]);
+            }; break;
+            case TagVariableStorageTypes.GLOBAL: {
+              Object.assign(storage.global, response[storageType]);
+            }; break;
+          }
         }
       }
     }
@@ -1369,7 +1417,7 @@ const ScriptTags = Object.freeze({
       code,
       files,
       language,
-      stdin: generateCodeStdin(context, variables, storage),
+      stdin: generateCodeStdin(context, variables, storage, blobs),
       urls: Object.values(urls).filter((x) => x.url),
       version: version || undefined,
     });
@@ -1419,6 +1467,194 @@ const ScriptTags = Object.freeze({
                 }
 
                 tag.variables[key] = String((variables as any)[key]).slice(0, tag.limits.MAX_VARIABLE_LENGTH);
+              }
+            }
+
+            if (response.blobs && typeof(response.blobs) === 'object') {
+              const variables = response.blobs;
+              const formattedBlobs: Array<{storageId: string, storageType: TagBlobStorageTypes, value: string}> = [];
+              if (variables.global === undefined) {
+                // set the default blob
+                if (blobs.global) {
+                  formattedBlobs.push({
+                    storageId: '0',
+                    storageType: TagBlobStorageTypes.GLOBAL,
+                    value: blobs.global,
+                  });
+                }
+              } else if (variables.global === null) {
+                // clear the blob
+              } else {
+                if (variables.global && typeof(variables.global) === 'object') {
+                  variables.global = Buffer.from(JSON.stringify(variables.global));
+                }
+                if (!variables.global || typeof(variables.global) === 'string') {
+                  // assume its base64 already
+                  let value: Buffer | null = null;
+                  if (variables.global) {
+                    try {
+                      value = Buffer.from(variables.global, 'base64');
+                    } catch(error) {
+                      throw new Error(`Global Blob Value must be base64 encoded`);
+                    }
+                  }
+                  if (value) {
+                    if (tag.limits.MAX_BLOB_VALUE_LENGTH < value.length) {
+                      throw new Error(`Global Blob Value cannot be more than ${tag.limits.MAX_BLOB_VALUE_LENGTH} bytes`);
+                    }
+                    formattedBlobs.push({
+                      storageId: '0',
+                      storageType: TagBlobStorageTypes.GLOBAL,
+                      value: variables.global,
+                    });
+                  }
+                } else {
+                  throw new Error(`Global Blob Value must be base64 encoded`);
+                }
+              }
+
+              if (variables.server === undefined) {
+                // set the default blob
+                if (blobs.server) {
+                  formattedBlobs.push({
+                    storageId: context.guildId || context.channelId!,
+                    storageType: TagBlobStorageTypes.GUILD,
+                    value: blobs.server,
+                  });
+                }
+              } else if (variables.server === null) {
+                // clear the blob
+              } else {
+                if (variables.server && typeof(variables.server) === 'object') {
+                  variables.server = Buffer.from(JSON.stringify(variables.server));
+                }
+                if (!variables.server || typeof(variables.server) === 'string') {
+                  // assume its base64 already
+                  let value: Buffer | null = null;
+                  if (variables.server) {
+                    try {
+                      value = Buffer.from(variables.server, 'base64');
+                    } catch(error) {
+                      throw new Error(`Server Blob Value must be base64 encoded`);
+                    }
+                  }
+                  if (value) {
+                    if (tag.limits.MAX_BLOB_VALUE_LENGTH < value.length) {
+                      throw new Error(`Server Blob Value cannot be more than ${tag.limits.MAX_BLOB_VALUE_LENGTH} bytes`);
+                    }
+                    formattedBlobs.push({
+                      storageId: context.guildId || context.channelId!,
+                      storageType: TagBlobStorageTypes.GUILD,
+                      value: variables.server,
+                    });
+                  }
+                } else {
+                  throw new Error(`Server Blob Value must be base64 encoded`);
+                }
+              }
+
+              if (variables.channel === undefined) {
+                // set the default blob
+                if (blobs.channel) {
+                  formattedBlobs.push({
+                    storageId: context.channelId!,
+                    storageType: TagBlobStorageTypes.CHANNEL,
+                    value: blobs.channel,
+                  });
+                }
+              } else if (variables.channel === null) {
+                // clear the blob
+              } else {
+                if (variables.channel && typeof(variables.channel) === 'object') {
+                  variables.channel = Buffer.from(JSON.stringify(variables.channel));
+                }
+                if (!variables.channel || typeof(variables.channel) === 'string') {
+                  // assume its base64 already
+                  let value: Buffer | null = null;
+                  if (variables.channel) {
+                    try {
+                      value = Buffer.from(variables.channel, 'base64');
+                    } catch(error) {
+                      throw new Error(`Channel Blob Value must be base64 encoded`);
+                    }
+                  }
+                  if (value) {
+                    if (tag.limits.MAX_BLOB_VALUE_LENGTH < value.length) {
+                      throw new Error(`Channel Blob Value cannot be more than ${tag.limits.MAX_BLOB_VALUE_LENGTH} bytes`);
+                    }
+                    formattedBlobs.push({
+                      storageId: context.channelId!,
+                      storageType: TagBlobStorageTypes.CHANNEL,
+                      value: variables.channel,
+                    });
+                  }
+                } else {
+                  throw new Error(`Channel Blob Value must be base64 encoded`);
+                }
+              }
+
+              if (variables.user === undefined) {
+                // set the default blob
+                if (blobs.user) {
+                  formattedBlobs.push({
+                    storageId: context.userId,
+                    storageType: TagBlobStorageTypes.USER,
+                    value: blobs.user,
+                  });
+                }
+              } else if (variables.user === null) {
+                // clear the blob
+              } else {
+                if (variables.user && typeof(variables.user) === 'object') {
+                  variables.user = Buffer.from(JSON.stringify(variables.user));
+                }
+                if (!variables.user || typeof(variables.user) === 'string') {
+                  // assume its base64 already
+                  let value: Buffer | null = null;
+                  if (variables.user) {
+                    try {
+                      value = Buffer.from(variables.user, 'base64');
+                    } catch(error) {
+                      throw new Error(`User Blob Value must be base64 encoded`);
+                    }
+                  }
+                  if (value) {
+                    if (tag.limits.MAX_BLOB_VALUE_LENGTH < value.length) {
+                      throw new Error(`User Blob Value cannot be more than ${tag.limits.MAX_BLOB_VALUE_LENGTH} bytes`);
+                    }
+                    formattedBlobs.push({
+                      storageId: context.userId,
+                      storageType: TagBlobStorageTypes.USER,
+                      value: variables.user,
+                    });
+                  }
+                } else {
+                  throw new Error(`User Blob Value must be base64 encoded`);
+                }
+              }
+
+              let hasChange = false;
+              if (variables.global !== undefined) {
+                hasChange = blobs.global != variables.global;
+              }
+              if (!hasChange && variables.server !== undefined) {
+                hasChange = blobs.server != variables.server;
+              }
+              if (!hasChange && variables.channel !== undefined) {
+                hasChange = blobs.channel != variables.channel;
+              }
+              if (!hasChange && variables.user !== undefined) {
+                hasChange = blobs.user != variables.user;
+              }
+
+              if (hasChange && tagId) {
+                const blobsResponse = await putTagBlobs(context, tagId, {
+                  blobs: formattedBlobs,
+                  channelId: context.channelId!,
+                  guildId: context.guildId,
+                  userId: context.userId,
+                });
+                // store it in tagresult i guess
               }
             }
 
@@ -3017,13 +3253,13 @@ const ScriptTags = Object.freeze({
       throw new Error(`Cannot have a for loop that is less than 1 or bigger than 200.`);
     }
 
-    const idx = tag.variables['idx'];
-    const valuex = tag.variables['valuex'];
+    const idx = tag.variables[PrivateVariables.ID_X];
+    const valuex = tag.variables[PrivateVariables.VALUE_X];
     for (let [key, value] of values) {
       let text: string = '';
       if (code.includes(TagSymbols.BRACKET_LEFT)) {
-        tag.variables['idx'] = String(key);
-        tag.variables['valuex'] = (typeof(value) === 'object') ? JSON.stringify(value) : String(value);
+        tag.variables[PrivateVariables.ID_X] = String(key);
+        tag.variables[PrivateVariables.VALUE_X] = (typeof(value) === 'object') ? JSON.stringify(value) : String(value);
         const argParsed = await parse(context, code, '', tag.variables, tag.context, tag.limits, false);
         normalizeTagResults(tag, argParsed, false);
         text = argParsed.text;
@@ -3033,14 +3269,14 @@ const ScriptTags = Object.freeze({
       tag.text += text;
     }
     if (idx === undefined) {
-      delete tag.variables['idx'];
+      delete tag.variables[PrivateVariables.ID_X];
     } else {
-      tag.variables['idx'] = idx;
+      tag.variables[PrivateVariables.ID_X] = idx;
     }
     if (valuex === undefined) {
-      delete tag.variables['valuex'];
+      delete tag.variables[PrivateVariables.VALUE_X];
     } else {
-      tag.variables['valuex'] = idx;
+      tag.variables[PrivateVariables.VALUE_X] = idx;
     }
 
     return true;
@@ -5281,6 +5517,18 @@ const ScriptTags = Object.freeze({
             tag.variables[PrivateVariables.SETTINGS][setting] = value as TagGenerationModels;
           } else {
             throw new Error(`AI Model must be one of: (${Object.values(TagGenerationModels).map((x) => Markup.codestring(x)).join(', ')})`);
+          }
+        } else {
+          delete tag.variables[setting];
+        }
+      }; break;
+      case TagSettings.ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE: {
+        if (value) {
+          value = value.toLowerCase();
+          if (value === 'true') {
+            tag.variables[PrivateVariables.SETTINGS][setting] = true;
+          } else {
+            delete tag.variables[setting];
           }
         } else {
           delete tag.variables[setting];

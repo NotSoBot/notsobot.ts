@@ -1,6 +1,12 @@
 import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes, MessageComponentTypes, MessageFlags } from 'detritus-client/lib/constants';
-import { Components, ComponentActionRow, ComponentButton, ComponentContext } from 'detritus-client/lib/utils';
+import {
+  Components,
+  ComponentActionRow,
+  ComponentButton,
+  ComponentSelectMenu,
+  ComponentContext,
+} from 'detritus-client/lib/utils';
 
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
 
@@ -139,12 +145,22 @@ export function generateComponents(
     },
   });
 
-  function injectRunIntoButton(x: Record<string, any>): void {
+  function injectRunIntoComponent(x: Record<string, any>): void {
     if (x.run || !x.url) {
       const runTagScript = x.run;
       x.run = async (componentContext: ComponentContext) => {
-        if (componentContext.userId !== context.userId || !runTagScript) {
+        if (!runTagScript) {
           // is not the tagscript executor or the button is a filler button
+          await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+          return;
+        }
+        const shouldAllowEveryone = !!(
+          parsedTag.variables
+          [TagFormatter.PrivateVariables.SETTINGS]
+          [TagFormatter.TagSettings.ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE]
+        );
+        // problem is that the original user's context is still passed into the tag parsing, so {userid} will show the wrong id
+        if (!shouldAllowEveryone && componentContext.userId !== context.userId) {
           await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           return;
         }
@@ -157,7 +173,7 @@ export function generateComponents(
         for (let x of components.components) {
           if (x instanceof ComponentActionRow) {
             for (let v of x.components) {
-              if (v instanceof ComponentButton) {
+              if (v instanceof ComponentButton || v instanceof ComponentSelectMenu) {
                 v.disabled = true;
               }
             }
@@ -170,6 +186,10 @@ export function generateComponents(
           components,
           embeds: undefined,
         });
+
+        if (componentContext.data.values) {
+          parsedTag.variables[TagFormatter.PrivateVariables.VALUES] = JSON.stringify(componentContext.data.values);
+        }
 
         await TagFormatter.resetTagLimits(parsedTag);
         await TagFormatter.increaseComponentExecutions(parsedTag);
@@ -185,15 +205,19 @@ export function generateComponents(
         for (let v of x.components) {
           switch (v.type) {
             case MessageComponentTypes.BUTTON: {
-              injectRunIntoButton(v);
+              injectRunIntoComponent(v);
             }; break;
           }
         }
         components.createActionRow(x);
       }; break;
       case MessageComponentTypes.BUTTON: {
-        injectRunIntoButton(x);
+        injectRunIntoComponent(x);
         components.createButton(x);
+      }; break;
+      case MessageComponentTypes.SELECT_MENU: {
+        injectRunIntoComponent(x);
+        components.createSelectMenu(x);
       }; break;
       default: {
         throw new Error(`Unknown Component Type: ${x.type}`);

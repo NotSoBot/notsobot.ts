@@ -24,6 +24,7 @@ import {
   GuildFeatures,
   PermissionsText,
   UserFlags,
+  UserPremiumTypes,
 } from '../../constants';
 import { DefaultParameters, Parameters, editOrReply, getCommandIdFromInvoker } from '../../utils';
 
@@ -148,7 +149,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
         contextMetadata.reason = [
           contextMetadata.reason,
-          `Buy it here: ${storePageUrl}`,
+          //`Buy it here: ${storePageUrl}`,
         ].join('\n').trim();
 
         /*

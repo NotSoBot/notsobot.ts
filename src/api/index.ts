@@ -459,6 +459,15 @@ export async function fetchTagId(
 }
 
 
+export async function fetchTagBlobs(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.FetchTagBlobs,
+) {
+  return raw.fetchTagBlobs(context, tagId, options);
+}
+
+
 export async function fetchTagRandom(
   context: RequestContext,
   options: RestOptions.FetchTagSearchRandom = {},
@@ -1173,7 +1182,7 @@ export async function mediaIVManipulationGlitchAnimated(
 
 export async function mediaIVManipulationGlobe(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationGlobe,
 ) {
   return raw.mediaIVManipulationGlobe(context, options);
 }
@@ -1352,6 +1361,14 @@ export async function mediaIVManipulationMotionBlur(
   options: RestOptions.MediaIVManipulationMotionBlur,
 ) {
   return raw.mediaIVManipulationMotionBlur(context, options);
+}
+
+
+export async function mediaIVManipulationOrb(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOrb,
+) {
+  return raw.mediaIVManipulationOrb(context, options);
 }
 
 
@@ -1640,6 +1657,14 @@ export async function mediaIVManipulationSpin(
   options: RestOptions.MediaIVManipulationSpin,
 ) {
   return raw.mediaIVManipulationSpin(context, options);
+}
+
+
+export async function mediaIVManipulationSpin3d(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSpin3d,
+) {
+  return raw.mediaIVManipulationSpin3d(context, options);
 }
 
 
@@ -1941,6 +1966,15 @@ export async function putTagsDirectoryTag(
   options: RestOptions.PutTagsDirectoryTag,
 ) {
   return raw.putTagsDirectoryTag(context, tagId, options);
+}
+
+
+export async function putTagBlobs(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.PutTagBlobs,
+) {
+  return raw.putTagBlobs(context, tagId, options);
 }
 
 

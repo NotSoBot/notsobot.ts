@@ -1,9 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
-import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 
 import { utilitiesFetchMedia } from '../../../api';
-import { Mimetypes, MIMETYPES_SAFE_EMBED } from '../../../constants';
-import { imageReply, mediaReply } from '../../../utils';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.download';

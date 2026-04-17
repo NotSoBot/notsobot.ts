@@ -8,6 +8,7 @@ export const COMMAND_ID = 'media.iv.manipulation.globe';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  tiled?: boolean,
   url: string,
 }
 

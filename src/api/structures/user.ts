@@ -85,6 +85,22 @@ export class UserFull extends User {
   }
 
   get isPremium(): boolean {
-    return !!this.premiumType || this.hasOwner();
+    return this.premiumType === UserPremiumTypes.PREMIUM || this.isPremiumPlus;
+  }
+
+  get isPremiumPlus(): boolean {
+    return (
+      (this.premiumType === UserPremiumTypes.PREMIUM_FREE) ||
+      (this.premiumType === UserPremiumTypes.PREMIUM_PLUS) ||
+      this.hasOwner()
+    );
+  }
+
+  get isPremiumPlusAI(): boolean {
+    return (
+      (this.premiumType === UserPremiumTypes.PREMIUM_FREE) ||
+      (this.premiumType === UserPremiumTypes.PREMIUM_PLUS_AI) ||
+      this.hasOwner()
+    );
   }
 }

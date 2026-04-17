@@ -11,6 +11,7 @@ import {
   MediaMemeFonts,
   RedditSortTypes,
   RedditTimeTypes,
+  TagBlobStorageTypes,
   TagVariableStorageTypes,
   UserSettingsFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
@@ -170,6 +171,7 @@ export namespace RestOptions {
     commandType?: number,
     guildId?: string,
     limit?: number,
+    since?: number,
     userId?: string,
   }
 
@@ -191,6 +193,12 @@ export namespace RestOptions {
     name?: string,
     sortBy?: number,
     userId?: string,
+  }
+
+  export interface FetchTagBlobs {
+    channelId: string,
+    guildId?: string,
+    userId: string,
   }
 
   export interface FetchTagSearch {
@@ -436,8 +444,9 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationCaption extends MediaBaseOptions {
+    bottom?: string,
     font?: MediaMemeFonts,
-    text: string,
+    top?: string,
   }
 
   export interface MediaIVManipulationCartoon extends MediaBaseOptions {
@@ -503,6 +512,10 @@ export namespace RestOptions {
     iterations?: number,
     keepTransparency?: boolean,
     seed?: number,
+  }
+
+  export interface MediaIVManipulationGlobe extends MediaBaseOptions {
+    tiled?: boolean,
   }
 
   export interface MediaIVManipulationGrain extends MediaBaseOptions {
@@ -576,6 +589,10 @@ export namespace RestOptions {
     vertical?: boolean,
   }
 
+  export interface MediaIVManipulationOrb extends MediaBaseOptions {
+    direction?: string,
+  }
+
   export interface MediaIVManipulationOverlayFace extends MediaBaseOptionsMultiple {
     scale?: number,
   }
@@ -632,6 +649,12 @@ export namespace RestOptions {
     circle?: boolean,
     clockwise?: boolean,
     crop?: boolean,
+  }
+
+  export interface MediaIVManipulationSpin3d extends MediaBaseOptions {
+    clockwise?: boolean,
+    tilt?: number,
+    zoom?: number,
   }
 
   export interface MediaIVManipulationStretch extends MediaBaseOptions {
@@ -713,7 +736,7 @@ export namespace RestOptions {
   }
 
   export interface MediaIVToolsResize extends MediaBaseOptions {
-    convert?: string,
+    kernel?: string,
     ratio?: boolean,
     scale?: number,
     size?: string,
@@ -806,6 +829,17 @@ export namespace RestOptions {
   export interface PutTagsDirectoryTag {
     description?: string,
     title?: string,
+  }
+
+  export interface PutTagBlobs {
+    blobs: Array<{
+      storageId: string,
+      storageType: TagBlobStorageTypes,
+      value: Buffer | string,
+    }>,
+    channelId: string,
+    guildId?: string,
+    userId: string,
   }
 
   export interface PutTagVariable {
@@ -1326,6 +1360,8 @@ export namespace RestResponsesRaw {
   export type FetchTagSearch = Tag;
   export type FetchTagSearchRandom = Tag;
 
+  export type FetchTagBlobs = Record<TagBlobStorageTypes, string>;
+
   export interface FetchTagVariable {
     name: string,
     storage_id: string,
@@ -1355,6 +1391,7 @@ export namespace RestResponsesRaw {
 
   export type PutTag = Tag;
   export type PutTagsDirectoryTag = TagDirectory;
+  export type PutTagBlobs = FetchTagBlobs;
   export type PutTagVariable = FetchTagVariable;
   export type PutTagVariables = FetchTagVariables;
   export type PutUser = User;
@@ -1763,6 +1800,7 @@ export namespace RestResponsesRaw {
       recipe: null | {
         description: string,
         duration: null | string,
+        duration_milliseconds: null | number,
         ingredients: Array<string>,
         servings: null | string,
         stars: null | number,
@@ -1771,8 +1809,10 @@ export namespace RestResponsesRaw {
       },
       video: null | {
         channel: null | string,
+        comments: null | number,
         description: string,
         duration: null | string,
+        duration_seconds: null | number,
         likes: null | number,
         title: string,
         type: GoogleImageVideoTypes,

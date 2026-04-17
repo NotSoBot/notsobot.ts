@@ -14,9 +14,6 @@ import {
   Parameters,
   createUserEmbed,
   editOrReply,
-  generateImageReplyOptionsFromResponse,
-  imageReplyFromOptions,
-  ImageReplyOptions,
   jobWaitForResult,
   mediaReply,
 } from '../../../utils';

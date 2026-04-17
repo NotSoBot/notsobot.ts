@@ -18,7 +18,7 @@ export class MediaIVCaptionCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'text', description: 'Caption Text', required: true},
+        {name: 'text', description: 'Caption text, separate top and bottom with |', required: true},
         {
           name: 'font',
           description: 'Font Choice',

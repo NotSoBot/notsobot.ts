@@ -18,8 +18,12 @@ export class MediaIVSlideCommand extends BaseInteractionImageOrVideoCommandOptio
   constructor() {
     super({
       options: [
-        {name: 'direction', description: 'Slide Direction', choices: Parameters.Slash.oneOf({choices: MediaSlideDirections, defaultChoice: MediaSlideDirections.RIGHT})},
-        {name: 'speed', description: 'Slide Speed (Default: 1.0)', type: 'number'},
+        {
+          name: 'direction',
+          description: 'Slide Direction',
+          choices: Parameters.Slash.oneOf({choices: MediaSlideDirections, defaultChoice: MediaSlideDirections.RIGHT}),
+        },
+        {name: 'speed', description: 'Slide Speed (0.01..10.0) (Default: 1.0)', type: 'number'},
       ],
     });
   }

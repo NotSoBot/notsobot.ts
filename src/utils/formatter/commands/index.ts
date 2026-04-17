@@ -111,6 +111,7 @@ import * as MediaIVManipulationMirrorLeft from './media.iv.manipulation.mirror.l
 import * as MediaIVManipulationMirrorRight from './media.iv.manipulation.mirror.right';
 import * as MediaIVManipulationMirrorTop from './media.iv.manipulation.mirror.top';
 import * as MediaIVManipulationMotionBlur from './media.iv.manipulation.motion.blur';
+import * as MediaIVManipulationOrb from './media.iv.manipulation.orb';
 import * as MediaIVManipulationOverlayFace from './media.iv.manipulation.overlay.face';
 import * as MediaIVManipulationOverlayFlagIsrael from './media.iv.manipulation.overlay.flag.israel';
 import * as MediaIVManipulationOverlayFlagLGBT from './media.iv.manipulation.overlay.flag.lgbt';
@@ -147,6 +148,7 @@ import * as MediaIVManipulationSlide from './media.iv.manipulation.slide';
 import * as MediaIVManipulationSmile from './media.iv.manipulation.smile';
 import * as MediaIVManipulationSolarize from './media.iv.manipulation.solarize';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
+import * as MediaIVManipulationSpin3d from './media.iv.manipulation.spin.3d';
 import * as MediaIVManipulationStretch from './media.iv.manipulation.stretch';
 import * as MediaIVManipulationSwapColors from './media.iv.manipulation.swap.colors';
 import * as MediaIVManipulationSwapPixels from './media.iv.manipulation.swap.pixels';
@@ -409,6 +411,7 @@ export {
   MediaIVManipulationMirrorRight,
   MediaIVManipulationMirrorTop,
   MediaIVManipulationMotionBlur,
+  MediaIVManipulationOrb,
   MediaIVManipulationOverlayFace,
   MediaIVManipulationOverlayFlagIsrael,
   MediaIVManipulationOverlayFlagLGBT,
@@ -445,6 +448,7 @@ export {
   MediaIVManipulationSmile,
   MediaIVManipulationSolarize,
   MediaIVManipulationSpin,
+  MediaIVManipulationSpin3d,
   MediaIVManipulationStretch,
   MediaIVManipulationSwapColors,
   MediaIVManipulationSwapPixels,

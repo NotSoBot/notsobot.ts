@@ -55,17 +55,17 @@ export async function request(
     options.headers.set(NotSoHeaders.AUTHORIZATION, `Bot ${token}`);
   }
 
-  const { channelId, client, guildId, user } = context;
+  const { channel, channelId, client, guild, guildId, interaction, user } = context;
   if (channelId) {
     options.headers.set(NotSoHeaders.CHANNEL_ID, channelId);
   }
   if (guildId) {
     options.headers.set(NotSoHeaders.GUILD_ID, guildId);
   }
-  if (context.guild) {
-    options.headers.set(NotSoHeaders.SERVER_OWNER_ID, context.guild.ownerId);
-  } else if (context.channel && context.channel.ownerId) {
-    options.headers.set(NotSoHeaders.SERVER_OWNER_ID, context.channel.ownerId);
+  if (guild) {
+    options.headers.set(NotSoHeaders.SERVER_OWNER_ID, guild.ownerId);
+  } else if (channel && channel.ownerId) {
+    options.headers.set(NotSoHeaders.SERVER_OWNER_ID, channel.ownerId);
   }
   if (user) {
     options.headers.set(NotSoHeaders.USER_ID, user.id);
@@ -80,8 +80,8 @@ export async function request(
     options.headers.set(NotSoHeaders.USER, Buffer.from(bareUser).toString('base64'));
   }
 
-  if (context.interaction && context.interaction.entitlements && context.interaction.entitlements.length) {
-    const entitlements = JSON.stringify(context.interaction.entitlements);
+  if (interaction && interaction.entitlements && interaction.entitlements.length) {
+    const entitlements = JSON.stringify(interaction.entitlements);
     options.headers.set(NotSoHeaders.ENTITLEMENTS, Buffer.from(entitlements).toString('base64'));
   }
 
@@ -771,6 +771,7 @@ export async function fetchCommandsUsage(
     command_type: options.commandType,
     guild_id: options.guildId,
     limit: options.limit,
+    since: options.since,
     user_id: options.userId,
   };
   return request(context, {
@@ -943,6 +944,28 @@ export async function fetchTagsServer(
     route: {
       method: HTTPMethods.GET,
       path: Api.TAGS,
+    },
+  });
+}
+
+
+export async function fetchTagBlobs(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.FetchTagBlobs,
+): Promise<RestResponsesRaw.FetchTagBlobs> {
+  const params = {tagId};
+  const query = {
+    channel_id: options.channelId,
+    guild_id: options.guildId,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAG_BLOBS,
+      params,
     },
   });
 }
@@ -2367,9 +2390,10 @@ export async function mediaIVManipulationCaption(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    bottom: options.bottom,
     font: options.font,
     max_file_size: maxFileSize,
-    text: options.text,
+    top: options.top,
     url: options.url,
   };
   return request(context, {
@@ -2743,11 +2767,12 @@ export async function mediaIVManipulationGlitchAnimated(
 
 export async function mediaIVManipulationGlobe(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationGlobe,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    tiled: options.tiled,
     url: options.url,
   };
   return request(context, {
@@ -3235,6 +3260,27 @@ export async function mediaIVManipulationMotionBlur(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_MOTION_BLUR,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOrb(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOrb,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    direction: options.direction,
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_ORB,
     },
   });
 }
@@ -4006,6 +4052,30 @@ export async function mediaIVManipulationSpin(
   });
 }
 
+
+export async function mediaIVManipulationSpin3d(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSpin3d,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    clockwise: options.clockwise,
+    max_file_size: maxFileSize,
+    tilt: options.tilt,
+    url: options.url,
+    zoom: options.zoom,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SPIN_3D,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationStretch(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationStretch,
@@ -4503,7 +4573,7 @@ export async function mediaIVToolsResize(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
-    convert: options.convert,
+    kernel: options.kernel,
     max_file_size: maxFileSize,
     ratio: options.ratio,
     scale: options.scale,
@@ -4796,6 +4866,36 @@ export async function putTagsDirectoryTag(
     route: {
       method: HTTPMethods.PUT,
       path: Api.TAGS_DIRECTORY_TAG,
+      params,
+    },
+  });
+}
+
+
+export async function putTagBlobs(
+  context: RequestContext,
+  tagId: string,
+  options: RestOptions.PutTagBlobs,
+): Promise<RestResponsesRaw.PutTagBlobs> {
+  const body = {
+    blobs: options.blobs.map((x) => {
+      const value = (Buffer.isBuffer(x.value)) ? x.value.toString('base64') : x.value;
+      return {
+        storage_id: x.storageId,
+        storage_type: x.storageType,
+        value,
+      };
+    }),
+    channel_id: options.channelId,
+    guild_id: options.guildId,
+    user_id: options.userId,
+  };
+  const params = {tagId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.TAG_BLOBS,
       params,
     },
   });
@@ -5466,11 +5566,11 @@ export async function utilitiesMLEdit(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
-    do_not_error: options.doNotError,
+    do_not_error: false, // options.doNotError,
     max_file_size: maxFileSize,
     model: options.model,
     query: options.query,
-    safe: options.safe,
+    safe: true, // options.safe,
     seed: options.seed,
     steps: options.steps,
     strength: options.strength,
@@ -5526,7 +5626,7 @@ export async function utilitiesMLImagineVideo(
     max_file_size: maxFileSize,
     model: options.model,
     query: options.query,
-    safe: options.safe,
+    safe: true, // options.safe,
     seed: options.seed,
     steps: options.steps,
     upload: options.upload,

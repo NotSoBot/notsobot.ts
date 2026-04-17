@@ -415,12 +415,14 @@ export async function pipingCommands(
           throw new Error(`Error parsing piping args for \`${command.name}\``);
         }
         pipers.push({command, commandArgs});
+
+        context.metadata.shouldSkipMediaCheck = false;
       } else {
         throw new Error(`${content} is not a valid piping command`);
       }
     }
     if (5 < pipers.length) {
-      throw new Error(`Cannot exceed 5 commands to pipe with`)
+      throw new Error(`Cannot exceed 5 commands to pipe with`);
     }
   }
   const mlCount = pipers.reduce((x, y) => {
@@ -1732,7 +1734,7 @@ export function mediaUrls(
               shouldFallback = true;
             }
           }
-        
+
           if (shouldFallback) {
             switch (settings.fallbacks_media_image) {
               case UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {

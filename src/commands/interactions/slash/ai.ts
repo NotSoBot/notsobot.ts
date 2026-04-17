@@ -87,7 +87,7 @@ export default class AICommand extends BaseSlashCommand {
     let hasPremium: boolean = false;
 
     const user = await UserStore.getOrFetch(context, context.userId);
-    if (user && (user.premiumType || user.hasFlag(UserFlags.OWNER))) {
+    if (user && (user.isPremiumPlusAI || user.hasFlag(UserFlags.OWNER))) {
       hasPremium = true;
     }
 
@@ -100,7 +100,7 @@ export default class AICommand extends BaseSlashCommand {
           const guild = context.guild;
           if (guild) {
             const owner = await UserStore.getOrFetch(context, guild.ownerId);
-            if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+            if (owner && (owner.isPremiumPlusAI || owner.hasFlag(UserFlags.OWNER))) {
               hasPremium = true;
             }
           }
@@ -108,7 +108,7 @@ export default class AICommand extends BaseSlashCommand {
       } else if (context.inDm && context.channel && context.channel.ownerId) {
         // most likely a group dm, check to see if is owner of it
         const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
-        if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+        if (owner && (owner.isPremiumPlusAI || owner.hasFlag(UserFlags.OWNER))) {
           hasPremium = true;
         }
       }
@@ -116,7 +116,7 @@ export default class AICommand extends BaseSlashCommand {
 
     if (!hasPremium) {
       context.metadata = context.metadata || {};
-      context.metadata.reason = 'You or the Server Owner must have NotSoPremium to use NotSoAI!';
+      context.metadata.reason = 'You or the Server Owner must have NotSoPremium Plus AI to use NotSoAI!';
       context.metadata.reasonIsPremiumRequired = true;
     }
     return hasPremium;

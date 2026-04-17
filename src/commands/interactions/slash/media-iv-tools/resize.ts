@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../utils';
+import { MediaResizeKernels } from '../../../../constants';
+import { Formatter, Parameters } from '../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 
@@ -18,7 +19,11 @@ export class MediaIVToolsResizeCommand extends BaseInteractionImageOrVideoComman
     super({
       options: [
         {name: 'scale', description: 'Resize Scale (Default: 2.0)', default: 2, type: 'number'},
-        {name: 'convert', description: 'Image Type'},
+        {
+          name: 'kernel',
+          description: 'Resampling filter used for scaling',
+          choices: Parameters.Slash.oneOf({choices: MediaResizeKernels}),
+        },
         {name: 'ratio', description: 'Keep the Image\'s Ratio the same', type: Boolean},
         {name: 'size', description: 'number or (width)x(height)'},
       ],

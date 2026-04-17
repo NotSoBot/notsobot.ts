@@ -258,6 +258,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/mirror-top',
   MEDIA_IV_MANIPULATION_MOTION_BLUR:
     '/media/iv/manipulation/motion/blur',
+  MEDIA_IV_MANIPULATION_ORB:
+    '/media/iv/manipulation/orb',
   MEDIA_IV_MANIPULATION_OVERLAY_FACE:
     '/media/iv/manipulation/overlay/face',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISIS:
@@ -334,6 +336,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/solarize',
   MEDIA_IV_MANIPULATION_SPIN:
     '/media/iv/manipulation/spin',
+  MEDIA_IV_MANIPULATION_SPIN_3D:
+    '/media/iv/manipulation/spin/3d',
   MEDIA_IV_MANIPULATION_STRETCH:
     '/media/iv/manipulation/stretch',
   MEDIA_IV_MANIPULATION_SWAP_COLORS:
@@ -480,6 +484,8 @@ export const Api = Object.freeze({
     '/tags/search/random',
   TAG:
     '/tags/:tagId',
+  TAG_BLOBS:
+    '/tags/:tagId/blobs',
   TAG_USE:
     '/tags/:tagId/use',
   TAG_VARIABLES:

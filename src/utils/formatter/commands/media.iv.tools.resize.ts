@@ -9,7 +9,7 @@ export const COMMAND_ID = 'media.iv.tools.resize';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  convert?: string,
+  kernel?: string,
   ratio?: boolean,
   scale?: number,
   size?: string,
@@ -22,8 +22,8 @@ export function createJob(
   args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaIVToolsResize(context, {
-    convert: args.convert,
     file: args.file,
+    kernel: args.kernel,
     ratio: args.ratio,
     scale: args.scale || (args.sizeorscale && args.sizeorscale.scale),
     size: args.size || (args.sizeorscale && args.sizeorscale.size),

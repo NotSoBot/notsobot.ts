@@ -13,7 +13,7 @@ import {
 
 export const MAX_MEMBERS_SAFE = 10000;
 
-export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version n7.';
+export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version n8.';
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
 export const SNOWFLAKE_EPOCH = 1564790400000;
 export const ZERO_WIDTH_SPACE = '\u200b';
@@ -1098,6 +1098,20 @@ export enum MediaPix2PixModels {
 }
 
 
+export enum MediaResizeKernels {
+  NEAREST = 'NEAREST',
+  BILINEAR = 'BILINEAR',
+  BICUBIC = 'BICUBIC',
+  MITCHELL = 'MITCHELL',
+  CATMULL_ROM = 'CATMULL_ROM',
+  LANCZOS_2 = 'LANCZOS_2',
+  LANCZOS_3 = 'LANCZOS_3',
+  SPLINE_16 = 'SPLINE_16',
+  SPLINE_36 = 'SPLINE_36',
+  SPLINE_64 = 'SPLINE_64',
+}
+
+
 export enum MediaRotate3dCropModes {
   AUTO = 'auto',
   CENTER = 'center',
@@ -1337,6 +1351,15 @@ export enum ReuploadStatuses {
 }
 
 
+
+export enum TagBlobStorageTypes {
+  USER = 0,
+  CHANNEL = 1,
+  GUILD = 2,
+  GLOBAL = 3,
+}
+
+
 export enum TagGenerationModels {
   CLAUDE_4_6_SONNET = 'CLAUDE_4_6_SONNET',
   CLAUDE_4_5_HAIKU = 'CLAUDE_4_5_HAIKU',
@@ -1344,12 +1367,11 @@ export enum TagGenerationModels {
   GOOGLE_GEMINI_3_0_FLASH = 'GOOGLE_GEMINI_3_0_FLASH',
   GOOGLE_GEMINI_3_1_FLASH_LITE = 'GOOGLE_GEMINI_3_1_FLASH_LITE',
   GOOGLE_GEMINI_3_1_PRO = 'GOOGLE_GEMINI_3_1_PRO',
-  GOOGLE_GEMMA_3_0 = 'GOOGLE_GEMMA_3_0',
+  GOOGLE_GEMMA_4_0 = 'GOOGLE_GEMMA_4_0',
   META_LLAMA = 'META_LLAMA',
-  OPENAI_CHATGPT_5_3_CODEX = 'OPENAI_CHATGPT_5_3_CODEX',
-  OPENAI_CHATGPT_5_2 = 'OPENAI_CHATGPT_5_2',
-  OPENAI_CHATGPT_5_MINI = 'OPENAI_CHATGPT_5_MINI',
-  OPENAI_CHATGPT_5_NANO = 'OPENAI_CHATGPT_5_NANO',
+  OPENAI_CHATGPT_5_4 = 'OPENAI_CHATGPT_5_4',
+  OPENAI_CHATGPT_5_4_MINI = 'OPENAI_CHATGPT_5_4_MINI',
+  OPENAI_CHATGPT_5_4_NANO = 'OPENAI_CHATGPT_5_4_NANO',
   OPENAI_CHATGPT_OSS = 'OPENAI_CHATGPT_OSS',
   QWEN_3_CODER_FLASH = 'QWEN_3_CODER_FLASH',
   QWEN_3_CODER_PLUS = 'QWEN_3_CODER_PLUS',
@@ -1367,12 +1389,11 @@ export const TagGenerationModelsToText = Object.freeze({
   [TagGenerationModels.GOOGLE_GEMINI_3_0_FLASH]: 'Google Gemini 3.0 Flash',
   [TagGenerationModels.GOOGLE_GEMINI_3_1_FLASH_LITE]: 'Google Gemini 3.1 Flash Lite',
   [TagGenerationModels.GOOGLE_GEMINI_3_1_PRO]: 'Google Gemini 3.1 Pro',
-  [TagGenerationModels.GOOGLE_GEMMA_3_0]: 'Google Gemma 3.0',
+  [TagGenerationModels.GOOGLE_GEMMA_4_0]: 'Google Gemma 4.0',
   [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
-  [TagGenerationModels.OPENAI_CHATGPT_5_3_CODEX]: 'OpenAI ChatGPT 5.3 Codex',
-  [TagGenerationModels.OPENAI_CHATGPT_5_2]: 'OpenAI ChatGPT 5.2',
-  [TagGenerationModels.OPENAI_CHATGPT_5_MINI]: 'OpenAI ChatGPT 5 Mini',
-  [TagGenerationModels.OPENAI_CHATGPT_5_NANO]: 'OpenAI ChatGPT 5 Nano',
+  [TagGenerationModels.OPENAI_CHATGPT_5_4]: 'OpenAI ChatGPT 5.4',
+  [TagGenerationModels.OPENAI_CHATGPT_5_4_MINI]: 'OpenAI ChatGPT 5.4 Mini',
+  [TagGenerationModels.OPENAI_CHATGPT_5_4_NANO]: 'OpenAI ChatGPT 5.4 Nano',
   [TagGenerationModels.OPENAI_CHATGPT_OSS]: 'OpenAI ChatGPT OSS',
   [TagGenerationModels.QWEN_3_CODER_FLASH]: 'Qwen 3 Coder Flash',
   [TagGenerationModels.QWEN_3_CODER_PLUS]: 'Qwen 3 Coder Plus',
@@ -1683,6 +1704,7 @@ export enum UserPremiumTypes {
   PREMIUM_FREE = 1,
   PREMIUM = 2,
   PREMIUM_PLUS = 3,
+  PREMIUM_PLUS_AI = 4,
 }
 
 

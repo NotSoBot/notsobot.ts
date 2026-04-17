@@ -17,7 +17,7 @@ import { MediaIVShakeCommand } from './shake';
 import { MediaIVSharpenCommand } from './sharpen';
 import { MediaIVSlideCommand } from './slide';
 import { MediaIVSpinCommand } from './spin';
-import { MediaIVStretchCommand } from './stretch';
+import { MediaIVSpin3dCommand } from './spin-3d';
 import { MediaIVSwirlCommand } from './swirl';
 import { MediaIVWatercolorCommand } from './watercolor';
 import { MediaIVWaveCommand } from './wave';
@@ -52,7 +52,7 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVSharpenCommand(),
         new MediaIVSlideCommand(),
         new MediaIVSpinCommand(),
-        new MediaIVStretchCommand(),
+        new MediaIVSpin3dCommand(),
         new MediaIVSwirlCommand,
         new MediaIVWatercolorCommand(),
         new MediaIVWaveCommand(),

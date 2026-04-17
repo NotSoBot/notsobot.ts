@@ -13,15 +13,19 @@ export default class GlobeCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'tiled', aliases: ['t'], type: Boolean},
+      ],
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Create a globe out of an Image or Video',
+        description: 'Create a Globe out of an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -tiled`,
         ],
         id: Formatter.Commands.MediaIVManipulationGlobe.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-tiled)',
       },
     });
   }

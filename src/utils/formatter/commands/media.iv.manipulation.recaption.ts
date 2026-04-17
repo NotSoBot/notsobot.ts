@@ -6,6 +6,8 @@ import { RestResponsesRaw } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
 import { jobReply, jobWaitForResult } from '../../../utils';
 
+import { splitText } from './media.iv.manipulation.caption';
+
 
 export const COMMAND_ID = 'media.iv.manipulation.recaption';
 
@@ -38,14 +40,16 @@ export async function createMessage(
     throw new Error('Uncaption Job Failed for some reason');
   }
 
+  const { bottom, top } = splitText(args.text);
   job = await mediaIVManipulationCaption(context, {
+    bottom,
     file: {
       contentType: fileResponse.file.metadata.mimetype,
       filename: fileResponse.file.filename,
       value: (fileResponse.file.value) ? Buffer.from(fileResponse.file.value, 'base64') : Buffer.alloc(0),
     },
     font: args.font,
-    text: args.text,
+    top,
   }).then((x) => jobWaitForResult(context, x));
   if (job.result.response) {
     job.result.response.file_old = fileResponse.file_old;
