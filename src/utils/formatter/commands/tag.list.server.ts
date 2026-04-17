@@ -18,7 +18,7 @@ import {
 
 export const COMMAND_ID = 'tag.list.server';
 
-export const MAX_FETCHES = 10;
+export const MAX_FETCHES = 50;
 export const RESULTS_PER_PAGE = 28;
 
 

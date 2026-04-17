@@ -72,6 +72,7 @@ import * as MediaIVManipulationBlurple from './media.iv.manipulation.blurple';
 import * as MediaIVManipulationCaption from './media.iv.manipulation.caption';
 import * as MediaIVManipulationCartoon from './media.iv.manipulation.cartoon';
 import * as MediaIVManipulationCircle from './media.iv.manipulation.circle';
+import * as MediaIVManipulationDatamosh from './media.iv.manipulation.datamosh';
 import * as MediaIVManipulationDeepfry from './media.iv.manipulation.deepfry';
 import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
 import * as MediaIVManipulationDistort from './media.iv.manipulation.distort';
@@ -176,6 +177,7 @@ import * as MediaIVToolsRotate3d from './media.iv.tools.rotate.3d';
 import * as MediaIVToolsSetFPS from './media.iv.tools.set.fps';
 import * as MediaIVToolsSetFrameCount from './media.iv.tools.set.frame.count';
 import * as MediaIVToolsSnipFrames from './media.iv.tools.snip.frames';
+import * as MediaIVToolsToGif from './media.iv.tools.to.gif';
 import * as MediaIVToolsTrim from './media.iv.tools.trim';
 
 import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
@@ -234,6 +236,7 @@ import * as SettingsSetAIPersonality from './settings.set.ai.personality';
 import * as SettingsSetDownloadQuality from './settings.set.download.quality';
 import * as SettingsSetFallbacksMediaImage from './settings.set.fallbacks.media.image';
 import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
+import * as SettingsSetFileUploadType from './settings.set.file.upload.type';
 import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
@@ -367,6 +370,7 @@ export {
   MediaIVManipulationCaption,
   MediaIVManipulationCartoon,
   MediaIVManipulationCircle,
+  MediaIVManipulationDatamosh,
   MediaIVManipulationDeepfry,
   MediaIVManipulationDetunnel,
   MediaIVManipulationDistort,
@@ -471,6 +475,7 @@ export {
   MediaIVToolsSetFPS,
   MediaIVToolsSetFrameCount,
   MediaIVToolsSnipFrames,
+  MediaIVToolsToGif,
   MediaIVToolsTrim,
 
   ModerationAllowlistAddUsers,
@@ -529,6 +534,7 @@ export {
   SettingsSetDownloadQuality,
   SettingsSetFallbacksMediaImage,
   SettingsSetFileUploadThreshold,
+  SettingsSetFileUploadType,
   SettingsSetFileVanity,
   SettingsSetLocale,
   SettingsSetMLImagineModel,

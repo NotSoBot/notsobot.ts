@@ -5,14 +5,14 @@ import { Markup } from 'detritus-client/lib/utils';
 import UserSettingsStore from '../../../stores/usersettings';
 
 import { editUserSettings } from '../../../api';
-import { UserUploadThresholdTypes } from '../../../constants';
+import { UserSettingsUploadThresholdTypes } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'settings.set.file.upload.threshold';
 
 export interface CommandArgs {
-  threshold?: UserUploadThresholdTypes,
+  threshold?: UserSettingsUploadThresholdTypes,
 }
 
 export async function createMessage(
@@ -26,13 +26,13 @@ export async function createMessage(
     const settings = await UserSettingsStore.getOrFetch(context, context.userId);
     if (settings) {
       switch (settings.file_upload_threshold) {
-        case UserUploadThresholdTypes.ALWAYS: {
+        case UserSettingsUploadThresholdTypes.ALWAYS: {
           text = 'Your current setting will always upload files to our servers';
         }; break;
-        case UserUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT: {
+        case UserSettingsUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT: {
           text = 'Your current setting will only upload files if they exceed Discord\'s File Size Limit';
         }; break;
-        case UserUploadThresholdTypes.NEVER: {
+        case UserSettingsUploadThresholdTypes.NEVER: {
           text = 'Your current setting will never upload files to our servers';
         }; break;
       }
@@ -42,13 +42,13 @@ export async function createMessage(
       fileUploadThreshold: args.threshold,
     });
     switch (settings.file_upload_threshold) {
-      case UserUploadThresholdTypes.ALWAYS: {
+      case UserSettingsUploadThresholdTypes.ALWAYS: {
         text = 'Ok, will always upload files to our servers';
       }; break;
-      case UserUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT: {
+      case UserSettingsUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT: {
         text = 'Ok, will only upload files if they exceed Discord\'s File Size Limit';
       }; break;
-      case UserUploadThresholdTypes.NEVER: {
+      case UserSettingsUploadThresholdTypes.NEVER: {
         text = 'Ok, will never upload files to our servers';
       }; break;
     }

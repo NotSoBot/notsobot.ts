@@ -49,7 +49,7 @@ export default class DownloadCommand extends BaseSlashCommand {
         {
           name: 'quality',
           description: 'Choose Max Video Quality',
-          choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_720, doNotSort: true}),
+          choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_1080, doNotSort: true}),
         },
         {
           name: 'spoiler',

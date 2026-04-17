@@ -1059,6 +1059,14 @@ export async function mediaIVManipulationCircle(
 }
 
 
+export async function mediaIVManipulationDatamosh(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDatamosh,
+) {
+  return raw.mediaIVManipulationDatamosh(context, options);
+}
+
+
 export async function mediaIVManipulationDeepfry(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationDeepfry,
@@ -1865,6 +1873,14 @@ export async function mediaIVToolsSnipFrames(
   options: RestOptions.MediaIVToolsSnipFrames,
 ) {
   return raw.mediaIVToolsSnipFrames(context, options);
+}
+
+
+export async function mediaIVToolsToGif(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVToolsToGif(context, options);
 }
 
 

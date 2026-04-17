@@ -32,13 +32,13 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
   name = COMMAND_NAME;
 
   contexts = [
-	  InteractionContextTypes.GUILD,
-	  InteractionContextTypes.BOT_DM,
-	  InteractionContextTypes.PRIVATE_CHANNEL,
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+    InteractionContextTypes.PRIVATE_CHANNEL,
   ];
   integrationTypes = [
-	  ApplicationIntegrationTypes.GUILD_INSTALL,
-	  ApplicationIntegrationTypes.USER_INSTALL,
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+    ApplicationIntegrationTypes.USER_INSTALL,
   ];
 
   async onBeforeRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
@@ -46,14 +46,14 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
     if (args.url) {
       args.url = await getOrFetchRealUrl(context, args.url);
     }
-	  return !!args.url;
+    return !!args.url;
   }
 
   onCancelRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
-	  return context.editOrRespond({
-	    content: 'Message must have some sort of media or URL to download!',
-	    flags: MessageFlags.EPHEMERAL,
-	  });
+    return context.editOrRespond({
+      content: 'Message must have some sort of media or URL to download!',
+      flags: MessageFlags.EPHEMERAL,
+    });
   }
 
   async run(context: Interaction.InteractionContext, args: DownloadCommandArgs) {

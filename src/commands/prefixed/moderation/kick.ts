@@ -26,7 +26,7 @@ export default class KickCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'clean', type: Parameters.days},
+        {name: 'clean', type: (value: string) => Parameters.seconds(value)},
       ],
       default: null,
       disableDm: true,
@@ -84,6 +84,11 @@ export default class KickCommand extends BaseCommand {
       }
     }
 
+    let deleteMessageSeconds: number = 0;
+    if (args.clean) {
+      deleteMessageSeconds = Math.max(Math.min(args.clean, 7 * 24 * 60 * 60), 0);
+    }
+
     let reason: string | undefined;
     {
       const description: Array<string> = [];
@@ -93,16 +98,15 @@ export default class KickCommand extends BaseCommand {
         const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
         description.push(`Timestamp: ${timestamp.format(DateMomentLogFormat)}`);
       }
-      if (args.clean) {
-        description.push(`Type: Kick w/ Message Cleaning of ${Math.min(args.clean, 7)} days`);
+      if (deleteMessageSeconds) {
+        description.push(`Type: Kick w/ Message Cleaning of ${deleteMessageSeconds.toLocaleString()} second${(deleteMessageSeconds === 1) ? '' : 's'}`);
       }
       reason = description.join('\n');
     }
 
-    if (args.clean) {
-      const deleteMessageDays = String(Math.min(args.clean, 7));
+    if (deleteMessageSeconds) {
       for (let member of canEdit) {
-        await member.ban({deleteMessageDays, reason});
+        await member.ban({deleteMessageSeconds: String(deleteMessageSeconds), reason});
         await member.removeBan({reason});
       }
     } else {

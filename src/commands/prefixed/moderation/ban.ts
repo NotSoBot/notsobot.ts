@@ -27,7 +27,7 @@ export default class BanCommand extends BaseCommand {
 
       aliases: ['hackban'],
       args: [
-        {name: 'clean', default: 1, type: Parameters.days},
+        {name: 'clean', default: 1 * 24 * 60 * 60, type: (value: string) => Parameters.seconds(value)},
       ],
       default: null,
       disableDm: true,
@@ -89,6 +89,11 @@ export default class BanCommand extends BaseCommand {
       }
     }
 
+    let deleteMessageSeconds: number = 0;
+    if (args.clean) {
+      deleteMessageSeconds = Math.max(Math.min(args.clean, 7 * 24 * 60 * 60), 0);
+    }
+
     let reason: string | undefined;
     {
       const description: Array<string> = [];
@@ -98,18 +103,16 @@ export default class BanCommand extends BaseCommand {
         const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
         description.push(`Timestamp: ${timestamp.format(DateMomentLogFormat)}`);
       }
-      if (args.clean) {
-        const amount = Math.min(args.clean, 7);
-        description.push(`Message Cleaning of ${amount} day${(amount === 1) ? '' : 's'}`);
+      if (deleteMessageSeconds) {
+        description.push(`Message Cleaning of ${deleteMessageSeconds.toLocaleString()} second${(deleteMessageSeconds === 1) ? '' : 's'}`);
       }
       reason = description.join('\n');
     }
 
     const guild = context.guild;
     if (guild) {
-      const deleteMessageDays = String(Math.min(args.clean, 7));
       for (let member of canEdit) {
-        await guild.createBan(member.id, {deleteMessageDays, reason});
+        await guild.createBan(member.id, {deleteMessageSeconds: String(deleteMessageSeconds), reason});
       }
     }
 

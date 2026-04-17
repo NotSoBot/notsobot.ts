@@ -20,6 +20,7 @@ import { MediaIVToolsRotateCommand } from './rotate';
 import { MediaIVToolsRotate3dCommand } from './rotate-3d';
 import { MediaIVToolsResizeCommand } from './resize';
 import { MediaIVToolsSnipFramesCommand } from './snip-frames';
+import { MediaIVToolsToGifCommand } from './to-gif';
 import { MediaIVToolsTrimCommand } from './trim';
 import { MediaIVToolsUncaptionCommand } from './uncaption';
 
@@ -55,6 +56,7 @@ export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
         new MediaIVToolsResizeCommand(),
         new MediaIVToolsSetGroupCommand(),
         new MediaIVToolsSnipFramesCommand(),
+        new MediaIVToolsToGifCommand(),
         new MediaIVToolsTrimCommand(),
         new MediaIVToolsUncaptionCommand(),
       ],

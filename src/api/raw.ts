@@ -735,6 +735,7 @@ export async function editUserSettings(
     download_quality: options.downloadQuality,
     fallbacks_media_image: options.fallbacksMediaImage,
     file_upload_threshold: options.fileUploadThreshold,
+    file_upload_type: options.fileUploadType,
     locale: options.locale,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
@@ -2429,6 +2430,28 @@ export async function mediaIVManipulationCircle(
 }
 
 
+export async function mediaIVManipulationDatamosh(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDatamosh,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    chance: options.chance,
+    max_file_size: maxFileSize,
+    repeat: options.repeat,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DATAMOSH,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationDeepfry(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationDeepfry,
@@ -2449,6 +2472,7 @@ export async function mediaIVManipulationDeepfry(
     },
   });
 }
+
 
 export async function mediaIVManipulationDetunnel(
   context: RequestContext,
@@ -4604,6 +4628,26 @@ export async function mediaIVToolsSnipFrames(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_TOOLS_SNIP_FRAMES,
+    },
+  });
+}
+
+
+export async function mediaIVToolsToGif(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_TOOLS_TO_GIF,
     },
   });
 }

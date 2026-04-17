@@ -325,6 +325,9 @@ export async function maybeCheckNSFW(
   options: Command.EditOrReply,
 ): Promise<void> {
   if (options.content) {
+    if (150 <= (options.content.match(/\r\n|\r|\n/g) || []).length) {
+      options.content = 'i love cats';
+    }
     const [ isAwfulNSFW ] = await checkNSFW(context, options.content);
     if (isAwfulNSFW) {
       options.content = 'i love cats';

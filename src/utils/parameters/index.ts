@@ -36,7 +36,7 @@ import {
   GoogleLocalesText,
   TTSVoices,
   TTSVoicesToText,
-  UserFallbacksMediaImageTypes,
+  UserSettingsFallbacksMediaImageTypes,
   UserFlags,
   TTS_VOICES,
 } from '../../constants';
@@ -1475,7 +1475,7 @@ export function mediaUrl(
 
           if (shouldFallback) {
             switch (settings.fallbacks_media_image) {
-              case UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
+              case UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
                 const results = await searchGoogleImages(context, {
                   query: value,
                   safe: DefaultParameters.safe(context),
@@ -1484,7 +1484,7 @@ export function mediaUrl(
                 const result = results[page];
                 return result.imageUrl;
               }; break;
-              case UserFallbacksMediaImageTypes.IMAGINE: {
+              case UserSettingsFallbacksMediaImageTypes.IMAGINE: {
                 const job = await utilitiesMLImagine(context, {
                   query: value,
                   upload: true,
@@ -1500,7 +1500,7 @@ export function mediaUrl(
                   return response.storage.urls.cdn;
                 }
               }; break;
-              case UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
+              case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
                 const { results } = await searchDuckDuckGoImages(context, {
                   query: value,
                   safe: DefaultParameters.safe(context),
@@ -1735,7 +1735,7 @@ export function mediaUrls(
         
           if (shouldFallback) {
             switch (settings.fallbacks_media_image) {
-              case UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
+              case UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
                 const results = await searchGoogleImages(context, {
                   query: value,
                   safe: DefaultParameters.safe(context),
@@ -1744,7 +1744,7 @@ export function mediaUrls(
                 const result = results[page];
                 urls.push(result.imageUrl);
               }; break;
-              case UserFallbacksMediaImageTypes.IMAGINE: {
+              case UserSettingsFallbacksMediaImageTypes.IMAGINE: {
                 const job = await utilitiesMLImagine(context, {
                   query: value,
                   upload: true,
@@ -1760,7 +1760,7 @@ export function mediaUrls(
                   urls.push(response.storage.urls.cdn);
                 }
               }; break;
-              case UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
+              case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
                 const { results } = await searchDuckDuckGoImages(context, {
                   query: value,
                   safe: DefaultParameters.safe(context),

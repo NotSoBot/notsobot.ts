@@ -3,7 +3,7 @@ import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Store } from './store';
 
-import { RestResponsesRaw, fetchUserSettings } from '../api';
+import { RequestContext, RestResponsesRaw, fetchUserSettings } from '../api';
 import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
 import { RedisPayloads } from '../types';
@@ -21,7 +21,7 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
   }
 
   async getOrFetch(
-    context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+    context: RequestContext,
     userId: string,
   ): Promise<RestResponsesRaw.UserSettings | null> {
     let settings: RestResponsesRaw.UserSettings | null = null;
@@ -39,7 +39,7 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
   }
 
   async fetch(
-    context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+    context: RequestContext,
     userId: string,
   ): Promise<RestResponsesRaw.UserSettings | null> {
     let promise: Promise<RestResponsesRaw.UserSettings | null>;

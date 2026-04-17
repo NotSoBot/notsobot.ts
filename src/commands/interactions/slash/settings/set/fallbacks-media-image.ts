@@ -19,7 +19,7 @@ export class SettingsSetFallbacksMediaImageCommand extends BaseInteractionComman
         {
           name: 'fallback',
           description: 'Image Fallback Type (Default: Search Google Images)',
-          choices: Parameters.Slash.USER_FALLBACKS_MEDIA_IMAGE_TYPES,
+          choices: Parameters.Slash.USER_SETTINGS_FALLBACKS_MEDIA_IMAGE_TYPES,
           type: Number,
         },
       ],

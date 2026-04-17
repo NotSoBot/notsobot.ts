@@ -1,11 +1,8 @@
 import { Collections, Structures } from 'detritus-client';
 
 import {
-  GoogleLocales,
   UserFlags,
   UserPremiumTypes,
-  UserFallbacksMediaImageTypes,
-  UserUploadThresholdTypes,
   NotSoApiKeys,
 } from '../../constants';
 

@@ -4,9 +4,10 @@ import {
   GoogleLocales,
   GoogleLocalesText,
   MLDiffusionModels,
-  UserFallbacksMediaImageTypes,
+  UserSettingsFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
-  UserUploadThresholdTypes,
+  UserSettingsUploadThresholdTypes,
+  UserSettingsUploadTypes,
 } from '../../constants';
 import { DefaultParameters, toTitleCase } from '../../utils';
 
@@ -75,10 +76,10 @@ export const GOOGLE_LOCALES = [
 ].map((x) => ({name: GoogleLocalesText[x], value: x}));
 
 
-export const USER_FALLBACKS_MEDIA_IMAGE_TYPES = [
-  {name: 'Search Google Images', value: UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES},
-  {name: 'Search Duck Duck Go Images', value: UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES},
-  {name: 'Generate Image', value: UserFallbacksMediaImageTypes.IMAGINE},
+export const USER_SETTINGS_FALLBACKS_MEDIA_IMAGE_TYPES = [
+  {name: 'Search Google Images', value: UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES},
+  {name: 'Search Duck Duck Go Images', value: UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES},
+  {name: 'Generate Image', value: UserSettingsFallbacksMediaImageTypes.IMAGINE},
 ];
 
 
@@ -89,10 +90,16 @@ export const USER_SETTINGS_RESPONSE_DISPLAY = [
 ];
 
 
-export const USER_UPLOAD_THRESHOLD_TYPES = [
-  {name: 'Exceeds Discord File Size Limits (Default)', value: UserUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT},
-  {name: 'Always', value: UserUploadThresholdTypes.ALWAYS},
-  {name: 'Never', value: UserUploadThresholdTypes.NEVER},
+export const USER_SETTINGS_UPLOAD_THRESHOLD_TYPES = [
+  {name: 'Exceeds Discord File Size Limits (Default)', value: UserSettingsUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT},
+  {name: 'Always', value: UserSettingsUploadThresholdTypes.ALWAYS},
+  {name: 'Never', value: UserSettingsUploadThresholdTypes.NEVER},
+];
+
+
+export const USER_SETTINGS_UPLOAD_TYPES = [
+  {name: 'Automatic (Default)', value: UserSettingsUploadTypes.AUTOMATIC},
+  {name: 'Temporary', value: UserSettingsUploadTypes.TEMPORARY},
 ];
 
 

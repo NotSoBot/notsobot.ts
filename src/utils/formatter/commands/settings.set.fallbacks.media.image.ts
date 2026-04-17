@@ -5,14 +5,14 @@ import { Markup } from 'detritus-client/lib/utils';
 import UserSettingsStore from '../../../stores/usersettings';
 
 import { editUserSettings } from '../../../api';
-import { UserFallbacksMediaImageTypes } from '../../../constants';
+import { UserSettingsFallbacksMediaImageTypes } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'settings.set.fallbacks.media.image';
 
 export interface CommandArgs {
-  fallback?: UserFallbacksMediaImageTypes,
+  fallback?: UserSettingsFallbacksMediaImageTypes,
 }
 
 export async function createMessage(
@@ -26,13 +26,13 @@ export async function createMessage(
     const settings = await UserSettingsStore.getOrFetch(context, context.userId);
     if (settings) {
       switch (settings.fallbacks_media_image) {
-        case UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
+        case UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
           text = 'Image Manipulation Commands will fallback to searching Google Images';
         }; break;
-        case UserFallbacksMediaImageTypes.IMAGINE: {
+        case UserSettingsFallbacksMediaImageTypes.IMAGINE: {
           text = 'Image Manipulation Commands will fallback to generating an Image';
         }; break;
-        case UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
+        case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
           text = 'Image Manipulation Commands will fallback to searching Duck Duck Go Images';
         }; break;
       }
@@ -42,13 +42,13 @@ export async function createMessage(
       fallbacksMediaImage: args.fallback,
     });
     switch (settings.fallbacks_media_image) {
-      case UserFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
+      case UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
         text = 'Ok, Image Manipulation Commands will fallback to searching Google Images now';
       }; break;
-      case UserFallbacksMediaImageTypes.IMAGINE: {
+      case UserSettingsFallbacksMediaImageTypes.IMAGINE: {
         text = 'Ok, Image Manipulation Commands will fallback to generating an Image now';
       }; break;
-      case UserFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
+      case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
         text = 'Ok, Image Manipulation Commands will fallback to searching Duck Duck Go Images now';
       }; break;
     }

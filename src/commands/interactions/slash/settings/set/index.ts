@@ -5,6 +5,7 @@ import { SettingsSetAIPersonalityCommand } from './ai-personality';
 import { SettingsSetDownloadQualityCommand } from './download-quality';
 import { SettingsSetFallbacksMediaImageCommand } from './fallbacks-media-image';
 import { SettingsSetFileUploadThresholdCommand } from './file-upload-threshold';
+import { SettingsSetFileUploadTypeCommand } from './file-upload-type';
 import { SettingsSetFileVanityCommand } from './file-vanity';
 import { SettingsSetLocaleCommand } from './locale';
 import { SettingsSetMLImagineModelCommand } from './ml-imagine-model';
@@ -25,6 +26,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new SettingsSetDownloadQualityCommand(),
         new SettingsSetFallbacksMediaImageCommand(),
         new SettingsSetFileUploadThresholdCommand(),
+        new SettingsSetFileUploadTypeCommand(),
         new SettingsSetFileVanityCommand(),
         new SettingsSetLocaleCommand(),
         new SettingsSetMLImagineModelCommand(),

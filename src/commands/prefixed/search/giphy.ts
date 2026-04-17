@@ -16,7 +16,6 @@ export default class GiphyCommand extends BaseSearchCommand<CommandArgs> {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['gif'],
       metadata: {
         description: 'Search Giphy',
         examples: [

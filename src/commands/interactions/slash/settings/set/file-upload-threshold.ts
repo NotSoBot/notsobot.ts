@@ -19,7 +19,7 @@ export class SettingsSetFileUploadThresholdCommand extends BaseInteractionComman
         {
           name: 'threshold',
           description: 'Upload Threshold (Default: Exceeds Discord File Size Limits)',
-          choices: Parameters.Slash.USER_UPLOAD_THRESHOLD_TYPES,
+          choices: Parameters.Slash.USER_SETTINGS_UPLOAD_THRESHOLD_TYPES,
           type: Number,
         },
       ],

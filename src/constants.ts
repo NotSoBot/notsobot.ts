@@ -11,7 +11,7 @@ import {
 } from 'detritus-client/lib/constants';
 
 
-export const MAX_MEMBERS_SAFE = 1000;
+export const MAX_MEMBERS_SAFE = 10000;
 
 export const CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND = 'ffmpeg version n7.';
 export const MOMENT_FORMAT = 'y [years], w [weeks], d [days], h [hours], m [minutes], s [seconds]';
@@ -1234,21 +1234,19 @@ export const MIMETYPES_SAFE_EMBED = MIMETYPES_IMAGE_EMBEDDABLE;
 
 export enum MLDiffusionModels {
   FLUX_KLEIN = 'FLUX_KLEIN',
-  FLUX_SCHNELL = 'FLUX_SCHNELL',
-  QWEN_IMAGE_EDIT_2509_LIGHTNING = 'QWEN_IMAGE_EDIT_2509_LIGHTNING',
   SDXL_TURBO = 'SDXL_TURBO',
 }
 
 export const MLDiffusionModelsToText = Object.freeze({
   [MLDiffusionModels.FLUX_KLEIN]: 'Flux Klein (Realistic)',
-  [MLDiffusionModels.FLUX_SCHNELL]: 'Flux Schnell (Realistic)',
-  [MLDiffusionModels.QWEN_IMAGE_EDIT_2509_LIGHTNING]: 'Qwen Image Edit 2509 Lightning (Amazing)',
   [MLDiffusionModels.SDXL_TURBO]: 'SDXL Turbo (Funny)',
 });
 
 
 export enum ProxyRequestMethods {
+  DELETE = 'DELETE',
   GET = 'GET',
+  HEAD = 'HEAD',
   PATCH = 'PATCH',
   POST = 'POST',
   PUT = 'PUT',
@@ -1331,35 +1329,55 @@ export const ReminderMessages = [
 ];
 
 
+export enum ReuploadStatuses {
+  STARTED = 1,
+  FINISHED = 2,
+  FAILED = 3,
+  CANCELLED = 4,
+}
+
+
 export enum TagGenerationModels {
-  CLAUDE_4_5_SONNET = 'CLAUDE_4_5_SONNET',
+  CLAUDE_4_6_SONNET = 'CLAUDE_4_6_SONNET',
   CLAUDE_4_5_HAIKU = 'CLAUDE_4_5_HAIKU',
   DEEPSEEK_CHAT = 'DEEPSEEK_CHAT',
-  GOOGLE_GEMINI_2_5_PRO = 'GOOGLE_GEMINI_2_5_PRO',
-  GOOGLE_GEMINI_2_5_FLASH = 'GOOGLE_GEMINI_2_5_FLASH',
-  GOOGLE_GEMINI_2_5_FLASH_LITE = 'GOOGLE_GEMINI_2_5_FLASH_LITE',
+  GOOGLE_GEMINI_3_0_FLASH = 'GOOGLE_GEMINI_3_0_FLASH',
+  GOOGLE_GEMINI_3_1_FLASH_LITE = 'GOOGLE_GEMINI_3_1_FLASH_LITE',
+  GOOGLE_GEMINI_3_1_PRO = 'GOOGLE_GEMINI_3_1_PRO',
   GOOGLE_GEMMA_3_0 = 'GOOGLE_GEMMA_3_0',
   META_LLAMA = 'META_LLAMA',
+  OPENAI_CHATGPT_5_3_CODEX = 'OPENAI_CHATGPT_5_3_CODEX',
   OPENAI_CHATGPT_5_2 = 'OPENAI_CHATGPT_5_2',
   OPENAI_CHATGPT_5_MINI = 'OPENAI_CHATGPT_5_MINI',
-  QWEN_3_CODER = 'QWEN_3_CODER',
+  OPENAI_CHATGPT_5_NANO = 'OPENAI_CHATGPT_5_NANO',
+  OPENAI_CHATGPT_OSS = 'OPENAI_CHATGPT_OSS',
+  QWEN_3_CODER_FLASH = 'QWEN_3_CODER_FLASH',
+  QWEN_3_CODER_PLUS = 'QWEN_3_CODER_PLUS',
+  QWEN_3_5_FLASH = 'QWEN_3_5_FLASH',
+  QWEN_3_5_PLUS = 'QWEN_3_5_PLUS',
   XAI_GROK_4_1_FAST = 'XAI_GROK_4_1_FAST',
   XAI_GROK_CODE_1_FAST = 'XAI_GROK_CODE_1_FAST',
 }
 
 
 export const TagGenerationModelsToText = Object.freeze({
-  [TagGenerationModels.CLAUDE_4_5_SONNET]: 'Claude 4.5 Sonnet',
+  [TagGenerationModels.CLAUDE_4_6_SONNET]: 'Claude 4.6 Sonnet',
   [TagGenerationModels.CLAUDE_4_5_HAIKU]: 'Claude 4.5 Haiku',
   [TagGenerationModels.DEEPSEEK_CHAT]: 'DeepSeek Chat',
-  [TagGenerationModels.GOOGLE_GEMINI_2_5_PRO]: 'Google Gemini 2.5 Pro',
-  [TagGenerationModels.GOOGLE_GEMINI_2_5_FLASH]: 'Google Gemini 2.5 Flash',
-  [TagGenerationModels.GOOGLE_GEMINI_2_5_FLASH_LITE]: 'Google Gemini 2.5 Flash Lite',
+  [TagGenerationModels.GOOGLE_GEMINI_3_0_FLASH]: 'Google Gemini 3.0 Flash',
+  [TagGenerationModels.GOOGLE_GEMINI_3_1_FLASH_LITE]: 'Google Gemini 3.1 Flash Lite',
+  [TagGenerationModels.GOOGLE_GEMINI_3_1_PRO]: 'Google Gemini 3.1 Pro',
   [TagGenerationModels.GOOGLE_GEMMA_3_0]: 'Google Gemma 3.0',
   [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
+  [TagGenerationModels.OPENAI_CHATGPT_5_3_CODEX]: 'OpenAI ChatGPT 5.3 Codex',
   [TagGenerationModels.OPENAI_CHATGPT_5_2]: 'OpenAI ChatGPT 5.2',
   [TagGenerationModels.OPENAI_CHATGPT_5_MINI]: 'OpenAI ChatGPT 5 Mini',
-  [TagGenerationModels.QWEN_3_CODER]: 'Qwen 3 Coder',
+  [TagGenerationModels.OPENAI_CHATGPT_5_NANO]: 'OpenAI ChatGPT 5 Nano',
+  [TagGenerationModels.OPENAI_CHATGPT_OSS]: 'OpenAI ChatGPT OSS',
+  [TagGenerationModels.QWEN_3_CODER_FLASH]: 'Qwen 3 Coder Flash',
+  [TagGenerationModels.QWEN_3_CODER_PLUS]: 'Qwen 3 Coder Plus',
+  [TagGenerationModels.QWEN_3_5_FLASH]: 'Qwen 3.5 Flash',
+  [TagGenerationModels.QWEN_3_5_PLUS]: 'Qwen 3.5 Plus',
   [TagGenerationModels.XAI_GROK_4_1_FAST]: 'xAI Grok 4.1 Fast',
   [TagGenerationModels.XAI_GROK_CODE_1_FAST]: 'xAI Grok Code 1 Fast',
 });
@@ -1626,7 +1644,7 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
 });
 
 
-export enum UserFallbacksMediaImageTypes {
+export enum UserSettingsFallbacksMediaImageTypes {
   SEARCH_GOOGLE_IMAGES = 0,
   IMAGINE = 1,
   SEARCH_DUCK_DUCK_GO_IMAGES = 2,
@@ -1637,6 +1655,19 @@ export enum UserSettingsResponseDisplayTypes {
   DEFAULT = 0,
   NO_EMBED = 1,
   LEGACY = 2,
+}
+
+
+export enum UserSettingsUploadThresholdTypes {
+  EXCEEDS_DISCORD_LIMIT = 0,
+  ALWAYS = 1,
+  NEVER = 2,
+}
+
+
+export enum UserSettingsUploadTypes {
+  AUTOMATIC = 0,
+  TEMPORARY = 1,
 }
 
 
@@ -1652,13 +1683,6 @@ export enum UserPremiumTypes {
   PREMIUM_FREE = 1,
   PREMIUM = 2,
   PREMIUM_PLUS = 3,
-}
-
-
-export enum UserUploadThresholdTypes {
-  EXCEEDS_DISCORD_LIMIT = 0,
-  ALWAYS = 1,
-  NEVER = 2,
 }
 
 
@@ -1734,6 +1758,8 @@ export const TRUSTED_URLS = Object.freeze([
   'images-ext-1.discordapp.net',
   'images-ext-2.discordapp.net',
   'media.discordapp.net',
+  'cdn.nsb.gg',
+  'nsb.gg',
 ]);
 
 

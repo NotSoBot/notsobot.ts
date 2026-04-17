@@ -12,9 +12,10 @@ import {
   RedditSortTypes,
   RedditTimeTypes,
   TagVariableStorageTypes,
-  UserFallbacksMediaImageTypes,
+  UserSettingsFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
-  UserUploadThresholdTypes,
+  UserSettingsUploadThresholdTypes,
+  UserSettingsUploadTypes,
   YoutubeResultTypes,
 } from '../constants';
 
@@ -146,8 +147,9 @@ export namespace RestOptions {
 
   export interface EditUserSettings {
     downloadQuality?: null | string,
-    fallbacksMediaImage?: null | UserFallbacksMediaImageTypes,
-    fileUploadThreshold?: null | UserUploadThresholdTypes,
+    fallbacksMediaImage?: null | UserSettingsFallbacksMediaImageTypes,
+    fileUploadThreshold?: null | UserSettingsUploadThresholdTypes,
+    fileUploadType?: null | UserSettingsUploadTypes,
     locale?: null | string,
     optOutContent?: boolean,
     mlDiffusionModel?: null | string,
@@ -449,6 +451,11 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationCircle extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaIVManipulationDatamosh extends MediaBaseOptions {
+    chance?: number,
+    repeat?: number,
   }
 
   export interface MediaIVManipulationDeepfry extends MediaBaseOptions {
@@ -1157,6 +1164,7 @@ export namespace RestResponsesRaw {
       size: number,
       width: number,
     },
+    temporary: boolean,
     urls: {
       cdn: string,
       delete?: string,
@@ -2505,6 +2513,7 @@ export namespace RestResponsesRaw {
     fallbacks_media_image: number,
     file_upload_name: string | null,
     file_upload_threshold: number,
+    file_upload_type: number,
     file_upload_vanity: string | null,
     locale: string | null,
     ml_diffusion_model: string | null,

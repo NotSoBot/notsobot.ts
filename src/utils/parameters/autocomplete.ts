@@ -121,7 +121,7 @@ export async function mlDiffusionModel(context: Interaction.InteractionAutoCompl
 
     if (!hasDefault) {
       for (let choice of choices) {
-        if (choice.value === MLDiffusionModels.FLUX_SCHNELL) {
+        if (choice.value === MLDiffusionModels.FLUX_KLEIN) {
           choice.name = `${choice.name} (Default)`;
           break;
         }

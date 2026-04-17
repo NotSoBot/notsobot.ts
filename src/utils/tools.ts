@@ -11,10 +11,14 @@ import {
   InteractionCallbackTypes,
   MessageEmbedTypes,
   Permissions,
+  PremiumUserLimits,
+  PremiumUserTypes,
   StickerFormats,
+  MAX_ATTACHMENT_SIZE_PREMIUM,
 } from 'detritus-client/lib/constants';
 import {
   Components,
+  ComponentButton,
   ComponentContext,
   Embed,
   Markup,
@@ -38,6 +42,7 @@ import { RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
 import {
+  BooleanEmojis,
   CodeLanguages,
   CodeLanguagesToName,
   DateMomentLogFormat,
@@ -46,6 +51,7 @@ import {
   LanguageCodesText,
   Mimetypes,
   ReminderMessages,
+  ReuploadStatuses,
   Timezones,
   TimezonesToText,
   UserSettingsResponseDisplayTypes,
@@ -176,13 +182,67 @@ export function editOrReply(context: ComponentContext, options: Command.EditOrRe
 export function editOrReply(context: Command.Context, options: Command.EditOrReply | string): Promise<Structures.Message>
 export function editOrReply(context: Interaction.InteractionContext, options: Structures.InteractionEditOrRespond | string): Promise<null>
 export function editOrReply(context: Command.Context | Interaction.InteractionContext | ComponentContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | null>
-export function editOrReply(
+export async function editOrReply(
   context: Command.Context | Interaction.InteractionContext | ComponentContext,
   options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
 ): Promise<Structures.Message | null> {
   if (typeof(options) === 'string') {
     options = {content: options};
   }
+
+  if (options.file) {
+    if (options.files) {
+      options.files.push(options.file);
+    } else {
+      options.files = [options.file];
+    }
+    options.file = undefined;
+  }
+
+  // if the files equal more than 50mb, defer the attachment upload
+  if (options.files && options.files.length && ((50 * 1024 * 1024) <= options.files.reduce((x, y) => x + y.value.length, 0))) {
+    let channelId = '560594334408245248'; // the bot cannot use channels it cannot see, use a known channel id for now
+    if (context instanceof Command.Context) {
+      channelId = context.channelId;
+    } else {
+      // find a random channel from cache?
+      if (context.hasServerPermissions) {
+        if (context.inDm) {
+          channelId = context.channelId!;
+        } else {
+          const { channel } = context;
+          if (channel && channel.canView) {
+            // we can only use the channel if the bot is in the server anyways
+            channelId = channel.id;
+          }
+        }
+      }
+    }
+
+    const attachmentIdsToFile: Record<string, RequestTypes.File> = {};
+    const { attachments } = await context.rest.createChannelAttachments(channelId, {
+      files: options.files.map((x, id) => {
+        attachmentIdsToFile[id] = x;
+        return {id, fileSize: 1 /*x.value.length*/, filename: 'attachmentid.' + (x.filename || `${Date.now()}`)};
+      }),
+    });
+    if (!options.attachments) {
+      options.attachments = [];
+    }
+    for (let [uploadFilename, attachment] of attachments) {
+      if (attachment.id !== null && attachment.id in attachmentIdsToFile) {
+        const file = attachmentIdsToFile[attachment.id];
+        await attachment.upload(file.value);
+        options.attachments.push({
+          ...file,
+          id: options.attachments.length + 1,
+          uploadedFilename: uploadFilename,
+        });
+      }
+    }
+    options.files = [];
+  }
+
   if (context instanceof ComponentContext) {
     return context.editOrRespond({
       ...options,
@@ -194,6 +254,7 @@ export function editOrReply(
       allowedMentions: {parse: [], ...options.allowedMentions},
     }) as Promise<Structures.Message | null>;
   }
+
   return context.editOrReply({
     reference: true,
     ...options,
@@ -358,30 +419,30 @@ export function findMediaUrlInComponent(
     const { file } = component;
     if (file.isAudio) {
       if (findAudio) {
-        return (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
+        return file.url || file.proxyUrl!; // (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
       }
     } else if (file.isImage) {
       if (findImage && (file.height || file.width)) {
-        return (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
+        return file.url || file.proxyUrl!; // (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
       }
     } else if (file.isText) {
       if (findText) {
-        return (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
+        return file.url || file.proxyUrl!; // (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
       }
     } else if (file.isVideo) {
       if (findVideo && (file.height || file.width)) {
-        return (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
+        return file.url || file.proxyUrl!; // (file.url && isURLTrusted(file.url)) ? file.url : file.proxyUrl!;
       }
     }
   } else if (component instanceof Structures.ComponentMediaGalleryItem) {
     const { media } = component;
     if (media.isImage) {
       if (findImage && (media.height || media.width)) {
-        return (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
+        return media.url || media.proxyUrl!; // (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
       }
     } else if (media.isVideo) {
       if (findVideo && (media.height || media.width)) {
-        return (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
+        return media.url || media.proxyUrl!; // (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
       }
     }
   } else if (component instanceof Structures.ComponentSection) {
@@ -389,12 +450,12 @@ export function findMediaUrlInComponent(
       const { media } = component.accessory;
       if (media.isImage) {
         if (findImage && (media.height || media.width)) {
-          return (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
+          return media.url || media.proxyUrl!; // (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
         }
       } else if (media.isVideo) {
         // should not happen
         if (findVideo && (media.height || media.width)) {
-          return (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
+          return media.url || media.proxyUrl!; // (media.url && isURLTrusted(media.url)) ? media.url : media.proxyUrl!;
         }
       }
     }
@@ -444,6 +505,10 @@ export function findMediaUrlInEmbed(
     // imgur returns the .gif image in thumbnail, so check if that ends with .gif
     const url = findMediaUrlInEmbed(embed, true, options);
     if (url && url.endsWith('.gif')) {
+      return url;
+    }
+    // klipy returns the animated .webp image in thumbnail
+    if (url && url.endsWith('webp')) {
       return url;
     }
     if (embed.url) {
@@ -611,6 +676,15 @@ export function findMediaUrlInMessage(
           const codepointForTwemoji = toCodePointForTwemoji(emoji);
           return Endpoints.CUSTOM.TWEMOJI_SVG(codepointForTwemoji) + '?codepoint=' + encodeURIComponent(codepoint);
         }
+      }
+    }
+
+    // it's a url
+    {
+      const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
+      if (matches.length) {
+        const [ { text } ] = matches;
+        return text;
       }
     }
   }
@@ -1618,7 +1692,17 @@ export async function imageReplyFromOptions(
   filename = `${filename}.${options.extension || 'png'}`;
 
   if (options.storage) {
-    return editOrReply(context, options.storage.urls.vanity);
+    const content: Array<string> = [options.storage.urls.vanity];
+    if (options.storage && options.storage.temporary) {
+      const warning: Array<string> = [
+        `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
+      ];
+      if (context instanceof Command.Context && userMaybeHasNitro(context)) {
+        warning.push(`Slash Commands will use your Nitro Upload limits.`);
+      }
+      content.push(`> -# **${warning.join(' ')}**`);
+    }
+    return editOrReply(context, content.join('\n'));
   }
 
   let embed: Embed;
@@ -1658,7 +1742,7 @@ export async function imageReplyFromOptions(
       took = Date.now() - context.metadata.started;
     }
     if (2000 <= took) {
-      const seconds = (options.took / 1000).toFixed(1);
+      const seconds = (took / 1000).toFixed(1);
       footer = `${footer}, took ${seconds} seconds`;
     }
   }
@@ -1802,12 +1886,14 @@ export async function mediaReplyFromOptions(
   options: {
     args?: boolean,
     content?: string,
+    context?: ComponentContext,
     description?: string,
     extension?: string,
     filename?: string,
     framecount?: number,
     height?: number,
     mimetype?: string,
+    reuploading?: ReuploadStatuses,
     size: number,
     spoiler?: boolean,
     storage?: null | RestResponsesRaw.FileResponseStorage,
@@ -1841,8 +1927,60 @@ export async function mediaReplyFromOptions(
       took = Date.now() - context.metadata.started;
     }
     if (2000 <= took) {
-      const seconds = (options.took / 1000).toFixed(1);
+      const seconds = (took / 1000).toFixed(1);
       footer = `${footer}, took ${seconds} seconds`;
+    }
+  }
+
+  let reuploadButton: ComponentButton | null = null;
+  if (!options.reuploading && options.storage && context instanceof Command.Context && userMaybeHasNitro(context)) {
+    reuploadButton = new ComponentButton({
+      label: 'Make Permanent Using Nitro',
+      run: async (ctx: ComponentContext) => {
+        if (ctx.userId !== context.userId && ctx.maxAttachmentSize < options.size) {
+          // we will only allow the original poster or if the person who clicked it has nitro
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
+        if (options.reuploading) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
+
+        options.context = ctx;
+        if (!options.storage || ctx.maxAttachmentSize < options.size) {
+          options.reuploading = ReuploadStatuses.CANCELLED;
+          return mediaReplyFromOptions(context, value, options);
+        }
+
+        options.reuploading = ReuploadStatuses.STARTED;
+        await mediaReplyFromOptions(context, value, options);
+
+        if (context.metadata) {
+          context.metadata.started = Date.now();
+        }
+
+        const buffer = await context.rest.get(options.storage.urls.cdn);
+        options.storage = null;
+        options.reuploading = ReuploadStatuses.FINISHED;
+        return mediaReplyFromOptions(context, buffer, options);
+      },
+    });
+  } else {
+    switch (options.reuploading) {
+      case ReuploadStatuses.CANCELLED: {
+        // do not show button
+      }; break;
+      case ReuploadStatuses.FAILED: {
+        // maybe show error?
+      }; break;
+      case ReuploadStatuses.FINISHED: {
+        // do not show anything
+      }; break;
+      case ReuploadStatuses.STARTED: {
+        reuploadButton = new ComponentButton({
+          disabled: true,
+          label: 'Re-Uploading Using Nitro...',
+        });
+      }; break;
     }
   }
 
@@ -1859,6 +1997,14 @@ export async function mediaReplyFromOptions(
     case Mimetypes.IMAGE_X_APNG: shouldBeEmbed = false; break; // discord now only uploads the first frame of an apng, so we will just send a file ending in `.apng`
   }
 
+  const components: Components = new Components({
+    timeout: (reuploadButton) ? (2 * (60 * 1000)) : 0, // todo: fix this in detritus
+    onTimeout: () => {
+      options.reuploading = ReuploadStatuses.CANCELLED;
+      return mediaReplyFromOptions(context, value, options);
+    },
+  });
+
   if (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT) {
     let canBeMedia = (
       MIMETYPES_IMAGE_EMBEDDABLE.includes(options.mimetype as Mimetypes) ||
@@ -1872,7 +2018,6 @@ export async function mediaReplyFromOptions(
     if (shouldUseComponents) {
       let file: RequestTypes.File | undefined;
 
-      const components = new Components();
       const container = components.createContainer();
       if (options.content) {
         container.addTextDisplay({content: options.content});
@@ -1899,19 +2044,50 @@ export async function mediaReplyFromOptions(
         }
       }
       container.addSeparator();
+      if (options.storage && options.storage.temporary) {
+        const warning: Array<string> = [
+          `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
+        ];
+        if ((context instanceof Command.Context || options.reuploading) && userMaybeHasNitro(context)) {
+          warning.push(`Slash Commands will use your Nitro Upload limits.`);
+        }
+        container.addTextDisplay({content: `-# **${warning.join(' ')}**`});
+      }
       container.addTextDisplay({content: `-# ${footer}`});
 
-      return editOrReply(context, {components, file});
+      if (reuploadButton) {
+        const actionRow = container.createActionRow();
+        actionRow.addButton(reuploadButton);
+      }
+
+      return editOrReply(options.context || context, {components, file});
     }
   }
-  
+
+  if (reuploadButton) {
+    components.addButton(reuploadButton);
+  }
+
   if (shouldBeEmbed && (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT || displaySettings === UserSettingsResponseDisplayTypes.LEGACY)) {
     const embed = new Embed();
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
     embed.setFooter(footer);
 
-    if (options.description) {
-      embed.setDescription(options.description);
+    if (options.description || (options.storage && options.storage.temporary)) {
+      const description: Array<string> = [];
+      if (options.description) {
+        description.push(options.description);
+      }
+      if (options.storage && options.storage.temporary) {
+        const warning: Array<string> = [
+          `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
+        ];
+        if ((context instanceof Command.Context || options.reuploading) && userMaybeHasNitro(context)) {
+          warning.push(`Slash Commands will use your Nitro Upload limits.`);
+        }
+        description.push(`-# **${warning.join(' ')}**`);
+      }
+      embed.setDescription(description.join('\n'));
     }
 
     let file: RequestTypes.File | undefined;
@@ -1922,21 +2098,51 @@ export async function mediaReplyFromOptions(
       file = {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value};
     }
 
-    return editOrReply(context, {content: options.content || '', embed, file});
+    return editOrReply(options.context || context, {components, content: options.content || '', embed, file});
   }
 
   if (options.storage) {
-    return editOrReply(context, {
-      content: [
-        (options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity,
-        (options.content || ''),
-        options.description || '',
-        `-# ${footer}`,
-      ].filter(Boolean).join('\n'),
+    // the embed has the dimensions/duration/filesize already, we just want to display the took
+    footer = '';
+    if (options.took) {
+      let took = options.took;
+      if (context.metadata && context.metadata.started) {
+        took = Date.now() - context.metadata.started;
+      }
+      if (2000 <= took) {
+        const seconds = (took / 1000).toFixed(1);
+        footer = `took ${seconds} seconds`;
+      }
+    }
+
+    const content: Array<string> = [
+      `> ${(options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity}`,
+    ];
+    if (options.storage.temporary) {
+      const warning: Array<string> = [
+        `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
+      ];
+      if (context instanceof Command.Context && userMaybeHasNitro(context)) {
+        warning.push(`Slash Commands will use your Nitro Upload limits.`);
+      }
+      content.push(`> -# **${warning.join(' ')}**`);
+    }
+    if (footer) {
+      content.push(`> ${footer}`);
+    }
+    if (options.content) {
+      content.push(options.content);
+    }
+    if (options.description) {
+      content.push(options.description);
+    }
+    return editOrReply(options.context || context, {
+      components,
+      content: content.filter(Boolean).join('\n'),
     });
   }
 
-  return editOrReply(context, {
+  return editOrReply(options.context || context, {
     content: [
       options.content || '',
       options.description || '',
@@ -2338,6 +2544,46 @@ export function toTitleCase(value: string): string {
   return value.replace(/_/g, ' ').split(' ').map((word) => {
     return word.charAt(0).toUpperCase() + word.substr(1).toLowerCase();
   }).join(' ');
+}
+
+
+export function userMaybeHasNitro(context: Command.Context | Interaction.InteractionContext | ComponentContext): boolean {
+  if (context instanceof Interaction.InteractionContext) {
+    const { maxAttachmentSize } = context;
+    if (maxAttachmentSize === MAX_ATTACHMENT_SIZE_PREMIUM) {
+      // they have 500mb limit, they have full nitro
+      return true;
+    }
+
+    if (maxAttachmentSize === PremiumUserLimits[PremiumUserTypes.TIER_1].attachment) {
+      // if the max attachment size is 50mb and it doesn't match guild's boost, they probably have nitro level 1
+      const { guild } = context;
+      if (!guild || guild.maxAttachmentSize !== maxAttachmentSize) {
+        return true;
+      }
+    }
+  }
+
+  const { user } = context;
+  if (user.avatar && user.avatar.startsWith('a_')) {
+    return true;
+  }
+  if (user.displayNameStyles) {
+    return true;
+  }
+
+  const { member } = context;
+  if (member) {
+    if (member.avatar || member.banner || member.avatarDecorationData || member.collectibles || member.displayNameStyles) {
+      return true;
+    }
+    if (member.premiumSinceUnix) {
+      // user boosted the server, probably has nitro
+      return true;
+    }
+  }
+
+  return false;
 }
 
 

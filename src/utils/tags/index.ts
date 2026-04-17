@@ -317,6 +317,7 @@ export enum TagFunctions {
   LOGICAL_OR = 'LOGICAL_OR',
   LOGICAL_SET = 'LOGICAL_SET',
   LOGICAL_SET_CHANNEL = 'LOGICAL_SET_CHANNEL',
+  LOGICAL_SET_FILE_NAME = 'LOGICAL_SET_FILE_NAME',
   LOGICAL_SET_GLOBAL = 'LOGICAL_SET_GLOBAL',
   LOGICAL_SET_SERVER = 'LOGICAL_SET_SERVER',
   LOGICAL_SET_USER = 'LOGICAL_SET_USER',
@@ -493,6 +494,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_OR]: ['or'],
   [TagFunctions.LOGICAL_SET]: ['set'],
   [TagFunctions.LOGICAL_SET_CHANNEL]: ['setchannel'],
+  [TagFunctions.LOGICAL_SET_FILE_NAME]: ['setfilename'],
   [TagFunctions.LOGICAL_SET_GLOBAL]: ['setglobal'],
   [TagFunctions.LOGICAL_SET_SERVER]: ['setserver'],
   [TagFunctions.LOGICAL_SET_USER]: ['setuser'],
@@ -3642,6 +3644,53 @@ const ScriptTags = Object.freeze({
         value: storageValue,
       });
     }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_SET_FILE_NAME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {setfilename:file_number|filename?|extension?}
+    // {setfilename:1|myfile}
+    // {setfilename:1|myfile|txt}
+    // {setfilename:1||txt}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    let [ key, value, extension ] = split(arg, 3);
+
+    const fileId = parseInt(key) - 1;
+    if (isNaN(fileId)) {
+      return false;
+    }
+
+    if (value === undefined) {
+      return false;
+    }
+
+    if (!(fileId in tag.files)) {
+      throw new Error(`File Id ${fileId + 1} does not exist`);
+    }
+
+    const file = tag.files[fileId]!;
+
+    const oldFileNameParts = file.filename.split('.');
+    const oldFileExtension = (1 < oldFileNameParts.length) ? oldFileNameParts.pop()! : '';
+    const oldFileName = oldFileNameParts.join('.');
+
+    if (!value) {
+      value = oldFileName;
+    }
+
+    if (extension === undefined) {
+      // they did not provide one, so use the one from the old filename
+      extension = oldFileExtension;
+    }
+
+    file.filename = [value, extension].filter(Boolean).join('.');
+
+    // todo: add character limit checks
 
     return true;
   },

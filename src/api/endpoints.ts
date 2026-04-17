@@ -184,6 +184,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/cartoon',
   MEDIA_IV_MANIPULATION_CIRCLE:
     '/media/iv/manipulation/circle',
+  MEDIA_IV_MANIPULATION_DATAMOSH:
+    '/media/iv/manipulation/datamosh',
   MEDIA_IV_MANIPULATION_DEEPFRY:
     '/media/iv/manipulation/deepfry',
   MEDIA_IV_MANIPULATION_DETUNNEL:
@@ -391,6 +393,8 @@ export const Api = Object.freeze({
     '/media/iv/tools/set/framecount',
   MEDIA_IV_TOOLS_SNIP_FRAMES:
     '/media/iv/tools/snip/frames',
+  MEDIA_IV_TOOLS_TO_GIF:
+    '/media/iv/tools/to/gif',
   MEDIA_IV_TOOLS_TRIM:
     '/media/iv/tools/trim',
 
