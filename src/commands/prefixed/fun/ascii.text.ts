@@ -6,9 +6,9 @@ import { Formatter, Parameters } from '../../../utils';
 import { BaseCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'ascii';
+export const COMMAND_NAME = 'ascii text';
 
-export default class AsciiCommand extends BaseCommand {
+export default class AsciiTextCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -20,19 +20,18 @@ export default class AsciiCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} NotSoBot`,
         ],
-        id: Formatter.Commands.FunAscii.COMMAND_ID,
+        id: Formatter.Commands.FunAsciiFromText.COMMAND_ID,
         usage: '<text>',
       },
-      priority: -1,
       type: Parameters.targetText,
     });
   }
 
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.FunAscii.CommandArgs) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.FunAsciiFromText.CommandArgs) {
     return !!args.text;
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.FunAscii.CommandArgs) {
-    return Formatter.Commands.FunAscii.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.FunAsciiFromText.CommandArgs) {
+    return Formatter.Commands.FunAsciiFromText.createMessage(context, args);
   }
 }

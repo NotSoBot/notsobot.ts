@@ -6,6 +6,7 @@ import {
 } from 'detritus-client/lib/constants';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
+import ServerSettingsStore from '../../../stores/serversettings';
 import UserStore from '../../../stores/users';
 
 import {
@@ -111,6 +112,13 @@ export default class AICommand extends BaseSlashCommand {
         if (owner && (owner.isPremiumPlusAI || owner.hasFlag(UserFlags.OWNER))) {
           hasPremium = true;
         }
+        if (!hasPremium) {
+          const serverId = context.channelId!;
+          const settings = await ServerSettingsStore.getOrFetch(context, serverId);
+          if (settings && settings.features.has(GuildFeatures.AI_ACCESS)) {
+            hasPremium = true;
+          }
+        }
       }
     }
 
@@ -119,6 +127,7 @@ export default class AICommand extends BaseSlashCommand {
       context.metadata.reason = 'You or the Server Owner must have NotSoPremium Plus AI to use NotSoAI!';
       context.metadata.reasonIsPremiumRequired = true;
     }
+
     return hasPremium;
   }
 

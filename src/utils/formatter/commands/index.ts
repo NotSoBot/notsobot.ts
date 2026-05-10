@@ -1,4 +1,5 @@
-import * as FunAscii from './fun.ascii';
+import * as FunAsciiFromImage from './fun.ascii.from.image';
+import * as FunAsciiFromText from './fun.ascii.from.text';
 import * as FunAesthetics from './fun.aesthetics';
 import * as FunB1 from './fun.b1';
 import * as FunBadMeme from './fun.badmeme';
@@ -217,6 +218,7 @@ import * as SearchE926 from './search.e926';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleReverse from './search.google.reverse';
 import * as SearchGoogleWeb from './search.google.web';
+import * as SearchImages from './search.images';
 import * as SearchImgur from './search.imgur';
 import * as SearchReddit from './search.reddit';
 import * as SearchRule34 from './search.rule34';
@@ -298,7 +300,8 @@ import * as VoiceRename from './voice.rename';
 
 
 export {
-  FunAscii,
+  FunAsciiFromImage,
+  FunAsciiFromText,
   FunAesthetics,
   FunB1,
   FunBadMeme,
@@ -517,6 +520,7 @@ export {
   SearchGoogleImages,
   SearchGoogleReverse,
   SearchGoogleWeb,
+  SearchImages,
   SearchImgur,
   SearchReddit,
   SearchRule34,

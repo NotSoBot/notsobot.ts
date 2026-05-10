@@ -13,7 +13,6 @@ import {
   GuildCommandsBlocklistTypes,
   GuildLoggerFlags,
   GuildLoggerTypes,
-  GuildPremiumTypes,
   NotSoApiKeys,
 } from '../../constants';
 
@@ -35,7 +34,6 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.LOGGERS,
   NotSoApiKeys.NAME,
   NotSoApiKeys.PREFIXES,
-  NotSoApiKeys.PREMIUM_TYPE,
   NotSoApiKeys.SETTINGS,
   NotSoApiKeys.TIMEZONE,
 ]);
@@ -56,7 +54,6 @@ export class GuildSettings extends BaseStructure {
   icon: string | null = null;
   id: string = '';
   name: string = '';
-  premiumType: GuildPremiumTypes = GuildPremiumTypes.NONE;
   settings!: GuildSettingsChild;
   timezone: string | null = null;
 

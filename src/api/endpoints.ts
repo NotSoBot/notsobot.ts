@@ -21,8 +21,10 @@ export const Api = Object.freeze({
   COMMANDS_USAGE:
     '/commands/usage',
 
-  FUN_ASCII:
-    '/fun/ascii',
+  FUN_ASCII_ART_FROM_IMAGE:
+    '/fun/ascii/art/from-image',
+  FUN_ASCII_ART_FROM_TEXT:
+    '/fun/ascii/art/from-text',
   FUN_TEXT_TO_SPEECH:
     '/fun/text-to-speech',
 
@@ -463,6 +465,9 @@ export const Api = Object.freeze({
     '/search/wolfram-alpha',
   SEARCH_YOUTUBE:
     '/search/youtube',
+
+  SERVER:
+    '/servers/:serverId',
 
   TAGS:
     '/tags',

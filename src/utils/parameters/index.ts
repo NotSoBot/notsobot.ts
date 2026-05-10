@@ -1526,12 +1526,13 @@ export function mediaUrl(
 export interface FindMediaUrlsOptions extends FindMediaUrlOptions {
   maxAmount?: number,
   minAmount?: number,
+  positional?: boolean,
 }
 
 
 export function mediaUrls(
   mediaSearchOptions: FindMediaUrlsOptions = {},
-): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<Array<string>> {
+): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<Array<string> | [true, Array<string>]> {
   const maxAmount = mediaSearchOptions.maxAmount || 2;
   const minAmount = mediaSearchOptions.minAmount || 0;
 
@@ -1570,6 +1571,7 @@ export function mediaUrls(
       }
     }
 
+    let foundFromText: boolean = false;
     let lastUrl: string | null | undefined;
     let lastUrlParsed = false;
     if (urls.length < maxAmount && value) {
@@ -1587,6 +1589,7 @@ export function mediaUrls(
               lastUrlParsed = true;
             }
             if (lastUrl) {
+              foundFromText = true;
               urls.push(String(lastUrl));
             }
             continue;
@@ -1607,6 +1610,7 @@ export function mediaUrls(
                     const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
                     const url = findMediaUrlInMessages([message], mediaSearchOptions);
                     if (url) {
+                      foundFromText = true;
                       urls.push(url);
                     }
                   }
@@ -1623,6 +1627,7 @@ export function mediaUrls(
               } else {
                 urls.push(text);
               }
+              foundFromText = true;
               continue;
             }
           }
@@ -1634,6 +1639,7 @@ export function mediaUrls(
             }
             const found = await findMemberByChunkText(context, part);
             if (found) {
+              foundFromText = true;
               urls.push(found.avatarUrlFormat(null, {size: 1024}));
             }
             continue;
@@ -1671,6 +1677,7 @@ export function mediaUrls(
               }
             }
             if (user) {
+              foundFromText = true;
               urls.push(user.avatarUrlFormat(null, {size: 1024}));
               continue;
             }
@@ -1680,6 +1687,7 @@ export function mediaUrls(
           {
             const { matches } = discordRegex(DiscordRegexNames.EMOJI, part) as {matches: Array<{animated: boolean, id: string}>};
             if (matches.length) {
+              foundFromText = true;
               const [ { animated, id } ] = matches;
               const format = (animated) ? 'gif' : 'png';
               urls.push(DiscordEndpoints.CDN.URL + DiscordEndpoints.CDN.EMOJI(id, format));
@@ -1692,6 +1700,7 @@ export function mediaUrls(
             const emojis = onlyEmoji(part);
             if (emojis && emojis.length) {
               for (let emoji of emojis) {
+                foundFromText = true;
                 const codepoint = toCodePointForTwemoji(emoji);
                 urls.push(CUSTOM.TWEMOJI_SVG(codepoint));
                 continue;
@@ -1700,7 +1709,7 @@ export function mediaUrls(
           }
 
           // try user search (without the discriminator)
-          {
+          if (!mediaSearchOptions.positional) {
             const found = await findMemberByChunkText(context, part);
             if (found) {
               urls.push(found.avatarUrlFormat(null, {size: 1024}));
@@ -1712,7 +1721,7 @@ export function mediaUrls(
         }
       }
 
-      if (minAmount === 1 && urls.length < minAmount) {
+      if (minAmount === 1 && urls.length < minAmount && !mediaSearchOptions.positional) {
         const user = await UserStore.getOrFetch(context, context.userId);
         const settings = await UserSettingsStore.getOrFetch(context, context.userId);
         if (user && settings) {
@@ -1769,7 +1778,7 @@ export function mediaUrls(
                 });
                 const page = Math.floor(Math.random() * results.length);
                 const result = results[page];
-                urls.push(result.image);
+                urls.push(result.proxy_url);
               }; break;
             }
           }
@@ -1777,7 +1786,7 @@ export function mediaUrls(
       }
     }
 
-    if (urls.length < maxAmount && urls.length < minAmount) {
+    if (urls.length < minAmount && urls.length < maxAmount) {
       // minAmount amount, fetch messages then go through each one and do `findMediaUrlInMessage` until minAmount are filled up
       const before = (context instanceof Command.Context) ? context.messageId : undefined;
       {
@@ -1787,8 +1796,8 @@ export function mediaUrls(
           if (message.channelId !== context.channelId) {
             return false;
           }
-          if (message.interaction && message.hasFlagEphemeral) {
-            return message.interaction.user.id === context.userId;
+          if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
+            return false;
           }
           if (beforeId) {
             return BigInt(message.id) < beforeId;
@@ -1796,7 +1805,7 @@ export function mediaUrls(
           return true;
         }).reverse();
         for (let message of messages) {
-          if (maxAmount <= urls.length) {
+          if ((minAmount && minAmount <= urls.length) || maxAmount <= urls.length) {
             break;
           }
           for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
@@ -1806,12 +1815,12 @@ export function mediaUrls(
       }
 
       if (
-        (urls.length < maxAmount && urls.length < minAmount) &&
+        (urls.length < minAmount && urls.length < maxAmount) &&
         ((context.inDm && context.hasServerPermissions) || (context.channel && context.channel.canReadHistory))
       ) {
         const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
         for (let [messageId, message] of messages) {
-          if (maxAmount <= urls.length) {
+          if ((minAmount && minAmount <= urls.length) || maxAmount <= urls.length) {
             break;
           }
           for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
@@ -1841,6 +1850,9 @@ export function mediaUrls(
       throw new Error(`Could not find a minimum of ${minAmount} media urls`);
     }
 
+    if (mediaSearchOptions.positional && !foundFromText) {
+      return [true, parsedUrls]; // tell parser to skip text
+    }
     return parsedUrls;
   }
 }

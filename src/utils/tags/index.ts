@@ -314,6 +314,7 @@ export enum TagFunctions {
   LOGICAL_FOR_EACH = 'LOGICAL_FOR_EACH',
   LOGICAL_GET = 'LOGICAL_GET',
   LOGICAL_GET_CHANNEL = 'LOGICAL_GET_CHANNEL',
+  LOGICAL_GET_FILE_NAME = 'LOGICAL_GET_FILE_NAME',
   LOGICAL_GET_GLOBAL = 'LOGICAL_GET_GLOBAL',
   LOGICAL_GET_SERVER = 'LOGICAL_GET_SERVER',
   LOGICAL_GET_USER = 'LOGICAL_GET_USER',
@@ -491,6 +492,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_FOR_EACH]: ['foreach'],
   [TagFunctions.LOGICAL_GET]: ['get'],
   [TagFunctions.LOGICAL_GET_CHANNEL]: ['getchannel'],
+  [TagFunctions.LOGICAL_GET_FILE_NAME]: ['getfilename'],
   [TagFunctions.LOGICAL_GET_GLOBAL]: ['getglobal'],
   [TagFunctions.LOGICAL_GET_SERVER]: ['getserver'],
   [TagFunctions.LOGICAL_GET_USER]: ['getuser'],
@@ -611,6 +613,7 @@ export enum TagSettings {
   AI_MODEL = 'AI_MODEL',
   AI_PERSONALITY = 'AI_PERSONALITY',
   ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE = 'ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE',
+  DISPLAY_MEDIA_AS_NATIVE = 'DISPLAY_MEDIA_AS_NATIVE',
   MEDIA_AV_FALLBACK = 'MEDIA_AV_FALLBACK',
   MEDIA_IV_FALLBACK = 'MEDIA_IV_FALLBACK',
   ML_IMAGINE_DO_NOT_ERROR = 'ML_IMAGINE_DO_NOT_ERROR',
@@ -645,6 +648,7 @@ export interface TagVariables {
     [TagSettings.AI_MODEL]?: string,
     [TagSettings.AI_PERSONALITY]?: string,
     [TagSettings.ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE]?: boolean,
+    [TagSettings.DISPLAY_MEDIA_AS_NATIVE]?: boolean,
     [TagSettings.MEDIA_AV_FALLBACK]?: TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES | TagFunctions.SEARCH_YOUTUBE,
     [TagSettings.ML_IMAGINE_DO_NOT_ERROR]?: boolean,
@@ -691,6 +695,16 @@ export async function parse(
   variables: TagVariables = Object.create(null),
   tagContext: TagContext = Object.create(null),
   limits: Partial<TagLimits> = Object.create(null),
+  files: Array<{
+    buffer: null | string | Buffer,
+    deleted?: boolean,
+    description?: string,
+    durationSecs?: number,
+    filename: string,
+    spoiler?: boolean,
+    waveform?: string,
+    url: string,
+  }> = [],
   shouldTrim: boolean = true,
 ): Promise<TagResult> {
   const tagLimits: TagLimits = Object.assign({}, TagLimitDefaults);
@@ -788,7 +802,17 @@ export async function parse(
     }
   }
 
-  const tag: TagResult = {components: null, context: tagContext, embeds: [], files: [], limits: tagLimits, pages: [], replacement, text: '', variables};
+  const tag: TagResult = {
+    components: null,
+    context: tagContext,
+    embeds: [],
+    files,
+    limits: tagLimits,
+    pages: [],
+    replacement,
+    text: '',
+    variables,
+  };
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
   const maxFileSize = context.maxAttachmentSize;
@@ -917,6 +941,42 @@ export async function parse(
               if (!wasValid) {
                 tag.text += scriptBuffer;
               }
+            } else if (TagFunctionsToString.LOGICAL_SET.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.LOGICAL_SET_CHANNEL.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_CHANNEL](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.LOGICAL_SET_FILE_NAME.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_FILE_NAME](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.LOGICAL_SET_GLOBAL.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_GLOBAL](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.LOGICAL_SET_SERVER.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_SERVER](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.LOGICAL_SET_USER.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_SET_USER](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
             } else if (TagFunctionsToString.RNG_CHOOSE.includes(scriptName)) {
               // do this separate from below because we don't want our args parsed yet
               const wasValid = await ScriptTags[TagFunctions.RNG_CHOOSE](context, arg, tag);
@@ -951,11 +1011,9 @@ export async function parse(
                 tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = 1;
               }
 
-              const argParsed = await parse(context, arg, '', tag.variables, tag.context, tag.limits);
-              normalizeTagResults(tag, argParsed, false);
-
-              if (arg !== argParsed.text) {
-                arg = argParsed.text;
+              const text = await parseValue(context, tag, arg);
+              if (arg !== text) {
+                arg = text;
                 const firstSplitter = scriptBuffer.indexOf(TagSymbols.SPLITTER_FUNCTION);
                 if (firstSplitter !== -1) {
                   scriptBuffer = scriptBuffer.slice(0, firstSplitter) + TagSymbols.SPLITTER_FUNCTION + arg + TagSymbols.BRACKET_RIGHT;
@@ -1171,10 +1229,20 @@ export function split(value: string, amount: number = 0): Array<string> {
       // find next left bracket
       const nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
       if (nextLeftBracket === -1) {
-        // no script tags found inside, so we have no splitters to ignore
-        for (let x of value.slice(position).split(REGEX_ARGUMENT_SPLITTER)) {
-          x = x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT);
-          args.push(x);
+        const remaining = value.slice(position);
+        const parts = remaining.split(REGEX_ARGUMENT_SPLITTER);
+        if (amount && parts.length > amount - args.length) {
+          const headCount = amount - args.length - 1;
+          let consumed = 0;
+          for (let i = 0; i < headCount; i++) {
+            args.push(parts[i].replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+            consumed += parts[i].length + TagSymbols.SPLITTER_ARGUMENT.length;
+          }
+          args.push(remaining.slice(consumed)); // raw tail, splitters preserved
+        } else {
+          for (let x of parts) {
+            args.push(x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+          }
         }
         position = value.length;
         continue;
@@ -1242,6 +1310,20 @@ function parseInnerScript(value: string, shouldTrim: boolean = true): [string, s
 }
 
 
+async function parseValue(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  value: string,
+): Promise<string> {
+  if (value.includes(TagSymbols.BRACKET_LEFT)) {
+    const argParsed = await parse(context, value, '', tag.variables, tag.context, tag.limits, tag.files);
+    normalizeTagResults(tag, argParsed, false);
+    return argParsed.text;
+  }
+  return value.trim();
+}
+
+
 function normalizeTagResults(main: TagResult, other: TagResult, content: boolean = true): void {
   if (content) {
     main.text += other.text;
@@ -1266,11 +1348,17 @@ function normalizeTagResults(main: TagResult, other: TagResult, content: boolean
     main.embeds.push(embed);
   }
 
-  if (main.limits.MAX_ATTACHMENTS < main.files.length + other.files.length) {
-    throw new Error(`Attachments surpassed max attachments length of ${main.limits.MAX_ATTACHMENTS}`);
+  // todo: must be a better way than this
+  if (other.files !== main.files) {
+    for (let file of other.files) {
+      if (!main.files.includes(file)) {
+        main.files.push(file);
+      }
+    }
   }
-  for (let file of other.files) {
-    main.files.push(file);
+
+  if (main.limits.MAX_ATTACHMENTS < main.files.length) {
+    throw new Error(`Attachments surpassed max attachments length of ${main.limits.MAX_ATTACHMENTS}`);
   }
 
   if (main.limits.MAX_PAGES < main.pages.length + other.pages.length) {
@@ -2653,15 +2741,20 @@ const ScriptTags = Object.freeze({
   [TagFunctions.COMPONENT_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {componentjson:COMPONENT_JSON}
 
+    arg = arg.trim();
+    if (arg.startsWith('```') && arg.endsWith('```')) {
+      const { language, text } = Parameters.codeblock(arg);
+      arg = text;
+    }
+
     tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = 1;
-    const argParsed = await parse(context, arg, '', tag.variables, tag.context, tag.limits);
-    normalizeTagResults(tag, argParsed, false);
+    const text = await parseValue(context, tag, arg);
     tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = 0;
 
     let data : any = null;
-    if (argParsed.text) {
+    if (text) {
       try {
-        data = JSON.parse(argParsed.text);
+        data = JSON.parse(text);
       } catch(error) {
         throw new Error('Invalid Component Given');
       }
@@ -2745,7 +2838,12 @@ const ScriptTags = Object.freeze({
       }
 
       const embed = new Embed(object);
-      if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+      if (
+        !embed.size &&
+        (!embed.image || !embed.image.url) &&
+        (!embed.thumbnail || !embed.thumbnail.url) &&
+        (!embed.video || !embed.video.url)
+      ) {
         throw new Error('this error doesn\'t matter');
       }
       tag.embeds.push(embed);
@@ -2763,8 +2861,8 @@ const ScriptTags = Object.freeze({
   [TagFunctions.EVAL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {eval:{args}}
 
-    const argParsed = await parse(context, arg, '', tag.variables, tag.context, tag.limits);
-    normalizeTagResults(tag, argParsed);
+    tag.text += await parseValue(context, tag, arg);
+
     return true;
   },
 
@@ -2772,13 +2870,7 @@ const ScriptTags = Object.freeze({
     // {evalsilent:{args}}
 
     try {
-      let argParsed = await parse(context, arg, '', tag.variables, tag.context, tag.limits);
-      normalizeTagResults(tag, argParsed, false);
-
-      if (argParsed.text) {
-        argParsed = await parse(context, argParsed.text, '', tag.variables, tag.context, tag.limits);
-        normalizeTagResults(tag, argParsed, false);
-      }
+      tag.text += await parseValue(context, tag, arg);
     } catch(error) {
       
     }
@@ -3173,15 +3265,7 @@ const ScriptTags = Object.freeze({
     for (let i = 0; i < conditionals.length; i++) {
       const conditional = conditionals[i];
 
-      let text: string = '';
-      if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, conditional, '', tag.variables, tag.context, tag.limits);
-        normalizeTagResults(tag, argParsed, false);
-        text = argParsed.text;
-      } else {
-        text = conditional;
-      }
-
+      const text = await parseValue(context, tag, conditional);
       if (!text) {
         break;
       }
@@ -3207,12 +3291,8 @@ const ScriptTags = Object.freeze({
     }
 
     let values: Array<[string, any]>;
-    if (text.includes(TagSymbols.BRACKET_LEFT)) {
-      const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
-      normalizeTagResults(tag, argParsed, false);
-      text = argParsed.text;
-    }
 
+    text = await parseValue(context, tag, text);
     if (isNaN(parseInt(text))) {
       try {
         let object = JSON.parse(text);
@@ -3260,9 +3340,7 @@ const ScriptTags = Object.freeze({
       if (code.includes(TagSymbols.BRACKET_LEFT)) {
         tag.variables[PrivateVariables.ID_X] = String(key);
         tag.variables[PrivateVariables.VALUE_X] = (typeof(value) === 'object') ? JSON.stringify(value) : String(value);
-        const argParsed = await parse(context, code, '', tag.variables, tag.context, tag.limits, false);
-        normalizeTagResults(tag, argParsed, false);
-        text = argParsed.text;
+        text = await parseValue(context, tag, code);
       } else {
         text = code;
       }
@@ -3396,13 +3474,7 @@ const ScriptTags = Object.freeze({
       }
       tag.text += value;
     } else if (defaultValue) {
-      if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
-        normalizeTagResults(tag, argParsed, false);
-        tag.text += argParsed.text;
-      } else {
-        tag.text += defaultValue;
-      }
+      tag.text += await parseValue(context, tag, defaultValue);
     }
 
     return true;
@@ -3437,19 +3509,36 @@ const ScriptTags = Object.freeze({
       } catch(error) {
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
-            if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
-              normalizeTagResults(tag, argParsed, false);
-              tag.text += argParsed.text;
-            } else {
-              tag.text += defaultValue;
-            }
+            tag.text += await parseValue(context, tag, defaultValue);
           }
         } else {
           throw error;
         }
       }
     }
+
+    return true;
+  },
+
+  [TagFunctions.LOGICAL_GET_FILE_NAME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {getfilename:file_number}
+
+    arg = arg.trim();
+    if (!arg) {
+      return false;
+    }
+
+    const fileId = parseInt(arg) - 1;
+    if (isNaN(fileId)) {
+      return false;
+    }
+
+    if (!(fileId in tag.files)) {
+      throw new Error(`File Id ${fileId + 1} does not exist`);
+    }
+
+    const file = tag.files[fileId]!;
+    tag.text += file.filename;
 
     return true;
   },
@@ -3483,13 +3572,7 @@ const ScriptTags = Object.freeze({
       } catch(error) {
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
-            if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
-              normalizeTagResults(tag, argParsed, false);
-              tag.text += argParsed.text;
-            } else {
-              tag.text += defaultValue;
-            }
+            tag.text += await parseValue(context, tag, defaultValue);
           }
         } else {
           throw error;
@@ -3529,13 +3612,7 @@ const ScriptTags = Object.freeze({
       } catch(error) {
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
-            if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
-              normalizeTagResults(tag, argParsed, false);
-              tag.text += argParsed.text;
-            } else {
-              tag.text += defaultValue;
-            }
+            tag.text += await parseValue(context, tag, defaultValue);
           }
         } else {
           throw error;
@@ -3575,13 +3652,7 @@ const ScriptTags = Object.freeze({
       } catch(error) {
         if (error.response && error.response.statusCode === 404) {
           if (defaultValue) {
-            if (defaultValue.includes(TagSymbols.BRACKET_LEFT)) {
-              const argParsed = await parse(context, defaultValue, '', tag.variables, tag.context, tag.limits);
-              normalizeTagResults(tag, argParsed, false);
-              tag.text += argParsed.text;
-            } else {
-              tag.text += defaultValue;
-            }
+            tag.text += await parseValue(context, tag, defaultValue);
           }
         } else {
           throw error;
@@ -3643,15 +3714,7 @@ const ScriptTags = Object.freeze({
 
     const values: [string, string] = [value1, value2];
     for (let i in values) {
-      const x = values[i];
-      if (x.includes(TagSymbols.BRACKET_LEFT)) {
-        // parse it
-        const argParsed = await parse(context, x, '', tag.variables, tag.context, tag.limits);
-        normalizeTagResults(tag, argParsed, false);
-        values[i] = argParsed.text;
-      } else {
-        values[i] = x;
-      }
+      values[i] = await parseValue(context, tag, values[i]);
     }
 
     let compared: boolean | undefined;
@@ -3702,24 +3765,11 @@ const ScriptTags = Object.freeze({
 
     {
       const text = (compared) ? then.slice(5) : (elseValue || '').slice(5);
-      if (text.includes(TagSymbols.BRACKET_LEFT)) {
-        // parse it
-        const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
-        normalizeTagResults(tag, argParsed);
-      } else {
-        tag.text += text;
-      }
+      tag.text += await parseValue(context, tag, text);
     }
 
     if (finallyValue) {
-      const text = finallyValue;
-      if (text.includes(TagSymbols.BRACKET_LEFT)) {
-        // parse it
-        const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
-        normalizeTagResults(tag, argParsed);
-      } else {
-        tag.text += text;
-      }
+      tag.text += await parseValue(context, tag, finallyValue);
     }
 
     return true;
@@ -3735,21 +3785,12 @@ const ScriptTags = Object.freeze({
 
     const conditionals = split(arg);
     for (let conditional of conditionals) {
-      let text: string = '';
-      if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
-        try {
-          const argParsed = await parse(context, conditional, '', tag.variables, tag.context, tag.limits);
-          normalizeTagResults(tag, argParsed, false);
-          text = argParsed.text;
-        } catch(error) {
-          // go to the next one if it errors
-          continue;
-        }
-      } else {
-        text = conditional;
+      try {
+        tag.text += await parseValue(context, tag, conditional);
+      } catch(error) {
+        // go to the next one if it errors
+        continue;
       }
-
-      tag.text += text;
       return true;
     }
 
@@ -3802,14 +3843,7 @@ const ScriptTags = Object.freeze({
 
     const conditionals = split(arg);
     for (let conditional of conditionals) {
-      let text: string = '';
-      if (conditional.includes(TagSymbols.BRACKET_LEFT)) {
-        const argParsed = await parse(context, conditional, '', tag.variables, tag.context, tag.limits);
-        normalizeTagResults(tag, argParsed, false);
-        text = argParsed.text;
-      } else {
-        text = conditional;
-      }
+      const text = await parseValue(context, tag, conditional);
       if (text) {
         tag.text += text;
         return true;
@@ -3828,7 +3862,8 @@ const ScriptTags = Object.freeze({
     }
 
     let [ key, value ] = split(arg, 2);
-    key = key.trim();
+
+    key = await parseValue(context, tag, key);
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
       throw new Error(`Tried to set a private variable, cannot start with '${PRIVATE_VARIABLE_PREFIX}'.`);
     }
@@ -3843,7 +3878,8 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    tag.variables[key] = (value || '').slice(0, tag.limits.MAX_VARIABLE_LENGTH).trim();
+    value = await parseValue(context, tag, value);
+    tag.variables[key] = value.slice(0, tag.limits.MAX_VARIABLE_LENGTH).trim();
 
     return true;
   },
@@ -3856,14 +3892,14 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [ key, ...value ] = split(arg);
-    key = key.trim();
+    let [ key, value ] = split(arg, 2);
 
+    key = await parseValue(context, tag, key);
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
-    const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    const storageValue = await parseValue(context, tag, value);
     if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
       throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
     }
@@ -3896,6 +3932,8 @@ const ScriptTags = Object.freeze({
 
     let [ key, value, extension ] = split(arg, 3);
 
+    key = await parseValue(context, tag, key);
+
     const fileId = parseInt(key) - 1;
     if (isNaN(fileId)) {
       return false;
@@ -3915,6 +3953,7 @@ const ScriptTags = Object.freeze({
     const oldFileExtension = (1 < oldFileNameParts.length) ? oldFileNameParts.pop()! : '';
     const oldFileName = oldFileNameParts.join('.');
 
+    value = await parseValue(context, tag, value);
     if (!value) {
       value = oldFileName;
     }
@@ -3922,6 +3961,8 @@ const ScriptTags = Object.freeze({
     if (extension === undefined) {
       // they did not provide one, so use the one from the old filename
       extension = oldFileExtension;
+    } else {
+      extension = await parseValue(context, tag, extension);
     }
 
     file.filename = [value, extension].filter(Boolean).join('.');
@@ -3939,14 +3980,14 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [ key, ...value ] = split(arg);
-    key = key.trim();
+    let [ key, value ] = split(arg, 2);
+    key = await parseValue(context, tag, key);
 
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
-    const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    const storageValue = await parseValue(context, tag, value);
     if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
       throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
     }
@@ -3975,14 +4016,14 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [ key, ...value ] = split(arg);
-    key = key.trim();
+    let [ key, value ] = split(arg, 2);
+    key = await parseValue(context, tag, key);
 
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
-    const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    const storageValue = await parseValue(context, tag, value);
     if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
       throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
     }
@@ -4011,14 +4052,14 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [ key, ...value ] = split(arg);
-    key = key.trim();
+    let [ key, value ] = split(arg, 2);
+    key = await parseValue(context, tag, key);
 
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(`Storage Variable cannot be more than ${tag.limits.MAX_STORAGE_KEY_LENGTH} characters`);
     }
 
-    const storageValue = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
+    const storageValue = await parseValue(context, tag, value);
     if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
       throw new Error(`Storage Variable Value cannot be more than ${tag.limits.MAX_STORAGE_VALUE_LENGTH} characters`);
     }
@@ -5117,7 +5158,12 @@ const ScriptTags = Object.freeze({
       if ('embed' in page && typeof(page.embed) === 'object') {
         try {
           const embed = new Embed(page.embed);
-          if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
+          if (
+            !embed.size &&
+            (!embed.image || !embed.image.url) &&
+            (!embed.thumbnail || !embed.thumbnail.url) &&
+            (!embed.video || !embed.video.url)
+          ) {
             throw new Error('this error doesn\'t matter');
           }
           embeds = [embed];
@@ -5301,13 +5347,7 @@ const ScriptTags = Object.freeze({
       value = arg;
     }
 
-    if (value.includes(TagSymbols.BRACKET_LEFT)) {
-      // parse it
-      const argParsed = await parse(context, value, '', tag.variables, tag.context, tag.limits);
-      normalizeTagResults(tag, argParsed);
-    } else {
-      tag.text += value;
-    }
+    tag.text += await parseValue(context, tag, value);
 
     return true;
   },
@@ -5534,6 +5574,18 @@ const ScriptTags = Object.freeze({
           delete tag.variables[setting];
         }
       }; break;
+      case TagSettings.DISPLAY_MEDIA_AS_NATIVE: {
+        if (value) {
+          value = value.toLowerCase();
+          if (value === 'true') {
+            tag.variables[PrivateVariables.SETTINGS][setting] = true;
+          } else {
+            delete tag.variables[setting];
+          }
+        } else {
+          delete tag.variables[setting];
+        }
+      }; break;
       case TagSettings.MEDIA_AV_FALLBACK: {
         if (value) {
           value = value.toLowerCase();
@@ -5608,22 +5660,12 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    let [ string, ...textParts ] = split(arg);
-    let text: string = textParts.join(TagSymbols.SPLITTER_ARGUMENT);
+    let [ indexValue, text ] = split(arg, 2);
 
-    {
-      const parsed = await parse(context, string, '', tag.variables, tag.context, tag.limits);
-      normalizeTagResults(tag, parsed, false);
-      string = parsed.text.trim();
-    }
+    indexValue = await parseValue(context, tag, indexValue);
+    text = await parseValue(context, tag, text);
 
-    {
-      const parsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
-      normalizeTagResults(tag, parsed, false);
-      text = parsed.text.trim();
-    }
-
-    tag.text += text.indexOf(string);
+    tag.text += text.indexOf(indexValue);
 
     return true;
   },
@@ -5932,39 +5974,26 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const [ text, startText, endText ] = split(arg);
-    if (text === undefined || startText === undefined) {
+    const [ text, startText, endText ] = split(arg, 3);
+    if (!text || !startText) {
       return false;
     }
 
-    let start: number;
-    {
-      const parsed = await parse(context, startText, '', tag.variables, tag.context, tag.limits);
-      normalizeTagResults(tag, parsed, false);
-
-      start = parseInt(parsed.text.trim());
-      if (isNaN(start)) {
-        return false;
-      }
+    const start = parseInt(await parseValue(context, tag, startText));
+    if (isNaN(start)) {
+      return false;
     }
 
     let end: number | undefined;
     if (endText !== undefined) {
-      const parsed = await parse(context, endText, '', tag.variables, tag.context, tag.limits);
-      end = parseInt(parsed.text.trim());
-      for (let file of parsed.files) {
-        tag.files.push(file);
-      }
+      end = await parseInt(await parseValue(context, tag, endText));
       if (isNaN(end)) {
         return false;
       }
     }
 
-    // parse it
-    const argParsed = await parse(context, text, '', tag.variables, tag.context, tag.limits);
-    normalizeTagResults(tag, argParsed, false);
-
-    tag.text += argParsed.text.trim().substring(start, end);
+    const parsedText = await parseValue(context, tag, text);
+    tag.text += parsedText.substring(start, end);
 
     return true;
   },
@@ -6086,7 +6115,7 @@ const ScriptTags = Object.freeze({
       }
 
       const tagContent = (fetchedTag.reference_tag) ? fetchedTag.reference_tag.content : fetchedTag.content;
-      const argParsed = await parse(context, tagContent, tagArguments, variables, tag.context, tag.limits);
+      const argParsed = await parse(context, tagContent, tagArguments, variables, tag.context, tag.limits, tag.files);
       normalizeTagResults(tag, argParsed);
 
       if (oldTag && oldTag.id === fetchedTag.id) {

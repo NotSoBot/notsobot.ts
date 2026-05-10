@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { funASCII } from '../../../api';
+import { funAsciiArtFromText } from '../../../api';
 import { imageReplyFromOptions } from '../../../utils';
 
 
@@ -15,7 +15,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await funASCII(context, args);
+  const response = await funAsciiArtFromText(context, args);
   const file = response.file;
   const text = response.arguments?.text;
 

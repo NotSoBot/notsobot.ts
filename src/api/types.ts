@@ -30,6 +30,7 @@ import {
   GuildSettingsLogger,
   GuildSettingsPrefix,
 } from './structures/guildsettings';
+import { ServerSettings } from './structures/serversettings';
 import { User, UserFull } from './structures/user';
 
 
@@ -124,6 +125,15 @@ export namespace RestOptions {
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
     prefixes?: Array<string>,
+    timezone?: string,
+  }
+
+  export interface EditServerSettings {
+    blocked?: boolean,
+    blockedReason?: null | string,
+    mlDiffusionModel?: string,
+    mlLLMModel?: string | null,
+    mlLLMPersonality?: string | null,
     timezone?: string,
   }
 
@@ -241,7 +251,11 @@ export namespace RestOptions {
   }
 
 
-  export interface FunASCII {
+  export interface FunAsciiArtFromImage extends MediaBaseOptions {
+    size?: number,
+  }
+
+  export interface FunAsciiArtFromText {
     text: string,
   }
 
@@ -439,6 +453,11 @@ export namespace RestOptions {
     size?: number,
   }
 
+  export interface MediaIVManipulationAscii extends MediaBaseOptions {
+    invert?: boolean,
+    zoom?: boolean,
+  }
+
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
     scale?: number,
   }
@@ -610,6 +629,8 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationPhoSimp extends MediaBaseOptions {
     filters: Array<number>,
+    gridx?: number,
+    gridy?: number,
   }
 
   export interface MediaIVManipulationPix2Pix extends MediaBaseOptions {
@@ -817,6 +838,10 @@ export namespace RestOptions {
       users?: number,
       voiceStates?: number,
     }>,
+  }
+
+  export interface PutServerSettings {
+
   }
 
   export interface PutTag {
@@ -1132,15 +1157,18 @@ export namespace RestResponses {
   export type DeleteVoice = null;
 
   export type EditGuildSettings = GuildSettings;
+  export type EditServerSettings = ServerSettings;
   export type EditUser = UserFull;
 
   export type FetchGuildSettings = GuildSettings;
+  export type FetchServerSettings = ServerSettings;
   export type FetchUser = UserFull;
 
   export type SearchGoogleImages = Array<GoogleSearchImageResult>;
 
   export type PutGuildSettings = GuildSettings;
   export type PutInfoDiscord = null;
+  export type PutServerSettings = ServerSettings;
   export type PutUser = UserFull;
 }
 
@@ -1327,6 +1355,7 @@ export namespace RestResponsesRaw {
   export type DeleteTagVariable = null;
 
   export type EditGuildSettings = GuildSettings;
+  export type EditServerSettings = ServerSettings;
   export type EditTag = Tag;
   export type EditTagsDirectoryTag = TagDirectory;
   export type EditUser = User;
@@ -1350,6 +1379,8 @@ export namespace RestResponsesRaw {
   }
 
   export type FetchReminderPositional = Reminder;
+
+  export type FetchServerSettings = ServerSettings;
 
   export interface FetchTags {
     count: number,
@@ -1406,6 +1437,10 @@ export namespace RestResponsesRaw {
     user_id: string,
   }
 
+  export interface FunAsciiArtFromImage {
+    text: string,
+  }
+
   export interface GenerateTag {
     external_id: string,
     id?: string,
@@ -1414,10 +1449,11 @@ export namespace RestResponsesRaw {
     text: string,
     text_full: string,
     usage: {
-      cache_creation_input_tokens: number,
-      cache_read_input_tokens: number,
       input_tokens: number,
+      input_tokens_cached: number,
+      input_tokens_cached_created: number,
       output_tokens: number,
+      output_tokens_reasoning: number,
     },
   }
 
@@ -1470,6 +1506,8 @@ export namespace RestResponsesRaw {
 
   export interface GuildSettings {
     allowlist: Array<GuildAllowlist>,
+    blocked: boolean,
+    blocked_reason: string | null,
     blocklist: Array<GuildBlocklist>,
     commands_allowlist: Array<GuildCommandsAllowlist>,
     commands_blocklist: Array<GuildCommandsBlocklist>,
@@ -1477,7 +1515,6 @@ export namespace RestResponsesRaw {
     id: string,
     name: string,
     prefixes: Array<GuildPrefix>,
-    premium_type: number,
     settings: {
       ml_diffusion_model: string | null,
       ml_llm_model: string | null,
@@ -1709,15 +1746,38 @@ export namespace RestResponsesRaw {
   export interface SearchDuckDuckGoImages {
     amount: number,
     results: Array<{
-      height: number,
-      image: string,
-      image_token: string,
-      source: string,
-      thumbnail: string,
-      thumbnail_token: string,
-      title: string,
+      created: null | string,
+      header: string,
+      footer: string,
+      id: string,
+      image: {
+        extension: null | string,
+        height: number,
+        token: string,
+        trusted: boolean,
+        url: string,
+        width: number,
+      },
+      proxy_url: string,
+      thumbnail: {
+        height: number,
+        token: string,
+        trusted: boolean,
+        url: string,
+        width: number,
+      },
       url: string,
-      width: number,
+      _raw: Array<{
+        height: number,
+        image: string,
+        image_token: string,
+        source: string,
+        thumbnail: string,
+        thumbnail_token: string,
+        title: string,
+        url: string,
+        width: number,
+      }>,
     }>,
   }
 
@@ -2329,6 +2389,18 @@ export namespace RestResponsesRaw {
       view_count: number,
     },
     type: YoutubeResultTypes.VIDEO,
+  }
+
+  export interface ServerSettings {
+    blocked: boolean,
+    blocked_reason: string | null,
+    id: string,
+    settings: {
+      ml_diffusion_model: string | null,
+      ml_llm_model: string | null,
+      ml_llm_personality: string | null,
+    },
+    timezone: string | null,
   }
 
   export interface UtilitiesCodeRun {

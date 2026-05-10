@@ -117,8 +117,15 @@ export async function createMessage(
       content: [
         'Model: ' + response.model,
         'Prompt Complexity Level: ' + response.prompt_complexity_level,
-        `Token Count: (Input: ${response.usage.input_tokens}) (Output: ${response.usage.output_tokens})`,
-        `Token Count Cached: (Input: ${response.usage.cache_creation_input_tokens + response.usage.cache_read_input_tokens})`,
+        `Tokens Input Count: ` + [
+          `${response.usage.input_tokens}`,
+          (response.usage.input_tokens_cached) ? `(Cached: ${response.usage.input_tokens_cached})` : '',
+          (response.usage.input_tokens_cached_created) ? `(Cached Created: ${response.usage.input_tokens_cached_created})` : '',
+        ].filter(Boolean).join(' '),
+        `Tokens Output Count: ` + [
+          `${response.usage.output_tokens}`,
+          (response.usage.output_tokens_reasoning) ? `(Reasoning: ${response.usage.output_tokens_reasoning})` : '',
+        ].filter(Boolean).join(' '),
         `Took: ${Date.now() - now}`,
       ].join('\n'),
       file: {filename: 'response.txt', value: response.text_full},
@@ -214,7 +221,7 @@ export async function getAIPersonality(
     case TagGenerationPersonalityPreferences.DEFAULT: {
       personality = null;
     }; break;
-    case TagGenerationPersonalityPreferences.GUILD: {
+    case TagGenerationPersonalityPreferences.SERVER: {
       personality = serverPersonality || null;
     }; break;
     case TagGenerationPersonalityPreferences.USER: {

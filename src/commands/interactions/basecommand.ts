@@ -13,6 +13,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { Response } from 'detritus-rest';
 
 import GuildSettingsStore from '../../stores/guildsettings';
+import ServerSettingsStore from '../../stores/serversettings';
 import UserStore from '../../stores/users';
 
 import { createUserCommand } from '../../api';
@@ -97,7 +98,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           if (user && (user.premiumType || user.hasFlag(UserFlags.OWNER))) {
             hasPremium = true;
           }
-  
+
           if (!hasPremium && metadata.premiumServer) {
             if (context.guildId) {
               const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
@@ -118,9 +119,16 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
               if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
                 hasPremium = true;
               }
+              if (!hasPremium && typeof(metadata.premiumServer) === 'string') {
+                const serverId = context.channelId!;
+                const settings = await ServerSettingsStore.getOrFetch(context, serverId);
+                if (settings && settings.features.has(metadata.premiumServer)) {
+                  hasPremium = true;
+                }
+              }
             }
           }
-  
+
           if (!hasPremium) {
             context.metadata = context.metadata || {};
             if (metadata.premiumServer) {

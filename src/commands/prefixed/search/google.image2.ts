@@ -6,21 +6,14 @@ import { Formatter, Parameters, DefaultParameters } from '../../../utils';
 import { BaseSearchCommand } from '../basecommand';
 
 
-export interface CommandArgs {
-  locale: GoogleLocales,
-  query: string,
-  randomize: boolean,
-  safe: boolean,
-}
+export const COMMAND_NAME = 'google image2';
 
-export const COMMAND_NAME = 'image2';
-
-export default class Image2Command extends BaseSearchCommand<CommandArgs> {
+export default class Image2Command extends BaseSearchCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['g image2', 'g img2', 'g im2', 'google image2', 'google img2', 'google im2', 'img2', 'im2'],
+      aliases: ['g image2', 'g img2', 'g im2', 'google img2', 'google im2'],
       args: [
         {name: 'locale', aliases: ['language'], default: DefaultParameters.locale, type: Parameters.locale},
         {name: 'randomize', aliases: ['r', 'random'], type: Boolean},
@@ -42,7 +35,7 @@ export default class Image2Command extends BaseSearchCommand<CommandArgs> {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
+  async run(context: Command.Context, args: Formatter.Commands.SearchGoogleImages.CommandArgs) {
     return Formatter.Commands.SearchGoogleImages.createMessage(context, {
       ...args,
       simple: true,

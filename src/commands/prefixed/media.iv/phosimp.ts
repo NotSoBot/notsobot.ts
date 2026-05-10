@@ -13,15 +13,20 @@ export default class PhoSimpCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'gridx', aliases: ['gx'], type: Number},
+        {name: 'gridy', aliases: ['gy'], type: Number},
+      ],
       metadata: {
         category: CommandCategories.IMAGE,
         description: 'Apply PhoSimp Filters on an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot 1 9 4`,
+          `${COMMAND_NAME} notsobot 1 9 4 -gridx 2 -gridy 2`,
         ],
         id: Formatter.Commands.MediaIVManipulationPhoSimp.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> <...PhoSimpFilters>',
+        usage: '?<emoji,user:id|mention|name,url> <...PhoSimpFilters> (-gridx <number>) (-gridy <number>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

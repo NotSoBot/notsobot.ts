@@ -15,6 +15,7 @@ export interface CommandArgs {
   steps?: number,
   strength?: number,
   url: string,
+  urls?: Array<string>,
 }
 
 export function createJob(

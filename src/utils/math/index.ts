@@ -1,6 +1,14 @@
 import path from 'path';
+import { runInNewContext } from 'vm';
 import { Worker } from 'worker_threads';
-import { WorkerResponse, ERROR_TIMEOUT_MESSAGE, MAX_TIME_MATH } from './worker';
+
+import { isSimpleMath } from './tools';
+import {
+  executeEquation,
+  WorkerResponse,
+  ERROR_TIMEOUT_MESSAGE,
+  MAX_TIME_MATH,
+} from './worker';
 
 export { ERROR_TIMEOUT_MESSAGE as MATH_ERROR_TIMEOUT_MESSAGE };
 
@@ -114,6 +122,13 @@ export class MathWorker {
   }
 
   public async evaluate(equation: string, timeout: number = MAX_TIME_MATH): Promise<string> {
+    if (isSimpleMath(equation)) {
+      return String(runInNewContext(
+        `executeEquation(equation)`,
+        {equation, executeEquation},
+        {timeout},
+      ));
+    }
     if (!this.worker) {
       await this.initialize();
     }

@@ -19,6 +19,7 @@ const keysGoogleSearchImageResult = new Collections.BaseSet<string>([
   NotSoApiKeys.ID,
   NotSoApiKeys.IMAGE,
   NotSoApiKeys.METADATA,
+  NotSoApiKeys.PROXY_URL,
   NotSoApiKeys.THUMBNAIL,
   NotSoApiKeys.URL,
 ]);
@@ -39,6 +40,7 @@ export class GoogleSearchImageResult extends BaseStructure {
     recipe: null | GoogleSearchImageRecipe,
     video: null | GoogleSearchImageVideo,
   }
+  proxyUrl: string = '';
   thumbnail!: GoogleSearchImageThumbnail;
   url: string = '';
 
@@ -51,8 +53,8 @@ export class GoogleSearchImageResult extends BaseStructure {
     if (this.image.isRawImage || this.image.isSVG) {
       return this.thumbnail.url;
     }
-    return 'https://proxy.notsobot.com/google-images?url=' + encodeURIComponent(this.image.url) + '&backup=' + encodeURIComponent(this.thumbnail.url);
-    return this.image.url;
+    return this.proxyUrl;
+    // return this.image.url;
   }
 
   mergeValue(key: string, value: any): void {

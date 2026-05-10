@@ -10,6 +10,8 @@ import {
 import { BaseSlashCommand } from '../../basecommand';
 
 import { SearchGoogleGroupCommand } from './google';
+import { SearchImagesCommand } from './images';
+import { SearchImagesSimpleCommand } from './images-simple';
 import { SearchSteamGroupCommand } from './steam';
 
 import { SearchYoutubeCommand } from './youtube';
@@ -34,6 +36,8 @@ export default class SearchGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new SearchGoogleGroupCommand(),
+        new SearchImagesCommand(),
+        new SearchImagesSimpleCommand(),
         new SearchSteamGroupCommand(),
         new SearchYoutubeCommand(),
       ],

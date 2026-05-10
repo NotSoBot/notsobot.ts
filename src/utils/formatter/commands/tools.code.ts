@@ -65,19 +65,30 @@ export async function createMessage(
   }
   embed.setFooter(footer, EmbedBrands.NOTSOBOT);
 
+  const files: Array<{filename: string, value: Buffer}> = [];
+
   const languageMarkupString = language.extension;
   if (result.error) {// && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
     embed.setColor(EmbedColors.ERROR);
-    embed.setDescription(Markup.codeblock(result.error, {language: languageMarkupString}));
+    if (1990 < result.error.length) {
+      files.push({filename: 'error.txt', value: Buffer.from(result.error)});
+      embed.setDescription('Uploaded the error log to a txt file');
+    } else {
+      embed.setDescription(Markup.codeblock(result.error, {language: languageMarkupString})); 
+    }
   } else if (result.output) {
-    embed.setDescription(Markup.codeblock(result.output, {language: languageMarkupString}));
+    if (1990 < result.output.length) {
+      files.push({filename: 'output.txt', value: Buffer.from(result.output)});
+      embed.setDescription('Uploaded the long output to a txt file');
+    } else {
+      embed.setDescription(Markup.codeblock(result.output, {language: languageMarkupString})); 
+    }
   } else if (result.files.length) {
     embed.setDescription(`${result.files.length.toLocaleString()} File Outputted`);
   } else if (!result.files.length) {
     embed.setDescription('No Content');
   }
 
-  const files: Array<{filename: string, value: Buffer}> = [];
   if (result.files.length) {
     let currentFileSize = 0;
     const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE);

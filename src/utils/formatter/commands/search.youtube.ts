@@ -64,7 +64,7 @@ export async function createMessage(
             if (channel.badges.length) {
               description.push(`**Badges**: ${channel.badges.join(', ')}`);
             }
-            description.push(`**Id**: ${channel.id}`);
+            description.push(`**Id**: ${Markup.codestring(channel.id)}`);
             if (!channel.is_show) {
               description.push(`**Subscribers**: ${channel.subscriber_count.toLocaleString()}`);
             }
@@ -87,7 +87,7 @@ export async function createMessage(
             const duration = moment.duration(movie.duration, 'seconds').format(MOMENT_FORMAT, DateMomentOptions);
             description.push(`**Duration**: ${duration}`);
             description.push(`**Genre**: ${movie.genre}`);
-            description.push(`**Id**: ${movie.id}`);
+            description.push(`**Id**: ${Markup.codestring(movie.id)}`);
             description.push(`${Markup.url(movie.price, result.url)}`);
 
             embed.addField('Movie Information', description.join('\n'));
@@ -106,7 +106,7 @@ export async function createMessage(
               description.push(`Created by ${Markup.escape.all(playlist.channel.name)}`);
             }
 
-            description.push(`**Id**: ${playlist.id}`);
+            description.push(`**Id**: ${Markup.codestring(playlist.id)}`);
             if (playlist.updated) {
               description.push(`**Updated**: ${playlist.updated}`);
             }
@@ -146,7 +146,7 @@ export async function createMessage(
                 description.push(`**Duration**: Currently Live`);
               }
             }
-            description.push(`**Id**: ${video.id}`);
+            description.push(`**Id**: ${Markup.codestring(video.id)}`);
             if (video.published) {
               if (video.streamed) {
                 description.push(`**Streamed**: ${video.published}`);

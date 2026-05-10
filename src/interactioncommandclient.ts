@@ -3,10 +3,15 @@ import { InteractionCallbackTypes, MessageFlags } from 'detritus-client/lib/cons
 import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from './stores/guildsettings';
+import ServerSettingsStore from './stores/serversettings';
 import UserStore from './stores/users';
 import UserSettingsStore from './stores/usersettings';
 
-import { BaseInteractionCommand, BaseInteractionCommandOption, InteractionCommandMetadata } from './commands/interactions/basecommand';
+import {
+  BaseInteractionCommand,
+  BaseInteractionCommandOption,
+  InteractionCommandMetadata,
+} from './commands/interactions/basecommand';
 import {
   GuildAllowlistTypes,
   GuildBlocklistTypes,
@@ -39,6 +44,18 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     }
 
     if (context.inDm) {
+      if (context.channel && context.channel.ownerId) {
+        const serverId = context.channelId!;
+        const settings = await ServerSettingsStore.getOrFetch(context, serverId);
+        if (settings && settings.blocked) {
+          contextMetadata.reason = 'This server is blocked from using NotSoBot.';
+          if (settings.blockedReason) {
+            contextMetadata.reason = `${contextMetadata.reason} (Reason: \`${Markup.codestring(settings.blockedReason)}\`)`;
+          }
+          return false;
+        }
+      }
+
       if (context.invoker.disableDm) {
         contextMetadata.reason = 'Command blocked in Direct Messages.';
       }

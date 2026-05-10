@@ -9,6 +9,7 @@ import {
   GuildCommandsBlocklistTypes,
 } from '../constants';
 import GuildSettingsStore from '../stores/guildsettings';
+import ServerSettingsStore from '../stores/serversettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
@@ -21,6 +22,7 @@ import {
   GuildSettingsLogger,
   GuildSettingsPrefix,
 } from './structures/guildsettings';
+import { ServerSettings } from './structures/serversettings';
 import { UserFull } from './structures/user';
 import { RestOptions, RestResponses, RestResponsesRaw } from './types';
 
@@ -115,7 +117,7 @@ export async function createGuildLogger(
     collection.set(item.key, item);
   }
   if (GuildSettingsStore.has(guildId)) {
-    const settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({loggers: data});
   }
   return collection;
@@ -134,7 +136,7 @@ export async function createGuildPrefix(
     collection.set(item.prefix, item);
   }
   if (GuildSettingsStore.has(guildId)) {
-    const settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({prefixes: data});
   }
   return collection;
@@ -239,7 +241,7 @@ export async function deleteGuildLogger(
     collection.set(item.key, item);
   }
   if (GuildSettingsStore.has(guildId)) {
-    const settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({loggers: data});
   }
   return collection;
@@ -258,7 +260,7 @@ export async function deleteGuildPrefix(
     collection.set(item.prefix, item);
   }
   if (GuildSettingsStore.has(guildId)) {
-    const settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    const settings = GuildSettingsStore.get(guildId)!;
     settings.merge({prefixes: data});
   }
   return collection;
@@ -326,11 +328,29 @@ export async function editGuildSettings(
   const data = await raw.editGuildSettings(context, guildId, options);
   let settings: GuildSettings;
   if (GuildSettingsStore.has(guildId)) {
-    settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings = GuildSettingsStore.get(guildId)!;
     settings.merge(data);
   } else {
     settings = new GuildSettings(data);
     GuildSettingsStore.set(settings.id, settings);
+  }
+  return settings;
+}
+
+
+export async function editServerSettings(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.EditServerSettings = {},
+): Promise<RestResponses.EditServerSettings> {
+  const data = await raw.editServerSettings(context, serverId, options);
+  let settings: ServerSettings;
+  if (ServerSettingsStore.has(serverId)) {
+    settings = ServerSettingsStore.get(serverId)!;
+    settings.merge(data);
+  } else {
+    settings = new ServerSettings(data);
+    ServerSettingsStore.set(settings.id, settings);
   }
   return settings;
 }
@@ -400,7 +420,7 @@ export async function fetchGuildSettings(
   const data = await raw.fetchGuildSettings(context, guildId);
   let settings: GuildSettings;
   if (GuildSettingsStore.has(guildId)) {
-    settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings = GuildSettingsStore.get(guildId)!;
     settings.merge(data);
   } else {
     settings = new GuildSettings(data);
@@ -440,6 +460,23 @@ export async function fetchReminderPositional(
   position: number | string,
 ) {
   return raw.fetchReminderPositional(context, userId, position);
+}
+
+
+export async function fetchServerSettings(
+  context: RequestContext,
+  serverId: string,
+): Promise<RestResponses.FetchServerSettings> {
+  const data = await raw.fetchServerSettings(context, serverId);
+  let settings: ServerSettings;
+  if (ServerSettingsStore.has(serverId)) {
+    settings = ServerSettingsStore.get(serverId)!;
+    settings.merge(data);
+  } else {
+    settings = new ServerSettings(data);
+    ServerSettingsStore.set(settings.id, settings);
+  }
+  return settings;
 }
 
 
@@ -564,11 +601,19 @@ export async function fetchUserVoices(
 }
 
 
-export async function funASCII(
+export async function funAsciiArtFromImage(
   context: RequestContext,
-  options: RestOptions.FunASCII,
+  options: RestOptions.FunAsciiArtFromImage,
 ) {
-  return raw.funASCII(context, options);
+  return raw.funAsciiArtFromImage(context, options);
+}
+
+
+export async function funAsciiArtFromText(
+  context: RequestContext,
+  options: RestOptions.FunAsciiArtFromText,
+) {
+  return raw.funAsciiArtFromText(context, options);
 }
 
 
@@ -1022,7 +1067,7 @@ export async function mediaIManipulationUniverse(
 
 export async function mediaIVManipulationAscii(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationAscii,
 ) {
   return raw.mediaIVManipulationAscii(context, options);
 }
@@ -1934,7 +1979,7 @@ export async function putGuildSettings(
   const data = await raw.putGuildSettings(context, guildId, options);
   let settings: GuildSettings;
   if (GuildSettingsStore.has(guildId)) {
-    settings = GuildSettingsStore.get(guildId) as GuildSettings;
+    settings = GuildSettingsStore.get(guildId)!;
     settings.merge(data);
   } else {
     settings = new GuildSettings(data);
@@ -1949,6 +1994,24 @@ export async function putInfoDiscord(
   options: RestOptions.PutInfoDiscord,
 ) {
   return raw.putInfoDiscord(context, options);
+}
+
+
+export async function putServerSettings(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.PutServerSettings,
+): Promise<RestResponses.PutServerSettings> {
+  const data = await raw.putServerSettings(context, serverId, options);
+  let settings: ServerSettings;
+  if (ServerSettingsStore.has(serverId)) {
+    settings = ServerSettingsStore.get(serverId)!;
+    settings.merge(data);
+  } else {
+    settings = new ServerSettings(data);
+    ServerSettingsStore.set(settings.id, settings);
+  }
+  return settings;
 }
 
 

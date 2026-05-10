@@ -6,17 +6,10 @@ import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
-export interface CommandArgs {
-  locale?: GoogleLocales,
-  query: string,
-  randomize?: boolean,
-  safe?: boolean,
-}
-
 export class SearchGoogleImagesSimpleCommand extends BaseInteractionCommandOption {
-  description = 'Search Google Images';
+  description = 'Search Google Images but with less data displayed';
   metadata = {
-    id: Formatter.Commands.SearchGoogleImages.COMMAND_ID,
+    id: Formatter.Commands.SearchGoogleImages.COMMAND_ID_SIMPLE,
   };
   name = 'images-simple';
 
@@ -50,7 +43,7 @@ export class SearchGoogleImagesSimpleCommand extends BaseInteractionCommandOptio
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: CommandArgs) {
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.SearchGoogleImages.CommandArgs) {
     return Formatter.Commands.SearchGoogleImages.createMessage(context, {
       ...args,
       simple: true,

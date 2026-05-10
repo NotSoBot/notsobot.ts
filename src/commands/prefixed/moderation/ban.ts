@@ -111,8 +111,28 @@ export default class BanCommand extends BaseCommand {
 
     const guild = context.guild;
     if (guild) {
-      for (let member of canEdit) {
-        await guild.createBan(member.id, {deleteMessageSeconds: String(deleteMessageSeconds), reason});
+      for (let memberOrUser of canEdit) {
+        let doesBanExist = false;
+        try {
+          await guild.fetchBan(memberOrUser.id);
+          doesBanExist = true;
+        } catch(error) {
+          // does not exist
+        }
+
+        if (!doesBanExist) {
+          try {
+            await memberOrUser.createMessage([
+              `You have been banned from ${Markup.escape.all(guild.name)} (${guild.id}).`,
+              '',
+              `Information: ${Markup.codeblock(reason)}`,
+            ].join('\n'));
+          } catch(error) {
+            // maybe log this?
+          }
+        }
+
+        await guild.createBan(memberOrUser.id, {deleteMessageSeconds: String(deleteMessageSeconds), reason});
       }
     }
 

@@ -30,6 +30,7 @@ export interface CommandArgsBefore {
   before?: string,
   from?: Array<Structures.Member | Structures.User>,
   in?: Structures.Channel,
+  until?: string,
   with?: string,
 }
 
@@ -39,6 +40,7 @@ export interface CommandArgs {
   before?: string,
   from?: Array<Structures.Member | Structures.User>,
   in?: Structures.Channel,
+  until?: string,
   with?: string,
 }
 
@@ -59,6 +61,7 @@ export default class PruneCommand extends BaseCommand {
         {name: 'in', default: DefaultParameters.channel, type: Parameters.channel({
           types: [ChannelTypes.GUILD_TEXT, ChannelTypes.GUILD_NEWS],
         })},
+        {name: 'until', type: Parameters.snowflake},
         {name: 'with', type: Parameters.string({minLength: 1})},
       ],
       default: null,
@@ -72,7 +75,7 @@ export default class PruneCommand extends BaseCommand {
           `${COMMAND_NAME} 500 -with discord.gg -in general`
         ],
         category: CommandCategories.MODERATION,
-        usage: '<max_messages> (-after <message_id>) (-before <message_id>) (-from <user>) (-in <channel>) (-with <text>)',
+        usage: '<max_messages> (-after <message_id>) (-before <message_id>) (-from <user>) (-in <channel>) (-until <message_id>) (-with <text>)',
       },
       permissionsClient: [Permissions.MANAGE_MESSAGES],
       permissions: [Permissions.MANAGE_MESSAGES],
@@ -85,12 +88,29 @@ export default class PruneCommand extends BaseCommand {
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
       return false;
     }
-    return args.amount !== null && !isNaN(args.amount);
+    // until must be before the current message
+    if (args.until && BigInt(context.message.id) <= BigInt(args.until)) {
+      return false;
+    }
+    if (args.amount === null) {
+      if (args.until) {
+        args.amount = 100;
+      } else {
+        return false;
+      }
+    }
+    if (isNaN(args.amount)) {
+      return false;
+    }
+    return true;
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
       return editOrReply(context, '⚠ After message id cannot be after or the same as the Before message id');
+    }
+    if (args.until && BigInt(context.message.id) <= BigInt(args.until)) {
+      return editOrReply(context, '⚠ Until message id cannot be after the current message id');
     }
     if (isNaN(args.amount)) {
       return editOrReply(context, '⚠ Amount has to be a number lmao');
@@ -122,11 +142,18 @@ export default class PruneCommand extends BaseCommand {
       } else {
         const { messageReference } = context.message;
         if (messageReference && messageReference.messageId && messageReference.channelId === channelId) {
-          args.before = before = String(BigInt(messageReference.messageId) + 1n);
+          // we do not want to delete the referenced message, right?
+          args.before = before = messageReference.messageId; //String(BigInt(messageReference.messageId) + 1n);
         } else {
           before = context.messageId;
         }
       }
+
+      let until: bigint | undefined;
+      if (args.until) {
+        until = BigInt(args.until);
+      }
+      // maybe change the message reference behavior to be `until` instead of `before`
 
       if (args.in) {
         let messages = args.in.messages.toArray();
@@ -137,6 +164,9 @@ export default class PruneCommand extends BaseCommand {
         for (let message of messages) {
           if (message.id === context.messageId) {
             continue;
+          }
+          if (until && BigInt(message.id) < until) {
+            break;
           }
           if (args.amount <= bulk.length + manual.length) {
             break;
@@ -170,6 +200,10 @@ export default class PruneCommand extends BaseCommand {
           break;
         }
         for (let message of messages) {
+          // todo: break out of the fetch cycle fully when this is hit
+          if (until && BigInt(message.id) < until) {
+            continue;
+          }
           if (args.amount <= bulk.length + manual.length) {
             break;
           }
@@ -213,7 +247,7 @@ export default class PruneCommand extends BaseCommand {
           }
           await this.clearMessages(timeout, [context.message, message]);
         } catch(error) {
-          
+          const message = await editOrReply(context, `Pruning errored, ${error}.`);
         } finally {
           isExecuting.prune = false;
         }

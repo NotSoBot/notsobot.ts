@@ -882,12 +882,6 @@ export enum GuildLoggerTypes {
 }
 
 
-export enum GuildPremiumTypes {
-  NONE = 0,
-  LEVEL_1 = 1,
-}
-
-
 export enum MeasurementUnits {
   IMPERIAL = 'IMPERIAL',
   METRIC = 'METRIC',
@@ -1315,6 +1309,8 @@ export enum RedisChannels {
   INFO_DISCORD_REQUEST = 'INFO_DISCORD_REQUEST',
   REMINDER_CREATE = 'REMINDER_CREATE',
   REMINDER_DELETE = 'REMINDER_DELETE',
+  SERVER_FEATURES_UPDATE = 'SERVER_FEATURES_UPDATE',
+  SERVER_SETTINGS_UPDATE = 'SERVER_SETTINGS_UPDATE',
   TAG_DELETE = 'TAG_DELETE',
   TAG_DELETE_BULK = 'TAG_DELETE_BULK',
   TAG_UPDATE = 'TAG_UPDATE',
@@ -1361,53 +1357,55 @@ export enum TagBlobStorageTypes {
 
 
 export enum TagGenerationModels {
-  CLAUDE_4_6_SONNET = 'CLAUDE_4_6_SONNET',
-  CLAUDE_4_5_HAIKU = 'CLAUDE_4_5_HAIKU',
-  DEEPSEEK_CHAT = 'DEEPSEEK_CHAT',
-  GOOGLE_GEMINI_3_0_FLASH = 'GOOGLE_GEMINI_3_0_FLASH',
+  ANTHROPIC_CLAUDE_HAIKU_4_5 = 'ANTHROPIC_CLAUDE_HAIKU_4_5',
+  ANTHROPIC_CLAUDE_OPUS_4_7 = 'ANTHROPIC_CLAUDE_OPUS_4_7',
+  ANTHROPIC_CLAUDE_SONNET_4_6 = 'ANTHROPIC_CLAUDE_SONNET_4_6',
+  DEEPSEEK_V4_FLASH = 'DEEPSEEK_V4_FLASH',
+  DEEPSEEK_V4_PRO = 'DEEPSEEK_V4_PRO',
   GOOGLE_GEMINI_3_1_FLASH_LITE = 'GOOGLE_GEMINI_3_1_FLASH_LITE',
   GOOGLE_GEMINI_3_1_PRO = 'GOOGLE_GEMINI_3_1_PRO',
-  GOOGLE_GEMMA_4_0 = 'GOOGLE_GEMMA_4_0',
+  GOOGLE_GEMMA_4 = 'GOOGLE_GEMMA_4',
   META_LLAMA = 'META_LLAMA',
-  OPENAI_CHATGPT_5_4 = 'OPENAI_CHATGPT_5_4',
-  OPENAI_CHATGPT_5_4_MINI = 'OPENAI_CHATGPT_5_4_MINI',
-  OPENAI_CHATGPT_5_4_NANO = 'OPENAI_CHATGPT_5_4_NANO',
-  OPENAI_CHATGPT_OSS = 'OPENAI_CHATGPT_OSS',
-  QWEN_3_CODER_FLASH = 'QWEN_3_CODER_FLASH',
-  QWEN_3_CODER_PLUS = 'QWEN_3_CODER_PLUS',
-  QWEN_3_5_FLASH = 'QWEN_3_5_FLASH',
-  QWEN_3_5_PLUS = 'QWEN_3_5_PLUS',
-  XAI_GROK_4_1_FAST = 'XAI_GROK_4_1_FAST',
-  XAI_GROK_CODE_1_FAST = 'XAI_GROK_CODE_1_FAST',
+  MOONSHOT_AI_KIMI_K2_6 = 'MOONSHOT_AI_KIMI_K2_6',
+  NVIDIA_NEMOTRON_3_NANO_OMNI = 'NVIDIA_NEMOTRON_3_NANO_OMNI',
+  NVIDIA_NEMOTRON_3_SUPER = 'NVIDIA_NEMOTRON_3_SUPER',
+  OPENAI_GPT_5_4 = 'OPENAI_GPT_5_4',
+  OPENAI_GPT_5_4_MINI = 'OPENAI_GPT_5_4_MINI',
+  OPENAI_GPT_OSS = 'OPENAI_GPT_OSS',
+  QWEN_3_6_FLASH = 'QWEN_3_6_FLASH',
+  QWEN_3_6_PLUS = 'QWEN_3_6_PLUS',
+  XAI_GROK_4_3 = 'XAI_GROK_4_3',
+  XIAOMI_MIMO_V2_5_PRO = 'XIAOMI_MIMO_V2_5_PRO',
 }
 
 
 export const TagGenerationModelsToText = Object.freeze({
-  [TagGenerationModels.CLAUDE_4_6_SONNET]: 'Claude 4.6 Sonnet',
-  [TagGenerationModels.CLAUDE_4_5_HAIKU]: 'Claude 4.5 Haiku',
-  [TagGenerationModels.DEEPSEEK_CHAT]: 'DeepSeek Chat',
-  [TagGenerationModels.GOOGLE_GEMINI_3_0_FLASH]: 'Google Gemini 3.0 Flash',
+  [TagGenerationModels.ANTHROPIC_CLAUDE_HAIKU_4_5]: 'Anthropic Claude Haiku 4.5',
+  [TagGenerationModels.ANTHROPIC_CLAUDE_OPUS_4_7]: 'Anthropic Claude Opus 4.7',
+  [TagGenerationModels.ANTHROPIC_CLAUDE_SONNET_4_6]: 'Anthropic Claude Sonnet 4.6',
+  [TagGenerationModels.DEEPSEEK_V4_FLASH]: 'DeepSeek v4 Flash',
+  [TagGenerationModels.DEEPSEEK_V4_PRO]: 'DeepSeek v4 Pro',
   [TagGenerationModels.GOOGLE_GEMINI_3_1_FLASH_LITE]: 'Google Gemini 3.1 Flash Lite',
   [TagGenerationModels.GOOGLE_GEMINI_3_1_PRO]: 'Google Gemini 3.1 Pro',
-  [TagGenerationModels.GOOGLE_GEMMA_4_0]: 'Google Gemma 4.0',
+  [TagGenerationModels.GOOGLE_GEMMA_4]: 'Google Gemma 4',
   [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
-  [TagGenerationModels.OPENAI_CHATGPT_5_4]: 'OpenAI ChatGPT 5.4',
-  [TagGenerationModels.OPENAI_CHATGPT_5_4_MINI]: 'OpenAI ChatGPT 5.4 Mini',
-  [TagGenerationModels.OPENAI_CHATGPT_5_4_NANO]: 'OpenAI ChatGPT 5.4 Nano',
-  [TagGenerationModels.OPENAI_CHATGPT_OSS]: 'OpenAI ChatGPT OSS',
-  [TagGenerationModels.QWEN_3_CODER_FLASH]: 'Qwen 3 Coder Flash',
-  [TagGenerationModels.QWEN_3_CODER_PLUS]: 'Qwen 3 Coder Plus',
-  [TagGenerationModels.QWEN_3_5_FLASH]: 'Qwen 3.5 Flash',
-  [TagGenerationModels.QWEN_3_5_PLUS]: 'Qwen 3.5 Plus',
-  [TagGenerationModels.XAI_GROK_4_1_FAST]: 'xAI Grok 4.1 Fast',
-  [TagGenerationModels.XAI_GROK_CODE_1_FAST]: 'xAI Grok Code 1 Fast',
+  [TagGenerationModels.MOONSHOT_AI_KIMI_K2_6]: 'Moonshot AI Kimi K2.6',
+  [TagGenerationModels.NVIDIA_NEMOTRON_3_NANO_OMNI]: 'NVIDIA Nemotron 3 Nano Omni',
+  [TagGenerationModels.NVIDIA_NEMOTRON_3_SUPER]: 'NVIDIA Nemotron 3 Super',
+  [TagGenerationModels.OPENAI_GPT_5_4]: 'OpenAI ChatGPT 5.4',
+  [TagGenerationModels.OPENAI_GPT_5_4_MINI]: 'OpenAI ChatGPT 5.4 Mini',
+  [TagGenerationModels.OPENAI_GPT_OSS]: 'OpenAI ChatGPT OSS',
+  [TagGenerationModels.QWEN_3_6_FLASH]: 'Qwen 3.6 Flash',
+  [TagGenerationModels.QWEN_3_6_PLUS]: 'Qwen 3.6 Plus',
+  [TagGenerationModels.XAI_GROK_4_3]: 'xAI Grok 4.3',
+  [TagGenerationModels.XIAOMI_MIMO_V2_5_PRO]: 'Xiaomi MiMo v2.5 Pro',
 });
 
 
 export enum TagGenerationPersonalityPreferences {
   AUTOMATIC = 'AUTOMATIC',
   DEFAULT = 'DEFAULT',
-  GUILD = 'GUILD',
+  SERVER = 'SERVER',
   USER = 'USER',
 }
 
@@ -1415,7 +1413,7 @@ export enum TagGenerationPersonalityPreferences {
 export const TagGenerationPersonalityPreferencesToText = Object.freeze({
   [TagGenerationPersonalityPreferences.AUTOMATIC]: 'Automatic (User -> Server -> Default)',
   [TagGenerationPersonalityPreferences.DEFAULT]: 'Default Personality',
-  [TagGenerationPersonalityPreferences.GUILD]: 'Server Personality',
+  [TagGenerationPersonalityPreferences.SERVER]: 'Server Personality',
   [TagGenerationPersonalityPreferences.USER]: 'User Personality',
 });
 
@@ -1791,6 +1789,8 @@ export enum NotSoHeaders {
   CHANNEL_ID = 'x-channel-id',
   ENTITLEMENTS = 'x-entitlements',
   GUILD_ID = 'x-guild-id',
+  SERVER = 'x-server',
+  SERVER_ID = 'x-server-id',
   SERVER_OWNER_ID = 'x-server-owner-id',
   USER = 'x-user',
   USER_ID = 'x-user-id',
@@ -2093,6 +2093,7 @@ export enum TTSVoices {
   FLITE_US_MALE_ALAN = 'FLITE_US_MALE_ALAN',
   FLITE_US_MALE_KAL = 'FLITE_US_MALE_KAL',
   FLITE_US_MALE_RICH = 'FLITE_US_MALE_RICH',
+  KLATTSCH = 'KLATTSCH',
   PHONEME_MORSHU = 'PHONEME_MORSHU',
   SAPI_ATT_EN_MALE_MOONMAN = 'SAPI_ATT_EN_MALE_MOONMAN',
   SAPI_DECTALK_EN_MALE_MOONBASE_ALPHA = 'SAPI_DECTALK_EN_MALE_MOONBASE_ALPHA',
@@ -2150,6 +2151,7 @@ export const TTSVoicesToText = Object.freeze({
   [TTSVoices.FLITE_US_MALE_ALAN]: 'Flite English United States USA Male Alan W. Black (awb) (Scottish Accent)',
   [TTSVoices.FLITE_US_MALE_KAL]: 'Flite English United States USA Male (kal) (small size, low quality)',
   [TTSVoices.FLITE_US_MALE_RICH]: 'Flite English United States USA Male Rich Stern (rwb)',
+  [TTSVoices.KLATTSCH]: 'Klattsch',
   [TTSVoices.PHONEME_MORSHU]: 'Phoneme Morshu',
   [TTSVoices.SAPI_ATT_EN_MALE_MOONMAN]: 'SAPI AT&T English Male Moon Man',
   [TTSVoices.SAPI_DECTALK_EN_MALE_MOONBASE_ALPHA]: 'SAPI DecTalk English Male Moonbase Alpha',

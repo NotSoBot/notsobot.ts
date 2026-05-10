@@ -6,6 +6,8 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { AsciiFromImageCommand } from './ascii-from-image';
+import { AsciiFromTextCommand } from './ascii-from-text';
 import { B1Command } from './b1';
 import { BadMemeCommand } from './badmeme';
 import { EmojiCommand } from './emoji';
@@ -30,6 +32,8 @@ export default class FunGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new AsciiFromImageCommand(),
+        new AsciiFromTextCommand(),
         new B1Command(),
         new BadMemeCommand(),
         new EmojiCommand(),

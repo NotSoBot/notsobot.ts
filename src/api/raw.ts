@@ -62,11 +62,20 @@ export async function request(
   if (guildId) {
     options.headers.set(NotSoHeaders.GUILD_ID, guildId);
   }
+
+  if (guildId || channelId) {
+    options.headers.set(NotSoHeaders.SERVER_ID, (guildId || channelId)!);
+  }
+
   if (guild) {
     options.headers.set(NotSoHeaders.SERVER_OWNER_ID, guild.ownerId);
   } else if (channel && channel.ownerId) {
+    const server = JSON.stringify(channel);
+    options.headers.set(NotSoHeaders.SERVER, Buffer.from(server).toString('base64'));
+    options.headers.set(NotSoHeaders.SERVER_ID, channel.id);
     options.headers.set(NotSoHeaders.SERVER_OWNER_ID, channel.ownerId);
   }
+
   if (user) {
     options.headers.set(NotSoHeaders.USER_ID, user.id);
     const bareUser = JSON.stringify({
@@ -659,6 +668,31 @@ export async function editGuildSettings(
 }
 
 
+export async function editServerSettings(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.EditServerSettings = {},
+): Promise<RestResponsesRaw.EditServerSettings> {
+  const body = {
+    blocked: options.blocked,
+    blocked_reason: options.blockedReason,
+    ml_diffusion_model: options.mlDiffusionModel,
+    ml_llm_model: options.mlLLMModel,
+    ml_llm_personality: options.mlLLMPersonality,
+    timezone: options.timezone,
+  };
+  const params = {serverId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.SERVER,
+      params,
+    },
+  });
+}
+
+
 export async function editTag(
   context: RequestContext,
   tagId: string,
@@ -862,6 +896,21 @@ export async function fetchReminderPositional(
     route: {
       method: HTTPMethods.GET,
       path: Api.REMINDER_POSITIONAL,
+      params,
+    },
+  });
+}
+
+
+export async function fetchServerSettings(
+  context: RequestContext,
+  serverId: string,
+): Promise<RestResponsesRaw.FetchServerSettings> {
+  const params = {serverId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SERVER,
       params,
     },
   });
@@ -1124,9 +1173,30 @@ export async function fetchUserVoices(
 }
 
 
-export async function funASCII(
+export async function funAsciiArtFromImage(
   context: RequestContext,
-  options: RestOptions.FunASCII,
+  options: RestOptions.FunAsciiArtFromImage,
+): Promise<RestResponsesRaw.FunAsciiArtFromImage> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.FUN_ASCII_ART_FROM_IMAGE,
+    },
+  });
+}
+
+
+export async function funAsciiArtFromText(
+  context: RequestContext,
+  options: RestOptions.FunAsciiArtFromText,
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
@@ -1137,7 +1207,7 @@ export async function funASCII(
     body,
     route: {
       method: HTTPMethods.POST,
-      path: Api.FUN_ASCII,
+      path: Api.FUN_ASCII_ART_FROM_TEXT,
     },
   });
 }
@@ -2325,12 +2395,14 @@ export async function mediaIManipulationUniverse(
 
 export async function mediaIVManipulationAscii(
   context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
+  options: RestOptions.MediaIVManipulationAscii,
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    invert: options.invert,
     max_file_size: maxFileSize,
     url: options.url,
+    zoom: options.zoom,
   };
   return request(context, {
     file: options.file,
@@ -3761,6 +3833,8 @@ export async function mediaIVManipulationPhoSimp(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     filters: options.filters,
+    grid_x: options.gridx,
+    grid_y: options.gridy,
     max_file_size: maxFileSize,
     url: options.url,
   };
@@ -4826,6 +4900,24 @@ export async function putInfoDiscord(
     route: {
       method: HTTPMethods.PUT,
       path: Api.INFO_DISCORD,
+    },
+  });
+}
+
+
+export async function putServerSettings(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.PutServerSettings,
+): Promise<RestResponsesRaw.EditServerSettings> {
+  const body = {};
+  const params = {serverId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.SERVER,
+      params,
     },
   });
 }

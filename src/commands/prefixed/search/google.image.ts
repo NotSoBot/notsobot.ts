@@ -6,14 +6,14 @@ import { Formatter, Parameters, DefaultParameters } from '../../../utils';
 import { BaseSearchCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'image';
+export const COMMAND_NAME = 'google image';
 
-export default class ImageCommand extends BaseSearchCommand {
+export default class GoogleImageCommand extends BaseSearchCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['g image', 'g img', 'g im', 'google image', 'google img', 'google im', 'img', 'im'],
+      aliases: ['g image', 'g img', 'g im', 'google img', 'google im'],
       args: [
         {name: 'locale', aliases: ['language'], default: DefaultParameters.locale, type: Parameters.locale},
         {name: 'randomize', aliases: ['r', 'random'], type: Boolean},

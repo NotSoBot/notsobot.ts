@@ -3,12 +3,12 @@ import { Command, CommandClient } from 'detritus-client';
 import { CommandCategories, MLDiffusionModels, MLDiffusionModelsToText } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters } from '../../../utils';
 
-import { BaseImageCommand } from '../basecommand';
+import { BaseMediasCommand } from '../basecommand';
 
 
 export const COMMAND_NAME = 'edit';
 
-export default class EditCommand extends BaseImageCommand {
+export default class EditCommand extends BaseMediasCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -25,6 +25,8 @@ export default class EditCommand extends BaseImageCommand {
           type: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
         },
       ],
+      maxAmount: 3,
+      minAmount: 1,
       metadata: {
         category: CommandCategories.TOOLS,
         description: 'Alter an Image with machine learning (thanks evan)',
@@ -40,7 +42,9 @@ export default class EditCommand extends BaseImageCommand {
         {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'channel'},
       ],
       type: [
-        {name: 'url', type: Parameters.mediaUrlPositional({audio: false, video: false})},
+        {name: 'urls', type: Parameters.mediaUrls({maxAmount: 3, minAmount: 1, positional: true, audio: false, video: false})},
+        // todo: fix this to support `.edit @cake @notsobot make them kiss`
+        // right now to achieve this, you must do `.edit "@cake @notsobot" make them kiss`
         {name: 'query', type: Parameters.targetText, consume: true},
       ],
     });

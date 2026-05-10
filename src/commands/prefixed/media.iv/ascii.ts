@@ -6,14 +6,17 @@ import { Formatter } from '../../../utils';
 import { BaseImageOrVideoCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'ascii image';
+export const COMMAND_NAME = 'ascii';
 
-export default class AsciiImageCommand extends BaseImageOrVideoCommand {
+export default class AsciiCommand extends BaseImageOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['ascii i'],
+      args: [
+        {name: 'invert', aliases: ['i'], type: Boolean},
+        {name: 'zoom', aliases: ['z'], type: Boolean},
+      ],
       metadata: {
         description: 'Ascii-fy an Image or Video',
         examples: [
@@ -22,8 +25,9 @@ export default class AsciiImageCommand extends BaseImageOrVideoCommand {
         ],
         category: CommandCategories.IMAGE,
         id: Formatter.Commands.MediaIVManipulationASCII.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-invert) (-zoom)',
       },
+      priority: -1,
     });
   }
 

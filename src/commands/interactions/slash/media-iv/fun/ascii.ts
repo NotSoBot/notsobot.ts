@@ -14,6 +14,14 @@ export class MediaIVAsciiCommand extends BaseInteractionImageOrVideoCommandOptio
   };
   name = COMMAND_NAME;
 
+  constructor() {
+    super({
+      options: [
+        {name: 'invert', description: 'Invert the Colors', type: Boolean},
+      ],
+    });
+  }
+
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationASCII.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationASCII.createMessage(context, args);
   }

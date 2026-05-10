@@ -1907,6 +1907,8 @@ export async function mediaReplyFromOptions(
     width?: number,
   },
 ) {
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
+
   let filename: string = '';
   if (options.filename) {
     filename = options.filename;
@@ -2053,6 +2055,9 @@ export async function mediaReplyFromOptions(
         }
       }
       container.addSeparator();
+      if (!isFromInteraction) {
+        container.addTextDisplay({content: `-# **Invoked by ${context.user.mention}**`});
+      }
       if (options.storage && options.storage.temporary) {
         const warning: Array<string> = [
           `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
@@ -2077,8 +2082,11 @@ export async function mediaReplyFromOptions(
     components.addButton(reuploadButton);
   }
 
-  if (shouldBeEmbed && (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT || displaySettings === UserSettingsResponseDisplayTypes.LEGACY)) {
-    const embed = new Embed();
+  if (
+    shouldBeEmbed &&
+    (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT || displaySettings === UserSettingsResponseDisplayTypes.LEGACY)
+  ) {
+    const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
     embed.setFooter(footer);
 

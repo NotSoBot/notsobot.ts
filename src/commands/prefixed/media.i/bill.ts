@@ -15,12 +15,12 @@ export default class BillCommand extends BaseImageCommand {
 
       aliases: ['100'],
       metadata: {
+        category: CommandCategories.IMAGE,
         description: 'Draw an Image on a 100 dollar bill',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
         id: Formatter.Commands.MediaIManipulationBill.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

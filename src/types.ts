@@ -46,6 +46,13 @@ export namespace RedisPayloads {
   export type ReminderCreate = RestResponsesRaw.Reminder;
   export type ReminderDelete = RestResponsesRaw.Reminder;
 
+  export interface ServerFeaturesUpdate {
+    features: Array<string>,
+    id: string,
+  }
+
+  export type ServerSettingsUpdate = RestResponsesRaw.ServerSettings;
+
   export type TagDelete = RestResponsesRaw.Tag;
 
   export interface TagDeleteBulk {

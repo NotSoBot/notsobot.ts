@@ -8,7 +8,9 @@ export const COMMAND_ID = 'media.iv.manipulation.ascii';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  invert?: boolean,
   url: string,
+  zoom?: boolean,
 }
 
 export function createJob(

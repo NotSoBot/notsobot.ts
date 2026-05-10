@@ -39,10 +39,12 @@ export async function createMessage(
 
         const result = results[page - 1];
         if (!args.simple) {
-          embed.setTitle(`Found from ${result.source}`);
-          embed.setDescription(Markup.url(Markup.escape.all(result.title), result.url));
+          embed.setTitle(`Found from ${result.footer}`);
+          embed.setDescription(Markup.url(Markup.escape.all(result.header), result.url));
         }
-        embed.setImage(result.image);
+
+        const imageUrl = (result.image.extension === 'svg') ? result.thumbnail.url : result.proxy_url;
+        embed.setImage(imageUrl);
 
         return embed;
       },
