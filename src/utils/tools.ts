@@ -9,6 +9,7 @@ import {
   DiscordAbortCodes,
   DiscordRegexNames,
   InteractionCallbackTypes,
+  MarkupTimestampStyles,
   MessageEmbedTypes,
   Permissions,
   PremiumUserLimits,
@@ -1699,9 +1700,11 @@ export async function imageReplyFromOptions(
 
   if (options.storage) {
     const content: Array<string> = [options.storage.urls.vanity];
-    if (options.storage && options.storage.temporary) {
+    if (options.storage && options.storage.expires_at) {
+      const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
+      const downloadText = Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`);
       const warning: Array<string> = [
-        `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
+        `This media will expire ${expiresAtText}, ${downloadText} to keep it permanently.`,
       ];
       if (context instanceof Command.Context && userMaybeHasNitro(context)) {
         warning.push(`Slash Commands will use your Nitro Upload limits.`);
@@ -2058,9 +2061,11 @@ export async function mediaReplyFromOptions(
       if (!isFromInteraction) {
         container.addTextDisplay({content: `-# **Invoked by ${context.user.mention}**`});
       }
-      if (options.storage && options.storage.temporary) {
+      if (options.storage && options.storage.expires_at) {
+        const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
+        const downloadText = Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`);
         const warning: Array<string> = [
-          `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
+          `This media will expire ${expiresAtText}, ${downloadText} to keep it permanently.`,
         ];
         if ((context instanceof Command.Context || options.reuploading) && userMaybeHasNitro(context)) {
           warning.push(`Slash Commands will use your Nitro Upload limits.`);
@@ -2090,14 +2095,16 @@ export async function mediaReplyFromOptions(
     embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
     embed.setFooter(footer);
 
-    if (options.description || (options.storage && options.storage.temporary)) {
+    if (options.description || (options.storage && options.storage.expires_at)) {
       const description: Array<string> = [];
       if (options.description) {
         description.push(options.description);
       }
-      if (options.storage && options.storage.temporary) {
+      if (options.storage && options.storage.expires_at) {
+        const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
+        const downloadText = Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`);
         const warning: Array<string> = [
-          `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
+          `This media will expire ${expiresAtText}, ${downloadText} to keep it permanently.`,
         ];
         if ((context instanceof Command.Context || options.reuploading) && userMaybeHasNitro(context)) {
           warning.push(`Slash Commands will use your Nitro Upload limits.`);
@@ -2135,9 +2142,11 @@ export async function mediaReplyFromOptions(
     const content: Array<string> = [
       `> ${(options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity}`,
     ];
-    if (options.storage.temporary) {
+    if (options.storage.expires_at) {
+      const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
+      const downloadText = Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`);
       const warning: Array<string> = [
-        `This media will expire in 28 days, ${Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`)} to keep it permanently.`,
+        `This media will expire ${expiresAtText}, ${downloadText} to keep it permanently.`,
       ];
       if (context instanceof Command.Context && userMaybeHasNitro(context)) {
         warning.push(`Slash Commands will use your Nitro Upload limits.`);

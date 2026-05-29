@@ -291,6 +291,7 @@ export namespace RestOptions {
     filename?: string,
     maxFileSize?: number,
     upload?: boolean,
+    uploadExpiresIn?: number,
     url?: string,
   }
 
@@ -1082,6 +1083,7 @@ export namespace RestOptions {
     seed?: number,
     steps?: number,
     upload?: boolean,
+    uploadExpiresIn?: number,
   }
 
   export interface UtilitiesMLMashup extends MediaBaseOptionsMultiple {
@@ -1214,6 +1216,7 @@ export namespace RestResponsesRaw {
   }
 
   export interface FileResponseStorage {
+    expires_at: null | string,
     filename: string,
     filename_base: string,
     id: string,

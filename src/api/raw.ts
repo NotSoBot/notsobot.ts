@@ -5639,6 +5639,7 @@ export async function utilitiesMediascript(
     max_file_size_strict: options.maxFileSizeStrict,
     ml_diffusion_model: options.mlDiffusionModel,
     upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
   };
   return request(context, {
     body,
@@ -5667,6 +5668,7 @@ export async function utilitiesMLEdit(
     steps: options.steps,
     strength: options.strength,
     upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     urls: options.urls,
   };
   const response = await request(context, {
@@ -5696,6 +5698,7 @@ export async function utilitiesMLImagine(
     seed: options.seed,
     steps: options.steps,
     upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
   };
   const response = await request(context, {
     query,
@@ -5722,6 +5725,7 @@ export async function utilitiesMLImagineVideo(
     seed: options.seed,
     steps: options.steps,
     upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
   };
   const response = await request(context, {
     query,
@@ -5766,6 +5770,7 @@ export async function utilitiesMLMashup(
     steps: options.steps,
     strength: options.strength,
     upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     urls: options.urls,
   };
   const response = await request(context, {

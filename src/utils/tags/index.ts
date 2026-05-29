@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import * as vm from 'vm';
 
 import * as cheerio from 'cheerio';
@@ -318,6 +319,7 @@ export enum TagFunctions {
   LOGICAL_GET_GLOBAL = 'LOGICAL_GET_GLOBAL',
   LOGICAL_GET_SERVER = 'LOGICAL_GET_SERVER',
   LOGICAL_GET_USER = 'LOGICAL_GET_USER',
+  LOGICAL_INCLUDES = 'LOGICAL_INCLUDES',
   LOGICAL_IF = 'LOGICAL_IF',
   LOGICAL_IF_ERROR = 'LOGICAL_IF_ERROR',
   LOGICAL_IS_FROM_AI = 'LOGICAL_IS_FROM_AI',
@@ -365,6 +367,7 @@ export enum TagFunctions {
   REQUEST = 'REQUEST',
   RNG_CHOOSE = 'RNG_CHOOSE',
   RNG_RANGE = 'RNG_RANGE',
+  RNG_UUID = 'RNG_UUID',
   SEARCH_DUCKDUCKGO_IMAGES = 'SEARCH_DUCKDUCKGO_IMAGES',
   SEARCH_GOOGLE_IMAGES = 'SEARCH_GOOGLE_IMAGES',
   SEARCH_YOUTUBE = 'SEARCH_YOUTUBE',
@@ -422,6 +425,7 @@ export enum TagFunctions {
   USER_RANDOM_ONLINE_ID = 'USER_RANDOM_ONLINE_ID',
   USER_RANDOM_ONLINE_TAG = 'USER_RANDOM_ONLINE_TAG',
   USER_RANDOM_TAG = 'USER_RANDOM_TAG',
+  USER_STATUS = 'USER_STATUS',
   USER_TAG = 'USER_TAG',
   VARIABLES = 'VARIABLES',
   VARIABLES_CHANNEL = 'VARIABLES_CHANNEL',
@@ -496,6 +500,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.LOGICAL_GET_GLOBAL]: ['getglobal'],
   [TagFunctions.LOGICAL_GET_SERVER]: ['getserver'],
   [TagFunctions.LOGICAL_GET_USER]: ['getuser'],
+  [TagFunctions.LOGICAL_INCLUDES]: ['includes'],
   [TagFunctions.LOGICAL_IF]: ['if'],
   [TagFunctions.LOGICAL_IF_ERROR]: ['iferror'],
   [TagFunctions.LOGICAL_IS_FROM_AI]: ['isfromai'],
@@ -543,6 +548,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.REQUEST]: ['request'],
   [TagFunctions.RNG_CHOOSE]: ['choose'],
   [TagFunctions.RNG_RANGE]: ['range', 'random', 'rnd'],
+  [TagFunctions.RNG_UUID]: ['uuid'],
   [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES]: ['search.duckduckgo.images', 'search.ddg.images', 's.duckduckgo.images', 's.ddg.images'],
   [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.google.images', 's.g.images'],
   [TagFunctions.SEARCH_YOUTUBE]: ['search.youtube', 'search.yt', 's.youtube', 's.yt'],
@@ -589,17 +595,18 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.TRAVERSE_JSON]: ['traversejson'],
   [TagFunctions.TYPE]: ['type'],
   [TagFunctions.USER_AVATAR]: ['useravatar'],
-  [TagFunctions.USER_DISCRIMINATOR]: ['discrim'],
-  [TagFunctions.USER_ID]: ['id', 'userid'],
-  [TagFunctions.USER_MENTION]: ['mention'],
-  [TagFunctions.USER_NAME]: ['name', 'user'],
-  [TagFunctions.USER_NICK]: ['nick'],
-  [TagFunctions.USER_RANDOM]: ['randuser'],
-  [TagFunctions.USER_RANDOM_ID]: ['randuserid'],
-  [TagFunctions.USER_RANDOM_ONLINE]: ['randonline'],
-  [TagFunctions.USER_RANDOM_ONLINE_ID]: ['randonlineid'],
-  [TagFunctions.USER_RANDOM_ONLINE_TAG]: ['randonlinetag'],
-  [TagFunctions.USER_RANDOM_TAG]: ['randusertag'],
+  [TagFunctions.USER_DISCRIMINATOR]: ['userdiscriminator', 'userdiscrim', 'discrim'],
+  [TagFunctions.USER_ID]: ['userid', 'id'],
+  [TagFunctions.USER_MENTION]: ['usermention', 'mention'],
+  [TagFunctions.USER_NAME]: ['username', 'name', 'user'],
+  [TagFunctions.USER_NICK]: ['usernick', 'nick'],
+  [TagFunctions.USER_RANDOM]: ['randomuser', 'randuser'],
+  [TagFunctions.USER_RANDOM_ID]: ['randomuserid', 'randuserid'],
+  [TagFunctions.USER_RANDOM_ONLINE]: ['randomonline', 'randonline'],
+  [TagFunctions.USER_RANDOM_ONLINE_ID]: ['randomonlineid', 'randonlineid'],
+  [TagFunctions.USER_RANDOM_ONLINE_TAG]: ['randomonlinetag', 'randonlinetag'],
+  [TagFunctions.USER_RANDOM_TAG]: ['randomusertag', 'randusertag'],
+  [TagFunctions.USER_STATUS]: ['userstatus'],
   [TagFunctions.USER_TAG]: ['usertag'],
   [TagFunctions.VARIABLES]: ['variables'],
   [TagFunctions.VARIABLES_CHANNEL]: ['variableschannel'],
@@ -920,6 +927,12 @@ export async function parse(
             } else if (TagFunctionsToString.LOGICAL_GET_USER.includes(scriptName)) {
               // do this separate because we dont want to parse args yet
               const wasValid = await ScriptTags[TagFunctions.LOGICAL_GET_USER](context, arg, tag);
+              if (!wasValid) {
+                tag.text += scriptBuffer;
+              }
+            } else if (TagFunctionsToString.LOGICAL_INCLUDES.includes(scriptName)) {
+              // do this separate because we dont want to parse args yet
+              const wasValid = await ScriptTags[TagFunctions.LOGICAL_INCLUDES](context, arg, tag);
               if (!wasValid) {
                 tag.text += scriptBuffer;
               }
@@ -2474,6 +2487,10 @@ const ScriptTags = Object.freeze({
     // {attach:https://google.com/something.png}
     // {attach:https://google.com/something.png|something_lol.png}
 
+    if (tag.limits.MAX_ATTACHMENTS === 0) {
+      return false;
+    }
+
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
       throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
@@ -2560,6 +2577,10 @@ const ScriptTags = Object.freeze({
     // {attachtext:text}
     // {attachtext:some text here}
 
+    if (tag.limits.MAX_ATTACHMENTS === 0) {
+      return false;
+    }
+
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
       throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
@@ -2603,7 +2624,11 @@ const ScriptTags = Object.freeze({
     // {attach:url|filename}
     // {attach:https://google.com/something.mp3}
     // {attach:https://google.com/something.mp3|voice-message}
-  
+
+    if (tag.limits.MAX_ATTACHMENTS === 0) {
+      return false;
+    }
+
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
       throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
@@ -3663,6 +3688,31 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.LOGICAL_INCLUDES]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {includes:text|value1|value2|value3|...}
+
+    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+      return false;
+    }
+
+    const values = split(arg);
+    const text = values[0]!;
+
+    for (let i = 1; i < values.length; i++) {
+      const value = values[i];
+
+      const valueText = await parseValue(context, tag, value);
+      if (text === valueText) {
+        tag.text += String(true);
+        return true;
+      }
+    }
+
+    tag.text += String(false);
+
+    return true;
+  },
+
   [TagFunctions.LOGICAL_IF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {if:statement|comparison|value|then:action|else:action|finally:action}
     // {if:statement|comparison|value|else:action|then:action|finally:action}
@@ -4283,6 +4333,10 @@ const ScriptTags = Object.freeze({
     // {edit:pixelate the image|cake}
     // {edit:|cake}
 
+    if (tag.limits.MAX_ATTACHMENTS === 0) {
+      return false;
+    }
+
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
       throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
@@ -4405,6 +4459,7 @@ const ScriptTags = Object.freeze({
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
       upload: true,
+      uploadExpiresIn: (7 * 24 * 60 * 60),
       urls: [url],
     }).then((x) => jobWaitForResult(context, x));
     if (job.result.error) {
@@ -4426,6 +4481,10 @@ const ScriptTags = Object.freeze({
     // imagine an image based off a prompt, empty will auto generate one
     // {imagine}
     // {imagine:cake}
+
+    if (tag.limits.MAX_ATTACHMENTS === 0) {
+      return false;
+    }
 
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
       throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
@@ -4489,6 +4548,7 @@ const ScriptTags = Object.freeze({
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
       safe: DefaultParameters.safe(context),
       upload: true,
+      uploadExpiresIn: (7 * 24 * 60 * 60),
     }).then((x) => jobWaitForResult(context, x));
     if (job.result.error) {
       throw new Error(`**Job Error**: ${job.result.error}`);
@@ -4845,6 +4905,10 @@ const ScriptTags = Object.freeze({
     // mediascript 1
     // {mediascript:mediascript code here}
 
+    if (tag.limits.MAX_ATTACHMENTS === 0) {
+      return false;
+    }
+
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
       throw new Error(`Attachments surpassed max attachments length of ${tag.limits.MAX_ATTACHMENTS}`);
     }
@@ -5073,6 +5137,7 @@ const ScriptTags = Object.freeze({
         maxFileSizeStrict: false,
         mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
         upload: true,
+        uploadExpiresIn: (7 * 24 * 60 * 60),
       }).then((x) => jobWaitForResult(context, x));
       if (job.result.error) {
         throw new Error(`**MediaScript Error**: ${job.result.error}`);
@@ -5379,6 +5444,23 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.RNG_UUID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {uuid:version?}
+    // {uuid:4}
+    // {uuid:7}
+
+    switch (arg) {
+      case '':
+      case '4': tag.text += crypto.randomUUID(); break;
+      case '7': tag.text += (crypto as any).randomUUIDv7(); break;
+      default: {
+        return false;
+      };
+    }
+
+    return true;
+  },
+
   [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {search.duckduckgo.images:cat}
     // {search.duckduckgo.images:1|cat}
@@ -5678,7 +5760,7 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_ONE_OF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {oneof:value|choice|choice2|...}
+    // {oneof:choices1|choice2|choice3|...}
   
     if (!arg) {
       return false;
@@ -6599,6 +6681,28 @@ const ScriptTags = Object.freeze({
       const user = randomFromArray<Structures.User>([context.user, context.client.user as Structures.User]);
       tag.text += user.toString();
     }
+    return true;
+  },
+
+  [TagFunctions.USER_STATUS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {userstatus}
+    // {userstatus:user}
+
+    if (arg) {
+      increaseNetworkRequests(tag);
+      const memberOrUser = await findMemberOrUser(arg, context);
+      if (memberOrUser && memberOrUser instanceof Structures.Member) {
+        const presence = memberOrUser.presence;
+        tag.text += (presence) ? presence.status : 'offline';
+      }
+    } else {
+      const member = context.member;
+      if (member) {
+        const presence = member.presence;
+        tag.text += (presence) ? presence.status : 'offline';
+      }
+    }
+
     return true;
   },
 

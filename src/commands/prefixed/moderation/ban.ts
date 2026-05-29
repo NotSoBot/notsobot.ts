@@ -112,6 +112,7 @@ export default class BanCommand extends BaseCommand {
     const guild = context.guild;
     if (guild) {
       for (let memberOrUser of canEdit) {
+        /*
         let doesBanExist = false;
         try {
           await guild.fetchBan(memberOrUser.id);
@@ -119,8 +120,10 @@ export default class BanCommand extends BaseCommand {
         } catch(error) {
           // does not exist
         }
-
         if (!doesBanExist) {
+        */
+
+        if (memberOrUser instanceof Structures.Member) {
           try {
             await memberOrUser.createMessage([
               `You have been banned from ${Markup.escape.all(guild.name)} (${guild.id}).`,
