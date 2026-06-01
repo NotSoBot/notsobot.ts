@@ -18,7 +18,11 @@ export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'query', description: 'Prompt to edit the Image with'},
+        {
+          name: 'query',
+          description: 'Prompt to edit the Image with',
+          value: Parameters.parsedMentionsText,
+        },
         {
           name: 'model',
           description: 'Diffusion Model',

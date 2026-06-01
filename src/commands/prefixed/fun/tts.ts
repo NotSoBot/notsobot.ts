@@ -27,12 +27,12 @@ export default class TTSCommand extends BaseCommand {
         description: 'Text to Speech',
         examples: [
           `${COMMAND_NAME} give me a table`,
-          `${COMMAND_NAME} give me a table -use kate`,
+          `${COMMAND_NAME} give me a table -use klattsch`,
         ],
         id: Formatter.Commands.FunTTS.COMMAND_ID,
         usage: '<text> (-use <language/type>)',
       },
-      type: Parameters.targetText,
+      type: Parameters.targetTextWithParsedMentions,
     });
   }
 

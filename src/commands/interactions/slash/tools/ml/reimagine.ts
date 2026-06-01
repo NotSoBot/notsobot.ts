@@ -18,7 +18,7 @@ export class ToolsMLReimagineCommand extends BaseInteractionImageCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'add', description: 'Add text to generated prompt'},
+        {name: 'add', description: 'Add text to generated prompt', value: Parameters.parsedMentionsText},
         {
           name: 'model',
           description: 'Diffusion Model',

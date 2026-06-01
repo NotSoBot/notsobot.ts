@@ -40,7 +40,7 @@ export class ToolsTranslateCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'text', description: 'Text to translate', required: true},
+        {name: 'text', description: 'Text to translate', value: Parameters.parsedMentionsText, required: true},
         {name: 'to', description: 'Language to translate to', value: Parameters.locale},
         {name: 'to-choices', description: 'Language to translate to (Choices)', choices: Parameters.Slash.GOOGLE_LOCALES, label: 'toChoice'},
         {name: 'from', description: 'Language to translate from', choices: Parameters.Slash.GOOGLE_LOCALES},

@@ -23,7 +23,7 @@ export default class AsciiTextCommand extends BaseCommand {
         id: Formatter.Commands.FunAsciiFromText.COMMAND_ID,
         usage: '<text>',
       },
-      type: Parameters.targetText,
+      type: Parameters.targetTextWithParsedMentions,
     });
   }
 

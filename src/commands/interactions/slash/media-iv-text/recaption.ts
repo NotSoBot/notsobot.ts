@@ -18,7 +18,12 @@ export class MediaIVRecaptionCommand extends BaseInteractionImageOrVideoCommandO
   constructor() {
     super({
       options: [
-        {name: 'text', description: 'Caption Text', required: true},
+        {
+          name: 'text',
+          description: 'Caption Text',
+          value: Parameters.parsedMentionsText,
+          required: true,
+        },
         {
           name: 'font',
           description: 'Font Choice',

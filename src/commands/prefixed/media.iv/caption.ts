@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter, Parameters, imageReply } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
 
@@ -25,7 +25,7 @@ export default class CaptionCommand extends BaseImageOrVideoCommand {
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
-        {name: 'text', consume: true},
+        {name: 'text', type: Parameters.parsedMentionsText, consume: true},
       ],
     });
   }

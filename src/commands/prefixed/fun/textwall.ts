@@ -24,7 +24,7 @@ export default class TextwallCommand extends BaseCommand {
         id: Formatter.Commands.FunTextwall.COMMAND_ID,
         usage: '<text>',
       },
-      type: Parameters.targetText,
+      type: Parameters.targetTextWithParsedMentions,
     });
   }
 

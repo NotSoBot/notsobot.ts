@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../utils';
+import { Formatter, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -17,7 +17,12 @@ export class AsciiFromTextCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'text', description: 'Text to turn into ASCII Art', required: true},
+        {
+          name: 'text',
+          description: 'Text to turn into ASCII Art',
+          value: Parameters.parsedMentionsText,
+          required: true,
+        },
       ],
     });
   }

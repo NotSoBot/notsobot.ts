@@ -14,7 +14,7 @@ export default class ReimagineCommand extends BaseImageCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'add', metadata: {description: 'Add text to generated prompt'}},
+        {name: 'add', type: Parameters.parsedMentionsText, metadata: {description: 'Add text to generated prompt'}},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'Initial Noise'}},
         {name: 'steps', type: Number, metadata: {description: 'Number of Samples to take (1..16)'}},

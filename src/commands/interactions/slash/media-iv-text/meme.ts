@@ -18,7 +18,12 @@ export class MediaIVMemeCommand extends BaseInteractionImageOrVideoCommandOption
   constructor() {
     super({
       options: [
-        {name: 'text', description: 'Separate with |', required: true},
+        {
+          name: 'text',
+          description: 'Separate with |',
+          value: Parameters.parsedMentionsText,
+          required: true,
+        },
         {
           name: 'font',
           description: 'Font Choice',

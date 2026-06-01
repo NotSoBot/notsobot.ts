@@ -8,7 +8,7 @@ import {
   LocalesText as DiscordLocalesText,
   DiscordRegexNames,
 } from 'detritus-client/lib/constants';
-import { Markup, regex as discordRegex } from 'detritus-client/lib/utils';
+import { Markup, parseMentionsInText, regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
@@ -351,6 +351,22 @@ export function number(options: NumberOptions = {}) {
     }
     return value;
   };
+}
+
+
+export function parsedMentionsText(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): string {
+  let ctx: Structures.Message | Structures.Interaction;
+  if (context instanceof Command.Context) {
+    ctx = context.message;
+  } else if (context instanceof Interaction.InteractionContext) {
+    ctx = context.interaction;
+  } else {
+    throw new Error('Unknown Context Passed');
+  }
+  return (value) ? parseMentionsInText(ctx, value) : value;
 }
 
 
@@ -837,7 +853,7 @@ export async function targetText(
     const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, value) as {matches: Array<{text: string}>};
     if (matches.length) {
       const [ { text } ] = matches;
-    
+
       // if its https://discord.com/channels/:guildId/:channelId/:messageId
       {
         const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
@@ -896,6 +912,15 @@ export async function targetText(
   }
 
   return value;
+}
+
+
+export async function targetTextWithParsedMentions(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<string> {
+  value = await targetText(value, context);
+  return parsedMentionsText(value, context);
 }
 
 

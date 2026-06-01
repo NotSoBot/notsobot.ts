@@ -45,7 +45,7 @@ export default class EditCommand extends BaseMediasCommand {
         {name: 'urls', type: Parameters.mediaUrls({maxAmount: 3, minAmount: 1, positional: true, audio: false, video: false})},
         // todo: fix this to support `.edit @cake @notsobot make them kiss`
         // right now to achieve this, you must do `.edit "@cake @notsobot" make them kiss`
-        {name: 'query', type: Parameters.targetText, consume: true},
+        {name: 'query', type: Parameters.targetTextWithParsedMentions, consume: true},
       ],
     });
   }

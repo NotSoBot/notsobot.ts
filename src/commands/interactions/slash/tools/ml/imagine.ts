@@ -17,7 +17,11 @@ export class ToolsMLImagineCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'query', description: 'Prompt to Generate (Empty will auto-generate a prompt)'},
+        {
+          name: 'query',
+          description: 'Prompt to Generate (Empty will auto-generate a prompt)',
+          value: Parameters.parsedMentionsText,
+        },
         {
           name: 'model',
           description: 'Diffusion Model',

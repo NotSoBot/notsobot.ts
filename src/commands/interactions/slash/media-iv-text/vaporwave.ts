@@ -18,7 +18,7 @@ export class MediaIVVaporwaveCommand extends BaseInteractionImageOrVideoCommandO
   constructor() {
 	super({
 	  options: [
-		{name: 'text', description: 'Vaporwave Text'},
+		{name: 'text', description: 'Vaporwave Text', value: Parameters.parsedMentionsText},
 	  ],
 	});
   }

@@ -25,7 +25,7 @@ export default class VaporwaveCommand extends BaseImageOrVideoCommand {
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},
-        {name: 'text', consume: true},
+        {name: 'text', type: Parameters.parsedMentionsText, consume: true},
       ],
     });
   }

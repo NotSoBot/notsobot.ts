@@ -2190,8 +2190,15 @@ const ScriptTags = Object.freeze({
       urls: Object.values(urls).filter(Boolean),
     });
 
-    tag.text += response.text;
     tag.variables[PrivateVariables.RESULTS][TagFunctions.AI] = response;
+
+    if (context.metadata && context.metadata.tag) {
+      // is from a tag
+      tag.text += response.text;
+    } else {
+      // is from ai, parse the text first
+      tag.text += await parseValue(context, tag, response.text);
+    }
 
     return true;
   },

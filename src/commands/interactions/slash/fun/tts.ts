@@ -24,7 +24,7 @@ export class TTSCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'text', description: 'Text Here', required: true},
+        {name: 'text', description: 'Text Here', value: Parameters.parsedMentionsText, required: true},
         {
           name: 'use',
           description: 'Speech Voice',

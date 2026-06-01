@@ -28,7 +28,7 @@ export default class ImagineVideoCommand extends BaseCommand {
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagineVideo.COMMAND_ID, type: 'guild'},
         {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLImagineVideo.COMMAND_ID, type: 'channel'},
       ],
-      type: Parameters.targetText,
+      type: Parameters.targetTextWithParsedMentions,
     });
   }
 
