@@ -1095,7 +1095,7 @@ export function increaseAIExecutions(tag: TagResult, amount: number = 1) {
   if (amount) {
     tag.variables[PrivateVariables.AI_EXECUTIONS] += amount;
   }
-  if (tag.limits.MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.AI_EXECUTIONS]) {
+  if (tag.limits.MAX_AI_EXECUTIONS < tag.variables[PrivateVariables.AI_EXECUTIONS]) {
     throw new Error(`Tag attempted to use too many AI executions (Max ${tag.limits.MAX_AI_EXECUTIONS.toLocaleString()} Executions)`);
   }
 }
@@ -1217,6 +1217,7 @@ export function resetTagLimits(tag: TagResult) {
       [TagFunctions.ATTACHMENT]: undefined,
     }),
   });
+  tag.files = [];
 }
 
 
@@ -2168,6 +2169,9 @@ const ScriptTags = Object.freeze({
       }
     }
 
+    increaseAIExecutions(tag);
+    increaseNetworkRequests(tag);
+
     let personality: string | null | undefined;
     if (tag.variables[PrivateVariables.SETTINGS][TagSettings.AI_PERSONALITY]) {
       personality = tag.variables[PrivateVariables.SETTINGS][TagSettings.AI_PERSONALITY];
@@ -2175,9 +2179,6 @@ const ScriptTags = Object.freeze({
       const personalities = await getAIPersonality(context, arg);
       personality = personalities[0];
     }
-
-    increaseAIExecutions(tag);
-    increaseNetworkRequests(tag);
 
     const response = await generateTag(context, {
       files,

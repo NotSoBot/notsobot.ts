@@ -74,6 +74,7 @@ import { OPENAI_API_KEY } from '../../config.json';
 
 export const openAIClient = new OpenAI({
   apiKey: OPENAI_API_KEY,
+  defaultHeaders: { 'Accept-Encoding': 'identity' },
 });
 
 
@@ -88,12 +89,15 @@ export async function checkNSFW(
     return [false, null];
   }
 
-  const response = await openAIClient.moderations.create({
+  let response = await openAIClient.moderations.create({
     model: 'omni-moderation-latest',
     input: [
       {type: 'text', text: content},
     ],
   });
+  if (typeof(response) === 'string') {
+    response = JSON.parse(response as any);
+  }
   for (let result of response.results) {
     let isAwfulNSFW = CATEGORIES_TO_CHECK_ALL.every((category) => (result.categories as any)[category]);
     if (isAwfulNSFW) {

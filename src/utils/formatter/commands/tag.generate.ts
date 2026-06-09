@@ -102,7 +102,9 @@ export async function createMessage(
     }
   }
 
-  const [ personality, serverPersonality, userPersonality ] = await getAIPersonality(context, args.prompt, args.personalityPreference);
+  const [ personality, serverPersonality, userPersonality ] = await getAIPersonality(
+    context, args.prompt, args.personalityPreference,
+  );
 
   const now = Date.now();
   const response = await generateTag(context, {
