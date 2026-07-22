@@ -16,6 +16,7 @@ import {
   Paginator,
   Parameters,
   createTimestampMomentFromGuild,
+  createUserDisplayName,
   editOrReply,
   getMemberJoinPosition,
   toTitleCase,
@@ -136,7 +137,7 @@ export default class UsersCommand extends BaseCommand {
         const user = ((isMember) ? member.user : memberOrUser) as Structures.User;
 
         const embed = new Embed();
-        embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
+        embed.setAuthor(createUserDisplayName(user), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
         embed.setColor(PresenceStatusColors['offline']);
         embed.setDescription(member.mention);
         embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));

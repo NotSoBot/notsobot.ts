@@ -6,7 +6,7 @@ import { Snowflake } from 'detritus-utils';
 
 import { BooleanEmojis, ChannelTypesText, CommandCategories, DateMomentLogFormat } from '../../../constants';
 import { GuildChannelsStored } from '../../../stores/guildchannels';
-import { Parameters, createTimestampMomentFromGuild, editOrReply } from '../../../utils';
+import { Parameters, createTimestampMomentFromGuild, createUserDisplayName, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -154,9 +154,9 @@ export default class ChannelCommand extends BaseCommand {
 
       const owner = channel.owner;
       if (owner) {
-        description.push(`**Owner**: ${(insideDm) ? owner.mention : owner}`);
+        description.push(`**Owner**: ${(insideDm) ? owner.mention : createUserDisplayName(owner)}`);
       }
-      const users = channel.recipients.map((user: Structures.User) => (insideDm) ? user.mention : user.toString());
+      const users = channel.recipients.map((user: Structures.User) => (insideDm) ? user.mention : createUserDisplayName(user));
       description.push(`**Recipients (${users.length})**: ${users.join(', ')}`);
 
       embed.addField('DM Information', description.join('\n'));

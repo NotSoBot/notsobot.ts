@@ -33,6 +33,7 @@ import {
   createColorUrl,
   createTimestampMomentFromGuild,
   createTimestampStringFromGuild,
+  createUserDisplayName,
   createUserEmbed,
   createUserString,
   permissionsToObject,
@@ -1734,7 +1735,7 @@ export function createLogPayload(
             if (MAX_MENTIONS <= message.mentions.length) {
               text.push(`${message.mentions.length.toLocaleString()} Users`);
             } else {
-              text.push(message.mentions.map((user) => `**${Markup.codestring(String(user))}**`).join(', '));
+              text.push(message.mentions.map((user) => `**${Markup.codestring(createUserDisplayName(user))}**`).join(', '));
             }
           }
           embed.addField('Mentions', `- ${text.join(', ')}`);

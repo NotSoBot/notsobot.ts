@@ -98,7 +98,7 @@ export async function createMessage(
                 const user = context.users.get(reminder.user.id)!;
                 noun = createUserString(reminder.user.id, user);
               } else {
-                const name = `${reminder.user.username}#${reminder.user.discriminator}`;
+                const name = reminder.user.username;
                 noun = createUserString(reminder.user.id, null, name);
               }
               text = `${text} by ${noun} (Id: ${reminder.position})`;

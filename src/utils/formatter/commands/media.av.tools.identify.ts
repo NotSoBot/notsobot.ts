@@ -7,6 +7,7 @@ import { DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../../constant
 import {
   Paginator,
   createTimestampMomentFromGuild,
+  createUserDisplayName,
   createUserEmbed,
   createUserString,
   editOrReply,
@@ -147,7 +148,7 @@ export async function createMessage(
     isEphemeral: args.isEphemeral,
     onPage: (page) => {
       const embed = new Embed();
-      embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
+      embed.setAuthor(createUserDisplayName(user), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink); // future proofing
       embed.setColor(PresenceStatusColors['offline']);
       embed.setDescription(user.mention);
 

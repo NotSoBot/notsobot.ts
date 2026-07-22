@@ -5,7 +5,7 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { Parameters, createTimestampMomentFromGuild, createUserDisplayName, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -138,7 +138,7 @@ export default class NickMassResetCommand extends BaseCommand {
             skipped: 0,
           };
           const errors: Array<any> = [];
-          const reason = `Mass Nickname Reset by ${context.user} (${context.user.id})`;
+          const reason = `Mass Nickname Reset by ${createUserDisplayName(context.user)} (${context.user.id})`;
 
           {
             embed.setDescription(`Ok, starting to clear ${membersThatWillBeEdited.toLocaleString()} member\'s nicknames. (Should take about ${((membersThatWillBeEdited / amount) * time).toLocaleString()} seconds)`);
