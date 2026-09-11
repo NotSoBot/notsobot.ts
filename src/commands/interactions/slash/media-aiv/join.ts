@@ -7,10 +7,10 @@ import { BaseInteractionMediasCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'join';
 
-export class MediaAIVToolsJoinCommand extends BaseInteractionMediasCommandOption {
+export class MediaAIVJoinCommand extends BaseInteractionMediasCommandOption {
   description = 'Join two Medias together';
   metadata = {
-    id: Formatter.Commands.MediaAIVToolsJoin.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationJoin.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -25,7 +25,7 @@ export class MediaAIVToolsJoinCommand extends BaseInteractionMediasCommandOption
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsJoin.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsJoin.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationJoin.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationJoin.createMessage(context, args);
   }
 }

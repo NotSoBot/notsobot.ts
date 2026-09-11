@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaAIVToolsSnip } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { mediaAIVManipulationSnip } from '../../../api';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.av.tools.snip';
@@ -17,11 +17,12 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await mediaAIVToolsSnip(context, {
+  const response = await mediaAIVManipulationSnip(context, {
     audioOnly: args.audio,
     end: (args.end) ? (args.end * 1000) : args.end,
+    safe: DefaultParameters.safe(context),
     start: (args.start) ? (args.start * 1000) : args.start,
     url: args.url,
   });
-  return mediaReply(context, response);
+  return jobReply(context, response);
 }

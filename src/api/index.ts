@@ -39,30 +39,6 @@ export async function addGuildFeature(
 }
 
 
-export async function audioToolsPutConcat(
-  context: RequestContext,
-  options: RestOptions.MediaAToolsPutBase,
-) {
-  return raw.audioToolsPutConcat(context, options);
-}
-
-
-export async function audioToolsPutMix(
-  context: RequestContext,
-  options: RestOptions.MediaAToolsPutBase,
-) {
-  return raw.audioToolsPutMix(context, options);
-}
-
-
-export async function audioToolsPutReplace(
-  context: RequestContext,
-  options: RestOptions.MediaAToolsPutBase,
-) {
-  return raw.audioToolsPutReplace(context, options);
-}
-
-
 export async function createGuildAllowlist(
   context: RequestContext,
   guildId: string,
@@ -184,6 +160,13 @@ export async function deleteChannel(
   options: RestOptions.DeleteChannel,
 ) {
   return raw.deleteChannel(context, channelId, options);
+}
+
+export async function deleteFile(
+  context: RequestContext,
+  fileId: string,
+) {
+  return raw.deleteFile(context, fileId);
 }
 
 
@@ -410,6 +393,14 @@ export async function fetchCommandsUsage(
   options: RestOptions.FetchCommandsUsage,
 ) {
   return raw.fetchCommandsUsage(context, options);
+}
+
+
+export async function fetchFile(
+  context: RequestContext,
+  fileId: string,
+) {
+  return raw.fetchFile(context, fileId);
 }
 
 
@@ -689,6 +680,46 @@ export async function mediaAIVManipulationAndroid(
 }
 
 
+export async function mediaAIVManipulationAudioPutConcat(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAudioPutBase,
+) {
+  return raw.mediaAIVManipulationAudioPutConcat(context, options);
+}
+
+
+export async function mediaAIVManipulationAudioPutMix(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAudioPutBase,
+) {
+  return raw.mediaAIVManipulationAudioPutMix(context, options);
+}
+
+
+export async function mediaAIVManipulationAudioPutReplace(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAudioPutBase,
+) {
+  return raw.mediaAIVManipulationAudioPutReplace(context, options);
+}
+
+
+export async function mediaAIVManipulationConcat(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptionsMultiple,
+) {
+  return raw.mediaAIVManipulationConcat(context, options);
+}
+
+
+export async function mediaAIVManipulationConvert(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationConvert,
+) {
+  return raw.mediaAIVManipulationConvert(context, options);
+}
+
+
 export async function mediaAIVManipulationFadeIn(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationFadeIn,
@@ -705,11 +736,67 @@ export async function mediaAIVManipulationFadeOut(
 }
 
 
+export async function mediaAIVManipulationExtractMedia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAIVManipulationExtractMedia(context, options);
+}
+
+
+export async function mediaAIVManipulationJoin(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationJoin,
+) {
+  return raw.mediaAIVManipulationJoin(context, options);
+}
+
+
+export async function mediaAIVManipulationOverlay(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationOverlay,
+) {
+  return raw.mediaAIVManipulationOverlay(context, options);
+}
+
+
+export async function mediaAIVManipulationReverse(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationReverse,
+) {
+  return raw.mediaAIVManipulationReverse(context, options);
+}
+
+
+export async function mediaAIVManipulationSeeSaw(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaAIVManipulationSeeSaw(context, options);
+}
+
+
 export async function mediaAIVManipulationShuffle(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationShuffle,
 ) {
   return raw.mediaAIVManipulationShuffle(context, options);
+}
+
+
+export async function mediaAIVManipulationSnip(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationSnip,
+) {
+  return raw.mediaAIVManipulationSnip(context, options);
+}
+
+
+export async function mediaAIVManipulationSpeed(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationSpeed,
+) {
+  return raw.mediaAIVManipulationSpeed(context, options);
 }
 
 
@@ -721,83 +808,11 @@ export async function mediaAIVToolsAnalyze(
 }
 
 
-export async function mediaAIVToolsConcat(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptionsMultiple,
-) {
-  return raw.mediaAIVToolsConcat(context, options);
-}
-
-
-export async function mediaAIVToolsConvert(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsConvert,
-) {
-  return raw.mediaAIVToolsConvert(context, options);
-}
-
-
 export async function mediaAIVToolsExif(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaAIVToolsExif(context, options);
-}
-
-
-export async function mediaAIVToolsExtractMedia(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaAIVToolsExtractMedia(context, options);
-}
-
-
-export async function mediaAIVToolsJoin(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsJoin,
-) {
-  return raw.mediaAIVToolsJoin(context, options);
-}
-
-
-export async function mediaAIVToolsOverlay(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsOverlay,
-) {
-  return raw.mediaAIVToolsOverlay(context, options);
-}
-
-
-export async function mediaAIVToolsReverse(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsReverse,
-) {
-  return raw.mediaAIVToolsReverse(context, options);
-}
-
-
-export async function mediaAIVToolsSeeSaw(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaAIVToolsSeeSaw(context, options);
-}
-
-
-export async function mediaAIVToolsSnip(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsSnip,
-) {
-  return raw.mediaAIVToolsSnip(context, options);
-}
-
-
-export async function mediaAIVToolsSpeed(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsSpeed,
-) {
-  return raw.mediaAIVToolsSpeed(context, options);
 }
 
 
@@ -1126,6 +1141,14 @@ export async function mediaIVManipulationDeepfry(
   options: RestOptions.MediaIVManipulationDeepfry,
 ) {
   return raw.mediaIVManipulationDeepfry(context, options);
+}
+
+
+export async function mediaIVManipulationDerain(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationDerain(context, options);
 }
 
 

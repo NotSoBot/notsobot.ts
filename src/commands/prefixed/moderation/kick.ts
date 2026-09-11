@@ -104,13 +104,24 @@ export default class KickCommand extends BaseCommand {
       reason = description.join('\n');
     }
 
-    if (deleteMessageSeconds) {
-      for (let member of canEdit) {
-        await member.ban({deleteMessageSeconds: String(deleteMessageSeconds), reason});
-        await member.removeBan({reason});
+    const guild = context.guild;
+    for (let member of canEdit) {
+      if (guild) {
+        try {
+          await member.createMessage([
+            `You have been kicked from ${Markup.escape.all(guild.name)} (${guild.id}).`,
+            '',
+            `Information: ${Markup.codeblock(reason)}`,
+          ].join('\n'));
+        } catch(error) {
+          // maybe log this?
+        }
       }
-    } else {
-      for (let member of canEdit) {
+
+      if (deleteMessageSeconds) {
+        await member.ban({deleteMessageSeconds, reason});
+        await member.removeBan({reason});
+      } else {
         await member.remove({reason});
       }
     }

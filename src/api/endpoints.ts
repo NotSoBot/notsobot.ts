@@ -21,6 +21,9 @@ export const Api = Object.freeze({
   COMMANDS_USAGE:
     '/commands/usage',
 
+  FILE:
+    '/files/:fileId',
+
   FUN_ASCII_ART_FROM_IMAGE:
     '/fun/ascii/art/from-image',
   FUN_ASCII_ART_FROM_TEXT:
@@ -61,46 +64,45 @@ export const Api = Object.freeze({
   JOB:
     '/jobs/:jobId',
 
-  MEDIA_A_TOOLS_PUT_CONCAT:
-    '/media/a/tools/put/concat',
-  MEDIA_A_TOOLS_PUT_MIX:
-    '/media/a/tools/put/mix',
-  MEDIA_A_TOOLS_PUT_REPLACE:
-    '/media/a/tools/put/replace',
-
   MEDIA_AIV_MANIPULATION_ADHD:
     '/media/aiv/manipulation/adhd',
   MEDIA_AIV_MANIPULATION_ANDROID:
     '/media/aiv/manipulation/android',
+  MEDIA_AIV_MANIPULATION_AUDIO_PUT_CONCAT:
+    '/media/aiv/manipulation/audio/put/concat',
+  MEDIA_AIV_MANIPULATION_AUDIO_PUT_MIX:
+    '/media/aiv/manipulation/audio/put/mix',
+  MEDIA_AIV_MANIPULATION_AUDIO_PUT_REPLACE:
+    '/media/aiv/manipulation/audio/put/replace',
+  MEDIA_AIV_MANIPULATION_CONCAT:
+    '/media/aiv/manipulation/concat',
+  MEDIA_AIV_MANIPULATION_CONVERT:
+    '/media/aiv/manipulation/convert',
+  MEDIA_AIV_MANIPULATION_EXTRACT_MEDIA:
+    '/media/aiv/manipulation/extract/media',
   MEDIA_AIV_MANIPULATION_FADE_IN:
     '/media/aiv/manipulation/fade-in',
   MEDIA_AIV_MANIPULATION_FADE_OUT:
     '/media/aiv/manipulation/fade-out',
+  MEDIA_AIV_MANIPULATION_JOIN:
+    '/media/aiv/manipulation/join',
+  MEDIA_AIV_MANIPULATION_OVERLAY:
+    '/media/aiv/manipulation/overlay',
+  MEDIA_AIV_MANIPULATION_REVERSE:
+    '/media/aiv/manipulation/reverse',
+  MEDIA_AIV_MANIPULATION_SEE_SAW:
+    '/media/aiv/manipulation/see-saw',
   MEDIA_AIV_MANIPULATION_SHUFFLE:
     '/media/aiv/manipulation/shuffle',
+  MEDIA_AIV_MANIPULATION_SNIP:
+    '/media/aiv/manipulation/snip',
+  MEDIA_AIV_MANIPULATION_SPEED:
+    '/media/aiv/manipulation/speed',
 
   MEDIA_AIV_TOOLS_ANALYZE:
     '/media/aiv/tools/analyze',
-  MEDIA_AIV_TOOLS_CONCAT:
-    '/media/aiv/tools/concat',
-  MEDIA_AIV_TOOLS_CONVERT:
-    '/media/aiv/tools/convert',
   MEDIA_AIV_TOOLS_EXIF:
     '/media/aiv/tools/exif',
-  MEDIA_AIV_TOOLS_EXTRACT_MEDIA:
-    '/media/aiv/tools/extract/media',
-  MEDIA_AIV_TOOLS_JOIN:
-    '/media/aiv/tools/join',
-  MEDIA_AIV_TOOLS_OVERLAY:
-    '/media/aiv/tools/overlay',
-  MEDIA_AIV_TOOLS_REVERSE:
-    '/media/aiv/tools/reverse',
-  MEDIA_AIV_TOOLS_SEE_SAW:
-    '/media/aiv/tools/see-saw',
-  MEDIA_AIV_TOOLS_SNIP:
-    '/media/aiv/tools/snip',
-  MEDIA_AIV_TOOLS_SPEED:
-    '/media/aiv/tools/speed',
 
   MEDIA_AV_MANIPULATION_AUDIO_BOOST_BASS:
     '/media/av/manipulation/audio/boost/bass',
@@ -190,6 +192,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/datamosh',
   MEDIA_IV_MANIPULATION_DEEPFRY:
     '/media/iv/manipulation/deepfry',
+  MEDIA_IV_MANIPULATION_DERAIN:
+    '/media/iv/manipulation/derain',
   MEDIA_IV_MANIPULATION_DETUNNEL:
     '/media/iv/manipulation/detunnel',
   MEDIA_IV_MANIPULATION_DISTORT:

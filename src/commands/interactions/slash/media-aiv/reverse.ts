@@ -7,10 +7,10 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'reverse';
 
-export class MediaAIVToolsReverseCommand extends BaseInteractionMediaCommandOption {
+export class MediaAIVReverseCommand extends BaseInteractionMediaCommandOption {
   description = 'Reverse an Animated Image/Audio/Video';
   metadata = {
-    id: Formatter.Commands.MediaAIVToolsReverse.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationReverse.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class MediaAIVToolsReverseCommand extends BaseInteractionMediaCommandOpti
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsReverse.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsReverse.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationReverse.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationReverse.createMessage(context, args);
   }
 }

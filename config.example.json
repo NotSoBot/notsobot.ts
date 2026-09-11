@@ -1,7 +1,8 @@
 {
-  "NOTSOBOT_API_TOKEN": "",
-  "NOTSOBOT_DISCORD_TOKEN": "",
-  "REDIS_URL": "redis://:password@localhost:6379/0",
-  "SENTRY_DSN": "",
-  "DIRECTORY": "notsobot.ts/lib/src"
+	"DIRECTORY": "notsobot.ts/lib",
+	"NOTSOBOT_API_TOKEN": "",
+	"NOTSOBOT_DISCORD_TOKEN": "NDM5MjA1NTEyNDI1NTA0Nzcx.secret.secret2",
+	"OPENAI_API_KEY": "sk-proj-",
+	"REDIS_URL": "redis://:password@host:port/0",
+	"SENTRY_DSN": "https://ingest.sentry.io/"
 }

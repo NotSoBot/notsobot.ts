@@ -24,7 +24,7 @@ export default class SnipCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -50`,
           `${COMMAND_NAME} https://notsobot.com/some/video/file.mp4 -50 -audio`,
         ],
-        id: Formatter.Commands.MediaAIVToolsSnip.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationSnip.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> <start,number> <end,number> (-audio)',
       },
       type: [
@@ -35,7 +35,7 @@ export default class SnipCommand extends BaseMediaCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsSnip.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsSnip.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationSnip.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationSnip.createMessage(context, args);
   }
 }

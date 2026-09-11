@@ -7,10 +7,10 @@ import { BaseInteractionImageCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'convert';
 
-export class MediaIVToolsConvertCommand extends BaseInteractionImageCommandOption {
+export class MediaIVConvertCommand extends BaseInteractionImageCommandOption {
   description = 'Convert an Image or Video File';
   metadata = {
-    id: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.IV.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationConvert.SLASH_PARAMETERS.IV.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -20,7 +20,7 @@ export class MediaIVToolsConvertCommand extends BaseInteractionImageCommandOptio
         {
           name: 'to',
           description: 'Conversion Mimetype',
-          choices: Formatter.Commands.MediaAIVToolsConvert.SLASH_PARAMETERS.IV.SLASH_CHOICES,
+          choices: Formatter.Commands.MediaAIVManipulationConvert.SLASH_PARAMETERS.IV.SLASH_CHOICES,
         },
         {
           name: 'noaudio',
@@ -31,7 +31,7 @@ export class MediaIVToolsConvertCommand extends BaseInteractionImageCommandOptio
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsConvert.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsConvert.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationConvert.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationConvert.createMessage(context, args);
   }
 }

@@ -13,27 +13,25 @@ import * as FunTTS from './fun.tts';
 import * as InfoAvatar from './info.avatar';
 import * as InfoUser from './info.user';
 
-import * as MediaAToolsPutConcat from './media.a.tools.put.concat';
-import * as MediaAToolsPutMix from './media.a.tools.put.mix';
-import * as MediaAToolsPutReplace from './media.a.tools.put.replace';
-
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
 import * as MediaAIVManipulationAndroid from './media.aiv.manipulation.android';
+import * as MediaAIVManipulationAudioPutConcat from './media.aiv.manipulation.audio.put.concat';
+import * as MediaAIVManipulationAudioPutMix from './media.aiv.manipulation.audio.put.mix';
+import * as MediaAIVManipulationAudioPutReplace from './media.aiv.manipulation.audio.put.replace';
+import * as MediaAIVManipulationConcat from './media.aiv.manipulation.concat';
+import * as MediaAIVManipulationConvert from './media.aiv.manipulation.convert';
+import * as MediaAIVManipulationExtractMedia from './media.aiv.manipulation.extract.media';
 import * as MediaAIVManipulationFadeIn from './media.aiv.manipulation.fade.in';
 import * as MediaAIVManipulationFadeOut from './media.aiv.manipulation.fade.out';
-import * as MediaAIVManipulationShuffle from './media.aiv.manipulation.fade.out';
+import * as MediaAIVManipulationJoin from './media.aiv.manipulation.join';
+import * as MediaAIVManipulationOverlay from './media.aiv.manipulation.overlay';
+import * as MediaAIVManipulationReverse from './media.aiv.manipulation.reverse';
+import * as MediaAIVManipulationSeeSaw from './media.aiv.manipulation.seesaw';
+import * as MediaAIVManipulationShuffle from './media.aiv.manipulation.shuffle';
+import * as MediaAIVManipulationSnip from './media.aiv.manipulation.snip';
+import * as MediaAIVManipulationSpeed from './media.aiv.manipulation.speed';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
-
-import * as MediaAIVToolsConcat from './media.aiv.tools.concat';
-import * as MediaAIVToolsConvert from './media.aiv.tools.convert';
-import * as MediaAIVToolsExtractMedia from './media.aiv.tools.extract.media';
-import * as MediaAIVToolsJoin from './media.aiv.tools.join';
-import * as MediaAIVToolsOverlay from './media.aiv.tools.overlay';
-import * as MediaAIVToolsReverse from './media.aiv.tools.reverse';
-import * as MediaAIVToolsSeeSaw from './media.aiv.tools.seesaw';
-import * as MediaAIVToolsSnip from './media.aiv.tools.snip';
-import * as MediaAIVToolsSpeed from './media.aiv.tools.speed';
 
 import * as MediaAVManipulationAudioBoostBass from './media.av.manipulation.audio.boost.bass';
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
@@ -75,6 +73,7 @@ import * as MediaIVManipulationCartoon from './media.iv.manipulation.cartoon';
 import * as MediaIVManipulationCircle from './media.iv.manipulation.circle';
 import * as MediaIVManipulationDatamosh from './media.iv.manipulation.datamosh';
 import * as MediaIVManipulationDeepfry from './media.iv.manipulation.deepfry';
+import * as MediaIVManipulationDerain from './media.iv.manipulation.derain';
 import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
 import * as MediaIVManipulationDistort from './media.iv.manipulation.distort';
 import * as MediaIVManipulationE2E from './media.iv.manipulation.e2e';
@@ -315,27 +314,25 @@ export {
   InfoAvatar,
   InfoUser,
 
-  MediaAToolsPutConcat,
-  MediaAToolsPutMix,
-  MediaAToolsPutReplace,
-
   MediaAIVManipulationADHD,
   MediaAIVManipulationAndroid,
+  MediaAIVManipulationAudioPutConcat,
+  MediaAIVManipulationAudioPutMix,
+  MediaAIVManipulationAudioPutReplace,
+  MediaAIVManipulationConcat,
+  MediaAIVManipulationConvert,
+  MediaAIVManipulationExtractMedia,
   MediaAIVManipulationFadeIn,
   MediaAIVManipulationFadeOut,
+  MediaAIVManipulationJoin,
+  MediaAIVManipulationOverlay,
+  MediaAIVManipulationReverse,
+  MediaAIVManipulationSeeSaw,
   MediaAIVManipulationShuffle,
+  MediaAIVManipulationSnip,
+  MediaAIVManipulationSpeed,
 
   MediaAIVPipe,
-
-  MediaAIVToolsConcat,
-  MediaAIVToolsConvert,
-  MediaAIVToolsExtractMedia,
-  MediaAIVToolsJoin,
-  MediaAIVToolsOverlay,
-  MediaAIVToolsReverse,
-  MediaAIVToolsSeeSaw,
-  MediaAIVToolsSnip,
-  MediaAIVToolsSpeed,
 
   MediaAVManipulationAudioBoostBass,
   MediaAVManipulationAudioChannelsCombine,
@@ -377,6 +374,7 @@ export {
   MediaIVManipulationCircle,
   MediaIVManipulationDatamosh,
   MediaIVManipulationDeepfry,
+  MediaIVManipulationDerain,
   MediaIVManipulationDetunnel,
   MediaIVManipulationDistort,
   MediaIVManipulationE2E,

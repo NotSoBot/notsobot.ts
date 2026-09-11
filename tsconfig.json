@@ -2,10 +2,11 @@
   "compilerOptions": {
     "declaration": true,
     "esModuleInterop": true,
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "outDir": "./lib",
     "resolveJsonModule": true,
+	"rootDir": "./src",
     "strict": true,
     "target": "esnext",
     "useUnknownInCatchVariables": false

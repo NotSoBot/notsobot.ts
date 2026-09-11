@@ -1,6 +1,7 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVBlurpleCommand } from './blurple';
+import { MediaIVDerainCommand } from './derain';
 import { MediaIVGoldCommand } from './gold';
 import { MediaIVGrayscaleCommand } from './grayscale';
 import { MediaIVInvertCommand } from './invert';
@@ -12,7 +13,7 @@ import { MediaIVSepiaCommand } from './sepia';
 import { MediaIVSolarizeCommand } from './solarize';
 
 
-export class MediaTintGroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaIVTintGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'tint';
 
@@ -20,6 +21,7 @@ export class MediaTintGroupCommand extends BaseInteractionCommandOptionGroup {
     super({
       options: [
         new MediaIVBlurpleCommand(),
+        new MediaIVDerainCommand(),
         new MediaIVGoldCommand(),
         new MediaIVGrayscaleCommand(),
         new MediaIVInvertCommand(),

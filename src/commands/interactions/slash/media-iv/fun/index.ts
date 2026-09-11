@@ -27,7 +27,7 @@ import { MediaIVTraceCommand } from './trace';
 import { MediaIVWallCommand } from './wall';
 
 
-export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaIVFunGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'fun';
 

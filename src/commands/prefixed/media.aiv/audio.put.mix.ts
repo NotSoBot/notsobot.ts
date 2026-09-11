@@ -24,14 +24,14 @@ export default class AudioPutMixCommand extends BaseMediasCommand {
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,
         ],
-        id: Formatter.Commands.MediaAToolsPutMix.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationAudioPutMix.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-longest) (-noloop)',
       },
       minAmount: 2,
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAToolsPutMix.CommandArgs) {
-    return Formatter.Commands.MediaAToolsPutMix.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationAudioPutMix.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationAudioPutMix.createMessage(context, args);
   }
 }

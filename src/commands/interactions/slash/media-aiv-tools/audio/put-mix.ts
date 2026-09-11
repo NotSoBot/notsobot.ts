@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'put-mix';
 export class MediaAIVAudioPutMixCommand extends BaseInteractionMediasCommandOption {
   description = 'Mix an Audio/Image/Video\'s audio with another audio file';
   metadata = {
-    id: Formatter.Commands.MediaAToolsPutMix.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationAudioPutMix.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -24,7 +24,7 @@ export class MediaAIVAudioPutMixCommand extends BaseInteractionMediasCommandOpti
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAToolsPutMix.CommandArgs) {
-    return Formatter.Commands.MediaAToolsPutMix.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationAudioPutMix.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationAudioPutMix.createMessage(context, args);
   }
 }

@@ -286,7 +286,14 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         description.push(message);
       }
     }
-    embed.setDescription(description.join('\n').slice(0, 4096));
+
+    let file: any = undefined;
+    if (4096 < description.length) {
+      embed.setDescription('Uploaded the Error');
+      file = {filename: 'error.txt', value: description.join('\n')};
+    } else {
+      embed.setDescription(description.join('\n'));
+    }
 
     if (error.metadata) {
       embed.addField('Metadata', [
@@ -298,6 +305,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
     await context.editOrRespond({
       embed,
+      file,
       flags: MessageFlags.EPHEMERAL,
     });
 

@@ -15,7 +15,7 @@ export default class RainCommand extends BaseImageOrVideoCommand {
 
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Add a rainbowish tint to an Image or Video',
+        description: 'Apply a Rainbow tint to an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,

@@ -335,7 +335,14 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         description.push(message);
       }
     }
-    embed.setDescription(description.join('\n').slice(0, 4096));
+
+    let file: any = undefined;
+    if (4096 < description.length) {
+      embed.setDescription('Uploaded the Error');
+      file = {filename: 'error.txt', value: description.join('\n')};
+    } else {
+      embed.setDescription(description.join('\n'));
+    }
 
     if (error.metadata) {
       embed.addField('Metadata', [
@@ -345,7 +352,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       ].join('\n'));
     }
 
-    const message = await editOrReply(context, {embed});
+    const message = await editOrReply(context, {embed, file});
     if (context.command && context.command.metadata) {
       const metadata = context.command.metadata;
       const commandId = metadata.id || context.command.fullName.split(' ').join('.');

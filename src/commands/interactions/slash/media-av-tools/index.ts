@@ -6,8 +6,6 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { MediaAVToolsConvertCommand } from './convert';
-
 import { MediaAVToolsSetGroupCommand } from './set';
 
 
@@ -29,7 +27,6 @@ export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
-        new MediaAVToolsConvertCommand(),
         new MediaAVToolsSetGroupCommand(),
       ],
     });

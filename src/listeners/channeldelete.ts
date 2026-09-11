@@ -2,10 +2,10 @@ import { ClusterClient, ShardClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
 import { EventSubscription, Timers } from 'detritus-utils';
 
-import { Listener } from './listener';
-
 import { deleteChannel } from '../api';
 import { RedisSpewer } from '../redis';
+
+import { Listener } from './listener';
 
 
 class ChannelDeleteListener extends Listener {

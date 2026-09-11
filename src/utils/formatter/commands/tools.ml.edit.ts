@@ -8,6 +8,7 @@ export const COMMAND_ID = 'tools.ml.edit';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  expand?: boolean,
   model?: string,
   query: string,
   safe?: boolean,

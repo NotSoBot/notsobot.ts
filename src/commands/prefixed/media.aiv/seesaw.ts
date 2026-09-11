@@ -20,13 +20,13 @@ export default class SeeSawCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        id: Formatter.Commands.MediaAIVToolsSeeSaw.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationSeeSaw.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsSeeSaw.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsSeeSaw.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationSeeSaw.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationSeeSaw.createMessage(context, args);
   }
 }

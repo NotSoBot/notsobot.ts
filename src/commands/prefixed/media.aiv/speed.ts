@@ -20,7 +20,7 @@ export default class SpeedCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        id: Formatter.Commands.MediaAIVToolsSpeed.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationSpeed.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...speed:milliseconds>',
       },
       type: [
@@ -30,7 +30,7 @@ export default class SpeedCommand extends BaseMediaCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsSpeed.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsSpeed.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationSpeed.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationSpeed.createMessage(context, args);
   }
 }

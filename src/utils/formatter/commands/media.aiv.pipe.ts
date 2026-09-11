@@ -10,6 +10,7 @@ import {
   GoogleLocalesText,
 } from '../../../constants';
 import {
+  DefaultParameters,
   Formatter,
   Parameters,
   createUserEmbed,
@@ -41,6 +42,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const safe = DefaultParameters.safe(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const pipers: Array<PipingCommandExecution> = [];
@@ -104,7 +106,9 @@ export async function createMessage(
         throw new Error('Job Failed for some reason');
       }
     } else if (createResponse) {
-      const response = await createResponse(context, commandArgs);
+      const response = await createResponse(context, {
+        safe, ...commandArgs,
+      });
       if (fileResponse) {
         response.file_old = fileResponse.file_old;
         response.took += fileResponse.took;

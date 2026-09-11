@@ -24,14 +24,14 @@ export default class JoinCommand extends BaseMediasCommand {
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
         ],
-        id: Formatter.Commands.MediaAIVToolsJoin.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationJoin.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-noloop) (-vertical)',
       },
       minAmount: 2,
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsJoin.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsJoin.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationJoin.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationJoin.createMessage(context, args);
   }
 }

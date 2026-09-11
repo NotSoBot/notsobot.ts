@@ -10,10 +10,17 @@ import { MediaAIVExtractGroupCommand } from './extract';
 
 import { MediaAIVADHDCommand } from './adhd';
 import { MediaAIVAndroidCommand } from './android';
+import { MediaAIVConcatCommand } from './concat';
 import { MediaAIVFadeInCommand } from './fade-in';
 import { MediaAIVFadeOutCommand } from './fade-out';
+import { MediaAIVJoinCommand } from './join';
+import { MediaAIVOverlayCommand } from './overlay';
 import { MediaAIVPipeCommand } from './pipe';
+import { MediaAIVReverseCommand } from './reverse';
+import { MediaAIVSeeSawCommand } from './seesaw';
 import { MediaAIVShuffleCommand } from './shuffle';
+import { MediaAIVSnipCommand } from './snip';
+import { MediaAIVSpeedCommand } from './speed';
 
 
 export default class MediaAIVGroupCommand extends BaseSlashCommand {
@@ -36,11 +43,18 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
 	  options: [
         new MediaAIVADHDCommand(),
         new MediaAIVAndroidCommand(),
+        new MediaAIVConcatCommand(),
         new MediaAIVExtractGroupCommand(),
         new MediaAIVFadeInCommand(),
         new MediaAIVFadeOutCommand(),
+        new MediaAIVJoinCommand(),
+        new MediaAIVOverlayCommand(),
         new MediaAIVPipeCommand(),
+        new MediaAIVReverseCommand(),
+        new MediaAIVSeeSawCommand(),
         new MediaAIVShuffleCommand,
+        new MediaAIVSnipCommand(),
+        new MediaAIVSpeedCommand(),
 	  ],
 	});
   }

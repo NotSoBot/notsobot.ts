@@ -284,14 +284,17 @@ export namespace RestOptions {
     to?: GoogleLocales,
   }
 
+  export interface MediaUploadBaseOptions {
+    safe?: boolean,
+    upload?: boolean,
+    uploadExpiresIn?: number,
+  }
 
-  export interface MediaBaseOptions {
+  export interface MediaBaseOptions extends MediaUploadBaseOptions {
     doNotError?: boolean,
     file?: RequestFile,
     filename?: string,
     maxFileSize?: number,
-    upload?: boolean,
-    uploadExpiresIn?: number,
     url?: string,
   }
 
@@ -300,17 +303,22 @@ export namespace RestOptions {
     urls?: Array<string | {filename?: string, url: string}>,
   }
 
-  export interface MediaAToolsPutBase extends MediaBaseOptionsMultiple {
-    longest?: boolean,
-    noloop?: boolean,
-  }
-
   export interface MediaAIVManipulationADHD extends MediaBaseOptions {
     horizontal?: boolean,
   }
 
   export interface MediaAIVManipulationAndroid extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaAIVManipulationAudioPutBase extends MediaBaseOptionsMultiple {
+    longest?: boolean,
+    noloop?: boolean,
+  }
+
+  export interface MediaAIVManipulationConvert extends MediaBaseOptions {
+    removeAudio?: boolean,
+    to?: string,
   }
 
   export interface MediaAIVManipulationFadeIn extends MediaBaseOptions {
@@ -322,22 +330,13 @@ export namespace RestOptions {
 
   }
 
-  export interface MediaAIVManipulationShuffle extends MediaBaseOptions {
-    segment?: number,
-  }
-
-  export interface MediaAIVToolsConvert extends MediaBaseOptions {
-    removeAudio?: boolean,
-    to?: string,
-  }
-
-  export interface MediaAIVToolsJoin extends MediaBaseOptionsMultiple {
+  export interface MediaAIVManipulationJoin extends MediaBaseOptionsMultiple {
     noloop?: boolean,
     noresize?: boolean,
     vertical?: boolean,
   }
 
-  export interface MediaAIVToolsOverlay extends MediaBaseOptionsMultiple {
+  export interface MediaAIVManipulationOverlay extends MediaBaseOptionsMultiple {
     blend?: number,
     color?: string,
     noloop?: boolean,
@@ -348,11 +347,20 @@ export namespace RestOptions {
     y?: string,
   }
 
-  export interface MediaAIVToolsReverse extends MediaBaseOptions {
+  export interface MediaAIVManipulationReverse extends MediaBaseOptions {
     noaudio?: boolean,
   }
 
-  export interface MediaAIVToolsSnip extends MediaBaseOptions {
+  export interface MediaAIVManipulationShuffle extends MediaBaseOptions {
+    segment?: number,
+  }
+
+  export interface MediaAIVManipulationSpeed extends MediaBaseOptions {
+    loop?: boolean,
+    speed: number,
+  }
+
+  export interface MediaAIVManipulationSnip extends MediaBaseOptions {
     audioOnly?: boolean,
     end?: number,
     start?: number,
@@ -778,11 +786,6 @@ export namespace RestOptions {
     zoom?: number,
   }
 
-  export interface MediaIVToolsSpeed extends MediaBaseOptions {
-    loop?: boolean,
-    speed: number,
-  }
-
   export interface MediaIVToolsSetFPS extends MediaBaseOptions {
     fps: number,
   }
@@ -1038,18 +1041,18 @@ export namespace RestOptions {
     url: string,
   }
 
-  export interface UtilitiesFetchMedia {
+  export interface UtilitiesFetchMedia extends MediaUploadBaseOptions {
     downloadQuality?: string,
     locale?: string,
     maxFileSize?: number,
     mediaFormat?: string,
     mediaPosition?: number,
-    safe?: boolean,
     url: string,
   }
 
   export interface UtilitiesFetchText {
     maxFileSize?: number,
+    stripHtml?: boolean,
     url: string,
   }
 
@@ -1066,30 +1069,26 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesMLEdit extends MediaBaseOptionsMultiple {
+    expand?: boolean,
     doNotError?: boolean,
     model?: string,
     query: string,
-    safe?: boolean,
     seed?: number,
     steps?: number,
     strength?: number,
   }
 
-  export interface UtilitiesMLImagine {
+  export interface UtilitiesMLImagine extends MediaUploadBaseOptions {
     doNotError?: boolean,
     model?: string,
     query: string,
-    safe?: boolean,
     seed?: number,
     steps?: number,
-    upload?: boolean,
-    uploadExpiresIn?: number,
   }
 
   export interface UtilitiesMLMashup extends MediaBaseOptionsMultiple {
     doNotError?: boolean,
     model?: string,
-    safe?: boolean,
     seed?: number,
     steps?: number,
     strength?: number,
@@ -1115,10 +1114,9 @@ export namespace RestOptions {
     url: string,
   }
 
-  export interface UtilitiesScreenshot {
+  export interface UtilitiesScreenshot extends MediaUploadBaseOptions {
     darkmode?: boolean,
     height?: number,
-    safe?: boolean,
     timeout?: number,
     url: string,
     wait?: number,
@@ -1219,6 +1217,8 @@ export namespace RestResponsesRaw {
     expires_at: null | string,
     filename: string,
     filename_base: string,
+    filename_safe: string,
+    filename_safe_base: string,
     id: string,
     metadata: {
       duration: number,

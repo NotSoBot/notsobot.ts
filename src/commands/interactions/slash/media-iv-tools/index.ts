@@ -9,7 +9,6 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaIVToolsBackgroundGroupCommand } from './background';
 import { MediaIVToolsSetGroupCommand } from './set';
 
-import { MediaIVToolsConvertCommand } from './convert';
 import { MediaIVToolsCropCommand } from './crop';
 import { MediaIVToolsCropAutoCommand } from './crop-auto';
 import { MediaIVToolsCropCircleCommand } from './crop-circle';
@@ -44,7 +43,6 @@ export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new MediaIVToolsBackgroundGroupCommand(),
-        new MediaIVToolsConvertCommand(),
         new MediaIVToolsCropCommand(),
         new MediaIVToolsCropAutoCommand(),
         new MediaIVToolsCropCircleCommand(),

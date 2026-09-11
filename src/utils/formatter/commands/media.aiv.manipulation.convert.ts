@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
-import { mediaAIVToolsConvert } from '../../../api';
+import { mediaAIVManipulationConvert } from '../../../api';
 import {
   Mimetypes,
   MimetypesToExtension,
@@ -10,7 +10,7 @@ import {
   MIMETYPES_VIDEO_EMBEDDABLE,
   MIMETYPES_SAFE_EMBED,
 } from '../../../constants';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.tools.convert';
@@ -76,8 +76,9 @@ export async function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return await mediaAIVToolsConvert(context, {
+  return await mediaAIVManipulationConvert(context, {
     file: args.file,
+    safe: DefaultParameters.safe(context),
     to: args.to,
     url: args.url,
   });

@@ -143,75 +143,6 @@ export async function addGuildFeature(
 }
 
 
-export async function audioToolsPutConcat(
-  context: RequestContext,
-  options: RestOptions.MediaAToolsPutBase,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const body = {
-    longest: options.longest,
-    loop: !options.noloop,
-    max_file_size: maxFileSize,
-    urls: options.urls,
-  };
-  return request(context, {
-    body,
-    file: options.file,
-    files: options.files,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_A_TOOLS_PUT_CONCAT,
-    },
-  });
-}
-
-
-export async function audioToolsPutMix(
-  context: RequestContext,
-  options: RestOptions.MediaAToolsPutBase,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const body = {
-    longest: options.longest,
-    loop: !options.noloop,
-    max_file_size: maxFileSize,
-    urls: options.urls,
-  };
-  return request(context, {
-    body,
-    file: options.file,
-    files: options.files,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_A_TOOLS_PUT_MIX,
-    },
-  });
-}
-
-
-export async function audioToolsPutReplace(
-  context: RequestContext,
-  options: RestOptions.MediaAToolsPutBase,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const body = {
-    longest: options.longest,
-    loop: !options.noloop,
-    max_file_size: maxFileSize,
-    urls: options.urls,
-  };
-  return request(context, {
-    body,
-    file: options.file,
-    files: options.files,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_A_TOOLS_PUT_REPLACE,
-    },
-  });
-}
-
-
 export async function createGuildAllowlist(
   context: RequestContext,
   guildId: string,
@@ -423,6 +354,21 @@ export async function deleteChannel(
       method: HTTPMethods.DELETE,
       path: Api.CHANNEL,
       params: {channelId},
+    },
+  });
+}
+
+
+export async function deleteFile(
+  context: RequestContext,
+  fileId: string,
+): Promise<RestResponsesRaw.FileResponseStorage> {
+  const params = {fileId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.FILE,
+      params,
     },
   });
 }
@@ -813,6 +759,21 @@ export async function fetchCommandsUsage(
     route: {
       method: HTTPMethods.GET,
       path: Api.COMMANDS_USAGE,
+    },
+  });
+}
+
+
+export async function fetchFile(
+  context: RequestContext,
+  fileId: string,
+): Promise<RestResponsesRaw.FileResponseStorage> {
+  const params = {fileId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.FILE,
+      params,
     },
   });
 }
@@ -1358,6 +1319,9 @@ export async function mediaAIVManipulationADHD(
   const query = {
     horizontal: options.horizontal,
     max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     url: options.url,
   };
   return request(context, {
@@ -1378,7 +1342,10 @@ export async function mediaAIVManipulationAndroid(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     url: options.url,
   };
   return request(context, {
@@ -1387,6 +1354,124 @@ export async function mediaAIVManipulationAndroid(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_MANIPULATION_ANDROID,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationAudioPutConcat(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAudioPutBase,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    longest: options.longest,
+    loop: !options.noloop,
+    max_file_size: maxFileSize,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_AUDIO_PUT_CONCAT,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationAudioPutMix(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAudioPutBase,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    longest: options.longest,
+    loop: !options.noloop,
+    max_file_size: maxFileSize,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_AUDIO_PUT_MIX,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationAudioPutReplace(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationAudioPutBase,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    longest: options.longest,
+    loop: !options.noloop,
+    max_file_size: maxFileSize,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_AUDIO_PUT_REPLACE,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationConcat(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptionsMultiple,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_CONCAT,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationConvert(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationConvert,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    remove_audio: options.removeAudio,
+    safe: options.safe,
+    to: options.to,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_CONVERT,
     },
   });
 }
@@ -1401,6 +1486,9 @@ export async function mediaAIVManipulationFadeIn(
     color: options.color,
     duration: options.duration,
     max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     url: options.url,
   };
   return request(context, {
@@ -1423,6 +1511,9 @@ export async function mediaAIVManipulationFadeOut(
     color: options.color,
     duration: options.duration,
     max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     url: options.url,
   };
   return request(context, {
@@ -1436,6 +1527,135 @@ export async function mediaAIVManipulationFadeOut(
 }
 
 
+export async function mediaAIVManipulationExtractMedia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_EXTRACT_MEDIA,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationJoin(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationJoin,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    loop: !options.noloop,
+    max_file_size: maxFileSize,
+    no_resize: options.noresize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    urls: options.urls,
+    vertical: options.vertical,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_JOIN,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationOverlay(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationOverlay,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    blend: options.blend,
+    color: options.color,
+    loop: !options.noloop,
+    max_file_size: maxFileSize,
+    opacity: options.opacity,
+    resize: options.resize,
+    safe: options.safe,
+    similarity: options.similarity,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    urls: options.urls,
+    x: options.x,
+    y: options.y,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_OVERLAY,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationReverse(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationReverse,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    audio: !options.noaudio,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_REVERSE,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationSeeSaw(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_SEE_SAW,
+    },
+  });
+}
+
+
 export async function mediaAIVManipulationShuffle(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationShuffle,
@@ -1443,7 +1663,10 @@ export async function mediaAIVManipulationShuffle(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     segment: options.segment,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     url: options.url,
   };
   return request(context, {
@@ -1452,6 +1675,57 @@ export async function mediaAIVManipulationShuffle(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_MANIPULATION_SHUFFLE,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationSnip(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationSnip,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    audio_only: options.audioOnly,
+    end: options.end,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    start: options.start,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_SNIP,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationSpeed(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationSpeed,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    loop: options.loop,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    speed: options.speed,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_SPEED,
     },
   });
 }
@@ -1477,49 +1751,6 @@ export async function mediaAIVToolsAnalyze(
 }
 
 
-export async function mediaAIVToolsConcat(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptionsMultiple,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const body = {
-    max_file_size: maxFileSize,
-    urls: options.urls,
-  };
-  return request(context, {
-    body,
-    file: options.file,
-    files: options.files,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_CONCAT,
-    },
-  });
-}
-
-
-export async function mediaAIVToolsConvert(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsConvert,
-): Promise<RestResponsesRaw.JobResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    max_file_size: maxFileSize,
-    remove_audio: options.removeAudio,
-    to: options.to,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_CONVERT,
-    },
-  });
-}
-
-
 export async function mediaAIVToolsExif(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -1533,165 +1764,6 @@ export async function mediaAIVToolsExif(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_TOOLS_EXIF,
-    },
-  });
-}
-
-
-export async function mediaAIVToolsExtractMedia(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    max_file_size: maxFileSize,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_EXTRACT_MEDIA,
-    },
-  });
-}
-
-
-export async function mediaAIVToolsJoin(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsJoin,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const body = {
-    loop: !options.noloop,
-    max_file_size: maxFileSize,
-    no_resize: options.noresize,
-    urls: options.urls,
-    vertical: options.vertical,
-  };
-  return request(context, {
-    body,
-    file: options.file,
-    files: options.files,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_JOIN,
-    },
-  });
-}
-
-
-export async function mediaAIVToolsOverlay(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsOverlay,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const body = {
-    blend: options.blend,
-    color: options.color,
-    loop: !options.noloop,
-    max_file_size: maxFileSize,
-    opacity: options.opacity,
-    resize: options.resize,
-    similarity: options.similarity,
-    urls: options.urls,
-    x: options.x,
-    y: options.y,
-  };
-  return request(context, {
-    body,
-    file: options.file,
-    files: options.files,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_OVERLAY,
-    },
-  });
-}
-
-
-export async function mediaAIVToolsReverse(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsReverse,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    audio: !options.noaudio,
-    max_file_size: maxFileSize,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_REVERSE,
-    },
-  });
-}
-
-
-export async function mediaAIVToolsSeeSaw(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    max_file_size: maxFileSize,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_SEE_SAW,
-    },
-  });
-}
-
-
-export async function mediaAIVToolsSnip(
-  context: RequestContext,
-  options: RestOptions.MediaAIVToolsSnip,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    audio_only: options.audioOnly,
-    end: options.end,
-    max_file_size: maxFileSize,
-    start: options.start,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_SNIP,
-    },
-  });
-}
-
-
-export async function mediaAIVToolsSpeed(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsSpeed,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    loop: options.loop,
-    max_file_size: maxFileSize,
-    speed: options.speed,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_AIV_TOOLS_SPEED,
     },
   });
 }
@@ -1985,7 +2057,7 @@ export async function mediaAVManipulationAudioVolume(
 export async function mediaAVManipulationStammer(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationStammer,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     color_mode: options.colorMode,
@@ -2565,6 +2637,26 @@ export async function mediaIVManipulationDeepfry(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_DEEPFRY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationDerain(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DERAIN,
     },
   });
 }
@@ -3361,7 +3453,7 @@ export async function mediaIVManipulationOrb(
 export async function mediaIVManipulationOverlayFace(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationOverlayFace,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     max_file_size: maxFileSize,
@@ -4496,7 +4588,7 @@ export async function mediaIVManipulationZoomBlur(
 export async function mediaIVToolsBackgroundRemove(
   context: RequestContext,
   options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
@@ -5578,6 +5670,8 @@ export async function utilitiesFetchMedia(
     media_format: options.mediaFormat,
     media_position: options.mediaPosition,
     safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     url: options.url,
   };
   return request(context, {
@@ -5597,6 +5691,7 @@ export async function utilitiesFetchText(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    strip_html: options.stripHtml,
     url: options.url,
   };
   return request(context, {
@@ -5638,6 +5733,7 @@ export async function utilitiesMediascript(
     max_file_size: maxFileSize,
     max_file_size_strict: options.maxFileSizeStrict,
     ml_diffusion_model: options.mlDiffusionModel,
+    safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
   };
@@ -5659,7 +5755,8 @@ export async function utilitiesMLEdit(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
-    do_not_error: false, // options.doNotError,
+    expand: options.expand,
+    do_not_error: options.doNotError,
     max_file_size: maxFileSize,
     model: options.model,
     query: options.query,
@@ -5694,7 +5791,7 @@ export async function utilitiesMLImagine(
     max_file_size: maxFileSize,
     model: options.model,
     query: options.query,
-    safe: options.safe,
+    safe: true, // options.safe,
     seed: options.seed,
     steps: options.steps,
     upload: options.upload,
@@ -5765,7 +5862,7 @@ export async function utilitiesMLMashup(
     do_not_error: options.doNotError,
     model: options.model,
     max_file_size: maxFileSize,
-    safe: options.safe,
+    safe: true, // options.safe,
     seed: options.seed,
     steps: options.steps,
     strength: options.strength,
@@ -5862,6 +5959,8 @@ export async function utilitiesScreenshot(
     max_file_size: maxFileSize,
     safe: options.safe,
     timeout: options.timeout,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
     url: options.url,
     wait: options.wait,
     width: options.width,

@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAIVManipulationFadeOut } from '../../../api';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.manipulation.fade.out';
@@ -17,7 +17,10 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaAIVManipulationFadeOut(context, args);
+  return mediaAIVManipulationFadeOut(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(

@@ -50,6 +50,7 @@ import {
   EmbedColors,
   GoogleLocalesText,
   LanguageCodesText,
+  MessageComponentCustomIds,
   Mimetypes,
   ReminderMessages,
   ReuploadStatuses,
@@ -1858,10 +1859,9 @@ export async function jobWaitForResult(
 
 
 export async function mediaReply(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   response: RestResponsesRaw.FileResponse,
   options: {
-    args?: boolean,
     content?: string,
     description?: string,
     filename?: string,
@@ -1876,7 +1876,6 @@ export async function mediaReply(
   }
   const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   return mediaReplyFromOptions(context, buffer, {
-    args: options.args,
     content: options.content,
     description: options.description,
     extension: response.file.metadata.extension,
@@ -1894,10 +1893,9 @@ export async function mediaReply(
 
 
 export async function mediaReplyFromOptions(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   value: any,
   options: {
-    args?: boolean,
     content?: string,
     context?: ComponentContext,
     description?: string,
@@ -1910,17 +1908,19 @@ export async function mediaReplyFromOptions(
     size: number,
     spoiler?: boolean,
     storage?: null | RestResponsesRaw.FileResponseStorage,
+    storageUserId?: string,
     took?: number,
     width?: number,
   },
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
+  const isFromPrefix = (context instanceof Command.Context);
 
   let filename: string = '';
   if (options.filename) {
     filename = options.filename;
   } else {
-    if (context.command) {
+    if ((isFromInteraction || isFromPrefix) && context.command) {
       filename = context.command.name.replace(' ', '-');
     } else {
       filename = 'edited-media';
@@ -1948,36 +1948,10 @@ export async function mediaReplyFromOptions(
   }
 
   let reuploadButton: ComponentButton | null = null;
-  if (!options.reuploading && options.storage && context instanceof Command.Context && userMaybeHasNitro(context)) {
+  if (!options.reuploading && options.storage && options.storage.temporary && context instanceof Command.Context) {
     reuploadButton = new ComponentButton({
+      customId: MessageComponentCustomIds.MAKE_PERMANENT_USING_NITRO + '.' + options.storage.id,
       label: 'Make Permanent Using Nitro',
-      run: async (ctx: ComponentContext) => {
-        if (ctx.userId !== context.userId && ctx.maxAttachmentSize < options.size) {
-          // we will only allow the original poster or if the person who clicked it has nitro
-          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-        }
-        if (options.reuploading) {
-          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-        }
-
-        options.context = ctx;
-        if (!options.storage || ctx.maxAttachmentSize < options.size) {
-          options.reuploading = ReuploadStatuses.CANCELLED;
-          return mediaReplyFromOptions(context, value, options);
-        }
-
-        options.reuploading = ReuploadStatuses.STARTED;
-        await mediaReplyFromOptions(context, value, options);
-
-        if (context.metadata) {
-          context.metadata.started = Date.now();
-        }
-
-        const buffer = await context.rest.get(options.storage.urls.cdn);
-        options.storage = null;
-        options.reuploading = ReuploadStatuses.FINISHED;
-        return mediaReplyFromOptions(context, buffer, options);
-      },
     });
   } else {
     switch (options.reuploading) {
@@ -2001,7 +1975,8 @@ export async function mediaReplyFromOptions(
 
   let displaySettings = UserSettingsResponseDisplayTypes.DEFAULT;
 
-  const settings = await UserSettingsStore.getOrFetch(context, context.userId);
+  const userId = options.storageUserId || context.userId;
+  const settings = await UserSettingsStore.getOrFetch(context, userId);
   if (settings) {
     displaySettings = settings.response_display as UserSettingsResponseDisplayTypes;
   }
@@ -2012,16 +1987,7 @@ export async function mediaReplyFromOptions(
     case Mimetypes.IMAGE_X_APNG: shouldBeEmbed = false; break; // discord now only uploads the first frame of an apng, so we will just send a file ending in `.apng`
   }
 
-  const components: Components = new Components({
-    timeout: (reuploadButton) ? (2 * (60 * 1000)) : 0, // todo: fix this in detritus
-    onTimeout: () => {
-      if (options.reuploading === ReuploadStatuses.CANCELLED) {
-        return;
-      }
-      options.reuploading = ReuploadStatuses.CANCELLED;
-      return mediaReplyFromOptions(context, value, options);
-    },
-  });
+  const components: Components = new Components();
 
   if (displaySettings === UserSettingsResponseDisplayTypes.DEFAULT) {
     let canBeMedia = (
@@ -2063,7 +2029,7 @@ export async function mediaReplyFromOptions(
       }
       container.addSeparator();
       if (!isFromInteraction) {
-        container.addTextDisplay({content: `-# **Invoked by ${context.user.mention}**`});
+        container.addTextDisplay({content: `-# **Invoked by <@${userId}>**`});
       }
       if (options.storage && options.storage.expires_at) {
         const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);

@@ -135,7 +135,7 @@ export default class BanCommand extends BaseCommand {
           }
         }
 
-        await guild.createBan(memberOrUser.id, {deleteMessageSeconds: String(deleteMessageSeconds), reason});
+        await guild.createBan(memberOrUser.id, {deleteMessageSeconds, reason});
       }
     }
 

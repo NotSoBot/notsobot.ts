@@ -7,13 +7,6 @@ import {
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAIVAudioGroupCommand } from './audio';
-import { MediaAIVToolsConcatCommand } from './concat';
-import { MediaAIVToolsJoinCommand } from './join';
-import { MediaAIVToolsOverlayCommand } from './overlay';
-import { MediaAIVToolsReverseCommand } from './reverse';
-import { MediaAIVToolsSeeSawCommand } from './seesaw';
-import { MediaAIVToolsSnipCommand } from './snip';
-import { MediaAIVToolsSpeedCommand } from './speed';
 
 
 export default class MediaAIVToolsGroupCommand extends BaseSlashCommand {
@@ -35,13 +28,6 @@ export default class MediaAIVToolsGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new MediaAIVAudioGroupCommand(),
-        new MediaAIVToolsConcatCommand(),
-        new MediaAIVToolsJoinCommand(),
-        new MediaAIVToolsOverlayCommand(),
-        new MediaAIVToolsReverseCommand(),
-        new MediaAIVToolsSeeSawCommand(),
-        new MediaAIVToolsSnipCommand(),
-        new MediaAIVToolsSpeedCommand(),
       ],
     });
   }

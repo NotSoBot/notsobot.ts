@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'put-replace';
 export class MediaAIVAudioPutReplaceCommand extends BaseInteractionMediasCommandOption {
   description = 'Replace an Audio/Image/Video\'s audio with another audio file';
   metadata = {
-    id: Formatter.Commands.MediaAToolsPutReplace.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationAudioPutReplace.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -24,7 +24,7 @@ export class MediaAIVAudioPutReplaceCommand extends BaseInteractionMediasCommand
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAToolsPutReplace.CommandArgs) {
-    return Formatter.Commands.MediaAToolsPutReplace.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationAudioPutReplace.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationAudioPutReplace.createMessage(context, args);
   }
 }

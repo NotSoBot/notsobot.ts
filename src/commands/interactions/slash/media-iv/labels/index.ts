@@ -3,7 +3,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { MediaIVLabelsIFunnyCommand } from './ifunny';
 
 
-export class MediaLabelsGroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaIVLabelsGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'labels';
 

@@ -7,6 +7,7 @@ import {
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAVAudioGroupCommand } from './audio';
+import { MediaAVConvertCommand } from './convert';
 import { MediaAVExtractGroupCommand } from './extract';
 import { MediaAVStammerCommand } from './stammer';
 
@@ -30,6 +31,7 @@ export default class MediaAVGroupCommand extends BaseSlashCommand {
 	  permissions: [Permissions.ATTACH_FILES],
 	  options: [
         new MediaAVAudioGroupCommand(),
+        new MediaAVConvertCommand(),
         new MediaAVExtractGroupCommand(),
         new MediaAVStammerCommand(),
 	  ],

@@ -14,6 +14,7 @@ export default class EditCommand extends BaseMediasCommand {
       name: COMMAND_NAME,
 
       args: [
+        {name: 'expand', type: Boolean},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (1 to 16)'}},
@@ -35,7 +36,7 @@ export default class EditCommand extends BaseMediasCommand {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png an animal eating strawberries -seed 5`,
         ],
         id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
-        usage: '?<emoji,user:id|mention,url> <...query> (-safe) (-seed <number>) (-steps <number>) (-strength <number>) (-use <MLDiffusionModel>)',
+        usage: '?<emoji,user:id|mention,url> <...query> (-expand) (-safe) (-seed <number>) (-steps <number>) (-strength <number>) (-use <MLDiffusionModel>)',
       },
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'guild'},

@@ -7,10 +7,10 @@ import { BaseInteractionMediasCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'overlay';
 
-export class MediaAIVToolsOverlayCommand extends BaseInteractionMediasCommandOption {
+export class MediaAIVOverlayCommand extends BaseInteractionMediasCommandOption {
   description = 'Overlay one media on top of another';
   metadata = {
-    id: Formatter.Commands.MediaAIVToolsOverlay.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationOverlay.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -30,7 +30,7 @@ export class MediaAIVToolsOverlayCommand extends BaseInteractionMediasCommandOpt
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsOverlay.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsOverlay.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationOverlay.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationOverlay.createMessage(context, args);
   }
 }

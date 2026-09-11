@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'put-concat';
 export class MediaAIVAudioPutConcatCommand extends BaseInteractionMediasCommandOption {
   description = 'Concat an Audio/Image/Video\'s audio with another audio file';
   metadata = {
-    id: Formatter.Commands.MediaAToolsPutConcat.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationAudioPutConcat.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -24,7 +24,7 @@ export class MediaAIVAudioPutConcatCommand extends BaseInteractionMediasCommandO
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAToolsPutConcat.CommandArgs) {
-    return Formatter.Commands.MediaAToolsPutConcat.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationAudioPutConcat.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationAudioPutConcat.createMessage(context, args);
   }
 }

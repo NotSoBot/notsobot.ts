@@ -6,7 +6,7 @@ import { MediaIVOverlayFliesCommand } from './flies';
 import { MediaIVOverlayPistolCommand } from './pistol';
 
 
-export class MediaOverlayGroupCommand extends BaseInteractionCommandOptionGroup {
+export class MediaIVOverlayGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'overlay';
 

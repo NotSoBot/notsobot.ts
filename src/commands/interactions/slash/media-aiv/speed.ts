@@ -7,10 +7,10 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'speed';
 
-export class MediaAIVToolsSpeedCommand extends BaseInteractionMediaCommandOption {
+export class MediaAIVSpeedCommand extends BaseInteractionMediaCommandOption {
   description = 'Edit an Animated Image/Audio/Video\'s Speed';
   metadata = {
-    id: Formatter.Commands.MediaAIVToolsSpeed.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationSpeed.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -22,7 +22,7 @@ export class MediaAIVToolsSpeedCommand extends BaseInteractionMediaCommandOption
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsSpeed.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsSpeed.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationSpeed.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationSpeed.createMessage(context, args);
   }
 }

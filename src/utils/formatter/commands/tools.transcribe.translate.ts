@@ -47,7 +47,7 @@ export async function createMessage(
       translated_language: translatedLanguage,
       translated_text: translatedText,
     } = await googleTranslate(context, {
-      text: text,
+      text: text.slice(0, 5000),
       to: args.to || undefined,
     });
 
@@ -78,9 +78,9 @@ export async function createMessage(
       }
     } else {
       if (shouldShowInput) {
-        files.push({filename: `translate-from-${fromLanguageText}.txt`, value: text});
+        files.push({filename: `translate-from-${fromLanguageText.toLowerCase()}.txt`, value: text});
       }
-      files.push({filename: `translate-to-${translatedLanguage}.txt`, value: translatedText});
+      files.push({filename: `translate-to-${translatedLanguageText.toLowerCase()}.txt`, value: translatedText});
       embed.setDescription([
         `Input: ${text.length.toLocaleString()} Characters`,
         `Result: ${translatedText.length.toLocaleString()} Characters`,

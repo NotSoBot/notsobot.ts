@@ -19,14 +19,14 @@ export default class ConcatCommand extends BaseMediasCommand {
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,
         ],
-        id: Formatter.Commands.MediaAIVToolsConcat.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationConcat.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url>',
       },
       minAmount: 2,
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsConcat.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsConcat.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationConcat.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationConcat.createMessage(context, args);
   }
 }

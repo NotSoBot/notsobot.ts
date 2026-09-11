@@ -11,6 +11,12 @@ import { connectAllListeners } from './listeners';
 import { connectAllStores } from './stores';
 
 
+import { setGlobalDispatcher, Agent } from 'undici';
+
+setGlobalDispatcher(new Agent({
+  allowH2: false,
+}));
+
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,

@@ -6,10 +6,11 @@ import {
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { MediaFunGroupCommand } from './fun';
-import { MediaLabelsGroupCommand } from './labels';
-import { MediaOverlayGroupCommand } from './overlay';
-import { MediaTintGroupCommand } from './tint';
+import { MediaIVConvertCommand } from './convert';
+import { MediaIVFunGroupCommand } from './fun';
+import { MediaIVLabelsGroupCommand } from './labels';
+import { MediaIVOverlayGroupCommand } from './overlay';
+import { MediaIVTintGroupCommand } from './tint';
 // mirror
 
 
@@ -31,10 +32,11 @@ export default class MediaIVGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
-        new MediaFunGroupCommand(),
-        new MediaLabelsGroupCommand(),
-        new MediaOverlayGroupCommand(),
-        new MediaTintGroupCommand(),
+        new MediaIVConvertCommand(),
+        new MediaIVFunGroupCommand(),
+        new MediaIVLabelsGroupCommand(),
+        new MediaIVOverlayGroupCommand(),
+        new MediaIVTintGroupCommand(),
       ],
     });
   }

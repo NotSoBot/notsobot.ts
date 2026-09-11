@@ -24,6 +24,11 @@ export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
           value: Parameters.parsedMentionsText,
         },
         {
+          name: 'expand',
+          description: 'Expand Image',
+          type: Boolean,
+        },
+        {
           name: 'model',
           description: 'Diffusion Model',
           value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),

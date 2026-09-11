@@ -21,13 +21,13 @@ export default class ExtractMediaCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.MediaAIVToolsExtractMedia.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationExtractMedia.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsExtractMedia.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsExtractMedia.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationExtractMedia.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationExtractMedia.createMessage(context, args);
   }
 }

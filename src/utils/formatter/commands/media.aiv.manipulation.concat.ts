@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaAIVToolsConcat } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { mediaAIVManipulationConcat } from '../../../api';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.tools.concat';
@@ -11,17 +11,20 @@ export interface CommandArgs {
   urls: Array<string>,
 }
 
-export function createResponse(
+export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaAIVToolsConcat(context, args);
+  return mediaAIVManipulationConcat(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await createResponse(context, args);
-  return mediaReply(context, response);
+  const response = await createJob(context, args);
+  return jobReply(context, response);
 }

@@ -7,10 +7,10 @@ import { BaseInteractionMediaCommandOption } from '../../basecommand';
 
 export const COMMAND_NAME = 'snip';
 
-export class MediaAIVToolsSnipCommand extends BaseInteractionMediaCommandOption {
+export class MediaAIVSnipCommand extends BaseInteractionMediaCommandOption {
   description = 'Snip an Animated Image/Audio/Video';
   metadata = {
-    id: Formatter.Commands.MediaAIVToolsSnip.COMMAND_ID,
+    id: Formatter.Commands.MediaAIVManipulationSnip.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -24,7 +24,7 @@ export class MediaAIVToolsSnipCommand extends BaseInteractionMediaCommandOption 
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVToolsSnip.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsSnip.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAIVManipulationSnip.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationSnip.createMessage(context, args);
   }
 }

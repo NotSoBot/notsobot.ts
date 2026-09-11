@@ -30,7 +30,7 @@ export default class OverlayCommand extends BaseMediasCommand {
           `${COMMAND_NAME} @cakedan @notsobot`,
           `${COMMAND_NAME} @cakedan @notsobot -resize fit(mw, mh) -x (mw/2)-(ow/2) -y (mh/2)-(oh/2)`,
         ],
-        id: Formatter.Commands.MediaAIVToolsOverlay.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationOverlay.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-blend <float>) (-color <string:FFMPEGColors|HEX|RGBA?>) (-noloop) (-opacity <number>) (-resize <expression>) (-similarity <float>) (-x <expression>) (-y <expression>)',
       },
       minAmount: 2,
@@ -38,7 +38,7 @@ export default class OverlayCommand extends BaseMediasCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsOverlay.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsOverlay.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationOverlay.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationOverlay.createMessage(context, args);
   }
 }

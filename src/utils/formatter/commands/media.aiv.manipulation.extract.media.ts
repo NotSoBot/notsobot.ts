@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaAIVToolsExtractMedia } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { mediaAIVManipulationExtractMedia } from '../../../api';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.tools.extract.media';
@@ -14,8 +14,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await mediaAIVToolsExtractMedia(context, {
+  const response = await mediaAIVManipulationExtractMedia(context, {
     url: args.url,
   });
-  return mediaReply(context, response);
+  return jobReply(context, response);
 }

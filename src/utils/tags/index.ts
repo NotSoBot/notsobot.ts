@@ -1,7 +1,6 @@
 import * as crypto from 'crypto';
 import * as vm from 'vm';
 
-import * as cheerio from 'cheerio';
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import {
   MarkupTimestampStyles,
@@ -402,6 +401,7 @@ export enum TagFunctions {
   STRING_UPPER = 'STRING_UPPER',
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
   TAG = 'TAG',
+  TAG_CONTENT = 'TAG_CONTENT',
   TAG_ID = 'TAG_ID',
   TAG_NAME = 'TAG_NAME',
   TAG_OWNER_ID = 'TAG_OWNER_ID',
@@ -583,6 +583,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_UPPER]: ['upper'],
   [TagFunctions.STRING_URL_ENCODE]: ['url', 'urlencode'],
   [TagFunctions.TAG]: ['tag'],
+  [TagFunctions.TAG_CONTENT]: ['tagcontent'],
   [TagFunctions.TAG_ID]: ['tagid'],
   [TagFunctions.TAG_NAME]: ['tagname'],
   [TagFunctions.TAG_OWNER_ID]: ['tagownerid'],
@@ -2523,6 +2524,7 @@ const ScriptTags = Object.freeze({
         safe: DefaultParameters.safe(context),
         url,
       });
+
       if (!(url in cachedResults)) {
         cachedResults[url] = response;
       }
@@ -5144,6 +5146,7 @@ const ScriptTags = Object.freeze({
         files,
         maxFileSizeStrict: false,
         mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
+        safe: DefaultParameters.safe(context),
         upload: true,
         uploadExpiresIn: (7 * 24 * 60 * 60),
       }).then((x) => jobWaitForResult(context, x));
@@ -6232,6 +6235,17 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.TAG_CONTENT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {tagcontent}
+
+    if (context.metadata && context.metadata.tag) {
+      const currentTag = context.metadata.tag;
+      tag.text += (currentTag.reference_tag) ? currentTag.reference_tag.content : currentTag.content;
+    }
+
+    return true;
+  },
+
   [TagFunctions.TAG_ID]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {tagid}
   
@@ -6294,24 +6308,18 @@ const ScriptTags = Object.freeze({
 
     try {
       const maxFileSize = context.maxAttachmentSize;
-      const response = await utilitiesFetchText(context, {maxFileSize, url});
+      const response = await utilitiesFetchText(context, {
+        maxFileSize,
+        stripHtml: true,
+        url,
+      });
 
       const text = await response.text();
       if (maxFileSize < text.length + tag.text.length) {
         throw new Error(`Text exceeded ${maxFileSize} bytes`);
       }
 
-      try {
-        const $ = cheerio.load(text);
-        $('script, style, noscript, iframe, embed, object').remove();
-        $('*').contents().filter(function() {
-            return this.type === 'comment';
-        }).remove();
-  
-        tag.text += $.text().replace(/\s+/g, ' ').trim();
-      } catch(error) {
-        tag.text += text;
-      }
+      tag.text += text;
     } catch(error) {
       console.log(error);
       throw error;

@@ -628,6 +628,19 @@ export async function url(
 
     return (await getOrFetchRealUrl(context, value)) || value;
   }
+
+  if (context instanceof Command.Context) {
+    const { messageReference } = context.message;
+    if (messageReference && messageReference.messageId) {
+      const message = messageReference.message || await context.rest.fetchMessage(
+        messageReference.channelId, messageReference.messageId,
+      );
+      if (message.content) {
+        return url(message.content, context);
+      }
+    }
+  }
+
   return value;
 }
 
@@ -749,7 +762,9 @@ export async function tagContent(
       {
         const { messageReference } = context.message;
         if (messageReference && messageReference.messageId) {
-          const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          const message = messageReference.message || await context.rest.fetchMessage(
+            messageReference.channelId, messageReference.messageId,
+          );
           const urls = findUrlsInMessages([message]);
           if (urls.length) {
             return [
@@ -889,7 +904,9 @@ export async function targetText(
     if (context instanceof Command.Context) {
       const { messageReference } = context.message;
       if (messageReference && messageReference.messageId) {
-        const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+        const message = messageReference.message || await context.rest.fetchMessage(
+          messageReference.channelId, messageReference.messageId,
+        );
         if (message.content) {
           value = message.content;
         } else if (message.embeds.length) {
@@ -1351,7 +1368,9 @@ export function mediaUrl(
           {
             const { messageReference } = context.message;
             if (messageReference && messageReference.messageId) {
-              const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+              const message = messageReference.message || await context.rest.fetchMessage(
+                messageReference.channelId, messageReference.messageId,
+              );
               const url = findUrlInMessages([message], mediaSearchOptions);
               if (url) {
                 return getOrFetchRealUrl(context, url, mediaSearchOptions);
@@ -1587,7 +1606,9 @@ export function mediaUrls(
         if (urls.length < maxAmount) {
           const { messageReference } = context.message;
           if (messageReference && messageReference.messageId) {
-            const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+            const message = messageReference.message || await context.rest.fetchMessage(
+              messageReference.channelId, messageReference.messageId,
+            );
             for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
               urls.push(url);
             }
@@ -1921,7 +1942,9 @@ export function mediaUrlPositional(
         {
           const { messageReference } = context.message;
           if (messageReference && messageReference.messageId) {
-            const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+            const message = messageReference.message || await context.rest.fetchMessage(
+              messageReference.channelId, messageReference.messageId,
+            );
             const url = findUrlInMessages([message], mediaSearchOptions);
             if (url) {
               const realUrl = await getOrFetchRealUrl(context, url, mediaSearchOptions);

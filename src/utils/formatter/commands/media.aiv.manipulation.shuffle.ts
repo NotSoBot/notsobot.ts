@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAIVManipulationShuffle } from '../../../api';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.manipulation.shuffle';
@@ -16,7 +16,10 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaAIVManipulationShuffle(context, args);
+  return mediaAIVManipulationShuffle(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(

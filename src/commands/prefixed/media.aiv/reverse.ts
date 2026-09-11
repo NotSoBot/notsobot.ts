@@ -23,13 +23,13 @@ export default class ReverseCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        id: Formatter.Commands.MediaAIVToolsReverse.COMMAND_ID,
+        id: Formatter.Commands.MediaAIVManipulationReverse.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-noaudio)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAIVToolsReverse.CommandArgs) {
-    return Formatter.Commands.MediaAIVToolsReverse.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAIVManipulationReverse.CommandArgs) {
+    return Formatter.Commands.MediaAIVManipulationReverse.createMessage(context, args);
   }
 }
