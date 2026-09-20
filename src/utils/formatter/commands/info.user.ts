@@ -16,6 +16,7 @@ import {
 import {
   Paginator,
   createTimestampMomentFromContext,
+  createUserDisplayName,
   getMemberJoinPosition,
   toTitleCase,
 } from '../../../utils';
@@ -100,10 +101,10 @@ export async function createMessage(
 
       if (files.length) {
         const file = files[0]!;
-        embed.setAuthor(user.toString(), `attachment://${file.filename}`, user.jumpLink);
+        embed.setAuthor(createUserDisplayName(user), `attachment://${file.filename}`, user.jumpLink);
         embed.setThumbnail(`attachment://${file.filename}`);
       } else {
-        embed.setAuthor(user.toString(), avatarUrl, user.jumpLink);
+        embed.setAuthor(createUserDisplayName(user), avatarUrl, user.jumpLink);
         embed.setThumbnail(avatarUrl);
       }
 

@@ -151,9 +151,18 @@ export function createTimestampStringFromGuild(timestamp: number | string, guild
 }
 
 
+export function createUserDisplayName(user: Structures.Member | Structures.User): string {
+  if (user.bot && user.discriminator && user.discriminator !== '0') {
+    return `${user.username}#${user.discriminator}`;
+  }
+  return user.username;
+}
+
+
 export function createUserEmbed(user: Structures.User, embed: Embed = new Embed()) {
+  const name = createUserDisplayName(user);
   embed.setAuthor(
-    (user.bot) ? `${user} (BOT)` : user.toString(),
+    (user.bot) ? `${name} (BOT)` : name,
     user.avatarUrlFormat(null, {size: 1024}),
     user.jumpLink,
   );
@@ -163,7 +172,8 @@ export function createUserEmbed(user: Structures.User, embed: Embed = new Embed(
 
 export function createUserString(userId: string = '1', user?: Structures.User | null, name?: string): string {
   if (user || name) {
-    return `<@${userId}> ${Markup.spoiler(`(${Markup.escape.all(String(user || name))})`)}`;
+    const displayName = (user) ? createUserDisplayName(user) : name!;
+    return `<@${userId}> ${Markup.spoiler(`(${Markup.escape.all(displayName)})`)}`;
   }
   return `<@${userId}>`;
 }

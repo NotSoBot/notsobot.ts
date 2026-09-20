@@ -10,6 +10,7 @@ import {
   Paginator,
   Parameters,
   createTimestampMomentFromGuild,
+  createUserDisplayName,
   editOrReply,
   toTitleCase,
 } from '../../../utils';
@@ -144,7 +145,7 @@ export default class SeenOnCommand extends BaseCommand {
       pageLimit,
       onPage: (page) => {
         const embed = new Embed();
-        embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
+        embed.setAuthor(createUserDisplayName(user), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
         embed.setColor(Colors.BLURPLE);
 
         const resultNumber = page - 1;

@@ -11,7 +11,7 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { DefaultParameters, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { DefaultParameters, Parameters, createTimestampMomentFromGuild, createUserDisplayName, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -348,7 +348,7 @@ export default class PruneCommand extends BaseCommand {
       const manualToDelete = manual.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
       deletedTotal += manualToDelete.length;
 
-      const reason = `Pruning of ${deletedTotal.toLocaleString()} messages by ${context.user} (${context.user.id})`;
+      const reason = `Pruning of ${deletedTotal.toLocaleString()} messages by ${createUserDisplayName(context.user)} (${context.user.id})`;
       for (let messageId of manualToDelete) {
         await context.rest.deleteMessage(channelId, messageId, {reason});
       }

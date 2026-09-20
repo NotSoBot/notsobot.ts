@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
-import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { Parameters, createTimestampMomentFromGuild, createUserDisplayName, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -105,7 +105,7 @@ export default class UnbanCommand extends BaseCommand {
     let reason: string | undefined;
     {
       const description: Array<string> = [];
-      description.push(`Admin: ${context.user} (${context.user.id})`);
+      description.push(`Admin: ${createUserDisplayName(context.user)} (${context.user.id})`);
       description.push(`Reason: ${(payload.text) ? Markup.escape.all(payload.text) : '[Unspecified Reason]'}`);
       {
         const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
@@ -126,7 +126,7 @@ export default class UnbanCommand extends BaseCommand {
     {
       const description: Array<string> = [];
       if (canEdit.length) {
-        const members = canEdit.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
+        const members = canEdit.map((member) => `${member.mention} ${Markup.spoiler(`(${createUserDisplayName(member)})`)}`);
         for (let member of members) {
           description.push(`-> ${member}`);
         }
@@ -146,7 +146,7 @@ export default class UnbanCommand extends BaseCommand {
       if (cannotEdit.length) {
         description.push('');
         if (cannotEdit.length) {
-          const members = cannotEdit.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
+          const members = cannotEdit.map((member) => `${member.mention} ${Markup.spoiler(`(${createUserDisplayName(member)})`)}`);
           description.push('Couldn\'t unban because they ain\'t banned');
           for (let member of members) {
             description.push(`-> ${member}`);
@@ -156,7 +156,7 @@ export default class UnbanCommand extends BaseCommand {
       }
 
       if (us.length) {
-        const members = us.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
+        const members = us.map((member) => `${member.mention} ${Markup.spoiler(`(${createUserDisplayName(member)})`)}`);
         description.push('Cannot Unban Yourself or Myself');
         for (let member of members) {
           description.push(`-> ${member}`);
