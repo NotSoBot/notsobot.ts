@@ -5,7 +5,7 @@ import { CommandCategories, GuildFeatures, UserFlags } from '../../../constants'
 import GuildSettingsStore from '../../../stores/guildsettings';
 import TagCustomCommandStore, { TagCustomCommandStored } from '../../../stores/tagcustomcommands';
 import UserStore from '../../../stores/users';
-import { Formatter } from '../../../utils';
+import { Formatter, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -71,6 +71,12 @@ export default class TagShowCustomCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: Formatter.Commands.TagShowCustomCommand.CommandArgs) {
+    return editOrReply(context, `
+### ⚠️ The tag system has been disabled at this time at Discord's request.
+Discord gave us two weeks to remove the tag system due to content moderation concerns. We've since added new safety filters and reached out to Discord about keeping the feature. We're sorry for the disruption, especially to everyone who built games and collections with tags. For updates or questions, join our support server: <https://notsobot.com/support/invite>
+`
+    );
+
     return Formatter.Commands.TagShowCustomCommand.createMessage(context, args);
   }
 

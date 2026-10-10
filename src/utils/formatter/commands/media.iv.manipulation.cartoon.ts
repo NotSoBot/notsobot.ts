@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationCartoon } from '../../../api';
 import { MediaCartoonMethods } from '../../../constants';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.cartoon';
@@ -24,7 +24,10 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVManipulationCartoon(context, args);
+  return mediaIVManipulationCartoon(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(

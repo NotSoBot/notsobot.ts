@@ -20,6 +20,9 @@ if (SENTRY_DSN) {
   Sentry.init({dsn: SENTRY_DSN});
 }
 
+
+process.execArgv.push('--max-old-space-size=2048');
+
 // since we're on the thicc bot system, we need to have the shard count divisible by 16
 const manager = new ClusterManager('./bot', NOTSOBOT_DISCORD_TOKEN, {
   shardCount: 80 * 16,

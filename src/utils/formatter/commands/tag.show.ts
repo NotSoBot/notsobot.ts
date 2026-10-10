@@ -124,6 +124,7 @@ export async function createTagMessage(
   }
 
   await maybeCheckNSFW(context, options);
+
   if (
     !content.length &&
     (!parsedTag.components || !parsedTag.components.components.length) &&
@@ -135,6 +136,10 @@ export async function createTagMessage(
 
   if (options.flags && (content.length || parsedTag.embeds.length || parsedTag.files.length !== 1 || parsedTag.components)) {
     options.flags = undefined;
+  }
+
+  if (options.content && (!options.embeds || !options.embeds.length)) {
+    options.flags = (options.flags || 0) | MessageFlags.SUPPRESS_EMBEDS;
   }
 
   const shouldDisplayMediaAsNative = !!(
@@ -580,13 +585,49 @@ export async function maybeCheckNSFW(
   context: Command.Context | Interaction.InteractionContext,
   options: Command.EditOrReply,
 ): Promise<void> {
+  let contentToCheck: Array<string> = [];
+
   if (options.content) {
     if (150 <= (options.content.match(/\r\n|\r|\n/g) || []).length) {
-      options.content = 'i love cats';
+      options.content = 'Content has been filtered due to spam text content.';
+    } else {
+      contentToCheck.push(options.content);
     }
-    const [ isAwfulNSFW ] = await checkNSFW(context, options.content);
+  }
+
+  if (options.components) {
+    // get content from components v2
+  }
+
+  if (options.embeds) {
+    for (let embed of JSON.parse(JSON.stringify(options.embeds))) {
+      const description: Array<string> = [];
+      if (embed.title) {
+        description.push(embed.title);
+      }
+      if (embed.description) {
+        description.push(embed.description);
+      }
+      if (embed.fields) {
+        for (let field of embed.fields) {
+          description.push(`${field.name}: ${field.value}`);
+        }
+      }
+      if (embed.footer && embed.footer.text.length) {
+        description.push(embed.footer.text);
+      }
+      const text = description.filter(Boolean).join('\n').trim();
+      if (text) {
+        contentToCheck.push(text);
+      }
+    }
+  }
+
+  if (contentToCheck.length) {
+    const [ isAwfulNSFW ] = await checkNSFW(context, contentToCheck.join('\n'));
     if (isAwfulNSFW) {
-      options.content = 'i love cats';
+      options.content = 'Content has been filtered due to potential obscene/spam text content.';
+      options.embeds = [];
     }
   }
 }

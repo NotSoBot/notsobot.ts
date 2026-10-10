@@ -1,9 +1,16 @@
 import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { searchDuckDuckGoImages } from '../../../api';
+import { searchDuckDuckGoImages, utilitiesFetchMedia } from '../../../api';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import {
+  Paginator,
+  chunkArray,
+  createUserEmbed,
+  editOrReply,
+  jobWaitForResult,
+  shuffleArray,
+} from '../../../utils';
 
 
 export const COMMAND_ID = 'search.duckduckgo.images';
@@ -14,6 +21,7 @@ export const RESULTS_PER_PAGE = 3;
 export interface CommandArgs {
   query: string,
   randomize?: boolean,
+  safe?: boolean,
   simple?: boolean,
 }
 
@@ -32,7 +40,7 @@ export async function createMessage(
     const pageLimit = results.length;
     const paginator = new Paginator(context, {
       pageLimit,
-      onPage: (page) => {
+      onPage: async (page) => {
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
         embed.setFooter(`Page ${page}/${pageLimit} of Duck Duck Go Image Results`, EmbedBrands.DUCK_DUCK_GO);
@@ -43,10 +51,35 @@ export async function createMessage(
           embed.setDescription(Markup.url(Markup.escape.all(result.header), result.url));
         }
 
-        const imageUrl = (result.image.extension === 'svg') ? result.thumbnail.url : result.proxy_url;
-        embed.setImage(imageUrl);
+        /*
+        const job = await utilitiesFetchMedia(context, {
+          doNotError: true,
+          safe: args.safe,
+          upload: false,
+          url: result.proxy_url,
+        }).then((response) => jobWaitForResult(context, response));
+        if (job.result.response) {
+          const { response } = job.result;
+        }
+        */
 
-        return embed;
+        const response = await utilitiesFetchMedia(context, {
+          doNotError: true,
+          safe: args.safe,
+          upload: false,
+          url: result.proxy_url,
+        });
+        if (response) {
+          const filename = response.file.filename_safe;
+          embed.setImage(`attachment://${filename}`);
+
+          const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+          return [embed, [{filename, value}]];
+        } else {
+          const imageUrl = (result.image.extension === 'svg') ? result.thumbnail.url : result.proxy_url;
+          embed.setImage(imageUrl);
+          return embed;
+        }
       },
     });
     return await paginator.start();

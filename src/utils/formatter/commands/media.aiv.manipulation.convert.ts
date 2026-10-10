@@ -77,10 +77,8 @@ export async function createJob(
   args: CommandArgs,
 ) {
   return await mediaAIVManipulationConvert(context, {
-    file: args.file,
     safe: DefaultParameters.safe(context),
-    to: args.to,
-    url: args.url,
+    ...args,
   });
 }
 

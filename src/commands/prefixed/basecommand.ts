@@ -62,6 +62,9 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   onBefore(context: Command.Context): Promise<boolean> | boolean {
+    if (context.inDm) {
+      return false;
+    }
     return new Promise(async (resolve) => {
       const contextMetadata = context.metadata = context.metadata || {};
   
@@ -362,11 +365,9 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         commandId,
         {
           channelId: context.channelId,
-          editedTimestamp: context.message.editedAtUnix,
-          failedReason: String(error.message || error.stack).slice(0, 256),
           guildId: context.guildId,
-          messageId: context.messageId,
-          responseId: message.id,
+          messageResponseId: message.id,
+          messageTriggerId: context.messageId,
         },
       );
     }
@@ -386,10 +387,9 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           commandId,
           {
             channelId: context.channelId,
-            editedTimestamp: context.message.editedAtUnix,
             guildId: context.guildId,
-            messageId: context.messageId,
-            responseId: (context.response) ? context.response.id : undefined,
+            messageResponseId: (context.response) ? context.response.id : undefined,
+            messageTriggerId: context.messageId,
           },
         );
       } catch(error) {

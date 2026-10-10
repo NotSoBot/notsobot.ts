@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationStretch } from '../../../api';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.stretch';
@@ -19,7 +19,10 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile},
 ) {
-  return mediaIVManipulationStretch(context, args);
+  return mediaIVManipulationStretch(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(

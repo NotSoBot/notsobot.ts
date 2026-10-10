@@ -20,6 +20,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  return editOrReply(context, 'Sorry, this command has been disabled at Discord\'s request.');
+
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const results = await searchE926(context, args);

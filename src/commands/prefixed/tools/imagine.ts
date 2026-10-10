@@ -14,7 +14,6 @@ export default class ImagineCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (2..8)'}},
         {
@@ -33,7 +32,7 @@ export default class ImagineCommand extends BaseCommand {
           `${COMMAND_NAME} an animal eating strawberries -seed 5`,
         ],
         id: Formatter.Commands.ToolsMLImagine.COMMAND_ID,
-        usage: '<...query> (-safe) (-seed <number>) (-steps <number>) (-use <MLDiffusionModel>)',
+        usage: '<...query> (-seed <number>) (-steps <number>) (-use <MLDiffusionModel>)',
       },
       ratelimits: [
         {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},

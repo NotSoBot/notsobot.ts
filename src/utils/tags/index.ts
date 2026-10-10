@@ -13,8 +13,10 @@ import { RequestFile } from 'detritus-rest';
 import MiniSearch from 'minisearch';
 
 import UserStore from '../../stores/users';
+import UserSettingsStore from '../../stores/usersettings';
 
 import {
+  editUserSettings,
   fetchTagBlobs,
   fetchTagId,
   fetchTagVariable,
@@ -371,6 +373,8 @@ export enum TagFunctions {
   SEARCH_GOOGLE_IMAGES = 'SEARCH_GOOGLE_IMAGES',
   SEARCH_YOUTUBE = 'SEARCH_YOUTUBE',
   SETTINGS = 'SETTINGS',
+  SETTINGS_SET_SERVER_AI_PERSONALITY = 'SETTINGS_SET_SERVER_AI_PERSONALITY',
+  SETTINGS_SET_USER_AI_PERSONALITY = 'SETTINGS_SET_USER_AI_PERSONALITY',
   STRING_INDEX_OF = 'STRING_INDEX_OF',
   STRING_JSONIFY = 'STRING_JSONIFY',
   STRING_LENGTH = 'STRING_LENGTH',
@@ -553,6 +557,8 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.google.images', 's.g.images'],
   [TagFunctions.SEARCH_YOUTUBE]: ['search.youtube', 'search.yt', 's.youtube', 's.yt'],
   [TagFunctions.SETTINGS]: ['settings'],
+  [TagFunctions.SETTINGS_SET_SERVER_AI_PERSONALITY]: ['settings.set.server.ai.personality'],
+  [TagFunctions.SETTINGS_SET_USER_AI_PERSONALITY]: ['settings.set.user.ai.personality'],
   [TagFunctions.STRING_INDEX_OF]: ['indexof'],
   [TagFunctions.STRING_JSONIFY]: ['jsonify'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
@@ -1520,6 +1526,7 @@ const ScriptTags = Object.freeze({
       code,
       files,
       language,
+      safe: DefaultParameters.safe(context),
       stdin: generateCodeStdin(context, variables, storage, blobs),
       urls: Object.values(urls).filter((x) => x.url),
       version: version || undefined,
@@ -4388,7 +4395,7 @@ const ScriptTags = Object.freeze({
       query: prompt,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
-      safe: DefaultParameters.safe(context),
+      safe: true,
       urls: [url],
     },
     ).then((x) => jobWaitForResult(context, x));
@@ -4467,7 +4474,7 @@ const ScriptTags = Object.freeze({
       query: prompt,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
-      safe: DefaultParameters.safe(context),
+      safe: true,
       upload: true,
       uploadExpiresIn: (7 * 24 * 60 * 60),
       urls: [url],
@@ -4509,7 +4516,7 @@ const ScriptTags = Object.freeze({
       query: arg,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
-      safe: DefaultParameters.safe(context),
+      safe: true,
     }).then((x) => jobWaitForResult(context, x));
     if (job.result.error) {
       throw new Error(`**Job Error**: ${job.result.error}`);
@@ -4556,7 +4563,7 @@ const ScriptTags = Object.freeze({
       query: arg,
       doNotError: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_DO_NOT_ERROR],
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
-      safe: DefaultParameters.safe(context),
+      safe: true,
       upload: true,
       uploadExpiresIn: (7 * 24 * 60 * 60),
     }).then((x) => jobWaitForResult(context, x));
@@ -5740,6 +5747,44 @@ const ScriptTags = Object.freeze({
         throw new Error(`Settings must be one of: (${Object.values(TagSettings).join(', ')})`);
         return false;
       };
+    }
+
+    return true;
+  },
+
+  [TagFunctions.SETTINGS_SET_SERVER_AI_PERSONALITY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {settings.set.server.ai.personality:prompt?}
+
+    return false;
+  },
+
+  [TagFunctions.SETTINGS_SET_USER_AI_PERSONALITY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {settings.set.user.ai.personality:prompt?}
+
+    if (1 <= tag.variables[PrivateVariables.AI_EXECUTIONS]) {
+      return false;
+    }
+
+    const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
+    if (!oldSettings) {
+      throw new Error('Error fetching your current AI Model preference.')
+    }
+
+    if (!arg) {
+      tag.text += oldSettings.ml_llm_personality || '';
+      return true;
+    }
+
+    const personality = (arg.toLowerCase() === 'clear') ? null :  arg;
+    if (oldSettings.ml_llm_personality === personality) {
+      tag.text += String(false);
+    } else {
+      const settings = await editUserSettings(context, context.userId, {
+        mlLLMPersonality: personality,
+      });
+      UserSettingsStore.insert(context.userId, settings);
+
+      tag.text += String(true);
     }
 
     return true;

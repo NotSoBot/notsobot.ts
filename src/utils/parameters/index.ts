@@ -1601,7 +1601,7 @@ export function mediaUrls(
         for (let url of findMediaUrlsInMessage(context.message, mediaSearchOptions, true)) {
           urls.push(url);
         }
-  
+
         // check for reply and if it has an attachments/embed/stickers
         if (urls.length < maxAmount) {
           const { messageReference } = context.message;

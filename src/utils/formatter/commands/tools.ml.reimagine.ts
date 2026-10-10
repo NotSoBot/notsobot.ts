@@ -25,11 +25,9 @@ export async function createMessage(
     prompt = `${prompt}, ${args.add}`;
   }
   const response = await utilitiesMLImagine(context, {
-    model: args.model,
+    ...args,
     query: prompt,
-    safe: args.safe,
-    seed: args.seed,
-    steps: args.steps,
+    safe: true,
   });
   return jobReply(context, response);
 }

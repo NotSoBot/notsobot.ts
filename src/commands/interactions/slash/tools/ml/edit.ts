@@ -34,13 +34,6 @@ export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
           value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
           onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
         },
-        {
-          name: 'safe',
-          description: 'Safe Generation',
-          type: Boolean,
-          default: DefaultParameters.safe,
-          value: Parameters.Slash.safe,
-        },
         {name: 'seed', type: Number, description: 'Initial Noise'},
         {name: 'steps', type: Number, description: 'Number of Samples to take (1 to 16)'},
         {name: 'strength', description: 'Strength of Prompt (0.01 to 1)'},

@@ -11,7 +11,6 @@ export interface CommandArgs {
   expand?: boolean,
   model?: string,
   query: string,
-  safe?: boolean,
   seed?: number,
   steps?: number,
   strength?: number,
@@ -26,6 +25,7 @@ export function createJob(
   return utilitiesMLEdit(context, {
     urls: (args.url) ? [args.url] : undefined,
     ...args,
+    safe: true,
   });
 }
 

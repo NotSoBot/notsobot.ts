@@ -4,7 +4,7 @@ import { regex as discordRegex } from 'detritus-client/lib/utils';
 
 import { mediaICreateTombstone } from '../../../api';
 import { RestOptions } from '../../../api/types';
-import { mediaReply } from '../../../utils';
+import { DefaultParameters, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.i.create.tombstone';
@@ -30,7 +30,10 @@ export async function createMessage(
   }
   const text = parts.join(' ');
 
-  const query: RestOptions.MediaICreateTombstone = {line1: 'R.I.P'};
+  const query: RestOptions.MediaICreateTombstone = {
+    line1: 'R.I.P',
+    safe: DefaultParameters.safe(context),
+  };
   if (text) {
     if (22 < text.length) {
       query.line4 = text.slice(0, 22);

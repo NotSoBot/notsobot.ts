@@ -26,7 +26,7 @@ if (process.env.SENTRY_DSN) {
 const cluster = new ClusterClient('', {
   cache: {
     applicationCommandPermissions: {enabled: true},
-    messages: {expire: 120 * 60 * 1000}, // messages expire after 2 hours
+    messages: {expire: 6 * 60 * 60 * 1000}, // messages expire after 6 hours
   },
   gateway: {
     compress: false,

@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVToolsResize } from '../../../api';
-import { Parameters, jobReply } from '../../../utils';
+import { DefaultParameters, Parameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.tools.resize';
@@ -22,12 +22,10 @@ export function createJob(
   args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaIVToolsResize(context, {
-    file: args.file,
-    kernel: args.kernel,
-    ratio: args.ratio,
+    safe: DefaultParameters.safe(context),
+    ...args,
     scale: args.scale || (args.sizeorscale && args.sizeorscale.scale),
     size: args.size || (args.sizeorscale && args.sizeorscale.size),
-    url: args.url,
   });
 }
 

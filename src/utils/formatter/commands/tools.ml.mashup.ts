@@ -9,7 +9,6 @@ export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
   model?: string,
-  safe?: boolean,
   seed?: number,
   steps?: number,
   strength?: number,
@@ -33,7 +32,10 @@ export async function createResponse(
       }
     }
   }
-  const job = await utilitiesMLMashup(context, args).then((x) => jobWaitForResult(context, x));
+  const job = await utilitiesMLMashup(context, {
+    ...args,
+    safe: true,
+  }).then((x) => jobWaitForResult(context, x));
   if (job.result.error) {
     throw new Error(`**Mashup Error**: ${job.result.error}`);
   }

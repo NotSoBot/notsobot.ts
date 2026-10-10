@@ -38,7 +38,7 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
-import { Endpoints, fetchJob } from '../api';
+import { Endpoints, fetchJob, moderationSafetyScan } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
@@ -70,6 +70,39 @@ import {
 import * as Formatter from './formatter';
 
 import { OPENAI_API_KEY } from '../../config.json';
+
+
+
+
+export async function scanContentForModeration(
+  context: Command.Context | Interaction.InteractionContext,
+  options: {safe?: boolean, text?: string, url?: string},
+) {
+  const response = await moderationSafetyScan(context, {
+    extractFrames: true,
+    safe: options.safe,
+    text: options.text,
+    urls: (options.url) ? [options.url] : undefined,
+  });
+
+  const files: Array<any> = [];
+  if (response.media && response.media.zip) {
+    const { zip } = response.media;
+    response.media.zip = undefined;
+
+    files.push({
+      filename: 'frames.zip',
+      value: Buffer.from(zip.value, 'base64'),
+    });
+  }
+
+  files.unshift({
+    filename: 'result.json',
+    value: JSON.stringify(response, null, 2),
+  });
+
+  return editOrReply(context, {files});
+}
 
 
 
@@ -803,6 +836,12 @@ export function findMediaUrlsInMessage(
   if (findImage) {
     for (let [stickerId, sticker] of message.stickerItems) {
       urls.add(sticker.assetUrl);
+    }
+  }
+  for (let snapshot of message.messageSnapshots.values()) {
+    const urlsFound = findMediaUrlsInMessage(snapshot.message, options, ignoreEmbed);
+    for (let url of urlsFound) {
+      urls.add(url);
     }
   }
   return (urls.size) ? Array.from(urls) : [];

@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationPixelate } from '../../../api';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.pixelate';
@@ -19,10 +19,9 @@ export function createJob(
   args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaIVManipulationPixelate(context, {
-    file: args.file,
-    noLines: args.noLines,
+    safe: DefaultParameters.safe(context),
+    ...args,
     pixelWidth: args.width,
-    url: args.url,
   });
 }
 

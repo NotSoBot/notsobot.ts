@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationWiggle } from '../../../api';
 import { MediaWiggleDirections } from '../../../constants';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.wiggle';
@@ -21,7 +21,10 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVManipulationWiggle(context, args);
+  return mediaIVManipulationWiggle(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(

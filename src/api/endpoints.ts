@@ -18,6 +18,8 @@ export const Api = Object.freeze({
 
   COMMANDS:
     '/commands',
+  COMMANDS_RESPONSES:
+    '/commands/responses',
   COMMANDS_USAGE:
     '/commands/usage',
 
@@ -408,6 +410,9 @@ export const Api = Object.freeze({
   MEDIA_IV_TOOLS_TRIM:
     '/media/iv/tools/trim',
 
+  MODERATION_SAFETY_SCAN:
+    '/moderation/safety-scan',
+
   INFO_DISCORD:
     '/info/discord',
 
@@ -549,8 +554,6 @@ export const Api = Object.freeze({
     '/utilities/ml/edit',
   UTILITIES_ML_IMAGINE:
     '/utilities/ml/imagine',
-  UTILITIES_ML_IMAGINE_VIDEO:
-    '/utilities/ml/imagine/video',
   UTILITIES_ML_INTERROGATE:
     '/utilities/ml/interrogate',
   UTILITIES_ML_MASHUP:

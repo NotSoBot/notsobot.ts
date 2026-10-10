@@ -1090,7 +1090,7 @@ export const MediaMemeFontsToText: Record<MediaMemeFonts, string> = Object.freez
 export enum MediaPix2PixModels {
   EDGES = 'EDGES',
   EMOJI = 'EMOJI',
-  PORN = 'PORN',
+  FLESH = 'FLESH',
 }
 
 
@@ -1364,62 +1364,56 @@ export enum TagBlobStorageTypes {
 
 
 export enum TagGenerationModels {
-  ANTHROPIC_CLAUDE_HAIKU_4_5 = 'ANTHROPIC_CLAUDE_HAIKU_4_5',
-  ANTHROPIC_CLAUDE_SONNET_5 = 'ANTHROPIC_CLAUDE_SONNET_5',
+  ANTHROPIC_CLAUDE_HAIKU_5_5 = 'ANTHROPIC_CLAUDE_HAIKU_5_5',
+  ANTHROPIC_CLAUDE_SONNET_5_5 = 'ANTHROPIC_CLAUDE_SONNET_5_5',
   DEEPSEEK_FLASH = 'DEEPSEEK_FLASH',
   DEEPSEEK_PRO = 'DEEPSEEK_PRO',
   GOOGLE_GEMINI_3_8_FLASH = 'GOOGLE_GEMINI_3_8_FLASH',
-  GOOGLE_GEMINI_3_5_FLASH_LITE = 'GOOGLE_GEMINI_3_5_FLASH_LITE',
-  GOOGLE_GEMINI_3_1_PRO = 'GOOGLE_GEMINI_3_1_PRO',
   GOOGLE_GEMMA_4 = 'GOOGLE_GEMMA_4',
   META_LLAMA = 'META_LLAMA',
   META_MUSE_SPARK_1_3 = 'META_MUSE_SPARK_1_3',
   META_MUSE_SPARK_1_3_CONTRIBUTOR = 'META_MUSE_SPARK_1_3_CONTRIBUTOR',
-  MOONSHOT_AI_KIMI_K3 = 'MOONSHOT_AI_KIMI_K3',
   MOONSHOT_AI_KIMI_K2_7_CODE = 'MOONSHOT_AI_KIMI_K2_7_CODE',
   MOONSHOT_AI_KIMI_K2_6 = 'MOONSHOT_AI_KIMI_K2_6',
   NVIDIA_NEMOTRON_3_NANO_OMNI = 'NVIDIA_NEMOTRON_3_NANO_OMNI',
   NVIDIA_NEMOTRON_3_SUPER = 'NVIDIA_NEMOTRON_3_SUPER',
   NVIDIA_NEMOTRON_3_ULTRA = 'NVIDIA_NEMOTRON_3_ULTRA',
-  OPENAI_GPT_5_6_LUNA = 'OPENAI_GPT_5_6_LUNA',
-  OPENAI_GPT_5_6_TERRA = 'OPENAI_GPT_5_6_TERRA',
+  OPENAI_GPT_6_LUNA = 'OPENAI_GPT_6_LUNA',
+  OPENAI_GPT_6_1_SOL = 'OPENAI_GPT_6_1_SOL',
   OPENAI_GPT_OSS = 'OPENAI_GPT_OSS',
   QWEN_3_8_FLASH = 'QWEN_3_8_FLASH',
   QWEN_3_8_MAX = 'QWEN_3_8_MAX',
-  QWEN_3_7_PLUS = 'QWEN_3_7_PLUS',
-  XAI_GROK_4_6 = 'XAI_GROK_4_6',
-  XIAOMI_MIMO_V2_5_PRO = 'XIAOMI_MIMO_V2_5_PRO',
+  XAI_GROK_4_7 = 'XAI_GROK_4_7',
+  XIAOMI_MIMO_V2_6_FLASH = 'XIAOMI_MIMO_V2_6_FLASH',
+  XIAOMI_MIMO_V2_6_PRO = 'XIAOMI_MIMO_V2_6_PRO',
   ZAI_GLM_5_3 = 'ZAI_GLM_5_3',
   ZAI_GLM_5_3_FLASH = 'ZAI_GLM_5_3_FLASH',
 }
 
 
 export const TagGenerationModelsToText = Object.freeze({
-  [TagGenerationModels.ANTHROPIC_CLAUDE_HAIKU_4_5]: 'Anthropic Claude Haiku 4.5',
-  [TagGenerationModels.ANTHROPIC_CLAUDE_SONNET_5]: 'Anthropic Claude Sonnet 5',
+  [TagGenerationModels.ANTHROPIC_CLAUDE_HAIKU_5_5]: 'Anthropic Claude Haiku 5.5',
+  [TagGenerationModels.ANTHROPIC_CLAUDE_SONNET_5_5]: 'Anthropic Claude Sonnet 5.5',
   [TagGenerationModels.DEEPSEEK_FLASH]: 'DeepSeek Flash',
   [TagGenerationModels.DEEPSEEK_PRO]: 'DeepSeek Pro',
   [TagGenerationModels.GOOGLE_GEMINI_3_8_FLASH]: 'Google Gemini 3.8 Flash',
-  [TagGenerationModels.GOOGLE_GEMINI_3_5_FLASH_LITE]: 'Google Gemini 3.5 Flash Lite',
-  [TagGenerationModels.GOOGLE_GEMINI_3_1_PRO]: 'Google Gemini 3.1 Pro',
   [TagGenerationModels.GOOGLE_GEMMA_4]: 'Google Gemma 4',
   [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
   [TagGenerationModels.META_MUSE_SPARK_1_3]: 'Meta Muse Spark 1.3',
   [TagGenerationModels.META_MUSE_SPARK_1_3_CONTRIBUTOR]: 'Meta Muse Spark 1.3 Contributor',
-  [TagGenerationModels.MOONSHOT_AI_KIMI_K3]: 'Moonshot AI Kimi K3',
   [TagGenerationModels.MOONSHOT_AI_KIMI_K2_7_CODE]: 'Moonshot AI Kimi K2.7 Code',
   [TagGenerationModels.MOONSHOT_AI_KIMI_K2_6]: 'Moonshot AI Kimi K2.6',
   [TagGenerationModels.NVIDIA_NEMOTRON_3_NANO_OMNI]: 'NVIDIA Nemotron 3 Nano Omni',
   [TagGenerationModels.NVIDIA_NEMOTRON_3_SUPER]: 'NVIDIA Nemotron 3 Super',
   [TagGenerationModels.NVIDIA_NEMOTRON_3_ULTRA]: 'NVIDIA Nemotron 3 Ultra',
-  [TagGenerationModels.OPENAI_GPT_5_6_LUNA]: 'OpenAI ChatGPT 5.6 Luna',
-  [TagGenerationModels.OPENAI_GPT_5_6_TERRA]: 'OpenAI ChatGPT 5.6 Terra',
+  [TagGenerationModels.OPENAI_GPT_6_LUNA]: 'OpenAI ChatGPT 6 Luna',
+  [TagGenerationModels.OPENAI_GPT_6_1_SOL]: 'OpenAI ChatGPT 6.1 Sol',
   [TagGenerationModels.OPENAI_GPT_OSS]: 'OpenAI ChatGPT OSS',
   [TagGenerationModels.QWEN_3_8_FLASH]: 'Qwen 3.8 Flash',
   [TagGenerationModels.QWEN_3_8_MAX]: 'Qwen 3.8 Max',
-  [TagGenerationModels.QWEN_3_7_PLUS]: 'Qwen 3.7 Plus',
-  [TagGenerationModels.XAI_GROK_4_6]: 'xAI Grok 4.6',
-  [TagGenerationModels.XIAOMI_MIMO_V2_5_PRO]: 'Xiaomi MiMo v2.5 Pro',
+  [TagGenerationModels.XAI_GROK_4_7]: 'xAI Grok 4.7',
+  [TagGenerationModels.XIAOMI_MIMO_V2_6_FLASH]: 'Xiaomi MiMo v2.6 Flash',
+  [TagGenerationModels.XIAOMI_MIMO_V2_6_PRO]: 'Xiaomi MiMo v2.6 Pro',
   [TagGenerationModels.ZAI_GLM_5_3]: 'ZAI GLM 5.3',
   [TagGenerationModels.ZAI_GLM_5_3_FLASH]: 'ZAI GLM 5.3 Flash',
 });
@@ -1686,6 +1680,12 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
 });
 
 
+export enum UserSettingsApplicationCommandResponseTypes {
+  AUTOMATIC = 0,
+  EPHEMERAL = 1,
+}
+
+
 export enum UserSettingsFallbacksMediaImageTypes {
   SEARCH_GOOGLE_IMAGES = 0,
   IMAGINE = 1,
@@ -1810,11 +1810,14 @@ export const TRUSTED_URLS = Object.freeze([
 export enum NotSoHeaders {
   AUTHORIZATION = 'authorization',
   CHANNEL_ID = 'x-channel-id',
+  COMMAND_ID = 'x-command-id',
   ENTITLEMENTS = 'x-entitlements',
   GUILD_ID = 'x-guild-id',
+  MESSAGE_TRIGGER_ID = 'x-message-trigger-id',
   SERVER = 'x-server',
   SERVER_ID = 'x-server-id',
   SERVER_OWNER_ID = 'x-server-owner-id',
+  TAG_ID = 'x-tag-id',
   USER = 'x-user',
   USER_ID = 'x-user-id',
 }

@@ -3,7 +3,7 @@ import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationCaption } from '../../../api';
 import { MediaMemeFonts } from '../../../constants';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.caption';
@@ -21,9 +21,13 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile},
 ) {
-  const { file, font, text, url } = args;
-  const { bottom, top } = splitText(text);
-  return mediaIVManipulationCaption(context, {bottom, file, font, top, url});
+  const { bottom, top } = splitText(args.text);
+  return mediaIVManipulationCaption(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+    bottom,
+    top,
+  });
 }
 
 export async function createMessage(

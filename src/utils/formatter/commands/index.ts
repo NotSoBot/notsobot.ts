@@ -76,8 +76,8 @@ import * as MediaIVManipulationDeepfry from './media.iv.manipulation.deepfry';
 import * as MediaIVManipulationDerain from './media.iv.manipulation.derain';
 import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
 import * as MediaIVManipulationDistort from './media.iv.manipulation.distort';
-import * as MediaIVManipulationE2E from './media.iv.manipulation.e2e';
-import * as MediaIVManipulationE2P from './media.iv.manipulation.e2p';
+import * as MediaIVManipulationEdges2Emoji from './media.iv.manipulation.edges2emoji';
+import * as MediaIVManipulationEdges2Flesh from './media.iv.manipulation.edges2flesh';
 import * as MediaIVManipulationEdgeDetect from './media.iv.manipulation.edge.detect';
 import * as MediaIVManipulationEmboss from './media.iv.manipulation.emboss';
 import * as MediaIVManipulationExo from './media.iv.manipulation.exo';
@@ -236,6 +236,7 @@ import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
 import * as SettingsSetAIModel from './settings.set.ai.model';
 import * as SettingsSetAIPersonality from './settings.set.ai.personality';
+import * as SettingsSetApplicationCommandResponseType from './settings.set.application.command.response.type';
 import * as SettingsSetDownloadQuality from './settings.set.download.quality';
 import * as SettingsSetFallbacksMediaImage from './settings.set.fallbacks.media.image';
 import * as SettingsSetFileUploadThreshold from './settings.set.file.upload.threshold';
@@ -276,7 +277,6 @@ import * as ToolsHash from './tools.hash';
 import * as ToolsMath from './tools.math';
 import * as ToolsMLEdit from './tools.ml.edit';
 import * as ToolsMLImagine from './tools.ml.imagine';
-import * as ToolsMLImagineVideo from './tools.ml.imagine.video';
 import * as ToolsMLInterrogate from './tools.ml.interrogate';
 import * as ToolsMLMashup from './tools.ml.mashup';
 import * as ToolsMLReimagine from './tools.ml.reimagine';
@@ -377,8 +377,8 @@ export {
   MediaIVManipulationDerain,
   MediaIVManipulationDetunnel,
   MediaIVManipulationDistort,
-  MediaIVManipulationE2E,
-  MediaIVManipulationE2P,
+  MediaIVManipulationEdges2Emoji,
+  MediaIVManipulationEdges2Flesh,
   MediaIVManipulationEdgeDetect,
   MediaIVManipulationEmboss,
   MediaIVManipulationExo,
@@ -535,8 +535,10 @@ export {
   SettingsServerSetAIPersonality,
   SettingsServerSetLocale,
   SettingsServerSetTimezone,
+
   SettingsSetAIModel,
   SettingsSetAIPersonality,
+  SettingsSetApplicationCommandResponseType,
   SettingsSetDownloadQuality,
   SettingsSetFallbacksMediaImage,
   SettingsSetFileUploadThreshold,
@@ -577,7 +579,6 @@ export {
   ToolsMath,
   ToolsMLEdit,
   ToolsMLImagine,
-  ToolsMLImagineVideo,
   ToolsMLInterrogate,
   ToolsMLMashup,
   ToolsMLReimagine,

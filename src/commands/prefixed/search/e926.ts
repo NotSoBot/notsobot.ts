@@ -18,14 +18,9 @@ export default class E926Command extends BaseSearchCommand {
       ],
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Search e926, a furry (apparently NON-NSFW) image board',
-        examples: [
-          `${COMMAND_NAME} discord`,
-          `${COMMAND_NAME} discord -randomize`,
-          `${COMMAND_NAME} discord -r`,
-        ],
+        description: 'This command has been disabled at Discord\'s request.',
+        examples: [],
         id: Formatter.Commands.SearchE926.COMMAND_ID,
-        nsfw: true,
         usage: '<query> (-randomize)',
       },
     });

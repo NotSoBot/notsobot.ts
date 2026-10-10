@@ -15,6 +15,7 @@ import { Response } from 'detritus-rest';
 import GuildSettingsStore from '../../stores/guildsettings';
 import ServerSettingsStore from '../../stores/serversettings';
 import UserStore from '../../stores/users';
+import UserSettingsStore from '../../stores/usersettings';
 
 import { createUserCommand } from '../../api';
 import {
@@ -26,6 +27,7 @@ import {
   PermissionsText,
   UserFlags,
   UserPremiumTypes,
+  UserSettingsApplicationCommandResponseTypes,
 } from '../../constants';
 import { DefaultParameters, Parameters, editOrReply, getCommandIdFromInvoker } from '../../utils';
 
@@ -67,6 +69,18 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         flags: MessageFlags.EPHEMERAL,
       });
     }
+
+    if (UserSettingsStore.has(context.userId)) {
+      const settings = UserSettingsStore.get(context.userId)!;
+      switch (settings.application_command_response_type) {
+        case UserSettingsApplicationCommandResponseTypes.EPHEMERAL: {
+          return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+            flags: MessageFlags.EPHEMERAL,
+          });
+        };
+      }
+    }
+
     // check perms to maybe force as ephemeral, just in case
     return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
   }
@@ -81,6 +95,17 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
   onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
     return new Promise(async (resolve) => {
+      if (!context.responded && UserSettingsStore.has(context.userId)) {
+        const settings = UserSettingsStore.get(context.userId)!;
+        switch (settings.application_command_response_type) {
+          case UserSettingsApplicationCommandResponseTypes.EPHEMERAL: {
+            await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+              flags: MessageFlags.EPHEMERAL,
+            });
+          };
+        }
+      }
+
       const contextMetadata = context.metadata = context.metadata || {};
   
       const metadata = context.invoker.metadata;
@@ -320,7 +345,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
       if (commandType !== null) {
         const metadata = context.invoker.metadata;
-        const commandId = metadata.id || context.name.split(' ').join('.')
+        const commandId = metadata.id || context.name.split(' ').join('.');
         await createUserCommand(
           context,
           context.userId,
@@ -328,10 +353,9 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           {
             commandType,
             channelId: context.channelId!,
-            failedReason: String(error.message || error.stack).slice(0, 256),
             guildId: context.guildId,
-            messageId: context.interactionId,
-            responseId: context.responseId,
+            messageResponseId: context.responseId,
+            messageTriggerId: context.interactionId,
           },
         );
       }
@@ -360,8 +384,8 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
             commandType,
             channelId: context.channelId!,
             guildId: context.guildId,
-            messageId: context.interactionId,
-            responseId: context.responseId,
+            messageResponseId: context.responseId,
+            messageTriggerId: context.interactionId,
           },
         );
       }

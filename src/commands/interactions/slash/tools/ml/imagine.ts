@@ -28,13 +28,6 @@ export class ToolsMLImagineCommand extends BaseInteractionCommandOption {
           value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
           onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
         },
-        {
-          name: 'safe',
-          description: 'Safe Generation',
-          type: Boolean,
-          default: DefaultParameters.safe,
-          value: Parameters.Slash.safe,
-        },
         {name: 'seed', type: Number, description: 'Initial Noise'},
         {name: 'steps', type: Number, description: 'Number of Samples to take (1..8)'},
       ],

@@ -4,6 +4,7 @@ import {
   GoogleLocales,
   GoogleLocalesText,
   MLDiffusionModels,
+  UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
   UserSettingsUploadThresholdTypes,
@@ -74,6 +75,12 @@ export const GOOGLE_LOCALES = [
   GoogleLocales.TURKISH,
   GoogleLocales.VIETNAMESE,
 ].map((x) => ({name: GoogleLocalesText[x], value: x}));
+
+
+export const USER_SETTINGS_APPLICATION_COMMAND_RESPONSE_TYPES = [
+  {name: 'Automatic (Default)', value: UserSettingsApplicationCommandResponseTypes.AUTOMATIC},
+  {name: 'Ephemeral', value: UserSettingsApplicationCommandResponseTypes.EPHEMERAL},
+];
 
 
 export const USER_SETTINGS_FALLBACKS_MEDIA_IMAGE_TYPES = [

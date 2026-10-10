@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIManipulationFaceAnime } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { DefaultParameters, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.i.manipulation.face.anime';
@@ -15,7 +15,10 @@ export function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIManipulationFaceAnime(context, args);
+  return mediaIManipulationFaceAnime(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(

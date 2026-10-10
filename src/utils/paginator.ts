@@ -412,7 +412,14 @@ export class Paginator {
       return;
     }
     this.page = pageNumber;
+
+    // todo: put this on a timer
+    if (context) {
+      await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+    }
+
     const {content, embeds, files} = await this.getPage(this.page);
+
     if (context) {
       await context.editOrRespond({
         allowedMentions: {parse: []},

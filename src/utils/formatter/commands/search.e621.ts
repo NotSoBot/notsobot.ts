@@ -20,6 +20,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  return editOrReply(context, 'Sorry, this command has been disabled at Discord\'s request.');
+
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const results = await searchE621(context, args);
@@ -41,7 +43,6 @@ export async function createMessage(
           embed.setTitle(result.footer);
         }
         embed.setFooter(`Page ${page}/${pageLimit} of https://e621.net Results`, EmbedBrands.E621);
-
 
         embed.setTitle((result.is_video) ? 'Video Post' : 'Image Post');
         embed.setUrl(result.url);

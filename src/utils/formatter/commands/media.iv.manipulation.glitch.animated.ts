@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationGlitchAnimated } from '../../../api';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.glitch.animated';
@@ -21,12 +21,9 @@ export function createJob(
   args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaIVManipulationGlitchAnimated(context, {
-    amount: args.amount,
-    file: args.file,
-    iterations: args.iterations,
+    safe: DefaultParameters.safe(context),
+    ...args,
     keepTransparency: !args.notransparency,
-    seed: args.seed,
-    url: args.url,
   });
 }
 

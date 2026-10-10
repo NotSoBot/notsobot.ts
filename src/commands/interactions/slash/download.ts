@@ -52,6 +52,13 @@ export default class DownloadCommand extends BaseSlashCommand {
           choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_1080, doNotSort: true}),
         },
         {
+          name: 'safe',
+          description: 'Enable NSFW Scanning',
+          type: Boolean,
+          default: DefaultParameters.safe,
+          value: Parameters.Slash.safe,
+        },
+        {
           name: 'spoiler',
           description: 'Spoilerize the media',
           type: Boolean,

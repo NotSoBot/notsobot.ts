@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationOverlayFlies } from '../../../api';
-import { jobReply } from '../..';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.flies';
@@ -20,11 +20,8 @@ export function createJob(
   args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaIVManipulationOverlayFlies(context, {
-    amount: args.amount,
-    file: args.file,
-    flyImage: args.flyImage,
-    speed: args.speed,
-    url: args.url,
+    safe: DefaultParameters.safe(context),
+    ...args,
   });
 }
 

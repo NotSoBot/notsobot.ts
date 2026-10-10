@@ -6,28 +6,28 @@ import { Formatter } from '../../../utils';
 import { BaseImageOrVideoCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'e2e';
+export const COMMAND_NAME = 'edges2flesh';
 
-export default class E2ECommand extends BaseImageOrVideoCommand {
+export default class Edges2FleshCommand extends BaseImageOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['edges2emoji'],
+      aliases: ['e2f', 'e2p'],
       metadata: {
         category: CommandCategories.IMAGE,
-        description: 'Edges to Emoji',
+        description: 'Edges to Flesh',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.MediaIVManipulationE2E.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationEdges2Flesh.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationE2E.CommandArgs) {
-    return Formatter.Commands.MediaIVManipulationE2E.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationEdges2Flesh.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationEdges2Flesh.createMessage(context, args);
   }
 }

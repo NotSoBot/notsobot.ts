@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVToolsBackgroundRemove } from '../../../api';
 import { MediaBackgroundRemovalModels, MediaBackgroundRemovalModelsToText } from '../../../constants';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.tools.background.remove';
@@ -21,7 +21,10 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVToolsBackgroundRemove(context, args);
+  return mediaIVToolsBackgroundRemove(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(

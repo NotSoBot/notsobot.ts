@@ -12,6 +12,7 @@ import {
   MAX_MEMBERS_SAFE,
 } from '../../../constants';
 
+import * as DefaultParameters from '../../defaultparameters';
 import {
   createUserEmbed,
   editOrReply,
@@ -48,6 +49,7 @@ export async function createMessage(
   const { language, result, took, version } = await utilitiesCodeRun(context, {
     code,
     language: args.language,
+    safe: DefaultParameters.safe(context),
     stdin: generateCodeStdin(context),
     urls: Object.values(urls),
     version: args.version || undefined,

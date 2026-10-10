@@ -218,15 +218,42 @@ export class NotSoCommandClient extends CommandClient {
     return false;
   }
 
+  async getAttributes(context: Command.Context): Promise<CommandAttributes | null> {
+    const attributes = await super.getAttributes(context);
+    if (attributes) {
+      return attributes;
+    }
+    if (context.message.messageReference) {
+      const replyMessage = context.message.messageReference.message;
+      if (replyMessage && replyMessage.author.isMe) {
+        let command = this.commands.find((x) => x.name === 'ai') || null;
+        if (command && typeof(command.onBefore) === 'function') {
+          const hasPremium = await Promise.resolve(command.onBefore(context));
+          if (hasPremium) {
+            return {content: context.message.content.trim(), prefix: ''};
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   async getCommand(attributes: CommandAttributes, context?: Command.Context): Promise<Command.Command | null> {
     let command: Command.Command | null = null;
 
-    if (context && this.prefixes.mention.has(attributes.prefix)) {
-      command = this.commands.find((x) => x.name === 'ai') || null;
-      if (command && typeof(command.onBefore) === 'function') {
-        const hasPremium = await Promise.resolve(command.onBefore(context));
-        if (!hasPremium) {
-          command = null;
+    if (context) {
+      let maybePassToAICommand = this.prefixes.mention.has(attributes.prefix);
+      if (!maybePassToAICommand && !attributes.prefix) {
+        const replyMessage = (context.message.messageReference && context.message.messageReference.message);
+        maybePassToAICommand = !!(replyMessage && replyMessage.author.isMe);
+      }
+      if (maybePassToAICommand) {
+        command = this.commands.find((x) => x.name === 'ai') || null;
+        if (command && typeof(command.onBefore) === 'function') {
+          const hasPremium = await Promise.resolve(command.onBefore(context));
+          if (!hasPremium) {
+            command = null;
+          }
         }
       }
     }

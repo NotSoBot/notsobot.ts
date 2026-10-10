@@ -41,58 +41,129 @@ export async function createMessage(
   if (context instanceof Command.Context) {
     let url = findMediaUrlInMessage(context.message);
 
-    const { messageReference } = context.message;
-    if (messageReference && messageReference.messageId) {
-      const message = messageReference.message || await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
-      if (!url) {
-        url = findMediaUrlInMessage(message);
-      }
+    let { message } = context;
+    let chain = 0;
+    while (chain++ < 5 && message.messageReference) {
+      const { messageReference } = message;
+      if (messageReference && messageReference.messageId) {
+        try {
+          message = messageReference.message || await context.rest.fetchMessage(
+            messageReference.channelId,
+            messageReference.messageId,
+          );
+        } catch(error) {
+          promptExtra.push([
+            `Message Reply Context ${chain}`,
+            (error.response) ? `-> Fetching Errored due to status code ${error.response.statusCode}` : '-> Unable to fetch data',
+          ].filter(Boolean).join('\n'));
+          break;
+        }
 
-      const content: Array<string> = [];
-      if (message.content) {
-        content.push(message.content);
-      }
-      if (message.embeds.length) {
-        for (let [embedId, embed] of message.embeds) {
-          const description: Array<string> = [];
-          if (embed.title) {
-            description.push(embed.title);
+        let mediaIsFromHere = false;
+        if (!url) {
+          url = findMediaUrlInMessage(message);
+          mediaIsFromHere = true;
+        }
+
+        const content: Array<string> = [];
+        if (message.content) {
+          content.push(`-> Content: ${JSON.stringify(message.content)}`);
+        }
+        if (message.components.length) {
+          // get content from components v2
+          content.push(`-> Components: ${JSON.stringify(message.components)}`);
+        }
+        if (message.embeds.length) {
+          const filteredEmbeds: Array<string> = [];
+          for (let [embedId, embed] of message.embeds) {
+            const filteredEmbed = JSON.parse(JSON.stringify(embed));
+            if (filteredEmbed.author) {
+              delete filteredEmbed.author.proxy_icon_url;
+            }
+            if (filteredEmbed.footer) {
+              delete filteredEmbed.footer.proxy_icon_url;
+            }
+            if (filteredEmbed.image) {
+              delete filteredEmbed.image.proxy_url;
+            }
+            if (filteredEmbed.thumbnail) {
+              delete filteredEmbed.thumbnail.proxy_url;
+            }
+            if (filteredEmbed.video) {
+              delete filteredEmbed.video.proxy_url;
+            }
+            filteredEmbeds.push(filteredEmbed);
           }
-          if (embed.description) {
-            let value = embed.description;
-            if (value.startsWith('```') && value.endsWith('```')) {
-              value = value.slice(3, -3).trim();
-              const newLineIndex = value.indexOf('\n');
-              if (newLineIndex !== -1) {
-                value = value.slice(newLineIndex).trim();
+          content.push(`-> Embeds: ${JSON.stringify(filteredEmbeds)}`);
+          // content.push(`-> Embeds: ${JSON.stringify(message.embeds)}`);
+          /*
+          for (let [embedId, embed] of message.embeds) {
+            const description: Array<string> = [];
+            if (embed.title) {
+              description.push(embed.title);
+            }
+            if (embed.description) {
+              let value = embed.description;
+              if (value.startsWith('```') && value.endsWith('```')) {
+                value = value.slice(3, -3).trim();
+                const newLineIndex = value.indexOf('\n');
+                if (newLineIndex !== -1) {
+                  value = value.slice(newLineIndex).trim();
+                }
+              }
+              description.push(value);
+            }
+            if (embed.fields) {
+              for (let [fieldId, field] of embed.fields) {
+                description.push(`${field.name}: ${field.value}`);
               }
             }
-            description.push(value);
-          }
-          if (embed.fields) {
-            for (let [fieldId, field] of embed.fields) {
-              description.push(`${field.name}: ${field.value}`);
+            if (embed.footer && embed.footer.text.length) {
+              description.push(embed.footer.text);
+            }
+            const text = description.filter(Boolean).join('\n').trim();
+            if (text) {
+              content.push(text);
+              break;
             }
           }
-          if (embed.footer && embed.footer.text.length) {
-            description.push(embed.footer.text);
-          }
-          const text = description.filter(Boolean).join('\n').trim();
-          if (text) {
-            content.push(text);
-            break;
-          }
+          */
         }
-      }
 
-      const replyText = content.filter(Boolean).join('\n\n').trim();
-      if (replyText) {
-        promptExtra.push(`Message Reply Context: ${replyText}`);
+        if (content.length) {
+          promptExtra.push([
+            `Message Reply Context ${chain}`,
+            `-> Author: ${JSON.stringify(message.author.name)} (${message.author.id})`,
+            ...content,
+            (url && mediaIsFromHere) ? '-> Media is from here' : null,
+            (message.deleted) ? `-> Message Deleted` : null,
+          ].filter(Boolean).join('\n'));
+        }
+
+        /*
+        const replyText = content.filter(Boolean).join('\n\n').trim();
+        if (replyText) {
+          promptExtra.push([
+            `Message Reply Context ${chain}`,
+            `-> Author: ${JSON.stringify(message.author.name)} (${message.author.id})`,
+            `-> Content: ${JSON.stringify(replyText)}`,
+            (url && mediaIsFromHere) ? '-> Media is from here' : null,
+            (message.deleted) ? `-> Message Deleted` : null,
+          ].filter(Boolean).join('\n'));
+        }
+        */
       }
     }
 
     if (url) {
       urls.push(url);
+    }
+
+    if (promptExtra.length) {
+      promptExtra.unshift([
+        `Current Message Context`,
+        `-> Author: ${JSON.stringify(context.message.author.name)} (${context.message.author.id})`,
+      ].join('\n'));
     }
   } else if (context instanceof Interaction.InteractionContext) {
     if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {

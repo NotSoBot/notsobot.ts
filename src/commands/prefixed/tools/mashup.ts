@@ -14,7 +14,6 @@ export default class MashupCommand extends BaseImageOrVideosCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
         {name: 'steps', type: Number, metadata: {description: 'number of samples to take (1 to 16)'}},
         {name: 'strength', type: 'float', metadata: {description: 'strength of prompt (0.01 to 1)'}},
@@ -32,7 +31,7 @@ export default class MashupCommand extends BaseImageOrVideosCommand {
           `${COMMAND_NAME} @NotSoBot :strawberry:`,
         ],
         id: Formatter.Commands.ToolsMLMashup.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-safe) (-seed <number>) (-steps <number>) (-strength <number>) (-use <MLDiffusionModel>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-seed <number>) (-steps <number>) (-strength <number>) (-use <MLDiffusionModel>)',
       },
       minAmount: 2,
       ratelimits: [

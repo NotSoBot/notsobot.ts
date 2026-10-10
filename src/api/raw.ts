@@ -1,4 +1,4 @@
-import { ShardClient, Structures } from 'detritus-client';
+import { Command, Interaction, ShardClient, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { RequestTypes } from 'detritus-client-rest';
 import { RequestFile, Response, createHeaders } from 'detritus-rest';
@@ -29,6 +29,7 @@ export interface RequestContext {
   inDm?: boolean,
   interaction?: Structures.Interaction,
   maxAttachmentSize?: number,
+  metadata?: Record<string, any> | null,
   user?: Structures.User,
 }
 
@@ -40,7 +41,7 @@ export interface RequestOptions extends RequestTypes.Options {
 const HOST = Api.URL_PUBLIC.split('/').pop()!;
 
 export async function request(
-  context: RequestContext,
+  context: RequestContext | Interaction.InteractionContext | Command.Context,
   options: RequestOptions,
 ): Promise<any> {
   options.url = Api.URL + Api.PATH;
@@ -55,7 +56,7 @@ export async function request(
     options.headers.set(NotSoHeaders.AUTHORIZATION, `Bot ${token}`);
   }
 
-  const { channel, channelId, client, guild, guildId, interaction, user } = context;
+  const { channel, channelId, client, guild, guildId, metadata, user } = context;
   if (channelId) {
     options.headers.set(NotSoHeaders.CHANNEL_ID, channelId);
   }
@@ -89,9 +90,31 @@ export async function request(
     options.headers.set(NotSoHeaders.USER, Buffer.from(bareUser).toString('base64'));
   }
 
-  if (interaction && interaction.entitlements && interaction.entitlements.length) {
-    const entitlements = JSON.stringify(interaction.entitlements);
-    options.headers.set(NotSoHeaders.ENTITLEMENTS, Buffer.from(entitlements).toString('base64'));
+  if ('interaction' in context) {
+    const { interaction } = context;
+    if (interaction && interaction.entitlements && interaction.entitlements.length) {
+      const entitlements = JSON.stringify(interaction.entitlements);
+      options.headers.set(NotSoHeaders.ENTITLEMENTS, Buffer.from(entitlements).toString('base64'));
+    }
+  }
+
+  if (metadata && metadata.tag) {
+    const tagId = (metadata.tag.reference_tag) ? metadata.tag.reference_tag.id : metadata.tag.id;
+    options.headers.set(NotSoHeaders.TAG_ID, tagId);
+  }
+
+  if (context instanceof Interaction.InteractionContext) {
+    const metadata = context.invoker.metadata;
+    const commandId = metadata.id || context.name.split(' ').join('.');
+    options.headers.set(NotSoHeaders.COMMAND_ID, commandId);
+    options.headers.set(NotSoHeaders.MESSAGE_TRIGGER_ID, context.interactionId);
+  } else if (context instanceof Command.Context) {
+    if (context.command && context.command.metadata) {
+      const commandMetadata = context.command.metadata;
+      const commandId = commandMetadata.id || context.command.fullName.split(' ').join('.');
+      options.headers.set(NotSoHeaders.COMMAND_ID, commandId);
+      options.headers.set(NotSoHeaders.MESSAGE_TRIGGER_ID, context.messageId);
+    }
   }
 
   if (options.file) {
@@ -304,11 +327,9 @@ export async function createUserCommand(
   const body = {
     channel_id: options.channelId,
     command_type: options.commandType,
-    edited_timestamp: options.editedTimestamp,
-    failed_reason: options.failedReason,
     guild_id: options.guildId,
-    message_id: options.messageId,
-    response_id: options.responseId,
+    message_response_id: options.messageResponseId,
+    message_trigger_id: options.messageTriggerId,
   };
   const params = {userId, command};
   return request(context, {
@@ -712,6 +733,7 @@ export async function editUserSettings(
   options: RestOptions.EditUserSettings,
 ): Promise<RestResponsesRaw.EditUserSettings> {
   const body = {
+    application_command_response_type: options.applicationCommandResponseType,
     download_quality: options.downloadQuality,
     fallbacks_media_image: options.fallbacksMediaImage,
     file_upload_threshold: options.fileUploadThreshold,
@@ -734,6 +756,28 @@ export async function editUserSettings(
       method: HTTPMethods.PATCH,
       path: Api.USER_SETTINGS,
       params,
+    },
+  });
+}
+
+
+export async function fetchCommandsResponses(
+  context: RequestContext,
+  options: RestOptions.FetchCommandsResponses = {},
+): Promise<RestResponsesRaw.FetchCommandsResponses> {
+  const query = {
+    after: options.after,
+    before: options.before,
+    channel_id: options.channelId,
+    limit: options.limit,
+    trigger_ids: options.triggerIds && JSON.stringify(options.triggerIds),
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.COMMANDS_RESPONSES,
     },
   });
 }
@@ -1368,6 +1412,7 @@ export async function mediaAIVManipulationAudioPutConcat(
     longest: options.longest,
     loop: !options.noloop,
     max_file_size: maxFileSize,
+    safe: options.safe,
     urls: options.urls,
   };
   return request(context, {
@@ -1391,6 +1436,7 @@ export async function mediaAIVManipulationAudioPutMix(
     longest: options.longest,
     loop: !options.noloop,
     max_file_size: maxFileSize,
+    safe: options.safe,
     urls: options.urls,
   };
   return request(context, {
@@ -1414,6 +1460,7 @@ export async function mediaAIVManipulationAudioPutReplace(
     longest: options.longest,
     loop: !options.noloop,
     max_file_size: maxFileSize,
+    safe: options.safe,
     urls: options.urls,
   };
   return request(context, {
@@ -1776,6 +1823,7 @@ export async function mediaAVManipulationAudioBoostBass(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -1796,6 +1844,7 @@ export async function mediaAVManipulationAudioChannelsCombine(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -1817,6 +1866,7 @@ export async function mediaAVManipulationAudioCompress(
   const query = {
     max_file_size: maxFileSize,
     no_revert: options.norevert,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -1838,6 +1888,7 @@ export async function mediaAVManipulationAudioDelay(
   const query = {
     delay: options.delay,
     max_file_size: maxFileSize,
+    safe: options.safe,
     snip: options.snip,
     url: options.url,
   };
@@ -1859,6 +1910,7 @@ export async function mediaAVManipulationAudioDestroy(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -1884,6 +1936,7 @@ export async function mediaAVManipulationAudioEqualizer(
     low_mids: options.lowMids,
     max_file_size: maxFileSize,
     mids: options.mids,
+    safe: options.safe,
     sub_bass: options.subBass,
     treble: options.treble,
     url: options.url,
@@ -1910,6 +1963,7 @@ export async function mediaAVManipulationAudioFlanger(
     max_file_size: maxFileSize,
     phase: options.phase,
     regen: options.regen,
+    safe: options.safe,
     speed: options.speed,
     url: options.url,
     width: options.width,
@@ -1932,6 +1986,7 @@ export async function mediaAVManipulationAudioPitch(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -1955,6 +2010,7 @@ export async function mediaAVManipulationAudioReverb(
     decay: options.decay,
     delay: options.delay,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     volume: options.volume,
   };
@@ -1976,6 +2032,7 @@ export async function mediaAVManipulationAudioReverse(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -1998,6 +2055,7 @@ export async function mediaAVManipulationAudioTremolo(
     depth: options.depth,
     frequency: options.frequency,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2020,6 +2078,7 @@ export async function mediaAVManipulationAudioVibrato(
     depth: options.depth,
     frequency: options.frequency,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2040,6 +2099,7 @@ export async function mediaAVManipulationAudioVolume(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     volume: options.volume,
   };
@@ -2063,6 +2123,7 @@ export async function mediaAVManipulationStammer(
     color_mode: options.colorMode,
     matcher_mode: options.matcherMode,
     max_file_size: maxFileSize,
+    safe: options.safe,
     urls: options.urls,
   };
   return request(context, {
@@ -2086,6 +2147,7 @@ export async function mediaAVToolsExtractAudio(
     allowed_mimetypes: options.allowedMimetypes,
     max_file_size: maxFileSize,
     mimetype: options.mimetype,
+    safe: options.safe,
     url: options.url,
     waveform: options.waveform,
   };
@@ -2127,6 +2189,7 @@ export async function mediaAVToolsSetBitRate(
   const query = {
     audio: options.audio,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     video: options.video,
   };
@@ -2170,6 +2233,7 @@ export async function mediaICreateRetrowave(
     line_2: options.line2,
     line_3: options.line3,
     max_file_size: maxFileSize,
+    safe: options.safe,
     text_style: options.textStyle,
   };
   return request(context, {
@@ -2194,6 +2258,7 @@ export async function mediaICreateTombstone(
     line_4: options.line4,
     line_5: options.line5,
     max_file_size: maxFileSize,
+    safe: options.safe,
   };
   return request(context, {
     query,
@@ -2212,6 +2277,7 @@ export async function mediaICreateWordcloud(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     words: options.words,
   };
   return request(context, {
@@ -2231,6 +2297,7 @@ export async function mediaIManipulationBill(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2251,6 +2318,7 @@ export async function mediaIManipulationBurn(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2271,6 +2339,7 @@ export async function mediaIManipulationFaceAlien(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2291,6 +2360,7 @@ export async function mediaIManipulationFaceAnime(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2311,6 +2381,7 @@ export async function mediaIManipulationFaceClown(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2331,6 +2402,7 @@ export async function mediaIManipulationFaceFat(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     size: options.size,
     url: options.url,
   };
@@ -2352,6 +2424,7 @@ export async function mediaIManipulationFaceMountRushmore(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2372,6 +2445,7 @@ export async function mediaIManipulationLatte(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2392,6 +2466,7 @@ export async function mediaIManipulationMuseum(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2412,6 +2487,7 @@ export async function mediaIManipulationPopArt(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2432,6 +2508,7 @@ export async function mediaIManipulationTimesquare(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2452,6 +2529,7 @@ export async function mediaIManipulationUniverse(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2473,6 +2551,7 @@ export async function mediaIVManipulationAscii(
   const query = {
     invert: options.invert,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     zoom: options.zoom,
   };
@@ -2494,6 +2573,7 @@ export async function mediaIVManipulationBlur(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -2515,6 +2595,7 @@ export async function mediaIVManipulationBlurple(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2537,6 +2618,7 @@ export async function mediaIVManipulationCaption(
     bottom: options.bottom,
     font: options.font,
     max_file_size: maxFileSize,
+    safe: options.safe,
     top: options.top,
     url: options.url,
   };
@@ -2563,6 +2645,7 @@ export async function mediaIVManipulationCartoon(
     max_file_size: maxFileSize,
     method: options.method,
     pattern: options.pattern,
+    safe: options.safe,
     saturation: options.saturation,
     url: options.url,
   };
@@ -2584,6 +2667,7 @@ export async function mediaIVManipulationCircle(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -2607,6 +2691,7 @@ export async function mediaIVManipulationDatamosh(
     chance: options.chance,
     max_file_size: maxFileSize,
     repeat: options.repeat,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2628,6 +2713,7 @@ export async function mediaIVManipulationDeepfry(
   const query = {
     keep_transparency: options.keepTransparency,
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -2649,6 +2735,7 @@ export async function mediaIVManipulationDerain(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2669,6 +2756,7 @@ export async function mediaIVManipulationDetunnel(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     spiral: options.spiral,
     url: options.url,
   };
@@ -2692,6 +2780,7 @@ export async function mediaIVManipulationDistort(
     arguments: options.arguments,
     max_file_size: maxFileSize,
     method: options.method,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2715,6 +2804,7 @@ export async function mediaIVManipulationEdgeDetect(
     max_file_size: maxFileSize,
     method: options.method,
     mix: options.mix,
+    safe: options.safe,
     strength: options.strength,
     url: options.url,
   };
@@ -2743,6 +2833,7 @@ export async function mediaIVManipulationEmboss(
     gray: options.gray,
     max_file_size: maxFileSize,
     method: options.method,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2765,6 +2856,7 @@ export async function mediaIVManipulationExo(
   const query = {
     max_file_size: maxFileSize,
     rain: options.rain,
+    safe: options.safe,
     swirl: options.swirl,
     url: options.url,
   };
@@ -2786,6 +2878,7 @@ export async function mediaIVManipulationExplode(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -2807,6 +2900,7 @@ export async function mediaIVManipulationEyes(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     type: options.type,
     url: options.url,
   };
@@ -2828,6 +2922,7 @@ export async function mediaIVManipulationFisheye(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2848,6 +2943,7 @@ export async function mediaIVManipulationFlip(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2868,6 +2964,7 @@ export async function mediaIVManipulationFlop(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2891,6 +2988,7 @@ export async function mediaIVManipulationGlitch(
     iterations: options.iterations,
     keep_transparency: options.keepTransparency,
     max_file_size: maxFileSize,
+    safe: options.safe,
     seed: options.seed,
     url: options.url,
   };
@@ -2915,6 +3013,7 @@ export async function mediaIVManipulationGlitchAnimated(
     iterations: options.iterations,
     keep_transparency: options.keepTransparency,
     max_file_size: maxFileSize,
+    safe: options.safe,
     seed: options.seed,
     url: options.url,
   };
@@ -2936,6 +3035,7 @@ export async function mediaIVManipulationGlobe(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     tiled: options.tiled,
     url: options.url,
   };
@@ -2957,6 +3057,7 @@ export async function mediaIVManipulationGold(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -2978,6 +3079,7 @@ export async function mediaIVManipulationGrain(
   const query = {
     flags: options.flags,
     max_file_size: maxFileSize,
+    safe: options.safe,
     strength: options.strength,
     url: options.url,
   };
@@ -2999,6 +3101,7 @@ export async function mediaIVManipulationGrayscale(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3024,6 +3127,7 @@ export async function mediaIVManipulationHueCurveRGBA(
     green: options.green,
     max_file_size: maxFileSize,
     red: options.red,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3046,6 +3150,7 @@ export async function mediaIVManipulationHueShiftHSV(
     brightness: options.brightness,
     hue: options.hue,
     max_file_size: maxFileSize,
+    safe: options.safe,
     saturation: options.saturation,
     url: options.url,
   };
@@ -3069,6 +3174,7 @@ export async function mediaIVManipulationHueShiftHSVFFMPEG(
     brightness: options.brightness,
     hue: options.hue,
     max_file_size: maxFileSize,
+    safe: options.safe,
     saturation: options.saturation,
     url: options.url,
   };
@@ -3093,6 +3199,7 @@ export async function mediaIVManipulationHueShiftRGB(
     green: options.green,
     max_file_size: maxFileSize,
     red: options.red,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3113,6 +3220,7 @@ export async function mediaIVManipulationImplode(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -3134,6 +3242,7 @@ export async function mediaIVManipulationInvert(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3158,6 +3267,7 @@ export async function mediaIVManipulationInvertRGBA(
     green: options.green,
     max_file_size: maxFileSize,
     red: options.red,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3180,6 +3290,7 @@ export async function mediaIVManipulationJPEG(
     keep_transparency: options.keepTransparency,
     max_file_size: maxFileSize,
     quality: options.quality,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3200,6 +3311,7 @@ export async function mediaIVManipulationLabelsIFunny(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3222,6 +3334,7 @@ export async function mediaIVManipulationLegofy(
     dither: options.dither,
     max_file_size: maxFileSize,
     palette: options.palette,
+    safe: options.safe,
     size: options.size,
     url: options.url,
   };
@@ -3243,6 +3356,7 @@ export async function mediaIVManipulationMagik(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -3265,6 +3379,7 @@ export async function mediaIVManipulationMagikAnimated(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -3288,6 +3403,7 @@ export async function mediaIVManipulationMandalaScope(
     amount: options.amount,
     max_file_size: maxFileSize,
     rotation: options.rotation,
+    safe: options.safe,
     scale: options.scale,
     translation: options.translation,
     url: options.url,
@@ -3313,6 +3429,7 @@ export async function mediaIVManipulationMeme(
     bottom: options.bottom,
     font: options.font,
     max_file_size: maxFileSize,
+    safe: options.safe,
     top: options.top,
     url: options.url,
   };
@@ -3334,6 +3451,7 @@ export async function mediaIVManipulationMirrorBottom(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3354,6 +3472,7 @@ export async function mediaIVManipulationMirrorLeft(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3374,6 +3493,7 @@ export async function mediaIVManipulationMirrorRight(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3394,6 +3514,7 @@ export async function mediaIVManipulationMirrorTop(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3414,6 +3535,7 @@ export async function mediaIVManipulationMotionBlur(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     strength: options.strength,
     url: options.url,
     vertical: options.vertical,
@@ -3437,6 +3559,7 @@ export async function mediaIVManipulationOrb(
   const query = {
     direction: options.direction,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3457,6 +3580,7 @@ export async function mediaIVManipulationOverlayFace(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     urls: options.urls,
   };
@@ -3479,6 +3603,7 @@ export async function mediaIVManipulationOverlayFlagIsrael(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3499,6 +3624,7 @@ export async function mediaIVManipulationOverlayFlagLGBT(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3519,6 +3645,7 @@ export async function mediaIVManipulationOverlayFlagNorthKorea(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3539,6 +3666,7 @@ export async function mediaIVManipulationOverlayFlagTrans(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3559,6 +3687,7 @@ export async function mediaIVManipulationOverlayFlagRussia(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3579,6 +3708,7 @@ export async function mediaIVManipulationOverlayFlagUK(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3599,6 +3729,7 @@ export async function mediaIVManipulationOverlayFlagUSA(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3619,6 +3750,7 @@ export async function mediaIVManipulationOverlayFlagUSSR(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3641,6 +3773,7 @@ export async function mediaIVManipulationOverlayFlies(
     amount: options.amount,
     degrees: options.degrees,
     max_file_size: maxFileSize,
+    safe: options.safe,
     speed: options.speed,
     urls: [options.url, options.flyImage].filter(Boolean),
   };
@@ -3662,6 +3795,7 @@ export async function mediaIVManipulationOverlayGoldstar(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3682,6 +3816,7 @@ export async function mediaIVManipulationOverlayHalfLifePistol(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3702,6 +3837,7 @@ export async function mediaIVManipulationOverlayHalfLifeShotgun(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3722,6 +3858,7 @@ export async function mediaIVManipulationOverlayHalfLifeSMG(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3742,6 +3879,7 @@ export async function mediaIVManipulationOverlayPersonsBernie1(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3762,6 +3900,7 @@ export async function mediaIVManipulationOverlayPersonsBobRoss(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3783,6 +3922,7 @@ export async function mediaIVManipulationOverlayPersonsGaben1(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3803,6 +3943,7 @@ export async function mediaIVManipulationOverlayPersonsLTTLinus1(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3823,6 +3964,7 @@ export async function mediaIVManipulationOverlayShutterstock(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3843,6 +3985,7 @@ export async function mediaIVManipulationOverlayStarman(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3864,6 +4007,7 @@ export async function mediaIVManipulationPaint(
   const query = {
     max_file_size: maxFileSize,
     radius: options.radius,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3885,6 +4029,7 @@ export async function mediaIVManipulationPaintAnimated(
   const query = {
     max_file_size: maxFileSize,
     radius: options.radius,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3905,6 +4050,7 @@ export async function mediaIVManipulationPaper(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3928,6 +4074,7 @@ export async function mediaIVManipulationPhoSimp(
     grid_x: options.gridx,
     grid_y: options.gridy,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3949,6 +4096,7 @@ export async function mediaIVManipulationPix2Pix(
   const query = {
     max_file_size: maxFileSize,
     model: options.model,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3971,6 +4119,7 @@ export async function mediaIVManipulationPixelate(
     max_file_size: maxFileSize,
     no_lines: options.noLines,
     pixel_width: options.pixelWidth,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -3991,6 +4140,7 @@ export async function mediaIVManipulationRain(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4011,6 +4161,7 @@ export async function mediaIVManipulationRainGold(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4031,6 +4182,7 @@ export async function mediaIVManipulationRecolor(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4055,6 +4207,7 @@ export async function mediaIVManipulationRipple(
     offset: options.offset,
     power: options.power,
     rmin: options.rmin,
+    safe: options.safe,
     type: options.type,
     url: options.url,
     width: options.width,
@@ -4077,6 +4230,7 @@ export async function mediaIVManipulationSepia(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4099,6 +4253,7 @@ export async function mediaIVManipulationShake(
     horizontal: options.horizontal,
     max_file_size: maxFileSize,
     randomize: options.randomize,
+    safe: options.safe,
     url: options.url,
     vertical: options.vertical,
   };
@@ -4120,6 +4275,7 @@ export async function mediaIVManipulationSharpen(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     scale: options.scale,
     url: options.url,
   };
@@ -4142,6 +4298,7 @@ export async function mediaIVManipulationSlide(
   const query = {
     direction: options.direction,
     max_file_size: maxFileSize,
+    safe: options.safe,
     speed: options.speed,
     url: options.url,
   };
@@ -4163,6 +4320,7 @@ export async function mediaIVManipulationSmile(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4183,6 +4341,7 @@ export async function mediaIVManipulationSolarize(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4206,6 +4365,7 @@ export async function mediaIVManipulationSpin(
     clockwise: options.clockwise,
     crop: options.crop,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4227,6 +4387,7 @@ export async function mediaIVManipulationSpin3d(
   const query = {
     clockwise: options.clockwise,
     max_file_size: maxFileSize,
+    safe: options.safe,
     tilt: options.tilt,
     url: options.url,
     zoom: options.zoom,
@@ -4251,6 +4412,7 @@ export async function mediaIVManipulationStretch(
     crop: options.crop,
     height: options.height,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     width: options.width,
   };
@@ -4272,6 +4434,7 @@ export async function mediaIVManipulationSwapColors(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4292,6 +4455,7 @@ export async function mediaIVManipulationSwapPixels(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4313,6 +4477,7 @@ export async function mediaIVManipulationSwapRGBA(
   const query = {
     channels: options.channels,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4334,6 +4499,7 @@ export async function mediaIVManipulationSwirl(
   const query = {
     degrees: options.degrees,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4354,6 +4520,7 @@ export async function mediaIVManipulationTrace(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4374,6 +4541,7 @@ export async function mediaIVManipulationTunnel(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     spiral: options.spiral,
     url: options.url,
   };
@@ -4395,6 +4563,7 @@ export async function mediaIVManipulationUncaption(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     tolerance: options.tolerance,
     url: options.url,
   };
@@ -4416,6 +4585,7 @@ export async function mediaIVManipulationVaporwave(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     text: options.text,
     url: options.url,
   };
@@ -4437,6 +4607,7 @@ export async function mediaIVManipulationWall(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4460,6 +4631,7 @@ export async function mediaIVManipulationWatercolor(
     edge: options.edge,
     max_file_size: maxFileSize,
     mixing: options.mixing,
+    safe: options.safe,
     smoothing: options.smoothing,
     url: options.url,
   };
@@ -4482,6 +4654,7 @@ export async function mediaIVManipulationWave(
   const query = {
     amplitude: options.amplitude,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     wave_length: options.waveLength,
   };
@@ -4504,6 +4677,7 @@ export async function mediaIVManipulationWaveAnimated(
   const query = {
     amplitude: options.amplitude,
     max_file_size: maxFileSize,
+    safe: options.safe,
     speed: options.speed,
     url: options.url,
     wave_length: options.waveLength,
@@ -4528,6 +4702,7 @@ export async function mediaIVManipulationWiggle(
     amount: options.amount,
     direction: options.direction,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     wavelengths: options.wavelengths,
   };
@@ -4550,6 +4725,7 @@ export async function mediaIVManipulationZoom(
   const query = {
     amount: options.amount,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4572,6 +4748,7 @@ export async function mediaIVManipulationZoomBlur(
     amount: options.amount,
     expand: options.expand,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4593,6 +4770,7 @@ export async function mediaIVToolsBackgroundRemove(
   const query = {
     max_file_size: maxFileSize,
     model: options.model,
+    safe: options.safe,
     trim: options.trim,
     url: options.url,
   };
@@ -4615,6 +4793,7 @@ export async function mediaIVToolsCrop(
   const query = {
     height: options.height,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     width: options.width,
     x: options.x,
@@ -4638,6 +4817,7 @@ export async function mediaIVToolsCropAuto(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4658,6 +4838,7 @@ export async function mediaIVToolsCropCircle(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4678,6 +4859,7 @@ export async function mediaIVToolsCropTriangle(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4698,6 +4880,7 @@ export async function mediaIVToolsCropTwitterHex(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4718,6 +4901,7 @@ export async function mediaIVToolsOffset(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
     x: options.x,
     y: options.y,
@@ -4742,6 +4926,7 @@ export async function mediaIVToolsResize(
     kernel: options.kernel,
     max_file_size: maxFileSize,
     ratio: options.ratio,
+    safe: options.safe,
     scale: options.scale,
     size: options.size,
     url: options.url,
@@ -4766,6 +4951,7 @@ export async function mediaIVToolsRotate(
     crop: options.crop,
     degrees: options.degrees,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4789,6 +4975,7 @@ export async function mediaIVToolsRotate3d(
     max_file_size: maxFileSize,
     order: options.order,
     pan: options.pan,
+    safe: options.safe,
     roll: options.roll,
     tilt: options.tilt,
     url: options.url,
@@ -4813,6 +5000,7 @@ export async function mediaIVToolsSetFPS(
   const query = {
     fps: options.fps,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4834,6 +5022,7 @@ export async function mediaIVToolsSetFrameCount(
   const query = {
     count: options.count,
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4855,6 +5044,7 @@ export async function mediaIVToolsSnipFrames(
   const query = {
     end: options.end,
     max_file_size: maxFileSize,
+    safe: options.safe,
     start: options.start,
     url: options.url,
   };
@@ -4876,6 +5066,7 @@ export async function mediaIVToolsToGif(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -4897,6 +5088,7 @@ export async function mediaIVToolsTrim(
   const query = {
     margin: options.margin,
     max_file_size: maxFileSize,
+    safe: options.safe,
     threshold: options.threshold,
     url: options.url,
   };
@@ -4906,6 +5098,30 @@ export async function mediaIVToolsTrim(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_TOOLS_TRIM,
+    },
+  });
+}
+
+
+export async function moderationSafetyScan(
+  context: RequestContext,
+  options: RestOptions.ModerationSafetyScan,
+): Promise<RestResponsesRaw.ModerationSafetyScan> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    extract_frames: options.extractFrames,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MODERATION_SAFETY_SCAN,
     },
   });
 }
@@ -5604,6 +5820,7 @@ export async function utilitiesCodeRun(
   const body = {
     code: options.code,
     language: options.language,
+    safe: options.safe,
     stdin: options.stdin,
     urls: options.urls,
     version: options.version,
@@ -5627,6 +5844,7 @@ export async function utilitiesFetchData(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -5646,6 +5864,7 @@ export async function utilitiesFetchImage(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     max_file_size: maxFileSize,
+    safe: options.safe,
     url: options.url,
   };
   return request(context, {
@@ -5664,6 +5883,7 @@ export async function utilitiesFetchMedia(
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    do_not_error: options.doNotError,
     download_quality: options.downloadQuality,
     locale: options.locale,
     max_file_size: maxFileSize,
@@ -5760,7 +5980,7 @@ export async function utilitiesMLEdit(
     max_file_size: maxFileSize,
     model: options.model,
     query: options.query,
-    safe: true, // options.safe,
+    safe: true,
     seed: options.seed,
     steps: options.steps,
     strength: options.strength,
@@ -5791,7 +6011,7 @@ export async function utilitiesMLImagine(
     max_file_size: maxFileSize,
     model: options.model,
     query: options.query,
-    safe: true, // options.safe,
+    safe: true,
     seed: options.seed,
     steps: options.steps,
     upload: options.upload,
@@ -5802,33 +6022,6 @@ export async function utilitiesMLImagine(
     route: {
       method: HTTPMethods.GET,
       path: Api.UTILITIES_ML_IMAGINE,
-    },
-  });
-  return response;
-}
-
-
-export async function utilitiesMLImagineVideo(
-  context: RequestContext,
-  options: RestOptions.UtilitiesMLImagine,
-): Promise<RestResponsesRaw.JobResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    do_not_error: options.doNotError,
-    max_file_size: maxFileSize,
-    model: options.model,
-    query: options.query,
-    safe: true, // options.safe,
-    seed: options.seed,
-    steps: options.steps,
-    upload: options.upload,
-    upload_expires_in: options.uploadExpiresIn,
-  };
-  const response = await request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.UTILITIES_ML_IMAGINE_VIDEO,
     },
   });
   return response;
@@ -5862,7 +6055,7 @@ export async function utilitiesMLMashup(
     do_not_error: options.doNotError,
     model: options.model,
     max_file_size: maxFileSize,
-    safe: true, // options.safe,
+    safe: true,
     seed: options.seed,
     steps: options.steps,
     strength: options.strength,

@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAVToolsExtractAudio } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { DefaultParameters, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.av.tools.extract.audio';
@@ -15,6 +15,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await mediaAVToolsExtractAudio(context, {
+    safe: DefaultParameters.safe(context),
     url: args.url,
   });
   return mediaReply(context, response);

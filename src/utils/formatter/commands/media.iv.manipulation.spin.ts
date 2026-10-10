@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationSpin } from '../../../api';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.spin';
@@ -20,11 +20,11 @@ export function createJob(
   args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaIVManipulationSpin(context, {
-    file: args.file,
+    safe: DefaultParameters.safe(context),
+    ...args,
     clockwise: !args.counterclockwise,
     circle: !args.nocircle,
     crop: !args.nocrop,
-    url: args.url,
   });
 }
 

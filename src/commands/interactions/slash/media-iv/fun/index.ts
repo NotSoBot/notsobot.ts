@@ -5,7 +5,7 @@ import { MediaIVBlurCommand } from './blur';
 import { MediaIVCircleCommand } from './circle';
 import { MediaIVDeepfryCommand } from './deepfry';
 import { MediaIVE2ECommand } from './e2e';
-import { MediaIVE2PCommand } from './e2p';
+import { MediaIVE2FCommand } from './e2f';
 import { MediaIVExoCommand } from './exo';
 import { MediaIVExplodeCommand } from './explode';
 import { MediaIVFlipCommand } from './flip';
@@ -39,7 +39,7 @@ export class MediaIVFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVCircleCommand(),
         new MediaIVDeepfryCommand(),
         new MediaIVE2ECommand(),
-        new MediaIVE2PCommand(),
+        new MediaIVE2FCommand(),
         new MediaIVExoCommand(),
         new MediaIVExplodeCommand(),
         new MediaIVFlipCommand(),

@@ -13,6 +13,7 @@ import {
   RedditTimeTypes,
   TagBlobStorageTypes,
   TagVariableStorageTypes,
+  UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
   UserSettingsUploadThresholdTypes,
@@ -61,11 +62,9 @@ export namespace RestOptions {
   export interface CreateUserCommand {
     channelId: string,
     commandType?: number,
-    editedTimestamp?: null | number,
-    failedReason?: string,
     guildId?: string,
-    messageId: string,
-    responseId?: string,
+    messageResponseId?: string,
+    messageTriggerId?: string,
   }
 
   export interface CreateVoiceClone {
@@ -157,6 +156,7 @@ export namespace RestOptions {
   }
 
   export interface EditUserSettings {
+    applicationCommandResponseType?: null | UserSettingsApplicationCommandResponseTypes,
     downloadQuality?: null | string,
     fallbacksMediaImage?: null | UserSettingsFallbacksMediaImageTypes,
     fileUploadThreshold?: null | UserSettingsUploadThresholdTypes,
@@ -171,6 +171,16 @@ export namespace RestOptions {
     ttsVoice?: null | string,
     units?: null | string,
     vanity?: null | string,
+  }
+
+
+  export interface FetchCommandsResponses {
+    after?: string,
+    before?: string,
+    channelId?: string,
+    limit?: number,
+    triggerIds?: Array<string>,
+    userId?: string,
   }
 
   export interface FetchCommandsUsage {
@@ -285,13 +295,13 @@ export namespace RestOptions {
   }
 
   export interface MediaUploadBaseOptions {
+    doNotError?: boolean,
     safe?: boolean,
     upload?: boolean,
     uploadExpiresIn?: number,
   }
 
   export interface MediaBaseOptions extends MediaUploadBaseOptions {
-    doNotError?: boolean,
     file?: RequestFile,
     filename?: string,
     maxFileSize?: number,
@@ -443,6 +453,7 @@ export namespace RestOptions {
     line1?: string,
     line2?: string,
     line3?: string,
+    safe?: boolean,
     textStyle?: number,
   }
 
@@ -452,9 +463,11 @@ export namespace RestOptions {
     line3?: string,
     line4?: string,
     line5?: string,
+    safe?: boolean,
   }
 
   export interface MediaICreateWordcloud {
+    safe?: boolean,
     words: Array<string>,
   }
 
@@ -805,6 +818,13 @@ export namespace RestOptions {
   }
 
 
+  export interface ModerationSafetyScan extends MediaBaseOptionsMultiple {
+    extractFrames?: boolean,
+    safe?: boolean,
+    text?: string,
+  }
+
+
   export interface PutGeneratedTagError {
     error: string,
   }
@@ -1026,6 +1046,7 @@ export namespace RestOptions {
   export interface UtilitiesCodeRun extends MediaBaseOptionsMultiple {
     code: string,
     language: string,
+    safe?: boolean,
     stdin?: string,
     urls?: Array<string | {filename?: string, url: string}>,
     version?: string,
@@ -1033,11 +1054,13 @@ export namespace RestOptions {
 
   export interface UtilitiesFetchData {
     maxFileSize?: number,
+    safe?: boolean,
     url: string,
   }
 
   export interface UtilitiesFetchImage {
     maxFileSize?: number,
+    safe?: boolean,
     url: string,
   }
 
@@ -1070,7 +1093,6 @@ export namespace RestOptions {
 
   export interface UtilitiesMLEdit extends MediaBaseOptionsMultiple {
     expand?: boolean,
-    doNotError?: boolean,
     model?: string,
     query: string,
     seed?: number,
@@ -1079,7 +1101,6 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesMLImagine extends MediaUploadBaseOptions {
-    doNotError?: boolean,
     model?: string,
     query: string,
     seed?: number,
@@ -1087,7 +1108,6 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesMLMashup extends MediaBaseOptionsMultiple {
-    doNotError?: boolean,
     model?: string,
     seed?: number,
     steps?: number,
@@ -1363,6 +1383,18 @@ export namespace RestResponsesRaw {
   export type EditTagsDirectoryTag = TagDirectory;
   export type EditUser = User;
   export type EditUserSettings = UserSettings;
+
+  export interface FetchCommandsResponses {
+    count: number,
+    results: Array<{
+      channel_id: string,
+      last_touched: string,
+      message_response_id: string,
+      message_trigger_id: string,
+      message_trigger_type: number,
+      user_id: string,
+    }>,
+  }
 
   export interface FetchCommandsUsage {
     results: Array<CommandUsage>,
@@ -1673,6 +1705,25 @@ export namespace RestResponsesRaw {
     },
     url: null | string,
     _raw?: any,
+  }
+
+
+  export interface ModerationSafetyScanResult {
+    identification: {
+      flagged: Array<string>,
+      child_safety: boolean,
+      needs_human_review: boolean,
+      flagged_frames: Array<number>,
+      frames: number,
+      scores: Record<string, number>,
+    },
+    unsafe: boolean,
+    zip?: null | {mimetype: string, value: string},
+  }
+
+  export interface ModerationSafetyScan {
+    media: null | ModerationSafetyScanResult,
+    text: null | ModerationSafetyScanResult,
   }
 
 
@@ -2624,6 +2675,7 @@ export namespace RestResponsesRaw {
   }
 
   export interface UserSettings {
+    application_command_response_type: number,
     download_quality: string | null,
     fallbacks_media_image: number,
     file_upload_name: string | null,

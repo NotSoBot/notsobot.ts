@@ -13,16 +13,23 @@ export interface CommandArgs {
   url: string,
 }
 
+export function createJob(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  return mediaAIVManipulationSnip(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+    audioOnly: args.audio,
+    end: (args.end) ? (args.end * 1000) : args.end,
+    start: (args.start) ? (args.start * 1000) : args.start,
+  });
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await mediaAIVManipulationSnip(context, {
-    audioOnly: args.audio,
-    end: (args.end) ? (args.end * 1000) : args.end,
-    safe: DefaultParameters.safe(context),
-    start: (args.start) ? (args.start * 1000) : args.start,
-    url: args.url,
-  });
+  const response = await createJob(context, args);
   return jobReply(context, response);
 }

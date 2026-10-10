@@ -9,7 +9,6 @@ export const COMMAND_ID = 'tools.ml.imagine';
 export interface CommandArgs {
   model?: string,
   query: string,
-  safe?: boolean,
   seed?: number,
   steps?: number,
 }
@@ -18,6 +17,9 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await utilitiesMLImagine(context, args);
+  const response = await utilitiesMLImagine(context, {
+    ...args,
+    safe: true,
+  });
   return jobReply(context, response);
 }

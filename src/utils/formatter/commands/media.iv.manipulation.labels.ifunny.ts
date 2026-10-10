@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationLabelsIFunny } from '../../../api';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.labels.ifunny';
@@ -16,7 +16,10 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile},
 ) {
-  return mediaIVManipulationLabelsIFunny(context, args);
+  return mediaIVManipulationLabelsIFunny(context, {
+    safe: DefaultParameters.safe(context),
+    ...args,
+  });
 }
 
 export async function createMessage(

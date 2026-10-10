@@ -388,6 +388,14 @@ export async function editUserSettings(
 }
 
 
+export async function fetchCommandsResponses(
+  context: RequestContext,
+  options: RestOptions.FetchCommandsResponses = {},
+) {
+  return raw.fetchCommandsResponses(context, options);
+}
+
+
 export async function fetchCommandsUsage(
   context: RequestContext,
   options: RestOptions.FetchCommandsUsage,
@@ -1985,6 +1993,14 @@ export async function mediaIVToolsTrim(
 }
 
 
+export async function moderationSafetyScan(
+  context: RequestContext,
+  options: RestOptions.ModerationSafetyScan,
+) {
+  return raw.moderationSafetyScan(context, options);
+}
+
+
 export async function putGeneratedTagError(
   context: RequestContext,
   responseId: string,
@@ -2376,14 +2392,6 @@ export async function utilitiesMLImagine(
   options: RestOptions.UtilitiesMLImagine,
 ) {
   return raw.utilitiesMLImagine(context, options);
-}
-
-
-export async function utilitiesMLImagineVideo(
-  context: RequestContext,
-  options: RestOptions.UtilitiesMLImagine,
-) {
-  return raw.utilitiesMLImagineVideo(context, options);
 }
 
 

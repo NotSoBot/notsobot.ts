@@ -4,7 +4,7 @@ import { RequestFile } from 'detritus-rest';
 import { mediaIVManipulationCaption, mediaIVManipulationUncaption } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
-import { jobReply, jobWaitForResult } from '../../../utils';
+import { DefaultParameters, jobReply, jobWaitForResult } from '../../../utils';
 
 import { splitText } from './media.iv.manipulation.caption';
 
@@ -20,11 +20,14 @@ export interface CommandArgs {
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: CommandArgs & {file?: RequestFile},
+  args: CommandArgs & {file?: RequestFile, safe?: boolean},
 ) {
+  const safe = args.safe || DefaultParameters.safe(context);
+
   let fileResponse: RestResponsesRaw.FileResponse | undefined;
   let job = await await mediaIVManipulationUncaption(context, {
     file: args.file,
+    safe,
     tolerance: args.tolerance,
     url: args.url,
   }).then((x) => jobWaitForResult(context, x));
@@ -49,6 +52,7 @@ export async function createMessage(
       value: (fileResponse.file.value) ? Buffer.from(fileResponse.file.value, 'base64') : Buffer.alloc(0),
     },
     font: args.font,
+    safe,
     top,
   }).then((x) => jobWaitForResult(context, x));
   if (job.result.response) {

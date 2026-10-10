@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationExo } from '../../../api';
-import { jobReply } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.kek';
@@ -17,9 +17,10 @@ export function createJob(
   args: CommandArgs & {file?: RequestFile},
 ) {
   return mediaIVManipulationExo(context, {
-    file: args.file,
+    safe: DefaultParameters.safe(context),
+    ...args,
+    rain: false,
     swirl: true,
-    url: args.url,
   });
 }
 

@@ -19,15 +19,9 @@ export default class Rule34Command extends BaseSearchCommand {
       ],
       metadata: {
         category: CommandCategories.SEARCH,
-        description: 'Search rule34.xxx',
-        examples: [
-          `${COMMAND_NAME} some anime chick`,
-          `${COMMAND_NAME} overwatch`,
-          `${COMMAND_NAME} overwatch -randomize`,
-          `${COMMAND_NAME} overwatch -r`,
-        ],
+        description: 'This command has been disabled at Discord\'s request.',
+        examples: [],
         id: Formatter.Commands.SearchRule34.COMMAND_ID,
-        nsfw: true,
         usage: '<query> (-randomize)',
       },
     });

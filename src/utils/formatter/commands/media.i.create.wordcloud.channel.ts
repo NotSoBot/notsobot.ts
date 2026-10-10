@@ -1,8 +1,9 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { mediaICreateWordcloud } from '../../../api';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
+
+import { mediaICreateWordcloud } from '../../../api';
 import { editOrReply, mediaReply } from '../../../utils';
 
 
