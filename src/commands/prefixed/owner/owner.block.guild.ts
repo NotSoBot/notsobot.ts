@@ -1,20 +1,9 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { Command, CommandClient } from 'detritus-client';
 
-import { editGuildSettings } from '../../../api';
 import { CommandCategories } from '../../../constants';
-import { DefaultParameters, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
-
-
-export interface CommandArgsBefore {
-  guild: Structures.Guild | null,
-}
-
-export interface CommandArgs {
-  guild: Structures.Guild,
-}
 
 
 export const COMMAND_NAME = 'owner block guild';
@@ -32,6 +21,7 @@ export default class OwnerBlockGuildCommand extends BaseCommand {
           `${COMMAND_NAME} 178313653177548800`,
         ],
         category: CommandCategories.OWNER,
+        id: Formatter.Commands.OwnerBlockGuild.COMMAND_ID,
         usage: '<guild:id>',
       },
       type: Parameters.guild,
@@ -42,21 +32,18 @@ export default class OwnerBlockGuildCommand extends BaseCommand {
     return context.user.isClientOwner;
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.OwnerBlockGuild.CommandArgsBefore) {
     return !!args.guild;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerBlockGuild.CommandArgsBefore) {
     if (!args.guild) {
       return editOrReply(context, '⚠ Unable to find that guild.');
     }
     return super.onCancelRun(context, args);
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { guild } = args;
-
-    const settings = await editGuildSettings(context, guild.id, {blocked: true});
-    return editOrReply(context, `Alright, blocked guild ${Markup.escape.all(guild.name)} (${guild.id})}.`);
+  async run(context: Command.Context, args: Formatter.Commands.OwnerBlockGuild.CommandArgs) {
+    return Formatter.Commands.OwnerBlockGuild.createMessage(context, args);
   }
 }

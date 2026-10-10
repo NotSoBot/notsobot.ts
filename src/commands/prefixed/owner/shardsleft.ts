@@ -1,15 +1,9 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandCategories, DateMomentLogFormat } from '../../../constants';
-import { createTimestampMomentFromGuild, editOrReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
-
-
-export interface CommandArgs {
-
-}
 
 
 export const COMMAND_NAME = 'shardsleft';
@@ -25,6 +19,7 @@ export default class ShardsLeftCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         category: CommandCategories.OWNER,
+        id: Formatter.Commands.OwnerShardsLeft.COMMAND_ID,
         usage: '',
       },
     });
@@ -35,12 +30,6 @@ export default class ShardsLeftCommand extends BaseCommand {
   }
 
   async run(context: Command.Context) {
-    const { session_start_limit: sessionStartLimit } = await context.rest.fetchGatewayBot();
-
-    const timestamp = createTimestampMomentFromGuild(Date.now() + sessionStartLimit.reset_after, context.guildId);
-    return editOrReply(context, [
-      `We have ${sessionStartLimit.remaining.toLocaleString()} identifies left out of ${sessionStartLimit.total.toLocaleString()}`,
-      `It resets ${timestamp.fromNow()} @ ${timestamp.format(DateMomentLogFormat)}`,
-    ].join('\n'));
+    return Formatter.Commands.OwnerShardsLeft.createMessage(context);
   }
 }

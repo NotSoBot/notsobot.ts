@@ -1,13 +1,9 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
-
-
-export interface CommandArgs {
-  text: string,
-}
 
 
 export const COMMAND_NAME = 'say';
@@ -24,6 +20,7 @@ export default class SayCommand extends BaseCommand {
           `${COMMAND_NAME} :spider:`,
         ],
         category: CommandCategories.OWNER,
+        id: Formatter.Commands.OwnerSay.COMMAND_ID,
         usage: '<text>',
       },
     });
@@ -33,7 +30,7 @@ export default class SayCommand extends BaseCommand {
     return context.user.isClientOwner;
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    return context.reply(args.text);
+  async run(context: Command.Context, args: Formatter.Commands.OwnerSay.CommandArgs) {
+    return Formatter.Commands.OwnerSay.createMessage(context, args);
   }
 }

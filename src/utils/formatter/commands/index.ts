@@ -10,8 +10,17 @@ import * as FunReverseText from './fun.reversetext';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
 
+import * as InfoActivity from './info.activity';
+import * as InfoApplications from './info.applications';
 import * as InfoAvatar from './info.avatar';
+import * as InfoChannel from './info.channel';
+import * as InfoGuild from './info.guild';
+import * as InfoGuildIcon from './info.guild.icon';
+import * as InfoInvite from './info.invite';
+import * as InfoPlaying from './info.playing';
+import * as InfoRole from './info.role';
 import * as InfoUser from './info.user';
+import * as InfoUsers from './info.users';
 
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
 import * as MediaAIVManipulationAndroid from './media.aiv.manipulation.android';
@@ -214,6 +223,19 @@ import * as ModerationCommandsBlocklistClear from './moderation.commands.blockli
 import * as ModerationCommandsBlocklistRemove from './moderation.commands.blocklist.remove';
 import * as ModerationCommandsUsage from './moderation.commands.usage';
 
+import * as OwnerBlockGuild from './owner.block.guild';
+import * as OwnerBlockUser from './owner.block.user';
+import * as OwnerEval from './owner.eval';
+import * as OwnerGuildFeaturesAdd from './owner.guild.features.add';
+import * as OwnerGuildFeaturesRemove from './owner.guild.features.remove';
+import * as OwnerRefresh from './owner.refresh';
+import * as OwnerSay from './owner.say';
+import * as OwnerSeenOn from './owner.seenon';
+import * as OwnerShardsLeft from './owner.shards.left';
+import * as OwnerUnblockGuild from './owner.unblock.guild';
+import * as OwnerUnblockUser from './owner.unblock.user';
+import * as OwnerUploadCommands from './owner.upload.commands';
+
 import * as PrefixesAdd from './prefixes.add';
 import * as PrefixesClear from './prefixes.clear';
 import * as PrefixesList from './prefixes.list';
@@ -292,6 +314,7 @@ import * as ToolsCode from './tools.code';
 import * as ToolsDownload from './tools.download';
 import * as ToolsExif from './tools.exif';
 import * as ToolsHash from './tools.hash';
+import * as ToolsLabels from './tools.labels';
 import * as ToolsMath from './tools.math';
 import * as ToolsMLEdit from './tools.ml.edit';
 import * as ToolsMLImagine from './tools.ml.imagine';
@@ -302,11 +325,20 @@ import * as ToolsOCR from './tools.ocr';
 import * as ToolsOCRTranslate from './tools.ocr.translate';
 import * as ToolsQrCreate from './tools.qr.create';
 import * as ToolsQrScan from './tools.qr.scan';
+import * as ToolsSafetyLabels from './tools.safety.labels';
 import * as ToolsScreenshot from './tools.screenshot';
 import * as ToolsTranscribe from './tools.transcribe';
 import * as ToolsTranscribeTranslate from './tools.transcribe.translate';
 import * as ToolsTranslate from './tools.translate';
 import * as ToolsWeather from './tools.weather';
+
+import * as UtilsInvite from './utils.invite';
+import * as UtilsMemoryUsage from './utils.memory.usage';
+import * as UtilsPing from './utils.ping';
+import * as UtilsPrivacy from './utils.privacy';
+import * as UtilsShards from './utils.shards';
+import * as UtilsUndo from './utils.undo';
+import * as UtilsUsage from './utils.usage';
 
 import * as VoiceClone from './voice.clone';
 import * as VoiceCloneAdd from './voice.clone.add';
@@ -329,8 +361,17 @@ export {
   FunTextwall,
   FunTTS,
 
+  InfoActivity,
+  InfoApplications,
   InfoAvatar,
+  InfoChannel,
+  InfoGuild,
+  InfoGuildIcon,
+  InfoInvite,
+  InfoPlaying,
+  InfoRole,
   InfoUser,
+  InfoUsers,
 
   MediaAIVManipulationADHD,
   MediaAIVManipulationAndroid,
@@ -533,6 +574,19 @@ export {
   ModerationCommandsBlocklistRemove,
   ModerationCommandsUsage,
 
+  OwnerBlockGuild,
+  OwnerBlockUser,
+  OwnerEval,
+  OwnerGuildFeaturesAdd,
+  OwnerGuildFeaturesRemove,
+  OwnerRefresh,
+  OwnerSay,
+  OwnerSeenOn,
+  OwnerShardsLeft,
+  OwnerUnblockGuild,
+  OwnerUnblockUser,
+  OwnerUploadCommands,
+
   PrefixesAdd,
   PrefixesClear,
   PrefixesList,
@@ -612,6 +666,7 @@ export {
   ToolsDownload,
   ToolsExif,
   ToolsHash,
+  ToolsLabels,
   ToolsMath,
   ToolsMLEdit,
   ToolsMLImagine,
@@ -622,11 +677,20 @@ export {
   ToolsOCRTranslate,
   ToolsQrCreate,
   ToolsQrScan,
+  ToolsSafetyLabels,
   ToolsScreenshot,
   ToolsTranscribe,
   ToolsTranscribeTranslate,
   ToolsTranslate,
   ToolsWeather,
+
+  UtilsInvite,
+  UtilsMemoryUsage,
+  UtilsPing,
+  UtilsPrivacy,
+  UtilsShards,
+  UtilsUndo,
+  UtilsUsage,
 
   VoiceClone,
   VoiceCloneAdd,

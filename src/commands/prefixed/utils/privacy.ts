@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -19,12 +19,13 @@ export default class PrivacyCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         category: CommandCategories.UTILS,
+        id: Formatter.Commands.UtilsPrivacy.COMMAND_ID,
         usage: '',
       },
     });
   }
 
   async run(context: Command.Context) {
-    return editOrReply(context, '<https://beta.notsobot.com/legal/privacy>');
+    return Formatter.Commands.UtilsPrivacy.createMessage(context);
   }
 }

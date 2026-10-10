@@ -1,36 +1,10 @@
-import { Collections, Command, CommandClient, Structures } from 'detritus-client';
-import { Colors, Permissions } from 'detritus-client/lib/constants';
-import { Embed } from 'detritus-client/lib/utils';
+import { Command, CommandClient } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { BooleanEmojis, CommandCategories } from '../../../constants';
-import { Parameters, editOrReply } from '../../../utils';
+import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
-
-
-export interface CommandArgsBefore {
-  payload: {
-    channels?: Collections.BaseCollection<string, Structures.Channel>,
-    emojis?: Collections.BaseCollection<string, Structures.Emoji>,
-    guild: Structures.Guild | null,
-    memberCount?: number,
-    owner?: Structures.User,
-    presenceCount?: number,
-    voiceStateCount?: number,
-  },
-}
-
-export interface CommandArgs {
-  payload: {
-    channels: Collections.BaseCollection<string, Structures.Channel>,
-    emojis: Collections.BaseCollection<string, Structures.Emoji>,
-    guild: Structures.Guild,
-    memberCount: number,
-    owner: Structures.User,
-    presenceCount: number,
-    voiceStateCount: number,
-  },
-}
 
 
 export const COMMAND_NAME = 'guildicon';
@@ -48,6 +22,7 @@ export default class GuildIconCommand extends BaseCommand {
           `${COMMAND_NAME} 178313653177548800`,
         ],
         category: CommandCategories.INFO,
+        id: Formatter.Commands.InfoGuildIcon.COMMAND_ID,
         usage: '?<guild:id>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -55,31 +30,15 @@ export default class GuildIconCommand extends BaseCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.InfoGuildIcon.CommandArgsBefore) {
     return !!args.payload.guild;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.InfoGuildIcon.CommandArgsBefore) {
     return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that guild.`);
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { guild } = args.payload;
-    if (guild.icon) {
-      const url = guild.iconUrlFormat(null, {size: 512}) as string;
-
-      const channel = context.channel;
-      if (channel && channel.canEmbedLinks) {
-        const embed = new Embed();
-        embed.setAuthor(guild.name, url, guild.jumpLink);
-        embed.setColor(Colors.BLURPLE);
-        embed.setDescription(`[**Icon Url**](${guild.iconUrl})`);
-        embed.setImage(url);
-
-        return editOrReply(context, {embed});
-      }
-      return editOrReply(context, url);
-    }
-    return editOrReply(context, 'Guild doesn\'t have an icon.');
+  async run(context: Command.Context, args: Formatter.Commands.InfoGuildIcon.CommandArgs) {
+    return Formatter.Commands.InfoGuildIcon.createMessage(context, args);
   }
 }

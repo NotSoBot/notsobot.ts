@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -16,12 +16,13 @@ export default class InviteCommand extends BaseCommand {
       metadata: {
         description: 'Invite to Guild Link',
         category: CommandCategories.UTILS,
+        id: Formatter.Commands.UtilsInvite.COMMAND_ID,
         usage: '',
       },
     });
   }
 
-  run(context: Command.Context) {
-    return editOrReply(context, '<https://notsobot.com/invite>');
+  async run(context: Command.Context) {
+    return Formatter.Commands.UtilsInvite.createMessage(context);
   }
 }
