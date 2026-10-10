@@ -9,7 +9,7 @@ import {
 import { ComponentActionRow, ComponentContext, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
-import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
 import { DefaultParameters, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
@@ -107,13 +107,13 @@ export default class PruneCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
-      return editOrReply(context, '⚠ After message id cannot be after or the same as the Before message id');
+      return editOrReply(context, `${StatusEmojis.WARNING} After message id cannot be after or the same as the Before message id`);
     }
     if (args.until && BigInt(context.message.id) <= BigInt(args.until)) {
-      return editOrReply(context, '⚠ Until message id cannot be after the current message id');
+      return editOrReply(context, `${StatusEmojis.WARNING} Until message id cannot be after the current message id`);
     }
     if (isNaN(args.amount)) {
-      return editOrReply(context, '⚠ Amount has to be a number lmao');
+      return editOrReply(context, `${StatusEmojis.WARNING} Amount has to be a number lmao`);
     }
     return super.onCancelRun(context, args);
   }

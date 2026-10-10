@@ -3,7 +3,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagsServer } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { EmbedColors } from '../../../constants';
+import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   DefaultParameters,
   Paginator,
@@ -76,7 +76,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   if (args.user && args.user.bot) {
-    return editOrReply(context, '⚠ Bots do not have tags.');
+    return editOrReply(context, `${StatusEmojis.WARNING} Bots do not have tags.`);
   }
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);

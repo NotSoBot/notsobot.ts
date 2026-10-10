@@ -3,7 +3,7 @@ import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } f
 import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
-import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
 import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
@@ -92,10 +92,10 @@ export default class NickMassCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.role === null) {
-      return editOrReply(context, '⚠ Unknown Role');
+      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Role`);
     }
     if (args.nobots && args.nousers) {
-      return editOrReply(context, '⚠ if not bots or users, who then?!');
+      return editOrReply(context, `${StatusEmojis.WARNING} if not bots or users, who then?!`);
     }
     return super.onCancelRun(context, args);
   }

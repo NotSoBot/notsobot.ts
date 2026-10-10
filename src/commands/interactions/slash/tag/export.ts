@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { BooleanEmojis } from '../../../../constants';
+import { StatusEmojis } from '../../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -43,7 +43,7 @@ export class TagExportCommand extends BaseInteractionCommandOption {
 
   onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagExport.CommandArgs) {
     if (args.user === null) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user.`);
     }
     return super.onCancelRun(context, args);
   }

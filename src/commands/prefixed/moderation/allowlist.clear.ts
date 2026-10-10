@@ -1,16 +1,11 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { editGuildSettings } from '../../../api';
-import { CommandCategories, EmbedColors, GuildAllowlistTypes } from '../../../constants';
-import { createUserEmbed } from '../../../utils';
+import { CommandCategories, GuildAllowlistTypes } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-
-export interface CommandArgs {
-  only?: GuildAllowlistTypes,
-}
 
 export const COMMAND_NAME = 'allowlist clear';
 
@@ -31,6 +26,7 @@ export default class AllowlistClearCommand extends BaseCommand {
           `${COMMAND_NAME} channels`,
         ],
         category: CommandCategories.MODERATION,
+        id: Formatter.Commands.ModerationAllowlistClear.COMMAND_ID,
         usage: '?<GuildDisableCommandsType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -40,23 +36,7 @@ export default class AllowlistClearCommand extends BaseCommand {
     });
   }
 
-  // add only variable (to only clear that type)
-  async run(context: Command.Context, args: CommandArgs) {
-    const guildId = context.guildId as string;
-
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    if (args.only) {
-      embed.setTitle('WIP');
-      embed.setDescription(args.only);
-    } else {
-      embed.setTitle('Cleared Allowlist');
-      embed.setDescription('Cleared out the entire Allowlist of this guild.');
-      embed.setFooter('Allowlist');
-
-      const settings = await editGuildSettings(context, guildId, {allowlist: []});
-    }
-
-    return context.editOrReply({embed});
+  async run(context: Command.Context, args: Formatter.Commands.ModerationAllowlistClear.CommandArgs) {
+    return Formatter.Commands.ModerationAllowlistClear.createMessage(context, args);
   }
 }

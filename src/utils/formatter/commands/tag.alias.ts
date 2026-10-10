@@ -5,7 +5,7 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 
 import { fetchTag, putTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis } from '../../../constants';
+import { StatusEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 
@@ -39,10 +39,10 @@ export async function createMessage(
   try {
     const oldTag = await fetchTag(context, {name: args.name, serverId});
     if (oldTag.user.id !== context.userId) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Tag already exists in this server and you do not own it!`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Tag already exists in this server and you do not own it!`);
     }
     if (oldTag.content) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Cannot edit a regular tag to be an alias tag.`)
+      return editOrReply(context, `${StatusEmojis.WARNING} Cannot edit a regular tag to be an alias tag.`)
     }
   } catch(error) {
     

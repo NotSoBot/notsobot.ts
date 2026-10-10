@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { BooleanEmojis, CommandCategories, GuildCommandsAllowlistTypes } from '../../../constants';
+import { CommandCategories, GuildCommandsAllowlistTypes, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -85,9 +85,9 @@ export default class CommandsAllowlistAddCommand extends BaseCommand {
       if (args.users && !args.users.length) {
         errors.push('users');
       }
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find the provided ${errors.join(', ')}.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find the provided ${errors.join(', ')}.`);
     }
-    return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Command`);
+    return editOrReply(context, `${StatusEmojis.WARNING} Unknown Command`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationCommandsAllowlistAdd.CommandArgs) {

@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { putTagsDirectoryTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis } from '../../../constants';
+import { StatusEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 
@@ -28,7 +28,7 @@ export async function createMessage(
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   if (args.tag.is_on_directory) {
     // todo: get rid of this and instead add an update message
-    return editOrReply(context, `${BooleanEmojis.WARNING} Tag is already on directory.`)
+    return editOrReply(context, `${StatusEmojis.WARNING} Tag is already on directory.`)
   }
 
   const directory = await putTagsDirectoryTag(context, args.tag.id, {

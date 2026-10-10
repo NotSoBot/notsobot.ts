@@ -2,7 +2,7 @@ import { ClusterClient, Command, Interaction, Structures } from 'detritus-client
 import { Colors } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { DateMomentLogFormat } from '../../../constants';
+import { DateMomentLogFormat, StatusEmojis } from '../../../constants';
 import {
   Paginator,
   chunkArray,
@@ -99,10 +99,10 @@ export async function createMessage(
 export async function emojisSearch(value: string, context: Command.Context) {
   value = value.toLowerCase();
   if (!value) {
-    throw new Error('⚠ Please enter some kind of emoji name');
+    throw new Error(`${StatusEmojis.WARNING} Please enter some kind of emoji name`);
   }
   if (value.length <= 2) {
-    throw new Error('⚠ Emoji names must be longer than 2 characters since we\'re searching through MILLIONS of emojis');
+    throw new Error(`${StatusEmojis.WARNING} Emoji names must be longer than 2 characters since we're searching through MILLIONS of emojis`);
   }
 
   let chunks: Array<Array<Structures.Emoji>>;

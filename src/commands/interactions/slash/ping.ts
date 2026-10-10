@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
-import { editOrReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -10,6 +10,9 @@ export const COMMAND_NAME = 'ping';
 
 export default class PingCommand extends BaseSlashCommand {
   description = 'Ping';
+  metadata = {
+    id: Formatter.Commands.UtilsPing.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   contexts = [
@@ -23,7 +26,6 @@ export default class PingCommand extends BaseSlashCommand {
   ];
 
   async run(context: Interaction.InteractionContext) {
-    const { gateway, rest } = await context.client.ping();
-    return editOrReply(context, `pong! (gateway: ${gateway}ms) (rest: ${rest}ms)`);
+    return Formatter.Commands.UtilsPing.createMessage(context);
   }
 }

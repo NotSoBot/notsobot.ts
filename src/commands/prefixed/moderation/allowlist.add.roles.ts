@@ -1,22 +1,11 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, EmbedColors, GuildAllowlistTypes } from '../../../constants';
-import { Parameters, DefaultParameters } from '../../../utils';
+import { CommandCategories, StatusEmojis } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { createAllowlistEmbed } from './allowlist';
-import { createAllowlist } from './allowlist.add';
-
-
-export interface CommandArgsBefore {
-  roles: Array<Structures.Role> | null,
-}
-
-export interface CommandArgs {
-  roles: Array<Structures.Role>,
-}
 
 export const COMMAND_NAME = 'allowlist add roles';
 
@@ -36,6 +25,7 @@ export default class AllowlistAddRolesCommand extends BaseCommand {
           `${COMMAND_NAME} <@&668258873546637322> <@&178897437082124288>`,
         ],
         category: CommandCategories.MODERATION,
+        id: Formatter.Commands.ModerationAllowlistAddRoles.COMMAND_ID,
         usage: '...<role:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -44,24 +34,18 @@ export default class AllowlistAddRolesCommand extends BaseCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAddRoles.CommandArgsBefore) {
     return !!args.roles && !!args.roles.length;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAddRoles.CommandArgsBefore) {
     if (args.roles) {
-      return context.editOrReply('⚠ Unable to find any roles.');
+      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any roles.`);
     }
-    return context.editOrReply('⚠ Provide some kind of query.');
+    return context.editOrReply(`${StatusEmojis.WARNING} Provide some kind of query.`);
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { roles } = args;
-    const payloads: Array<{
-      item: Structures.Role,
-      type: GuildAllowlistTypes.ROLE,
-    }> = roles.map((role) => ({item: role, type: GuildAllowlistTypes.ROLE}));
-    const { settings, title } = await createAllowlist(context, payloads);
-    return createAllowlistEmbed(context, settings.allowlist, {title});
+  async run(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAddRoles.CommandArgs) {
+    return Formatter.Commands.ModerationAllowlistAddRoles.createMessage(context, args);
   }
 }

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { BooleanEmojis, CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -35,7 +35,7 @@ export default class GuildIconCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.InfoGuildIcon.CommandArgsBefore) {
-    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that guild.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that guild.`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoGuildIcon.CommandArgs) {

@@ -12,7 +12,6 @@ import UserStore from '../../stores/users';
 
 import { createUserCommand } from '../../api';
 import {
-  BooleanEmojis,
   CommandCategories,
   DiscordReactionEmojis,
   DiscordSkuIds,
@@ -20,6 +19,7 @@ import {
   GuildFeatures,
   PermissionsText,
   RatelimitKeys,
+  StatusEmojis,
   UserFlags,
   UserPremiumTypes,
 } from '../../constants';
@@ -73,7 +73,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         if (metadata.nsfw) {
           const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
           if (!isNSFWAllowed) {
-            contextMetadata.reason = `${BooleanEmojis.WARNING} Not a NSFW channel.`;
+            contextMetadata.reason = `${StatusEmojis.WARNING} Not a NSFW channel.`;
             return resolve(isNSFWAllowed);
           }
         }
@@ -185,7 +185,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     } else {
       command = 'This command';
     }
-    return editOrReply(context, `${BooleanEmojis.WARNING} ${command} requires the bot to have ${permissions.join(', ')} to work.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${command} requires the bot to have ${permissions.join(', ')} to work.`);
   }
 
   onPermissionsFail(context: Command.Context, failed: Array<bigint>) {
@@ -205,7 +205,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     } else {
       command = 'This command';
     }
-    return editOrReply(context, `${BooleanEmojis.WARNING} ${command} requires you to have ${permissions.join(', ')}.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${command} requires you to have ${permissions.join(', ')}.`);
   }
 
   async onRatelimit(
@@ -273,7 +273,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
     const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.ERROR);
-    embed.setTitle(`${BooleanEmojis.WARNING} Command Error`);
+    embed.setTitle(`${StatusEmojis.WARNING} Command Error`);
 
     const description: Array<string> = [];
     if (error.response) {
@@ -401,7 +401,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
     const embed = createUserEmbed(context.user);
     embed.setColor(EmbedColors.ERROR);
-    embed.setTitle(`${BooleanEmojis.WARNING} Command Argument Error`);
+    embed.setTitle(`${StatusEmojis.WARNING} Command Argument Error`);
 
     const store: {[key: string]: string} = {};
 
@@ -448,9 +448,9 @@ export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any media in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any media in the last 50 messages.`);
     } else if (args.url === null) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user or it was an invalid url.`);
     }
     return super.onCancelRun(context, args);
   }
@@ -497,12 +497,12 @@ export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
 
   onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
     if (!args.urls.length) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any media in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any media in the last 50 messages.`);
     } else if (args.urls.length < this.minAmount) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find ${this.minAmount} media urls in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find ${this.minAmount} media urls in the last 50 messages.`);
     } else if (this.maxAmount < args.urls.length) {
       // never should happen
-      return editOrReply(context, `${BooleanEmojis.WARNING} Found too many media urls in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Found too many media urls in the last 50 messages.`);
     }
     return super.onCancelRun(context, args);
   }
@@ -529,9 +529,9 @@ export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> ex
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any audio or videos in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any audio or videos in the last 50 messages.`);
     } else if (args.url === null) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user or it was an invalid url.`);
     }
     return super.onCancelRun(context, args);
   }
@@ -556,12 +556,12 @@ export class BaseAudioOrVideosCommand<ParsedArgsFinished = Command.ParsedArgs> e
 
   onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
     if (!args.urls.length) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any audio or videos in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any audio or videos in the last 50 messages.`);
     } else if (args.urls.length < this.minAmount) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find ${this.minAmount} audio or video urls in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find ${this.minAmount} audio or video urls in the last 50 messages.`);
     } else if (this.maxAmount < args.urls.length) {
       // never should happen
-      return editOrReply(context, `${BooleanEmojis.WARNING} Found too many audio or video urls in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Found too many audio or video urls in the last 50 messages.`);
     }
     return super.onCancelRun(context, args);
   }
@@ -578,9 +578,9 @@ export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any images in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any images in the last 50 messages.`);
     } else if (args.url === null) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user or it was an invalid url.`);
     }
     return super.onCancelRun(context, args);
   }
@@ -597,9 +597,9 @@ export class BaseImageOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> ex
 
   onCancelRun(context: Command.Context, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any images or videos in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any images or videos in the last 50 messages.`);
     } else if (args.url === null) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user or it was an invalid url.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user or it was an invalid url.`);
     }
     return super.onCancelRun(context, args);
   }
@@ -624,12 +624,12 @@ export class BaseImageOrVideosCommand<ParsedArgsFinished = Command.ParsedArgs> e
 
   onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
     if (!args.urls.length) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any image or videos in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any image or videos in the last 50 messages.`);
     } else if (args.urls.length < this.minAmount) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find ${this.minAmount} image or video urls in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find ${this.minAmount} image or video urls in the last 50 messages.`);
     } else if (this.maxAmount < args.urls.length) {
       // never should happen
-      return editOrReply(context, `${BooleanEmojis.WARNING} Found too many image or video urls in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Found too many image or video urls in the last 50 messages.`);
     }
     return super.onCancelRun(context, args);
   }

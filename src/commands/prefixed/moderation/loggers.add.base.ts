@@ -2,6 +2,7 @@ import { Command, CommandClient, Structures } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
+import { StatusEmojis } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Parameters } from '../../../utils';
 
@@ -66,26 +67,26 @@ export class LoggersAddBaseCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.channel !== undefined && args.in !== undefined) {
-      return context.editOrReply('⚠ Cannot specify both `channel` and `in`.');
+      return context.editOrReply(`${StatusEmojis.WARNING} Cannot specify both \`channel\` and \`in\`.`);
     }
     if (args.channel === null) {
-      return context.editOrReply('⚠ Unable to find any valid Text Channels.');
+      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any valid Text Channels.`);
     } else if (args.in === null) {
-      return context.editOrReply('⚠ Unable to find any valid Category Channels.')
+      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any valid Category Channels.`)
     }
 
     if (args.channel === undefined) {
       // we will be making a channel now
       const channel = args.in || context.channel;
       if (!channel || !channel.canEdit) {
-        return context.editOrReply(`⚠ Need ${Markup.codestring('Manage Channels')} Permission to create a log channel`);
+        return context.editOrReply(`${StatusEmojis.WARNING} Need ${Markup.codestring('Manage Channels')} Permission to create a log channel`);
       }
     }
 
     const settings = await GuildSettingsStore.getOrFetch(context, context.guildId as string);
     if (settings && MAX_LOGGERS <= settings.loggers.length) {
-      return context.editOrReply(`⚠ Reached the max amount of loggers. (${MAX_LOGGERS})`)
+      return context.editOrReply(`${StatusEmojis.WARNING} Reached the max amount of loggers. (${MAX_LOGGERS})`)
     }
-    return context.editOrReply('⚠ Unknown lol');
+    return context.editOrReply(`${StatusEmojis.WARNING} Unknown lol`);
   }
 }

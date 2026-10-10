@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis, CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -42,7 +42,7 @@ export default class TagInfoCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.tag === false) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
     }
     return super.onCancelRun(context, args);
   }

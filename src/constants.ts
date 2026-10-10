@@ -21,7 +21,7 @@ export const ZERO_WIDTH_SPACE = '\u200b';
 export const ONE_DAY = 24 * 60 * 60 * 1000;
 
 
-export enum BooleanEmojis {
+export enum StatusEmojis {
   NO = '❌',
   WARNING = '⚠️',
   YES = '✅',

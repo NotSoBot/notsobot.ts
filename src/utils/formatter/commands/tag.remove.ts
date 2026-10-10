@@ -4,7 +4,7 @@ import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib
 
 import { deleteTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis, DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import {
   createTimestampMomentFromGuild,
   createUserEmbed,
@@ -48,11 +48,11 @@ export async function createMessage(
 
     if (args.force) {
       if (!hasPermissionsToForceRemove) {
-        return editOrReply(context, `${BooleanEmojis.WARNING} Not enough permissions to force remove this tag!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} Not enough permissions to force remove this tag!`);
       }
     } else {
       if (!hasPermissionsToForceRemove) {
-        return editOrReply(context, `${BooleanEmojis.WARNING} You\'re not the owner of this tag!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} You\'re not the owner of this tag!`);
       }
 
       const embed = createUserEmbed(context.user);

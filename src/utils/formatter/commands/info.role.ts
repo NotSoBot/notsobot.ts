@@ -2,9 +2,9 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Embed, Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 
 import {
-  BooleanEmojis,
   DateOptions,
   PermissionsText,
+  StatusEmojis,
   PERMISSIONS_ADMIN,
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
@@ -100,7 +100,7 @@ export async function createMessage(
       for (const permission of PERMISSIONS_ADMIN) {
         const key = String(permission);
         const can = permissions[key];
-        rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+        rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
       embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -112,7 +112,7 @@ export async function createMessage(
       for (const permission of PERMISSIONS_TEXT) {
         const key = String(permission);
         const can = permissions[key];
-        rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+        rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
       embed.addField('Text', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -122,7 +122,7 @@ export async function createMessage(
       for (const permission of PERMISSIONS_VOICE) {
         const key = String(permission);
         const can = permissions[key];
-        rows.push([`${PermissionsText[key]}:`, `${(can) ? BooleanEmojis.YES : BooleanEmojis.NO}`]);
+        rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
       embed.addField('Voice', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -43,11 +43,11 @@ export default class SeenOnCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerSeenOn.CommandArgsBefore) {
     if (!args.payload.user) {
-      return editOrReply(context, '⚠ Unable to find that user.');
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user.`);
     } else if (args.payload.user.bot) {
-      return editOrReply(context, '⚠ Bots cannot be used with this command.');
+      return editOrReply(context, `${StatusEmojis.WARNING} Bots cannot be used with this command.`);
     }
-    return editOrReply(context, '⚠ User shares no guilds.');
+    return editOrReply(context, `${StatusEmojis.WARNING} User shares no guilds.`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.OwnerSeenOn.CommandArgs) {

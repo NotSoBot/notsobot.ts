@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { BooleanEmojis, CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
@@ -43,7 +43,7 @@ export default class StretchCommand extends BaseImageOrVideoCommand {
       return super.onCancelRun(context, args);
     }
     if (args.width === args.height) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Width and Height amount cannot be the same.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Width and Height amount cannot be the same.`);
     }
     return super.onCancelRun(context, args);
   }

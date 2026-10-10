@@ -4,8 +4,8 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import {
-  BooleanEmojis,
   DateMomentLogFormat,
+  StatusEmojis,
   VerificationLevelTexts,
 } from '../../../constants';
 import { createTimestampMomentFromGuild, editOrReply, toTitleCase } from '../../../utils';
@@ -123,9 +123,9 @@ export async function createMessage(
   } catch(error) {
     let message: string;
     if (error.response && error.response.statusCode === 404) {
-      message = `${BooleanEmojis.WARNING} Unknown Invite`;
+      message = `${StatusEmojis.WARNING} Unknown Invite`;
     } else {
-      message = `${BooleanEmojis.WARNING} ${error}`;
+      message = `${StatusEmojis.WARNING} ${error}`;
     }
     return editOrReply(context, message);
   }

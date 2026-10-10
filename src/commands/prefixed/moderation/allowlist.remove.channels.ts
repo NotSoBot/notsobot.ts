@@ -1,22 +1,11 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, GuildAllowlistTypes } from '../../../constants';
-import { Parameters } from '../../../utils';
+import { CommandCategories, StatusEmojis } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { createAllowlistEmbed } from './allowlist';
-import { removeAllowlist } from './allowlist.remove';
-
-
-export interface CommandArgsBefore {
-  channels: Array<Structures.Channel> | null,
-}
-
-export interface CommandArgs {
-  channels: Array<Structures.Channel>,
-}
 
 export const COMMAND_NAME = 'allowlist remove channels';
 
@@ -39,6 +28,7 @@ export default class AllowlistRemoveChannelsCommand extends BaseCommand {
           `${COMMAND_NAME} <#585639594574217232> <#560595518129045504>`,
         ],
         category: CommandCategories.MODERATION,
+        id: Formatter.Commands.ModerationAllowlistRemoveChannels.COMMAND_ID,
         usage: '...<channel:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -53,24 +43,18 @@ export default class AllowlistRemoveChannelsCommand extends BaseCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveChannels.CommandArgsBefore) {
     return !!args.channels && !!args.channels.length;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveChannels.CommandArgsBefore) {
     if (args.channels) {
-      return context.editOrReply('⚠ Unable to find any valid Text Channels.');
+      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any valid Text Channels.`);
     }
-    return context.editOrReply('⚠ Provide some kind of query.');
+    return context.editOrReply(`${StatusEmojis.WARNING} Provide some kind of query.`);
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { channels } = args;
-    const payloads: Array<{
-      item: Structures.Channel,
-      type: GuildAllowlistTypes.CHANNEL,
-    }> = channels.map((channel) => ({item: channel, type: GuildAllowlistTypes.CHANNEL}));
-    const { settings, title } = await removeAllowlist(context, payloads);
-    return createAllowlistEmbed(context, settings.allowlist, {title});
+  async run(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveChannels.CommandArgs) {
+    return Formatter.Commands.ModerationAllowlistRemoveChannels.createMessage(context, args);
   }
 }

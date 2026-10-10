@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import GuildSettingsStore from '../../../stores/guildsettings';
 
 import { fetchTag, putTag } from '../../../api';
-import { BooleanEmojis } from '../../../constants';
+import { StatusEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 
@@ -27,7 +27,7 @@ export async function createMessage(
     const tag = await fetchTag(context, {name: args.tag, serverId});
     if (!tag.global) {
       if (tag.user.id !== context.userId) {
-        return editOrReply(context, `${BooleanEmojis.WARNING} Tag already exists in this server!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} Tag already exists in this server!`);
       }
     }
     isEdit = true;

@@ -6,6 +6,7 @@ import { googleContentVisionOCR } from '../../../api';
 import {
   EmbedBrands,
   EmbedColors,
+  StatusEmojis,
 } from '../../../constants';
 import { createUserEmbed, editOrReply, languageCodeToText } from '../../../utils';
 
@@ -52,7 +53,7 @@ export async function createMessage(
   if (args.noembed) {
     if (!annotation) {
       return editOrReply(context, {
-        content: '⚠ No text detected',
+        content: `${StatusEmojis.WARNING} No text detected`,
         flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
       });
     }

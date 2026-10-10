@@ -19,7 +19,6 @@ import UserAvatarDecorationStore, { UserAvatarDecorationStored } from './userava
 import { Store } from './store';
 
 import {
-  BooleanEmojis,
   DateMomentLogFormat,
   DiscordUserFlagsText,
   EmbedColors,
@@ -27,6 +26,7 @@ import {
   GuildLoggerTypes,
   PermissionsText,
   RedisChannels,
+  StatusEmojis,
 } from '../constants';
 import { RedisSpewer } from '../redis';
 import {
@@ -1621,9 +1621,9 @@ export function createLogPayload(
         for (let key in newPermissions) {
           if (newPermissions[key] !== oldPermissions[key]) {
             if (newPermissions[key]) {
-              added.push(`${PermissionsText[key]}: ${BooleanEmojis.YES}`);
+              added.push(`${PermissionsText[key]}: ${StatusEmojis.YES}`);
             } else {
-              removed.push(`${PermissionsText[key]}: ${BooleanEmojis.NO}`);
+              removed.push(`${PermissionsText[key]}: ${StatusEmojis.NO}`);
             }
           }
         }

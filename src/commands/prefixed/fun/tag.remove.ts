@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { BooleanEmojis, CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -39,7 +39,7 @@ export default class TagRemoveCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.TagRemove.CommandArgsBefore) {
     if (args.tag === false) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
     }
     return super.onCancelRun(context, args);
   }

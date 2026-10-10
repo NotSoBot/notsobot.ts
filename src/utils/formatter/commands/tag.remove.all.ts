@@ -5,7 +5,7 @@ import { Timers } from 'detritus-utils';
 
 import { deleteTagsServer } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis, EmbedColors } from '../../../constants';
+import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   DefaultParameters,
   Paginator,
@@ -38,7 +38,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   if (args.user && args.user.bot) {
-    return editOrReply(context, `${BooleanEmojis.WARNING} Bots do not have tags.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} Bots do not have tags.`);
   }
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
@@ -57,7 +57,7 @@ export async function createMessage(
 
     if (!hasPermissionsToForceRemove) {
       if (args.user) {
-        return editOrReply(context, `${BooleanEmojis.WARNING} Not enough permissions to force remove other people's tags!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} Not enough permissions to force remove other people's tags!`);
       }
       args.user = context.user;
     }

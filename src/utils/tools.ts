@@ -43,7 +43,6 @@ import { RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
 import {
-  BooleanEmojis,
   CodeLanguages,
   CodeLanguagesToName,
   DateMomentLogFormat,
@@ -54,6 +53,7 @@ import {
   Mimetypes,
   ReminderMessages,
   ReuploadStatuses,
+  StatusEmojis,
   TagBlobStorageTypes,
   TagVariableStorageTypes,
   Timezones,

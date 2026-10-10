@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, GoogleLocales } from '../../../constants';
+import { CommandCategories, GoogleLocales, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -52,7 +52,7 @@ export default class TranslateCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, '⚠ Provide some kind of text.');
+    return editOrReply(context, `${StatusEmojis.WARNING} Provide some kind of text.`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

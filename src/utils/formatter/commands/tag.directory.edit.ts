@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { editTag, editTagsDirectoryTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis } from '../../../constants';
+import { StatusEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 

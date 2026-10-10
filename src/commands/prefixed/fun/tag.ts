@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis, CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -45,7 +45,7 @@ export default class TagCommand extends BaseCommand {
 
   onCancel(context: Command.Context) {
     return editOrReply(context, `
-### ⚠️ The tag system has been disabled at this time at Discord's request.
+### ${StatusEmojis.WARNING} The tag system has been disabled at this time at Discord's request.
 Discord gave us two weeks to remove the tag system due to content moderation concerns. We've since added new safety filters and reached out to Discord about keeping the feature. We're sorry for the disruption, especially to everyone who built games and collections with tags. For updates or questions, join our support server: <https://notsobot.com/support/invite>
 `
     );
@@ -57,7 +57,7 @@ Discord gave us two weeks to remove the tag system due to content moderation con
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     if (args.tag === false) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
     }
     return super.onCancelRun(context, args);
   }

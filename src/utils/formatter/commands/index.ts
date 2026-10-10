@@ -213,9 +213,26 @@ import * as MediaIVManipulationWiggle from './media.iv.manipulation.wiggle';
 import * as MediaIVManipulationZoom from './media.iv.manipulation.zoom';
 import * as MediaIVManipulationZoomBlur from './media.iv.manipulation.zoom.blur';
 
+import * as ModerationAllowlist from './moderation.allowlist';
+import * as ModerationAllowlistAdd from './moderation.allowlist.add';
+import * as ModerationAllowlistAddChannels from './moderation.allowlist.add.channels';
+import * as ModerationAllowlistAddRoles from './moderation.allowlist.add.roles';
 import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
+import * as ModerationAllowlistClear from './moderation.allowlist.clear';
+import * as ModerationAllowlistRemove from './moderation.allowlist.remove';
+import * as ModerationAllowlistRemoveChannels from './moderation.allowlist.remove.channels';
+import * as ModerationAllowlistRemoveRoles from './moderation.allowlist.remove.roles';
 import * as ModerationAllowlistRemoveUsers from './moderation.allowlist.remove.users';
+import * as ModerationBan from './moderation.ban';
+import * as ModerationBlocklist from './moderation.blocklist';
+import * as ModerationBlocklistAdd from './moderation.blocklist.add';
+import * as ModerationBlocklistAddChannels from './moderation.blocklist.add.channels';
+import * as ModerationBlocklistAddRoles from './moderation.blocklist.add.roles';
 import * as ModerationBlocklistAddUsers from './moderation.blocklist.add.users';
+import * as ModerationBlocklistClear from './moderation.blocklist.clear';
+import * as ModerationBlocklistRemove from './moderation.blocklist.remove';
+import * as ModerationBlocklistRemoveChannels from './moderation.blocklist.remove.channels';
+import * as ModerationBlocklistRemoveRoles from './moderation.blocklist.remove.roles';
 import * as ModerationBlocklistRemoveUsers from './moderation.blocklist.remove.users';
 import * as ModerationCommandsAllowlist from './moderation.commands.allowlist';
 import * as ModerationCommandsAllowlistAdd from './moderation.commands.allowlist.add';
@@ -226,6 +243,8 @@ import * as ModerationCommandsBlocklistAdd from './moderation.commands.blocklist
 import * as ModerationCommandsBlocklistClear from './moderation.commands.blocklist.clear';
 import * as ModerationCommandsBlocklistRemove from './moderation.commands.blocklist.remove';
 import * as ModerationCommandsUsage from './moderation.commands.usage';
+import * as ModerationKick from './moderation.kick';
+import * as ModerationUnban from './moderation.unban';
 
 import * as OwnerBlockGuild from './owner.block.guild';
 import * as OwnerBlockUser from './owner.block.user';
@@ -568,9 +587,26 @@ export {
   MediaIVManipulationZoom,
   MediaIVManipulationZoomBlur,
 
+  ModerationAllowlist,
+  ModerationAllowlistAdd,
+  ModerationAllowlistAddChannels,
+  ModerationAllowlistAddRoles,
   ModerationAllowlistAddUsers,
+  ModerationAllowlistClear,
+  ModerationAllowlistRemove,
+  ModerationAllowlistRemoveChannels,
+  ModerationAllowlistRemoveRoles,
   ModerationAllowlistRemoveUsers,
+  ModerationBan,
+  ModerationBlocklist,
+  ModerationBlocklistAdd,
+  ModerationBlocklistAddChannels,
+  ModerationBlocklistAddRoles,
   ModerationBlocklistAddUsers,
+  ModerationBlocklistClear,
+  ModerationBlocklistRemove,
+  ModerationBlocklistRemoveChannels,
+  ModerationBlocklistRemoveRoles,
   ModerationBlocklistRemoveUsers,
   ModerationCommandsAllowlist,
   ModerationCommandsAllowlistAdd,
@@ -581,6 +617,8 @@ export {
   ModerationCommandsBlocklistClear,
   ModerationCommandsBlocklistRemove,
   ModerationCommandsUsage,
+  ModerationKick,
+  ModerationUnban,
 
   OwnerBlockGuild,
   OwnerBlockUser,

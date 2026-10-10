@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GuildFeatures } from '../../../constants';
+import { CommandCategories, GuildFeatures, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -44,7 +44,7 @@ export default class OwnerGuildFeaturesAddCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerGuildFeaturesAdd.CommandArgsBefore) {
     if (!args.guild) {
-      return editOrReply(context, '⚠ Couldn\'t find that guild.');
+      return editOrReply(context, `${StatusEmojis.WARNING} Couldn't find that guild.`);
     }
     return super.onCancelRun(context, args);
   }

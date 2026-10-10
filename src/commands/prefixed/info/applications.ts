@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { BooleanEmojis, CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -36,7 +36,7 @@ export default class ApplicationsCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.InfoApplications.CommandArgsBefore) {
-    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that game.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that game.`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoApplications.CommandArgs) {

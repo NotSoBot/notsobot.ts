@@ -9,12 +9,12 @@ const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
 
 
 export interface CommandArgs {
-  async: boolean,
+  async?: boolean,
   code: {language?: string, text: string},
-  jsonspacing: number,
-  noembed: boolean,
-  noreply: boolean,
-  upload: boolean,
+  jsonspacing?: number,
+  noembed?: boolean,
+  noreply?: boolean,
+  upload?: boolean,
 }
 
 

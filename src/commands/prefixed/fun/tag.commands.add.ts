@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { BooleanEmojis, CommandCategories, GuildFeatures, UserFlags } from '../../../constants';
+import { CommandCategories, GuildFeatures, StatusEmojis, UserFlags } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserStore from '../../../stores/users';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
@@ -81,7 +81,7 @@ export default class TagCommandsAddCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.TagCommandsAdd.CommandArgsBefore) {
     if (args.tag === false) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
     }
     return super.onCancelRun(context, args);
   }

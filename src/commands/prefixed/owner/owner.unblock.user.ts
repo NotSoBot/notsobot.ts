@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -37,7 +37,7 @@ export default class OwnerBlockUserCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerUnblockUser.CommandArgsBefore) {
     if (!args.user) {
-      return editOrReply(context, '⚠ Unable to find that user.');
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user.`);
     }
     return super.onCancelRun(context, args);
   }

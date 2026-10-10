@@ -1,7 +1,13 @@
 import { Interaction } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
+import {
+  ApplicationIntegrationTypes,
+  InteractionContextTypes,
+  MessageFlags,
+  Permissions,
+} from 'detritus-client/lib/constants';
 
-import { Formatter } from '../../../../utils';
+import { StatusEmojis } from '../../../../constants';
+import { Formatter, editOrReply } from '../../../../utils';
 
 import { BaseContextMenuUserCommand, ContextMenuUserArgs } from '../../basecommand';
 
@@ -15,8 +21,29 @@ export default class BlocklistAddCommand extends BaseContextMenuUserCommand {
   };
   name = COMMAND_NAME;
   permissions = [Permissions.ADMINISTRATOR];
+  permissionsClient = [Permissions.EMBED_LINKS];
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+  ];
+  integrationTypes = [
+    ApplicationIntegrationTypes.GUILD_INSTALL,
+  ];
 
   async run(context: Interaction.InteractionContext, args: ContextMenuUserArgs) {
-    return context.editOrRespond({content: 'wip', flags: 64});
+    const user = args.member || args.user;
+    if (user.bot) {
+      return editOrReply(context, {
+        content: `${StatusEmojis.WARNING} Bots cannot be added to the blocklist.`,
+        flags: MessageFlags.EPHEMERAL,
+      });
+    }
+    if (user.id === context.userId) {
+      return editOrReply(context, {
+        content: `${StatusEmojis.WARNING} Don't block yourself dummy`,
+        flags: MessageFlags.EPHEMERAL,
+      });
+    }
+    return Formatter.Commands.ModerationBlocklistAddUsers.createMessage(context, {users: [user]});
   }
 }

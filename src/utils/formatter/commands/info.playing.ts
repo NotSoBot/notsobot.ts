@@ -2,11 +2,11 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import {
-  BooleanEmojis,
   DateMomentLogFormat,
   DiscordEmojis,
   PresenceStatusColors,
   PresenceStatusTexts,
+  StatusEmojis,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../../constants';
 import {
@@ -283,5 +283,5 @@ export async function createMessage(
     });
     return await paginator.start();
   }
-  return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any members playing that game.`);
+  return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any members playing that game.`);
 }

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { BooleanEmojis, CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -41,9 +41,9 @@ export default class RoleCommand extends BaseCommand {
 
   onCancelRun(context: Command.Context, args: Formatter.Commands.InfoRole.CommandArgsBefore) {
     if (!args.channel) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that channel`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that channel`);
     } else if (!args.role) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that role`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that role`);
     } else {
       return super.onCancelRun(context, args);
     }

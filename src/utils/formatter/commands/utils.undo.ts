@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 import { Snowflake } from 'detritus-utils';
 
-import { BooleanEmojis } from '../../../constants';
+import { StatusEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
 
 
@@ -30,7 +30,7 @@ export async function createMessage(
   const { channelId } = context;
   if (!channelId) {
     return editOrReply(context, {
-      content: `${BooleanEmojis.WARNING} Unable to undo commands here.`,
+      content: `${StatusEmojis.WARNING} Unable to undo commands here.`,
       flags: MessageFlags.EPHEMERAL,
     });
   }

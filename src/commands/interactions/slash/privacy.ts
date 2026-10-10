@@ -1,11 +1,7 @@
 import { Interaction } from 'detritus-client';
-import {
-  ApplicationIntegrationTypes,
-  InteractionContextTypes,
-  MessageFlags,
-} from 'detritus-client/lib/constants';
+import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
-import { editOrReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -14,6 +10,9 @@ export const COMMAND_NAME = 'privacy';
 
 export default class PrivacyCommand extends BaseSlashCommand {
   description = 'Privacy Policy';
+  metadata = {
+    id: Formatter.Commands.UtilsPrivacy.COMMAND_ID,
+  };
   name = COMMAND_NAME;
 
   contexts = [
@@ -26,10 +25,7 @@ export default class PrivacyCommand extends BaseSlashCommand {
     ApplicationIntegrationTypes.USER_INSTALL,
   ];
 
-  run(context: Interaction.InteractionContext) {
-    return editOrReply(context, {
-      content: '<https://notsobot.com/legal/privacy>',
-      flags: MessageFlags.EPHEMERAL,
-    });
+  async run(context: Interaction.InteractionContext) {
+    return Formatter.Commands.UtilsPrivacy.createMessage(context);
   }
 }

@@ -6,7 +6,7 @@ import { Timers } from 'detritus-utils';
 
 import { deleteReminder, fetchReminderPositional } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis, EmbedColors } from '../../../constants';
+import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   Parameters,
   createTimestampMomentFromGuild,
@@ -33,7 +33,7 @@ export async function createMessage(
     reminder = await fetchReminderPositional(context, context.userId, args.position);
   } catch(error) {
     if (error.response && error.response.status === 404) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Reminder`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Reminder`);
     }
     throw error;
   }

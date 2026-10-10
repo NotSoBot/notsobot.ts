@@ -2,11 +2,11 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
-  BooleanEmojis,
   DateMomentLogFormat,
   DiscordEmojis,
   PresenceStatusColors,
   PresenceStatusTexts,
+  StatusEmojis,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../../constants';
 import {
@@ -72,7 +72,7 @@ export async function createMessage(
 
   const pageLimit = membersOrUsers.length;
   if (pageLimit === 0) {
-    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any users.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any users.`);
   }
 
   const paginator = new Paginator(context, {

@@ -1,22 +1,11 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, EmbedColors, GuildAllowlistTypes } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { createAllowlistEmbed } from './allowlist';
-import { removeAllowlist } from './allowlist.remove';
-
-
-export interface CommandArgsBefore {
-  users: Array<Structures.Member | Structures.User> | null,
-}
-
-export interface CommandArgs {
-  users: Array<Structures.Member | Structures.User>,
-}
 
 export const COMMAND_NAME = 'allowlist remove users';
 
@@ -48,24 +37,18 @@ export default class AllowlistRemoveUsersCommand extends BaseCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveUsers.CommandArgsBefore) {
     return !!args.users && !!args.users.length;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveUsers.CommandArgsBefore) {
     if (args.users) {
-      return context.editOrReply('⚠ Unable to find any users.');
+      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any users.`);
     }
-    return context.editOrReply('⚠ Provide some kind of query.');
+    return context.editOrReply(`${StatusEmojis.WARNING} Provide some kind of query.`);
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { users } = args;
-    const payloads: Array<{
-      item: Structures.User,
-      type: GuildAllowlistTypes.USER,
-    }> = users.map((user) => ({item: user, type: GuildAllowlistTypes.USER}));
-    const { settings, title } = await removeAllowlist(context, payloads);
-    return createAllowlistEmbed(context, settings.allowlist, {title});
+  async run(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveUsers.CommandArgs) {
+    return Formatter.Commands.ModerationAllowlistRemoveUsers.createMessage(context, args);
   }
 }

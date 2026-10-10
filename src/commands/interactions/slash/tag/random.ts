@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
+import { StatusEmojis } from '../../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommand, BaseInteractionCommandOption } from '../../basecommand';
@@ -50,7 +51,7 @@ export class TagRandomCommand extends BaseInteractionCommandOption {
 
   onCancel(context: Interaction.InteractionContext) {
     return editOrReply(context, `
-### ⚠️ The tag system has been disabled at this time at Discord's request.
+### ${StatusEmojis.WARNING} The tag system has been disabled at this time at Discord's request.
 Discord gave us two weeks to remove the tag system due to content moderation concerns. We've since added new safety filters and reached out to Discord about keeping the feature. We're sorry for the disruption, especially to everyone who built games and collections with tags. For updates or questions, join our support server: <https://notsobot.com/support/invite>
 `
       );

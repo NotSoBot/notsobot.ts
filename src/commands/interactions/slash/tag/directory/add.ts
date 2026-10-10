@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { BooleanEmojis } from '../../../../../constants';
+import { StatusEmojis } from '../../../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -36,7 +36,7 @@ export class TagDirectoryAddCommand extends BaseInteractionCommandOption {
   onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagDirectoryAdd.CommandArgsBefore) {
     if (args.tag !== null) {
       if (args.tag === false) {
-        return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
+        return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
       }
     }
     return super.onCancelRun(context, args);

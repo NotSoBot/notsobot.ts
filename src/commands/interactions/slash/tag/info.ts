@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../../api/types';
-import { BooleanEmojis } from '../../../../constants';
+import { StatusEmojis } from '../../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -39,7 +39,7 @@ export class TagInfoCommand extends BaseInteractionCommandOption {
 
   onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
     if (args.tag === false) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
     }
     return super.onCancelRun(context, args);
   }

@@ -6,7 +6,7 @@ import { regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
 import { CDN, CUSTOM } from '../../../api/endpoints';
-import { BooleanEmojis, EmojiTypes, EmojiTypesToText, Mimetypes } from '../../../constants';
+import { EmojiTypes, EmojiTypesToText, Mimetypes, StatusEmojis } from '../../../constants';
 import { editOrReply, jobReply, jobWaitForResult, toCodePoint, toCodePointForTwemoji } from '../../../utils';
 
 import * as MediaIVManipulationResize from './media.iv.manipulation.resize';
@@ -152,7 +152,7 @@ export async function createMessage(
     const files = await Promise.all(promises);
     return editOrReply(context, {files});
   }
-  return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any images matching that.`);
+  return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any images matching that.`);
 }
 
 

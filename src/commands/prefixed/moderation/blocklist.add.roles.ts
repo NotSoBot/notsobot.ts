@@ -1,22 +1,11 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
+import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, EmbedColors, GuildBlocklistTypes } from '../../../constants';
-import { Parameters } from '../../../utils';
+import { CommandCategories, StatusEmojis } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { createBlocklistEmbed } from './blocklist';
-import { createBlocklist } from './blocklist.add';
-
-
-export interface CommandArgsBefore {
-  roles: Array<Structures.Role> | null,
-}
-
-export interface CommandArgs {
-  roles: Array<Structures.Role>,
-}
 
 export const COMMAND_NAME = 'blocklist add roles';
 
@@ -36,6 +25,7 @@ export default class BlocklistAddRolesCommand extends BaseCommand {
           `${COMMAND_NAME} <@&668258873546637322> <@&178897437082124288>`,
         ],
         category: CommandCategories.MODERATION,
+        id: Formatter.Commands.ModerationBlocklistAddRoles.COMMAND_ID,
         usage: '...<role:id|mention|name>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -44,24 +34,18 @@ export default class BlocklistAddRolesCommand extends BaseCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.ModerationBlocklistAddRoles.CommandArgsBefore) {
     return !!args.roles && !!args.roles.length;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationBlocklistAddRoles.CommandArgsBefore) {
     if (args.roles) {
-      return context.editOrReply('⚠ Unable to find any roles.');
+      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any roles.`);
     }
-    return context.editOrReply('⚠ Provide some kind of query.');
+    return context.editOrReply(`${StatusEmojis.WARNING} Provide some kind of query.`);
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const { roles } = args;
-    const payloads: Array<{
-      item: Structures.Role,
-      type: GuildBlocklistTypes.ROLE,
-    }> = roles.map((role) => ({item: role, type: GuildBlocklistTypes.ROLE}));
-    const { settings, title } = await createBlocklist(context, payloads);
-    return createBlocklistEmbed(context, settings.blocklist, {title});
+  async run(context: Command.Context, args: Formatter.Commands.ModerationBlocklistAddRoles.CommandArgs) {
+    return Formatter.Commands.ModerationBlocklistAddRoles.createMessage(context, args);
   }
 }

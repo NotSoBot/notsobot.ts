@@ -1,16 +1,11 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { editGuildSettings } from '../../../api';
-import { CommandCategories, EmbedColors, GuildBlocklistTypes } from '../../../constants';
-import { createUserEmbed } from '../../../utils';
+import { CommandCategories, GuildBlocklistTypes } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-
-export interface CommandArgs {
-  only: GuildBlocklistTypes | null,
-}
 
 export const COMMAND_NAME = 'blocklist clear';
 
@@ -31,6 +26,7 @@ export default class BlocklistClearCommand extends BaseCommand {
           `${COMMAND_NAME} channels`,
         ],
         category: CommandCategories.MODERATION,
+        id: Formatter.Commands.ModerationBlocklistClear.COMMAND_ID,
         usage: '?<GuildDisableCommandsType>',
       },
       permissionsClient: [Permissions.EMBED_LINKS],
@@ -40,22 +36,7 @@ export default class BlocklistClearCommand extends BaseCommand {
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const guildId = context.guildId as string;
-
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    if (args.only) {
-      embed.setTitle('WIP');
-      embed.setDescription(args.only);
-    } else {
-      embed.setTitle('Cleared Blocklist');
-      embed.setDescription('Cleared out the entire Blocklist of this guild.');
-      embed.setFooter('Blocklist');
-
-      const settings = await editGuildSettings(context, guildId, {blocklist: []});
-    }
-
-    return context.editOrReply({embed});
+  async run(context: Command.Context, args: Formatter.Commands.ModerationBlocklistClear.CommandArgs) {
+    return Formatter.Commands.ModerationBlocklistClear.createMessage(context, args);
   }
 }

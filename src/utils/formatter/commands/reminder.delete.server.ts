@@ -6,7 +6,7 @@ import { Timers } from 'detritus-utils';
 
 import { deleteReminder, fetchReminderPositional } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { BooleanEmojis, EmbedColors } from '../../../constants';
+import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   Parameters,
   createTimestampMomentFromGuild,

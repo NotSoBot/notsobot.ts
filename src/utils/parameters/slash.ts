@@ -1,4 +1,6 @@
-import { Interaction } from 'detritus-client';
+import { Collections, Interaction, Structures } from 'detritus-client';
+import { DiscordRegexNames } from 'detritus-client/lib/constants';
+import { regex as discordRegex } from 'detritus-client/lib/utils';
 
 import {
   GoogleLocales,
@@ -10,7 +12,9 @@ import {
   UserSettingsUploadThresholdTypes,
   UserSettingsUploadTypes,
 } from '../../constants';
-import { DefaultParameters, toTitleCase } from '../../utils';
+import { DefaultParameters, fetchMemberOrUserById, isSnowflake, toTitleCase } from '../../utils';
+
+import type { BanPayload, BanPayloadOptions } from './prefixed';
 
 
 
@@ -120,4 +124,49 @@ export function safe(value: boolean, context: Interaction.InteractionContext): B
     throw new Error('Channel doesn\'t support disabling NSFW filtering.');
   }
   return value;
+}
+
+
+export function banPayload(
+  options: BanPayloadOptions = {},
+) {
+  return async (value: string, context: Interaction.InteractionContext): Promise<BanPayload> => {
+    const membersOrUsers = new Collections.BaseCollection<string, Structures.Member | Structures.User>();
+    const notFound: Array<string> = [];
+
+    for (let text of value.split(/\s+/).filter((x) => x)) {
+      let searchValue = text;
+      {
+        const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, searchValue) as {matches: Array<{id: string}>};
+        if (matches.length && isSnowflake(matches[0].id)) {
+          searchValue = matches[0].id;
+        }
+      }
+
+      if (!isSnowflake(searchValue)) {
+        notFound.push(text);
+        continue;
+      }
+      if (membersOrUsers.has(searchValue)) {
+        continue;
+      }
+
+      const member = await fetchMemberOrUserById(context, searchValue, options.membersOnly);
+      if (member) {
+        membersOrUsers.set(member.id, member);
+      } else {
+        notFound.push(text);
+      }
+    }
+
+    let membersOrUsersArray = membersOrUsers.toArray();
+    if (!options.allowBots && options.allowBots !== undefined) {
+      membersOrUsersArray = membersOrUsersArray.filter((memberOrUser) => !memberOrUser.bot);
+    }
+    return {
+      membersOrUsers: membersOrUsersArray,
+      notFound,
+      text: '',
+    };
+  };
 }

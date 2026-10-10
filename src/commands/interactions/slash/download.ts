@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { BooleanEmojis, DownloadQualities } from '../../../constants';
+import { DownloadQualities, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
@@ -73,9 +73,9 @@ export default class DownloadCommand extends BaseSlashCommand {
 
   onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
     if (args.url === undefined) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find any urls in the last 50 messages.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any urls in the last 50 messages.`);
     } else if (args.url === null) {
-      return editOrReply(context, `${BooleanEmojis.WARNING} Invalid url`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Invalid url`);
     }
     return super.onCancelRun(context, args);
   }

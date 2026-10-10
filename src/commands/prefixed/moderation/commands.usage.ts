@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, GuildCommandsBlocklistTypes } from '../../../constants';
+import { CommandCategories, GuildCommandsBlocklistTypes, StatusEmojis } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -66,7 +66,7 @@ export default class CommandsUsageCommand extends BaseCommand {
       errors.push('user');
     }
     if (errors.length) {
-      return editOrReply(context, `⚠ Unable to find the provided ${errors.join(', ')}.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find the provided ${errors.join(', ')}.`);
     }
     return super.onCancelRun(context, args);
   }

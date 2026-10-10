@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { BooleanEmojis, CommandCategories } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import {
   DefaultParameters,
   Formatter,
@@ -53,7 +53,7 @@ export default class UserCommand extends BaseCommand {
   }
 
   onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, `${BooleanEmojis.WARNING} Unable to find that user.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user.`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {
