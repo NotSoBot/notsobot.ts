@@ -1416,6 +1416,22 @@ export async function mediaIVManipulationLabelsIFunny(
 }
 
 
+export async function mediaIVManipulationLabelsTriggered2(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationLabelsTriggered2(context, options);
+}
+
+
+export async function mediaIVManipulationLabelsTriggered3(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationLabelsTriggered3(context, options);
+}
+
+
 export async function mediaIVManipulationLegofy(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationLegofy,
@@ -1664,6 +1680,14 @@ export async function mediaIVManipulationOverlayStarman(
 }
 
 
+export async function mediaIVManipulationOverlayWatermark(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayWatermark,
+) {
+  return raw.mediaIVManipulationOverlayWatermark(context, options);
+}
+
+
 export async function mediaIVManipulationPaint(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPaint,
@@ -1797,6 +1821,14 @@ export async function mediaIVManipulationShake(
   options: RestOptions.MediaIVManipulationShake,
 ) {
   return raw.mediaIVManipulationShake(context, options);
+}
+
+
+export async function mediaIVManipulationShakeTriggered(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationShakeTriggered(context, options);
 }
 
 

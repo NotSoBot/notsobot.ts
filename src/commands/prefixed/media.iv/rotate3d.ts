@@ -25,7 +25,7 @@ export default class Rotate3dCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot 45 0 45`,
           `${COMMAND_NAME} notsobot 45 45 0 -order tpr`,
         ],
-        id:  Formatter.Commands.MediaIVManipulationRotate3d.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationRotate3d.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> <pan:number> <tilt:number> <roll:number> (-crop <MediaRotate3dCropModes>) (-order <RotationSequence>) (-zoom <float>)',
       },
       type: [

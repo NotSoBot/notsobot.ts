@@ -3478,6 +3478,48 @@ export async function mediaIVManipulationLabelsIFunny(
 }
 
 
+export async function mediaIVManipulationLabelsTriggered2(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LABELS_TRIGGERED_2,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationLabelsTriggered3(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LABELS_TRIGGERED_3,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationLegofy(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationLegofy,
@@ -4173,6 +4215,33 @@ export async function mediaIVManipulationOverlayStarman(
 }
 
 
+export async function mediaIVManipulationOverlayWatermark(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayWatermark,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    margin: options.margin,
+    max_file_size: maxFileSize,
+    opacity: options.opacity,
+    safe: options.safe,
+    size: options.size,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_WATERMARK,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationPaint(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationPaint,
@@ -4556,6 +4625,27 @@ export async function mediaIVManipulationShake(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_SHAKE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationShakeTriggered(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_SHAKE_TRIGGERED,
     },
   });
 }

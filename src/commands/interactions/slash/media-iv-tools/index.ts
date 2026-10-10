@@ -22,6 +22,7 @@ import { MediaIVToolsSnipFramesCommand } from './snip-frames';
 import { MediaIVToolsToGifCommand } from './to-gif';
 import { MediaIVToolsTrimCommand } from './trim';
 import { MediaIVToolsUncaptionCommand } from './uncaption';
+import { MediaIVToolsWatermarkCommand } from './watermark';
 
 
 export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
@@ -57,6 +58,7 @@ export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
         new MediaIVToolsToGifCommand(),
         new MediaIVToolsTrimCommand(),
         new MediaIVToolsUncaptionCommand(),
+        new MediaIVToolsWatermarkCommand(),
       ],
     });
   }

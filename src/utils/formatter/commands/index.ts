@@ -135,6 +135,8 @@ import * as MediaIVManipulationInvertRGBA from './media.iv.manipulation.invert.r
 import * as MediaIVManipulationKek from './media.iv.manipulation.kek';
 import * as MediaIVManipulationKekRain from './media.iv.manipulation.kek.rain';
 import * as MediaIVManipulationLabelsIFunny from './media.iv.manipulation.labels.ifunny';
+import * as MediaIVManipulationLabelsTriggered2 from './media.iv.manipulation.labels.triggered.2';
+import * as MediaIVManipulationLabelsTriggered3 from './media.iv.manipulation.labels.triggered.3';
 import * as MediaIVManipulationLegofy from './media.iv.manipulation.legofy';
 import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
 import * as MediaIVManipulationMagikAnimated from './media.iv.manipulation.magik.animated';
@@ -165,6 +167,7 @@ import * as MediaIVManipulationOverlayPersonsBobRoss from './media.iv.manipulati
 import * as MediaIVManipulationOverlayPersonsGaben1 from './media.iv.manipulation.overlay.persons.gaben.1';
 import * as MediaIVManipulationOverlayPersonsLTTLinus1 from './media.iv.manipulation.overlay.persons.ltt.linus.1';
 import * as MediaIVManipulationOverlayStarman from './media.iv.manipulation.overlay.starman';
+import * as MediaIVManipulationOverlayWatermark from './media.iv.manipulation.overlay.watermark';
 import * as MediaIVManipulationJPEG from './media.iv.manipulation.jpeg';
 import * as MediaIVManipulationPaint from './media.iv.manipulation.paint';
 import * as MediaIVManipulationPaintAnimated from './media.iv.manipulation.paint.animated';
@@ -183,6 +186,7 @@ import * as MediaIVManipulationSepia from './media.iv.manipulation.sepia';
 import * as MediaIVManipulationSetFPS from './media.iv.manipulation.set.fps';
 import * as MediaIVManipulationSetFrameCount from './media.iv.manipulation.set.frame.count';
 import * as MediaIVManipulationShake from './media.iv.manipulation.shake';
+import * as MediaIVManipulationShakeTriggered from './media.iv.manipulation.shake.triggered';
 import * as MediaIVManipulationSharpen from './media.iv.manipulation.sharpen';
 import * as MediaIVManipulationSlide from './media.iv.manipulation.slide';
 import * as MediaIVManipulationSmile from './media.iv.manipulation.smile';
@@ -486,6 +490,8 @@ export {
   MediaIVManipulationKek,
   MediaIVManipulationKekRain,
   MediaIVManipulationLabelsIFunny,
+  MediaIVManipulationLabelsTriggered2,
+  MediaIVManipulationLabelsTriggered3,
   MediaIVManipulationLegofy,
   MediaIVManipulationMagik,
   MediaIVManipulationMagikAnimated,
@@ -516,6 +522,7 @@ export {
   MediaIVManipulationOverlayPersonsGaben1,
   MediaIVManipulationOverlayPersonsLTTLinus1,
   MediaIVManipulationOverlayStarman,
+  MediaIVManipulationOverlayWatermark,
   MediaIVManipulationJPEG,
   MediaIVManipulationPaint,
   MediaIVManipulationPaintAnimated,
@@ -534,6 +541,7 @@ export {
   MediaIVManipulationSetFPS,
   MediaIVManipulationSetFrameCount,
   MediaIVManipulationShake,
+  MediaIVManipulationShakeTriggered,
   MediaIVManipulationSharpen,
   MediaIVManipulationSlide,
   MediaIVManipulationSmile,

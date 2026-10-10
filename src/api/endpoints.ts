@@ -260,6 +260,10 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/jpeg',
   MEDIA_IV_MANIPULATION_LABELS_IFUNNY:
     '/media/iv/manipulation/labels/ifunny',
+  MEDIA_IV_MANIPULATION_LABELS_TRIGGERED_2:
+    '/media/iv/manipulation/labels/triggered-2',
+  MEDIA_IV_MANIPULATION_LABELS_TRIGGERED_3:
+    '/media/iv/manipulation/labels/triggered-3',
   MEDIA_IV_MANIPULATION_LEGOFY:
     '/media/iv/manipulation/legofy',
   MEDIA_IV_MANIPULATION_MAGIK:
@@ -326,6 +330,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/shutterstock',
   MEDIA_IV_MANIPULATION_OVERLAY_STARMAN:
     '/media/iv/manipulation/overlay/starman',
+  MEDIA_IV_MANIPULATION_OVERLAY_WATERMARK:
+    '/media/iv/manipulation/overlay/watermark',
   MEDIA_IV_MANIPULATION_PAINT:
     '/media/iv/manipulation/paint',
   MEDIA_IV_MANIPULATION_PAINT_ANIMATED:
@@ -360,6 +366,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/set/framecount',
   MEDIA_IV_MANIPULATION_SHAKE:
     '/media/iv/manipulation/shake',
+  MEDIA_IV_MANIPULATION_SHAKE_TRIGGERED:
+    '/media/iv/manipulation/shake/triggered',
   MEDIA_IV_MANIPULATION_SHARPEN:
     '/media/iv/manipulation/sharpen',
   MEDIA_IV_MANIPULATION_SLIDE:

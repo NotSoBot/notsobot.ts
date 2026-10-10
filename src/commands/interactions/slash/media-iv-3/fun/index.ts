@@ -9,6 +9,7 @@ import { MediaIVOrbCommand } from './orb';
 import { MediaIVPhoSimpCommand } from './phosimp';
 import { MediaIVSmileCommand } from './smile';
 import { MediaIVStretchCommand } from './stretch';
+import { MediaIVTriggeredCommand } from './triggered';
 // rip command
 
 
@@ -28,6 +29,7 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVPhoSimpCommand(),
         new MediaIVSmileCommand(),
         new MediaIVStretchCommand(),
+        new MediaIVTriggeredCommand(),
       ],
     });
   }

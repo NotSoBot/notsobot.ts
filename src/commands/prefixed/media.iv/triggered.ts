@@ -1,14 +1,10 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
-
-export interface CommandArgs {
-  type?: string,
-  url: string,
-}
 
 export const COMMAND_NAME = 'triggered';
 
@@ -17,22 +13,20 @@ export default class TriggeredCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      args: [
-        {name: 'type'},
-      ],
       metadata: {
+        description: 'Shake an Image or Video and attach a Triggered Label',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
-          `${COMMAND_NAME} notsobot -type 2`,
         ],
         category: CommandCategories.IMAGE,
-        usage: '?<emoji,user:id|mention|name,url> (-type <triggered-type>)',
+        id: Formatter.Commands.MediaIVManipulationShakeTriggered.COMMAND_ID,
+        usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationShakeTriggered.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationShakeTriggered.createMessage(context, args);
   }
 }

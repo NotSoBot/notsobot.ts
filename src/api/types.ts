@@ -669,6 +669,12 @@ export namespace RestOptions {
     speed?: number,
   }
 
+  export interface MediaIVManipulationOverlayWatermark extends MediaBaseOptionsMultiple {
+    margin?: number,
+    opacity?: number,
+    size?: number,
+  }
+
   export interface MediaIVManipulationPaint extends MediaBaseOptions {
     radius?: number,
   }
