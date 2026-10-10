@@ -20,13 +20,13 @@ export default class CropTriangleCommand extends BaseImageOrVideoCommand {
 		  COMMAND_NAME,
 		  `${COMMAND_NAME} notsobot`,
 		],
-		id: Formatter.Commands.MediaIVToolsCropTriangle.COMMAND_ID,
+		id: Formatter.Commands.MediaIVManipulationCropTriangle.COMMAND_ID,
 		usage: '?<emoji,user:id|mention|name,url>',
 	  },
 	});
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsCropTriangle.CommandArgs) {
-	return Formatter.Commands.MediaIVToolsCropTriangle.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCropTriangle.CommandArgs) {
+	return Formatter.Commands.MediaIVManipulationCropTriangle.createMessage(context, args);
   }
 }

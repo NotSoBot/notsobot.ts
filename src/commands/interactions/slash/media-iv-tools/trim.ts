@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'trim';
 export class MediaIVToolsTrimCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Trim an Image or Video\'s Excess Background';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsTrim.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationTrim.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -23,7 +23,7 @@ export class MediaIVToolsTrimCommand extends BaseInteractionImageOrVideoCommandO
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsTrim.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsTrim.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationTrim.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationTrim.createMessage(context, args);
   }
 }

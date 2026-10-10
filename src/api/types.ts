@@ -428,6 +428,11 @@ export namespace RestOptions {
     volume?: number,
   }
 
+  export interface MediaAVManipulationSetBitRate extends MediaBaseOptions {
+    audio?: number,
+    video?: number,
+  }
+
   export interface MediaAVManipulationStammer extends MediaBaseOptionsMultiple {
     colorMode?: string,
     matcherMode?: string,
@@ -441,11 +446,6 @@ export namespace RestOptions {
 
   export interface MediaAVToolsIdentify extends MediaBaseOptions {
     start?: number,
-  }
-
-  export interface MediaAVToolsSetBitRate extends MediaBaseOptions {
-    audio?: number,
-    video?: number,
   }
 
   export interface MediaICreateRetrowave {
@@ -480,6 +480,11 @@ export namespace RestOptions {
     zoom?: boolean,
   }
 
+  export interface MediaIVManipulationBackgroundRemoveOptions extends MediaBaseOptions {
+    model?: string,
+    trim?: boolean,
+  }
+
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
     scale?: number,
   }
@@ -501,6 +506,13 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationCircle extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaIVManipulationCrop extends MediaBaseOptions {
+    height: string,
+    width: string,
+    x?: string,
+    y?: string,
   }
 
   export interface MediaIVManipulationDatamosh extends MediaBaseOptions {
@@ -557,6 +569,10 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationGlobe extends MediaBaseOptions {
     tiled?: boolean,
+  }
+
+  export interface MediaIVManipulationGlow extends MediaBaseOptions {
+    amount?: number,
   }
 
   export interface MediaIVManipulationGrain extends MediaBaseOptions {
@@ -618,7 +634,6 @@ export namespace RestOptions {
     zoom?: number,
   }
 
-
   export interface MediaIVManipulationMeme extends MediaBaseOptions {
     bottom?: string,
     font?: MediaMemeFonts,
@@ -628,6 +643,15 @@ export namespace RestOptions {
   export interface MediaIVManipulationMotionBlur extends MediaBaseOptionsMultiple {
     strength?: number,
     vertical?: boolean,
+  }
+
+  export interface MediaIVManipulationObjectRemoveOptions extends MediaBaseOptions {
+    object?: string,
+  }
+
+  export interface MediaIVManipulationOffset extends MediaBaseOptions {
+    x?: string,
+    y?: string,
   }
 
   export interface MediaIVManipulationOrb extends MediaBaseOptions {
@@ -664,6 +688,13 @@ export namespace RestOptions {
     pixelWidth?: number,
   }
 
+  export interface MediaIVManipulationResize extends MediaBaseOptions {
+    kernel?: string,
+    ratio?: boolean,
+    scale?: number,
+    size?: string,
+  }
+
   export interface MediaIVManipulationRipple extends MediaBaseOptions {
     amplitude?: number,
     offset?: number,
@@ -672,7 +703,29 @@ export namespace RestOptions {
     type?: string,
     width?: number,
   }
-  
+
+  export interface MediaIVManipulationRotate extends MediaBaseOptions {
+    crop?: boolean,
+    degrees?: number,
+  }
+
+  export interface MediaIVManipulationRotate3d extends MediaBaseOptions {
+    crop?: string,
+    order?: string,
+    pan?: number,
+    roll?: number,
+    tilt?: number,
+    zoom?: number,
+  }
+
+  export interface MediaIVManipulationSetFPS extends MediaBaseOptions {
+    fps: number,
+  }
+
+  export interface MediaIVManipulationSetFrameCount extends MediaBaseOptions {
+    count: number,
+  }
+
   export interface MediaIVManipulationShake extends MediaBaseOptions {
     horizontal?: number,
     randomize?: boolean,
@@ -686,6 +739,11 @@ export namespace RestOptions {
   export interface MediaIVManipulationSlide extends MediaBaseOptions {
     direction?: string,
     speed?: number,
+  }
+
+  export interface MediaIVManipulationSnipFrames extends MediaBaseOptions {
+    end?: number,
+    start?: number,
   }
 
   export interface MediaIVManipulationSpin extends MediaBaseOptions {
@@ -712,6 +770,11 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationSwirl extends MediaBaseOptions {
     degrees?: number,
+  }
+
+  export interface MediaIVManipulationTrim extends MediaBaseOptions {
+    margin?: number,
+    threshold?: number,
   }
 
   export interface MediaIVManipulationTunnel extends MediaBaseOptions {
@@ -755,66 +818,6 @@ export namespace RestOptions {
   export interface MediaIVManipulationZoomBlur extends MediaBaseOptions {
     amount?: number,
     expand?: boolean,
-  }
-
-  export interface MediaIVToolsBackgroundRemoveOptions extends MediaBaseOptions {
-    model?: string,
-    trim?: boolean,
-  }
-
-  export interface MediaIVToolsObjectRemoveOptions extends MediaBaseOptions {
-    object?: string,
-  }
-
-  export interface MediaIVToolsCrop extends MediaBaseOptions {
-    height: string,
-    width: string,
-    x?: string,
-    y?: string,
-  }
-
-  export interface MediaIVToolsOffset extends MediaBaseOptions {
-    x?: string,
-    y?: string,
-  }
-
-  export interface MediaIVToolsResize extends MediaBaseOptions {
-    kernel?: string,
-    ratio?: boolean,
-    scale?: number,
-    size?: string,
-  }
-
-  export interface MediaIVToolsRotate extends MediaBaseOptions {
-    crop?: boolean,
-    degrees?: number,
-  }
-
-  export interface MediaIVToolsRotate3d extends MediaBaseOptions {
-    crop?: string,
-    order?: string,
-    pan?: number,
-    roll?: number,
-    tilt?: number,
-    zoom?: number,
-  }
-
-  export interface MediaIVToolsSetFPS extends MediaBaseOptions {
-    fps: number,
-  }
-
-  export interface MediaIVToolsSetFrameCount extends MediaBaseOptions {
-    count: number,
-  }
-
-  export interface MediaIVToolsSnipFrames extends MediaBaseOptions {
-    end?: number,
-    start?: number,
-  }
-
-  export interface MediaIVToolsTrim extends MediaBaseOptions {
-    margin?: number,
-    threshold?: number,
   }
 
 

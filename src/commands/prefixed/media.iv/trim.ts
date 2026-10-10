@@ -25,13 +25,13 @@ export default class TrimCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -margin 0`,
         ],
-        id: Formatter.Commands.MediaIVToolsTrim.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationTrim.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-margin <number>) (-threshold <number>)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsTrim.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsTrim.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationTrim.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationTrim.createMessage(context, args);
   }
 }

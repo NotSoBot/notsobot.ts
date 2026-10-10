@@ -12,7 +12,7 @@ export const COMMAND_NAME = 'rotate-3d';
 export class MediaIVToolsRotate3dCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Rotate an Image or Video on a 3d Axis';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsRotate3d.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationRotate3d.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -33,7 +33,7 @@ export class MediaIVToolsRotate3dCommand extends BaseInteractionImageOrVideoComm
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsRotate3d.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsRotate3d.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationRotate3d.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationRotate3d.createMessage(context, args);
   }
 }

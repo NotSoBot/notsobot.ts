@@ -11,7 +11,7 @@ export const COMMAND_NAME = 'rotate';
 export class MediaIVToolsRotateCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Rotate an Image or Video';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsRotate.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationRotate.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -24,7 +24,7 @@ export class MediaIVToolsRotateCommand extends BaseInteractionImageOrVideoComman
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsRotate.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsRotate.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationRotate.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationRotate.createMessage(context, args);
   }
 }

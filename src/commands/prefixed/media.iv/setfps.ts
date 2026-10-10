@@ -20,7 +20,7 @@ export default class SetFPSCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} 24`,
         ],
-        id: Formatter.Commands.MediaIVToolsSetFPS.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationSetFPS.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...fps:number>',
       },
       type: [
@@ -30,7 +30,7 @@ export default class SetFPSCommand extends BaseMediaCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsSetFPS.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsSetFPS.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationSetFPS.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSetFPS.createMessage(context, args);
   }
 }

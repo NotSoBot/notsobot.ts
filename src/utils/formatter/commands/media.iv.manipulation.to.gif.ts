@@ -1,14 +1,13 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVToolsSetFPS } from '../../../api';
+import { mediaIVManipulationToGif } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.tools.set.fps';
+export const COMMAND_ID = 'media.iv.tools.to.gif';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  fps: number,
   url: string,
 }
 
@@ -16,7 +15,7 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVToolsSetFPS(context, {
+  return mediaIVManipulationToGif(context, {
     safe: DefaultParameters.safe(context),
     ...args,
   });

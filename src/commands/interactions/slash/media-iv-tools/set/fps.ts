@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'fps';
 export class MediaIVToolsSetFPSCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Set an Animated Image or Video\'s FPS';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsSetFPS.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationSetFPS.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -27,7 +27,7 @@ export class MediaIVToolsSetFPSCommand extends BaseInteractionImageOrVideoComman
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsSetFPS.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsSetFPS.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationSetFPS.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSetFPS.createMessage(context, args);
   }
 }

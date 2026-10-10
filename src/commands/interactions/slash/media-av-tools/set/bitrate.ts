@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'bitrate';
 export class MediaAVToolsSetBitRateCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Set an Audio or Video File\'s Bit Rate';
   metadata = {
-    id: Formatter.Commands.MediaAVToolsSetBitRate.COMMAND_ID,
+    id: Formatter.Commands.MediaAVManipulationSetBitRate.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -31,7 +31,7 @@ export class MediaAVToolsSetBitRateCommand extends BaseInteractionImageOrVideoCo
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAVToolsSetBitRate.CommandArgs) {
-    return Formatter.Commands.MediaAVToolsSetBitRate.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaAVManipulationSetBitRate.CommandArgs) {
+    return Formatter.Commands.MediaAVManipulationSetBitRate.createMessage(context, args);
   }
 }

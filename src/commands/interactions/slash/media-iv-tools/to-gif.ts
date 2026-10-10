@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'to-gif';
 export class MediaIVToolsToGifCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Convert an Image or Video to a gif, resizing and lowering fps as needed';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsToGif.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationToGif.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsToGif.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsToGif.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationToGif.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationToGif.createMessage(context, args);
   }
 }

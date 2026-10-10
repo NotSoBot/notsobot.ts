@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'snip-frames';
 export class MediaIVToolsSnipFramesCommand extends BaseInteractionMediaCommandOption {
   description = 'Snip the frames of an Animated Image/Video';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsSnipFrames.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationSnipFrames.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -23,7 +23,7 @@ export class MediaIVToolsSnipFramesCommand extends BaseInteractionMediaCommandOp
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsSnipFrames.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsSnipFrames.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationSnipFrames.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSnipFrames.createMessage(context, args);
   }
 }

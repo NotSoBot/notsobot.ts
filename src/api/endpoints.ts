@@ -132,6 +132,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/audio/vibrato',
   MEDIA_AV_MANIPULATION_AUDIO_VOLUME:
     '/media/av/manipulation/audio/volume',
+  MEDIA_AV_MANIPULATION_SET_BITRATE:
+    '/media/av/manipulation/set/bitrate',
   MEDIA_AV_MANIPULATION_STAMMER:
     '/media/av/manipulation/stammer',
 
@@ -139,8 +141,6 @@ export const Api = Object.freeze({
     '/media/av/tools/extract/audio',
   MEDIA_AV_TOOLS_IDENTIFY:
     '/media/av/tools/identify',
-  MEDIA_AV_TOOLS_SET_BITRATE:
-    '/media/av/tools/set/bitrate',
   MEDIA_AV_TOOLS_TRANSCRIBE:
     '/media/av/tools/transcribe',
 
@@ -180,6 +180,8 @@ export const Api = Object.freeze({
 
   MEDIA_IV_MANIPULATION_ASCII:
     '/media/iv/manipulation/ascii',
+  MEDIA_IV_MANIPULATION_BACKGROUND_REMOVE:
+    '/media/iv/manipulation/background/remove',
   MEDIA_IV_MANIPULATION_BLUR:
     '/media/iv/manipulation/blur',
   MEDIA_IV_MANIPULATION_BLURPLE:
@@ -190,6 +192,16 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/cartoon',
   MEDIA_IV_MANIPULATION_CIRCLE:
     '/media/iv/manipulation/circle',
+  MEDIA_IV_MANIPULATION_CROP:
+    '/media/iv/manipulation/crop',
+  MEDIA_IV_MANIPULATION_CROP_AUTO:
+    '/media/iv/manipulation/crop/auto',
+  MEDIA_IV_MANIPULATION_CROP_CIRCLE:
+    '/media/iv/manipulation/crop/circle',
+  MEDIA_IV_MANIPULATION_CROP_TRIANGLE:
+    '/media/iv/manipulation/crop/triangle',
+  MEDIA_IV_MANIPULATION_CROP_TWITTER_HEX:
+    '/media/iv/manipulation/crop/twitter-hex',
   MEDIA_IV_MANIPULATION_DATAMOSH:
     '/media/iv/manipulation/datamosh',
   MEDIA_IV_MANIPULATION_DEEPFRY:
@@ -222,6 +234,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/glitch/animated',
   MEDIA_IV_MANIPULATION_GLOBE:
     '/media/iv/manipulation/globe',
+  MEDIA_IV_MANIPULATION_GLOW:
+    '/media/iv/manipulation/glow',
   MEDIA_IV_MANIPULATION_GOLD:
     '/media/iv/manipulation/gold',
   MEDIA_IV_MANIPULATION_GRAIN:
@@ -266,6 +280,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/mirror-top',
   MEDIA_IV_MANIPULATION_MOTION_BLUR:
     '/media/iv/manipulation/motion/blur',
+  MEDIA_IV_MANIPULATION_OFFSET:
+    '/media/iv/manipulation/offset',
   MEDIA_IV_MANIPULATION_ORB:
     '/media/iv/manipulation/orb',
   MEDIA_IV_MANIPULATION_OVERLAY_FACE:
@@ -328,10 +344,20 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/rain/gold',
   MEDIA_IV_MANIPULATION_RECOLOR:
     '/media/iv/manipulation/recolor',
+  MEDIA_IV_MANIPULATION_RESIZE:
+    '/media/iv/manipulation/resize',
   MEDIA_IV_MANIPULATION_RIPPLE:
     '/media/iv/manipulation/ripple',
+  MEDIA_IV_MANIPULATION_ROTATE:
+    '/media/iv/manipulation/rotate',
+  MEDIA_IV_MANIPULATION_ROTATE_3d:
+    '/media/iv/manipulation/rotate/3d',
   MEDIA_IV_MANIPULATION_SEPIA:
     '/media/iv/manipulation/sepia',
+  MEDIA_IV_MANIPULATION_SET_FPS:
+    '/media/iv/manipulation/set/fps',
+  MEDIA_IV_MANIPULATION_SET_FRAME_COUNT:
+    '/media/iv/manipulation/set/framecount',
   MEDIA_IV_MANIPULATION_SHAKE:
     '/media/iv/manipulation/shake',
   MEDIA_IV_MANIPULATION_SHARPEN:
@@ -340,6 +366,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/slide',
   MEDIA_IV_MANIPULATION_SMILE:
     '/media/iv/manipulation/smile',
+  MEDIA_IV_MANIPULATION_SNIP_FRAMES:
+    '/media/iv/manipulation/snip/frames',
   MEDIA_IV_MANIPULATION_SOLARIZE:
     '/media/iv/manipulation/solarize',
   MEDIA_IV_MANIPULATION_SPIN:
@@ -356,8 +384,12 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/swap/rgba',
   MEDIA_IV_MANIPULATION_SWIRL:
     '/media/iv/manipulation/swirl',
+  MEDIA_IV_MANIPULATION_TO_GIF:
+    '/media/iv/manipulation/to/gif',
   MEDIA_IV_MANIPULATION_TRACE:
     '/media/iv/manipulation/trace',
+  MEDIA_IV_MANIPULATION_TRIM:
+    '/media/iv/manipulation/trim',
   MEDIA_IV_MANIPULATION_TUNNEL:
     '/media/iv/manipulation/tunnel',
   MEDIA_IV_MANIPULATION_UNCAPTION:
@@ -378,37 +410,6 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/zoom',
   MEDIA_IV_MANIPULATION_ZOOM_BLUR:
     '/media/iv/manipulation/zoom/blur',
-
-  MEDIA_IV_TOOLS_BACKGROUND_REMOVE:
-    '/media/iv/tools/background/remove',
-  MEDIA_IV_TOOLS_CROP:
-    '/media/iv/tools/crop',
-  MEDIA_IV_TOOLS_CROP_AUTO:
-    '/media/iv/tools/crop/auto',
-  MEDIA_IV_TOOLS_CROP_CIRCLE:
-    '/media/iv/tools/crop/circle',
-  MEDIA_IV_TOOLS_CROP_TRIANGLE:
-    '/media/iv/tools/crop/triangle',
-  MEDIA_IV_TOOLS_CROP_TWITTER_HEX:
-    '/media/iv/tools/crop/twitter-hex',
-  MEDIA_IV_TOOLS_OFFSET:
-    '/media/iv/tools/offset',
-  MEDIA_IV_TOOLS_RESIZE:
-    '/media/iv/tools/resize',
-  MEDIA_IV_TOOLS_ROTATE:
-    '/media/iv/tools/rotate',
-  MEDIA_IV_TOOLS_ROTATE_3d:
-    '/media/iv/tools/rotate/3d',
-  MEDIA_IV_TOOLS_SET_FPS:
-    '/media/iv/tools/set/fps',
-  MEDIA_IV_TOOLS_SET_FRAME_COUNT:
-    '/media/iv/tools/set/framecount',
-  MEDIA_IV_TOOLS_SNIP_FRAMES:
-    '/media/iv/tools/snip/frames',
-  MEDIA_IV_TOOLS_TO_GIF:
-    '/media/iv/tools/to/gif',
-  MEDIA_IV_TOOLS_TRIM:
-    '/media/iv/tools/trim',
 
   MODERATION_SAFETY_SCAN:
     '/moderation/safety-scan',

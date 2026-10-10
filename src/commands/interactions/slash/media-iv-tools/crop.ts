@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'crop';
 export class MediaIVToolsCropCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Crop an Image or Video';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsCrop.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationCrop.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -25,7 +25,7 @@ export class MediaIVToolsCropCommand extends BaseInteractionImageOrVideoCommandO
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsCrop.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsCrop.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationCrop.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCrop.createMessage(context, args);
   }
 }

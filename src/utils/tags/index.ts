@@ -4972,6 +4972,7 @@ const ScriptTags = Object.freeze({
         files,
         maxFileSizeStrict: true,
         mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
+        safe: DefaultParameters.safe(context),
       }).then((x) => jobWaitForResult(context, x));
       if (job.result.error) {
         throw new Error(`**MediaScript Error**: ${job.result.error}`);
@@ -5061,6 +5062,7 @@ const ScriptTags = Object.freeze({
         files,
         maxFileSizeStrict: false,
         mlDiffusionModel: tag.variables[PrivateVariables.SETTINGS][TagSettings.ML_IMAGINE_MODEL],
+        safe: DefaultParameters.safe(context),
       }).then((x) => jobWaitForResult(context, x));
       if (job.result.error) {
         throw new Error(`**MediaScript Error**: ${job.result.error}`);

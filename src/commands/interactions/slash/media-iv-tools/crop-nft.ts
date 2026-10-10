@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'crop-nft';
 export class MediaIVToolsCropNFTCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Crop out a Twitter NFT Hex from an Image or Video';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsCropNFT.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationCropNFT.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsCropNFT.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsCropNFT.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationCropNFT.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCropNFT.createMessage(context, args);
   }
 }

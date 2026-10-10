@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'offset';
 export class MediaIVToolsOffsetCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Offset an Image or Video by X or Y amount';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsOffset.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationOffset.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -23,7 +23,7 @@ export class MediaIVToolsOffsetCommand extends BaseInteractionImageOrVideoComman
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsOffset.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsOffset.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationOffset.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationOffset.createMessage(context, args);
   }
 }

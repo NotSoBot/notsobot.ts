@@ -11,7 +11,7 @@ export const COMMAND_NAME = 'remove';
 export class MediaIVToolsBackgroundRemoveCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Remove an Image or Video\'s background';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsBackgroundRemove.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationBackgroundRemove.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -23,10 +23,10 @@ export class MediaIVToolsBackgroundRemoveCommand extends BaseInteractionImageOrV
           description: 'Background Removal Model',
           choices: Parameters.Slash.oneOf({
             choices: MediaBackgroundRemovalModels,
-            defaultChoice: Formatter.Commands.MediaIVToolsBackgroundRemove.DEFAULT_MODEL,
+            defaultChoice: Formatter.Commands.MediaIVManipulationBackgroundRemove.DEFAULT_MODEL,
             descriptions: MediaBackgroundRemovalModelsToText,
           }),
-          default: Formatter.Commands.MediaIVToolsBackgroundRemove.DEFAULT_MODEL,
+          default: Formatter.Commands.MediaIVManipulationBackgroundRemove.DEFAULT_MODEL,
         },
         {
           name: 'trim',
@@ -37,7 +37,7 @@ export class MediaIVToolsBackgroundRemoveCommand extends BaseInteractionImageOrV
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsBackgroundRemove.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsBackgroundRemove.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationBackgroundRemove.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationBackgroundRemove.createMessage(context, args);
   }
 }

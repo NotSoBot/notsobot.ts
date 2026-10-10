@@ -1,15 +1,13 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVToolsSnipFrames } from '../../../api';
+import { mediaIVManipulationTrim } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.tools.snip.frames';
+export const COMMAND_ID = 'media.iv.tools.trim';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  end?: number,
-  start?: number,
   url: string,
 }
 
@@ -17,7 +15,7 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVToolsSnipFrames(context, {
+  return mediaIVManipulationTrim(context, {
     safe: DefaultParameters.safe(context),
     ...args,
   });

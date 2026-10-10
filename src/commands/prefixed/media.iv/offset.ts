@@ -20,7 +20,7 @@ export default class OffsetCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} 100 100`,
           `${COMMAND_NAME} notsobot 100 0`,
         ],
-        id: Formatter.Commands.MediaIVToolsOffset.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationOffset.COMMAND_ID,
         usage: '?<emoji,user:id|mention,url> <x,expression> <y,expression>',
       },
       priority: -1,
@@ -32,18 +32,18 @@ export default class OffsetCommand extends BaseImageOrVideoCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaIVToolsOffset.CommandArgs) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOffset.CommandArgs) {
     return !!args.x && !!args.y && super.onBeforeRun(context, args);
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.MediaIVToolsOffset.CommandArgs) {
+  onCancelRun(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOffset.CommandArgs) {
     if (!args.x || !args.y) {
       return BaseImageOrVideoCommand.prototype.onCancelRun.call(this, context, args);
     }
     return super.onCancelRun(context, args);
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsOffset.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsOffset.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOffset.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationOffset.createMessage(context, args);
   }
 }

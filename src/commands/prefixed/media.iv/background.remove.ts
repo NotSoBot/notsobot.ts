@@ -38,13 +38,13 @@ export default class BackgroundRemoveCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -model U2NETP`,
           `${COMMAND_NAME} notsobot -trim`,
         ],
-        id: Formatter.Commands.MediaIVToolsBackgroundRemove.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationBackgroundRemove.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-model <MediaBackgroundRemovalModels>) (-trim)',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsBackgroundRemove.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsBackgroundRemove.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationBackgroundRemove.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationBackgroundRemove.createMessage(context, args);
   }
 }

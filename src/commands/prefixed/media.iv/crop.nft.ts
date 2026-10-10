@@ -20,13 +20,13 @@ export default class CropNFTCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.MediaIVToolsCropNFT.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationCropNFT.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsCropNFT.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsCropNFT.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCropNFT.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCropNFT.createMessage(context, args);
   }
 }

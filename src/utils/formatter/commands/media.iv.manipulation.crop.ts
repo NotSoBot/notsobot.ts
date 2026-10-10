@@ -1,13 +1,17 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVToolsToGif } from '../../../api';
+import { mediaIVManipulationCrop } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.tools.to.gif';
+export const COMMAND_ID = 'media.iv.tools.crop';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  height: string,
+  width: string,
+  x?: string,
+  y?: string,
   url: string,
 }
 
@@ -15,7 +19,7 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVToolsToGif(context, {
+  return mediaIVManipulationCrop(context, {
     safe: DefaultParameters.safe(context),
     ...args,
   });

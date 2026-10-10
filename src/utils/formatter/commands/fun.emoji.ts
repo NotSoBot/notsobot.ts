@@ -5,10 +5,11 @@ import { DiscordRegexNames } from 'detritus-client/lib/constants';
 import { regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
-import { mediaIVToolsResize } from '../../../api';
 import { CDN, CUSTOM } from '../../../api/endpoints';
 import { BooleanEmojis, EmojiTypes, EmojiTypesToText, Mimetypes } from '../../../constants';
 import { editOrReply, jobReply, jobWaitForResult, toCodePoint, toCodePointForTwemoji } from '../../../utils';
+
+import * as MediaIVManipulationResize from './media.iv.manipulation.resize';
 
 
 export const COMMAND_ID = 'fun.emoji';
@@ -122,7 +123,7 @@ export async function createMessage(
     if (filtered.length === 1) {
       const [ url ] = filtered;
       // if its a single url, embed it
-      const job = await mediaIVToolsResize(context, {size, url});
+      const job = await MediaIVManipulationResize.createJob(context, {size, url});
       return jobReply(context, job); // todo: disable showing args here
     }
 
@@ -130,7 +131,7 @@ export async function createMessage(
     for (let url of filtered.slice(0, 10)) {
       const promise: Promise<{filename: string, value: Buffer}> = new Promise(async (resolve, reject) => {
         try {
-          const job = await mediaIVToolsResize(context, {size, url}).then((x) => jobWaitForResult(context, x));
+          const job = await MediaIVManipulationResize.createJob(context, {size, url}).then((x) => jobWaitForResult(context, x));
           if (job.result.response) {
             resolve({
               filename: job.result.response.file.filename,

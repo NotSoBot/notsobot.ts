@@ -1,15 +1,19 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVToolsOffset } from '../../../api';
+import { mediaIVManipulationBackgroundRemove } from '../../../api';
+import { MediaBackgroundRemovalModels, MediaBackgroundRemovalModelsToText } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.tools.offset';
+export const COMMAND_ID = 'media.iv.tools.background.remove';
 export const IS_PIPEABLE = true;
 
+export const DEFAULT_MODEL = MediaBackgroundRemovalModels.ISNET_GENERAL_USE;
+
+
 export interface CommandArgs {
-  x?: string,
-  y?: string,
+  model?: string,
+  trim?: boolean,
   url: string,
 }
 
@@ -17,7 +21,7 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVToolsOffset(context, {
+  return mediaIVManipulationBackgroundRemove(context, {
     safe: DefaultParameters.safe(context),
     ...args,
   });

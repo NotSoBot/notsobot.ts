@@ -21,7 +21,7 @@ export default class SetFrameCountCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} 24`,
         ],
-        id: Formatter.Commands.MediaIVToolsSetFPS.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationSetFPS.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...count:number>',
       },
       type: [
@@ -31,7 +31,7 @@ export default class SetFrameCountCommand extends BaseMediaCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsSetFrameCount.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsSetFrameCount.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationSetFrameCount.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSetFrameCount.createMessage(context, args);
   }
 }

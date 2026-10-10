@@ -21,13 +21,13 @@ export default class ToGifCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.MediaIVToolsToGif.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationToGif.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsToGif.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsToGif.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationToGif.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationToGif.createMessage(context, args);
   }
 }

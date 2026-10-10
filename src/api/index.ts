@@ -928,6 +928,14 @@ export async function mediaAVManipulationAudioVolume(
 }
 
 
+export async function mediaAVManipulationSetBitRate(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationSetBitRate,
+) {
+  return raw.mediaAVManipulationSetBitRate(context, options);
+}
+
+
 export async function mediaAVManipulationStammer(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationStammer,
@@ -949,14 +957,6 @@ export async function mediaAVToolsIdentify(
   options: RestOptions.MediaAVToolsIdentify,
 ) {
   return raw.mediaAVToolsIdentify(context, options);
-}
-
-
-export async function mediaAVToolsSetBitRate(
-  context: RequestContext,
-  options: RestOptions.MediaAVToolsSetBitRate,
-) {
-  return raw.mediaAVToolsSetBitRate(context, options);
 }
 
 
@@ -1096,6 +1096,14 @@ export async function mediaIVManipulationAscii(
 }
 
 
+export async function mediaIVManipulationBackgroundRemove(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationBackgroundRemoveOptions,
+) {
+  return raw.mediaIVManipulationBackgroundRemove(context, options);
+}
+
+
 export async function mediaIVManipulationBlur(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationBlur,
@@ -1133,6 +1141,46 @@ export async function mediaIVManipulationCircle(
   options: RestOptions.MediaIVManipulationCircle,
 ) {
   return raw.mediaIVManipulationCircle(context, options);
+}
+
+
+export async function mediaIVManipulationCrop(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationCrop,
+) {
+  return raw.mediaIVManipulationCrop(context, options);
+}
+
+
+export async function mediaIVManipulationCropAuto(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationCropAuto(context, options);
+}
+
+
+export async function mediaIVManipulationCropCircle(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationCropCircle(context, options);
+}
+
+
+export async function mediaIVManipulationCropTriangle(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationCropTriangle(context, options);
+}
+
+
+export async function mediaIVManipulationCropTwitterHex(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationCropTwitterHex(context, options);
 }
 
 
@@ -1261,6 +1309,14 @@ export async function mediaIVManipulationGlobe(
   options: RestOptions.MediaIVManipulationGlobe,
 ) {
   return raw.mediaIVManipulationGlobe(context, options);
+}
+
+
+export async function mediaIVManipulationGlow(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationGlow,
+) {
+  return raw.mediaIVManipulationGlow(context, options);
 }
 
 
@@ -1437,6 +1493,14 @@ export async function mediaIVManipulationMotionBlur(
   options: RestOptions.MediaIVManipulationMotionBlur,
 ) {
   return raw.mediaIVManipulationMotionBlur(context, options);
+}
+
+
+export async function mediaIVManipulationOffset(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOffset,
+) {
+  return raw.mediaIVManipulationOffset(context, options);
 }
 
 
@@ -1672,6 +1736,14 @@ export async function mediaIVManipulationRecolor(
 }
 
 
+export async function mediaIVManipulationResize(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationResize,
+) {
+  return raw.mediaIVManipulationResize(context, options);
+}
+
+
 export async function mediaIVManipulationRipple(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationRipple,
@@ -1680,11 +1752,43 @@ export async function mediaIVManipulationRipple(
 }
 
 
+export async function mediaIVManipulationRotate(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationRotate,
+) {
+  return raw.mediaIVManipulationRotate(context, options);
+}
+
+
+export async function mediaIVManipulationRotate3d(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationRotate3d,
+) {
+  return raw.mediaIVManipulationRotate3d(context, options);
+}
+
+
 export async function mediaIVManipulationSepia(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationSepia(context, options);
+}
+
+
+export async function mediaIVManipulationSetFPS(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSetFPS,
+) {
+  return raw.mediaIVManipulationSetFPS(context, options);
+}
+
+
+export async function mediaIVManipulationSetFrameCount(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSetFrameCount,
+) {
+  return raw.mediaIVManipulationSetFrameCount(context, options);
 }
 
 
@@ -1717,6 +1821,14 @@ export async function mediaIVManipulationSmile(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationSmile(context, options);
+}
+
+
+export async function mediaIVManipulationSnipFrames(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationSnipFrames,
+) {
+  return raw.mediaIVManipulationSnipFrames(context, options);
 }
 
 
@@ -1784,11 +1896,27 @@ export async function mediaIVManipulationSwirl(
 }
 
 
+export async function mediaIVManipulationToGif(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationToGif(context, options);
+}
+
+
 export async function mediaIVManipulationTrace(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationTrace(context, options);
+}
+
+
+export async function mediaIVManipulationTrim(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTrim,
+) {
+  return raw.mediaIVManipulationTrim(context, options);
 }
 
 
@@ -1798,7 +1926,6 @@ export async function mediaIVManipulationTunnel(
 ) {
   return raw.mediaIVManipulationTunnel(context, options);
 }
-
 
 
 export async function mediaIVManipulationUncaption(
@@ -1870,126 +1997,6 @@ export async function mediaIVManipulationZoomBlur(
   options: RestOptions.MediaIVManipulationZoomBlur,
 ) {
   return raw.mediaIVManipulationZoomBlur(context, options);
-}
-
-
-export async function mediaIVToolsBackgroundRemove(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsBackgroundRemoveOptions,
-) {
-  return raw.mediaIVToolsBackgroundRemove(context, options);
-}
-
-
-export async function mediaIVToolsCrop(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsCrop,
-) {
-  return raw.mediaIVToolsCrop(context, options);
-}
-
-
-export async function mediaIVToolsCropAuto(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaIVToolsCropAuto(context, options);
-}
-
-
-export async function mediaIVToolsCropCircle(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaIVToolsCropCircle(context, options);
-}
-
-
-export async function mediaIVToolsCropTriangle(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaIVToolsCropTriangle(context, options);
-}
-
-
-export async function mediaIVToolsCropTwitterHex(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaIVToolsCropTwitterHex(context, options);
-}
-
-
-export async function mediaIVToolsOffset(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsOffset,
-) {
-  return raw.mediaIVToolsOffset(context, options);
-}
-
-
-export async function mediaIVToolsResize(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsResize,
-) {
-  return raw.mediaIVToolsResize(context, options);
-}
-
-
-export async function mediaIVToolsRotate(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsRotate,
-) {
-  return raw.mediaIVToolsRotate(context, options);
-}
-
-
-export async function mediaIVToolsRotate3d(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsRotate3d,
-) {
-  return raw.mediaIVToolsRotate3d(context, options);
-}
-
-
-export async function mediaIVToolsSetFPS(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsSetFPS,
-) {
-  return raw.mediaIVToolsSetFPS(context, options);
-}
-
-
-export async function mediaIVToolsSetFrameCount(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsSetFrameCount,
-) {
-  return raw.mediaIVToolsSetFrameCount(context, options);
-}
-
-
-export async function mediaIVToolsSnipFrames(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsSnipFrames,
-) {
-  return raw.mediaIVToolsSnipFrames(context, options);
-}
-
-
-export async function mediaIVToolsToGif(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaIVToolsToGif(context, options);
-}
-
-
-export async function mediaIVToolsTrim(
-  context: RequestContext,
-  options: RestOptions.MediaIVToolsTrim,
-) {
-  return raw.mediaIVToolsTrim(context, options);
 }
 
 

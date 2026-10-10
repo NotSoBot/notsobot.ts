@@ -10,11 +10,11 @@ export const COMMAND_NAME = 'crop-auto';
 export class MediaIVToolsCropAutoCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Crop an Image or Video automatically';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsCropAuto.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationCropAuto.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsCropAuto.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsCropAuto.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationCropAuto.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCropAuto.createMessage(context, args);
   }
 }

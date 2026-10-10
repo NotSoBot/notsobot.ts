@@ -10,7 +10,7 @@ export const COMMAND_NAME = 'framecount';
 export class MediaIVToolsSetFrameCountCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Set an Animated Image or Video\'s Frame Count';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsSetFrameCount.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationSetFrameCount.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -27,7 +27,7 @@ export class MediaIVToolsSetFrameCountCommand extends BaseInteractionImageOrVide
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsSetFrameCount.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsSetFrameCount.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationSetFrameCount.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSetFrameCount.createMessage(context, args);
   }
 }

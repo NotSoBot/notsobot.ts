@@ -11,7 +11,7 @@ export const COMMAND_NAME = 'resize';
 export class MediaIVToolsResizeCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Resize an Image or Video';
   metadata = {
-    id: Formatter.Commands.MediaIVToolsResize.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationResize.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -30,7 +30,7 @@ export class MediaIVToolsResizeCommand extends BaseInteractionImageOrVideoComman
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVToolsResize.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsResize.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationResize.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationResize.createMessage(context, args);
   }
 }

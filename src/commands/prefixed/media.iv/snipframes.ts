@@ -20,7 +20,7 @@ export default class SnipFramesCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp4 10 50`,
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp4 -50`,
         ],
-        id: Formatter.Commands.MediaIVToolsSnipFrames.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationSnipFrames.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> <start,number> <end,number>',
       },
       type: [
@@ -31,7 +31,7 @@ export default class SnipFramesCommand extends BaseMediaCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsSnipFrames.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsSnipFrames.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationSnipFrames.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationSnipFrames.createMessage(context, args);
   }
 }

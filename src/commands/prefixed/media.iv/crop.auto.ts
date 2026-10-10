@@ -20,13 +20,13 @@ export default class CropAutoCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.MediaIVToolsCropAuto.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationCropAuto.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsCropAuto.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsCropAuto.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCropAuto.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCropAuto.createMessage(context, args);
   }
 }

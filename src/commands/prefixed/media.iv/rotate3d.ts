@@ -25,7 +25,7 @@ export default class Rotate3dCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot 45 0 45`,
           `${COMMAND_NAME} notsobot 45 45 0 -order tpr`,
         ],
-        id:  Formatter.Commands.MediaIVToolsRotate3d.COMMAND_ID,
+        id:  Formatter.Commands.MediaIVManipulationRotate3d.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> <pan:number> <tilt:number> <roll:number> (-crop <MediaRotate3dCropModes>) (-order <RotationSequence>) (-zoom <float>)',
       },
       type: [
@@ -37,14 +37,14 @@ export default class Rotate3dCommand extends BaseImageOrVideoCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaIVToolsRotate3d.CommandArgs) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaIVManipulationRotate3d.CommandArgs) {
     if (!args.pan && !args.tilt && !args.roll) {
       return false;
     }
     return super.onBeforeRun(context, args);
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsRotate3d.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsRotate3d.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationRotate3d.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationRotate3d.createMessage(context, args);
   }
 }

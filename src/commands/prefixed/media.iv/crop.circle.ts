@@ -20,13 +20,13 @@ export default class CropCircleCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        id: Formatter.Commands.MediaIVToolsCropCircle.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationCropCircle.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsCropCircle.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsCropCircle.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationCropCircle.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationCropCircle.createMessage(context, args);
   }
 }

@@ -1,29 +1,25 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVToolsRotate3d } from '../../../api';
+import { mediaIVManipulationEyes } from '../../../api';
+import { MediaEyeTypes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.tools.rotate.3d';
+export const COMMAND_ID = 'eyes.blue';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  cropMode?: string,
-  order?: string,
-  pan?: number,
-  roll?: number,
-  tilt?: number,
   url: string,
-  zoom?: number,
 }
 
 export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVToolsRotate3d(context, {
+  return mediaIVManipulationEyes(context, {
     safe: DefaultParameters.safe(context),
     ...args,
+    type: MediaEyeTypes.FLARE_BLUE,
   });
 }
 

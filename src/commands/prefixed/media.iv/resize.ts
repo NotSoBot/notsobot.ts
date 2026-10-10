@@ -31,7 +31,7 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png -size 2048`,
           `${COMMAND_NAME} https://apng.onevcat.com/assets/elephant.png -ratio -size 320x320`,
         ],
-        id: Formatter.Commands.MediaIVToolsResize.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationResize.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> <SizeOrScale:Size,float> (-kernel <MediaResizeKernels>) (-ratio)',
       },
       type: [
@@ -41,7 +41,7 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVToolsResize.CommandArgs) {
-    return Formatter.Commands.MediaIVToolsResize.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationResize.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationResize.createMessage(context, args);
   }
 }

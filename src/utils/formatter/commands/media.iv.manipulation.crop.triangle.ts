@@ -1,23 +1,21 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaAVToolsSetBitRate } from '../../../api';
+import { mediaIVManipulationCropTriangle } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.av.tools.set.bitrate';
+export const COMMAND_ID = 'media.iv.tools.crop.triangle';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
-  audio?: number,
   url: string,
-  video?: number,
 }
 
 export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaAVToolsSetBitRate(context, {
+  return mediaIVManipulationCropTriangle(context, {
     safe: DefaultParameters.safe(context),
     ...args,
   });

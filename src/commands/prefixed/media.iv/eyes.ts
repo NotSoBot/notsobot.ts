@@ -1,25 +1,14 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { mediaIVManipulationEyes } from '../../../api';
 import { CommandCategories, MediaEyeTypes } from '../../../constants';
-import { jobReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
 
-export interface CommandArgsBefore {
-  type?: MediaEyeTypes,
-  url?: null | string,
-}
-
-export interface CommandArgs {
-  type?: MediaEyeTypes,
-  url: string,
-}
-
 export const COMMAND_NAME = 'eyes';
 
-export default class EyesCommand extends BaseImageOrVideoCommand<CommandArgs> {
+export default class EyesCommand extends BaseImageOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
@@ -36,14 +25,14 @@ export default class EyesCommand extends BaseImageOrVideoCommand<CommandArgs> {
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg -type spongebob`,
         ],
         category: CommandCategories.IMAGE,
+        id: Formatter.Commands.MediaIVManipulationEyes.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-type <MediaEyeTypes>)',
       },
       priority: -1,
     });
   }
 
-  async run(context: Command.Context, args: CommandArgs) {
-    const response = await mediaIVManipulationEyes(context, args);
-    return jobReply(context, response);
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationEyes.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationEyes.createMessage(context, args);
   }
 }

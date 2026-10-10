@@ -20,7 +20,7 @@ export default class BitRateCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} 1000 1000`,
         ],
-        id: Formatter.Commands.MediaAVToolsSetBitRate.COMMAND_ID,
+        id: Formatter.Commands.MediaAVManipulationSetBitRate.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <video:number> <audio:number>',
       },
       type: [
@@ -31,11 +31,11 @@ export default class BitRateCommand extends BaseMediaCommand {
     });
   }
 
-  onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaAVToolsSetBitRate.CommandArgs) {
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaAVManipulationSetBitRate.CommandArgs) {
     return args.audio !== undefined || args.video !== undefined;
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaAVToolsSetBitRate.CommandArgs) {
-    return Formatter.Commands.MediaAVToolsSetBitRate.createMessage(context, args);
+  async run(context: Command.Context, args: Formatter.Commands.MediaAVManipulationSetBitRate.CommandArgs) {
+    return Formatter.Commands.MediaAVManipulationSetBitRate.createMessage(context, args);
   }
 }
