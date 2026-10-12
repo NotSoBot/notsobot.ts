@@ -3,7 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
-import { getTranslator } from '../../i18n';
+import { getTranslator, getTranslatorForLanguage, resolveLanguage } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { GoogleLocales } from '../../../constants';
@@ -21,7 +21,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  let { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
@@ -44,6 +44,9 @@ export async function createMessage(
         locale: args.locale,
       });
       UserSettingsStore.insert(context.userId, settings);
+
+      // reply in the language they just picked (or whatever they fall back to after clearing it)
+      ({ translate } = getTranslatorForLanguage(resolveLanguage(context, settings)));
 
       if (settings.locale) {
         const languageText = languageCodeToText(settings.locale);

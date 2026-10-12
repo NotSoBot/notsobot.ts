@@ -21,10 +21,9 @@ if (SENTRY_DSN) {
 }
 
 
-process.execArgv.push('--max-old-space-size=2048');
-
 // since we're on the thicc bot system, we need to have the shard count divisible by 16
 const manager = new ClusterManager('./bot', NOTSOBOT_DISCORD_TOKEN, {
+  execArgv: [...process.execArgv, '--max-old-space-size=2048'],
   shardCount: 80 * 16,
   shardsPerCluster: 8,
 // shards: [0, 0],

@@ -4,12 +4,18 @@ import { ComponentContext } from 'detritus-client/lib/utils';
 import UserSettingsStore from '../../stores/usersettings';
 
 import { English } from './languages/en';
+import { PortugueseBrazil } from './languages/pt-BR';
+import { Russian } from './languages/ru';
 import { Spanish } from './languages/es';
+import { Turkish } from './languages/tr';
 
 
 export enum Languages {
   ENGLISH = 'en',
+  PORTUGUESE_BRAZIL = 'pt-BR',
+  RUSSIAN = 'ru',
   SPANISH = 'es',
+  TURKISH = 'tr',
 }
 
 export type TranslationKey = keyof typeof English;
@@ -19,16 +25,27 @@ export type Translations = Partial<Record<TranslationKey, string>>;
 
 export const LanguageTranslations: Record<Languages, Translations> = Object.freeze({
   [Languages.ENGLISH]: English,
+  [Languages.PORTUGUESE_BRAZIL]: PortugueseBrazil,
+  [Languages.RUSSIAN]: Russian,
   [Languages.SPANISH]: Spanish,
+  [Languages.TURKISH]: Turkish,
 });
 
 
-// Converts any locale string ('es', 'es-ES', 'es-419', 'en-US', etc) into a supported language
+// Converts any locale string ('es', 'es-ES', 'es-419', 'en-US', 'pt-BR', etc) into a supported language
+// an exact match wins ('pt-BR'), otherwise it matches on the base language ('pt-PT' and 'pt' use 'pt-BR')
 export function languageFromLocale(locale?: string | null): Languages | null {
   if (locale) {
-    const base = locale.toLowerCase().split(/[-_]/).shift();
-    for (let language of Object.values(Languages)) {
-      if (language === base) {
+    const normalized = locale.toLowerCase().replace(/_/g, '-');
+    const base = normalized.split('-').shift();
+    const languages = Object.values(Languages);
+    for (let language of languages) {
+      if (language.toLowerCase() === normalized) {
+        return language;
+      }
+    }
+    for (let language of languages) {
+      if (language.toLowerCase().split('-').shift() === base) {
         return language;
       }
     }
@@ -143,7 +160,10 @@ export function getCachedTranslator(context?: LanguageContext | null): Translato
 // the discord client locales each language shows up for, english is left out since it's the command's default text
 export const DiscordLocalesForLanguage: Record<Languages, Array<string>> = Object.freeze({
   [Languages.ENGLISH]: [],
+  [Languages.PORTUGUESE_BRAZIL]: ['pt-BR'],
+  [Languages.RUSSIAN]: ['ru'],
   [Languages.SPANISH]: ['es-419', 'es-ES'],
+  [Languages.TURKISH]: ['tr'],
 });
 
 
