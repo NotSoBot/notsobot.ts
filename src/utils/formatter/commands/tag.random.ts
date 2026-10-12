@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagRandom } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { Paginator, TagFormatter, editOrReply } from '../../../utils';
 
 import { generatePages, increaseUsage, maybeCheckNSFW, maybeReplaceContent } from './tag.show';
@@ -21,6 +22,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const tag = await fetchTagRandom(context, {
     content: args.content,
     name: args.name,
@@ -31,7 +33,7 @@ export async function createMessage(
 
   // parse it
   const options: Command.EditOrReply = {content: ''};
-  const title = `Showing tag: ${Markup.codestring(tag.name)}`;
+  const title = translate('tag_random.showing_tag', {name: Markup.codestring(tag.name)});
 
   try {
     context.metadata = Object.assign({}, context.metadata, {tag});
@@ -70,7 +72,7 @@ export async function createMessage(
 
     await maybeCheckNSFW(context, options);
     if (!options.content.length && !parsedTag.embeds.length && !parsedTag.files.length) {
-      options.content = 'Tag returned no content';
+      options.content = translate('tag_random.tag_returned_no_content');
     }
   } catch(error) {
     options.content = error.message;

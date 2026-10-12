@@ -5,6 +5,7 @@ import { CommandCategories, StatusEmojis } from '../../../constants';
 import {
   DefaultParameters,
   Formatter,
+  I18n,
   Parameters,
   editOrReply,
 } from '../../../utils';
@@ -52,8 +53,9 @@ export default class UserCommand extends BaseCommand {
     return !!args.user;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user.`);
+  async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

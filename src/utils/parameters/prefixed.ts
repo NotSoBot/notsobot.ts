@@ -1,4 +1,4 @@
-import { ClusterClient, Collections, Command, Structures } from 'detritus-client';
+import { ClusterClient, Collections, Command, Interaction, Structures } from 'detritus-client';
 import { DiscordRegexNames } from 'detritus-client/lib/constants';
 import { Markup, regex as discordRegex } from 'detritus-client/lib/utils';
 
@@ -10,6 +10,8 @@ import {
   fetchMemberOrUserById,
   isSnowflake,
 } from '../../utils';
+
+import { getCachedTranslator } from '../i18n';
 
 import * as ContextMenu from './context-menu';
 import * as Slash from './slash';
@@ -123,7 +125,7 @@ export interface ChannelMetadata {
 
 export async function channelMetadata(
   value: string,
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
 ): Promise<ChannelMetadata> {
   const channelId = value.trim() || context.channelId;
 
@@ -196,7 +198,7 @@ export interface GuildMetadata extends GuildMetadataStored {
 
 export async function guildMetadata(
   value: string,
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
 ): Promise<GuildMetadata> {
   const guildId = value.trim() || context.guildId;
 
@@ -303,7 +305,7 @@ export async function guildMetadata(
 
 export async function applications(
   value: string,
-  context: Command.Context,
+  context: Command.Context | Interaction.InteractionContext,
 ): Promise<Array<Structures.Application>> {
   if (value) {
     if (isSnowflake(value)) {
@@ -363,7 +365,7 @@ export function oneOf<T>(options: OneOfOptions<T>) {
   }));
 
   const shouldError = (options.error === undefined) ? options.defaultChoice === undefined : !!options.error;
-  return (value: string): null | T => {
+  return (value: string, context?: Command.Context | Interaction.InteractionContext): null | T => {
     if (value) {
       const results = search.search(value);
       if (results.length) {
@@ -374,7 +376,7 @@ export function oneOf<T>(options: OneOfOptions<T>) {
           const description: string = ((options.descriptions) ? (options.descriptions as any)[value] : '') || '';
           return Markup.codestring(description || String(value));
         }).join(', ');
-        throw new Error(`Must be one of (${text})`);
+        throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${text})`}));
       }
       return null;
     }

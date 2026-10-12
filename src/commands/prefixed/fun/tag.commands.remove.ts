@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis, UserFlags } from '../../../constants';
 import UserStore from '../../../stores/users';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -37,9 +37,10 @@ export default class TagCommandsRemoveCommand extends BaseCommand {
     return !!args.tag;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.TagCommandsRemove.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.TagCommandsRemove.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.tag === false) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
     }
     return super.onCancelRun(context, args);
   }

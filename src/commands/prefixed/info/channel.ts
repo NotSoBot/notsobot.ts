@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -36,8 +36,9 @@ export default class ChannelCommand extends BaseCommand {
     return !!args.payload.channel;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.InfoChannel.CommandArgsBefore) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that channel.`);
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoChannel.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.channel_not_found')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoChannel.CommandArgs) {

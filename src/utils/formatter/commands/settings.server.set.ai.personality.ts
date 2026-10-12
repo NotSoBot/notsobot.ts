@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getTranslator } from '../../i18n';
 
 import { editGuildSettings } from '../../../api';
 import { editOrReply } from '../../../utils';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
@@ -30,9 +32,9 @@ export async function createMessage(
     }
     if (guildSettings && guildSettings.settings.mlLLMPersonality === args.personality) {
       if (guildSettings.settings.mlLLMPersonality) {
-        text = `This server\'s AI Personality is already ${Markup.codeblock(guildSettings.settings.mlLLMPersonality)}`;
+        text = translate('settings_server_set_ai_personality.this_server_s_ai_personality_is_already', {mlLLMPersonality: Markup.codeblock(guildSettings.settings.mlLLMPersonality)});
       } else {
-        text = 'This server currently does not have an AI Personality set.';
+        text = translate('settings_server_set_ai_personality.this_server_currently_does_not_have_an');
       }
     } else {
       // update it
@@ -41,20 +43,20 @@ export async function createMessage(
       });
 
       if (settings.mlLLMPersonality) {
-        text = `Ok, set this server\'s AI Personality to ${Markup.codeblock(settings.mlLLMPersonality)}`;
+        text = translate('settings_server_set_ai_personality.ok_set_this_server_s_ai_personality', {mlLLMPersonality: Markup.codeblock(settings.mlLLMPersonality)});
       } else {
-        text = 'Ok, cleared out this server\'s AI Personality.';
+        text = translate('settings_server_set_ai_personality.ok_cleared_out_this_server_s_ai');
       }
     }
   } else {
     if (guildSettings) {
       if (guildSettings.settings.mlLLMPersonality) {
-        text = `This server\'s current AI Personality is ${Markup.codeblock(guildSettings.settings.mlLLMPersonality)}`;
+        text = translate('settings_server_set_ai_personality.this_server_s_current_ai_personality_is', {mlLLMPersonality: Markup.codeblock(guildSettings.settings.mlLLMPersonality)});
       } else {
-        text = 'This server currently does not have an AI Personality set.';
+        text = translate('settings_server_set_ai_personality.this_server_currently_does_not_have_an');
       }
     } else {
-      text = 'Error fetching this server\'s current AI Personality.';
+      text = translate('settings_server_set_ai_personality.error_fetching_this_server_s_current_ai');
     }
   }
 

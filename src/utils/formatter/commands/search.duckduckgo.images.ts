@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGoImages, utilitiesFetchMedia } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import {
   Paginator,
@@ -29,6 +30,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { results } = await searchDuckDuckGoImages(context, args);
@@ -43,11 +45,11 @@ export async function createMessage(
       onPage: async (page) => {
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
-        embed.setFooter(`Page ${page}/${pageLimit} of Duck Duck Go Image Results`, EmbedBrands.DUCK_DUCK_GO);
+        embed.setFooter(translate('search_duckduckgo_images.page_of_duck_duck_go_image_results', {page: page, pageLimit: pageLimit}), EmbedBrands.DUCK_DUCK_GO);
 
         const result = results[page - 1];
         if (!args.simple) {
-          embed.setTitle(`Found from ${result.footer}`);
+          embed.setTitle(translate('search_duckduckgo_images.found_from', {footer: result.footer}));
           embed.setDescription(Markup.url(Markup.escape.all(result.header), result.url));
         }
 
@@ -84,5 +86,5 @@ export async function createMessage(
     });
     return await paginator.start();
   }
-  return editOrReply(context, 'Couldn\'t find any results for that search term');
+  return editOrReply(context, translate('search_duckduckgo_images.couldn_t_find_any_results_for_that'));
 }

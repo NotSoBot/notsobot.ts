@@ -310,7 +310,7 @@ export function getGuildRoleUpdateChanges(old: Structures.Role, role: Structures
 }
 
 
-export function getGuildRolePermissionChanges(old: Structures.Role, role: Structures.Role): {added: Array<string>, removed: Array<string>} {
+export function getGuildRolePermissionChanges(old: Structures.Role, role: Structures.Role, translator: Translator): {added: Array<string>, removed: Array<string>} {
   const added: Array<string> = [];
   const removed: Array<string> = [];
   if (role.permissions !== old.permissions) {
@@ -320,9 +320,9 @@ export function getGuildRolePermissionChanges(old: Structures.Role, role: Struct
     for (let key in newPermissions) {
       if (newPermissions[key] !== oldPermissions[key]) {
         if (newPermissions[key]) {
-          added.push(`${PermissionsText[key]}: ${StatusEmojis.YES}`);
+          added.push(`${translator.label('permissions', PermissionsText[key])}: ${StatusEmojis.YES}`);
         } else {
-          removed.push(`${PermissionsText[key]}: ${StatusEmojis.NO}`);
+          removed.push(`${translator.label('permissions', PermissionsText[key])}: ${StatusEmojis.NO}`);
         }
       }
     }
@@ -379,7 +379,7 @@ export function formatGuildRoleUpdate(
     embed.addField(translate('logger.changes'), changes.join('\n'));
   }
 
-  const { added, removed } = getGuildRolePermissionChanges(old, role);
+  const { added, removed } = getGuildRolePermissionChanges(old, role, translator);
   if (added.length) {
     embed.addField(translate('logger.role.enabled_permissions'), Markup.codeblock(added.join('\n')), true);
   }
@@ -412,7 +412,7 @@ export function formatGuildRoleUpdateComponents(
     }
   }
 
-  const { added, removed } = getGuildRolePermissionChanges(old, role);
+  const { added, removed } = getGuildRolePermissionChanges(old, role, translator);
 
   container.setAccentColor(EmbedColors.LOG_UPDATE);
   addContainerHeader(container, getRoleHeaderLines(role, role.id, translator), urls.current || getRoleThumbnailUrl(role));

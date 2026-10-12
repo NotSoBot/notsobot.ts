@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchWikihow, searchWikihowRandom } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
@@ -20,6 +21,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   if (args.random) {
@@ -46,7 +48,7 @@ export async function createMessage(
 
               {
                 const { rating } = result;
-                description.push(`Rating: ${rating.value}% (${rating.count.toLocaleString()} Votes)`);
+                description.push(translate('search_wikihow.rating_votes', {count: rating.count.toLocaleString(language), rating: rating.value}));
               }
 
               if (result.video) {
@@ -56,9 +58,9 @@ export async function createMessage(
               embed.setDescription(description.join('\n'));
             }
 
-            embed.addField(`**Method 1: ${Markup.escape.all(method.title)}**`, `**Step ${page}:** ${Markup.escape.all(step.text, {limit: 1000})}`);
+            embed.addField(translate('search_wikihow.method_1', {title: Markup.escape.all(method.title)}), translate('search_wikihow.step', {page: page, text: Markup.escape.all(step.text, {limit: 1000})}));
 
-            embed.setFooter(`Step ${page}/${pageLimit} of ${method.title}`, EmbedBrands.NOTSOBOT);
+            embed.setFooter(translate('search_wikihow.step_of', {page: page, pageLimit: pageLimit, title: method.title}), EmbedBrands.NOTSOBOT);
 
             return embed;
           },
@@ -88,15 +90,15 @@ export async function createMessage(
 
         {
           const description: Array<string> = [];
-          description.push(`Last updated ${result.updated}`);
-          description.push(`${result.views.toLocaleString()} Views`);
+          description.push(translate('search_wikihow.last_updated', {updated: result.updated}));
+          description.push(translate('search_wikihow.views', {views: result.views.toLocaleString(language)}));
           if (result.badge) {
-            description.push(`Badge: ${result.badge}`);
+            description.push(translate('search_wikihow.badge', {badge: result.badge}));
           }
           embed.setDescription(description.join('\n'));
         }
 
-        embed.setFooter(`Page ${page}/${pageLimit} of Wikihow Results`, EmbedBrands.WIKIHOW);
+        embed.setFooter(translate('search_wikihow.page_of_wikihow_results', {page: page, pageLimit: pageLimit}), EmbedBrands.WIKIHOW);
 
         return embed;
       },
@@ -104,5 +106,5 @@ export async function createMessage(
     return await paginator.start();
   }
 
-  return editOrReply(context, 'Couldn\'t find any guides for that search');
+  return editOrReply(context, translate('search_wikihow.couldn_t_find_any_guides_for_that'));
 }

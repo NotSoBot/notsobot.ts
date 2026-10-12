@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { GuildSettings } from '../../../api/structures/guildsettings';
 import { EmbedColors, GuildCommandsAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -20,6 +21,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const guildId = context.guildId!;
   
   const embed = createUserEmbed(context.user);
@@ -30,7 +32,7 @@ export async function createMessage(
   } else {
     embed.setTitle('WIP');
     embed.setDescription('clear the entire guild');
-    embed.setFooter('Commands Allowlist');
+    embed.setFooter(translate('moderation_commands_allowlist_clear.commands_allowlist'));
   }
   
   return editOrReply(context, {embed});

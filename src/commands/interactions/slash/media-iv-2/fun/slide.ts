@@ -24,7 +24,7 @@ export class MediaIVSlideCommand extends BaseInteractionImageOrVideoCommandOptio
           name: 'direction',
           description: 'Slide Direction',
           ...I18n.optionLocalizations('commands.media_iv_2.fun.slide.direction'),
-          choices: Parameters.Slash.oneOf({choices: MediaSlideDirections, defaultChoice: MediaSlideDirections.RIGHT}),
+          choices: Parameters.Slash.oneOf({choices: MediaSlideDirections, defaultChoice: MediaSlideDirections.RIGHT, localizationKey: 'choices.directions'}),
         },
         {name: 'speed', description: 'Slide Speed (0.01..10.0) (Default: 1.0)', ...I18n.optionLocalizations('commands.media_iv_2.fun.slide.speed'), type: 'number'},
       ],

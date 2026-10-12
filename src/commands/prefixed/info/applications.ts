@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -35,8 +35,9 @@ export default class ApplicationsCommand extends BaseCommand {
     return !!args.applications.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.InfoApplications.CommandArgsBefore) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that game.`);
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoApplications.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.game_not_found')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoApplications.CommandArgs) {

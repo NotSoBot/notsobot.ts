@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getTranslator } from '../../i18n';
 
 import { editGuildSettings } from '../../../api';
 import { GuildSettingsResponseDisplayTypes } from '../../../constants';
@@ -11,46 +12,58 @@ import { editOrReply } from '../../../utils';
 export const COMMAND_ID = 'settings.server.set.response.display';
 
 export interface CommandArgs {
-  type?: GuildSettingsResponseDisplayTypes,
+  clear?: boolean,
+  type?: GuildSettingsResponseDisplayTypes | null,
 }
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  let text: string = 'Unknown Error, Sorry';
+  if (args.clear) {
+    args.type = null;
+  }
+
+  let text: string = translate('settings_server_set_response_display.unknown_error_sorry');
   if (args.type === undefined) {
     const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
     if (guildSettings) {
       switch (guildSettings.settings.responseDisplay) {
+        case null: {
+          text = translate('settings_server_set_response_display.this_server_does_not_have_a_response_display');
+        }; break;
         case GuildSettingsResponseDisplayTypes.DEFAULT: {
-          text = 'This server\'s current setting will display responses with our latest format';
+          text = translate('settings_server_set_response_display.this_server_s_current_setting_will_display');
         }; break;
         case GuildSettingsResponseDisplayTypes.NO_EMBED: {
-          text = 'This server\'s current setting will display responses without using embeds';
+          text = translate('settings_server_set_response_display.this_server_s_current_setting_will_display_2');
         }; break;
         case GuildSettingsResponseDisplayTypes.LEGACY: {
-          text = 'This server\'s current setting will display responses in our legacy format using embeds';
+          text = translate('settings_server_set_response_display.this_server_s_current_setting_will_display_3');
         }; break;
       }
     } else {
-      text = 'Error fetching this server\'s current response display setting.';
+      text = translate('settings_server_set_response_display.error_fetching_this_server_s_current_response');
     }
   } else {
     const { settings } = await editGuildSettings(context, context.guildId!, {
       responseDisplay: args.type,
     });
     switch (settings.responseDisplay) {
+      case null: {
+        text = translate('settings_server_set_response_display.ok_cleared_out_this_server_s_response_display');
+      }; break;
       case GuildSettingsResponseDisplayTypes.DEFAULT: {
-        text = 'Ok, will display this server\'s responses with our latest format';
+        text = translate('settings_server_set_response_display.ok_will_display_this_server_s_responses');
       }; break;
       case GuildSettingsResponseDisplayTypes.NO_EMBED: {
-        text = 'Ok, will display this server\'s responses without using embeds (logs will still use embeds)';
+        text = translate('settings_server_set_response_display.ok_will_display_this_server_s_responses_2');
       }; break;
       case GuildSettingsResponseDisplayTypes.LEGACY: {
-        text = 'Ok, will display this server\'s responses in our legacy format using embeds';
+        text = translate('settings_server_set_response_display.ok_will_display_this_server_s_responses_3');
       }; break;
     }
   }

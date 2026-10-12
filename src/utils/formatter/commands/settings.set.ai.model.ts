@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { editOrReply } from '../../../utils';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
@@ -30,9 +32,9 @@ export async function createMessage(
     }
     if (oldSettings && oldSettings.ml_llm_model === args.model) {
       if (oldSettings.ml_llm_model) {
-        text = `Your AI Model preference is already ${Markup.bold(oldSettings.ml_llm_model)}`;
+        text = translate('settings_set_ai_model.your_ai_model_preference_is_already', {ml_llm_model: Markup.bold(oldSettings.ml_llm_model)});
       } else {
-        text = 'You currently do not have an AI Model preference.';
+        text = translate('settings_set_ai_model.you_currently_do_not_have_an_ai');
       }
     } else {
       // update it
@@ -42,20 +44,20 @@ export async function createMessage(
       UserSettingsStore.insert(context.userId, settings);
 
       if (settings.ml_llm_model) {
-        text = `Ok, set your AI Model preference to ${Markup.bold(settings.ml_llm_model)}`;
+        text = translate('settings_set_ai_model.ok_set_your_ai_model_preference_to', {ml_llm_model: Markup.bold(settings.ml_llm_model)});
       } else {
-        text = 'Ok, cleared out your AI Model preference.';
+        text = translate('settings_set_ai_model.ok_cleared_out_your_ai_model_preference');
       }
     }
   } else {
     if (oldSettings) {
       if (oldSettings.ml_llm_model) {
-        text = `Your current AI Model preference is ${Markup.bold(oldSettings.ml_llm_model)}`;
+        text = translate('settings_set_ai_model.your_current_ai_model_preference_is', {ml_llm_model: Markup.bold(oldSettings.ml_llm_model)});
       } else {
-        text = 'You currently do not have an AI Model preference.';
+        text = translate('settings_set_ai_model.you_currently_do_not_have_an_ai');
       }
     } else {
-      text = 'Error fetching your current AI Model preference.';
+      text = translate('settings_set_ai_model.error_fetching_your_current_ai_model_preference');
     }
   }
 

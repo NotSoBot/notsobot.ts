@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { editOrReply } from '../../../utils';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
@@ -30,9 +32,9 @@ export async function createMessage(
     }
     if (oldSettings && oldSettings.download_quality === args.quality) {
       if (oldSettings.download_quality) {
-        text = `Your Download Quality preference is already ${Markup.bold(oldSettings.download_quality)}`;
+        text = translate('settings_set_download_quality.your_download_quality_preference_is_already', {download_quality: Markup.bold(oldSettings.download_quality)});
       } else {
-        text = 'You currently do not have a Download Quality preference.';
+        text = translate('settings_set_download_quality.you_currently_do_not_have_a_download');
       }
     } else {
       // update it
@@ -42,20 +44,20 @@ export async function createMessage(
       UserSettingsStore.insert(context.userId, settings);
 
       if (settings.download_quality) {
-        text = `Ok, set your Download Quality preference to ${Markup.bold(settings.download_quality)}`;
+        text = translate('settings_set_download_quality.ok_set_your_download_quality_preference_to', {download_quality: Markup.bold(settings.download_quality)});
       } else {
-        text = 'Ok, cleared out your Download Quality preference.';
+        text = translate('settings_set_download_quality.ok_cleared_out_your_download_quality_preference');
       }
     }
   } else {
     if (oldSettings) {
       if (oldSettings.download_quality) {
-        text = `Your current Download Quality preference is ${Markup.bold(oldSettings.download_quality)}`;
+        text = translate('settings_set_download_quality.your_current_download_quality_preference_is', {download_quality: Markup.bold(oldSettings.download_quality)});
       } else {
-        text = 'You currently do not have a Download Quality preference.';
+        text = translate('settings_set_download_quality.you_currently_do_not_have_a_download');
       }
     } else {
-      text = 'Error fetching your current Download Quality preference.';
+      text = translate('settings_set_download_quality.error_fetching_your_current_download_quality_preference');
     }
   }
 

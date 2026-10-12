@@ -8,9 +8,8 @@ import {
   MessageComponentButtonStyles,
   MessageFlags,
 } from 'detritus-client/lib/constants';
-import { Components, Embed, Markup } from 'detritus-client/lib/utils';
+import { Components, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
-import { Response } from 'detritus-rest';
 
 import GuildSettingsStore from '../../stores/guildsettings';
 import ServerSettingsStore from '../../stores/serversettings';
@@ -21,15 +20,21 @@ import { createUserCommand } from '../../api';
 import {
   CommandTypes,
   DiscordSkuIds,
-  EmbedColors,
   GuildFeatures,
-  PermissionsText,
-  StatusEmojis,
   UserFlags,
   UserPremiumTypes,
   UserSettingsApplicationCommandResponseTypes,
 } from '../../constants';
-import { DefaultParameters, I18n, Parameters, editOrReply, getCommandIdFromInvoker } from '../../utils';
+import { DefaultParameters, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
+
+import {
+  createArgumentErrorPayload,
+  createRunErrorPayload,
+  formatPermissions,
+  replyError,
+  replyWarning as replyErrorWarning,
+  warning,
+} from '../errors';
 
 
 export interface InteractionCommandMetadata {
@@ -48,6 +53,29 @@ export function translateErrorLabel(error: string, translate: I18n.Translator['t
     case 'User Context Menu': return translate('errors.label.user_context_menu');
   }
   return error;
+}
+
+
+// interaction errors are always ephemeral
+function replyWarning(context: Interaction.InteractionContext, content: string) {
+  return replyErrorWarning(context, content, {ephemeral: true});
+}
+
+
+// shared by the url media options when no url was found, `notFound` is the error for an empty channel
+async function replyMediaUrlNotFound(
+  context: Interaction.InteractionContext,
+  url: null | undefined,
+  notFound: I18n.TranslationKey,
+) {
+  const { translate } = await I18n.getTranslator(context);
+  if (url === null) {
+    return replyWarning(context, translate('errors.invalid_user_or_url'));
+  }
+  if (!context.hasServerPermissions) {
+    return replyWarning(context, translate('errors.no_channel_history'));
+  }
+  return replyWarning(context, translate(notFound));
 }
 
 
@@ -99,11 +127,10 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
   async onDmBlocked(context: Interaction.InteractionContext) {
     const { translate } = await I18n.getTranslator(context);
-    const command = Markup.codestring(context.name);
-    return context.editOrRespond({
-      content: `${StatusEmojis.WARNING} ${translate('errors.dm_blocked', {command: `\`${command}\``, label: translateErrorLabel(this.error, translate)})}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return replyWarning(context, translate('errors.dm_blocked', {
+      command: Markup.codestring(context.name),
+      label: translateErrorLabel(this.error, translate),
+    }));
   }
 
   onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
@@ -127,7 +154,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         if (metadata.nsfw) {
           const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
           if (!isNSFWAllowed) {
-            contextMetadata.reason = `${StatusEmojis.WARNING} ${translate('errors.not_nsfw_channel')}`;
+            contextMetadata.reason = warning(translate('errors.not_nsfw_channel'));
             return resolve(isNSFWAllowed);
           }
         }
@@ -171,9 +198,9 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           if (!hasPremium) {
             context.metadata = context.metadata || {};
             if (metadata.premiumServer) {
-              context.metadata.reason = translate('errors.premium_server_required', {command: Markup.codestring(context.name)});
+              context.metadata.reason = warning(translate('errors.premium_server_required', {command: Markup.codestring(context.name)}));
             } else {
-              context.metadata.reason = translate('errors.premium_required', {command: Markup.codestring(context.name)});
+              context.metadata.reason = warning(translate('errors.premium_required', {command: Markup.codestring(context.name)}));
             }
             context.metadata.reasonIsPremiumRequired = true;
             return resolve(hasPremium);
@@ -207,150 +234,40 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
         });
         */
       }
-      return editOrReply(context, {
-        content: contextMetadata.reason,
-        flags: MessageFlags.EPHEMERAL,
-      });
+      return replyError(context, {description: contextMetadata.reason}, {ephemeral: true});
     }
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const { translate } = await I18n.getTranslator(context);
-    const command = Markup.codestring(context.name);
-    return context.editOrRespond({
-      content: `${StatusEmojis.WARNING} ${translate('errors.cancel_run', {command: `\`${command}\``, label: translateErrorLabel(this.error, translate)})}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return replyWarning(context, translate('errors.cancel_run', {
+      command: Markup.codestring(context.name),
+      label: translateErrorLabel(this.error, translate),
+    }));
   }
 
   async onPermissionsFailClient(context: Interaction.InteractionContext, failed: Array<bigint>) {
-    const { translate } = await I18n.getTranslator(context);
-    const permissions: Array<string> = [];
-    for (let permission of failed) {
-      const key = String(permission);
-      if (key in PermissionsText) {
-        permissions.push(`\`${PermissionsText[key]}\``);
-      } else {
-        permissions.push(`\`(${translate('common.unknown_value', {value: String(permission)})})\``);
-      }
-    }
-
-    const command = Markup.codestring(context.name);
-    return context.editOrRespond({
-      content: `${StatusEmojis.WARNING} ${translate('errors.bot_missing_permissions', {command, label: translateErrorLabel(this.error, translate), permissions: permissions.join(', ')})}`,
-    });
+    const translator = await I18n.getTranslator(context);
+    return replyWarning(context, translator.translate('errors.bot_missing_permissions', {
+      command: Markup.codestring(context.name),
+      label: translateErrorLabel(this.error, translator.translate),
+      permissions: formatPermissions(failed, translator),
+    }));
   }
 
   async onPermissionsFail(context: Interaction.InteractionContext, failed: Array<bigint>) {
-    const { translate } = await I18n.getTranslator(context);
-    const permissions: Array<string> = [];
-    for (let permission of failed) {
-      const key = String(permission);
-      if (key in PermissionsText) {
-        permissions.push(`\`${PermissionsText[key]}\``);
-      } else {
-        permissions.push(`\`(${translate('common.unknown_value', {value: String(permission)})})\``);
-      }
-    }
-
-    const command = Markup.codestring(context.name);
-    return context.editOrRespond({
-      content: `${StatusEmojis.WARNING} ${translate('errors.user_missing_permissions', {command, label: translateErrorLabel(this.error, translate), permissions: permissions.join(', ')})}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    const translator = await I18n.getTranslator(context);
+    return replyWarning(context, translator.translate('errors.user_missing_permissions', {
+      command: Markup.codestring(context.name),
+      label: translateErrorLabel(this.error, translator.translate),
+      permissions: formatPermissions(failed, translator),
+    }));
   }
 
   async onRunError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, error: any) {
-    const { translate } = await I18n.getTranslator(context);
-    const embed = new Embed();
-    embed.setColor(EmbedColors.ERROR);
-    embed.setTitle(`${StatusEmojis.WARNING} ${translate('errors.run_title', {label: translateErrorLabel(this.error, translate)})}`);
-
-    const description: Array<string> = [];
-    if (error.response) {
-      const response: Response = error.response;
-      try {
-        const information = await response.json() as any;
-        description.push(error.message || error.stack);
-        if ('errors' in information) {
-          for (let key in information.errors) {
-            const value = information.errors[key];
-            let message: string;
-            if (typeof(value) === 'object') {
-              message = JSON.stringify(value);
-            } else {
-              message = String(value);
-            }
-            description.push(`**${key}**: ${message}`);
-          }
-        }
-
-        if (
-          response.statusCode === 429 &&
-          (
-            (context.rest.raw.restClient.baseUrl instanceof URL) &&
-            (context.rest.raw.restClient.baseUrl.host === response.request.parsedUrl.host)
-          )
-        ) {
-          const headers: Record<string, string> = {};
-          for (let [header, value] of response.headers) {
-            if (header.startsWith('x-ratelimit')) {
-              headers[header] = value;
-            }
-          }
-          embed.addField('Ratelimit Info', [
-            '```json',
-            JSON.stringify({body: information, headers}),
-            '```',
-          ].join('\n'));
-        }
-
-      } catch(e) {
-        if (response.statusCode === 502 || response.statusCode === 521) {
-          description.push(translate('errors.api_restarting'));
-        } else {
-          description.push(translate('errors.http_exception', {status: response.statusCode}));
-          const contentType = response.headers.get('content-type') || '';
-          if (contentType.startsWith('text/html')) {
-            // parse it?
-          } else {
-            description.push(translate('errors.unknown_error_data'));
-            if (contentType) {
-              description.push(`**Mimetype**: ${contentType}`);
-            }
-          }
-        }
-      }
-    } else {
-      const message = String(error.message || error.stack);
-      if (message.includes('reason: connect ECONNREFUSED 127.0.0.1:80')) {
-        description.push(translate('errors.api_restarting'));
-      } else {
-        description.push(message);
-      }
-    }
-
-    let file: any = undefined;
-    if (4096 < description.length) {
-      embed.setDescription(translate('errors.uploaded'));
-      file = {filename: 'error.txt', value: description.join('\n')};
-    } else {
-      embed.setDescription(description.join('\n'));
-    }
-
-    if (error.metadata) {
-      embed.addField('Metadata', [
-        '```json',
-        JSON.stringify(error.metadata),
-        '```',
-      ].join('\n'));
-    }
-
-    await context.editOrRespond({
-      embed,
-      file,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    const translator = await I18n.getTranslator(context);
+    const title = warning(translator.translate('errors.run_title', {label: translateErrorLabel(this.error, translator.translate)}));
+    await replyError(context, await createRunErrorPayload(context, title, error, translator), {ephemeral: true});
 
     if (context.invoker && context.invoker.metadata) {
       let commandType: null | number = null;
@@ -411,29 +328,9 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   }
 
   async onValueError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, errors: Interaction.ParsedErrors) {
-    const { translate } = await I18n.getTranslator(context);
-    const embed = new Embed();
-    embed.setColor(EmbedColors.ERROR);
-    embed.setTitle(`${StatusEmojis.WARNING} ${translate('errors.argument_title', {label: translateErrorLabel(this.error, translate)})}`);
-
-    const store: {[key: string]: string} = {};
-
-    const description: Array<string> = [translate('errors.invalid_arguments') + '\n'];
-    for (let key in errors) {
-      const message = errors[key].message;
-      if (message in store) {
-        description.push(`**${key}**: ${translate('errors.same_error_as', {key: `**${store[message]}**`})}`);
-      } else {
-        description.push(`**${key}**: ${message}`);
-      }
-      store[message] = key;
-    }
-  
-    embed.setDescription(description.join('\n'));
-    return editOrReply(context, {
-      embed,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    const translator = await I18n.getTranslator(context);
+    const title = warning(translator.translate('errors.argument_title', {label: translateErrorLabel(this.error, translator.translate)}));
+    return replyError(context, createArgumentErrorPayload(title, errors, translator), {ephemeral: true});
   }
 }
 
@@ -445,11 +342,10 @@ export class BaseInteractionCommandOption extends Interaction.InteractionCommand
 
   async onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const { translate } = await I18n.getTranslator(context);
-    const command = Markup.codestring(context.name);
-    return context.editOrRespond({
-      content: `${StatusEmojis.WARNING} ${translate('errors.cancel_run', {command: `\`${command}\``, label: translateErrorLabel(this.error, translate)})}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return replyWarning(context, translate('errors.cancel_run', {
+      command: Markup.codestring(context.name),
+      label: translateErrorLabel(this.error, translate),
+    }));
   }
 }
 
@@ -473,24 +369,9 @@ export class BaseInteractionAudioOrVideoCommandOption extends BaseInteractionCom
     return !!args.url;
   }
 
-  async onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
-    const { translate } = await I18n.getTranslator(context);
-    if (args.url === undefined) {
-      if (!context.hasServerPermissions) {
-        return editOrReply(context, {
-          content: `${StatusEmojis.WARNING} ${translate('errors.no_channel_history')}`,
-          flags: MessageFlags.EPHEMERAL,
-        });
-      }
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.no_audio_video_found')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
-    } else if (args.url === null) {
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.invalid_user_or_url')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined || args.url === null) {
+      return replyMediaUrlNotFound(context, args.url, 'errors.no_audio_video_found');
     }
     return super.onCancelRun(context, args);
   }
@@ -527,24 +408,9 @@ export class BaseInteractionImageCommandOption extends BaseInteractionCommandOpt
     return !!args.url;
   }
 
-  async onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
-    const { translate } = await I18n.getTranslator(context);
-    if (args.url === undefined) {
-      if (!context.hasServerPermissions) {
-        return editOrReply(context, {
-          content: `${StatusEmojis.WARNING} ${translate('errors.no_channel_history')}`,
-          flags: MessageFlags.EPHEMERAL,
-        });
-      }
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.no_images_found')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
-    } else if (args.url === null) {
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.invalid_user_or_url')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined || args.url === null) {
+      return replyMediaUrlNotFound(context, args.url, 'errors.no_images_found');
     }
     return super.onCancelRun(context, args);
   }
@@ -570,24 +436,9 @@ export class BaseInteractionImageOrVideoCommandOption extends BaseInteractionCom
     return !!args.url;
   }
 
-  async onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
-    const { translate } = await I18n.getTranslator(context);
-    if (args.url === undefined) {
-      if (!context.hasServerPermissions) {
-        return editOrReply(context, {
-          content: `${StatusEmojis.WARNING} ${translate('errors.no_channel_history')}`,
-          flags: MessageFlags.EPHEMERAL,
-        });
-      }
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.no_images_videos_found')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
-    } else if (args.url === null) {
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.invalid_user_or_url')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined || args.url === null) {
+      return replyMediaUrlNotFound(context, args.url, 'errors.no_images_videos_found');
     }
     return super.onCancelRun(context, args);
   }
@@ -613,24 +464,9 @@ export class BaseInteractionMediaCommandOption extends BaseInteractionCommandOpt
     return !!args.url;
   }
 
-  async onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
-    const { translate } = await I18n.getTranslator(context);
-    if (args.url === undefined) {
-      if (!context.hasServerPermissions) {
-        return editOrReply(context, {
-          content: `${StatusEmojis.WARNING} ${translate('errors.no_channel_history')}`,
-          flags: MessageFlags.EPHEMERAL,
-        });
-      }
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.no_media_found')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
-    } else if (args.url === null) {
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.invalid_user_or_url')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined || args.url === null) {
+      return replyMediaUrlNotFound(context, args.url, 'errors.no_media_found');
     }
     return super.onCancelRun(context, args);
   }
@@ -688,26 +524,17 @@ export class BaseInteractionMediasCommandOption extends BaseInteractionCommandOp
     const { translate } = await I18n.getTranslator(context);
     if (!args.urls.length) {
       if (!context.hasServerPermissions) {
-        return editOrReply(context, {
-          content: `${StatusEmojis.WARNING} ${translate('errors.no_channel_history')}`,
-          flags: MessageFlags.EPHEMERAL,
-        });
+        return replyWarning(context, translate('errors.no_channel_history'));
       }
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.no_media_found')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
+      return replyWarning(context, translate('errors.no_media_found'));
     } else if (args.urls.length < this.minAmount) {
       if (!context.hasServerPermissions) {
-        return editOrReply(context, {
-          content: `${StatusEmojis.WARNING} ${translate('errors.no_channel_history_amount', {amount: this.minAmount})}`,
-          flags: MessageFlags.EPHEMERAL,
-        });
+        return replyWarning(context, translate('errors.no_channel_history_amount', {amount: this.minAmount}));
       }
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.not_enough_media_found', {amount: this.minAmount})}`);
+      return replyWarning(context, translate('errors.not_enough_media_found', {amount: this.minAmount}));
     } else if (this.maxAmount < args.urls.length) {
       // never should happen
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.too_many_media_found')}`);
+      return replyWarning(context, translate('errors.too_many_media_found'));
     }
     return super.onCancelRun(context, args);
   }
@@ -733,24 +560,9 @@ export class BaseInteractionVideoCommandOption extends BaseInteractionCommandOpt
     return !!args.url;
   }
 
-  async onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
-    const { translate } = await I18n.getTranslator(context);
-    if (args.url === undefined) {
-      if (!context.hasServerPermissions) {
-        return editOrReply(context, {
-          content: `${StatusEmojis.WARNING} ${translate('errors.no_channel_history')}`,
-          flags: MessageFlags.EPHEMERAL,
-        });
-      }
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.no_videos_found')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
-    } else if (args.url === null) {
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('errors.invalid_user_or_url')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
+  onCancelRun(context: Interaction.InteractionContext, args: {url?: null | string}) {
+    if (args.url === undefined || args.url === null) {
+      return replyMediaUrlNotFound(context, args.url, 'errors.no_videos_found');
     }
     return super.onCancelRun(context, args);
   }
@@ -763,11 +575,10 @@ export class BaseInteractionCommandOptionGroup extends Interaction.InteractionCo
 
   async onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {
     const { translate } = await I18n.getTranslator(context);
-    const command = Markup.codestring(context.name);
-    return context.editOrRespond({
-      content: `${StatusEmojis.WARNING} ${translate('errors.cancel_run_group', {command: `\`${command}\``, label: translateErrorLabel(this.error, translate)})}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return replyWarning(context, translate('errors.cancel_run', {
+      command: Markup.codestring(context.name),
+      label: translateErrorLabel(this.error, translate),
+    }));
   }
 }
 

@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagsServer } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
@@ -59,8 +60,9 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   if (args.user && args.user.bot) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Bots do not have tags.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_export.bots_do_not_have_tags')}`);
   }
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
@@ -81,7 +83,7 @@ export async function createMessage(
       if (!args.user) {
         args.user = context.user;
       } else {
-        return editOrReply(context, `${StatusEmojis.WARNING} Not enough permissions to export other people's tags!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_export.not_enough_permissions_to_export_other_people')}`);
       }
     }
   }
@@ -96,14 +98,14 @@ export async function createMessage(
   if (tags.length) {
     const file = exportTags(serverId, tags, fetchTagsServerSearchOptions);
     return editOrReply(context, {
-      content: `Successfully exported ${tags.length.toLocaleString()} tags.`,
+      content: translate('tag_export.successfully_exported_tags', {tags_count: tags.length.toLocaleString(language)}),
       file,
     });
   }
 
   if (args.content || args.name || args.user) {
-    return editOrReply(context, 'This server has no tags matching the search options.');
+    return editOrReply(context, translate('tag_export.this_server_has_no_tags_matching_the'));
   }
 
-  return editOrReply(context, 'This server has no tags.');
+  return editOrReply(context, translate('tag_export.this_server_has_no_tags'));
 }

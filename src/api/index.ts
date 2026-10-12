@@ -26,6 +26,7 @@ import { ServerSettings } from './structures/serversettings';
 import { UserFull } from './structures/user';
 import { RestOptions, RestResponses, RestResponsesRaw } from './types';
 
+export * from './errors';
 export { request } from './raw';
 export { Endpoints, RequestContext, RestOptions, RestResponses, RestResponsesRaw, raw };
 

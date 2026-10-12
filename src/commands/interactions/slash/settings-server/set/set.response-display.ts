@@ -27,6 +27,12 @@ export class SettingsServerSetResponseDisplayCommand extends BaseInteractionComm
           choices: Parameters.Slash.GUILD_SETTINGS_RESPONSE_DISPLAY,
           type: Number,
         },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          ...I18n.optionLocalizations('commands.settings_server.set.set_response_display.clear'),
+          type: Boolean,
+        },
       ],
     });
   }

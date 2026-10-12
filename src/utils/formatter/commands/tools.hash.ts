@@ -7,6 +7,7 @@ import {
   EmbedBrands,
   EmbedColors,
 } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import { createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
 
@@ -35,6 +36,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const algorithm = (args.use || HashTypes.MD5).toLowerCase();
@@ -53,13 +55,13 @@ export async function createMessage(
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter((args.secret) ? `${title} HMAC` : `${title} Hash`, EmbedBrands.NOTSOBOT);
+  embed.setFooter((args.secret) ? translate('tools_hash.hmac', {title: title}) : `${title} Hash`, EmbedBrands.NOTSOBOT);
 
   embed.setDescription(Markup.codeblock(args.text));
   if (args.secret) {
-    embed.addField('Secret Key', Markup.codeblock(args.secret));
+    embed.addField(translate('tools_hash.secret_key'), Markup.codeblock(args.secret));
   }
-  embed.addField('Result', Markup.codeblock(digest));
+  embed.addField(translate('tools_hash.result'), Markup.codeblock(digest));
 
   return editOrReply(context, {embed});
 }

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { Formatter, I18n, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -35,11 +35,12 @@ export default class OwnerBlockUserCommand extends BaseCommand {
     return !!args.payload && !!args.payload.membersOrUsers.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerBlockUser.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerBlockUser.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.payload) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Couldn't find any members. (Use Mentions or User IDs)`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_members_found')}`);
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} Provide some members`);
+    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.needs_members')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.OwnerBlockUser.CommandArgs) {

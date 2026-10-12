@@ -1,32 +1,35 @@
 import { MessageComponentButtonStyles, MessageComponentTypes } from 'detritus-client/lib/constants';
 
+import { Languages, Translator, getTranslatorForLanguage } from '../i18n';
+
 
 
 export function parseComponentFromData(
   data: Record<string, any>,
   isChildFrom?: MessageComponentTypes,
   isChildFromParameter?: 'accessory' | 'components',
+  translate: Translator['translate'] = getTranslatorForLanguage(Languages.ENGLISH).translate,
 ): Record<string, any> {
   if (typeof(data) !== 'object') {
-    throw new Error('Components must be objects');
+    throw new Error(translate('tagscript.components.components_must_be_objects'));
   }
   switch (data.type) {
     case MessageComponentTypes.ACTION_ROW: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error('Action Rows must be a Parent Component or inside of Containers');
+        throw new Error(translate('tagscript.components.action_rows_must_be_a_parent_component_or'));
       }
       const actionRow: Record<string, any> = {
         components: [],
         type: MessageComponentTypes.ACTION_ROW,
       };
       if (!data.components || !Array.isArray(data.components) || !data.components.length) {
-        throw new Error('Action Rows must contain at least 1 component');
+        throw new Error(translate('tagscript.components.action_rows_must_contain_at_least_1_component'));
       }
       if (5 < data.components.length) {
-        throw new Error('Action Rows must contain at most 5 component');
+        throw new Error(translate('tagscript.components.action_rows_must_contain_at_most_5_component'));
       }
       for (let x of data.components) {
-        const component = parseComponentFromData(x, MessageComponentTypes.ACTION_ROW);
+        const component = parseComponentFromData(x, MessageComponentTypes.ACTION_ROW, undefined, translate);
         actionRow.components.push(component);
       }
       // todo: add check for select menu, only 1 allowed per action row, with nothing else inside
@@ -40,7 +43,7 @@ export function parseComponentFromData(
           (isChildFrom !== MessageComponentTypes.SECTION && isChildFromParameter !== 'accessory')
         )
       ) {
-        throw new Error('Buttons must only be in Action Rows or Section Accessories');
+        throw new Error(translate('tagscript.components.buttons_must_only_be_in_action_rows_or'));
       }
       const button: Record<string, any> = {
         style: MessageComponentButtonStyles.PRIMARY,
@@ -69,13 +72,13 @@ export function parseComponentFromData(
         button.run = data.run;
       }
       if (!button.url && !button.label) {
-        throw new Error('Buttons must contain a url or a label');
+        throw new Error(translate('tagscript.components.buttons_must_contain_a_url_or_a_label'));
       }
       return button;
     }; break;
     case MessageComponentTypes.CONTAINER: {
       if (isChildFrom !== undefined) {
-        throw new Error('Containers must be a Parent Component, not inside of any components');
+        throw new Error(translate('tagscript.components.containers_must_be_a_parent_component_not_inside'));
       }
       const container: Record<string, any> = {
         components: [],
@@ -106,13 +109,13 @@ export function parseComponentFromData(
       }
 
       if (!data.components || !Array.isArray(data.components) || !data.components.length) {
-        throw new Error('Containers must contain at least 1 component');
+        throw new Error(translate('tagscript.components.containers_must_contain_at_least_1_component'));
       }
       if (40 < data.components.length) {
-        throw new Error('Containers must contain at most 40 components');
+        throw new Error(translate('tagscript.components.containers_must_contain_at_most_40_components'));
       }
       for (let x of data.components) {
-        const component = parseComponentFromData(x, MessageComponentTypes.CONTAINER);
+        const component = parseComponentFromData(x, MessageComponentTypes.CONTAINER, undefined, translate);
         container.components.push(component);
       }
 
@@ -120,15 +123,15 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.FILE: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error('Files must be a Parent Component or inside of Containers');
+        throw new Error(translate('tagscript.components.files_must_be_a_parent_component_or_inside'));
       }
 
       if (!data.file || typeof(data.file) !== 'object' || !data.file.url) {
-        throw new Error('File must contain a Media Object');
+        throw new Error(translate('tagscript.components.file_must_contain_a_media_object'));
       }
 
       if (!data.file.url.startsWith('attachment://')) {
-        throw new Error('File Media Object url must be an attachment:// reference');
+        throw new Error(translate('tagscript.components.file_media_object_url_must_be_an_attachment'));
       }
 
       const file: Record<string, any> = {
@@ -144,24 +147,24 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.MEDIA_GALLERY: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error('Media Gallery must be a Parent Component or inside of Containers');
+        throw new Error(translate('tagscript.components.media_gallery_must_be_a_parent_component_or'));
       }
       const gallery: Record<string, any> = {
         items: [],
         type: MessageComponentTypes.MEDIA_GALLERY,
       };
       if (!data.items || !Array.isArray(gallery.items) || !gallery.items.length) {
-        throw new Error('Media Galleries must contain at least 1 item');
+        throw new Error(translate('tagscript.components.media_galleries_must_contain_at_least_1_item'));
       }
       if (10 < gallery.items.length) {
-        throw new Error('Media Galleries must contain at most 10 items');
+        throw new Error(translate('tagscript.components.media_galleries_must_contain_at_most_10_items'));
       }
       for (let x of data.items) {
         if (!x || typeof(x) !== 'object') {
-          throw new Error('Media Gallery items must be objects');
+          throw new Error(translate('tagscript.components.media_gallery_items_must_be_objects'));
         }
         if (!x.media || typeof(x.media) !== 'object' || !x.media.url) {
-          throw new Error('Media Gallery items must contain a Media Object');
+          throw new Error(translate('tagscript.components.media_gallery_items_must_contain_a_media_object'));
         }
         const item: Record<string, any> = {
           media: {url: x.media.url},
@@ -178,7 +181,7 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.SECTION: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error('Sections must be a Parent Component or inside of Containers');
+        throw new Error(translate('tagscript.components.sections_must_be_a_parent_component_or_inside'));
       }
       const section: Record<string, any> = {
         components: [],
@@ -186,26 +189,26 @@ export function parseComponentFromData(
       };
 
       if (!data.components || !Array.isArray(data.components) || !data.components.length) {
-        throw new Error('Sections must contain at least 1 component');
+        throw new Error(translate('tagscript.components.sections_must_contain_at_least_1_component'));
       }
       if (3 < data.components.length) {
-        throw new Error('Sections must contain at most 3 components');
+        throw new Error(translate('tagscript.components.sections_must_contain_at_most_3_components'));
       }
       for (let x of data.components) {
-        const component = parseComponentFromData(x, MessageComponentTypes.SECTION, 'components');
+        const component = parseComponentFromData(x, MessageComponentTypes.SECTION, 'components', translate);
         section.components.push(component);
       }
 
       if (!data.accessory || typeof(data.accessory) !== 'object') {
-        throw new Error('Sections must contain a valid Accessory Component');
+        throw new Error(translate('tagscript.components.sections_must_contain_a_valid_accessory_component'));
       }
-      section.accessory = parseComponentFromData(data.accessory, MessageComponentTypes.SECTION, 'accessory');
+      section.accessory = parseComponentFromData(data.accessory, MessageComponentTypes.SECTION, 'accessory', translate);
 
       return section;
     }; break;
     case MessageComponentTypes.SELECT_MENU: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.ACTION_ROW) {
-        throw new Error('Select Menus must only be in Action Rows');
+        throw new Error(translate('tagscript.components.select_menus_must_only_be_in_action_rows'));
       }
       const selectMenu: Record<string, any> = {
         options: [],
@@ -225,14 +228,14 @@ export function parseComponentFromData(
       }
 
       if (!data.options || !Array.isArray(data.options) || !data.options.length) {
-        throw new Error('Select Menu options must contain at least 1 option');
+        throw new Error(translate('tagscript.components.select_menu_options_must_contain_at_least_1'));
       }
       if (25 < data.options.length) {
-        throw new Error('Select Menu options must contain at most 25 options');
+        throw new Error(translate('tagscript.components.select_menu_options_must_contain_at_most_25'));
       }
       for (let x of data.options) {
         if (!x || typeof(x) !== 'object') {
-          throw new Error('Select Menu options need to be objects');
+          throw new Error(translate('tagscript.components.select_menu_options_need_to_be_objects'));
         }
         const options: Record<string, any> = {};
         if ('label' in x && x.label && typeof(x.label) === 'string') {
@@ -251,7 +254,7 @@ export function parseComponentFromData(
           options.default = !!x.default;
         }
         if (!options.label || !options.value) {
-          throw new Error('Select Menu options must contain both a label and a value');
+          throw new Error(translate('tagscript.components.select_menu_options_must_contain_both_a_label'));
         }
         selectMenu.options.push(options);
       }
@@ -260,7 +263,7 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.SEPARATOR: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error('Separators must be a Parent Component or inside of Containers');
+        throw new Error(translate('tagscript.components.separators_must_be_a_parent_component_or_inside'));
       }
       const separator: Record<string, any> = {
         type: MessageComponentTypes.SEPARATOR,
@@ -283,7 +286,7 @@ export function parseComponentFromData(
           (isChildFrom !== MessageComponentTypes.SECTION && isChildFromParameter !== 'components')
         )
       ) {
-        throw new Error('Text Displays must be a Parent Component or inside of Containers/Sections');
+        throw new Error(translate('tagscript.components.text_displays_must_be_a_parent_component_or'));
       }
       return {
         content: String(data.content).slice(0, 4000),
@@ -296,11 +299,11 @@ export function parseComponentFromData(
         isChildFrom !== MessageComponentTypes.SECTION ||
         isChildFromParameter !== 'accessory'
       ) {
-        throw new Error('Thumbnails must only be in Section Accessories');
+        throw new Error(translate('tagscript.components.thumbnails_must_only_be_in_section_accessories'));
       }
 
       if (!data.media || typeof(data.media) !== 'object' || !data.media.url) {
-        throw new Error('Thumbnails must contain a Media Object');
+        throw new Error(translate('tagscript.components.thumbnails_must_contain_a_media_object'));
       }
   
       const thumbnail: Record<string, any> = {
@@ -318,7 +321,7 @@ export function parseComponentFromData(
       return thumbnail;
     }; break;
     default: {
-      throw new Error('TagScript does not support this kind of component yet');
+      throw new Error(translate('tagscript.components.tagscript_does_not_support_this_kind_of_component'));
     };
   }
 }

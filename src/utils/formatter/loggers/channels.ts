@@ -199,7 +199,7 @@ export function getChannelOverwriteChanges(guildId: string, old: Structures.Chan
       if (newStates[key] === oldStates[key]) {
         continue;
       }
-      const text = (PermissionsText as Record<string, string>)[key] || key;
+      const text = ((PermissionsText as Record<string, string>)[key]) ? translator.label('permissions', (PermissionsText as Record<string, string>)[key]) : key;
       switch (newStates[key]) {
         case 'allow': allowed.push(text); break;
         case 'deny': denied.push(text); break;

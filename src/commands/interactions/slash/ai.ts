@@ -63,7 +63,11 @@ export default class AICommand extends BaseSlashCommand {
           description: 'Personality Preference',
           ...I18n.optionLocalizations('commands.ai.personalitypreference'),
           label: 'personalityPreference',
-          choices: Parameters.Slash.oneOf({choices: TagGenerationPersonalityPreferences, descriptions: TagGenerationPersonalityPreferencesToText}),
+          choices: Parameters.Slash.oneOf({
+            choices: TagGenerationPersonalityPreferences,
+            descriptions: TagGenerationPersonalityPreferencesToText,
+            localizationKey: 'choices.tag_generation_personality_preferences',
+          }),
         },
         {
           name: 'debug',
@@ -130,7 +134,8 @@ export default class AICommand extends BaseSlashCommand {
 
     if (!hasPremium) {
       context.metadata = context.metadata || {};
-      context.metadata.reason = 'You or the Server Owner must have NotSoPremium Plus AI to use NotSoAI!';
+      const { translate } = await I18n.getTranslator(context);
+      context.metadata.reason = translate('errors.premium_ai_required');
       context.metadata.reasonIsPremiumRequired = true;
     }
 

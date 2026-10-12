@@ -4,6 +4,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { fetchCommandsUsage } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
@@ -38,6 +39,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   let channelId: string | undefined;
@@ -79,9 +81,9 @@ export async function createMessage(
       embed.setColor(EmbedColors.DEFAULT);
 
       // if count matches result count, show different footer
-      let footer = `${total.count.toLocaleString()} Commands Used`;
+      let footer = translate('moderation_commands_usage.commands_used', {count: total.count.toLocaleString(language)});
       if (pageLimit !== 1) {
-        footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
+        footer = translate('moderation_commands_usage.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
       }
       embed.setFooter(footer);
 
@@ -97,19 +99,19 @@ export async function createMessage(
             noun = createUserString(usage.user_id, user);
           } else {
             // maybe fetch the user?
-            const name = `Unknown`;
+            const name = translate('moderation_commands_usage.unknown');
             noun = createUserString(usage.user_id, null, name);
           }
   
           const command = Markup.codestring(usage.command_id);
           const timestamp = Markup.timestamp(usage.timestamp * 1000, MarkupTimestampStyles.RELATIVE);
 
-          description.push(`${Markup.bold(String(i + 1 + ((pageNumber - 1) * RESULTS_PER_PAGE)))}: ${command} around ${timestamp}`);
-          description.push(`-> by ${noun}`);
+          description.push(translate('moderation_commands_usage.around', {command: command, index: Markup.bold(String(i + 1 + ((pageNumber - 1) * RESULTS_PER_PAGE))), timestamp: timestamp}));
+          description.push(translate('moderation_commands_usage.by', {noun: noun}));
         }
         embed.setDescription(description.join('\n'));
       } else {
-        embed.setDescription('No Commands Used');
+        embed.setDescription(translate('moderation_commands_usage.no_commands_used'));
       }
 
       return embed;

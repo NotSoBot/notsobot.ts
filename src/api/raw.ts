@@ -5,6 +5,7 @@ import { RequestFile, Response, createHeaders } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
 import { Api, Domains } from './endpoints';
+import { IS_NOTSOBOT_API_ERROR } from './errors';
 import { RestOptions, RestResponsesRaw, RestResponses } from './types';
 
 import {
@@ -125,7 +126,14 @@ export async function request(
     }
   }
 
-  return client.rest.request(options);
+  try {
+    return await client.rest.request(options);
+  } catch(error) {
+    if (error && error.response) {
+      error[IS_NOTSOBOT_API_ERROR] = true;
+    }
+    throw error;
+  }
 }
 
 
@@ -743,7 +751,6 @@ export async function editUserSettings(
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
-    opt_out_content: options.optOutContent,
     response_display: options.responseDisplay,
     timezone: options.timezone,
     tts_voice: options.ttsVoice,
@@ -1096,8 +1103,6 @@ export async function fetchUserReminders(
     before: options.before,
     guild_id: options.guildId,
     limit: options.limit,
-    timestamp_max: options.timestampMax,
-    timestamp_min: options.timestampMin,
   };
   return request(context, {
     query,
@@ -1760,7 +1765,6 @@ export async function mediaAIVManipulationSpeed(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
-    loop: options.loop,
     max_file_size: maxFileSize,
     safe: options.safe,
     speed: options.speed,
@@ -2959,7 +2963,7 @@ export async function mediaIVManipulationEmboss(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     azimuth: options.azimuth,
-    cmpose: options.compose,
+    compose: options.compose,
     elevation: options.elevation,
     depth: options.depth,
     intensity: options.intensity,

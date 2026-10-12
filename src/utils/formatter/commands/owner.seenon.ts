@@ -4,6 +4,7 @@ import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { DateMomentLogFormat } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import {
   Paginator,
   Parameters,
@@ -93,6 +94,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { results, user } = args.payload;
 
   const pageLimit = results.length || 1;
@@ -119,37 +121,37 @@ export async function createMessage(
         embed.setTitle(guild.name);
         {
           const description: Array<string> = [];
-          description.push(`**Acronym**: ${guild.acronym}`);
+          description.push(translate('owner_seenon.acronym', {acronym: guild.acronym}));
           {
             const timestamp = createTimestampMomentFromGuild(guild.createdAtUnix, context.guildId);
-            description.push(`**Created**: ${timestamp.fromNow()}`);
+            description.push(translate('owner_seenon.created', {timestamp: timestamp.locale(language).fromNow()}));
             description.push(`**->** ${Markup.spoiler(`(${timestamp.format(DateMomentLogFormat)})`)}`);
           }
-          description.push(`**Id**: \`${guild.id}\``);
-          description.push(`**Join Position**: ${joinPosition.toLocaleString()}/${guild.memberCount.toLocaleString()}`);
-          description.push(`**Locale**: \`${guild.preferredLocaleText || guild.preferredLocale}\``);
-          description.push(`**Nitro Boosts**: ${guild.premiumSubscriptionCount.toLocaleString()}`);
-          description.push(`**Nitro Tier**: ${(guild.premiumTier) ? `Level ${guild.premiumTier}` : 'None'}`);
+          description.push(translate('owner_seenon.id', {guild: guild.id}));
+          description.push(translate('owner_seenon.join_position', {joinPosition: joinPosition.toLocaleString(language), memberCount: guild.memberCount.toLocaleString(language)}));
+          description.push(translate('owner_seenon.locale', {preferredLocale: guild.preferredLocaleText || guild.preferredLocale}));
+          description.push(translate('owner_seenon.nitro_boosts', {premiumSubscriptionCount: guild.premiumSubscriptionCount.toLocaleString(language)}));
+          description.push(translate('owner_seenon.nitro_tier', {premiumTier: (guild.premiumTier) ? translate('info.guild.nitro_level', {level: guild.premiumTier}) : translate('common.none')}));
           if (guild.id === context.guildId) {
-            description.push(`**Owner**: <@!${guild.ownerId}>`);
+            description.push(translate('owner_seenon.owner', {ownerId: guild.ownerId}));
           } else {
-            description.push(`**Owner**: ${owner}`);
-            description.push(`**Owner Id**: \`${owner.id}\``);
+            description.push(translate('owner_seenon.owner_2', {owner: owner}));
+            description.push(translate('owner_seenon.owner_id', {owner: owner.id}));
           }
-          description.push(`**Region**: \`${guild.region}\``);
-          description.push(`**Server Type**: ${(guild.isPublic) ? 'Public' : 'Private'}`);
+          description.push(translate('owner_seenon.region', {region: guild.region}));
+          description.push(translate('owner_seenon.server_type', {isPublic: (guild.isPublic) ? translate('info.guild.server_type_public') : translate('info.guild.server_type_private')}));
 
           if (context.client.shardCount !== 1) {
-            description.push(`**Shard**: ${guildIdToShardId(guild.id, context.client.shardCount)}/${context.client.shardCount}`);
+            description.push(translate('owner_seenon.shard', {guildIdToShardId: guildIdToShardId(guild.id, context.client.shardCount), shardCount: context.client.shardCount}));
           }
 
           if (guild.vanityUrlCode) {
-            description.push(`**Vanity**: ${Endpoints.Invite.SHORT(guild.vanityUrlCode)}`); 
+            description.push(translate('owner_seenon.vanity', {Invite: Endpoints.Invite.SHORT(guild.vanityUrlCode)})); 
           }
-          embed.addField('Information', description.join('\n'), true);
+          embed.addField(translate('owner_seenon.information'), description.join('\n'), true);
         }
       }
-      embed.setFooter(`Guild ${page} of ${pageLimit}`);
+      embed.setFooter(translate('owner_seenon.guild_of', {page: page, pageLimit: pageLimit}));
 
       return embed;
     },

@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesWeather } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, MeasurementUnits } from '../../../constants';
 import { createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { location, timezone, thumbnail, weather } = await utilitiesWeather(context, {
@@ -47,31 +49,31 @@ export async function createMessage(
 
     const description: Array<string> = [];
     {
-      let text = `Currently ${current.temperature}${unitTextForTemperature(units)}`;
+      let text = translate('tools_weather.currently', {temperature: current.temperature, unitTextForTemperature: unitTextForTemperature(units)});
       if (current.conditions.length) {
         text = `${text} with ${current.conditions.map((x) => toTitleCase(x.description)).join(', ')}`;
       }
-      text = `${text}. (feels like ${current.feels_like}${unitTextForTemperature(units)})`;
+      text = translate('tools_weather.feels_like', {feels_like: current.feels_like, text: text, unitTextForTemperature: unitTextForTemperature(units)});
       description.push(text + '\n');
     }
     if (current.pressure) {
-      description.push(`**Atmospheric Pressure**: ${current.pressure} hPa`);
+      description.push(translate('tools_weather.atmospheric_pressure_hpa', {pressure: current.pressure}));
     }
-    description.push(`**Cloud Coverage**: ${current.clouds}%`);
+    description.push(translate('tools_weather.cloud_coverage', {clouds: current.clouds}));
     {
       const coordinates = `${location.latitude}, ${location.longitude}`;
-      description.push(`**Coordinates**: ${Markup.url(coordinates, location.urls.place)}`);
+      description.push(translate('tools_weather.coordinates', {coordinates: Markup.url(coordinates, location.urls.place)}));
     }
     if (current.dew_point) {
-      description.push(`**Dew Point**: ${current.dew_point}${unitTextForTemperature(units)}`);
+      description.push(translate('tools_weather.dew_point', {dew_point: current.dew_point, unitTextForTemperature: unitTextForTemperature(units)}));
     }
-    description.push(`**Humidity**: ${current.humidity}%`);
-    description.push(`**UV Index**: ${current.uv_index}`);
-    description.push(`**Visibility**: ${current.visibility} km`);
+    description.push(translate('tools_weather.humidity', {humidity: current.humidity}));
+    description.push(translate('tools_weather.uv_index', {uv_index: current.uv_index}));
+    description.push(translate('tools_weather.visibility_km', {visibility: current.visibility}));
     if (current.wind) {
       const beaufortScale = speedToBeaufortScale(current.wind.speed, units);
-      description.push(`**Wind**: ${current.wind.speed} ${unitTextForSpeed(units)} (${degreesToDirection(current.wind.direction)})`);
-      description.push(`**Wind Feels**: ${toTitleCase(beaufortScale.text)} (${beaufortScale.description})`);
+      description.push(translate('tools_weather.wind', {degreesToDirection: degreesToDirection(current.wind.direction), speed: current.wind.speed, unitTextForSpeed: unitTextForSpeed(units)}));
+      description.push(translate('tools_weather.wind_feels', {description: beaufortScale.description, value: toTitleCase(beaufortScale.text)}));
     }
 
     embed.setDescription(description.join('\n'));

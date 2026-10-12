@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { editTag, editTagsDirectoryTag } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
@@ -27,14 +28,15 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const description: Array<string> = ['Ok, updated'];
   if (args.content) {
     if (args.content === args.tag.content) {
-      description.push('- Tag already has that content');
+      description.push(translate('tag_directory_edit.tag_already_has_that_content'));
     } else {
-      description.push('- Tag\'s content has been updated.');
+      description.push(translate('tag_directory_edit.tag_s_content_has_been_updated'));
       await editTag(context, args.tag.id, {content: args.content});
     }
   }
@@ -46,10 +48,10 @@ export async function createMessage(
       title: args.title,
     });
     if (args.title) {
-      description.push('- Tag\'s directory title has been updated.');
+      description.push(translate('tag_directory_edit.tag_s_directory_title_has_been_updated'));
     }
     if (args.description) {
-      description.push('- Tag\'s directory description has been updated.');
+      description.push(translate('tag_directory_edit.tag_s_directory_description_has_been_updated'));
     }
   }
 

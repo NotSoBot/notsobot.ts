@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { removeGuildFeature } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { GuildFeatures } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { editOrReply } from '../../../utils';
@@ -24,6 +25,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { features } = await removeGuildFeature(context, args.guild.id, args.feature);
   if (GuildSettingsStore.has(args.guild.id)) {
     GuildSettingsStore.get(args.guild.id)!.merge({features});
@@ -31,5 +33,5 @@ export async function createMessage(
 
   const feature = Markup.codestring(args.feature);
   const featuresText = features.map((x) => Markup.codestring(x)).join(', ');
-  return editOrReply(context, `Ok, remove ${feature} from guild \`${args.guild.id}\`. Features are now ${featuresText || 'Empty'}`);
+  return editOrReply(context, translate('owner_guild_features_remove.ok_remove_from_guild_features_are_now', {feature: feature, featuresText: featuresText || translate('common.empty'), guild: args.guild.id}));
 }

@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { createGuildPrefix } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedColors } from '../../../constants';
 
 import { createUserEmbed, editOrReply } from '../../tools';
@@ -19,13 +20,14 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const guildId = context.guildId!;
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setTitle(`Created prefix: **${Markup.escape.all(args.prefix)}**`);
+  embed.setTitle(translate('prefixes_add.created_prefix', {prefix: Markup.escape.all(args.prefix)}));
 
   const prefixes = await createGuildPrefix(context, guildId, args.prefix);
   PrefixesList.formatPrefixes(context, prefixes, embed);

@@ -4,6 +4,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { fetchReminders } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
@@ -30,6 +31,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   if (context.inDm) {
@@ -52,22 +54,20 @@ export async function createMessage(
       embed.setColor(EmbedColors.DEFAULT);
 
       {
-        let noun: string;
         if (args.user) {
           if (context.userId === args.user.id) {
-            noun = 'Your';
+            embed.setTitle(translate('reminder_list_server.your_reminders_for_this_server'));
           } else {
-            noun = `${createUserString(args.user.id, args.user)}'s`;
+            embed.setTitle(translate('reminder_list_server.s_reminders_for_this_server', {user: createUserString(args.user.id, args.user)}));
           }
         } else {
-          noun = 'All';
+          embed.setTitle(translate('reminder_list_server.all_reminders_for_this_server'));
         }
-        embed.setTitle(`${noun} Reminders for this Server`);
       }
 
-      let footer = `${result.count.toLocaleString()} Reminders`;
+      let footer = translate('reminder_list_server.reminders', {count: result.count.toLocaleString(language)});
       if (pageLimit !== 1) {
-        footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
+        footer = translate('reminder_list_server.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
       }
       embed.setFooter(footer);
 
@@ -76,7 +76,7 @@ export async function createMessage(
         const description: Array<string> = [];
         for (let i = 0; i < reminders.length; i++) {
           const reminder = reminders[i];
-          const title = 'Message';
+          const title = translate('reminder_list_server.message');
 
           let content: string;
           if (!reminder.content) {
@@ -101,7 +101,7 @@ export async function createMessage(
                 const name = `${reminder.user.username}#${reminder.user.discriminator}`;
                 noun = createUserString(reminder.user.id, null, name);
               }
-              text = `${text} by ${noun} (Id: ${reminder.position})`;
+              text = translate('reminder_list_server.by_id', {noun: noun, position: reminder.position, text: text});
             }
             description.push(`${text} (${Markup.url(title, jumpLink)})`);
           }
@@ -111,7 +111,7 @@ export async function createMessage(
         }
         embed.setDescription(description.join('\n'));
       } else {
-        embed.setDescription('No Reminders Found');
+        embed.setDescription(translate('reminder_list_server.no_reminders_found'));
       }
 
       return embed;

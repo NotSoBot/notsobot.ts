@@ -3,7 +3,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
-import { Paginator, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { I18n, Paginator, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
 
@@ -77,11 +77,12 @@ export default class HelpCommand extends BaseCommand {
     return !!args.commands && !!args.commands.length;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.commands) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Command`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`);
     }
-    return editOrReply(context, '<https://notsobot.com/commands> (Join our support server <https://notsobot.com/support/invite>)');
+    return editOrReply(context, translate('help.links', {commands: '<https://notsobot.com/commands>', invite: '<https://notsobot.com/support/invite>'}));
   }
 
   // add client permission labels
@@ -90,6 +91,7 @@ export default class HelpCommand extends BaseCommand {
   // sort commands by name
   async run(context: Command.Context, args: CommandArgs) {
     const { commands } = args;
+    const { translate } = await I18n.getTranslator(context);
 
     const pageLimit = commands.length || 1;
     const paginator = new Paginator(context, {
@@ -121,30 +123,30 @@ export default class HelpCommand extends BaseCommand {
           embed.setDescription(metadata.description || '');
 
           if (names.length) {
-            embed.addField('Aliases', names.join('\n'), true);
+            embed.addField(translate('help.aliases'), names.join('\n'), true);
           }
           if (metadata.examples && metadata.examples.length) {
-            embed.addField('Examples', Markup.escape.mentions(metadata.examples.join('\n')), true);
+            embed.addField(translate('help.examples'), Markup.escape.mentions(metadata.examples.join('\n')), true);
           }
           {
             const description: Array<string> = [];
 
-            description.push(`**Category**: ${toTitleCase(metadata.category)}`);
-            description.push(`**NSFW**: ${(metadata.nsfw) ? 'Yes' : 'No'}`);
+            description.push(`**${translate('help.category')}**: ${toTitleCase(metadata.category)}`);
+            description.push(`**NSFW**: ${translate((metadata.nsfw) ? 'common.yes' : 'common.no')}`);
 
-            embed.addField('Information', description.join('\n'));
+            embed.addField(translate('common.information'), description.join('\n'));
           }
           {
             let text: string;
             if (typeof(metadata.usage) === 'string') {
               text = Markup.codeblock(`${context.prefix}${name} ${metadata.usage}`.trim());
             } else {
-              text = 'good luck, this ain\'t finished.';
+              text = translate('help.usage_unfinished');
             }
-            embed.addField('Usage', text);
+            embed.addField(translate('help.usage'), text);
           }
         }
-        embed.setFooter(`Command ${page} of ${pageLimit} Found`, EmbedBrands.NOTSOBOT);
+        embed.setFooter(translate('help.footer', {page, total: pageLimit}), EmbedBrands.NOTSOBOT);
         return embed;
       },
     });

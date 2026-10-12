@@ -5,7 +5,7 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { I18n, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -74,9 +74,10 @@ export default class NickMassCommand extends BaseCommand {
     return context.user.isClientOwner || ((context.guild) ? context.guild.memberCount <= MAX_MEMBERS : false);
   }
 
-  onCancel(context: Command.Context) {
+  async onCancel(context: Command.Context): Promise<any> {
+    const { language, translate } = await I18n.getTranslator(context);
     if (context.guild && MAX_MEMBERS < context.guild.memberCount) {
-      return editOrReply(context, `Cannot mass nick edit on servers with more than ${MAX_MEMBERS.toLocaleString()} members`);
+      return editOrReply(context, translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)}));
     }
   }
 
@@ -90,17 +91,19 @@ export default class NickMassCommand extends BaseCommand {
     return !!args.text;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.role === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Role`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`);
     }
     if (args.nobots && args.nousers) {
-      return editOrReply(context, `${StatusEmojis.WARNING} if not bots or users, who then?!`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('nickmass.who_then_bots')}`);
     }
     return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: CommandArgs) {
+    const { language, translate } = await I18n.getTranslator(context);
     const guild = context.guild!;
     const me = guild.me!;
 
@@ -123,18 +126,18 @@ export default class NickMassCommand extends BaseCommand {
 
     const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
     if (isExecuting.nick) {
-      return editOrReply(context, 'Already mass editing nicks');
+      return editOrReply(context, translate('nickmass.in_progress'));
     }
 
     if (members.length) {
       const embed = createUserEmbed(context.user);
       embed.setColor(EmbedColors.DEFAULT);
-      embed.setTitle(`Can edit ${members.length.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
-      embed.setDescription(`Should take about ${((members.length / amount) * time).toLocaleString()} seconds to edit their nicknames`);
+      embed.setTitle(translate('nickmass.can_edit', {count: members.length.toLocaleString(language), total: guild.members.length.toLocaleString(language)}));
+      embed.setDescription(translate('nickmass.estimate', {seconds: ((members.length / amount) * time).toLocaleString(language)}));
 
       const components = new Components({timeout: 5 * (60 * 1000)});
       components.createButton({
-        label: 'Continue',
+        label: translate('common.continue'),
         run: async (ctx: ComponentContext) => {
           if (ctx.userId !== context.userId) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -146,38 +149,38 @@ export default class NickMassCommand extends BaseCommand {
             skipped: 0,
           };
           const errors: Array<any> = [];
-          const reason = `Mass Nickname change by ${context.user} (${context.user.id})`;
+          const reason = translate('nickmass.audit_reason', {user: `${context.user} (${context.user.id})`});
 
           {
-            embed.setDescription(`Ok, starting to edit ${members.length.toLocaleString()} member\'s nicknames. (Should take about ${((members.length / amount) * time).toLocaleString()} seconds)`);
+            embed.setDescription(translate('nickmass.starting', {count: members.length.toLocaleString(language), seconds: ((members.length / amount) * time).toLocaleString(language)}));
             embed.setColor(EmbedColors.LOG_UPDATE);
 
             const components = new Components();
             components.createButton({
-              label: 'Refresh',
+              label: translate('common.refresh'),
               style: MessageComponentButtonStyles.SECONDARY,
               run: async (ctx: ComponentContext) => {
                 const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
                 const description: Array<string> = [];
-                description.push(`Finished editing ${finished.toLocaleString()} out of ${members.length.toLocaleString()} members`);
+                description.push(translate('nickmass.finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
                 if (finished) {
                   if (amounts.changed) {
-                    description.push(`- Changed ${amounts.changed.toLocaleString()} members successfully`);
+                    description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
                   }
                   if (amounts.skipped) {
-                    description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                    description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
                   }
                   if (amounts.failed) {
-                    description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                    description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
                   }
                   if (errors.length) {
-                    description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                    description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                   }
                 }
                 if (members.length !== finished) {
                   description.push('');
-                  description.push(`About ${(((members.length - finished) / amount) * time).toLocaleString()} seconds left.`);
+                  description.push(translate('nickmass.time_left', {seconds: (((members.length - finished) / amount) * time).toLocaleString(language)}));
                 }
                 embed.setDescription(description.join('\n'));
 
@@ -185,7 +188,7 @@ export default class NickMassCommand extends BaseCommand {
               },
             });
             components.createButton({
-              label: 'Stop',
+              label: translate('common.stop'),
               style: MessageComponentButtonStyles.DANGER,
               run: async (ctx: ComponentContext) => {
                 // stop it and give the number of people edited
@@ -195,24 +198,24 @@ export default class NickMassCommand extends BaseCommand {
                 isExecuting.nick = false;
 
                 embed.setColor(EmbedColors.ERROR);
-                embed.setTitle('Mass Nickname Cancelled');
+                embed.setTitle(translate('nickmass.cancelled_title'));
                 {
                   const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
                   const description: Array<string> = [];
-                  description.push(`Cancelled editing ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
+                  description.push(translate('nickmass.cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
                   if (finished) {
                     if (amounts.changed) {
-                      description.push(`- Changed ${amounts.changed.toLocaleString()} members successfully`);
+                      description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
                     }
                     if (amounts.skipped) {
-                      description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                      description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
                     }
                     if (amounts.failed) {
-                      description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                      description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
                     }
                     if (errors.length) {
-                      description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                      description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                     }
                   }
                   embed.setDescription(description.join('\n'));
@@ -282,24 +285,24 @@ export default class NickMassCommand extends BaseCommand {
 
           if (!isExecuting.nick) {
             embed.setColor(EmbedColors.ERROR);
-            embed.setTitle('Mass Nickname Cancelled');
+            embed.setTitle(translate('nickmass.cancelled_title'));
             {
               const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
               const description: Array<string> = [];
-              description.push(`Cancelled editing ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
+              description.push(translate('nickmass.cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
               if (finished) {
                 if (amounts.changed) {
-                  description.push(`- Changed ${amounts.changed.toLocaleString()} members successfully`);
+                  description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
                 }
                 if (amounts.skipped) {
-                  description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                  description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
                 }
                 if (amounts.failed) {
-                  description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                  description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
                 }
                 if (errors.length) {
-                  description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                  description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                 }
               }
               embed.setDescription(description.join('\n'));
@@ -316,19 +319,19 @@ export default class NickMassCommand extends BaseCommand {
             const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
             const description: Array<string> = [];
-            description.push(`Finished editing ${finished.toLocaleString()} out of ${members.length.toLocaleString()} members`);
+            description.push(translate('nickmass.finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
             if (finished) {
               if (amounts.changed) {
-                description.push(`- Changed ${amounts.changed.toLocaleString()} members successfully`);
+                description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
               }
               if (amounts.skipped) {
-                description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
+                description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
               }
               if (amounts.failed) {
-                description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
               }
               if (errors.length) {
-                description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
               }
             }
             embed.setColor(EmbedColors.LOG_CREATION);
@@ -343,7 +346,7 @@ export default class NickMassCommand extends BaseCommand {
       });
 
       components.createButton({
-        label: 'Cancel',
+        label: translate('common.cancel'),
         style: MessageComponentButtonStyles.DANGER,
         run: async (ctx: ComponentContext) => {
           if (ctx.userId !== context.userId) {
@@ -351,8 +354,8 @@ export default class NickMassCommand extends BaseCommand {
           }
 
           embed.setColor(EmbedColors.ERROR);
-          embed.setTitle('Mass Nickname Cancelled');
-          embed.setDescription(`Cancelled editing ${members.length.toLocaleString()} member\'s nicknames`);
+          embed.setTitle(translate('nickmass.cancelled_title'));
+          embed.setDescription(translate('nickmass.cancelled_before', {count: members.length.toLocaleString(language)}));
           await ctx.editOrRespond({components: [], embed});
         },
       });
@@ -361,8 +364,8 @@ export default class NickMassCommand extends BaseCommand {
       components.onTimeout = async () => {
         try {
           embed.setColor(EmbedColors.ERROR);
-          embed.setTitle('Mass Nickname Request Expired');
-          embed.setFooter('Request expired, press a button next time');
+          embed.setTitle(translate('nickmass.expired_title'));
+          embed.setFooter(translate('nickmass.expired'));
           if (message.canEdit) {
             await message.edit({components: [], embed});
           }
@@ -372,6 +375,6 @@ export default class NickMassCommand extends BaseCommand {
       };
       return message;
     }
-    return editOrReply(context, 'Unable to edit anyone\'s nick');
+    return editOrReply(context, translate('nickmass.none'));
   }
 }

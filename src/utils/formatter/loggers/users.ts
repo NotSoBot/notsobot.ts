@@ -92,9 +92,9 @@ export function getUsersUpdateChanges(event: GuildLoggingEventUsersUpdate, trans
       const oldHas = old.hasFlag(flag);
       const newHas = user.hasFlag(flag);
       if (oldHas && !newHas) {
-        removed.push(`**${Markup.codestring(DiscordUserFlagsText[flag])}**`);
+        removed.push(`**${Markup.codestring(translator.label('badges', DiscordUserFlagsText[flag]))}**`);
       } else if (!oldHas && newHas) {
-        added.push(`**${Markup.codestring(DiscordUserFlagsText[flag])}**`);
+        added.push(`**${Markup.codestring(translator.label('badges', DiscordUserFlagsText[flag]))}**`);
       }
     }
 

@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { putTagsDirectoryTag } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
 import { editOrReply } from '../../../utils';
@@ -25,10 +26,11 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   if (args.tag.is_on_directory) {
     // todo: get rid of this and instead add an update message
-    return editOrReply(context, `${StatusEmojis.WARNING} Tag is already on directory.`)
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_directory_add.tag_is_already_on_directory')}`)
   }
 
   const directory = await putTagsDirectoryTag(context, args.tag.id, {
@@ -36,5 +38,5 @@ export async function createMessage(
     title: args.title,
   });
 
-  return editOrReply(context, `Ok, added tag ${Markup.codestring(args.tag.id)} to the Tag Directory.`);
+  return editOrReply(context, translate('tag_directory_add.ok_added_tag_to_the_tag_directory', {tag: Markup.codestring(args.tag.id)}));
 }

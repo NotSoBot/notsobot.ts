@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { editOrReply, timezoneCodeToText } from '../../../utils';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
@@ -31,9 +33,9 @@ export async function createMessage(
     if (oldSettings && oldSettings.timezone === args.timezone) {
       if (oldSettings.timezone) {
         const languageText = timezoneCodeToText(oldSettings.timezone);
-        text = `Your timezone is already ${Markup.bold(languageText)}`;
+        text = translate('settings_set_timezone.your_timezone_is_already', {languageText: Markup.bold(languageText)});
       } else {
-        text = 'You currently do not have a timezone preference.';
+        text = translate('settings_set_timezone.you_currently_do_not_have_a_timezone');
       }
     } else {
       // update it
@@ -44,22 +46,22 @@ export async function createMessage(
 
       if (settings.timezone) {
         const languageText = timezoneCodeToText(settings.timezone);
-        text = `Ok, set your timezone preference to ${Markup.bold(languageText)}`;
+        text = translate('settings_set_timezone.ok_set_your_timezone_preference_to', {languageText: Markup.bold(languageText)});
       } else {
         // this should never happen currently
-        text = 'Ok, cleared out your default timezone preference.';
+        text = translate('settings_set_timezone.ok_cleared_out_your_default_timezone_preference');
       }
     }
   } else {
     if (oldSettings) {
       if (oldSettings.timezone) {
         const languageText = timezoneCodeToText(oldSettings.timezone);
-        text = `Your current timezone is ${Markup.bold(languageText)}`;
+        text = translate('settings_set_timezone.your_current_timezone_is', {languageText: Markup.bold(languageText)});
       } else {
-        text = 'You currently do not have a timezone preference.';
+        text = translate('settings_set_timezone.you_currently_do_not_have_a_timezone');
       }
     } else {
-      text = 'Error fetching your current timezone.';
+      text = translate('settings_set_timezone.error_fetching_your_current_timezone');
     }
   }
 

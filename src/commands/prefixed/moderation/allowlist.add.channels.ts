@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -44,9 +44,10 @@ export default class AllowlistAddChannelsCommand extends BaseCommand {
     return !!args.channels && !!args.channels.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAddChannels.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAddChannels.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.channels) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any valid Text Channels.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('moderation.no_valid_channels')}`);
     }
     return super.onCancelRun(context, args);
   }

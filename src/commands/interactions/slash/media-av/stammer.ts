@@ -36,6 +36,7 @@ export class MediaAVStammerCommand extends BaseInteractionMediasCommandOption {
             choices: MediaStammerColorModes,
             descriptions: MediaStammerColorModesToText,
             defaultChoice: DEFAULT_COLOR_MODE,
+            localizationKey: 'choices.media_stammer_color_modes',
           }),
         },
         {
@@ -47,6 +48,7 @@ export class MediaAVStammerCommand extends BaseInteractionMediasCommandOption {
             choices: MediaStammerMatcherModes,
             descriptions: MediaStammerMatcherModesToText,
             defaultChoice: DEFAULT_MATCHER_MODE,
+            localizationKey: 'choices.media_stammer_matcher_modes',
           }),
         },
       ],

@@ -125,7 +125,7 @@ export namespace RestOptions {
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
     prefixes?: Array<string>,
-    responseDisplay?: GuildSettingsResponseDisplayTypes,
+    responseDisplay?: GuildSettingsResponseDisplayTypes | null,
     timezone?: string,
   }
 
@@ -164,7 +164,6 @@ export namespace RestOptions {
     fileUploadThreshold?: null | UserSettingsUploadThresholdTypes,
     fileUploadType?: null | UserSettingsUploadTypes,
     locale?: null | string,
-    optOutContent?: boolean,
     mlDiffusionModel?: null | string,
     mlLLMModel?: null | string,
     mlLLMPersonality?: null | string,
@@ -250,8 +249,6 @@ export namespace RestOptions {
     before?: string,
     guildId?: number | string,
     limit?: number,
-    timestampMax?: number,
-    timestampMin?: number,
   }
 
   export interface FetchUserTags {
@@ -368,7 +365,6 @@ export namespace RestOptions {
   }
 
   export interface MediaAIVManipulationSpeed extends MediaBaseOptions {
-    loop?: boolean,
     speed: number,
   }
 
@@ -1126,7 +1122,7 @@ export namespace RestOptions {
   }
 
   export interface UtilitiesProxyRequest {
-    data?: any,
+    data?: Record<string, boolean | number | string>,
     dataJSON?: Record<string, any>,
     files?: Array<RequestFile>,
     headers?: Record<string, string>,
@@ -1565,7 +1561,7 @@ export namespace RestResponsesRaw {
       ml_diffusion_model: string | null,
       ml_llm_model: string | null,
       ml_llm_personality: string | null,
-      response_display: number,
+      response_display: number | null,
     },
     timezone: string | null,
   }
@@ -2699,7 +2695,7 @@ export namespace RestResponsesRaw {
     ml_llm_model: string | null,
     ml_llm_personality: string | null,
     opted_out_content: string | null,
-    response_display: number,
+    response_display: number | null,
     timezone: string | null,
     tts_voice: string | null,
     units: string | null,

@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup, addQuery } from 'detritus-client/lib/utils';
 
 import { searchUrban, searchUrbanRandom } from '../../../api';
+import { getCachedTranslator, getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../../constants';
 import {
@@ -22,6 +23,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const results = await ((args.query) ? searchUrban(context, {query: args.query}) : searchUrbanRandom(context));
   if (results.length) {
     const pageLimit = results.length;
@@ -29,14 +31,14 @@ export async function createMessage(
       pageLimit,
       onPage: (page) => {
         const embed = createEmbed(context, results[page - 1]);
-        embed.setFooter(`Page ${page}/${pageLimit} of Urban Dictionary Results`, EmbedBrands.URBAN);
+        embed.setFooter(translate('search_urban.page_of_urban_dictionary_results', {page: page, pageLimit: pageLimit}), EmbedBrands.URBAN);
 
         return embed;
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, 'Couldn\'t find any definitions for that search term');
+  return editOrReply(context, translate('search_urban.couldn_t_find_any_definitions_for_that'));
 }
 
 
@@ -50,6 +52,7 @@ export function createEmbed(
   context: Command.Context | Interaction.InteractionContext,
   result: RestResponsesRaw.SearchUrbanDictionaryResult,
 ) {
+  const { language, translate, translateMaybe } = getCachedTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const created = createTimestampMomentFromGuild(result.written_on, context.guildId);
@@ -71,9 +74,9 @@ export function createEmbed(
   }
 
   embed.setDescription([
-    `Created by ${Markup.escape.all(result.author)}, ${created.fromNow()}`,
+    translate('search_urban.created_by', {author: Markup.escape.all(result.author), created: created.locale(language).fromNow()}),
     `-> ${Markup.spoiler(`(${created.format(DateMomentLogFormat)})`)}`,
-    `${result.thumbs_up.toLocaleString()} Likes, ${result.thumbs_down.toLocaleString()} Dislikes`,
+    translate('search_urban.likes_dislikes', {thumbs_down: result.thumbs_down.toLocaleString(language), thumbs_up: result.thumbs_up.toLocaleString(language)}),
     '',
     definition,
   ].join('\n'));
@@ -83,7 +86,7 @@ export function createEmbed(
     return Markup.url(word, url);
   });
   if (example) {
-    embed.addField('Example', example);
+    embed.addField(translate('search_urban.example'), example);
   }
 
   return embed;

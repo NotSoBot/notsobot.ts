@@ -111,7 +111,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         if (settings) {
           const promises: Array<Promise<any>> = [];
           // legacy and no embed both stay as embeds, there is no text only log format
-          const componentsV2 = !!settings.settings && settings.settings.responseDisplay === GuildSettingsResponseDisplayTypes.DEFAULT;
+          const componentsV2 = !!settings.settings && (settings.settings.responseDisplay ?? GuildSettingsResponseDisplayTypes.DEFAULT) === GuildSettingsResponseDisplayTypes.DEFAULT;
           // there's no one invoking a command here, so logs use the server's preferred locale
           const guild = shard.guilds.get(guildId);
           const language = languageFromLocale((guild) ? guild.preferredLocale : null) || Languages.ENGLISH;

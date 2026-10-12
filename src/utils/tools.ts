@@ -221,14 +221,14 @@ export function durationToMilliseconds(duration: string): number {
 }
 
 
-export function editOrReply(context: ComponentContext, options: Command.EditOrReply | string): Promise<null>
+export function editOrReply(context: ComponentContext, options: Command.EditOrReply | string): Promise<void>
 export function editOrReply(context: Command.Context, options: Command.EditOrReply | string): Promise<Structures.Message>
-export function editOrReply(context: Interaction.InteractionContext, options: Structures.InteractionEditOrRespond | string): Promise<null>
-export function editOrReply(context: Command.Context | Interaction.InteractionContext | ComponentContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | null>
+export function editOrReply(context: Interaction.InteractionContext, options: Structures.InteractionEditOrRespond | string): Promise<void>
+export function editOrReply(context: Command.Context | Interaction.InteractionContext | ComponentContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | void>
 export async function editOrReply(
   context: Command.Context | Interaction.InteractionContext | ComponentContext,
   options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
-): Promise<Structures.Message | null> {
+): Promise<Structures.Message | void> {
   if (typeof(options) === 'string') {
     options = {content: options};
   }
@@ -287,15 +287,17 @@ export async function editOrReply(
   }
 
   if (context instanceof ComponentContext) {
-    return context.editOrRespond({
+    await context.editOrRespond({
       ...options,
       allowedMentions: {parse: [], ...options.allowedMentions},
-    }) as Promise<Structures.Message | null>;
+    });
+    return;
   } else if (context instanceof Interaction.InteractionContext) {
-    return context.editOrRespond({
+    await context.editOrRespond({
       ...options,
       allowedMentions: {parse: [], ...options.allowedMentions},
-    }) as Promise<Structures.Message | null>;
+    });
+    return;
   }
 
   return context.editOrReply({
@@ -1902,6 +1904,31 @@ export async function jobWaitForResult(
 }
 
 
+// the user's preference wins, then the server's, then our latest format
+export async function getResponseDisplay(
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
+  userId: string = context.userId,
+): Promise<UserSettingsResponseDisplayTypes> {
+  const userSettings = await UserSettingsStore.getOrFetch(context, userId);
+  if (userSettings && typeof(userSettings.response_display) === 'number') {
+    return userSettings.response_display as UserSettingsResponseDisplayTypes;
+  }
+
+  if (context.guildId) {
+    try {
+      const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+      if (guildSettings && guildSettings.settings && typeof(guildSettings.settings.responseDisplay) === 'number') {
+        // the server and user enums share the same values
+        return guildSettings.settings.responseDisplay as number as UserSettingsResponseDisplayTypes;
+      }
+    } catch(error) {
+      // the bot might not be in this server (user installed commands)
+    }
+  }
+  return UserSettingsResponseDisplayTypes.DEFAULT;
+}
+
+
 export async function mediaReply(
   context: ComponentContext | Command.Context | Interaction.InteractionContext,
   response: RestResponsesRaw.FileResponse,
@@ -2018,13 +2045,8 @@ export async function mediaReplyFromOptions(
     }
   }
 
-  let displaySettings = UserSettingsResponseDisplayTypes.DEFAULT;
-
   const userId = options.storageUserId || context.userId;
-  const settings = await UserSettingsStore.getOrFetch(context, userId);
-  if (settings) {
-    displaySettings = settings.response_display as UserSettingsResponseDisplayTypes;
-  }
+  const displaySettings = await getResponseDisplay(context, userId);
 
   let shouldBeEmbed = MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes) && !options.spoiler;
   // we used to check if it was an animated webp but its supported now (apparently)

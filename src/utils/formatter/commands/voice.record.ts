@@ -5,6 +5,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Writer as WavWriter } from 'wav';
 
 import { editOrReply } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 
 const VOICE_CHANNELS = DiscordOpusFormat.CHANNELS;
@@ -21,6 +22,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const targetId = (args.target) ? args.target.id : context.userId;
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
@@ -29,12 +31,12 @@ export async function createMessage(
 
   const member = context.guild && context.guild.members.get(targetId);
   if (!member || !member.voiceState) {
-    return editOrReply(context, 'go join a voice channel');
+    return editOrReply(context, translate('voice_record.go_join_a_voice_channel'));
   }
 
   const channel = member.voiceState.channel;
   if (!channel || !channel.canJoin) {
-    return editOrReply(context, 'Cannot join ur channel');
+    return editOrReply(context, translate('voice_record.cannot_join_ur_channel'));
   }
 
   const { connection, isNew } = (await channel.join({
@@ -67,10 +69,10 @@ export async function createMessage(
     writer.end();
     const buffer = await onHeader;
     await editOrReply(context, {
-      content: `Successfully recorded ${args.seconds} seconds worth of audio from you`,
+      content: translate('voice_record.successfully_recorded_seconds_worth_of_audio_from', {seconds: args.seconds}),
       file: {filename: 'recording.wav', value: buffer},
     });
   }, args.seconds * 1000);
 
-  return editOrReply(context, `Ok, recording ${args.seconds} seconds worth of audio`);
+  return editOrReply(context, translate('voice_record.ok_recording_seconds_worth_of_audio', {seconds: args.seconds}));
 }

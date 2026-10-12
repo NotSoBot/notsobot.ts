@@ -4,6 +4,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchE621 } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { E621Rating, E621RatingText, EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
@@ -20,7 +21,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return editOrReply(context, 'Sorry, this command has been disabled at Discord\'s request.');
+  const { language, translate, translateMaybe } = await getTranslator(context);
+  return editOrReply(context, translate('search_e621.sorry_this_command_has_been_disabled_at'));
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
@@ -44,51 +46,51 @@ export async function createMessage(
         }
         embed.setFooter(`Page ${page}/${pageLimit} of https://e621.net Results`, EmbedBrands.E621);
 
-        embed.setTitle((result.is_video) ? 'Video Post' : 'Image Post');
+        embed.setTitle((result.is_video) ? translate('search_e621.video_post') : translate('search_e621.image_post'));
         embed.setUrl(result.url);
 
         const description: Array<string> = [];
         if (!result.file.url) {
-          description.push('**Unable to show thumbnail due to needing to be logged in to view.**');
+          description.push(translate('search_e621.unable_to_show_thumbnail_due_to_needing'));
         }
         if (!result.updated_at || result.created_at === result.updated_at) {
-          description.push(`Uploaded ${moment(result.created_at).fromNow()}`);
+          description.push(translate('search_e621.uploaded', {moment: moment(result.created_at).locale(language).fromNow()}));
         } else {
-          description.push(`Uploaded ${moment(result.created_at).fromNow()} (Edited ${moment(result.updated_at).fromNow()})`);
+          description.push(translate('search_e621.uploaded_edited', {moment: moment(result.created_at).locale(language).fromNow(), moment2: moment(result.updated_at).locale(language).fromNow()}));
         }
 
         if (result.tags.artist.length) {
-          const title = (result.tags.artist.length === 1) ? 'Artist' : 'Artists';
+          const title = (result.tags.artist.length === 1) ? translate('search_e621.artist') : translate('search_e621.artists');
           description.push(`**${title}**: ${result.tags.artist.sort().join(', ')}`);
         }
 
-        description.push(`**Comments**: ${result.comment_count.toLocaleString()}`);
-        description.push(`**Favorites**: ${result.fav_count.toLocaleString()}`);
+        description.push(translate('search_e621.comments', {comment_count: result.comment_count.toLocaleString(language)}));
+        description.push(translate('search_e621.favorites', {fav_count: result.fav_count.toLocaleString(language)}));
 
         {
-          const rating = (result.rating in E621RatingText) ? (<any> E621RatingText)[result.rating] : `Unknown Rating (${result.rating})`;
-          description.push(`**Rating**: ${rating}`);
+          const rating = (result.rating in E621RatingText) ? (<any> E621RatingText)[result.rating] : translate('search_e621.unknown_rating', {rating: result.rating});
+          description.push(translate('search_e621.rating', {rating: rating}));
         }
 
-        description.push(`**Score**: ${result.score.total.toLocaleString()}`);
+        description.push(translate('search_e621.score', {total: result.score.total.toLocaleString(language)}));
 
         if (result.sources.length) {
-          const title = (result.sources.length === 1) ? 'Source' : 'Sources';
+          const title = (result.sources.length === 1) ? translate('search_e621.source') : translate('search_e621.sources');
           description.push(`**${title}**: ${result.sources.sort().join(', ')}`);
         }
 
         description.push('');
 
         if (result.tags.character.length) {
-          description.push(`**Characters**: ${Markup.escape.all(result.tags.character.sort().join(', '))}`);
+          description.push(translate('search_e621.characters', {character: Markup.escape.all(result.tags.character.sort().join(', '))}));
         }
 
         if (result.tags.species.length) {
-          description.push(`**Species**: ${Markup.escape.all(result.tags.species.sort().join(', '))}`);
+          description.push(translate('search_e621.species', {species: Markup.escape.all(result.tags.species.sort().join(', '))}));
         }
 
         if (result.tags.general.length) {
-          description.push(`**Tags**: ${Markup.escape.all(result.tags.general.sort().join(', '))}`);
+          description.push(translate('search_e621.tags', {general: Markup.escape.all(result.tags.general.sort().join(', '))}));
         }
         embed.setDescription(description.join('\n'));
 
@@ -102,5 +104,5 @@ export async function createMessage(
     });
     return await paginator.start();
   }
-  return editOrReply(context, 'Couldn\'t find any images for that search term');
+  return editOrReply(context, translate('search_e621.couldn_t_find_any_images_for_that'));
 }

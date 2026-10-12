@@ -36,7 +36,7 @@ export class ToolsWeatherCommand extends BaseInteractionCommandOption {
     super({
       options: [
         {name: 'query', description: 'Location', ...I18n.optionLocalizations('commands.tools.weather.query'), required: true, onAutoComplete: Parameters.AutoComplete.locations},
-        {name: 'units', description: 'Units to Use', ...I18n.optionLocalizations('commands.tools.weather.units'), choices: Parameters.Slash.oneOf({choices: MeasurementUnits})},
+        {name: 'units', description: 'Units to Use', ...I18n.optionLocalizations('commands.tools.weather.units'), choices: Parameters.Slash.oneOf({choices: MeasurementUnits, localizationKey: 'choices.measurement_units'})},
       ],
     });
   }

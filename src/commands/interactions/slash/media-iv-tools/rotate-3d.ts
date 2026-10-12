@@ -30,7 +30,7 @@ export class MediaIVToolsRotate3dCommand extends BaseInteractionImageOrVideoComm
           name: 'crop',
           description: 'Crop Modes',
           ...I18n.optionLocalizations('commands.media_iv_tools.rotate_3d.crop'),
-          choices: Parameters.Slash.oneOf({choices: MediaRotate3dCropModes, defaultChoice: MediaRotate3dCropModes.NONE}),
+          choices: Parameters.Slash.oneOf({choices: MediaRotate3dCropModes, defaultChoice: MediaRotate3dCropModes.NONE, localizationKey: 'choices.media_rotate_3d_crop_modes'}),
         },
       ],
     });

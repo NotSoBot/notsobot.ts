@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CodeLanguages, CommandCategories } from '../../../constants';
-import { Formatter, Parameters, editOrReply, getCodeLanguage } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply, getCodeLanguage } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -76,7 +76,8 @@ export default class CodeCommand extends BaseCommand {
     code = codeblock.text;
 
     if (!language) {
-      return editOrReply(context, `Give me a valid language! (One of ${Formatter.Commands.ToolsCode.languagesText})`);
+      const { translate } = await I18n.getTranslator(context);
+      return editOrReply(context, translate('tools.code.invalid_language', {languages: Formatter.Commands.ToolsCode.languagesText}));
     }
 
     return Formatter.Commands.ToolsCode.createMessage(context, {code, language, version});

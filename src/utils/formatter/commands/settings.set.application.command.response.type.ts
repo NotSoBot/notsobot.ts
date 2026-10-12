@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { UserSettingsApplicationCommandResponseTypes } from '../../../constants';
@@ -19,18 +20,19 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  let text: string = 'Unknown Error, Sorry';
+  let text: string = translate('settings_set_application_command_response_type.unknown_error_sorry');
   if (args.type === undefined) {
     const settings = await UserSettingsStore.getOrFetch(context, context.userId);
     if (settings) {
       switch (settings.application_command_response_type) {
         case UserSettingsApplicationCommandResponseTypes.AUTOMATIC: {
-          text = 'Your current setting will have Application Commands automatically choose if the response should be Ephemeral.';
+          text = translate('settings_set_application_command_response_type.your_current_setting_will_have_application_commands');
         }; break;
         case UserSettingsApplicationCommandResponseTypes.EPHEMERAL: {
-          text = 'Your current setting will have Application Commands respond Ephemerally.';
+          text = translate('settings_set_application_command_response_type.your_current_setting_will_have_application_commands_2');
         }; break;
       }
     }
@@ -40,10 +42,10 @@ export async function createMessage(
     });
     switch (settings.application_command_response_type) {
       case UserSettingsApplicationCommandResponseTypes.AUTOMATIC: {
-        text = 'Ok, Application Commands will automatically choose if the response should be Ephemeral.';
+        text = translate('settings_set_application_command_response_type.ok_application_commands_will_automatically_choose_if');
       }; break;
       case UserSettingsApplicationCommandResponseTypes.EPHEMERAL: {
-        text = 'Ok, Application Commands will always respond Ephemerally.';
+        text = translate('settings_set_application_command_response_type.ok_application_commands_will_always_respond_ephemerally');
       }; break;
     }
   }

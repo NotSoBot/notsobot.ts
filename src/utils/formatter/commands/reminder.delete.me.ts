@@ -5,6 +5,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import { deleteReminder, fetchReminderPositional } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
@@ -26,6 +27,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   let reminder: RestResponsesRaw.Reminder;
@@ -33,20 +35,20 @@ export async function createMessage(
     reminder = await fetchReminderPositional(context, context.userId, args.position);
   } catch(error) {
     if (error.response && error.response.status === 404) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Reminder`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('reminder_delete_me.unknown_reminder')}`);
     }
     throw error;
   }
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setTitle('Are you sure you want to delete this reminder?');
+  embed.setTitle(translate('reminder_delete_me.are_you_sure_you_want_to_delete'));
 
   {
     const description: Array<string> = [];
     {
       const serverId = context.guildId || null;
-      const title = (reminder.guild_id === serverId) ? 'Message in this Server' : 'Message';
+      const title = (reminder.guild_id === serverId) ? translate('reminder_delete_me.message_in_this_server') : translate('reminder_delete_me.message');
       let content: string;
       if (!reminder.content) {
         content = ''; //getReminderMessage(reminder.id);
@@ -69,18 +71,18 @@ export async function createMessage(
 
   const components = new Components({timeout: 5 * (60 * 1000)});
   components.createButton({
-    label: 'Continue',
+    label: translate('reminder_delete_me.continue'),
     run: async (ctx: ComponentContext) => {
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
       try {
         await deleteReminder(context, reminder.id);
-        embed.setTitle('Reminder Deleted');
+        embed.setTitle(translate('reminder_delete_me.reminder_deleted'));
         embed.setColor(EmbedColors.LOG_CREATION);
       } catch(error) {
         embed.setColor(EmbedColors.ERROR);
-        embed.setTitle('Reminder Deletion Errored');
+        embed.setTitle(translate('reminder_delete_me.reminder_deletion_errored'));
       }
 
       await ctx.editOrRespond({components: [], embed});
@@ -88,7 +90,7 @@ export async function createMessage(
   });
 
   components.createButton({
-    label: 'Cancel',
+    label: translate('reminder_delete_me.cancel'),
     style: MessageComponentButtonStyles.DANGER,
     run: async (ctx: ComponentContext) => {
       if (ctx.userId !== context.userId) {
@@ -96,7 +98,7 @@ export async function createMessage(
       }
   
       embed.setColor(EmbedColors.ERROR);
-      embed.setTitle('Reminder Deletion Cancelled');
+      embed.setTitle(translate('reminder_delete_me.reminder_deletion_cancelled'));
       await ctx.editOrRespond({components: [], embed});
     },
   });
@@ -105,8 +107,8 @@ export async function createMessage(
   components.onTimeout = async () => {
     try {
       embed.setColor(EmbedColors.ERROR);
-      embed.setTitle('Reminder Deletion Request Expired');
-      embed.setFooter('Request expired, press a button next time');
+      embed.setTitle(translate('reminder_delete_me.reminder_deletion_request_expired'));
+      embed.setFooter(translate('reminder_delete_me.request_expired_press_a_button_next_time'));
       // todo: fix this for interactions
       if (message && message.canEdit) {
         await message.edit({components: [], embed});

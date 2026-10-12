@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -48,8 +48,9 @@ export default class TagSearchCommand extends BaseCommand {
     return !!args.name || !!args.user;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Must provide some sort of search term or a user.`);
+  async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.search_needs_query')}`);
   }
 
   async run(context: Command.Context, args: CommandArgs) {

@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { mediaAIVToolsExif } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import { createUserEmbed, editOrReply, formatMemory, splitArray } from '../../../utils';
 
@@ -17,6 +18,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const response = await mediaAIVToolsExif(context, args);
@@ -24,31 +26,31 @@ export async function createMessage(
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Media Exif Information', EmbedBrands.NOTSOBOT);
+  embed.setFooter(translate('tools_exif.media_exif_information'), EmbedBrands.NOTSOBOT);
 
   if (metadata.mimetype.startsWith('image/')) {
     const channel = channels.image[0]!;
 
     const description: Array<string> = [];
-    description.push(`**Color Profile**: ${channel.interpretation}`);
-    description.push(`**Dimensions**: ${metadata.width}x${metadata.height}`);
+    description.push(translate('tools_exif.color_profile', {interpretation: channel.interpretation}));
+    description.push(translate('tools_exif.dimensions_x', {height: metadata.height, width: metadata.width}));
     if (channel.frames !== 1) {
       let delay = channel.delay[0]!.toLocaleString();
       if (channel.delay.some((x) => x !== channel.delay[0]!)) {
         delay = channel.delay.join(', ');
       }
 
-      description.push(`**Duration**: ${metadata.duration.toLocaleString()} milliseconds`);
-      description.push(`**Frames**: ${metadata.frames.toLocaleString()}`);
-      description.push(`**Frame Delay**: ${delay}`);
-      description.push(`**Loops**: ${(channel.loop) ? 'Yes' : 'No'}`);
+      description.push(translate('tools_exif.duration_milliseconds', {duration: metadata.duration.toLocaleString(language)}));
+      description.push(translate('tools_exif.frames', {frames: metadata.frames.toLocaleString(language)}));
+      description.push(translate('tools_exif.frame_delay', {delay: delay}));
+      description.push(translate('tools_exif.loops', {loop: (channel.loop) ? translate('common.yes') : translate('common.no')}));
     }
-    description.push(`**Mimetype**: ${metadata.mimetype}`);
-    description.push(`**Size**: ${formatMemory(metadata.size)}`);
+    description.push(translate('tools_exif.mimetype', {mimetype: metadata.mimetype}));
+    description.push(translate('tools_exif.size', {formatMemory: formatMemory(metadata.size)}));
     
     if (channel._data['gif-comment']) {
       description.push('');
-      description.push(`**Comment**`);
+      description.push(translate('tools_exif.comment'));
       description.push(Markup.codeblock(channel._data['gif-comment']))
     }
 
@@ -57,11 +59,11 @@ export async function createMessage(
     {
       const description: Array<string> = [];
       if (response.metadata.mimetype.startsWith('video/')) {
-        description.push(`**Dimensions**: ${metadata.width}x${metadata.height}`);
+        description.push(translate('tools_exif.dimensions_x', {height: metadata.height, width: metadata.width}));
       }
-      description.push(`**Duration**: ${metadata.duration.toLocaleString()} milliseconds`);
-      description.push(`**Mimetype**: ${metadata.mimetype}`);
-      description.push(`**Size**: ${formatMemory(metadata.size)}`);
+      description.push(translate('tools_exif.duration_milliseconds', {duration: metadata.duration.toLocaleString(language)}));
+      description.push(translate('tools_exif.mimetype', {mimetype: metadata.mimetype}));
+      description.push(translate('tools_exif.size', {formatMemory: formatMemory(metadata.size)}));
 
       embed.setDescription(description.join('\n'));
     }
@@ -70,14 +72,14 @@ export async function createMessage(
       const channel = channels.audio[index];
 
       const description: Array<string> = [];
-      description.push(`**Bitrate**: ${channel.bit_rate.toLocaleString()}`);
-      description.push(`**Channels**: ${channel.channels}`);
-      description.push(`**Codec**: ${channel.codec} (${channel.codec_tag})`);
-      description.push(`**Codec Description**: ${channel.codec_description}`);
-      description.push(`**Frames**: ${channel.frames.toLocaleString()}`);
-      description.push(`**Sample Rate**: ${channel.sample_rate.toLocaleString()}`);
+      description.push(translate('tools_exif.bitrate', {bit_rate: channel.bit_rate.toLocaleString(language)}));
+      description.push(translate('tools_exif.channels', {channels: channel.channels}));
+      description.push(translate('tools_exif.codec', {codec: channel.codec, codec_tag: channel.codec_tag}));
+      description.push(translate('tools_exif.codec_description', {codec_description: channel.codec_description}));
+      description.push(translate('tools_exif.frames', {frames: channel.frames.toLocaleString(language)}));
+      description.push(translate('tools_exif.sample_rate', {sample_rate: channel.sample_rate.toLocaleString(language)}));
 
-      let title = 'Audio Stream';
+      let title = translate('tools_exif.audio_stream');
       if (channels.audio.length !== 1) {
         title = `${title} ${parseInt(index) + 1}`;
       }
@@ -88,19 +90,19 @@ export async function createMessage(
       const channel = channels.video[index];
 
       const description: Array<string> = [];
-      description.push(`**Bitrate**: ${channel.bit_rate.toLocaleString()}`);
-      description.push(`**Codec**: ${channel.codec} (${channel.codec_tag})`);
-      description.push(`**Codec Description**: ${channel.codec_description}`);
+      description.push(translate('tools_exif.bitrate', {bit_rate: channel.bit_rate.toLocaleString(language)}));
+      description.push(translate('tools_exif.codec', {codec: channel.codec, codec_tag: channel.codec_tag}));
+      description.push(translate('tools_exif.codec_description', {codec_description: channel.codec_description}));
       if (channel.rotate) {
-        description.push(`**Dimensions**: ${channel.width}x${channel.height} (Rotate ${channel.rotate} Degrees)`);
+        description.push(translate('tools_exif.dimensions_x_rotate_degrees', {height: channel.height, rotate: channel.rotate, width: channel.width}));
       } else {
-        description.push(`**Dimensions**: ${channel.width}x${channel.height}`);
+        description.push(translate('tools_exif.dimensions_x', {height: channel.height, width: channel.width}));
       }
-      description.push(`**Frames**: ${channel.frames.toLocaleString()}`);
-      description.push(`**Frames Per Second**: ${channel.frames_per_second.toLocaleString()}`);
-      description.push(`**Pixel Format**: ${channel.pixel_format}`);
+      description.push(translate('tools_exif.frames', {frames: channel.frames.toLocaleString(language)}));
+      description.push(translate('tools_exif.frames_per_second', {frames_per_second: channel.frames_per_second.toLocaleString(language)}));
+      description.push(translate('tools_exif.pixel_format', {pixel_format: channel.pixel_format}));
 
-      let title = 'Video Stream';
+      let title = translate('tools_exif.video_stream');
       if (channels.video.length !== 1) {
         title = `${title} ${parseInt(index) + 1}`;
       }
@@ -132,7 +134,7 @@ export async function createMessage(
         }
       }
 
-      const title = (!i) ? 'Exif Data' : '\u200b';
+      const title = (!i) ? translate('tools_exif.exif_data') : '\u200b';
       embed.addField(title, description.join('\n') || '\u200b', true);
     }
     if (response.url) {

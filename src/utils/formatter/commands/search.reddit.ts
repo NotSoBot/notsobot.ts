@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchReddit } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { DateMomentLogFormat, EmbedBrands, EmbedColors, RedditKindTypes, RedditSortTypes, RedditTimeTypes } from '../../../constants';
 import { Paginator, chunkArray, createTimestampMomentFromGuild, createUserEmbed, editOrReply, htmlDecode, shuffleArray } from '../../../utils';
 
@@ -23,6 +24,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { results } = await searchReddit(context, args);
@@ -35,7 +37,7 @@ export async function createMessage(
 
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
-        embed.setFooter(`Page ${page}/${pageLimit} of Reddit Results`, EmbedBrands.REDDIT);
+        embed.setFooter(translate('search_reddit.page_of_reddit_results', {page: page, pageLimit: pageLimit}), EmbedBrands.REDDIT);
 
         embed.setTitle(data.title.slice(0, 256));
         embed.setUrl('https://reddit.com' + data.permalink);
@@ -49,31 +51,31 @@ export async function createMessage(
 
           const author = Markup.url(Markup.escape.all(data.author), `https://reddit.com/u/${data.author}`);
           const subreddit = Markup.url(Markup.escape.all(data.subreddit_name_prefixed), 'https://reddit.com/' + data.subreddit_name_prefixed);
-          description.push(`Created in ${subreddit} by ${author}`);
+          description.push(translate('search_reddit.created_in_by', {author: author, subreddit: subreddit}));
           description.push('');
 
-          description.push(`**Awards**: ${data.total_awards_received.toLocaleString()}`);
-          description.push(`**Comments**: ${data.num_comments.toLocaleString()}`);
+          description.push(translate('search_reddit.awards', {total_awards_received: data.total_awards_received.toLocaleString(language)}));
+          description.push(translate('search_reddit.comments', {num_comments: data.num_comments.toLocaleString(language)}));
 
           {
             const timestamp = createTimestampMomentFromGuild(data.created * 1000, context.guildId);
-            description.push(`**Created**: ${timestamp.fromNow()}`);
+            description.push(translate('search_reddit.created', {timestamp: timestamp.locale(language).fromNow()}));
             description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
           }
 
-          description.push(`**NSFW**: ${(data.over_18) ? 'Yes' : 'No'}`);
+          description.push(translate('search_reddit.nsfw', {over_18: (data.over_18) ? translate('common.yes') : translate('common.no')}));
 
           description.push('');
-          description.push(`**Downvotes**: ${data.downs.toLocaleString()}`);
-          description.push(`**Upvotes**: ${data.ups.toLocaleString()}`);
-          description.push(`**Ratio**: ${data.upvote_ratio * 100}% Upvotes`);
+          description.push(translate('search_reddit.downvotes', {downs: data.downs.toLocaleString(language)}));
+          description.push(translate('search_reddit.upvotes', {ups: data.ups.toLocaleString(language)}));
+          description.push(translate('search_reddit.ratio_upvotes', {upvote_ratio: data.upvote_ratio * 100}));
 
           if (data.is_video) {
             description.push('');
             description.push(Markup.url('Video URL', data.media.reddit_video.fallback_url));
           }
 
-          embed.addField('Details', description.join('\n'));
+          embed.addField(translate('search_reddit.details'), description.join('\n'));
         }
 
         if (data.preview) {
@@ -104,5 +106,5 @@ export async function createMessage(
     return await paginator.start();
   }
 
-  return editOrReply(context, 'Couldn\'t find any results for that search term');
+  return editOrReply(context, translate('search_reddit.couldn_t_find_any_results_for_that'));
 }

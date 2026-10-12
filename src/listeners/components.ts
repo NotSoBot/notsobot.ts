@@ -12,7 +12,7 @@ import { deleteFile, fetchFile } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { MessageComponentCustomIds } from '../constants';
 import { RedisSpewer } from '../redis';
-import { mediaReplyFromOptions } from '../utils';
+import { I18n, mediaReplyFromOptions } from '../utils';
 
 import { Listener } from './listener';
 
@@ -50,10 +50,12 @@ class ComponentsListener extends Listener {
   }
 
   async makePermanentUsingNitro(context: ComponentContext, fileId: string) {
+    // cached only, the interaction has to be responded to quickly
+    const { translate } = I18n.getCachedTranslator(context);
     if (this.componentsProcessing.has(context.customId)) {
       // show an error saying that the file is already being re-uploaded
       return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-        content: 'Media is already being re-uploaded currently using someone\'s Nitro.',
+        content: translate('media.reupload_in_progress'),
         flags: MessageFlags.EPHEMERAL,
       });
     }
@@ -65,7 +67,7 @@ class ComponentsListener extends Listener {
     } catch(error) {
       // if 404, replace entire message maybe?
       return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-        content: 'Media no longer exists on our servers.',
+        content: translate('media.reupload_missing'),
         flags: MessageFlags.EPHEMERAL,
       });
     }
@@ -73,7 +75,7 @@ class ComponentsListener extends Listener {
     if (context.maxAttachmentSize < storage.metadata.size) {
       // only allow it if the person who clicked it has enough attachment size to upload it (e.g. nitro)
       return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-        content: 'You do not have a big enough File Upload Size Limit to re-upload this media.',
+        content: translate('media.reupload_too_big'),
         flags: MessageFlags.EPHEMERAL,
       });
     }
@@ -95,7 +97,7 @@ class ComponentsListener extends Listener {
 
     await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     await context.createMessage({
-      content: 'Using your Nitro Limits to re-upload this media...',
+      content: translate('media.reupload_started'),
       flags: MessageFlags.EPHEMERAL,
     });
     // send a message saying reuploading

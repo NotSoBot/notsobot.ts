@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories } from '../../../constants';
-import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -39,9 +39,10 @@ export default class VoiceRecordCommand extends BaseCommand {
     return (args.seconds !== undefined) ? (args.seconds <= 60) : false;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.VoiceRecord.CommandArgs) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.VoiceRecord.CommandArgs) {
     if (args.seconds !== undefined) {
-      return editOrReply(context, `Duration must be under or be 60 seconds`);
+      const { translate } = await I18n.getTranslator(context);
+      return editOrReply(context, translate('voice.record.max_duration'));
     }
     return super.onCancelRun && super.onCancelRun(context, args);
   }

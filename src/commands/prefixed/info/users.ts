@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -47,11 +47,12 @@ export default class UsersCommand extends BaseCommand {
     return !!args.users.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.InfoUsers.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoUsers.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.role === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Role`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`);
     }
-    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any users.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoUsers.CommandArgs) {

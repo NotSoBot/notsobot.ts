@@ -4,6 +4,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { fetchUserReminders } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
@@ -29,6 +30,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const serverId = context.guildId || null;
@@ -45,14 +47,14 @@ export async function createMessage(
       const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
       embed.setColor(EmbedColors.DEFAULT);
       if (args.global) {
-        embed.setTitle(`All of your Reminders`);
+        embed.setTitle(translate('reminder_list_me.all_of_your_reminders'));
       } else {
-        embed.setTitle(`Your Reminders for this Server`);
+        embed.setTitle(translate('reminder_list_me.your_reminders_for_this_server'));
       }
 
-      let footer = `${result.count.toLocaleString()} Reminders`;
+      let footer = translate('reminder_list_me.reminders', {count: result.count.toLocaleString(language)});
       if (pageLimit !== 1) {
-        footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
+        footer = translate('reminder_list_me.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
       }
       embed.setFooter(footer);
 
@@ -60,7 +62,7 @@ export async function createMessage(
       if (reminders && reminders.length) {
         const description: Array<string> = [];
         for (let reminder of reminders) {
-          const title = (reminder.guild_id === serverId) ? 'Message in this Server' : 'Message';
+          const title = (reminder.guild_id === serverId) ? translate('reminder_list_me.message_in_this_server') : translate('reminder_list_me.message');
   
           let content: string;
           if (!reminder.content) {
@@ -81,7 +83,7 @@ export async function createMessage(
         }
         embed.setDescription(description.join('\n'));
       } else {
-        embed.setDescription('No Reminders Found');
+        embed.setDescription(translate('reminder_list_me.no_reminders_found'));
       }
 
       return embed;

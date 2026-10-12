@@ -1,7 +1,10 @@
+import moment from 'moment';
+
 import { Collections, Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsCommandsAllowlist } from '../../../api/structures/guildsettings';
+import { getTranslator } from '../../i18n';
 import { CommandCategories, EmbedColors, GuildCommandsAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
@@ -33,6 +36,7 @@ export async function createCommandsAllowlistsEmbed(
   commandsAllowlist: Collections.BaseCollection<string, GuildSettingsCommandsAllowlist>,
   options: {only?: GuildCommandsAllowlistTypes | null, title?: string} = {},
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   let sorted = commandsAllowlist.toArray();
   if (options.only) {
     sorted = sorted.filter((allowed) => allowed.type === options.only);
@@ -43,10 +47,10 @@ export async function createCommandsAllowlistsEmbed(
 
   const pages = chunkArray<GuildSettingsCommandsAllowlist>(sorted, ELEMENTS_PER_PAGE);
 
-  let title = options.title || 'Commands Allowlisted';
-  let footer = 'Command Allowlist';
+  let title = options.title || translate('moderation_commands_allowlist.commands_allowlisted');
+  let footer = translate('moderation_commands_allowlist.command_allowlist');
   if (options.only) {
-    footer = `${footer} (Only ${toTitleCase(options.only)}s)`;
+    footer = translate('moderation_commands_allowlist.only_s', {footer: footer, types: translateMaybe(`moderation.types.${options.only}`, `${toTitleCase(options.only)}s`)});
   }
   if (pages.length) {
     const pageLimit = pages.length;
@@ -57,30 +61,30 @@ export async function createCommandsAllowlistsEmbed(
         embed.setColor(EmbedColors.DEFAULT);
 
         embed.setTitle(title);
-        embed.setFooter((pageLimit === 1) ? footer : `Page ${pageNumber}/${pageLimit} of ${footer}`);
+        embed.setFooter((pageLimit === 1) ? footer : translate('moderation_commands_allowlist.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber}));
 
         const page = pages[pageNumber - 1];
         {
           const description: Array<string> = page.map((allowed, i) => {
-            let type = `Unknown (${allowed.type})`;
+            let type = translate('moderation_commands_allowlist.unknown', {type: allowed.type});
             switch (allowed.type) {
               case GuildCommandsAllowlistTypes.CHANNEL: {
-                type = `Channel Allowed (<#${allowed.id}>)`;
+                type = translate('moderation_commands_allowlist.channel_allowed', {allowed: allowed.id});
               }; break;
               case GuildCommandsAllowlistTypes.GUILD: {
-                type = 'Guild Allowed';
+                type = translate('moderation_commands_allowlist.guild_allowed');
               }; break;
               case GuildCommandsAllowlistTypes.ROLE: {
-                type = `Role Allowed (<@&${allowed.id}>)`;
+                type = translate('moderation_commands_allowlist.role_allowed', {allowed: allowed.id});
               }; break;
               case GuildCommandsAllowlistTypes.USER: {
-                type = `User Allowed (<@${allowed.id}>)`;
+                type = translate('moderation_commands_allowlist.user_allowed', {allowed: allowed.id});
               }; break;
             }
             return [
-              `${(i * pageNumber) + 1}. **${allowed.command}** added ${allowed.addedAtText}`,
+              translate('moderation_commands_allowlist.added', {addedAtText: moment(allowed.added).locale(language).fromNow(), command: allowed.command, index: (i * pageNumber) + 1}),
               `-> ${type}`,
-              `-> By <@${allowed.userId}>`,
+              translate('moderation_commands_allowlist.by', {userId: allowed.userId}),
             ].join('\n');
           });
           embed.setDescription(description.join('\n'));
@@ -95,9 +99,9 @@ export async function createCommandsAllowlistsEmbed(
 
   embed.setTitle(title);
   if (options.only) {
-    embed.setDescription(`Currently there are no commands allowlisted for any ${options.only}s in this guild.`);
+    embed.setDescription(translate('moderation_commands_allowlist.currently_there_are_no_commands_allowlisted_for', {types: translateMaybe(`moderation.types.${options.only}`, `${toTitleCase(options.only)}s`).toLowerCase()}));
   } else {
-    embed.setDescription('Currently there are no commands allowlisted in this guild.');
+    embed.setDescription(translate('moderation_commands_allowlist.currently_there_are_no_commands_allowlisted_in'));
   }
   embed.setFooter(footer);
   return editOrReply(context, {embed});

@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GuildCommandsAllowlistTypes, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -73,21 +73,22 @@ export default class CommandsAllowlistRemoveCommand extends BaseCommand {
     return true;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationCommandsAllowlistRemove.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationCommandsAllowlistRemove.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.command) {
       let errors: Array<string> = [];
       if (args.channels && !args.channels.length) {
-        errors.push('channels');
+        errors.push(translate('moderation.types.channel').toLowerCase());
       }
       if (args.roles && !args.roles.length) {
-        errors.push('roles');
+        errors.push(translate('moderation.types.role').toLowerCase());
       }
       if (args.users && !args.users.length) {
-        errors.push('users');
+        errors.push(translate('moderation.types.user').toLowerCase());
       }
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find the provided ${errors.join(', ')}.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('moderation.items_not_found', {items: errors.join(', ')})}`);
     }
-    return editOrReply(context, `${StatusEmojis.WARNING} Unknown Command`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationCommandsAllowlistRemove.CommandArgs) {

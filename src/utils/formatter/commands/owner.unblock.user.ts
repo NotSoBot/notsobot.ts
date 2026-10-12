@@ -1,6 +1,7 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 
 import { editUser } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { createUserString, editOrReply } from '../../../utils';
 
 
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   await editUser(context, args.user.id, {blocked: false});
-  return editOrReply(context, `Alright, unblocked ${createUserString(args.user.id, args.user)}.`);
+  return editOrReply(context, translate('owner_unblock_user.alright_unblocked', {user: createUserString(args.user.id, args.user)}));
 }

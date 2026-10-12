@@ -3,6 +3,7 @@ import { Colors } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, StatusEmojis } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import {
   Paginator,
   chunkArray,
@@ -24,6 +25,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { emojis } = args;
 
   const pages = chunkArray<Structures.Emoji>(emojis, ELEMENTS_PER_PAGE);
@@ -34,9 +36,9 @@ export async function createMessage(
       const embed = createUserEmbed(context.user);
       embed.setColor(Colors.BLURPLE);
 
-      const title = `${emojis.length.toLocaleString()} Emojis Found`;
+      const title = translate('search_discord_emojis.emojis_found', {emojis_count: emojis.length.toLocaleString(language)});
       embed.setTitle(title);
-      embed.setFooter((pageLimit === 1) ? title : `Page ${pageNumber}/${pageLimit} of ${title}`);
+      embed.setFooter((pageLimit === 1) ? title : translate('search_discord_emojis.page_of', {pageLimit: pageLimit, pageNumber: pageNumber, title: title}));
 
       const page = pages[pageNumber - 1];
       {
@@ -48,7 +50,7 @@ export async function createMessage(
 
           const number = (+(key) + 1) + ((pageNumber - 1) * ELEMENTS_PER_PAGE);
           description.push([
-            `${number}. ${Markup.url(emoji.format, emoji.url + `?g=${emoji.guildId}`)} - Created ${timestamp.fromNow()}`,
+            translate('search_discord_emojis.created', {emoji: Markup.url(emoji.format, emoji.url + `?g=${emoji.guildId}`), number: number, timestamp: timestamp.locale(language).fromNow()}),
             //`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`,
           ].join('\n'));
         }
@@ -97,12 +99,13 @@ export async function createMessage(
 
 
 export async function emojisSearch(value: string, context: Command.Context) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   value = value.toLowerCase();
   if (!value) {
-    throw new Error(`${StatusEmojis.WARNING} Please enter some kind of emoji name`);
+    throw new Error(`${StatusEmojis.WARNING} ${translate('search_discord_emojis.please_enter_some_kind_of_emoji_name')}`);
   }
   if (value.length <= 2) {
-    throw new Error(`${StatusEmojis.WARNING} Emoji names must be longer than 2 characters since we're searching through MILLIONS of emojis`);
+    throw new Error(`${StatusEmojis.WARNING} ${translate('search_discord_emojis.emoji_names_must_be_longer_than_2')}`);
   }
 
   let chunks: Array<Array<Structures.Emoji>>;
@@ -117,7 +120,7 @@ export async function emojisSearch(value: string, context: Command.Context) {
           }
         } else {
           for (let [emojiId, emoji] of shard.emojis) {
-            if (emoji.name.toLowerCase().includes(name)) {
+            if (emoji.name && emoji.name.toLowerCase().includes(name)) {
               emojis.push(emoji);
             }
           }

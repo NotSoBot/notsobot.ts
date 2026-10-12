@@ -4,6 +4,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import MiniSearch from 'minisearch';
 
 import { deleteVoice, fetchUserVoices } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import {
   EmbedBrands,
@@ -24,16 +25,17 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { count, voices } = await fetchUserVoices(context, context.userId);
   if (!voices.length) {
-    return editOrReply(context, 'You have no cloned voices');
+    return editOrReply(context, translate('voice_list.you_have_no_cloned_voices'));
   }
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Cloned Voices');
+  embed.setFooter(translate('voice_list.cloned_voices'));
 
   const description: Array<string> = [];
   for (let i = 0; i < voices.length; i++) {

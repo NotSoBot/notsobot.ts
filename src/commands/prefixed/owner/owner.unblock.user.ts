@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -35,9 +35,10 @@ export default class OwnerBlockUserCommand extends BaseCommand {
     return !!args.user;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerUnblockUser.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerUnblockUser.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (!args.user) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
     }
     return super.onCancelRun(context, args);
   }

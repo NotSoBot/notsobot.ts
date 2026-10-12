@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { Formatter, I18n, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -16,7 +16,7 @@ export default class BanCommand extends BaseCommand {
 
       aliases: ['hackban'],
       args: [
-        {name: 'clean', default: 1 * 24 * 60 * 60, type: (value: string) => Parameters.seconds(value)},
+        {name: 'clean', default: 1 * 24 * 60 * 60, type: (value: string, context: Command.Context) => Parameters.seconds(value, false, context)},
       ],
       default: null,
       disableDm: true,
@@ -43,9 +43,10 @@ export default class BanCommand extends BaseCommand {
     return !!args.payload && !!args.payload.membersOrUsers.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationBan.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationBan.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.payload) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Couldn't find any users. (Use Mentions or User IDs)`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_users_found')}`);
     }
     return super.onCancelRun(context, args);
   }

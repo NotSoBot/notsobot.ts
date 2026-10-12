@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationCaption, mediaIVManipulationUncaption } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
 import { DefaultParameters, jobReply, jobWaitForResult } from '../../../utils';
@@ -22,6 +23,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile, safe?: boolean},
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const safe = args.safe || DefaultParameters.safe(context);
 
   let fileResponse: RestResponsesRaw.FileResponse | undefined;
@@ -38,9 +40,9 @@ export async function createMessage(
     }
     fileResponse = job.result.response;
   } else if (job.result.error) {
-    throw new Error(`Uncaption Job Failed: ${job.result.error}`);
+    throw new Error(translate('media_iv_manipulation_recaption.uncaption_job_failed', {error: job.result.error}));
   } else {
-    throw new Error('Uncaption Job Failed for some reason');
+    throw new Error(translate('media_iv_manipulation_recaption.uncaption_job_failed_for_some_reason'));
   }
 
   const { bottom, top } = splitText(args.text);

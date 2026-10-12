@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionWebDetection, searchGoogleReverseImages } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const [
@@ -46,14 +48,14 @@ export async function createMessage(
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
 
-        let footer = 'Google Reverse Image Results';
+        let footer = translate('search_google_reverse.google_reverse_image_results');
         if (pageLimit !== 1) {
-          footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
+          footer = translate('search_google_reverse.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
         }
-        footer = `${footer} (${totalResultCount.toLocaleString()} Total Results)`;
+        footer = translate('search_google_reverse.total_results', {footer: footer, totalResultCount: totalResultCount.toLocaleString(language)});
         embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
-        embed.setTitle('Reverse Image Results');
+        embed.setTitle(translate('search_google_reverse.reverse_image_results'));
         embed.setUrl(url);
 
         const image = (visuallySimilarImages) ? visuallySimilarImages[pageNumber - 1] : null;
@@ -62,7 +64,7 @@ export async function createMessage(
         }
 
         if (relatedSearch.text) {
-          embed.setDescription(`Best Guess: ${Markup.codestring(relatedSearch.text)}`);
+          embed.setDescription(translate('search_google_reverse.best_guess', {text: Markup.codestring(relatedSearch.text)}));
         }
 
         for (let result of similarResults) {
@@ -80,7 +82,7 @@ export async function createMessage(
               }
             }).filter((v: string | undefined) => v);
             if (suggestions.length) {
-              description.push(`**Suggestions**: ${suggestions.join(', ')}`);
+              description.push(translate('search_google_reverse.suggestions', {suggestions: suggestions.join(', ')}));
             }
           }
 
@@ -94,7 +96,7 @@ export async function createMessage(
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Google Reverse Image Results', EmbedBrands.GOOGLE_GO);
-  embed.setTitle('Unable to find any results');
+  embed.setFooter(translate('search_google_reverse.google_reverse_image_results'), EmbedBrands.GOOGLE_GO);
+  embed.setTitle(translate('search_google_reverse.unable_to_find_any_results'));
   return editOrReply(context, {embed});
 }

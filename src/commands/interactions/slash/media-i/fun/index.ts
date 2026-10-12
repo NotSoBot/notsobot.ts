@@ -5,6 +5,9 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { MediaIBillCommand } from './bill';
 import { MediaIBurnCommand } from './burn';
 import { MediaILatteCommand } from './latte';
+import { MediaIRetroCommand } from './retro';
+import { MediaIRipCommand } from './rip';
+import { MediaIWordcloudCommand } from './wordcloud';
 
 
 export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -18,6 +21,9 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIBillCommand(),
         new MediaIBurnCommand(),
         new MediaILatteCommand(),
+        new MediaIRetroCommand(),
+        new MediaIRipCommand(),
+        new MediaIWordcloudCommand(),
       ],
     });
   }

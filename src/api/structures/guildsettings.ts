@@ -495,7 +495,8 @@ export class GuildSettingsChild extends BaseStructure {
   mlDiffusionModel: null | string = null;
   mlLLMModel: null | string = null;
   mlLLMPersonality: null | string = null;
-  responseDisplay: GuildSettingsResponseDisplayTypes = GuildSettingsResponseDisplayTypes.DEFAULT;
+  // null uses each user's preference, then our latest format
+  responseDisplay: GuildSettingsResponseDisplayTypes | null = null;
 
   constructor(data: Structures.BaseStructureData) {
     super();

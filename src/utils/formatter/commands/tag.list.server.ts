@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagsServer } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
@@ -75,8 +76,9 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   if (args.user && args.user.bot) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Bots do not have tags.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_list_server.bots_do_not_have_tags')}`);
   }
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
@@ -100,22 +102,22 @@ export async function createMessage(
         if (args.content || args.content || args.user) {
           const description: Array<string> = [];
           if (args.user) {
-            description.push(`Showing tags owned by ${createUserString(args.user.id, args.user)}`);
+            description.push(translate('tag_list_server.showing_tags_owned_by', {user: createUserString(args.user.id, args.user)}));
           }
           if (args.name) {
-            description.push(`Filtering for tags with names containing ${Markup.codestring(args.name)}`);
+            description.push(translate('tag_list_server.filtering_for_tags_with_names_containing', {name: Markup.codestring(args.name)}));
           }
           if (args.content) {
-            description.push(`Filtering for tags with content containing ${Markup.codestring(args.content)}`);
+            description.push(translate('tag_list_server.filtering_for_tags_with_content_containing', {content: Markup.codestring(args.content)}));
           }
           embed.setDescription(description.join('\n'));
         }
 
-        let footer = `Server Tags`;
+        let footer = translate('tag_list_server.server_tags');
         if (pageLimit !== 1) {
-          footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
+          footer = translate('tag_list_server.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
         }
-        embed.setFooter(`${footer} (${tags.length.toLocaleString()} Total Tags)`);
+        embed.setFooter(translate('tag_list_server.total_tags', {footer: footer, tags_count: tags.length.toLocaleString(language)}));
 
         const page = pages[pageNumber - 1];
 
@@ -151,8 +153,8 @@ export async function createMessage(
   }
 
   if (args.content || args.name || args.user) {
-    return editOrReply(context, 'This server has no tags matching the search options');
+    return editOrReply(context, translate('tag_list_server.this_server_has_no_tags_matching_the'));
   }
 
-  return editOrReply(context, 'This server has no tags');
+  return editOrReply(context, translate('tag_list_server.this_server_has_no_tags'));
 }

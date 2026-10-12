@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 import { Collections, Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
@@ -5,7 +7,7 @@ import { Embed } from 'detritus-client/lib/utils';
 import { GuildSettings, GuildSettingsLogger } from '../../../api/structures/guildsettings';
 import { CommandCategories, EmbedColors, GuildLoggerTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { Paginator, Parameters, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { I18n, Paginator, Parameters, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -17,6 +19,8 @@ export async function createLoggersEmbed(
   loggers: Collections.BaseCollection<string, GuildSettingsLogger>,
   options: {only?: GuildLoggerTypes | null, title?: string} = {},
 ) {
+  const { language, translate } = await I18n.getTranslator(context);
+
   let sorted = loggers.toArray();
   if (options.only) {
     sorted = sorted.filter((logger) => logger.type === options.only);
@@ -28,21 +32,21 @@ export async function createLoggersEmbed(
 
   const pages = chunkArray<GuildSettingsLogger>(sorted, ELEMENTS_PER_PAGE);
 
-  let title = options.title || 'Loggers';
-  let footer = 'Loggers';
+  let title = options.title || translate('loggers.title');
+  let footer = translate('loggers.title');
 
   let onlyText: string | undefined;
   switch (options.only) {
-    case GuildLoggerTypes.BANS: onlyText = 'Ban Loggers'; break;
-    case GuildLoggerTypes.CHANNELS: onlyText = 'Channel Loggers'; break;
-    case GuildLoggerTypes.MEMBERS: onlyText = 'Member Loggers'; break;
-    case GuildLoggerTypes.MESSAGES: onlyText = 'Message Loggers'; break;
-    case GuildLoggerTypes.ROLES: onlyText = 'Role Loggers'; break;
-    case GuildLoggerTypes.USERS: onlyText = 'User Loggers'; break;
-    case GuildLoggerTypes.VOICE: onlyText = 'Voice Loggers'; break;
+    case GuildLoggerTypes.BANS: onlyText = translate('loggers.types.ban'); break;
+    case GuildLoggerTypes.CHANNELS: onlyText = translate('loggers.types.channel'); break;
+    case GuildLoggerTypes.MEMBERS: onlyText = translate('loggers.types.member'); break;
+    case GuildLoggerTypes.MESSAGES: onlyText = translate('loggers.types.message'); break;
+    case GuildLoggerTypes.ROLES: onlyText = translate('loggers.types.role'); break;
+    case GuildLoggerTypes.USERS: onlyText = translate('loggers.types.user'); break;
+    case GuildLoggerTypes.VOICE: onlyText = translate('loggers.types.voice'); break;
   }
   if (onlyText) {
-    footer = `${footer} (Only ${onlyText})`;
+    footer = translate('loggers.footer_only', {types: onlyText});
   }
 
   if (pages.length) {
@@ -54,25 +58,25 @@ export async function createLoggersEmbed(
         embed.setColor(EmbedColors.DEFAULT);
 
         embed.setTitle(title);
-        embed.setFooter((pageLimit === 1) ? footer : `Page ${pageNumber}/${pageLimit} of ${footer}`);
+        embed.setFooter((pageLimit === 1) ? footer : translate('moderation.page_of', {footer, page: pageNumber, total: pageLimit}));
 
         const page = pages[pageNumber - 1];
         {
           const description: Array<string> = page.map((logger, i) => {
             let type: string = `${logger.type}`;
             switch (logger.type) {
-              case GuildLoggerTypes.BANS: type = 'Ban Logger'; break;
-              case GuildLoggerTypes.CHANNELS: type = 'Channel Logger'; break;
-              case GuildLoggerTypes.MEMBERS: type = 'Member Logger'; break;
-              case GuildLoggerTypes.MESSAGES: type = 'Message Logger'; break;
-              case GuildLoggerTypes.ROLES: type = 'Role Logger'; break;
-              case GuildLoggerTypes.USERS: type = 'User Logger'; break;
-              case GuildLoggerTypes.VOICE: type = 'Voice Logger'; break;
+              case GuildLoggerTypes.BANS: type = translate('loggers.type.ban'); break;
+              case GuildLoggerTypes.CHANNELS: type = translate('loggers.type.channel'); break;
+              case GuildLoggerTypes.MEMBERS: type = translate('loggers.type.member'); break;
+              case GuildLoggerTypes.MESSAGES: type = translate('loggers.type.message'); break;
+              case GuildLoggerTypes.ROLES: type = translate('loggers.type.role'); break;
+              case GuildLoggerTypes.USERS: type = translate('loggers.type.user'); break;
+              case GuildLoggerTypes.VOICE: type = translate('loggers.type.voice'); break;
             }
  
             return [
-              `${(i * pageNumber) + 1}. **${type}** added ${logger.addedAtText}`,
-              `-> By <@${logger.userId}> in <#${logger.channelId}>`,
+              translate('moderation.entry_added', {index: (i * pageNumber) + 1, type, when: moment(logger.added).locale(language).fromNow()}),
+              `-> ${translate('loggers.by_in', {channel: `<#${logger.channelId}>`, user: `<@${logger.userId}>`})}`,
             ].join('\n');
           });
 
@@ -88,9 +92,9 @@ export async function createLoggersEmbed(
 
     embed.setTitle(title);
     if (onlyText) {
-      embed.setDescription(`Currently no ${onlyText} in this guild.`);
+      embed.setDescription(translate('loggers.empty_only', {types: onlyText}));
     } else {
-      embed.setDescription('Currently no loggers are in this guild.');
+      embed.setDescription(translate('loggers.empty'));
     }
     embed.setFooter(footer);
     return editOrReply(context, {embed});

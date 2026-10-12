@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getTranslator } from '../../i18n';
 
 import { fetchTag, putTag } from '../../../api';
 import { StatusEmojis } from '../../../constants';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const serverId = context.guildId || context.channelId;
 
@@ -27,7 +29,7 @@ export async function createMessage(
     const tag = await fetchTag(context, {name: args.tag, serverId});
     if (!tag.global) {
       if (tag.user.id !== context.userId) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Tag already exists in this server!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_create.tag_already_exists_in_this_server')}`);
       }
     }
     isEdit = true;
@@ -46,9 +48,9 @@ export async function createMessage(
 
   let text: string;
   if (isEdit) {
-    text = `Successfully edited tag ${Markup.codestring(tag.name)}`;
+    text = translate('tag_create.successfully_edited_tag', {name: Markup.codestring(tag.name)});
   } else {
-    text = `Successfully created tag ${Markup.codestring(tag.name)}`;
+    text = translate('tag_create.successfully_created_tag', {name: Markup.codestring(tag.name)});
   }
   return editOrReply(context, text);
 }

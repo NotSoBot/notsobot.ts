@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { Formatter, I18n, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -42,11 +42,12 @@ export default class AllowlistRemoveRolesCommand extends BaseCommand {
     return !!args.roles && !!args.roles.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveRoles.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveRoles.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.roles) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any roles.`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_roles_found')}`);
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} Provide some kind of query.`);
+    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('errors.needs_query')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveRoles.CommandArgs) {

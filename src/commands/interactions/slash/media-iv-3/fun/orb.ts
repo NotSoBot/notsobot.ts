@@ -24,7 +24,7 @@ export class MediaIVOrbCommand extends BaseInteractionImageOrVideoCommandOption 
           name: 'direction',
           description: 'Rotation Direction',
           ...I18n.optionLocalizations('commands.media_iv_3.fun.orb.direction'),
-          choices: Parameters.Slash.oneOf({choices: MediaSlideDirections, defaultChoice: MediaSlideDirections.RIGHT}),
+          choices: Parameters.Slash.oneOf({choices: MediaSlideDirections, defaultChoice: MediaSlideDirections.RIGHT, localizationKey: 'choices.directions'}),
         },
       ],
     });

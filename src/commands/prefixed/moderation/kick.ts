@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { Formatter, I18n, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -15,7 +15,7 @@ export default class KickCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'clean', type: (value: string) => Parameters.seconds(value)},
+        {name: 'clean', type: (value: string, context: Command.Context) => Parameters.seconds(value, false, context)},
       ],
       default: null,
       disableDm: true,
@@ -42,11 +42,12 @@ export default class KickCommand extends BaseCommand {
     return !!args.payload && !!args.payload.membersOrUsers.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationKick.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationKick.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.payload) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Couldn't find any members. (Use Mentions or User IDs)`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_members_found')}`);
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} Provide some members`);
+    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.needs_members')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationKick.CommandArgs) {

@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Snowflake } from 'detritus-utils';
 
 import { StatusEmojis } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import { editOrReply } from '../../../utils';
 
 
@@ -27,10 +28,11 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { channelId } = context;
   if (!channelId) {
     return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} Unable to undo commands here.`,
+      content: `${StatusEmojis.WARNING} ${translate('utils_undo.unable_to_undo_commands_here')}`,
       flags: MessageFlags.EPHEMERAL,
     });
   }
@@ -139,16 +141,16 @@ export async function createMessage(
 
   let text: string;
   if (!messageIds.length) {
-    text = 'Could not find any of your last commands.';
+    text = translate('utils_undo.could_not_find_any_of_your_last');
   } else if (count.interactions && count.prefixed) {
-    text = `Successfully deleted ${count.interactions} interactions and ${count.prefixed} commands.`;
+    text = translate('utils_undo.successfully_deleted_interactions_and_commands', {interactions: count.interactions, prefixed: count.prefixed});
   } else if (count.interactions) {
-    text = `Successfully deleted ${count.interactions} interactions.`;
+    text = translate('utils_undo.successfully_deleted_interactions', {interactions: count.interactions});
   } else {
-    text = `Successfully deleted ${count.prefixed} commands.`;
+    text = translate('utils_undo.successfully_deleted_commands', {prefixed: count.prefixed});
   }
   if (failed) {
-    text = `${text} (${failed.toLocaleString()} messages could not be deleted)`;
+    text = translate('utils_undo.messages_could_not_be_deleted', {failed: failed.toLocaleString(language), text: text});
   }
 
   if (context instanceof Interaction.InteractionContext) {

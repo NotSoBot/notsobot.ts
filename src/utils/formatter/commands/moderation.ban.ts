@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
 
@@ -21,6 +22,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { payload } = args;
 
   const canEdit: Array<Structures.Member | Structures.User> = [];
@@ -56,14 +58,14 @@ export async function createMessage(
   let reason: string | undefined;
   {
     const description: Array<string> = [];
-    description.push(`Admin: ${context.user} (${context.user.id})`);
-    description.push(`Reason: ${(payload.text) ? Markup.escape.all(payload.text) : '[Unspecified Reason]'}`);
+    description.push(translate('moderation_ban.admin', {user: context.user, user2: context.user.id}));
+    description.push(translate('moderation_ban.reason', {text: (payload.text) ? Markup.escape.all(payload.text) : translate('moderation.unspecified_reason')}));
     {
       const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
-      description.push(`Timestamp: ${timestamp.format(DateMomentLogFormat)}`);
+      description.push(translate('moderation_ban.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
     }
     if (deleteMessageSeconds) {
-      description.push(`Message Cleaning of ${deleteMessageSeconds.toLocaleString()} second${(deleteMessageSeconds === 1) ? '' : 's'}`);
+      description.push(((deleteMessageSeconds === 1) ? translate('moderation_ban.message_cleaning_of_second_one', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(language)}) : translate('moderation_ban.message_cleaning_of_seconds_other', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(language)})));
     }
     reason = description.join('\n');
   }
@@ -85,9 +87,9 @@ export async function createMessage(
       if (memberOrUser instanceof Structures.Member) {
         try {
           await memberOrUser.createMessage([
-            `You have been banned from ${Markup.escape.all(guild.name)} (${guild.id}).`,
+            translate('moderation_ban.you_have_been_banned_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
             '',
-            `Information: ${Markup.codeblock(reason)}`,
+            translate('moderation_ban.information', {reason: Markup.codeblock(reason)}),
           ].join('\n'));
         } catch(error) {
           // maybe log this?
@@ -109,12 +111,12 @@ export async function createMessage(
       }
       if (reason) {
         description.push('');
-        description.push(`Audit Log Reason: ${Markup.codeblock(reason)}`);
+        description.push(translate('moderation_ban.audit_log_reason', {reason: Markup.codeblock(reason)}));
       }
       description.push('\u200b');
     }
     if (description.length) {
-      embed.addField('Banned', description.join('\n'));
+      embed.addField(translate('moderation_ban.banned'), description.join('\n'));
     }
   }
 
@@ -123,7 +125,7 @@ export async function createMessage(
     if (cannotEdit.length || clientCannotEdit.length) {
       if (clientCannotEdit.length) {
         const members = clientCannotEdit.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
-        description.push('Couldn\'t ban due to Bot\'s Role Position');
+        description.push(translate('moderation_ban.couldn_t_ban_due_to_bot_s'));
         for (let member of members) {
           description.push(`-> ${member}`);
         }
@@ -131,7 +133,7 @@ export async function createMessage(
       description.push('');
       if (cannotEdit.length) {
         const members = cannotEdit.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
-        description.push('Couldn\'t ban due to Your Role Position');
+        description.push(translate('moderation_ban.couldn_t_ban_due_to_your_role'));
         for (let member of members) {
           description.push(`-> ${member}`);
         }
@@ -141,20 +143,20 @@ export async function createMessage(
 
     if (us.length) {
       const members = us.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
-      description.push('Cannot Ban Yourself or Myself');
+      description.push(translate('moderation_ban.cannot_ban_yourself_or_myself'));
       for (let member of members) {
         description.push(`-> ${member}`);
       }
     }
 
     if (description.length) {
-      embed.addField('Unable to Ban', description.join('\n'));
+      embed.addField(translate('moderation_ban.unable_to_ban'), description.join('\n'));
     }
   }
 
   if (payload.notFound.length) {
     const text = payload.notFound.map((notFound) => Markup.escape.all(notFound)).join(', ');
-    embed.addField('Not Found', text);
+    embed.addField(translate('moderation_ban.not_found'), text);
   }
 
   {
@@ -164,16 +166,13 @@ export async function createMessage(
 
     const description: Array<string> = [];
     if (banned) {
-      const text = 'Member' + ((1 < banned) ? 's' : '');
-      description.push(`Banned ${banned.toLocaleString()} ${text}`);
+      description.push((1 < banned) ? translate('moderation_ban.banned_members', {banned: banned.toLocaleString(language)}) : translate('moderation_ban.banned_member', {banned: banned.toLocaleString(language)}));
     }
     if (unableToBan) {
-      const text = 'Member' + ((1 < unableToBan) ? 's' : '');
-      description.push(`Unable to Ban ${unableToBan.toLocaleString()} ${text}`);
+      description.push((1 < unableToBan) ? translate('moderation_ban.unable_to_ban_members', {unableToBan: unableToBan.toLocaleString(language)}) : translate('moderation_ban.unable_to_ban_member', {unableToBan: unableToBan.toLocaleString(language)}));
     }
     if (notFound) {
-      const text = 'Member' + ((1 < notFound) ? 's' : '');
-      description.push(`Unable to find ${notFound.toLocaleString()} ${text}`);
+      description.push((1 < notFound) ? translate('moderation_ban.unable_to_find_members', {notFound: notFound.toLocaleString(language)}) : translate('moderation_ban.unable_to_find_member', {notFound: notFound.toLocaleString(language)}));
     }
     if (description.length) {
       embed.setFooter(description.join(', '));

@@ -65,6 +65,8 @@ import {
   FindMediaUrlOptions,
 } from '../../utils';
 
+import { getCachedTranslator } from '../i18n';
+
 import * as AutoComplete from './autocomplete';
 import * as ContextMenu from './context-menu';
 import * as Prefixed from './prefixed';
@@ -78,7 +80,7 @@ export * from './prefixed';
 
 const ARRAY_OF_FLOATS_REGEX = /-?\d*\.?\d+(?:[eE][-+]?\d+)?/g;
 
-export function arrayOfFloats(value: string): Array<number> | null {
+export function arrayOfFloats(value: string, context?: Command.Context | Interaction.InteractionContext): Array<number> | null {
   const floats: Array<number> = [];
   if (value) {
     const matches = value.match(ARRAY_OF_FLOATS_REGEX);
@@ -86,7 +88,7 @@ export function arrayOfFloats(value: string): Array<number> | null {
       for (let match of matches) {
         const number = parseFloat(match);
         if (isNaN(number)) {
-          throw new Error('Invalid Float Given');
+          throw new Error(getCachedTranslator(context).translate('params.invalid_float'));
         }
         floats.push(number);
       }
@@ -109,7 +111,7 @@ export function days(value: string): number {
 
 const COORDINATE_REGEX = /[\(]?(-?\d*\.?\d+|\d)(?:\s*,\s*(-?\d*\.?\d+|\d))?[\)]?/g;
 
-export function hueCurveCoordinates(value: string): Array<[number, number]> | null {
+export function hueCurveCoordinates(value: string, context?: Command.Context | Interaction.InteractionContext): Array<[number, number]> | null {
   const coordinates: Array<[number, number]> = [];
   if (value) {
     for (let match of value.matchAll(COORDINATE_REGEX)) {
@@ -122,7 +124,7 @@ export function hueCurveCoordinates(value: string): Array<[number, number]> | nu
         y = parseFloat(match[1]);
       }
       if (isNaN(x) || isNaN(y)) {
-        throw new Error('Invalid (x,y) Coordinate Given');
+        throw new Error(getCachedTranslator(context).translate('params.invalid_coordinate'));
       }
       coordinates.push([x, y]);
     }
@@ -169,7 +171,7 @@ export async function locale(
     }
     return `\`${locale}\``;
   });
-  throw new Error(`Must be one of ${locales.join(', ')}`);
+  throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: locales.join(', ')}));
 }
 
 
@@ -187,7 +189,7 @@ localeDiscordSearch.addAll(Object.entries(DiscordLocales).map(([key, id]) => {
   return {id, key, name};
 }));
 
-export async function localeDiscord(value: string): Promise<DiscordLocales | null> {
+export async function localeDiscord(value: string, context?: Command.Context | Interaction.InteractionContext): Promise<DiscordLocales | null> {
   if (!value) {
     return null;
   }
@@ -203,7 +205,7 @@ export async function localeDiscord(value: string): Promise<DiscordLocales | nul
     }
     return `\`${locale}\``;
   });
-  throw new Error(`Must be one of ${locales.join(', ')}`);
+  throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: locales.join(', ')}));
 }
 
 
@@ -267,7 +269,7 @@ export function nlpTimestamp(
     timezone: getTimezoneAbbreviation(getTimezoneFromContext(context)),
   }, {forwardDate: true});
   if (!results.length) {
-    throw new Error('Must provide some sort of time in your text');
+    throw new Error(getCachedTranslator(context).translate('params.no_time'));
   }
 
   /*
@@ -331,22 +333,23 @@ export interface NumberOptions {
 }
 
 export function number(options: NumberOptions = {}) {
-  return (valueStrOrNum: number | string): number => {
+  return (valueStrOrNum: number | string, context?: Command.Context | Interaction.InteractionContext): number => {
+    const translate = getCachedTranslator(context).translate;
     const value = parseInt(valueStrOrNum as string);
     if (isNaN(value)) {
-      throw new Error('Value must be a number.');
+      throw new Error(translate('params.value_number'));
     }
     if (options.max !== undefined && options.min !== undefined) {
       if (value < options.min || options.max < value) {
-        throw new Error(`Value must be between ${options.min} and ${options.max}`);
+        throw new Error(translate('params.value_between', {max: options.max, min: options.min}));
       }
     } else if (options.max !== undefined) {
       if (options.max < value) {
-        throw new Error(`Value must be less than ${options.max}`);
+        throw new Error(translate('params.value_less_than', {max: options.max}));
       }
     } else if (options.min !== undefined) {
       if (value < options.min) {
-        throw new Error(`Value must be more than ${options.min}`);
+        throw new Error(translate('params.value_more_than', {min: options.min}));
       }
     }
     return value;
@@ -382,15 +385,15 @@ export function percentage(value: number | string): number {
 }
 
 
-export function phosimpFilters(value: string): Array<number> {
+export function phosimpFilters(value: string, context?: Command.Context | Interaction.InteractionContext): Array<number> {
   if (value) {
     return value.split(' ').map((x) => x.trim()).filter((x) => x).map((x) => {
       const filter = parseInt(x);
       if (isNaN(filter)) {
-        throw new Error('PhoSimp Filter must be a number');
+        throw new Error(getCachedTranslator(context).translate('params.phosimp_number'));
       }
       if (filter < 0) {
-        throw new Error('PhoSimp Filter range is between 0 and 999');
+        throw new Error(getCachedTranslator(context).translate('params.phosimp_range'));
       }
       return filter;
     });
@@ -428,17 +431,17 @@ export async function pipingCommands(
 
         const {errors, parsed: commandArgs} = await command.getArgs(attributes, context as any);
         if (Object.keys(errors).length) {
-          throw new Error(`Error parsing piping args for \`${command.name}\``);
+          throw new Error(getCachedTranslator(context).translate('params.pipe_parse_error', {command: `\`${command.name}\``}));
         }
         pipers.push({command, commandArgs});
 
         context.metadata.shouldSkipMediaCheck = false;
       } else {
-        throw new Error(`${content} is not a valid piping command`);
+        throw new Error(getCachedTranslator(context).translate('media.pipe.not_pipeable', {command: content}));
       }
     }
     if (5 < pipers.length) {
-      throw new Error(`Cannot exceed 5 commands to pipe with`);
+      throw new Error(getCachedTranslator(context).translate('params.pipe_too_many'));
     }
   }
   const mlCount = pipers.reduce((x, y) => {
@@ -449,13 +452,13 @@ export async function pipingCommands(
     return x;
   }, 0);
   if (3 <= mlCount) {
-    throw new Error('Cannot pipe more than 2 ML Commands');
+    throw new Error(getCachedTranslator(context).translate('params.pipe_too_many_ml'));
   }
   return pipers;
 }
 
 
-export function seconds(value: number | string, allowFloats: boolean = false): number {
+export function seconds(value: number | string, allowFloats: boolean = false, context?: Command.Context | Interaction.InteractionContext): number {
   const valueString = String(value);
   try {
     let duration = durationToMilliseconds(valueString);
@@ -469,12 +472,12 @@ export function seconds(value: number | string, allowFloats: boolean = false): n
     if (typeof(error) === 'string') {
       let text = error.slice(error.indexOf(':', error.indexOf(':') + 1) + 1).trim();
       if (text === 'a falsey value') {
-        throw new Error('Unable to parse');
+        throw new Error(getCachedTranslator(context).translate('params.unable_to_parse'));
       }
       if (25 < text.length) {
         text = text.slice(0, 22) + '...';
       }
-      throw new Error(`Unable to parse time format ${Markup.codestring(text)}`);
+      throw new Error(getCachedTranslator(context).translate('params.time_format', {text: Markup.codestring(text)}));
     }
     throw error;
   }
@@ -490,11 +493,11 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
   const allowFloats = (options.float || options.float === undefined);
   const allowNegatives = !!options.negatives;
 
-  return (value: number | string): number => {
+  return (value: number | string, context?: Command.Context | Interaction.InteractionContext): number => {
     const valueString = String(value).trim();
     const isNegative = (allowNegatives) ? valueString.startsWith('-') : false;
 
-    let duration = seconds(valueString, allowFloats);
+    let duration = seconds(valueString, allowFloats, context);
     if (isNegative && 0 < duration) {
       duration = -duration;
     }
@@ -507,9 +510,9 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
 }
 
 
-export function snowflake(value: string): string {
+export function snowflake(value: string, context?: Command.Context | Interaction.InteractionContext): string {
   if (!isSnowflake(value)) {
-    throw new Error('Value must be a snowflake');
+    throw new Error(getCachedTranslator(context).translate('params.snowflake'));
   }
   return value;
 }
@@ -521,18 +524,19 @@ export interface StringOptions {
 }
 
 export function string(options: StringOptions = {}) {
-  return (value: string): string => {
+  return (value: string, context?: Command.Context | Interaction.InteractionContext): string => {
+    const translate = getCachedTranslator(context).translate;
     if (options.maxLength !== undefined && options.minLength !== undefined) {
       if (value.length < options.minLength || options.maxLength < value.length) {
-        throw new Error(`Value must be between ${options.minLength} and ${options.maxLength} characters`);
+        throw new Error(translate('params.length_between', {max: options.maxLength, min: options.minLength}));
       }
     } else if (options.maxLength !== undefined) {
       if (options.maxLength < value.length) {
-        throw new Error(`Value must be less than ${options.maxLength} characters`);
+        throw new Error(translate('params.length_less_than', {max: options.maxLength}));
       }
     } else if (options.minLength !== undefined) {
       if (value.length < options.minLength) {
-        throw new Error(`Value must be more than ${options.minLength} characters`);
+        throw new Error(translate('params.length_more_than', {min: options.minLength}));
       }
     }
     return value;
@@ -623,7 +627,7 @@ export async function url(
     }
 
     if (!validateUrl(value)) {
-      throw new Error('Malformed URL');
+      throw new Error(getCachedTranslator(context).translate('params.malformed_url'));
     }
 
     return (await getOrFetchRealUrl(context, value)) || value;
@@ -978,7 +982,7 @@ export async function textToSpeechVoice(
 
   const voice = oneOfTextToSpeechVoices(value);
   if (!voice) {
-    throw new Error(`Must be one of (${TTS_VOICES.map((x) => Markup.codestring(x)).join(', ')})`);
+    throw new Error(getCachedTranslator(context).translate('params.must_be_one_of', {choices: `(${TTS_VOICES.map((x) => Markup.codestring(x)).join(', ')})`}));
   }
   return {voice};
 }
@@ -1189,7 +1193,7 @@ export function membersOrUsers(
     if (value) {
       const args = new Set<string>(stringArguments(value));
       if ((options.max as number) < args.size) {
-        throw new Error(`Cannot specify more than ${options.max} different users.`);
+        throw new Error(getCachedTranslator(context).translate('params.too_many_users', {max: options.max as number}));
       }
 
       const membersOrUsers: Array<Structures.Member | Structures.User> = [];
@@ -1877,7 +1881,7 @@ export function mediaUrls(
     }
 
     if (minAmount && urls.length < minAmount) {
-      throw new Error(`Could not find a minimum of ${minAmount} media urls`);
+      throw new Error(getCachedTranslator(context).translate('params.not_enough_media', {amount: minAmount}));
     }
 
     const filteredUrls: Record<string, string | null> = {};
@@ -1893,7 +1897,7 @@ export function mediaUrls(
     }
 
     if (minAmount && urls.length < minAmount) {
-      throw new Error(`Could not find a minimum of ${minAmount} media urls`);
+      throw new Error(getCachedTranslator(context).translate('params.not_enough_media', {amount: minAmount}));
     }
 
     if (mediaSearchOptions.positional && !foundFromText) {
@@ -2142,7 +2146,7 @@ export interface SizeOrScale {
   size?: string,
 }
 
-export function sizeOrScale(value: string): SizeOrScale {
+export function sizeOrScale(value: string, context?: Command.Context | Interaction.InteractionContext): SizeOrScale {
   const response: SizeOrScale = {};
   if (!value) {
     return response;
@@ -2159,7 +2163,7 @@ export function sizeOrScale(value: string): SizeOrScale {
         response.size = String(parts.shift()!);
       }
     } else {
-      throw new Error('Size must be a format of WIDTHxHEIGHT or an integer');
+      throw new Error(getCachedTranslator(context).translate('params.size_format'));
     }
   } else {
     if (value.includes('.')) {

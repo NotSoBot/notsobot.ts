@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../api/types';
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -43,21 +43,24 @@ export default class TagCommand extends BaseCommand {
     return false;
   }
 
-  onCancel(context: Command.Context) {
-    return editOrReply(context, `
-### ${StatusEmojis.WARNING} The tag system has been disabled at this time at Discord's request.
-Discord gave us two weeks to remove the tag system due to content moderation concerns. We've since added new safety filters and reached out to Discord about keeping the feature. We're sorry for the disruption, especially to everyone who built games and collections with tags. For updates or questions, join our support server: <https://notsobot.com/support/invite>
-`
-    );
+  async onCancel(context: Command.Context) {
+    const { translate } = await I18n.getTranslator(context);
+    return editOrReply(context, [
+      '',
+      `### ${StatusEmojis.WARNING} ${translate('tag.disabled_title')}`,
+      translate('tag.disabled_body', {invite: '<https://notsobot.com/support/invite>'}),
+      '',
+    ].join('\n'));
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.tag;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.tag === false) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
     }
     return super.onCancelRun(context, args);
   }

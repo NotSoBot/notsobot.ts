@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { editTag } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import TagCustomCommandsStore from '../../../stores/tagcustomcommands';
 import { editOrReply } from '../../../utils';
@@ -21,6 +22,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const tag = await editTag(context, args.tag.id, {isCommand: false});
 
   const payloadId = context.guildId || context.userId;
@@ -28,5 +30,5 @@ export async function createMessage(
     TagCustomCommandsStore.get(payloadId)!.delete(tag.id);
   }
 
-  return editOrReply(context, `Successfully removed the tag ${Markup.codestring(tag.name)} from the custom command list`);
+  return editOrReply(context, translate('tag_commands_remove.successfully_removed_the_tag_from_the_custom', {name: Markup.codestring(tag.name)}));
 }

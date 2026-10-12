@@ -30,6 +30,7 @@ export class MediaIVWiggleCommand extends BaseInteractionImageOrVideoCommandOpti
           choices: Parameters.Slash.oneOf({
             choices: MediaWiggleDirections,
             defaultChoice: DEFAULT_DIRECTION,
+            localizationKey: 'choices.directions',
           }),
         },
         {name: 'wavelengths', description: 'Sinusoidal Wavelengths Amount (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_2.fun.wiggle.wavelengths'), type: 'number'},

@@ -1,7 +1,10 @@
+import moment from 'moment';
+
 import { Collections, Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettingsPrefix } from '../../../api/structures/guildsettings';
+import { getCachedTranslator, getTranslator } from '../../i18n';
 import { EmbedColors } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { createUserEmbed, editOrReply } from '../../tools';
@@ -14,6 +17,7 @@ export function formatPrefixes(
   prefixes: Collections.BaseCollection<string, GuildSettingsPrefix>,
   embed?: Embed,
 ): Embed {
+  const { language, translate, translateMaybe } = getCachedTranslator(context);
   if (!embed) {
     embed = new Embed();
   }
@@ -21,8 +25,8 @@ export function formatPrefixes(
     let i = 1;
     const description = prefixes.map((prefix) => {
       return [
-        `${i++}. **${Markup.escape.all(prefix.prefix)}** added ${prefix.addedAtText}`,
-        `-> By <@${prefix.userId}>`,
+        translate('prefixes_list.added', {addedAtText: moment(prefix.added).locale(language).fromNow(), i: i++, prefix: Markup.escape.all(prefix.prefix)}),
+        translate('prefixes_list.by', {userId: prefix.userId}),
       ].join('\n');
     });
     embed.setDescription(description.join('\n'));
@@ -37,7 +41,7 @@ export function formatPrefixes(
     }
 
     embed.setDescription([
-      'Using the default prefixes:\n',
+      translate('prefixes_list.using_the_default_prefixes'),
       description.join('\n'),
     ].join('\n'));
   }
@@ -48,13 +52,14 @@ export function formatPrefixes(
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const guildId = context.guildId!;
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setTitle('Showing prefixes');
+  embed.setTitle(translate('prefixes_list.showing_prefixes'));
 
   const settings = await GuildSettingsStore.getOrFetch(context, guildId);
   if (settings) {

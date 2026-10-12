@@ -3,6 +3,7 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
 import { search4Chan, search4ChanRandom } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { DiscordEmojis, EmbedBrands, EmbedColors } from '../../../constants';
 import { DefaultParameters, Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
@@ -20,6 +21,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const board = await ((args.board) ? search4Chan(context, {board: args.board}) : search4ChanRandom(context, {nsfw: !DefaultParameters.safe(context)}));
@@ -43,9 +45,9 @@ export async function createMessage(
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
 
-        let footer = `4chan's /${board.board}/`;
+        let footer = translate('search_4chan.4chan_s', {board: board.board});
         if (pageLimit !== 1) {
-          footer = `Page ${page}/${pageLimit} of ${footer}`;
+          footer = translate('search_4chan.page_of', {footer: footer, page: page, pageLimit: pageLimit});
         }
         // icon
         embed.setFooter(footer);
@@ -104,9 +106,9 @@ export async function createMessage(
             description.push(text);
           }
 
-          description.push(`**Created At**: ${thread.created_at_text}`);
+          description.push(translate('search_4chan.created_at', {created_at_text: thread.created_at_text}));
           if (thread.edited_at) {
-            description.push(`**Edited At**: ${thread.edited_at}`);
+            description.push(translate('search_4chan.edited_at', {edited_at: thread.edited_at}));
           }
 
           {
@@ -121,7 +123,7 @@ export async function createMessage(
                 default: text = `${text} (${thread.user.badge})`;
               }
             } else if (thread.user.id) {
-              text = `${text} (ID: ${thread.user.id})`;
+              text = translate('search_4chan.id', {text: text, user: thread.user.id});
             }
 
             if (thread.user.country) {
@@ -147,7 +149,7 @@ export async function createMessage(
 
         if (thread.media) {
           const filename = `${thread.media.name}.${thread.media.extension}`;
-          embed.addField('Media', Markup.url(filename, thread.media.url));
+          embed.addField(translate('search_4chan.media'), Markup.url(filename, thread.media.url));
         }
 
         return [embed, files];
@@ -155,6 +157,6 @@ export async function createMessage(
     });
     return await paginator.start();
   }
-  return editOrReply(context, 'Couldn\'t find threads for that board');
+  return editOrReply(context, translate('search_4chan.couldn_t_find_threads_for_that_board'));
 }
 

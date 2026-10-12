@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { Formatter, I18n, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -38,9 +38,10 @@ export default class UnbanCommand extends BaseCommand {
     return !!args.payload && !!args.payload.membersOrUsers.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationUnban.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationUnban.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.payload) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Couldn't find any users. (Use Mentions or User IDs)`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_users_found')}`);
     }
     return super.onCancelRun(context, args);
   }

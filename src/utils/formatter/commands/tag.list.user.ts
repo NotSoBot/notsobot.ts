@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagsServer, fetchUserTags } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
@@ -33,8 +34,9 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   if (args.user.bot) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Bots do not have tags.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_list_user.bots_do_not_have_tags')}`);
   }
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
@@ -87,23 +89,22 @@ export async function createMessage(
         if (args.content || args.name || args.user) {
           const description: Array<string> = [];
           if (args.user) {
-            const noun = (args.global) ? 'Global Tags' : 'Server Tags';
-            description.push(`Showing ${noun} owned by ${createUserString(args.user.id, args.user)}`);
+            description.push((args.global) ? translate('tag_list_user.showing_global_tags_owned_by', {user: createUserString(args.user.id, args.user)}) : translate('tag_list_user.showing_server_tags_owned_by', {user: createUserString(args.user.id, args.user)}));
           }
           if (args.name) {
-            description.push(`Filtering for tags with names containing ${Markup.codestring(args.name)}`);
+            description.push(translate('tag_list_user.filtering_for_tags_with_names_containing', {name: Markup.codestring(args.name)}));
           }
           if (args.content) {
-            description.push(`Filtering for tags with content containing ${Markup.codestring(args.content)}`);
+            description.push(translate('tag_list_user.filtering_for_tags_with_content_containing', {content: Markup.codestring(args.content)}));
           }
           embed.setDescription(description.join('\n'));
         }
 
-        let footer = (args.global) ? 'Global Tags' : 'Server Tags'
+        let footer = (args.global) ? translate('tag_list_user.global_tags') : translate('tag_list_user.server_tags')
         if (pageLimit !== 1) {
-          footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
+          footer = translate('tag_list_user.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
         }
-        embed.setFooter(`${footer} (${count.toLocaleString()} Total Tags)`);
+        embed.setFooter(translate('tag_list_user.total_tags', {count: count.toLocaleString(language), footer: footer}));
 
         const page = pages[pageNumber - 1];
 
@@ -134,7 +135,8 @@ export async function createMessage(
     return await paginator.start();
   }
 
-  const person = (args.user.id === context.userId) ? 'You' : 'They';
-  const noun = (args.global) ? 'global tags' : 'tags here';
-  return editOrReply(context, `${person} don\'t have any ${noun}`);
+  if (args.user.id === context.userId) {
+    return editOrReply(context, (args.global) ? translate('tag_list_user.you_don_t_have_any_global_tags') : translate('tag_list_user.you_don_t_have_any_tags_here'));
+  }
+  return editOrReply(context, (args.global) ? translate('tag_list_user.they_don_t_have_any_global_tags') : translate('tag_list_user.they_don_t_have_any_tags_here'));
 }

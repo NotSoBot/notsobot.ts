@@ -15,6 +15,7 @@ import { Timers } from 'detritus-utils';
 
 import PaginatorsStore from '../stores/paginators';
 
+import { getTranslator } from './i18n';
 import { editOrReply } from './tools';
 
 
@@ -495,8 +496,9 @@ export class Paginator {
 
             this.custom.isActive = true;
             await this.updateButtons(context);
+            const { translate } = await getTranslator(context);
             this.custom.message = await context.createMessage({
-              content: 'What page would you like to go?',
+              content: translate('paginator.which_page'),
               flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
             });
             this.custom.timeout.start(this.custom.expire, async () => {
@@ -640,7 +642,7 @@ export class Paginator {
     }
   }
 
-  async start() {
+  async start(): Promise<Structures.Message | void> {
     if (typeof(this.onPage) !== 'function' && !(this.pages && this.pages.length)) {
       throw new Error('Paginator needs an onPage function or at least one page added to it');
     }
@@ -708,6 +710,8 @@ export class Paginator {
       PaginatorsStore.insert(this);
     }
 
-    return message;
+    if (message) {
+      return message;
+    }
   }
 }

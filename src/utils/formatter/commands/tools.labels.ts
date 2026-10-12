@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { googleContentVisionLabels } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import { createUserEmbed, editOrReply, formatPercentageAsBar, toTitleCase } from '../../../utils';
 
@@ -17,11 +18,12 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { label_annotations: labelAnnotations } = await googleContentVisionLabels(context, args);
 
   const embed = createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Image Labels', EmbedBrands.GOOGLE_GO);
+  embed.setFooter(translate('tools_labels.image_labels'), EmbedBrands.GOOGLE_GO);
 
   {
     const description: Array<string> = [];

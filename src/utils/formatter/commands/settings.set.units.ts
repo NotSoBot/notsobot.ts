@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { editOrReply } from '../../../utils';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
@@ -30,9 +32,9 @@ export async function createMessage(
     }
     if (oldSettings && oldSettings.units === args.units) {
       if (oldSettings.units) {
-        text = `Your Measurement Units preference is already ${Markup.bold(oldSettings.units)}`;
+        text = translate('settings_set_units.your_measurement_units_preference_is_already', {units: Markup.bold(oldSettings.units)});
       } else {
-        text = 'You currently do not have a Measurement Units preference.';
+        text = translate('settings_set_units.you_currently_do_not_have_a_measurement');
       }
     } else {
       // update it
@@ -42,21 +44,21 @@ export async function createMessage(
       UserSettingsStore.insert(context.userId, settings);
 
       if (settings.units) {
-        text = `Ok, set your Measurement Units preference to ${Markup.bold(settings.units)}`;
+        text = translate('settings_set_units.ok_set_your_measurement_units_preference_to', {units: Markup.bold(settings.units)});
       } else {
         // this should never happen currently
-        text = 'Ok, cleared out your Measurement Units preference.';
+        text = translate('settings_set_units.ok_cleared_out_your_measurement_units_preference');
       }
     }
   } else {
     if (oldSettings) {
       if (oldSettings.units) {
-        text = `Your current Measurement Units preference is ${Markup.bold(oldSettings.units)}`;
+        text = translate('settings_set_units.your_current_measurement_units_preference_is', {units: Markup.bold(oldSettings.units)});
       } else {
-        text = 'You currently do not have a Measurement Units preference.';
+        text = translate('settings_set_units.you_currently_do_not_have_a_measurement');
       }
     } else {
-      text = 'Error fetching your current Measurement Units preference.';
+      text = translate('settings_set_units.error_fetching_your_current_measurement_units_preference');
     }
   }
 

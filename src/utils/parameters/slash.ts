@@ -15,8 +15,37 @@ import {
 } from '../../constants';
 import { DefaultParameters, fetchMemberOrUserById, isSnowflake, toTitleCase } from '../../utils';
 
+import {
+  DiscordLocalesForLanguage,
+  Languages,
+  choiceLocalizations,
+  getCachedTranslator,
+  getLanguageName,
+} from '../i18n';
+
 import type { BanPayload, BanPayloadOptions } from './prefixed';
 
+
+
+export interface SlashChoice {
+  name: string,
+  nameLocalizations?: Record<string, string>,
+  value: number | string,
+}
+
+// `localizationKey` translates each choice using `${localizationKey}.${value}` (value lowercased)
+export function createChoice(
+  name: string,
+  value: number | string,
+  options: {isDefault?: boolean, localizationKey?: string | null} = {},
+): SlashChoice {
+  const nameLocalizations = choiceLocalizations(name, options.localizationKey, options.isDefault);
+  return {
+    name: (options.isDefault) ? `${name} (Default)` : name,
+    ...(nameLocalizations) ? {nameLocalizations} : {},
+    value,
+  };
+}
 
 
 export interface OneOfOptions<T> {
@@ -25,21 +54,22 @@ export interface OneOfOptions<T> {
   descriptions?: Record<any, string>,
   doNotSort?: boolean,
   doNotSortDefault?: boolean,
+  localizationKey?: string,
 }
 
-export function oneOf<T>(options: OneOfOptions<T>): Array<{name: string, value: number | string}> {
+export function oneOf<T>(options: OneOfOptions<T>): Array<SlashChoice> {
   const entries = (Array.isArray(options.choices)) ? options.choices.map((x) => [x, x]) : Object.entries(options.choices);
 
-  let choices: Array<{name: string, value: number | string}> = [];
+  let choices: Array<SlashChoice> = [];
   for (let [key, value] of entries) {
     let name: string = ((options.descriptions) ? (options.descriptions as any)[value] : '') || '';
     if (!name) {
       name = toTitleCase(key);
     }
-    if (options.defaultChoice && options.defaultChoice === value) {
-      name = `${name} (Default)`;
-    }
-    choices.push({name, value: value as any});
+    choices.push(createChoice(name, value as any, {
+      isDefault: !!options.defaultChoice && options.defaultChoice === value,
+      localizationKey: (options.localizationKey) ? `${options.localizationKey}.${String(value).toLowerCase()}` : null,
+    }));
   }
   if (!options.doNotSort) {
     choices = choices.sort((x, y) => {
@@ -79,46 +109,62 @@ export const GOOGLE_LOCALES = [
   GoogleLocales.SWEDISH,
   GoogleLocales.TURKISH,
   GoogleLocales.VIETNAMESE,
-].map((x) => ({name: GoogleLocalesText[x], value: x}));
+].map((x): SlashChoice => {
+  const name = GoogleLocalesText[x];
+  // language names come from Intl, so every language gets them without needing translation keys
+  const entries: Array<[string, string]> = [];
+  for (let language of Object.values(Languages)) {
+    const text = getLanguageName(language, x, name, {capitalize: true});
+    if (text !== name) {
+      for (let locale of DiscordLocalesForLanguage[language]) {
+        entries.push([locale, text]);
+      }
+    }
+  }
+  if (!entries.length) {
+    return {name, value: x};
+  }
+  return {name, nameLocalizations: Object.fromEntries(entries.sort(([a], [b]) => (a < b) ? -1 : 1)), value: x};
+});
 
 
 export const USER_SETTINGS_APPLICATION_COMMAND_RESPONSE_TYPES = [
-  {name: 'Automatic (Default)', value: UserSettingsApplicationCommandResponseTypes.AUTOMATIC},
-  {name: 'Ephemeral', value: UserSettingsApplicationCommandResponseTypes.EPHEMERAL},
+  createChoice('Automatic', UserSettingsApplicationCommandResponseTypes.AUTOMATIC, {isDefault: true, localizationKey: 'choices.settings.app_command_response_type.automatic'}),
+  createChoice('Ephemeral', UserSettingsApplicationCommandResponseTypes.EPHEMERAL, {localizationKey: 'choices.settings.app_command_response_type.ephemeral'}),
 ];
 
 
 export const USER_SETTINGS_FALLBACKS_MEDIA_IMAGE_TYPES = [
-  {name: 'Search Google Images', value: UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES},
-  {name: 'Search Duck Duck Go Images', value: UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES},
-  {name: 'Generate Image', value: UserSettingsFallbacksMediaImageTypes.IMAGINE},
+  createChoice('Search Google Images', UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES, {localizationKey: 'choices.settings.fallbacks_media_image.search_google_images'}),
+  createChoice('Search Duck Duck Go Images', UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES, {localizationKey: 'choices.settings.fallbacks_media_image.search_duck_duck_go_images'}),
+  createChoice('Generate Image', UserSettingsFallbacksMediaImageTypes.IMAGINE, {localizationKey: 'choices.settings.fallbacks_media_image.imagine'}),
 ];
 
 
 export const GUILD_SETTINGS_RESPONSE_DISPLAY = [
-  {name: 'Latest (Default)', value: GuildSettingsResponseDisplayTypes.DEFAULT},
-  {name: 'No Embeds (Text Only)', value: GuildSettingsResponseDisplayTypes.NO_EMBED},
-  {name: 'Legacy (Embeds)', value: GuildSettingsResponseDisplayTypes.LEGACY},
+  createChoice('Latest', GuildSettingsResponseDisplayTypes.DEFAULT, {isDefault: true, localizationKey: 'choices.settings.response_display.default'}),
+  createChoice('No Embeds (Text Only)', GuildSettingsResponseDisplayTypes.NO_EMBED, {localizationKey: 'choices.settings.response_display.no_embed'}),
+  createChoice('Legacy (Embeds)', GuildSettingsResponseDisplayTypes.LEGACY, {localizationKey: 'choices.settings.response_display.legacy'}),
 ];
 
 
 export const USER_SETTINGS_RESPONSE_DISPLAY = [
-  {name: 'Latest (Default)', value: UserSettingsResponseDisplayTypes.DEFAULT},
-  {name: 'No Embeds (Text Only)', value: UserSettingsResponseDisplayTypes.NO_EMBED},
-  {name: 'Legacy (Embeds)', value: UserSettingsResponseDisplayTypes.LEGACY},
+  createChoice('Latest', UserSettingsResponseDisplayTypes.DEFAULT, {isDefault: true, localizationKey: 'choices.settings.response_display.default'}),
+  createChoice('No Embeds (Text Only)', UserSettingsResponseDisplayTypes.NO_EMBED, {localizationKey: 'choices.settings.response_display.no_embed'}),
+  createChoice('Legacy (Embeds)', UserSettingsResponseDisplayTypes.LEGACY, {localizationKey: 'choices.settings.response_display.legacy'}),
 ];
 
 
 export const USER_SETTINGS_UPLOAD_THRESHOLD_TYPES = [
-  {name: 'Exceeds Discord File Size Limits (Default)', value: UserSettingsUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT},
-  {name: 'Always', value: UserSettingsUploadThresholdTypes.ALWAYS},
-  {name: 'Never', value: UserSettingsUploadThresholdTypes.NEVER},
+  createChoice('Exceeds Discord File Size Limits', UserSettingsUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT, {isDefault: true, localizationKey: 'choices.settings.upload_threshold.exceeds_discord_limit'}),
+  createChoice('Always', UserSettingsUploadThresholdTypes.ALWAYS, {localizationKey: 'choices.settings.upload_threshold.always'}),
+  createChoice('Never', UserSettingsUploadThresholdTypes.NEVER, {localizationKey: 'choices.settings.upload_threshold.never'}),
 ];
 
 
 export const USER_SETTINGS_UPLOAD_TYPES = [
-  {name: 'Automatic (Default)', value: UserSettingsUploadTypes.AUTOMATIC},
-  {name: 'Temporary', value: UserSettingsUploadTypes.TEMPORARY},
+  createChoice('Automatic', UserSettingsUploadTypes.AUTOMATIC, {isDefault: true, localizationKey: 'choices.settings.upload_types.automatic'}),
+  createChoice('Temporary', UserSettingsUploadTypes.TEMPORARY, {localizationKey: 'choices.settings.upload_types.temporary'}),
 ];
 
 
@@ -129,7 +175,7 @@ export function safe(value: boolean, context: Interaction.InteractionContext): B
 
   const shouldBeSafe = DefaultParameters.safe(context);
   if (shouldBeSafe) {
-    throw new Error('Channel doesn\'t support disabling NSFW filtering.');
+    throw new Error(getCachedTranslator(context).translate('params.safe_required'));
   }
   return value;
 }

@@ -8,11 +8,15 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { AestheticsCommand } from './aesthetics';
 import { AsciiFromImageCommand } from './ascii-from-image';
 import { AsciiFromTextCommand } from './ascii-from-text';
 import { B1Command } from './b1';
 import { BadMemeCommand } from './badmeme';
 import { EmojiCommand } from './emoji';
+import { RegionalCommand } from './regional';
+import { ReverseTextCommand } from './reverse-text';
+import { TextwallCommand } from './textwall';
 import { TTSCommand } from './tts';
 
 
@@ -36,11 +40,15 @@ export default class FunGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new AestheticsCommand(),
         new AsciiFromImageCommand(),
         new AsciiFromTextCommand(),
         new B1Command(),
         new BadMemeCommand(),
         new EmojiCommand(),
+        new RegionalCommand(),
+        new ReverseTextCommand(),
+        new TextwallCommand(),
         new TTSCommand(),
       ],
     });

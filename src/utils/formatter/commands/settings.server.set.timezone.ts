@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../../api';
+import { getTranslator } from '../../i18n';
 import {
   TimezonesToText,
 } from '../../../constants';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const guild = await editGuildSettings(context, context.guildId!, {
@@ -31,9 +33,9 @@ export async function createMessage(
     if (timezoneText in TimezonesToText) {
       timezoneText = (TimezonesToText as any)[guild.timezone];
     }
-    text = `Ok, set your server\'s timezone preference to ${Markup.bold(timezoneText)}`;
+    text = translate('settings_server_set_timezone.ok_set_your_server_s_timezone_preference', {timezoneText: Markup.bold(timezoneText)});
   } else {
-    text = 'Ok, cleared out your server\'s default timezone preference';
+    text = translate('settings_server_set_timezone.ok_cleared_out_your_server_s_default');
   }
 
   return editOrReply(context, {

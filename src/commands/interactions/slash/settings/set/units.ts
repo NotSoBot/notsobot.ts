@@ -23,7 +23,7 @@ export class SettingsSetUnitsCommand extends BaseInteractionCommandOption {
           name: 'units',
           description: 'Measurement Unit (Default: Imperial)',
           ...I18n.optionLocalizations('commands.settings.set.units.units'),
-          choices: Parameters.Slash.oneOf({choices: MeasurementUnits}),
+          choices: Parameters.Slash.oneOf({choices: MeasurementUnits, localizationKey: 'choices.measurement_units'}),
         },
         {
           name: 'clear',

@@ -4,6 +4,7 @@ import { Components, ComponentContext, Embed, Markup, Snowflake } from 'detritus
 import { Timers } from 'detritus-utils';
 
 import { deleteTagsServer } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
@@ -37,8 +38,9 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   if (args.user && args.user.bot) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Bots do not have tags.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_remove_all.bots_do_not_have_tags')}`);
   }
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
@@ -57,7 +59,7 @@ export async function createMessage(
 
     if (!hasPermissionsToForceRemove) {
       if (args.user) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Not enough permissions to force remove other people's tags!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_remove_all.not_enough_permissions_to_force_remove_other')}`);
       }
       args.user = context.user;
     }
@@ -65,9 +67,9 @@ export async function createMessage(
 
   let filterText: string;
   if (args.user) {
-    filterText = `(Out of ${createUserString(args.user.id, args.user)}'s tags)`;
+    filterText = translate('tag_remove_all.out_of_s_tags', {user: createUserString(args.user.id, args.user)});
   } else {
-    filterText = '(Out of all of this server\'s tags)';
+    filterText = translate('tag_remove_all.out_of_all_of_this_server_s');
   }
 
   const fetchTagsServerSearchOptions = {
@@ -86,7 +88,7 @@ export async function createMessage(
           try {
             await message.edit({
               components: [],
-              content: `Canceled removing of ${tags.length.toLocaleString()} tags due to timeout. ${filterText}`,
+              content: translate('tag_remove_all.canceled_removing_of_tags_due_to_timeout', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
             });
           } catch(e) {
 
@@ -96,7 +98,7 @@ export async function createMessage(
     });
 
     components.createButton({
-      label: 'Continue',
+      label: translate('tag_remove_all.continue'),
       run: async (ctx: ComponentContext) => {
         if (ctx.userId !== context.userId) {
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -104,14 +106,14 @@ export async function createMessage(
 
         const { count } = await deleteTagsServer(context, serverId, fetchTagsServerSearchOptions);
         await ctx.editOrRespond({
-          content: `Ok, successfully removed ${count.toLocaleString()} tags. ${filterText}`,
+          content: translate('tag_remove_all.ok_successfully_removed_tags', {count: count.toLocaleString(language), filterText: filterText}),
           components: [],
         });
       },
     });
 
     components.createButton({
-      label: 'Cancel',
+      label: translate('tag_remove_all.cancel'),
       style: MessageComponentButtonStyles.DANGER,
       run: async (ctx: ComponentContext) => {
         if (ctx.userId !== context.userId) {
@@ -119,7 +121,7 @@ export async function createMessage(
         }
 
         await ctx.editOrRespond({
-          content: `Ok, canceled removing of ${tags.length.toLocaleString()} tags. ${filterText}`,
+          content: translate('tag_remove_all.ok_canceled_removing_of_tags', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
           components: [],
         });
       },
@@ -127,7 +129,7 @@ export async function createMessage(
 
     let exportedTagsFile: {filename: string, value: string} | undefined;
     components.createButton({
-      label: 'Export',
+      label: translate('tag_remove_all.export'),
       style: MessageComponentButtonStyles.SECONDARY,
       run: async (ctx: ComponentContext) => {
         if (ctx.userId !== context.userId) {
@@ -141,7 +143,7 @@ export async function createMessage(
           exportedTagsFile = exportTags(serverId, tags, fetchTagsServerSearchOptions);
         }
         return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-          content: `Successfully exported ${tags.length.toLocaleString()} tags. ${filterText}`,
+          content: translate('tag_remove_all.successfully_exported_tags', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
           file: exportedTagsFile,
           flags,
         });
@@ -149,12 +151,12 @@ export async function createMessage(
     });
 
     const response = await editOrReply(context, {
-      content: `Found ${tags.length.toLocaleString()} tags to delete. ${filterText}`,
+      content: translate('tag_remove_all.found_tags_to_delete', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
       components,
     });
   } else if (args.content || args.name || args.user) {
-    return editOrReply(context, 'This server has no tags matching the search options.');
+    return editOrReply(context, translate('tag_remove_all.this_server_has_no_tags_matching_the'));
   } else {
-    return editOrReply(context, 'This server has no tags.');
+    return editOrReply(context, translate('tag_remove_all.this_server_has_no_tags'));
   }
 }

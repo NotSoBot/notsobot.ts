@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildCommandsAllowlist, editGuildSettings } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { GuildSettings } from '../../../api/structures/guildsettings';
 import { GuildCommandsAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -29,6 +30,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { command } = args;
   const commandId = (command.metadata && command.metadata.id) ? command.metadata.id : command.name.split(' ').join('.');
   const guildId = context.guildId!;
@@ -37,7 +39,7 @@ export async function createMessage(
 
   let settings = (await GuildSettingsStore.getOrFetch(context, guildId))!;
 
-  let title = `Command ${Markup.codestring(commandId)}`;
+  let title = translate('moderation_commands_allowlist_remove.command', {commandId: Markup.codestring(commandId)});
   if (isServerWide) {
     title = `${title} server-wide`;
     await deleteGuildCommandsAllowlist(context, guildId, commandId, guildId, GuildCommandsAllowlistTypes.GUILD);
@@ -75,7 +77,7 @@ export async function createMessage(
   
     const comments: Array<string> = [];
     if (channels) {
-      comments.push(`${channels.toLocaleString()} Channel${(channels === 1) ? '' : 's'}`);
+      comments.push(((channels === 1) ? translate('moderation_commands_allowlist_remove.channel_one', {channels: channels.toLocaleString(language)}) : translate('moderation_commands_allowlist_remove.channels_other', {channels: channels.toLocaleString(language)})));
     }
     if (roles) {
       comments.push(`${roles.toLocaleString()} Role${(roles === 1) ? '' : 's'}`);
@@ -83,7 +85,7 @@ export async function createMessage(
     if (users) {
       comments.push(`${users.toLocaleString()} User${(users === 1) ? '' : 's'}`);
     }
-    title = `Removed ${comments.join(', ')} from the allowlist for ${title}`;
+    title = translate('moderation_commands_allowlist_remove.removed_from_the_allowlist_for', {comments: comments.join(', '), title: title});
   
     /*
     if (payloads.length === 1) {

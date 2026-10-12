@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -38,12 +38,13 @@ export default class StretchCommand extends BaseImageOrVideoCommand {
     return (!!args.width || !!args.height) && (args.width !== args.height) && super.onBeforeRun(context, args);
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.MediaIVManipulationStretch.CommandArgs) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.MediaIVManipulationStretch.CommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
     if (!args.width && !args.height) {
       return super.onCancelRun(context, args);
     }
     if (args.width === args.height) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Width and Height amount cannot be the same.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.stretch_same_size')}`);
     }
     return super.onCancelRun(context, args);
   }

@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GuildBlocklistTypes, StatusEmojis } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, I18n } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -41,14 +41,15 @@ export default class BlocklistAddCommand extends BaseCommand {
     });
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationBlocklistAdd.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationBlocklistAdd.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.payloads) {
       if (args.payloads.length) {
-        return context.editOrReply(`${StatusEmojis.WARNING} Don't block yourself dummy`);
+        return context.editOrReply(`${StatusEmojis.WARNING} ${translate('commands.context.blocklist_add.self')}`);
       }
-      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any valid Text Channels, Roles, or Users`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`);
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} Provide some kind of mention`);
+    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.needs_mention')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationBlocklistAdd.CommandArgs) {

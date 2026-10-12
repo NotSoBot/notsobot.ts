@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { editTag } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import TagCustomCommandsStore from '../../../stores/tagcustomcommands';
 import { editOrReply } from '../../../utils';
@@ -21,10 +22,11 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const tag = await editTag(context, args.tag.id, {isCommand: true});
 
   const payloadId = context.guildId || context.userId;
   TagCustomCommandsStore.insertSingle(payloadId, tag);
 
-  return editOrReply(context, `Successfully made ${Markup.codestring(tag.name)} a custom command`);
+  return editOrReply(context, translate('tag_commands_add.successfully_made_a_custom_command', {name: Markup.codestring(tag.name)}));
 }

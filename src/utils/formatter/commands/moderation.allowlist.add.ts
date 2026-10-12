@@ -6,7 +6,7 @@ import { createGuildAllowlist, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
 import { GuildAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { getTranslator } from '../../i18n';
+import { getCachedTranslator, getTranslator } from '../../i18n';
 
 import * as ModerationAllowlist from './moderation.allowlist';
 
@@ -69,7 +69,7 @@ export async function getItemsFromMention(
       const { matches } = discordRegex(DiscordRegexNames.MENTION_USER, value) as {matches: Array<{id: string}>};
       const userIds = new Collections.BaseSet<string>(matches.map(({id}) => id));
       if (5 <= userIds.length) {
-        throw new Error('Too many users in one message');
+        throw new Error(getCachedTranslator(context).translate('moderation.too_many_users_in_message'));
       }
       for (let userId of userIds) {
         let user = context.client.users.get(userId);

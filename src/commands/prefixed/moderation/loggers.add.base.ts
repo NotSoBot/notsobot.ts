@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { StatusEmojis } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { Parameters } from '../../../utils';
+import { I18n, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -66,27 +66,28 @@ export class LoggersAddBaseCommand extends BaseCommand {
   }
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    const { label, translate } = await I18n.getTranslator(context);
     if (args.channel !== undefined && args.in !== undefined) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Cannot specify both \`channel\` and \`in\`.`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.logger_channel_and_in')}`);
     }
     if (args.channel === null) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any valid Text Channels.`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_valid_channels')}`);
     } else if (args.in === null) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any valid Category Channels.`)
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_valid_categories')}`)
     }
 
     if (args.channel === undefined) {
       // we will be making a channel now
       const channel = args.in || context.channel;
       if (!channel || !channel.canEdit) {
-        return context.editOrReply(`${StatusEmojis.WARNING} Need ${Markup.codestring('Manage Channels')} Permission to create a log channel`);
+        return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.logger_needs_manage_channels', {permission: Markup.codestring(label('permissions', 'Manage Channels'))})}`);
       }
     }
 
     const settings = await GuildSettingsStore.getOrFetch(context, context.guildId as string);
     if (settings && MAX_LOGGERS <= settings.loggers.length) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Reached the max amount of loggers. (${MAX_LOGGERS})`)
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.logger_max', {max: MAX_LOGGERS})}`)
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} Unknown lol`);
+    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('errors.unknown_lol')}`);
   }
 }

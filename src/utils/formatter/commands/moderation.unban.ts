@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
 
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { payload } = args;
 
   const canEdit: Array<Structures.Member | Structures.User> = [];
@@ -69,11 +71,11 @@ export async function createMessage(
   let reason: string | undefined;
   {
     const description: Array<string> = [];
-    description.push(`Admin: ${context.user} (${context.user.id})`);
-    description.push(`Reason: ${(payload.text) ? Markup.escape.all(payload.text) : '[Unspecified Reason]'}`);
+    description.push(translate('moderation_unban.admin', {user: context.user, user2: context.user.id}));
+    description.push(translate('moderation_unban.reason', {text: (payload.text) ? Markup.escape.all(payload.text) : translate('moderation.unspecified_reason')}));
     {
       const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
-      description.push(`Timestamp: ${timestamp.format(DateMomentLogFormat)}`);
+      description.push(translate('moderation_unban.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
     }
     reason = description.join('\n');
   }
@@ -96,12 +98,12 @@ export async function createMessage(
       }
       if (reason) {
         description.push('');
-        description.push(`Audit Log Reason: ${Markup.codeblock(reason)}`);
+        description.push(translate('moderation_unban.audit_log_reason', {reason: Markup.codeblock(reason)}));
       }
       description.push('\u200b');
     }
     if (description.length) {
-      embed.addField('Unbanned', description.join('\n'));
+      embed.addField(translate('moderation_unban.unbanned'), description.join('\n'));
     }
   }
 
@@ -111,7 +113,7 @@ export async function createMessage(
       description.push('');
       if (cannotEdit.length) {
         const members = cannotEdit.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
-        description.push('Couldn\'t unban because they ain\'t banned');
+        description.push(translate('moderation_unban.couldn_t_unban_because_they_ain_t'));
         for (let member of members) {
           description.push(`-> ${member}`);
         }
@@ -121,20 +123,20 @@ export async function createMessage(
 
     if (us.length) {
       const members = us.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
-      description.push('Cannot Unban Yourself or Myself');
+      description.push(translate('moderation_unban.cannot_unban_yourself_or_myself'));
       for (let member of members) {
         description.push(`-> ${member}`);
       }
     }
 
     if (description.length) {
-      embed.addField('Unable to Unban', description.join('\n'));
+      embed.addField(translate('moderation_unban.unable_to_unban'), description.join('\n'));
     }
   }
 
   if (payload.notFound.length) {
     const text = payload.notFound.map((notFound) => Markup.escape.all(notFound)).join(', ');
-    embed.addField('Not Found', text);
+    embed.addField(translate('moderation_unban.not_found'), text);
   }
 
   {
@@ -144,16 +146,13 @@ export async function createMessage(
 
     const description: Array<string> = [];
     if (unbanned) {
-      const text = 'Member' + ((1 < unbanned) ? 's' : '');
-      description.push(`Unbanned ${unbanned.toLocaleString()} ${text}`);
+      description.push((1 < unbanned) ? translate('moderation_unban.unbanned_members', {unbanned: unbanned.toLocaleString(language)}) : translate('moderation_unban.unbanned_member', {unbanned: unbanned.toLocaleString(language)}));
     }
     if (unableToBan) {
-      const text = 'Member' + ((1 < unableToBan) ? 's' : '');
-      description.push(`Unable to Unban ${unableToBan.toLocaleString()} ${text}`);
+      description.push((1 < unableToBan) ? translate('moderation_unban.unable_to_unban_members', {unableToBan: unableToBan.toLocaleString(language)}) : translate('moderation_unban.unable_to_unban_member', {unableToBan: unableToBan.toLocaleString(language)}));
     }
     if (notFound) {
-      const text = 'Member' + ((1 < notFound) ? 's' : '');
-      description.push(`Unable to find ${notFound.toLocaleString()} ${text}`);
+      description.push((1 < notFound) ? translate('moderation_unban.unable_to_find_members', {notFound: notFound.toLocaleString(language)}) : translate('moderation_unban.unable_to_find_member', {notFound: notFound.toLocaleString(language)}));
     }
     if (description.length) {
       embed.setFooter(description.join(', '));

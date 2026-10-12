@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup, rgbToInt } from 'detritus-client/lib/utils';
 
 import { googleContentVisionSafeSearch } from '../../../api';
+import { getTranslator } from '../../i18n';
 import {
   EmbedBrands,
   EmbedColors,
@@ -22,16 +23,17 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const allowNSFW = !DefaultParameters.safe(context);
 
   const { safe_search_annotation: safeSearchAnnotation } = await googleContentVisionSafeSearch(context, args);
 
   const embed = createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Safe Search Detection', EmbedBrands.GOOGLE_CONTENT_VISION_SAFETY);
+  embed.setFooter(translate('tools_safety_labels.safe_search_detection'), EmbedBrands.GOOGLE_CONTENT_VISION_SAFETY);
 
   const safeValues = Object.values(GoogleContentVisionSafeSearchAttributes).map((value) => Markup.codestring(toTitleCase(value))).join(', ');
-  embed.setDescription(`Likeliness values are ${safeValues}`);
+  embed.setDescription(translate('tools_safety_labels.likeliness_values_are', {safeValues: safeValues}));
 
   const toxic: Array<number> = [];
   for (let [key, value] of Object.entries(safeSearchAnnotation)) {
@@ -61,7 +63,7 @@ export async function createMessage(
     }
 
     const percentage = Math.round(average * 100);
-    embed.addField('NSFW Percentage', `${percentage}%`, true);
+    embed.addField(translate('tools_safety_labels.nsfw_percentage'), `${percentage}%`, true);
   } else {
     const color = rgbToInt(0, 255, 129);
     embed.setColor(color);

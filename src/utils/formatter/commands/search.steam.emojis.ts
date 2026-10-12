@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed } from 'detritus-client/lib/utils';
 
 import { searchSteamEmojis } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, createUserEmbed, editOrReply } from '../../../utils';
 
@@ -16,6 +17,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { count, results } = await searchSteamEmojis(context, args);
@@ -29,7 +31,7 @@ export async function createMessage(
         embed.setColor(EmbedColors.DEFAULT);
 
         const result = results[page - 1];
-        embed.setFooter(`Page ${page}/${pageLimit} of Steam Emojis (${count.toLocaleString()} Total Emojis)`, EmbedBrands.STEAM);
+        embed.setFooter(translate('search_steam_emojis.page_of_steam_emojis_total_emojis', {count: count.toLocaleString(language), page: page, pageLimit: pageLimit}), EmbedBrands.STEAM);
 
         embed.setTitle(result.name);
         embed.setUrl(result.url);
@@ -38,12 +40,12 @@ export async function createMessage(
         {
           const description: Array<string> = [result.metadata.type, ''];
 
-          description.push(`**Commodity**: ${(result.metadata.commodity) ? 'Yes' : 'No'}`);
-          description.push(`**Market Listings**: ${result.sell_listings.toLocaleString()}`);
+          description.push(translate('search_steam_emojis.commodity', {commodity: (result.metadata.commodity) ? translate('common.yes') : translate('common.no')}));
+          description.push(translate('search_steam_emojis.market_listings', {sell_listings: result.sell_listings}));
           if (result.sell_listings) {
-            description.push(`**Market Price**: ${result.sell_price_text}`);
+            description.push(translate('search_steam_emojis.market_price', {sell_price_text: result.sell_price_text}));
           }
-          description.push(`**Tradable**: ${(result.metadata.tradable) ? 'Yes' : 'No'}`);
+          description.push(translate('search_steam_emojis.tradable', {tradable: (result.metadata.tradable) ? translate('common.yes') : translate('common.no')}));
 
           embed.setDescription(description.join('\n'));
         }
@@ -53,6 +55,6 @@ export async function createMessage(
     });
     return await paginator.start();
   }
-  return editOrReply(context, 'Couldn\'t find any steam emojis matching that search term');
+  return editOrReply(context, translate('search_steam_emojis.couldn_t_find_any_steam_emojis_matching'));
 }
 

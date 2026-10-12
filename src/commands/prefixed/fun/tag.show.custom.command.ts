@@ -5,7 +5,7 @@ import { CommandCategories, GuildFeatures, StatusEmojis, UserFlags } from '../..
 import GuildSettingsStore from '../../../stores/guildsettings';
 import TagCustomCommandStore, { TagCustomCommandStored } from '../../../stores/tagcustomcommands';
 import UserStore from '../../../stores/users';
-import { Formatter, editOrReply } from '../../../utils';
+import { Formatter, I18n, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -71,11 +71,13 @@ export default class TagShowCustomCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: Formatter.Commands.TagShowCustomCommand.CommandArgs) {
-    return editOrReply(context, `
-### ${StatusEmojis.WARNING} The tag system has been disabled at this time at Discord's request.
-Discord gave us two weeks to remove the tag system due to content moderation concerns. We've since added new safety filters and reached out to Discord about keeping the feature. We're sorry for the disruption, especially to everyone who built games and collections with tags. For updates or questions, join our support server: <https://notsobot.com/support/invite>
-`
-    );
+    const { translate } = await I18n.getTranslator(context);
+    return editOrReply(context, [
+      '',
+      `### ${StatusEmojis.WARNING} ${translate('tag.disabled_title')}`,
+      translate('tag.disabled_body', {invite: '<https://notsobot.com/support/invite>'}),
+      '',
+    ].join('\n'));
 
     return Formatter.Commands.TagShowCustomCommand.createMessage(context, args);
   }

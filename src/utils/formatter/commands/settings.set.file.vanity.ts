@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { editOrReply } from '../../../utils';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
@@ -30,9 +32,9 @@ export async function createMessage(
     }
     if (oldSettings && oldSettings.file_upload_vanity === args.vanity) {
       if (oldSettings.file_upload_vanity) {
-        text = `Your file upload vanity is already ${Markup.bold(oldSettings.file_upload_vanity)}`;
+        text = translate('settings_set_file_vanity.your_file_upload_vanity_is_already', {file_upload_vanity: Markup.bold(oldSettings.file_upload_vanity)});
       } else {
-        text = 'You currently do not have a file upload vanity set.';
+        text = translate('settings_set_file_vanity.you_currently_do_not_have_a_file');
       }
     } else {
       // update it
@@ -42,20 +44,20 @@ export async function createMessage(
       UserSettingsStore.insert(context.userId, settings);
 
       if (settings.file_upload_vanity) {
-        text = `Ok, set your file upload vanity to ${Markup.bold(settings.file_upload_vanity)}`;
+        text = translate('settings_set_file_vanity.ok_set_your_file_upload_vanity_to', {file_upload_vanity: Markup.bold(settings.file_upload_vanity)});
       } else {
-        text = 'Ok, cleared out your file upload vanity.';
+        text = translate('settings_set_file_vanity.ok_cleared_out_your_file_upload_vanity');
       }
     }
   } else {
     if (oldSettings) {
       if (oldSettings.file_upload_vanity) {
-        text = `Your current file upload vanity is ${Markup.bold(oldSettings.file_upload_vanity)}`;
+        text = translate('settings_set_file_vanity.your_current_file_upload_vanity_is', {file_upload_vanity: Markup.bold(oldSettings.file_upload_vanity)});
       } else {
-        text = 'You currently do not have a file upload vanity set.';
+        text = translate('settings_set_file_vanity.you_currently_do_not_have_a_file');
       }
     } else {
-      text = 'Error fetching your current file upload vanity.';
+      text = translate('settings_set_file_vanity.error_fetching_your_current_file_upload_vanity');
     }
   }
 

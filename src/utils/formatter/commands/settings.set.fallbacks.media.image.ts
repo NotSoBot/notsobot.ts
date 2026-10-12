@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { UserSettingsFallbacksMediaImageTypes } from '../../../constants';
@@ -19,21 +20,22 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  let text: string = 'Unknown Error, Sorry';
+  let text: string = translate('settings_set_fallbacks_media_image.unknown_error_sorry');
   if (args.fallback === undefined) {
     const settings = await UserSettingsStore.getOrFetch(context, context.userId);
     if (settings) {
       switch (settings.fallbacks_media_image) {
         case UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
-          text = 'Image Manipulation Commands will fallback to searching Google Images';
+          text = translate('settings_set_fallbacks_media_image.image_manipulation_commands_will_fallback_to_searching');
         }; break;
         case UserSettingsFallbacksMediaImageTypes.IMAGINE: {
-          text = 'Image Manipulation Commands will fallback to generating an Image';
+          text = translate('settings_set_fallbacks_media_image.image_manipulation_commands_will_fallback_to_generating');
         }; break;
         case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
-          text = 'Image Manipulation Commands will fallback to searching Duck Duck Go Images';
+          text = translate('settings_set_fallbacks_media_image.image_manipulation_commands_will_fallback_to_searching_2');
         }; break;
       }
     }
@@ -43,13 +45,13 @@ export async function createMessage(
     });
     switch (settings.fallbacks_media_image) {
       case UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
-        text = 'Ok, Image Manipulation Commands will fallback to searching Google Images now';
+        text = translate('settings_set_fallbacks_media_image.ok_image_manipulation_commands_will_fallback_to');
       }; break;
       case UserSettingsFallbacksMediaImageTypes.IMAGINE: {
-        text = 'Ok, Image Manipulation Commands will fallback to generating an Image now';
+        text = translate('settings_set_fallbacks_media_image.ok_image_manipulation_commands_will_fallback_to_2');
       }; break;
       case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
-        text = 'Ok, Image Manipulation Commands will fallback to searching Duck Duck Go Images now';
+        text = translate('settings_set_fallbacks_media_image.ok_image_manipulation_commands_will_fallback_to_3');
       }; break;
     }
   }

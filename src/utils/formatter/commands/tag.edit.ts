@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { putTag } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { editOrReply } from '../../../utils';
 
@@ -22,10 +23,11 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const tag = await putTag(context, {
     content: args.content,
     name: args.tag.name,
     serverId: context.guildId || context.channelId,
   });
-  return editOrReply(context, `Successfully edited tag ${Markup.codestring(tag.name)}`);
+  return editOrReply(context, translate('tag_edit.successfully_edited_tag', {name: Markup.codestring(tag.name)}));
 }

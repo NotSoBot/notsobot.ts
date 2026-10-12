@@ -11,7 +11,7 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { DefaultParameters, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { DefaultParameters, I18n, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -105,20 +105,22 @@ export default class PruneCommand extends BaseCommand {
     return true;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
-      return editOrReply(context, `${StatusEmojis.WARNING} After message id cannot be after or the same as the Before message id`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('prune.after_before')}`);
     }
     if (args.until && BigInt(context.message.id) <= BigInt(args.until)) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Until message id cannot be after the current message id`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('prune.until_after_current')}`);
     }
     if (isNaN(args.amount)) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Amount has to be a number lmao`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('prune.amount_number')}`);
     }
     return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: CommandArgs) {
+    const { language, translate } = await I18n.getTranslator(context);
     const bulk = new Collections.BaseCollection<string, Structures.Message>();
     const manual = new Collections.BaseCollection<string, Structures.Message>();
 
@@ -126,7 +128,7 @@ export default class PruneCommand extends BaseCommand {
 
     const isExecuting = ServerExecutionsStore.getOrCreate(context.guildId || context.channelId);
     if (isExecuting.prune) {
-      return editOrReply(context, 'Currently pruning this server, wait for it to finish');
+      return editOrReply(context, translate('prune.in_progress'));
     }
 
     isExecuting.prune = true;
@@ -240,21 +242,21 @@ export default class PruneCommand extends BaseCommand {
     if (total) {
       if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && total === args.amount) {
         try {
-          const message = await editOrReply(context, `Ok, pruning ${total.toLocaleString()} messages.`);
+          const message = await editOrReply(context, translate('prune.starting', {count: total.toLocaleString(language)}));
           const deletedTotal = await this.deleteMessages(context, channelId, bulk, manual);
           if (message.canEdit) {
-            await message.edit(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
+            await message.edit(translate('prune.deleted', {count: deletedTotal.toLocaleString(language)}));
           }
           await this.clearMessages(timeout, [context.message, message]);
         } catch(error) {
-          const message = await editOrReply(context, `Pruning errored, ${error}.`);
+          const message = await editOrReply(context, translate('prune.errored', {error: String(error)}));
         } finally {
           isExecuting.prune = false;
         }
       } else {
         const actionRow = new ComponentActionRow();
         actionRow.createButton({
-          label: 'Continue',
+          label: translate('common.continue'),
           run: async (ctx: ComponentContext) => {
             if (!timeout.hasStarted || ctx.userId !== context.userId) {
               return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -262,19 +264,19 @@ export default class PruneCommand extends BaseCommand {
             timeout.stop();
 
             await ctx.editOrRespond({
-              content: `Ok, pruning ${total.toLocaleString()} messages.`,
+              content: translate('prune.starting', {count: total.toLocaleString(language)}),
               components: [],
             });
 
             try {
               const deletedTotal = await this.deleteMessages(context, channelId, bulk, manual);
               if (deletedTotal === total) {
-                await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} messages`);
+                await ctx.editOrRespond(translate('prune.deleted', {count: deletedTotal.toLocaleString(language)}));
               } else {
-                await ctx.editOrRespond(`Successfully deleted ${deletedTotal.toLocaleString()} out of ${total.toLocaleString()} messages`);
+                await ctx.editOrRespond(translate('prune.deleted_partial', {count: deletedTotal.toLocaleString(language), total: total.toLocaleString(language)}));
               }
             } catch(error) {
-              await ctx.editOrRespond(`Pruning messages errored out: ${error}`);
+              await ctx.editOrRespond(translate('prune.errored', {error: String(error)}));
             } finally {
               isExecuting.prune = false;
             }
@@ -284,7 +286,7 @@ export default class PruneCommand extends BaseCommand {
         });
 
         actionRow.createButton({
-          label: 'Cancel',
+          label: translate('common.cancel'),
           style: MessageComponentButtonStyles.DANGER,
           run: async (ctx: ComponentContext) => {
             if (!timeout.hasStarted || ctx.userId !== context.userId) {
@@ -294,7 +296,7 @@ export default class PruneCommand extends BaseCommand {
 
             isExecuting.prune = false;
             await ctx.editOrRespond({
-              content: `Ok, canceled pruning of ${total.toLocaleString()} messages.`,
+              content: translate('prune.canceled', {count: total.toLocaleString(language)}),
               components: [],
             });
             await this.clearMessages(timeout, [context.message], 0);
@@ -304,9 +306,9 @@ export default class PruneCommand extends BaseCommand {
 
         let content: string;
         if (args.amount === total) {
-          content = `Found ${total.toLocaleString()} messages to delete.`;
+          content = translate('prune.found', {count: total.toLocaleString(language)});
         } else {
-          content = `Found ${total.toLocaleString()} messages to delete. (Out of the ${args.amount.toLocaleString()} messages requested)`;
+          content = translate('prune.found_partial', {count: total.toLocaleString(language), requested: args.amount.toLocaleString(language)});
         }
 
         isExecuting.prune = false;
@@ -316,7 +318,7 @@ export default class PruneCommand extends BaseCommand {
     } else {
       isExecuting.prune = false;
       const message = await editOrReply(context, {
-        content: 'Unable to prune any messages',
+        content: translate('prune.none'),
         flags: MessageFlags.EPHEMERAL,
       });
       this.clearMessages(timeout, [context.message, message]);
@@ -348,7 +350,8 @@ export default class PruneCommand extends BaseCommand {
       const manualToDelete = manual.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
       deletedTotal += manualToDelete.length;
 
-      const reason = `Pruning of ${deletedTotal.toLocaleString()} messages by ${context.user} (${context.user.id})`;
+      const { translate } = I18n.getCachedTranslator(context);
+      const reason = translate('prune.audit_reason', {count: deletedTotal.toLocaleString(), user: `${context.user} (${context.user.id})`});
       for (let messageId of manualToDelete) {
         await context.rest.deleteMessage(channelId, messageId, {reason});
       }

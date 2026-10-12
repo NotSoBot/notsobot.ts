@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -37,13 +37,14 @@ export default class TagAliasCommand extends BaseCommand {
     return !!args.tag && !!args.name;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.TagAlias.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.TagAlias.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.tag !== null || args.name) {
       if (!args.name) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Gotta have some sort of tag name to create an alias for`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.alias_needs_name')}`);
       }
       if (args.tag === false) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
       }
     }
     return super.onCancelRun(context, args);

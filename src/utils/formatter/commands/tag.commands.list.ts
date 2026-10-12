@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { fetchGuildTagsCommands, fetchUserTagsCommands } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
@@ -29,6 +30,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const showMeOnly = context.inDm || args.showMeOnly;
@@ -50,18 +52,18 @@ export async function createMessage(
         {
           const description: Array<string> = [];
           if (showMeOnly) {
-            description.push('Showing your Global Custom Commands');
+            description.push(translate('tag_commands_list.showing_your_global_custom_commands'));
           } else {
-            description.push('Showing this Server\'s Custom Commands');
+            description.push(translate('tag_commands_list.showing_this_server_s_custom_commands'));
           }
           embed.setDescription(description.join('\n'));
         }
 
-        let footer = (showMeOnly) ? 'Global Custom Commands' : 'Server Custom Commands'
+        let footer = (showMeOnly) ? translate('tag_commands_list.global_custom_commands') : translate('tag_commands_list.server_custom_commands')
         if (pageLimit !== 1) {
-          footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
+          footer = translate('tag_commands_list.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
         }
-        embed.setFooter(`${footer} (${count.toLocaleString()} Total Tags)`);
+        embed.setFooter(translate('tag_commands_list.total_tags', {count: count.toLocaleString(language), footer: footer}));
 
         const page = pages[pageNumber - 1];
 
@@ -92,6 +94,6 @@ export async function createMessage(
     return await paginator.start();
   }
 
-  const text = (showMeOnly) ? 'You don\t have any Global Custom Commands' : 'This Server has no Custom Commands';
+  const text = (showMeOnly) ? translate('tag_commands_list.you_don_t_have_any_global_custom') : translate('tag_commands_list.this_server_has_no_custom_commands');
   return editOrReply(context, text);
 }

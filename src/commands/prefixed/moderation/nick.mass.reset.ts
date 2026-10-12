@@ -5,7 +5,7 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { I18n, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -62,9 +62,10 @@ export default class NickMassResetCommand extends BaseCommand {
     return context.user.isClientOwner || ((context.guild) ? context.guild.memberCount <= MAX_MEMBERS : false);
   }
 
-  onCancel(context: Command.Context) {
+  async onCancel(context: Command.Context): Promise<any> {
+    const { language, translate } = await I18n.getTranslator(context);
     if (context.guild && MAX_MEMBERS < context.guild.memberCount) {
-      return editOrReply(context, `Cannot mass nick edit on servers with more than ${MAX_MEMBERS.toLocaleString()} members`);
+      return editOrReply(context, translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)}));
     }
   }
 
@@ -78,17 +79,19 @@ export default class NickMassResetCommand extends BaseCommand {
     return true;
   }
 
-  onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.role === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Role`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`);
     }
     if (args.nobots && args.nousers) {
-      return editOrReply(context, `${StatusEmojis.WARNING} who then?!`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('nickmass.who_then')}`);
     }
     return super.onCancelRun(context, args);
   }
 
   async run(context: Command.Context, args: CommandArgs) {
+    const { language, translate } = await I18n.getTranslator(context);
     const guild = context.guild as Structures.Guild;
     const me = guild.me as Structures.Member;
 
@@ -110,7 +113,7 @@ export default class NickMassResetCommand extends BaseCommand {
 
     const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
     if (isExecuting.nick) {
-      return context.reply('Already mass editing nicks');
+      return context.reply(translate('nickmass.in_progress'));
     }
 
     if (members.length) {
@@ -118,15 +121,15 @@ export default class NickMassResetCommand extends BaseCommand {
 
       const embed = createUserEmbed(context.user);
       embed.setColor(EmbedColors.DEFAULT);
-      embed.setTitle(`Can clear the nickname of ${membersThatWillBeEdited.toLocaleString()} out of ${guild.members.length.toLocaleString()} members`);
+      embed.setTitle(translate('nickmass.reset_can_clear', {count: membersThatWillBeEdited.toLocaleString(language), total: guild.members.length.toLocaleString(language)}));
       embed.setDescription([
-        `Should take about ${((membersThatWillBeEdited / amount) * time).toLocaleString()} seconds`,
-        `-> ${membersThatWillBeSkipped.toLocaleString()} members do not have nicknames`,
+        translate('nickmass.reset_estimate', {seconds: ((membersThatWillBeEdited / amount) * time).toLocaleString(language)}),
+        translate('nickmass.reset_no_nickname', {count: membersThatWillBeSkipped.toLocaleString(language)}),
       ].join('\n'));
 
       const components = new Components({timeout: 5 * (60 * 1000)});
       components.createButton({
-        label: 'Continue',
+        label: translate('common.continue'),
         run: async (ctx: ComponentContext) => {
           if (ctx.userId !== context.userId) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -138,38 +141,38 @@ export default class NickMassResetCommand extends BaseCommand {
             skipped: 0,
           };
           const errors: Array<any> = [];
-          const reason = `Mass Nickname Reset by ${context.user} (${context.user.id})`;
+          const reason = translate('nickmass.reset_audit_reason', {user: `${context.user} (${context.user.id})`});
 
           {
-            embed.setDescription(`Ok, starting to clear ${membersThatWillBeEdited.toLocaleString()} member\'s nicknames. (Should take about ${((membersThatWillBeEdited / amount) * time).toLocaleString()} seconds)`);
+            embed.setDescription(translate('nickmass.reset_starting', {count: membersThatWillBeEdited.toLocaleString(language), seconds: ((membersThatWillBeEdited / amount) * time).toLocaleString(language)}));
             embed.setColor(EmbedColors.LOG_UPDATE);
 
             const components = new Components({timeout: 20 * (60 * 1000)});
             components.createButton({
-              label: 'Refresh',
+              label: translate('common.refresh'),
               style: MessageComponentButtonStyles.SECONDARY,
               run: async (ctx: ComponentContext) => {
                 const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
                 const description: Array<string> = [];
-                description.push(`Finished the clearing nicknames of ${finished.toLocaleString()} out of ${members.length.toLocaleString()} members`);
+                description.push(translate('nickmass.reset_finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
                 if (finished) {
                   if (amounts.changed) {
-                    description.push(`- Cleared ${amounts.changed.toLocaleString()} members successfully`);
+                    description.push(translate('nickmass.reset_cleared', {count: amounts.changed.toLocaleString(language)}));
                   }
                   if (amounts.skipped) {
-                    description.push(`- Skipped ${amounts.skipped.toLocaleString()} members that did not have a nickname`);
+                    description.push(translate('nickmass.reset_skipped', {count: amounts.skipped.toLocaleString(language)}));
                   }
                   if (amounts.failed) {
-                    description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                    description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
                   }
                   if (errors.length) {
-                    description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                    description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                   }
                 }
                 if (members.length !== finished) {
                   description.push('');
-                  description.push(`About ${(((members.length - finished) / amount) * time).toLocaleString()} seconds left.`);
+                  description.push(translate('nickmass.time_left', {seconds: (((members.length - finished) / amount) * time).toLocaleString(language)}));
                 }
                 embed.setDescription(description.join('\n'));
 
@@ -177,7 +180,7 @@ export default class NickMassResetCommand extends BaseCommand {
               },
             });
             components.createButton({
-              label: 'Stop',
+              label: translate('common.stop'),
               style: MessageComponentButtonStyles.DANGER,
               run: async (ctx: ComponentContext) => {
                 // stop it and give the number of people edited
@@ -187,24 +190,24 @@ export default class NickMassResetCommand extends BaseCommand {
                 isExecuting.nick = false;
 
                 embed.setColor(EmbedColors.ERROR);
-                embed.setTitle('Mass Nickname Reset Canceled');
+                embed.setTitle(translate('nickmass.reset_cancelled_title'));
                 {
                   const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
                   const description: Array<string> = [];
-                  description.push(`Canceled the clearing nicknames of ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
+                  description.push(translate('nickmass.reset_cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
                   if (finished) {
                     if (amounts.changed) {
-                      description.push(`- Cleared ${amounts.changed.toLocaleString()} members successfully`);
+                      description.push(translate('nickmass.reset_cleared', {count: amounts.changed.toLocaleString(language)}));
                     }
                     if (amounts.skipped) {
-                      description.push(`- Skipped ${amounts.skipped.toLocaleString()} members that did not have a nickname`);
+                      description.push(translate('nickmass.reset_skipped', {count: amounts.skipped.toLocaleString(language)}));
                     }
                     if (amounts.failed) {
-                      description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                      description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
                     }
                     if (errors.length) {
-                      description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                      description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                     }
                   }
                   embed.setDescription(description.join('\n'));
@@ -255,24 +258,24 @@ export default class NickMassResetCommand extends BaseCommand {
 
           if (!isExecuting.nick) {
             embed.setColor(EmbedColors.ERROR);
-            embed.setTitle('Mass Nickname Reset Canceled');
+            embed.setTitle(translate('nickmass.reset_cancelled_title'));
             {
               const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
               const description: Array<string> = [];
-              description.push(`Canceled the clearing nicknames of ${members.length.toLocaleString()} members (Edited ${finished.toLocaleString()} members)`);
+              description.push(translate('nickmass.reset_cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
               if (finished) {
                 if (amounts.changed) {
-                  description.push(`- Reset ${amounts.changed.toLocaleString()} members successfully`);
+                  description.push(translate('nickmass.reset_reset', {count: amounts.changed.toLocaleString(language)}));
                 }
                 if (amounts.skipped) {
                   description.push(`- Skipped ${amounts.skipped.toLocaleString()} members`);
                 }
                 if (amounts.failed) {
-                  description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                  description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
                 }
                 if (errors.length) {
-                  description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                  description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                 }
               }
               embed.setDescription(description.join('\n'));
@@ -289,19 +292,19 @@ export default class NickMassResetCommand extends BaseCommand {
             const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
             const description: Array<string> = [];
-            description.push(`Finished the clearing nicknames of ${finished.toLocaleString()} out of ${members.length.toLocaleString()} members`);
+            description.push(translate('nickmass.reset_finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
             if (finished) {
               if (amounts.changed) {
-                description.push(`- Reset ${amounts.changed.toLocaleString()} members successfully`);
+                description.push(translate('nickmass.reset_reset', {count: amounts.changed.toLocaleString(language)}));
               }
               if (amounts.skipped) {
-                description.push(`- Skipped ${amounts.skipped.toLocaleString()} members that did not have a nickname`);
+                description.push(translate('nickmass.reset_skipped', {count: amounts.skipped.toLocaleString(language)}));
               }
               if (amounts.failed) {
-                description.push(`- Failed to edit ${amounts.failed.toLocaleString()} members due to permissions`);
+                description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
               }
               if (errors.length) {
-                description.push(`- Failed to edit ${errors.length.toLocaleString()} members due to some unknown error`);
+                description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
               }
             }
             embed.setColor(EmbedColors.LOG_CREATION);
@@ -316,7 +319,7 @@ export default class NickMassResetCommand extends BaseCommand {
       });
 
       components.createButton({
-        label: 'Cancel',
+        label: translate('common.cancel'),
         style: MessageComponentButtonStyles.DANGER,
         run: async (ctx: ComponentContext) => {
           if (ctx.userId !== context.userId) {
@@ -324,8 +327,8 @@ export default class NickMassResetCommand extends BaseCommand {
           }
 
           embed.setColor(EmbedColors.ERROR);
-          embed.setTitle('Mass Nickname Reset Canceled');
-          embed.setDescription(`Canceled the clearing of ${members.length.toLocaleString()} member\'s nicknames`);
+          embed.setTitle(translate('nickmass.reset_cancelled_title'));
+          embed.setDescription(translate('nickmass.reset_cancelled_before', {count: members.length.toLocaleString(language)}));
           await ctx.editOrRespond({components: [], embed});
         },
       });
@@ -334,7 +337,7 @@ export default class NickMassResetCommand extends BaseCommand {
       components.onTimeout = async () => {
         try {
           embed.setColor(EmbedColors.ERROR);
-          embed.setFooter('Request expired, press a button next time');
+          embed.setFooter(translate('nickmass.expired'));
           if (message.canEdit) {
             await message.edit({components: [], embed});
           }
@@ -344,6 +347,6 @@ export default class NickMassResetCommand extends BaseCommand {
       };
       return message;
     }
-    return editOrReply(context, 'Unable to clear anyone\'s nick');
+    return editOrReply(context, translate('nickmass.reset_none'));
   }
 }

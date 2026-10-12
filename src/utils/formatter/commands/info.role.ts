@@ -30,7 +30,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { label, language, translate, translateMaybe } = await getTranslator(context);
 
   const { channel, role } = args;
 
@@ -103,7 +103,7 @@ export async function createMessage(
       for (const permission of PERMISSIONS_ADMIN) {
         const key = String(permission);
         const can = permissions[key];
-        rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
+        rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
       embed.addField(translate('info.role.moderation'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -115,7 +115,7 @@ export async function createMessage(
       for (const permission of PERMISSIONS_TEXT) {
         const key = String(permission);
         const can = permissions[key];
-        rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
+        rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
       embed.addField(translate('info.role.text'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
@@ -125,7 +125,7 @@ export async function createMessage(
       for (const permission of PERMISSIONS_VOICE) {
         const key = String(permission);
         const can = permissions[key];
-        rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
+        rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
       embed.addField(translate('info.role.voice'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);

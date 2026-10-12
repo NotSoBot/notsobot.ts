@@ -1,10 +1,7 @@
-import { URL } from 'url';
-
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
-import { Response } from 'detritus-rest';
 import { Timers } from 'detritus-utils';
 
 import GuildSettingsStore from '../../stores/guildsettings';
@@ -15,15 +12,29 @@ import {
   CommandCategories,
   DiscordReactionEmojis,
   DiscordSkuIds,
-  EmbedColors,
   GuildFeatures,
-  PermissionsText,
   RatelimitKeys,
-  StatusEmojis,
   UserFlags,
   UserPremiumTypes,
 } from '../../constants';
-import { Parameters, createUserEmbed, editOrReply, findMediaUrlInMessages } from '../../utils';
+import { I18n, Parameters, editOrReply, findMediaUrlInMessages } from '../../utils';
+
+import {
+  createArgumentErrorPayload,
+  createRunErrorPayload,
+  formatPermissions,
+  replyError,
+  replyWarning,
+  warning,
+} from '../errors';
+
+
+function commandNameForError(context: Command.Context, translator: I18n.Translator): string {
+  if (context.command) {
+    return Markup.codestring(context.command.fullName);
+  }
+  return translator.translate('errors.this_command');
+}
 
 
 // description and usage shouldnt be optional, temporary for now
@@ -67,13 +78,14 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
     return new Promise(async (resolve) => {
       const contextMetadata = context.metadata = context.metadata || {};
+      const { translate } = await I18n.getTranslator(context);
   
       const metadata = (context.command || {}).metadata;
       if (metadata) {
         if (metadata.nsfw) {
           const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
           if (!isNSFWAllowed) {
-            contextMetadata.reason = `${StatusEmojis.WARNING} Not a NSFW channel.`;
+            contextMetadata.reason = warning(translate('errors.not_nsfw_channel'));
             return resolve(isNSFWAllowed);
           }
         }
@@ -118,11 +130,11 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           if (!hasPremium) {
             context.metadata = context.metadata || {};
             if (metadata.premiumServer) {
-              context.metadata.reason = `You or the Server Owner must have NotSoPremium to use ${Markup.codestring(this.fullName)}!`;
+              context.metadata.reason = warning(translate('errors.premium_server_required', {command: Markup.codestring(this.fullName)}));
             } else if (metadata.premiumPlus) {
-              context.metadata.reason = `You must have NotSoPremium Plus to use ${Markup.codestring(this.fullName)}!`;
+              context.metadata.reason = warning(translate('errors.premium_plus_required', {command: Markup.codestring(this.fullName)}));
             } else {
-              context.metadata.reason = `You must have NotSoPremium to use ${Markup.codestring(this.fullName)}!`;
+              context.metadata.reason = warning(translate('errors.premium_required', {command: Markup.codestring(this.fullName)}));
             }
             context.metadata.reasonIsPremiumRequired = true;
             return resolve(hasPremium);
@@ -156,56 +168,33 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         });
         */
       }
-      return editOrReply(context, contextMetadata.reason);
+      return replyError(context, {description: contextMetadata.reason});
     }
   }
 
-  onCancelRun(context: Command.Context, args: unknown) {
+  async onCancelRun(context: Command.Context, args: unknown) {
     const description = this.commandDescription;
     if (description) {
       return editOrReply(context, Markup.codeblock(`${context.prefix}${description}`));
     }
-    return editOrReply(context, 'lol idk how to use this command');
+    const { translate } = await I18n.getTranslator(context);
+    return replyWarning(context, translate('errors.usage_unknown'));
   }
 
-  onPermissionsFailClient(context: Command.Context, failed: Array<bigint>) {
-    const permissions: Array<string> = [];
-    for (let permission of failed) {
-      const key = String(permission);
-      if (key in PermissionsText) {
-        permissions.push(`\`${PermissionsText[key]}\``);
-      } else {
-        permissions.push(`\`(Unknown: ${permission})\``);
-      }
-    }
-
-    let command: string;
-    if (context.command) {
-      command = '`' + (context.command.fullName) + '`';
-    } else {
-      command = 'This command';
-    }
-    return editOrReply(context, `${StatusEmojis.WARNING} ${command} requires the bot to have ${permissions.join(', ')} to work.`);
+  async onPermissionsFailClient(context: Command.Context, failed: Array<bigint>) {
+    const translator = await I18n.getTranslator(context);
+    return replyWarning(context, translator.translate('errors.prefix_bot_missing_permissions', {
+      command: commandNameForError(context, translator),
+      permissions: formatPermissions(failed, translator),
+    }));
   }
 
-  onPermissionsFail(context: Command.Context, failed: Array<bigint>) {
-    const permissions: Array<string> = [];
-    for (let permission of failed) {
-      const key = String(permission);
-      if (key in PermissionsText) {
-        permissions.push(`\`${PermissionsText[key]}\``);
-      } else {
-        permissions.push(`\`(Unknown: ${permission})\``);
-      }
-    }
-
-    let command: string;
-    if (context.command) {
-      command = '`' + (context.command.fullName) + '`';
-    } else {
-      command = 'This command';
-    }
-    return editOrReply(context, `${StatusEmojis.WARNING} ${command} requires you to have ${permissions.join(', ')}.`);
+  async onPermissionsFail(context: Command.Context, failed: Array<bigint>) {
+    const translator = await I18n.getTranslator(context);
+    return replyWarning(context, translator.translate('errors.prefix_user_missing_permissions', {
+      command: commandNameForError(context, translator),
+      permissions: formatPermissions(failed, translator),
+    }));
   }
 
   async onRatelimit(
@@ -218,6 +207,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       return;
     }
     const { global } = metadata;
+    const { language, translate } = await I18n.getTranslator(context);
   
     let replied: boolean = false;
     for (const {item, ratelimit, remaining} of ratelimits) {
@@ -237,24 +227,23 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       }
       replied = item.replied = true;
   
-      let noun: string = 'You idiots are';
+      // full sentences per type, since the verb changes with who is being ratelimited
+      const command = this.fullName;
+      const seconds = (remaining / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
+      let content: string;
       switch (ratelimit.type) {
         case 'channel': {
-          noun = 'This channel is';
+          content = (global) ? translate('ratelimit.global.channel', {seconds}) : translate('ratelimit.command.channel', {command, seconds});
         }; break;
         case 'guild': {
-          noun = 'This guild is';
+          content = (global) ? translate('ratelimit.global.guild', {seconds}) : translate('ratelimit.command.guild', {command, seconds});
         }; break;
         case 'user': {
-          noun = 'You are';
+          content = (global) ? translate('ratelimit.global.user', {seconds}) : translate('ratelimit.command.user', {command, seconds});
         }; break;
-      }
-  
-      let content: string;
-      if (global) {
-        content = `${noun} using commands WAY too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
-      } else {
-        content = `${noun} using ${this.fullName} too fast, wait ${(remaining / 1000).toFixed(1)} seconds.`;
+        default: {
+          content = (global) ? translate('ratelimit.global.default', {seconds}) : translate('ratelimit.command.default', {command, seconds});
+        };
       }
   
       try {
@@ -271,91 +260,9 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.ERROR);
-    embed.setTitle(`${StatusEmojis.WARNING} Command Error`);
-
-    const description: Array<string> = [];
-    if (error.response) {
-      const response: Response = error.response;
-      try {
-        const information = await response.json() as any;
-        description.push(error.message || error.stack);
-        if ('errors' in information) {
-          for (let key in information.errors) {
-            const value = information.errors[key];
-            let message: string;
-            if (typeof(value) === 'object') {
-              message = JSON.stringify(value);
-            } else {
-              message = String(value);
-            }
-            description.push(`**${key}**: ${message}`);
-          }
-        }
-
-        if (
-          response.statusCode === 429 &&
-          (
-            (context.rest.raw.restClient.baseUrl instanceof URL) &&
-            (context.rest.raw.restClient.baseUrl.host === response.request.parsedUrl.host)
-          )
-        ) {
-          const headers: Record<string, string> = {};
-          for (let [header, value] of response.headers) {
-            if (header.startsWith('x-ratelimit')) {
-              headers[header] = value;
-            }
-          }
-          embed.addField('Ratelimit Info', [
-            '```json',
-            JSON.stringify({body: information, headers}),
-            '```',
-          ].join('\n'));
-        }
-
-      } catch(e) {
-        if (response.statusCode === 502 || response.statusCode === 521) {
-          description.push('Our api is restarting, might take a bit. Sorry ;(');
-        } else {
-          description.push(`HTTP Exception: ${response.statusCode}`);
-          const contentType = response.headers.get('content-type') || '';
-          if (contentType.startsWith('text/html')) {
-            // parse it?
-          } else {
-            description.push('Unknown Error Data');
-            if (contentType) {
-              description.push(`**Mimetype**: ${contentType}`);
-            }
-          }
-        }
-      }
-    } else {
-      const message = String(error.message || error.stack);
-      if (message.includes('reason: connect ECONNREFUSED 127.0.0.1:80')) {
-        description.push('Our api is restarting, might take a bit. Sorry ;(');
-      } else {
-        description.push(message);
-      }
-    }
-
-    let file: any = undefined;
-    if (4096 < description.length) {
-      embed.setDescription('Uploaded the Error');
-      file = {filename: 'error.txt', value: description.join('\n')};
-    } else {
-      embed.setDescription(description.join('\n'));
-    }
-
-    if (error.metadata) {
-      embed.addField('Metadata', [
-        '```json',
-        JSON.stringify(error.metadata),
-        '```',
-      ].join('\n'));
-    }
-
-    const message = await editOrReply(context, {embed, file});
+    const translator = await I18n.getTranslator(context);
+    const title = warning(translator.translate('errors.prefix_run_title'));
+    const message = await replyError(context, await createRunErrorPayload(context, title, error, translator));
     if (context.command && context.command.metadata) {
       const metadata = context.command.metadata;
       const commandId = metadata.id || context.command.fullName.split(' ').join('.');
@@ -398,31 +305,16 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
   }
 
-  onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.ERROR);
-    embed.setTitle(`${StatusEmojis.WARNING} Command Argument Error`);
-
-    const store: {[key: string]: string} = {};
-
-    const description: Array<string> = ['Invalid Arguments' + '\n'];
-    for (let key in errors) {
-      const message = errors[key].message;
-      if (message in store) {
-        description.push(`**${key}**: Same error as **${store[message]}**`);
-      } else {
-        description.push(`**${key}**: ${message}`);
-      }
-      store[message] = key;
-    }
-  
-    embed.setDescription(description.join('\n'));
-    return editOrReply(context, {embed});
+  async onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
+    const translator = await I18n.getTranslator(context);
+    const title = warning(translator.translate('errors.prefix_argument_title'));
+    return replyError(context, createArgumentErrorPayload(title, errors, translator));
   }
 }
 
 
 export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
+  errorNotFound: I18n.TranslationKey = 'errors.no_media_found';
   triggerTypingAfter = 250;
 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
@@ -446,11 +338,12 @@ export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
     return !!args.url;
   }
 
-  onCancelRun(context: Command.Context, args: {url?: null | string}) {
+  async onCancelRun(context: Command.Context, args: {url?: null | string}) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.url === undefined) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any media in the last 50 messages.`);
+      return replyWarning(context, translate(this.errorNotFound));
     } else if (args.url === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user or it was an invalid url.`);
+      return replyWarning(context, translate('errors.invalid_user_or_url'));
     }
     return super.onCancelRun(context, args);
   }
@@ -468,6 +361,9 @@ export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
 
 
 export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseCommand<ParsedArgsFinished> {
+  errorNotEnough: I18n.TranslationKey = 'errors.not_enough_media_found';
+  errorNotFound: I18n.TranslationKey = 'errors.no_media_found';
+  errorTooMany: I18n.TranslationKey = 'errors.too_many_media_found';
   maxAmount = 2;
   minAmount = 0;
   triggerTypingAfter = 250;
@@ -495,14 +391,15 @@ export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
     return !!args.urls.length && args.urls.length <= this.maxAmount && this.minAmount <= args.urls.length;
   }
 
-  onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
+  async onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
+    const { translate } = await I18n.getTranslator(context);
     if (!args.urls.length) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any media in the last 50 messages.`);
+      return replyWarning(context, translate(this.errorNotFound));
     } else if (args.urls.length < this.minAmount) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find ${this.minAmount} media urls in the last 50 messages.`);
+      return replyWarning(context, translate(this.errorNotEnough, {amount: this.minAmount}));
     } else if (this.maxAmount < args.urls.length) {
       // never should happen
-      return editOrReply(context, `${StatusEmojis.WARNING} Found too many media urls in the last 50 messages.`);
+      return replyWarning(context, translate(this.errorTooMany));
     }
     return super.onCancelRun(context, args);
   }
@@ -520,25 +417,22 @@ export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
 
 
 export class BaseAudioOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediaCommand<ParsedArgsFinished> {
+  errorNotFound: I18n.TranslationKey = 'errors.no_audio_video_found';
+
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {
       type: options.type || Parameters.lastMediaUrl({image: false}),
       ...options,
     });
   }
-
-  onCancelRun(context: Command.Context, args: {url?: null | string}) {
-    if (args.url === undefined) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any audio or videos in the last 50 messages.`);
-    } else if (args.url === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user or it was an invalid url.`);
-    }
-    return super.onCancelRun(context, args);
-  }
 }
 
 
 export class BaseAudioOrVideosCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediasCommand<ParsedArgsFinished> {
+  errorNotEnough: I18n.TranslationKey = 'errors.not_enough_audio_video_found';
+  errorNotFound: I18n.TranslationKey = 'errors.no_audio_video_found';
+  errorTooMany: I18n.TranslationKey = 'errors.too_many_audio_video_found';
+
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions> & {maxAmount?: number, minAmount?: number}) {
     super(commandClient, {
       type: options.type || Parameters.mediaUrls({
@@ -553,60 +447,38 @@ export class BaseAudioOrVideosCommand<ParsedArgsFinished = Command.ParsedArgs> e
     this.maxAmount = options.maxAmount || this.maxAmount;
     this.minAmount = options.minAmount || this.minAmount;
   }
-
-  onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
-    if (!args.urls.length) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any audio or videos in the last 50 messages.`);
-    } else if (args.urls.length < this.minAmount) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find ${this.minAmount} audio or video urls in the last 50 messages.`);
-    } else if (this.maxAmount < args.urls.length) {
-      // never should happen
-      return editOrReply(context, `${StatusEmojis.WARNING} Found too many audio or video urls in the last 50 messages.`);
-    }
-    return super.onCancelRun(context, args);
-  }
 }
 
 
 export class BaseImageCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediaCommand<ParsedArgsFinished> {
+  errorNotFound: I18n.TranslationKey = 'errors.no_images_found';
+
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {
       type: options.type || Parameters.lastMediaUrl({audio: false, video: false}),
       ...options,
     });
   }
-
-  onCancelRun(context: Command.Context, args: {url?: null | string}) {
-    if (args.url === undefined) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any images in the last 50 messages.`);
-    } else if (args.url === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user or it was an invalid url.`);
-    }
-    return super.onCancelRun(context, args);
-  }
 }
 
 
 export class BaseImageOrVideoCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediaCommand<ParsedArgsFinished> {
+  errorNotFound: I18n.TranslationKey = 'errors.no_images_videos_found';
+
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {
       type: options.type || Parameters.lastMediaUrl({audio: false}),
       ...options,
     });
   }
-
-  onCancelRun(context: Command.Context, args: {url?: null | string}) {
-    if (args.url === undefined) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any images or videos in the last 50 messages.`);
-    } else if (args.url === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user or it was an invalid url.`);
-    }
-    return super.onCancelRun(context, args);
-  }
 }
 
 
 export class BaseImageOrVideosCommand<ParsedArgsFinished = Command.ParsedArgs> extends BaseMediasCommand<ParsedArgsFinished> {
+  errorNotEnough: I18n.TranslationKey = 'errors.not_enough_image_video_found';
+  errorNotFound: I18n.TranslationKey = 'errors.no_images_videos_found';
+  errorTooMany: I18n.TranslationKey = 'errors.too_many_image_video_found';
+
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions> & {maxAmount?: number, minAmount?: number}) {
     super(commandClient, {
       type: options.type || Parameters.mediaUrls({
@@ -620,18 +492,6 @@ export class BaseImageOrVideosCommand<ParsedArgsFinished = Command.ParsedArgs> e
     });
     this.maxAmount = options.maxAmount || this.maxAmount;
     this.minAmount = options.minAmount || this.minAmount;
-  }
-
-  onCancelRun(context: Command.Context, args: {urls: Array<string>}) {
-    if (!args.urls.length) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any image or videos in the last 50 messages.`);
-    } else if (args.urls.length < this.minAmount) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find ${this.minAmount} image or video urls in the last 50 messages.`);
-    } else if (this.maxAmount < args.urls.length) {
-      // never should happen
-      return editOrReply(context, `${StatusEmojis.WARNING} Found too many image or video urls in the last 50 messages.`);
-    }
-    return super.onCancelRun(context, args);
   }
 }
 

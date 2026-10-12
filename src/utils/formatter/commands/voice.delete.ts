@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { deleteVoice, fetchUserVoices } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { editOrReply } from '../../../utils';
 
 import { findVoice } from './voice.list';
@@ -17,16 +18,17 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const { count, voices } = await fetchUserVoices(context, context.userId);
   if (!voices.length) {
-    return editOrReply(context, 'You have no cloned voices');
+    return editOrReply(context, translate('voice_delete.you_have_no_cloned_voices'));
   }
 
   const voice = findVoice(voices, args.voice);
   if (!voice) {
-    return editOrReply(context, 'No cloned voices found matching that');
+    return editOrReply(context, translate('voice_delete.no_cloned_voices_found_matching_that'));
   }
 
   await deleteVoice(context, voice.id);
-  return editOrReply(context, `Successfully deleted voice ${Markup.codestring(voice.name)}`);
+  return editOrReply(context, translate('voice_delete.successfully_deleted_voice', {name: Markup.codestring(voice.name)}));
 }

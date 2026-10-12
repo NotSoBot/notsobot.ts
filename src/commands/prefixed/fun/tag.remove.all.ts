@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -39,9 +39,10 @@ export default class TagRemoveAllCommand extends BaseCommand {
     return args.user !== null;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.TagRemoveAll.CommandArgs) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.TagRemoveAll.CommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.user === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that user.`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
     }
     return super.onCancelRun(context, args);
   }

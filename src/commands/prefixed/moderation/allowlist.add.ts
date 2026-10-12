@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, I18n } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -39,11 +39,12 @@ export default class AllowlistAddCommand extends BaseCommand {
     return !!payloads && !!payloads.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAdd.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAdd.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.payloads) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any valid Text Channels, Roles, or Users`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`);
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} Provide some kind of mention`);
+    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.needs_mention')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAdd.CommandArgs) {

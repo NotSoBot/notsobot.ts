@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { UserSettingsUploadThresholdTypes } from '../../../constants';
@@ -19,21 +20,22 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
-  let text: string = 'Unknown Error, Sorry';
+  let text: string = translate('settings_set_file_upload_threshold.unknown_error_sorry');
   if (args.threshold === undefined) {
     const settings = await UserSettingsStore.getOrFetch(context, context.userId);
     if (settings) {
       switch (settings.file_upload_threshold) {
         case UserSettingsUploadThresholdTypes.ALWAYS: {
-          text = 'Your current setting will always upload files to our servers';
+          text = translate('settings_set_file_upload_threshold.your_current_setting_will_always_upload_files');
         }; break;
         case UserSettingsUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT: {
-          text = 'Your current setting will only upload files if they exceed Discord\'s File Size Limit';
+          text = translate('settings_set_file_upload_threshold.your_current_setting_will_only_upload_files');
         }; break;
         case UserSettingsUploadThresholdTypes.NEVER: {
-          text = 'Your current setting will never upload files to our servers';
+          text = translate('settings_set_file_upload_threshold.your_current_setting_will_never_upload_files');
         }; break;
       }
     }
@@ -43,13 +45,13 @@ export async function createMessage(
     });
     switch (settings.file_upload_threshold) {
       case UserSettingsUploadThresholdTypes.ALWAYS: {
-        text = 'Ok, will always upload files to our servers';
+        text = translate('settings_set_file_upload_threshold.ok_will_always_upload_files_to_our');
       }; break;
       case UserSettingsUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT: {
-        text = 'Ok, will only upload files if they exceed Discord\'s File Size Limit';
+        text = translate('settings_set_file_upload_threshold.ok_will_only_upload_files_if_they');
       }; break;
       case UserSettingsUploadThresholdTypes.NEVER: {
-        text = 'Ok, will never upload files to our servers';
+        text = translate('settings_set_file_upload_threshold.ok_will_never_upload_files_to_our');
       }; break;
     }
   }

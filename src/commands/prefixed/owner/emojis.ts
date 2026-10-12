@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, editOrReply } from '../../../utils';
+import { Formatter, I18n, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -36,8 +36,9 @@ export default class EmojisCommand extends BaseCommand {
     return !!args.emojis.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.SearchDiscordEmojis.CommandArgs) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Couldn't find any emojis matching that.`);
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.SearchDiscordEmojis.CommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('owner.no_emojis')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.SearchDiscordEmojis.CommandArgs) {

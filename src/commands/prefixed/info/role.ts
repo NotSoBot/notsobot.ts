@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -39,11 +39,12 @@ export default class RoleCommand extends BaseCommand {
     return !!args.channel && !!args.role;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.InfoRole.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoRole.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (!args.channel) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that channel`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.channel_not_found')}`);
     } else if (!args.role) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unable to find that role`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.role_not_found')}`);
     } else {
       return super.onCancelRun(context, args);
     }

@@ -3,6 +3,7 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
+import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { editOrReply } from '../../../utils';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
@@ -30,9 +32,9 @@ export async function createMessage(
     }
     if (oldSettings && oldSettings.ml_diffusion_model === args.model) {
       if (oldSettings.ml_diffusion_model) {
-        text = `Your ML Diffusion Model preference is already ${Markup.bold(oldSettings.ml_diffusion_model)}`;
+        text = translate('settings_set_ml_imagine_model.your_ml_diffusion_model_preference_is_already', {ml_diffusion_model: Markup.bold(oldSettings.ml_diffusion_model)});
       } else {
-        text = 'You currently do not have a ML Diffusion Model preference.';
+        text = translate('settings_set_ml_imagine_model.you_currently_do_not_have_a_ml');
       }
     } else {
       // update it
@@ -42,20 +44,20 @@ export async function createMessage(
       UserSettingsStore.insert(context.userId, settings);
 
       if (settings.ml_diffusion_model) {
-        text = `Ok, set your ML Diffusion Model preference to ${Markup.bold(settings.ml_diffusion_model)}`;
+        text = translate('settings_set_ml_imagine_model.ok_set_your_ml_diffusion_model_preference', {ml_diffusion_model: Markup.bold(settings.ml_diffusion_model)});
       } else {
-        text = 'Ok, cleared out your ML Diffusion Model preference.';
+        text = translate('settings_set_ml_imagine_model.ok_cleared_out_your_ml_diffusion_model');
       }
     }
   } else {
     if (oldSettings) {
       if (oldSettings.ml_diffusion_model) {
-        text = `Your current ML Diffusion Model preference is ${Markup.bold(oldSettings.ml_diffusion_model)}`;
+        text = translate('settings_set_ml_imagine_model.your_current_ml_diffusion_model_preference_is', {ml_diffusion_model: Markup.bold(oldSettings.ml_diffusion_model)});
       } else {
-        text = 'You currently do not have a ML Diffusion Model preference.';
+        text = translate('settings_set_ml_imagine_model.you_currently_do_not_have_a_ml');
       }
     } else {
-      text = 'Error fetching your current ML Diffusion Model preference.';
+      text = translate('settings_set_ml_imagine_model.error_fetching_your_current_ml_diffusion_model');
     }
   }
 

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -35,13 +35,14 @@ export default class TagCreateCommand extends BaseCommand {
     return !!args.tag && !!args.content;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.TagCreate.CommandArgs) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.TagCreate.CommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.tag || args.content) {
       if (!args.tag) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Gotta have some sort of tag name`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.needs_name')}`);
       }
       if (!args.content) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Must have some sort of content for the tag!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.needs_content')}`);
       }
     }
     return super.onCancelRun(context, args);

@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getTranslator } from '../../i18n';
 
 import { fetchTag, putTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
@@ -25,6 +26,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const tagName = args.name || args.tag.name;
 
@@ -37,10 +39,10 @@ export async function createMessage(
   try {
     const oldTag = await fetchTag(context, {name: tagName, serverId});
     if (oldTag.user.id !== context.userId) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Tag already exists in this server and you do not own it!`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_import_dm.tag_already_exists_in_this_server_and')}`);
     }
     if (oldTag.content) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Cannot edit a regular tag to be an alias tag.`)
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_import_dm.cannot_edit_a_regular_tag_to_be')}`)
     }
   } catch(error) {
     
@@ -52,9 +54,9 @@ export async function createMessage(
     serverId,
   });
 
-  let message = `Ok, added tag ${Markup.codestring(args.tag.name)} from your DMs`;
+  let message = translate('tag_import_dm.ok_added_tag_from_your_dms', {name: Markup.codestring(args.tag.name)});
   if (args.tag.name !== tag.name) {
     message = `${message} as ${Markup.codestring(tag.name)}`;
   }
-  return editOrReply(context, `${message} to this server.`);
+  return editOrReply(context, translate('tag_import_dm.to_this_server', {message: message}));
 }

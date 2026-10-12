@@ -35,6 +35,7 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
   ];
 
   async run(context: Interaction.InteractionContext) {
+    const { translate } = await I18n.getTranslator(context);
     let willPrefixCommandsWork = true;
 
     const description: Array<string> = [];
@@ -42,19 +43,19 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
     const { channel, guild, me, member } = context;
     if (channel) {
       // todo: check if single dm or group dm, single dms i probably could check perms
-      description.push('**Bot Channel Permissions**');
+      description.push(`**${translate('permcheck.channel_permissions')}**`);
       if (context.inDm) {
         if (context.hasServerPermissions) {
-          description.push(`-> Send Message: ✅`);
-          description.push(`-> View: ✅`);
+          description.push(`-> ${translate('permcheck.send_message')}: ✅`);
+          description.push(`-> ${translate('permcheck.view')}: ✅`);
         } else {
-          description.push(`-> Send Message: ✅`);
-          description.push(`-> View: ❌`);
+          description.push(`-> ${translate('permcheck.send_message')}: ✅`);
+          description.push(`-> ${translate('permcheck.view')}: ❌`);
           willPrefixCommandsWork = false;
         }
       } else {
-        description.push(`-> Send Message: ${(channel.can([Permissions.SEND_MESSAGES])) ? '✅': '❌'}`);
-        description.push(`-> View: ${(channel.can([Permissions.VIEW_CHANNEL])) ? '✅': '❌'}`);
+        description.push(`-> ${translate('permcheck.send_message')}: ${(channel.can([Permissions.SEND_MESSAGES])) ? '✅': '❌'}`);
+        description.push(`-> ${translate('permcheck.view')}: ${(channel.can([Permissions.VIEW_CHANNEL])) ? '✅': '❌'}`);
         willPrefixCommandsWork = channel.canMessage;
       }
     }
@@ -66,9 +67,9 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
         !me.canAdministrator
       ) {
         description.push('');
-        description.push('**Bot Timed Out**');
-        description.push('-> Can Message: ❌');
-        description.push(`-> Until ${Markup.timestamp(me.communicationDisabledUntil)}`);
+        description.push(`**${translate('permcheck.timed_out')}**`);
+        description.push(`-> ${translate('permcheck.can_message')}: ❌`);
+        description.push(`-> ${translate('permcheck.until', {time: Markup.timestamp(me.communicationDisabledUntil)})}`);
         willPrefixCommandsWork = false;
       }
       // maybe do other checks here?
@@ -76,10 +77,10 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
 
     description.push('');
     if (context.hasServerPermissions) {
-      description.push('Bot is installed in this Server');
+      description.push(translate('permcheck.installed'));
 
       description.push('');
-      description.push('**Server Prefixes**');
+      description.push(`**${translate('permcheck.server_prefixes')}**`);
       if (context.commandClient) {
         const mentionPrefixes = context.commandClient.prefixes.mention.map((x) => Markup.codestring(x));
         description.push('-> ' + mentionPrefixes.join(', '));
@@ -87,21 +88,21 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
 
       const settings = (guild) ? await GuildSettingsStore.getOrFetch(context, guild.id) : null;
       if (settings && settings.prefixes.length) {
-        description.push(`-> Custom Prefixes`);
+        description.push(`-> ${translate('permcheck.custom_prefixes')}`);
         for (let [x, item] of settings.prefixes) {
           description.push(`--> ${Markup.codestring(item.prefix)}`);
         }
       } else {
-        description.push('-> Default Prefix: `.`');
+        description.push(`-> ${translate('permcheck.default_prefix')}: \`.\``);
       }
 
       if (settings) {
         description.push('');
-        description.push('**Current User Allowlist/Blocklist Permissions**');
+        description.push(`**${translate('permcheck.user_permissions')}**`);
         if (context.user.isClientOwner) {
-          description.push('-> User Bypasses All Allowlist/Blocklist Restrictions due to being a Bot Owner');
+          description.push(`-> ${translate('permcheck.bypass_owner')}`);
         } else if (member && (member.isOwner || member.canAdministrator)) {
-          description.push('-> User Bypasses All Allowlist/Blocklist Restrictions due to having Administrator');
+          description.push(`-> ${translate('permcheck.bypass_admin')}`);
         } else {
           // todo: add command allowlist/blocklist checks, add parameter to slash command for command id
           const parent = (channel) ? channel.parent : null;
@@ -132,8 +133,8 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
               }
               return false;
             });
-            description.push(`-> Server Allowlist Bypassed: ${(shouldAllow) ? '✅': '❌'}`);
-            description.push(`-> Server Blocklist Bypassed due to Allowlist being present`);
+            description.push(`-> ${translate('permcheck.allowlist_bypassed')}: ${(shouldAllow) ? '✅': '❌'}`);
+            description.push(`-> ${translate('permcheck.blocklist_bypassed_allowlist')}`);
           } else {
             const { blocklist } = settings;
             if (blocklist.length) {
@@ -161,27 +162,26 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
                 }
                 return false;
               });
-              description.push(`-> Server Allowlist Bypassed due to it being empty`);
-              description.push(`-> Server Blocklist Bypassed: ${(!shouldIgnore) ? '✅': '❌'}`);
+              description.push(`-> ${translate('permcheck.allowlist_empty')}`);
+              description.push(`-> ${translate('permcheck.blocklist_bypassed')}: ${(!shouldIgnore) ? '✅': '❌'}`);
             } else {
-              description.push(`-> Server Allowlist Bypassed due to it being empty`);
-              description.push(`-> Server Blocklist Bypassed due to it being empty`);
+              description.push(`-> ${translate('permcheck.allowlist_empty')}`);
+              description.push(`-> ${translate('permcheck.blocklist_empty')}`);
             }
           }
         }
       }
     } else {
       if (context.inDm) {
-        description.push('Bot cannot be installed in Group DMs');
+        description.push(translate('permcheck.group_dm'));
       } else {
-        description.push('Bot is not installed in the Server');
+        description.push(translate('permcheck.not_installed'));
       }
       willPrefixCommandsWork = false;
     }
 
-    const willRespondText = (willPrefixCommandsWork) ? 'WILL' : 'WILL NOT';
     return editOrReply(context, [
-      `Bot **${willRespondText}** respond to prefix commands here`,
+      translate((willPrefixCommandsWork) ? 'permcheck.will_respond' : 'permcheck.will_not_respond'),
       '',
       description.join('\n'),
     ].join('\n'));

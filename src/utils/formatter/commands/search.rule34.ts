@@ -4,6 +4,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34 } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
 
@@ -22,7 +23,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return editOrReply(context, 'Sorry, this command has been disabled at Discord\'s request.');
+  const { language, translate, translateMaybe } = await getTranslator(context);
+  return editOrReply(context, translate('search_rule34.sorry_this_command_has_been_disabled_at'));
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
@@ -41,22 +43,22 @@ export async function createMessage(
         const result = results[page - 1];
         embed.setFooter(`Page ${page}/${pageLimit} of https://rule34.xxx Results`, EmbedBrands.RULE34);
 
-        embed.setTitle((result.is_video) ? 'Video Post' : 'Image Post');
+        embed.setTitle((result.is_video) ? translate('search_rule34.video_post') : translate('search_rule34.image_post'));
         embed.setUrl(result.url);
 
         const description: Array<string> = [];
-        description.push(`Uploaded ${moment(result.created_at).fromNow()}`);
-        description.push(`**Score**: ${result.score.toLocaleString()}`);
+        description.push(translate('search_rule34.uploaded', {moment: moment(result.created_at).locale(language).fromNow()}));
+        description.push(translate('search_rule34.score', {score: result.score.toLocaleString(language)}));
         if (result.source) {
           if (result.source.startsWith('https://') || result.source.startsWith('http://')) {
             const cite = (result.source.split('://')[1] as string).split('/').shift() as string;
-            description.push(`**Source**: ${Markup.url(Markup.escape.all(cite), result.source)}`);
+            description.push(translate('search_rule34.source', {cite: Markup.url(Markup.escape.all(cite), result.source)}));
           } else {
-            description.push(`**Source**: ${result.source}`);
+            description.push(translate('search_rule34.source_2', {source: result.source}));
           }
         }
         if (result.tags.length) {
-          description.push(`**Tags**: ${Markup.escape.all(result.tags.sort().join(', '))}`);
+          description.push(translate('search_rule34.tags', {tags: Markup.escape.all(result.tags.sort().join(', '))}));
         }
         {
           let text = description.join('\n');
@@ -81,5 +83,5 @@ export async function createMessage(
     return await paginator.start();
   }
 
-  return editOrReply(context, 'Couldn\'t find any images for that search term');
+  return editOrReply(context, translate('search_rule34.couldn_t_find_any_images_for_that'));
 }

@@ -1,7 +1,10 @@
+import moment from 'moment';
+
 import { Collections, Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsCommandsBlocklist } from '../../../api/structures/guildsettings';
+import { getTranslator } from '../../i18n';
 import { CommandCategories, EmbedColors, GuildCommandsBlocklistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
@@ -33,6 +36,7 @@ export async function createCommandsBlocklistsEmbed(
   commandsBlocklist: Collections.BaseCollection<string, GuildSettingsCommandsBlocklist>,
   options: {only?: GuildCommandsBlocklistTypes | null, title?: string} = {},
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   let sorted = commandsBlocklist.toArray();
   if (options.only) {
     sorted = sorted.filter((blocked) => blocked.type === options.only);
@@ -43,10 +47,10 @@ export async function createCommandsBlocklistsEmbed(
 
   const pages = chunkArray<GuildSettingsCommandsBlocklist>(sorted, ELEMENTS_PER_PAGE);
 
-  let title = options.title || 'Commands Blocked';
-  let footer = 'Command Blocklist';
+  let title = options.title || translate('moderation_commands_blocklist.commands_blocked');
+  let footer = translate('moderation_commands_blocklist.command_blocklist');
   if (options.only) {
-    footer = `${footer} (Only ${toTitleCase(options.only)}s)`;
+    footer = translate('moderation_commands_blocklist.only_s', {footer: footer, types: translateMaybe(`moderation.types.${options.only}`, `${toTitleCase(options.only)}s`)});
   }
   if (pages.length) {
     const pageLimit = pages.length;
@@ -57,30 +61,30 @@ export async function createCommandsBlocklistsEmbed(
         embed.setColor(EmbedColors.DEFAULT);
 
         embed.setTitle(title);
-        embed.setFooter((pageLimit === 1) ? footer : `Page ${pageNumber}/${pageLimit} of ${footer}`);
+        embed.setFooter((pageLimit === 1) ? footer : translate('moderation_commands_blocklist.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber}));
 
         const page = pages[pageNumber - 1];
         {
           const description: Array<string> = page.map((blocked, i) => {
-            let type = `Unknown (${blocked.type})`;
+            let type = translate('moderation_commands_blocklist.unknown', {type: blocked.type});
             switch (blocked.type) {
               case GuildCommandsBlocklistTypes.CHANNEL: {
-                type = `Channel Blocked (<#${blocked.id}>)`;
+                type = translate('moderation_commands_blocklist.channel_blocked', {blocked: blocked.id});
               }; break;
               case GuildCommandsBlocklistTypes.GUILD: {
-                type = 'Guild Blocked';
+                type = translate('moderation_commands_blocklist.guild_blocked');
               }; break;
               case GuildCommandsBlocklistTypes.ROLE: {
-                type = `Role Blocked (<@&${blocked.id}>)`;
+                type = translate('moderation_commands_blocklist.role_blocked', {blocked: blocked.id});
               }; break;
               case GuildCommandsBlocklistTypes.USER: {
-                type = `User Blocked (<@${blocked.id}>)`;
+                type = translate('moderation_commands_blocklist.user_blocked', {blocked: blocked.id});
               }; break;
             }
             return [
-              `${(i * pageNumber) + 1}. **${blocked.command}** added ${blocked.addedAtText}`,
+              translate('moderation_commands_blocklist.added', {addedAtText: moment(blocked.added).locale(language).fromNow(), command: blocked.command, index: (i * pageNumber) + 1}),
               `-> ${type}`,
-              `-> By <@${blocked.userId}>`,
+              translate('moderation_commands_blocklist.by', {userId: blocked.userId}),
             ].join('\n');
           });
           embed.setDescription(description.join('\n'));
@@ -95,9 +99,9 @@ export async function createCommandsBlocklistsEmbed(
 
   embed.setTitle(title);
   if (options.only) {
-    embed.setDescription(`Currently no commands are blocked for any ${options.only}s in this guild.`);
+    embed.setDescription(translate('moderation_commands_blocklist.currently_no_commands_are_blocked_for_any', {types: translateMaybe(`moderation.types.${options.only}`, `${toTitleCase(options.only)}s`).toLowerCase()}));
   } else {
-    embed.setDescription('Currently no commands are blocked in this guild.');
+    embed.setDescription(translate('moderation_commands_blocklist.currently_no_commands_are_blocked_in_this'));
   }
   embed.setFooter(footer);
   return editOrReply(context, {embed});

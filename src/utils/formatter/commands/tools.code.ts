@@ -3,6 +3,7 @@ import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesCodeRun } from '../../../api';
+import { getTranslator } from '../../i18n';
 import {
   CodeLanguages,
   CodeLanguagesToName,
@@ -43,6 +44,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language: locale, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { code, urls } = generateCodeFromLanguage(args.language, args.code);
@@ -60,10 +62,10 @@ export async function createMessage(
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
 
-  let footer = `${toTitleCase(title)} (${version}) Code Execution`;
+  let footer = translate('tools_code.code_execution', {value: toTitleCase(title), version: version});
   if (1000 <= took) {
     const seconds = (took / 1000).toFixed(1);
-    footer = `${footer}, took ${seconds} seconds`;
+    footer = translate('tools_code.took_seconds', {footer: footer, seconds: seconds});
   }
   embed.setFooter(footer, EmbedBrands.NOTSOBOT);
 
@@ -74,21 +76,21 @@ export async function createMessage(
     embed.setColor(EmbedColors.ERROR);
     if (1990 < result.error.length) {
       files.push({filename: 'error.txt', value: Buffer.from(result.error)});
-      embed.setDescription('Uploaded the error log to a txt file');
+      embed.setDescription(translate('tools_code.uploaded_the_error_log_to_a_txt'));
     } else {
       embed.setDescription(Markup.codeblock(result.error, {language: languageMarkupString})); 
     }
   } else if (result.output) {
     if (1990 < result.output.length) {
       files.push({filename: 'output.txt', value: Buffer.from(result.output)});
-      embed.setDescription('Uploaded the long output to a txt file');
+      embed.setDescription(translate('tools_code.uploaded_the_long_output_to_a_txt'));
     } else {
       embed.setDescription(Markup.codeblock(result.output, {language: languageMarkupString})); 
     }
   } else if (result.files.length) {
-    embed.setDescription(`${result.files.length.toLocaleString()} File Outputted`);
+    embed.setDescription(translate('tools_code.file_outputted', {files_count: result.files.length.toLocaleString(locale)}));
   } else if (!result.files.length) {
-    embed.setDescription('No Content');
+    embed.setDescription(translate('tools_code.no_content'));
   }
 
   if (result.files.length) {
@@ -100,7 +102,7 @@ export async function createMessage(
         continue;
       }
       if (maxFileSize <= currentFileSize + size) {
-        throw new Error(`Attachments surpassed max file size of ${maxFileSize} bytes`);
+        throw new Error(translate('tools_code.attachments_surpassed_max_file_size_of_bytes', {maxFileSize: maxFileSize}));
       }
       currentFileSize += size;
 

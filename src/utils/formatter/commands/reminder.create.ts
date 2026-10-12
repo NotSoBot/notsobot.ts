@@ -3,6 +3,7 @@ import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { createReminder } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { ONE_DAY } from '../../../constants';
 import { ReminderInterval } from '../../../listeners';
@@ -19,6 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { result } = args;
@@ -42,9 +44,9 @@ export async function createMessage(
 
   let text: string;
   if (isFromInteraction) {
-    text = `Ok, reminding`;
+    text = translate('reminder_create.ok_reminding');
   } else {
-    text = `Ok, reminding ${context.user.mention}`;
+    text = translate('reminder_create.ok_reminding_2', {user: context.user.mention});
   }
 
   //text = `${text} ${Markup.timestamp(date, MarkupTimestampStyles.RELATIVE)}`;

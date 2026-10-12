@@ -15,5 +15,5 @@ export async function createMessage(
   if (context instanceof Command.Context) {
     return context.reply(args.text);
   }
-  return context.editOrRespond(args.text);
+  await context.editOrRespond(args.text);
 }

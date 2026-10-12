@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { Formatter, I18n, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -41,11 +41,12 @@ export default class AllowlistRemoveUsersCommand extends BaseCommand {
     return !!args.users && !!args.users.length;
   }
 
-  onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveUsers.CommandArgsBefore) {
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveUsers.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.users) {
-      return context.editOrReply(`${StatusEmojis.WARNING} Unable to find any users.`);
+      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('info.users.not_found')}`);
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} Provide some kind of query.`);
+    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('errors.needs_query')}`);
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationAllowlistRemoveUsers.CommandArgs) {

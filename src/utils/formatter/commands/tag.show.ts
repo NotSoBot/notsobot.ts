@@ -11,6 +11,7 @@ import {
 } from 'detritus-client/lib/utils';
 
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
+import { getCachedTranslator, getTranslator } from '../../i18n';
 
 import { createTagUse, editTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
@@ -59,11 +60,12 @@ export async function createTagMessage(
   title?: string,
   componentContext?: ComponentContext,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
 
   if (parsedTag.pages.length) {
     if (context instanceof ComponentContext) {
-      throw new Error('TagScript does not support pages inside of components currently');
+      throw new Error(translate('tag_show.tagscript_does_not_support_pages_inside_of'));
     }
 
     const pages = generatePages(context, parsedTag);
@@ -131,7 +133,7 @@ export async function createTagMessage(
     !parsedTag.embeds.length &&
     !parsedTag.files.length
   ) {
-    options.content = 'Tag returned no content';
+    options.content = translate('tag_show.tag_returned_no_content');
   }
 
   if (options.flags && (content.length || parsedTag.embeds.length || parsedTag.files.length !== 1 || parsedTag.components)) {
@@ -189,6 +191,7 @@ export function generateComponents(
   context: Command.Context | Interaction.InteractionContext,
   parsedTag: TagFormatter.TagResult,
 ): Components | null {
+  const { language, translate, translateMaybe } = getCachedTranslator(context);
   if (!parsedTag.components || !parsedTag.components.components.length) {
     return null;
   }
@@ -198,7 +201,7 @@ export function generateComponents(
   const components = new Components({
     timeout: 1 * (60 * 1000),
     onError: (componentContext: ComponentContext, error: Error) => {
-      return componentContext.editOrRespond(`TagScript error has occured: ${error}`);
+      return componentContext.editOrRespond(translate('tag_show.tagscript_error_has_occured', {error: error}));
     },
     onTimeout: async () => {
       if (parsedTag.components && parsedTag.components.onTimeout) {
@@ -456,7 +459,7 @@ export function generateComponents(
       case MessageComponentTypes.SEPARATOR: components.createSeparator(x); break;
       case MessageComponentTypes.TEXT_DISPLAY: components.createTextDisplay(x); break;
       default: {
-        throw new Error(`Unknown Component Type: ${x.type}`);
+        throw new Error(translate('tag_show.unknown_component_type', {type: x.type}));
       };
     }
   }
@@ -585,11 +588,12 @@ export async function maybeCheckNSFW(
   context: Command.Context | Interaction.InteractionContext,
   options: Command.EditOrReply,
 ): Promise<void> {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   let contentToCheck: Array<string> = [];
 
   if (options.content) {
     if (150 <= (options.content.match(/\r\n|\r|\n/g) || []).length) {
-      options.content = 'Content has been filtered due to spam text content.';
+      options.content = translate('tag_show.content_has_been_filtered_due_to_spam');
     } else {
       contentToCheck.push(options.content);
     }
@@ -626,7 +630,7 @@ export async function maybeCheckNSFW(
   if (contentToCheck.length) {
     const [ isAwfulNSFW ] = await checkNSFW(context, contentToCheck.join('\n'));
     if (isAwfulNSFW) {
-      options.content = 'Content has been filtered due to potential obscene/spam text content.';
+      options.content = translate('tag_show.content_has_been_filtered_due_to_potential');
       options.embeds = [];
     }
   }

@@ -3,6 +3,7 @@ import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogle } from '../../../api';
+import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import {
   EmbedBrands,
@@ -24,6 +25,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: {locale?: GoogleLocales, query: string, safe?: boolean},
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const {
     cards,
@@ -34,7 +36,7 @@ export async function createMessage(
 
   const suggestionText = (
     (suggestion) ?
-    `Did you mean: ${Markup.bold(Markup.url(Markup.escape.all(suggestion.text), suggestion.url))}?` :
+    translate('search_google_web.did_you_mean', {value: Markup.bold(Markup.url(Markup.escape.all(suggestion.text), suggestion.url))}) :
     null
   );
 
@@ -50,19 +52,19 @@ export async function createMessage(
           const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
           embed.setColor(EmbedColors.DEFAULT);
 
-          let footer = 'Google Search Results';
+          let footer = translate('search_google_web.google_search_results');
           if (pageLimit !== 1) {
-            footer = `Page ${pageNumber}/${pageLimit} of ${footer}`;
+            footer = translate('search_google_web.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
           }
           if (args.locale && args.locale in GoogleLocalesText) {
             footer = `${footer} (${GoogleLocalesText[args.locale]})`;
           }
-          footer = `${footer} (${totalResultCount.toLocaleString()} Total Results)`;
+          footer = translate('search_google_web.total_results', {footer: footer, totalResultCount: totalResultCount.toLocaleString(language)});
           embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
           const page = pages[pageNumber - 1];
           if (Array.isArray(page)) {
-            embed.setTitle('Search Results');
+            embed.setTitle(translate('search_google_web.search_results'));
             if (suggestionText) {
               embed.setDescription(suggestionText);
             }
@@ -83,7 +85,7 @@ export async function createMessage(
                   }
                 }).filter((v: string | undefined) => v);
                 if (suggestions.length) {
-                  description.push(`**Suggestions**: ${suggestions.join(', ')}`);
+                  description.push(translate('search_google_web.suggestions', {suggestions: suggestions.join(', ')}));
                 }
               }
 
@@ -102,10 +104,10 @@ export async function createMessage(
                 }
               }; break;
               case GoogleCardTypes.DEFINITION: {
-                embed.setTitle(`Definition of ${page.header}`);
+                embed.setTitle(translate('search_google_web.definition_of', {header: page.header}));
                 if (page.description) {
                   const pronunciation = (page.url) ? Markup.bold(Markup.url(page.description, page.url)) : Markup.codestring(page.description);
-                  embed.setDescription(`Pronounced ${pronunciation}`);
+                  embed.setDescription(translate('search_google_web.pronounced', {pronunciation: pronunciation}));
                   // maybe put `page.footer` in here for credits?
                 }
 
@@ -123,7 +125,7 @@ export async function createMessage(
                         description.push(`-> ${Markup.italics(field.value)}`);
                       }
                       if (field.values && field.values.length) {
-                        description.push(`-> Similar Words: ${field.values.map((value: string) => Markup.codestring(value)).join(', ')}`);
+                        description.push(translate('search_google_web.similar_words', {values: field.values.map((value: string) => Markup.codestring(value)).join(', ')}));
                       }
                       description.push('');
                     }
@@ -215,13 +217,13 @@ export async function createMessage(
                 }
               }; break;
               case GoogleCardTypes.WEATHER: {
-                embed.setTitle(`Weather for ${page.header}`);
+                embed.setTitle(translate('search_google_web.weather_for', {header: page.header}));
                 embed.setDescription(page.footer);
                 if (page.thumbnail) {
                   embed.setThumbnail(page.thumbnail);
                 }
 
-                embed.addField('**Temperature**', page.description as string);
+                embed.addField(translate('search_google_web.temperature'), page.description as string);
                 for (let field of page.fields) {
                   embed.addField(`**${field.name}**`, field.value, true);
                 }
@@ -249,13 +251,13 @@ export async function createMessage(
     const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
 
-    let footer: string = 'Google Search Results';
+    let footer: string = translate('search_google_web.google_search_results');
     if (args.locale && args.locale in GoogleLocalesText) {
       footer = `${footer} (${GoogleLocalesText[args.locale]})`;
     }
     embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
 
-    embed.setTitle('Unable to find any results');
+    embed.setTitle(translate('search_google_web.unable_to_find_any_results'));
     if (suggestionText) {
       embed.setDescription(suggestionText);
     }

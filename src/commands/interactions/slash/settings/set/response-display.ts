@@ -20,10 +20,16 @@ export class SettingsSetResponseDisplayCommand extends BaseInteractionCommandOpt
       options: [
         {
           name: 'type',
-          description: 'Response Display Type (Default: Latest)',
+          description: 'Response Display Type (Default: Server Setting)',
           ...I18n.optionLocalizations('commands.settings.set.response_display.type'),
           choices: Parameters.Slash.USER_SETTINGS_RESPONSE_DISPLAY,
           type: Number,
+        },
+        {
+          name: 'clear',
+          description: 'Clear Preference',
+          ...I18n.optionLocalizations('commands.settings.set.response_display.clear'),
+          type: Boolean,
         },
       ],
     });
