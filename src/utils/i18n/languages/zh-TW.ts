@@ -2608,7 +2608,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': '標籤嘗試執行太多次元件（最多 {max} 次執行）',
   'tagscript.tag_attempted_to_use_too_many_machine': '標籤嘗試發出太多機器學習網路請求（最多 {max} 次請求）',
   'tagscript.tag_attempted_to_use_too_many_network': '標籤嘗試發出太多網路請求（最多 {max} 次請求）',
-  'tagscript.tag_attempted_to_use_too_many_openai': '標籤嘗試發出太多 OpenAI 網路請求（最多 {max} 次請求）',
+  'tagscript.tag_attempted_to_use_too_many_safety': '標籤嘗試發出太多安全掃描網路請求（最多 {max} 次請求）',
   'tagscript.tag_attempted_to_use_too_many_tag': '標籤嘗試執行太多次標籤（最多 {max} 次執行）',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript 最多只支援 25 個按鈕',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript 最多只支援 5 個 ActionRow',

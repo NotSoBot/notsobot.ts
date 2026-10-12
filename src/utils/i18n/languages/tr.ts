@@ -2607,7 +2607,7 @@ export const Turkish: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Etiket çok fazla Bileşen Çalıştırması kullanmaya çalıştı (En fazla {max} Çalıştırma)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Etiket çok fazla makine öğrenimi ağ isteği kullanmaya çalıştı (En fazla {max} İstek)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Etiket çok fazla ağ isteği kullanmaya çalıştı (En fazla {max} İstek)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Etiket çok fazla OpenAI ağ isteği kullanmaya çalıştı (En fazla {max} İstek)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Etiket çok fazla güvenlik taraması ağ isteği kullanmaya çalıştı (En fazla {max} İstek)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Etiket çok fazla etiket çalıştırması kullanmaya çalıştı (En fazla {max} Çalıştırma)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript en fazla 25 butonu destekler',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript en fazla 5 eylem satırını destekler',

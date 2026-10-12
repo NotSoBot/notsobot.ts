@@ -2608,7 +2608,7 @@ export const Italian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Il tag ha provato a usare troppe esecuzioni di componenti (max {max} esecuzioni)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Il tag ha provato a fare troppe richieste di machine learning (max {max} richieste)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Il tag ha provato a fare troppe richieste di rete (max {max} richieste)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Il tag ha provato a fare troppe richieste a OpenAI (max {max} richieste)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Il tag ha provato a fare troppe richieste di controllo di sicurezza (max {max} richieste)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Il tag ha provato a usare troppe esecuzioni di tag (max {max} esecuzioni)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript supporta al massimo 25 pulsanti',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript supporta al massimo 5 action row',

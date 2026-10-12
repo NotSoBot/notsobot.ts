@@ -2608,7 +2608,7 @@ export const Russian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Тег попытался выполнить слишком много компонентов (максимум {max})',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Тег попытался выполнить слишком много запросов машинного обучения (максимум {max})',
   'tagscript.tag_attempted_to_use_too_many_network': 'Тег попытался выполнить слишком много сетевых запросов (максимум {max})',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Тег попытался выполнить слишком много запросов к OpenAI (максимум {max})',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Тег попытался выполнить слишком много запросов проверки безопасности (максимум {max})',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Тег попытался выполнить слишком много тегов (максимум {max})',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript поддерживает не больше 25 кнопок',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript поддерживает не больше 5 рядов действий',

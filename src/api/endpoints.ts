@@ -467,6 +467,8 @@ export const Api = Object.freeze({
 
   MODERATION_SAFETY_SCAN:
     '/moderation/safety-scan',
+  MODERATION_TEXT_SCAN:
+    '/moderation/text-scan',
 
   INFO_DISCORD:
     '/info/discord',

@@ -2608,7 +2608,7 @@ export const Finnish: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Tagi yritti käyttää liian monta komponenttisuoritusta (enintään {max} suoritusta)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Tagi yritti tehdä liian monta koneoppimisen verkkopyyntöä (enintään {max} pyyntöä)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Tagi yritti tehdä liian monta verkkopyyntöä (enintään {max} pyyntöä)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Tagi yritti tehdä liian monta OpenAI-verkkopyyntöä (enintään {max} pyyntöä)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Tagi yritti tehdä liian monta turvallisuustarkistuksen verkkopyyntöä (enintään {max} pyyntöä)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Tagi yritti käyttää liian monta tagisuoritusta (enintään {max} suoritusta)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript tukee enintään 25 painiketta',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript tukee enintään 5 toimintoriviä',

@@ -2608,7 +2608,7 @@ export const Bulgarian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Тагът опита да ползва твърде много изпълнения на компоненти (макс. {max} изпълнения)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Тагът опита да прави твърде много мрежови заявки за машинно обучение (макс. {max} заявки)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Тагът опита да прави твърде много мрежови заявки (макс. {max} заявки)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Тагът опита да прави твърде много мрежови заявки към OpenAI (макс. {max} заявки)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Тагът опита да прави твърде много мрежови заявки за проверка на безопасността (макс. {max} заявки)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Тагът опита да ползва твърде много изпълнения на тагове (макс. {max} изпълнения)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript поддържа най-много 25 бутона',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript поддържа най-много 5 реда с действия',

@@ -150,7 +150,7 @@ export interface TagLimits {
   MAX_ITERATIONS: number,
   MAX_NETWORK_REQUESTS: number,
   MAX_NETWORK_REQUESTS_ML: number,
-  MAX_NETWORK_REQUESTS_OPENAI: number,
+  MAX_NETWORK_REQUESTS_SAFETY: number,
   MAX_PAGES: number,
   MAX_STORAGE_GLOBAL_AMOUNT: number,
   MAX_STORAGE_GUILD_AMOUNT: number,
@@ -175,7 +175,7 @@ export const TagLimitDefaults: TagLimits = Object.freeze({
   MAX_ITERATIONS: 450,
   MAX_NETWORK_REQUESTS: 15,
   MAX_NETWORK_REQUESTS_ML: 5,
-  MAX_NETWORK_REQUESTS_OPENAI: 2,
+  MAX_NETWORK_REQUESTS_SAFETY: 2,
   MAX_PAGES: 1000,
   MAX_STORAGE_GLOBAL_AMOUNT: 5,
   MAX_STORAGE_GUILD_AMOUNT: 5,
@@ -213,7 +213,7 @@ export enum PrivateVariables {
   ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',
   NETWORK_REQUESTS_ML = '__networkRequestsML',
-  NETWORK_REQUESTS_OPENAI = '__networkRequestsOpenAI',
+  NETWORK_REQUESTS_SAFETY = '__networkRequestsSafety',
   PARENT_TAG_ID = '__parentTagId',
   RESULTS = '__results',
   SETTINGS = '__settings',
@@ -647,7 +647,7 @@ export interface TagVariables {
   [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
   [PrivateVariables.NETWORK_REQUESTS_ML]: number,
-  [PrivateVariables.NETWORK_REQUESTS_OPENAI]: number,
+  [PrivateVariables.NETWORK_REQUESTS_SAFETY]: number,
   [PrivateVariables.PARENT_TAG_ID]: string,
   [PrivateVariables.RESULTS]: {
     [TagFunctions.AI]?: RestResponsesRaw.GenerateTag,
@@ -760,8 +760,8 @@ export async function parse(
   if (!(PrivateVariables.NETWORK_REQUESTS_ML in variables)) {
     (variables as any)[PrivateVariables.NETWORK_REQUESTS_ML] = 0;
   }
-  if (!(PrivateVariables.NETWORK_REQUESTS_OPENAI in variables)) {
-    (variables as any)[PrivateVariables.NETWORK_REQUESTS_OPENAI] = 0;
+  if (!(PrivateVariables.NETWORK_REQUESTS_SAFETY in variables)) {
+    (variables as any)[PrivateVariables.NETWORK_REQUESTS_SAFETY] = 0;
   }
   if (!(PrivateVariables.PARENT_TAG_ID in variables)) {
     (variables as any)[PrivateVariables.PARENT_TAG_ID] = '';
@@ -866,7 +866,7 @@ export async function parse(
     increaseComponentExecutions(tag, 0);
     increaseNetworkRequests(tag, 0);
     increaseNetworkRequestsML(tag, 0);
-    increaseNetworkRequestsOpenAI(tag, 0);
+    increaseNetworkRequestsSafety(tag, 0);
     increaseTagExecutions(tag, 0);
 
     // add network checks
@@ -1152,12 +1152,12 @@ export function increaseNetworkRequestsML(tag: TagResult, amount: number = 1) {
 }
 
 
-export function increaseNetworkRequestsOpenAI(tag: TagResult, amount: number = 1) {
+export function increaseNetworkRequestsSafety(tag: TagResult, amount: number = 1) {
   if (amount) {
-    tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI] += amount;
+    tag.variables[PrivateVariables.NETWORK_REQUESTS_SAFETY] += amount;
   }
-  if (tag.limits.MAX_NETWORK_REQUESTS_OPENAI < tag.variables[PrivateVariables.NETWORK_REQUESTS_OPENAI]) {
-    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_openai', {max: tag.limits.MAX_NETWORK_REQUESTS_OPENAI.toLocaleString()}));
+  if (tag.limits.MAX_NETWORK_REQUESTS_SAFETY < tag.variables[PrivateVariables.NETWORK_REQUESTS_SAFETY]) {
+    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_safety', {max: tag.limits.MAX_NETWORK_REQUESTS_SAFETY.toLocaleString()}));
   }
 }
 
@@ -1220,7 +1220,7 @@ export function resetTagLimits(tag: TagResult) {
   (variables as any)[PrivateVariables.COMPONENT_EXECUTIONS] = 0;
   (variables as any)[PrivateVariables.NETWORK_REQUESTS] = 0;
   (variables as any)[PrivateVariables.NETWORK_REQUESTS_ML] = 0;
-  (variables as any)[PrivateVariables.NETWORK_REQUESTS_OPENAI] = 0;
+  (variables as any)[PrivateVariables.NETWORK_REQUESTS_SAFETY] = 0;
   (variables as any)[PrivateVariables.FILE_SIZE] = 0;
   (variables as any)[PrivateVariables.TAG_EXECUTIONS] = 0;
   Object.assign(tag.variables, {
@@ -5204,10 +5204,10 @@ const ScriptTags = Object.freeze({
     // {nsfwfilter:text}
 
     increaseNetworkRequests(tag);
-    increaseNetworkRequestsOpenAI(tag);
+    increaseNetworkRequestsSafety(tag);
 
     if (arg) {
-      const [ isAwfulNSFW ] = await checkNSFW(context, arg.slice(0, 2000));
+      const [ isAwfulNSFW ] = await checkNSFW(context, arg.slice(0, 2000), {safe: DefaultParameters.safe(context)});
       if (!isAwfulNSFW) {
         tag.text += arg.slice(0, 2000);
       }

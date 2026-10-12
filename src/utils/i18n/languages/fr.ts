@@ -2608,7 +2608,7 @@ export const French: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Le tag a tenté trop d\'exécutions de composants (max {max} exécutions)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Le tag a tenté trop de requêtes réseau de machine learning (max {max} requêtes)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Le tag a tenté trop de requêtes réseau (max {max} requêtes)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Le tag a tenté trop de requêtes réseau OpenAI (max {max} requêtes)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Le tag a tenté trop de requêtes réseau de contrôle de sécurité (max {max} requêtes)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Le tag a tenté trop d\'exécutions de tags (max {max} exécutions)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript ne prend en charge que 25 boutons maximum',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript ne prend en charge que 5 action rows maximum',

@@ -2608,7 +2608,7 @@ export const Greek: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Το tag προσπάθησε να κάνει πάρα πολλές εκτελέσεις component (Μέγ. {max} εκτελέσεις)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Το tag προσπάθησε να κάνει πάρα πολλά αιτήματα δικτύου μηχανικής μάθησης (Μέγ. {max} αιτήματα)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Το tag προσπάθησε να κάνει πάρα πολλά αιτήματα δικτύου (Μέγ. {max} αιτήματα)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Το tag προσπάθησε να κάνει πάρα πολλά αιτήματα δικτύου OpenAI (Μέγ. {max} αιτήματα)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Το tag προσπάθησε να κάνει πάρα πολλά αιτήματα δικτύου ελέγχου ασφαλείας (Μέγ. {max} αιτήματα)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Το tag προσπάθησε να κάνει πάρα πολλές εκτελέσεις tag (Μέγ. {max} εκτελέσεις)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'Το TagScript υποστηρίζει έως 25 κουμπιά',
   'tagscript.tagscript_only_supports_up_to_5_action': 'Το TagScript υποστηρίζει έως 5 action rows',

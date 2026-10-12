@@ -2608,7 +2608,7 @@ export const Thai: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'แท็กพยายามใช้การรันคอมโพเนนต์มากเกินไป (สูงสุด {max} ครั้ง)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'แท็กพยายามใช้คำขอเครือข่าย Machine Learning มากเกินไป (สูงสุด {max} คำขอ)',
   'tagscript.tag_attempted_to_use_too_many_network': 'แท็กพยายามใช้คำขอเครือข่ายมากเกินไป (สูงสุด {max} คำขอ)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'แท็กพยายามใช้คำขอเครือข่าย OpenAI มากเกินไป (สูงสุด {max} คำขอ)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'แท็กพยายามใช้คำขอเครือข่ายสำหรับการตรวจสอบความปลอดภัยมากเกินไป (สูงสุด {max} คำขอ)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'แท็กพยายามรันแท็กมากเกินไป (สูงสุด {max} ครั้ง)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript รองรับปุ่มได้สูงสุด 25 ปุ่มเท่านั้น',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript รองรับ Action Row ได้สูงสุด 5 แถวเท่านั้น',

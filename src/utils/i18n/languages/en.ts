@@ -2606,7 +2606,7 @@ export const English = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Tag attempted to use too many Component Executions (Max {max} Executions)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Tag attempted to use too many machine learning network requests (Max {max} Requests)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Tag attempted to use too many network requests (Max {max} Requests)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Tag attempted to use too many OpenAI network requests (Max {max} Requests)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Tag attempted to use too many safety scan network requests (Max {max} Requests)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Tag attempted to use too many tag executions (Max {max} Executions)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript only supports up to 25 buttons',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript only supports up to 5 action rows',

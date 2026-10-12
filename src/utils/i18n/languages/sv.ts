@@ -2608,7 +2608,7 @@ export const Swedish: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Taggen försökte använda för många komponentkörningar (max {max} körningar)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Taggen försökte använda för många nätverksförfrågningar för maskininlärning (max {max} förfrågningar)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Taggen försökte använda för många nätverksförfrågningar (max {max} förfrågningar)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Taggen försökte använda för många nätverksförfrågningar till OpenAI (max {max} förfrågningar)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Taggen försökte använda för många nätverksförfrågningar för säkerhetsskanning (max {max} förfrågningar)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Taggen försökte använda för många taggkörningar (max {max} körningar)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript stöder bara upp till 25 knappar',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript stöder bara upp till 5 action rows',

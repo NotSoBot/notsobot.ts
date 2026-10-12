@@ -2608,7 +2608,7 @@ export const Indonesian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Tag mencoba memakai terlalu banyak Eksekusi Component (Maks {max} Eksekusi)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Tag mencoba memakai terlalu banyak request jaringan machine learning (Maks {max} Request)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Tag mencoba memakai terlalu banyak request jaringan (Maks {max} Request)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Tag mencoba memakai terlalu banyak request jaringan OpenAI (Maks {max} Request)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Tag mencoba memakai terlalu banyak request jaringan pemindaian keamanan (Maks {max} Request)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Tag mencoba memakai terlalu banyak eksekusi tag (Maks {max} Eksekusi)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript hanya mendukung maksimal 25 tombol',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript hanya mendukung maksimal 5 action row',

@@ -2608,7 +2608,7 @@ export const Lithuanian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Žyma bandė naudoti per daug komponentų vykdymų (daugiausia {max} vykdymų)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Žyma bandė naudoti per daug mašininio mokymosi tinklo užklausų (daugiausia {max} užklausų)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Žyma bandė naudoti per daug tinklo užklausų (daugiausia {max} užklausų)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Žyma bandė naudoti per daug OpenAI tinklo užklausų (daugiausia {max} užklausų)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Žyma bandė naudoti per daug saugumo patikros tinklo užklausų (daugiausia {max} užklausų)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Žyma bandė naudoti per daug žymų vykdymų (daugiausia {max} vykdymų)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript palaiko daugiausia 25 mygtukus',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript palaiko daugiausia 5 veiksmų eilutes',

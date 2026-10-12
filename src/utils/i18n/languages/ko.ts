@@ -2608,7 +2608,7 @@ export const Korean: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': '태그가 컴포넌트 실행을 너무 많이 시도했어요 (최대 {max}회)',
   'tagscript.tag_attempted_to_use_too_many_machine': '태그가 머신러닝 네트워크 요청을 너무 많이 시도했어요 (최대 {max}회)',
   'tagscript.tag_attempted_to_use_too_many_network': '태그가 네트워크 요청을 너무 많이 시도했어요 (최대 {max}회)',
-  'tagscript.tag_attempted_to_use_too_many_openai': '태그가 OpenAI 네트워크 요청을 너무 많이 시도했어요 (최대 {max}회)',
+  'tagscript.tag_attempted_to_use_too_many_safety': '태그가 안전 검사 네트워크 요청을 너무 많이 시도했어요 (최대 {max}회)',
   'tagscript.tag_attempted_to_use_too_many_tag': '태그가 태그 실행을 너무 많이 시도했어요 (최대 {max}회)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript는 버튼을 최대 25개까지만 지원해요',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript는 액션 행을 최대 5개까지만 지원해요',

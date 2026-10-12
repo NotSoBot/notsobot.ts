@@ -2234,6 +2234,14 @@ export async function moderationSafetyScan(
 }
 
 
+export async function moderationTextScan(
+  context: RequestContext,
+  options: RestOptions.ModerationTextScan,
+) {
+  return raw.moderationTextScan(context, options);
+}
+
+
 export async function putGeneratedTagError(
   context: RequestContext,
   responseId: string,

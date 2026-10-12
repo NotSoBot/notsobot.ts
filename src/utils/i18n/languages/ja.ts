@@ -2608,7 +2608,7 @@ export const Japanese: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'タグがコンポーネント実行を使いすぎました (最大{max}回)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'タグが機械学習のネットワークリクエストを使いすぎました (最大{max}回)',
   'tagscript.tag_attempted_to_use_too_many_network': 'タグがネットワークリクエストを使いすぎました (最大{max}回)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'タグがOpenAIのネットワークリクエストを使いすぎました (最大{max}回)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'タグが安全スキャンのネットワークリクエストを使いすぎました (最大{max}回)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'タグがタグ実行を使いすぎました (最大{max}回)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScriptのボタンは25個までです',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScriptのアクションロウは5個までです',

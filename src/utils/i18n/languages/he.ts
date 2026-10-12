@@ -2608,7 +2608,7 @@ export const Hebrew: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'התג ניסה להשתמש ביותר מדי הרצות רכיבים (מקסימום {max} הרצות)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'התג ניסה לבצע יותר מדי בקשות רשת של למידת מכונה (מקסימום {max} בקשות)',
   'tagscript.tag_attempted_to_use_too_many_network': 'התג ניסה לבצע יותר מדי בקשות רשת (מקסימום {max} בקשות)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'התג ניסה לבצע יותר מדי בקשות רשת ל-OpenAI (מקסימום {max} בקשות)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'התג ניסה לבצע יותר מדי בקשות רשת לבדיקת בטיחות (מקסימום {max} בקשות)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'התג ניסה להשתמש ביותר מדי הרצות תגים (מקסימום {max} הרצות)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript תומך רק בעד 25 כפתורים',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript תומך רק בעד 5 שורות פעולה',

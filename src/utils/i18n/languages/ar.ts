@@ -2608,7 +2608,7 @@ export const Arabic: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'حاول الوسم استخدام عدد كبير جدًا من عمليات المكوّنات (الحد {max} عمليات)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'حاول الوسم استخدام عدد كبير جدًا من طلبات شبكة التعلم الآلي (الحد {max} طلبات)',
   'tagscript.tag_attempted_to_use_too_many_network': 'حاول الوسم استخدام عدد كبير جدًا من طلبات الشبكة (الحد {max} طلبات)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'حاول الوسم استخدام عدد كبير جدًا من طلبات OpenAI (الحد {max} طلبات)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'حاول الوسم استخدام عدد كبير جدًا من طلبات فحص الأمان (الحد {max} طلبات)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'حاول الوسم استخدام عدد كبير جدًا من عمليات تنفيذ الوسوم (الحد {max} عمليات)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'يدعم TagScript حتى 25 زرًا فقط',
   'tagscript.tagscript_only_supports_up_to_5_action': 'يدعم TagScript حتى 5 صفوف إجراءات فقط',

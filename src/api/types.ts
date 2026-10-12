@@ -896,6 +896,11 @@ export namespace RestOptions {
     text?: string,
   }
 
+  export interface ModerationTextScan {
+    safe?: boolean,
+    text: string,
+  }
+
 
   export interface PutGeneratedTagError {
     error: string,
@@ -1800,6 +1805,14 @@ export namespace RestResponsesRaw {
   export interface ModerationSafetyScan {
     media: null | ModerationSafetyScanResult,
     text: null | ModerationSafetyScanResult,
+  }
+
+  export interface ModerationTextScan {
+    flagged: Array<string>,
+    flagged_for_review: Array<string>,
+    needs_human_review: boolean,
+    scores: Record<string, number>,
+    unsafe: boolean,
   }
 
 

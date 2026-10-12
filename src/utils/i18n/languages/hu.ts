@@ -2608,7 +2608,7 @@ export const Hungarian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'A címke túl sok komponensfuttatást próbált használni (max. {max} futtatás)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'A címke túl sok gépi tanulási hálózati kérést próbált használni (max. {max} kérés)',
   'tagscript.tag_attempted_to_use_too_many_network': 'A címke túl sok hálózati kérést próbált használni (max. {max} kérés)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'A címke túl sok OpenAI hálózati kérést próbált használni (max. {max} kérés)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'A címke túl sok biztonsági ellenőrzési hálózati kérést próbált használni (max. {max} kérés)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'A címke túl sok címkefuttatást próbált használni (max. {max} futtatás)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'A TagScript legfeljebb 25 gombot támogat',
   'tagscript.tagscript_only_supports_up_to_5_action': 'A TagScript legfeljebb 5 műveletsort támogat',

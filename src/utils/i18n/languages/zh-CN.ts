@@ -2608,7 +2608,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': '标签尝试执行的组件次数过多（最多 {max} 次）',
   'tagscript.tag_attempted_to_use_too_many_machine': '标签尝试发起的机器学习网络请求过多（最多 {max} 个）',
   'tagscript.tag_attempted_to_use_too_many_network': '标签尝试发起的网络请求过多（最多 {max} 个）',
-  'tagscript.tag_attempted_to_use_too_many_openai': '标签尝试发起的 OpenAI 网络请求过多（最多 {max} 个）',
+  'tagscript.tag_attempted_to_use_too_many_safety': '标签尝试发起的安全扫描网络请求过多（最多 {max} 个）',
   'tagscript.tag_attempted_to_use_too_many_tag': '标签尝试执行的标签次数过多（最多 {max} 次）',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript 最多只支持 25 个按钮',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript 最多只支持 5 个操作行',

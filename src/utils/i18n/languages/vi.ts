@@ -2608,7 +2608,7 @@ export const Vietnamese: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Tag đã cố dùng quá nhiều lượt chạy Component (Tối đa {max} lượt)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Tag đã cố gửi quá nhiều yêu cầu machine learning (Tối đa {max} yêu cầu)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Tag đã cố gửi quá nhiều yêu cầu mạng (Tối đa {max} yêu cầu)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Tag đã cố gửi quá nhiều yêu cầu OpenAI (Tối đa {max} yêu cầu)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Tag đã cố gửi quá nhiều yêu cầu kiểm tra an toàn (Tối đa {max} yêu cầu)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Tag đã cố chạy quá nhiều tag (Tối đa {max} lượt)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript chỉ hỗ trợ tối đa 25 nút',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript chỉ hỗ trợ tối đa 5 action row',

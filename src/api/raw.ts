@@ -5779,6 +5779,24 @@ export async function moderationSafetyScan(
 }
 
 
+export async function moderationTextScan(
+  context: RequestContext,
+  options: RestOptions.ModerationTextScan,
+): Promise<RestResponsesRaw.ModerationTextScan> {
+  const body = {
+    safe: options.safe,
+    text: options.text,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MODERATION_TEXT_SCAN,
+    },
+  });
+}
+
+
 export async function putGeneratedTagError(
   context: RequestContext,
   responseId: string,

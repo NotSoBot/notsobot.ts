@@ -297,6 +297,12 @@ class ReminderInterval extends Listener {
   }
 
   async startup(cluster: ClusterClient) {
+    // reschedule deletes that a stop() cleared before anything else, so a failed scan below can't strand them until the next interval
+    const shard = cluster.shards.first();
+    if (shard) {
+      await this.retryHandledDeletes(shard);
+    }
+
     // run these one after the other so a reminder in the overlap isn't sent twice
     const now = Date.now();
     await this.scanForRemindersExpired(cluster, now - 2000);

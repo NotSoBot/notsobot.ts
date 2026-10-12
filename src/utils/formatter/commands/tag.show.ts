@@ -16,6 +16,7 @@ import { getCachedTranslator, getTranslator } from '../../i18n';
 import { createTagUse, editTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import {
+  DefaultParameters,
   Page,
   PageObject,
   Paginator,
@@ -600,7 +601,10 @@ export async function maybeCheckNSFW(
   }
 
   if (options.components) {
-    // get content from components v2
+    const text = getComponentsText(options.components).join('\n').trim();
+    if (text) {
+      contentToCheck.push(text);
+    }
   }
 
   if (options.embeds) {
@@ -628,12 +632,41 @@ export async function maybeCheckNSFW(
   }
 
   if (contentToCheck.length) {
-    const [ isAwfulNSFW ] = await checkNSFW(context, contentToCheck.join('\n'));
+    const [ isAwfulNSFW ] = await checkNSFW(context, contentToCheck.join('\n'), {safe: DefaultParameters.safe(context)});
     if (isAwfulNSFW) {
+      // drop the components too, components v2 messages can't have content alongside them
       options.content = translate('tag_show.content_has_been_filtered_due_to_potential');
+      options.components = [];
       options.embeds = [];
     }
   }
+}
+
+
+// pulls every user-visible string out of components (v1 and v2), including nested containers and section accessories
+export function getComponentsText(components: any): Array<string> {
+  const text: Array<string> = [];
+  const walk = (raw: any) => {
+    if (!raw || typeof(raw) !== 'object') {
+      return;
+    }
+    if (Array.isArray(raw)) {
+      raw.forEach(walk);
+      return;
+    }
+    // text displays use content, buttons/select options use label, selects use placeholder, media uses description
+    for (let key of ['content', 'label', 'placeholder', 'description']) {
+      if (typeof(raw[key]) === 'string' && raw[key]) {
+        text.push(raw[key]);
+      }
+    }
+    walk(raw.components);
+    walk(raw.accessory);
+    walk(raw.items);
+    walk(raw.options);
+  };
+  walk(JSON.parse(JSON.stringify(components)));
+  return text;
 }
 
 

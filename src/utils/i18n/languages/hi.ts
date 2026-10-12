@@ -2608,7 +2608,7 @@ export const Hindi: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'टैग ने बहुत ज़्यादा कंपोनेंट एक्ज़िक्यूशन इस्तेमाल करने की कोशिश की (अधिकतम {max} एक्ज़िक्यूशन)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'टैग ने बहुत ज़्यादा मशीन लर्निंग नेटवर्क रिक्वेस्ट इस्तेमाल करने की कोशिश की (अधिकतम {max} रिक्वेस्ट)',
   'tagscript.tag_attempted_to_use_too_many_network': 'टैग ने बहुत ज़्यादा नेटवर्क रिक्वेस्ट इस्तेमाल करने की कोशिश की (अधिकतम {max} रिक्वेस्ट)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'टैग ने बहुत ज़्यादा OpenAI नेटवर्क रिक्वेस्ट इस्तेमाल करने की कोशिश की (अधिकतम {max} रिक्वेस्ट)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'टैग ने बहुत ज़्यादा सुरक्षा स्कैन नेटवर्क रिक्वेस्ट इस्तेमाल करने की कोशिश की (अधिकतम {max} रिक्वेस्ट)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'टैग ने बहुत ज़्यादा टैग एक्ज़िक्यूशन इस्तेमाल करने की कोशिश की (अधिकतम {max} एक्ज़िक्यूशन)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript ज़्यादा से ज़्यादा 25 बटन सपोर्ट करता है',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript ज़्यादा से ज़्यादा 5 एक्शन रो सपोर्ट करता है',

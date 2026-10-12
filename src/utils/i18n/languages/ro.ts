@@ -2608,7 +2608,7 @@ export const Romanian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Tagul a încercat să folosească prea multe execuții de componente (maxim {max} execuții)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Tagul a încercat să facă prea multe cereri de machine learning (maxim {max} cereri)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Tagul a încercat să facă prea multe cereri de rețea (maxim {max} cereri)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Tagul a încercat să facă prea multe cereri OpenAI (maxim {max} cereri)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Tagul a încercat să facă prea multe cereri de scanare de siguranță (maxim {max} cereri)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Tagul a încercat să folosească prea multe execuții de taguri (maxim {max} execuții)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript suportă maxim 25 de butoane',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript suportă maxim 5 rânduri de acțiuni',

@@ -2608,7 +2608,7 @@ export const Norwegian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Taggen prøvde å bruke for mange komponentkjøringer (maks {max} kjøringer)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Taggen prøvde å bruke for mange nettverksforespørsler for maskinlæring (maks {max} forespørsler)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Taggen prøvde å bruke for mange nettverksforespørsler (maks {max} forespørsler)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Taggen prøvde å bruke for mange OpenAI-nettverksforespørsler (maks {max} forespørsler)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Taggen prøvde å bruke for mange nettverksforespørsler til sikkerhetsskanning (maks {max} forespørsler)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Taggen prøvde å bruke for mange taggkjøringer (maks {max} kjøringer)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript støtter bare opptil 25 knapper',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript støtter bare opptil 5 handlingsrader',

@@ -19,7 +19,11 @@ async function refreshCommands(
 
   const IGNORE = ['/bot.', '/redis.'];
 
-  for (let key in require.cache) {
+  const errors: Array<string> = [];
+  const isListenerOrStore = (key: string) => key.includes(LISTENERS_PATH) || key.includes(STORE_PATH);
+
+  // first pass: clear every non-listener/store module so the listeners/stores reloaded below pick up fresh dependencies
+  for (let key of Object.keys(require.cache)) {
     if (!key.includes(LIB_PATH)) {
       continue;
     }
@@ -29,71 +33,89 @@ async function refreshCommands(
 
     if (key.includes('/redis.')) {
       const { default: redisObject } = require(key);
-      if (redisObject && extras.redisChannels && redisObject.subscribeToChannels) {
+      if (redisObject && extras && extras.redisChannels && redisObject.subscribeToChannels) {
         redisObject.subscribeToChannels(extras.redisChannels);
       }
       continue;
     }
 
-    if (key.includes(LISTENERS_PATH) || key.includes(STORE_PATH)) {
-      if (key.includes(LISTENERS_PATH)) {
-        if (!refreshListeners) {
-          continue;
-        }
-      } else if (key.includes(STORE_PATH)) {
-        if (!refreshStores) {
-          continue;
-        }
-      }
-
-      // get the old module and stop it
-      const oldModule = require(key);
-      if (oldModule.default) {
-        const { default: oldObject } = oldModule;
-        oldObject.stop(cluster);
-
-        // delete old store module
-        delete require.cache[key];
-
-        // re-fetch the new store object
-        const newModule = require(key);
-        const { default: newObject } = newModule;
-
-        // set the cache back to the old store
-        const oldCache = require.cache[key];
-        if (oldCache) {
-          oldCache.exports = oldModule;
-        }
-
-        // set the old store's functions to the new store's
-        for (let key of Object.getOwnPropertyNames(newObject.constructor.prototype)) {
-          if (key !== 'constructor' && typeof(newObject[key]) === 'function') {
-            oldObject[key] = newObject.constructor.prototype[key].bind(oldObject);
-          }
-        }
-
-        // reconnect it
-        oldObject.connect(cluster);
-      }
-      // do nothing since it's just /index.ts and /store.ts
-    } else {
+    if (!isListenerOrStore(key)) {
       delete require.cache[key];
     }
   }
+
+  // second pass: hot-swap the listener/store methods onto the existing (connected) objects
+  for (let key of Object.keys(require.cache)) {
+    if (!key.includes(LIB_PATH) || !isListenerOrStore(key)) {
+      continue;
+    }
+    if (key.includes(LISTENERS_PATH)) {
+      if (!refreshListeners) {
+        continue;
+      }
+    } else if (!refreshStores) {
+      continue;
+    }
+
+    const oldCache = require.cache[key];
+    const oldModule = oldCache && oldCache.exports;
+    if (!oldModule || !oldModule.default) {
+      // do nothing since it's just /index.ts and /store.ts
+      continue;
+    }
+
+    // get the old object and stop it
+    const { default: oldObject } = oldModule;
+    oldObject.stop(cluster);
+
+    try {
+      // delete old module and re-fetch the new object
+      delete require.cache[key];
+      const newModule = require(key);
+      const newObject = newModule && newModule.default;
+      if (!newObject) {
+        throw new Error('missing default export');
+      }
+
+      // set the old object's functions to the new object's
+      for (let name of Object.getOwnPropertyNames(newObject.constructor.prototype)) {
+        if (name !== 'constructor' && typeof(newObject[name]) === 'function') {
+          oldObject[name] = newObject.constructor.prototype[name].bind(oldObject);
+        }
+      }
+    } catch(error) {
+      errors.push(`${key.slice(key.indexOf(LIB_PATH) + LIB_PATH.length)}: ${(error as any).message}`);
+    } finally {
+      // set the cache back to the old module and reconnect it, even if the reload failed
+      require.cache[key] = oldCache;
+      oldObject.connect(cluster);
+    }
+  }
+
   if (cluster.commandClient) {
     const commandClient = cluster.commandClient as NotSoCommandClient;
-    await commandClient.resetCommands();
+    try {
+      await commandClient.resetCommands();
+    } catch(error) {
+      errors.push(`commands: ${(error as any).message}`);
+    }
   }
   if (cluster.interactionCommandClient) {
     const interactionCommandClient = cluster.interactionCommandClient as NotSoInteractionClient;
     try {
       await interactionCommandClient.resetCommands();
     } catch(error) {
-      console.log('a'.repeat(100), error);
-      if (error.response) {
-        console.log('a'.repeat(100), await error.response.text());
+      let message = (error as any).message;
+      if ((error as any).response) {
+        message += ` ${await (error as any).response.text()}`;
       }
+      errors.push(`interaction commands: ${message}`);
     }
+  }
+
+  if (errors.length) {
+    console.error('Refresh errors', errors);
+    throw new Error(`Cluster ${cluster.clusterId}: ${errors.join(', ')}`);
   }
   return cluster.shards.map((shard: ShardClient) => shard.shardId);
 }

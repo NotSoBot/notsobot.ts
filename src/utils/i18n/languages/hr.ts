@@ -2608,7 +2608,7 @@ export const Croatian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Tag je pokušao koristiti previše izvršavanja komponenti (najviše {max} izvršavanja)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Tag je pokušao poslati previše mrežnih zahtjeva za strojno učenje (najviše {max} zahtjeva)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Tag je pokušao poslati previše mrežnih zahtjeva (najviše {max} zahtjeva)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Tag je pokušao poslati previše OpenAI mrežnih zahtjeva (najviše {max} zahtjeva)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Tag je pokušao poslati previše mrežnih zahtjeva za sigurnosnu provjeru (najviše {max} zahtjeva)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Tag je pokušao koristiti previše izvršavanja tagova (najviše {max} izvršavanja)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript podržava najviše 25 gumba',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript podržava najviše 5 redaka radnji',

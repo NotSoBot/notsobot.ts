@@ -2608,7 +2608,7 @@ export const Ukrainian: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Тег спробував виконати забагато компонентів (максимум {max})',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Тег спробував виконати забагато запитів машинного навчання (максимум {max})',
   'tagscript.tag_attempted_to_use_too_many_network': 'Тег спробував виконати забагато мережевих запитів (максимум {max})',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Тег спробував виконати забагато запитів до OpenAI (максимум {max})',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Тег спробував виконати забагато запитів перевірки безпеки (максимум {max})',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Тег спробував виконати забагато тегів (максимум {max})',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript підтримує не більше 25 кнопок',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript підтримує не більше 5 рядів дій',

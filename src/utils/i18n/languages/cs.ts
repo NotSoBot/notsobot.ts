@@ -2608,7 +2608,7 @@ export const Czech: Translations = Object.freeze({
   'tagscript.tag_attempted_to_use_too_many_component': 'Tag se pokusil o příliš mnoho spuštění komponent (max. {max} spuštění)',
   'tagscript.tag_attempted_to_use_too_many_machine': 'Tag se pokusil o příliš mnoho síťových požadavků strojového učení (max. {max} požadavků)',
   'tagscript.tag_attempted_to_use_too_many_network': 'Tag se pokusil o příliš mnoho síťových požadavků (max. {max} požadavků)',
-  'tagscript.tag_attempted_to_use_too_many_openai': 'Tag se pokusil o příliš mnoho síťových požadavků na OpenAI (max. {max} požadavků)',
+  'tagscript.tag_attempted_to_use_too_many_safety': 'Tag se pokusil o příliš mnoho síťových požadavků na bezpečnostní kontrolu (max. {max} požadavků)',
   'tagscript.tag_attempted_to_use_too_many_tag': 'Tag se pokusil o příliš mnoho spuštění tagů (max. {max} spuštění)',
   'tagscript.tagscript_only_supports_up_to_25_buttons': 'TagScript podporuje maximálně 25 tlačítek',
   'tagscript.tagscript_only_supports_up_to_5_action': 'TagScript podporuje maximálně 5 řádků akcí',

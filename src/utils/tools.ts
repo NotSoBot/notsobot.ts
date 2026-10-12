@@ -2,7 +2,6 @@ import { URL } from 'url';
 
 import { onlyEmoji } from 'emoji-aware';
 import moment from 'moment';
-import OpenAI from 'openai';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import {
@@ -40,7 +39,7 @@ import UserSettingsStore from '../stores/usersettings';
 
 import { getTranslator } from './i18n';
 
-import { Endpoints, fetchJob, moderationSafetyScan } from '../api';
+import { Endpoints, fetchJob, moderationSafetyScan, moderationTextScan } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
@@ -70,8 +69,6 @@ import {
 } from '../constants';
 
 import * as Formatter from './formatter';
-
-import { OPENAI_API_KEY } from '../../config.json';
 
 
 
@@ -108,43 +105,32 @@ export async function scanContentForModeration(
 
 
 
-export const openAIClient = new OpenAI({
-  apiKey: OPENAI_API_KEY,
-  defaultHeaders: { 'Accept-Encoding': 'identity' },
-});
+// matches the max text length the api's /moderation/text-scan accepts, with headroom over a full message (2000 content + 6000 embeds, plus component labels)
+const MODERATION_TEXT_MAX_LENGTH = 10000;
 
-
-const CATEGORIES_TO_CHECK_ALL = ['harassment', 'hate'];
-const CATEGORIES_TO_CHECK_SOME = ['harassment/threatening', 'hate/threatening', 'sexual/minors'];
-
+// scans text with Shieldstral against Discord's Community Guidelines categories
+// `safe` also checks for sexually explicit content, pass false in age-restricted channels
 export async function checkNSFW(
   context: Command.Context | Interaction.InteractionContext,
   content: string,
-): Promise<[boolean, any]> {
-  if (!OPENAI_API_KEY) {
+  options: {safe?: boolean} = {},
+): Promise<[boolean, RestResponsesRaw.ModerationTextScan | null]> {
+  const text = content.trim().slice(0, MODERATION_TEXT_MAX_LENGTH);
+  if (!text) {
     return [false, null];
   }
 
-  let response = await openAIClient.moderations.create({
-    model: 'omni-moderation-latest',
-    input: [
-      {type: 'text', text: content},
-    ],
-  });
-  if (typeof(response) === 'string') {
-    response = JSON.parse(response as any);
+  try {
+    const response = await moderationTextScan(context, {
+      safe: (options.safe === undefined) ? true : options.safe,
+      text,
+    });
+    return [response.unsafe, response];
+  } catch(error) {
+    // fail closed, block the text if the safety service is down
+    console.error('Failed to scan text for moderation', error);
+    return [true, null];
   }
-  for (let result of response.results) {
-    let isAwfulNSFW = CATEGORIES_TO_CHECK_ALL.every((category) => (result.categories as any)[category]);
-    if (isAwfulNSFW) {
-      return [true, response];
-    }
-    isAwfulNSFW = CATEGORIES_TO_CHECK_SOME.some((category) => (result.categories as any)[category]);
-    if (isAwfulNSFW) {
-      return [true, response];
-    }
-  }
-  return [false, response];
 }
 
 
