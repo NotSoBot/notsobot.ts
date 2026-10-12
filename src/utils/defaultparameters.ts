@@ -199,25 +199,44 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
 }
 
 
+const GoogleLocaleValues: Set<string> = new Set(Object.values(GoogleLocales));
+
+// Converts a discord locale ('en-US', 'es-419', 'fr', etc) into a google locale, or null if google doesn't have it
+function googleLocaleFromDiscord(value?: string | null): GoogleLocales | null {
+  if (value) {
+    if (value in GoogleLocaleFromDiscord) {
+      return (GoogleLocaleFromDiscord as any)[value];
+    }
+    if (GoogleLocaleValues.has(value)) {
+      return value as GoogleLocales;
+    }
+  }
+  return null;
+}
+
+// User's notsobot setting -> User's discord client locale (interactions only) -> Guild's notsobot setting -> Guild's preferred locale -> English
 export async function locale(context: Command.Context | Interaction.InteractionContext): Promise<GoogleLocales> {
   const settings = await UserSettingsStore.getOrFetch(context, context.userId);
   if (settings && settings.locale) {
     return settings.locale as unknown as GoogleLocales;
   }
 
-  const guild = context.guild;
-  if (guild) {
-    const value = guild.preferredLocale;
-    if (value in GoogleLocaleFromDiscord) {
-      return (GoogleLocaleFromDiscord as any)[value];
-    } else if (!(value in GoogleLocales)) {
-      // todo: log this error
-      return GoogleLocales.ENGLISH;
-    }
-    return value as unknown as GoogleLocales;
+  const discordLocale = googleLocaleFromDiscord((context instanceof Interaction.InteractionContext) ? context.locale : null);
+  if (discordLocale) {
+    return discordLocale;
   }
 
-  return GoogleLocales.ENGLISH;
+  if (context.guildId) {
+    const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+    if (guildSettings && guildSettings.locale) {
+      return guildSettings.locale as unknown as GoogleLocales;
+    }
+  }
+
+  return (
+    googleLocaleFromDiscord((context.guild) ? context.guild.preferredLocale : null) ||
+    GoogleLocales.ENGLISH
+  );
 }
 
 

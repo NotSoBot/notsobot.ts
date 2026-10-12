@@ -31,6 +31,7 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.FEATURES,
   NotSoApiKeys.ICON,
   NotSoApiKeys.ID,
+  NotSoApiKeys.LOCALE,
   NotSoApiKeys.LOGGER_FLAGS,
   NotSoApiKeys.LOGGERS,
   NotSoApiKeys.NAME,
@@ -54,6 +55,7 @@ export class GuildSettings extends BaseStructure {
   features = new Collections.BaseSet<string>();
   icon: string | null = null;
   id: string = '';
+  locale: string | null = null;
   name: string = '';
   settings!: GuildSettingsChild;
   timezone: string | null = null;

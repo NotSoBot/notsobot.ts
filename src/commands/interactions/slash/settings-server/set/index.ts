@@ -3,6 +3,7 @@ import { I18n } from '../../../../../utils';
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SettingsServerSetAIPersonalityCommand } from './set.ai.personality';
+import { SettingsServerSetLocaleCommand } from './set.locale';
 import { SettingsServerSetResponseDisplayCommand } from './set.response-display';
 import { SettingsServerSetTimezoneCommand } from './set.timezone';
 
@@ -16,6 +17,7 @@ export class SettingsServerSetGroupCommand extends BaseInteractionCommandOptionG
     super({
       options: [
         new SettingsServerSetAIPersonalityCommand(),
+        new SettingsServerSetLocaleCommand(),
         new SettingsServerSetResponseDisplayCommand(),
         new SettingsServerSetTimezoneCommand(),
       ],

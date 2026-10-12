@@ -121,6 +121,7 @@ export namespace RestOptions {
       id: string,
       type: string,
     }>,
+    locale?: string | null,
     mlDiffusionModel?: string,
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
@@ -1555,6 +1556,7 @@ export namespace RestResponsesRaw {
     commands_blocklist: Array<GuildCommandsBlocklist>,
     icon: string | null,
     id: string,
+    locale: string | null,
     name: string,
     prefixes: Array<GuildPrefix>,
     settings: {

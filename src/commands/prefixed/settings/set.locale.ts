@@ -1,5 +1,5 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Locales as DiscordLocales, Permissions } from 'detritus-client/lib/constants';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
@@ -30,9 +30,8 @@ export default class SetLocaleCommand extends BaseCommand {
         id: Formatter.Commands.SettingsServerSetLocale.COMMAND_ID,
         usage: '<locale> (-clear)',
       },
-      permissionsClient: [Permissions.MANAGE_GUILD],
       permissions: [Permissions.MANAGE_GUILD],
-      type: Parameters.localeDiscord,
+      type: Parameters.locale,
     });
   }
 

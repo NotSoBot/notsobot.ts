@@ -625,6 +625,7 @@ export async function editGuildSettings(
     blocklist: options.blocklist,
     commands_allowlist: options.commandsAllowlist,
     commands_blocklist: options.commandsBlocklist,
+    locale: options.locale,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,

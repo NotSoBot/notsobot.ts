@@ -1,8 +1,36 @@
 import moment from 'moment';
+import 'moment/locale/ar';
+import 'moment/locale/bg';
+import 'moment/locale/cs';
+import 'moment/locale/da';
+import 'moment/locale/de';
+import 'moment/locale/el';
 import 'moment/locale/es';
+import 'moment/locale/fi';
+import 'moment/locale/fr';
+import 'moment/locale/he';
+import 'moment/locale/hi';
+import 'moment/locale/hr';
+import 'moment/locale/hu';
+import 'moment/locale/id';
+import 'moment/locale/it';
+import 'moment/locale/ja';
+import 'moment/locale/ko';
+import 'moment/locale/lt';
+import 'moment/locale/nb';
+import 'moment/locale/nl';
+import 'moment/locale/pl';
+import 'moment/locale/pt';
 import 'moment/locale/pt-br';
+import 'moment/locale/ro';
 import 'moment/locale/ru';
+import 'moment/locale/sv';
+import 'moment/locale/th';
 import 'moment/locale/tr';
+import 'moment/locale/uk';
+import 'moment/locale/vi';
+import 'moment/locale/zh-cn';
+import 'moment/locale/zh-tw';
 
 // importing a locale also makes it the global default, so switch back to english
 moment.locale('en');
