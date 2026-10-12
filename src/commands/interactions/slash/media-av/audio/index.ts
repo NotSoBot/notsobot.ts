@@ -4,6 +4,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaAVAudioBoostBassCommand } from './boost-bass';
 import { MediaAVAudioChannelsCombineCommand } from './channels-combine';
+import { MediaAVAudioChannelsInvertCommand } from './channels-invert';
 import { MediaAVAudioCompressCommand } from './compress';
 import { MediaAVAudioDelayCommand } from './delay';
 import { MediaAVAudioDestroyCommand } from './destroy';
@@ -27,6 +28,7 @@ export class MediaAVAudioGroupCommand extends BaseInteractionCommandOptionGroup 
 	    options: [
           new MediaAVAudioBoostBassCommand(),
           new MediaAVAudioChannelsCombineCommand(),
+          new MediaAVAudioChannelsInvertCommand(),
           new MediaAVAudioCompressCommand(),
           new MediaAVAudioDelayCommand(),
           new MediaAVAudioDestroyCommand(),

@@ -6,16 +6,19 @@ import {
   GoogleImageVideoTypes,
   GoogleLocales,
   GuildLoggerTypes,
+  GuildSettingsResponseDisplayTypes,
   MeasurementUnits,
   MediaEyeTypes,
   MediaMemeFonts,
+  MediaPixelSortFunctions,
+  MediaPixelSortIntervals,
+  MediaQuadartTypes,
   RedditSortTypes,
   RedditTimeTypes,
   TagBlobStorageTypes,
   TagVariableStorageTypes,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
-  GuildSettingsResponseDisplayTypes,
   UserSettingsResponseDisplayTypes,
   UserSettingsUploadThresholdTypes,
   UserSettingsUploadTypes,
@@ -233,6 +236,11 @@ export namespace RestOptions {
     name?: string,
     serverId?: string,
     userId?: string,
+  }
+
+  export interface FetchTagStorage {
+    maxFileSize?: number,
+    serverId?: string | null,
   }
 
   export interface FetchTagVariable {
@@ -474,6 +482,16 @@ export namespace RestOptions {
     size?: number,
   }
 
+  export interface MediaIVManipulationAcid extends MediaBaseOptions {
+    amount?: number,
+    levels?: number,
+    seed?: number,
+  }
+
+  export interface MediaIVManipulationAnimationDelay extends MediaBaseOptions {
+    delay?: number,
+  }
+
   export interface MediaIVManipulationAscii extends MediaBaseOptions {
     invert?: boolean,
     zoom?: boolean,
@@ -503,6 +521,10 @@ export namespace RestOptions {
     saturation?: number,
   }
 
+  export interface MediaIVManipulationCharcoal extends MediaBaseOptions {
+    radius?: number,
+  }
+
   export interface MediaIVManipulationCircle extends MediaBaseOptions {
     scale?: number,
   }
@@ -522,6 +544,11 @@ export namespace RestOptions {
   export interface MediaIVManipulationDeepfry extends MediaBaseOptions {
     keepTransparency?: boolean,
     scale?: number,
+  }
+
+  export interface MediaIVManipulationDice extends MediaBaseOptions {
+    grid?: number,
+    seed?: number,
   }
 
   export interface MediaIVManipulationDistort extends MediaBaseOptions {
@@ -625,6 +652,10 @@ export namespace RestOptions {
     scale?: number,
   }
 
+  export interface MediaIVManipulationMagikAnimated extends MediaIVManipulationMagik {
+    boomerang?: boolean,
+  }
+
   export interface MediaIVManipulationMandalaScope extends MediaBaseOptions {
     amount?: number,
     rotation?: number,
@@ -642,6 +673,12 @@ export namespace RestOptions {
   export interface MediaIVManipulationMotionBlur extends MediaBaseOptionsMultiple {
     strength?: number,
     vertical?: boolean,
+  }
+
+  export interface MediaIVManipulationMultiply extends MediaBaseOptions {
+    grid?: number,
+    rotate?: boolean,
+    seed?: number,
   }
 
   export interface MediaIVManipulationObjectRemoveOptions extends MediaBaseOptions {
@@ -693,11 +730,31 @@ export namespace RestOptions {
     pixelWidth?: number,
   }
 
+  export interface MediaIVManipulationPixelSort extends MediaBaseOptions {
+    angle?: number,
+    interval?: MediaPixelSortIntervals,
+    length?: number,
+    lower?: number,
+    randomness?: number,
+    reverse?: boolean,
+    seed?: number,
+    sortBy?: MediaPixelSortFunctions,
+    upper?: number,
+  }
+
+  export interface MediaIVManipulationQuadart extends MediaBaseOptions {
+    type?: MediaQuadartTypes,
+  }
+
   export interface MediaIVManipulationResize extends MediaBaseOptions {
     kernel?: string,
     ratio?: boolean,
     scale?: number,
     size?: string,
+  }
+
+  export interface MediaIVManipulationRGBSplit extends MediaBaseOptions {
+    offset?: number,
   }
 
   export interface MediaIVManipulationRipple extends MediaBaseOptions {
@@ -721,6 +778,13 @@ export namespace RestOptions {
     roll?: number,
     tilt?: number,
     zoom?: number,
+  }
+
+  export interface MediaIVManipulationScramble extends MediaBaseOptions {
+    grid?: number,
+    norotate?: boolean,
+    rotate?: boolean,
+    seed?: number,
   }
 
   export interface MediaIVManipulationSetFPS extends MediaBaseOptions {
@@ -1435,6 +1499,8 @@ export namespace RestResponsesRaw {
   export type FetchTagSearchRandom = Tag;
 
   export type FetchTagBlobs = Record<TagBlobStorageTypes, string>;
+
+  export type FetchTagStorage = FileResponse;
 
   export interface FetchTagVariable {
     name: string,

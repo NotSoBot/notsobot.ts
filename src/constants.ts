@@ -1217,6 +1217,31 @@ export enum MediaPix2PixModels {
 }
 
 
+export enum MediaPixelSortFunctions {
+  HUE = 'HUE',
+  INTENSITY = 'INTENSITY',
+  LIGHTNESS = 'LIGHTNESS',
+  MAXIMUM = 'MAXIMUM',
+  MINIMUM = 'MINIMUM',
+  SATURATION = 'SATURATION',
+}
+
+
+export enum MediaPixelSortIntervals {
+  EDGES = 'EDGES',
+  NONE = 'NONE',
+  RANDOM = 'RANDOM',
+  THRESHOLD = 'THRESHOLD',
+  WAVES = 'WAVES',
+}
+
+
+export enum MediaQuadartTypes {
+  BOX = 'box',
+  CIRCLE = 'circle',
+}
+
+
 export enum MediaResizeKernels {
   NEAREST = 'NEAREST',
   BILINEAR = 'BILINEAR',

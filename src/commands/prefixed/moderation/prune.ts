@@ -140,6 +140,11 @@ export async function createPruneMessage(
     return editOrReply(context, translate('prune.in_progress'));
   }
 
+  // set when we walk back far enough to hit the `until` message, meaning everything in the range was found
+  let reachedUntil = false;
+  // set when walking forwards with `after` reaches the upper bound
+  let reachedEnd = false;
+
   isExecuting.prune = true;
   try {
     let after: string | undefined;
@@ -161,12 +166,32 @@ export async function createPruneMessage(
     } else {
       before = snowflakeFromNow();
     }
+    // always filter by the upper bound so `-after` (which walks forwards) never picks up the command message or anything newer
+    if (!args.before) {
+      args.before = before;
+    }
+    const upperBound = BigInt(before);
+
+    if (after) {
+      // messages older than 2 weeks can't be bulk deleted, so skip ahead to the 2 week mark instead of stopping on the first page
+      const twoWeeksAgo = snowflakeFromTimestamp(Date.now() - TWO_WEEKS_IN_MILLISECONDS_WITH_LEEWAY);
+      if (BigInt(after) < BigInt(twoWeeksAgo)) {
+        after = twoWeeksAgo;
+      }
+    }
 
     let until: bigint | undefined;
     if (args.until) {
       until = BigInt(args.until);
+      // nothing to walk if the range is empty
+      if (BigInt(before) <= until) {
+        reachedUntil = true;
+      }
+      // when walking forwards, start at the until message instead of fetching older pages we'd skip anyway
+      if (after && BigInt(after) < until - 1n) {
+        after = String(until - 1n);
+      }
     }
-    // maybe change the message reference behavior to be `until` instead of `before`
 
     if (args.in) {
       let messages = args.in.messages.toArray();
@@ -178,7 +203,9 @@ export async function createPruneMessage(
         if (context instanceof Command.Context && message.id === context.messageId) {
           continue;
         }
-        if (until && BigInt(message.id) < until) {
+        // when walking backwards, everything past `until` is older, so stop
+        if (!after && until !== undefined && BigInt(message.id) < until) {
+          reachedUntil = true;
           break;
         }
         if (args.amount <= bulk.length + manual.length) {
@@ -196,7 +223,7 @@ export async function createPruneMessage(
     }
 
     let tries = 0;
-    while (tries++ < MAX_FETCHES && bulk.length + manual.length < args.amount) {
+    while (!reachedUntil && !reachedEnd && tries++ < MAX_FETCHES && bulk.length + manual.length < args.amount) {
       let messages: Array<Structures.Message>;
       if (after) {
         const cache = await context.rest.fetchMessages(channelId, {after, limit: 100});
@@ -205,17 +232,26 @@ export async function createPruneMessage(
           after = cache.first()!.id;
           before = messages[0]!.id;
         }
+        // walked past the upper bound (or hit the newest message), nothing newer to look at
+        if (messages.length < 100 || upperBound <= BigInt(after)) {
+          reachedEnd = true;
+        }
       } else {
         const cache = await context.rest.fetchMessages(channelId, {before, limit: 100});
         messages = cache.toArray();
+        // hit the start of the channel, so everything after `until` has been seen
+        if (until !== undefined && messages.length < 100) {
+          reachedUntil = true;
+        }
       }
       if (!messages.length) {
         break;
       }
       for (let message of messages) {
-        // todo: break out of the fetch cycle fully when this is hit
-        if (until && BigInt(message.id) < until) {
-          continue;
+        // when walking backwards, everything past `until` is older, so stop fetching entirely
+        if (!after && until !== undefined && BigInt(message.id) < until) {
+          reachedUntil = true;
+          break;
         }
         if (args.amount <= bulk.length + manual.length) {
           break;
@@ -249,9 +285,11 @@ export async function createPruneMessage(
   }
 
   const total = bulk.length + manual.length;
+  // finding fewer than `amount` is expected once we've walked the whole range (hit `until`, or the upper bound with `after`)
+  const isComplete = total === args.amount || reachedUntil || reachedEnd;
   const timeout = new Timers.Timeout();
   if (total) {
-    if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && total === args.amount) {
+    if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && isComplete) {
       try {
         const message = await editOrReply(context, translate('prune.starting', {count: total.toLocaleString(language)}));
         const deletedTotal = await deleteMessages(context, channelId, bulk, manual);
@@ -320,7 +358,7 @@ export async function createPruneMessage(
       });
 
       let content: string;
-      if (args.amount === total) {
+      if (isComplete) {
         content = translate('prune.found', {count: total.toLocaleString(language)});
       } else {
         content = translate('prune.found_partial', {count: total.toLocaleString(language), requested: args.amount.toLocaleString(language)});
@@ -414,6 +452,10 @@ export function shouldDelete(message: Structures.Message, args: CommandArgs): bo
     }
   }
 
+  if (args.until && BigInt(message.id) < BigInt(args.until)) {
+    return false;
+  }
+
   if (args.from && !args.from.some((user) => message.author.id === user.id)) {
     return false;
   }
@@ -440,5 +482,9 @@ export function messagesToClear(
 export const DISCORD_EPOCH = 1420070400000;
 
 export function snowflakeFromNow(): string {
-  return (BigInt(Date.now() - DISCORD_EPOCH) << BigInt(22)).toString();
+  return snowflakeFromTimestamp(Date.now());
+}
+
+export function snowflakeFromTimestamp(timestamp: number): string {
+  return (BigInt(timestamp - DISCORD_EPOCH) << BigInt(22)).toString();
 }

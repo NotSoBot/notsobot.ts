@@ -4,6 +4,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVOverlayBernieCommand } from './bernie';
 import { MediaIVOverlayBobRossCommand } from './bob.ross';
+import { MediaIVOverlayBrazzersCommand } from './brazzers';
 import { MediaIVOverlayFaceCommand } from './face';
 import { MediaIVOverlayFliesCommand } from './flies';
 import { MediaIVOverlayGabenCommand } from './gaben';
@@ -20,6 +21,8 @@ import { MediaIVOverlayTransCommand } from './trans';
 import { MediaIVOverlayUKCommand } from './uk';
 import { MediaIVOverlayUSACommand } from './usa';
 import { MediaIVOverlayUSSRCommand } from './ussr';
+import { MediaIVOverlayWastedCommand } from './wasted';
+import { MediaIVOverlayWhoDidThisCommand } from './who-did-this';
 
 
 export class MediaIVOverlayGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -33,6 +36,7 @@ export class MediaIVOverlayGroupCommand extends BaseInteractionCommandOptionGrou
       options: [
         new MediaIVOverlayBernieCommand(),
         new MediaIVOverlayBobRossCommand(),
+        new MediaIVOverlayBrazzersCommand(),
         new MediaIVOverlayFaceCommand(),
         new MediaIVOverlayFliesCommand(),
         new MediaIVOverlayGabenCommand(),
@@ -49,6 +53,8 @@ export class MediaIVOverlayGroupCommand extends BaseInteractionCommandOptionGrou
         new MediaIVOverlayUKCommand(),
         new MediaIVOverlayUSACommand(),
         new MediaIVOverlayUSSRCommand(),
+        new MediaIVOverlayWastedCommand(),
+        new MediaIVOverlayWhoDidThisCommand(),
       ],
     });
   }

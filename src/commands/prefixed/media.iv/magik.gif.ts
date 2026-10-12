@@ -14,15 +14,19 @@ export default class MagikAnimatedCommand extends BaseImageOrVideoCommand {
       aliases: ['gmagik', 'magic gif'],
       name: COMMAND_NAME,
 
+      args: [
+        {aliases: ['b'], name: 'boomerang', type: Boolean},
+      ],
       metadata: {
         description: 'Magikify an Image or Video, Single-framed Images become Animated',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -boomerang`,
         ],
         category: CommandCategories.IMAGE,
         id: Formatter.Commands.MediaIVManipulationMagikAnimated.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-boomerang)',
       },
     });
   }

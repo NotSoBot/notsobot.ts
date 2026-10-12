@@ -8,6 +8,7 @@ export const COMMAND_ID = 'media.iv.manipulation.magik.animated';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  boomerang?: boolean,
   scale?: number,
   url: string,
 }

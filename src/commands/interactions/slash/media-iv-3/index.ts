@@ -8,6 +8,7 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MediaAnimateGroupCommand } from './animate';
 import { MediaFunGroupCommand } from './fun';
 
 
@@ -30,6 +31,7 @@ export default class MediaIV2GroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new MediaAnimateGroupCommand(),
         new MediaFunGroupCommand(),
       ],
     });

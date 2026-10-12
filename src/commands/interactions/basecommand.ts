@@ -104,7 +104,8 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
       return;
     }
 
-    if (this.triggerLoadingAsEphemeral) {
+    const invoker = context.invoker as BaseInteractionCommand | BaseInteractionCommandOption;
+    if (this.triggerLoadingAsEphemeral || invoker.triggerLoadingAsEphemeral) {
       return context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
         flags: MessageFlags.EPHEMERAL,
       });
@@ -338,6 +339,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 export class BaseInteractionCommandOption extends Interaction.InteractionCommandOption {
   blockedCommandShouldStillExecute = true;
   error = 'Slash';
+  triggerLoadingAsEphemeral = false;
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
 
   async onCancelRun(context: Interaction.InteractionContext, args: Record<string, any>) {

@@ -15,6 +15,14 @@ export class MediaIVMagikGifCommand extends BaseInteractionImageOrVideoCommandOp
   };
   name = COMMAND_NAME;
 
+  constructor() {
+    super({
+      options: [
+        {name: 'boomerang', description: 'Play the zoom back out at the end', ...I18n.optionLocalizations('commands.media_iv.fun.magik_gif.boomerang'), type: Boolean},
+      ],
+    });
+  }
+
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationMagikAnimated.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationMagikAnimated.createMessage(context, args);
   }
