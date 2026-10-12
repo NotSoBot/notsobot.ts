@@ -8,6 +8,9 @@ import { ModerationAllowlistGroupCommand } from './allowlist';
 import { ModerationBanCommand } from './ban';
 import { ModerationBlocklistGroupCommand } from './blocklist';
 import { ModerationKickCommand } from './kick';
+import { ModerationLoggersGroupCommand } from './loggers';
+import { ModerationNickMassGroupCommand } from './nick-mass';
+import { ModerationPruneCommand } from './prune';
 import { ModerationUnbanCommand } from './unban';
 
 
@@ -31,6 +34,9 @@ export default class ModerationGroupCommand extends BaseSlashCommand {
         new ModerationBanCommand(),
         new ModerationBlocklistGroupCommand(),
         new ModerationKickCommand(),
+        new ModerationLoggersGroupCommand(),
+        new ModerationNickMassGroupCommand(),
+        new ModerationPruneCommand(),
         new ModerationUnbanCommand(),
       ],
     });

@@ -118,6 +118,10 @@ export async function createMessage(
       }
       description.push(`**${translate('info.channel.video_quality')}**: ${text}`);
     }
+    description.push(`**${translate('info.guild.region')}**: ${(channel.rtcRegion) ? Markup.codestring(channel.rtcRegion) : translate('logger.channel.automatic')}`);
+    if (channel.status) {
+      description.push(`**${translate('info.channel.voice_status')}**: ${Markup.escape.all(channel.status)}`);
+    }
 
     embed.addField(translate('info.channel.voice_information'), description.join('\n'), true);
   }

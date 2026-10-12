@@ -1,4 +1,4 @@
-import { ApplicationIntegrationTypes } from 'detritus-client/lib/constants';
+import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
 import { I18n } from '../../../../utils';
 
@@ -13,6 +13,10 @@ export default class SettingsServerGroupCommand extends BaseSlashCommand {
   disableDm = true;
   name = 'settings-server';
   nameLocalizations = I18n.localizations('commands.settings_server.name');
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+  ];
 
   integrationTypes = [
     ApplicationIntegrationTypes.GUILD_INSTALL,

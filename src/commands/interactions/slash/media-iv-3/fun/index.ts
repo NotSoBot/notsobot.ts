@@ -7,8 +7,10 @@ import { MediaIVDatamoshCommand } from './datamosh';
 import { MediaIVEdgeDetectCommand } from './edge-detect';
 import { MediaIVGlobeCommand } from './globe';
 import { MediaIVGlowCommand } from './glow';
+import { MediaIVHueCurveRGBACommand } from './hue-curve-rgba';
 import { MediaIVOrbCommand } from './orb';
 import { MediaIVPhoSimpCommand } from './phosimp';
+import { MediaIVRippleCommand } from './ripple';
 import { MediaIVSmileCommand } from './smile';
 import { MediaIVStretchCommand } from './stretch';
 import { MediaIVTriggeredCommand } from './triggered';
@@ -28,8 +30,10 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVEdgeDetectCommand(),
         new MediaIVGlobeCommand(),
         new MediaIVGlowCommand(),
+        new MediaIVHueCurveRGBACommand(),
         new MediaIVOrbCommand(),
         new MediaIVPhoSimpCommand(),
+        new MediaIVRippleCommand(),
         new MediaIVSmileCommand(),
         new MediaIVStretchCommand(),
         new MediaIVTriggeredCommand(),

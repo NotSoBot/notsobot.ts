@@ -98,7 +98,7 @@ export async function createMessage(
 }
 
 
-export async function emojisSearch(value: string, context: Command.Context) {
+export async function emojisSearch(value: string, context: Command.Context | Interaction.InteractionContext) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   value = value.toLowerCase();
   if (!value) {

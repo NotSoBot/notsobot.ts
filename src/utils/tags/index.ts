@@ -231,7 +231,7 @@ export const AllowedDiscordProperties = Object.freeze({
   },
   [Structures.Role.constructor.name]: {
     functions: [],
-    variables: ['botId', 'color', 'createdAt', 'createdAtUnix', 'hoist', 'id', 'integrationId', 'isBoosterRole', 'isDefault', 'managed', 'mention', 'mentionable', 'name', 'permissions', 'position'],
+    variables: ['botId', 'color', 'createdAt', 'createdAtUnix', 'flags', 'hoist', 'id', 'integrationId', 'isBoosterRole', 'isDefault', 'isInPrompt', 'isPurchasable', 'managed', 'mention', 'mentionable', 'name', 'permissions', 'position', 'subscriptionListingId'],
   },
 });
 

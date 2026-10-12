@@ -24,6 +24,7 @@ export class MediaIRetroCommand extends BaseInteractionCommandOption {
           description: 'Text to overlay, use | to split it into lines (Max 3)',
           ...I18n.optionLocalizations('commands.media_i.fun.retro.text'),
           default: '',
+          maxLength: 100,
           value: Parameters.string({maxLength: 100}),
         },
         {

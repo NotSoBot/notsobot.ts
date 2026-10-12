@@ -35,6 +35,7 @@ export class MediaIRipCommand extends BaseInteractionCommandOption {
           name: 'text',
           description: 'Text to put on the tombstone',
           ...I18n.optionLocalizations('commands.media_i.fun.rip.text'),
+          maxLength: 44,
           value: Parameters.string({maxLength: 44}),
         },
       ],

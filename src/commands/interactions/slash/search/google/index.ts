@@ -4,6 +4,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SearchGoogleImagesCommand } from './google.images';
 import { SearchGoogleImagesSimpleCommand } from './google.images-simple';
+import { SearchGoogleReverseCommand } from './google.reverse';
 import { SearchGoogleWebCommand } from './google.web';
 
 
@@ -16,6 +17,7 @@ export class SearchGoogleGroupCommand extends BaseInteractionCommandOptionGroup 
       options: [
         new SearchGoogleImagesCommand(),
         new SearchGoogleImagesSimpleCommand(),
+        new SearchGoogleReverseCommand(),
         new SearchGoogleWebCommand(),
       ],
     });

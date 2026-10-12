@@ -8,12 +8,14 @@ import { TagAliasCommand } from './alias';
 import { TagCommandsGroupCommand } from './commands';
 import { TagCreateCommand } from './create';
 import { TagDirectoryGroupCommand } from './directory';
+import { TagEditCommand } from './edit';
 import { TagExportCommand } from './export';
 import { TagImportGroupCommand } from './import';
 import { TagInfoCommand } from './info';
 import { TagListGroupCommand } from './list';
 import { TagRandomCommand } from './random';
 import { TagRemoveGroupCommand } from './remove';
+import { TagRenameCommand } from './rename';
 import { TagShowCommand } from './show';
 
 
@@ -40,11 +42,13 @@ export default class TagGroupCommand extends BaseSlashCommand {
         new TagCommandsGroupCommand(),
         new TagCreateCommand(),
         new TagDirectoryGroupCommand(),
+        new TagEditCommand(),
         new TagExportCommand(),
         new TagImportGroupCommand(),
         new TagInfoCommand(),
         new TagRandomCommand(),
         new TagRemoveGroupCommand(),
+        new TagRenameCommand(),
         new TagListGroupCommand(),
       ],
     });

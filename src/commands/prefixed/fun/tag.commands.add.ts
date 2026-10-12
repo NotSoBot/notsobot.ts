@@ -1,9 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, GuildFeatures, StatusEmojis, UserFlags } from '../../../constants';
-import GuildSettingsStore from '../../../stores/guildsettings';
-import UserStore from '../../../stores/users';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -35,36 +33,12 @@ export default class TagCommandsAddCommand extends BaseCommand {
   }
 
   async onBefore(context: Command.Context) {
-    if (context.user.isClientOwner) {
-      return true;
+    const reason = await Formatter.Commands.TagCommandsAdd.getCannotAddReason(context);
+    if (reason) {
+      context.metadata = context.metadata || {};
+      context.metadata.content = reason;
+      return false;
     }
-
-    if (context.inDm) {
-      const user = await UserStore.getOrFetch(context, context.userId);
-      if (!user || (!user.premiumType && !user.hasFlag(UserFlags.OWNER))) {
-        context.metadata = context.metadata || {};
-        context.metadata.content = 'You must have NotSoPremium to have custom commands!';
-        return false;
-      }
-    } else if (context.guildId) {
-      const guildId = context.guildId!;
-      const settings = await GuildSettingsStore.getOrFetch(context, guildId);
-      if (settings && settings.features.has(GuildFeatures.FREE_CUSTOM_COMMANDS)) {
-        return true;
-      }
-
-      const guild = context.guild!;
-      if (guild) {
-        // get owner
-        const owner = await UserStore.getOrFetch(context, guild.ownerId);
-        if (!owner || (!owner.hasFlag(UserFlags.OWNER) && !owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
-          context.metadata = context.metadata || {};
-          context.metadata.content = 'The server owner must have NotSoPremium to have custom commands here!';
-          return false;
-        }
-      }
-    }
-
     return true;
   }
 

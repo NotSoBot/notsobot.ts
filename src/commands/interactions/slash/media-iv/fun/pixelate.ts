@@ -11,7 +11,7 @@ export class MediaIVPixelateCommand extends BaseInteractionImageOrVideoCommandOp
   description = 'Pixelate an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv.fun.pixelate.description');
   metadata = {
-    id: Formatter.Commands.MediaIVManipulationLegofy.COMMAND_ID,
+    id: Formatter.Commands.MediaIVManipulationPixelate.COMMAND_ID,
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv.fun.pixelate.name');

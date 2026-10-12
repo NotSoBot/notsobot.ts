@@ -1,6 +1,6 @@
 import { ClusterClient, Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
-import { SocketStates } from 'detritus-client-socket/lib/constants';
+import { SocketStates } from 'detritus-client/lib/constants';
 
 import { editOrReply, padCodeBlockFromRows, splitTextByAmount } from '../../../utils';
 

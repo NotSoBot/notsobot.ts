@@ -22,12 +22,14 @@ export class TagListServerCommand extends BaseInteractionCommandOption {
           name: 'content',
           description: 'Match the tag\'s content',
           ...I18n.optionLocalizations('commands.tag.list.server.content'),
+          maxLength: 1000,
           value: Parameters.string({maxLength: 1000}),
         },
         {
           name: 'name',
           description: 'Match the tag\'s name',
           ...I18n.optionLocalizations('commands.tag.list.server.name'),
+          maxLength: 64,
           value: Parameters.string({maxLength: 64}),
         },
         {

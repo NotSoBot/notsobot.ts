@@ -157,7 +157,7 @@ export function getVoiceStateUpdateSections(event: GuildLoggingEventVoiceStateUp
       }
 
       if (differences.suppress !== undefined) {
-        if (differences.suppress) {
+        if (voiceState.suppress) {
           changes.push(`- ${translate('logger.voice.suppressed')}`);
         } else {
           changes.push(`- ${translate('logger.voice.unsuppressed')}`);

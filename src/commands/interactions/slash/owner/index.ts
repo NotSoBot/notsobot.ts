@@ -4,7 +4,16 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { OwnerBlockGroupCommand } from './block';
+import { OwnerEmojisCommand } from './emojis';
 import { OwnerEvalCommand } from './eval';
+import { OwnerGuildFeaturesGroupCommand } from './guild-features';
+import { OwnerRefreshCommand } from './refresh';
+import { OwnerSayCommand } from './say';
+import { OwnerSeenOnCommand } from './seenon';
+import { OwnerShardsLeftCommand } from './shards-left';
+import { OwnerUnblockGroupCommand } from './unblock';
+import { OwnerUploadCommandsCommand } from './upload-commands';
 
 
 export default class OwnerGroupCommand extends BaseSlashCommand {
@@ -26,7 +35,16 @@ export default class OwnerGroupCommand extends BaseSlashCommand {
   constructor() {
     super({
       options: [
+        new OwnerBlockGroupCommand(),
+        new OwnerEmojisCommand(),
         new OwnerEvalCommand(),
+        new OwnerGuildFeaturesGroupCommand(),
+        new OwnerRefreshCommand(),
+        new OwnerSayCommand(),
+        new OwnerSeenOnCommand(),
+        new OwnerShardsLeftCommand(),
+        new OwnerUnblockGroupCommand(),
+        new OwnerUploadCommandsCommand(),
       ],
     });
   }

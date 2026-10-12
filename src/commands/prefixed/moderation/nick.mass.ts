@@ -1,4 +1,4 @@
-import { Command, CommandClient, Structures } from 'detritus-client';
+import { Command, CommandClient, Interaction, Structures } from 'detritus-client';
 import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } from 'detritus-client/lib/constants';
 import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
@@ -103,194 +103,76 @@ export default class NickMassCommand extends BaseCommand {
   }
 
   async run(context: Command.Context, args: CommandArgs) {
-    const { language, translate } = await I18n.getTranslator(context);
-    const guild = context.guild!;
-    const me = guild.me!;
+    return createNickMassMessage(context, args);
+  }
+}
 
-    const nick = args.text;
 
-    const members = guild.members.filter((member) => {
-      if (args.nobots && member.bot) {
-        return false;
-      }
-      if (args.nousers && !member.bot) {
-        return false;
-      }
-      if (args.role && !member.roles.has(args.role.id)) {
-        return false;
-      }
-      return member.name !== nick && me.canEdit(member);
-    });
+export async function createNickMassMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+) {
+  const { language, translate } = await I18n.getTranslator(context);
+  const guild = context.guild!;
+  const me = guild.me!;
 
-    const [ amount, time ] = RATELIMIT_TIME;
+  const nick = args.text;
 
-    const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
-    if (isExecuting.nick) {
-      return editOrReply(context, translate('nickmass.in_progress'));
+  const members = guild.members.filter((member) => {
+    if (args.nobots && member.bot) {
+      return false;
     }
+    if (args.nousers && !member.bot) {
+      return false;
+    }
+    if (args.role && !member.roles.has(args.role.id)) {
+      return false;
+    }
+    return member.name !== nick && me.canEdit(member);
+  });
 
-    if (members.length) {
-      const embed = createUserEmbed(context.user);
-      embed.setColor(EmbedColors.DEFAULT);
-      embed.setTitle(translate('nickmass.can_edit', {count: members.length.toLocaleString(language), total: guild.members.length.toLocaleString(language)}));
-      embed.setDescription(translate('nickmass.estimate', {seconds: ((members.length / amount) * time).toLocaleString(language)}));
+  const [ amount, time ] = RATELIMIT_TIME;
 
-      const components = new Components({timeout: 5 * (60 * 1000)});
-      components.createButton({
-        label: translate('common.continue'),
-        run: async (ctx: ComponentContext) => {
-          if (ctx.userId !== context.userId) {
-            return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-          }
+  const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
+  if (isExecuting.nick) {
+    return editOrReply(context, translate('nickmass.in_progress'));
+  }
 
-          const amounts = {
-            changed: 0,
-            failed: 0,
-            skipped: 0,
-          };
-          const errors: Array<any> = [];
-          const reason = translate('nickmass.audit_reason', {user: `${context.user} (${context.user.id})`});
+  if (members.length) {
+    const embed = createUserEmbed(context.user);
+    embed.setColor(EmbedColors.DEFAULT);
+    embed.setTitle(translate('nickmass.can_edit', {count: members.length.toLocaleString(language), total: guild.members.length.toLocaleString(language)}));
+    embed.setDescription(translate('nickmass.estimate', {seconds: ((members.length / amount) * time).toLocaleString(language)}));
 
-          {
-            embed.setDescription(translate('nickmass.starting', {count: members.length.toLocaleString(language), seconds: ((members.length / amount) * time).toLocaleString(language)}));
-            embed.setColor(EmbedColors.LOG_UPDATE);
+    const components = new Components({timeout: 5 * (60 * 1000)});
+    components.createButton({
+      label: translate('common.continue'),
+      run: async (ctx: ComponentContext) => {
+        if (ctx.userId !== context.userId) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
 
-            const components = new Components();
-            components.createButton({
-              label: translate('common.refresh'),
-              style: MessageComponentButtonStyles.SECONDARY,
-              run: async (ctx: ComponentContext) => {
-                const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+        const amounts = {
+          changed: 0,
+          failed: 0,
+          skipped: 0,
+        };
+        const errors: Array<any> = [];
+        const reason = translate('nickmass.audit_reason', {user: `${context.user} (${context.user.id})`});
 
-                const description: Array<string> = [];
-                description.push(translate('nickmass.finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
-                if (finished) {
-                  if (amounts.changed) {
-                    description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
-                  }
-                  if (amounts.skipped) {
-                    description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
-                  }
-                  if (amounts.failed) {
-                    description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
-                  }
-                  if (errors.length) {
-                    description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
-                  }
-                }
-                if (members.length !== finished) {
-                  description.push('');
-                  description.push(translate('nickmass.time_left', {seconds: (((members.length - finished) / amount) * time).toLocaleString(language)}));
-                }
-                embed.setDescription(description.join('\n'));
+        {
+          embed.setDescription(translate('nickmass.starting', {count: members.length.toLocaleString(language), seconds: ((members.length / amount) * time).toLocaleString(language)}));
+          embed.setColor(EmbedColors.LOG_UPDATE);
 
-                ctx.editOrRespond({embed});
-              },
-            });
-            components.createButton({
-              label: translate('common.stop'),
-              style: MessageComponentButtonStyles.DANGER,
-              run: async (ctx: ComponentContext) => {
-                // stop it and give the number of people edited
-                if (ctx.userId !== context.userId) {
-                  return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-                }
-                isExecuting.nick = false;
-
-                embed.setColor(EmbedColors.ERROR);
-                embed.setTitle(translate('nickmass.cancelled_title'));
-                {
-                  const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
-
-                  const description: Array<string> = [];
-                  description.push(translate('nickmass.cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
-                  if (finished) {
-                    if (amounts.changed) {
-                      description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
-                    }
-                    if (amounts.skipped) {
-                      description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
-                    }
-                    if (amounts.failed) {
-                      description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
-                    }
-                    if (errors.length) {
-                      description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
-                    }
-                  }
-                  embed.setDescription(description.join('\n'));
-                }
-                return ctx.editOrRespond({components: [], embed});
-              },
-            });
-            await ctx.editOrRespond({components, embed});
-          }
-
-          isExecuting.nick = true;
-          for (let member of members) {
-            if (!isExecuting.nick) {
-              break;
-            }
-
-            let nickname = nick;
-            for (let regex of NAME_REGEXES) {
-              switch (regex) {
-                case NameRegexes.DISCRIMINATOR: {
-                  nickname = nickname.replace(regex, member.discriminator);
-                }; break;
-                case NameRegexes.GUILD: {
-                  nickname = nickname.replace(regex, guild.name);
-                }; break;
-                case NameRegexes.NICKNAME: {
-                  nickname = nickname.replace(regex, member.name);
-                }; break;
-                case NameRegexes.USERNAME: {
-                  nickname = nickname.replace(regex, member.username);
-                }; break;
-              }
-            }
-            nickname = nickname.slice(0, MAX_NICKNAME_LENGTH).trim();
-
-            if (member.name === nickname) {
-              amounts.skipped++;
-              continue;
-            }
-
-            if (member.isMe) {
-              if (!me.canChangeNickname) {
-                amounts.failed++;
-                continue;
-              }
-            } else if (!me.canEdit(member) || !me.canChangeNicknames) {
-              amounts.failed++;
-              continue;
-            }
-
-            try {
-              await member.editNick(nickname, {reason});
-              amounts.changed++;
-            } catch(error) {
-              if (error.response && ERROR_CODES_IGNORE.includes(error.response.statusCode)) {
-                errors.push(error);
-              } else {
-                error.metadata = {
-                  canEdit: me.canEdit(member),
-                  canChangeNicknames: me.canChangeNicknames,
-                  user: member.user,
-                };
-                throw error;
-              }
-            }
-          }
-
-          if (!isExecuting.nick) {
-            embed.setColor(EmbedColors.ERROR);
-            embed.setTitle(translate('nickmass.cancelled_title'));
-            {
+          const components = new Components();
+          components.createButton({
+            label: translate('common.refresh'),
+            style: MessageComponentButtonStyles.SECONDARY,
+            run: async (ctx: ComponentContext) => {
               const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
               const description: Array<string> = [];
-              description.push(translate('nickmass.cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+              description.push(translate('nickmass.finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
               if (finished) {
                 if (amounts.changed) {
                   description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
@@ -305,21 +187,119 @@ export default class NickMassCommand extends BaseCommand {
                   description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                 }
               }
+              if (members.length !== finished) {
+                description.push('');
+                description.push(translate('nickmass.time_left', {seconds: (((members.length - finished) / amount) * time).toLocaleString(language)}));
+              }
               embed.setDescription(description.join('\n'));
-            }
 
-            if (message.deleted) {
-              return message.reply({embed});
-            }
-            return (ctx.interaction.deleted) ? message.edit({components: [], embed}) : ctx.editOrRespond({components: [], embed});
+              ctx.editOrRespond({embed});
+            },
+          });
+          components.createButton({
+            label: translate('common.stop'),
+            style: MessageComponentButtonStyles.DANGER,
+            run: async (ctx: ComponentContext) => {
+              // stop it and give the number of people edited
+              if (ctx.userId !== context.userId) {
+                return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+              }
+              isExecuting.nick = false;
+
+              embed.setColor(EmbedColors.ERROR);
+              embed.setTitle(translate('nickmass.cancelled_title'));
+              {
+                const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+                const description: Array<string> = [];
+                description.push(translate('nickmass.cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+                if (finished) {
+                  if (amounts.changed) {
+                    description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
+                  }
+                  if (amounts.skipped) {
+                    description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
+                  }
+                  if (amounts.failed) {
+                    description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
+                  }
+                  if (errors.length) {
+                    description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
+                  }
+                }
+                embed.setDescription(description.join('\n'));
+              }
+              return ctx.editOrRespond({components: [], embed});
+            },
+          });
+          await ctx.editOrRespond({components, embed});
+        }
+
+        isExecuting.nick = true;
+        for (let member of members) {
+          if (!isExecuting.nick) {
+            break;
           }
-          isExecuting.nick = false;
 
+          let nickname = nick;
+          for (let regex of NAME_REGEXES) {
+            switch (regex) {
+              case NameRegexes.DISCRIMINATOR: {
+                nickname = nickname.replace(regex, member.discriminator);
+              }; break;
+              case NameRegexes.GUILD: {
+                nickname = nickname.replace(regex, guild.name);
+              }; break;
+              case NameRegexes.NICKNAME: {
+                nickname = nickname.replace(regex, member.name);
+              }; break;
+              case NameRegexes.USERNAME: {
+                nickname = nickname.replace(regex, member.username);
+              }; break;
+            }
+          }
+          nickname = nickname.slice(0, MAX_NICKNAME_LENGTH).trim();
+
+          if (member.name === nickname) {
+            amounts.skipped++;
+            continue;
+          }
+
+          if (member.isMe) {
+            if (!me.canChangeNickname) {
+              amounts.failed++;
+              continue;
+            }
+          } else if (!me.canEdit(member) || !me.canChangeNicknames) {
+            amounts.failed++;
+            continue;
+          }
+
+          try {
+            await member.editNick(nickname, {reason});
+            amounts.changed++;
+          } catch(error) {
+            if (error.response && ERROR_CODES_IGNORE.includes(error.response.statusCode)) {
+              errors.push(error);
+            } else {
+              error.metadata = {
+                canEdit: me.canEdit(member),
+                canChangeNicknames: me.canChangeNicknames,
+                user: member.user,
+              };
+              throw error;
+            }
+          }
+        }
+
+        if (!isExecuting.nick) {
+          embed.setColor(EmbedColors.ERROR);
+          embed.setTitle(translate('nickmass.cancelled_title'));
           {
             const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
             const description: Array<string> = [];
-            description.push(translate('nickmass.finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+            description.push(translate('nickmass.cancelled', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
             if (finished) {
               if (amounts.changed) {
                 description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
@@ -334,47 +314,127 @@ export default class NickMassCommand extends BaseCommand {
                 description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
               }
             }
-            embed.setColor(EmbedColors.LOG_CREATION);
             embed.setDescription(description.join('\n'));
           }
 
-          if (message.deleted) {
-            return message.reply({embed});
-          }
-          return (ctx.interaction.deleted) ? message.edit({components: [], embed}) : ctx.editOrRespond({components: [], embed});
-        },
-      });
-
-      components.createButton({
-        label: translate('common.cancel'),
-        style: MessageComponentButtonStyles.DANGER,
-        run: async (ctx: ComponentContext) => {
-          if (ctx.userId !== context.userId) {
-            return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-          }
-
-          embed.setColor(EmbedColors.ERROR);
-          embed.setTitle(translate('nickmass.cancelled_title'));
-          embed.setDescription(translate('nickmass.cancelled_before', {count: members.length.toLocaleString(language)}));
-          await ctx.editOrRespond({components: [], embed});
-        },
-      });
-
-      const message = await context.reply({components, embed});
-      components.onTimeout = async () => {
-        try {
-          embed.setColor(EmbedColors.ERROR);
-          embed.setTitle(translate('nickmass.expired_title'));
-          embed.setFooter(translate('nickmass.expired'));
-          if (message.canEdit) {
-            await message.edit({components: [], embed});
-          }
-        } catch(error) {
-
+          return finishWithEmbed(context, ctx, message, embed);
         }
-      };
-      return message;
+        isExecuting.nick = false;
+
+        {
+          const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
+
+          const description: Array<string> = [];
+          description.push(translate('nickmass.finished', {count: finished.toLocaleString(language), total: members.length.toLocaleString(language)}));
+          if (finished) {
+            if (amounts.changed) {
+              description.push(translate('nickmass.changed', {count: amounts.changed.toLocaleString(language)}));
+            }
+            if (amounts.skipped) {
+              description.push(translate('nickmass.skipped', {count: amounts.skipped.toLocaleString(language)}));
+            }
+            if (amounts.failed) {
+              description.push(translate('nickmass.failed_permissions', {count: amounts.failed.toLocaleString(language)}));
+            }
+            if (errors.length) {
+              description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
+            }
+          }
+          embed.setColor(EmbedColors.LOG_CREATION);
+          embed.setDescription(description.join('\n'));
+        }
+
+        return finishWithEmbed(context, ctx, message, embed);
+      },
+    });
+
+    components.createButton({
+      label: translate('common.cancel'),
+      style: MessageComponentButtonStyles.DANGER,
+      run: async (ctx: ComponentContext) => {
+        if (ctx.userId !== context.userId) {
+          return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+        }
+
+        embed.setColor(EmbedColors.ERROR);
+        embed.setTitle(translate('nickmass.cancelled_title'));
+        embed.setDescription(translate('nickmass.cancelled_before', {count: members.length.toLocaleString(language)}));
+        await ctx.editOrRespond({components: [], embed});
+      },
+    });
+
+    const message = await replyWithMessage(context, {components, embed});
+    components.onTimeout = async () => {
+      try {
+        embed.setColor(EmbedColors.ERROR);
+        embed.setTitle(translate('nickmass.expired_title'));
+        embed.setFooter(translate('nickmass.expired'));
+        await expireWithEmbed(context, message, embed);
+      } catch(error) {
+
+      }
+    };
+    return message || undefined;
+  }
+  return editOrReply(context, translate('nickmass.none'));
+}
+
+
+export async function replyWithMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  options: Command.EditOrReply,
+): Promise<Structures.Message | null> {
+  if (context instanceof Command.Context) {
+    return context.reply(options);
+  }
+  await context.editOrRespond(options as Structures.InteractionEditOrRespond);
+  return null;
+}
+
+export async function finishWithEmbed(
+  context: Command.Context | Interaction.InteractionContext,
+  ctx: ComponentContext,
+  message: Structures.Message | null,
+  embed: Embed,
+) {
+  if (message && message.deleted) {
+    return message.reply({embed});
+  }
+  if (!ctx.interaction.deleted) {
+    try {
+      return await ctx.editOrRespond({components: [], embed});
+    } catch(error) {
+      // interaction tokens expire after 15 minutes, long runs fall through to the fallbacks below
     }
-    return editOrReply(context, translate('nickmass.none'));
+  }
+  if (message) {
+    return message.edit({components: [], embed});
+  }
+  // slash commands have no message of their own to edit, so post the results as a normal message instead
+  try {
+    return await context.rest.createMessage(context.channelId!, {
+      allowedMentions: {users: [context.userId]},
+      content: `<@${context.userId}>`,
+      embed,
+    });
+  } catch(error) {
+    // we can't send messages in the channel, so dm the results to whoever started it
+    const channel = await context.rest.createDm({recipientId: context.userId});
+    return channel.createMessage({embed});
+  }
+}
+
+
+export async function expireWithEmbed(
+  context: Command.Context | Interaction.InteractionContext,
+  message: Structures.Message | null,
+  embed: Embed,
+) {
+  if (message) {
+    if (message.canEdit) {
+      await message.edit({components: [], embed});
+    }
+  } else if (context instanceof Interaction.InteractionContext) {
+    await context.editOrRespond({components: [], embed});
   }
 }

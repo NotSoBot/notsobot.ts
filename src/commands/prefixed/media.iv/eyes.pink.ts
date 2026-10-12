@@ -15,7 +15,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
       prefixes: ['eyes ', 'eye '],
 
       metadata: {
-        description: 'Attach money eyes to people\'s faces in an Image or Video',
+        description: 'Attach pink eyes to people\'s faces in an Image or Video',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,

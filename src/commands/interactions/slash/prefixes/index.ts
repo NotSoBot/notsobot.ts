@@ -1,4 +1,4 @@
-import { ApplicationIntegrationTypes } from 'detritus-client/lib/constants';
+import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
 import { I18n } from '../../../../utils';
 
@@ -17,6 +17,10 @@ export default class PrefixesGroupCommand extends BaseSlashCommand {
   disableDm = true;
   name = 'prefixes';
   nameLocalizations = I18n.localizations('commands.prefixes.name');
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+  ];
 
   integrationTypes = [
     ApplicationIntegrationTypes.GUILD_INSTALL,

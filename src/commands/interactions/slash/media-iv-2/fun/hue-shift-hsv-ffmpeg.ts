@@ -11,7 +11,7 @@ export class MediaIVHueShiftHSVFFMPEGCommand extends BaseInteractionImageOrVideo
   description = 'Shift the Image or Video\'s Hue, Saturation, and Brightness by X amount using FFMPEG';
   descriptionLocalizations = I18n.localizations('commands.media_iv_2.fun.hue_shift_hsv_ffmpeg.description');
   metadata = {
-  id: Formatter.Commands.MediaIVManipulationHueShiftHSV.COMMAND_ID,
+  id: Formatter.Commands.MediaIVManipulationHueShiftHSVFFMPEG.COMMAND_ID,
   };
   name = COMMAND_NAME;
 
@@ -25,7 +25,7 @@ export class MediaIVHueShiftHSVFFMPEGCommand extends BaseInteractionImageOrVideo
   });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationHueShiftHSV.CommandArgs) {
-  return Formatter.Commands.MediaIVManipulationHueShiftHSV.createMessage(context, args);
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationHueShiftHSVFFMPEG.CommandArgs) {
+  return Formatter.Commands.MediaIVManipulationHueShiftHSVFFMPEG.createMessage(context, args);
   }
 }

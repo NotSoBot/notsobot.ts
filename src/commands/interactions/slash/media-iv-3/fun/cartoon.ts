@@ -34,7 +34,7 @@ export class MediaIVCartoonCommand extends BaseInteractionImageOrVideoCommandOpt
         },
         {name: 'levels', description: 'Levels (2..10) (Default: 6)', ...I18n.optionLocalizations('commands.media_iv_3.fun.cartoon.levels'), type: Number},
         {name: 'pattern', description: 'Pattern (0..100) (Default: 70)', ...I18n.optionLocalizations('commands.media_iv_3.fun.cartoon.pattern'), type: Number},
-        {name: 'strength', description: 'Saturation (0..300) (Default: 150)', ...I18n.optionLocalizations('commands.media_iv_3.fun.cartoon.strength'), type: Number},
+        {name: 'strength', description: 'Saturation (0..300) (Default: 150)', ...I18n.optionLocalizations('commands.media_iv_3.fun.cartoon.strength'), label: 'saturation', type: Number},
       ],
     });
   }

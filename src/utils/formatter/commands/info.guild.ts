@@ -8,7 +8,7 @@ import {
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
 } from '../../../constants';
-import { getTranslator } from '../../i18n';
+import { TranslationKey, getTranslator } from '../../i18n';
 import { createTimestampMomentFromGuild, editOrReply, formatMemory, toTitleCase } from '../../../utils';
 
 
@@ -20,6 +20,7 @@ export interface CommandArgsBefore {
     memberCount?: number,
     owner?: Structures.User,
     presenceCount?: number,
+    soundboardSoundCount?: null | number,
     voiceStateCount?: number,
   },
 }
@@ -32,6 +33,7 @@ export interface CommandArgs {
     memberCount: number,
     owner: Structures.User,
     presenceCount: number,
+    soundboardSoundCount: null | number,
     voiceStateCount: number,
   },
 }
@@ -52,6 +54,7 @@ export async function createMessage(
     memberCount,
     owner,
     presenceCount,
+    soundboardSoundCount,
     voiceStateCount,
   } = args.payload;
 
@@ -120,6 +123,25 @@ export async function createMessage(
     description.push(`**${translate('info.guild.message_notifications')}**: ${translate((guild.defaultMessageNotifications) ? 'info.guild.mentions' : 'info.guild.all')}`);
     description.push(`**${translate('info.guild.mfa')}**: ${translate((guild.mfaLevel) ? 'info.guild.mfa_required' : 'info.guild.mfa_optional')}`);
     description.push(`**${translate('info.guild.verification')}**: ${translateMaybe(`guild.verification.${guild.verificationLevel}`, VerificationLevelTexts[guild.verificationLevel] || translate('common.unknown'))}`);
+    if (guild.incidentsData) {
+      const { dmSpamDetectedAt, dmsDisabledUntil, invitesDisabledUntil, raidDetectedAt } = guild.incidentsData;
+      const now = Date.now();
+      // the `Until` timestamps stay on the guild after they expire, so only show them while they're active
+      const incidents: Array<[TranslationKey, string | null, boolean]> = [
+        ['info.guild.invites_paused_until', invitesDisabledUntil, true],
+        ['info.guild.dms_paused_until', dmsDisabledUntil, true],
+        ['info.guild.raid_detected', raidDetectedAt, false],
+        ['info.guild.dm_spam_detected', dmSpamDetectedAt, false],
+      ];
+      for (const [key, value, isUntil] of incidents) {
+        const timestamp = (value) ? Date.parse(value) : NaN;
+        if (isNaN(timestamp) || (isUntil && timestamp < now)) {
+          continue;
+        }
+        const moment = createTimestampMomentFromGuild(timestamp, context.guildId);
+        description.push(`**${translate(key)}**: ${moment.locale(language).fromNow()}`);
+      }
+    }
 
     embed.addField(translate('info.guild.moderation'), description.join('\n'), true);
   }
@@ -206,6 +228,10 @@ export async function createMessage(
       column.push(`${translate('counts.roles')}: ${guild.roles.length.toLocaleString(language)}`);
       column.push(` -[${translate('counts.managed')}]: ${managedRoles.toLocaleString(language)}`);
       column.push(` -[${translate('counts.regular')}]: ${(guild.roles.length - managedRoles).toLocaleString(language)}`);
+      // null when the guild isn't on any of our clusters
+      if (soundboardSoundCount !== null) {
+        column.push(`${translate('counts.soundboard')}: ${soundboardSoundCount.toLocaleString(language)}`);
+      }
       column.push(`${translate('counts.voice_states')}: ${voiceStateCount.toLocaleString(language)}`);
 
       embed.addField(translate('common.counts'), Markup.codeblock(column.join('\n'), {language: 'css'}), true);

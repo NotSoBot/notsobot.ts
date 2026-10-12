@@ -463,9 +463,9 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         DetritusKeys[DiscordKeys.COMMUNICATION_DISABLED_UNTIL],
         DetritusKeys[DiscordKeys.DEAF],
         DetritusKeys[DiscordKeys.HOISTED_ROLE],
-        DetritusKeys[DiscordKeys.IS_PENDING],
         DetritusKeys[DiscordKeys.MUTE],
         DetritusKeys[DiscordKeys.NICK],
+        DetritusKeys[DiscordKeys.PENDING],
         DetritusKeys[DiscordKeys.PREMIUM_SINCE],
         DetritusKeys[DiscordKeys.ROLES],
       ];
@@ -625,7 +625,9 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       const name = ClientEvents.MESSAGE_UPDATE;
       const subscription = cluster.subscribe(name, async (payload) => {
         const { guildId, isEmbedUpdate, message, old, shard } = payload;
-        if (!isEmbedUpdate && guildId && message && !message.author.bot) {
+        // pinning and suppressing embeds don't change the edited timestamp, so detritus marks them as embed updates
+        const isFlagOrPinUpdate = !!old && !!message && (old.flags !== message.flags || old.pinned !== message.pinned);
+        if ((!isEmbedUpdate || isFlagOrPinUpdate) && guildId && message && !message.author.bot) {
           const happened = Date.now();
           return this.tryAdd(shard, {
             cached: {
@@ -647,7 +649,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       const subscription = cluster.subscribe(name, async (payload) => {
         const { shard, differences, old, user } = payload;
         if (old) {
-          if (differences && Object.keys(differences).length === 1 && differences.clan && Object.keys(differences.clan).length === 1 && differences.clan.badge) {
+          if (!hasLoggableUserDifference(differences, old, user)) {
             return;
           }
 
@@ -862,6 +864,28 @@ export function hasLoggableChannelDifference(old: Structures.Channel, channel: S
     if (!oldOverwrite || oldOverwrite.allow !== overwrite.allow || oldOverwrite.deny !== overwrite.deny) {
       return true;
     }
+  }
+  return false;
+}
+
+
+// mirrors getUsersUpdateChanges, so updates that only change keys we don't render (badges, nameplates, etc..) aren't logged as an empty change
+export function hasLoggableUserDifference(differences: Record<string, any> | null, old: Structures.User, user: Structures.User): boolean {
+  if (!differences) {
+    return false;
+  }
+  if (
+    differences.avatar !== undefined ||
+    differences.avatarDecorationData !== undefined ||
+    differences.username !== undefined ||
+    differences.discriminator !== undefined ||
+    differences.globalName !== undefined ||
+    differences.publicFlags !== undefined
+  ) {
+    return true;
+  }
+  if (differences.clan !== undefined) {
+    return ((old.clan && old.clan.tag) || null) !== ((user.clan && user.clan.tag) || null);
   }
   return false;
 }

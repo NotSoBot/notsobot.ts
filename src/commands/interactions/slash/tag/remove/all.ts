@@ -24,12 +24,14 @@ export class TagRemoveAllCommand extends BaseInteractionCommandOption {
           name: 'content',
           description: 'Match the tag\'s content',
           ...I18n.optionLocalizations('commands.tag.remove.all.content'),
+          maxLength: 1000,
           value: Parameters.string({maxLength: 1000}),
         },
         {
           name: 'name',
           description: 'Match the tag\'s name',
           ...I18n.optionLocalizations('commands.tag.remove.all.name'),
+          maxLength: 64,
           value: Parameters.string({maxLength: 64}),
         },
         {

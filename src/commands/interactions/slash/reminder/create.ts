@@ -34,6 +34,7 @@ export class ReminderCreateCommand extends BaseInteractionCommandOption {
           name: 'content',
           description: 'Content of the Reminder',
           ...I18n.optionLocalizations('commands.reminder.create.content'),
+          maxLength: 512,
           value: Parameters.string({maxLength: 512}),
         },
       ],

@@ -58,6 +58,10 @@ export function getRoleInformationLines(role: Structures.Role, guildId: string, 
       description.push(`**${translate('common.type')}**: ${translate('info.role.booster_role')}`);
     } else if (role.botId) {
       description.push(`**${translate('common.type')}**: ${translate('info.role.bot_role', {bot: `<@${role.botId}>`})}`);
+    } else if (role.subscriptionListingId) {
+      description.push(`**${translate('common.type')}**: ${translate('info.role.subscription_role', {id: role.subscriptionListingId})}`);
+    } else if (role.tags.guildConnections) {
+      description.push(`**${translate('common.type')}**: ${translate('info.role.linked_role')}`);
     } else if (role.integrationId) {
       description.push(`**${translate('common.type')}**: ${translate('info.role.integration_role', {id: String(role.integrationId)})}`);
     } else {
@@ -201,6 +205,11 @@ export function formatGuildRoleDeleteComponents(
 export function getGuildRoleUpdateChanges(old: Structures.Role, role: Structures.Role, translator: Translator): Array<string> {
   const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
+
+  if (role.name !== old.name) {
+    description.push(`- ${translate('common.name')}`);
+    description.push(`-> ${translate('logger.change', {old: `**${Markup.codestring(old.name)}**`, new: `**${Markup.codestring(role.name)}**`})}`);
+  }
 
   if (role.color !== old.color) {
     description.push(`- ${translate('info.role.color')}`);

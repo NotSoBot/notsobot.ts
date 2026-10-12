@@ -10,12 +10,10 @@ import { createTimestampMomentFromGuild, createTimestampStringFromGuild, createU
 
 import type { Translator } from '../../i18n';
 import {
-  ContainerImage,
   MAX_MENTIONS,
   addContainerBody,
   addContainerFiles,
   addContainerFooter,
-  addContainerGallery,
   addContainerHeader,
   createUserHeaderLines,
 } from './tools';
@@ -58,7 +56,6 @@ export function getMessageDeleteSections(event: GuildLoggingEventMessageDelete, 
   attachments: Array<string>,
   content: string,
   embeds: Array<string>,
-  images: Array<ContainerImage>,
   mentions: Array<string>,
   moderation: Array<string>,
   roleMentions: Array<string>,
@@ -71,7 +68,6 @@ export function getMessageDeleteSections(event: GuildLoggingEventMessageDelete, 
     attachments: [] as Array<string>,
     content: '',
     embeds: [] as Array<string>,
-    images: [] as Array<ContainerImage>,
     mentions: [] as Array<string>,
     moderation: [] as Array<string>,
     roleMentions: [] as Array<string>,
@@ -99,11 +95,6 @@ export function getMessageDeleteSections(event: GuildLoggingEventMessageDelete, 
       });
       if (urls.length) {
         sections.attachments.push(urls.join(', '));
-      }
-      for (let [, attachment] of message.attachments) {
-        if (attachment.isImage && attachment.url) {
-          sections.images.push({description: attachment.filename, url: attachment.url});
-        }
       }
     }
     if (message.embeds.length) {
@@ -171,9 +162,6 @@ export function formatMessageDelete(
   if (sections.attachments.length) {
     embed.addField(translate('logger.message.attachments'), sections.attachments.join('\n'));
   }
-  if (sections.images.length) {
-    embed.setThumbnail(sections.images[0].url);
-  }
   if (sections.embeds.length) {
     embed.addField(translate('logger.message.embeds'), sections.embeds.join('\n'));
   }
@@ -215,8 +203,7 @@ export function formatMessageDeleteComponents(
     {title: translate('logger.message.role_mentions'), lines: sections.roleMentions},
     {title: translate('common.information'), lines: getMessageInformationLines(guildId, channelId, messageId, message, translator)},
   ]);
-  // the cdn urls might already be gone since the message was deleted, but it's the same as the embed thumbnail
-  addContainerGallery(container, sections.images);
+  // no gallery, the attachment cdn urls are dead once the message is deleted and a media gallery with a dead url fails to render
   addContainerFooter(container, `${translate('logger.footer.message_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
 
@@ -382,6 +369,10 @@ export function getMessageUpdateSections(event: GuildLoggingEventMessageUpdate, 
     }
   }
 
+  if (message.pinned !== old.pinned) {
+    sections.flags.push(`- ${translate((message.pinned) ? 'logger.message.pinned' : 'logger.message.unpinned')}`);
+  }
+
   if (message.mentionEveryone !== old.mentionEveryone || differences.mentions) {
     const removedText: Array<string> = [];
     const addedText: Array<string> = [];
@@ -432,7 +423,7 @@ export function formatMessageUpdate(
   const { channelId, differences, messageId } = event.payload;
 
   {
-    const time = (message && message.isEdited) ? message.editedAtUnix : happened;
+    const time = (message && message.isEdited && !event.payload.isEmbedUpdate) ? message.editedAtUnix : happened;
     const timestamp = createTimestampStringFromGuild(time, guildId);
     embed.setFooter(`${translate('logger.footer.message_updated')} • ${timestamp}`);
   }
@@ -529,6 +520,6 @@ export function formatMessageUpdateComponents(
     {title: translate('common.information'), lines: getMessageInformationLines(guildId, channelId, messageId, message, translator)},
   ]);
 
-  const time = (message && message.isEdited) ? message.editedAtUnix : happened;
+  const time = (message && message.isEdited && !event.payload.isEmbedUpdate) ? message.editedAtUnix : happened;
   addContainerFooter(container, `${translate('logger.footer.message_updated')} • ${createTimestampStringFromGuild(time, guildId)}`);
 }

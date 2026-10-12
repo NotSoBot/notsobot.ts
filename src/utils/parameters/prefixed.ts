@@ -208,6 +208,7 @@ export async function guildMetadata(
     memberCount: 0,
     owner: null,
     presenceCount: 0,
+    soundboardSoundCount: null,
     voiceStateCount: 0,
   };
   if (!guildId) {
@@ -236,6 +237,8 @@ export async function guildMetadata(
       try {
         if (context.guilds.has(guildId)) {
           payload.guild = context.guilds.get(guildId) as Structures.Guild;
+          // read from the cached guild, a rest-fetched one won't have the sounds
+          payload.soundboardSoundCount = payload.guild.soundboardSounds.length;
           if (!payload.guild.hasMetadata) {
             payload.guild = await context.rest.fetchGuild(guildId);
           }
@@ -263,6 +266,7 @@ export async function guildMetadata(
                   return {
                     memberCount: guild.memberCount,
                     presenceCount: guild.presences.length,
+                    soundboardSoundCount: guild.soundboardSounds.length,
                     voiceStateCount: guild.voiceStates.length,
                   };
                 }

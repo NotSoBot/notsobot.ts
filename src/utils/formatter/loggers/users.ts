@@ -61,7 +61,8 @@ export function getUsersUpdateChanges(event: GuildLoggingEventUsersUpdate, trans
     }
   }
   if (differences.clan !== undefined) {
-    const oldTag = differences.clan && differences.clan.tag;
+    // differences.clan is a partial object of the changed keys when both old and new clans exist, so compare the structures instead
+    const oldTag = old.clan && old.clan.tag;
     const newTag = user.clan && user.clan.tag;
     if (oldTag !== newTag) {
       description.push(`- ${translate('logger.user.clan_tag_change')}`);

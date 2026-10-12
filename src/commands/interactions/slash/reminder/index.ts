@@ -1,4 +1,4 @@
-import { ApplicationIntegrationTypes } from 'detritus-client/lib/constants';
+import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
 import { I18n } from '../../../../utils';
 
@@ -14,6 +14,11 @@ export default class ReminderCommand extends BaseSlashCommand {
   descriptionLocalizations = I18n.localizations('commands.reminder.description');
   name = 'reminder';
   nameLocalizations = I18n.localizations('commands.reminder.name');
+
+  contexts = [
+    InteractionContextTypes.GUILD,
+    InteractionContextTypes.BOT_DM,
+  ];
 
   integrationTypes = [
     ApplicationIntegrationTypes.GUILD_INSTALL,

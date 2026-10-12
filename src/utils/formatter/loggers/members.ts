@@ -450,9 +450,9 @@ export function getGuildMemberUpdateChanges(event: GuildLoggingEventGuildMemberU
     }
   }
 
-  if (member.isPending !== old.isPending) {
+  if (member.pending !== old.pending) {
     description.push(`- ${translate('logger.member.pending_change')}`);
-    if (member.isPending) {
+    if (member.pending) {
       description.push(`-> ${translate('logger.member.is_pending')}`);
     } else {
       description.push(`-> ${translate('logger.member.no_longer_pending')}`);

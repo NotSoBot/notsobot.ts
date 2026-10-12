@@ -10,6 +10,7 @@ export interface GuildMetadataStored {
   memberCount: number,
   owner: null | Structures.User,
   presenceCount: number,
+  soundboardSoundCount: null | number,
   voiceStateCount: number,
 }
 

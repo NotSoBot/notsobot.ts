@@ -34,6 +34,7 @@ export class TagListUserCommand extends BaseInteractionCommandOption {
           name: 'content',
           description: 'Match the tag\'s content',
           ...I18n.optionLocalizations('commands.tag.list.user.content'),
+          maxLength: 1000,
           value: Parameters.string({maxLength: 1000}),
         },
         {
@@ -46,6 +47,7 @@ export class TagListUserCommand extends BaseInteractionCommandOption {
           name: 'name',
           description: 'Match the tag\'s name',
           ...I18n.optionLocalizations('commands.tag.list.user.name'),
+          maxLength: 64,
           value: Parameters.string({maxLength: 64}),
         },
       ],

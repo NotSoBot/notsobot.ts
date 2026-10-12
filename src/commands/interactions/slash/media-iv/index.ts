@@ -11,9 +11,7 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaIVConvertCommand } from './convert';
 import { MediaIVFunGroupCommand } from './fun';
 import { MediaIVLabelsGroupCommand } from './labels';
-import { MediaIVOverlayGroupCommand } from './overlay';
 import { MediaIVTintGroupCommand } from './tint';
-// mirror
 
 
 export default class MediaIVGroupCommand extends BaseSlashCommand {
@@ -38,7 +36,6 @@ export default class MediaIVGroupCommand extends BaseSlashCommand {
         new MediaIVConvertCommand(),
         new MediaIVFunGroupCommand(),
         new MediaIVLabelsGroupCommand(),
-        new MediaIVOverlayGroupCommand(),
         new MediaIVTintGroupCommand(),
       ],
     });

@@ -21,7 +21,7 @@ export default class SetFrameCountCommand extends BaseMediaCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} 24`,
         ],
-        id: Formatter.Commands.MediaIVManipulationSetFPS.COMMAND_ID,
+        id: Formatter.Commands.MediaIVManipulationSetFrameCount.COMMAND_ID,
         usage: '<emoji,user:id|mention,url> <...count:number>',
       },
       type: [
