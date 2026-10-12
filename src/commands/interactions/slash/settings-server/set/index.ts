@@ -1,6 +1,7 @@
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SettingsServerSetAIPersonalityCommand } from './set.ai.personality';
+import { SettingsServerSetResponseDisplayCommand } from './set.response-display';
 import { SettingsServerSetTimezoneCommand } from './set.timezone';
 
 
@@ -12,6 +13,7 @@ export class SettingsServerSetGroupCommand extends BaseInteractionCommandOptionG
     super({
       options: [
         new SettingsServerSetAIPersonalityCommand(),
+        new SettingsServerSetResponseDisplayCommand(),
         new SettingsServerSetTimezoneCommand(),
       ],
     });

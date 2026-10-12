@@ -8,6 +8,7 @@ import {
   MLDiffusionModels,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
+  GuildSettingsResponseDisplayTypes,
   UserSettingsResponseDisplayTypes,
   UserSettingsUploadThresholdTypes,
   UserSettingsUploadTypes,
@@ -91,6 +92,13 @@ export const USER_SETTINGS_FALLBACKS_MEDIA_IMAGE_TYPES = [
   {name: 'Search Google Images', value: UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES},
   {name: 'Search Duck Duck Go Images', value: UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES},
   {name: 'Generate Image', value: UserSettingsFallbacksMediaImageTypes.IMAGINE},
+];
+
+
+export const GUILD_SETTINGS_RESPONSE_DISPLAY = [
+  {name: 'Latest (Default)', value: GuildSettingsResponseDisplayTypes.DEFAULT},
+  {name: 'No Embeds (Text Only)', value: GuildSettingsResponseDisplayTypes.NO_EMBED},
+  {name: 'Legacy (Embeds)', value: GuildSettingsResponseDisplayTypes.LEGACY},
 ];
 
 

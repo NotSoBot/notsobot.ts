@@ -621,6 +621,7 @@ export async function editGuildSettings(
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
     prefixes: options.prefixes,
+    response_display: options.responseDisplay,
     timezone: options.timezone,
   };
   const params = {guildId};

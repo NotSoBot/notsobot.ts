@@ -1,4 +1,4 @@
 import * as Commands from './commands';
-import * as Logger from './logger';
+import * as Loggers from './loggers';
 
-export { Commands, Logger };
+export { Commands, Loggers };

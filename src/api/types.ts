@@ -15,6 +15,7 @@ import {
   TagVariableStorageTypes,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
+  GuildSettingsResponseDisplayTypes,
   UserSettingsResponseDisplayTypes,
   UserSettingsUploadThresholdTypes,
   UserSettingsUploadTypes,
@@ -124,6 +125,7 @@ export namespace RestOptions {
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
     prefixes?: Array<string>,
+    responseDisplay?: GuildSettingsResponseDisplayTypes,
     timezone?: string,
   }
 
@@ -1563,6 +1565,7 @@ export namespace RestResponsesRaw {
       ml_diffusion_model: string | null,
       ml_llm_model: string | null,
       ml_llm_personality: string | null,
+      response_display: number,
     },
     timezone: string | null,
   }

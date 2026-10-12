@@ -1700,6 +1700,14 @@ export enum UserSettingsResponseDisplayTypes {
 }
 
 
+// same values as the user setting so the api can share validation
+export enum GuildSettingsResponseDisplayTypes {
+  DEFAULT = 0,
+  NO_EMBED = 1,
+  LEGACY = 2,
+}
+
+
 export enum UserSettingsUploadThresholdTypes {
   EXCEEDS_DISCORD_LIMIT = 0,
   ALWAYS = 1,
@@ -1881,6 +1889,7 @@ export const NotSoApiKeys = Object.freeze({
   PRODUCT: 'product',
   PROXY_URL: 'proxy_url',
   RECIPE: 'recipe',
+  RESPONSE_DISPLAY: 'response_display',
   SERVINGS: 'servings',
   SETTINGS: 'settings',
   STARS: 'stars',
@@ -1961,6 +1970,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.PRODUCT]: 'product',
   [NotSoApiKeys.PROXY_URL]: 'proxyUrl',
   [NotSoApiKeys.RECIPE]: 'recipe',
+  [NotSoApiKeys.RESPONSE_DISPLAY]: 'responseDisplay',
   [NotSoApiKeys.SERVINGS]: 'servings',
   [NotSoApiKeys.SETTINGS]: 'settings',
   [NotSoApiKeys.STARS]: 'stars',

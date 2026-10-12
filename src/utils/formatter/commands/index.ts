@@ -295,6 +295,7 @@ import * as SearchYoutube from './search.youtube';
 
 import * as SettingsServerSetAIPersonality from './settings.server.set.ai.personality';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
+import * as SettingsServerSetResponseDisplay from './settings.server.set.response.display';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
 import * as SettingsSetAIModel from './settings.set.ai.model';
@@ -670,6 +671,7 @@ export {
 
   SettingsServerSetAIPersonality,
   SettingsServerSetLocale,
+  SettingsServerSetResponseDisplay,
   SettingsServerSetTimezone,
 
   SettingsSetAIModel,
