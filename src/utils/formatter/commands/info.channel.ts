@@ -6,6 +6,7 @@ import { Snowflake } from 'detritus-utils';
 
 import { ChannelTypesText, DateMomentLogFormat } from '../../../constants';
 import { GuildChannelsStored } from '../../../stores/guildchannels';
+import { getTranslator } from '../../i18n';
 import { createTimestampMomentFromGuild, editOrReply } from '../../../utils';
 
 
@@ -30,6 +31,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   const { channel, channels } = args.payload;
 
   const embed = new Embed();
@@ -51,30 +54,30 @@ export async function createMessage(
 
     {
       const timestamp = createTimestampMomentFromGuild(channel.createdAtUnix, context.guildId);
-      description.push(`**Created**: ${timestamp.fromNow()}`);
+      description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
       description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
     }
 
     if (channels) {
       const position = channels.sort((x, y) => parseInt(x.id) - parseInt(y.id)).findIndex((c) => c.id === channel.id) + 1;
-      description.push(`**Created Position**: ${position}/${channels.length}`);
+      description.push(`**${translate('info.channel.created_position')}**: ${position}/${channels.length}`);
     }
     if (channel.guildId) {
-      description.push(`**Guild Id**: \`${channel.guildId}\``);
+      description.push(`**${translate('info.channel.guild_id')}**: \`${channel.guildId}\``);
     }
     if (channel.isManaged) {
-      description.push(`**Managed**: Yes`);
+      description.push(`**${translate('common.managed')}**: ${translate('common.yes')}`);
     }
     if (channel.parentId) {
-      description.push(`**Parent**: <#${channel.parentId}>`);
+      description.push(`**${translate('info.channel.parent')}**: <#${channel.parentId}>`);
       description.push(`**->** ${Markup.spoiler(`(${channel.parentId})`)}`);
     }
     if (channel.position !== undefined) {
-      description.push(`**Position**: ${channel.position.toLocaleString()}`);
+      description.push(`**${translate('common.position')}**: ${channel.position.toLocaleString(language)}`);
     }
-    description.push(`**Type**: ${ChannelTypesText[channel.type] || 'Unknown'}`);
+    description.push(`**${translate('common.type')}**: ${translateMaybe(`channel.type.${channel.type}`, ChannelTypesText[channel.type] || translate('common.unknown'))}`);
 
-    embed.addField('Information', description.join('\n'), true);
+    embed.addField(translate('common.information'), description.join('\n'), true);
   }
 
   if (channel.isText) {
@@ -82,41 +85,41 @@ export async function createMessage(
 
     if (channel.lastMessageId) {
       const timestamp = createTimestampMomentFromGuild(Snowflake.timestamp(channel.lastMessageId), context.guildId);
-      description.push(`**Last Message**: ${timestamp.fromNow()}`);
+      description.push(`**${translate('info.channel.last_message')}**: ${timestamp.locale(language).fromNow()}`);
       description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
     }
     if (channel.lastPinTimestampUnix) {
       const timestamp = createTimestampMomentFromGuild(channel.lastPinTimestampUnix, context.guildId);
-      description.push(`**Last Pin**: ${timestamp.fromNow()}`);
+      description.push(`**${translate('info.channel.last_pin')}**: ${timestamp.locale(language).fromNow()}`);
       description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
     }
     if (channel.isGuildChannel) {
-      description.push(`**NSFW**: ${(channel.nsfw) ? 'Yes': 'No'}`);
+      description.push(`**${translate('info.channel.nsfw')}**: ${(channel.nsfw) ? translate('common.yes') : translate('common.no')}`);
       if (channel.rateLimitPerUser) {
-        description.push(`**Ratelimit**: ${channel.rateLimitPerUser.toLocaleString()} seconds`);
+        description.push(`**${translate('info.channel.ratelimit')}**: ${translate('info.channel.ratelimit_seconds', {seconds: channel.rateLimitPerUser.toLocaleString(language)})}`);
       } else {
-        description.push(`**Ratelimit**: Disabled`);
+        description.push(`**${translate('info.channel.ratelimit')}**: ${translate('common.disabled')}`);
       }
     }
 
-    embed.addField('Text Information', description.join('\n'), true);
+    embed.addField(translate('info.channel.text_information'), description.join('\n'), true);
   } else if (channel.isVoice && channel.isGuildChannel) {
     const description: Array<string> = [];
 
-    description.push(`**Bitrate**: ${((channel.bitrate || 0) / 1000).toLocaleString()} kbps`);
-    description.push(`**User Limit**: ${(channel.userLimit) ? channel.userLimit.toLocaleString() : 'Unlimited'}`);
+    description.push(`**${translate('info.channel.bitrate')}**: ${translate('info.channel.kbps', {value: ((channel.bitrate || 0) / 1000).toLocaleString(language)})}`);
+    description.push(`**${translate('info.channel.user_limit')}**: ${(channel.userLimit) ? channel.userLimit.toLocaleString(language) : translate('common.unlimited')}`);
 
     {
       let text: string;
       switch (channel.videoQualityMode) {
-        case ChannelVideoQualityModes.AUTO: text = 'Auto'; break;
+        case ChannelVideoQualityModes.AUTO: text = translate('info.channel.auto'); break;
         case ChannelVideoQualityModes.FULL: text = '720p'; break;
-        default: text = `Unknown (${channel.videoQualityMode})`;
+        default: text = translate('common.unknown_value', {value: String(channel.videoQualityMode)});
       }
-      description.push(`**Video Quality**: ${text}`);
+      description.push(`**${translate('info.channel.video_quality')}**: ${text}`);
     }
 
-    embed.addField('Voice Information', description.join('\n'), true);
+    embed.addField(translate('info.channel.voice_information'), description.join('\n'), true);
   }
 
   if (channel.isDm) {
@@ -125,12 +128,12 @@ export async function createMessage(
 
     const owner = channel.owner;
     if (owner) {
-      description.push(`**Owner**: ${(insideDm) ? owner.mention : owner}`);
+      description.push(`**${translate('common.owner')}**: ${(insideDm) ? owner.mention : owner}`);
     }
     const users = channel.recipients.map((user: Structures.User) => (insideDm) ? user.mention : user.toString());
-    description.push(`**Recipients (${users.length})**: ${users.join(', ')}`);
+    description.push(`**${translate('info.channel.recipients', {count: users.length.toLocaleString(language)})}**: ${users.join(', ')}`);
 
-    embed.addField('DM Information', description.join('\n'));
+    embed.addField(translate('info.channel.dm_information'), description.join('\n'));
   }
 
   if (channel.isGuildChannel) {
@@ -143,21 +146,21 @@ export async function createMessage(
       const textChannels = children.filter((child: Structures.Channel) => child.isGuildText).length;
       const voiceChannels = children.filter((child: Structures.Channel) => child.isGuildVoice).length;
 
-      description.push(`Children: ${children.length}`);
+      description.push(`${translate('counts.children')}: ${children.length.toLocaleString(language)}`);
       if (newsChannels) {
-        description.push(` -[News]: ${newsChannels.toLocaleString()}`);
+        description.push(` -[${translate('counts.news')}]: ${newsChannels.toLocaleString(language)}`);
       }
       if (storeChannels) {
-        description.push(` -[Store]: ${storeChannels.toLocaleString()}`);
+        description.push(` -[${translate('counts.store')}]: ${storeChannels.toLocaleString(language)}`);
       }
       if (textChannels) {
-        description.push(` -[Text]: ${textChannels.toLocaleString()}`);
+        description.push(` -[${translate('counts.text')}]: ${textChannels.toLocaleString(language)}`);
       }
       if (voiceChannels) {
-        description.push(` -[Voice]: ${voiceChannels.toLocaleString()}`);
+        description.push(` -[${translate('counts.voice')}]: ${voiceChannels.toLocaleString(language)}`);
       }
     }
-    description.push(`Overwrites: ${channel.permissionOverwrites.length.toLocaleString()}`);
+    description.push(`${translate('counts.overwrites')}: ${channel.permissionOverwrites.length.toLocaleString(language)}`);
 
     if (channel.isVoice) {
       description.push('');
@@ -167,32 +170,32 @@ export async function createMessage(
         const listenersAmount = channel.voiceStates.filter((voiceState) => voiceState.isAudience).length;
         const speakersAmount = (membersAmount - listenersAmount);
 
-        description.push(`Listeners: ${listenersAmount.toLocaleString()}`);
-        description.push(`Speakers: ${speakersAmount.toLocaleString()}`);
-        description.push(`Total: ${membersAmount.toLocaleString()}`);
+        description.push(`${translate('counts.listeners')}: ${listenersAmount.toLocaleString(language)}`);
+        description.push(`${translate('counts.speakers')}: ${speakersAmount.toLocaleString(language)}`);
+        description.push(`${translate('counts.total')}: ${membersAmount.toLocaleString(language)}`);
       } else {
-        description.push(`Members: ${membersAmount.toLocaleString()}`);
+        description.push(`${translate('counts.members')}: ${membersAmount.toLocaleString(language)}`);
       }
     }
 
     if (description.length) {
-      embed.addField('Counts', Markup.codeblock(description.join('\n'), {language: 'css'}));
+      embed.addField(translate('common.counts'), Markup.codeblock(description.join('\n'), {language: 'css'}));
     }
   }
 
   {
     const description: Array<string> = [];
 
-    description.push(`[**Channel**](${channel.jumpLink})`);
+    description.push(`[**${translate('common.channel')}**](${channel.jumpLink})`);
     if (channel.guildId) {
-      description.push(`[**Guild**](${Endpoints.Routes.URL + Endpoints.Routes.GUILD(channel.guildId)})`);
+      description.push(`[**${translate('common.guild')}**](${Endpoints.Routes.URL + Endpoints.Routes.GUILD(channel.guildId)})`);
     }
     if (channel.lastMessageId) {
       const route = Endpoints.Routes.MESSAGE(channel.guildId || null, channel.id, channel.lastMessageId);
-      description.push(`[**Last Message**](${Endpoints.Routes.URL + route})`)
+      description.push(`[**${translate('info.channel.last_message')}**](${Endpoints.Routes.URL + route})`)
     }
 
-    embed.addField('Urls', description.join(', '));
+    embed.addField(translate('common.urls'), description.join(', '));
   }
 
   return editOrReply(context, {embed});

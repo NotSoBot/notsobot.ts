@@ -2,6 +2,7 @@ import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { Colors } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
+import { getTranslator } from '../../i18n';
 import { editOrReply } from '../../../utils';
 
 
@@ -36,6 +37,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   const { guild } = args.payload;
   if (guild.icon) {
     const url = guild.iconUrlFormat(null, {size: 512}) as string;
@@ -45,12 +48,12 @@ export async function createMessage(
       const embed = new Embed();
       embed.setAuthor(guild.name, url, guild.jumpLink);
       embed.setColor(Colors.BLURPLE);
-      embed.setDescription(`[**Icon Url**](${guild.iconUrl})`);
+      embed.setDescription(`[**${translate('info.guild.icon_url')}**](${guild.iconUrl})`);
       embed.setImage(url);
 
       return editOrReply(context, {embed});
     }
     return editOrReply(context, url);
   }
-  return editOrReply(context, 'Guild doesn\'t have an icon.');
+  return editOrReply(context, translate('info.guild.no_icon'));
 }

@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter, Parameters } from '../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -9,10 +9,12 @@ export const COMMAND_NAME = 'ascii-from-text';
 
 export class AsciiFromTextCommand extends BaseInteractionCommandOption {
   description = 'Convert text to an ASCII Image';
+  descriptionLocalizations = I18n.localizations('commands.fun.ascii_from_text.description');
   metadata = {
     id: Formatter.Commands.FunAsciiFromText.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.fun.ascii_from_text.name');
 
   constructor() {
     super({
@@ -20,6 +22,7 @@ export class AsciiFromTextCommand extends BaseInteractionCommandOption {
         {
           name: 'text',
           description: 'Text to turn into ASCII Art',
+          ...I18n.optionLocalizations('commands.fun.ascii_from_text.text'),
           value: Parameters.parsedMentionsText,
           required: true,
         },

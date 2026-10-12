@@ -2,6 +2,7 @@ import { Structures } from 'detritus-client';
 import { MessageComponentTypes } from 'detritus-client/lib/constants';
 import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 
+import type { Translator } from '../../i18n';
 import { LogPayloadFiles } from './types';
 
 
@@ -66,15 +67,16 @@ export interface ContainerImage {
 }
 
 
-export function createUserHeaderLines(userId: string, user?: Structures.User | null): Array<string> {
+export function createUserHeaderLines(userId: string, user: Structures.User | null | undefined, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   if (user) {
     let name = Markup.url(Markup.escape.all(user.toString()), user.jumpLink);
     if (user.bot) {
-      name += ' (BOT)';
+      name += ` (${translate('logger.bot_tag')})`;
     }
     return [`### ${name}`, `<@${userId}>`];
   }
-  return ['### Unknown User', `<@${userId}>`];
+  return [`### ${translate('logger.unknown_user')}`, `<@${userId}>`];
 }
 
 
@@ -149,7 +151,7 @@ export function addContainerBody(container: ComponentContainer, sections: Array<
 
 
 // codeblocks have a lot of padding in text displays, so short single line ones become inline code
-// works with a prefix too, like `**Reason**: ` + codeblock
+// works with a prefix too, like `**${translate('logger.reason')}**: ` + codeblock
 export function collapseCodeblock(line: string): string {
   const match = line.match(/^([\s\S]*?)```[^\n`]*\n([^\n`]+)\n```$/);
   if (match) {

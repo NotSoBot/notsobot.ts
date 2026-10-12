@@ -9,6 +9,7 @@ import {
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
 } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import { createColorUrl, editOrReply, padCodeBlockFromRows, permissionsToObject } from '../../../utils';
 
 
@@ -29,11 +30,13 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   const { channel, role } = args;
 
   const embed = new Embed();
   embed.setAuthor(role.name);
-  embed.setDescription(`Showing channel permissions for ${role.mention} in ${channel.mention}`);
+  embed.setDescription(translate('info.role.description', {role: role.mention, channel: channel.mention}));
 
   if (role.color) {
     embed.setColor(role.color);
@@ -49,43 +52,43 @@ export async function createMessage(
       const color = intToRGB(role.color);
       const hex = Markup.codestring(intToHex(role.color, true));
       const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
-      description.push(`**Color**: ${hex} ${rgb}`);
+      description.push(`**${translate('info.role.color')}**: ${hex} ${rgb}`);
     } else {
-      description.push(`**Color**: No Color`);
+      description.push(`**${translate('info.role.color')}**: ${translate('info.role.no_color')}`);
     }
-    description.push(`**Created**: ${role.createdAt.toLocaleString('en-US', DateOptions)}`);
-    description.push(`**Default Role**: ${(role.isDefault) ? 'Yes' : 'No'}`);
-    description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
-    description.push(`**Id**: \`${role.id}\``);
-    description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
-    description.push(`**Mentionable**: ${(role.mentionable) ? 'Yes' : 'No'}`);
+    description.push(`**${translate('common.created')}**: ${role.createdAt.toLocaleString(language, DateOptions)}`);
+    description.push(`**${translate('info.role.default_role')}**: ${(role.isDefault) ? translate('common.yes') : translate('common.no')}`);
+    description.push(`**${translate('info.role.hoisted')}**: ${(role.hoist) ? translate('common.yes') : translate('common.no')}`);
+    description.push(`**${translate('common.id')}**: \`${role.id}\``);
+    description.push(`**${translate('common.managed')}**: ${(role.managed) ? translate('common.yes') : translate('common.no')}`);
+    description.push(`**${translate('info.role.mentionable')}**: ${(role.mentionable) ? translate('common.yes') : translate('common.no')}`);
     if (role.guild) {
       const position = role.guild.roles.sort((x, y) => x.position - y.position).findIndex((r) => r.id === role.id) + 1;
-      description.push(`**Position**: ${role.position} (${position}/${role.guild.roles.length})`);
+      description.push(`**${translate('common.position')}**: ${role.position} (${position}/${role.guild.roles.length})`);
     } else {
-      description.push(`**Position**: ${role.position}`);
+      description.push(`**${translate('common.position')}**: ${role.position}`);
     }
     if (role.tags) {
       if (role.isBoosterRole) {
-        description.push('**Type**: Booster Role');
+        description.push(`**${translate('common.type')}**: ${translate('info.role.booster_role')}`);
       } else if (role.botId) {
-        description.push(`**Type**: Bot Role (for <@${role.botId}>)`);
+        description.push(`**${translate('common.type')}**: ${translate('info.role.bot_role', {bot: `<@${role.botId}>`})}`);
       } else if (role.integrationId) {
-        description.push(`**Type**: Integration Role (${role.integrationId})`);
+        description.push(`**${translate('common.type')}**: ${translate('info.role.integration_role', {id: String(role.integrationId)})}`);
       } else {
-        description.push(`**Type**: Unknown (${JSON.stringify(role.tags)})`);
+        description.push(`**${translate('common.type')}**: ${translate('common.unknown_value', {value: JSON.stringify(role.tags)})}`);
       }
     }
 
-    embed.addField('Information', description.join('\n'), true);
+    embed.addField(translate('common.information'), description.join('\n'), true);
   }
 
   {
     const description: Array<string> = [];
 
-    description.push(`Members: ${role.members.length.toLocaleString()}`);
+    description.push(`${translate('counts.members')}: ${role.members.length.toLocaleString(language)}`);
     if (description.length) {
-      embed.addField('Counts', Markup.codeblock(description.join('\n'), {language: 'css'}), true);
+      embed.addField(translate('common.counts'), Markup.codeblock(description.join('\n'), {language: 'css'}), true);
     }
   }
 
@@ -103,7 +106,7 @@ export async function createMessage(
         rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
-      embed.addField('Moderation', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
+      embed.addField(translate('info.role.moderation'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
     }
 
     if (channel.isText) {
@@ -115,7 +118,7 @@ export async function createMessage(
         rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
-      embed.addField('Text', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
+      embed.addField(translate('info.role.text'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
     } else if (channel.isVoice) {
       const rows: Array<Array<string>> = [];
 
@@ -125,7 +128,7 @@ export async function createMessage(
         rows.push([`${PermissionsText[key]}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
-      embed.addField('Voice', Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
+      embed.addField(translate('info.role.voice'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
     }
   }
 

@@ -3,9 +3,9 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import {
   PresenceStatusColors,
-  PresenceStatusTexts,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import {
   Paginator,
   createUserEmbed,
@@ -29,6 +29,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   const { user } = args;
 
   const presence = user.presence;
@@ -54,19 +56,13 @@ export async function createMessage(
           for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
             let status = (presence.clientStatus as any)[key] as string | undefined;
             if (status) {
-              if (status in PresenceStatusTexts) {
-                status = PresenceStatusTexts[status];
-              }
-              description.push(`**${toTitleCase(key)}**: ${status}`);
+              description.push(`**${translateMaybe(`presence.client.${key}`, toTitleCase(key))}**: ${translateMaybe(`presence.status.${status}`, status)}`);
             }
           }
-          embed.addField('Status', description.join('\n'));
+          embed.addField(translate('presence.status'), description.join('\n'));
         } else {
-          let status = presence.status;
-          if (status in PresenceStatusTexts) {
-            status = PresenceStatusTexts[status];
-          }
-          embed.addField('Status', status, true);
+          const status = translateMaybe(`presence.status.${presence.status}`, presence.status);
+          embed.addField(translate('presence.status'), status, true);
         }
 
         if (presence.status in PresenceStatusColors) {
@@ -80,7 +76,7 @@ export async function createMessage(
           {
             const description: Array<string> = [];
             if (activity.buttons && activity.buttons.length) {
-              description.push(`**Buttons**: ${activity.buttons.map((button) => Markup.codestring(button)).join(', ')}`);
+              description.push(`**${translate('activity.buttons')}**: ${activity.buttons.map((button) => Markup.codestring(button)).join(', ')}`);
             }
             if (activity.emoji) {
               let emoji: string;
@@ -89,48 +85,48 @@ export async function createMessage(
               } else {
                 emoji = activity.emoji.format;
               }
-              description.push(`**Emoji**: ${emoji}`);
+              description.push(`**${translate('activity.emoji')}**: ${emoji}`);
             }
             if (activity.isCustomStatus) {
               if (activity.state) {
-                description.push(`**Custom Status**: ${Markup.escape.all(activity.state)}`);
+                description.push(`**${translate('activity.custom_status')}**: ${Markup.escape.all(activity.state)}`);
               } else {
-                description.push(`**Custom Status**`);
+                description.push(`**${translate('activity.custom_status')}**`);
               }
               if (activity.name !== 'Custom Status') {
-                description.push(`**Hidden Message**: ${Markup.escape.all(activity.name || '')}`);
+                description.push(`**${translate('activity.hidden_message')}**: ${Markup.escape.all(activity.name || '')}`);
               }
             } else {
-              const text = [activity.typeText, Markup.escape.all(activity.name || '')];
+              const text = [translateMaybe(`activity.type.${activity.type}`, activity.typeText), Markup.escape.all(activity.name || '')];
               description.push(text.filter((v) => v).join(' '));
               if (activity.isOnSpotify) {
                 if (activity.assets && activity.assets.largeText) {
-                  description.push(`**Album**: ${activity.assets.largeText}`);
+                  description.push(`**${translate('activity.album')}**: ${activity.assets.largeText}`);
                 }
                 if (activity.details) {
-                  description.push(`**Song**: ${activity.details}`);
+                  description.push(`**${translate('activity.song')}**: ${activity.details}`);
                 }
                 if (activity.state) {
-                  description.push(`**Artists**: ${activity.state.split('; ').join(', ')}`);
+                  description.push(`**${translate('activity.artists')}**: ${activity.state.split('; ').join(', ')}`);
                 }
               } else {
                 if (activity.details) {
-                  description.push(`**Details**: ${Markup.escape.all(activity.details)}`);
+                  description.push(`**${translate('activity.details')}**: ${Markup.escape.all(activity.details)}`);
                 }
                 if (activity.state) {
-                  description.push(`**State**: ${Markup.escape.all(activity.state)}`);
+                  description.push(`**${translate('activity.state')}**: ${Markup.escape.all(activity.state)}`);
                 }
               }
               if (activity.isOnSamsung) {
-                description.push(`**On Samsung Galaxy**`);
+                description.push(`**${translate('activity.on_samsung')}**`);
               }
               if (activity.isOnXbox) {
-                description.push('**On Xbox**');
+                description.push(`**${translate('activity.on_xbox')}**`);
               }
             }
-            let name = 'Activity';
+            let name = translate('activity.title');
             if (1 < pageLimit) {
-              name = `Activity (${page} of ${pageLimit})`;
+              name = translate('activity.title_paged', {page, total: pageLimit});
             }
             embed.addField(name, description.join('\n'), true);
           }
@@ -155,7 +151,7 @@ export async function createMessage(
             const total = formatTime(timestamps.totalTime);
 
             const description = (timestamps.end) ? `${elapsed}/${total}` : `${elapsed}`;
-            embed.addField('Time', description, true);
+            embed.addField(translate('activity.time'), description, true);
           }
 
           if (activity.party) {
@@ -165,13 +161,13 @@ export async function createMessage(
 
             const description = [];
             if (activity.party.size) {
-              description.push(`${activity.partySize}/${activity.partyMaxSize} members`);
+              description.push(translate('activity.party_size', {size: String(activity.partySize), max: String(activity.partyMaxSize)}));
             }
             if (group.length) {
-              description.push(`**Group (${group.length})**: ${group.join(', ')}`);
+              description.push(`**${translate('activity.group', {count: group.length.toLocaleString(language)})}**: ${group.join(', ')}`);
             }
             if (description.length) {
-              embed.addField('Party', description.join('\n'));
+              embed.addField(translate('activity.party'), description.join('\n'));
             }
           }
 
@@ -190,7 +186,7 @@ export async function createMessage(
               }
             }
             if (description.size) {
-              embed.addField('Store Links', Array.from(description).join(', '), true);
+              embed.addField(translate('activity.store_links'), Array.from(description).join(', '), true);
             }
           }
 
@@ -201,16 +197,16 @@ export async function createMessage(
             } else {
               description.push(<string> activity.spotifyTrackUrl);
             }
-            embed.addField('Spotify Track', description.join('\n'), true);
+            embed.addField(translate('activity.spotify_track'), description.join('\n'), true);
           }
 
           if (activity.createdAt) {
-            embed.setFooter('Started');
+            embed.setFooter(translate('activity.started'));
             embed.setTimestamp(activity.createdAt);
           }
         }
       } else {
-        embed.addField('Activity', PresenceStatusTexts['offline']);
+        embed.addField(translate('activity.title'), translate('presence.status.offline'));
       }
 
       return embed;

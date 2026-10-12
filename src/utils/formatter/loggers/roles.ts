@@ -4,6 +4,7 @@ import { ComponentContainer, Embed, Markup, intToHex, intToRGB } from 'detritus-
 import { DateMomentLogFormat, EmbedColors, PermissionsText, StatusEmojis } from '../../../constants';
 import { createColorUrl, createTimestampMomentFromGuild, createTimestampStringFromGuild, createUserString, permissionsToObject } from '../../../utils';
 
+import type { Translator } from '../../i18n';
 import { addContainerBody, addContainerFooter, addContainerGallery, addContainerHeader } from './tools';
 import {
   GuildLoggingEventItemAudits,
@@ -14,7 +15,8 @@ import {
 } from './types';
 
 
-export function getRoleModerationLines(audits: GuildLoggingEventItemAudits | undefined, byText: string): Array<string> {
+export function getRoleModerationLines(audits: GuildLoggingEventItemAudits | undefined, byText: string, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
   if (audits) {
     const [ audit ] = audits;
@@ -31,43 +33,45 @@ export function getRoleColorText(color: number): string {
 }
 
 
-export function getRoleInformationLines(role: Structures.Role, guildId: string, showCreated: boolean): Array<string> {
+export function getRoleInformationLines(role: Structures.Role, guildId: string, showCreated: boolean, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
 
   if (role.color) {
-    description.push(`**Color**: ${getRoleColorText(role.color)}`);
+    description.push(`**${translate('info.role.color')}**: ${getRoleColorText(role.color)}`);
   } else {
-    description.push(`**Color**: No Color`);
+    description.push(`**${translate('info.role.color')}**: ${translate('info.role.no_color')}`);
   }
   if (showCreated) {
     const timestamp = createTimestampMomentFromGuild(role.createdAtUnix, guildId);
-    description.push(`**Created**: ${timestamp.fromNow()}`);
+    description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
     description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
   }
-  description.push(`**Hoisted**: ${(role.hoist) ? 'Yes' : 'No'}`);
-  description.push(`**Id**: \`${role.id}\``);
-  description.push(`**Managed**: ${(role.managed) ? 'Yes' : 'No'}`);
-  description.push(`**Mentionable**: ${(role.mentionable) ? 'Yes' : 'No'}`);
-  description.push(`**Position**: ${role.position}`);
+  description.push(`**${translate('info.role.hoisted')}**: ${(role.hoist) ? translate('common.yes') : translate('common.no')}`);
+  description.push(`**${translate('common.id')}**: \`${role.id}\``);
+  description.push(`**${translate('common.managed')}**: ${(role.managed) ? translate('common.yes') : translate('common.no')}`);
+  description.push(`**${translate('info.role.mentionable')}**: ${(role.mentionable) ? translate('common.yes') : translate('common.no')}`);
+  description.push(`**${translate('common.position')}**: ${role.position}`);
 
   if (role.tags) {
     if (role.isBoosterRole) {
-      description.push('**Type**: Booster Role');
+      description.push(`**${translate('common.type')}**: ${translate('info.role.booster_role')}`);
     } else if (role.botId) {
-      description.push(`**Type**: Bot Role (for <@${role.botId}>)`);
+      description.push(`**${translate('common.type')}**: ${translate('info.role.bot_role', {bot: `<@${role.botId}>`})}`);
     } else if (role.integrationId) {
-      description.push(`**Type**: Integration Role (${role.integrationId})`);
+      description.push(`**${translate('common.type')}**: ${translate('info.role.integration_role', {id: String(role.integrationId)})}`);
     } else {
-      description.push(`**Type**: Unknown (${JSON.stringify(role.tags)})`);
+      description.push(`**${translate('common.type')}**: ${translate('common.unknown_value', {value: JSON.stringify(role.tags)})}`);
     }
   }
   return description;
 }
 
 
-export function getRoleHeaderLines(role: Structures.Role | null | undefined, roleId: string): Array<string> {
+export function getRoleHeaderLines(role: Structures.Role | null | undefined, roleId: string, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   return [
-    `### ${(role) ? Markup.escape.all(role.name) : 'Unknown Role'}`,
+    `### ${(role) ? Markup.escape.all(role.name) : translate('logger.unknown_role')}`,
     `<@&${roleId}> ${Markup.spoiler(`(${roleId})`)}`,
   ];
 }
@@ -88,14 +92,16 @@ export function formatGuildRoleCreate(
   event: GuildLoggingEventGuildRoleCreate,
   embed: Embed,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { role } = event.cached;
 
   {
     const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`Role Created • ${timestamp}`);
+    embed.setFooter(`${translate('logger.footer.role_created')} • ${timestamp}`);
   }
 
   embed.setColor(EmbedColors.LOG_CREATION);
@@ -107,11 +113,11 @@ export function formatGuildRoleCreate(
     embed.setAuthor(role.name, url);
   }
 
-  const moderation = getRoleModerationLines(audits, 'Created By');
+  const moderation = getRoleModerationLines(audits, translate('logger.created_by'), translator);
   if (moderation.length) {
-    embed.addField('Moderation Action', moderation.join('\n'));
+    embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
-  embed.addField('Information', getRoleInformationLines(role, guildId, false).join('\n'));
+  embed.addField(translate('common.information'), getRoleInformationLines(role, guildId, false, translator).join('\n'));
 }
 
 
@@ -119,18 +125,20 @@ export function formatGuildRoleCreateComponents(
   event: GuildLoggingEventGuildRoleCreate,
   container: ComponentContainer,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { role } = event.cached;
 
   container.setAccentColor(EmbedColors.LOG_CREATION);
-  addContainerHeader(container, getRoleHeaderLines(role, role.id), getRoleThumbnailUrl(role));
+  addContainerHeader(container, getRoleHeaderLines(role, role.id, translator), getRoleThumbnailUrl(role));
   addContainerBody(container, [
-    {title: 'Moderation Action', lines: getRoleModerationLines(audits, 'Created By')},
-    {title: 'Information', lines: getRoleInformationLines(role, guildId, false)},
+    {title: translate('logger.moderation_action'), lines: getRoleModerationLines(audits, translate('logger.created_by'), translator)},
+    {title: translate('common.information'), lines: getRoleInformationLines(role, guildId, false, translator)},
   ]);
-  addContainerFooter(container, `Role Created • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.role_created')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
 
 
@@ -138,22 +146,24 @@ export function formatGuildRoleDelete(
   event: GuildLoggingEventGuildRoleDelete,
   embed: Embed,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { role, roleId } = event.payload;
 
   {
     const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`Role Deleted • ${timestamp}`);
+    embed.setFooter(`${translate('logger.footer.role_deleted')} • ${timestamp}`);
   }
 
   embed.setColor(EmbedColors.LOG_DELETION);
   embed.setDescription(`<@&${roleId}> ${Markup.spoiler(`(${roleId})`)}`);
 
-  const moderation = getRoleModerationLines(audits, 'Deleted By');
+  const moderation = getRoleModerationLines(audits, translate('logger.deleted_by'), translator);
   if (moderation.length) {
-    embed.addField('Moderation Action', moderation.join('\n'));
+    embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
 
   if (role) {
@@ -162,7 +172,7 @@ export function formatGuildRoleDelete(
       const url = createColorUrl(role.color);
       embed.setAuthor(role.name, url);
     }
-    embed.addField('Information', getRoleInformationLines(role, guildId, true).join('\n'));
+    embed.addField(translate('common.information'), getRoleInformationLines(role, guildId, true, translator).join('\n'));
   }
 }
 
@@ -171,26 +181,29 @@ export function formatGuildRoleDeleteComponents(
   event: GuildLoggingEventGuildRoleDelete,
   container: ComponentContainer,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { role, roleId } = event.payload;
 
   container.setAccentColor(EmbedColors.LOG_DELETION);
-  addContainerHeader(container, getRoleHeaderLines(role, roleId), (role) ? getRoleThumbnailUrl(role) : null);
+  addContainerHeader(container, getRoleHeaderLines(role, roleId, translator), (role) ? getRoleThumbnailUrl(role) : null);
   addContainerBody(container, [
-    {title: 'Moderation Action', lines: getRoleModerationLines(audits, 'Deleted By')},
-    {title: 'Information', lines: (role) ? getRoleInformationLines(role, guildId, true) : []},
+    {title: translate('logger.moderation_action'), lines: getRoleModerationLines(audits, translate('logger.deleted_by'), translator)},
+    {title: translate('common.information'), lines: (role) ? getRoleInformationLines(role, guildId, true, translator) : []},
   ]);
-  addContainerFooter(container, `Role Deleted • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.role_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
 
 
-export function getGuildRoleUpdateChanges(old: Structures.Role, role: Structures.Role): Array<string> {
+export function getGuildRoleUpdateChanges(old: Structures.Role, role: Structures.Role, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
 
   if (role.color !== old.color) {
-    description.push('- Color');
+    description.push(`- ${translate('info.role.color')}`);
 
     let addText = '';
     if (role.color) {
@@ -212,18 +225,18 @@ export function getGuildRoleUpdateChanges(old: Structures.Role, role: Structures
 
       if (old.color) {
         // updated color
-        description.push(`-> ${removeText} to ${addText}`);
+        description.push(`-> ${translate('logger.change', {old: removeText, new: addText})}`);
       } else {
-        description.push(`-> Set to ${addText}`);
+        description.push(`-> ${translate('logger.set_to', {value: `${addText}`})}`);
       }
     } else {
       // removed color
-      description.push(`-> Cleared ${removeText}`);
+      description.push(`-> ${translate('logger.cleared', {value: `${removeText}`})}`);
     }
   }
 
   if (role.unicodeEmoji !== old.unicodeEmoji) {
-    description.push('- Emoji');
+    description.push(`- ${translate('logger.role.emoji')}`);
 
     let addText = '';
     if (role.unicodeEmoji) {
@@ -247,13 +260,13 @@ export function getGuildRoleUpdateChanges(old: Structures.Role, role: Structures
 
       if (old.unicodeEmoji) {
         // updated emoji
-        description.push(`-> ${removeText} to ${addText}`);
+        description.push(`-> ${translate('logger.change', {old: removeText, new: addText})}`);
       } else {
-        description.push(`-> Set to ${addText}`);
+        description.push(`-> ${translate('logger.set_to', {value: `${addText}`})}`);
       }
     } else {
       // removed emoji
-      description.push(`-> Cleared ${removeText}`);
+      description.push(`-> ${translate('logger.cleared', {value: `${removeText}`})}`);
     }
   }
 
@@ -261,36 +274,36 @@ export function getGuildRoleUpdateChanges(old: Structures.Role, role: Structures
     //description.push('- Hoist Change');
     if (role.hoist) {
       // added hoist
-      description.push('- Hoisted Role');
+      description.push(`- ${translate('logger.role.hoisted')}`);
     } else {
       // removed hoist
-      description.push('- Unhoisted Role');
+      description.push(`- ${translate('logger.role.unhoisted')}`);
     }
   }
 
   if (role.icon !== old.icon) {
-    description.push('- Icon');
+    description.push(`- ${translate('logger.role.icon')}`);
     if (role.icon && old.icon) {
-      description.push('-> Changed Icons');
+      description.push(`-> ${translate('logger.role.icon_changed')}`);
     } else if (role.icon) {
-      description.push('-> Set Icon');
+      description.push(`-> ${translate('logger.role.icon_set')}`);
     } else {
-      description.push('-> Removed Icon');
+      description.push(`-> ${translate('logger.role.icon_removed')}`);
     }
   }
 
   if (role.mentionable !== old.mentionable) {
     //description.push('- Mentionable Change');
     if (role.mentionable) {
-      description.push('- Made Mentionable');
+      description.push(`- ${translate('logger.role.mentionable')}`);
     } else {
-      description.push('- Made Unmentionable');
+      description.push(`- ${translate('logger.role.unmentionable')}`);
     }
   }
 
   if (role.position !== old.position) {
-    description.push('- Position');
-    description.push(`-> #${old.position} to #${role.position}`);
+    description.push(`- ${translate('common.position')}`);
+    description.push(`-> ${translate('logger.change', {old: `#${old.position}`, new: `#${role.position}`})}`);
   }
 
   return description;
@@ -322,14 +335,16 @@ export function formatGuildRoleUpdate(
   event: GuildLoggingEventGuildRoleUpdate,
   embed: Embed,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { icons, old, role } = event.cached;
 
   {
     const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`Role Updated • ${timestamp}`);
+    embed.setFooter(`${translate('logger.footer.role_updated')} • ${timestamp}`);
   }
 
   embed.setColor(EmbedColors.LOG_UPDATE);
@@ -354,22 +369,22 @@ export function formatGuildRoleUpdate(
     }
   }
 
-  const moderation = getRoleModerationLines(audits, 'Updated By');
+  const moderation = getRoleModerationLines(audits, translate('logger.updated_by'), translator);
   if (moderation.length) {
-    embed.addField('Moderation Action', moderation.join('\n'));
+    embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
 
-  const changes = getGuildRoleUpdateChanges(old, role);
+  const changes = getGuildRoleUpdateChanges(old, role, translator);
   if (changes.length) {
-    embed.addField('Changes', changes.join('\n'));
+    embed.addField(translate('logger.changes'), changes.join('\n'));
   }
 
   const { added, removed } = getGuildRolePermissionChanges(old, role);
   if (added.length) {
-    embed.addField('Enabled Permissions', Markup.codeblock(added.join('\n')), true);
+    embed.addField(translate('logger.role.enabled_permissions'), Markup.codeblock(added.join('\n')), true);
   }
   if (removed.length) {
-    embed.addField('Removed Permissions', Markup.codeblock(removed.join('\n')), true);
+    embed.addField(translate('logger.role.removed_permissions'), Markup.codeblock(removed.join('\n')), true);
   }
 }
 
@@ -378,7 +393,9 @@ export function formatGuildRoleUpdateComponents(
   event: GuildLoggingEventGuildRoleUpdate,
   container: ComponentContainer,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { icons, old, role } = event.cached;
@@ -398,21 +415,21 @@ export function formatGuildRoleUpdateComponents(
   const { added, removed } = getGuildRolePermissionChanges(old, role);
 
   container.setAccentColor(EmbedColors.LOG_UPDATE);
-  addContainerHeader(container, getRoleHeaderLines(role, role.id), urls.current || getRoleThumbnailUrl(role));
+  addContainerHeader(container, getRoleHeaderLines(role, role.id, translator), urls.current || getRoleThumbnailUrl(role));
   addContainerBody(container, [
-    {title: 'Moderation Action', lines: getRoleModerationLines(audits, 'Updated By')},
-    {title: 'Changes', lines: getGuildRoleUpdateChanges(old, role)},
-    {title: 'Enabled Permissions', lines: (added.length) ? [Markup.codeblock(added.join('\n'))] : []},
-    {title: 'Removed Permissions', lines: (removed.length) ? [Markup.codeblock(removed.join('\n'))] : []},
+    {title: translate('logger.moderation_action'), lines: getRoleModerationLines(audits, translate('logger.updated_by'), translator)},
+    {title: translate('logger.changes'), lines: getGuildRoleUpdateChanges(old, role, translator)},
+    {title: translate('logger.role.enabled_permissions'), lines: (added.length) ? [Markup.codeblock(added.join('\n'))] : []},
+    {title: translate('logger.role.removed_permissions'), lines: (removed.length) ? [Markup.codeblock(removed.join('\n'))] : []},
   ]);
 
   if (urls.old) {
-    const images = [{description: 'Old Icon', url: urls.old}];
+    const images = [{description: translate('logger.role.old_icon'), url: urls.old}];
     if (urls.current) {
-      images.push({description: 'New Icon', url: urls.current});
+      images.push({description: translate('logger.role.new_icon'), url: urls.current});
     }
-    addContainerGallery(container, images, (urls.current) ? 'Icon (Old -> New)' : 'Old Icon');
+    addContainerGallery(container, images, (urls.current) ? translate('logger.role.icon_old_new') : translate('logger.role.old_icon'));
   }
 
-  addContainerFooter(container, `Role Updated • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.role_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }

@@ -6,6 +6,7 @@ import { searchImgur } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { DiscordEmojis, EmbedBrands, EmbedColors } from '../../../constants';
 import { DefaultParameters, Paginator, createUserEmbed, editOrReply, shuffleArray } from '../..';
+import { getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'fun.badmeme';
@@ -35,5 +36,6 @@ export async function createMessage(
       file: {filename, value: await context.rest.get(url)},
     });
   }
-  return editOrReply(context, 'Couldn\'t find any bad memes');
+  const { translate } = await getTranslator(context);
+  return editOrReply(context, translate('fun.badmeme.not_found'));
 }

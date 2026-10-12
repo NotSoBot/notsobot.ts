@@ -1,8 +1,8 @@
 import moment from 'moment';
 
 import { Collections, ShardClient, Structures } from 'detritus-client';
-import { DiscordAbortCodes, HTTPMethods } from 'detritus-client/lib/constants';
-import { Endpoints as DiscordEndpoints, RequestTypes, Utils as DiscordRestUtils } from 'detritus-client-rest';
+import { DiscordAbortCodes } from 'detritus-client/lib/constants';
+import { RequestTypes } from 'detritus-client-rest';
 
 import { deleteGuildLogger } from '../../api';
 import {
@@ -435,10 +435,11 @@ export class GuildSettingsLogger extends BaseStructure {
       avatarUrl: EmbedBrands.NOTSOBOT,
       username: 'NotSoBot',
     }, options);
+    // discord ignores webhook components unless `with_components=true` is in the query (even for webhooks we own)
+    if (typeof(options) === 'object' && options.components && !compatibleType) {
+      options.withComponents = true;
+    }
     try {
-      if (typeof(options) === 'object' && options.components && !compatibleType) {
-        return await executeWebhookWithComponents(shard, this.webhookId, this.webhookToken, options);
-      }
       return await shard.rest.executeWebhook(this.webhookId, this.webhookToken, options, compatibleType);
     } catch(error) {
       switch (error.code) {
@@ -454,42 +455,6 @@ export class GuildSettingsLogger extends BaseStructure {
   }
 }
 
-
-
-// discord ignores webhook components unless `with_components=true` is in the query (even for webhooks we own),
-// which detritus' executeWebhook doesn't support, so the components v2 payload would be sent as an empty message
-export async function executeWebhookWithComponents(
-  shard: ShardClient,
-  webhookId: string,
-  webhookToken: string,
-  options: RequestTypes.ExecuteWebhook,
-) {
-  const [ body, files ] = DiscordRestUtils.CamelCaseToSnakeCase.MessageEdit(options);
-  Object.assign(body, {
-    avatar_url: options.avatarUrl,
-    flags: options.flags,
-    username: options.username,
-  });
-
-  const query: Record<string, any> = {with_components: true};
-  if (options.threadId) {
-    query.thread_id = options.threadId;
-  }
-  if (options.wait) {
-    query.wait = options.wait;
-  }
-  return shard.rest.request({
-    body,
-    files,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: DiscordEndpoints.Api.WEBHOOK_TOKEN,
-      params: {webhookId, webhookToken},
-    },
-    useAuth: false,
-  });
-}
 
 const keysGuildSettingsPrefix = new Collections.BaseSet<string>([
   NotSoApiKeys.ADDED,

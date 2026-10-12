@@ -5,6 +5,7 @@ import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 import { ChannelTypesText, DateMomentLogFormat, EmbedColors, PermissionsText } from '../../../constants';
 import { createTimestampMomentFromGuild, createTimestampStringFromGuild, createUserString, permissionsToObject } from '../../../utils';
 
+import type { Translator } from '../../i18n';
 import { addContainerBody, addContainerFooter, addContainerHeader } from './tools';
 import {
   GuildLoggingEventItemAudits,
@@ -15,18 +16,20 @@ import {
 } from './types';
 
 
-export function getChannelTypeText(type: ChannelTypes): string {
-  return (ChannelTypesText as Record<number, string>)[type] || `Unknown (${type})`;
+export function getChannelTypeText(type: ChannelTypes, translator: Translator): string {
+  const { language, translate, translateMaybe } = translator;
+  return translateMaybe(`channel.type.${type}`, (ChannelTypesText as Record<number, string>)[type] || translate('common.unknown_value', {value: type}));
 }
 
 
-export function getChannelModerationLines(audits: GuildLoggingEventItemAudits | undefined, byText: string): Array<string> {
+export function getChannelModerationLines(audits: GuildLoggingEventItemAudits | undefined, byText: string, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
   if (audits) {
     const [ audit ] = audits;
     description.push(`**${byText}**: ${createUserString(audit.userId, audit.user as Structures.User)}`);
     if (audit.reason) {
-      description.push(`**Reason**: ${Markup.codeblock(audit.reason)}`);
+      description.push(`**${translate('logger.reason')}**: ${Markup.codeblock(audit.reason)}`);
     }
   }
   return description;
@@ -51,34 +54,35 @@ export function getChannelOverwriteTargetText(guildId: string, overwrite: Struct
 }
 
 
-export function getChannelInformationLines(channel: Structures.Channel, guildId: string): Array<string> {
+export function getChannelInformationLines(channel: Structures.Channel, guildId: string, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
-  description.push(`**Type**: ${getChannelTypeText(channel.type)}`);
-  description.push(`**Id**: ${Markup.codestring(channel.id)}`);
+  description.push(`**${translate('common.type')}**: ${getChannelTypeText(channel.type, translator)}`);
+  description.push(`**${translate('common.id')}**: ${Markup.codestring(channel.id)}`);
   if (channel.parentId) {
-    description.push(`**Category**: <#${channel.parentId}>`);
+    description.push(`**${translate('logger.channel.category')}**: <#${channel.parentId}>`);
   }
   if (channel.position !== undefined) {
-    description.push(`**Position**: ${channel.position}`);
+    description.push(`**${translate('common.position')}**: ${channel.position}`);
   }
   if (!channel.isGuildCategory) {
-    description.push(`**NSFW**: ${(channel.nsfw) ? 'Yes' : 'No'}`);
+    description.push(`**${translate('info.channel.nsfw')}**: ${(channel.nsfw) ? translate('common.yes') : translate('common.no')}`);
   }
   if (channel.rateLimitPerUser) {
-    description.push(`**Slowmode**: ${channel.rateLimitPerUser.toLocaleString()} seconds`);
+    description.push(`**${translate('logger.channel.slowmode')}**: ${translate('info.channel.ratelimit_seconds', {seconds: channel.rateLimitPerUser.toLocaleString(language)})}`);
   }
   if (channel.isVoice) {
     if (channel.bitrate) {
-      description.push(`**Bitrate**: ${(channel.bitrate / 1000).toLocaleString()} kbps`);
+      description.push(`**${translate('info.channel.bitrate')}**: ${translate('info.channel.kbps', {value: (channel.bitrate / 1000).toLocaleString(language)})}`);
     }
-    description.push(`**User Limit**: ${(channel.userLimit) ? channel.userLimit.toLocaleString() : 'Unlimited'}`);
+    description.push(`**${translate('info.channel.user_limit')}**: ${(channel.userLimit) ? channel.userLimit.toLocaleString(language) : translate('common.unlimited')}`);
   }
   if (channel.permissionOverwrites.length) {
-    description.push(`**Permission Overwrites**: ${channel.permissionOverwrites.length.toLocaleString()}`);
+    description.push(`**${translate('logger.channel.permission_overwrites')}**: ${channel.permissionOverwrites.length.toLocaleString(language)}`);
   }
   {
     const timestamp = createTimestampMomentFromGuild(channel.createdAtUnix, guildId);
-    description.push(`**Created**: ${timestamp.fromNow()}`);
+    description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
     description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
   }
   return description;
@@ -90,70 +94,71 @@ export function getChannelTopicLines(channel: Structures.Channel): Array<string>
 }
 
 
-export function getChannelUpdateChanges(old: Structures.Channel, channel: Structures.Channel): Array<string> {
+export function getChannelUpdateChanges(old: Structures.Channel, channel: Structures.Channel, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
 
   if (channel.name !== old.name) {
-    description.push('- Name');
-    description.push(`-> **${Markup.codestring(old.name)}** to **${Markup.codestring(channel.name)}**`);
+    description.push(`- ${translate('common.name')}`);
+    description.push(`-> ${translate('logger.change', {old: `**${Markup.codestring(old.name)}**`, new: `**${Markup.codestring(channel.name)}**`})}`);
   }
 
   if (channel.type !== old.type) {
-    description.push('- Type');
-    description.push(`-> **${getChannelTypeText(old.type)}** to **${getChannelTypeText(channel.type)}**`);
+    description.push(`- ${translate('common.type')}`);
+    description.push(`-> ${translate('logger.change', {old: `**${getChannelTypeText(old.type, translator)}**`, new: `**${getChannelTypeText(channel.type, translator)}**`})}`);
   }
 
   if (channel.topic !== old.topic) {
-    description.push('- Topic');
+    description.push(`- ${translate('logger.topic')}`);
     if (channel.topic && old.topic) {
-      description.push(`-> From ${Markup.codeblock(old.topic)}`);
-      description.push(`-> To ${Markup.codeblock(channel.topic)}`);
+      description.push(`-> ${translate('logger.from', {value: `${Markup.codeblock(old.topic)}`})}`);
+      description.push(`-> ${translate('logger.to', {value: `${Markup.codeblock(channel.topic)}`})}`);
     } else if (channel.topic) {
-      description.push(`-> Set to ${Markup.codeblock(channel.topic)}`);
+      description.push(`-> ${translate('logger.set_to', {value: `${Markup.codeblock(channel.topic)}`})}`);
     } else {
-      description.push(`-> Cleared ${Markup.codeblock(old.topic || '')}`);
+      description.push(`-> ${translate('logger.cleared', {value: `${Markup.codeblock(old.topic || '')}`})}`);
     }
   }
 
   if (channel.nsfw !== old.nsfw) {
-    description.push((channel.nsfw) ? '- Marked as NSFW' : '- Unmarked as NSFW');
+    description.push(`- ${translate((channel.nsfw) ? 'logger.channel.nsfw_marked' : 'logger.channel.nsfw_unmarked')}`);
   }
 
   if ((channel.rateLimitPerUser || 0) !== (old.rateLimitPerUser || 0)) {
-    description.push('- Slowmode');
+    description.push(`- ${translate('logger.channel.slowmode')}`);
     if (channel.rateLimitPerUser) {
-      description.push(`-> ${(old.rateLimitPerUser || 0).toLocaleString()} to ${channel.rateLimitPerUser.toLocaleString()} seconds`);
+      description.push(`-> ${translate('logger.change', {old: (old.rateLimitPerUser || 0).toLocaleString(language), new: translate('info.channel.ratelimit_seconds', {seconds: channel.rateLimitPerUser.toLocaleString(language)})})}`);
     } else {
-      description.push('-> Disabled');
+      description.push(`-> ${translate('common.disabled')}`);
     }
   }
 
   if ((channel.parentId || null) !== (old.parentId || null)) {
-    description.push('- Category');
+    description.push(`- ${translate('logger.channel.category')}`);
     if (channel.parentId && old.parentId) {
-      description.push(`-> <#${old.parentId}> to <#${channel.parentId}>`);
+      description.push(`-> ${translate('logger.change', {old: `<#${old.parentId}>`, new: `<#${channel.parentId}>`})}`);
     } else if (channel.parentId) {
-      description.push(`-> Moved into <#${channel.parentId}>`);
+      description.push(`-> ${translate('logger.channel.moved_into', {channel: `<#${channel.parentId}>`})}`);
     } else {
-      description.push(`-> Removed from <#${old.parentId}>`);
+      description.push(`-> ${translate('logger.channel.removed_from', {channel: `<#${old.parentId}>`})}`);
     }
   }
 
   if (channel.bitrate !== old.bitrate && channel.bitrate) {
-    description.push('- Bitrate');
-    description.push(`-> ${((old.bitrate || 0) / 1000).toLocaleString()} to ${(channel.bitrate / 1000).toLocaleString()} kbps`);
+    description.push(`- ${translate('info.channel.bitrate')}`);
+    description.push(`-> ${translate('logger.change', {old: ((old.bitrate || 0) / 1000).toLocaleString(language), new: translate('info.channel.kbps', {value: (channel.bitrate / 1000).toLocaleString(language)})})}`);
   }
 
   if ((channel.userLimit || 0) !== (old.userLimit || 0)) {
-    description.push('- User Limit');
-    const oldText = (old.userLimit) ? old.userLimit.toLocaleString() : 'Unlimited';
-    const newText = (channel.userLimit) ? channel.userLimit.toLocaleString() : 'Unlimited';
-    description.push(`-> ${oldText} to ${newText}`);
+    description.push(`- ${translate('info.channel.user_limit')}`);
+    const oldText = (old.userLimit) ? old.userLimit.toLocaleString(language) : translate('common.unlimited');
+    const newText = (channel.userLimit) ? channel.userLimit.toLocaleString(language) : translate('common.unlimited');
+    description.push(`-> ${translate('logger.change', {old: oldText, new: newText})}`);
   }
 
   if ((channel.rtcRegion || null) !== (old.rtcRegion || null)) {
-    description.push('- Region');
-    description.push(`-> ${Markup.codestring(old.rtcRegion || 'Automatic')} to ${Markup.codestring(channel.rtcRegion || 'Automatic')}`);
+    description.push(`- ${translate('info.guild.region')}`);
+    description.push(`-> ${translate('logger.change', {old: Markup.codestring(old.rtcRegion || translate('logger.channel.automatic')), new: Markup.codestring(channel.rtcRegion || translate('logger.channel.automatic'))})}`);
   }
 
   return description;
@@ -172,7 +177,8 @@ export function getOverwritePermissionStates(overwrite?: Structures.Overwrite): 
 }
 
 
-export function getChannelOverwriteChanges(guildId: string, old: Structures.Channel, channel: Structures.Channel): Array<string> {
+export function getChannelOverwriteChanges(guildId: string, old: Structures.Channel, channel: Structures.Channel, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
 
   const ids = new Set<string>([...old.permissionOverwrites.keys(), ...channel.permissionOverwrites.keys()]);
@@ -202,20 +208,20 @@ export function getChannelOverwriteChanges(guildId: string, old: Structures.Chan
     }
 
     if (!oldOverwrite) {
-      description.push(`- Added Overwrite for ${target}`);
+      description.push(`- ${translate('logger.channel.overwrite_added', {target})}`);
     } else if (!newOverwrite) {
-      description.push(`- Removed Overwrite for ${target}`);
+      description.push(`- ${translate('logger.channel.overwrite_removed', {target})}`);
     } else {
-      description.push(`- Changed Overwrite for ${target}`);
+      description.push(`- ${translate('logger.channel.overwrite_changed', {target})}`);
     }
     if (allowed.length) {
-      description.push(`-> Allowed: ${allowed.join(', ')}`);
+      description.push(`-> ${translate('logger.channel.allowed')}: ${allowed.join(', ')}`);
     }
     if (denied.length) {
-      description.push(`-> Denied: ${denied.join(', ')}`);
+      description.push(`-> ${translate('logger.channel.denied')}: ${denied.join(', ')}`);
     }
     if (reset.length && newOverwrite) {
-      description.push(`-> Reset: ${reset.join(', ')}`);
+      description.push(`-> ${translate('logger.channel.reset')}: ${reset.join(', ')}`);
     }
   }
   return description;
@@ -226,7 +232,9 @@ export function formatChannelCreate(
   event: GuildLoggingEventChannelCreate,
   embed: Embed,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { channel } = event.cached;
@@ -234,14 +242,14 @@ export function formatChannelCreate(
   embed.setAuthor(channel.name);
   embed.setColor(EmbedColors.LOG_CREATION);
   embed.setDescription(`${channel.mention} ${Markup.spoiler(`(${channel.id})`)}`);
-  embed.setFooter(`Channel Created • ${createTimestampStringFromGuild(happened, guildId)}`);
+  embed.setFooter(`${translate('logger.footer.channel_created')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
-  const moderation = getChannelModerationLines(audits, 'Created By');
+  const moderation = getChannelModerationLines(audits, translate('logger.created_by'), translator);
   if (moderation.length) {
-    embed.addField('Moderation Action', moderation.join('\n'));
+    embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
-  embed.addField('Topic', getChannelTopicLines(channel).join('\n'));
-  embed.addField('Information', getChannelInformationLines(channel, guildId).join('\n'));
+  embed.addField(translate('logger.topic'), getChannelTopicLines(channel).join('\n'));
+  embed.addField(translate('common.information'), getChannelInformationLines(channel, guildId, translator).join('\n'));
 }
 
 
@@ -249,7 +257,9 @@ export function formatChannelCreateComponents(
   event: GuildLoggingEventChannelCreate,
   container: ComponentContainer,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { channel } = event.cached;
@@ -257,11 +267,11 @@ export function formatChannelCreateComponents(
   container.setAccentColor(EmbedColors.LOG_CREATION);
   addContainerHeader(container, getChannelHeaderLines(channel));
   addContainerBody(container, [
-    {title: 'Moderation Action', lines: getChannelModerationLines(audits, 'Created By')},
-    {title: 'Topic', lines: getChannelTopicLines(channel)},
-    {title: 'Information', lines: getChannelInformationLines(channel, guildId)},
+    {title: translate('logger.moderation_action'), lines: getChannelModerationLines(audits, translate('logger.created_by'), translator)},
+    {title: translate('logger.topic'), lines: getChannelTopicLines(channel)},
+    {title: translate('common.information'), lines: getChannelInformationLines(channel, guildId, translator)},
   ]);
-  addContainerFooter(container, `Channel Created • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.channel_created')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
 
 
@@ -269,7 +279,9 @@ export function formatChannelDelete(
   event: GuildLoggingEventChannelDelete,
   embed: Embed,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { channel } = event.cached;
@@ -277,14 +289,14 @@ export function formatChannelDelete(
   embed.setAuthor(channel.name);
   embed.setColor(EmbedColors.LOG_DELETION);
   embed.setDescription(`${Markup.codestring(channel.name)} ${Markup.spoiler(`(${channel.id})`)}`);
-  embed.setFooter(`Channel Deleted • ${createTimestampStringFromGuild(happened, guildId)}`);
+  embed.setFooter(`${translate('logger.footer.channel_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
-  const moderation = getChannelModerationLines(audits, 'Deleted By');
+  const moderation = getChannelModerationLines(audits, translate('logger.deleted_by'), translator);
   if (moderation.length) {
-    embed.addField('Moderation Action', moderation.join('\n'));
+    embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
-  embed.addField('Topic', getChannelTopicLines(channel).join('\n'));
-  embed.addField('Information', getChannelInformationLines(channel, guildId).join('\n'));
+  embed.addField(translate('logger.topic'), getChannelTopicLines(channel).join('\n'));
+  embed.addField(translate('common.information'), getChannelInformationLines(channel, guildId, translator).join('\n'));
 }
 
 
@@ -292,7 +304,9 @@ export function formatChannelDeleteComponents(
   event: GuildLoggingEventChannelDelete,
   container: ComponentContainer,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { channel } = event.cached;
@@ -300,11 +314,11 @@ export function formatChannelDeleteComponents(
   container.setAccentColor(EmbedColors.LOG_DELETION);
   addContainerHeader(container, getChannelHeaderLines(channel, true));
   addContainerBody(container, [
-    {title: 'Moderation Action', lines: getChannelModerationLines(audits, 'Deleted By')},
-    {title: 'Topic', lines: getChannelTopicLines(channel)},
-    {title: 'Information', lines: getChannelInformationLines(channel, guildId)},
+    {title: translate('logger.moderation_action'), lines: getChannelModerationLines(audits, translate('logger.deleted_by'), translator)},
+    {title: translate('logger.topic'), lines: getChannelTopicLines(channel)},
+    {title: translate('common.information'), lines: getChannelInformationLines(channel, guildId, translator)},
   ]);
-  addContainerFooter(container, `Channel Deleted • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.channel_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
 
 
@@ -312,7 +326,9 @@ export function formatChannelUpdate(
   event: GuildLoggingEventChannelUpdate,
   embed: Embed,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { channel, old } = event.cached;
@@ -320,14 +336,14 @@ export function formatChannelUpdate(
   embed.setAuthor(channel.name);
   embed.setColor(EmbedColors.LOG_UPDATE);
   embed.setDescription(`${channel.mention} ${Markup.spoiler(`(${channel.id})`)}`);
-  embed.setFooter(`Channel Updated • ${createTimestampStringFromGuild(happened, guildId)}`);
+  embed.setFooter(`${translate('logger.footer.channel_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
-  const moderation = getChannelModerationLines(audits, 'Updated By');
+  const moderation = getChannelModerationLines(audits, translate('logger.updated_by'), translator);
   if (moderation.length) {
-    embed.addField('Moderation Action', moderation.join('\n'));
+    embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
-  embed.addField('Changes', getChannelUpdateChanges(old, channel).join('\n'));
-  embed.addField('Permission Overwrites', getChannelOverwriteChanges(guildId, old, channel).join('\n'));
+  embed.addField(translate('logger.changes'), getChannelUpdateChanges(old, channel, translator).join('\n'));
+  embed.addField(translate('logger.channel.permission_overwrites'), getChannelOverwriteChanges(guildId, old, channel, translator).join('\n'));
 }
 
 
@@ -335,7 +351,9 @@ export function formatChannelUpdateComponents(
   event: GuildLoggingEventChannelUpdate,
   container: ComponentContainer,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { audits, guildId, happened } = event;
 
   const { channel, old } = event.cached;
@@ -343,9 +361,9 @@ export function formatChannelUpdateComponents(
   container.setAccentColor(EmbedColors.LOG_UPDATE);
   addContainerHeader(container, getChannelHeaderLines(channel));
   addContainerBody(container, [
-    {title: 'Moderation Action', lines: getChannelModerationLines(audits, 'Updated By')},
-    {title: 'Changes', lines: getChannelUpdateChanges(old, channel)},
-    {title: 'Permission Overwrites', lines: getChannelOverwriteChanges(guildId, old, channel)},
+    {title: translate('logger.moderation_action'), lines: getChannelModerationLines(audits, translate('logger.updated_by'), translator)},
+    {title: translate('logger.changes'), lines: getChannelUpdateChanges(old, channel, translator)},
+    {title: translate('logger.channel.permission_overwrites'), lines: getChannelOverwriteChanges(guildId, old, channel, translator)},
   ]);
-  addContainerFooter(container, `Channel Updated • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.channel_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }

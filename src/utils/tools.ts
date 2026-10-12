@@ -38,6 +38,8 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
+import { getTranslator } from './i18n';
+
 import { Endpoints, fetchJob, moderationSafetyScan } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
@@ -1730,6 +1732,8 @@ export async function imageReplyFromOptions(
   value: any,
   options: ImageReplyOptions,
 ) {
+  const { language, translate } = await getTranslator(context);
+
   let filename: string = '';
   if (options.filename) {
     filename = options.filename;
@@ -1746,12 +1750,12 @@ export async function imageReplyFromOptions(
     const content: Array<string> = [options.storage.urls.vanity];
     if (options.storage && options.storage.expires_at) {
       const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
-      const downloadText = Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`);
+      const downloadText = Markup.url(translate('media.download_it'), `<${options.storage.urls.cdn}?download=true>`);
       const warning: Array<string> = [
-        `This media will expire ${expiresAtText}, ${downloadText} to keep it permanently.`,
+        translate('media.expires', {download: downloadText, expires: expiresAtText}),
       ];
       if (context instanceof Command.Context && userMaybeHasNitro(context)) {
-        warning.push(`Slash Commands will use your Nitro Upload limits.`);
+        warning.push(translate('media.nitro_upload_limits'));
       }
       content.push(`> -# **${warning.join(' ')}**`);
     }
@@ -1780,7 +1784,7 @@ export async function imageReplyFromOptions(
     }
 
     if (showFrames) {
-      footer = `${footer}, ${options.framesNew.toLocaleString()} frames`;
+      footer = `${footer}, ${translate('media.frames', {count: options.framesNew.toLocaleString(language)})}`;
     }
   }
 
@@ -1795,8 +1799,8 @@ export async function imageReplyFromOptions(
       took = Date.now() - context.metadata.started;
     }
     if (2000 <= took) {
-      const seconds = (took / 1000).toFixed(1);
-      footer = `${footer}, took ${seconds} seconds`;
+      const seconds = (took / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
+      footer = `${footer}, ${translate('media.took', {seconds})}`;
     }
   }
   embed.setFooter(footer);
@@ -1838,7 +1842,8 @@ export async function jobReply(
     return mediaReply(context, job.result.response);
   }
 
-  const message = await editOrReply(context, 'Thinking...');
+  const { translate } = await getTranslator(context);
+  const message = await editOrReply(context, translate('media.thinking'));
   const messageEditedAtUnix = message && message.editedAtUnix;
 
   const timer = new Timers.Timeout();
@@ -1851,13 +1856,13 @@ export async function jobReply(
     // todo: if message is null, it means the context is an interaction, check that
     const refreshedJob = await fetchJob(context, job.id);
     if (refreshedJob.result.error) {
-      return editOrReply(context, `Job Failed: ${refreshedJob.result.error}`);
+      return editOrReply(context, translate('media.job_failed', {error: String(refreshedJob.result.error)}));
     }
     if (refreshedJob.result.response) {
       return mediaReply(context, refreshedJob.result.response);
     }
     if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
-      return editOrReply(context, `Unknown Job Status: ${refreshedJob.status}`);
+      return editOrReply(context, translate('media.job_unknown_status', {status: refreshedJob.status}));
     }
     timer.start(pollingTime, pollingFunction);
   };
@@ -1954,6 +1959,7 @@ export async function mediaReplyFromOptions(
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const isFromPrefix = (context instanceof Command.Context);
+  const { language, translate } = await getTranslator(context);
 
   let filename: string = '';
   if (options.filename) {
@@ -1972,7 +1978,7 @@ export async function mediaReplyFromOptions(
     footer = `${options.width || 0}x${options.height || 0}, `;
   }
   if (options.framecount && options.framecount !== 1) {
-    footer += `${options.framecount.toLocaleString()} frames, `;
+    footer += `${translate('media.frames', {count: options.framecount.toLocaleString(language)})}, `;
   }
   footer += formatMemory(options.size, 2);
   if (options.took) {
@@ -1981,8 +1987,8 @@ export async function mediaReplyFromOptions(
       took = Date.now() - context.metadata.started;
     }
     if (2000 <= took) {
-      const seconds = (took / 1000).toFixed(1);
-      footer = `${footer}, took ${seconds} seconds`;
+      const seconds = (took / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
+      footer = `${footer}, ${translate('media.took', {seconds})}`;
     }
   }
 
@@ -1990,7 +1996,7 @@ export async function mediaReplyFromOptions(
   if (!options.reuploading && options.storage && options.storage.temporary && context instanceof Command.Context) {
     reuploadButton = new ComponentButton({
       customId: MessageComponentCustomIds.MAKE_PERMANENT_USING_NITRO + '.' + options.storage.id,
-      label: 'Make Permanent Using Nitro',
+      label: translate('media.make_permanent'),
     });
   } else {
     switch (options.reuploading) {
@@ -2006,7 +2012,7 @@ export async function mediaReplyFromOptions(
       case ReuploadStatuses.STARTED: {
         reuploadButton = new ComponentButton({
           disabled: true,
-          label: 'Re-Uploading Using Nitro...',
+          label: translate('media.reuploading'),
         });
       }; break;
     }
@@ -2068,16 +2074,16 @@ export async function mediaReplyFromOptions(
       }
       container.addSeparator();
       if (!isFromInteraction) {
-        container.addTextDisplay({content: `-# **Invoked by <@${userId}>**`});
+        container.addTextDisplay({content: `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`});
       }
       if (options.storage && options.storage.expires_at) {
         const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
-        const downloadText = Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`);
+        const downloadText = Markup.url(translate('media.download_it'), `<${options.storage.urls.cdn}?download=true>`);
         const warning: Array<string> = [
-          `This media will expire ${expiresAtText}, ${downloadText} to keep it permanently.`,
+          translate('media.expires', {download: downloadText, expires: expiresAtText}),
         ];
         if ((context instanceof Command.Context || options.reuploading) && userMaybeHasNitro(context)) {
-          warning.push(`Slash Commands will use your Nitro Upload limits.`);
+          warning.push(translate('media.nitro_upload_limits'));
         }
         container.addTextDisplay({content: `-# **${warning.join(' ')}**`});
       }
@@ -2111,12 +2117,12 @@ export async function mediaReplyFromOptions(
       }
       if (options.storage && options.storage.expires_at) {
         const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
-        const downloadText = Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`);
+        const downloadText = Markup.url(translate('media.download_it'), `<${options.storage.urls.cdn}?download=true>`);
         const warning: Array<string> = [
-          `This media will expire ${expiresAtText}, ${downloadText} to keep it permanently.`,
+          translate('media.expires', {download: downloadText, expires: expiresAtText}),
         ];
         if ((context instanceof Command.Context || options.reuploading) && userMaybeHasNitro(context)) {
-          warning.push(`Slash Commands will use your Nitro Upload limits.`);
+          warning.push(translate('media.nitro_upload_limits'));
         }
         description.push(`-# **${warning.join(' ')}**`);
       }
@@ -2143,8 +2149,8 @@ export async function mediaReplyFromOptions(
         took = Date.now() - context.metadata.started;
       }
       if (2000 <= took) {
-        const seconds = (took / 1000).toFixed(1);
-        footer = `took ${seconds} seconds`;
+        const seconds = (took / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
+        footer = translate('media.took', {seconds});
       }
     }
 
@@ -2153,12 +2159,12 @@ export async function mediaReplyFromOptions(
     ];
     if (options.storage.expires_at) {
       const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
-      const downloadText = Markup.url('download it', `<${options.storage.urls.cdn}?download=true>`);
+      const downloadText = Markup.url(translate('media.download_it'), `<${options.storage.urls.cdn}?download=true>`);
       const warning: Array<string> = [
-        `This media will expire ${expiresAtText}, ${downloadText} to keep it permanently.`,
+        translate('media.expires', {download: downloadText, expires: expiresAtText}),
       ];
       if (context instanceof Command.Context && userMaybeHasNitro(context)) {
-        warning.push(`Slash Commands will use your Nitro Upload limits.`);
+        warning.push(translate('media.nitro_upload_limits'));
       }
       content.push(`> -# **${warning.join(' ')}**`);
     }

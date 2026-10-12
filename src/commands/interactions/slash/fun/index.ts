@@ -4,6 +4,8 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { AsciiFromImageCommand } from './ascii-from-image';
@@ -16,7 +18,9 @@ import { TTSCommand } from './tts';
 
 export default class FunGroupCommand extends BaseSlashCommand {
   description = 'Fun Commands';
+  descriptionLocalizations = I18n.localizations('commands.fun.description');
   name = 'fun';
+  nameLocalizations = I18n.localizations('commands.fun.name');
 
   contexts = [
     InteractionContextTypes.GUILD,

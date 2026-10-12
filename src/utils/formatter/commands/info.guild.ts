@@ -8,6 +8,7 @@ import {
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
 } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import { createTimestampMomentFromGuild, editOrReply, formatMemory, toTitleCase } from '../../../utils';
 
 
@@ -42,6 +43,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   const {
     channels,
     guild,
@@ -79,26 +82,26 @@ export async function createMessage(
   {
     const description: Array<string> = [];
 
-    description.push(`**Acronym**: ${guild.acronym}`);
+    description.push(`**${translate('info.guild.acronym')}**: ${guild.acronym}`);
     {
       const timestamp = createTimestampMomentFromGuild(guild.createdAtUnix, context.guildId);
-      description.push(`**Created**: ${timestamp.fromNow()}`);
+      description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
       description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
     }
-    description.push(`**Id**: \`${guild.id}\``);
-    description.push(`**Locale**: \`${guild.preferredLocaleText || guild.preferredLocale}\``);
-    description.push(`**Nitro Tier**: ${(guild.premiumTier) ? `Level ${guild.premiumTier}` : 'None'}`);
+    description.push(`**${translate('common.id')}**: \`${guild.id}\``);
+    description.push(`**${translate('info.guild.locale')}**: \`${guild.preferredLocaleText || guild.preferredLocale}\``);
+    description.push(`**${translate('info.guild.nitro_tier')}**: ${(guild.premiumTier) ? translate('info.guild.nitro_level', {level: guild.premiumTier}) : translate('common.none')}`);
     if (guild.id === context.guildId) {
-      description.push(`**Owner**: <@!${guild.ownerId}>`);
+      description.push(`**${translate('common.owner')}**: <@!${guild.ownerId}>`);
     } else {
-      description.push(`**Owner**: ${owner}`);
-      description.push(`**Owner Id**: \`${owner.id}\``);
+      description.push(`**${translate('common.owner')}**: ${owner}`);
+      description.push(`**${translate('info.guild.owner_id')}**: \`${owner.id}\``);
     }
-    description.push(`**Region**: \`${guild.region}\``);
-    description.push(`**Server Type**: ${(guild.isPublic) ? 'Public' : 'Private'}`);
+    description.push(`**${translate('info.guild.region')}**: \`${guild.region}\``);
+    description.push(`**${translate('info.guild.server_type')}**: ${translate((guild.isPublic) ? 'info.guild.server_type_public' : 'info.guild.server_type_private')}`);
 
     if (context.client.shardCount !== 1) {
-      description.push(`**Shard**: ${guildIdToShardId(guild.id, context.client.shardCount)}/${context.client.shardCount}`);
+      description.push(`**${translate('info.guild.shard')}**: ${guildIdToShardId(guild.id, context.client.shardCount)}/${context.client.shardCount}`);
     }
 
     // Application Id
@@ -106,19 +109,19 @@ export async function createMessage(
     // lazy
     // system channel flags
 
-    embed.addField('Information', description.join('\n'), true);
+    embed.addField(translate('common.information'), description.join('\n'), true);
   }
 
   {
     const description: Array<string> = [];
 
-    description.push(`**AFK Timeout**: ${guild.afkTimeout} seconds`);
-    description.push(`**Content Filter**: ${GuildExplicitContentFilterTypeTexts[guild.explicitContentFilter] || 'Unknown'}`);
-    description.push(`**Message Notifs**: ${(guild.defaultMessageNotifications) ? 'Mentions' : 'All'}`);
-    description.push(`**MFA**: ${(guild.mfaLevel) ? 'Required' : 'Optional'}`);
-    description.push(`**Verification**: ${VerificationLevelTexts[guild.verificationLevel] || 'Unknown'}`);
+    description.push(`**${translate('info.guild.afk_timeout')}**: ${translate('info.guild.afk_timeout_seconds', {seconds: guild.afkTimeout})}`);
+    description.push(`**${translate('info.guild.content_filter')}**: ${translateMaybe(`guild.content_filter.${guild.explicitContentFilter}`, GuildExplicitContentFilterTypeTexts[guild.explicitContentFilter] || translate('common.unknown'))}`);
+    description.push(`**${translate('info.guild.message_notifications')}**: ${translate((guild.defaultMessageNotifications) ? 'info.guild.mentions' : 'info.guild.all')}`);
+    description.push(`**${translate('info.guild.mfa')}**: ${translate((guild.mfaLevel) ? 'info.guild.mfa_required' : 'info.guild.mfa_optional')}`);
+    description.push(`**${translate('info.guild.verification')}**: ${translateMaybe(`guild.verification.${guild.verificationLevel}`, VerificationLevelTexts[guild.verificationLevel] || translate('common.unknown'))}`);
 
-    embed.addField('Moderation', description.join('\n'), true);
+    embed.addField(translate('info.guild.moderation'), description.join('\n'), true);
   }
 
   {
@@ -133,27 +136,27 @@ export async function createMessage(
     const description: Array<string> = [];
     if (guild.afkChannelId) {
       const name = getChannelName(guild.afkChannelId);
-      description.push(`**AFK**: ${name}`);
+      description.push(`**${translate('info.guild.afk')}**: ${name}`);
     }
     const defaultChannel = channels.find((channel: Structures.Channel) => channel.position === 0 && channel.isGuildText);
     if (defaultChannel) {
       const name = (context.guildId === guild.id) ? defaultChannel.mention : `${defaultChannel} (${defaultChannel.id})`;
-      description.push(`**Default**: ${name}`);
+      description.push(`**${translate('info.guild.default')}**: ${name}`);
     }
     if (guild.rulesChannelId) {
       const name = getChannelName(guild.rulesChannelId);
-      description.push(`**Rules**: ${name}`);
+      description.push(`**${translate('info.guild.rules')}**: ${name}`);
     }
     if (guild.systemChannelId) {
       const name = getChannelName(guild.systemChannelId);
-      description.push(`**System**: ${name}`);
+      description.push(`**${translate('info.guild.system')}**: ${name}`);
     }
     if (guild.widgetChannelId) {
       const name = getChannelName(guild.widgetChannelId);
-      description.push(`**Widget**: ${name}`);
+      description.push(`**${translate('info.guild.widget')}**: ${name}`);
     }
     if (description.length) {
-      embed.addField('Channels', description.join('\n'), false);
+      embed.addField(translate('info.guild.channels'), description.join('\n'), false);
     }
   }
 
@@ -168,44 +171,44 @@ export async function createMessage(
 
       const column: Array<string> = [];
 
-      column.push(`Channels: ${channels.length.toLocaleString()}`);
+      column.push(`${translate('counts.channels')}: ${channels.length.toLocaleString(language)}`);
       if (categoryChannels) {
-        column.push(` -[Category]: ${categoryChannels.toLocaleString()}`);
+        column.push(` -[${translate('counts.category')}]: ${categoryChannels.toLocaleString(language)}`);
       }
       if (newsChannels) {
-        column.push(` -[News]: ${newsChannels.toLocaleString()}`);
+        column.push(` -[${translate('counts.news')}]: ${newsChannels.toLocaleString(language)}`);
       }
       if (storeChannels) {
-        column.push(` -[Store]: ${storeChannels.toLocaleString()}`);
+        column.push(` -[${translate('counts.store')}]: ${storeChannels.toLocaleString(language)}`);
       }
       if (textChannels) {
-        column.push(` -[Text]: ${textChannels.toLocaleString()}`);
+        column.push(` -[${translate('counts.text')}]: ${textChannels.toLocaleString(language)}`);
       }
       if (voiceChannels) {
-        column.push(` -[Voice]: ${voiceChannels.toLocaleString()}`);
+        column.push(` -[${translate('counts.voice')}]: ${voiceChannels.toLocaleString(language)}`);
       }
-      column.push(`Emojis: ${emojis.length.toLocaleString()}`);
-      column.push(` -[Anim]: ${animatedEmojis.toLocaleString()}`);
-      column.push(` -[Regular]: ${(emojis.length - animatedEmojis).toLocaleString()}`);
+      column.push(`${translate('counts.emojis')}: ${emojis.length.toLocaleString(language)}`);
+      column.push(` -[${translate('counts.anim')}]: ${animatedEmojis.toLocaleString(language)}`);
+      column.push(` -[${translate('counts.regular')}]: ${(emojis.length - animatedEmojis).toLocaleString(language)}`);
 
-      embed.addField('Counts', Markup.codeblock(column.join('\n'), {language: 'css'}), true);
+      embed.addField(translate('common.counts'), Markup.codeblock(column.join('\n'), {language: 'css'}), true);
     }
 
     {
       const column: Array<string> = [];
 
-      column.push(`Boosts: ${guild.premiumSubscriptionCount.toLocaleString()}`);
-      column.push(`Members: ${memberCount.toLocaleString()}`);
-      column.push(`Overwrites: ${channels.reduce((x: number, channel: Structures.Channel) => x + channel.permissionOverwrites.length, 0).toLocaleString()}`);
-      column.push(`Presences: ${presenceCount.toLocaleString()}`);
+      column.push(`${translate('counts.boosts')}: ${guild.premiumSubscriptionCount.toLocaleString(language)}`);
+      column.push(`${translate('counts.members')}: ${memberCount.toLocaleString(language)}`);
+      column.push(`${translate('counts.overwrites')}: ${channels.reduce((x: number, channel: Structures.Channel) => x + channel.permissionOverwrites.length, 0).toLocaleString(language)}`);
+      column.push(`${translate('counts.presences')}: ${presenceCount.toLocaleString(language)}`);
 
       const managedRoles = guild.roles.filter((role) => role.managed).length;
-      column.push(`Roles: ${guild.roles.length.toLocaleString()}`);
-      column.push(` -[Managed]: ${managedRoles.toLocaleString()}`);
-      column.push(` -[Regular]: ${(guild.roles.length - managedRoles).toLocaleString()}`);
-      column.push(`VoiceStates: ${voiceStateCount.toLocaleString()}`);
+      column.push(`${translate('counts.roles')}: ${guild.roles.length.toLocaleString(language)}`);
+      column.push(` -[${translate('counts.managed')}]: ${managedRoles.toLocaleString(language)}`);
+      column.push(` -[${translate('counts.regular')}]: ${(guild.roles.length - managedRoles).toLocaleString(language)}`);
+      column.push(`${translate('counts.voice_states')}: ${voiceStateCount.toLocaleString(language)}`);
 
-      embed.addField('Counts', Markup.codeblock(column.join('\n'), {language: 'css'}), true);
+      embed.addField(translate('common.counts'), Markup.codeblock(column.join('\n'), {language: 'css'}), true);
     }
   }
 
@@ -213,44 +216,44 @@ export async function createMessage(
   {
     const description: Array<string> = [];
 
-    description.push(`Attachment: ${formatMemory(guild.maxAttachmentSize)}`);
-    description.push(`Bitrate: ${(guild.maxBitrate / 1000).toLocaleString()} kbps`);
-    description.push(`Emojis: ${guild.maxEmojis * 2}`);
-    description.push(` -[Anim]: ${guild.maxEmojis}`);
-    description.push(` -[Regular]: ${guild.maxEmojis}`);
-    description.push(`Members: ${guild.maxMembers.toLocaleString()}`);
-    description.push(`Presences: ${guild.maxPresences.toLocaleString()}`);
+    description.push(`${translate('counts.attachment')}: ${formatMemory(guild.maxAttachmentSize)}`);
+    description.push(`${translate('counts.bitrate')}: ${translate('info.channel.kbps', {value: (guild.maxBitrate / 1000).toLocaleString(language)})}`);
+    description.push(`${translate('counts.emojis')}: ${guild.maxEmojis * 2}`);
+    description.push(` -[${translate('counts.anim')}]: ${guild.maxEmojis}`);
+    description.push(` -[${translate('counts.regular')}]: ${guild.maxEmojis}`);
+    description.push(`${translate('counts.members')}: ${guild.maxMembers.toLocaleString(language)}`);
+    description.push(`${translate('counts.presences')}: ${guild.maxPresences.toLocaleString(language)}`);
 
-    embed.addField('Limits', Markup.codeblock(description.join('\n'), {language: 'css'}), true);
+    embed.addField(translate('info.guild.limits'), Markup.codeblock(description.join('\n'), {language: 'css'}), true);
   }
 
   if (guild.features.length) {
     const description = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
-    embed.addField('Features', Markup.codeblock(description.join('\n')), true);
+    embed.addField(translate('common.features'), Markup.codeblock(description.join('\n')), true);
   }
 
   {
     const description: Array<string> = [];
 
     if (guild.banner) {
-      description.push(`[**Banner Image**](${guild.bannerUrlFormat(null, {size: 1024})})`);
+      description.push(`[**${translate('info.guild.banner_image')}**](${guild.bannerUrlFormat(null, {size: 1024})})`);
     }
     if (guild.discoverySplash) {
-      description.push(`[**Discovery Splash**](${guild.discoverySplashUrlFormat(null, {size: 1024})})`);
+      description.push(`[**${translate('info.guild.discovery_splash')}**](${guild.discoverySplashUrlFormat(null, {size: 1024})})`);
     }
-    description.push(`[**Guild**](${guild.jumpLink})`);
+    description.push(`[**${translate('common.guild')}**](${guild.jumpLink})`);
     if (guild.icon) {
-      description.push(`[**Icon Image**](${guild.iconUrlFormat(null, {size: 1024})})`);
+      description.push(`[**${translate('info.guild.icon_image')}**](${guild.iconUrlFormat(null, {size: 1024})})`);
     }
     if (guild.splash) {
-      description.push(`[**Splash Image**](${guild.splashUrlFormat(null, {size: 1024})})`);
+      description.push(`[**${translate('info.guild.splash_image')}**](${guild.splashUrlFormat(null, {size: 1024})})`);
     }
     if (guild.widgetEnabled) {
-      description.push(`[**Widget**](${guild.widgetUrl})`);
-      description.push(`[**Widget Image**](${guild.widgetImageUrl})`);
+      description.push(`[**${translate('info.guild.widget')}**](${guild.widgetUrl})`);
+      description.push(`[**${translate('info.guild.widget_image')}**](${guild.widgetImageUrl})`);
     }
 
-    embed.addField('Urls', description.join(', '));
+    embed.addField(translate('common.urls'), description.join(', '));
   }
 
   /*

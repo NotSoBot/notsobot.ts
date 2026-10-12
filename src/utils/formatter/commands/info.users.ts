@@ -5,10 +5,10 @@ import {
   DateMomentLogFormat,
   DiscordEmojis,
   PresenceStatusColors,
-  PresenceStatusTexts,
   StatusEmojis,
   PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import {
   Paginator,
   createTimestampMomentFromGuild,
@@ -39,6 +39,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   const { users } = args;
 
   let membersOrUsers = users;
@@ -72,7 +74,7 @@ export async function createMessage(
 
   const pageLimit = membersOrUsers.length;
   if (pageLimit === 0) {
-    return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any users.`);
+    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`);
   }
 
   const paginator = new Paginator(context, {
@@ -94,7 +96,7 @@ export async function createMessage(
       embed.setDescription(member.mention);
       embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
 
-      embed.setTitle(`User ${page.toLocaleString()} of ${pageLimit.toLocaleString()}`);
+      embed.setTitle(translate('user.page', {page: page.toLocaleString(language), total: pageLimit.toLocaleString(language)}));
       {
         const description: Array<string> = [];
         {
@@ -105,13 +107,13 @@ export async function createMessage(
             }
           }
           if (badges.length) {
-            description.push(`**Badges**: ${badges.join(' ')}`);
+            description.push(`**${translate('user.badges')}**: ${badges.join(' ')}`);
           }
         }
-        description.push(`**Bot**: ${(user.bot) ? 'Yes' : 'No'}`);
-        description.push(`**Id**: \`${user.id}\``);
+        description.push(`**${translate('user.bot')}**: ${translate((user.bot) ? 'common.yes' : 'common.no')}`);
+        description.push(`**${translate('common.id')}**: \`${user.id}\``);
         if (user.system) {
-          description.push(`**System**: Yes`);
+          description.push(`**${translate('user.system')}**: ${translate('common.yes')}`);
         }
         {
           let tag: string | undefined;
@@ -125,31 +127,31 @@ export async function createMessage(
             }
           }
           if (tag) {
-            description.push(`**Tag**: ${tag}`);
+            description.push(`**${translate('user.tag')}**: ${tag}`);
           }
         }
-        embed.addField('Information', description.join('\n'), true);
+        embed.addField(translate('common.information'), description.join('\n'), true);
       }
 
       {
         const description: Array<string> = [];
         {
           const timestamp = createTimestampMomentFromGuild(user.createdAtUnix, context.guildId);
-          description.push(`**Discord**: ${timestamp.fromNow()}`);
+          description.push(`**${translate('user.joined_discord')}**: ${timestamp.locale(language).fromNow()}`);
           description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
         }
         if (isMember && member.joinedAtUnix) {
           {
             const timestamp = createTimestampMomentFromGuild(member.joinedAtUnix, context.guildId);
-            description.push(`**Guild**: ${timestamp.fromNow()}`);
+            description.push(`**${translate('user.joined_guild')}**: ${timestamp.locale(language).fromNow()}`);
             description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
           }
           if (member.guild) {
             const [ position, memberCount ] = getMemberJoinPosition(member.guild, member.id);
-            description.push(`**Join Position**: ${position.toLocaleString()}/${memberCount.toLocaleString()}`);
+            description.push(`**${translate('user.join_position')}**: ${position.toLocaleString(language)}/${memberCount.toLocaleString(language)}`);
           }
         }
-        embed.addField('Joined', description.join('\n'), true);
+        embed.addField(translate('user.joined'), description.join('\n'), true);
       }
 
       if (isMember) {
@@ -157,14 +159,14 @@ export async function createMessage(
 
         if (member.premiumSince) {
           const timestamp = createTimestampMomentFromGuild(member.premiumSinceUnix, context.guildId);
-          description.push(`**Boosting Since**: ${timestamp.fromNow()}`);
+          description.push(`**${translate('user.boosting_since')}**: ${timestamp.locale(language).fromNow()}`);
           description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
         }
         if (member.nick) {
-          description.push(`**Nickname**: ${member.nick}`);
+          description.push(`**${translate('user.nickname')}**: ${member.nick}`);
         }
         if (member.isOwner) {
-          description.push('**Owner**: Yes');
+          description.push(`**${translate('common.owner')}**: ${translate('common.yes')}`);
         }
 
         const roles = member.roles
@@ -185,7 +187,7 @@ export async function createMessage(
             return `<@&${role}>`;
           });
 
-        let rolesText = `**Roles (${roles.length})**: ${roles.join(', ')}`;
+        let rolesText = `**${translate('user.roles', {count: roles.length.toLocaleString(language)})}**: ${roles.join(', ')}`;
         if (800 < rolesText.length) {
           const fromIndex = rolesText.length - ((rolesText.length - 800) + 3);
           const index = rolesText.lastIndexOf(',', fromIndex);
@@ -195,9 +197,9 @@ export async function createMessage(
 
         const voiceChannel = member.voiceChannel;
         if (voiceChannel) {
-          description.push(`**Voice**: ${voiceChannel.toString()}`);
+          description.push(`**${translate('user.voice')}**: ${voiceChannel.toString()}`);
         }
-        embed.addField('Guild Specific', description.join('\n'));
+        embed.addField(translate('user.guild_specific'), description.join('\n'));
       }
 
       const presence = user.presence;
@@ -211,26 +213,20 @@ export async function createMessage(
           for (let key of PRESENCE_CLIENT_STATUS_KEYS) {
             let status = (presence.clientStatus as any)[key] as string | undefined;
             if (status) {
-              if (status in PresenceStatusTexts) {
-                status = PresenceStatusTexts[status];
-              }
-              description.push(`**${toTitleCase(key)}**: ${status}`);
+              description.push(`**${translateMaybe(`presence.client.${key}`, toTitleCase(key))}**: ${translateMaybe(`presence.status.${status}`, status)}`);
             }
           }
-          embed.addField('Status', description.join('\n'));
+          embed.addField(translate('presence.status'), description.join('\n'));
         } else {
-          let status = presence.status;
-          if (status in PresenceStatusTexts) {
-            status = PresenceStatusTexts[status];
-          }
-          embed.addField('Status', status, true);
+          const status = translateMaybe(`presence.status.${presence.status}`, presence.status);
+          embed.addField(translate('presence.status'), status, true);
         }
 
         const activity = presence.activity;
         if (activity) {
           const description: Array<string> = [];
           if (activity.buttons && activity.buttons.length) {
-            description.push(`**Buttons**: ${activity.buttons.map((button) => Markup.codestring(button)).join(', ')}`);
+            description.push(`**${translate('activity.buttons')}**: ${activity.buttons.map((button) => Markup.codestring(button)).join(', ')}`);
           }
           if (activity.emoji) {
             let emoji: string;
@@ -239,64 +235,64 @@ export async function createMessage(
             } else {
               emoji = activity.emoji.format;
             }
-            description.push(`**Emoji**: ${emoji}`);
+            description.push(`**${translate('activity.emoji')}**: ${emoji}`);
           }
           if (activity.isCustomStatus) {
             if (activity.state) {
-              description.push(`**Custom Status**: ${Markup.escape.all(activity.state)}`);
+              description.push(`**${translate('activity.custom_status')}**: ${Markup.escape.all(activity.state)}`);
             } else {
-              description.push(`**Custom Status**`);
+              description.push(`**${translate('activity.custom_status')}**`);
             }
             if (activity.name !== 'Custom Status') {
-              description.push(`**Hidden Message**: ${Markup.escape.all(activity.name || '')}`);
+              description.push(`**${translate('activity.hidden_message')}**: ${Markup.escape.all(activity.name || '')}`);
             }
           } else {
-            const text = [activity.typeText, Markup.escape.all(activity.name || '')];
+            const text = [translateMaybe(`activity.type.${activity.type}`, activity.typeText), Markup.escape.all(activity.name || '')];
             description.push(text.filter((v) => v).join(' '));
             if (activity.isOnSpotify) {
               if (activity.assets && activity.assets.largeText) {
-                description.push(`**Album**: ${activity.assets.largeText}`);
+                description.push(`**${translate('activity.album')}**: ${activity.assets.largeText}`);
               }
               if (activity.details) {
-                description.push(`**Song**: ${activity.details}`);
+                description.push(`**${translate('activity.song')}**: ${activity.details}`);
               }
               if (activity.state) {
-                description.push(`**Artists**: ${activity.state.split('; ').join(', ')}`);
+                description.push(`**${translate('activity.artists')}**: ${activity.state.split('; ').join(', ')}`);
               }
             } else {
               if (activity.details) {
-                description.push(`**Details**: ${Markup.escape.all(activity.details)}`);
+                description.push(`**${translate('activity.details')}**: ${Markup.escape.all(activity.details)}`);
               }
               if (activity.state) {
-                description.push(`**State**: ${Markup.escape.all(activity.state)}`);
+                description.push(`**${translate('activity.state')}**: ${Markup.escape.all(activity.state)}`);
               }
             }
             if (activity.isOnSamsung) {
-              description.push(`**On Samsung Galaxy**`);
+              description.push(`**${translate('activity.on_samsung')}**`);
             }
             if (activity.isOnXbox) {
-              description.push('**On Xbox**');
+              description.push(`**${translate('activity.on_xbox')}**`);
             }
           }
 
-          let name = 'Activity';
+          let name = translate('activity.title');
           if (presence.activities.length !== 1) {
-            name = `Activity (1 of ${presence.activities.length})`;
+            name = translate('activity.title_paged', {page: 1, total: presence.activities.length});
           }
           embed.addField(name, description.join('\n'), true);
         }
       } else {
-        embed.addField('Activity', PresenceStatusTexts['offline']);
+        embed.addField(translate('activity.title'), translate('presence.status.offline'));
       }
 
       if (isMember) {
         if (member.avatar) {
           const description: Array<string> = [];
 
-          description.push(Markup.url(Markup.bold('Guild Avatar'), member.avatarUrl));
-          description.push(Markup.url(Markup.bold('User Avatar'), user.avatarUrl));
+          description.push(Markup.url(Markup.bold(translate('user.guild_avatar')), member.avatarUrl));
+          description.push(Markup.url(Markup.bold(translate('user.user_avatar')), user.avatarUrl));
 
-          embed.addField('Urls', description.join(', '));
+          embed.addField(translate('common.urls'), description.join(', '));
         }
       }
 

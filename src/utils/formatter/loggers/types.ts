@@ -3,6 +3,7 @@ import { ClientEvents } from 'detritus-client/lib/constants';
 import { ComponentContainer, Embed } from 'detritus-client/lib/utils';
 
 import type { UserAvatarDecorationStored } from '../../../stores/useravatardecorations';
+import type { Languages } from '../../i18n';
 
 
 export type ClientStatusType = 'desktop' | 'mobile' | 'web';
@@ -202,4 +203,5 @@ export type LogPayload = {
 
 export interface LogPayloadOptions {
   componentsV2?: boolean,
+  language?: Languages,
 }

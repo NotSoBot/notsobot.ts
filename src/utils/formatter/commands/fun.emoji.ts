@@ -8,6 +8,7 @@ import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { CDN, CUSTOM } from '../../../api/endpoints';
 import { EmojiTypes, EmojiTypesToText, Mimetypes, StatusEmojis } from '../../../constants';
 import { editOrReply, jobReply, jobWaitForResult, toCodePoint, toCodePointForTwemoji } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 import * as MediaIVManipulationResize from './media.iv.manipulation.resize';
 
@@ -152,7 +153,8 @@ export async function createMessage(
     const files = await Promise.all(promises);
     return editOrReply(context, {files});
   }
-  return editOrReply(context, `${StatusEmojis.WARNING} Unable to find any images matching that.`);
+  const { translate } = await getTranslator(context);
+  return editOrReply(context, `${StatusEmojis.WARNING} ${translate('fun.emoji.not_found')}`);
 }
 
 

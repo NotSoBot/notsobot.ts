@@ -4,6 +4,7 @@ import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 import { DiscordUserFlagsText, EmbedColors } from '../../../constants';
 import { createTimestampStringFromGuild, createUserEmbed } from '../../../utils';
 
+import type { Translator } from '../../i18n';
 import {
   addContainerBody,
   addContainerFooter,
@@ -15,7 +16,8 @@ import {
 import { LogPayloadFiles, GuildLoggingEventUsersUpdate } from './types';
 
 
-export function getUsersUpdateChanges(event: GuildLoggingEventUsersUpdate): Array<string> {
+export function getUsersUpdateChanges(event: GuildLoggingEventUsersUpdate, translator: Translator): Array<string> {
+  const { language, translate, translateMaybe } = translator;
   const { avatarDecorations, old, user } = event.cached;
   const { differences } = event.payload;
 
@@ -26,11 +28,11 @@ export function getUsersUpdateChanges(event: GuildLoggingEventUsersUpdate): Arra
 
   if (differences.avatar !== undefined) {
     if (differences.avatar && user.avatar) {
-      description.push('- Changed Avatars');
+      description.push(`- ${translate('logger.user.avatar_changed')}`);
     } else if (differences.avatar && !user.avatar) {
-      description.push('- Removed Avatar');
+      description.push(`- ${translate('logger.user.avatar_removed')}`);
     } else if (!differences.avatar && user.avatar) {
-      description.push('- Changed from the default Avatar');
+      description.push(`- ${translate('logger.user.avatar_from_default')}`);
     }
   }
   if (differences.avatarDecorationData !== undefined) {
@@ -38,48 +40,48 @@ export function getUsersUpdateChanges(event: GuildLoggingEventUsersUpdate): Arra
     const oldUrl = avatarDecorations && avatarDecorations.old && Markup.url(avatarDecorations.old.name, avatarDecorations.old.url);
 
     if (old.avatarDecorationData && user.avatarDecorationData) {
-      description.push('- Changed Avatar Decorations');
-      description.push(`-> From **${oldUrl}** to **${newUrl}**`);
+      description.push(`- ${translate('logger.user.decoration_changed')}`);
+      description.push(`-> ${translate('logger.from_to', {old: `**${oldUrl}**`, new: `**${newUrl}**`})}`);
     } else if (old.avatarDecorationData && !user.avatarDecorationData) {
-      description.push('- Removed Avatar Decoration');
-      description.push(`-> Removed **${oldUrl}**`);
+      description.push(`- ${translate('logger.user.decoration_removed')}`);
+      description.push(`-> ${translate('logger.removed', {value: `**${oldUrl}**`})}`);
     } else if (!differences.avatarDecorationData && user.avatarDecorationData) {
-      description.push('- Set Avatar Decoration');
-      description.push(`-> Set to **${newUrl}**`);
+      description.push(`- ${translate('logger.user.decoration_set')}`);
+      description.push(`-> ${translate('logger.set_to', {value: `**${newUrl}**`})}`);
     }
   }
   if (differences.username !== undefined || differences.discriminator !== undefined) {
     if (differences.username !== undefined) {
-      description.push('- Username Change');
-      description.push(`-> **${Markup.codestring(differences.username)}** to **${Markup.codestring(user.username)}**`);
+      description.push(`- ${translate('logger.user.username_change')}`);
+      description.push(`-> ${translate('logger.change', {old: `**${Markup.codestring(differences.username)}**`, new: `**${Markup.codestring(user.username)}**`})}`);
     }
     if (differences.discriminator !== undefined) {
-      description.push('- Discriminator Change');
-      description.push(`-> **${Markup.codestring(differences.discriminator)}** to **${Markup.codestring(user.discriminator)}**`);
+      description.push(`- ${translate('logger.user.discriminator_change')}`);
+      description.push(`-> ${translate('logger.change', {old: `**${Markup.codestring(differences.discriminator)}**`, new: `**${Markup.codestring(user.discriminator)}**`})}`);
     }
   }
   if (differences.clan !== undefined) {
     const oldTag = differences.clan && differences.clan.tag;
     const newTag = user.clan && user.clan.tag;
     if (oldTag !== newTag) {
-      description.push('- Clan Tag Change');
+      description.push(`- ${translate('logger.user.clan_tag_change')}`);
       if (oldTag && newTag) {
-        description.push(`-> **${Markup.codestring(oldTag)}** to **${Markup.codestring(newTag)}**`);
+        description.push(`-> ${translate('logger.change', {old: `**${Markup.codestring(oldTag)}**`, new: `**${Markup.codestring(newTag)}**`})}`);
       } else if (oldTag && !newTag) {
-        description.push(`-> Removed **${Markup.codestring(oldTag)}**`);
+        description.push(`-> ${translate('logger.removed', {value: `**${Markup.codestring(oldTag)}**`})}`);
       } else if (!oldTag && newTag) {
-        description.push(`-> Changed to **${Markup.codestring(newTag)}**`);
+        description.push(`-> ${translate('logger.changed_to', {value: `**${Markup.codestring(newTag)}**`})}`);
       }
     }
   }
   if (differences.globalName !== undefined) {
-    description.push('- Global Name Change');
+    description.push(`- ${translate('logger.user.global_name_change')}`);
     if (differences.globalName && user.globalName) {
-      description.push(`-> **${Markup.codestring(differences.globalName)}** to **${Markup.codestring(user.globalName)}**`);
+      description.push(`-> ${translate('logger.change', {old: `**${Markup.codestring(differences.globalName)}**`, new: `**${Markup.codestring(user.globalName)}**`})}`);
     } else if (differences.globalName && !user.globalName) {
-      description.push(`-> Removed **${Markup.codestring(differences.globalName)}**`);
+      description.push(`-> ${translate('logger.removed', {value: `**${Markup.codestring(differences.globalName)}**`})}`);
     } else if (!differences.globalName && user.globalName) {
-      description.push(`-> Changed to **${Markup.codestring(user.globalName)}**`);
+      description.push(`-> ${translate('logger.changed_to', {value: `**${Markup.codestring(user.globalName)}**`})}`);
     }
   }
   if (differences.publicFlags !== undefined) {
@@ -96,12 +98,12 @@ export function getUsersUpdateChanges(event: GuildLoggingEventUsersUpdate): Arra
       }
     }
 
-    description.push('- Badges');
+    description.push(`- ${translate('user.badges')}`);
     if (removed.length) {
-      description.push(`-> Removed ${removed.join(', ')}`);
+      description.push(`-> ${translate('logger.removed', {value: `${removed.join(', ')}`})}`);
     }
     if (added.length) {
-      description.push(`-> Added ${added.join(', ')}`);
+      description.push(`-> ${translate('logger.added', {value: `${added.join(', ')}`})}`);
     }
   }
 
@@ -113,7 +115,9 @@ export function formatUsersUpdate(
   event: GuildLoggingEventUsersUpdate,
   embed: Embed,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { guildId, happened } = event;
   const { shard } = event.payload;
 
@@ -122,7 +126,7 @@ export function formatUsersUpdate(
 
   {
     const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`User Updated • ${timestamp}`);
+    embed.setFooter(`${translate('logger.footer.user_updated')} • ${timestamp}`);
   }
 
   createUserEmbed(user, embed);
@@ -143,7 +147,7 @@ export function formatUsersUpdate(
 
   embed.setDescription(user.mention);
   if (differences) {
-    embed.addField('Changes', getUsersUpdateChanges(event).join('\n'));
+    embed.addField(translate('logger.changes'), getUsersUpdateChanges(event, translator).join('\n'));
   }
 }
 
@@ -152,7 +156,9 @@ export function formatUsersUpdateComponents(
   event: GuildLoggingEventUsersUpdate,
   container: ComponentContainer,
   files: LogPayloadFiles,
+  translator: Translator,
 ): void {
+  const { language, translate, translateMaybe } = translator;
   const { guildId, happened } = event;
   const { shard } = event.payload;
 
@@ -166,16 +172,16 @@ export function formatUsersUpdateComponents(
   }
 
   container.setAccentColor(EmbedColors.LOG_UPDATE);
-  addContainerHeader(container, createUserHeaderLines(user.id, user), urls.current || user.avatarUrlFormat(null, {size: 1024}));
-  addContainerBody(container, [{title: 'Changes', lines: getUsersUpdateChanges(event)}]);
+  addContainerHeader(container, createUserHeaderLines(user.id, user, translator), urls.current || user.avatarUrlFormat(null, {size: 1024}));
+  addContainerBody(container, [{title: translate('logger.changes'), lines: getUsersUpdateChanges(event, translator)}]);
 
   if (urls.old) {
-    const images = [{description: 'Old Avatar', url: urls.old}];
+    const images = [{description: translate('logger.user.old_avatar'), url: urls.old}];
     if (urls.current) {
-      images.push({description: 'New Avatar', url: urls.current});
+      images.push({description: translate('logger.user.new_avatar'), url: urls.current});
     }
-    addContainerGallery(container, images, (urls.current) ? 'Avatar (Old -> New)' : 'Old Avatar');
+    addContainerGallery(container, images, (urls.current) ? translate('logger.user.avatar_old_new') : translate('logger.user.old_avatar'));
   }
 
-  addContainerFooter(container, `User Updated • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.user_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }

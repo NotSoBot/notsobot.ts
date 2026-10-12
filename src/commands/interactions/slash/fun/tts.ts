@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { TTSVoices } from '../../../../constants';
-import { Formatter, Parameters, toTitleCase } from '../../../../utils';
+import { Formatter, I18n, Parameters, toTitleCase } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -16,6 +16,7 @@ export const COMMAND_NAME = 'tts';
 
 export class TTSCommand extends BaseInteractionCommandOption {
   description = 'Generate Text to Speech';
+  descriptionLocalizations = I18n.localizations('commands.fun.tts.description');
   metadata = {
     id: Formatter.Commands.FunTTS.COMMAND_ID,
   };
@@ -24,10 +25,17 @@ export class TTSCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'text', description: 'Text Here', value: Parameters.parsedMentionsText, required: true},
+        {
+          name: 'text',
+          description: 'Text Here',
+          ...I18n.optionLocalizations('commands.fun.tts.text'),
+          value: Parameters.parsedMentionsText,
+          required: true,
+        },
         {
           name: 'use',
           description: 'Speech Voice',
+          ...I18n.optionLocalizations('commands.fun.tts.use'),
           onAutoComplete: Parameters.AutoComplete.ttsVoices,
         },
       ],

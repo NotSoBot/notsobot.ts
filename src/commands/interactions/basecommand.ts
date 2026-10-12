@@ -29,7 +29,7 @@ import {
   UserPremiumTypes,
   UserSettingsApplicationCommandResponseTypes,
 } from '../../constants';
-import { DefaultParameters, Parameters, editOrReply, getCommandIdFromInvoker } from '../../utils';
+import { DefaultParameters, I18n, Parameters, editOrReply, getCommandIdFromInvoker } from '../../utils';
 
 
 export interface InteractionCommandMetadata {
@@ -482,8 +482,19 @@ export class BaseInteractionImageCommandOption extends BaseInteractionCommandOpt
       ...data,
       options: [
         ...(data.options || []),
-        {name: 'url', description: 'Emoji/Image URL/User', default: DefaultParameters.lastMediaUrl({audio: false, video: false}), value: Parameters.lastMediaUrl({audio: false, video: false})},
-        {name: 'attachment', description: 'Image File', type: ApplicationCommandOptionTypes.ATTACHMENT},
+        {
+          name: 'url',
+          description: 'Emoji/Image URL/User',
+          ...I18n.optionLocalizations('commands.options.image.url'),
+          default: DefaultParameters.lastMediaUrl({audio: false, video: false}),
+          value: Parameters.lastMediaUrl({audio: false, video: false}),
+        },
+        {
+          name: 'attachment',
+          description: 'Image File',
+          ...I18n.optionLocalizations('commands.options.image.attachment'),
+          type: ApplicationCommandOptionTypes.ATTACHMENT,
+        },
       ],
     });
   }

@@ -7,6 +7,7 @@ import UserAvatarDecorations from '../../../stores/useravatardecorations';
 
 import { utilitiesFetchMedia } from '../../../api';
 import { PresenceStatusColors } from '../../../constants';
+import { getTranslator } from '../../i18n';
 import { createUserEmbed, editOrReply } from '../../../utils';
 
 
@@ -28,6 +29,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   const { user } = args;
 
   let avatarUrl: string;
@@ -67,13 +70,13 @@ export async function createMessage(
 
   {
     const description: Array<string> = [];
-    description.push(Markup.url('**Default**', user.defaultAvatarUrl));
+    description.push(Markup.url(`**${translate('info.avatar.default')}**`, user.defaultAvatarUrl));
     if (user instanceof Structures.Member) {
       if (user.avatar) {
-        description.push(Markup.url('**Server**', user.avatarUrl));
+        description.push(Markup.url(`**${translate('info.avatar.server')}**`, user.avatarUrl));
       }
       if (user.user.avatar) {
-        description.push(Markup.url('**User**', user.user.avatarUrl));
+        description.push(Markup.url(`**${translate('info.avatar.user')}**`, user.user.avatarUrl));
       }
       if (user.avatarDecorationData) {
         const avatarDecoration = await UserAvatarDecorations.getOrFetch(
@@ -81,9 +84,9 @@ export async function createMessage(
         );
         let name: string;
         if (avatarDecoration.id === avatarDecoration.name) {
-          name = '**Server Decoration**';
+          name = `**${translate('info.avatar.server_decoration')}**`;
         } else {
-          name = `**Server Decoration (${avatarDecoration.name})**`;
+          name = `**${translate('info.avatar.server_decoration_named', {name: avatarDecoration.name})}**`;
         }
         description.push(Markup.url(name, avatarDecoration.url));
       }
@@ -93,15 +96,15 @@ export async function createMessage(
         );
         let name: string;
         if (avatarDecoration.id === avatarDecoration.name) {
-          name = '**User Decoration**';
+          name = `**${translate('info.avatar.user_decoration')}**`;
         } else {
-          name = `**User Decoration (${avatarDecoration.name})**`;
+          name = `**${translate('info.avatar.user_decoration_named', {name: avatarDecoration.name})}**`;
         }
         description.push(Markup.url(name, avatarDecoration.url));
       }
     } else {
       if (user.avatar) {
-        description.push(Markup.url('**User**', user.avatarUrl));
+        description.push(Markup.url(`**${translate('info.avatar.user')}**`, user.avatarUrl));
       }
       if (user.avatarDecorationData) {
         const avatarDecoration = await UserAvatarDecorations.getOrFetch(
@@ -109,9 +112,9 @@ export async function createMessage(
         );
         let name: string;
         if (avatarDecoration.id === avatarDecoration.name) {
-          name = '**User Decoration**';
+          name = `**${translate('info.avatar.user_decoration')}**`;
         } else {
-          name = `**User Decoration (${avatarDecoration.name})**`;
+          name = `**${translate('info.avatar.user_decoration_named', {name: avatarDecoration.name})}**`;
         }
         description.push(Markup.url(name, avatarDecoration.url));
       }

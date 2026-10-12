@@ -17,6 +17,7 @@ import { Store } from './store';
 
 import { GuildLoggerFlags, GuildLoggerTypes, GuildSettingsResponseDisplayTypes } from '../constants';
 import { RedisSpewer } from '../redis';
+import { Languages, languageFromLocale } from '../utils/i18n';
 import {
   ClientStatusType,
   GuildLoggingEventItem,
@@ -111,8 +112,11 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
           const promises: Array<Promise<any>> = [];
           // legacy and no embed both stay as embeds, there is no text only log format
           const componentsV2 = !!settings.settings && settings.settings.responseDisplay === GuildSettingsResponseDisplayTypes.DEFAULT;
+          // there's no one invoking a command here, so logs use the server's preferred locale
+          const guild = shard.guilds.get(guildId);
+          const language = languageFromLocale((guild) ? guild.preferredLocale : null) || Languages.ENGLISH;
           for (let [loggerType, queue] of queues) {
-            const logPayloads = queue.splice(0, 10).map((event) => createLogPayload(event, {componentsV2}));
+            const logPayloads = queue.splice(0, 10).map((event) => createLogPayload(event, {componentsV2, language}));
             const payloads = createWebhookPayloads(logPayloads);
             if (payloads.length) {
               const loggers = settings.loggers.filter((logger) => logger.type === loggerType);

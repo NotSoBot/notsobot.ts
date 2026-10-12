@@ -2,6 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Colors } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
+import { getTranslator } from '../../i18n';
 import { Paginator } from '../../../utils';
 
 
@@ -20,6 +21,8 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   const { applications } = args;
 
   const pageLimit = applications.length;
@@ -32,7 +35,7 @@ export async function createMessage(
       embed.setColor(Colors.BLURPLE);
 
       if (1 < pageLimit) {
-        embed.setTitle(`(${page} of ${pageLimit})`);
+        embed.setTitle(translate('common.page_of', {page, total: pageLimit}));
       }
       if (application.icon) {
         const iconUrl = application.iconUrlFormat(null, {size: 1024}) as string;
@@ -43,11 +46,11 @@ export async function createMessage(
 
       {
         const description: Array<string> = [];
-        description.push(`**Id**: \`${application.id}\``);
+        description.push(`**${translate('common.id')}**: \`${application.id}\``);
 
         if (context.guild) {
           const presences = context.guild.presences.filter((presence) => presence.activities.some((activity) => activity.applicationId === application.id || activity.name === application.name));
-          description.push(`**Members Playing**: ${presences.length.toLocaleString()}`);
+          description.push(`**${translate('info.applications.members_playing')}**: ${presences.length.toLocaleString(language)}`);
         }
 
         description.push('');
@@ -66,12 +69,12 @@ export async function createMessage(
       }
 
       if (application.aliases) {
-        embed.addField('Aliases', application.aliases.join(', '));
+        embed.addField(translate('info.applications.aliases'), application.aliases.join(', '));
       }
 
       if (application.publishers && application.publishers.length) {
         const publishers = application.publishers.map((publisher: Structures.ApplicationPublisher) => publisher.name);
-        embed.addField('Publishers', publishers.join(', '));
+        embed.addField(translate('info.applications.publishers'), publishers.join(', '));
       }
 
       {
@@ -88,16 +91,16 @@ export async function createMessage(
           }
         }
         if (description.size) {
-          embed.addField('Store Links', Array.from(description).join(', '), true);
+          embed.addField(translate('activity.store_links'), Array.from(description).join(', '), true);
         }
       }
 
       if (application.youtubeTrailerVideoId) {
         const url = application.youtubeTrailerUrl as string;
-        embed.addField('Trailer', `[**YouTube**](${url})`, true);
+        embed.addField(translate('info.applications.trailer'), `[**YouTube**](${url})`, true);
       }
 
-      embed.setFooter('Added to Discord');
+      embed.setFooter(translate('info.applications.added'));
       embed.setTimestamp(application.createdAt);
 
       return embed;
