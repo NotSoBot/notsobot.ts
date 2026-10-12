@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 import { MessageFlags, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -11,10 +11,12 @@ export const COMMAND_NAME = 'add';
 
 export class ModerationAllowlistAddCommand extends BaseInteractionCommandOption {
   description = 'Add channels, roles, or users to the allowlist';
+  descriptionLocalizations = I18n.localizations('commands.moderation.allowlist.add.description');
   metadata = {
     id: Formatter.Commands.ModerationAllowlistAdd.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.moderation.allowlist.add.name');
 
   constructor() {
     super({
@@ -24,6 +26,7 @@ export class ModerationAllowlistAddCommand extends BaseInteractionCommandOption 
         {
           name: 'items',
           description: 'Channels, roles, or users to add (Mentions, separated by spaces)',
+          ...I18n.optionLocalizations('commands.moderation.allowlist.add.items'),
           label: 'payloads',
           required: true,
           value: Formatter.Commands.ModerationAllowlistAdd.getItemsFromMention,
@@ -36,9 +39,10 @@ export class ModerationAllowlistAddCommand extends BaseInteractionCommandOption 
     return !!args.payloads && !!args.payloads.length;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationAllowlistAdd.CommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationAllowlistAdd.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} Unable to find any valid Text Channels, Roles, or Users`,
+      content: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`,
       flags: MessageFlags.EPHEMERAL,
     });
   }

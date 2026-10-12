@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SearchGoogleImagesCommand } from './google.images';

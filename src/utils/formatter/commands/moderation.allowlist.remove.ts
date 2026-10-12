@@ -4,6 +4,7 @@ import { deleteGuildAllowlist, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
 import { GuildAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getTranslator } from '../../i18n';
 
 import * as ModerationAllowlist from './moderation.allowlist';
 import * as ModerationAllowlistAdd from './moderation.allowlist.add';
@@ -22,23 +23,24 @@ export async function removeAllowlist(
   payloads: Array<ModerationAllowlistAdd.AllowlistPayload>,
 ) {
   const guildId = context.guildId as string;
+  const { translate } = await getTranslator(context);
 
-  let title = 'Allowlist';
+  let title = translate('moderation.allowlist.title');
   let settings: GuildSettings;
   if (payloads.length === 1) {
     const [ payload ] = payloads;
     switch (payload.type) {
       case GuildAllowlistTypes.CHANNEL: {
         const { item: channel } = payload;
-        title = `Removed Channel (${channel.id}) from Allowlist`;
+        title = translate('moderation.allowlist.remove_channel', {id: channel.id});
       }; break;
       case GuildAllowlistTypes.ROLE: {
         const { item: role } = payload;
-        title = `Removed Role (${role.id}) from Allowlist`;
+        title = translate('moderation.allowlist.remove_role', {id: role.id});
       }; break;
       case GuildAllowlistTypes.USER: {
         const { item: user } = payload;
-        title = `Removed User (${user.id}) from Allowlist`;
+        title = translate('moderation.allowlist.remove_user', {id: user.id});
       }; break;
     }
 
@@ -58,15 +60,15 @@ export async function removeAllowlist(
     }
     const comments: Array<string> = [];
     if (channels) {
-      comments.push(`${channels} Channels`);
+      comments.push(translate('moderation.count.channels', {count: channels}));
     }
     if (roles) {
-      comments.push(`${roles} Roles`);
+      comments.push(translate('moderation.count.roles', {count: roles}));
     }
     if (users) {
-      comments.push(`${users} Users`);
+      comments.push(translate('moderation.count.users', {count: users}));
     }
-    title = `Removed ${comments.join(', ')} from Allowlist`;
+    title = translate('moderation.allowlist.remove_many', {items: comments.join(', ')});
 
     settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
 

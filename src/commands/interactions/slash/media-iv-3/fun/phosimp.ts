@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter, Parameters } from '../../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'phosimp';
 
 export class MediaIVPhoSimpCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Apply PhoSimp Filters on an Image or Video';
+  descriptionLocalizations = I18n.localizations('commands.media_iv_3.fun.phosimp.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationPhoSimp.COMMAND_ID,
   };
@@ -17,7 +18,7 @@ export class MediaIVPhoSimpCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'filters', description: 'PhoSimp Filters, separated with space', value: Parameters.phosimpFilters},
+        {name: 'filters', description: 'PhoSimp Filters, separated with space', ...I18n.optionLocalizations('commands.media_iv_3.fun.phosimp.filters'), value: Parameters.phosimpFilters},
       ],
     });
   }

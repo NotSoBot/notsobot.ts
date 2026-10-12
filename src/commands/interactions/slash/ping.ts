@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
-import { Formatter } from '../../../utils';
+import { Formatter, I18n } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -10,6 +10,7 @@ export const COMMAND_NAME = 'ping';
 
 export default class PingCommand extends BaseSlashCommand {
   description = 'Ping';
+  descriptionLocalizations = I18n.localizations('commands.ping.description');
   metadata = {
     id: Formatter.Commands.UtilsPing.COMMAND_ID,
   };

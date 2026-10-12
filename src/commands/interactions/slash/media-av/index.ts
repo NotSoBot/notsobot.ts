@@ -4,6 +4,8 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAVAudioGroupCommand } from './audio';
@@ -14,6 +16,7 @@ import { MediaAVStammerCommand } from './stammer';
 
 export default class MediaAVGroupCommand extends BaseSlashCommand {
   description = 'Audio and Video Related Commands';
+  descriptionLocalizations = I18n.localizations('commands.media_av.description');
   name = 'media-av';
 
   contexts = [

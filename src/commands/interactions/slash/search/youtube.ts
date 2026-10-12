@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../utils';
+import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -12,6 +12,7 @@ export interface CommandArgs {
 
 export class SearchYoutubeCommand extends BaseInteractionCommandOption {
   description = 'Search YouTube';
+  descriptionLocalizations = I18n.localizations('commands.search.youtube.description');
   metadata = {
     id: Formatter.Commands.SearchYoutube.COMMAND_ID,
   };
@@ -20,8 +21,8 @@ export class SearchYoutubeCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'query', description: 'Search Text', required: true},
-        {name: 'sp', description: 'Search Parameters Code'},
+        {name: 'query', description: 'Search Text', ...I18n.optionLocalizations('commands.search.youtube.query'), required: true},
+        {name: 'sp', description: 'Search Parameters Code', ...I18n.optionLocalizations('commands.search.youtube.sp')},
       ],
     });
   }

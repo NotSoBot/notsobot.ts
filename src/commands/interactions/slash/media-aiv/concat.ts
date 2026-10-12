@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../utils';
+import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionMediasCommandOption } from '../../basecommand';
 
@@ -9,10 +9,12 @@ export const COMMAND_NAME = 'concat';
 
 export class MediaAIVConcatCommand extends BaseInteractionMediasCommandOption {
   description = 'Concat two Medias together';
+  descriptionLocalizations = I18n.localizations('commands.media_aiv.concat.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationConcat.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.media_aiv.concat.name');
 
   constructor() {
     super({minAmount: 2});

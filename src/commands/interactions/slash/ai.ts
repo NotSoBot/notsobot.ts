@@ -18,13 +18,14 @@ import {
   TagGenerationPersonalityPreferencesToText,
   UserFlags,
 } from '../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
 
 export default class AICommand extends BaseSlashCommand {
   description = 'Use NotSoAI to generate and execute TagScript code';
+  descriptionLocalizations = I18n.localizations('commands.ai.description');
   metadata = {
     id: Formatter.Commands.TagGenerate.COMMAND_ID,
     premium: true,
@@ -48,27 +49,32 @@ export default class AICommand extends BaseSlashCommand {
         {
           name: 'prompt',
           description: 'Prompt to ask NotSoAI',
+          ...I18n.optionLocalizations('commands.ai.prompt'),
           required: true,
         },
         {
           name: 'model',
           description: 'AI Model',
+          ...I18n.optionLocalizations('commands.ai.model'),
           choices: Parameters.Slash.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToText}),
         },
         {
           name: 'personalitypreference',
           description: 'Personality Preference',
+          ...I18n.optionLocalizations('commands.ai.personalitypreference'),
           label: 'personalityPreference',
           choices: Parameters.Slash.oneOf({choices: TagGenerationPersonalityPreferences, descriptions: TagGenerationPersonalityPreferencesToText}),
         },
         {
           name: 'debug',
           description: 'Upload the prompt instead of processing',
+          ...I18n.optionLocalizations('commands.ai.debug'),
           type: Boolean,
         },
         {
           name: 'attachment',
           description: 'Media File',
+          ...I18n.optionLocalizations('commands.ai.attachment'),
           type: ApplicationCommandOptionTypes.ATTACHMENT,
         },
       ],

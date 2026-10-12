@@ -18,6 +18,7 @@ import {
   jobWaitForResult,
   mediaReply,
 } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'media.aiv.pipe';
@@ -43,13 +44,14 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const safe = DefaultParameters.safe(context);
+  const { translate } = await getTranslator(context);
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const pipers: Array<PipingCommandExecution> = [];
   for (let {command, commandArgs} of args.commands) {
     const commandId = (command.metadata && command.metadata.id) || '';
     if (!commandId) {
-      throw new Error(`cant pipe ${command.name} lol`);
+      throw new Error(translate('media.pipe.cant_pipe', {command: command.name}));
     }
     let found = false;
     for (let key in Formatter.Commands) {
@@ -64,13 +66,13 @@ export async function createMessage(
           });
           found = true;
         } else {
-          throw new Error(`${command.name} is not a valid piping command`);
+          throw new Error(translate('media.pipe.not_pipeable', {command: command.name}));
         }
         break;
       }
     }
     if (!found) {
-      throw new Error(`dunno how to pipe ${command.name} yet, sorry`);
+      throw new Error(translate('media.pipe.unknown_command', {command: command.name}));
     }
   }
 
@@ -131,5 +133,5 @@ export async function createMessage(
     return mediaReply(context, fileResponse, {description: `piped: ${pipers.map((x) => x.command.name).join(' -> ')}`});
   }
 
-  return editOrReply(context, 'failed to pipe?');
+  return editOrReply(context, translate('media.pipe.failed'));
 }

@@ -6,6 +6,7 @@ import { createGuildAllowlist, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
 import { GuildAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getTranslator } from '../../i18n';
 
 import * as ModerationAllowlist from './moderation.allowlist';
 
@@ -94,23 +95,24 @@ export async function createAllowlist(
   payloads: Array<AllowlistPayload>,
 ) {
   const guildId = context.guildId as string;
+  const { translate } = await getTranslator(context);
 
-  let title = 'Allowlist';
+  let title = translate('moderation.allowlist.title');
   let settings: GuildSettings;
   if (payloads.length === 1) {
     const [ payload ] = payloads;
     switch (payload.type) {
       case GuildAllowlistTypes.CHANNEL: {
         const { item: channel } = payload;
-        title = `Added Channel (${channel.id}) to Allowlist`;
+        title = translate('moderation.allowlist.add_channel', {id: channel.id});
       }; break;
       case GuildAllowlistTypes.ROLE: {
         const { item: role } = payload;
-        title = `Added Role (${(role.isDefault) ? role.name : role.id}) to Allowlist`;
+        title = translate('moderation.allowlist.add_role', {id: (role.isDefault) ? role.name : role.id});
       }; break;
       case GuildAllowlistTypes.USER: {
         const { item: user } = payload;
-        title = `Added User (${user.id}) to Allowlist`;
+        title = translate('moderation.allowlist.add_user', {id: user.id});
       }; break;
     }
 
@@ -130,15 +132,15 @@ export async function createAllowlist(
     }
     const comments: Array<string> = [];
     if (channels) {
-      comments.push(`${channels} Channels`);
+      comments.push(translate('moderation.count.channels', {count: channels}));
     }
     if (roles) {
-      comments.push(`${roles} Roles`);
+      comments.push(translate('moderation.count.roles', {count: roles}));
     }
     if (users) {
-      comments.push(`${users} Users`);
+      comments.push(translate('moderation.count.users', {count: users}));
     }
-    title = `Added ${comments.join(', ')} to Allowlist`;
+    title = translate('moderation.allowlist.add_many', {items: comments.join(', ')});
 
     settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
     settings = await editGuildSettings(context, guildId, {

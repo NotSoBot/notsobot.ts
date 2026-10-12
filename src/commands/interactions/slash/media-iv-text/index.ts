@@ -4,6 +4,8 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaIVCaptionCommand } from './caption';
@@ -14,6 +16,7 @@ import { MediaIVVaporwaveCommand } from './vaporwave';
 
 export default class MediaIVTextGroupCommand extends BaseSlashCommand {
   description = 'Image and Video Text Commands';
+  descriptionLocalizations = I18n.localizations('commands.media_iv_text.description');
   name = 'media-iv-text';
 
   contexts = [

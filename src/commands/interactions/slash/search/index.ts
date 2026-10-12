@@ -7,6 +7,8 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { SearchGoogleGroupCommand } from './google';
@@ -19,7 +21,9 @@ import { SearchYoutubeCommand } from './youtube';
 
 export default class SearchGroupCommand extends BaseSlashCommand {
   description = 'Search Commands';
+  descriptionLocalizations = I18n.localizations('commands.search.description');
   name = 'search';
+  nameLocalizations = I18n.localizations('commands.search.name');
   triggerLoadingAfter = 100;
 
   contexts = [

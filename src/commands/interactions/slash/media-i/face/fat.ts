@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { MediaFaceFatSizes } from '../../../../../constants';
-import { Formatter, Parameters } from '../../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../../basecommand';
 
@@ -12,10 +12,12 @@ export const COMMAND_NAME = 'fat';
 
 export class MediaIFatCommand extends BaseInteractionImageCommandOption {
   description = 'Fattify an Image\'s face';
+  descriptionLocalizations = I18n.localizations('commands.media_i.face.fat.description');
   metadata = {
     id: Formatter.Commands.MediaIManipulationFaceFat.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.media_i.face.fat.name');
 
   constructor() {
     super({
@@ -23,6 +25,7 @@ export class MediaIFatCommand extends BaseInteractionImageCommandOption {
         {
           name: 'size',
           description: `Size (Default: ${DEFAULT_SIZE})`,
+          ...I18n.optionLocalizations('commands.media_i.face.fat.size'),
           choices: Parameters.Slash.oneOf({choices: MediaFaceFatSizes, defaultChoice: DEFAULT_SIZE}),
         },
       ],

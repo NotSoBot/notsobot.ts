@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -11,6 +11,7 @@ export const COMMAND_NAME = 'alias';
 export class TagAliasCommand extends BaseInteractionCommandOption {
   blockedCommandShouldStillExecute = false;
   description = 'Create a Tag Alias';
+  descriptionLocalizations = I18n.localizations('commands.tag.alias.description');
   metadata = {
     id: Formatter.Commands.TagAlias.COMMAND_ID,
   };
@@ -22,6 +23,7 @@ export class TagAliasCommand extends BaseInteractionCommandOption {
         {
           name: 'tag',
           description: 'Tag to alias from',
+          ...I18n.optionLocalizations('commands.tag.alias.tag'),
           required: true,
           value: Parameters.NotSoTag,
           onAutoComplete: Parameters.AutoComplete.tags,
@@ -29,6 +31,7 @@ export class TagAliasCommand extends BaseInteractionCommandOption {
         {
           name: 'name',
           description: 'Tag\'s Name',
+          ...I18n.optionLocalizations('commands.tag.alias.name'),
           required: true,
           value: Parameters.tagName,
         },
@@ -40,13 +43,14 @@ export class TagAliasCommand extends BaseInteractionCommandOption {
     return !!args.tag && !!args.name;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagAlias.CommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagAlias.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.tag !== null || args.name) {
       if (!args.name) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Gotta have some sort of tag name to create an alias for`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.alias_needs_name')}`);
       }
       if (args.tag === false) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
       }
     }
     return super.onCancelRun(context, args);

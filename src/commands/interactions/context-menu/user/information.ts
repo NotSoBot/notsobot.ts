@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
-import { Formatter } from '../../../../utils';
+import { Formatter, I18n } from '../../../../utils';
 
 import { BaseContextMenuUserCommand, ContextMenuUserArgs } from '../../basecommand';
 
@@ -13,6 +13,7 @@ export default class InformationCommand extends BaseContextMenuUserCommand {
     id: Formatter.Commands.InfoUser.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.context.information.name');
 
   contexts = [
     InteractionContextTypes.GUILD,

@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
-import { Formatter, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -12,10 +12,12 @@ export interface CommandArgs {
 
 export class SettingsSetTimezoneCommand extends BaseInteractionCommandOption {
   description = 'Set your default timezone for the bot';
+  descriptionLocalizations = I18n.localizations('commands.settings.set.timezone.description');
   metadata = {
     id: Formatter.Commands.SettingsSetTimezone.COMMAND_ID,
   };
   name = 'timezone';
+  nameLocalizations = I18n.localizations('commands.settings.set.timezone.name');
 
   constructor() {
     super({
@@ -23,11 +25,13 @@ export class SettingsSetTimezoneCommand extends BaseInteractionCommandOption {
         {
           name: 'timezone',
           description: 'Timezone to choose from',
+          ...I18n.optionLocalizations('commands.settings.set.timezone.timezone'),
           onAutoComplete: Parameters.AutoComplete.timezone,
         },
         {
           name: 'clear',
           description: 'Clear Preference',
+          ...I18n.optionLocalizations('commands.settings.set.timezone.clear'),
           type: Boolean,
         },
       ],

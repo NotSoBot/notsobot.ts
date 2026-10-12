@@ -10,6 +10,7 @@ import {
   GoogleLocalesText,
 } from '../../../constants';
 import { createUserEmbed, editOrReply, splitTextByAmount } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'tools.translate';
@@ -26,6 +27,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
+  const { language, languageName, translate } = await getTranslator(context);
 
   const {
     from_language: fromLanguage,
@@ -49,7 +51,11 @@ export async function createMessage(
   if (translatedLanguage in GoogleLocalesText) {
     translatedLanguageText = GoogleLocalesText[translatedLanguage];
   }
-  embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
+  const fromLanguageName = languageName(fromLanguage, fromLanguageText);
+  const fromLanguageTitle = languageName(fromLanguage, fromLanguageText, {capitalize: true});
+  const translatedLanguageName = languageName(translatedLanguage, translatedLanguageText);
+  const translatedLanguageTitle = languageName(translatedLanguage, translatedLanguageText, {capitalize: true});
+  embed.setTitle(translate('tools.translate.title', {from: fromLanguageName, to: translatedLanguageName}));
 
   const files: Array<{filename: string, value: string}> = [];
 
@@ -59,7 +65,7 @@ export async function createMessage(
     if (shouldShowInput) {
       // 1024 - 10 ('```\n\n```')
       const parts = splitTextByAmount(args.text, 1014, '');
-      embed.addField(fromLanguageText, Markup.codeblock(parts.shift()!));
+      embed.addField(fromLanguageTitle, Markup.codeblock(parts.shift()!));
       for (let part of parts) {
         embed.addField('\u200b', Markup.codeblock(part));
       }
@@ -68,7 +74,7 @@ export async function createMessage(
     {
       // 1024 - 10 ('```\n\n```')
       const parts = splitTextByAmount(translatedText, 1014, '');
-      const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageText : `${fromLanguageText} -> ${translatedLanguageText}`;
+      const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageTitle : `${fromLanguageTitle} -> ${translatedLanguageTitle}`;
       embed.addField(title, Markup.codeblock(parts.shift() as string));
       for (let part of parts) {
         embed.addField('\u200b', Markup.codeblock(part));
@@ -80,8 +86,8 @@ export async function createMessage(
     }
     files.push({filename: `translate-to-${translatedLanguage}.txt`, value: translatedText});
     embed.setDescription([
-      `Input: ${args.text.length.toLocaleString()} Characters`,
-      `Result: ${translatedText.length.toLocaleString()} Characters`,
+      translate('tools.translate.input_characters', {count: args.text.length.toLocaleString(language)}),
+      translate('tools.translate.result_characters', {count: translatedText.length.toLocaleString(language)}),
     ].join('\n'));
   }
 

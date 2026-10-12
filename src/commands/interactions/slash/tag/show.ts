@@ -3,17 +3,19 @@ import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { RestResponsesRaw } from '../../../../api/types';
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommand, BaseInteractionCommandOption } from '../../basecommand';
 
 
 export class TagShowCommand extends BaseInteractionCommandOption {
   description = 'Show a tag';
+  descriptionLocalizations = I18n.localizations('commands.tag.show.description');
   metadata = {
     id: Formatter.Commands.TagShow.COMMAND_ID,
   };
   name = 'show';
+  nameLocalizations = I18n.localizations('commands.tag.show.name');
 
   constructor() {
     super({
@@ -21,6 +23,7 @@ export class TagShowCommand extends BaseInteractionCommandOption {
         {
           name: 'name',
           description: 'Tag\'s Name',
+          ...I18n.optionLocalizations('commands.tag.show.name'),
           label: 'tag',
           required: true,
           value: Parameters.NotSoTag,
@@ -29,10 +32,12 @@ export class TagShowCommand extends BaseInteractionCommandOption {
         {
           name: 'arguments',
           description: 'Tag\'s Arguments',
+          ...I18n.optionLocalizations('commands.tag.show.arguments'),
         },
         {
           name: 'attachment',
           description: 'Media File',
+          ...I18n.optionLocalizations('commands.tag.show.attachment'),
           type: ApplicationCommandOptionTypes.ATTACHMENT,
         },
       ],
@@ -55,9 +60,10 @@ Discord gave us two weeks to remove the tag system due to content moderation con
     return !!args.tag;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagShow.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (!args.tag) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
     }
     return super.onCancelRun(context, args);
   }

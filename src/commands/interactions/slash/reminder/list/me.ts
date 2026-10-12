@@ -1,17 +1,19 @@
 import { Constants, Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { DefaultParameters, Formatter, editOrReply } from '../../../../../utils';
+import { DefaultParameters, Formatter, I18n, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class ReminderListMeCommand extends BaseInteractionCommandOption {
   description = 'List all of your own Reminders';
+  descriptionLocalizations = I18n.localizations('commands.reminder.list.me.description');
   metadata = {
     id: Formatter.Commands.ReminderListMe.COMMAND_ID,
   };
   name = 'me';
+  nameLocalizations = I18n.localizations('commands.reminder.list.me.name');
 
   constructor() {
     super({
@@ -19,6 +21,7 @@ export class ReminderListMeCommand extends BaseInteractionCommandOption {
         {
           name: 'global',
           description: 'Show reminders outside of this Server',
+          ...I18n.optionLocalizations('commands.reminder.list.me.global'),
           type: Boolean,
         },
       ],

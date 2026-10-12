@@ -1,9 +1,12 @@
+import moment from 'moment';
+
 import { Collections, Command, Interaction } from 'detritus-client';
 
 import { GuildSettings, GuildSettingsAllowlist } from '../../../api/structures/guildsettings';
 import { EmbedColors, GuildAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 
 export interface CommandArgs {
@@ -17,6 +20,8 @@ export async function createAllowlistEmbed(
   allowlist: Collections.BaseCollection<string, GuildSettingsAllowlist>,
   options: {only?: GuildAllowlistTypes | null, title?: string} = {},
 ) {
+  const { language, translate, translateMaybe } = await getTranslator(context);
+
   let sorted = allowlist.toArray();
   if (options.only) {
     sorted = sorted.filter((allowed) => allowed.type === options.only);
@@ -28,10 +33,11 @@ export async function createAllowlistEmbed(
 
   const pages = chunkArray<GuildSettingsAllowlist>(sorted, ELEMENTS_PER_PAGE);
 
-  let title = options.title || 'Allowlist';
-  let footer = 'Allowlist';
+  const onlyText = (options.only) ? translateMaybe(`moderation.types.${options.only}`, `${toTitleCase(options.only)}s`) : '';
+  let title = options.title || translate('moderation.allowlist.title');
+  let footer = translate('moderation.allowlist.title');
   if (options.only) {
-    footer = `${footer} (Only ${toTitleCase(options.only)}s)`;
+    footer = translate('moderation.allowlist.footer_only', {types: onlyText});
   }
   if (pages.length) {
     const pageLimit = pages.length;
@@ -42,22 +48,22 @@ export async function createAllowlistEmbed(
         embed.setColor(EmbedColors.DEFAULT);
 
         embed.setTitle(title);
-        embed.setFooter((pageLimit === 1) ? footer : `Page ${pageNumber}/${pageLimit} of ${footer}`);
+        embed.setFooter((pageLimit === 1) ? footer : translate('moderation.page_of', {footer, page: pageNumber, total: pageLimit}));
 
         const page = pages[pageNumber - 1];
         {
           const description: Array<string> = page.map((allowed, i) => {
-            let description = 'Unknown';
+            let description = translate('common.unknown');
             let type: string = allowed.type;
             switch (allowed.type) {
               case GuildAllowlistTypes.CHANNEL: {
                 const channel = context.client.channels.get(allowed.id);
                 if (channel && channel.isGuildCategory) {
-                  description = `<#${allowed.id}> (Category)`;
+                  description = `<#${allowed.id}> (${translate('logger.channel.category')})`;
                 } else {
                   description = `<#${allowed.id}>`;
                 }
-                type = 'Channel';
+                type = translate('moderation.type.channel');
               }; break;
               case GuildAllowlistTypes.ROLE: {
                 if (allowed.id === context.guildId) {
@@ -65,19 +71,19 @@ export async function createAllowlistEmbed(
                 } else {
                   description = `<@&${allowed.id}>`;
                 }
-                type = 'Role';
+                type = translate('moderation.type.role');
               }; break;
               case GuildAllowlistTypes.USER: {
                 description = `<@${allowed.id}>`;
-                type = 'User';
+                type = translate('moderation.type.user');
               }; break;
             }
             description = `${description} ||(${allowed.id})||`;
 
             return [
-              `${(i * pageNumber) + 1}. **${type}** added ${allowed.addedAtText}`,
+              translate('moderation.entry_added', {index: (i * pageNumber) + 1, type, when: moment(allowed.added).locale(language).fromNow()}),
               `-> ${description}`,
-              `-> By <@${allowed.userId}>`,
+              `-> ${translate('logger.by', {user: `<@${allowed.userId}>`})}`,
             ].join('\n');
           });
 
@@ -93,9 +99,9 @@ export async function createAllowlistEmbed(
 
     embed.setTitle(title);
     if (options.only) {
-      embed.setDescription(`Currently no ${options.only}s are inside of the allowlist in this guild.`);
+      embed.setDescription(translate('moderation.allowlist.empty_only', {types: onlyText.toLowerCase()}));
     } else {
-      embed.setDescription('Currently nothing is inside of the allowlist in this guild.');
+      embed.setDescription(translate('moderation.allowlist.empty'));
     }
     embed.setFooter(footer);
     return editOrReply(context, {embed});

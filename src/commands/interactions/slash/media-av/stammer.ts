@@ -6,7 +6,7 @@ import {
   MediaStammerMatcherModes,
   MediaStammerMatcherModesToText,
 } from '../../../../constants';
-import { Formatter, Parameters } from '../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionMediasCommandOption } from '../../basecommand';
 
@@ -18,6 +18,7 @@ export const COMMAND_NAME = 'stammer';
 
 export class MediaAVStammerCommand extends BaseInteractionMediasCommandOption {
   description = 'Cut up the audio and video frames of a media to match with the modulator\'s audio frames';
+  descriptionLocalizations = I18n.localizations('commands.media_av.stammer.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationStammer.COMMAND_ID,
   };
@@ -29,6 +30,7 @@ export class MediaAVStammerCommand extends BaseInteractionMediasCommandOption {
         {
           name: 'color-mode',
           description: `Color Mode (Default: ${DEFAULT_COLOR_MODE})`,
+          ...I18n.optionLocalizations('commands.media_av.stammer.color-mode'),
           label: 'colorMode',
           choices: Parameters.Slash.oneOf({
             choices: MediaStammerColorModes,
@@ -39,6 +41,7 @@ export class MediaAVStammerCommand extends BaseInteractionMediasCommandOption {
         {
           name: 'matcher-mode',
           description: `Matcher Mode (Default: ${DEFAULT_MATCHER_MODE})`,
+          ...I18n.optionLocalizations('commands.media_av.stammer.matcher-mode'),
           label: 'matcherMode',
           choices: Parameters.Slash.oneOf({
             choices: MediaStammerMatcherModes,

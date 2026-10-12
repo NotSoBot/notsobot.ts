@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { DownloadQualities } from '../../../../../constants';
-import { Formatter, Parameters } from '../../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -9,10 +9,12 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 export class SettingsSetDownloadQualityCommand extends BaseInteractionCommandOption {
   description = 'Set what your default Download Quality should be';
+  descriptionLocalizations = I18n.localizations('commands.settings.set.download_quality.description');
   metadata = {
     id: Formatter.Commands.SettingsSetDownloadQuality.COMMAND_ID,
   };
   name = 'download-quality';
+  nameLocalizations = I18n.localizations('commands.settings.set.download_quality.name');
 
   constructor() {
     super({
@@ -20,11 +22,13 @@ export class SettingsSetDownloadQualityCommand extends BaseInteractionCommandOpt
         {
           name: 'quality',
           description: 'Download Quality (Default: 1080p)',
+          ...I18n.optionLocalizations('commands.settings.set.download_quality.quality'),
           choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_1080, doNotSort: true}),
         },
         {
           name: 'clear',
           description: 'Clear Preference',
+          ...I18n.optionLocalizations('commands.settings.set.download_quality.clear'),
           type: Boolean,
         },
       ],

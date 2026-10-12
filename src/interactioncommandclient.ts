@@ -18,7 +18,7 @@ import {
   GuildCommandsAllowlistTypes,
   GuildCommandsBlocklistTypes,
 } from './constants';
-import { Formatter, editOrReply, getCommandIdFromInvoker } from './utils';
+import { Formatter, I18n, editOrReply, getCommandIdFromInvoker } from './utils';
 
 
 export class NotSoInteractionClient extends InteractionCommandClient {
@@ -30,15 +30,16 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       return true;
     }
 
+    const { translate } = await I18n.getTranslator(context);
     const user = await UserStore.getOrFetch(context, context.userId);
     if (!user || user.blocked) {
       if (user && user.blocked) {
-        contextMetadata.reason = 'You are blocked from using NotSoBot.';
+        contextMetadata.reason = translate('blocked.user');
         if (user.blockedReason) {
-          contextMetadata.reason = `${contextMetadata.reason} (Reason: \`${user.blockedReason}\`)`;
+          contextMetadata.reason = `${contextMetadata.reason} (${translate('logger.reason')}: \`${user.blockedReason}\`)`;
         }
       } else {
-        contextMetadata.reason = 'Command blocked due to an error fetching your user data, sorry.';
+        contextMetadata.reason = translate('blocked.user_fetch_failed');
       }
       return false;
     }
@@ -48,16 +49,16 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         const serverId = context.channelId!;
         const settings = await ServerSettingsStore.getOrFetch(context, serverId);
         if (settings && settings.blocked) {
-          contextMetadata.reason = 'This server is blocked from using NotSoBot.';
+          contextMetadata.reason = translate('blocked.server');
           if (settings.blockedReason) {
-            contextMetadata.reason = `${contextMetadata.reason} (Reason: \`${Markup.codestring(settings.blockedReason)}\`)`;
+            contextMetadata.reason = `${contextMetadata.reason} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
           }
           return false;
         }
       }
 
       if (context.invoker.disableDm) {
-        contextMetadata.reason = 'Command blocked in Direct Messages.';
+        contextMetadata.reason = translate('blocked.dm');
       }
       return !context.invoker.disableDm;
     }
@@ -66,9 +67,9 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (settings && settings.blocked) {
       // if we aren't able to fetch the settings, it will surpass the blocked setting cuz it's rare to block a guild
-      contextMetadata.reason = 'This server is blocked from using NotSoBot.';
+      contextMetadata.reason = translate('blocked.server');
       if (settings.blockedReason) {
-        contextMetadata.reason = `${contextMetadata.reason} (Reason: \`${Markup.codestring(settings.blockedReason)}\`)`;
+        contextMetadata.reason = `${contextMetadata.reason} (${translate('logger.reason')}: \`${Markup.codestring(settings.blockedReason)}\`)`;
       }
       return false;
     }
@@ -122,7 +123,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
             });
             return true;
           }
-          contextMetadata.reason = 'Command blocked, you are not part of the command allowlist.';
+          contextMetadata.reason = translate('blocked.not_in_command_allowlist');
         }
         return shouldAllow;
       } else {
@@ -134,31 +135,31 @@ export class NotSoInteractionClient extends InteractionCommandClient {
             switch (blocked.type) {
               case GuildCommandsBlocklistTypes.CHANNEL: {
                 if (blocked.id === context.channelId) {
-                  contextMetadata.reason = 'Command blocked, this channel is part of the server\'s command blocklist.';
+                  contextMetadata.reason = translate('blocked.channel_in_command_blocklist');
                   return true;
                 }
                 if (channel && channel.parentId === blocked.id) {
-                  contextMetadata.reason = 'Command blocked, this channel\'s parent is part of the server\'s command blocklist.';
+                  contextMetadata.reason = translate('blocked.parent_in_command_blocklist');
                   return true;
                 }
                 if (parent && parent.parentId === blocked.id) {
-                  contextMetadata.reason = 'Command blocked, this channel\'s parent\'s parent is part of the server\'s command blocklist.';
+                  contextMetadata.reason = translate('blocked.grandparent_in_command_blocklist');
                   return true;
                 }
               }; break;
               case GuildCommandsBlocklistTypes.GUILD: {
-                contextMetadata.reason = 'Command blocked, this server disabled this command.';
+                contextMetadata.reason = translate('blocked.command_disabled');
                 return true;
               }; break;
               case GuildCommandsBlocklistTypes.ROLE: {
                 if (member && member.roles.has(blocked.id)) {
-                  contextMetadata.reason = `Command blocked, you have a role that is part of the server's command blocklist. (<@&${blocked.id}>)`;
+                  contextMetadata.reason = translate('blocked.role_in_command_blocklist', {role: `<@&${blocked.id}>`});
                   return true;
                 }
               }; break;
               case GuildCommandsBlocklistTypes.USER: {
                 if (blocked.id === context.userId) {
-                  contextMetadata.reason = 'Command blocked, you are part of the server\'s command blocklist.';
+                  contextMetadata.reason = translate('blocked.user_in_command_blocklist');
                   return true;
                 }
               };
@@ -209,7 +210,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
             });
             return true;
           }
-          contextMetadata.reason = 'Command blocked, you are not part of the allowlist.';
+          contextMetadata.reason = translate('blocked.not_in_allowlist');
         }
         return shouldAllow;
       } else {
@@ -219,27 +220,27 @@ export class NotSoInteractionClient extends InteractionCommandClient {
             switch (blocked.type) {
               case GuildBlocklistTypes.CHANNEL: {
                 if (blocked.id === context.channelId) {
-                  contextMetadata.reason = 'Command blocked, this channel is part of the server\'s blocklist.';
+                  contextMetadata.reason = translate('blocked.channel_in_blocklist');
                   return true;
                 }
                 if (channel && channel.parentId === blocked.id) {
-                  contextMetadata.reason = 'Command blocked, this channel\'s parent is part of the server\'s blocklist.';
+                  contextMetadata.reason = translate('blocked.parent_in_blocklist');
                   return true;
                 }
                 if (parent && parent.parentId === blocked.id) {
-                  contextMetadata.reason = 'Command blocked, this channel\'s parent\'s parent is part of the server\'s blocklist.';
+                  contextMetadata.reason = translate('blocked.grandparent_in_blocklist');
                   return true;
                 }
               }; break;
               case GuildBlocklistTypes.ROLE: {
                 if (member && member.roles.has(blocked.id)) {
-                  contextMetadata.reason = `Command blocked, you have a role that is part of the server's blocklist. (<@&${blocked.id}>)`;
+                  contextMetadata.reason = translate('blocked.role_in_blocklist', {role: `<@&${blocked.id}>`});
                   return true;
                 }
               }; break;
               case GuildBlocklistTypes.USER: {
                 if (blocked.id === context.userId) {
-                  contextMetadata.reason = 'Command blocked, you are part of the server\'s blocklist.';
+                  contextMetadata.reason = translate('blocked.user_in_blocklist');
                   return true;
                 }
               }; break;
@@ -265,16 +266,17 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       return true;
     } else {
       // Failed to fetch, got null, just block it lol
-      contextMetadata.reason = 'Command blocked due to the an error with fetching the server data, sorry.';
+      contextMetadata.reason = translate('blocked.server_fetch_failed');
     }
     return false;
   }
 
   async onCommandCancel(context: Interaction.InteractionContext, command: Interaction.InteractionCommand) {
-    const content = (
-      (context.metadata && context.metadata.reason) ||
-      'Command blocked, either you are not part of the allowlist, you\'re part of the blocklist, or the command is disabled.'
-    );
+    let content = context.metadata && context.metadata.reason;
+    if (!content) {
+      const { translate } = await I18n.getTranslator(context);
+      content = translate('blocked.generic');
+    }
     return editOrReply(context, {
       content,
       flags: MessageFlags.EPHEMERAL,

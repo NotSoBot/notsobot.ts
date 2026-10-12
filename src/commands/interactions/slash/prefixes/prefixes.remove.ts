@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { Formatter, Parameters } from '../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -11,10 +11,12 @@ export const COMMAND_NAME = 'remove';
 export class PrefixesRemoveCommand extends BaseInteractionCommandOption {
   blockedCommandShouldStillExecute = false;
   description = 'Remove a custom prefix on this Server';
+  descriptionLocalizations = I18n.localizations('commands.prefixes.prefixes_remove.description');
   metadata = {
     id: Formatter.Commands.PrefixesRemove.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.prefixes.prefixes_remove.name');
   permissions = [Permissions.MANAGE_GUILD];
 
   constructor() {
@@ -23,6 +25,7 @@ export class PrefixesRemoveCommand extends BaseInteractionCommandOption {
         {
           name: 'prefix',
           description: 'Prefix to remove',
+          ...I18n.optionLocalizations('commands.prefixes.prefixes_remove.prefix'),
           required: true,
           onAutoComplete: Parameters.AutoComplete.prefix,
         },

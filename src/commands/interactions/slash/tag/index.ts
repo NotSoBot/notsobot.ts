@@ -1,5 +1,7 @@
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { TagAliasCommand } from './alias';
@@ -17,6 +19,7 @@ import { TagShowCommand } from './show';
 
 export default class TagGroupCommand extends BaseSlashCommand {
   description = 'Custom Tags';
+  descriptionLocalizations = I18n.localizations('commands.tag.description');
   name = 'tag';
 
   contexts = [

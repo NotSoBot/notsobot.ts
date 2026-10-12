@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../utils';
+import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionMediasCommandOption } from '../../basecommand';
 
@@ -9,22 +9,24 @@ export const COMMAND_NAME = 'overlay';
 
 export class MediaAIVOverlayCommand extends BaseInteractionMediasCommandOption {
   description = 'Overlay one media on top of another';
+  descriptionLocalizations = I18n.localizations('commands.media_aiv.overlay.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationOverlay.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.media_aiv.overlay.name');
 
   constructor() {
     super({
       options: [
-        {name: 'blend', description: 'Similarity Blend Amount'},
-        {name: 'color', description: 'Color to make transparent'},
-        {name: 'noloop', description: 'Do not loop the shortest media to match the longest media timestamp', type: Boolean},
-        {name: 'opacity', description: 'Opacity of the overlay', type: Number},
-        {name: 'resize', description: 'Resize Equation (ex: "fit(mw, mh)")'},
-        {name: 'similarity', description: 'Color similarity percentage to make transparent'},
-        {name: 'x', description: 'X Position Equation (ex: "(mw/2)-(ow/2)")'},
-        {name: 'y', description: 'Y Position Equation (ex: "(mh/2)-(oh/2)")'},
+        {name: 'blend', description: 'Similarity Blend Amount', ...I18n.optionLocalizations('commands.media_aiv.overlay.blend')},
+        {name: 'color', description: 'Color to make transparent', ...I18n.optionLocalizations('commands.media_aiv.overlay.color')},
+        {name: 'noloop', description: 'Do not loop the shortest media to match the longest media timestamp', ...I18n.optionLocalizations('commands.media_aiv.overlay.noloop'), type: Boolean},
+        {name: 'opacity', description: 'Opacity of the overlay', ...I18n.optionLocalizations('commands.media_aiv.overlay.opacity'), type: Number},
+        {name: 'resize', description: 'Resize Equation (ex: "fit(mw, mh)")', ...I18n.optionLocalizations('commands.media_aiv.overlay.resize')},
+        {name: 'similarity', description: 'Color similarity percentage to make transparent', ...I18n.optionLocalizations('commands.media_aiv.overlay.similarity')},
+        {name: 'x', description: 'X Position Equation (ex: "(mw/2)-(ow/2)")', ...I18n.optionLocalizations('commands.media_aiv.overlay.x')},
+        {name: 'y', description: 'Y Position Equation (ex: "(mh/2)-(oh/2)")', ...I18n.optionLocalizations('commands.media_aiv.overlay.y')},
       ],
       minAmount: 2,
     });

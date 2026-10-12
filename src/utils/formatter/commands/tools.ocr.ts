@@ -9,6 +9,7 @@ import {
   StatusEmojis,
 } from '../../../constants';
 import { createUserEmbed, editOrReply, languageCodeToText } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'tools.ocr';
@@ -24,6 +25,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
+  const { language, languageName, translate } = await getTranslator(context);
 
   const { annotation } = await googleContentVisionOCR(context, {url: args.url});
 
@@ -32,7 +34,7 @@ export async function createMessage(
   if (annotation) {
     if (2000 < annotation.description.length) {
       file = {filename: 'ocr.txt', value: annotation.description};
-      description = `${annotation.description.length.toLocaleString()} Characters`;
+      description = translate('tools.ocr.characters', {count: annotation.description.length.toLocaleString(language)});
       /*
       try {
         const upload = await context.rest.request({
@@ -53,12 +55,12 @@ export async function createMessage(
   if (args.noembed) {
     if (!annotation) {
       return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} No text detected`,
+        content: `${StatusEmojis.WARNING} ${translate('tools.ocr.no_text')}`,
         flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
       });
     }
 
-    const title = `${languageCodeToText(annotation.locale)} Text`;
+    const title = translate('tools.ocr.title', {language: languageName(annotation.locale, languageCodeToText(annotation.locale))});
     return editOrReply(context, {
       content: [title, description].join('\n'),
       flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
@@ -66,16 +68,15 @@ export async function createMessage(
   } else {
     const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
     embed.setColor(EmbedColors.DEFAULT);
-    embed.setFooter('Optical Character Recognition', EmbedBrands.GOOGLE_GO);
+    embed.setFooter(translate('tools.ocr.footer'), EmbedBrands.GOOGLE_GO);
     embed.setThumbnail(args.url);
 
     if (annotation) {
-      const language = languageCodeToText(annotation.locale);
-      embed.setTitle(`${language} Text`);
+      embed.setTitle(translate('tools.ocr.title', {language: languageName(annotation.locale, languageCodeToText(annotation.locale))}));
       embed.setDescription(description);
     } else {
       embed.setColor(EmbedColors.ERROR);
-      embed.setDescription('No text detected');
+      embed.setDescription(translate('tools.ocr.no_text'));
     }
 
     return editOrReply(context, {

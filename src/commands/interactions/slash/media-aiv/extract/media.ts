@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionAudioOrVideoCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'media';
 
 export class MediaAIVExtractMediaCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Extract Audio and Frames into a ZIP from an Audio, Image, or Video File';
+  descriptionLocalizations = I18n.localizations('commands.media_aiv.extract.media.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationExtractMedia.COMMAND_ID,
   };

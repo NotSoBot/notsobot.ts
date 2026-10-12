@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -12,16 +12,18 @@ export interface CommandArgs {
 
 export class SearchSteamCommunityCommand extends BaseInteractionCommandOption {
   description = 'Search Steam Community';
+  descriptionLocalizations = I18n.localizations('commands.search.steam.steam_community.description');
   metadata = {
     id: Formatter.Commands.SearchSteamCommunity.COMMAND_ID,
   };
   name = 'community';
+  nameLocalizations = I18n.localizations('commands.search.steam.steam_community.name');
 
   constructor() {
     super({
       options: [
-        {name: 'query', description: 'Search Text', required: true},
-        {name: 'as', description: 'Steam ID to search as I think'},
+        {name: 'query', description: 'Search Text', ...I18n.optionLocalizations('commands.search.steam.steam_community.query'), required: true},
+        {name: 'as', description: 'Steam ID to search as I think', ...I18n.optionLocalizations('commands.search.steam.steam_community.as')},
       ],
     });
   }

@@ -11,7 +11,7 @@ import {
   GuildCommandsBlocklistTypes,
   UserFlags,
 } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { I18n, editOrReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -20,7 +20,9 @@ export const COMMAND_NAME = 'help-permissions-check';
 
 export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
   description = 'Help, the bot doesn\'t respond to prefix commands';
+  descriptionLocalizations = I18n.localizations('commands.help_permissions_check.description');
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.help_permissions_check.name');
 
   contexts = [
     InteractionContextTypes.GUILD,

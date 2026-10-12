@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaAIVAudioPutConcatCommand } from './put-concat';

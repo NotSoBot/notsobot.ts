@@ -72,6 +72,8 @@ export function createTranslator(language: Languages) {
 
 export interface Translator {
   language: Languages,
+  // name of a language code (like 'en' or 'pt-BR'), english keeps notsobot's own names so those replies don't change
+  languageName: (code: string, englishText: string, options?: {capitalize?: boolean}) => string,
   translate: (key: TranslationKey, variables?: Record<string, number | string>) => string,
   // for keys built at runtime (like `presence.status.${status}`), returns the fallback when we don't have the key
   translateMaybe: (key: string, fallback: string) => string,
@@ -81,9 +83,36 @@ export function getTranslatorForLanguage(language: Languages): Translator {
   const translate = createTranslator(language);
   return {
     language,
+    languageName: (code, englishText, options = {}) => getLanguageName(language, code, englishText, options),
     translate,
     translateMaybe: (key, fallback) => (key in English) ? translate(key as TranslationKey) : fallback,
   };
+}
+
+
+export function getLanguageName(
+  language: Languages,
+  code: string,
+  englishText: string,
+  options: {capitalize?: boolean} = {},
+): string {
+  if (language === Languages.ENGLISH) {
+    return englishText;
+  }
+  let name: string | undefined;
+  try {
+    name = new Intl.DisplayNames([language], {type: 'language'}).of(code);
+  } catch(error) {
+    // invalid codes throw a RangeError
+  }
+  if (!name || name === code) {
+    return englishText;
+  }
+  // other languages lowercase language names ("español"), which looks off when it's a title on its own
+  if (options.capitalize) {
+    name = name.charAt(0).toLocaleUpperCase(language) + name.slice(1);
+  }
+  return name;
 }
 
 export async function getTranslator(context: LanguageContext): Promise<Translator> {

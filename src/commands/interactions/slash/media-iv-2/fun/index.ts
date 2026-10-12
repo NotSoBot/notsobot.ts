@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVDetunnelCommand } from './detunnel';
@@ -31,6 +33,7 @@ import { MediaIVZoomBlurCommand } from './zoom-blur';
 export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'fun';
+  nameLocalizations = I18n.localizations('commands.media_iv_2.fun.name');
 
   constructor() {
     super({

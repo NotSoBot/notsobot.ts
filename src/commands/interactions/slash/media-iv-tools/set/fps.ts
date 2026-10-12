@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter, Parameters } from '../../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'fps';
 
 export class MediaIVToolsSetFPSCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Set an Animated Image or Video\'s FPS';
+  descriptionLocalizations = I18n.localizations('commands.media_iv_tools.set.fps.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationSetFPS.COMMAND_ID,
   };
@@ -20,6 +21,7 @@ export class MediaIVToolsSetFPSCommand extends BaseInteractionImageOrVideoComman
         {
           name: 'fps',
           description: 'Frames Per Second',
+          ...I18n.optionLocalizations('commands.media_iv_tools.set.fps.fps'),
           required: true,
           type: Number,
         },

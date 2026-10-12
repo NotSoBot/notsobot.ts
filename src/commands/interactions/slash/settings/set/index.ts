@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { SettingsSetAIModelCommand } from './ai-model';
@@ -18,6 +20,7 @@ import { SettingsSetUnitsCommand } from './units';
 export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'set';
+  nameLocalizations = I18n.localizations('commands.settings.set.name');
 
   constructor() {
     super({

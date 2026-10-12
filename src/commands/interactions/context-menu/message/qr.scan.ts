@@ -5,7 +5,7 @@ import {
   MessageFlags,
 } from 'detritus-client/lib/constants';
 
-import { Formatter, findMediaUrlInMessages, getOrFetchRealUrl } from '../../../../utils';
+import { Formatter, I18n, findMediaUrlInMessages, getOrFetchRealUrl } from '../../../../utils';
 
 import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
 
@@ -21,6 +21,7 @@ export default class QRScanCommand extends BaseContextMenuMessageCommand {
     id: Formatter.Commands.ToolsQrScan.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.context.qr_scan.name');
 
   contexts = [
     InteractionContextTypes.GUILD,
@@ -40,9 +41,10 @@ export default class QRScanCommand extends BaseContextMenuMessageCommand {
     return !!args.url;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: QRScanCommandArgs) {
+  async onCancelRun(context: Interaction.InteractionContext, args: QRScanCommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
     return context.editOrRespond({
-      content: 'Message must have some sort of image to scan!',
+      content: translate('commands.context.qr_scan.no_media'),
       flags: MessageFlags.EPHEMERAL,
     });
   }

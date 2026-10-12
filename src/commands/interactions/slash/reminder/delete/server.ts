@@ -1,7 +1,7 @@
 import { Constants, Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { DefaultParameters, Formatter, Parameters, editOrReply } from '../../../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -9,10 +9,12 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 export class ReminderDeleteServerCommand extends BaseInteractionCommandOption {
   blockedCommandShouldStillExecute = false;
   description = 'Delete a Reminder from the Server';
+  descriptionLocalizations = I18n.localizations('commands.reminder.delete.server.description');
   metadata = {
     id: Formatter.Commands.ReminderDeleteServer.COMMAND_ID,
   };
   name = 'server';
+  nameLocalizations = I18n.localizations('commands.reminder.delete.server.name');
 
   constructor() {
     super({
@@ -20,6 +22,7 @@ export class ReminderDeleteServerCommand extends BaseInteractionCommandOption {
         {
           name: 'reminder',
           description: 'Reminder Content/ID',
+          ...I18n.optionLocalizations('commands.reminder.delete.server.reminder'),
           label: 'position',
           required: true,
           onAutoComplete: Parameters.AutoComplete.reminder,

@@ -13,6 +13,7 @@ import {
   fetchMemberOrUserById,
   formatTime,
 } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'media.av.tools.identify';
@@ -28,6 +29,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
+  const { translate } = await getTranslator(context);
   const songs = await mediaAVToolsIdentify(context, {
     start: (args.start) ? args.start * 1000 : args.start,
     url: args.url,
@@ -43,14 +45,14 @@ export async function createMessage(
 
         const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
         embed.setColor(EmbedColors.DEFAULT);
-        embed.setTitle(`${song.title} by ${song.artists[0]!.name}`);
+        embed.setTitle(translate('media.identify.title', {artist: song.artists[0]!.name, title: song.title}));
 
         {
           let footer: string;
           if (pageLimit === 1) {
-            footer = 'Audio Recognition Result';
+            footer = translate('media.identify.footer');
           } else {
-            footer = `Page ${page}/${pageLimit} of Audio Recognition Results`;
+            footer = translate('media.identify.footer_paged', {page, total: pageLimit});
           }
           embed.setFooter(footer, EmbedBrands.NOTSOBOT);
         }
@@ -70,23 +72,23 @@ export async function createMessage(
 
         {
           const description: Array<string> = [];
-          description.push(`**Album**: ${song.album.name}`);
-          description.push(`**Artist**: ${song.artists[0]!.name}`);
-          description.push(`**Duration**: ${formatTime(song.duration)}`);
+          description.push(`**${translate('activity.album')}**: ${song.album.name}`);
+          description.push(`**${translate('media.identify.artist')}**: ${song.artists[0]!.name}`);
+          description.push(`**${translate('media.identify.duration')}**: ${formatTime(song.duration)}`);
           if (song.label) {
-            description.push(`**Label**: ${song.label}`);
+            description.push(`**${translate('media.identify.label')}**: ${song.label}`);
           }
           if (song.genres.length) {
-            description.push(`**Genres**: ${song.genres.join(', ')}`);
+            description.push(`**${translate('media.identify.genres')}**: ${song.genres.join(', ')}`);
           }
-          description.push(`**Match**: ${song.score}%`);
+          description.push(`**${translate('media.identify.match')}**: ${song.score}%`);
           if (song.release_date) {
-            description.push(`**Release Date**: ${song.release_date}`);
+            description.push(`**${translate('media.identify.release_date')}**: ${song.release_date}`);
           }
           if (song.timestamp) {
-            description.push(`**Timestamp**: ${formatTime(song.timestamp)}`);
+            description.push(`**${translate('media.identify.timestamp')}**: ${formatTime(song.timestamp)}`);
           }
-          description.push(`**Title**: ${song.title}`);
+          description.push(`**${translate('media.identify.title_label')}**: ${song.title}`);
           embed.setDescription(description.join('\n'));
         }
 
@@ -108,7 +110,7 @@ export async function createMessage(
             urls.push(Markup.url('YouTube', song.platforms.youtube.url));
           }
           if (urls.length) {
-            embed.addField('Platform Links', urls.join(', '));
+            embed.addField(translate('media.identify.platform_links'), urls.join(', '));
           }
         }
 
@@ -124,7 +126,7 @@ export async function createMessage(
             urls.push(Markup.url('Spotify', song.platforms.spotify.preview_url));
           }
           if (urls.length) {
-            embed.addField('Preview Links', urls.join(', '));
+            embed.addField(translate('media.identify.preview_links'), urls.join(', '));
           }
         }
 
@@ -135,7 +137,7 @@ export async function createMessage(
   }
 
   return editOrReply(context, {
-    content: 'Couldn\'t identify any songs',
+    content: translate('media.identify.not_found'),
     flags: MessageFlags.EPHEMERAL,
   });
   /*

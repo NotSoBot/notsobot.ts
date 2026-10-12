@@ -4,6 +4,8 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaIVConvertCommand } from './convert';
@@ -16,6 +18,7 @@ import { MediaIVTintGroupCommand } from './tint';
 
 export default class MediaIVGroupCommand extends BaseSlashCommand {
   description = 'Image and Video Manipulation Commands';
+  descriptionLocalizations = I18n.localizations('commands.media_iv.description');
   name = 'media-iv';
 
   contexts = [

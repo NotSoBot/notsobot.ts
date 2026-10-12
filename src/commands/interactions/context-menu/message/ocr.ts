@@ -5,7 +5,7 @@ import {
   MessageFlags,
 } from 'detritus-client/lib/constants';
 
-import { Formatter, findMediaUrlInMessages } from '../../../../utils';
+import { Formatter, I18n, findMediaUrlInMessages } from '../../../../utils';
 
 import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
 
@@ -21,6 +21,7 @@ export default class OCRCommand extends BaseContextMenuMessageCommand {
     id: Formatter.Commands.ToolsOCR.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.context.ocr.name');
 
   contexts = [
     InteractionContextTypes.GUILD,
@@ -37,9 +38,10 @@ export default class OCRCommand extends BaseContextMenuMessageCommand {
     return !!args.url;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {
+  async onCancelRun(context: Interaction.InteractionContext, args: OCRCommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
     return context.editOrRespond({
-      content: 'Message must have some sort of image to read!',
+      content: translate('commands.context.ocr.no_media'),
       flags: MessageFlags.EPHEMERAL,
     });
   }

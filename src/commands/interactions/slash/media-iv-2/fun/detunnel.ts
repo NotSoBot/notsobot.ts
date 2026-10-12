@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'detunnel';
 
 export class MediaIVDetunnelCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Apply a De-Tunnel effect on an Image or Video';
+  descriptionLocalizations = I18n.localizations('commands.media_iv_2.fun.detunnel.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationDetunnel.COMMAND_ID,
   };
@@ -17,7 +18,7 @@ export class MediaIVDetunnelCommand extends BaseInteractionImageOrVideoCommandOp
   constructor() {
     super({
       options: [
-        {name: 'spiral', description: 'Spiral Tunnel Effect', type: Boolean},
+        {name: 'spiral', description: 'Spiral Tunnel Effect', ...I18n.optionLocalizations('commands.media_iv_2.fun.detunnel.spiral'), type: Boolean},
       ],
     });
   }

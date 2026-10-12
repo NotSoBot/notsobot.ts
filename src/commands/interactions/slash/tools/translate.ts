@@ -6,7 +6,7 @@ import {
 } from 'detritus-client/lib/constants';
 
 import { GoogleLocales } from '../../../../constants';
-import { DefaultParameters, Formatter, Parameters } from '../../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -22,10 +22,12 @@ export const COMMAND_NAME = 'translate';
 
 export class ToolsTranslateCommand extends BaseInteractionCommandOption {
   description = 'Translate some text';
+  descriptionLocalizations = I18n.localizations('commands.tools.translate.description');
   metadata = {
     id: Formatter.Commands.ToolsTranslate.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.tools.translate.name');
 
   contexts = [
     InteractionContextTypes.GUILD,
@@ -40,10 +42,10 @@ export class ToolsTranslateCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'text', description: 'Text to translate', value: Parameters.parsedMentionsText, required: true},
-        {name: 'to', description: 'Language to translate to', value: Parameters.locale},
-        {name: 'to-choices', description: 'Language to translate to (Choices)', choices: Parameters.Slash.GOOGLE_LOCALES, label: 'toChoice'},
-        {name: 'from', description: 'Language to translate from', choices: Parameters.Slash.GOOGLE_LOCALES},
+        {name: 'text', description: 'Text to translate', ...I18n.optionLocalizations('commands.tools.translate.text'), value: Parameters.parsedMentionsText, required: true},
+        {name: 'to', description: 'Language to translate to', ...I18n.optionLocalizations('commands.tools.translate.to'), value: Parameters.locale},
+        {name: 'to-choices', description: 'Language to translate to (Choices)', ...I18n.optionLocalizations('commands.tools.translate.to-choices'), choices: Parameters.Slash.GOOGLE_LOCALES, label: 'toChoice'},
+        {name: 'from', description: 'Language to translate from', ...I18n.optionLocalizations('commands.tools.translate.from'), choices: Parameters.Slash.GOOGLE_LOCALES},
       ],
     });
   }

@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 import { MessageFlags, Permissions } from 'detritus-client/lib/constants';
 
 import { GuildBlocklistTypes, StatusEmojis } from '../../../../../constants';
-import { Formatter, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -11,10 +11,12 @@ export const COMMAND_NAME = 'add';
 
 export class ModerationBlocklistAddCommand extends BaseInteractionCommandOption {
   description = 'Add channels, roles, or users to the blocklist';
+  descriptionLocalizations = I18n.localizations('commands.moderation.blocklist.add.description');
   metadata = {
     id: Formatter.Commands.ModerationBlocklistAdd.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.moderation.blocklist.add.name');
 
   constructor() {
     super({
@@ -24,6 +26,7 @@ export class ModerationBlocklistAddCommand extends BaseInteractionCommandOption 
         {
           name: 'items',
           description: 'Channels, roles, or users to add (Mentions, separated by spaces)',
+          ...I18n.optionLocalizations('commands.moderation.blocklist.add.items'),
           label: 'payloads',
           required: true,
           value: Formatter.Commands.ModerationBlocklistAdd.getItemsFromMention,
@@ -38,15 +41,16 @@ export class ModerationBlocklistAddCommand extends BaseInteractionCommandOption 
     });
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationBlocklistAdd.CommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationBlocklistAdd.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.payloads && args.payloads.length) {
       return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} Don\'t block yourself dummy`,
+        content: `${StatusEmojis.WARNING} ${translate('commands.context.blocklist_add.self')}`,
         flags: MessageFlags.EPHEMERAL,
       });
     }
     return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} Unable to find any valid Text Channels, Roles, or Users`,
+      content: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`,
       flags: MessageFlags.EPHEMERAL,
     });
   }

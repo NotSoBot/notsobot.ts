@@ -1,13 +1,14 @@
 import { Interaction } from 'detritus-client';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class TagRemoveTagCommand extends BaseInteractionCommandOption {
   description = 'Remove a tag';
+  descriptionLocalizations = I18n.localizations('commands.tag.remove.tag.description');
   metadata = {
     id: Formatter.Commands.TagRemove.COMMAND_ID,
   };
@@ -19,6 +20,7 @@ export class TagRemoveTagCommand extends BaseInteractionCommandOption {
         {
           name: 'name',
           description: 'Tag\'s Name',
+          ...I18n.optionLocalizations('commands.tag.remove.tag.name'),
           label: 'tag',
           required: true,
           value: Parameters.NotSoTag,
@@ -32,9 +34,10 @@ export class TagRemoveTagCommand extends BaseInteractionCommandOption {
     return !!args.tag;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagRemove.CommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagRemove.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.tag === false) {
-      return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
+      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
     }
     return super.onCancelRun(context, args);
   }

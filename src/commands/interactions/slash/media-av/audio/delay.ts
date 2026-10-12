@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionAudioOrVideoCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'delay';
 
 export class MediaAVAudioDelayCommand extends BaseInteractionAudioOrVideoCommandOption {
   description = 'Delay the Audio Stream of an Audio or Video File';
+  descriptionLocalizations = I18n.localizations('commands.media_av.audio.delay.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioDelay.COMMAND_ID,
   };
@@ -17,8 +18,8 @@ export class MediaAVAudioDelayCommand extends BaseInteractionAudioOrVideoCommand
   constructor() {
     super({
       options: [
-        {name: 'delay', description: 'Delay Amount', required: true, type: 'number'},
-        {name: 'nosnip', description: 'Avoid Snipping Excess Audio', type: Boolean},
+        {name: 'delay', description: 'Delay Amount', ...I18n.optionLocalizations('commands.media_av.audio.delay.delay'), required: true, type: 'number'},
+        {name: 'nosnip', description: 'Avoid Snipping Excess Audio', ...I18n.optionLocalizations('commands.media_av.audio.delay.nosnip'), type: Boolean},
       ],
     });
   }

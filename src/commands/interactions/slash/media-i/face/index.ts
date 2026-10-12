@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIAlienCommand } from './alien';
@@ -9,6 +11,7 @@ import { MediaIFatCommand } from './fat';
 export class MediaFaceGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'face';
+  nameLocalizations = I18n.localizations('commands.media_i.face.name');
 
   constructor() {
     super({

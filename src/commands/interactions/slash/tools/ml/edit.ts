@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { MLDiffusionModels, MLDiffusionModelsToText } from '../../../../../constants';
-import { DefaultParameters, Formatter, Parameters } from '../../../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionMediasCommandOption } from '../../../basecommand';
 
@@ -10,10 +10,12 @@ export const COMMAND_NAME = 'edit';
 
 export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
   description = 'Alter an Image with Machine Learning';
+  descriptionLocalizations = I18n.localizations('commands.tools.ml.edit.description');
   metadata = {
     id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.tools.ml.edit.name');
 
   constructor() {
     super({
@@ -21,22 +23,25 @@ export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
         {
           name: 'query',
           description: 'Prompt to edit the Image with',
+          ...I18n.optionLocalizations('commands.tools.ml.edit.query'),
           value: Parameters.parsedMentionsText,
         },
         {
           name: 'expand',
           description: 'Expand Image',
+          ...I18n.optionLocalizations('commands.tools.ml.edit.expand'),
           type: Boolean,
         },
         {
           name: 'model',
           description: 'Diffusion Model',
+          ...I18n.optionLocalizations('commands.tools.ml.edit.model'),
           value: Parameters.oneOf({choices: MLDiffusionModels, descriptions: MLDiffusionModelsToText}),
           onAutoComplete: Parameters.AutoComplete.mlDiffusionModel,
         },
-        {name: 'seed', type: Number, description: 'Initial Noise'},
-        {name: 'steps', type: Number, description: 'Number of Samples to take (1 to 16)'},
-        {name: 'strength', description: 'Strength of Prompt (0.01 to 1)'},
+        {name: 'seed', type: Number, description: 'Initial Noise', ...I18n.optionLocalizations('commands.tools.ml.edit.seed')},
+        {name: 'steps', type: Number, description: 'Number of Samples to take (1 to 16)', ...I18n.optionLocalizations('commands.tools.ml.edit.steps')},
+        {name: 'strength', description: 'Strength of Prompt (0.01 to 1)', ...I18n.optionLocalizations('commands.tools.ml.edit.strength')},
       ],
       maxAmount: 3,
       minAmount: 1,

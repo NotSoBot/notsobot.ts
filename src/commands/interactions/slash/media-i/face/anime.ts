@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionImageCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'anime';
 
 export class MediaIAnimeCommand extends BaseInteractionImageCommandOption {
   description = 'Animeify an Image\'s face';
+  descriptionLocalizations = I18n.localizations('commands.media_i.face.anime.description');
   metadata = {
 	id: Formatter.Commands.MediaIManipulationFaceAnime.COMMAND_ID,
   };

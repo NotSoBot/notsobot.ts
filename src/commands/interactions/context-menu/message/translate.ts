@@ -9,6 +9,7 @@ import { utilitiesFetchMedia } from '../../../../api';
 import {
   DefaultParameters,
   Formatter,
+  I18n,
   findMediaUrlInMessages,
   getOrFetchRealUrl,
 } from '../../../../utils';
@@ -28,6 +29,7 @@ export default class TranslateCommand extends BaseContextMenuMessageCommand {
     id: Formatter.Commands.ToolsTranslate.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.context.translate.name');
 
   contexts = [
     InteractionContextTypes.GUILD,
@@ -48,9 +50,10 @@ export default class TranslateCommand extends BaseContextMenuMessageCommand {
     return !!(args.text || args.url);
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: TranslateCommandArgs) {
+  async onCancelRun(context: Interaction.InteractionContext, args: TranslateCommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
     return context.editOrRespond({
-      content: 'Message must have some sort of media or text to translate!',
+      content: translate('commands.context.translate.no_media'),
       flags: MessageFlags.EPHEMERAL,
     });
   }

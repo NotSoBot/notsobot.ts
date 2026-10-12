@@ -8,6 +8,7 @@ import {
 import {
   DefaultParameters,
   Formatter,
+  I18n,
   findMediaUrlInMessages,
   getOrFetchRealUrl,
 } from '../../../../utils';
@@ -30,6 +31,7 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
     id: Formatter.Commands.ToolsDownload.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.context.download.name');
 
   contexts = [
     InteractionContextTypes.GUILD,
@@ -49,9 +51,10 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
     return !!args.url;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     return context.editOrRespond({
-      content: 'Message must have some sort of media or URL to download!',
+      content: translate('commands.context.download.no_media'),
       flags: MessageFlags.EPHEMERAL,
     });
   }

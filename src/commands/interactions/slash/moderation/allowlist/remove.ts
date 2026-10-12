@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 import { MessageFlags, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -11,10 +11,12 @@ export const COMMAND_NAME = 'remove';
 
 export class ModerationAllowlistRemoveCommand extends BaseInteractionCommandOption {
   description = 'Remove channels, roles, or users from the allowlist';
+  descriptionLocalizations = I18n.localizations('commands.moderation.allowlist.remove.description');
   metadata = {
     id: Formatter.Commands.ModerationAllowlistRemove.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.moderation.allowlist.remove.name');
 
   constructor() {
     super({
@@ -24,6 +26,7 @@ export class ModerationAllowlistRemoveCommand extends BaseInteractionCommandOpti
         {
           name: 'items',
           description: 'Channels, roles, or users to remove (Mentions, separated by spaces)',
+          ...I18n.optionLocalizations('commands.moderation.allowlist.remove.items'),
           label: 'payloads',
           required: true,
           value: Formatter.Commands.ModerationAllowlistAdd.getItemsFromMention,
@@ -36,9 +39,10 @@ export class ModerationAllowlistRemoveCommand extends BaseInteractionCommandOpti
     return !!args.payloads && !!args.payloads.length;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationAllowlistRemove.CommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationAllowlistRemove.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} Unable to find any valid Text Channels, Roles, or Users`,
+      content: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`,
       flags: MessageFlags.EPHEMERAL,
     });
   }

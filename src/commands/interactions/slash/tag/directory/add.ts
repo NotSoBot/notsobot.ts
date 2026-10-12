@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -10,10 +10,12 @@ export const COMMAND_NAME = 'add';
 
 export class TagDirectoryAddCommand extends BaseInteractionCommandOption {
   description = 'Add one of your tags from your DMs with NotSoBot to the Tag Directory';
+  descriptionLocalizations = I18n.localizations('commands.tag.directory.add.description');
   metadata = {
     id: Formatter.Commands.TagDirectoryAdd.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.tag.directory.add.name');
 
   constructor() {
     super({
@@ -21,6 +23,7 @@ export class TagDirectoryAddCommand extends BaseInteractionCommandOption {
         {
           name: 'tag',
           description: 'Tag to add to directory from DM',
+          ...I18n.optionLocalizations('commands.tag.directory.add.tag'),
           required: true,
           value: Parameters.tagToAdd,
           onAutoComplete: Parameters.AutoComplete.tagsToAdd,
@@ -33,10 +36,11 @@ export class TagDirectoryAddCommand extends BaseInteractionCommandOption {
     return !!args.tag;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagDirectoryAdd.CommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagDirectoryAdd.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.tag !== null) {
       if (args.tag === false) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Unknown Tag`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
       }
     }
     return super.onCancelRun(context, args);

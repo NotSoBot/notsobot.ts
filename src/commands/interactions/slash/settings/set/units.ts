@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { MeasurementUnits } from '../../../../../constants';
-import { Formatter, Parameters } from '../../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -9,10 +9,12 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 export class SettingsSetUnitsCommand extends BaseInteractionCommandOption {
   description = 'Set what your default Measurement Unit should be';
+  descriptionLocalizations = I18n.localizations('commands.settings.set.units.description');
   metadata = {
     id: Formatter.Commands.SettingsSetUnits.COMMAND_ID,
   };
   name = 'units';
+  nameLocalizations = I18n.localizations('commands.settings.set.units.name');
 
   constructor() {
     super({
@@ -20,11 +22,13 @@ export class SettingsSetUnitsCommand extends BaseInteractionCommandOption {
         {
           name: 'units',
           description: 'Measurement Unit (Default: Imperial)',
+          ...I18n.optionLocalizations('commands.settings.set.units.units'),
           choices: Parameters.Slash.oneOf({choices: MeasurementUnits}),
         },
         {
           name: 'clear',
           description: 'Clear Preference',
+          ...I18n.optionLocalizations('commands.settings.set.units.clear'),
           type: Boolean,
         },
       ],

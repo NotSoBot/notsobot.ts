@@ -4,6 +4,8 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaFaceGroupCommand } from './face';
@@ -13,6 +15,7 @@ import { MediaFunGroupCommand } from './fun';
 
 export default class MediaIGroupCommand extends BaseSlashCommand {
   description = 'Image Manipulation Commands';
+  descriptionLocalizations = I18n.localizations('commands.media_i.description');
   name = 'media-i';
 
   contexts = [

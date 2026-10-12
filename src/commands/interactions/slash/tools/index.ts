@@ -1,5 +1,7 @@
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { ToolsHashCommand } from './hash';
@@ -15,7 +17,9 @@ import { ToolsQrGroupCommand } from './qr';
 
 export default class ToolsGroupCommand extends BaseSlashCommand {
   description = 'Tool-like Commands';
+  descriptionLocalizations = I18n.localizations('commands.tools.description');
   name = 'tools';
+  nameLocalizations = I18n.localizations('commands.tools.name');
 
   contexts = [
     InteractionContextTypes.GUILD,

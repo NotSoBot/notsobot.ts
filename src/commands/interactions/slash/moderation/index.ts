@@ -1,5 +1,7 @@
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { ModerationAllowlistGroupCommand } from './allowlist';
@@ -11,7 +13,9 @@ import { ModerationUnbanCommand } from './unban';
 
 export default class ModerationGroupCommand extends BaseSlashCommand {
   description = 'Moderation Commands';
+  descriptionLocalizations = I18n.localizations('commands.moderation.description');
   name = 'moderation';
+  nameLocalizations = I18n.localizations('commands.moderation.name');
 
   contexts = [
     InteractionContextTypes.GUILD,

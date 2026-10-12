@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter, Parameters } from '../../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'bobross';
 
 export class MediaIVOverlayBobRossCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Overlay an Image or Video over a Bob Ross canvas';
+  descriptionLocalizations = I18n.localizations('commands.media_iv.overlay.bob_ross.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayPersonsBobRoss.COMMAND_ID,
   };

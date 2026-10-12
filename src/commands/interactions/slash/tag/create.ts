@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -14,10 +14,12 @@ export interface CommandArgsBefore {
 export class TagCreateCommand extends BaseInteractionCommandOption {
   blockedCommandShouldStillExecute = false;
   description = 'Create a tag';
+  descriptionLocalizations = I18n.localizations('commands.tag.create.description');
   metadata = {
     id: Formatter.Commands.TagCreate.COMMAND_ID,
   };
   name = 'create';
+  nameLocalizations = I18n.localizations('commands.tag.create.name');
 
   constructor() {
     super({
@@ -25,6 +27,7 @@ export class TagCreateCommand extends BaseInteractionCommandOption {
         {
           name: 'name',
           description: 'Tag\'s Name',
+          ...I18n.optionLocalizations('commands.tag.create.name'),
           label: 'tag',
           required: true,
           value: Parameters.tagName,
@@ -32,6 +35,7 @@ export class TagCreateCommand extends BaseInteractionCommandOption {
         {
           name: 'content',
           description: 'Tag\'s Content',
+          ...I18n.optionLocalizations('commands.tag.create.content'),
           required: true,
           value: Parameters.tagContent,
         },
@@ -43,13 +47,14 @@ export class TagCreateCommand extends BaseInteractionCommandOption {
     return !!args.tag && !!args.content;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
+  async onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
     if (args.tag || args.content) {
       if (!args.tag) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Gotta have some sort of tag name`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.needs_name')}`);
       }
       if (!args.content) {
-        return editOrReply(context, `${StatusEmojis.WARNING} Must have some sort of content for the tag!`);
+        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.needs_content')}`);
       }
     }
     return super.onCancelRun(context, args);

@@ -6,7 +6,7 @@ import {
 } from 'detritus-client/lib/constants';
 
 import { MeasurementUnits } from '../../../../constants';
-import { DefaultParameters, Formatter, Parameters } from '../../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -15,10 +15,12 @@ export const COMMAND_NAME = 'weather';
 
 export class ToolsWeatherCommand extends BaseInteractionCommandOption {
   description = 'Get the Weather of Some Place';
+  descriptionLocalizations = I18n.localizations('commands.tools.weather.description');
   metadata = {
     id: Formatter.Commands.ToolsWeather.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.tools.weather.name');
 
   contexts = [
     InteractionContextTypes.GUILD,
@@ -33,8 +35,8 @@ export class ToolsWeatherCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'query', description: 'Location', required: true, onAutoComplete: Parameters.AutoComplete.locations},
-        {name: 'units', description: 'Units to Use', choices: Parameters.Slash.oneOf({choices: MeasurementUnits})},
+        {name: 'query', description: 'Location', ...I18n.optionLocalizations('commands.tools.weather.query'), required: true, onAutoComplete: Parameters.AutoComplete.locations},
+        {name: 'units', description: 'Units to Use', ...I18n.optionLocalizations('commands.tools.weather.units'), choices: Parameters.Slash.oneOf({choices: MeasurementUnits})},
       ],
     });
   }

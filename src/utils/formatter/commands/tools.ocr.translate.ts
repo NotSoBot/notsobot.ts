@@ -10,6 +10,7 @@ import {
   GoogleLocales,
 } from '../../../constants';
 import { createUserEmbed, editOrReply, languageCodeToText, splitTextByAmount } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'tools.ocr.translate';
@@ -25,8 +26,9 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
+  const { language, languageName, translate } = await getTranslator(context);
   if (!args.file && !args.url) {
-    return editOrReply(context, 'Internal Error, one of file or url must be provided');
+    return editOrReply(context, translate('tools.translate.missing_input'));
   }
 
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
@@ -38,7 +40,7 @@ export async function createMessage(
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
   embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Google Translate from OCR', EmbedBrands.GOOGLE_GO);
+  embed.setFooter(translate('tools.translate.footer_ocr'), EmbedBrands.GOOGLE_GO);
 
   if (args.url) {
     embed.setThumbnail(args.url);
@@ -63,7 +65,11 @@ export async function createMessage(
 
     const fromLanguageText = languageCodeToText(fromLanguage);
     const translatedLanguageText = languageCodeToText(translatedLanguage);
-    embed.setTitle(`Translated from ${fromLanguageText} to ${translatedLanguageText}`);
+    const fromLanguageName = languageName(fromLanguage, fromLanguageText);
+    const fromLanguageTitle = languageName(fromLanguage, fromLanguageText, {capitalize: true});
+    const translatedLanguageName = languageName(translatedLanguage, translatedLanguageText);
+    const translatedLanguageTitle = languageName(translatedLanguage, translatedLanguageText, {capitalize: true});
+    embed.setTitle(translate('tools.translate.title', {from: fromLanguageName, to: translatedLanguageName}));
 
     const shouldShowInput = (translatedText !== annotation.description);
     const totalLength = annotation.description.length + translatedText.length;
@@ -71,7 +77,7 @@ export async function createMessage(
       if (shouldShowInput) {
         // 1024 - 10 ('```\n\n```')
         const parts = splitTextByAmount(annotation.description, 1014, '');
-        embed.addField(fromLanguageText, Markup.codeblock(parts.shift() as string));
+        embed.addField(fromLanguageTitle, Markup.codeblock(parts.shift() as string));
         for (let part of parts) {
           embed.addField('\u200b', Markup.codeblock(part));
         }
@@ -80,7 +86,7 @@ export async function createMessage(
       {
         // 1024 - 10 ('```\n\n```')
         const parts = splitTextByAmount(translatedText, 1014, '');
-        const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageText : `${fromLanguageText} -> ${translatedLanguageText}`;
+        const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageTitle : `${fromLanguageTitle} -> ${translatedLanguageTitle}`;
         embed.addField(title, Markup.codeblock(parts.shift() as string));
         for (let part of parts) {
           embed.addField('\u200b', Markup.codeblock(part));
@@ -92,13 +98,13 @@ export async function createMessage(
       }
       files.push({filename: `translate-to-${translatedLanguageText.toLowerCase()}.txt`, value: translatedText});
       embed.setDescription([
-        `Input: ${annotation.description.length.toLocaleString()} Characters`,
-        `Result: ${translatedText.length.toLocaleString()} Characters`,
+        translate('tools.translate.input_characters', {count: annotation.description.length.toLocaleString(language)}),
+        translate('tools.translate.result_characters', {count: translatedText.length.toLocaleString(language)}),
       ].join('\n'));
     }
   } else {
     embed.setColor(EmbedColors.ERROR);
-    embed.setDescription('No text detected');
+    embed.setDescription(translate('tools.ocr.no_text'));
   }
 
   return editOrReply(context, {

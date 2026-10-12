@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { MediaWiggleDirections } from '../../../../../constants';
-import { Formatter, Parameters, toTitleCase } from '../../../../../utils';
+import { Formatter, I18n, Parameters, toTitleCase } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
@@ -12,24 +12,27 @@ export const COMMAND_NAME = 'wiggle';
 
 export class MediaIVWiggleCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Wiggle an Image or Video';
+  descriptionLocalizations = I18n.localizations('commands.media_iv_2.fun.wiggle.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationWiggle.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.media_iv_2.fun.wiggle.name');
 
   constructor() {
     super({
       options: [
-        {name: 'amount', description: 'Wiggle Distortion Amount (Default: 10)', type: Number},
+        {name: 'amount', description: 'Wiggle Distortion Amount (Default: 10)', ...I18n.optionLocalizations('commands.media_iv_2.fun.wiggle.amount'), type: Number},
         {
           name: 'direction',
           description: `Wave Direction (Default: ${toTitleCase(DEFAULT_DIRECTION)})`,
+          ...I18n.optionLocalizations('commands.media_iv_2.fun.wiggle.direction'),
           choices: Parameters.Slash.oneOf({
             choices: MediaWiggleDirections,
             defaultChoice: DEFAULT_DIRECTION,
           }),
         },
-        {name: 'wavelengths', description: 'Sinusoidal Wavelengths Amount (Default: 0.5)', type: 'number'},
+        {name: 'wavelengths', description: 'Sinusoidal Wavelengths Amount (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_2.fun.wiggle.wavelengths'), type: 'number'},
       ],
     });
   }

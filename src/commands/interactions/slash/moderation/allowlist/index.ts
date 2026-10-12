@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { ModerationAllowlistAddCommand } from './add';
@@ -9,6 +11,7 @@ import { ModerationAllowlistRemoveCommand } from './remove';
 export class ModerationAllowlistGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'allowlist';
+  nameLocalizations = I18n.localizations('commands.moderation.allowlist.name');
 
   constructor() {
     super({

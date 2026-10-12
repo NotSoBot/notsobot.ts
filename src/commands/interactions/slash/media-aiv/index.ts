@@ -4,6 +4,8 @@ import {
   Permissions,
 } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAIVExtractGroupCommand } from './extract';
@@ -25,6 +27,7 @@ import { MediaAIVSpeedCommand } from './speed';
 
 export default class MediaAIVGroupCommand extends BaseSlashCommand {
   description = 'Audio, Image, and Video Manipulation Commands';
+  descriptionLocalizations = I18n.localizations('commands.media_aiv.description');
   name = 'media-aiv';
 
   contexts = [

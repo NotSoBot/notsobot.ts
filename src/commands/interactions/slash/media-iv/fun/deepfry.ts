@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'deepfry';
 
 export class MediaIVDeepfryCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Deepfry an Image or Video';
+  descriptionLocalizations = I18n.localizations('commands.media_iv.fun.deepfry.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationDeepfry.COMMAND_ID,
   };
@@ -17,8 +18,8 @@ export class MediaIVDeepfryCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'notransparency', description: 'Do not keep transparency', type: Boolean},
-        {name: 'scale', description: 'Deepfry Scale (Default: 10.0)', type: 'number'},
+        {name: 'notransparency', description: 'Do not keep transparency', ...I18n.optionLocalizations('commands.media_iv.fun.deepfry.notransparency'), type: Boolean},
+        {name: 'scale', description: 'Deepfry Scale (Default: 10.0)', ...I18n.optionLocalizations('commands.media_iv.fun.deepfry.scale'), type: 'number'},
       ],
     });
   }

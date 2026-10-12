@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { Formatter } from '../../../../../utils';
+import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionMediasCommandOption } from '../../../basecommand';
 
@@ -9,6 +9,7 @@ export const COMMAND_NAME = 'put-replace';
 
 export class MediaAIVAudioPutReplaceCommand extends BaseInteractionMediasCommandOption {
   description = 'Replace an Audio/Image/Video\'s audio with another audio file';
+  descriptionLocalizations = I18n.localizations('commands.media_aiv_tools.audio.put_replace.description');
   metadata = {
     id: Formatter.Commands.MediaAIVManipulationAudioPutReplace.COMMAND_ID,
   };
@@ -17,8 +18,8 @@ export class MediaAIVAudioPutReplaceCommand extends BaseInteractionMediasCommand
   constructor() {
     super({
       options: [
-        {name: 'longest', description: 'Use the longest media\'s timestamp', type: Boolean},
-        {name: 'noloop', description: 'Do not loop the media to match the timestamp', type: Boolean},
+        {name: 'longest', description: 'Use the longest media\'s timestamp', ...I18n.optionLocalizations('commands.media_aiv_tools.audio.put_replace.longest'), type: Boolean},
+        {name: 'noloop', description: 'Do not loop the media to match the timestamp', ...I18n.optionLocalizations('commands.media_aiv_tools.audio.put_replace.noloop'), type: Boolean},
       ],
       minAmount: 2,
     });

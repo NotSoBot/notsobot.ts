@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVBlurpleCommand } from './blurple';
@@ -16,6 +18,7 @@ import { MediaIVSolarizeCommand } from './solarize';
 export class MediaIVTintGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'tint';
+  nameLocalizations = I18n.localizations('commands.media_iv.tint.name');
 
   constructor() {
     super({

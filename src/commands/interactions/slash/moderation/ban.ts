@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 import { MessageFlags, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -28,10 +28,12 @@ export const CLEAN_CHOICES = [
 
 export class ModerationBanCommand extends BaseInteractionCommandOption {
   description = 'Ban multiple users, add a reason, and clean their messages';
+  descriptionLocalizations = I18n.localizations('commands.moderation.ban.description');
   metadata = {
     id: Formatter.Commands.ModerationBan.COMMAND_ID,
   };
   name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.moderation.ban.name');
 
   constructor() {
     super({
@@ -41,13 +43,15 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
         {
           name: 'users',
           description: 'Users to ban (Mentions or User IDs, separated by spaces)',
+          ...I18n.optionLocalizations('commands.moderation.ban.users'),
           required: true,
           value: Parameters.Slash.banPayload(),
         },
-        {name: 'reason', description: 'Reason (shown in the Audit Log)'},
+        {name: 'reason', description: 'Reason (shown in the Audit Log)', ...I18n.optionLocalizations('commands.moderation.ban.reason')},
         {
           name: 'clean',
           description: 'Delete their recent messages (Default: Previous 24 Hours)',
+          ...I18n.optionLocalizations('commands.moderation.ban.clean'),
           choices: CLEAN_CHOICES,
           default: 24 * 60 * 60,
           type: Number,
@@ -60,9 +64,10 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
     return !!args.users && !!args.users.membersOrUsers.length;
   }
 
-  onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
+  async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
     return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} Couldn\'t find any users. (Use Mentions or User IDs)`,
+      content: `${StatusEmojis.WARNING} ${translate('moderation.no_users_found')}`,
       flags: MessageFlags.EPHEMERAL,
     });
   }

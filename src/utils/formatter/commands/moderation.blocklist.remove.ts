@@ -4,6 +4,7 @@ import { deleteGuildBlocklist, editGuildSettings } from '../../../api';
 import { GuildSettings } from '../../../api/structures/guildsettings';
 import { GuildBlocklistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getTranslator } from '../../i18n';
 
 import * as ModerationBlocklist from './moderation.blocklist';
 import * as ModerationBlocklistAdd from './moderation.blocklist.add';
@@ -22,23 +23,24 @@ export async function removeBlocklist(
   payloads: Array<ModerationBlocklistAdd.BlocklistPayload>,
 ) {
   const guildId = context.guildId as string;
+  const { translate } = await getTranslator(context);
 
-  let title = 'Blocklist';
+  let title = translate('moderation.blocklist.title');
   let settings: GuildSettings;
   if (payloads.length === 1) {
     const [ payload ] = payloads;
     switch (payload.type) {
       case GuildBlocklistTypes.CHANNEL: {
         const { item: channel } = payload;
-        title = `Removed Channel (${channel.id}) from Blocklist`;
+        title = translate('moderation.blocklist.remove_channel', {id: channel.id});
       }; break;
       case GuildBlocklistTypes.ROLE: {
         const { item: role } = payload;
-        title = `Removed Role (${role.id}) from Blocklist`;
+        title = translate('moderation.blocklist.remove_role', {id: role.id});
       }; break;
       case GuildBlocklistTypes.USER: {
         const { item: user } = payload;
-        title = `Removed User (${user.id}) from Blocklist`;
+        title = translate('moderation.blocklist.remove_user', {id: user.id});
       }; break;
     }
 
@@ -58,15 +60,15 @@ export async function removeBlocklist(
     }
     const comments: Array<string> = [];
     if (channels) {
-      comments.push(`${channels} Channels`);
+      comments.push(translate('moderation.count.channels', {count: channels}));
     }
     if (roles) {
-      comments.push(`${roles} Roles`);
+      comments.push(translate('moderation.count.roles', {count: roles}));
     }
     if (users) {
-      comments.push(`${users} Users`);
+      comments.push(translate('moderation.count.users', {count: users}));
     }
-    title = `Removed ${comments.join(', ')} from Blocklist`;
+    title = translate('moderation.blocklist.remove_many', {items: comments.join(', ')});
 
     settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
 

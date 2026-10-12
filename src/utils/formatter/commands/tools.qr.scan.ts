@@ -8,6 +8,7 @@ import {
   EmbedColors,
 } from '../../../constants';
 import { createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { getTranslator } from '../../i18n';
 
 
 export const COMMAND_ID = 'tools.qr.scan';
@@ -22,12 +23,13 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
+  const { language, translate } = await getTranslator(context);
 
   const { results, url } = await utilitiesQrScan(context, args);
 
-  let footer = 'QR Scanner';
+  let footer = translate('tools.qr.footer');
   if (25 < results.length) {
-    footer = `${footer} (${results.length} Results)`;
+    footer = translate('tools.qr.footer_results', {count: results.length.toLocaleString(language)});
   }
 
   const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
@@ -35,7 +37,7 @@ export async function createMessage(
   embed.setFooter(footer, EmbedBrands.NOTSOBOT);
   embed.setThumbnail(url || args.url);
 
-  embed.setTitle(`QR Code Scan Result${((results.length === 1) ? '' : 's')}`);
+  embed.setTitle(translate((results.length === 1) ? 'tools.qr.title' : 'tools.qr.title_plural'));
   if (results.length) {
     const sorted: Record<string, Array<{data: string, type: string}>> = {};
     for (let result of results.slice(0, 25)) {
@@ -47,7 +49,7 @@ export async function createMessage(
       for (let i = 0; i < sorted[type].length; i++) {
         const qr = sorted[type][i];
 
-        let title = `${toTitleCase(qr.type)} Scan`
+        let title = translate('tools.qr.scan', {type: toTitleCase(qr.type)});
         if (1 < sorted[type].length) {
           title = `${title} ${i + 1}`;
         }
@@ -56,7 +58,7 @@ export async function createMessage(
       }
     }
   } else {
-    embed.setDescription('No QR Codes found');
+    embed.setDescription(translate('tools.qr.none'));
   }
   return editOrReply(context, {
     embed,

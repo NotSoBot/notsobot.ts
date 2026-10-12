@@ -1,5 +1,7 @@
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
+import { I18n } from '../../../../utils';
+
 import { BaseSlashCommand } from '../../basecommand';
 
 import { SettingsSetGroupCommand } from './set';
@@ -7,7 +9,9 @@ import { SettingsSetGroupCommand } from './set';
 
 export default class SettingsGroupCommand extends BaseSlashCommand {
   description = 'User Settings';
+  descriptionLocalizations = I18n.localizations('commands.settings.description');
   name = 'settings';
+  nameLocalizations = I18n.localizations('commands.settings.name');
 
   contexts = [
     InteractionContextTypes.GUILD,

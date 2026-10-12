@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVAsciiCommand } from './ascii';
@@ -30,6 +32,7 @@ import { MediaIVWallCommand } from './wall';
 export class MediaIVFunGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'fun';
+  nameLocalizations = I18n.localizations('commands.media_iv.fun.name');
 
   constructor() {
     super({

@@ -1,3 +1,5 @@
+import { I18n } from '../../../../../utils';
+
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVCartoonCommand } from './cartoon';
@@ -16,6 +18,7 @@ import { MediaIVTriggeredCommand } from './triggered';
 export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'fun';
+  nameLocalizations = I18n.localizations('commands.media_iv_3.fun.name');
 
   constructor() {
     super({

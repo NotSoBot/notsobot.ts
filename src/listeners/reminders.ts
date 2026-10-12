@@ -1,5 +1,5 @@
 import { ClusterClient, Collections, ShardClient } from 'detritus-client';
-import { DiscordAbortCodes, MarkupTimestampStyles } from 'detritus-client/lib/constants';
+import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup, Snowflake } from 'detritus-client/lib/utils';
 import { EventSubscription, Timers } from 'detritus-utils';
 
@@ -7,10 +7,8 @@ import { Listener } from './listener';
 
 import { deleteReminder, fetchReminders } from '../api';
 import { RestResponsesRaw } from '../api/types';
-import { RedisChannels, ONE_DAY, SNOWFLAKE_EPOCH } from '../constants';
+import { RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
 import { RedisSpewer } from '../redis';
-import { RedisPayloads } from '../types';
-import { createTimestampMomentFromGuild, getReminderMessage } from '../utils';
 
 
 export interface ReminderItem {
@@ -22,7 +20,15 @@ class ReminderInterval extends Listener {
   // every 12 hours we will scan for reminders for the next 12 hour
   interval = new Timers.Interval();
   intervalTime = 12 * 60 * 60 * 1000;
+  // scan a bit past the next interval so timer drift can't leave a gap between scans
+  scanMargin = 5 * 60 * 1000;
   reminders = new Collections.BaseCollection<string, ReminderItem>();
+  // reminders that were executed (or are executing) but not yet deleted from the api
+  handled = new Set<string>();
+  // pending retries for reminders whose delete failed
+  deleteRetries = new Collections.BaseCollection<string, Timers.Timeout>();
+  deleteRetryMin = 15 * 1000;
+  deleteRetryMax = 10 * 60 * 1000;
 
   broadcastEvalInsert = ((moduleName: string, cluster: ClusterClient, reminder: RestResponsesRaw.Reminder) => {
     const store = require(moduleName).default as ReminderInterval;
@@ -46,7 +52,10 @@ class ReminderInterval extends Listener {
     const timestampText = Markup.timestamp(createdAtUnix, MarkupTimestampStyles.RELATIVE);
     if (expired) {
       const expiredTimestampText = Markup.timestamp(Date.parse(reminder.timestamp_start));
-      return `${mention}, an expired reminder from ${timestampText} for ${expiredTimestampText}: ${text}`;
+      if (text) {
+        return `${mention}, an expired reminder from ${timestampText} for ${expiredTimestampText}: ${text}`;
+      }
+      return `${mention}, an expired reminder from ${timestampText} for ${expiredTimestampText}.`;
     }
     if (text) {
       return `${mention}, reminder from ${timestampText}: ${text}`;
@@ -64,14 +73,14 @@ class ReminderInterval extends Listener {
       return;
     }
 
-    if (this.reminders.has(reminder.id)) {
+    if (this.reminders.has(reminder.id) || this.handled.has(reminder.id)) {
       return;
     }
 
     const now = Date.now();
     const timestamp = Date.parse(reminder.timestamp_start);
     const duration = Math.max(timestamp - now, 0);
-    if (this.intervalTime < duration) {
+    if (this.intervalTime + this.scanMargin < duration) {
       // ignore this guy since he's so far into the future
       return;
     }
@@ -97,56 +106,92 @@ class ReminderInterval extends Listener {
     reminder: RestResponsesRaw.Reminder,
     content: string,
   ): Promise<void> {
+    if (this.handled.has(reminder.id)) {
+      return;
+    }
+    this.handled.add(reminder.id);
+    this.removeReminder(reminder.id);
+
     const allowedMentions = {
       repliedUser: true,
       users: [reminder.user.id],
     };
 
-    let channelId = reminder.channel_id || reminder.channel_id_backup;
-    let dmChannelId = reminder.channel_id_backup;
-    try {
-      try {
-        // channelId then channelIdBackup then fetchDm channel
-        // maybe check perms using eval
-        if (!channelId) {
-          // fetch dm channel
-          // maybe store this?
-          const channel = await shard.rest.createDm({recipientId: reminder.user.id});
-          channelId = dmChannelId = channel.id;
-        }
+    // try the original channel (replying to the message), then the backup channel, then a dm
+    const channelIds: Array<string> = [];
+    if (reminder.channel_id) {
+      channelIds.push(reminder.channel_id);
+    }
+    if (reminder.channel_id_backup && !channelIds.includes(reminder.channel_id_backup)) {
+      channelIds.push(reminder.channel_id_backup);
+    }
 
-        let messageReference: any;
-        if (reminder.channel_id && reminder.message_id) {
-          messageReference = {
-            channelId,
-            failIfNotExists: false,
-            guildId: reminder.guild_id || undefined,
-            messageId: reminder.message_id || undefined,
-          };
-        }
-
-        await shard.rest.createMessage(channelId, {allowedMentions, content, messageReference});
-      } catch(error) {
-        // if error is unknown channel, try dm else ignore
-        // if our channel id is already the dm channel id, ignore
-        if (channelId && channelId !== dmChannelId) {
-          try {
-            switch (error.code) {
-              case DiscordAbortCodes.INVALID_ACCESS:
-              case DiscordAbortCodes.UNKNOWN_CHANNEL: {
-                await shard.rest.createMessage(channelId, {allowedMentions, content});
-              };
-            }
-          } catch(e) {
-
-          }
-        }
-      } finally {
-        this.removeReminder(reminder.id);
-        await deleteReminder({client: shard}, reminder.id);
+    let sent = false;
+    for (let channelId of channelIds) {
+      let messageReference: any;
+      if (channelId === reminder.channel_id && reminder.message_id) {
+        messageReference = {
+          channelId,
+          failIfNotExists: false,
+          guildId: reminder.guild_id || undefined,
+          messageId: reminder.message_id,
+        };
       }
-    } catch(e) {
+      try {
+        await shard.rest.createMessage(channelId, {allowedMentions, content, messageReference});
+        sent = true;
+        break;
+      } catch(error) {
 
+      }
+    }
+
+    if (!sent) {
+      try {
+        const channel = await shard.rest.createDm({recipientId: reminder.user.id});
+        if (!channelIds.includes(channel.id)) {
+          await shard.rest.createMessage(channel.id, {allowedMentions, content});
+        }
+      } catch(error) {
+        // user has dms closed or we can't reach them, nothing else to do
+      }
+    }
+
+    await this.deleteHandledReminder(shard, reminder.id);
+  }
+
+  async deleteHandledReminder(shard: ShardClient, reminderId: string, attempt: number = 0): Promise<void> {
+    this.stopDeleteRetry(reminderId);
+    try {
+      await deleteReminder({client: shard}, reminderId);
+    } catch(error) {
+      // a 404 means it's already gone
+      if (!(error.response && error.response.statusCode === 404)) {
+        // keep it in `handled` so we don't send it again, and retry the delete with backoff
+        const delay = Math.min(this.deleteRetryMin * Math.pow(2, attempt), this.deleteRetryMax);
+        console.error(`Failed to delete reminder ${reminderId}, retrying in ${delay}ms`, error);
+        const timeout = new Timers.Timeout();
+        timeout.start(delay, () => this.deleteHandledReminder(shard, reminderId, attempt + 1));
+        this.deleteRetries.set(reminderId, timeout);
+        return;
+      }
+    }
+    this.handled.delete(reminderId);
+  }
+
+  stopDeleteRetry(reminderId: string): void {
+    if (this.deleteRetries.has(reminderId)) {
+      this.deleteRetries.get(reminderId)!.stop();
+      this.deleteRetries.delete(reminderId);
+    }
+  }
+
+  async retryHandledDeletes(shard: ShardClient): Promise<void> {
+    // safety net for anything that isn't already being sent or retried (e.g. after a stop/reconnect)
+    for (let reminderId of Array.from(this.handled)) {
+      if (!this.reminders.has(reminderId) && !this.deleteRetries.has(reminderId)) {
+        await this.deleteHandledReminder(shard, reminderId);
+      }
     }
   }
 
@@ -157,48 +202,60 @@ class ReminderInterval extends Listener {
   ): Promise<Collections.BaseCollection<string, RestResponsesRaw.Reminder>> {
     const reminders = new Collections.BaseCollection<string, RestResponsesRaw.Reminder>();
 
-    let count = -1;
-
     let after: string | undefined;
     const limit = 1000;
-    while (count === -1 || limit < count) {
+    while (true) {
       const response = await fetchReminders({client: shard}, {
         after,
         limit,
         timestampMax,
         timestampMin,
       });
-      count = response.count;
       for (let reminder of response.reminders) {
         reminders.set(reminder.id, reminder);
       }
+
+      const last = response.reminders[response.reminders.length - 1];
+      if (!last || response.reminders.length < limit || last.id === after) {
+        break;
+      }
+      after = last.id;
     }
 
     return reminders;
   }
 
-  async scanForRemindersExpired(cluster: ClusterClient) {
+  async scanForRemindersExpired(cluster: ClusterClient, timestampMax: number) {
     const shard = cluster.shards.first();
     if (!shard) {
       return;
     }
 
     // Maybe limit to less than a week old?
-    const reminders = await this.fetchReminders(shard, 0, Date.now());
+    const reminders = await this.fetchReminders(shard, 0, timestampMax);
     for (let [reminderId, reminder] of reminders) {
+      if (this.reminders.has(reminderId) || this.handled.has(reminderId)) {
+        continue;
+      }
       const content = this.createReminderText(reminder, true);
       await this.executeReminder(shard, reminder, content);
     }
   }
 
-  async scanForReminders(cluster: ClusterClient) {
+  async scanForReminders(cluster: ClusterClient, timestampMin?: number) {
     const shard = cluster.shards.first();
     if (!shard) {
       return;
     }
 
-    // from (now - 2 seconds) to (now + intervalTime (12 hours?))
-    const reminders = await this.fetchReminders(shard, Date.now() - 2000, Date.now() + this.intervalTime);
+    await this.retryHandledDeletes(shard);
+
+    // from (now - 2 seconds) to (now + intervalTime (12 hours?) + margin)
+    const now = Date.now();
+    if (timestampMin === undefined) {
+      timestampMin = now - 2000;
+    }
+    const reminders = await this.fetchReminders(shard, timestampMin, now + this.intervalTime + this.scanMargin);
     for (let [reminderId, reminder] of reminders) {
       this.insertReminder(cluster, reminder);
     }
@@ -227,16 +284,36 @@ class ReminderInterval extends Listener {
       subscriptions.push(subscription);
     }
 
-    this.scanForRemindersExpired(cluster);
-    this.scanForReminders(cluster);
-    this.interval.start(this.intervalTime, this.scanForReminders.bind(this, cluster));
+    this.startup(cluster).catch((error) => {
+      console.error('Failed to scan for reminders on startup', error);
+    });
+    this.interval.start(this.intervalTime, () => {
+      this.scanForReminders(cluster).catch((error) => {
+        console.error('Failed to scan for reminders', error);
+      });
+    });
 
     return subscriptions;
+  }
+
+  async startup(cluster: ClusterClient) {
+    // run these one after the other so a reminder in the overlap isn't sent twice
+    const now = Date.now();
+    await this.scanForRemindersExpired(cluster, now - 2000);
+    await this.scanForReminders(cluster, now - 2000);
   }
 
   stop(cluster: ClusterClient | ShardClient) {
     super.stop(cluster);
     this.interval.stop();
+    for (let [reminderId, item] of this.reminders) {
+      item.timeout.stop();
+    }
+    this.reminders.clear();
+    for (let [reminderId, timeout] of this.deleteRetries) {
+      timeout.stop();
+    }
+    this.deleteRetries.clear();
   }
 }
 
