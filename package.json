@@ -18,7 +18,6 @@
     "moment": "^2.30.1",
     "moment-duration-format": "^2.3.2",
     "moment-timezone": "^0.6.0",
-    "openai": "^7.3.0",
     "opusscript": "^0.1.1",
     "redis": "^5.9.0",
     "typescript": "^7.0.2",
