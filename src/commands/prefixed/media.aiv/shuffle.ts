@@ -14,7 +14,7 @@ export default class ShuffleCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Shuffle an Audio/Image/Video file\'s frames around randomly',
         examples: [
           COMMAND_NAME,

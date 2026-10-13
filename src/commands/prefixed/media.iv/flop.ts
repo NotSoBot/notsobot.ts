@@ -14,7 +14,7 @@ export default class FlopCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Flop an Image or Video (Horizontal Flip)',
         examples: [
           COMMAND_NAME,

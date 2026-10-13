@@ -14,7 +14,7 @@ export default class OffsetCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Offset an Image or Video by X or Y amount',
         examples: [
           `${COMMAND_NAME} 100 100`,

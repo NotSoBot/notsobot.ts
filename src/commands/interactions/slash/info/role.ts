@@ -1,8 +1,8 @@
 import { Interaction, Structures } from 'detritus-client';
-import { ApplicationCommandOptionTypes, MessageFlags } from 'detritus-client/lib/constants';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { DefaultParameters, Formatter, I18n, editOrReply } from '../../../../utils';
+import { DefaultParameters, Formatter, I18n, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -50,10 +50,7 @@ export class InfoRoleCommand extends BaseInteractionCommandOption {
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.InfoRole.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     const key = (args.role) ? 'errors.channel_not_found' : 'errors.role_not_found';
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate(key)}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate(key)}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.InfoRole.CommandArgs) {

@@ -14,7 +14,8 @@ export default class ExifCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.UTILITY,
+        pipeable: true,
         description: 'Get exif information from an image',
         examples: [
           COMMAND_NAME,

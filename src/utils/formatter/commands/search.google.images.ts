@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogleImages } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../../constants';
-import { Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.google.images';
@@ -25,7 +25,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const results = await searchGoogleImages(context, args);
   if (results.length) {
@@ -36,25 +35,26 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
         const result = results[page - 1];
         if (result.color) {
-          embed.setColor(result.color);
+          payload.color = result.color;
         }
 
         let footer = translate('search_google_images.page_of_google_image_search_results', {page: page, pageLimit: pageLimit});
         if (args.locale && args.locale in GoogleLocalesText) {
           footer = `${footer} (${GoogleLocalesText[args.locale]})`;
         }
-        embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
+        payload.footer = footer;
+        payload.footerIconUrl = EmbedBrands.GOOGLE_GO;
 
         if (!args.simple) {
           if (result.header) {
-            embed.setTitle(`${result.header} (${result.footer})`);
+            payload.title = `${result.header} (${result.footer})`;
           } else {
-            embed.setTitle(result.footer);
+            payload.title = result.footer;
           }
 
           const description: Array<string> = [Markup.url(Markup.escape.all(result.description), result.url)];
@@ -102,7 +102,7 @@ export async function createMessage(
               description.push(Markup.escape.all(recipe.description));
             }
             if (recipe.ingredients.length) {
-              embed.addField(translate('search_google_images.ingredients'), recipe.ingredients.join('\n'));
+              payload.fields!.push({name: translate('search_google_images.ingredients'), value: recipe.ingredients.join('\n')});
             }
           }
           if (result.metadata.video) {
@@ -143,15 +143,15 @@ export async function createMessage(
             description.push(Markup.url('**Image URL**', result.image.url));
           }
 
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
 
-        embed.setImage(result.imageUrl);
+        payload.image = result.imageUrl;
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, translate('search_google_images.couldn_t_find_any_images_for_that'));
+  return displayReply(context, {description: translate('search_google_images.couldn_t_find_any_images_for_that')});
 }

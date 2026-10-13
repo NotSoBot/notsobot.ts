@@ -14,7 +14,7 @@ export default class RecolorCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Recolor an Image or Video with brighter colors',
         examples: [
           COMMAND_NAME,

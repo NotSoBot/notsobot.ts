@@ -15,7 +15,7 @@ export default class AudioDestroyCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['a destroy'],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Destroy Audio',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

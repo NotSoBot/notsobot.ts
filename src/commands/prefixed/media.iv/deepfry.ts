@@ -18,7 +18,7 @@ export default class DeepfryCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Deep fry an Image or Video',
         examples: [
           COMMAND_NAME,

@@ -15,7 +15,7 @@ export default class ToGifCommand extends BaseImageOrVideoCommand {
 
       aliases: ['gif'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Convert an Image or Video to a gif, resizing and lowering fps as needed',
         examples: [
           COMMAND_NAME,

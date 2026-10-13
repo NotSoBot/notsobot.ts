@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -47,10 +47,10 @@ export class TagAliasCommand extends BaseInteractionCommandOption {
     const { translate } = await I18n.getTranslator(context);
     if (args.tag !== null || args.name) {
       if (!args.name) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.alias_needs_name')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.alias_needs_name')}`});
       }
       if (args.tag === false) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`});
       }
     }
     return super.onCancelRun(context, args);

@@ -14,7 +14,7 @@ export default class ExoCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Exo-alienify an Image or Video',
         examples: [
           COMMAND_NAME,

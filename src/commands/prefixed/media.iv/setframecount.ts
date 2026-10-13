@@ -15,7 +15,7 @@ export default class SetFrameCountCommand extends BaseMediaCommand {
 
       aliases: ['setfc'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Set an Animated Image or Video\'s Frame Count',
         examples: [
           COMMAND_NAME,

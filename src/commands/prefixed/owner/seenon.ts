@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, editOrReply } from '../../../utils';
+import { Formatter, I18n, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -28,7 +27,6 @@ export default class SeenOnCommand extends BaseCommand {
         id: Formatter.Commands.OwnerSeenOn.COMMAND_ID,
         usage: '?<user:id|mention|name>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Formatter.Commands.OwnerSeenOn.getSharedGuilds,
     });
   }
@@ -44,11 +42,11 @@ export default class SeenOnCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: Formatter.Commands.OwnerSeenOn.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (!args.payload.user) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
     } else if (args.payload.user.bot) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.no_bots')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.no_bots')}`});
     }
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('owner.no_shared_guilds')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('owner.no_shared_guilds')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.OwnerSeenOn.CommandArgs) {

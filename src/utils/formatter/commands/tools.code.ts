@@ -1,22 +1,22 @@
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesCodeRun } from '../../../api';
 import { getTranslator } from '../../i18n';
 import {
+  CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   CodeLanguages,
   CodeLanguagesToName,
   EmbedBrands,
   EmbedColors,
-  CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   MAX_MEMBERS_SAFE,
 } from '../../../constants';
 
 import * as DefaultParameters from '../../defaultparameters';
 import {
-  createUserEmbed,
-  editOrReply,
+  DisplayPayload,
+  displayReply,
   generateCodeFromLanguage,
   generateCodeStdin,
   toTitleCase,
@@ -45,7 +45,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language: locale, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { code, urls } = generateCodeFromLanguage(args.language, args.code);
   const { language, result, took, version } = await utilitiesCodeRun(context, {
@@ -59,38 +58,39 @@ export async function createMessage(
 
   const title = args.language.toLowerCase().replace('_plus_plus', '++').replace('_sharp', '#');
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
 
   let footer = translate('tools_code.code_execution', {value: toTitleCase(title), version: version});
   if (1000 <= took) {
     const seconds = (took / 1000).toFixed(1);
     footer = translate('tools_code.took_seconds', {footer: footer, seconds: seconds});
   }
-  embed.setFooter(footer, EmbedBrands.NOTSOBOT);
+  payload.footer = footer;
+  payload.footerIconUrl = EmbedBrands.NOTSOBOT;
 
   const files: Array<{filename: string, value: Buffer}> = [];
 
   const languageMarkupString = language.extension;
   if (result.error) {// && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
-    embed.setColor(EmbedColors.ERROR);
+    payload.color = EmbedColors.ERROR;
     if (1990 < result.error.length) {
       files.push({filename: 'error.txt', value: Buffer.from(result.error)});
-      embed.setDescription(translate('tools_code.uploaded_the_error_log_to_a_txt'));
+      payload.description = translate('tools_code.uploaded_the_error_log_to_a_txt');
     } else {
-      embed.setDescription(Markup.codeblock(result.error, {language: languageMarkupString})); 
+      payload.description = Markup.codeblock(result.error, {language: languageMarkupString}); 
     }
   } else if (result.output) {
     if (1990 < result.output.length) {
       files.push({filename: 'output.txt', value: Buffer.from(result.output)});
-      embed.setDescription(translate('tools_code.uploaded_the_long_output_to_a_txt'));
+      payload.description = translate('tools_code.uploaded_the_long_output_to_a_txt');
     } else {
-      embed.setDescription(Markup.codeblock(result.output, {language: languageMarkupString})); 
+      payload.description = Markup.codeblock(result.output, {language: languageMarkupString}); 
     }
   } else if (result.files.length) {
-    embed.setDescription(translate('tools_code.file_outputted', {files_count: result.files.length.toLocaleString(locale)}));
+    payload.description = translate('tools_code.file_outputted', {files_count: result.files.length.toLocaleString(locale)});
   } else if (!result.files.length) {
-    embed.setDescription(translate('tools_code.no_content'));
+    payload.description = translate('tools_code.no_content');
   }
 
   if (result.files.length) {
@@ -110,5 +110,5 @@ export async function createMessage(
     }
   }
 
-  return editOrReply(context, {embed, files});
+  return displayReply(context, {...payload, files});
 }

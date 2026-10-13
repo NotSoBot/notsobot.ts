@@ -19,7 +19,7 @@ export default class SetMyLocaleCommand extends BaseCommand {
       ],
       label: 'locale',
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.PERSONAL,
         description: 'Set your default language preference.',
         examples: [
           `${COMMAND_NAME} en-us`,

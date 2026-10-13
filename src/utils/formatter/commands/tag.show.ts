@@ -489,7 +489,11 @@ export function generatePages(
 
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
-      if ((!page.filenames || !page.filenames.length) && (!page.embeds || !page.embeds[0])) {
+      if (
+        (!page.filenames || !page.filenames.length) &&
+        (!page.embeds || !page.embeds[0]) &&
+        (!page.components || !page.components.length)
+      ) {
         continue;
       }
 
@@ -523,6 +527,20 @@ export function generatePages(
         if (embed.image && embed.image.url.startsWith('attachment://')) {
           const filename = embed.image.url.split('attachment://')[1]!;
           if (filename in files) {
+            page.files.push(files[filename]);
+            used.add(filename);
+          }
+        }
+      }
+      if (page.components && page.components.length) {
+        // files the page's components point to (media galleries, files, thumbnails)
+        if (!Array.isArray(page.files)) {
+          page.files = [];
+        }
+        const raw = JSON.stringify(page.components);
+        for (let match of raw.matchAll(/attachment:\/\/([^"?\s]+)/g)) {
+          const filename = match[1]!;
+          if (filename in files && !page.files.some((file) => file.filename === filename)) {
             page.files.push(files[filename]);
             used.add(filename);
           }

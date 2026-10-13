@@ -15,7 +15,7 @@ export default class VoiceDeleteCommand extends BaseCommand {
 
       label: 'voice',
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Delete one of your stored cloned voices',
         examples: [
           COMMAND_NAME,

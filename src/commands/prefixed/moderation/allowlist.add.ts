@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n } from '../../../utils';
+import { Formatter, I18n, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -22,11 +22,10 @@ export default class AllowlistAddCommand extends BaseCommand {
           `${COMMAND_NAME} <#585639594574217232>`,
           `${COMMAND_NAME} <@300505364032389122> <@&178314191524855808>`,
         ],
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         id: Formatter.Commands.ModerationAllowlistAdd.COMMAND_ID,
         usage: '...<channel:mention,role:mention,user:mention>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.ADMINISTRATOR],
       priority: -1,
       type: Formatter.Commands.ModerationAllowlistAdd.getItemsFromMention,
@@ -42,9 +41,9 @@ export default class AllowlistAddCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAdd.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.payloads) {
-      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`});
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.needs_mention')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.needs_mention')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAdd.CommandArgs) {

@@ -1,11 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { mediaAIVToolsExif } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { createUserEmbed, editOrReply, formatMemory, splitArray } from '../../../utils';
+import { DisplayPayload, displayReply, formatMemory, splitArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.exif';
@@ -19,14 +18,14 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const response = await mediaAIVToolsExif(context, args);
   const { channels, metadata } = response;
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter(translate('tools_exif.media_exif_information'), EmbedBrands.NOTSOBOT);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.footer = translate('tools_exif.media_exif_information');
+  payload.footerIconUrl = EmbedBrands.NOTSOBOT;
 
   if (metadata.mimetype.startsWith('image/')) {
     const channel = channels.image[0]!;
@@ -54,7 +53,7 @@ export async function createMessage(
       description.push(Markup.codeblock(channel._data['gif-comment']))
     }
 
-    embed.setDescription(description.join('\n'));
+    payload.description = description.join('\n');
   } else {
     {
       const description: Array<string> = [];
@@ -65,7 +64,7 @@ export async function createMessage(
       description.push(translate('tools_exif.mimetype', {mimetype: metadata.mimetype}));
       description.push(translate('tools_exif.size', {formatMemory: formatMemory(metadata.size)}));
 
-      embed.setDescription(description.join('\n'));
+      payload.description = description.join('\n');
     }
 
     for (let index in channels.audio) {
@@ -83,7 +82,7 @@ export async function createMessage(
       if (channels.audio.length !== 1) {
         title = `${title} ${parseInt(index) + 1}`;
       }
-      embed.addField(title, description.join('\n'), true);
+      payload.fields!.push({inline: true, name: title, value: description.join('\n')});
     }
 
     for (let index in channels.video) {
@@ -106,7 +105,7 @@ export async function createMessage(
       if (channels.video.length !== 1) {
         title = `${title} ${parseInt(index) + 1}`;
       }
-      embed.addField(title, description.join('\n'), true);
+      payload.fields!.push({inline: true, name: title, value: description.join('\n')});
     }
   }
 
@@ -135,21 +134,20 @@ export async function createMessage(
       }
 
       const title = (!i) ? translate('tools_exif.exif_data') : '\u200b';
-      embed.addField(title, description.join('\n') || '\u200b', true);
+      payload.fields!.push({inline: true, name: title, value: description.join('\n') || '\u200b'});
     }
     if (response.url) {
-      embed.setImage(response.url);
+      payload.image = response.url;
     }
   } else {
     if (response.url) {
-      embed.setThumbnail(response.url);
+      payload.thumbnail = response.url;
     }
   }
 
-  const options: any = {embed};
   if (response._raw) {
-    options.file = {filename: 'stuff.json', value: JSON.stringify(response._raw, null, 2)};
+    payload.files = [{filename: 'stuff.json', value: JSON.stringify(response._raw, null, 2)}];
   }
 
-  return editOrReply(context, options);
+  return displayReply(context, payload);
 }

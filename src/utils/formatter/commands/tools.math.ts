@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { MathWorker, MATH_ERROR_TIMEOUT_MESSAGE, editOrReply } from '../../../utils';
+import { MATH_ERROR_TIMEOUT_MESSAGE, MathWorker, displayReply } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -29,5 +29,5 @@ export async function createMessage(
     }
   }
 
-  return editOrReply(context, {content});
+  return displayReply(context, {description: content});
 }

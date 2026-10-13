@@ -1,19 +1,19 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import {
   DateMomentLogFormat,
   DiscordEmojis,
+  PRESENCE_CLIENT_STATUS_KEYS,
   PresenceStatusColors,
   StatusEmojis,
-  PRESENCE_CLIENT_STATUS_KEYS,
 } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import {
+  DisplayPayload,
   Paginator,
   createTimestampMomentFromGuild,
-  createUserEmbed,
-  editOrReply,
+  displayReply,
   getMemberJoinPosition,
   toTitleCase,
 } from '../../../utils';
@@ -41,7 +41,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { users } = args;
 
@@ -76,7 +75,7 @@ export async function createMessage(
 
   const pageLimit = membersOrUsers.length;
   if (pageLimit === 0) {
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`});
   }
 
   const paginator = new Paginator(context, {
@@ -92,14 +91,14 @@ export async function createMessage(
       const member = memberOrUser as Structures.Member;
       const user = ((isMember) ? member.user : memberOrUser) as Structures.User;
 
-      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-      embed.setTitle(user.toString());
-      embed.setUrl(user.jumpLink);
-      embed.setColor(PresenceStatusColors['offline']);
-      embed.setDescription(member.mention);
-      embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
+      const payload: DisplayPayload = {fields: []};
+      payload.title = user.toString();
+      payload.url = user.jumpLink;
+      payload.color = PresenceStatusColors['offline'];
+      payload.description = member.mention;
+      payload.thumbnail = member.avatarUrlFormat(null, {size: 1024});
 
-      embed.setFooter(translate('user.page', {page: page.toLocaleString(language), total: pageLimit.toLocaleString(language)}));
+      payload.footer = translate('user.page', {page: page.toLocaleString(language), total: pageLimit.toLocaleString(language)});
       {
         const description: Array<string> = [];
         {
@@ -133,7 +132,7 @@ export async function createMessage(
             description.push(`**${translate('user.tag')}**: ${tag}`);
           }
         }
-        embed.addField(translate('common.information'), description.join('\n'), true);
+        payload.fields!.push({inline: true, name: translate('common.information'), value: description.join('\n')});
       }
 
       {
@@ -154,7 +153,7 @@ export async function createMessage(
             description.push(`**${translate('user.join_position')}**: ${position.toLocaleString(language)}/${memberCount.toLocaleString(language)}`);
           }
         }
-        embed.addField(translate('user.joined'), description.join('\n'), true);
+        payload.fields!.push({inline: true, name: translate('user.joined'), value: description.join('\n')});
       }
 
       if (isMember) {
@@ -202,13 +201,13 @@ export async function createMessage(
         if (voiceChannel) {
           description.push(`**${translate('user.voice')}**: ${voiceChannel.toString()}`);
         }
-        embed.addField(translate('user.guild_specific'), description.join('\n'));
+        payload.fields!.push({name: translate('user.guild_specific'), value: description.join('\n')});
       }
 
       const presence = user.presence;
       if (presence) {
         if (presence.status in PresenceStatusColors) {
-          embed.setColor(PresenceStatusColors[presence.status]);
+          payload.color = PresenceStatusColors[presence.status];
         }
 
         if (presence.clientStatus && Object.keys(presence.clientStatus).length) {
@@ -219,10 +218,10 @@ export async function createMessage(
               description.push(`**${translateMaybe(`presence.client.${key}`, toTitleCase(key))}**: ${translateMaybe(`presence.status.${status}`, status)}`);
             }
           }
-          embed.addField(translate('presence.status'), description.join('\n'));
+          payload.fields!.push({name: translate('presence.status'), value: description.join('\n')});
         } else {
           const status = translateMaybe(`presence.status.${presence.status}`, presence.status);
-          embed.addField(translate('presence.status'), status, true);
+          payload.fields!.push({inline: true, name: translate('presence.status'), value: status});
         }
 
         const activity = presence.activity;
@@ -282,10 +281,10 @@ export async function createMessage(
           if (presence.activities.length !== 1) {
             name = translate('activity.title_paged', {page: 1, total: presence.activities.length});
           }
-          embed.addField(name, description.join('\n'), true);
+          payload.fields!.push({inline: true, name: name, value: description.join('\n')});
         }
       } else {
-        embed.addField(translate('activity.title'), translate('presence.status.offline'));
+        payload.fields!.push({name: translate('activity.title'), value: translate('presence.status.offline')});
       }
 
       if (isMember) {
@@ -295,11 +294,11 @@ export async function createMessage(
           description.push(Markup.url(Markup.bold(translate('user.guild_avatar')), member.avatarUrl));
           description.push(Markup.url(Markup.bold(translate('user.user_avatar')), user.avatarUrl));
 
-          embed.addField(translate('common.urls'), description.join(', '));
+          payload.fields!.push({name: translate('common.urls'), value: description.join(', ')});
         }
       }
 
-      return embed;
+      return {display: payload};
     },
   });
   return await paginator.start();

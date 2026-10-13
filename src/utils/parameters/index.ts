@@ -31,13 +31,13 @@ import {
 import { CDN, CUSTOM } from '../../api/endpoints';
 import { RestResponsesRaw } from '../../api/types';
 import {
-  CommandCategories,
   GoogleLocales,
   GoogleLocalesText,
   TTSVoices,
   TTSVoicesToText,
   UserSettingsFallbacksMediaImageTypes,
   UserFlags,
+  PIPEABLE_COMMAND_CATEGORIES,
   TTS_VOICES,
 } from '../../constants';
 import {
@@ -407,6 +407,15 @@ export interface PipingCommand {
   commandArgs: Record<string, any>
 }
 
+// an explicit `pipeable` wins; otherwise media categories can be piped
+function isPipeableCommand(metadata: {category?: any, pipeable?: boolean}): boolean {
+  if (typeof(metadata.pipeable) === 'boolean') {
+    return metadata.pipeable;
+  }
+  return PIPEABLE_COMMAND_CATEGORIES.includes(metadata.category);
+}
+
+
 export async function pipingCommands(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
@@ -425,7 +434,7 @@ export async function pipingCommands(
       }
       const attributes = {content, prefix: ''};
       const command = await commandClient.getCommand(attributes);
-      if (command && command.metadata && command.metadata.id && (command.metadata.category === CommandCategories.IMAGE || command.metadata.category === CommandCategories.TOOLS)) {
+      if (command && command.metadata && command.metadata.id && isPipeableCommand(command.metadata)) {
         context.metadata = context.metadata || {};
         context.metadata.shouldSkipMediaCheck = true;
 

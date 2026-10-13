@@ -18,7 +18,7 @@ export default class ShardCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        category: CommandCategories.UTILS,
+        category: CommandCategories.UTILITY,
         id: Formatter.Commands.UtilsShards.COMMAND_ID,
         usage: '',
       },

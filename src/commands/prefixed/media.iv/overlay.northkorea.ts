@@ -15,7 +15,7 @@ export default class OverlayNorthKoreaCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o northkorea', 'overlay nk', 'o nk', 'northkorea', 'nk'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Overlay a North Korean flag over an Image or Video',
         examples: [
           COMMAND_NAME,

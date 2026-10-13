@@ -24,7 +24,7 @@ export default class MashupCommand extends BaseImageOrVideosCommand {
         },
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Mashup two emojis together using Google\'s Emoji Kitchen or AI',
         examples: [
           `${COMMAND_NAME} :strawberry: :bird:`,

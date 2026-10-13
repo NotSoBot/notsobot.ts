@@ -15,7 +15,7 @@ export default class BillCommand extends BaseImageCommand {
 
       aliases: ['100'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Draw an Image on a 100 dollar bill',
         examples: [
           COMMAND_NAME,

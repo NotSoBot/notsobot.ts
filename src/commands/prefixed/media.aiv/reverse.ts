@@ -17,7 +17,7 @@ export default class ReverseCommand extends BaseMediaCommand {
         {name: 'noaudio', aliases: ['na'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Reverse an animated image/audio/video',
         examples: [
           COMMAND_NAME,

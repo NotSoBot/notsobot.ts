@@ -1,8 +1,8 @@
 import { Interaction } from 'detritus-client';
-import { ChannelTypes, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -21,7 +21,6 @@ export class CommandsAllowlistRemoveCommand extends BaseInteractionCommandOption
   constructor() {
     super({
       permissions: [Permissions.MANAGE_GUILD],
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {name: 'command', description: 'Command name or ID', ...I18n.optionLocalizations('commands.commands.allowlist.remove.command'), required: true, value: Parameters.prefixedCommand},
         {
@@ -76,7 +75,7 @@ export class CommandsAllowlistRemoveCommand extends BaseInteractionCommandOption
     } else {
       content = translate('errors.unknown_command');
     }
-    return editOrReply(context, {content: `${StatusEmojis.WARNING} ${content}`, flags: MessageFlags.EPHEMERAL});
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${content}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationCommandsAllowlistRemove.CommandArgs) {

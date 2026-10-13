@@ -21,7 +21,7 @@ export default class CommandsBlocklistClearCommand extends BaseCommand {
       help: `Must be one of (${Object.values(GuildCommandsBlocklistTypes).join(', ')})`,
       label: 'only',
       metadata: {
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         description: 'Clear out Channels/Roles/Users/Server-Wide blocked commands.',
         examples: [
           COMMAND_NAME,

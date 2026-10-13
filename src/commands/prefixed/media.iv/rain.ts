@@ -14,7 +14,7 @@ export default class RainCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Rainbow tint to an Image or Video',
         examples: [
           COMMAND_NAME,

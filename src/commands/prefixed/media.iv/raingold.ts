@@ -14,7 +14,7 @@ export default class RainGoldCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Add a rainbowish gold tint to an Image or Video',
         examples: [
           COMMAND_NAME,

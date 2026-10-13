@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { fetchUserReminders } from '../../../api';
@@ -8,12 +8,11 @@ import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
+  DisplayPayload,
   Paginator,
   Parameters,
   chunkArray,
   createTimestampMomentFromGuild,
-  createUserEmbed,
-  editOrReply,
   getReminderMessage,
 } from '../../../utils';
 
@@ -31,7 +30,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const serverId = context.guildId || null;
   const guildId = (args.global) ? undefined : (serverId || 0);
@@ -44,19 +42,19 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     onPage: (pageNumber) => {
-      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-      embed.setColor(EmbedColors.DEFAULT);
+      const payload: DisplayPayload = {fields: []};
+      payload.color = EmbedColors.DEFAULT;
       if (args.global) {
-        embed.setTitle(translate('reminder_list_me.all_of_your_reminders'));
+        payload.title = translate('reminder_list_me.all_of_your_reminders');
       } else {
-        embed.setTitle(translate('reminder_list_me.your_reminders_for_this_server'));
+        payload.title = translate('reminder_list_me.your_reminders_for_this_server');
       }
 
       let footer = translate('reminder_list_me.reminders', {count: result.count.toLocaleString(language)});
       if (pageLimit !== 1) {
         footer = translate('reminder_list_me.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
       }
-      embed.setFooter(footer);
+      payload.footer = footer;
 
       const reminders = pages[pageNumber - 1];
       if (reminders && reminders.length) {
@@ -81,12 +79,12 @@ export async function createMessage(
             description.push(`-> ${content}`);
           }
         }
-        embed.setDescription(description.join('\n'));
+        payload.description = description.join('\n');
       } else {
-        embed.setDescription(translate('reminder_list_me.no_reminders_found'));
+        payload.description = translate('reminder_list_me.no_reminders_found');
       }
 
-      return embed;
+      return {display: payload};
     },
   });
   return await paginator.start();

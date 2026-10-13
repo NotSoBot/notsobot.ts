@@ -14,7 +14,7 @@ export default class VoiceRenameCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Rename one cloned voice to another name',
         examples: [
           `${COMMAND_NAME} chewbacca ralph`,

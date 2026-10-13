@@ -15,7 +15,7 @@ export default class RipCommand extends BaseCommand {
 
       label: 'text',
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Create a tombstone with some text',
         examples: [
           `${COMMAND_NAME} <@300505364032389122>`,

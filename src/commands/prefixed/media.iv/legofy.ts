@@ -20,7 +20,7 @@ export default class LegofyCommand extends BaseImageOrVideoCommand {
         {name: 'size', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Legofy an Image or Video',
         examples: [
           COMMAND_NAME,

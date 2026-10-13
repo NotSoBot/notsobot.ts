@@ -18,6 +18,7 @@ import UserSettingsStore from '../../stores/usersettings';
 
 import { createUserCommand } from '../../api';
 import {
+  CommandCategories,
   CommandTypes,
   DiscordSkuIds,
   GuildFeatures,
@@ -38,6 +39,8 @@ import {
 
 
 export interface InteractionCommandMetadata {
+  // optional: defaults to the prefixed command with the same id, then SLASH_COMMAND_CATEGORY_FALLBACKS
+  category?: CommandCategories,
   id: string,
   nsfw?: boolean,
   premium?: boolean,
@@ -269,62 +272,37 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     const translator = await I18n.getTranslator(context);
     const title = warning(translator.translate('errors.run_title', {label: translateErrorLabel(this.error, translator.translate)}));
     await replyError(context, await createRunErrorPayload(context, title, error, translator), {ephemeral: true});
-
-    if (context.invoker && context.invoker.metadata) {
-      let commandType: null | number = null;
-      switch (context.command.type) {
-        case ApplicationCommandTypes.CHAT_INPUT: commandType = CommandTypes.APPLICATION_SLASH; break;
-        case ApplicationCommandTypes.MESSAGE: commandType = CommandTypes.APPLICATION_MENU_MESSAGE; break;
-        case ApplicationCommandTypes.USER: commandType = CommandTypes.APPLICATION_MENU_USER; break;
-        default: commandType = null;
-      }
-
-      if (commandType !== null) {
-        const metadata = context.invoker.metadata;
-        const commandId = metadata.id || context.name.split(' ').join('.');
-        await createUserCommand(
-          context,
-          context.userId,
-          commandId,
-          {
-            commandType,
-            channelId: context.channelId!,
-            guildId: context.guildId,
-            messageResponseId: context.responseId,
-            messageTriggerId: context.interactionId,
-          },
-        );
-      }
-    }
   }
 
-  async onSuccess(context: Interaction.InteractionContext, args: Interaction.ParsedArgs) {
-    // log usage
-    if (context.invoker && context.invoker.metadata) {
-      let commandType: null | number = null;
-      switch (context.command.type) {
-        case ApplicationCommandTypes.CHAT_INPUT: commandType = CommandTypes.APPLICATION_SLASH; break;
-        case ApplicationCommandTypes.MESSAGE: commandType = CommandTypes.APPLICATION_MENU_MESSAGE; break;
-        case ApplicationCommandTypes.USER: commandType = CommandTypes.APPLICATION_MENU_USER; break;
-        default: commandType = null;
-      }
+  // log every attempt (ran, errored, cancelled, ratelimited, etc..)
+  async onFinally(context: Interaction.InteractionContext) {
+    if (!context.invoker || !context.invoker.metadata) {
+      return;
+    }
 
-      if (commandType !== null) {
-        const metadata = context.invoker.metadata;
-        const commandId = metadata.id || context.name.split(' ').join('.')
-        await createUserCommand(
-          context,
-          context.userId,
-          commandId,
-          {
-            commandType,
-            channelId: context.channelId!,
-            guildId: context.guildId,
-            messageResponseId: context.responseId,
-            messageTriggerId: context.interactionId,
-          },
-        );
-      }
+    let commandType: null | number = null;
+    switch (context.command.type) {
+      case ApplicationCommandTypes.CHAT_INPUT: commandType = CommandTypes.APPLICATION_SLASH; break;
+      case ApplicationCommandTypes.MESSAGE: commandType = CommandTypes.APPLICATION_MENU_MESSAGE; break;
+      case ApplicationCommandTypes.USER: commandType = CommandTypes.APPLICATION_MENU_USER; break;
+      default: commandType = null;
+    }
+
+    if (commandType !== null) {
+      const metadata = context.invoker.metadata;
+      const commandId = metadata.id || context.name.split(' ').join('.');
+      await createUserCommand(
+        context,
+        context.userId,
+        commandId,
+        {
+          commandType,
+          channelId: context.channelId!,
+          guildId: context.guildId,
+          messageResponseId: context.responseId,
+          messageTriggerId: context.interactionId,
+        },
+      );
     }
   }
 

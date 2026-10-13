@@ -1,11 +1,11 @@
 import { Command, CommandClient, Interaction, Structures } from 'detritus-client';
 import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } from 'detritus-client/lib/constants';
-import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { I18n, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, I18n, Parameters, createTimestampMomentFromGuild, displayReply, renderDisplay } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -14,8 +14,8 @@ import {
   MAX_MEMBERS,
   MAX_TIME_TO_RESPOND,
   RATELIMIT_TIME,
-  expireWithEmbed,
-  finishWithEmbed,
+  expireWithDisplay,
+  finishWithDisplay,
   replyWithMessage,
 } from './nick.mass';
 
@@ -73,7 +73,7 @@ export default class NickMassResetCommand extends BaseCommand {
   async onCancel(context: Command.Context): Promise<any> {
     const { language, translate } = await I18n.getTranslator(context);
     if (context.guild && MAX_MEMBERS < context.guild.memberCount) {
-      return editOrReply(context, translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)}));
+      return displayReply(context, {description: translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)})});
     }
   }
 
@@ -90,10 +90,10 @@ export default class NickMassResetCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.role === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`});
     }
     if (args.nobots && args.nousers) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('nickmass.who_then')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('nickmass.who_then')}`});
     }
     return super.onCancelRun(context, args);
   }
@@ -130,19 +130,19 @@ export async function createNickMassResetMessage(
 
   const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
   if (isExecuting.nick) {
-    return editOrReply(context, translate('nickmass.in_progress'));
+    return displayReply(context, {description: translate('nickmass.in_progress')});
   }
 
   if (members.length) {
     const membersThatWillBeEdited = members.length - membersThatWillBeSkipped;
 
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setTitle(translate('nickmass.reset_can_clear', {count: membersThatWillBeEdited.toLocaleString(language), total: guild.members.length.toLocaleString(language)}));
-    embed.setDescription([
+    const payload: DisplayPayload = {fields: []};
+    payload.color = EmbedColors.DEFAULT;
+    payload.title = translate('nickmass.reset_can_clear', {count: membersThatWillBeEdited.toLocaleString(language), total: guild.members.length.toLocaleString(language)});
+    payload.description = [
       translate('nickmass.reset_estimate', {seconds: ((membersThatWillBeEdited / amount) * time).toLocaleString(language)}),
       translate('nickmass.reset_no_nickname', {count: membersThatWillBeSkipped.toLocaleString(language)}),
-    ].join('\n'));
+    ].join('\n');
 
     const components = new Components({timeout: 5 * (60 * 1000)});
     components.createButton({
@@ -161,8 +161,8 @@ export async function createNickMassResetMessage(
         const reason = translate('nickmass.reset_audit_reason', {user: `${context.user} (${context.user.id})`});
 
         {
-          embed.setDescription(translate('nickmass.reset_starting', {count: membersThatWillBeEdited.toLocaleString(language), seconds: ((membersThatWillBeEdited / amount) * time).toLocaleString(language)}));
-          embed.setColor(EmbedColors.LOG_UPDATE);
+          payload.description = translate('nickmass.reset_starting', {count: membersThatWillBeEdited.toLocaleString(language), seconds: ((membersThatWillBeEdited / amount) * time).toLocaleString(language)});
+          payload.color = EmbedColors.LOG_UPDATE;
 
           const components = new Components({timeout: 20 * (60 * 1000)});
           components.createButton({
@@ -191,9 +191,9 @@ export async function createNickMassResetMessage(
                 description.push('');
                 description.push(translate('nickmass.time_left', {seconds: (((members.length - finished) / amount) * time).toLocaleString(language)}));
               }
-              embed.setDescription(description.join('\n'));
+              payload.description = description.join('\n');
 
-              ctx.editOrRespond({embed});
+              ctx.editOrRespond(await renderDisplay(context, {...payload, components}));
             },
           });
           components.createButton({
@@ -206,8 +206,8 @@ export async function createNickMassResetMessage(
               }
               isExecuting.nick = false;
 
-              embed.setColor(EmbedColors.ERROR);
-              embed.setTitle(translate('nickmass.reset_cancelled_title'));
+              payload.color = EmbedColors.ERROR;
+              payload.title = translate('nickmass.reset_cancelled_title');
               {
                 const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
@@ -227,12 +227,12 @@ export async function createNickMassResetMessage(
                     description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                   }
                 }
-                embed.setDescription(description.join('\n'));
+                payload.description = description.join('\n');
               }
-              return ctx.editOrRespond({components: [], embed});
+              return displayReply(context, payload, {replyTo: ctx});
             },
           });
-          await ctx.editOrRespond({components, embed});
+          await displayReply(context, {...payload, components}, {replyTo: ctx});
         }
 
         isExecuting.nick = true;
@@ -274,8 +274,8 @@ export async function createNickMassResetMessage(
         }
 
         if (!isExecuting.nick) {
-          embed.setColor(EmbedColors.ERROR);
-          embed.setTitle(translate('nickmass.reset_cancelled_title'));
+          payload.color = EmbedColors.ERROR;
+          payload.title = translate('nickmass.reset_cancelled_title');
           {
             const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
@@ -295,10 +295,10 @@ export async function createNickMassResetMessage(
                 description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
               }
             }
-            embed.setDescription(description.join('\n'));
+            payload.description = description.join('\n');
           }
 
-          return finishWithEmbed(context, ctx, message, embed);
+          return finishWithDisplay(context, ctx, message, payload);
         }
         isExecuting.nick = false;
 
@@ -321,11 +321,11 @@ export async function createNickMassResetMessage(
               description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
             }
           }
-          embed.setColor(EmbedColors.LOG_CREATION);
-          embed.setDescription(description.join('\n'));
+          payload.color = EmbedColors.LOG_CREATION;
+          payload.description = description.join('\n');
         }
 
-        return finishWithEmbed(context, ctx, message, embed);
+        return finishWithDisplay(context, ctx, message, payload);
       },
     });
 
@@ -337,24 +337,24 @@ export async function createNickMassResetMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        embed.setColor(EmbedColors.ERROR);
-        embed.setTitle(translate('nickmass.reset_cancelled_title'));
-        embed.setDescription(translate('nickmass.reset_cancelled_before', {count: members.length.toLocaleString(language)}));
-        await ctx.editOrRespond({components: [], embed});
+        payload.color = EmbedColors.ERROR;
+        payload.title = translate('nickmass.reset_cancelled_title');
+        payload.description = translate('nickmass.reset_cancelled_before', {count: members.length.toLocaleString(language)});
+        await displayReply(context, payload, {replyTo: ctx});
       },
     });
 
-    const message = await replyWithMessage(context, {components, embed});
+    const message = await replyWithMessage(context, await renderDisplay(context, {...payload, components}));
     components.onTimeout = async () => {
       try {
-        embed.setColor(EmbedColors.ERROR);
-        embed.setFooter(translate('nickmass.expired'));
-        await expireWithEmbed(context, message, embed);
+        payload.color = EmbedColors.ERROR;
+        payload.footer = translate('nickmass.expired');
+        await expireWithDisplay(context, message, payload);
       } catch(error) {
 
       }
     };
     return message || undefined;
   }
-  return editOrReply(context, translate('nickmass.reset_none'));
+  return displayReply(context, {description: translate('nickmass.reset_none')});
 }

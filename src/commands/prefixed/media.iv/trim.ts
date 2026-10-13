@@ -18,7 +18,7 @@ export default class TrimCommand extends BaseImageOrVideoCommand {
         {name: 'threshold', aliases: ['t'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Trim an Image or Video\'s excess background',
         examples: [
           COMMAND_NAME,

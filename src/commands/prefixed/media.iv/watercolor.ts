@@ -20,7 +20,7 @@ export default class WatercolorCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'smoothing', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Watercolor Effect to an Image or Video',
         examples: [
           COMMAND_NAME,

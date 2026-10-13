@@ -14,7 +14,7 @@ export default class ZoomCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Zoom into an Image or Video',
         examples: [
           COMMAND_NAME,

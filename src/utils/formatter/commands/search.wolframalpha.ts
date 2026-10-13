@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchWolframAlpha } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.wolframalpha';
@@ -21,7 +21,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { images, fields, url } = await searchWolframAlpha(context, args);
   if (images.length || fields.length) {
@@ -29,32 +28,34 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
-        embed.setTitle(translate('search_wolframalpha.wolfram_alpha_results'));
-        embed.setUrl(url);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
+        payload.title = translate('search_wolframalpha.wolfram_alpha_results');
+        payload.url = url;
 
-        embed.setThumbnail(EmbedBrands.WOLFRAM_ALPHA);
+        payload.thumbnail = EmbedBrands.WOLFRAM_ALPHA;
         if (pageLimit === 1) {
-          embed.setFooter(translate('search_wolframalpha.wolfram_results'), EmbedBrands.WOLFRAM_ALPHA);
+          payload.footer = translate('search_wolframalpha.wolfram_results');
+          payload.footerIconUrl = EmbedBrands.WOLFRAM_ALPHA;
         } else {
-          embed.setFooter(translate('search_wolframalpha.image_of_wolfram_results', {page: page, pageLimit: pageLimit}), EmbedBrands.WOLFRAM_ALPHA);
+          payload.footer = translate('search_wolframalpha.image_of_wolfram_results', {page: page, pageLimit: pageLimit});
+          payload.footerIconUrl = EmbedBrands.WOLFRAM_ALPHA;
         }
 
         const image = images[page - 1];
         if (image) {
-          embed.setImage(image);
+          payload.image = image;
         }
 
         for (let field of fields.slice(0, 25)) {
-          embed.addField(field.name, field.value, true);
+          payload.fields!.push({inline: true, name: field.name, value: field.value});
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
 
-  return editOrReply(context, translate('search_wolframalpha.couldn_t_find_any_results_for_that'));
+  return displayReply(context, {description: translate('search_wolframalpha.couldn_t_find_any_results_for_that')});
 }

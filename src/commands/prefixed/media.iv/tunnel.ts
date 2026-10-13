@@ -17,7 +17,7 @@ export default class TunnelCommand extends BaseImageOrVideoCommand {
         {name: 'spiral', aliases: ['s'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Tunnel effect on an Image or Video',
         examples: [
           COMMAND_NAME,

@@ -17,7 +17,7 @@ export default class UncaptionCommand extends BaseImageOrVideoCommand {
         {name: 'tolerance', aliases: ['t'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Uncaption an Image or Video',
         examples: [
           COMMAND_NAME,

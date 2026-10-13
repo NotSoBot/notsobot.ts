@@ -21,7 +21,7 @@ export default class UndoCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} 5`,
         ],
-        category: CommandCategories.UTILS,
+        category: CommandCategories.UTILITY,
         id: Formatter.Commands.UtilsUndo.COMMAND_ID,
         usage: '?<amount>',
       },

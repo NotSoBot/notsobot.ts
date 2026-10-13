@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchSteam } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, Paginator, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.steam.community';
@@ -19,7 +19,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { count, results } = await searchSteam(context, {
     query: args.query,
@@ -31,18 +30,16 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
         const result = results[page - 1];
-        embed.setFooter(
-          translate('search_steam_community.page_of_steam_community_results_total_results', {count: count.toLocaleString(language), page: page, pageLimit: pageLimit}),
-          EmbedBrands.STEAM,
-        );
-        embed.setThumbnail(result.avatar_url);
+        payload.footer = translate('search_steam_community.page_of_steam_community_results_total_results', {count: count.toLocaleString(language), page: page, pageLimit: pageLimit});
+        payload.footerIconUrl = EmbedBrands.STEAM;
+        payload.thumbnail = result.avatar_url;
 
-        embed.setTitle(result.username);
-        embed.setUrl(result.url);
+        payload.title = result.username;
+        payload.url = result.url;
 
         {
           const description: Array<string> = [];
@@ -74,15 +71,15 @@ export async function createMessage(
           }
 
           if (description.length) {
-            embed.setDescription(description.join('\n'));
+            payload.description = description.join('\n');
           }
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, translate('search_steam_community.couldn_t_find_any_steam_accounts_matching'));
+  return displayReply(context, {description: translate('search_steam_community.couldn_t_find_any_steam_accounts_matching')});
 }
 

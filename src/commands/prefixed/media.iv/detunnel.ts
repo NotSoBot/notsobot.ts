@@ -17,7 +17,7 @@ export default class DetunnelCommand extends BaseImageOrVideoCommand {
         {name: 'spiral', aliases: ['s'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a De-Tunnel effect on an Image or Video',
         examples: [
           COMMAND_NAME,

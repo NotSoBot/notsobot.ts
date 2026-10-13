@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -51,7 +51,7 @@ export class TagExportCommand extends BaseInteractionCommandOption {
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagExport.CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
     if (args.user === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
     }
     return super.onCancelRun(context, args);
   }

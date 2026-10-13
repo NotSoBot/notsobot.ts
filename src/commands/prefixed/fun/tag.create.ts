@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -15,7 +15,7 @@ export default class TagCreateCommand extends BaseCommand {
 
       aliases: ['t create', 'tag add', 't add'],
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'Create a tag',
         examples: [
           `${COMMAND_NAME} test im a tag`,
@@ -39,10 +39,10 @@ export default class TagCreateCommand extends BaseCommand {
     const { translate } = await I18n.getTranslator(context);
     if (args.tag || args.content) {
       if (!args.tag) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.needs_name')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.needs_name')}`});
       }
       if (!args.content) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.needs_content')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.needs_content')}`});
       }
     }
     return super.onCancelRun(context, args);

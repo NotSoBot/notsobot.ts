@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GuildCommandsBlocklistTypes, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -41,7 +41,7 @@ export default class CommandsBlocklistRemoveCommand extends BaseCommand {
       disableDm: true,
       label: 'command',
       metadata: {
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         description: 'Remove a command blocklist item for a Channel/Role/User or Server-Wide',
         examples: [
           `${COMMAND_NAME} rule34`,
@@ -51,7 +51,6 @@ export default class CommandsBlocklistRemoveCommand extends BaseCommand {
         id: Formatter.Commands.ModerationCommandsBlocklistRemove.COMMAND_ID,
         usage: '<command-name> (-channels ...<channel:id|mention|name>) (-roles ...<role:id|mention|name>) (-users ...<user:id|mention|name>)',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       type: Parameters.prefixedCommand,
     });
@@ -86,9 +85,9 @@ export default class CommandsBlocklistRemoveCommand extends BaseCommand {
       if (args.users && !args.users.length) {
         errors.push(translate('moderation.types.user').toLowerCase());
       }
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('moderation.items_not_found', {items: errors.join(', ')})}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.items_not_found', {items: errors.join(', ')})}`});
     }
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationCommandsBlocklistRemove.CommandArgs) {

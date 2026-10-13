@@ -82,6 +82,11 @@ export namespace RestOptions {
     guildId: string,
   }
 
+  export interface DeleteCommandsResponses {
+    channelId?: string,
+    triggerIds: Array<string>,
+  }
+
   export interface DeleteGuildLogger {
     channelId: string,
     type: GuildLoggerTypes,
@@ -1245,6 +1250,7 @@ export namespace RestResponses {
   export type CreateGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   export type DeleteChannel = null;
+  export type DeleteCommandsResponses = RestResponsesRaw.DeleteCommandsResponses;
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
   export type DeleteGuildCommandsAllowlist = null;
@@ -1442,6 +1448,9 @@ export namespace RestResponsesRaw {
   export type CreateVoiceClone = Voice;
 
   export type DeleteChannel = null;
+  export interface DeleteCommandsResponses {
+    deleted: number,
+  }
   export type DeleteGuildAllowlist = null;
   export type DeleteGuildBlocklist = null;
   export type DeleteGuildCommandsAllowlist = null;

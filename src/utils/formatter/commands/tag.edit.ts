@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { putTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.edit';
@@ -29,5 +29,5 @@ export async function createMessage(
     name: args.tag.name,
     serverId: context.guildId || context.channelId,
   });
-  return editOrReply(context, translate('tag_edit.successfully_edited_tag', {name: Markup.codestring(tag.name)}));
+  return displayReply(context, {description: translate('tag_edit.successfully_edited_tag', {name: Markup.codestring(tag.name)})});
 }

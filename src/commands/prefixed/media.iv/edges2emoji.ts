@@ -15,7 +15,7 @@ export default class Edges2EmojiCommand extends BaseImageOrVideoCommand {
 
       aliases: ['e2e'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Edges to Emoji',
         examples: [
           COMMAND_NAME,

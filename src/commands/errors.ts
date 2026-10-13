@@ -1,23 +1,17 @@
 import { URL } from 'url';
 
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
-import { Components, Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
 import { ApiErrorBody, getApiError, getApiErrorTranslationKey, readErrorBody } from '../api/errors';
-import { ApiErrorCodes, EmbedColors, PermissionsText, StatusEmojis, UserSettingsResponseDisplayTypes } from '../constants';
-import { I18n, createUserEmbed, editOrReply, formatMemory, getResponseDisplay } from '../utils';
+import { ApiErrorCodes, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
+import { I18n, displayReply, formatMemory } from '../utils';
 
 
 // shared error formatting for prefixed and interaction commands, so both show the same messages
-// every error is built as an `ErrorPayload` first, then rendered with the user's response display setting
-// (components v2 container, embed, or plain text)
-
-const MAX_COMPONENTS_TEXT_LENGTH = 4000;
-const MAX_EMBED_DESCRIPTION_LENGTH = 4096;
-const MAX_EMBED_FIELD_LENGTH = 1024;
-const MAX_TEXT_LENGTH = 2000;
+// every error is built as an `ErrorPayload` first, then rendered with `displayReply` like every other response
+// (components v2 container, embed, or plain text, with the invoker and too long errors uploaded as a file)
 
 const ERROR_FILENAME = 'error.txt';
 
@@ -61,148 +55,22 @@ function jsonField(value: unknown): string {
 }
 
 
-async function getErrorResponseDisplay(context: ErrorContext): Promise<UserSettingsResponseDisplayTypes> {
-  let display = UserSettingsResponseDisplayTypes.DEFAULT;
-  try {
-    display = await getResponseDisplay(context);
-  } catch(e) {
-    // the api might be what errored, still show the error
-  }
-
-  // prefixed embeds need the embed links permission, components v2 and interactions don't
-  if (
-    display === UserSettingsResponseDisplayTypes.LEGACY &&
-    context instanceof Command.Context &&
-    context.channel && !context.channel.canEmbedLinks
-  ) {
-    display = UserSettingsResponseDisplayTypes.NO_EMBED;
-  }
-  return display;
-}
-
-
-// the whole error as text, for when it is too big and gets uploaded
-function payloadToFileText(payload: ErrorPayload): string {
-  const parts = [payload.description];
-  for (let field of payload.fields || []) {
-    parts.push(`${field.name}:\n${field.value}`);
-  }
-  return parts.join('\n\n');
-}
-
-
-function renderComponents(payload: ErrorPayload, translator: I18n.Translator) {
-  const components = new Components();
-  const container = components.createContainer();
-  container.setAccentColor(EmbedColors.ERROR);
-
-  const render = (description: string, fields: Array<ErrorField>) => {
-    const lines: Array<string> = [];
-    if (payload.title) {
-      lines.push(`### ${payload.title}`);
-    }
-    lines.push(description);
-    for (let field of fields) {
-      lines.push(`**${field.name}**\n${field.value}`);
-    }
-    return lines.join('\n');
-  };
-
-  let file: {filename: string, value: string} | undefined;
-  let content = render(payload.description, payload.fields || []);
-  if (MAX_COMPONENTS_TEXT_LENGTH < content.length) {
-    content = render(translator.translate('errors.uploaded'), []);
-    file = {filename: ERROR_FILENAME, value: payloadToFileText(payload)};
-  }
-
-  container.addTextDisplay({content});
-  if (file) {
-    // components v2 only shows attachments that a component points to
-    container.createFile({file: {url: `attachment://${file.filename}`}});
-  }
-  return {components, file};
-}
-
-
-function renderEmbed(context: ErrorContext, payload: ErrorPayload, translator: I18n.Translator) {
-  const embed = (context instanceof Command.Context) ? createUserEmbed(context.user) : new Embed();
-  embed.setColor(EmbedColors.ERROR);
-  if (payload.title) {
-    embed.setTitle(payload.title);
-  }
-
-  const fields = payload.fields || [];
-  const fits = (
-    payload.description.length <= MAX_EMBED_DESCRIPTION_LENGTH &&
-    fields.every((field) => field.value.length <= MAX_EMBED_FIELD_LENGTH)
-  );
-
-  let file: {filename: string, value: string} | undefined;
-  if (fits) {
-    embed.setDescription(payload.description);
-    for (let field of fields) {
-      embed.addField(field.name, field.value);
-    }
-  } else {
-    embed.setDescription(translator.translate('errors.uploaded'));
-    file = {filename: ERROR_FILENAME, value: payloadToFileText(payload)};
-  }
-  return {embed, file};
-}
-
-
-function renderText(payload: ErrorPayload, translator: I18n.Translator) {
-  const render = (description: string, fields: Array<ErrorField>) => {
-    const lines: Array<string> = [];
-    if (payload.title) {
-      lines.push(`**${payload.title}**`);
-    }
-    lines.push(description);
-    for (let field of fields) {
-      lines.push(`**${field.name}**\n${field.value}`);
-    }
-    return lines.join('\n');
-  };
-
-  let file: {filename: string, value: string} | undefined;
-  let content = render(payload.description, payload.fields || []);
-  if (MAX_TEXT_LENGTH < content.length) {
-    content = render(translator.translate('errors.uploaded'), []);
-    file = {filename: ERROR_FILENAME, value: payloadToFileText(payload)};
-  }
-  return {content, file};
-}
-
-
 export async function replyError(
   context: ErrorContext,
   payload: ErrorPayload,
   options: ErrorReplyOptions = {},
 ): Promise<any> {
-  const [ display, translator ] = await Promise.all([
-    getErrorResponseDisplay(context),
-    I18n.getTranslator(context),
-  ]);
-
-  // ephemeral only exists for interactions
-  const ephemeral = (options.ephemeral && context instanceof Interaction.InteractionContext) ? MessageFlags.EPHEMERAL : 0;
-
-  let message: Record<string, any>;
-  switch (display) {
-    case UserSettingsResponseDisplayTypes.LEGACY: {
-      const { embed, file } = renderEmbed(context, payload, translator);
-      message = {embed, file, flags: ephemeral || undefined};
-    }; break;
-    case UserSettingsResponseDisplayTypes.NO_EMBED: {
-      const { content, file } = renderText(payload, translator);
-      message = {content, file, flags: ephemeral || undefined};
-    }; break;
-    default: {
-      const { components, file } = renderComponents(payload, translator);
-      message = {components, file, flags: MessageFlags.IS_COMPONENTS_V2 | ephemeral};
-    };
-  }
-  return editOrReply(context, message);
+  const { translate } = await I18n.getTranslator(context);
+  return displayReply(context, {
+    color: EmbedColors.ERROR,
+    description: payload.description,
+    ephemeral: options.ephemeral,
+    fields: payload.fields,
+    title: payload.title,
+  }, {
+    uploadDescription: translate('errors.uploaded'),
+    uploadFilename: ERROR_FILENAME,
+  });
 }
 
 

@@ -1,9 +1,8 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { CommandCategories, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
-import { I18n, Paginator, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { CommandCategories, CommandCategoryNames, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
+import { DisplayPayload, I18n, Paginator, displayReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
 
@@ -32,10 +31,9 @@ export default class HelpCommand extends BaseCommand {
           `${COMMAND_NAME} google`,
           `${COMMAND_NAME} loggers`,
         ],
-        category: CommandCategories.UTILS,
+        category: CommandCategories.UTILITY,
         usage: '',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: (content: string, context: Command.Context) => {
         if (content) {
           const commands: Array<Command.Command> = [];
@@ -80,9 +78,9 @@ export default class HelpCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.commands) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`});
     }
-    return editOrReply(context, translate('help.links', {commands: '<https://notsobot.com/commands>', invite: '<https://notsobot.com/support/invite>'}));
+    return displayReply(context, {description: translate('help.links', {commands: '<https://notsobot.com/commands>', invite: '<https://notsobot.com/support/invite>'})});
   }
 
   // add client permission labels
@@ -97,7 +95,7 @@ export default class HelpCommand extends BaseCommand {
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = createUserEmbed(context.user);
+        const payload: DisplayPayload = {fields: []};
         const resultNumber = page - 1;
         if (resultNumber in commands) {
           const command = commands[resultNumber];
@@ -118,23 +116,23 @@ export default class HelpCommand extends BaseCommand {
 
           const metadata = command.metadata as CommandMetadata;
 
-          embed.setColor(EmbedColors.DEFAULT);
-          embed.setTitle(name);
-          embed.setDescription(metadata.description || '');
+          payload.color = EmbedColors.DEFAULT;
+          payload.title = name;
+          payload.description = metadata.description || '';
 
           if (names.length) {
-            embed.addField(translate('help.aliases'), names.join('\n'), true);
+            payload.fields!.push({inline: true, name: translate('help.aliases'), value: names.join('\n')});
           }
           if (metadata.examples && metadata.examples.length) {
-            embed.addField(translate('help.examples'), Markup.escape.mentions(metadata.examples.join('\n')), true);
+            payload.fields!.push({inline: true, name: translate('help.examples'), value: Markup.escape.mentions(metadata.examples.join('\n'))});
           }
           {
             const description: Array<string> = [];
 
-            description.push(`**${translate('help.category')}**: ${toTitleCase(metadata.category)}`);
+            description.push(`**${translate('help.category')}**: ${CommandCategoryNames[metadata.category] || toTitleCase(metadata.category)}`);
             description.push(`**NSFW**: ${translate((metadata.nsfw) ? 'common.yes' : 'common.no')}`);
 
-            embed.addField(translate('common.information'), description.join('\n'));
+            payload.fields!.push({name: translate('common.information'), value: description.join('\n')});
           }
           {
             let text: string;
@@ -143,11 +141,12 @@ export default class HelpCommand extends BaseCommand {
             } else {
               text = translate('help.usage_unfinished');
             }
-            embed.addField(translate('help.usage'), text);
+            payload.fields!.push({name: translate('help.usage'), value: text});
           }
         }
-        embed.setFooter(translate('help.footer', {page, total: pageLimit}), EmbedBrands.NOTSOBOT);
-        return embed;
+        payload.footer = translate('help.footer', {page, total: pageLimit});
+        payload.footerIconUrl = EmbedBrands.NOTSOBOT;
+        return {display: payload};
       },
     });
     return await paginator.start();

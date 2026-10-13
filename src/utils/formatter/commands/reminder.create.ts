@@ -7,7 +7,7 @@ import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { ONE_DAY } from '../../../constants';
 import { ReminderInterval } from '../../../listeners';
-import { Parameters, createTimestampMomentFromContext, editOrReply, getReminderMessage } from '../../../utils';
+import { Parameters, createTimestampMomentFromContext, displayReply, getReminderMessage } from '../../../utils';
 
 
 export const COMMAND_ID = 'reminder.create';
@@ -71,11 +71,11 @@ export async function createMessage(
     text = `${text}: ${Markup.codestring(reminder.content)}`;
   }
 
-  return editOrReply(context, {
-    content: text,
+  return displayReply(context, {
     allowedMentions: {
       repliedUser: true,
       users: [context.userId],
     },
+    description: text,
   });
 }

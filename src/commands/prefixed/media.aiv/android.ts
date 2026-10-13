@@ -17,7 +17,7 @@ export default class AndroidCommand extends BaseMediaCommand {
         {name: 'scale', aliases: ['s'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Compress the Audio/Image/Video File to be Android-Like',
         examples: [
           COMMAND_NAME,

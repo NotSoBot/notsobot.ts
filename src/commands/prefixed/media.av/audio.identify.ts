@@ -18,7 +18,7 @@ export default class AudioIdentifyCommand extends BaseAudioOrVideoCommand {
         {name: 'start', aliases: ['s'], type: Parameters.secondsWithOptions({negatives: true})},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Identify a song in an audio or video file',
         examples: [
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/966626275852681216/TerryResonance.webm`,

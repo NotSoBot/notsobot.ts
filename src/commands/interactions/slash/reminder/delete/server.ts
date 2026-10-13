@@ -1,7 +1,7 @@
 import { Constants, Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -32,6 +32,6 @@ export class ReminderDeleteServerCommand extends BaseInteractionCommandOption {
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ReminderDeleteMe.CommandArgs) {
-    return context.editOrRespond('WIP');
+    return displayReply(context, {description: 'WIP'});
   }
 }

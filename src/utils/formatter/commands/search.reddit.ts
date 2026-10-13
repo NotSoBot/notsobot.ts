@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchReddit } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { DateMomentLogFormat, EmbedBrands, EmbedColors, RedditKindTypes, RedditSortTypes, RedditTimeTypes } from '../../../constants';
-import { Paginator, chunkArray, createTimestampMomentFromGuild, createUserEmbed, editOrReply, htmlDecode, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, createTimestampMomentFromGuild, displayReply, htmlDecode, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.reddit';
@@ -25,7 +25,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { results } = await searchReddit(context, args);
   if (results.length) {
@@ -35,15 +34,16 @@ export async function createMessage(
       onPage: (page) => {
         const data = results[page - 1];
 
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
-        embed.setFooter(translate('search_reddit.page_of_reddit_results', {page: page, pageLimit: pageLimit}), EmbedBrands.REDDIT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
+        payload.footer = translate('search_reddit.page_of_reddit_results', {page: page, pageLimit: pageLimit});
+        payload.footerIconUrl = EmbedBrands.REDDIT;
 
-        embed.setTitle(data.title.slice(0, 256));
-        embed.setUrl('https://reddit.com' + data.permalink);
+        payload.title = data.title.slice(0, 256);
+        payload.url = 'https://reddit.com' + data.permalink;
 
         if (data.selftext) {
-          embed.setDescription(htmlDecode(data.selftext).slice(0, 2048));
+          payload.description = htmlDecode(data.selftext).slice(0, 2048);
         }
 
         {
@@ -75,20 +75,20 @@ export async function createMessage(
             description.push(Markup.url('Video URL', data.media.reddit_video.fallback_url));
           }
 
-          embed.addField(translate('search_reddit.details'), description.join('\n'));
+          payload.fields!.push({name: translate('search_reddit.details'), value: description.join('\n')});
         }
 
         if (data.preview) {
           const [ image ] = data.preview.images;
           if (image) {
-            embed.setImage(htmlDecode(image.source.url));
+            payload.image = htmlDecode(image.source.url);
           }
         }
 
         switch (data.post_hint) {
           case 'image': {
             // use the preview above since the discord unfurler fails sometimes for this one
-            // embed.setImage(data.url);
+            // payload.image = data.url;
           }; break;
           case 'link': {
             const description: Array<string> = [];
@@ -96,15 +96,15 @@ export async function createMessage(
             if (data.selftext) {
               description.push(htmlDecode(data.selftext).slice(0, 2000));
             }
-            embed.setDescription(description.join('\n'));
+            payload.description = description.join('\n');
           }; break;
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
 
-  return editOrReply(context, translate('search_reddit.couldn_t_find_any_results_for_that'));
+  return displayReply(context, {description: translate('search_reddit.couldn_t_find_any_results_for_that')});
 }

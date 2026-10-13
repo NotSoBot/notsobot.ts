@@ -1,14 +1,14 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import {
-  PresenceStatusColors,
   PRESENCE_CLIENT_STATUS_KEYS,
+  PresenceStatusColors,
 } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import {
+  DisplayPayload,
   Paginator,
-  createUserEmbed,
   formatTime,
   toTitleCase,
 } from '../../../utils';
@@ -30,7 +30,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { user } = args;
 
@@ -48,11 +47,11 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     onPage: (page) => {
-      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-      embed.setColor(PresenceStatusColors['offline']);
-      embed.setTitle(user.toString());
-      embed.setUrl(user.jumpLink);
-      embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
+      const payload: DisplayPayload = {fields: []};
+      payload.color = PresenceStatusColors['offline'];
+      payload.title = user.toString();
+      payload.url = user.jumpLink;
+      payload.thumbnail = user.avatarUrlFormat(null, {size: 1024});
 
       if (presence) {
         if (presence.clientStatus) {
@@ -63,14 +62,14 @@ export async function createMessage(
               description.push(`**${translateMaybe(`presence.client.${key}`, toTitleCase(key))}**: ${translateMaybe(`presence.status.${status}`, status)}`);
             }
           }
-          embed.addField(translate('presence.status'), description.join('\n'));
+          payload.fields!.push({name: translate('presence.status'), value: description.join('\n')});
         } else {
           const status = translateMaybe(`presence.status.${presence.status}`, presence.status);
-          embed.addField(translate('presence.status'), status, true);
+          payload.fields!.push({inline: true, name: translate('presence.status'), value: status});
         }
 
         if (presence.status in PresenceStatusColors) {
-          embed.setColor(PresenceStatusColors[presence.status]);
+          payload.color = PresenceStatusColors[presence.status];
         }
 
         const activityId = page - 1;
@@ -132,21 +131,19 @@ export async function createMessage(
             if (1 < pageLimit) {
               name = translate('activity.title_paged', {page, total: pageLimit});
             }
-            embed.addField(name, description.join('\n'), true);
+            payload.fields!.push({inline: true, name: name, value: description.join('\n')});
           }
 
           // now do the fields
           const thumbnail = activity.imageUrlFormat(null, {size: 1024});
           if (thumbnail) {
-            embed.setThumbnail(thumbnail);
+            payload.thumbnail = thumbnail;
           }
 
           const assets = activity.assets;
           if (assets && assets.smallText) {
-            embed.setFooter(
-              assets.smallText,
-              assets.smallImageUrl || undefined,
-            );
+            payload.footer = assets.smallText;
+            payload.footerIconUrl = assets.smallImageUrl || undefined;
           }
 
           const timestamps = activity.timestamps;
@@ -155,7 +152,7 @@ export async function createMessage(
             const total = formatTime(timestamps.totalTime);
 
             const description = (timestamps.end) ? `${elapsed}/${total}` : `${elapsed}`;
-            embed.addField(translate('activity.time'), description, true);
+            payload.fields!.push({inline: true, name: translate('activity.time'), value: description});
           }
 
           if (activity.party) {
@@ -171,7 +168,7 @@ export async function createMessage(
               description.push(`**${translate('activity.group', {count: group.length.toLocaleString(language)})}**: ${group.join(', ')}`);
             }
             if (description.length) {
-              embed.addField(translate('activity.party'), description.join('\n'));
+              payload.fields!.push({name: translate('activity.party'), value: description.join('\n')});
             }
           }
 
@@ -190,7 +187,7 @@ export async function createMessage(
               }
             }
             if (description.size) {
-              embed.addField(translate('activity.store_links'), Array.from(description).join(', '), true);
+              payload.fields!.push({inline: true, name: translate('activity.store_links'), value: Array.from(description).join(', ')});
             }
           }
 
@@ -201,19 +198,19 @@ export async function createMessage(
             } else {
               description.push(<string> activity.spotifyTrackUrl);
             }
-            embed.addField(translate('activity.spotify_track'), description.join('\n'), true);
+            payload.fields!.push({inline: true, name: translate('activity.spotify_track'), value: description.join('\n')});
           }
 
           if (activity.createdAt) {
-            embed.setFooter(translate('activity.started'));
-            embed.setTimestamp(activity.createdAt);
+            payload.footer = translate('activity.started');
+            payload.timestamp = activity.createdAt;
           }
         }
       } else {
-        embed.addField(translate('activity.title'), translate('presence.status.offline'));
+        payload.fields!.push({name: translate('activity.title'), value: translate('presence.status.offline')});
       }
 
-      return embed;
+      return {display: payload};
     },
   });
   return await paginator.start();

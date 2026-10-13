@@ -19,7 +19,7 @@ export default class MemeCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Add Meme Text to an Image or Video',
         examples: [
           COMMAND_NAME,

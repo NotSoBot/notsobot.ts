@@ -23,7 +23,7 @@ export default class AsciiCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationASCII.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-invert) (-zoom)',
       },

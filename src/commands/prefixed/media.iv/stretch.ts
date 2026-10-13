@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -17,7 +17,7 @@ export default class StretchCommand extends BaseImageOrVideoCommand {
         {name: 'crop', type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Stretch an Image or Video by its Width or Height',
         examples: [
           `${COMMAND_NAME} notsobot 1 3`,
@@ -44,7 +44,7 @@ export default class StretchCommand extends BaseImageOrVideoCommand {
       return super.onCancelRun(context, args);
     }
     if (args.width === args.height) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.stretch_same_size')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.stretch_same_size')}`});
     }
     return super.onCancelRun(context, args);
   }

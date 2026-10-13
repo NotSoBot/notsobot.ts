@@ -14,7 +14,7 @@ export default class VoiceListCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'List your stored cloned voices',
         examples: [
           COMMAND_NAME,

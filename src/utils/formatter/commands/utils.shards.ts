@@ -1,8 +1,8 @@
 import { ClusterClient, Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { SocketStates } from 'detritus-client/lib/constants';
 
-import { createUserEmbed, editOrReply, padCodeBlockFromRows, splitTextByAmount } from '../../../utils';
+import { DisplayPayload, displayReply, padCodeBlockFromRows, splitTextByAmount } from '../../../utils';
 
 
 export interface ClusterInformation {
@@ -157,16 +157,16 @@ export async function createMessage(
     paddedRows.join('\n'),
   ].join('\n');
 
-  const embed = (context instanceof Command.Context) ? createUserEmbed(context.user) : new Embed();
+  const payload: DisplayPayload = {fields: []};
   {
     const parts = splitTextByAmount(content, 1988, '\n');
-    embed.setDescription(Markup.codeblock(parts.shift()!, {language: 'py'}));
+    payload.description = Markup.codeblock(parts.shift()!, {language: 'py'});
     {
       const fieldParts = splitTextByAmount(parts.join('\n'), 1012, '\n');
       for (let part of fieldParts) {
-        embed.addField('\u200b', Markup.codeblock(part, {language: '\py'}));
+        payload.fields!.push({name: '\u200b', value: Markup.codeblock(part, {language: '\py'})});
       }
     }
   }
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

@@ -23,7 +23,7 @@ export default class EmbossCommand extends BaseImageOrVideoCommand {
         {aliases: ['m'], name: 'method', type: Parameters.oneOf({choices: MediaEmbossMethods})},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply an Emboss effect to an Image or Video',
         examples: [
           COMMAND_NAME,

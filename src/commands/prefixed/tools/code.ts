@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CodeLanguages, CommandCategories } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply, getCodeLanguage } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply, getCodeLanguage } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -21,7 +21,8 @@ export default class CodeCommand extends BaseCommand {
         {name: 'language', aliases: ['l']},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.UTILITY,
+        pipeable: true,
         description: 'Execute code',
         examples: [
           COMMAND_NAME,
@@ -77,7 +78,7 @@ export default class CodeCommand extends BaseCommand {
 
     if (!language) {
       const { translate } = await I18n.getTranslator(context);
-      return editOrReply(context, translate('tools.code.invalid_language', {languages: Formatter.Commands.ToolsCode.languagesText}));
+      return displayReply(context, {description: translate('tools.code.invalid_language', {languages: Formatter.Commands.ToolsCode.languagesText})});
     }
 
     return Formatter.Commands.ToolsCode.createMessage(context, {code, language, version});

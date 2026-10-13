@@ -18,7 +18,7 @@ export default class AudioDelayCommand extends BaseMediaCommand {
         {name: 'nosnip', aliases: ['ns'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Delay the Audio Stream of an Audio or Video File',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 5`,

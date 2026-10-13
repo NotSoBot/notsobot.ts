@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GuildBlocklistTypes } from '../../../constants';
 import { Formatter } from '../../../utils';
@@ -25,11 +24,10 @@ export default class BlocklistCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} channels`,
         ],
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         id: Formatter.Commands.ModerationBlocklist.COMMAND_ID,
         usage: '?<GuildBlocklistType>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       priority: -2,
       type: (value: string) => value.toLowerCase(),
     });

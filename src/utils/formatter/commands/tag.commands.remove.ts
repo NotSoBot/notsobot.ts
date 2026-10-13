@@ -5,7 +5,7 @@ import { editTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import TagCustomCommandsStore from '../../../stores/tagcustomcommands';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.commandify.disable';
@@ -30,5 +30,5 @@ export async function createMessage(
     TagCustomCommandsStore.get(payloadId)!.delete(tag.id);
   }
 
-  return editOrReply(context, translate('tag_commands_remove.successfully_removed_the_tag_from_the_custom', {name: Markup.codestring(tag.name)}));
+  return displayReply(context, {description: translate('tag_commands_remove.successfully_removed_the_tag_from_the_custom', {name: Markup.codestring(tag.name)})});
 }

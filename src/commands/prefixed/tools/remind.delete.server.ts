@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -16,7 +16,8 @@ export default class RemindDeleteServerCommand extends BaseCommand {
 	    aliases: ['reminder delete server'],
 	    label: 'position',
 	    metadata: {
-		    category: CommandCategories.TOOLS,
+		    category: CommandCategories.UTILITY,
+		    pipeable: true,
 		    description: 'Delete a User\'s Reminder from the Server',
 		    examples: [
 		      `${COMMAND_NAME} 1`,
@@ -40,7 +41,7 @@ export default class RemindDeleteServerCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: Formatter.Commands.ReminderDeleteServer.CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
     if (args.user === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
     }
     return super.onCancelRun(context, args);
   }

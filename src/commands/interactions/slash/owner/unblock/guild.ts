@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { StatusEmojis } from '../../../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
 import { BaseOwnerCommandOption } from '../base';
 
@@ -31,7 +31,7 @@ export class OwnerUnblockGuildCommand extends BaseOwnerCommandOption {
 
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.OwnerUnblockGuild.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.guild_not_found')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.guild_not_found')}`});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.OwnerUnblockGuild.CommandArgs) {

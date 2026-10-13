@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchSteamProfile } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.steam.profile';
@@ -18,28 +18,28 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const profile = await searchSteamProfile(context, args);
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
+  const payload: DisplayPayload = {fields: []};
   switch (profile.state) {
     case 'in-game': {
-      embed.setColor(EmbedColors.STEAM_IN_GAME);
+      payload.color = EmbedColors.STEAM_IN_GAME;
     }; break;
     case 'online': {
-      embed.setColor(EmbedColors.STEAM_ONLINE);
+      payload.color = EmbedColors.STEAM_ONLINE;
     }; break;
     default: {
-      embed.setColor(EmbedColors.STEAM_OFFLINE);
+      payload.color = EmbedColors.STEAM_OFFLINE;
     };
   }
 
-  embed.setTitle(profile.username);
-  embed.setUrl(profile.url);
+  payload.title = profile.username;
+  payload.url = profile.url;
 
-  embed.setFooter(translate('search_steam_profile.steam_community_profile'), EmbedBrands.STEAM);
-  embed.setThumbnail(profile.avatar.full);
+  payload.footer = translate('search_steam_profile.steam_community_profile');
+  payload.footerIconUrl = EmbedBrands.STEAM;
+  payload.thumbnail = profile.avatar.full;
 
   {
     const description: Array<string> = [];
@@ -59,7 +59,7 @@ export async function createMessage(
     description.push(translate('search_steam_profile.trade_ban', {trade_ban_state: profile.trade_ban_state}));
     description.push(translate('search_steam_profile.vac_d', {is_vac_banned: (profile.is_vac_banned) ? translate('common.yes') : translate('common.no')}));
 
-    embed.setDescription(description.join('\n'));
+    payload.description = description.join('\n');
   }
 
   if (profile.in_game) {
@@ -73,7 +73,7 @@ export async function createMessage(
       description.push(translate('search_steam_profile.server_link', {join_link: profile.in_game.join_link}));
     }
 
-    embed.addField(translate('search_steam_profile.in_game'), description.join('\n'));
+    payload.fields!.push({name: translate('search_steam_profile.in_game'), value: description.join('\n')});
   }
 
   if (profile.past_names.length) {
@@ -83,8 +83,8 @@ export async function createMessage(
       description.push(Markup.codestring(`${name} on ${timestamp}`));
     }
 
-    embed.addField(translate('search_steam_profile.past_names'), description.join('\n'));
+    payload.fields!.push({name: translate('search_steam_profile.past_names'), value: description.join('\n')});
   }
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

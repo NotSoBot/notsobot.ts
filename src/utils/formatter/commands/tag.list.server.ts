@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagsServer } from '../../../api';
 import { getTranslator } from '../../i18n';
@@ -7,13 +7,13 @@ import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   DefaultParameters,
+  DisplayPayload,
   Paginator,
   Parameters,
   chunkArray,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
+  displayReply,
 } from '../../../utils';
 
 
@@ -78,10 +78,9 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   if (args.user && args.user.bot) {
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_list_server.bots_do_not_have_tags')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_list_server.bots_do_not_have_tags')}`});
   }
 
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const serverId = context.guildId || context.channelId!;
 
   const tags = await fetchTagsServerSearch(context, serverId, {
@@ -96,8 +95,8 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
         if (args.content || args.content || args.user) {
           const description: Array<string> = [];
@@ -110,14 +109,14 @@ export async function createMessage(
           if (args.content) {
             description.push(translate('tag_list_server.filtering_for_tags_with_content_containing', {content: Markup.codestring(args.content)}));
           }
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
 
         let footer = translate('tag_list_server.server_tags');
         if (pageLimit !== 1) {
           footer = translate('tag_list_server.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
         }
-        embed.setFooter(translate('tag_list_server.total_tags', {footer: footer, tags_count: tags.length.toLocaleString(language)}));
+        payload.footer = translate('tag_list_server.total_tags', {footer: footer, tags_count: tags.length.toLocaleString(language)});
 
         const page = pages[pageNumber - 1];
 
@@ -142,19 +141,19 @@ export async function createMessage(
               */
             }
 
-            embed.addField('\u200b', description.join('\n'), true);
+            payload.fields!.push({inline: true, name: '\u200b', value: description.join('\n')});
           }
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
 
   if (args.content || args.name || args.user) {
-    return editOrReply(context, translate('tag_list_server.this_server_has_no_tags_matching_the'));
+    return displayReply(context, {description: translate('tag_list_server.this_server_has_no_tags_matching_the')});
   }
 
-  return editOrReply(context, translate('tag_list_server.this_server_has_no_tags'));
+  return displayReply(context, {description: translate('tag_list_server.this_server_has_no_tags')});
 }

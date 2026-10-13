@@ -15,7 +15,7 @@ export default class AudioChannelsCombineCommand extends BaseAudioOrVideoCommand
 
 	  aliases: ['a channels combine', 'a c combine'],
 	  metadata: {
-		category: CommandCategories.TOOLS,
+		category: CommandCategories.AUDIO,
 		description: 'Combine an Audio or Video file\'s audio streams to be mono',
 		examples: [
 		  `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

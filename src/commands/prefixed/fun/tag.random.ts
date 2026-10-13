@@ -16,7 +16,7 @@ export default class TagRandomCommand extends BaseCommand {
       aliases: ['t random'],
       label: 'arguments',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'Show a random tag',
         examples: [
           COMMAND_NAME,

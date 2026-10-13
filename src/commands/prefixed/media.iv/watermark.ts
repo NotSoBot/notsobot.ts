@@ -19,7 +19,7 @@ export default class WatermarkCommand extends BaseMediasCommand {
         {name: 'size', aliases: ['s'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Place the second media small in the bottom right corner of the first media',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,

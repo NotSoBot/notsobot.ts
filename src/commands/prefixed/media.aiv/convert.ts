@@ -17,7 +17,7 @@ export default class ConvertCommand extends BaseMediaCommand {
         {name: 'size', aliases: ['s']},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.CONVERSION,
         description: 'Convert Media',
         examples: [
           COMMAND_NAME,

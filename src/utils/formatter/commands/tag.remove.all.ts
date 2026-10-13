@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { ChannelTypes, InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags, Permissions } from 'detritus-client/lib/constants';
-import { Components, ComponentContext, Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
+import { ComponentContext, Components, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
 import { deleteTagsServer } from '../../../api';
@@ -13,13 +13,12 @@ import {
   Parameters,
   chunkArray,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
+  displayReply,
 } from '../../../utils';
 
 import { exportTags } from './tag.export';
-import { fetchTagsServerSearch, FetchTagsServerSearch } from './tag.list.server';
+import { FetchTagsServerSearch, fetchTagsServerSearch } from './tag.list.server';
 
 
 export const MAX_TIME_TO_RESPOND = 2 * 60 * 1000;
@@ -40,10 +39,9 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   if (args.user && args.user.bot) {
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_remove_all.bots_do_not_have_tags')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_remove_all.bots_do_not_have_tags')}`});
   }
 
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const serverId = context.guildId || context.channelId!;
 
   if (!args.user || (args.user && args.user.id !== context.userId)) {
@@ -59,7 +57,7 @@ export async function createMessage(
 
     if (!hasPermissionsToForceRemove) {
       if (args.user) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_remove_all.not_enough_permissions_to_force_remove_other')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_remove_all.not_enough_permissions_to_force_remove_other')}`});
       }
       args.user = context.user;
     }
@@ -83,16 +81,13 @@ export async function createMessage(
     const components = new Components({
       timeout: MAX_TIME_TO_RESPOND,
       onTimeout: async () => {
-        const message = response || context.response;
-        if (message) {
-          try {
-            await message.edit({
-              components: [],
-              content: translate('tag_remove_all.canceled_removing_of_tags_due_to_timeout', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
-            });
-          } catch(e) {
+        try {
+          // edits the response for both prefixed commands and interactions
+          await displayReply(context, {
+            description: translate('tag_remove_all.canceled_removing_of_tags_due_to_timeout', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
+          });
+        } catch(e) {
 
-          }
         }
       },
     });
@@ -105,10 +100,9 @@ export async function createMessage(
         }
 
         const { count } = await deleteTagsServer(context, serverId, fetchTagsServerSearchOptions);
-        await ctx.editOrRespond({
-          content: translate('tag_remove_all.ok_successfully_removed_tags', {count: count.toLocaleString(language), filterText: filterText}),
-          components: [],
-        });
+        await displayReply(context, {
+          description: translate('tag_remove_all.ok_successfully_removed_tags', {count: count.toLocaleString(language), filterText: filterText}),
+        }, {replyTo: ctx});
       },
     });
 
@@ -120,10 +114,9 @@ export async function createMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        await ctx.editOrRespond({
-          content: translate('tag_remove_all.ok_canceled_removing_of_tags', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
-          components: [],
-        });
+        await displayReply(context, {
+          description: translate('tag_remove_all.ok_canceled_removing_of_tags', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
+        }, {replyTo: ctx});
       },
     });
 
@@ -150,13 +143,13 @@ export async function createMessage(
       },
     });
 
-    const response = await editOrReply(context, {
-      content: translate('tag_remove_all.found_tags_to_delete', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
+    return displayReply(context, {
       components,
+      description: translate('tag_remove_all.found_tags_to_delete', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
     });
   } else if (args.content || args.name || args.user) {
-    return editOrReply(context, translate('tag_remove_all.this_server_has_no_tags_matching_the'));
+    return displayReply(context, {description: translate('tag_remove_all.this_server_has_no_tags_matching_the')});
   } else {
-    return editOrReply(context, translate('tag_remove_all.this_server_has_no_tags'));
+    return displayReply(context, {description: translate('tag_remove_all.this_server_has_no_tags')});
   }
 }

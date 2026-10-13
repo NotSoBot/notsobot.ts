@@ -17,7 +17,7 @@ export default class SwirlCommand extends BaseImageOrVideoCommand {
         {name: 'degrees', aliases: ['d'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Swirl an Image or Video from the center',
         examples: [
           COMMAND_NAME,

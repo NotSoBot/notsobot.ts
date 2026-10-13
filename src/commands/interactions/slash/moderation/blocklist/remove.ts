@@ -1,8 +1,8 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -21,7 +21,6 @@ export class ModerationBlocklistRemoveCommand extends BaseInteractionCommandOpti
   constructor() {
     super({
       permissions: [Permissions.ADMINISTRATOR],
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {
           name: 'items',
@@ -41,10 +40,7 @@ export class ModerationBlocklistRemoveCommand extends BaseInteractionCommandOpti
 
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationBlocklistRemove.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationBlocklistRemove.CommandArgs) {

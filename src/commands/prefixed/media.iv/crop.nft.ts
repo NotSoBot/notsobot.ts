@@ -14,7 +14,7 @@ export default class CropNFTCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Crop out a Twitter NFT Hex from an Image or Video',
         examples: [
           COMMAND_NAME,

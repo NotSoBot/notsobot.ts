@@ -18,7 +18,7 @@ export default class TranscribeTranslateCommand extends BaseAudioOrVideoCommand 
         {name: 'to', default: DefaultParameters.locale, type: Parameters.locale},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Transcribe an audio or video file then translate it',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

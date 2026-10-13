@@ -2,7 +2,6 @@ import { Interaction } from 'detritus-client';
 import {
   ApplicationIntegrationTypes,
   InteractionContextTypes,
-  MessageFlags,
 } from 'detritus-client/lib/constants';
 
 import { utilitiesFetchMedia } from '../../../../api';
@@ -10,6 +9,7 @@ import {
   DefaultParameters,
   Formatter,
   I18n,
+  displayReply,
   findMediaUrlInMessages,
   getOrFetchRealUrl,
 } from '../../../../utils';
@@ -52,10 +52,7 @@ export default class TranslateCommand extends BaseContextMenuMessageCommand {
 
   async onCancelRun(context: Interaction.InteractionContext, args: TranslateCommandArgs) {
     const { translate } = await I18n.getTranslator(context);
-    return context.editOrRespond({
-      content: translate('commands.context.translate.no_media'),
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: translate('commands.context.translate.no_media'), ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: TranslateCommandArgs) {

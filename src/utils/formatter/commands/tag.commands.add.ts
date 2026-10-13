@@ -8,7 +8,7 @@ import { GuildFeatures, UserFlags } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import TagCustomCommandsStore from '../../../stores/tagcustomcommands';
 import UserStore from '../../../stores/users';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.commandify.enable';
@@ -66,5 +66,5 @@ export async function createMessage(
   const payloadId = context.guildId || context.userId;
   TagCustomCommandsStore.insertSingle(payloadId, tag);
 
-  return editOrReply(context, translate('tag_commands_add.successfully_made_a_custom_command', {name: Markup.codestring(tag.name)}));
+  return displayReply(context, {description: translate('tag_commands_add.successfully_made_a_custom_command', {name: Markup.codestring(tag.name)})});
 }

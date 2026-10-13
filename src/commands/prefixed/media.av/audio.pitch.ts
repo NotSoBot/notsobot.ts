@@ -18,7 +18,7 @@ export default class AudioPitchCommand extends BaseAudioOrVideoCommand {
 		    {name: 'scale', aliases: ['s'], metadata: {description: 'Pitch Scale (default: 2.0)'}},
 	    ],
 	    metadata: {
-		  category: CommandCategories.TOOLS,
+		  category: CommandCategories.AUDIO,
 		  description: 'Manipulate an audio or video file\'s pitch',
 		  examples: [
         `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

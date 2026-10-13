@@ -17,7 +17,7 @@ export default class CircleCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Put a radial blur on an Image or Video',
         examples: [
           COMMAND_NAME,

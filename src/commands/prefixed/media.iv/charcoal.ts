@@ -23,7 +23,7 @@ export default class CharcoalCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -radius 5`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationCharcoal.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-radius <number>)',
       },

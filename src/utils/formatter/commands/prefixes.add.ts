@@ -1,11 +1,11 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { createGuildPrefix } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedColors } from '../../../constants';
 
-import { createUserEmbed, editOrReply } from '../../tools';
+import { DisplayPayload, displayReply } from '../../tools';
 
 import * as PrefixesList from './prefixes.list';
 
@@ -21,16 +21,15 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const guildId = context.guildId!;
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setTitle(translate('prefixes_add.created_prefix', {prefix: Markup.escape.all(args.prefix)}));
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.title = translate('prefixes_add.created_prefix', {prefix: Markup.escape.all(args.prefix)});
 
   const prefixes = await createGuildPrefix(context, guildId, args.prefix);
-  PrefixesList.formatPrefixes(context, prefixes, embed);
+  PrefixesList.formatPrefixes(context, prefixes, payload);
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

@@ -19,7 +19,7 @@ export default class Spin3dCommand extends BaseImageOrVideoCommand {
         {name: 'zoom', aliases: ['z'], type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Spin an Image or Video in 3d space, like the dancing cockroach',
         examples: [
           COMMAND_NAME,

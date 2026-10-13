@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
@@ -17,7 +16,7 @@ export default class PrefixesCommand extends BaseCommand {
       aliases: ['prefix'],
       disableDm: true,
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.SERVER,
         description: 'Show all current prefixes in the server.',
         examples: [
           COMMAND_NAME,
@@ -25,7 +24,6 @@ export default class PrefixesCommand extends BaseCommand {
         id: Formatter.Commands.PrefixesList.COMMAND_ID,
         usage: '',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       priority: -1,
     });
   }

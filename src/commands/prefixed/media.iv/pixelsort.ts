@@ -33,7 +33,7 @@ export default class PixelSortCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -interval RANDOM`,
           `${COMMAND_NAME} notsobot -sort HUE`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationPixelSort.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-interval <type>) (-sort <type>) (-angle <number>) (-lower <float>) (-upper <float>) (-length <number>) (-randomness <number>) (-reverse) (-seed <number>)',
       },

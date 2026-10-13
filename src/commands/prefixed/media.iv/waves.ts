@@ -19,7 +19,7 @@ export default class WavesCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'speed', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Distort an Image or Video with a sine wave function that moves',
         examples: [
           COMMAND_NAME,

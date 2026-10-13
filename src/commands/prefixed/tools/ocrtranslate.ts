@@ -28,7 +28,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
         {name: 'to', default: DefaultParameters.locale, type: Parameters.locale},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Read text inside of an image and translate it',
         examples: [
           COMMAND_NAME,

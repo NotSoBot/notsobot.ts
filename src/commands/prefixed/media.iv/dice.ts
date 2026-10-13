@@ -24,7 +24,7 @@ export default class DiceCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -grid 5`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationDice.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-grid <number>) (-seed <number>)',
       },

@@ -18,7 +18,7 @@ export default class StammerCommand extends BaseAudioOrVideosCommand {
         {aliases: ['m'], name: 'matcher', type: Parameters.oneOf({choices: MediaStammerMatcherModes})},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Cut up the audio and video frames of a media to match with the modulator\'s audio frames',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/video_file.mp4 https://notsobot.com/some/audio_file.mp3`,

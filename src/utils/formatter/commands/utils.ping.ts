@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -11,5 +11,5 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   const { gateway, rest } = await context.client.ping();
-  return editOrReply(context, translate('utils_ping.pong_gateway_ms_rest_ms', {gateway: gateway, rest: rest}));
+  return displayReply(context, {description: translate('utils_ping.pong_gateway_ms_rest_ms', {gateway: gateway, rest: rest})});
 }

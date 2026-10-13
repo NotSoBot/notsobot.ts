@@ -14,7 +14,7 @@ export default class FlipCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Flip an Image or Video (Vertical Flip)',
         examples: [
           COMMAND_NAME,

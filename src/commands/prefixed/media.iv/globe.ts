@@ -17,7 +17,7 @@ export default class GlobeCommand extends BaseImageOrVideoCommand {
         {name: 'tiled', aliases: ['t'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Create a Globe out of an Image or Video',
         examples: [
           COMMAND_NAME,

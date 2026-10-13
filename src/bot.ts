@@ -150,6 +150,9 @@ const cluster = new ClusterClient('', {
     {
       const notSoInteractionBot = new NotSoInteractionClient(cluster);
       await notSoInteractionBot.addMultipleIn('./commands/interactions');
+      for (let x of notSoInteractionBot.getOversizedCommands()) {
+        console.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
+      }
       await notSoInteractionBot.run();
       console.log(`${shardsText} - Interaction Command Client Loaded`);
     }

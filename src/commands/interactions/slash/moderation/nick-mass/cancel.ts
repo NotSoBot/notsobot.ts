@@ -2,7 +2,7 @@ import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import ServerExecutionsStore from '../../../../../stores/serverexecutions';
-import { I18n, editOrReply } from '../../../../../utils';
+import { I18n, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -25,8 +25,8 @@ export class ModerationNickMassCancelCommand extends BaseInteractionCommandOptio
     const isExecuting = ServerExecutionsStore.getOrCreate(context.guildId!);
     if (isExecuting.nick) {
       isExecuting.nick = false;
-      return editOrReply(context, 'Canceled mass nickname changes');
+      return displayReply(context, {description: 'Canceled mass nickname changes'});
     }
-    return editOrReply(context, 'Mass nickname isn\'t ongoing right now');
+    return displayReply(context, {description: 'Mass nickname isn\'t ongoing right now'});
   }
 }

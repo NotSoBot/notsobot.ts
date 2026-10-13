@@ -15,7 +15,7 @@ export default class HueHSVFFMPEGCommand extends BaseImageOrVideoCommand {
 
       aliases: ['huehsvf'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Shift an Image or Video\'s HSV Hue, Saturation, and Brightness by X amount using FFMPEG',
         examples: [
           COMMAND_NAME,

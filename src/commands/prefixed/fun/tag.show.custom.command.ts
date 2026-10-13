@@ -19,7 +19,7 @@ export default class TagShowCustomCommand extends BaseCommand {
 
       label: 'text',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'Execute a custom command tag',
         examples: [
           COMMAND_NAME,

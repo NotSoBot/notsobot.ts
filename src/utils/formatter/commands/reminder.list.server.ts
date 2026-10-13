@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { fetchReminders } from '../../../api';
@@ -8,13 +8,12 @@ import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
+  DisplayPayload,
   Paginator,
   Parameters,
   chunkArray,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
   getReminderMessage,
 } from '../../../utils';
 
@@ -32,7 +31,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   if (context.inDm) {
     args.user = context.user;
@@ -50,18 +48,18 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     onPage: (pageNumber) => {
-      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-      embed.setColor(EmbedColors.DEFAULT);
+      const payload: DisplayPayload = {fields: []};
+      payload.color = EmbedColors.DEFAULT;
 
       {
         if (args.user) {
           if (context.userId === args.user.id) {
-            embed.setTitle(translate('reminder_list_server.your_reminders_for_this_server'));
+            payload.title = translate('reminder_list_server.your_reminders_for_this_server');
           } else {
-            embed.setTitle(translate('reminder_list_server.s_reminders_for_this_server', {user: createUserString(args.user.id, args.user)}));
+            payload.title = translate('reminder_list_server.s_reminders_for_this_server', {user: createUserString(args.user.id, args.user)});
           }
         } else {
-          embed.setTitle(translate('reminder_list_server.all_reminders_for_this_server'));
+          payload.title = translate('reminder_list_server.all_reminders_for_this_server');
         }
       }
 
@@ -69,7 +67,7 @@ export async function createMessage(
       if (pageLimit !== 1) {
         footer = translate('reminder_list_server.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
       }
-      embed.setFooter(footer);
+      payload.footer = footer;
 
       const reminders = pages[pageNumber - 1];
       if (reminders.length) {
@@ -109,12 +107,12 @@ export async function createMessage(
             description.push(`-> ${content}`);
           }
         }
-        embed.setDescription(description.join('\n'));
+        payload.description = description.join('\n');
       } else {
-        embed.setDescription(translate('reminder_list_server.no_reminders_found'));
+        payload.description = translate('reminder_list_server.no_reminders_found');
       }
 
-      return embed;
+      return {display: payload};
     },
   });
   return await paginator.start();

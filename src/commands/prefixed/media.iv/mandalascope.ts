@@ -21,7 +21,7 @@ export default class MandalaScopeCommand extends BaseImageOrVideoCommand {
         {aliases: ['z'], name: 'zoom', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Mandala-like Kaleidoscope filter to an Image or Video',
         examples: [
           COMMAND_NAME,

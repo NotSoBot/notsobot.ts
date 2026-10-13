@@ -5,7 +5,7 @@ import { putTagsDirectoryTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.directory.add';
@@ -27,10 +27,9 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   if (args.tag.is_on_directory) {
     // todo: get rid of this and instead add an update message
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_directory_add.tag_is_already_on_directory')}`)
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_directory_add.tag_is_already_on_directory')}`})
   }
 
   const directory = await putTagsDirectoryTag(context, args.tag.id, {
@@ -38,5 +37,5 @@ export async function createMessage(
     title: args.title,
   });
 
-  return editOrReply(context, translate('tag_directory_add.ok_added_tag_to_the_tag_directory', {tag: Markup.codestring(args.tag.id)}));
+  return displayReply(context, {description: translate('tag_directory_add.ok_added_tag_to_the_tag_directory', {tag: Markup.codestring(args.tag.id)})});
 }

@@ -24,7 +24,7 @@ export default class MagikAnimatedCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -boomerang`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationMagikAnimated.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-boomerang)',
       },

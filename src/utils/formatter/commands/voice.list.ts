@@ -1,5 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import MiniSearch from 'minisearch';
 
@@ -12,7 +12,7 @@ import {
   GoogleLocales,
   GoogleLocalesText,
 } from '../../../constants';
-import { createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'voice.list';
@@ -26,25 +26,24 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { count, voices } = await fetchUserVoices(context, context.userId);
   if (!voices.length) {
-    return editOrReply(context, translate('voice_list.you_have_no_cloned_voices'));
+    return displayReply(context, {description: translate('voice_list.you_have_no_cloned_voices')});
   }
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter(translate('voice_list.cloned_voices'));
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.footer = translate('voice_list.cloned_voices');
 
   const description: Array<string> = [];
   for (let i = 0; i < voices.length; i++) {
     const voice = voices[i];
     description.push(`${i + 1}. ${Markup.codestring(voice.name)}`);
   }
-  embed.setDescription(description.join('\n'));
+  payload.description = description.join('\n');
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }
 
 

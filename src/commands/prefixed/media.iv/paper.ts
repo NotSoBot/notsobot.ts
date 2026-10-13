@@ -14,7 +14,7 @@ export default class PaperCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Create a paper out of an Image/Gif',
         examples: [
           COMMAND_NAME,

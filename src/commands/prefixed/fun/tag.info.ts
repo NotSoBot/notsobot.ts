@@ -1,9 +1,8 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { RestResponsesRaw } from '../../../api/types';
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -22,7 +21,7 @@ export default class TagInfoCommand extends BaseCommand {
       aliases: ['t info', 'tag owner', 't owner', 'tag raw', 't raw'],
       label: 'tag',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'View a tag\'s raw content',
         examples: [
           `${COMMAND_NAME} something`,
@@ -31,7 +30,6 @@ export default class TagInfoCommand extends BaseCommand {
         id: Formatter.Commands.TagInfo.COMMAND_ID,
         usage: '<tagname>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.NotSoTag,
     });
   }
@@ -43,7 +41,7 @@ export default class TagInfoCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.tag === false) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`});
     }
     return super.onCancelRun(context, args);
   }

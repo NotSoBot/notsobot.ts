@@ -21,7 +21,7 @@ export default class PaintAnimatedCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.MediaIVManipulationPaintAnimated.COMMAND_ID,
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

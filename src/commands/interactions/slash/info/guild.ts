@@ -1,8 +1,7 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -39,10 +38,7 @@ export class InfoGuildCommand extends BaseInteractionCommandOption {
 
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.InfoGuild.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('errors.guild_not_found')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.guild_not_found')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.InfoGuild.CommandArgs) {

@@ -18,7 +18,7 @@ export default class DatamoshCommand extends BaseImageOrVideoCommand {
         {aliases: ['r'], name: 'repeat', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Datamosh an Animated Image or Video (Duplicates P-frames)',
         examples: [
           COMMAND_NAME,

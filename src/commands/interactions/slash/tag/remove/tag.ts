@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -37,7 +37,7 @@ export class TagRemoveTagCommand extends BaseInteractionCommandOption {
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagRemove.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.tag === false) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`});
     }
     return super.onCancelRun(context, args);
   }

@@ -19,7 +19,7 @@ export default class ShakeCommand extends BaseImageOrVideoCommand {
         {aliases: ['v'], name: 'vertical', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Shake an Image or Video',
         examples: [
           COMMAND_NAME,

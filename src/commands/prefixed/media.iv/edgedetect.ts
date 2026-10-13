@@ -20,7 +20,7 @@ export default class EdgeDetectCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'strength', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Extract and compose Image/Video edges using 8-directional Sobel edge detection',
         examples: [
           COMMAND_NAME,

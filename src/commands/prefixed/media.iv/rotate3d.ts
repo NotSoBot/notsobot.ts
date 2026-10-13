@@ -19,7 +19,7 @@ export default class Rotate3dCommand extends BaseImageOrVideoCommand {
         {name: 'zoom', aliases: ['z'], type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Rotate an Image or Video on a 3d axis',
         examples: [
           `${COMMAND_NAME} notsobot 45 0 45`,

@@ -19,7 +19,7 @@ export default class AsciiImageCommand extends BaseImageCommand {
       ],
       aliases: ['ascii i'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Convert an Image to ASCII Text',
         examples: [
           COMMAND_NAME,

@@ -21,7 +21,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationEyesIlluminati.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

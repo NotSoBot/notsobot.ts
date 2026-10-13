@@ -3,15 +3,14 @@ import {
   ChannelTypes,
   InteractionCallbackTypes,
   MessageComponentButtonStyles,
-  MessageFlags,
   Permissions,
 } from 'detritus-client/lib/constants';
-import { ComponentActionRow, ComponentContext, Markup, Snowflake } from 'detritus-client/lib/utils';
+import { ComponentContext, Components, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { DefaultParameters, I18n, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { DefaultParameters, I18n, Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -108,13 +107,13 @@ export default class PruneCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('prune.after_before')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('prune.after_before')}`});
     }
     if (args.until && BigInt(context.message.id) <= BigInt(args.until)) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('prune.until_after_current')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('prune.until_after_current')}`});
     }
     if (isNaN(args.amount)) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('prune.amount_number')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('prune.amount_number')}`});
     }
     return super.onCancelRun(context, args);
   }
@@ -137,7 +136,7 @@ export async function createPruneMessage(
 
   const isExecuting = ServerExecutionsStore.getOrCreate((context.guildId || context.channelId)!);
   if (isExecuting.prune) {
-    return editOrReply(context, translate('prune.in_progress'));
+    return displayReply(context, {description: translate('prune.in_progress')});
   }
 
   // set when we walk back far enough to hit the `until` message, meaning everything in the range was found
@@ -291,24 +290,19 @@ export async function createPruneMessage(
   if (total) {
     if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && isComplete) {
       try {
-        const message = await editOrReply(context, translate('prune.starting', {count: total.toLocaleString(language)}));
+        const message = await displayReply(context, {description: translate('prune.starting', {count: total.toLocaleString(language)})});
         const deletedTotal = await deleteMessages(context, channelId, bulk, manual);
-        if (message) {
-          if (message.canEdit) {
-            await message.edit(translate('prune.deleted', {count: deletedTotal.toLocaleString(language)}));
-          }
-        } else {
-          await editOrReply(context, translate('prune.deleted', {count: deletedTotal.toLocaleString(language)}));
-        }
+        // edits the starting response
+        await displayReply(context, {description: translate('prune.deleted', {count: deletedTotal.toLocaleString(language)})});
         await clearMessages(timeout, messagesToClear(context, message));
       } catch(error) {
-        const message = await editOrReply(context, translate('prune.errored', {error: String(error)}));
+        await displayReply(context, {description: translate('prune.errored', {error: String(error)})});
       } finally {
         isExecuting.prune = false;
       }
     } else {
-      const actionRow = new ComponentActionRow();
-      actionRow.createButton({
+      const components = new Components({timeout: MAX_TIME_TO_RESPOND});
+      components.createButton({
         label: translate('common.continue'),
         run: async (ctx: ComponentContext) => {
           if (!timeout.hasStarted || ctx.userId !== context.userId) {
@@ -316,20 +310,17 @@ export async function createPruneMessage(
           }
           timeout.stop();
 
-          await ctx.editOrRespond({
-            content: translate('prune.starting', {count: total.toLocaleString(language)}),
-            components: [],
-          });
+          await displayReply(context, {description: translate('prune.starting', {count: total.toLocaleString(language)})}, {replyTo: ctx});
 
           try {
             const deletedTotal = await deleteMessages(context, channelId, bulk, manual);
             if (deletedTotal === total) {
-              await ctx.editOrRespond(translate('prune.deleted', {count: deletedTotal.toLocaleString(language)}));
+              await displayReply(context, {description: translate('prune.deleted', {count: deletedTotal.toLocaleString(language)})}, {replyTo: ctx});
             } else {
-              await ctx.editOrRespond(translate('prune.deleted_partial', {count: deletedTotal.toLocaleString(language), total: total.toLocaleString(language)}));
+              await displayReply(context, {description: translate('prune.deleted_partial', {count: deletedTotal.toLocaleString(language), total: total.toLocaleString(language)})}, {replyTo: ctx});
             }
           } catch(error) {
-            await ctx.editOrRespond(translate('prune.errored', {error: String(error)}));
+            await displayReply(context, {description: translate('prune.errored', {error: String(error)})}, {replyTo: ctx});
           } finally {
             isExecuting.prune = false;
           }
@@ -338,7 +329,7 @@ export async function createPruneMessage(
         },
       });
 
-      actionRow.createButton({
+      components.createButton({
         label: translate('common.cancel'),
         style: MessageComponentButtonStyles.DANGER,
         run: async (ctx: ComponentContext) => {
@@ -348,10 +339,7 @@ export async function createPruneMessage(
           timeout.stop();
 
           isExecuting.prune = false;
-          await ctx.editOrRespond({
-            content: translate('prune.canceled', {count: total.toLocaleString(language)}),
-            components: [],
-          });
+          await displayReply(context, {description: translate('prune.canceled', {count: total.toLocaleString(language)})}, {replyTo: ctx});
           await clearMessages(timeout, messagesToClear(context), 0);
           await clearMessages(timeout, (message) ? [message] : []);
         },
@@ -365,15 +353,12 @@ export async function createPruneMessage(
       }
 
       isExecuting.prune = false;
-      const message = await editOrReply(context, {content, components: [actionRow]});
+      const message = await displayReply(context, {components, description: content});
       clearMessages(timeout, messagesToClear(context, message), MAX_TIME_TO_RESPOND);
     }
   } else {
     isExecuting.prune = false;
-    const message = await editOrReply(context, {
-      content: translate('prune.none'),
-      flags: MessageFlags.EPHEMERAL,
-    });
+    const message = await displayReply(context, {description: translate('prune.none'), ephemeral: true});
     clearMessages(timeout, messagesToClear(context, message));
   }
 }

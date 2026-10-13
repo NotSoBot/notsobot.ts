@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { CDN } from '../../../api/endpoints';
 import { Mimetypes } from '../../../constants';
-import { editOrReply, mediaReplyFromOptions } from '../..';
+import { displayReply, mediaReplyFromOptions } from '../..';
 
 
 export const COMMAND_ID = 'fun.b1';
@@ -25,6 +25,6 @@ export async function createMessage(
       size: value.length,
     });
   } catch(error) {
-    return editOrReply(context, url);
+    return displayReply(context, {description: url});
   }
 }

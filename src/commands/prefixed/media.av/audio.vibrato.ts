@@ -19,7 +19,7 @@ export default class AudioVibratoCommand extends BaseAudioOrVideoCommand {
         {name: 'frequency', aliases: ['f'], metadata: {description: 'Modulation Frequency (Default: 5.0)'}},
       ],
       metadata: {
-      category: CommandCategories.TOOLS,
+      category: CommandCategories.AUDIO,
       description: 'Adjust the timing of sound waves in any Audio or Video file',
       examples: [
         `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

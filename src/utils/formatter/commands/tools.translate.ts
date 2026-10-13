@@ -1,6 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { googleTranslate } from '../../../api';
 import {
@@ -9,7 +8,7 @@ import {
   GoogleLocales,
   GoogleLocalesText,
 } from '../../../constants';
-import { createUserEmbed, editOrReply, splitTextByAmount } from '../../../utils';
+import { DisplayPayload, displayReply, splitTextByAmount } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -39,9 +38,10 @@ export async function createMessage(
     to: args.to || undefined,
   });
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('Google Translate', EmbedBrands.GOOGLE_GO);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.footer = 'Google Translate';
+  payload.footerIconUrl = EmbedBrands.GOOGLE_GO;
 
   let fromLanguageText: string = fromLanguage;
   if (fromLanguage in GoogleLocalesText) {
@@ -55,7 +55,7 @@ export async function createMessage(
   const fromLanguageTitle = languageName(fromLanguage, fromLanguageText, {capitalize: true});
   const translatedLanguageName = languageName(translatedLanguage, translatedLanguageText);
   const translatedLanguageTitle = languageName(translatedLanguage, translatedLanguageText, {capitalize: true});
-  embed.setTitle(translate('tools.translate.title', {from: fromLanguageName, to: translatedLanguageName}));
+  payload.title = translate('tools.translate.title', {from: fromLanguageName, to: translatedLanguageName});
 
   const files: Array<{filename: string, value: string}> = [];
 
@@ -65,9 +65,9 @@ export async function createMessage(
     if (shouldShowInput) {
       // 1024 - 10 ('```\n\n```')
       const parts = splitTextByAmount(args.text, 1014, '');
-      embed.addField(fromLanguageTitle, Markup.codeblock(parts.shift()!));
+      payload.fields!.push({name: fromLanguageTitle, value: Markup.codeblock(parts.shift()!)});
       for (let part of parts) {
-        embed.addField('\u200b', Markup.codeblock(part));
+        payload.fields!.push({name: '\u200b', value: Markup.codeblock(part)});
       }
     }
   
@@ -75,9 +75,9 @@ export async function createMessage(
       // 1024 - 10 ('```\n\n```')
       const parts = splitTextByAmount(translatedText, 1014, '');
       const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageTitle : `${fromLanguageTitle} -> ${translatedLanguageTitle}`;
-      embed.addField(title, Markup.codeblock(parts.shift() as string));
+      payload.fields!.push({name: title, value: Markup.codeblock(parts.shift() as string)});
       for (let part of parts) {
-        embed.addField('\u200b', Markup.codeblock(part));
+        payload.fields!.push({name: '\u200b', value: Markup.codeblock(part)});
       }
     }
   } else {
@@ -85,15 +85,11 @@ export async function createMessage(
       files.push({filename: `translate-from-${fromLanguageText}.txt`, value: args.text});
     }
     files.push({filename: `translate-to-${translatedLanguage}.txt`, value: translatedText});
-    embed.setDescription([
+    payload.description = [
       translate('tools.translate.input_characters', {count: args.text.length.toLocaleString(language)}),
       translate('tools.translate.result_characters', {count: translatedText.length.toLocaleString(language)}),
-    ].join('\n'));
+    ].join('\n');
   }
 
-  return editOrReply(context, {
-    embed,
-    files,
-    flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
-  });
+  return displayReply(context, {...payload, ephemeral: args.isEphemeral, files});
 }

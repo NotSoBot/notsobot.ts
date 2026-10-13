@@ -20,7 +20,7 @@ export default class MirrorRightCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationMirrorRight.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

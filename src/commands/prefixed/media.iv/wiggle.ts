@@ -19,7 +19,7 @@ export default class WiggleCommand extends BaseImageOrVideoCommand {
         {aliases: ['w'], name: 'wavelengths', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Wiggle an Image or Video',
         examples: [
           COMMAND_NAME,

@@ -14,7 +14,7 @@ export default class SeeSawCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'See Saw an animated image/audio/video, add a reversed copy of itself at the end of it',
         examples: [
           COMMAND_NAME,

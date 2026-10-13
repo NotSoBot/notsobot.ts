@@ -22,7 +22,7 @@ export default class FatCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIManipulationFaceFat.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-size <MediaFaceFatSizes>)',
       },

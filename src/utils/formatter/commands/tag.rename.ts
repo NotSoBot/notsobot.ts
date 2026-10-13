@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { editTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.rename';
@@ -24,11 +24,10 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   if (args.tag.name === args.name) {
-    return editOrReply(context, 'ok');
+    return displayReply(context, {description: 'ok'});
   }
 
   const tag = await editTag(context, args.tag.id, {name: args.name});
-  return editOrReply(context, translate('tag_rename.successfully_renamed_tag_to', {name: Markup.codestring(args.tag.name), name2: Markup.codestring(tag.name)}));
+  return displayReply(context, {description: translate('tag_rename.successfully_renamed_tag_to', {name: Markup.codestring(args.tag.name), name2: Markup.codestring(tag.name)})});
 }

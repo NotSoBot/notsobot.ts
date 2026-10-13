@@ -19,7 +19,7 @@ export default class AudioPutReplaceCommand extends BaseMediasCommand {
         {name: 'noloop', aliases: ['nl'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Replace an Audio/Image/Video\'s audio with another audio file',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,

@@ -1,12 +1,11 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { getTranslator } from '../../i18n';
 
 import { editGuildSettings } from '../../../api';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'settings.server.set.ai.personality';
@@ -21,7 +20,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
 
@@ -60,8 +58,5 @@ export async function createMessage(
     }
   }
 
-  return editOrReply(context, {
-    content: text,
-    flags: (isFromInteraction) ? MessageFlags.EPHEMERAL : undefined,
-  });
+  return displayReply(context, {description: text, ephemeral: true});
 }

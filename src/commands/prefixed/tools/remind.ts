@@ -17,7 +17,8 @@ export default class RemindCommand extends BaseCommand {
       aliases: ['reminder', 'remind create', 'reminder create', 'remindme'],
       label: 'result',
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.UTILITY,
+        pipeable: true,
         description: 'Create a reminder',
         examples: [
           `${COMMAND_NAME} me to take out the dishes at 4pm`,

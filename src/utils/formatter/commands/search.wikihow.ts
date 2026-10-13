@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchWikihow, searchWikihowRandom } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.wikihow';
@@ -22,7 +22,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   if (args.random) {
     // have steps
@@ -36,12 +35,12 @@ export async function createMessage(
           onPage: (page) => {
             const step = method.steps[page - 1];
 
-            const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-            embed.setColor(EmbedColors.DEFAULT);
-            embed.setTitle(result.title);
+            const payload: DisplayPayload = {fields: []};
+            payload.color = EmbedColors.DEFAULT;
+            payload.title = result.title;
 
-            embed.setImage(step.image);
-            embed.setUrl(step.url);
+            payload.image = step.image;
+            payload.url = step.url;
 
             {
               const description: Array<string> = [];
@@ -55,20 +54,21 @@ export async function createMessage(
                 description.push(Markup.url('Video', result.video.url));
               }
 
-              embed.setDescription(description.join('\n'));
+              payload.description = description.join('\n');
             }
 
-            embed.addField(translate('search_wikihow.method_1', {title: Markup.escape.all(method.title)}), translate('search_wikihow.step', {page: page, text: Markup.escape.all(step.text, {limit: 1000})}));
+            payload.fields!.push({name: translate('search_wikihow.method_1', {title: Markup.escape.all(method.title)}), value: translate('search_wikihow.step', {page: page, text: Markup.escape.all(step.text, {limit: 1000})})});
 
-            embed.setFooter(translate('search_wikihow.step_of', {page: page, pageLimit: pageLimit, title: method.title}), EmbedBrands.NOTSOBOT);
+            payload.footer = translate('search_wikihow.step_of', {page: page, pageLimit: pageLimit, title: method.title});
+            payload.footerIconUrl = EmbedBrands.NOTSOBOT;
 
-            return embed;
+            return {display: payload};
           },
         });
         return await paginator.start();
       }
     }
-    return editOrReply(context, '/shrug');
+    return displayReply(context, {description: '/shrug'});
   }
 
   const results = await searchWikihow(context, args);
@@ -79,13 +79,13 @@ export async function createMessage(
       onPage: (page) => {
         const result = results[page - 1];
 
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
-        embed.setTitle(result.title);
-        embed.setUrl(result.url);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
+        payload.title = result.title;
+        payload.url = result.url;
 
         if (result.thumbnail) {
-          embed.setImage(result.thumbnail);
+          payload.image = result.thumbnail;
         }
 
         {
@@ -95,16 +95,17 @@ export async function createMessage(
           if (result.badge) {
             description.push(translate('search_wikihow.badge', {badge: result.badge}));
           }
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
 
-        embed.setFooter(translate('search_wikihow.page_of_wikihow_results', {page: page, pageLimit: pageLimit}), EmbedBrands.WIKIHOW);
+        payload.footer = translate('search_wikihow.page_of_wikihow_results', {page: page, pageLimit: pageLimit});
+        payload.footerIconUrl = EmbedBrands.WIKIHOW;
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
 
-  return editOrReply(context, translate('search_wikihow.couldn_t_find_any_guides_for_that'));
+  return displayReply(context, {description: translate('search_wikihow.couldn_t_find_any_guides_for_that')});
 }

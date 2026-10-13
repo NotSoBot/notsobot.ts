@@ -17,7 +17,7 @@ import {
   UserFlags,
   UserPremiumTypes,
 } from '../../constants';
-import { I18n, Parameters, editOrReply, findMediaUrlInMessages } from '../../utils';
+import { I18n, Parameters, displayReply, findMediaUrlInMessages } from '../../utils';
 
 import {
   createArgumentErrorPayload,
@@ -44,6 +44,8 @@ export interface CommandMetadata {
   examples?: Array<string>,
   id?: string,
   nsfw?: boolean,
+  // overrides the category check in `.pipe` (see PIPEABLE_COMMAND_CATEGORIES)
+  pipeable?: boolean,
   premium?: boolean,
   premiumPlus?: boolean,
   premiumServer?: GuildFeatures | boolean,
@@ -175,7 +177,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   async onCancelRun(context: Command.Context, args: unknown) {
     const description = this.commandDescription;
     if (description) {
-      return editOrReply(context, Markup.codeblock(`${context.prefix}${description}`));
+      return displayReply(context, {description: Markup.codeblock(`${context.prefix}${description}`)});
     }
     const { translate } = await I18n.getTranslator(context);
     return replyWarning(context, translate('errors.usage_unknown'));
@@ -262,47 +264,27 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
     const translator = await I18n.getTranslator(context);
     const title = warning(translator.translate('errors.prefix_run_title'));
-    const message = await replyError(context, await createRunErrorPayload(context, title, error, translator));
-    if (context.command && context.command.metadata) {
-      const metadata = context.command.metadata;
-      const commandId = metadata.id || context.command.fullName.split(' ').join('.');
-      await createUserCommand(
-        context,
-        context.userId,
-        commandId,
-        {
-          channelId: context.channelId,
-          guildId: context.guildId,
-          messageResponseId: message.id,
-          messageTriggerId: context.messageId,
-        },
-      );
-    }
-
-    return message;
+    return replyError(context, await createRunErrorPayload(context, title, error, translator));
   }
 
-  async onSuccess(context: Command.Context, args: ParsedArgsFinished) {
-    // log command
-    if (context.command) {
-      const metadata = context.command.metadata;
-      const commandId = metadata.id || context.command.fullName.split(' ').join('.');
-      try {
-        await createUserCommand(
-          context,
-          context.userId,
-          commandId,
-          {
-            channelId: context.channelId,
-            guildId: context.guildId,
-            messageResponseId: (context.response) ? context.response.id : undefined,
-            messageTriggerId: context.messageId,
-          },
-        );
-      } catch(error) {
-        // do something?
-      }
+  // log every attempt, `context.response` is whatever reply the command flow stored (result, error, cancel, etc..)
+  async onFinally(context: Command.Context) {
+    if (!context.command) {
+      return;
     }
+    const metadata = context.command.metadata;
+    const commandId = metadata.id || context.command.fullName.split(' ').join('.');
+    await createUserCommand(
+      context,
+      context.userId,
+      commandId,
+      {
+        channelId: context.channelId,
+        guildId: context.guildId,
+        messageResponseId: (context.response) ? context.response.id : undefined,
+        messageTriggerId: context.messageId,
+      },
+    );
   }
 
   async onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
@@ -355,7 +337,6 @@ export class BaseMediaCommand<ParsedArgsFinished = Command.ParsedArgs> extends B
         context.metadata = Object.assign({}, context.metadata, {responseUrl});
       }
     }
-    return super.onSuccess(context, args);
   }
 }
 
@@ -411,7 +392,6 @@ export class BaseMediasCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
         context.metadata = Object.assign({}, context.metadata, {responseUrl});
       }
     }
-    return super.onSuccess(context, args);
   }
 }
 
@@ -500,7 +480,6 @@ export class BaseSearchCommand<ParsedArgsFinished = Command.ParsedArgs> extends 
   constructor(commandClient: CommandClient, options: Partial<Command.CommandOptions>) {
     super(commandClient, {
       label: 'query',
-      permissionsClient: [Permissions.EMBED_LINKS],
       ratelimits: [
         {duration: 5000, limit: 5, key: RatelimitKeys.SEARCH, type: 'guild'},
         {duration: 1000, limit: 1, key: RatelimitKeys.SEARCH, type: 'channel'},

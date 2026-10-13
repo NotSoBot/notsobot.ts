@@ -15,7 +15,7 @@ export default class InterrogateCommand extends BaseImageCommand {
 
       aliases: ['identify'],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Generate a prompt from an Image',
         examples: [
           COMMAND_NAME,

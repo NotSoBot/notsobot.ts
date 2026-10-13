@@ -23,7 +23,7 @@ export default class QuadartCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -type box`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationQuadart.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-type <box|circle>)',
       },

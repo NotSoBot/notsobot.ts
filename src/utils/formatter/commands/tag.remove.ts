@@ -1,16 +1,16 @@
 import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } from 'detritus-client/lib/constants';
-import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 
 import { deleteTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import {
+  DisplayPayload,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
+  displayReply,
   fetchMemberOrUserById,
 } from '../../../utils';
 
@@ -32,7 +32,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { tag } = args;
   if (tag.user.id !== context.userId) {
@@ -50,17 +49,17 @@ export async function createMessage(
 
     if (args.force) {
       if (!hasPermissionsToForceRemove) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_remove.not_enough_permissions_to_force_remove_this')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_remove.not_enough_permissions_to_force_remove_this')}`});
       }
     } else {
       if (!hasPermissionsToForceRemove) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_remove.you_re_not_the_owner_of_this')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_remove.you_re_not_the_owner_of_this')}`});
       }
 
-      const embed = createUserEmbed(context.user);
-      embed.setColor(EmbedColors.DEFAULT);
-      embed.setTitle(translate('tag_remove.force_remove_tag'));
-      embed.setDescription(translate('tag_remove.tag', {name: Markup.codestring(tag.name)}));
+      const payload: DisplayPayload = {fields: []};
+      payload.color = EmbedColors.DEFAULT;
+      payload.title = translate('tag_remove.force_remove_tag');
+      payload.description = translate('tag_remove.tag', {name: Markup.codestring(tag.name)});
 
       {
         const description: Array<string> = [];
@@ -85,7 +84,7 @@ export async function createMessage(
 
         description.push(translate('tag_remove.uses', {uses: tag.uses.toLocaleString(language)}));
 
-        embed.addField(translate('tag_remove.information'), description.join('\n'));
+        payload.fields!.push({name: translate('tag_remove.information'), value: description.join('\n')});
       }
 
       const components = new Components({timeout: 5 * (60 * 1000)});
@@ -97,9 +96,9 @@ export async function createMessage(
           }
 
           await deleteTag(context, {name: tag.name, serverId: context.guildId || context.channelId});
-          embed.setColor(EmbedColors.LOG_CREATION);
-          embed.setTitle(translate('tag_remove.successfully_force_removed_tag'));
-          await ctx.editOrRespond({components: [], embed});
+          payload.color = EmbedColors.LOG_CREATION;
+          payload.title = translate('tag_remove.successfully_force_removed_tag');
+          await displayReply(context, payload, {replyTo: ctx});
         },
       });
 
@@ -111,24 +110,19 @@ export async function createMessage(
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
 
-          embed.setColor(EmbedColors.ERROR);
-          embed.setTitle(translate('tag_remove.cancelled_force_removal_of_tag'));
-          await ctx.editOrRespond({components: [], embed});
+          payload.color = EmbedColors.ERROR;
+          payload.title = translate('tag_remove.cancelled_force_removal_of_tag');
+          await displayReply(context, payload, {replyTo: ctx});
         },
       });
 
-      const message = await editOrReply(context, {components, embed});
+      const message = await displayReply(context, {...payload, components});
       components.onTimeout = async () => {
         try {
-          embed.setColor(EmbedColors.ERROR);
-          embed.setFooter(translate('tag_remove.request_expired_press_a_button_next_time'));
-          if (context instanceof Interaction.InteractionContext) {
-            await context.editResponse({components: [], embed});
-          } else {
-            if (message && message.canEdit) {
-              await message.edit({components: [], embed});
-            }
-          }
+          payload.color = EmbedColors.ERROR;
+          payload.footer = translate('tag_remove.request_expired_press_a_button_next_time');
+          // edits the response for both prefixed commands and interactions
+          await displayReply(context, payload);
         } catch(error) {
 
         }
@@ -138,5 +132,5 @@ export async function createMessage(
   }
 
   await deleteTag(context, {name: tag.name, serverId: context.guildId || context.channelId});
-  return editOrReply(context, translate('tag_remove.removed_tag', {name: tag.name}));
+  return displayReply(context, {description: translate('tag_remove.removed_tag', {name: tag.name})});
 }

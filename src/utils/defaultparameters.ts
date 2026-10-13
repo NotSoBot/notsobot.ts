@@ -277,14 +277,6 @@ export async function members(context: Command.Context | Interaction.Interaction
 }
 
 
-export function noEmbed(context: Command.Context | Interaction.InteractionContext): Boolean {
-  if (context.channel) {
-    return !context.channel.canEmbedLinks;
-  }
-  return !context.inDm;
-}
-
-
 export async function replyString(context: Command.Context | Interaction.InteractionContext): Promise<string | undefined> {
   if (context instanceof Command.Context) {
     {

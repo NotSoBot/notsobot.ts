@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -35,7 +34,6 @@ export default class UsersCommand extends BaseCommand {
         id: Formatter.Commands.InfoUsers.COMMAND_ID,
         usage: '?<user:id|mention|name>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.membersOrUsersSearch(),
     });
   }
@@ -50,9 +48,9 @@ export default class UsersCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoUsers.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.role === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`});
     }
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoUsers.CommandArgs) {

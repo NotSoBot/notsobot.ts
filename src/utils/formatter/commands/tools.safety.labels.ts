@@ -6,10 +6,10 @@ import { getTranslator } from '../../i18n';
 import {
   EmbedBrands,
   EmbedColors,
-  GoogleContentVisionSafeSearchAttributes,
   GoogleContentVisionSafeSearchAttributeValues,
+  GoogleContentVisionSafeSearchAttributes,
 } from '../../../constants';
-import { DefaultParameters, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { DefaultParameters, DisplayPayload, displayReply, toTitleCase } from '../../../utils';
 
 
 export interface CommandArgs {
@@ -28,12 +28,13 @@ export async function createMessage(
 
   const { safe_search_annotation: safeSearchAnnotation } = await googleContentVisionSafeSearch(context, args);
 
-  const embed = createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter(translate('tools_safety_labels.safe_search_detection'), EmbedBrands.GOOGLE_CONTENT_VISION_SAFETY);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.footer = translate('tools_safety_labels.safe_search_detection');
+  payload.footerIconUrl = EmbedBrands.GOOGLE_CONTENT_VISION_SAFETY;
 
   const safeValues = Object.values(GoogleContentVisionSafeSearchAttributes).map((value) => Markup.codestring(toTitleCase(value))).join(', ');
-  embed.setDescription(translate('tools_safety_labels.likeliness_values_are', {safeValues: safeValues}));
+  payload.description = translate('tools_safety_labels.likeliness_values_are', {safeValues: safeValues});
 
   const toxic: Array<number> = [];
   for (let [key, value] of Object.entries(safeSearchAnnotation)) {
@@ -45,7 +46,7 @@ export async function createMessage(
         toxic.push(GoogleContentVisionSafeSearchAttributeValues[value]);
       }; break;
     }
-    embed.addField(toTitleCase(key), toTitleCase(value), true);
+    payload.fields!.push({inline: true, name: toTitleCase(key), value: toTitleCase(value)});
   }
 
   if (toxic.length) {
@@ -54,21 +55,21 @@ export async function createMessage(
     const green = Math.round(255 * (1 - average));
     const blue = (green < red) ? 71 : 129;
     const color = rgbToInt(red, green, blue);
-    embed.setColor(color);
+    payload.color = color;
 
     if (allowNSFW) {
-      embed.setThumbnail(args.url);
+      payload.thumbnail = args.url;
     } else if (average < 0.50) {
-      embed.setThumbnail(args.url);
+      payload.thumbnail = args.url;
     }
 
     const percentage = Math.round(average * 100);
-    embed.addField(translate('tools_safety_labels.nsfw_percentage'), `${percentage}%`, true);
+    payload.fields!.push({inline: true, name: translate('tools_safety_labels.nsfw_percentage'), value: `${percentage}%`});
   } else {
     const color = rgbToInt(0, 255, 129);
-    embed.setColor(color);
-    embed.setThumbnail(args.url);
+    payload.color = color;
+    payload.thumbnail = args.url;
   }
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

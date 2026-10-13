@@ -28,7 +28,7 @@ export default class CartoonCommand extends BaseImageOrVideoCommand {
         {aliases: ['s', 'strength'], name: 'saturation', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Cartoon Effect on an Image or Video',
         examples: [
           COMMAND_NAME,

@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -29,7 +29,7 @@ export default class TagSearchCommand extends BaseCommand {
       ],
       label: 'name',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'Search the Server\'s Tags',
         examples: [
           COMMAND_NAME,
@@ -50,7 +50,7 @@ export default class TagSearchCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.search_needs_query')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.search_needs_query')}`});
   }
 
   async run(context: Command.Context, args: CommandArgs) {

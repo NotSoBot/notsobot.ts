@@ -15,7 +15,7 @@ export default class OverlayRussiaCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o russia', 'russia'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Overlay a Russian flag over an Image or Video',
         examples: [
           COMMAND_NAME,

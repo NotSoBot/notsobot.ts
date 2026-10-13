@@ -5,7 +5,7 @@ import { addGuildFeature } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { GuildFeatures } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -33,5 +33,5 @@ export async function createMessage(
 
   const feature = Markup.codestring(args.feature);
   const featuresText = features.map((x) => Markup.codestring(x)).join(', ');
-  return editOrReply(context, translate('owner_guild_features_add.ok_added_to_guild_features_are_now', {feature: feature, featuresText: featuresText, guild: args.guild.id}));
+  return displayReply(context, {description: translate('owner_guild_features_add.ok_added_to_guild_features_are_now', {feature: feature, featuresText: featuresText, guild: args.guild.id})});
 }

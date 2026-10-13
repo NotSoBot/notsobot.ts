@@ -14,7 +14,7 @@ export default class InvertCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Invert an Image or Video',
         examples: [
           COMMAND_NAME,

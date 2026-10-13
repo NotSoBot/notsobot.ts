@@ -18,7 +18,7 @@ export default class WaveCommand extends BaseImageOrVideoCommand {
         {aliases: ['l'], name: 'length', label: 'waveLength', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Distort an Image or Video with a sine wave function',
         examples: [
           COMMAND_NAME,

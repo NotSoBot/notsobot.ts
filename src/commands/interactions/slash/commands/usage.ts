@@ -20,7 +20,6 @@ export class CommandsUsageCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       permissions: [Permissions.MANAGE_GUILD],
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {name: 'channel', description: 'Only show commands used in this channel', ...I18n.optionLocalizations('commands.commands.usage.channel'), channelTypes: [ChannelTypes.GUILD_TEXT], type: ApplicationCommandOptionTypes.CHANNEL},
         {name: 'user', description: 'Only show commands used by this user', ...I18n.optionLocalizations('commands.commands.usage.user'), type: ApplicationCommandOptionTypes.USER},

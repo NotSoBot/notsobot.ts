@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, DownloadQualities, Mimetypes, MimetypesToExtension, StatusEmojis } from '../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -25,7 +25,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
       default: DefaultParameters.lastUrl,
       label: 'url',
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.CONVERSION,
         description: 'Download a URL, like reels/shorts/tiktoks',
         examples: [
           `${COMMAND_NAME} https://discordapp.com`,
@@ -44,9 +44,9 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
   async onCancelRun(context: Command.Context, args: {url?: null | string}) {
     const { translate } = await I18n.getTranslator(context);
     if (args.url === undefined) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.no_urls_found')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.no_urls_found')}`});
     } else if (args.url === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.invalid_url')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.invalid_url')}`});
     }
     return super.onCancelRun(context, args);
   }

@@ -2,7 +2,7 @@ import { ClusterClient, ShardClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
 import { EventSubscription, Timers } from 'detritus-utils';
 
-import { fetchCommandsResponses } from '../api';
+import { deleteCommandsResponses, fetchCommandsResponses } from '../api';
 import { RedisSpewer } from '../redis';
 
 import { Listener } from './listener';
@@ -56,6 +56,18 @@ class MessageDeleteListener extends Listener {
             } else {
               for (let messageId of bulkToDelete) {
                 await shard.rest.deleteMessage(channelId, messageId);
+              }
+            }
+          }
+
+          // the responses are gone now, stop storing them
+          if (results.length) {
+            const triggerIds = results.map((result) => result.message_trigger_id);
+            for (let i = 0; i < triggerIds.length; i += 100) {
+              try {
+                await deleteCommandsResponses({client: shard}, {channelId, triggerIds: triggerIds.slice(i, i + 100)});
+              } catch(error) {
+                // the stale cleanup will get them eventually
               }
             }
           }

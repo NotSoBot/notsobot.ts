@@ -17,7 +17,7 @@ export default class ImplodeCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Implode an Image or Video from the center',
         examples: [
           COMMAND_NAME,

@@ -15,7 +15,7 @@ export default class AudioChannelsInvertCommand extends BaseAudioOrVideoCommand 
 
 	  aliases: ['a channels invert', 'a c invert'],
 	  metadata: {
-		category: CommandCategories.TOOLS,
+		category: CommandCategories.AUDIO,
 		description: 'Swap the left and right audio channels of an Audio or Video file',
 		examples: [
 		  `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

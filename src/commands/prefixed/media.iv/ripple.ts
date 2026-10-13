@@ -21,7 +21,7 @@ export default class RippleCommand extends BaseImageOrVideoCommand {
         {aliases: ['w'], name: 'width', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Ripple effect on an Image or Video',
         examples: [
           COMMAND_NAME,

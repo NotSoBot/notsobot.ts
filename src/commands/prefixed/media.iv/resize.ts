@@ -21,7 +21,7 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
         {name: 'size', aliases: ['sz']},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Resize an Image or Video',
         examples: [
           COMMAND_NAME,

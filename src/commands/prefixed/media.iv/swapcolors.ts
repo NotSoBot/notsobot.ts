@@ -14,7 +14,7 @@ export default class SwapColorsCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Shuffle each pixel\'s RGBA Channels of an Image or Video',
         examples: [
           COMMAND_NAME,

@@ -16,7 +16,8 @@ export default class MathCommand extends BaseCommand {
       aliases: ['calculate', 'calc'],
       label: 'equation',
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.UTILITY,
+        pipeable: true,
         description: 'Evaluate a Math Equation',
         examples: [
           `${COMMAND_NAME} 5 + 5`,

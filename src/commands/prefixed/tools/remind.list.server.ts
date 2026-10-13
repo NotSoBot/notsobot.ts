@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters, editOrReply } from '../../../utils';
@@ -16,7 +15,8 @@ export default class RemindListServerCommand extends BaseCommand {
 
       aliases: ['reminder list server', 'reminders server'],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.UTILITY,
+        pipeable: true,
         description: 'List of Reminders in the Server',
         examples: [
           COMMAND_NAME,
@@ -25,7 +25,6 @@ export default class RemindListServerCommand extends BaseCommand {
         id: Formatter.Commands.ReminderListServer.COMMAND_ID,
         usage: '?<user:id|mention|name>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.memberOrUser(),
     });
   }

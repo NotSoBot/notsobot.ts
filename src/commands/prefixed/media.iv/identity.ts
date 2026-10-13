@@ -20,7 +20,7 @@ export default class IdentityCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
       },
     });
   }

@@ -20,7 +20,7 @@ export default class OverlayBernie1Command extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationOverlayPersonsBernie1.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

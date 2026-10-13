@@ -14,7 +14,7 @@ export default class InvertRGBACommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Invert each individual channel with 1, or ignore with 0',
         examples: [
           COMMAND_NAME,

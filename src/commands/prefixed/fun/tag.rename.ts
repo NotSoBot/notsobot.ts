@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -16,7 +16,7 @@ export default class TagRenameCommand extends BaseCommand {
 
       aliases: ['t rename'],
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'Rename a tag',
         examples: [
           `${COMMAND_NAME} test test1`,
@@ -44,13 +44,13 @@ export default class TagRenameCommand extends BaseCommand {
     const { translate } = await I18n.getTranslator(context);
     if (args.tag !== null || args.name) {
       if (args.tag === false) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`});
       }
       if (!args.name) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.rename_needs_name')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.rename_needs_name')}`});
       }
       if (args.tag && args.tag.user.id !== context.userId) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.not_owner')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.not_owner')}`});
       }
     }
     return super.onCancelRun(context, args);

@@ -7,6 +7,7 @@ import {
 import {
   InteractionCallbackTypes,
   MessageComponentButtonStyles,
+  MessageComponentTypes,
   MessageFlags,
 } from 'detritus-client/lib/constants';
 import { Components, ComponentContext } from 'detritus-client/lib/utils';
@@ -16,7 +17,7 @@ import { Timers } from 'detritus-utils';
 import PaginatorsStore from '../stores/paginators';
 
 import { getTranslator } from './i18n';
-import { editOrReply } from './tools';
+import { DisplayPayload, createDisplayLayout, displayPayloadFromEmbed, editOrReply, renderDisplay } from './tools';
 
 
 export const MAX_PAGE = Number.MAX_SAFE_INTEGER;
@@ -48,13 +49,62 @@ export const PageButtons: Record<PageButtonNames, PageButton> = Object.freeze({
   [PageButtonNames.STOP]: {emoji: '<:b_stop_delete:945057641103753377>'},//{emoji: '<:b_stop:848383585873428520>'},
 });
 
-export type PageObject = {content?: string, embeds?: Array<Utils.Embed>, files?: Array<RequestTypes.File>};
+export type PageObject = {
+  // a components v2 layout (containers, text displays, sections, media galleries, separators, files, link buttons)
+  // makes the page components v2, the page buttons are added under it
+  components?: Array<any>,
+  content?: string,
+  embeds?: Array<Utils.Embed>,
+  files?: Array<RequestTypes.File>,
+};
+
+// rendered with the user's response display setting (components v2, embed, or text) like `displayReply`
+export type PageDisplay = {display: DisplayPayload};
 
 export type Page = (
   Utils.Embed |
   [Utils.Embed, Array<RequestTypes.File>] |
-  PageObject
+  PageObject |
+  PageDisplay
 );
+
+export type PageMessage = Record<string, any>;
+
+// discord's limit for components in a components v2 message, the page buttons take 6 of them
+export const MAX_COMPONENTS_V2 = 40;
+
+
+function addLayoutComponent(root: Components, component: any): void {
+  if (component && typeof(component.toJSON) === 'function') {
+    // already a component structure
+    (root.components as Array<any>).push(component);
+    return;
+  }
+  switch (component.type) {
+    case MessageComponentTypes.ACTION_ROW: root.createActionRow(component); break;
+    case MessageComponentTypes.CONTAINER: root.createContainer(component); break;
+    case MessageComponentTypes.FILE: root.createFile(component); break;
+    case MessageComponentTypes.MEDIA_GALLERY: root.createMediaGallery(component); break;
+    case MessageComponentTypes.SECTION: root.createSection(component); break;
+    case MessageComponentTypes.SEPARATOR: root.createSeparator(component); break;
+    case MessageComponentTypes.TEXT_DISPLAY: root.createTextDisplay(component); break;
+    default: {
+      throw new Error(`Unsupported page component type ${component.type}`);
+    };
+  }
+}
+
+
+export function isPageComponentsV2(page: Page): boolean {
+  return (
+    typeof(page) === 'object' &&
+    !Array.isArray(page) &&
+    !(page instanceof Utils.Embed) &&
+    'components' in page &&
+    Array.isArray(page.components) &&
+    !!page.components.length
+  );
+}
 
 export type OnErrorCallback = (error: any, paginator: Paginator) => Promise<any> | any;
 export type OnExpireCallback = (paginator: Paginator) => Promise<any> | any;
@@ -96,6 +146,8 @@ export class Paginator {
   };
   _isEphemeral?: boolean;
   _message: null | Structures.Message = null;
+  // set once a components v2 page is sent, the message can't go back to content/embeds after
+  isComponentsV2: boolean = false;
 
   buttons: Record<PageButtonNames, PageButton> = Object.assign({}, PageButtons);
   expires: number = 1 * (60 * 1000);
@@ -355,37 +407,52 @@ export class Paginator {
     }
   }
 
-  async getPage(
-    pageNumber: number,
-  ): Promise<{
-    content: string | undefined,
-    embeds: Array<Utils.Embed>,
-    files: Array<RequestTypes.File> | undefined,
-  }> {
+  async resolvePage(pageNumber: number): Promise<Page> {
     let page: Page | undefined;
     if (typeof(this.onPage) === 'function') {
       page = await Promise.resolve(this.onPage(this.page));
     } else {
       if (Array.isArray(this.pages)) {
-        pageNumber -= 1;
-        if (pageNumber in this.pages) {
-          page = this.pages[pageNumber];
+        if ((pageNumber - 1) in this.pages) {
+          page = this.pages[pageNumber - 1];
         }
       }
     }
     if (!page) {
       throw new Error(`Page ${pageNumber} not found`);
     }
+    return page;
+  }
+
+  // the whole message for a page, with or without the page buttons
+  async getPageMessage(pageNumber: number, withButtons: boolean = true): Promise<PageMessage> {
+    const page = await this.resolvePage(pageNumber);
+    const buttons = (withButtons) ? this.components : undefined;
+
+    if (typeof(page) === 'object' && !Array.isArray(page) && 'display' in page) {
+      if (this.context instanceof Structures.Message) {
+        throw new Error(`Page ${pageNumber} needs a command context to be displayed`);
+      }
+      const message = await renderDisplay(this.context, {...page.display, components: buttons});
+      if (message.flags && (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2) {
+        this.isComponentsV2 = true;
+      } else if (message.embed) {
+        message.embeds = [message.embed];
+        delete message.embed;
+      }
+      return message;
+    }
 
     let content: string | undefined;
     let embeds: Array<Utils.Embed> = [];
     let files: Array<RequestTypes.File> | undefined;
+    let layout: Array<any> = [];
     if (Array.isArray(page) && page.length === 2) {
       embeds.push(page[0]);
       files = page[1];
     } else if (page instanceof Utils.Embed) {
       embeds.push(page);
-    } else if (typeof(page) === 'object') {
+    } else if (typeof(page) === 'object' && !Array.isArray(page)) {
       if ('content' in page && typeof(page.content) === 'string') {
         content = page.content;
       }
@@ -395,13 +462,49 @@ export class Paginator {
       if ('files' in page && Array.isArray(page.files)) {
         files = page.files;
       }
+      if ('components' in page && Array.isArray(page.components)) {
+        layout = page.components;
+      }
     } else {
       throw new Error(`Page ${pageNumber} is invalid (2)`);
     }
-    if (!embeds.length && (!files || !files.length) && !content) {
+    if (!embeds.length && (!files || !files.length) && !content && !layout.length) {
       throw new Error(`Page ${pageNumber} is invalid (3)`);
     }
-    return {content, embeds, files};
+
+    if (layout.length || this.isComponentsV2) {
+      // once the message is components v2 it can't go back, so embed/content pages get turned into components too
+      this.isComponentsV2 = true;
+
+      const root = buttons || new Components();
+      const pageRoot = new Components();
+      if (content) {
+        pageRoot.createTextDisplay({content: content.slice(0, 4000)});
+      }
+      for (let embed of embeds) {
+        for (let component of createDisplayLayout(displayPayloadFromEmbed(embed)).components) {
+          (pageRoot.components as Array<any>).push(component);
+        }
+      }
+      for (let component of layout) {
+        addLayoutComponent(pageRoot, component);
+      }
+      (root.components as Array<any>).unshift(...pageRoot.components);
+      return {
+        allowedMentions: {parse: []},
+        components: root,
+        files,
+        flags: MessageFlags.IS_COMPONENTS_V2,
+      };
+    }
+
+    return {
+      allowedMentions: {parse: []},
+      components: buttons || [],
+      content: content || '',
+      embeds,
+      files,
+    };
   }
 
   async setPage(pageNumber: number, context?: ComponentContext): Promise<void> {
@@ -419,54 +522,35 @@ export class Paginator {
       await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
 
-    const {content, embeds, files} = await this.getPage(this.page);
-
+    const message = await this.getPageMessage(this.page);
     if (context) {
-      await context.editOrRespond({
-        allowedMentions: {parse: []},
-        components: this.components,
-        content,
-        embeds,
-        files,
-      });
+      await context.editOrRespond(message);
     } else if (this.context instanceof Interaction.InteractionContext) {
-      await this.context.editOrRespond({
-        allowedMentions: {parse: []},
-        components: this.components,
-        content,
-        embeds,
-        files,
-      });
+      await this.context.editOrRespond(message);
     } else if (this.message) {
-      await this.message.edit({
-        allowedMentions: {parse: []},
-        attachments: [],
-        components: this.components,
-        content,
-        embeds,
-        files,
-      });
+      await this.message.edit({...message, attachments: []});
     }
+  }
+
+  // only the buttons changed, components v2 has the page inside of the components so it gets sent again (without re-uploading files)
+  async getButtonsMessage(withButtons: boolean = true): Promise<PageMessage> {
+    if (this.isComponentsV2) {
+      const message = await this.getPageMessage(this.page, withButtons);
+      delete message.files;
+      return message;
+    }
+    return {allowedMentions: {parse: []}, components: (withButtons) ? this.components : []};
   }
 
   async updateButtons(context?: ComponentContext): Promise<void> {
     if (!this.stopped) {
+      const message = await this.getButtonsMessage();
       if (context) {
-        await context.editOrRespond({
-          allowedMentions: {parse: []},
-          components: this.components,
-          embeds: undefined,
-        });
+        await context.editOrRespond(message);
       } else if (this.context instanceof Interaction.InteractionContext) {
-        await this.context.editResponse({
-          allowedMentions: {parse: []},
-          components: this.components,
-        });
+        await this.context.editResponse(message);
       } else if (this.message) {
-        await this.message.edit({
-          allowedMentions: {parse: []},
-          components: this.components,
-        });
+        await this.message.edit(message);
       }
     }
   }
@@ -613,20 +697,15 @@ export class Paginator {
         }
       } else if (clearButtons) {
         if (context) {
-          const {content, embeds, files} = await this.getPage(this.page);
-          await context.editOrRespond({
-            allowedMentions: {parse: []},
-            components: [],
-            content, // temporarily here until they fix ephemeral message component clearing on button press
-            embeds,  // temporarily here until they fix ephemeral message component clearing on button press
-            files, // temporarily here until they fix ephemeral message component clearing on button press
-          });
+          // the whole page is sent again, temporarily here until they fix ephemeral message component clearing on button press
+          await context.editOrRespond(await this.getPageMessage(this.page, false));
         } else if (this.message && !this.message.deleted && this.message.components.length) {
           try {
+            const message = await this.getButtonsMessage(false);
             if (this.context instanceof Interaction.InteractionContext) {
-              await this.context.editMessage(this.message.id, {components: []});
+              await this.context.editMessage(this.message.id, message);
             } else {
-              await this.message.edit({components: []});
+              await this.message.edit(message);
             }
           } catch(error) {
 
@@ -651,49 +730,35 @@ export class Paginator {
       this.isEphemeral = false;
     }
 
+    // static pages are known ahead of time, if any of them are components v2 the whole paginator is
+    if (Array.isArray(this.pages) && this.pages.some((page) => isPageComponentsV2(page))) {
+      this.isComponentsV2 = true;
+    }
+
     let message: Structures.Message | null = null;
     if (this.context instanceof Interaction.InteractionContext) {
-      const {content, embeds, files} = await this.getPage(this.page);
-      await this.context.editOrRespond({
-        components: this.components,
-        content,
-        embeds,
-        files,
-        flags: (this.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
-      });
+      const pageMessage = await this.getPageMessage(this.page);
+      if (this.isEphemeral) {
+        pageMessage.flags = (pageMessage.flags || 0) | MessageFlags.EPHEMERAL;
+      }
+      await this.context.editOrRespond(pageMessage);
       message = this.message;
     } else if (this.message) {
       message = this.message;
       if (message.canEdit) {
-        const {content, embeds, files} = await this.getPage(this.page);
-        message = this.message = await message.edit({
-          attachments: [],
-          components: this.components,
-          content,
-          embeds,
-          files,
-        });
+        const pageMessage = await this.getPageMessage(this.page);
+        message = this.message = await message.edit({...pageMessage, attachments: []});
       }
     } else {
       if (!this.context.canReply) {
         throw new Error('Cannot create messages in this channel');
       }
 
-      const {content, embeds, files} = await this.getPage(this.page);
+      const pageMessage = await this.getPageMessage(this.page);
       if (this.context instanceof Command.Context) {
-        message = this._message = await editOrReply(this.context, {
-          components: this.components,
-          content,
-          embeds,
-          files,
-        });
+        message = this._message = await editOrReply(this.context, pageMessage);
       } else {
-        message = this._message = await this.context.reply({
-          components: this.components,
-          content,
-          embeds,
-          files,
-        });
+        message = this._message = await this.context.reply(pageMessage);
       }
     }
 

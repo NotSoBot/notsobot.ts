@@ -4,7 +4,7 @@ import { DIRECTORY } from '../../../../config.json';
 
 import { NotSoCommandClient } from '../../../commandclient';
 import { NotSoInteractionClient } from '../../../interactioncommandclient';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 async function refreshCommands(
@@ -109,6 +109,12 @@ async function refreshCommands(
       if ((error as any).response) {
         message += ` ${await (error as any).response.text()}`;
       }
+      // say which commands are too big instead of just their index
+      const oversized = interactionCommandClient.getOversizedCommands();
+      if (oversized.length) {
+        const text = oversized.map((x) => `/${x.name} (#${x.index}, ${x.size.toLocaleString()} characters)`).join(', ');
+        message += ` [too big: ${text}]`;
+      }
       errors.push(`interaction commands: ${message}`);
     }
   }
@@ -133,9 +139,9 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   if (!context.manager) {
-    return editOrReply(context, 'no cluster manager found');
+    return displayReply(context, {description: 'no cluster manager found'});
   }
-  await editOrReply(context, 'ok, refreshing...');
+  await displayReply(context, {description: 'ok, refreshing...'});
   const shardIds = await context.manager.broadcastEval(refreshCommands, args.listeners, args.stores, DIRECTORY);
     /*
   {
@@ -146,10 +152,10 @@ export async function createMessage(
   const error = shardIds.find((shardId: any) => shardId instanceof Error) as any;
   if (error) {
     if (error.errors) {
-      return editOrReply(context, `${error.message} (${JSON.stringify(error.errors)})`);
+      return displayReply(context, {description: `${error.message} (${JSON.stringify(error.errors)})`});
     }
     console.log(error);
-    return editOrReply(context, `Error: ${error.message}`);
+    return displayReply(context, {description: `Error: ${error.message}`});
   }
-  return editOrReply(context, `ok, refreshed commands on ${shardIds.flat().length} shards.`);
+  return displayReply(context, {description: `ok, refreshed commands on ${shardIds.flat().length} shards.`});
 }

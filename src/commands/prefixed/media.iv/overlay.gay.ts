@@ -15,7 +15,7 @@ export default class OverlayLGBTCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o gay', 'gay', 'overlay lgbt', 'o lgbt', 'lgbt'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Overlay a LGBT flag over an Image or Video',
         examples: [
           COMMAND_NAME,

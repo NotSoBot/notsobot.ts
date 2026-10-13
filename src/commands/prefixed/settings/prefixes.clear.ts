@@ -17,7 +17,7 @@ export default class PrefixesClearCommand extends BaseCommand {
       aliases: ['prefix clear'],
       disableDm: true,
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.SERVER,
         description: 'Clear all custom prefixes from the guild. (Bot Mentions will always override this)',
         examples: [
           COMMAND_NAME,
@@ -25,7 +25,6 @@ export default class PrefixesClearCommand extends BaseCommand {
         id: Formatter.Commands.PrefixesClear.COMMAND_ID,
         usage: '',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
     });
   }

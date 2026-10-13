@@ -1,10 +1,9 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed } from 'detritus-client/lib/utils';
 
 import { searchSteamEmojis } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, Paginator, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.steam.emojis';
@@ -18,7 +17,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { count, results } = await searchSteamEmojis(context, args);
 
@@ -27,15 +25,16 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
         const result = results[page - 1];
-        embed.setFooter(translate('search_steam_emojis.page_of_steam_emojis_total_emojis', {count: count.toLocaleString(language), page: page, pageLimit: pageLimit}), EmbedBrands.STEAM);
+        payload.footer = translate('search_steam_emojis.page_of_steam_emojis_total_emojis', {count: count.toLocaleString(language), page: page, pageLimit: pageLimit});
+        payload.footerIconUrl = EmbedBrands.STEAM;
 
-        embed.setTitle(result.name);
-        embed.setUrl(result.url);
-        embed.setImage(result.icon);
+        payload.title = result.name;
+        payload.url = result.url;
+        payload.image = result.icon;
 
         {
           const description: Array<string> = [result.metadata.type, ''];
@@ -47,14 +46,14 @@ export async function createMessage(
           }
           description.push(translate('search_steam_emojis.tradable', {tradable: (result.metadata.tradable) ? translate('common.yes') : translate('common.no')}));
 
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, translate('search_steam_emojis.couldn_t_find_any_steam_emojis_matching'));
+  return displayReply(context, {description: translate('search_steam_emojis.couldn_t_find_any_steam_emojis_matching')});
 }
 

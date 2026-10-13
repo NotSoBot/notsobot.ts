@@ -1,12 +1,12 @@
 import moment from 'moment';
 
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchE621 } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { E621Rating, E621RatingText, EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.e621';
@@ -22,9 +22,8 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  return editOrReply(context, translate('search_e621.sorry_this_command_has_been_disabled_at'));
+  return displayReply(context, {description: translate('search_e621.sorry_this_command_has_been_disabled_at')});
 
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const results = await searchE621(context, args);
   if (results.length) {
@@ -35,19 +34,20 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
         const result = results[page - 1];
         if (result.header) {
-          embed.setTitle(`${result.header} (${result.footer})`);
+          payload.title = `${result.header} (${result.footer})`;
         } else {
-          embed.setTitle(result.footer);
+          payload.title = result.footer;
         }
-        embed.setFooter(`Page ${page}/${pageLimit} of https://e621.net Results`, EmbedBrands.E621);
+        payload.footer = `Page ${page}/${pageLimit} of https://e621.net Results`;
+        payload.footerIconUrl = EmbedBrands.E621;
 
-        embed.setTitle((result.is_video) ? translate('search_e621.video_post') : translate('search_e621.image_post'));
-        embed.setUrl(result.url);
+        payload.title = (result.is_video) ? translate('search_e621.video_post') : translate('search_e621.image_post');
+        payload.url = result.url;
 
         const description: Array<string> = [];
         if (!result.file.url) {
@@ -92,17 +92,17 @@ export async function createMessage(
         if (result.tags.general.length) {
           description.push(translate('search_e621.tags', {general: Markup.escape.all(result.tags.general.sort().join(', '))}));
         }
-        embed.setDescription(description.join('\n'));
+        payload.description = description.join('\n');
 
         if (result.is_video) {
-          embed.setImage(result.preview.url);
+          payload.image = result.preview.url;
         } else {
-          embed.setImage(result.file.url);
+          payload.image = result.file.url;
         }
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, translate('search_e621.couldn_t_find_any_images_for_that'));
+  return displayReply(context, {description: translate('search_e621.couldn_t_find_any_images_for_that')});
 }

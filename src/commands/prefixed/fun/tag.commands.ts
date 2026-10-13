@@ -15,7 +15,7 @@ export default class TagCommandsListCommand extends BaseCommand {
 
       aliases: ['t commands'],
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'List all of the current server\'s custom commands',
         examples: [
           COMMAND_NAME,

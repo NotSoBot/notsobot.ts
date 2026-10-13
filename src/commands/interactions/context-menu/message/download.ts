@@ -2,13 +2,13 @@ import { Interaction } from 'detritus-client';
 import {
   ApplicationIntegrationTypes,
   InteractionContextTypes,
-  MessageFlags,
 } from 'detritus-client/lib/constants';
 
 import {
   DefaultParameters,
   Formatter,
   I18n,
+  displayReply,
   findMediaUrlInMessages,
   getOrFetchRealUrl,
 } from '../../../../utils';
@@ -53,10 +53,7 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
 
   async onCancelRun(context: Interaction.InteractionContext, args: DownloadCommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return context.editOrRespond({
-      content: translate('commands.context.download.no_media'),
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: translate('commands.context.download.no_media'), ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: DownloadCommandArgs) {

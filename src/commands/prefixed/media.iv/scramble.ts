@@ -26,7 +26,7 @@ export default class ScrambleCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -grid 5`,
           `${COMMAND_NAME} notsobot -norotate`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationScramble.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-grid <number>) (-norotate) (-seed <number>)',
       },

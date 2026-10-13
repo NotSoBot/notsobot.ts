@@ -15,7 +15,7 @@ export default class OverlayUSSRCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o ussr', 'ussr'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Overlay an USSR flag over an Image or Video',
         examples: [
           COMMAND_NAME,

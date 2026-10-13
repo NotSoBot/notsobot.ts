@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes, MarkupTimestampStyles, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
-import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
@@ -9,10 +9,10 @@ import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
+  DisplayPayload,
   Parameters,
   createTimestampMomentFromGuild,
-  createUserEmbed,
-  editOrReply,
+  displayReply,
   getReminderMessage,
 } from '../../../utils';
 
@@ -28,21 +28,20 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   let reminder: RestResponsesRaw.Reminder;
   try {
     reminder = await fetchReminderPositional(context, context.userId, args.position);
   } catch(error) {
     if (error.response && error.response.status === 404) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('reminder_delete_me.unknown_reminder')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('reminder_delete_me.unknown_reminder')}`});
     }
     throw error;
   }
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setTitle(translate('reminder_delete_me.are_you_sure_you_want_to_delete'));
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.title = translate('reminder_delete_me.are_you_sure_you_want_to_delete');
 
   {
     const description: Array<string> = [];
@@ -66,7 +65,7 @@ export async function createMessage(
         description.push(`-> ${content}`);
       }
     }
-    embed.setDescription(description.join('\n'));
+    payload.description = description.join('\n');
   }
 
   const components = new Components({timeout: 5 * (60 * 1000)});
@@ -78,14 +77,14 @@ export async function createMessage(
       }
       try {
         await deleteReminder(context, reminder.id);
-        embed.setTitle(translate('reminder_delete_me.reminder_deleted'));
-        embed.setColor(EmbedColors.LOG_CREATION);
+        payload.title = translate('reminder_delete_me.reminder_deleted');
+        payload.color = EmbedColors.LOG_CREATION;
       } catch(error) {
-        embed.setColor(EmbedColors.ERROR);
-        embed.setTitle(translate('reminder_delete_me.reminder_deletion_errored'));
+        payload.color = EmbedColors.ERROR;
+        payload.title = translate('reminder_delete_me.reminder_deletion_errored');
       }
 
-      await ctx.editOrRespond({components: [], embed});
+      await displayReply(context, payload, {replyTo: ctx});
     },
   });
 
@@ -97,22 +96,20 @@ export async function createMessage(
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
   
-      embed.setColor(EmbedColors.ERROR);
-      embed.setTitle(translate('reminder_delete_me.reminder_deletion_cancelled'));
-      await ctx.editOrRespond({components: [], embed});
+      payload.color = EmbedColors.ERROR;
+      payload.title = translate('reminder_delete_me.reminder_deletion_cancelled');
+      await displayReply(context, payload, {replyTo: ctx});
     },
   });
 
-  const message = await editOrReply(context, {components, embed});
+  const message = await displayReply(context, {...payload, components});
   components.onTimeout = async () => {
     try {
-      embed.setColor(EmbedColors.ERROR);
-      embed.setTitle(translate('reminder_delete_me.reminder_deletion_request_expired'));
-      embed.setFooter(translate('reminder_delete_me.request_expired_press_a_button_next_time'));
-      // todo: fix this for interactions
-      if (message && message.canEdit) {
-        await message.edit({components: [], embed});
-      }
+      payload.color = EmbedColors.ERROR;
+      payload.title = translate('reminder_delete_me.reminder_deletion_request_expired');
+      payload.footer = translate('reminder_delete_me.request_expired_press_a_button_next_time');
+      // edits the response for both prefixed commands and interactions
+      await displayReply(context, payload);
     } catch(error) {
   
     }

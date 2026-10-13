@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -47,11 +47,11 @@ export class TagDirectoryEditCommand extends BaseInteractionCommandOption {
     const { translate } = await I18n.getTranslator(context);
     if (args.tag !== null) {
       if (args.tag === false) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`});
       }
     }
     if (!args.content && !args.description && !args.title) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.directory_edit_needs_field')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.directory_edit_needs_field')}`});
     }
     return super.onCancelRun(context, args);
   }

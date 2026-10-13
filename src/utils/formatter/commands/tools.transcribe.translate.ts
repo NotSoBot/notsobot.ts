@@ -1,6 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 
 import { googleTranslate, mediaAVToolsTranscribe } from '../../../api';
@@ -9,7 +8,7 @@ import {
   EmbedColors,
   GoogleLocales,
 } from '../../../constants';
-import { createUserEmbed, editOrReply, languageCodeToText, splitTextByAmount } from '../../../utils';
+import { DisplayPayload, displayReply, languageCodeToText, splitTextByAmount } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -28,19 +27,19 @@ export async function createMessage(
 ) {
   const { language, languageName, translate } = await getTranslator(context);
   if (!args.file && !args.url) {
-    return editOrReply(context, translate('tools.translate.missing_input'));
+    return displayReply(context, {description: translate('tools.translate.missing_input')});
   }
 
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { duration, text } = await mediaAVToolsTranscribe(context, {
     file: args.file,
     url: args.url,
   });
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter(translate('tools.translate.footer_transcription'), EmbedBrands.GOOGLE_GO);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.footer = translate('tools.translate.footer_transcription');
+  payload.footerIconUrl = EmbedBrands.GOOGLE_GO;
 
   const files: Array<{filename: string, value: string}> = [];
   if (text) {
@@ -59,7 +58,7 @@ export async function createMessage(
     const fromLanguageTitle = languageName(fromLanguage, fromLanguageText, {capitalize: true});
     const translatedLanguageName = languageName(translatedLanguage, translatedLanguageText);
     const translatedLanguageTitle = languageName(translatedLanguage, translatedLanguageText, {capitalize: true});
-    embed.setTitle(translate('tools.translate.title', {from: fromLanguageName, to: translatedLanguageName}));
+    payload.title = translate('tools.translate.title', {from: fromLanguageName, to: translatedLanguageName});
 
     const shouldShowInput = (translatedText !== text);
     const totalLength = text.length + translatedText.length;
@@ -67,9 +66,9 @@ export async function createMessage(
       if (shouldShowInput) {
         // 1024 - 10 ('```\n\n```')
         const parts = splitTextByAmount(text, 1014, '');
-        embed.addField(fromLanguageTitle, Markup.codeblock(parts.shift() as string));
+        payload.fields!.push({name: fromLanguageTitle, value: Markup.codeblock(parts.shift() as string)});
         for (let part of parts) {
-          embed.addField('\u200b', Markup.codeblock(part));
+          payload.fields!.push({name: '\u200b', value: Markup.codeblock(part)});
         }
       }
 
@@ -77,9 +76,9 @@ export async function createMessage(
         // 1024 - 10 ('```\n\n```')
         const parts = splitTextByAmount(translatedText, 1014, '');
         const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageTitle : `${fromLanguageTitle} -> ${translatedLanguageTitle}`;
-        embed.addField(title, Markup.codeblock(parts.shift() as string));
+        payload.fields!.push({name: title, value: Markup.codeblock(parts.shift() as string)});
         for (let part of parts) {
-          embed.addField('\u200b', Markup.codeblock(part));
+          payload.fields!.push({name: '\u200b', value: Markup.codeblock(part)});
         }
       }
     } else {
@@ -87,19 +86,15 @@ export async function createMessage(
         files.push({filename: `translate-from-${fromLanguageText.toLowerCase()}.txt`, value: text});
       }
       files.push({filename: `translate-to-${translatedLanguageText.toLowerCase()}.txt`, value: translatedText});
-      embed.setDescription([
+      payload.description = [
         translate('tools.translate.input_characters', {count: text.length.toLocaleString(language)}),
         translate('tools.translate.result_characters', {count: translatedText.length.toLocaleString(language)}),
-      ].join('\n'));
+      ].join('\n');
     }
   } else {
-    embed.setColor(EmbedColors.ERROR);
-    embed.setDescription(translate('tools.translate.no_speech'));
+    payload.color = EmbedColors.ERROR;
+    payload.description = translate('tools.translate.no_speech');
   }
 
-  return editOrReply(context, {
-    embed,
-    files,
-    flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
-  });
+  return displayReply(context, {...payload, ephemeral: args.isEphemeral, files});
 }

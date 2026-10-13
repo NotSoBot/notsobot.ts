@@ -15,7 +15,7 @@ export default class Edges2FleshCommand extends BaseImageOrVideoCommand {
 
       aliases: ['e2f', 'e2p'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Edges to Flesh',
         examples: [
           COMMAND_NAME,

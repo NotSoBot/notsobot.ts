@@ -14,7 +14,7 @@ export default class VoiceCloneAddCommand extends BaseAudioOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Add another Audio or Video File to a cloned voice for Text-to-Speech',
         examples: [
           COMMAND_NAME,

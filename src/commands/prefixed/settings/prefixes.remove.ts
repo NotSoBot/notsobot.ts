@@ -26,7 +26,7 @@ export default class PrefixesRemoveCommand extends BaseCommand {
       disableDm: true,
       label: 'prefix',
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.SERVER,
         description: 'Remove a custom prefix from the guild. (Bot Mentions will always override this)',
         examples: [
           `${COMMAND_NAME} ..`,
@@ -34,7 +34,6 @@ export default class PrefixesRemoveCommand extends BaseCommand {
         id: Formatter.Commands.PrefixesRemove.COMMAND_ID,
         usage: '<prefix>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       type: Parameters.string({maxLength: 128}),
     });

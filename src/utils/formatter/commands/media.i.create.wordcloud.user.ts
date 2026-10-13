@@ -1,7 +1,7 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.i.create.wordcloud.user';
@@ -16,5 +16,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
 
-  return editOrReply(context, 'wip');
+  return displayReply(context, {description: 'wip'});
 }

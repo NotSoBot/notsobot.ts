@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -23,7 +23,7 @@ export default class WordcloudCommand extends BaseCommand {
       default: DefaultParameters.channel,
       label: 'channel',
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Generate a wordcloud from past messages',
         examples: [
           `${COMMAND_NAME} lobby`,
@@ -47,7 +47,7 @@ export default class WordcloudCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: Formatter.Commands.MediaICreateWordcloudChannel.CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, translate('errors.channel_not_found'));
+    return displayReply(context, {description: translate('errors.channel_not_found')});
   }
 
   run(context: Command.Context, args: Formatter.Commands.MediaICreateWordcloudChannel.CommandArgs) {

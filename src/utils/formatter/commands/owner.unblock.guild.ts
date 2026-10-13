@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { editGuildSettings } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -25,5 +25,5 @@ export async function createMessage(
   const { guild } = args;
 
   const settings = await editGuildSettings(context, guild.id, {blocked: false});
-  return editOrReply(context, translate('owner_unblock_guild.alright_unblocked_guild', {guild: guild.id, name: Markup.escape.all(guild.name)}));
+  return displayReply(context, {description: translate('owner_unblock_guild.alright_unblocked_guild', {guild: guild.id, name: Markup.escape.all(guild.name)})});
 }

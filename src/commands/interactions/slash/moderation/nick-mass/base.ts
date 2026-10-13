@@ -1,8 +1,8 @@
 import { Interaction, Structures } from 'detritus-client';
-import { ApplicationCommandOptionTypes, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { ApplicationCommandOptionTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../../constants';
-import { I18n, editOrReply } from '../../../../../utils';
+import { I18n, displayReply } from '../../../../../utils';
 
 import { MAX_MEMBERS } from '../../../../prefixed/moderation/nick.mass';
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -37,10 +37,7 @@ export class BaseNickMassCommandOption extends BaseInteractionCommandOption {
 
   async onCancel(context: Interaction.InteractionContext) {
     const { language, translate } = await I18n.getTranslator(context);
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)})}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)})}`, ephemeral: true});
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {
@@ -49,9 +46,6 @@ export class BaseNickMassCommandOption extends BaseInteractionCommandOption {
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('nickmass.who_then')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('nickmass.who_then')}`, ephemeral: true});
   }
 }

@@ -1,5 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { RequestFile, Response } from 'detritus-rest';
 
 import { RestResponsesRaw } from '../../../api/types';
@@ -13,8 +13,7 @@ import {
   DefaultParameters,
   Formatter,
   Parameters,
-  createUserEmbed,
-  editOrReply,
+  displayReply,
   jobWaitForResult,
   mediaReply,
 } from '../../../utils';
@@ -45,7 +44,6 @@ export async function createMessage(
 ) {
   const safe = DefaultParameters.safe(context);
   const { translate } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const pipers: Array<PipingCommandExecution> = [];
   for (let {command, commandArgs} of args.commands) {
@@ -133,5 +131,5 @@ export async function createMessage(
     return mediaReply(context, fileResponse, {description: `piped: ${pipers.map((x) => x.command.name).join(' -> ')}`});
   }
 
-  return editOrReply(context, translate('media.pipe.failed'));
+  return displayReply(context, {description: translate('media.pipe.failed')});
 }

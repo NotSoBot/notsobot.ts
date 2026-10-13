@@ -15,7 +15,7 @@ export default class OverlayIsraelCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o israel', 'overlay hebrew', 'o hebrew', 'overlay jewish', 'o jewish', 'israel', 'hebrew', 'jewish'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Overlay an Israeli flag over an Image or Video',
         examples: [
           COMMAND_NAME,

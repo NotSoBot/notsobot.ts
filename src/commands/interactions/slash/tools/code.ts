@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { CodeLanguages } from '../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply, getCodeLanguage } from '../../../../utils';
+import { Formatter, I18n, Parameters, displayReply, getCodeLanguage } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -54,7 +54,7 @@ export class ToolsCodeCommand extends BaseInteractionCommandOption {
 
     if (!language) {
       const { translate } = await I18n.getTranslator(context);
-      return editOrReply(context, translate('tools.code.invalid_language', {languages: Formatter.Commands.ToolsCode.languagesText}));
+      return displayReply(context, {description: translate('tools.code.invalid_language', {languages: Formatter.Commands.ToolsCode.languagesText})});
     }
 
     return Formatter.Commands.ToolsCode.createMessage(context, {code: codeblock.text, language, version});

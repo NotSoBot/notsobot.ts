@@ -20,7 +20,7 @@ export default class SetTimezoneCommand extends BaseCommand {
       disableDm: true,
       label: 'timezone',
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.SERVER,
         description: 'Change your guild\'s timezone for commands/logging purposes',
         examples: [
           `${COMMAND_NAME} alaska`,
@@ -29,7 +29,6 @@ export default class SetTimezoneCommand extends BaseCommand {
         id: Formatter.Commands.SettingsServerSetTimezone.COMMAND_ID,
         usage: '<timezone> (-clear)',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       type: Parameters.string({maxLength: 128}),
     });

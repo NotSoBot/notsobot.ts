@@ -15,7 +15,7 @@ export default class ExtractAudioCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['ex audio'],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.CONVERSION,
         description: 'Extract audio from a video',
         examples: [
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/966626275852681216/TerryResonance.webm`,

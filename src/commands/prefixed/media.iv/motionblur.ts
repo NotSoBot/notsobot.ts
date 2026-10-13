@@ -18,7 +18,7 @@ export default class MotionBlurCommand extends BaseImageOrVideoCommand {
         {aliases: ['v'], name: 'vertical', type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Motion Blur to an Image or Video',
         examples: [
           COMMAND_NAME,

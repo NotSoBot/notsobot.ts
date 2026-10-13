@@ -1,5 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import UserStore from '../../../stores/users';
 import { getTranslator } from '../../i18n';
@@ -7,10 +7,10 @@ import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { DateMomentLogFormat, EmbedColors } from '../../../constants';
 import {
+  DisplayPayload,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
+  displayReply,
   fetchMemberOrUserById,
 } from '../../../utils';
 
@@ -26,20 +26,19 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const { tag } = args;
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setTitle(tag.name);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.title = tag.name;
 
   if (tag.reference_tag) {
     if (tag.reference_tag.is_on_directory) {
-      // embed.setDescription(`Using a tag from the tag directory. https://notsobot.com/directories/tags/${tag.reference_tag.id}`);
-      embed.setDescription([
+      // payload.description = `Using a tag from the tag directory. https://notsobot.com/directories/tags/${tag.reference_tag.id}`;
+      payload.description = [
         translate('tag_info.using_tag_from_the_tag_directory', {reference_tag: Markup.codestring(tag.reference_tag.id)}),
         translate('tag_info.name', {name: Markup.codestring(tag.reference_tag.name)}),
-      ].join('\n'));
+      ].join('\n');
     } else {
       let message = translate('tag_info.alias_of_tag', {name: Markup.codestring(tag.reference_tag.name)});
 
@@ -49,12 +48,12 @@ export async function createMessage(
         message = translate('tag_info.from_s_dms', {message: message, user: createUserString(tag.reference_tag.user.id, owner, translate('tag.deleted_user'))});
       }
 
-      embed.setDescription(message);
+      payload.description = message;
     }
   } else if (tag.is_on_directory) {
-    embed.setDescription(translate('tag_info.tag_from_the_tag_directory'));
+    payload.description = translate('tag_info.tag_from_the_tag_directory');
   } else {
-    embed.setDescription(Markup.codeblock(tag.content));
+    payload.description = Markup.codeblock(tag.content);
   }
 
   {
@@ -83,8 +82,8 @@ export async function createMessage(
 
     description.push(translate('tag_info.uses', {uses: tag.uses.toLocaleString(language)}));
 
-    embed.addField(translate('tag_info.information'), description.join('\n'));
+    payload.fields!.push({name: translate('tag_info.information'), value: description.join('\n')});
   }
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

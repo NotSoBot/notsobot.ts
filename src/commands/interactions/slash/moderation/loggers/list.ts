@@ -1,9 +1,9 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { GuildLoggerTypes, StatusEmojis } from '../../../../../constants';
 import GuildSettingsStore from '../../../../../stores/guildsettings';
-import { I18n, editOrReply } from '../../../../../utils';
+import { I18n, displayReply } from '../../../../../utils';
 
 import { createLoggersEmbed } from '../../../../prefixed/moderation/loggers';
 
@@ -27,7 +27,6 @@ export class ModerationLoggersListCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       permissions: [Permissions.MANAGE_GUILD],
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {name: 'only', description: 'Only show loggers of this type', ...I18n.optionLocalizations('commands.moderation.loggers.list.only'), choices: LOGGER_TYPE_CHOICES, type: Number},
       ],
@@ -38,7 +37,7 @@ export class ModerationLoggersListCommand extends BaseInteractionCommandOption {
     const settings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
     if (!settings) {
       const { translate } = await I18n.getTranslator(context);
-      return editOrReply(context, {content: `${StatusEmojis.WARNING} ${translate('errors.unknown_lol')}`, flags: MessageFlags.EPHEMERAL});
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.unknown_lol')}`, ephemeral: true});
     }
     return createLoggersEmbed(context, settings.loggers, {only: (args.only === undefined) ? null : args.only});
   }

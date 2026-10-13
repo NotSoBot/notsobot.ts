@@ -26,7 +26,7 @@ export default class PixelateCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -width 2`,
         ],
         id: Formatter.Commands.MediaIVManipulationPixelate.COMMAND_ID,
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         usage: '?<emoji,user:id|mention|name,url> (-nolines) (-width <number>)',
       },
     });

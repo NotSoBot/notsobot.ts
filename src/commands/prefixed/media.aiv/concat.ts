@@ -14,7 +14,7 @@ export default class ConcatCommand extends BaseMediasCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.CONVERSION,
         description: 'Concat two Medias together',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 @cake#0001`,

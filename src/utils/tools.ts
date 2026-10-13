@@ -20,6 +20,7 @@ import {
 import {
   Components,
   ComponentButton,
+  ComponentContainer,
   ComponentContext,
   Embed,
   Markup,
@@ -1722,18 +1723,26 @@ export interface DisplayField {
   value: string,
 }
 
+// text/url fields take null like the embed setters did, null is the same as not set
 export interface DisplayPayload {
+  allowedMentions?: Command.EditOrReply['allowedMentions'],
   color?: number,
-  description?: string,
+  // buttons/select menus shown under the response, their callbacks and timeout stay on this object
+  components?: Components,
+  description?: null | string,
+  // only for interactions
+  ephemeral?: boolean,
   fields?: Array<DisplayField>,
   files?: Array<RequestTypes.File>,
-  footer?: string,
+  footer?: null | string,
   // only embeds can show a footer icon
-  footerIconUrl?: string,
-  image?: string,
-  thumbnail?: string,
-  title?: string,
-  url?: string,
+  footerIconUrl?: null | string,
+  image?: null | string,
+  thumbnail?: null | string,
+  // embeds show it next to the footer, components/text show it as a discord timestamp in the footer
+  timestamp?: Date | number | string,
+  title?: null | string,
+  url?: null | string,
 }
 
 // prefixed embeds need the embed links permission, components v2 and interactions don't
@@ -1741,7 +1750,12 @@ export interface DisplayPayload {
 export async function getResponseDisplayForReply(
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<UserSettingsResponseDisplayTypes> {
-  const display = await getResponseDisplay(context);
+  let display = UserSettingsResponseDisplayTypes.DEFAULT;
+  try {
+    display = await getResponseDisplay(context);
+  } catch(error) {
+    // the api might be down (or be what errored), still respond
+  }
   if (
     display === UserSettingsResponseDisplayTypes.LEGACY &&
     context instanceof Command.Context &&
@@ -1760,6 +1774,23 @@ const DISPLAY_MAX_EMBED_LENGTH = 6000;
 const DISPLAY_MAX_TEXT_LENGTH = 2000;
 
 const DISPLAY_UPLOAD_FILENAME = 'response.txt';
+const DISPLAY_IMAGE_FILENAME_REGEX = /\.(gif|jpe?g|png|webp)$/i;
+
+// the footer line for components/text, which have no timestamp of their own
+function displayFooterText(payload: DisplayPayload): string {
+  const parts: Array<string> = [];
+  if (payload.footer) {
+    parts.push(payload.footer);
+  }
+  if (payload.timestamp !== undefined) {
+    const date = new Date(payload.timestamp);
+    if (!isNaN(date.getTime())) {
+      // short date and time
+      parts.push(`<t:${Math.floor(date.getTime() / 1000)}:f>`);
+    }
+  }
+  return parts.join(' • ');
+}
 
 // blank fields only exist to space out inline embed fields
 function isDisplayFieldBlank(field: DisplayField): boolean {
@@ -1768,7 +1799,15 @@ function isDisplayFieldBlank(field: DisplayField): boolean {
 
 interface DisplayRendered {
   fits: boolean,
-  message: Command.EditOrReply | Structures.InteractionEditOrRespond,
+  message: Record<string, any>,
+}
+
+export interface DisplayReplyOptions {
+  // a button/select menu press to respond through, the display setting and invoker still come from the command's context
+  replyTo?: ComponentContext,
+  // when the response is too long, what the uploaded file is called and the text shown instead
+  uploadDescription?: string,
+  uploadFilename?: string,
 }
 
 function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): DisplayRendered {
@@ -1805,14 +1844,25 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): Di
     const mediaGallery = container.createMediaGallery();
     mediaGallery.addItem({media: {url: payload.image}});
   }
-  // components v2 only shows attachments that a component points to
-  for (let file of payload.files || []) {
-    if (payload.image !== `attachment://${file.filename}`) {
-      container.createFile({file: {url: `attachment://${file.filename}`}});
+  // components v2 only shows attachments that a component points to, images go in a gallery so they show inline
+  // files already shown as the image or thumbnail (or the footer icon on embeds) don't get shown again
+  const shown = [payload.image, payload.thumbnail, payload.footerIconUrl];
+  const files = (payload.files || []).filter((file) => !shown.includes(`attachment://${file.filename}`));
+  const images = files.filter((file) => DISPLAY_IMAGE_FILENAME_REGEX.test(file.filename || ''));
+  if (images.length) {
+    const mediaGallery = container.createMediaGallery();
+    for (let file of images) {
+      mediaGallery.addItem({media: {url: `attachment://${file.filename}`}, spoiler: file.hasSpoiler});
+    }
+  }
+  for (let file of files) {
+    if (!images.includes(file)) {
+      container.createFile({file: {url: `attachment://${file.filename}`}, spoiler: file.hasSpoiler});
     }
   }
 
-  const footer = [invokedBy, (payload.footer) ? `-# ${payload.footer}` : ''].filter(Boolean).join('\n');
+  const footerText = displayFooterText(payload);
+  const footer = [invokedBy, (footerText) ? `-# ${footerText}` : ''].filter(Boolean).join('\n');
   if (footer) {
     container.addSeparator();
     container.addTextDisplay({content: footer});
@@ -1823,6 +1873,38 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): Di
     fits: (content.length + footer.length) <= DISPLAY_MAX_COMPONENTS_TEXT_LENGTH,
     message: {components, files: payload.files, flags: MessageFlags.IS_COMPONENTS_V2},
   };
+}
+
+// the components v2 layout of a payload (no invoker line or buttons), for building pages
+export function createDisplayLayout(payload: DisplayPayload): Components {
+  return renderDisplayComponents(payload, '').message.components as Components;
+}
+
+// turns an embed (like ones from tagscript pages) into a payload, so it can be shown as components v2
+export function displayPayloadFromEmbed(embed: Embed): DisplayPayload {
+  const raw = JSON.parse(JSON.stringify(embed));
+  const payload: DisplayPayload = {
+    color: (typeof(raw.color) === 'number') ? raw.color : undefined,
+    fields: (Array.isArray(raw.fields)) ? raw.fields.map((field: any) => ({inline: field.inline, name: String(field.name), value: String(field.value)})) : [],
+    footer: (raw.footer && raw.footer.text) ? String(raw.footer.text) : undefined,
+    image: (raw.image && raw.image.url) ? String(raw.image.url) : undefined,
+    thumbnail: (raw.thumbnail && raw.thumbnail.url) ? String(raw.thumbnail.url) : undefined,
+    title: (raw.title) ? String(raw.title) : undefined,
+    url: (raw.url) ? String(raw.url) : undefined,
+  };
+  const description: Array<string> = [];
+  if (raw.author && raw.author.name) {
+    // components have no author, show it as a small line above everything
+    const name = (raw.author.url) ? Markup.url(String(raw.author.name), String(raw.author.url)) : String(raw.author.name);
+    description.push(`-# ${name}`);
+  }
+  if (raw.description) {
+    description.push(String(raw.description));
+  }
+  if (description.length) {
+    payload.description = description.join('\n');
+  }
+  return payload;
 }
 
 function renderDisplayEmbed(
@@ -1851,7 +1933,10 @@ function renderDisplayEmbed(
     embed.setImage(payload.image);
   }
   if (payload.footer) {
-    embed.setFooter(payload.footer, payload.footerIconUrl);
+    embed.setFooter(payload.footer, payload.footerIconUrl || undefined);
+  }
+  if (payload.timestamp !== undefined) {
+    embed.setTimestamp(payload.timestamp);
   }
 
   const length = (
@@ -1887,8 +1972,9 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string): DisplayR
     lines.push(payload.image);
   }
   lines.push(invokedBy);
-  if (payload.footer) {
-    lines.push(`-# ${payload.footer}`);
+  const footerText = displayFooterText(payload);
+  if (footerText) {
+    lines.push(`-# ${footerText}`);
   }
 
   const content = lines.filter(Boolean).join('\n');
@@ -1898,10 +1984,12 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string): DisplayR
   };
 }
 
-export async function displayReply(
+// builds the message options without sending them, for responses that need to go somewhere other than the command's reply
+export async function renderDisplay(
   context: Command.Context | Interaction.InteractionContext,
   payload: DisplayPayload,
-) {
+  options: DisplayReplyOptions = {},
+): Promise<Record<string, any>> {
   const [ display, { translate } ] = await Promise.all([
     getResponseDisplayForReply(context),
     getTranslator(context),
@@ -1930,12 +2018,39 @@ export async function displayReply(
     }
     rendered = render({
       ...payload,
-      description: translate('media.response_uploaded'),
+      description: options.uploadDescription || translate('media.response_uploaded'),
       fields: [],
-      files: [...(payload.files || []), {filename: DISPLAY_UPLOAD_FILENAME, value: parts.join('\n\n')}],
+      files: [...(payload.files || []), {filename: options.uploadFilename || DISPLAY_UPLOAD_FILENAME, value: parts.join('\n\n')}],
     });
   }
-  return editOrReply(context, rendered.message);
+
+  const message = rendered.message;
+  // default to no mentions, the paginator and some commands send this without going through editOrReply
+  message.allowedMentions = {parse: [], repliedUser: false, ...payload.allowedMentions};
+  if (display === UserSettingsResponseDisplayTypes.LEGACY || display === UserSettingsResponseDisplayTypes.NO_EMBED) {
+    // always send it, so editing a response removes buttons it had before
+    message.components = payload.components || [];
+  } else if (payload.components) {
+    // put the container first in the caller's components, so the buttons' callbacks and timeout keep working
+    // (replacing the container from an earlier render of the same components)
+    const root = payload.components;
+    const rows = (root.components as Array<any>).filter((component) => !(component instanceof ComponentContainer));
+    (root.components as Array<any>).splice(0, root.components.length, ...(message.components as Components).components, ...rows);
+    message.components = root;
+  }
+  if (payload.ephemeral && context instanceof Interaction.InteractionContext && !options.replyTo) {
+    message.flags = (message.flags || 0) | MessageFlags.EPHEMERAL;
+  }
+  return message;
+}
+
+export async function displayReply(
+  context: Command.Context | Interaction.InteractionContext,
+  payload: DisplayPayload,
+  options: DisplayReplyOptions = {},
+) {
+  const message = await renderDisplay(context, payload, options);
+  return editOrReply(options.replyTo || context, message);
 }
 
 

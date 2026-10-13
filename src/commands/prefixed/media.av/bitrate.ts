@@ -14,7 +14,7 @@ export default class BitRateCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Set an Audio or Video File\'s Bit Rate',
         examples: [
           COMMAND_NAME,

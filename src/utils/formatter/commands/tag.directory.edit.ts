@@ -5,7 +5,7 @@ import { editTag, editTagsDirectoryTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.directory.edit';
@@ -29,7 +29,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const description: Array<string> = ['Ok, updated'];
   if (args.content) {
@@ -55,5 +54,5 @@ export async function createMessage(
     }
   }
 
-  return editOrReply(context, description.join('\n'));
+  return displayReply(context, {description: description.join('\n')});
 }

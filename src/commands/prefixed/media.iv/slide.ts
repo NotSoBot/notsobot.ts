@@ -18,7 +18,7 @@ export default class SlideCommand extends BaseImageOrVideoCommand {
         {name: 'speed', aliases: ['s'], type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Sliding Effect to an Image or Video',
         examples: [
           COMMAND_NAME,

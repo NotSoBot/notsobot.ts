@@ -1,15 +1,15 @@
 import { ClusterClient, Command, Interaction, Structures } from 'detritus-client';
 import { Colors } from 'detritus-client/lib/constants';
-import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
+import { Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { DateMomentLogFormat } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import {
+  DisplayPayload,
   Paginator,
   Parameters,
   createTimestampMomentFromGuild,
-  createUserEmbed,
 } from '../../../utils';
 
 
@@ -96,7 +96,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const { results, user } = args.payload;
 
   const pageLimit = results.length || 1;
@@ -104,23 +103,23 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     onPage: (page) => {
-      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-      embed.setTitle(user.toString());
-      embed.setUrl(user.jumpLink);
-      embed.setColor(Colors.BLURPLE);
+      const display: DisplayPayload = {fields: []};
+      display.title = user.toString();
+      display.url = user.jumpLink;
+      display.color = Colors.BLURPLE;
 
       const resultNumber = page - 1;
       if (resultNumber in results) {
         const { guild, joinPosition, member, owner } = results[resultNumber];
 
         if (guild.description) {
-          embed.setDescription(`**${Markup.escape.all(guild.name)}**\n${guild.description}`);
+          display.description = `**${Markup.escape.all(guild.name)}**\n${guild.description}`;
         } else {
-          embed.setDescription(`**${Markup.escape.all(guild.name)}**`);
+          display.description = `**${Markup.escape.all(guild.name)}**`;
         }
 
         if (guild.icon) {
-          embed.setThumbnail(<string> guild.iconUrlFormat(null, {size: 1024}));
+          display.thumbnail = <string> guild.iconUrlFormat(null, {size: 1024});
         }
 
         {
@@ -152,12 +151,12 @@ export async function createMessage(
           if (guild.vanityUrlCode) {
             description.push(translate('owner_seenon.vanity', {Invite: Endpoints.Invite.SHORT(guild.vanityUrlCode)})); 
           }
-          embed.addField(translate('owner_seenon.information'), description.join('\n'), true);
+          display.fields!.push({inline: true, name: translate('owner_seenon.information'), value: description.join('\n')});
         }
       }
-      embed.setFooter(translate('owner_seenon.guild_of', {page: page, pageLimit: pageLimit}));
+      display.footer = translate('owner_seenon.guild_of', {page: page, pageLimit: pageLimit});
 
-      return embed;
+      return {display: display};
     },
   });
   return await paginator.start();

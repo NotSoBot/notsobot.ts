@@ -24,7 +24,7 @@ export default class RGBSplitCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -offset 10`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationRGBSplit.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-offset <number>)',
       },

@@ -19,7 +19,7 @@ export default class JoinCommand extends BaseMediasCommand {
         {name: 'vertical', aliases: ['v'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.CONVERSION,
         description: 'Join two medias together',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,

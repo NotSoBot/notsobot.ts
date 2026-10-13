@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, EmbedColors } from '../../../constants';
 import { getTranslator } from '../../i18n';
-import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -88,8 +88,8 @@ export async function createMessage(
     }
   }
 
-  const embed = createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
+  const display: DisplayPayload = {fields: []};
+  display.color = EmbedColors.DEFAULT;
   {
     const description: Array<string> = [];
     if (canEdit.length) {
@@ -104,7 +104,7 @@ export async function createMessage(
       description.push('\u200b');
     }
     if (description.length) {
-      embed.addField(translate('moderation_kick.kicked'), description.join('\n'));
+      display.fields!.push({name: translate('moderation_kick.kicked'), value: description.join('\n')});
     }
   }
 
@@ -138,13 +138,13 @@ export async function createMessage(
     }
 
     if (description.length) {
-      embed.addField(translate('moderation_kick.unable_to_kick'), description.join('\n'));
+      display.fields!.push({name: translate('moderation_kick.unable_to_kick'), value: description.join('\n')});
     }
   }
 
   if (payload.notFound.length) {
     const text = payload.notFound.map((notFound) => Markup.escape.all(notFound)).join(', ');
-    embed.addField(translate('moderation_kick.not_found'), text);
+    display.fields!.push({name: translate('moderation_kick.not_found'), value: text});
   }
 
   {
@@ -163,9 +163,9 @@ export async function createMessage(
       description.push((1 < notFound) ? translate('moderation_kick.unable_to_find_members', {notFound: notFound.toLocaleString(language)}) : translate('moderation_kick.unable_to_find_member', {notFound: notFound.toLocaleString(language)}));
     }
     if (description.length) {
-      embed.setFooter(description.join(', '));
+      display.footer = description.join(', ');
     }
   }
 
-  return editOrReply(context, {embed});
+  return displayReply(context, display);
 }

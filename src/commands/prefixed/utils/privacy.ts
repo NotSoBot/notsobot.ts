@@ -18,7 +18,7 @@ export default class PrivacyCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        category: CommandCategories.UTILS,
+        category: CommandCategories.UTILITY,
         id: Formatter.Commands.UtilsPrivacy.COMMAND_ID,
         usage: '',
       },

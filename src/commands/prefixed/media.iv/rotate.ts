@@ -18,7 +18,7 @@ export default class RotateCommand extends BaseImageOrVideoCommand {
         {name: 'degrees', aliases: ['d'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Rotate an Image or Video (default: 90 degrees)',
         examples: [
           COMMAND_NAME,

@@ -24,7 +24,7 @@ export default class AudioEqualizerCommand extends BaseAudioOrVideoCommand {
         {name: 'treble', aliases: ['t']},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Manipulate an Audio or Video\'s Equalizer Settings',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

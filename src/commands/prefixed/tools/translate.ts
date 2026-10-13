@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GoogleLocales, StatusEmojis } from '../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -33,7 +32,7 @@ export default class TranslateCommand extends BaseCommand {
       ],
       label: 'text',
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Translate text to a different language',
         examples: [
           `${COMMAND_NAME} не так бот`,
@@ -42,7 +41,6 @@ export default class TranslateCommand extends BaseCommand {
         id: Formatter.Commands.ToolsTranslate.COMMAND_ID,
         usage: '<text> (-to <language>) (-from <language>)',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.targetText,
     });
   }
@@ -53,7 +51,7 @@ export default class TranslateCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.needs_text')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.needs_text')}`});
   }
 
   async run(context: Command.Context, args: CommandArgs) {

@@ -1,11 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesWeather } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, MeasurementUnits } from '../../../constants';
-import { createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, displayReply, toTitleCase } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.weather';
@@ -21,17 +20,17 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { location, timezone, thumbnail, weather } = await utilitiesWeather(context, {
     query: args.query,
     units: args.units,
   });
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter('OpenWeather', EmbedBrands.OPEN_WEATHER_MAP);
-  embed.setUrl(location.urls.place);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.footer = 'OpenWeather';
+  payload.footerIconUrl = EmbedBrands.OPEN_WEATHER_MAP;
+  payload.url = location.urls.place;
 
   {
     let title: string;
@@ -40,7 +39,7 @@ export async function createMessage(
     } else {
       title = location.name;
     }
-    embed.setTitle(title);
+    payload.title = title;
   }
 
   const { current, units } = weather;
@@ -76,18 +75,15 @@ export async function createMessage(
       description.push(translate('tools_weather.wind_feels', {description: beaufortScale.description, value: toTitleCase(beaufortScale.text)}));
     }
 
-    embed.setDescription(description.join('\n'));
+    payload.description = description.join('\n');
     // add sunrise, sunset
   }
 
   if (thumbnail) {
-    embed.setThumbnail(thumbnail.url);
+    payload.thumbnail = thumbnail.url;
   }
 
-  return editOrReply(context, {
-    embed,
-    flags: (args.isEphemeral) ? MessageFlags.EPHEMERAL : undefined,
-  });
+  return displayReply(context, {...payload, ephemeral: args.isEphemeral});
 }
 
 

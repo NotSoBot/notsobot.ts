@@ -1,5 +1,4 @@
 import { Interaction } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { Formatter, I18n } from '../../../../utils';
 
@@ -19,7 +18,6 @@ export class UtilsMemoryUsageCommand extends BaseInteractionCommandOption {
 
   constructor() {
     super({
-      permissionsClient: [Permissions.EMBED_LINKS],
     });
   }
 

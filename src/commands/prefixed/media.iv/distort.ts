@@ -14,7 +14,7 @@ export default class DistortCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Use ImageMagick\'s Distort Operation on an Image or Video',
         examples: [
           COMMAND_NAME,

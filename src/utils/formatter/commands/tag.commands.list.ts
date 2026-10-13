@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchGuildTagsCommands, fetchUserTagsCommands } from '../../../api';
 import { getTranslator } from '../../i18n';
@@ -7,13 +7,13 @@ import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
   DefaultParameters,
+  DisplayPayload,
   Paginator,
   Parameters,
   chunkArray,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
+  displayReply,
 } from '../../../utils';
 
 
@@ -31,7 +31,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const showMeOnly = context.inDm || args.showMeOnly;
 
@@ -46,8 +45,8 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
         {
           const description: Array<string> = [];
@@ -56,14 +55,14 @@ export async function createMessage(
           } else {
             description.push(translate('tag_commands_list.showing_this_server_s_custom_commands'));
           }
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
 
         let footer = (showMeOnly) ? translate('tag_commands_list.global_custom_commands') : translate('tag_commands_list.server_custom_commands')
         if (pageLimit !== 1) {
           footer = translate('tag_commands_list.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
         }
-        embed.setFooter(translate('tag_commands_list.total_tags', {count: count.toLocaleString(language), footer: footer}));
+        payload.footer = translate('tag_commands_list.total_tags', {count: count.toLocaleString(language), footer: footer});
 
         const page = pages[pageNumber - 1];
 
@@ -84,16 +83,16 @@ export async function createMessage(
               */
             }
 
-            embed.addField('\u200b', description.join('\n'), true);
+            payload.fields!.push({inline: true, name: '\u200b', value: description.join('\n')});
           }
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
 
   const text = (showMeOnly) ? translate('tag_commands_list.you_don_t_have_any_global_custom') : translate('tag_commands_list.this_server_has_no_custom_commands');
-  return editOrReply(context, text);
+  return displayReply(context, {description: text});
 }

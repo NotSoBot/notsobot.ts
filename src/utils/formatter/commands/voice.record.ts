@@ -1,11 +1,11 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { DiscordOpusFormat, MessageFlags } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { DiscordOpusFormat } from 'detritus-client/lib/constants';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { Writer as WavWriter } from 'wav';
 
 import { Mimetypes } from '../../../constants';
-import { editOrReply, mediaReplyFromOptions } from '../../../utils';
+import { displayReply, mediaReplyFromOptions } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -26,18 +26,17 @@ export async function createMessage(
   const { language, translate, translateMaybe } = await getTranslator(context);
   const targetId = (args.target) ? args.target.id : context.userId;
 
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const writer = new WavWriter({channels: VOICE_CHANNELS, sampleRate: VOICE_SAMPLE_RATE});
 
   const member = context.guild && context.guild.members.get(targetId);
   if (!member || !member.voiceState) {
-    return editOrReply(context, translate('voice_record.go_join_a_voice_channel'));
+    return displayReply(context, {description: translate('voice_record.go_join_a_voice_channel')});
   }
 
   const channel = member.voiceState.channel;
   if (!channel || !channel.canJoin) {
-    return editOrReply(context, translate('voice_record.cannot_join_ur_channel'));
+    return displayReply(context, {description: translate('voice_record.cannot_join_ur_channel')});
   }
 
   const { connection, isNew } = (await channel.join({
@@ -78,5 +77,5 @@ export async function createMessage(
     });
   }, args.seconds * 1000);
 
-  return editOrReply(context, translate('voice_record.ok_recording_seconds_worth_of_audio', {seconds: args.seconds}));
+  return displayReply(context, {description: translate('voice_record.ok_recording_seconds_worth_of_audio', {seconds: args.seconds})});
 }

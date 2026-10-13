@@ -1,11 +1,11 @@
 import { Command, CommandClient, Interaction, Structures } from 'detritus-client';
 import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } from 'detritus-client/lib/constants';
-import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { I18n, Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, I18n, Parameters, createTimestampMomentFromGuild, displayReply, renderDisplay } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -77,7 +77,7 @@ export default class NickMassCommand extends BaseCommand {
   async onCancel(context: Command.Context): Promise<any> {
     const { language, translate } = await I18n.getTranslator(context);
     if (context.guild && MAX_MEMBERS < context.guild.memberCount) {
-      return editOrReply(context, translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)}));
+      return displayReply(context, {description: translate('nickmass.too_many_members', {max: MAX_MEMBERS.toLocaleString(language)})});
     }
   }
 
@@ -94,10 +94,10 @@ export default class NickMassCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.role === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`});
     }
     if (args.nobots && args.nousers) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('nickmass.who_then_bots')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('nickmass.who_then_bots')}`});
     }
     return super.onCancelRun(context, args);
   }
@@ -135,14 +135,14 @@ export async function createNickMassMessage(
 
   const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
   if (isExecuting.nick) {
-    return editOrReply(context, translate('nickmass.in_progress'));
+    return displayReply(context, {description: translate('nickmass.in_progress')});
   }
 
   if (members.length) {
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
-    embed.setTitle(translate('nickmass.can_edit', {count: members.length.toLocaleString(language), total: guild.members.length.toLocaleString(language)}));
-    embed.setDescription(translate('nickmass.estimate', {seconds: ((members.length / amount) * time).toLocaleString(language)}));
+    const payload: DisplayPayload = {fields: []};
+    payload.color = EmbedColors.DEFAULT;
+    payload.title = translate('nickmass.can_edit', {count: members.length.toLocaleString(language), total: guild.members.length.toLocaleString(language)});
+    payload.description = translate('nickmass.estimate', {seconds: ((members.length / amount) * time).toLocaleString(language)});
 
     const components = new Components({timeout: 5 * (60 * 1000)});
     components.createButton({
@@ -161,8 +161,8 @@ export async function createNickMassMessage(
         const reason = translate('nickmass.audit_reason', {user: `${context.user} (${context.user.id})`});
 
         {
-          embed.setDescription(translate('nickmass.starting', {count: members.length.toLocaleString(language), seconds: ((members.length / amount) * time).toLocaleString(language)}));
-          embed.setColor(EmbedColors.LOG_UPDATE);
+          payload.description = translate('nickmass.starting', {count: members.length.toLocaleString(language), seconds: ((members.length / amount) * time).toLocaleString(language)});
+          payload.color = EmbedColors.LOG_UPDATE;
 
           const components = new Components();
           components.createButton({
@@ -191,9 +191,9 @@ export async function createNickMassMessage(
                 description.push('');
                 description.push(translate('nickmass.time_left', {seconds: (((members.length - finished) / amount) * time).toLocaleString(language)}));
               }
-              embed.setDescription(description.join('\n'));
+              payload.description = description.join('\n');
 
-              ctx.editOrRespond({embed});
+              ctx.editOrRespond(await renderDisplay(context, {...payload, components}));
             },
           });
           components.createButton({
@@ -206,8 +206,8 @@ export async function createNickMassMessage(
               }
               isExecuting.nick = false;
 
-              embed.setColor(EmbedColors.ERROR);
-              embed.setTitle(translate('nickmass.cancelled_title'));
+              payload.color = EmbedColors.ERROR;
+              payload.title = translate('nickmass.cancelled_title');
               {
                 const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
@@ -227,12 +227,12 @@ export async function createNickMassMessage(
                     description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
                   }
                 }
-                embed.setDescription(description.join('\n'));
+                payload.description = description.join('\n');
               }
-              return ctx.editOrRespond({components: [], embed});
+              return displayReply(context, payload, {replyTo: ctx});
             },
           });
-          await ctx.editOrRespond({components, embed});
+          await displayReply(context, {...payload, components}, {replyTo: ctx});
         }
 
         isExecuting.nick = true;
@@ -293,8 +293,8 @@ export async function createNickMassMessage(
         }
 
         if (!isExecuting.nick) {
-          embed.setColor(EmbedColors.ERROR);
-          embed.setTitle(translate('nickmass.cancelled_title'));
+          payload.color = EmbedColors.ERROR;
+          payload.title = translate('nickmass.cancelled_title');
           {
             const finished = amounts.changed + amounts.skipped + amounts.failed + errors.length;
 
@@ -314,10 +314,10 @@ export async function createNickMassMessage(
                 description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
               }
             }
-            embed.setDescription(description.join('\n'));
+            payload.description = description.join('\n');
           }
 
-          return finishWithEmbed(context, ctx, message, embed);
+          return finishWithDisplay(context, ctx, message, payload);
         }
         isExecuting.nick = false;
 
@@ -340,11 +340,11 @@ export async function createNickMassMessage(
               description.push(translate('nickmass.failed_unknown', {count: errors.length.toLocaleString(language)}));
             }
           }
-          embed.setColor(EmbedColors.LOG_CREATION);
-          embed.setDescription(description.join('\n'));
+          payload.color = EmbedColors.LOG_CREATION;
+          payload.description = description.join('\n');
         }
 
-        return finishWithEmbed(context, ctx, message, embed);
+        return finishWithDisplay(context, ctx, message, payload);
       },
     });
 
@@ -356,33 +356,33 @@ export async function createNickMassMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        embed.setColor(EmbedColors.ERROR);
-        embed.setTitle(translate('nickmass.cancelled_title'));
-        embed.setDescription(translate('nickmass.cancelled_before', {count: members.length.toLocaleString(language)}));
-        await ctx.editOrRespond({components: [], embed});
+        payload.color = EmbedColors.ERROR;
+        payload.title = translate('nickmass.cancelled_title');
+        payload.description = translate('nickmass.cancelled_before', {count: members.length.toLocaleString(language)});
+        await displayReply(context, payload, {replyTo: ctx});
       },
     });
 
-    const message = await replyWithMessage(context, {components, embed});
+    const message = await replyWithMessage(context, await renderDisplay(context, {...payload, components}));
     components.onTimeout = async () => {
       try {
-        embed.setColor(EmbedColors.ERROR);
-        embed.setTitle(translate('nickmass.expired_title'));
-        embed.setFooter(translate('nickmass.expired'));
-        await expireWithEmbed(context, message, embed);
+        payload.color = EmbedColors.ERROR;
+        payload.title = translate('nickmass.expired_title');
+        payload.footer = translate('nickmass.expired');
+        await expireWithDisplay(context, message, payload);
       } catch(error) {
 
       }
     };
     return message || undefined;
   }
-  return editOrReply(context, translate('nickmass.none'));
+  return displayReply(context, {description: translate('nickmass.none')});
 }
 
 
 export async function replyWithMessage(
   context: Command.Context | Interaction.InteractionContext,
-  options: Command.EditOrReply,
+  options: Record<string, any>,
 ): Promise<Structures.Message | null> {
   if (context instanceof Command.Context) {
     return context.reply(options);
@@ -391,50 +391,68 @@ export async function replyWithMessage(
   return null;
 }
 
-export async function finishWithEmbed(
+export async function finishWithDisplay(
   context: Command.Context | Interaction.InteractionContext,
   ctx: ComponentContext,
   message: Structures.Message | null,
-  embed: Embed,
+  payload: DisplayPayload,
 ) {
+  const options = await renderDisplay(context, payload);
   if (message && message.deleted) {
-    return message.reply({embed});
+    return message.reply(options);
   }
   if (!ctx.interaction.deleted) {
     try {
-      return await ctx.editOrRespond({components: [], embed});
+      return await ctx.editOrRespond(options);
     } catch(error) {
       // interaction tokens expire after 15 minutes, long runs fall through to the fallbacks below
     }
   }
   if (message) {
-    return message.edit({components: [], embed});
+    return message.edit(options);
   }
   // slash commands have no message of their own to edit, so post the results as a normal message instead
   try {
-    return await context.rest.createMessage(context.channelId!, {
-      allowedMentions: {users: [context.userId]},
-      content: `<@${context.userId}>`,
-      embed,
-    });
+    return await context.rest.createMessage(context.channelId!, await renderDisplayWithMention(context, payload));
   } catch(error) {
     // we can't send messages in the channel, so dm the results to whoever started it
     const channel = await context.rest.createDm({recipientId: context.userId});
-    return channel.createMessage({embed});
+    return channel.createMessage(options);
   }
 }
 
 
-export async function expireWithEmbed(
+// pings whoever started it, embeds can't ping and components v2 can't have content, so the mention goes where it'll work
+async function renderDisplayWithMention(
+  context: Command.Context | Interaction.InteractionContext,
+  payload: DisplayPayload,
+): Promise<Record<string, any>> {
+  const mention = `<@${context.userId}>`;
+  const allowedMentions = {users: [context.userId]};
+  const options = await renderDisplay(context, {...payload, allowedMentions});
+  if (options.embed) {
+    options.content = mention;
+    return options;
+  }
+  return renderDisplay(context, {
+    ...payload,
+    allowedMentions,
+    description: [mention, payload.description].filter(Boolean).join('\n'),
+  });
+}
+
+
+export async function expireWithDisplay(
   context: Command.Context | Interaction.InteractionContext,
   message: Structures.Message | null,
-  embed: Embed,
+  payload: DisplayPayload,
 ) {
+  const options = await renderDisplay(context, payload);
   if (message) {
     if (message.canEdit) {
-      await message.edit({components: [], embed});
+      await message.edit(options);
     }
   } else if (context instanceof Interaction.InteractionContext) {
-    await context.editOrRespond({components: [], embed});
+    await context.editOrRespond(options);
   }
 }

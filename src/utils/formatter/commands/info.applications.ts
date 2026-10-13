@@ -1,9 +1,8 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Colors } from 'detritus-client/lib/constants';
-import { Embed } from 'detritus-client/lib/utils';
 
 import { getTranslator } from '../../i18n';
-import { Paginator, createUserEmbed } from '../../../utils';
+import { DisplayPayload, Paginator } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -22,7 +21,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { applications } = args;
 
@@ -32,9 +30,9 @@ export async function createMessage(
     onPage: (page) => {
       const application = applications[page - 1];
 
-      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-      embed.setColor(Colors.BLURPLE);
-      embed.setTitle(application.name);
+      const payload: DisplayPayload = {fields: []};
+      payload.color = Colors.BLURPLE;
+      payload.title = application.name;
 
       {
         const description: Array<string> = [];
@@ -47,26 +45,26 @@ export async function createMessage(
 
         description.push('');
         description.push(application.description);
-        embed.setDescription(description.join('\n'));
+        payload.description = description.join('\n');
       }
 
       if (application.splash) {
         const thumbnail = application.splashUrlFormat(null, {size: 1024}) as string;
-        embed.setThumbnail(thumbnail);
+        payload.thumbnail = thumbnail;
       }
 
       if (application.coverImage) {
         const image = application.coverImageUrlFormat(null, {size: 128}) as string;
-        embed.setImage(image);
+        payload.image = image;
       }
 
       if (application.aliases) {
-        embed.addField(translate('info.applications.aliases'), application.aliases.join(', '));
+        payload.fields!.push({name: translate('info.applications.aliases'), value: application.aliases.join(', ')});
       }
 
       if (application.publishers && application.publishers.length) {
         const publishers = application.publishers.map((publisher: Structures.ApplicationPublisher) => publisher.name);
-        embed.addField(translate('info.applications.publishers'), publishers.join(', '));
+        payload.fields!.push({name: translate('info.applications.publishers'), value: publishers.join(', ')});
       }
 
       {
@@ -83,24 +81,26 @@ export async function createMessage(
           }
         }
         if (description.size) {
-          embed.addField(translate('activity.store_links'), Array.from(description).join(', '), true);
+          payload.fields!.push({inline: true, name: translate('activity.store_links'), value: Array.from(description).join(', ')});
         }
       }
 
       if (application.youtubeTrailerVideoId) {
         const url = application.youtubeTrailerUrl as string;
-        embed.addField(translate('info.applications.trailer'), `[**YouTube**](${url})`, true);
+        payload.fields!.push({inline: true, name: translate('info.applications.trailer'), value: `[**YouTube**](${url})`});
       }
 
       const footerIconUrl = (application.icon) ? application.iconUrlFormat(null, {size: 1024}) as string : undefined;
       if (1 < pageLimit) {
-        embed.setFooter(`${translate('common.page_of', {page, total: pageLimit})} • ${translate('info.applications.added')}`, footerIconUrl);
+        payload.footer = `${translate('common.page_of', {page, total: pageLimit})} • ${translate('info.applications.added')}`;
+        payload.footerIconUrl = footerIconUrl;
       } else {
-        embed.setFooter(translate('info.applications.added'), footerIconUrl);
+        payload.footer = translate('info.applications.added');
+        payload.footerIconUrl = footerIconUrl;
       }
-      embed.setTimestamp(application.createdAt);
+      payload.timestamp = application.createdAt;
 
-      return embed;
+      return {display: payload};
     },
   });
   return await paginator.start();

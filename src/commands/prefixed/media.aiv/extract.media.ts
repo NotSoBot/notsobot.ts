@@ -15,7 +15,7 @@ export default class ExtractMediaCommand extends BaseMediaCommand {
 
       aliases: ['extract m', 'ex media', 'ex m'],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.CONVERSION,
         description: 'Extract Audio and Frames from Media into a Zip File',
         examples: [
           COMMAND_NAME,

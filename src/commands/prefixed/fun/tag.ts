@@ -21,7 +21,7 @@ export default class TagCommand extends BaseCommand {
 
       aliases: ['t', 'tag show', 't show'],
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'Show a tag',
         examples: [
           `${COMMAND_NAME} something`,

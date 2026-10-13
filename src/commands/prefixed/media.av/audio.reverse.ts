@@ -15,7 +15,7 @@ export default class AudioReverseCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['a reverse'],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Reverse Audio',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

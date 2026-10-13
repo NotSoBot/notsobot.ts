@@ -14,7 +14,7 @@ export default class VaporwaveCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Vaporwave-theme an Image or Video',
         examples: [
           COMMAND_NAME,

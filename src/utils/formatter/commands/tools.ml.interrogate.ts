@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesMLInterrogate } from '../../../api';
-import { editOrReply } from '../..';
+import { displayReply } from '../..';
 
 
 export const COMMAND_ID = 'tools.ml.interrogate';
@@ -16,5 +16,5 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const response = await utilitiesMLInterrogate(context, args);
-  return editOrReply(context, response.prompt);
+  return displayReply(context, {description: response.prompt});
 }

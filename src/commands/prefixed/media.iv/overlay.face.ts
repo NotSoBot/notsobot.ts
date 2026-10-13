@@ -18,7 +18,7 @@ export default class OverlayFaceCommand extends BaseMediasCommand {
 		{name: 'scale', aliases: ['s'], type: 'float'},
 	  ],
 	  metadata: {
-		category: CommandCategories.IMAGE,
+		category: CommandCategories.EFFECTS,
 		description: 'Overlay media onto the face of another media',
 		examples: [
 		  `${COMMAND_NAME} @cakedan @notsobot`,

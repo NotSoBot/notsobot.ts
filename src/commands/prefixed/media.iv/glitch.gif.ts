@@ -21,7 +21,7 @@ export default class GlitchAnimatedCommand extends BaseImageOrVideoCommand {
         //{name: 'type'}, // theres glitch2, but maybe get rid of it?
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Glitch an Image or Video, Single-framed Images become Animated',
         examples: [
           COMMAND_NAME,

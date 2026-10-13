@@ -19,7 +19,7 @@ export default class SpinCommand extends BaseImageOrVideoCommand {
         {name: 'nocrop', type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Create a spinning disk from an Image or Video',
         examples: [
           COMMAND_NAME,

@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -24,11 +24,10 @@ export default class AllowlistAddChannelsCommand extends BaseCommand {
           `${COMMAND_NAME} lobby`,
           `${COMMAND_NAME} <#585639594574217232> <#560595518129045504>`,
         ],
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         id: Formatter.Commands.ModerationAllowlistAddChannels.COMMAND_ID,
         usage: '...<channel:id|mention|name>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.ADMINISTRATOR],
       type: Parameters.channels({
         types: [
@@ -47,7 +46,7 @@ export default class AllowlistAddChannelsCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationAllowlistAddChannels.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.channels) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('moderation.no_valid_channels')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_channels')}`});
     }
     return super.onCancelRun(context, args);
   }

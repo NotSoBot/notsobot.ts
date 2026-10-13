@@ -18,7 +18,8 @@ export default class WeatherCommand extends BaseCommand {
       ],
       label: 'query',
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.UTILITY,
+        pipeable: true,
         description: 'Show the weather of a location',
         examples: [
           `${COMMAND_NAME} nyc`,

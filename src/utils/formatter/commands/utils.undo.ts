@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
 import { Snowflake } from 'detritus-utils';
 
-import { StatusEmojis } from '../../../constants';
+import { deleteCommandsResponses, fetchCommandsResponses } from '../../../api';
+import { CommandTypes, StatusEmojis } from '../../../constants';
 import { getTranslator } from '../../i18n';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'undo';
@@ -18,10 +18,11 @@ export interface CommandArgs {
   amount: number,
 }
 
-interface UndoGroup {
-  fromInteraction: boolean,
-  ids: Array<string>,
-  newestId: bigint,
+// discord's error for a message that doesn't exist anymore
+const ERROR_CODE_UNKNOWN_MESSAGE = 10008;
+
+function isUnknownMessageError(error: any): boolean {
+  return !!error && !!error.response && (error.response.statusCode === 404 || error.code === ERROR_CODE_UNKNOWN_MESSAGE);
 }
 
 export async function createMessage(
@@ -31,57 +32,47 @@ export async function createMessage(
   const { language, translate, translateMaybe } = await getTranslator(context);
   const { channelId } = context;
   if (!channelId) {
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('utils_undo.unable_to_undo_commands_here')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('utils_undo.unable_to_undo_commands_here')}`, ephemeral: true});
   }
 
   const amount = Math.max(1, Math.min(args.amount || 1, MAX_AMOUNT));
-  const groups: Array<UndoGroup> = [];
+  // this command's own trigger, its response isn't stored yet but skip it just in case
+  const currentTriggerId = (context instanceof Interaction.InteractionContext) ? context.interactionId : context.messageId;
 
-  if (context.commandClient) {
-    // get the user's last prefixed commands (their message and our reply)
-    let found = 0;
-    for (let {context: lastContext, reply: lastReply} of context.commandClient.replies.toArray().reverse()) {
-      if (amount <= found) {
-        break;
-      }
-      if (lastContext.channelId !== channelId || lastContext.userId !== context.userId) {
-        continue;
-      }
-      if (!lastReply.canDelete || lastReply.deleted) {
-        continue;
-      }
-      const ids = [lastReply.id];
-      if (lastContext.message.canDelete && !lastContext.message.deleted) {
-        ids.push(lastContext.message.id);
-      }
-      groups.push({fromInteraction: false, ids, newestId: BigInt(lastReply.id)});
-      found++;
+  // the user's last command responses in this channel (prefixed and interactions), newest first
+  const { results } = await fetchCommandsResponses(context, {
+    channelId,
+    limit: amount + 1,
+    userId: context.userId,
+  });
+
+  const { channel } = context;
+  const canDeleteTriggers = !context.inDm && !!channel && channel.canManageMessages;
+
+  const count = {interactions: 0, prefixed: 0};
+  const messageIds: Array<string> = [];
+  const triggerIds: Array<string> = [];
+  for (let result of results) {
+    if (amount <= triggerIds.length) {
+      break;
     }
-  }
+    if (result.message_trigger_id === currentTriggerId) {
+      continue;
+    }
+    triggerIds.push(result.message_trigger_id);
 
-  {
-    // get the user's last interaction commands (our responses)
-    let found = 0;
-    for (let message of context.messages.filter((x) => x.channelId === channelId).reverse()) {
-      if (amount <= found) {
-        break;
+    const response = context.messages.get(result.message_response_id);
+    if (!response || !response.deleted) {
+      messageIds.push(result.message_response_id);
+    }
+    if (result.message_trigger_type === CommandTypes.PREFIXED) {
+      count.prefixed++;
+      // the user's own command message, only deletable with manage messages
+      if (canDeleteTriggers) {
+        messageIds.push(result.message_trigger_id);
       }
-      if (message.deleted || !message.fromMe) {
-        continue;
-      }
-      const interaction = message.interactionMetadata || message.interaction;
-      if (!interaction || interaction.user.id !== context.userId) {
-        continue;
-      }
-      if (context instanceof Interaction.InteractionContext && interaction.id === context.interactionId) {
-        // this is the response to the current undo command
-        continue;
-      }
-      groups.push({fromInteraction: true, ids: [message.id], newestId: BigInt(message.id)});
-      found++;
+    } else {
+      count.interactions++;
     }
   }
 
@@ -93,31 +84,11 @@ export async function createMessage(
     }
   }
 
-  const count = {interactions: 0, prefixed: 0};
-  const messageIds: Array<string> = [];
-  {
-    const newestFirst = groups.sort((x, y) => {
-      if (x.newestId === y.newestId) {
-        return 0;
-      }
-      return (x.newestId < y.newestId) ? 1 : -1;
-    });
-    for (let group of newestFirst.slice(0, amount)) {
-      if (group.fromInteraction) {
-        count.interactions++;
-      } else {
-        count.prefixed++;
-      }
-      messageIds.push(...group.ids);
-    }
-  }
-
   let failed = 0;
   if (messageIds.length) {
     let singleIds = messageIds;
 
-    const { channel } = context;
-    if (!context.inDm && channel && channel.canManageMessages) {
+    if (canDeleteTriggers) {
       const minimumTimestamp = Date.now() - BULK_DELETE_MAX_AGE;
       const bulkIds = messageIds.filter((messageId) => minimumTimestamp < Snowflake.timestamp(messageId));
       if (2 <= bulkIds.length) {
@@ -134,13 +105,24 @@ export async function createMessage(
       try {
         await context.rest.deleteMessage(channelId, messageId);
       } catch(error) {
-        failed++;
+        // already deleted (or an ephemeral response) is fine
+        if (!isUnknownMessageError(error)) {
+          failed++;
+        }
       }
     }
   }
 
+  if (triggerIds.length) {
+    try {
+      await deleteCommandsResponses(context, {channelId, triggerIds});
+    } catch(error) {
+      // the stale cleanup will get them eventually
+    }
+  }
+
   let text: string;
-  if (!messageIds.length) {
+  if (!triggerIds.length) {
     text = translate('utils_undo.could_not_find_any_of_your_last');
   } else if (count.interactions && count.prefixed) {
     text = translate('utils_undo.successfully_deleted_interactions_and_commands', {interactions: count.interactions, prefixed: count.prefixed});
@@ -154,13 +136,13 @@ export async function createMessage(
   }
 
   if (context instanceof Interaction.InteractionContext) {
-    return editOrReply(context, {content: text, flags: MessageFlags.EPHEMERAL});
+    return displayReply(context, {description: text, ephemeral: true});
   }
 
-  const message = await editOrReply(context, text);
+  const message = await displayReply(context, {description: text});
   setTimeout(async () => {
     try {
-      if (!message.deleted) {
+      if (message && !message.deleted) {
         await message.delete();
       }
     } catch(error) {

@@ -18,7 +18,7 @@ export default class AudioCompressCommand extends BaseAudioOrVideoCommand {
         {name: 'norevert', aliases: ['nr'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Compress Audio',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

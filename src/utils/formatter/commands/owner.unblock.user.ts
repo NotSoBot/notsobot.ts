@@ -2,7 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 
 import { editUser } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { createUserString, editOrReply } from '../../../utils';
+import { createUserString, displayReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -22,5 +22,5 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   await editUser(context, args.user.id, {blocked: false});
-  return editOrReply(context, translate('owner_unblock_user.alright_unblocked', {user: createUserString(args.user.id, args.user)}));
+  return displayReply(context, {description: translate('owner_unblock_user.alright_unblocked', {user: createUserString(args.user.id, args.user)})});
 }

@@ -19,7 +19,7 @@ export default class LoggersAddRolesCommand extends LoggersAddBaseCommand {
           `${COMMAND_NAME} -channel role-logs`,
           `${COMMAND_NAME} -in logs`,
         ],
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         usage: '(-channel <text-channel:id|mention|name>) (-in <category-channel:id|mention|name>)',
       },
     });

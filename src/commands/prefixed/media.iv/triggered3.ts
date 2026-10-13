@@ -19,7 +19,7 @@ export default class Triggered3Command extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationLabelsTriggered3.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

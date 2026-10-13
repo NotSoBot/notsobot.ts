@@ -14,7 +14,7 @@ export default class Kek2Command extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Exo-alienify, Swirl, and Rain-ify an Image or Video',
         examples: [
           COMMAND_NAME,

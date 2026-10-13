@@ -17,7 +17,7 @@ export default class GlowCommand extends BaseImageOrVideoCommand {
         {aliases: ['a'], name: 'amount', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Add a soft glow to an Image or Video',
         examples: [
           COMMAND_NAME,

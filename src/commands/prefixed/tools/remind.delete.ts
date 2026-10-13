@@ -16,7 +16,8 @@ export default class RemindDeleteCommand extends BaseCommand {
 	  aliases: ['reminder delete'],
 	  label: 'position',
 	  metadata: {
-		category: CommandCategories.TOOLS,
+		category: CommandCategories.UTILITY,
+		pipeable: true,
 		description: 'Delete a reminder',
 		examples: [
 		  `${COMMAND_NAME} 1`,

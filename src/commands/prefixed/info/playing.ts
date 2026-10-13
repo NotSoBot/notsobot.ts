@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
@@ -27,7 +26,6 @@ export default class PlayingCommand extends BaseCommand {
         id: Formatter.Commands.InfoPlaying.COMMAND_ID,
         usage: '?<application:id|name>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.stringLowerCase(),
     });
   }

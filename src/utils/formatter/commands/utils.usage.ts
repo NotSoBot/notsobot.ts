@@ -3,7 +3,7 @@ import * as os from 'os';
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { editOrReply, padCodeBlockFromRows } from '../../../utils';
+import { displayReply, padCodeBlockFromRows } from '../../../utils';
 
 import { ClusterInformation, getClusterInformation } from './utils.shards';
 
@@ -73,5 +73,5 @@ export async function createMessage(
   }
 
   const content = padCodeBlockFromRows(rows).join('\n');
-  return editOrReply(context, Markup.codeblock(content, {language: 'py'}));
+  return displayReply(context, {description: Markup.codeblock(content, {language: 'py'})});
 }

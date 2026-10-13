@@ -18,7 +18,7 @@ export default class GrainCommand extends BaseImageOrVideoCommand {
         {name: 'strength', aliases: ['s'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Film Grain effect to an Image or Video',
         examples: [
           COMMAND_NAME,

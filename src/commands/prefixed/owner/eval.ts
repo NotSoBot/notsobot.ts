@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { DefaultParameters, Formatter, Parameters } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -16,7 +16,6 @@ export default class EvalCommand extends BaseCommand {
       args: [
         {name: 'async', type: Boolean},
         {name: 'jsonspacing', default: 2, type: Number},
-        {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
         {name: 'noreply', type: Boolean},
         {name: 'upload', type: Boolean},
       ],
@@ -28,7 +27,7 @@ export default class EvalCommand extends BaseCommand {
         ],
         category: CommandCategories.OWNER,
         id: Formatter.Commands.OwnerEval.COMMAND_ID,
-        usage: '<code> (-async) (-jsonspacing <number>) (-noembed) (-noreply) (-upload)',
+        usage: '<code> (-async) (-jsonspacing <number>) (-noreply) (-upload)',
       },
       responseOptional: true,
       type: Parameters.codeblock,

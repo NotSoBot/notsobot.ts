@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GuildBlocklistTypes, StatusEmojis } from '../../../constants';
-import { Formatter, I18n } from '../../../utils';
+import { Formatter, I18n, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -17,7 +17,7 @@ export default class BlocklistAddCommand extends BaseCommand {
       disableDm: true,
       label: 'payloads',
       metadata: {
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         description: 'Add an item based on mention type to the blocklist.',
         examples: [
           `${COMMAND_NAME} <#585639594574217232>`,
@@ -26,7 +26,6 @@ export default class BlocklistAddCommand extends BaseCommand {
         id: Formatter.Commands.ModerationBlocklistAdd.COMMAND_ID,
         usage: '...<channel:mention,role:mention,user:mention>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.ADMINISTRATOR],
       priority: -1,
       type: Formatter.Commands.ModerationBlocklistAdd.getItemsFromMention,
@@ -45,11 +44,11 @@ export default class BlocklistAddCommand extends BaseCommand {
     const { translate } = await I18n.getTranslator(context);
     if (args.payloads) {
       if (args.payloads.length) {
-        return context.editOrReply(`${StatusEmojis.WARNING} ${translate('commands.context.blocklist_add.self')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('commands.context.blocklist_add.self')}`});
       }
-      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`});
     }
-    return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.needs_mention')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.needs_mention')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.ModerationBlocklistAdd.CommandArgs) {

@@ -1,14 +1,14 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGoImages, utilitiesFetchMedia } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import {
+  DisplayPayload,
   Paginator,
   chunkArray,
-  createUserEmbed,
-  editOrReply,
+  displayReply,
   jobWaitForResult,
   shuffleArray,
 } from '../../../utils';
@@ -31,7 +31,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { results } = await searchDuckDuckGoImages(context, args);
   if (args.randomize) {
@@ -43,14 +42,15 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: async (page) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
-        embed.setFooter(translate('search_duckduckgo_images.page_of_duck_duck_go_image_results', {page: page, pageLimit: pageLimit}), EmbedBrands.DUCK_DUCK_GO);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
+        payload.footer = translate('search_duckduckgo_images.page_of_duck_duck_go_image_results', {page: page, pageLimit: pageLimit});
+        payload.footerIconUrl = EmbedBrands.DUCK_DUCK_GO;
 
         const result = results[page - 1];
         if (!args.simple) {
-          embed.setTitle(translate('search_duckduckgo_images.found_from', {footer: result.footer}));
-          embed.setDescription(Markup.url(Markup.escape.all(result.header), result.url));
+          payload.title = translate('search_duckduckgo_images.found_from', {footer: result.footer});
+          payload.description = Markup.url(Markup.escape.all(result.header), result.url);
         }
 
         /*
@@ -73,18 +73,18 @@ export async function createMessage(
         });
         if (response) {
           const filename = response.file.filename_safe;
-          embed.setImage(`attachment://${filename}`);
+          payload.image = `attachment://${filename}`;
 
           const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-          return [embed, [{filename, value}]];
+          return {display: {...payload, files: [{filename, value}]}};
         } else {
           const imageUrl = (result.image.extension === 'svg') ? result.thumbnail.url : result.proxy_url;
-          embed.setImage(imageUrl);
-          return embed;
+          payload.image = imageUrl;
+          return {display: payload};
         }
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, translate('search_duckduckgo_images.couldn_t_find_any_results_for_that'));
+  return displayReply(context, {description: translate('search_duckduckgo_images.couldn_t_find_any_results_for_that')});
 }

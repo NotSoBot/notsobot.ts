@@ -15,10 +15,9 @@ export default class TranscribeCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['tc'],
       args: [
-        {name: 'noembed', type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Transcribe an audio or video file',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

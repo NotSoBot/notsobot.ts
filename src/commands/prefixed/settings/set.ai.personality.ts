@@ -20,7 +20,7 @@ export default class SetAIPersonalityCommand extends BaseCommand {
       disableDm: true,
       label: 'personality',
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.SERVER,
         description: 'Set the guild\'s AI personality.',
         examples: [
           `${COMMAND_NAME} Be very cutesy and dumb`,

@@ -18,7 +18,7 @@ export default class ImplodeAnimatedCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a gradually increasing Implode effect to a Single-framed Image',
         examples: [
           COMMAND_NAME,

@@ -19,7 +19,7 @@ export default class RainbowCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationRainbow.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

@@ -1,8 +1,8 @@
 import { Interaction, Structures } from 'detritus-client';
-import { ApplicationCommandOptionTypes, Permissions } from 'detritus-client/lib/constants';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { DefaultParameters, Formatter, I18n, editOrReply } from '../../../../utils';
+import { DefaultParameters, Formatter, I18n, displayReply } from '../../../../utils';
 
 import { BaseOwnerCommandOption } from './base';
 
@@ -24,7 +24,6 @@ export class OwnerSeenOnCommand extends BaseOwnerCommandOption {
 
   constructor() {
     super({
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {
           name: 'user',
@@ -40,15 +39,15 @@ export class OwnerSeenOnCommand extends BaseOwnerCommandOption {
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
     if (!args.user) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
     }
     if (args.user.bot) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.no_bots')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.no_bots')}`});
     }
 
     const payload = await Formatter.Commands.OwnerSeenOn.getSharedGuilds(args.user.id, context);
     if (!payload.user || !payload.results.length) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('owner.no_shared_guilds')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('owner.no_shared_guilds')}`});
     }
     return Formatter.Commands.OwnerSeenOn.createMessage(context, {payload: payload as Formatter.Commands.OwnerSeenOn.CommandArgs['payload']});
   }

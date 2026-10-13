@@ -18,7 +18,7 @@ export default class PingCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        category: CommandCategories.UTILS,
+        category: CommandCategories.UTILITY,
         id: Formatter.Commands.UtilsPing.COMMAND_ID,
         usage: '',
       },

@@ -17,7 +17,7 @@ export default class SharpenCommand extends BaseImageOrVideoCommand {
         {name: 'scale', aliases: ['s'], type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Sharpen an Image or Video from the center',
         examples: [
           COMMAND_NAME,

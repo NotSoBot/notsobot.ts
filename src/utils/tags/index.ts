@@ -1172,6 +1172,72 @@ export function increaseTagExecutions(tag: TagResult, amount: number = 1) {
 }
 
 
+// discord allows 40 components in a components v2 message (`MAX_COMPONENTS_V2` in the paginator)
+// the page buttons (an action row with 5 buttons) and the page's content take 7 of them
+// (not imported from the paginator, the paginator imports this file through the formatters)
+export const MAX_PAGE_COMPONENTS = 40 - 7;
+
+const PAGE_COMPONENT_TYPES_TOP_LEVEL = [
+  MessageComponentTypes.ACTION_ROW,
+  MessageComponentTypes.CONTAINER,
+  MessageComponentTypes.FILE,
+  MessageComponentTypes.MEDIA_GALLERY,
+  MessageComponentTypes.SECTION,
+  MessageComponentTypes.SEPARATOR,
+  MessageComponentTypes.TEXT_DISPLAY,
+];
+
+// components v2 layouts for a page, the paginator owns the buttons so only link buttons are allowed
+export function parsePageComponents(data: unknown, tag: TagResult): Array<Record<string, any>> | undefined {
+  if (!Array.isArray(data) || !data.length) {
+    return undefined;
+  }
+
+  let amount = 0;
+  const check = (component: Record<string, any>): void => {
+    amount++;
+    switch (component.type) {
+      case MessageComponentTypes.BUTTON: {
+        if (!component.url) {
+          throw new Error(tag.translate('tagscript.page_components_must_not_be_interactive'));
+        }
+      }; break;
+      case MessageComponentTypes.SELECT_MENU: {
+        throw new Error(tag.translate('tagscript.page_components_must_not_be_interactive'));
+      };
+    }
+    if (Array.isArray(component.components)) {
+      for (let child of component.components) {
+        check(child);
+      }
+    }
+    if (component.accessory && typeof(component.accessory) === 'object') {
+      check(component.accessory);
+    }
+  };
+
+  const components: Array<Record<string, any>> = [];
+  for (let x of data) {
+    if (!x || typeof(x) !== 'object') {
+      throw new Error(tag.translate('tagscript.invalid_page_given'));
+    }
+    const component = parseComponentFromData(x, undefined, undefined, tag.translate);
+    if (!PAGE_COMPONENT_TYPES_TOP_LEVEL.includes(component.type)) {
+      if (component.type === MessageComponentTypes.BUTTON) {
+        throw new Error(tag.translate('tagscript.components.buttons_must_only_be_in_action_rows_or'));
+      }
+      throw new Error(tag.translate('tagscript.page_components_must_not_be_interactive'));
+    }
+    check(component);
+    components.push(component);
+  }
+  if (MAX_PAGE_COMPONENTS < amount) {
+    throw new Error(tag.translate('tagscript.page_components_surpassed_max_of', {max: MAX_PAGE_COMPONENTS}));
+  }
+  return components;
+}
+
+
 export function checkTagComponentsLimit(components: TagResultComponents | null, translate: Translator['translate']) {
   if (components && components.components.length) {
     let actionRows: number = 0;
@@ -2030,6 +2096,7 @@ const ScriptTags = Object.freeze({
           // parse them
           // [{embed}]
           for (let page of object.pages) {
+            let components: Array<Record<string, any>> | undefined;
             let content: string | undefined;
             let embeds: Array<Embed> | undefined;
             let filenames: Array<string> | undefined;
@@ -2060,10 +2127,13 @@ const ScriptTags = Object.freeze({
                 }
               }
             }
-            if (!content && !embeds && !filenames) {
+            if ('components' in page) {
+              components = parsePageComponents(page.components, tag);
+            }
+            if (!content && !embeds && !filenames && !components) {
               throw new Error(tag.translate('tagscript.invalid_page_given'));
             }
-            tag.pages.push({content, embeds, filenames});
+            tag.pages.push({components, content, embeds, filenames});
             if (tag.limits.MAX_PAGES < tag.pages.length) {
               throw new Error(tag.translate('tagscript.pages_surpassed_max_pages_length_of', {max: tag.limits.MAX_PAGES}));
             }
@@ -5219,6 +5289,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.PAGE_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {pagejson:{"embed": {"title": "asd"}}}
     // {pagejson:[{"embed": {"title": "asd"}}]}
+    // {pagejson:{"components": [{"type": 17, "components": [{"type": 10, "content": "asd"}]}]}}
 
     const pages: Array<any> = [];
     try {
@@ -5235,6 +5306,7 @@ const ScriptTags = Object.freeze({
     }
 
     for (let page of pages) {
+      let components: Array<Record<string, any>> | undefined;
       let content: string | undefined;
       let embeds: Array<Embed> | undefined;
       let filenames: Array<string> | undefined;
@@ -5271,11 +5343,15 @@ const ScriptTags = Object.freeze({
         }
       }
 
-      if (!content && !embeds && !filenames) {
+      if ('components' in page) {
+        components = parsePageComponents(page.components, tag);
+      }
+
+      if (!content && !embeds && !filenames && !components) {
         throw new Error(tag.translate('tagscript.invalid_page_given'));
       }
 
-      tag.pages.push({content, embeds, filenames});
+      tag.pages.push({components, content, embeds, filenames});
 
       if (tag.limits.MAX_PAGES < tag.pages.length) {
         throw new Error(tag.translate('tagscript.pages_surpassed_max_pages_length_of', {max: tag.limits.MAX_PAGES}));

@@ -1,5 +1,6 @@
 import { Interaction } from 'detritus-client';
-import { InteractionCallbackTypes, MessageFlags } from 'detritus-client/lib/constants';
+
+import { displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -10,9 +11,6 @@ export class BaseOwnerCommandOption extends BaseInteractionCommandOption {
   }
 
   onCancel(context: Interaction.InteractionContext) {
-    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-      content: 'no',
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: 'no', ephemeral: true});
   }
 }

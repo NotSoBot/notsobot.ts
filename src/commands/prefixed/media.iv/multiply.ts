@@ -25,7 +25,7 @@ export default class MultiplyCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -grid 4 -rotate`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationMultiply.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-grid <number>) (-rotate) (-seed <number>)',
       },

@@ -26,7 +26,7 @@ export default class AcidCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -amount 50`,
           `${COMMAND_NAME} notsobot -levels 4`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationAcid.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-levels <number>) (-seed <number>)',
       },

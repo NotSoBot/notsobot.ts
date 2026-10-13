@@ -19,7 +19,7 @@ export default class NeedsMoreJPEGCommand extends BaseImageOrVideoCommand {
         {aliases: ['q'], name: 'quality', type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Needs More JPEG',
         examples: [
           COMMAND_NAME,

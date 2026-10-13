@@ -1,8 +1,8 @@
 import { Interaction, Structures } from 'detritus-client';
-import { ApplicationCommandOptionTypes, ChannelTypes, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { ApplicationCommandOptionTypes, ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { I18n, Parameters, editOrReply } from '../../../../utils';
+import { I18n, Parameters, displayReply } from '../../../../utils';
 
 import { createPruneMessage, snowflakeFromNow } from '../../../prefixed/moderation/prune';
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -69,7 +69,7 @@ export class ModerationPruneCommand extends BaseInteractionCommandOption {
     } else {
       content = translate('prune.amount_number');
     }
-    return editOrReply(context, {content: `${StatusEmojis.WARNING} ${content}`, flags: MessageFlags.EPHEMERAL});
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${content}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {

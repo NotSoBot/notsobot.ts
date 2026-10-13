@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -15,7 +15,6 @@ export default class AvatarCommand extends BaseCommand {
 
       args: [
         {name: 'default', type: Boolean},
-        {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
       ],
       default: DefaultParameters.author,
       label: 'user',
@@ -27,7 +26,7 @@ export default class AvatarCommand extends BaseCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.InfoAvatar.COMMAND_ID,
-        usage: '?<user:id|mention|name> (-default) (-noembed)',
+        usage: '?<user:id|mention|name> (-default)',
       },
       type: Parameters.memberOrUser(),
     });
@@ -39,7 +38,7 @@ export default class AvatarCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoAvatar.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoAvatar.CommandArgs) {

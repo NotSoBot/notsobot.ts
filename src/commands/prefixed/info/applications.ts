@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -26,7 +25,6 @@ export default class ApplicationsCommand extends BaseCommand {
         id: Formatter.Commands.InfoApplications.COMMAND_ID,
         usage: '?<application:id|mention|name>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.applications,
     });
   }
@@ -37,7 +35,7 @@ export default class ApplicationsCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoApplications.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.game_not_found')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.game_not_found')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoApplications.CommandArgs) {

@@ -18,7 +18,7 @@ export default class FadeInCommand extends BaseMediaCommand {
         {name: 'duration', aliases: ['d'], type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Add a Fade In Animation to an Audio/Image/Video file',
         examples: [
           COMMAND_NAME,

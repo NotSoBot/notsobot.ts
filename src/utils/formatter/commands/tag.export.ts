@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagsServer } from '../../../api';
 import { getTranslator } from '../../i18n';
@@ -11,12 +11,11 @@ import {
   Parameters,
   chunkArray,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
+  displayReply,
 } from '../../../utils';
 
-import { fetchTagsServerSearch, FetchTagsServerSearch } from './tag.list.server';
+import { FetchTagsServerSearch, fetchTagsServerSearch } from './tag.list.server';
 
 
 export const COMMAND_ID = 'tag.export';
@@ -62,10 +61,9 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   if (args.user && args.user.bot) {
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_export.bots_do_not_have_tags')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_export.bots_do_not_have_tags')}`});
   }
 
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const serverId = context.guildId || context.channelId!;
 
   if (!args.user || (args.user && args.user.id !== context.userId)) {
@@ -83,7 +81,7 @@ export async function createMessage(
       if (!args.user) {
         args.user = context.user;
       } else {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_export.not_enough_permissions_to_export_other_people')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_export.not_enough_permissions_to_export_other_people')}`});
       }
     }
   }
@@ -97,15 +95,12 @@ export async function createMessage(
   const tags = await fetchTagsServerSearch(context, serverId, fetchTagsServerSearchOptions);
   if (tags.length) {
     const file = exportTags(serverId, tags, fetchTagsServerSearchOptions);
-    return editOrReply(context, {
-      content: translate('tag_export.successfully_exported_tags', {tags_count: tags.length.toLocaleString(language)}),
-      file,
-    });
+    return displayReply(context, {description: translate('tag_export.successfully_exported_tags', {tags_count: tags.length.toLocaleString(language)}), files: [file]});
   }
 
   if (args.content || args.name || args.user) {
-    return editOrReply(context, translate('tag_export.this_server_has_no_tags_matching_the'));
+    return displayReply(context, {description: translate('tag_export.this_server_has_no_tags_matching_the')});
   }
 
-  return editOrReply(context, translate('tag_export.this_server_has_no_tags'));
+  return displayReply(context, {description: translate('tag_export.this_server_has_no_tags')});
 }

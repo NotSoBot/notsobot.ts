@@ -11,7 +11,7 @@ import {
   GuildCommandsBlocklistTypes,
   UserFlags,
 } from '../../../constants';
-import { I18n, editOrReply } from '../../../utils';
+import { I18n, displayReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -180,10 +180,10 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
       willPrefixCommandsWork = false;
     }
 
-    return editOrReply(context, [
+    return displayReply(context, {description: [
       translate((willPrefixCommandsWork) ? 'permcheck.will_respond' : 'permcheck.will_not_respond'),
       '',
       description.join('\n'),
-    ].join('\n'));
+    ].join('\n')});
   }
 }

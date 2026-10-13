@@ -14,7 +14,7 @@ export default class HueRGBCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Shift an Image or Video\'s RGB Pixel Color by X amount',
         examples: [
           COMMAND_NAME,

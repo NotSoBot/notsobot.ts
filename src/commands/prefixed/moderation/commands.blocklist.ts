@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GuildCommandsBlocklistTypes } from '../../../constants';
 import { Formatter } from '../../../utils';
@@ -21,7 +20,7 @@ export default class CommandsBlocklistCommand extends BaseCommand {
       help: `Must be one of (${Object.values(GuildCommandsBlocklistTypes).join(', ')})`,
       label: 'only',
       metadata: {
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         description: 'List all blocked commands (and their associated type)',
         examples: [
           COMMAND_NAME,
@@ -30,7 +29,6 @@ export default class CommandsBlocklistCommand extends BaseCommand {
         id: Formatter.Commands.ModerationCommandsBlocklist.COMMAND_ID,
         usage: '?<GuildCommandsBlocklistType>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       priority: -1,
       type: (value: string) => value.toLowerCase(),
     });

@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GuildAllowlistTypes } from '../../../constants';
 import { Formatter } from '../../../utils';
@@ -25,11 +24,10 @@ export default class AllowlistCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} channels`,
         ],
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         id: Formatter.Commands.ModerationAllowlist.COMMAND_ID,
         usage: '?<GuildAllowlistType>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       priority: -2,
       type: (value: string) => value.toLowerCase(),
     });

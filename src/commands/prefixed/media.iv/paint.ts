@@ -24,7 +24,7 @@ export default class PaintCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -radius 10`,
         ],
         id: Formatter.Commands.MediaIVManipulationPaint.COMMAND_ID,
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         usage: '?<emoji,user:id|mention|name,url> (-radius <number>)',
       },
     });

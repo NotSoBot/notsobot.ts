@@ -2,10 +2,9 @@ import { Interaction } from 'detritus-client';
 import {
   ApplicationIntegrationTypes,
   InteractionContextTypes,
-  MessageFlags,
 } from 'detritus-client/lib/constants';
 
-import { Formatter, I18n, findMediaUrlInMessages, getOrFetchRealUrl } from '../../../../utils';
+import { Formatter, I18n, displayReply, findMediaUrlInMessages, getOrFetchRealUrl } from '../../../../utils';
 
 import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
 
@@ -43,10 +42,7 @@ export default class QRScanCommand extends BaseContextMenuMessageCommand {
 
   async onCancelRun(context: Interaction.InteractionContext, args: QRScanCommandArgs) {
     const { translate } = await I18n.getTranslator(context);
-    return context.editOrRespond({
-      content: translate('commands.context.qr_scan.no_media'),
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: translate('commands.context.qr_scan.no_media'), ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: QRScanCommandArgs) {

@@ -14,7 +14,7 @@ export default class SetFPSCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Set an Animated Image or Video\'s FPS',
         examples: [
           COMMAND_NAME,

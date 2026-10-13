@@ -25,7 +25,7 @@ export default class BlocklistClearCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} channel`,
         ],
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         id: Formatter.Commands.ModerationBlocklistClear.COMMAND_ID,
         usage: '?<GuildDisableCommandsType>',
       },

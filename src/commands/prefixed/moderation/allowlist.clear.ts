@@ -25,7 +25,7 @@ export default class AllowlistClearCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} channel`,
         ],
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         id: Formatter.Commands.ModerationAllowlistClear.COMMAND_ID,
         usage: '?<GuildDisableCommandsType>',
       },

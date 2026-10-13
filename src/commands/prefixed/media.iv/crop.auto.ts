@@ -14,7 +14,7 @@ export default class CropAutoCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Crop an Image or Video Automatically',
         examples: [
           COMMAND_NAME,

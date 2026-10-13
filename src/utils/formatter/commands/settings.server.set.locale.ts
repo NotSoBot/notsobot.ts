@@ -1,5 +1,4 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
@@ -8,7 +7,7 @@ import { getTranslator, getTranslatorForLanguage, resolveLanguage } from '../../
 
 import { editGuildSettings } from '../../../api';
 import { GoogleLocales } from '../../../constants';
-import { editOrReply, languageCodeToText } from '../../../utils';
+import { displayReply, languageCodeToText } from '../../../utils';
 
 
 export const COMMAND_ID = 'settings.server.set.locale';
@@ -23,7 +22,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   let { translate } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const oldSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
 
@@ -68,8 +66,5 @@ export async function createMessage(
     }
   }
 
-  return editOrReply(context, {
-    content: text,
-    flags: (isFromInteraction) ? MessageFlags.EPHEMERAL : undefined,
-  });
+  return displayReply(context, {description: text, ephemeral: true});
 }

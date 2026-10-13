@@ -1,12 +1,12 @@
 import moment from 'moment';
 
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchRule34 } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.rule34';
@@ -24,9 +24,8 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  return editOrReply(context, translate('search_rule34.sorry_this_command_has_been_disabled_at'));
+  return displayReply(context, {description: translate('search_rule34.sorry_this_command_has_been_disabled_at')});
 
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const results = await searchRule34(context, args);
   if (results.length) {
@@ -37,14 +36,15 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
         const result = results[page - 1];
-        embed.setFooter(`Page ${page}/${pageLimit} of https://rule34.xxx Results`, EmbedBrands.RULE34);
+        payload.footer = `Page ${page}/${pageLimit} of https://rule34.xxx Results`;
+        payload.footerIconUrl = EmbedBrands.RULE34;
 
-        embed.setTitle((result.is_video) ? translate('search_rule34.video_post') : translate('search_rule34.image_post'));
-        embed.setUrl(result.url);
+        payload.title = (result.is_video) ? translate('search_rule34.video_post') : translate('search_rule34.image_post');
+        payload.url = result.url;
 
         const description: Array<string> = [];
         description.push(translate('search_rule34.uploaded', {moment: moment(result.created_at).locale(language).fromNow()}));
@@ -66,7 +66,7 @@ export async function createMessage(
             text = text.slice(0, 2048);
             text = text.slice(0, text.lastIndexOf(','));
           }
-          embed.setDescription(text);
+          payload.description = text;
         }
 
         let imageUrl: string;
@@ -75,13 +75,13 @@ export async function createMessage(
         } else {
           imageUrl = result.file_url;
         }
-        embed.setImage(imageUrl);
+        payload.image = imageUrl;
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
 
-  return editOrReply(context, translate('search_rule34.couldn_t_find_any_images_for_that'));
+  return displayReply(context, {description: translate('search_rule34.couldn_t_find_any_images_for_that')});
 }

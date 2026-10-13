@@ -21,7 +21,7 @@ export default class CommandsAllowlistClearCommand extends BaseCommand {
       help: `Must be one of (${Object.values(GuildCommandsAllowlistTypes).join(', ')})`,
       label: 'only',
       metadata: {
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         description: 'Clear out Channels/Roles/Users/Server-Wide allowlisted commands.',
         examples: [
           COMMAND_NAME,

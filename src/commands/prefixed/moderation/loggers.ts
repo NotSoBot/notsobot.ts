@@ -2,12 +2,11 @@ import moment from 'moment';
 
 import { Collections, Command, CommandClient, Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed } from 'detritus-client/lib/utils';
 
 import { GuildSettingsLogger } from '../../../api/structures/guildsettings';
 import { CommandCategories, EmbedColors, GuildLoggerTypes, StatusEmojis } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { I18n, Paginator, Parameters, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, I18n, Paginator, Parameters, chunkArray, displayReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -67,11 +66,11 @@ export async function createLoggersEmbed(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
-        embed.setTitle(title);
-        embed.setFooter((pageLimit === 1) ? footer : translate('moderation.page_of', {footer, page: pageNumber, total: pageLimit}));
+        payload.title = title;
+        payload.footer = (pageLimit === 1) ? footer : translate('moderation.page_of', {footer, page: pageNumber, total: pageLimit});
 
         const page = pages[pageNumber - 1];
         {
@@ -83,24 +82,24 @@ export async function createLoggersEmbed(
             ].join('\n');
           });
 
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   } else {
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
+    const payload: DisplayPayload = {fields: []};
+    payload.color = EmbedColors.DEFAULT;
 
-    embed.setTitle(title);
+    payload.title = title;
     if (onlyText) {
-      embed.setDescription(translate('loggers.empty_only', {types: onlyText}));
+      payload.description = translate('loggers.empty_only', {types: onlyText});
     } else {
-      embed.setDescription(translate('loggers.empty'));
+      payload.description = translate('loggers.empty');
     }
-    embed.setFooter(footer);
-    return editOrReply(context, {embed});
+    payload.footer = footer;
+    return displayReply(context, payload);
   }
 }
 
@@ -127,10 +126,9 @@ export default class LoggersCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} members`,
         ],
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         usage: '?<GuildLoggerTypes>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       priority: -2,
       type: (value: string) => (GuildLoggerTypes as any)[value.toUpperCase()],
@@ -143,7 +141,7 @@ export default class LoggersCommand extends BaseCommand {
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
     if (!settings) {
       const { translate } = await I18n.getTranslator(context);
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.unknown_lol')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.unknown_lol')}`});
     }
     return createLoggersEmbed(context, settings.loggers, {only: args.only});
   }

@@ -5,10 +5,10 @@ import { Markup } from 'detritus-client/lib/utils';
 import { DateMomentLogFormat, StatusEmojis } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import {
+  DisplayPayload,
   Paginator,
   chunkArray,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   isSnowflake,
 } from '../../../utils';
 
@@ -33,12 +33,12 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     onPage: (pageNumber) => {
-      const embed = createUserEmbed(context.user);
-      embed.setColor(Colors.BLURPLE);
+      const payload: DisplayPayload = {fields: []};
+      payload.color = Colors.BLURPLE;
 
       const title = translate('search_discord_emojis.emojis_found', {emojis_count: emojis.length.toLocaleString(language)});
-      embed.setTitle(title);
-      embed.setFooter((pageLimit === 1) ? title : translate('search_discord_emojis.page_of', {pageLimit: pageLimit, pageNumber: pageNumber, title: title}));
+      payload.title = title;
+      payload.footer = (pageLimit === 1) ? title : translate('search_discord_emojis.page_of', {pageLimit: pageLimit, pageNumber: pageNumber, title: title});
 
       const page = pages[pageNumber - 1];
       {
@@ -68,11 +68,12 @@ export async function createMessage(
             }
             text += part + '\n';
           }
-          embed.setDescription(text);
+          payload.description = text;
         }
 
         while (description.length) {
-          if (5000 < embed.length) {
+          const length = (payload.title || '').length + (payload.description || '').length + (payload.footer || '').length + payload.fields!.reduce((x, field) => x + field.name.length + field.value.length, 0);
+          if (5000 < length) {
             break;
           }
 
@@ -88,10 +89,10 @@ export async function createMessage(
             }
             text += part + '\n';
           }
-          embed.addField('\u200b', text);
+          payload.fields!.push({name: '\u200b', value: text});
         }
       }
-      return embed;
+      return {display: payload};
     },
   });
   return await paginator.start();

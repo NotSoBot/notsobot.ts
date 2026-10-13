@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
@@ -21,11 +20,10 @@ export default class SafetyLabelsCommand extends BaseImageCommand<Formatter.Comm
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         id: Formatter.Commands.ToolsSafetyLabels.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
     });
   }
 

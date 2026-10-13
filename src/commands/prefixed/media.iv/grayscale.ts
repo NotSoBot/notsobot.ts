@@ -15,7 +15,7 @@ export default class GrayscaleCommand extends BaseImageOrVideoCommand {
 
       aliases: ['greyscale'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Grayscale an Image or Video',
         examples: [
           COMMAND_NAME,

@@ -21,7 +21,7 @@ export default class SetLocaleCommand extends BaseCommand {
       disableDm: true,
       label: 'locale',
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.SERVER,
         description: 'Set the guild\'s language preference.',
         examples: [
           `${COMMAND_NAME} en-us`,

@@ -1,8 +1,8 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { createUserEmbed, editOrReply, replaceToken } from '../../../utils';
+import { DisplayPayload, displayReply, replaceToken } from '../../../utils';
 
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
@@ -12,7 +12,6 @@ export interface CommandArgs {
   async?: boolean,
   code: {language?: string, text: string},
   jsonspacing?: number,
-  noembed?: boolean,
   noreply?: boolean,
   upload?: boolean,
 }
@@ -50,9 +49,7 @@ export async function createMessage(
     if (args.upload) {
       try {
         message = replaceToken(context, message);
-        return await editOrReply(context, {
-          file: {filename: `eval.${language}`, value: message},
-        });
+        return await displayReply(context, {files: [{filename: `eval.${language}`, value: message}]});
       } catch(error) {
         content = error.stack || error.message;
         language = 'js';
@@ -63,18 +60,16 @@ export async function createMessage(
     }
 
     content = replaceToken(context, content);
-    if (!args.noembed) {
-      const embed = (context instanceof Command.Context) ? createUserEmbed(context.user) : new Embed();
-      if (errored) {
-        embed.setColor(EmbedColors.ERROR);
-      } else {
-        embed.setColor(EmbedColors.DEFAULT);
-      }
-      embed.setDescription(Markup.codeblock(content, {language, mentions: false}));
-      embed.setFooter('Eval', EmbedBrands.NOTSOBOT);
-
-      return editOrReply(context, {embed});
+    const payload: DisplayPayload = {fields: []};
+    if (errored) {
+      payload.color = EmbedColors.ERROR;
+    } else {
+      payload.color = EmbedColors.DEFAULT;
     }
-    return editOrReply(context, Markup.codeblock(content, {language}));
+    payload.description = Markup.codeblock(content, {language, mentions: false});
+    payload.footer = 'Eval';
+    payload.footerIconUrl = EmbedBrands.NOTSOBOT;
+
+    return displayReply(context, payload);
   }
 }

@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
@@ -19,11 +18,10 @@ export default class MemoryUsageCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        category: CommandCategories.UTILS,
+        category: CommandCategories.UTILITY,
         id: Formatter.Commands.UtilsMemoryUsage.COMMAND_ID,
         usage: '',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
     });
   }
 

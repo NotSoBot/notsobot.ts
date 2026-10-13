@@ -20,7 +20,7 @@ export default class SepiaCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.MediaIVManipulationSepia.COMMAND_ID,
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         usage: '?<emoji,user:id|mention|name,url>',
       },
     });

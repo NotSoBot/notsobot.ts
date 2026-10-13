@@ -23,7 +23,7 @@ export default class AudioFlangerCommand extends BaseAudioOrVideoCommand {
         {name: 'width', aliases: ['w'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AUDIO,
         description: 'Apply a Flanger Effect on an Audio or Video',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

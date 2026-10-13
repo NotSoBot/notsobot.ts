@@ -17,7 +17,7 @@ export default class OrbCommand extends BaseImageOrVideoCommand {
         {name: 'direction', aliases: ['d'], type: Parameters.oneOf({choices: MediaSlideDirections})},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Create a spinning Globe/Orb out of an Image or Video',
         examples: [
           COMMAND_NAME,

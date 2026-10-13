@@ -19,7 +19,7 @@ export default class LatteCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIManipulationLatte.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

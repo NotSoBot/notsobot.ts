@@ -1,14 +1,14 @@
 import * as Crypto from 'crypto';
 
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import {
   EmbedBrands,
   EmbedColors,
 } from '../../../constants';
 import { getTranslator } from '../../i18n';
-import { createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, displayReply, toTitleCase } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.hash';
@@ -37,7 +37,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const algorithm = (args.use || HashTypes.MD5).toLowerCase();
   const title = toTitleCase(algorithm);
@@ -53,15 +52,16 @@ export async function createMessage(
     digest = hash.digest('hex');
   }
 
-  const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter((args.secret) ? translate('tools_hash.hmac', {title: title}) : `${title} Hash`, EmbedBrands.NOTSOBOT);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.footer = (args.secret) ? translate('tools_hash.hmac', {title: title}) : `${title} Hash`;
+  payload.footerIconUrl = EmbedBrands.NOTSOBOT;
 
-  embed.setDescription(Markup.codeblock(args.text));
+  payload.description = Markup.codeblock(args.text);
   if (args.secret) {
-    embed.addField(translate('tools_hash.secret_key'), Markup.codeblock(args.secret));
+    payload.fields!.push({name: translate('tools_hash.secret_key'), value: Markup.codeblock(args.secret)});
   }
-  embed.addField(translate('tools_hash.result'), Markup.codeblock(digest));
+  payload.fields!.push({name: translate('tools_hash.result'), value: Markup.codeblock(digest)});
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

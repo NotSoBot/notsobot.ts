@@ -15,7 +15,7 @@ export default class FisheyeCommand extends BaseImageOrVideoCommand {
 
       aliases: ['bulge'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Fisheye Effect on an Image or Video',
         examples: [
           COMMAND_NAME,

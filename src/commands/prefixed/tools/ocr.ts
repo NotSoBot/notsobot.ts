@@ -1,21 +1,17 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
 
-import { googleContentVisionOCR } from '../../../api';
-import { CommandCategories, EmbedBrands, EmbedColors } from '../../../constants';
-import { DefaultParameters, Formatter, Parameters, createUserEmbed, editOrReply, languageCodeToText } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageCommand } from '../basecommand';
 
 
 export interface CommandArgsBefore {
-  noembed: boolean,
   upload: boolean,
   url?: null | string,
 }
 
 export interface CommandArgs {
-  noembed: boolean,
   upload: boolean,
   url: string,
 }
@@ -28,11 +24,10 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'noembed', default: DefaultParameters.noEmbed, type: () => true},
         //{name: 'files.gg', label: 'upload', type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Read text inside of an image (Optical Character Recognition)',
         examples: [
           COMMAND_NAME,
@@ -40,7 +35,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
         ],
         id: Formatter.Commands.ToolsOCR.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-noembed)',
+        usage: '?<emoji,user:id|mention|name,url>',
       },
       type: Parameters.lastMediaUrl({audio: false, video: false}),
     });

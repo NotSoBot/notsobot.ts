@@ -24,7 +24,8 @@ export default class ScreenshotCommand extends BaseCommand {
       ],
       label: 'url',
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.UTILITY,
+        pipeable: true,
         description: 'Take a screenshot of a website',
         examples: [
           `${COMMAND_NAME} https://discordapp.com`,

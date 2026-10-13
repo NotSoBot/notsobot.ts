@@ -18,7 +18,7 @@ export default class ZoomBlurCommand extends BaseImageOrVideoCommand {
         {aliases: ['e'], name: 'expand', type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply a Zoom Blur to an Image or Video',
         examples: [
           COMMAND_NAME,

@@ -1,8 +1,7 @@
 import { Interaction } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, I18n, editOrReply } from '../../../../utils';
+import { Formatter, I18n, displayReply } from '../../../../utils';
 
 import { BaseOwnerCommandOption } from './base';
 
@@ -20,7 +19,6 @@ export class OwnerEmojisCommand extends BaseOwnerCommandOption {
 
   constructor() {
     super({
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {
           name: 'query',
@@ -40,7 +38,7 @@ export class OwnerEmojisCommand extends BaseOwnerCommandOption {
 
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.SearchDiscordEmojis.CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('owner.no_emojis')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('owner.no_emojis')}`});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.SearchDiscordEmojis.CommandArgs) {

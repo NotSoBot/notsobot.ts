@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -19,7 +19,7 @@ export default class TagRemoveCommand extends BaseCommand {
       ],
       label: 'tag',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'Delete a tag',
         examples: [
           `${COMMAND_NAME} something`,
@@ -40,7 +40,7 @@ export default class TagRemoveCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: Formatter.Commands.TagRemove.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.tag === false) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag.unknown')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`});
     }
     return super.onCancelRun(context, args);
   }

@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesMLEdit, utilitiesMLImagine } from '../../../api';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'fun.game.imagine';
@@ -23,7 +23,5 @@ export async function createMessage(
   // pressing the form button on the OG message will cancel their current ongoing submission incase of bugs
   // once everyone submits (30 second timeout?), create new message with all 9 submissions as attachments
   // maybe have a vote at the end with the winner?
-  return editOrReply(context, {
-    content: 'ok',
-  });
+  return displayReply(context, {description: 'ok'});
 }

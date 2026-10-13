@@ -17,7 +17,7 @@ export default class ExplodeCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Explode an Image or Video from the center',
         examples: [
           COMMAND_NAME,

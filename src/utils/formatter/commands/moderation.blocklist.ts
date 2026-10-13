@@ -5,7 +5,7 @@ import { Collections, Command, Interaction } from 'detritus-client';
 import { GuildSettings, GuildSettingsBlocklist } from '../../../api/structures/guildsettings';
 import { EmbedColors, GuildBlocklistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, displayReply, toTitleCase } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -44,11 +44,11 @@ export async function createBlocklistEmbed(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
-        embed.setTitle(title);
-        embed.setFooter((pageLimit === 1) ? footer : translate('moderation.page_of', {footer, page: pageNumber, total: pageLimit}));
+        payload.title = title;
+        payload.footer = (pageLimit === 1) ? footer : translate('moderation.page_of', {footer, page: pageNumber, total: pageLimit});
 
         const page = pages[pageNumber - 1];
         {
@@ -87,24 +87,24 @@ export async function createBlocklistEmbed(
             ].join('\n');
           });
 
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   } else {
-    const embed = createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
+    const payload: DisplayPayload = {fields: []};
+    payload.color = EmbedColors.DEFAULT;
 
-    embed.setTitle(title);
+    payload.title = title;
     if (options.only) {
-      embed.setDescription(translate('moderation.blocklist.empty_only', {types: onlyText.toLowerCase()}));
+      payload.description = translate('moderation.blocklist.empty_only', {types: onlyText.toLowerCase()});
     } else {
-      embed.setDescription(translate('moderation.blocklist.empty'));
+      payload.description = translate('moderation.blocklist.empty');
     }
-    embed.setFooter(footer);
-    return editOrReply(context, {embed});
+    payload.footer = footer;
+    return displayReply(context, payload);
   }
 }
 

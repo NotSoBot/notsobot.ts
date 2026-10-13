@@ -1,13 +1,13 @@
 import moment from 'moment';
 
 import { Collections, Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsCommandsBlocklist } from '../../../api/structures/guildsettings';
 import { getTranslator } from '../../i18n';
 import { CommandCategories, EmbedColors, GuildCommandsBlocklistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, displayReply, toTitleCase } from '../../../utils';
 
 
 export const COMMAND_ID = 'commands.blocklist';
@@ -20,7 +20,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const guildId = context.guildId!;
 
@@ -57,11 +56,11 @@ export async function createCommandsBlocklistsEmbed(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
-        embed.setTitle(title);
-        embed.setFooter((pageLimit === 1) ? footer : translate('moderation_commands_blocklist.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber}));
+        payload.title = title;
+        payload.footer = (pageLimit === 1) ? footer : translate('moderation_commands_blocklist.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
 
         const page = pages[pageNumber - 1];
         {
@@ -87,22 +86,22 @@ export async function createCommandsBlocklistsEmbed(
               translate('moderation_commands_blocklist.by', {userId: blocked.userId}),
             ].join('\n');
           });
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
-  const embed = createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
 
-  embed.setTitle(title);
+  payload.title = title;
   if (options.only) {
-    embed.setDescription(translate('moderation_commands_blocklist.currently_no_commands_are_blocked_for_any', {types: translateMaybe(`moderation.types.${options.only}`, `${toTitleCase(options.only)}s`).toLowerCase()}));
+    payload.description = translate('moderation_commands_blocklist.currently_no_commands_are_blocked_for_any', {types: translateMaybe(`moderation.types.${options.only}`, `${toTitleCase(options.only)}s`).toLowerCase()});
   } else {
-    embed.setDescription(translate('moderation_commands_blocklist.currently_no_commands_are_blocked_in_this'));
+    payload.description = translate('moderation_commands_blocklist.currently_no_commands_are_blocked_in_this');
   }
-  embed.setFooter(footer);
-  return editOrReply(context, {embed});
+  payload.footer = footer;
+  return displayReply(context, payload);
 }

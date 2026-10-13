@@ -1,5 +1,4 @@
 import { Interaction } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { GuildBlocklistTypes } from '../../../../../constants';
 import { Formatter, I18n, toTitleCase } from '../../../../../utils';
@@ -20,7 +19,6 @@ export class ModerationBlocklistListCommand extends BaseInteractionCommandOption
 
   constructor() {
     super({
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {
           name: 'only',

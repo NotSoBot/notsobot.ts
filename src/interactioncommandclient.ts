@@ -21,7 +21,56 @@ import {
 import { Formatter, I18n, editOrReply, getCommandIdFromInvoker } from './utils';
 
 
+// discord's limit for a whole command (names, descriptions and choice values of it, its options and its choices)
+// each field counts as its longest version, the default text or any of its localizations
+export const MAX_APPLICATION_COMMAND_SIZE = 8000;
+
+export interface ApplicationCommandSize {
+  index: number,
+  name: string,
+  size: number,
+}
+
+function longestText(x: Record<string, any>, key: 'description' | 'name'): number {
+  let length = String(x[key] || '').length;
+  const localized = x[`${key}_localizations`];
+  if (localized) {
+    for (let locale in localized) {
+      length = Math.max(length, String(localized[locale] || '').length);
+    }
+  }
+  return length;
+}
+
+// a command's size, counted the way discord counts it
+export function getApplicationCommandSize(raw: Record<string, any>): number {
+  let size = longestText(raw, 'name') + longestText(raw, 'description');
+  if (raw.value !== undefined) {
+    size += String(raw.value).length;
+  }
+  for (let child of [...(raw.options || []), ...(raw.choices || [])]) {
+    size += getApplicationCommandSize(child);
+  }
+  return size;
+}
+
+
 export class NotSoInteractionClient extends InteractionCommandClient {
+  // the commands discord will refuse to upload for being too big, in the order they're uploaded
+  getOversizedCommands(limit: number = MAX_APPLICATION_COMMAND_SIZE): Array<ApplicationCommandSize> {
+    const oversized: Array<ApplicationCommandSize> = [];
+    let index = 0;
+    for (let command of this.commands) {
+      const raw = JSON.parse(JSON.stringify(command));
+      const size = getApplicationCommandSize(raw);
+      if (limit < size) {
+        oversized.push({index, name: raw.name, size});
+      }
+      index++;
+    }
+    return oversized;
+  }
+
   async onCommandCheck(context: Interaction.InteractionContext, command: Interaction.InteractionCommand) {
     const contextMetadata = context.metadata = context.metadata || {};
     contextMetadata.started = Date.now();

@@ -15,7 +15,7 @@ export default class OverlaySMGCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o smg', 'smg'],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Overlay a Half Life SMG over an Image or Video',
         examples: [
           COMMAND_NAME,

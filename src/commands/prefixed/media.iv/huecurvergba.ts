@@ -21,7 +21,7 @@ export default class HueCurveRGBACommand extends BaseImageOrVideoCommand {
         {name: 'red', aliases: ['r'], type: Parameters.hueCurveCoordinates},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply RGB/A curve adjustments to an Image or Video\'s channels',
         examples: [
         COMMAND_NAME,

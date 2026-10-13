@@ -163,6 +163,14 @@ export async function deleteChannel(
   return raw.deleteChannel(context, channelId, options);
 }
 
+
+export async function deleteCommandsResponses(
+  context: RequestContext,
+  options: RestOptions.DeleteCommandsResponses,
+): Promise<RestResponses.DeleteCommandsResponses> {
+  return raw.deleteCommandsResponses(context, options);
+}
+
 export async function deleteFile(
   context: RequestContext,
   fileId: string,

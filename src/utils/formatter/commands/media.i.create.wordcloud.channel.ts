@@ -5,7 +5,7 @@ import ServerExecutionsStore from '../../../stores/serverexecutions';
 import { getTranslator } from '../../i18n';
 
 import { mediaICreateWordcloud } from '../../../api';
-import { editOrReply, mediaReply } from '../../../utils';
+import { displayReply, mediaReply } from '../../../utils';
 
 
 export const MAX_FETCHES = 10;
@@ -27,16 +27,16 @@ export async function createMessage(
   if (channel) {
     const member = context.member;
     if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
-      return editOrReply(context, translate('media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that'));
+      return displayReply(context, {description: translate('media_i_create_wordcloud_channel.you_cannot_view_the_history_of_that')});
     }
     if (!channel.canReadHistory) {
-      return editOrReply(context, translate('media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel'));
+      return displayReply(context, {description: translate('media_i_create_wordcloud_channel.cannot_view_the_history_of_that_channel')});
     }
   }
 
   const isExecuting = ServerExecutionsStore.getOrCreate(context.guildId || context.channelId!);
   if (isExecuting.wordcloud) {
-    return editOrReply(context, translate('media_i_create_wordcloud_channel.already_generating_a_wordcloud_in_this_server'));
+    return displayReply(context, {description: translate('media_i_create_wordcloud_channel.already_generating_a_wordcloud_in_this_server')});
   }
 
   isExecuting.wordcloud = true;

@@ -1,8 +1,7 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -60,7 +59,7 @@ export class TagRenameCommand extends BaseInteractionCommandOption {
         content = translate('tag.not_owner');
       }
       if (content) {
-        return editOrReply(context, {content: `${StatusEmojis.WARNING} ${content}`, flags: MessageFlags.EPHEMERAL});
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${content}`, ephemeral: true});
       }
     }
     return super.onCancelRun(context, args);

@@ -18,7 +18,7 @@ export default class SetMyAIPersonalityCommand extends BaseCommand {
       ],
       label: 'personality',
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.PERSONAL,
         description: 'Set the your AI personality.',
         examples: [
           `${COMMAND_NAME} Be very cutesy and dumb`,

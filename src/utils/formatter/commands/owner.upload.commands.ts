@@ -3,11 +3,29 @@ import { ApplicationCommandTypes } from 'detritus-client/lib/constants';
 
 import { uploadCommands } from '../../../api';
 import type { CommandMetadata } from '../../../commands/prefixed/basecommand';
-import { CommandTypes } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { CommandCategories, CommandTypes, SLASH_COMMAND_CATEGORY_FALLBACKS } from '../../../constants';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'upload-commands';
+
+// explicit category, else the prefixed command with the same id, else an id-prefix fallback
+function resolveInteractionCategory(
+  id: string,
+  explicit: CommandCategories | undefined,
+  prefixedCategories: Map<string, CommandCategories>,
+): string {
+  if (explicit) {
+    return explicit;
+  }
+  const inherited = prefixedCategories.get(id);
+  if (inherited) {
+    return inherited;
+  }
+  const fallback = SLASH_COMMAND_CATEGORY_FALLBACKS.find(([prefix]) => id.startsWith(prefix));
+  return (fallback) ? fallback[1] : '';
+}
+
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
@@ -67,6 +85,11 @@ export async function createMessage(
       });
     }
   }
+  const prefixedCategories = new Map<string, CommandCategories>();
+  for (const command of commands) {
+    prefixedCategories.set(command.id, command.category);
+  }
+
   if (context.interactionCommandClient) {
     const invokers: Array<[Interaction.InteractionCommand, Interaction.InteractionCommand | Interaction.InteractionCommandOption]> = [];
     for (let command of context.interactionCommandClient.commands) {
@@ -99,14 +122,16 @@ export async function createMessage(
         default: continue;
       }
 
+      const id = invoker.metadata.id || invoker.fullName.split(' ').join('.');
+
       // add in args
       commands.push({
         args: [],
-        category: '',
+        category: resolveInteractionCategory(id, invoker.metadata.category, prefixedCategories),
         enabled: true,
         description: invoker.description,
         dmable: !invoker.disableDm,
-        id: invoker.metadata.id || invoker.fullName.split(' ').join('.'),
+        id,
         name: invoker.fullName,
         ratelimits: invoker.ratelimits?.map((ratelimit) => {
           return {
@@ -123,5 +148,5 @@ export async function createMessage(
   }
   await uploadCommands(context, {commands});
 
-  return editOrReply(context, 'ok');
+  return displayReply(context, {description: 'ok'});
 }

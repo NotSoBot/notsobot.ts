@@ -20,7 +20,7 @@ export default class AudioReverbCommand extends BaseAudioOrVideoCommand {
         {name: 'volume', aliases: ['v'], metadata: {description: 'Reverb Volume (Default: 0.4)'}},
       ],
       metadata: {
-      category: CommandCategories.TOOLS,
+      category: CommandCategories.AUDIO,
       description: 'Add an Audio Reverb to an Audio or Video File.',
       examples: [
         `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

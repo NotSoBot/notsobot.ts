@@ -4,7 +4,7 @@ import UserStore from '../../../stores/users';
 import { getTranslator } from '../../i18n';
 
 import { editUser } from '../../../api';
-import { Parameters, createUserString, editOrReply } from '../../../utils';
+import { Parameters, createUserString, displayReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -37,5 +37,5 @@ export async function createMessage(
   if (args.payload.text) {
     content = translate('owner_block_user.reason', {content: content, text: args.payload.text});
   }
-  return editOrReply(context, content);
+  return displayReply(context, {description: content});
 }

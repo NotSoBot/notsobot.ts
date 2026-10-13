@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { googleContentVisionLabels } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { createUserEmbed, editOrReply, formatPercentageAsBar, toTitleCase } from '../../../utils';
+import { DisplayPayload, displayReply, formatPercentageAsBar, toTitleCase } from '../../../utils';
 
 
 export interface CommandArgs {
@@ -21,9 +21,10 @@ export async function createMessage(
   const { language, translate, translateMaybe } = await getTranslator(context);
   const { label_annotations: labelAnnotations } = await googleContentVisionLabels(context, args);
 
-  const embed = createUserEmbed(context.user);
-  embed.setColor(EmbedColors.DEFAULT);
-  embed.setFooter(translate('tools_labels.image_labels'), EmbedBrands.GOOGLE_GO);
+  const payload: DisplayPayload = {fields: []};
+  payload.color = EmbedColors.DEFAULT;
+  payload.footer = translate('tools_labels.image_labels');
+  payload.footerIconUrl = EmbedBrands.GOOGLE_GO;
 
   {
     const description: Array<string> = [];
@@ -33,8 +34,8 @@ export async function createMessage(
       const bar = formatPercentageAsBar(annotation.score * 100, {bars: 10});
       description.push(`[${bar}] ${percentage}% - ${text}`);
     }
-    embed.setDescription(Markup.codeblock(description.join('\n'), {language: 'x1'}));
+    payload.description = Markup.codeblock(description.join('\n'), {language: 'x1'});
   }
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

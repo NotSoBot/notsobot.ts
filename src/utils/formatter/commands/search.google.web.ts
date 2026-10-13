@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchGoogle } from '../../../api';
 import { getTranslator } from '../../i18n';
@@ -8,13 +8,13 @@ import { RestResponsesRaw } from '../../../api/types';
 import {
   EmbedBrands,
   EmbedColors,
+  GOOGLE_CARD_TYPES_SUPPORTED,
   GoogleCardTypes,
   GoogleLocales,
   GoogleLocalesText,
-  GOOGLE_CARD_TYPES_SUPPORTED,
 } from '../../../constants';
 
-import { Paginator, chunkArray, createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.google.web';
@@ -26,7 +26,6 @@ export async function createMessage(
   args: {locale?: GoogleLocales, query: string, safe?: boolean},
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const {
     cards,
     results,
@@ -49,8 +48,8 @@ export async function createMessage(
       const paginator = new Paginator(context, {
         pageLimit,
         onPage: (pageNumber) => {
-          const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-          embed.setColor(EmbedColors.DEFAULT);
+          const payload: DisplayPayload = {fields: []};
+          payload.color = EmbedColors.DEFAULT;
 
           let footer = translate('search_google_web.google_search_results');
           if (pageLimit !== 1) {
@@ -60,13 +59,14 @@ export async function createMessage(
             footer = `${footer} (${GoogleLocalesText[args.locale]})`;
           }
           footer = translate('search_google_web.total_results', {footer: footer, totalResultCount: totalResultCount.toLocaleString(language)});
-          embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
+          payload.footer = footer;
+          payload.footerIconUrl = EmbedBrands.GOOGLE_GO;
 
           const page = pages[pageNumber - 1];
           if (Array.isArray(page)) {
-            embed.setTitle(translate('search_google_web.search_results'));
+            payload.title = translate('search_google_web.search_results');
             if (suggestionText) {
-              embed.setDescription(suggestionText);
+              payload.description = suggestionText;
             }
 
             for (let result of page) {
@@ -89,25 +89,25 @@ export async function createMessage(
                 }
               }
 
-              embed.addField(`**${Markup.escape.all(result.title)}**`, description.join('\n'));
+              payload.fields!.push({name: `**${Markup.escape.all(result.title)}**`, value: description.join('\n')});
             }
           } else {
             // is a card
-            embed.setTitle(page.title);
+            payload.title = page.title;
             switch (page.type) {
               case GoogleCardTypes.CALCULATOR: {
-                embed.setDescription(`${page.header} ${page.description}`);
+                payload.description = `${page.header} ${page.description}`;
               }; break;
               case GoogleCardTypes.CURRENCY: {
                 for (let field of page.fields) {
-                  embed.addField(field.name, field.value, true);
+                  payload.fields!.push({inline: true, name: field.name, value: field.value});
                 }
               }; break;
               case GoogleCardTypes.DEFINITION: {
-                embed.setTitle(translate('search_google_web.definition_of', {header: page.header}));
+                payload.title = translate('search_google_web.definition_of', {header: page.header});
                 if (page.description) {
                   const pronunciation = (page.url) ? Markup.bold(Markup.url(page.description, page.url)) : Markup.codestring(page.description);
-                  embed.setDescription(translate('search_google_web.pronounced', {pronunciation: pronunciation}));
+                  payload.description = translate('search_google_web.pronounced', {pronunciation: pronunciation});
                   // maybe put `page.footer` in here for credits?
                 }
 
@@ -129,25 +129,25 @@ export async function createMessage(
                       }
                       description.push('');
                     }
-                    embed.addField(section.title, description.join('\n'));
+                    payload.fields!.push({name: section.title, value: description.join('\n')});
                   }
                 }
               }; break;
               case GoogleCardTypes.FINANCE: {
                 // title already set
-                embed.setDescription([
+                payload.description = [
                   page.header,
                   '',
                   page.description,
-                ].join('\n'));
+                ].join('\n');
 
                 for (let field of page.fields) {
-                  embed.addField(field.name, field.value, true);
+                  payload.fields!.push({inline: true, name: field.name, value: field.value});
                 }
                 if (page.fields.length < 3) {
                   const fillAmount = 3 - page.fields.length;
                   for (let i = 0; i < fillAmount; i++) {
-                    embed.addField('\u200b', '\u200b', true);
+                    payload.fields!.push({inline: true, name: '\u200b', value: '\u200b'});
                   }
                 }
 
@@ -160,30 +160,30 @@ export async function createMessage(
                       description.push(`${Markup.bold(field.name)}: ${field.value}`);
                     }
 
-                    embed.addField('\u200b', description.join('\n'), true);
+                    payload.fields!.push({inline: true, name: '\u200b', value: description.join('\n')});
                   }
                 }
               }; break;
               case GoogleCardTypes.KNOWLEDGE_RESULT: {
                 if (page.header) {
-                  embed.setTitle(page.header);
+                  payload.title = page.header;
                 }
                 if (page.description) {
                   if (page.footer) {
-                    embed.addField(page.footer, page.description, true);
+                    payload.fields!.push({inline: true, name: page.footer, value: page.description});
                   } else {
-                    embed.setDescription(page.description);
+                    payload.description = page.description;
                   }
                 }
                 if (page.thumbnail) {
-                  embed.setThumbnail(page.thumbnail);
+                  payload.thumbnail = page.thumbnail;
                 }
                 for (let field of page.fields) {
-                  embed.addField(field.name, field.value);
+                  payload.fields!.push({name: field.name, value: field.value});
                 }
               }; break;
               case GoogleCardTypes.TIME: {
-                embed.setTitle(page.footer as string);
+                payload.title = page.footer as string;
 
                 {
                   const description: Array<string> = [];
@@ -194,7 +194,7 @@ export async function createMessage(
                       description.push(`${field.value} at ${field.name}`);
                     }
                   }
-                  embed.setDescription(description.join('\n'));
+                  payload.description = description.join('\n');
                 }
 
               }; break;
@@ -207,61 +207,62 @@ export async function createMessage(
                       description.push(`-> ${field.value}`);
                     }
                   }
-                  embed.addField(section.title, description.join('\n'));
+                  payload.fields!.push({name: section.title, value: description.join('\n')});
                 }
               }; break;
               case GoogleCardTypes.UNITS: {
-                embed.setDescription(page.footer);
+                payload.description = page.footer || undefined;
                 for (let field of page.fields) {
-                  embed.addField(field.name, field.value, true);
+                  payload.fields!.push({inline: true, name: field.name, value: field.value});
                 }
               }; break;
               case GoogleCardTypes.WEATHER: {
-                embed.setTitle(translate('search_google_web.weather_for', {header: page.header}));
-                embed.setDescription(page.footer);
+                payload.title = translate('search_google_web.weather_for', {header: page.header});
+                payload.description = page.footer || undefined;
                 if (page.thumbnail) {
-                  embed.setThumbnail(page.thumbnail);
+                  payload.thumbnail = page.thumbnail;
                 }
 
-                embed.addField(translate('search_google_web.temperature'), page.description as string);
+                payload.fields!.push({name: translate('search_google_web.temperature'), value: page.description as string});
                 for (let field of page.fields) {
-                  embed.addField(`**${field.name}**`, field.value, true);
+                  payload.fields!.push({inline: true, name: `**${field.name}**`, value: field.value});
                 }
               }; break;
               case GoogleCardTypes.WEB_SNIPPET: {
                 if (page.header) {
                   const cite = page.footer!.replace('https://', '').replace('http://', '');
-                  embed.addField(`**${Markup.escape.all(page.header!)}**`, [
+                  payload.fields!.push({name: `**${Markup.escape.all(page.header!)}**`, value: [
                     Markup.url(`**${Markup.escape.all(cite)}**`, page.url!),
                     Markup.escape.all(page.description!),
-                  ].join('\n'));
+                  ].join('\n')});
                 }
               }; break;
             }
             if (suggestionText) {
-              embed.addField('\u200b', suggestionText);
+              payload.fields!.push({name: '\u200b', value: suggestionText});
             }
           }
-          return embed;
+          return {display: payload};
         },
       });
       return await paginator.start();
     }
   } else {
-    const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DEFAULT);
+    const payload: DisplayPayload = {fields: []};
+    payload.color = EmbedColors.DEFAULT;
 
     let footer: string = translate('search_google_web.google_search_results');
     if (args.locale && args.locale in GoogleLocalesText) {
       footer = `${footer} (${GoogleLocalesText[args.locale]})`;
     }
-    embed.setFooter(footer, EmbedBrands.GOOGLE_GO);
+    payload.footer = footer;
+    payload.footerIconUrl = EmbedBrands.GOOGLE_GO;
 
-    embed.setTitle(translate('search_google_web.unable_to_find_any_results'));
+    payload.title = translate('search_google_web.unable_to_find_any_results');
     if (suggestionText) {
-      embed.setDescription(suggestionText);
+      payload.description = suggestionText;
     }
 
-    return editOrReply(context, {embed});
+    return displayReply(context, payload);
   }
 }

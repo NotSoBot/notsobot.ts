@@ -8,18 +8,16 @@ import UserAvatarDecorations from '../../../stores/useravatardecorations';
 import { utilitiesFetchMedia } from '../../../api';
 import { PresenceStatusColors } from '../../../constants';
 import { getTranslator } from '../../i18n';
-import { DisplayPayload, displayReply, editOrReply } from '../../../utils';
+import { DisplayPayload, displayReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
   default: boolean,
-  noembed: boolean,
   user: Structures.Member | Structures.User | null,
 }
 
 export interface CommandArgs {
   default: boolean,
-  noembed: boolean,
   user: Structures.Member | Structures.User,
 }
 
@@ -56,13 +54,6 @@ export async function createMessage(
     } catch(error) {
       
     }
-  }
-
-  if (args.noembed) {
-    if (file) {
-      return editOrReply(context, {file});
-    }
-    return editOrReply(context, avatarUrl);
   }
 
   const payload: DisplayPayload = {fields: []};

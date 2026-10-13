@@ -388,6 +388,24 @@ export async function deleteChannel(
 }
 
 
+export async function deleteCommandsResponses(
+  context: RequestContext,
+  options: RestOptions.DeleteCommandsResponses,
+): Promise<RestResponsesRaw.DeleteCommandsResponses> {
+  const query = {
+    channel_id: options.channelId,
+    trigger_ids: JSON.stringify(options.triggerIds),
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.COMMANDS_RESPONSES,
+    },
+  });
+}
+
+
 export async function deleteFile(
   context: RequestContext,
   fileId: string,

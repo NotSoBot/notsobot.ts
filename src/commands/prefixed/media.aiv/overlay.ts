@@ -24,7 +24,7 @@ export default class OverlayCommand extends BaseMediasCommand {
         {name: 'y'},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.CONVERSION,
         description: 'Overlay one media on top of another',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,

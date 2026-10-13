@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, GuildCommandsBlocklistTypes, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -31,7 +31,7 @@ export default class CommandsUsageCommand extends BaseCommand {
       ],
       label: 'command',
       metadata: {
-        category: CommandCategories.MODERATION,
+        category: CommandCategories.SERVER,
         description: 'Show the latest commands used by the Server',
         examples: [
           `${COMMAND_NAME} rule34`,
@@ -41,7 +41,6 @@ export default class CommandsUsageCommand extends BaseCommand {
         id: Formatter.Commands.ModerationCommandsUsage.COMMAND_ID,
         usage: '<command-name> (-channel <channel:id|mention|name>) (-user <user:id|mention|name>)',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       //type: Parameters.prefixedCommand,
     });
@@ -67,7 +66,7 @@ export default class CommandsUsageCommand extends BaseCommand {
       errors.push('user');
     }
     if (errors.length) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('moderation.items_not_found', {items: errors.join(', ')})}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.items_not_found', {items: errors.join(', ')})}`});
     }
     return super.onCancelRun(context, args);
   }

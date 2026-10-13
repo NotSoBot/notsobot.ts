@@ -5,7 +5,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { createGuildLogger } from '../../../api';
 import { GuildLoggerTypes, StatusEmojis } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
-import { I18n, Parameters } from '../../../utils';
+import { I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -189,16 +189,16 @@ export class LoggersAddBaseCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.channel !== undefined && args.in !== undefined) {
-      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.logger_channel_and_in')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.logger_channel_and_in')}`});
     }
     if (args.channel === null) {
-      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_valid_channels')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_channels')}`});
     } else if (args.in === null) {
-      return context.editOrReply(`${StatusEmojis.WARNING} ${translate('moderation.no_valid_categories')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_categories')}`});
     }
 
     const warning = await getLoggerAddWarning(context, {channel: args.channel, in: args.in, type: this.loggerType});
-    return context.editOrReply(`${StatusEmojis.WARNING} ${warning || translate('errors.unknown_lol')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${warning || translate('errors.unknown_lol')}`});
   }
 
   async run(context: Command.Context, args: CommandArgs) {

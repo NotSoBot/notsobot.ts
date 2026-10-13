@@ -17,7 +17,7 @@ export default class ADHDCommand extends BaseMediaCommand {
         {name: 'horizontal', aliases: ['h'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Add random gameplay to an Audio/Image/Video file',
         examples: [
           COMMAND_NAME,

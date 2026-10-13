@@ -18,7 +18,7 @@ export default class PhoSimpCommand extends BaseImageOrVideoCommand {
         {name: 'gridy', aliases: ['gy'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Apply PhoSimp Filters on an Image or Video',
         examples: [
           COMMAND_NAME,

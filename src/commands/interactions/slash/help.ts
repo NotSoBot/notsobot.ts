@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-client/lib/constants';
 
-import { I18n, editOrReply } from '../../../utils';
+import { I18n, displayReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -25,9 +25,6 @@ export default class HelpCommand extends BaseSlashCommand {
   ];
 
   run(context: Interaction.InteractionContext) {
-    return editOrReply(
-      context,
-      '<https://notsobot.com/commands> (Join our support server <https://notsobot.com/support/invite>)',
-    );
+    return displayReply(context, {description: '<https://notsobot.com/commands> (Join our support server <https://notsobot.com/support/invite>)'});
   }
 }

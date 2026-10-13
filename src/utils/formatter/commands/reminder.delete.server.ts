@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { InteractionCallbackTypes, MarkupTimestampStyles, MessageComponentButtonStyles } from 'detritus-client/lib/constants';
-import { Components, ComponentContext, Embed, Markup } from 'detritus-client/lib/utils';
+import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
@@ -10,8 +10,7 @@ import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   Parameters,
   createTimestampMomentFromGuild,
-  createUserEmbed,
-  editOrReply,
+  displayReply,
   getReminderMessage,
 } from '../../../utils';
 
@@ -27,6 +26,5 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
-  return editOrReply(context, 'wip');
+  return displayReply(context, {description: 'wip'});
 }

@@ -18,7 +18,7 @@ export default class MagikCommand extends BaseImageOrVideoCommand {
         {aliases: ['s'], name: 'scale', type: 'float'},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Magikify an Image or Video',
         examples: [
           COMMAND_NAME,

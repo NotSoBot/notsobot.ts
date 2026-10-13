@@ -1,10 +1,10 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { Parameters, createTimestampMomentFromGuild, createUserEmbed, editOrReply } from '../../../utils';
+import { Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -46,9 +46,9 @@ export default class NickMassCancelCommand extends BaseCommand {
     const isExecuting = ServerExecutionsStore.getOrCreate(guild.id);
     if (isExecuting.nick) {
       isExecuting.nick = false;
-      return context.editOrReply('Canceled mass nickname changes');
+      return displayReply(context, {description: 'Canceled mass nickname changes'});
     } else {
-      return context.editOrReply('Mass nickname isn\'t ongoing right now');
+      return displayReply(context, {description: 'Mass nickname isn\'t ongoing right now'});
     }
   }
 }

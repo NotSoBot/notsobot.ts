@@ -1,12 +1,12 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
 import { search4Chan, search4ChanRandom } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { DiscordEmojis, EmbedBrands, EmbedColors } from '../../../constants';
-import { DefaultParameters, Paginator, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.4chan';
@@ -22,7 +22,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const board = await ((args.board) ? search4Chan(context, {board: args.board}) : search4ChanRandom(context, {nsfw: !DefaultParameters.safe(context)}));
   if (board.threads.length) {
@@ -42,15 +41,15 @@ export async function createMessage(
       onPage: async (page) => {
         const thread = threads[page - 1];
 
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
 
         let footer = translate('search_4chan.4chan_s', {board: board.board});
         if (pageLimit !== 1) {
           footer = translate('search_4chan.page_of', {footer: footer, page: page, pageLimit: pageLimit});
         }
         // icon
-        embed.setFooter(footer);
+        payload.footer = footer;
 
         {
           let title = '';
@@ -62,8 +61,8 @@ export async function createMessage(
           }
           title += Markup.escape.all(thread.title);
           if (title) {
-            embed.setTitle(title.trim());
-            embed.setUrl(thread.url);
+            payload.title = title.trim();
+            payload.url = thread.url;
           }
         }
 
@@ -92,7 +91,7 @@ export async function createMessage(
             url = `attachment://${file.filename}`;
           }
 
-          embed.setImage(url);
+          payload.image = url;
         }
 
         {
@@ -137,26 +136,26 @@ export async function createMessage(
             description.push('');
             description.push(Markup.escape.all(thread.comment));
           }
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
 
         {
           const description: Array<string> = [];
           description.push(Markup.url('Board', board.url));
           description.push(Markup.url('Thread', thread.url));
-          embed.addField('Urls', description.join(', '));
+          payload.fields!.push({name: 'Urls', value: description.join(', ')});
         }
 
         if (thread.media) {
           const filename = `${thread.media.name}.${thread.media.extension}`;
-          embed.addField(translate('search_4chan.media'), Markup.url(filename, thread.media.url));
+          payload.fields!.push({name: translate('search_4chan.media'), value: Markup.url(filename, thread.media.url)});
         }
 
-        return [embed, files];
+        return {display: {...payload, files}};
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, translate('search_4chan.couldn_t_find_threads_for_that_board'));
+  return displayReply(context, {description: translate('search_4chan.couldn_t_find_threads_for_that_board')});
 }
 

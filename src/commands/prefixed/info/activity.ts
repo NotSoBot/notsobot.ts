@@ -1,8 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -27,7 +26,6 @@ export default class ActivityCommand extends BaseCommand {
         id: Formatter.Commands.InfoActivity.COMMAND_ID,
         usage: '?<user:id|mention|name>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.memberOrUser(),
     });
   }
@@ -38,7 +36,7 @@ export default class ActivityCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoActivity.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.InfoActivity.CommandArgs) {

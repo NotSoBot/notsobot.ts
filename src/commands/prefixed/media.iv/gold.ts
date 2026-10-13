@@ -14,7 +14,7 @@ export default class GoldCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Gold tintify an Image or Video',
         examples: [
           COMMAND_NAME,

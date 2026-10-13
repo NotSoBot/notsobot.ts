@@ -1,8 +1,7 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
@@ -42,10 +41,7 @@ export class MediaIVHueCurveRGBACommand extends BaseInteractionImageOrVideoComma
       return super.onCancelRun(context, args);
     }
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('errors.no_hue_curves')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.no_hue_curves')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationHueCurveRGBA.CommandArgs) {

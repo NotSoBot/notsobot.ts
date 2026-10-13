@@ -14,7 +14,7 @@ export default class SnipFramesCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.CONVERSION,
         description: 'Snip the frames of an Animated Image/Video',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp4 10 50`,

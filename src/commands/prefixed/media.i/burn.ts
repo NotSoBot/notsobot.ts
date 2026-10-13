@@ -19,7 +19,7 @@ export default class BurnCommand extends BaseImageCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIManipulationBurn.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

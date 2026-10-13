@@ -18,7 +18,8 @@ export default class RemindListCommand extends BaseCommand {
         {name: 'global', aliases: ['g'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.UTILITY,
+        pipeable: true,
         description: 'List of your Reminders in the Server or Globally',
         examples: [
           COMMAND_NAME,

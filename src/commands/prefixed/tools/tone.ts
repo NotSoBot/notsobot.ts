@@ -18,7 +18,7 @@ export default class ToneCommand extends BaseCommand {
       name: 'tone',
 
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
       },
     });
   }

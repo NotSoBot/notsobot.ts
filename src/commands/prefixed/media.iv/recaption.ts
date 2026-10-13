@@ -17,7 +17,7 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
         {name: 'tolerance', aliases: ['t'], type: Number},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Remove Caption Text then Add Caption Text to an Image or Video',
         examples: [
           COMMAND_NAME,

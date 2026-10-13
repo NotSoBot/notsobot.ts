@@ -1,8 +1,8 @@
 import { Interaction, Structures } from 'detritus-client';
-import { ApplicationCommandOptionTypes, MessageFlags } from 'detritus-client/lib/constants';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -65,10 +65,7 @@ export class InfoUsersCommand extends BaseInteractionCommandOption {
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgsBefore) {

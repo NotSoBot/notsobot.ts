@@ -1,8 +1,8 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { GuildBlocklistTypes, StatusEmojis } from '../../../../../constants';
-import { Formatter, I18n, editOrReply } from '../../../../../utils';
+import { Formatter, I18n, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -21,7 +21,6 @@ export class ModerationBlocklistAddCommand extends BaseInteractionCommandOption 
   constructor() {
     super({
       permissions: [Permissions.ADMINISTRATOR],
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {
           name: 'items',
@@ -44,15 +43,9 @@ export class ModerationBlocklistAddCommand extends BaseInteractionCommandOption 
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationBlocklistAdd.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.payloads && args.payloads.length) {
-      return editOrReply(context, {
-        content: `${StatusEmojis.WARNING} ${translate('commands.context.blocklist_add.self')}`,
-        flags: MessageFlags.EPHEMERAL,
-      });
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('commands.context.blocklist_add.self')}`, ephemeral: true});
     }
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_valid_items')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationBlocklistAdd.CommandArgs) {

@@ -19,7 +19,7 @@ export default class AudioTremoloCommand extends BaseAudioOrVideoCommand {
         {name: 'frequency', aliases: ['f'], metadata: {description: 'Modulation Frequency (Default: 5.0)'}},
       ],
       metadata: {
-      category: CommandCategories.TOOLS,
+      category: CommandCategories.AUDIO,
       description: 'Modify the audio\'s wave pattern in an Audio or Video file',
       examples: [
         `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,

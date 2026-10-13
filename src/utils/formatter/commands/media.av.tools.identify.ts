@@ -1,15 +1,14 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { mediaAVToolsIdentify } from '../../../api';
 import { DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../../constants';
 import {
+  DisplayPayload,
   Paginator,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
+  displayReply,
   fetchMemberOrUserById,
   formatTime,
 } from '../../../utils';
@@ -28,7 +27,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const { translate } = await getTranslator(context);
   const songs = await mediaAVToolsIdentify(context, {
     start: (args.start) ? args.start * 1000 : args.start,
@@ -43,9 +41,9 @@ export async function createMessage(
       onPage: (page) => {
         const song = songs[page - 1];
 
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
-        embed.setTitle(translate('media.identify.title', {artist: song.artists[0]!.name, title: song.title}));
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
+        payload.title = translate('media.identify.title', {artist: song.artists[0]!.name, title: song.title});
 
         {
           let footer: string;
@@ -54,7 +52,8 @@ export async function createMessage(
           } else {
             footer = translate('media.identify.footer_paged', {page, total: pageLimit});
           }
-          embed.setFooter(footer, EmbedBrands.NOTSOBOT);
+          payload.footer = footer;
+          payload.footerIconUrl = EmbedBrands.NOTSOBOT;
         }
 
         let thumbnail: string | undefined;
@@ -67,7 +66,7 @@ export async function createMessage(
         }
 
         if (thumbnail) {
-          embed.setThumbnail(thumbnail);
+          payload.thumbnail = thumbnail;
         }
 
         {
@@ -89,7 +88,7 @@ export async function createMessage(
             description.push(`**${translate('media.identify.timestamp')}**: ${formatTime(song.timestamp)}`);
           }
           description.push(`**${translate('media.identify.title_label')}**: ${song.title}`);
-          embed.setDescription(description.join('\n'));
+          payload.description = description.join('\n');
         }
 
         {
@@ -110,7 +109,7 @@ export async function createMessage(
             urls.push(Markup.url('YouTube', song.platforms.youtube.url));
           }
           if (urls.length) {
-            embed.addField(translate('media.identify.platform_links'), urls.join(', '));
+            payload.fields!.push({name: translate('media.identify.platform_links'), value: urls.join(', ')});
           }
         }
 
@@ -126,20 +125,17 @@ export async function createMessage(
             urls.push(Markup.url('Spotify', song.platforms.spotify.preview_url));
           }
           if (urls.length) {
-            embed.addField(translate('media.identify.preview_links'), urls.join(', '));
+            payload.fields!.push({name: translate('media.identify.preview_links'), value: urls.join(', ')});
           }
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
 
-  return editOrReply(context, {
-    content: translate('media.identify.not_found'),
-    flags: MessageFlags.EPHEMERAL,
-  });
+  return displayReply(context, {description: translate('media.identify.not_found'), ephemeral: true});
   /*
   const pages = [result.apple_music];
   const pageLimit = activities.length || 1;

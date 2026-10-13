@@ -1,5 +1,4 @@
 import { Interaction } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { GuildCommandsAllowlistTypes } from '../../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../../utils';
@@ -20,7 +19,6 @@ export class CommandsAllowlistListCommand extends BaseInteractionCommandOption {
 
   constructor() {
     super({
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {name: 'only', description: 'Only show entries of this type', ...I18n.optionLocalizations('commands.commands.allowlist.list.only'), choices: Parameters.Slash.oneOf({choices: GuildCommandsAllowlistTypes, localizationKey: 'choices.guild_command_list_types'})},
       ],

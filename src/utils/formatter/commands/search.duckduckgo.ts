@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchDuckDuckGo } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { Paginator, chunkArray, createUserEmbed, editOrReply, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.duckduckgo';
@@ -22,7 +22,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { results } = await searchDuckDuckGo(context, args);
   if (args.randomize) {
@@ -35,10 +34,11 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (pageNumber) => {
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
-        embed.setFooter(translate('search_duckduckgo.page_of_duck_duck_go_results', {pageLimit: pageLimit, pageNumber: pageNumber}), EmbedBrands.DUCK_DUCK_GO);
-        embed.setTitle(translate('search_duckduckgo.search_results'));
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
+        payload.footer = translate('search_duckduckgo.page_of_duck_duck_go_results', {pageLimit: pageLimit, pageNumber: pageNumber});
+        payload.footerIconUrl = EmbedBrands.DUCK_DUCK_GO;
+        payload.title = translate('search_duckduckgo.search_results');
 
         const page = pages[pageNumber - 1];
         for (let result of page) {
@@ -47,13 +47,13 @@ export async function createMessage(
             Markup.url(`**${Markup.escape.all(cite)}**`, result.url),
             Markup.escape.all(result.description),
           ];
-          embed.addField(`**${Markup.escape.all(result.title)}**`, description.join('\n'));
+          payload.fields!.push({name: `**${Markup.escape.all(result.title)}**`, value: description.join('\n')});
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, translate('search_duckduckgo.couldn_t_find_any_results_for_that'));
+  return displayReply(context, {description: translate('search_duckduckgo.couldn_t_find_any_results_for_that')});
 }

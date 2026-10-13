@@ -1,8 +1,8 @@
 import { Interaction, Structures } from 'detritus-client';
-import { ApplicationCommandOptionTypes, ChannelTypes, MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { ApplicationCommandOptionTypes, ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
 import { GuildLoggerTypes, StatusEmojis } from '../../../../../constants';
-import { I18n, editOrReply } from '../../../../../utils';
+import { I18n, displayReply } from '../../../../../utils';
 
 import { createLogger, getLoggerAddWarning } from '../../../../prefixed/moderation/loggers.add.base';
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -54,7 +54,7 @@ export class ModerationLoggersAddCommand extends BaseInteractionCommandOption {
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
     const warning = await getLoggerAddWarning(context, args);
-    return editOrReply(context, {content: `${StatusEmojis.WARNING} ${warning || translate('errors.unknown_lol')}`, flags: MessageFlags.EPHEMERAL});
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${warning || translate('errors.unknown_lol')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {

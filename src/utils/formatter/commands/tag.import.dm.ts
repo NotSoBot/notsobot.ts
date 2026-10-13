@@ -7,7 +7,7 @@ import { getTranslator } from '../../i18n';
 import { fetchTag, putTag } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.add';
@@ -39,10 +39,10 @@ export async function createMessage(
   try {
     const oldTag = await fetchTag(context, {name: tagName, serverId});
     if (oldTag.user.id !== context.userId) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_import_dm.tag_already_exists_in_this_server_and')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_import_dm.tag_already_exists_in_this_server_and')}`});
     }
     if (oldTag.content) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_import_dm.cannot_edit_a_regular_tag_to_be')}`)
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_import_dm.cannot_edit_a_regular_tag_to_be')}`})
     }
   } catch(error) {
     
@@ -58,5 +58,5 @@ export async function createMessage(
   if (args.tag.name !== tag.name) {
     message = `${message} as ${Markup.codestring(tag.name)}`;
   }
-  return editOrReply(context, translate('tag_import_dm.to_this_server', {message: message}));
+  return displayReply(context, {description: translate('tag_import_dm.to_this_server', {message: message})});
 }

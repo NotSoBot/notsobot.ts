@@ -1,8 +1,8 @@
 import { Interaction } from 'detritus-client';
-import { MessageFlags, Permissions } from 'detritus-client/lib/constants';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { StatusEmojis } from '../../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -66,10 +66,7 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, {
-      content: `${StatusEmojis.WARNING} ${translate('moderation.no_users_found')}`,
-      flags: MessageFlags.EPHEMERAL,
-    });
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation.no_users_found')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {

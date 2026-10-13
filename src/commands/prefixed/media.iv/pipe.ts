@@ -19,7 +19,7 @@ export default class PipeCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.CONVERSION,
         description: 'Pipe some Image commands together',
         examples: [
           COMMAND_NAME,

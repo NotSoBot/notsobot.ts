@@ -23,7 +23,7 @@ export default class FlashCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -delay 200`,
         ],
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationFlash.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-delay <number>)',
       },

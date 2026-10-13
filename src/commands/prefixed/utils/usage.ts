@@ -18,7 +18,7 @@ export default class UsageCommand extends BaseCommand {
         examples: [
           COMMAND_NAME,
         ],
-        category: CommandCategories.UTILS,
+        category: CommandCategories.UTILITY,
         id: Formatter.Commands.UtilsUsage.COMMAND_ID,
         usage: '',
       },

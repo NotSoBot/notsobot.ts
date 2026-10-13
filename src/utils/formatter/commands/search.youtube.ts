@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { searchYoutube } from '../../../api';
 import { getTranslator } from '../../i18n';
@@ -10,10 +10,10 @@ import {
   DateMomentOptions,
   EmbedBrands,
   EmbedColors,
-  YoutubeResultTypes,
   MOMENT_FORMAT,
+  YoutubeResultTypes,
 } from '../../../constants';
-import { Paginator, createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, Paginator, displayReply } from '../../../utils';
 
 
 
@@ -29,7 +29,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { results, total_result_count: totalResultCount } = await searchYoutube(context, args);
   if (results.length) {
@@ -39,18 +38,19 @@ export async function createMessage(
       onPage: (page) => {
         const result = results[page - 1];
 
-        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-        embed.setColor(EmbedColors.DEFAULT);
-        embed.setFooter(translate('search_youtube.page_of_youtube_search_results_total_results', {page: page, pageLimit: pageLimit, totalResultCount: totalResultCount.toLocaleString(language)}), EmbedBrands.YOUTUBE);
+        const payload: DisplayPayload = {fields: []};
+        payload.color = EmbedColors.DEFAULT;
+        payload.footer = translate('search_youtube.page_of_youtube_search_results_total_results', {page: page, pageLimit: pageLimit, totalResultCount: totalResultCount.toLocaleString(language)});
+        payload.footerIconUrl = EmbedBrands.YOUTUBE;
 
-        embed.setTitle(result.title);
-        embed.setUrl(result.url);
+        payload.title = result.title;
+        payload.url = result.url;
 
         if (result.description) {
-          embed.setDescription(Markup.escape.all(result.description));
+          payload.description = Markup.escape.all(result.description);
         }
         if (result.thumbnail) {
-          embed.setImage(result.thumbnail.url);
+          payload.image = result.thumbnail.url;
         }
 
         switch (result.type) {
@@ -74,7 +74,7 @@ export async function createMessage(
               description.push(translate('search_youtube.videos', {video_count: channel.video_count.toLocaleString(language)}));
             }
 
-            embed.addField(translate('search_youtube.channel_information'), description.join('\n'));
+            payload.fields!.push({name: translate('search_youtube.channel_information'), value: description.join('\n')});
           }; break;
           case YoutubeResultTypes.MOVIE: {
             const movie = result.metadata;
@@ -92,10 +92,10 @@ export async function createMessage(
             description.push(translate('search_youtube.id_2', {movie: Markup.codestring(movie.id)}));
             description.push(`${Markup.url(movie.price, result.url)}`);
 
-            embed.addField(translate('search_youtube.movie_information'), description.join('\n'));
+            payload.fields!.push({name: translate('search_youtube.movie_information'), value: description.join('\n')});
 
             for (let field of movie.fields) {
-              embed.addField(Markup.escape.all(field.name), Markup.escape.all(field.value), true);
+              payload.fields!.push({inline: true, name: Markup.escape.all(field.name), value: Markup.escape.all(field.value)});
             }
           }; break;
           case YoutubeResultTypes.PLAYLIST: {
@@ -114,7 +114,7 @@ export async function createMessage(
             }
             description.push(translate('search_youtube.videos', {video_count: playlist.video_count.toLocaleString(language)}));
 
-            embed.addField(translate('search_youtube.playlist_information'), description.join('\n'));
+            payload.fields!.push({name: translate('search_youtube.playlist_information'), value: description.join('\n')});
 
             const videos: Array<string> = [];
             for (let video of playlist.videos) {
@@ -124,7 +124,7 @@ export async function createMessage(
             }
             videos.push('');
             videos.push(Markup.url(`View all ${playlist.video_count.toLocaleString()} videos`, result.url));
-            embed.addField(translate('search_youtube.playlist_videos'), videos.join('\n'));
+            payload.fields!.push({name: translate('search_youtube.playlist_videos'), value: videos.join('\n')});
           }; break;
           case YoutubeResultTypes.VIDEO: {
             const video = result.metadata;
@@ -164,14 +164,14 @@ export async function createMessage(
               description.push(translate('search_youtube.views', {viewCount: viewCount}));
             }
 
-            embed.addField(translate('search_youtube.video_information'), description.join('\n'));
+            payload.fields!.push({name: translate('search_youtube.video_information'), value: description.join('\n')});
           }; break;
         }
 
-        return embed;
+        return {display: payload};
       },
     });
     return await paginator.start();
   }
-  return editOrReply(context, translate('search_youtube.couldn_t_find_any_videos_for_that'));
+  return displayReply(context, {description: translate('search_youtube.couldn_t_find_any_videos_for_that')});
 }

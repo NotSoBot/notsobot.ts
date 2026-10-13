@@ -1,5 +1,4 @@
 import { Command, Interaction } from 'detritus-client';
-import { MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import UserSettingsStore from '../../../stores/usersettings';
@@ -7,7 +6,7 @@ import { getTranslator } from '../../i18n';
 
 import { editUserSettings } from '../../../api';
 import { UserSettingsResponseDisplayTypes } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'settings.set.response.display';
@@ -22,7 +21,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   if (args.clear) {
     args.type = null;
@@ -68,8 +66,5 @@ export async function createMessage(
     }
   }
 
-  return editOrReply(context, {
-    content: text,
-    flags: (isFromInteraction) ? MessageFlags.EPHEMERAL : undefined,
-  });
+  return displayReply(context, {description: text, ephemeral: true});
 }

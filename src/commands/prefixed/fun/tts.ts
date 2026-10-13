@@ -23,7 +23,8 @@ export default class TTSCommand extends BaseCommand {
       ],
       label: 'text',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.AUDIO,
+        pipeable: false,
         description: 'Text to Speech',
         examples: [
           `${COMMAND_NAME} give me a table`,

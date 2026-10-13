@@ -14,7 +14,7 @@ export default class SwapPixelsCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Shuffle every pixel of an Image or Video around',
         examples: [
           COMMAND_NAME,

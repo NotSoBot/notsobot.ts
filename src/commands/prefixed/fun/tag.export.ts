@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -20,7 +20,7 @@ export default class TagExportCommand extends BaseCommand {
         {name: 'user', type: Parameters.memberOrUser({allowBots: false})},
       ],
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'Export tags from a server with filters',
         examples: [
           COMMAND_NAME,
@@ -41,7 +41,7 @@ export default class TagExportCommand extends BaseCommand {
   async onCancelRun(context: Command.Context, args: Formatter.Commands.TagExport.CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
     if (args.user === null) {
-      return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
     }
     return super.onCancelRun(context, args);
   }

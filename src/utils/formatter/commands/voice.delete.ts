@@ -1,9 +1,9 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { deleteVoice, fetchUserVoices } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 import { findVoice } from './voice.list';
 
@@ -21,14 +21,14 @@ export async function createMessage(
   const { language, translate, translateMaybe } = await getTranslator(context);
   const { count, voices } = await fetchUserVoices(context, context.userId);
   if (!voices.length) {
-    return editOrReply(context, translate('voice_delete.you_have_no_cloned_voices'));
+    return displayReply(context, {description: translate('voice_delete.you_have_no_cloned_voices')});
   }
 
   const voice = findVoice(voices, args.voice);
   if (!voice) {
-    return editOrReply(context, translate('voice_delete.no_cloned_voices_found_matching_that'));
+    return displayReply(context, {description: translate('voice_delete.no_cloned_voices_found_matching_that')});
   }
 
   await deleteVoice(context, voice.id);
-  return editOrReply(context, translate('voice_delete.successfully_deleted_voice', {name: Markup.codestring(voice.name)}));
+  return displayReply(context, {description: translate('voice_delete.successfully_deleted_voice', {name: Markup.codestring(voice.name)})});
 }

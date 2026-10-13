@@ -30,7 +30,7 @@ export default class BackgroundRemoveCommand extends BaseImageOrVideoCommand {
         {name: 'trim', aliases: ['t'], type: Boolean},
       ],
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.AI,
         description: 'Remove the background of an Image or Video',
         examples: [
           COMMAND_NAME,

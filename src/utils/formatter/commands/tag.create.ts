@@ -6,7 +6,7 @@ import { getTranslator } from '../../i18n';
 
 import { fetchTag, putTag } from '../../../api';
 import { StatusEmojis } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.create';
@@ -29,7 +29,7 @@ export async function createMessage(
     const tag = await fetchTag(context, {name: args.tag, serverId});
     if (!tag.global) {
       if (tag.user.id !== context.userId) {
-        return editOrReply(context, `${StatusEmojis.WARNING} ${translate('tag_create.tag_already_exists_in_this_server')}`);
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_create.tag_already_exists_in_this_server')}`});
       }
     }
     isEdit = true;
@@ -52,5 +52,5 @@ export async function createMessage(
   } else {
     text = translate('tag_create.successfully_created_tag', {name: Markup.codestring(tag.name)});
   }
-  return editOrReply(context, text);
+  return displayReply(context, {description: text});
 }

@@ -25,7 +25,7 @@ export default class ImagineCommand extends BaseCommand {
       ],
       label: 'query',
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Generate an Image based off a prompt (thanks evan)',
         examples: [
           `${COMMAND_NAME} an animal eating strawberries`,

@@ -28,7 +28,7 @@ export default class EditCommand extends BaseMediasCommand {
       maxAmount: 3,
       minAmount: 1,
       metadata: {
-        category: CommandCategories.TOOLS,
+        category: CommandCategories.AI,
         description: 'Alter an Image with machine learning (thanks evan)',
         examples: [
           `${COMMAND_NAME} an animal eating strawberries`,

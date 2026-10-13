@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import { fetchCommandsUsage } from '../../../api';
@@ -8,13 +8,12 @@ import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors } from '../../../constants';
 import {
+  DisplayPayload,
   Paginator,
   Parameters,
   chunkArray,
   createTimestampMomentFromGuild,
-  createUserEmbed,
   createUserString,
-  editOrReply,
   getReminderMessage,
 } from '../../../utils';
 
@@ -40,7 +39,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   let channelId: string | undefined;
   if (context.guildId) {
@@ -77,15 +75,15 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     onPage: (pageNumber) => {
-      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-      embed.setColor(EmbedColors.DEFAULT);
+      const payload: DisplayPayload = {fields: []};
+      payload.color = EmbedColors.DEFAULT;
 
       // if count matches result count, show different footer
       let footer = translate('moderation_commands_usage.commands_used', {count: total.count.toLocaleString(language)});
       if (pageLimit !== 1) {
         footer = translate('moderation_commands_usage.page_of', {footer: footer, pageLimit: pageLimit, pageNumber: pageNumber});
       }
-      embed.setFooter(footer);
+      payload.footer = footer;
 
       const usages = pages[pageNumber - 1];
       if (usages.length) {
@@ -109,12 +107,12 @@ export async function createMessage(
           description.push(translate('moderation_commands_usage.around', {command: command, index: Markup.bold(String(i + 1 + ((pageNumber - 1) * RESULTS_PER_PAGE))), timestamp: timestamp}));
           description.push(translate('moderation_commands_usage.by', {noun: noun}));
         }
-        embed.setDescription(description.join('\n'));
+        payload.description = description.join('\n');
       } else {
-        embed.setDescription(translate('moderation_commands_usage.no_commands_used'));
+        payload.description = translate('moderation_commands_usage.no_commands_used');
       }
 
-      return embed;
+      return {display: payload};
     },
   });
   return await paginator.start();

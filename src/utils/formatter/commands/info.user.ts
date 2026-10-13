@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { InteractionCallbackTypes, MessageFlags, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
-import { Embed, Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
+import { InteractionCallbackTypes, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
+import { Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
 import UserAvatarDecorations, { UserAvatarDecorationStored } from '../../../stores/useravatardecorations';
@@ -9,14 +9,14 @@ import { utilitiesFetchMedia } from '../../../api';
 import {
   DateMomentLogFormat,
   DiscordEmojis,
-  PresenceStatusColors,
   PRESENCE_CLIENT_STATUS_KEYS,
+  PresenceStatusColors,
 } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import {
+  DisplayPayload,
   Paginator,
   createTimestampMomentFromContext,
-  createUserEmbed,
   getMemberJoinPosition,
   toTitleCase,
 } from '../../../utils';
@@ -31,7 +31,6 @@ export async function createMessage(
   args: {isEphemeral?: boolean, user: Structures.Member | Structures.User | Structures.UserWithBanner},
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const isMember = (args.user instanceof Structures.Member);
   const member = args.user as Structures.Member;
@@ -98,17 +97,17 @@ export async function createMessage(
     pageLimit,
     isEphemeral: args.isEphemeral,
     onPage: async (page) => {
-      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-      embed.setColor(PresenceStatusColors['offline']);
-      embed.setDescription(user.mention);
-      embed.setTitle(user.toString());
-      embed.setUrl(user.jumpLink);
+      const payload: DisplayPayload = {fields: []};
+      payload.color = PresenceStatusColors['offline'];
+      payload.description = user.mention;
+      payload.title = user.toString();
+      payload.url = user.jumpLink;
 
       if (files.length) {
         const file = files[0]!;
-        embed.setThumbnail(`attachment://${file.filename}`);
+        payload.thumbnail = `attachment://${file.filename}`;
       } else {
-        embed.setThumbnail(avatarUrl);
+        payload.thumbnail = avatarUrl;
       }
 
       {
@@ -158,7 +157,7 @@ export async function createMessage(
             description.push(`**${translate('user.tag')}**: ${tag}`);
           }
         }
-        embed.addField(translate('common.information'), description.join('\n'), true);
+        payload.fields!.push({inline: true, name: translate('common.information'), value: description.join('\n')});
       }
 
       {
@@ -180,7 +179,7 @@ export async function createMessage(
             description.push(`**${translate('user.join_position')}**: ${position.toLocaleString(language)}/${memberCount.toLocaleString(language)}`);
           }
         }
-        embed.addField(translate('user.joined'), description.join('\n'), true);
+        payload.fields!.push({inline: true, name: translate('user.joined'), value: description.join('\n')});
       }
 
       if (isMember) {
@@ -228,12 +227,12 @@ export async function createMessage(
         if (voiceChannel) {
           description.push(`**${translate('user.voice')}**: ${voiceChannel.toString()}`);
         }
-        embed.addField(translate('user.guild_specific'), description.join('\n'));
+        payload.fields!.push({name: translate('user.guild_specific'), value: description.join('\n')});
       }
 
       if (presence) {
         if (presence.status in PresenceStatusColors) {
-          embed.setColor(PresenceStatusColors[presence.status]);
+          payload.color = PresenceStatusColors[presence.status];
         }
 
         if (presence.clientStatus && Object.keys(presence.clientStatus).length) {
@@ -244,10 +243,10 @@ export async function createMessage(
               description.push(`**${translateMaybe(`presence.client.${key}`, toTitleCase(key))}**: ${translateMaybe(`presence.status.${status}`, status)}`);
             }
           }
-          embed.addField(translate('presence.status'), description.join('\n'));
+          payload.fields!.push({name: translate('presence.status'), value: description.join('\n')});
         } else {
           const status = translateMaybe(`presence.status.${presence.status}`, presence.status);
-          embed.addField(translate('presence.status'), status, true);
+          payload.fields!.push({inline: true, name: translate('presence.status'), value: status});
         }
 
         const activityId = page - 1;
@@ -308,10 +307,10 @@ export async function createMessage(
           if (1 < pageLimit) {
             name = translate('activity.title_paged', {page, total: pageLimit});
           }
-          embed.addField(name, description.join('\n'), true);
+          payload.fields!.push({inline: true, name: name, value: description.join('\n')});
         }
       } else {
-        embed.addField(translate('activity.title'), translate('presence.status.offline'));
+        payload.fields!.push({name: translate('activity.title'), value: translate('presence.status.offline')});
       }
 
       {
@@ -324,17 +323,17 @@ export async function createMessage(
         }
 
         if (userWithBanner.banner) {
-          embed.setImage(userWithBanner.bannerUrl!);
+          payload.image = userWithBanner.bannerUrl!;
           description.push(Markup.url(Markup.bold(translate('user.user_banner')), userWithBanner.bannerUrlFormat(null, {size: 512})!));
         }
 
         if (description.length) {
           description.push(Markup.url(Markup.bold(translate('user.user_avatar')), user.avatarUrl));
-          embed.addField(translate('common.urls'), description.sort().join(', '));
+          payload.fields!.push({name: translate('common.urls'), value: description.sort().join(', ')});
         }
       }
 
-      return [embed, files];
+      return {display: {...payload, files}};
     },
   });
   return await paginator.start();

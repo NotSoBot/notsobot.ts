@@ -23,7 +23,7 @@ export default class PrefixesAddCommand extends BaseCommand {
       disableDm: true,
       label: 'prefix',
       metadata: {
-        category: CommandCategories.SETTINGS,
+        category: CommandCategories.SERVER,
         description: 'Add a custom prefix to the guild. (Bot Mentions will always override this)',
         examples: [
           `${COMMAND_NAME} ..`,
@@ -31,7 +31,6 @@ export default class PrefixesAddCommand extends BaseCommand {
         id: Formatter.Commands.PrefixesAdd.COMMAND_ID,
         usage: '<prefix>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       type: Parameters.string({maxLength: 128}),
     });

@@ -316,18 +316,60 @@ export const CodeLanguagesToName = Object.freeze({
 });
 
 
+// Uploaded with every command (`PUT /commands`) and shown on notsobot.com and in `help`.
 export enum CommandCategories {
+  AI = 'AI',
+  AUDIO = 'AUDIO',
+  CONVERSION = 'CONVERSION',
+  EFFECTS = 'EFFECTS',
   FUN = 'FUN',
-  IMAGE = 'IMAGE',
   INFO = 'INFO',
   MODERATION = 'MODERATION',
   OWNER = 'OWNER',
-  SAY = 'SAY',
+  PERSONAL = 'PERSONAL',
   SEARCH = 'SEARCH',
-  SETTINGS = 'SETTINGS',
-  TOOLS = 'TOOLS',
-  UTILS = 'UTILS',
+  SERVER = 'SERVER',
+  TAGS = 'TAGS',
+  UTILITY = 'UTILITY',
 }
+
+export const CommandCategoryNames: Record<CommandCategories, string> = Object.freeze({
+  [CommandCategories.AI]: 'AI',
+  [CommandCategories.AUDIO]: 'Audio',
+  [CommandCategories.CONVERSION]: 'Downloads & Media Tools',
+  [CommandCategories.EFFECTS]: 'Image & Video Effects',
+  [CommandCategories.FUN]: 'Fun',
+  [CommandCategories.INFO]: 'Info',
+  [CommandCategories.MODERATION]: 'Moderation',
+  [CommandCategories.OWNER]: 'Bot Owner',
+  [CommandCategories.PERSONAL]: 'Personal Settings',
+  [CommandCategories.SEARCH]: 'Search',
+  [CommandCategories.SERVER]: 'Server Setup',
+  [CommandCategories.TAGS]: 'Tags',
+  [CommandCategories.UTILITY]: 'Utility',
+});
+
+// `.pipe` accepts commands from these categories, unless a command sets `pipeable` explicitly
+export const PIPEABLE_COMMAND_CATEGORIES: ReadonlyArray<CommandCategories> = Object.freeze([
+  CommandCategories.AI,
+  CommandCategories.AUDIO,
+  CommandCategories.CONVERSION,
+  CommandCategories.EFFECTS,
+]);
+
+// Slash-only commands have no prefixed twin to inherit a category from; matched by id prefix,
+// first match wins (so the more specific prefixes come first).
+export const SLASH_COMMAND_CATEGORY_FALLBACKS: ReadonlyArray<[string, CommandCategories]> = Object.freeze([
+  ['settings.server.', CommandCategories.SERVER],
+  ['settings.', CommandCategories.PERSONAL],
+  ['media.', CommandCategories.CONVERSION],
+  ['tag.', CommandCategories.TAGS],
+  ['moderation.loggers.', CommandCategories.SERVER],
+  ['moderation.', CommandCategories.MODERATION],
+  ['reminder.', CommandCategories.UTILITY],
+  ['owner.', CommandCategories.OWNER],
+  ['help', CommandCategories.UTILITY],
+] as Array<[string, CommandCategories]>);
 
 
 export enum CommandTypes {

@@ -1,7 +1,7 @@
 import { Command, CommandClient, Structures } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -25,7 +25,7 @@ export default class TagListCommand extends BaseCommand {
       default: DefaultParameters.author,
       label: 'user',
       metadata: {
-        category: CommandCategories.FUN,
+        category: CommandCategories.TAGS,
         description: 'List all of a user\'s tags',
         examples: [
           COMMAND_NAME,
@@ -46,7 +46,7 @@ export default class TagListCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
   }
 
   async run(context: Command.Context, args: CommandArgs) {

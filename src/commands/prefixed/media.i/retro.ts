@@ -18,7 +18,7 @@ export default class RetroCommand extends BaseCommand {
       ],
       label: 'text',
       metadata: {
-        category: CommandCategories.IMAGE,
+        category: CommandCategories.EFFECTS,
         description: 'Create a Retro Image overlayed with text',
         examples: [
           COMMAND_NAME,
