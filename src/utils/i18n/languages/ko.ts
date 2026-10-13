@@ -2840,6 +2840,7 @@ export const Korean: Translations = Object.freeze({
   'tag.not_owner': '내 태그가 아니에요!',
   'tag.rename_needs_name': '바꿀 태그 이름이 있어야 해요',
   'tag.search_needs_query': '검색어나 사용자를 입력해야 해요.',
+  'tag.server_not_installed': '태그는 NotSoBot을 추가한 서버에서만 만들거나 변경할 수 있습니다.',
 
   'tools.code.invalid_language': '올바른 언어를 입력해 주세요! ({languages} 중 하나)',
   'voice.record.max_duration': '길이는 60초 이하여야 해요',

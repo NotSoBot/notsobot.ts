@@ -2840,6 +2840,7 @@ export const PortuguesePortugal: Translations = Object.freeze({
   'tag.not_owner': 'Essa tag não é a tua!',
   'tag.rename_needs_name': 'É preciso ter algum nome de tag para mudar o nome',
   'tag.search_needs_query': 'É preciso fornecer algum termo de pesquisa ou um utilizador.',
+  'tag.server_not_installed': 'As tags só podem ser criadas ou alteradas em servidores que adicionaram o NotSoBot.',
 
   'tools.code.invalid_language': 'Dá-me uma linguagem válida! (Uma destas: {languages})',
   'voice.record.max_duration': 'A duração deve ser no máximo de 60 segundos',

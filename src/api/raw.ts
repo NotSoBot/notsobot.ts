@@ -5901,6 +5901,44 @@ export async function putInfoDiscord(
 }
 
 
+export async function putInfoDiscordGuilds(
+  context: RequestContext,
+  options: RestOptions.PutInfoDiscordGuilds,
+): Promise<RestResponses.PutInfoDiscordGuilds> {
+  const body = {
+    guild_ids: options.guildIds,
+    shard_count: options.shardCount,
+    shard_id: options.shardId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.INFO_DISCORD_GUILDS,
+    },
+  });
+}
+
+
+export async function postInfoDiscordGuildsChanges(
+  context: RequestContext,
+  options: RestOptions.PostInfoDiscordGuildsChanges,
+): Promise<RestResponses.PostInfoDiscordGuildsChanges> {
+  const body = {
+    added: options.added.map((x) => ({guild_id: x.guildId, shard_id: x.shardId})),
+    removed: options.removed,
+    shard_count: options.shardCount,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.INFO_DISCORD_GUILDS_CHANGES,
+    },
+  });
+}
+
+
 export async function putServerSettings(
   context: RequestContext,
   serverId: string,

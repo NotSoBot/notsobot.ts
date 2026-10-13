@@ -2839,6 +2839,7 @@ export const Turkish: Translations = Object.freeze({
   'tag.not_owner': 'Bu etiketin sahibi sen değilsin!',
   'tag.rename_needs_name': 'Yeniden adlandırmak için bir etiket adı olmalı',
   'tag.search_needs_query': 'Bir arama terimi veya kullanıcı belirtmelisin.',
+  'tag.server_not_installed': 'Etiketler yalnızca NotSoBot\'u ekleyen sunucularda oluşturulabilir veya değiştirilebilir.',
 
   'tools.code.invalid_language': 'Geçerli bir dil ver! ({languages} içinden biri)',
   'voice.record.max_duration': 'Süre 60 saniye veya daha az olmalı',

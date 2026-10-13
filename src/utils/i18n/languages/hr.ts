@@ -2840,6 +2840,7 @@ export const Croatian: Translations = Object.freeze({
   'tag.not_owner': 'Taj tag nije tvoj!',
   'tag.rename_needs_name': 'Moraš navesti novi naziv taga',
   'tag.search_needs_query': 'Moraš navesti pojam za pretragu ili korisnika.',
+  'tag.server_not_installed': 'Oznake se mogu stvarati ili mijenjati samo na serverima koji su dodali NotSoBot.',
 
   'tools.code.invalid_language': 'Daj mi valjani jezik! (Jedan od {languages})',
   'voice.record.max_duration': 'Trajanje mora biti najviše 60 sekundi',

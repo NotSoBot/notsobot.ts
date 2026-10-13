@@ -2840,6 +2840,7 @@ export const Russian: Translations = Object.freeze({
   'tag.not_owner': 'Этот тег не ваш!',
   'tag.rename_needs_name': 'Нужно указать новое название тега',
   'tag.search_needs_query': 'Нужно указать поисковый запрос или пользователя.',
+  'tag.server_not_installed': 'Теги можно создавать или изменять только на серверах, куда добавлен NotSoBot.',
 
   'tools.code.invalid_language': 'Укажите правильный язык! (Один из {languages})',
   'voice.record.max_duration': 'Длительность должна быть не больше 60 секунд',

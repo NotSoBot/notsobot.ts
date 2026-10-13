@@ -2840,6 +2840,7 @@ export const Hindi: Translations = Object.freeze({
   'tag.not_owner': 'वह टैग आपका नहीं है!',
   'tag.rename_needs_name': 'नाम बदलने के लिए कोई टैग नाम तो चाहिए',
   'tag.search_needs_query': 'कोई सर्च टर्म या यूज़र देना ज़रूरी है।',
+  'tag.server_not_installed': 'टैग केवल उन्हीं सर्वरों में बनाए या बदले जा सकते हैं जिन्होंने NotSoBot जोड़ा है।',
 
   'tools.code.invalid_language': 'कोई सही भाषा दो! ({languages} में से एक)',
   'voice.record.max_duration': 'अवधि 60 सेकंड या उससे कम होनी चाहिए',

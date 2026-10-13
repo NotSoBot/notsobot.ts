@@ -2840,6 +2840,7 @@ export const Lithuanian: Translations = Object.freeze({
   'tag.not_owner': 'Ši žyma ne tavo!',
   'tag.rename_needs_name': 'Reikia nurodyti naują žymos pavadinimą',
   'tag.search_needs_query': 'Turi pateikti paieškos žodį arba naudotoją.',
+  'tag.server_not_installed': 'Žymes galima kurti ar keisti tik serveriuose, kurie pridėjo NotSoBot.',
 
   'tools.code.invalid_language': 'Duok tinkamą kalbą! (Vieną iš {languages})',
   'voice.record.max_duration': 'Trukmė turi būti ne ilgesnė nei 60 sekundžių',

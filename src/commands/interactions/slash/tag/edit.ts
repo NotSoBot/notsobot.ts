@@ -3,12 +3,12 @@ import { Interaction } from 'detritus-client';
 import { StatusEmojis } from '../../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../basecommand';
+import { BaseInteractionTagWriteCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'edit';
 
-export class TagEditCommand extends BaseInteractionCommandOption {
+export class TagEditCommand extends BaseInteractionTagWriteCommandOption {
   blockedCommandShouldStillExecute = false;
   description = 'Edit a tag';
   descriptionLocalizations = I18n.localizations('commands.tag.edit.description');

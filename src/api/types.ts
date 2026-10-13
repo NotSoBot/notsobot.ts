@@ -916,6 +916,18 @@ export namespace RestOptions {
     name: string,
   }
 
+  export interface PutInfoDiscordGuilds {
+    guildIds: Array<string>,
+    shardCount: number,
+    shardId: number,
+  }
+
+  export interface PostInfoDiscordGuildsChanges {
+    added: Array<{guildId: string, shardId: number}>,
+    removed: Array<string>,
+    shardCount: number,
+  }
+
   export interface PutInfoDiscord {
     clusterId: number,
     ramUsage: number,
@@ -1271,6 +1283,8 @@ export namespace RestResponses {
 
   export type PutGuildSettings = GuildSettings;
   export type PutInfoDiscord = null;
+  export type PutInfoDiscordGuilds = null;
+  export type PostInfoDiscordGuildsChanges = null;
   export type PutServerSettings = ServerSettings;
   export type PutUser = UserFull;
 }

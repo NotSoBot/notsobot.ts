@@ -4,7 +4,7 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { StatusEmojis } from '../../../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../../basecommand';
+import { BaseInteractionCommandOption, canWriteServerTags } from '../../../basecommand';
 
 
 export const COMMAND_NAME = 'add';
@@ -37,6 +37,13 @@ export class TagCommandsAddCommand extends BaseInteractionCommandOption {
   }
 
   async onBefore(context: Interaction.InteractionContext) {
+    if (!canWriteServerTags(context)) {
+      const { translate } = await I18n.getTranslator(context);
+      context.metadata = context.metadata || {};
+      context.metadata.content = translate('tag.server_not_installed');
+      return false;
+    }
+
     const reason = await Formatter.Commands.TagCommandsAdd.getCannotAddReason(context);
     if (reason) {
       context.metadata = context.metadata || {};

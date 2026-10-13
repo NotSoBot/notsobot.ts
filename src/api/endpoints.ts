@@ -472,6 +472,10 @@ export const Api = Object.freeze({
 
   INFO_DISCORD:
     '/info/discord',
+  INFO_DISCORD_GUILDS:
+    '/info/discord/guilds',
+  INFO_DISCORD_GUILDS_CHANGES:
+    '/info/discord/guilds/changes',
 
   ME:
     '/users/@me',

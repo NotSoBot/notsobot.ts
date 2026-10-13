@@ -2840,6 +2840,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'tag.not_owner': '這個標籤不是你的！',
   'tag.rename_needs_name': '要重新命名，至少要有個標籤名稱吧',
   'tag.search_needs_query': '必須提供某種搜尋字詞或使用者。',
+  'tag.server_not_installed': '只能在已加入 NotSoBot 的伺服器中建立或變更標籤。',
 
   'tools.code.invalid_language': '給我一個有效的語言！（{languages} 其中之一）',
   'voice.record.max_duration': '時長必須在 60 秒以內',

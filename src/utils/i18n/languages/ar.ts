@@ -2840,6 +2840,7 @@ export const Arabic: Translations = Object.freeze({
   'tag.not_owner': 'أنت لا تملك هذا الوسم!',
   'tag.rename_needs_name': 'يجب تحديد اسم وسم جديد لإعادة التسمية إليه',
   'tag.search_needs_query': 'يجب تقديم عبارة بحث أو مستخدم.',
+  'tag.server_not_installed': 'لا يمكن إنشاء الوسوم أو تعديلها إلا في الخوادم التي أضافت NotSoBot.',
 
   'tools.code.invalid_language': 'أعطني لغة صالحة! (إحدى {languages})',
   'voice.record.max_duration': 'يجب أن تكون المدة 60 ثانية أو أقل',

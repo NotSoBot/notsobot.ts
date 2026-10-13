@@ -2840,6 +2840,7 @@ export const Greek: Translations = Object.freeze({
   'tag.not_owner': 'Δεν σου ανήκει αυτό το tag!',
   'tag.rename_needs_name': 'Πρέπει να δώσεις κάποιο νέο όνομα tag για τη μετονομασία',
   'tag.search_needs_query': 'Πρέπει να δώσεις κάποιον όρο αναζήτησης ή έναν χρήστη.',
+  'tag.server_not_installed': 'Οι ετικέτες μπορούν να δημιουργηθούν ή να αλλάξουν μόνο σε διακομιστές που έχουν προσθέσει το NotSoBot.',
 
   'tools.code.invalid_language': 'Δώσε μου μια έγκυρη γλώσσα! (Μία από {languages})',
   'voice.record.max_duration': 'Η διάρκεια πρέπει να είναι έως 60 δευτερόλεπτα',

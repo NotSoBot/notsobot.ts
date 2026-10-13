@@ -2838,6 +2838,7 @@ export const English = Object.freeze({
   'tag.not_owner': 'You don\'t own that tag!',
   'tag.rename_needs_name': 'Gotta have some sort of tag name to rename to',
   'tag.search_needs_query': 'Must provide some sort of search term or a user.',
+  'tag.server_not_installed': 'Tags can only be created or changed in servers that have added NotSoBot.',
 
   'tools.code.invalid_language': 'Give me a valid language! (One of {languages})',
   'voice.record.max_duration': 'Duration must be under or be 60 seconds',

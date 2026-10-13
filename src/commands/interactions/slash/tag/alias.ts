@@ -3,12 +3,12 @@ import { Interaction } from 'detritus-client';
 import { StatusEmojis } from '../../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../basecommand';
+import { BaseInteractionTagWriteCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'alias';
 
-export class TagAliasCommand extends BaseInteractionCommandOption {
+export class TagAliasCommand extends BaseInteractionTagWriteCommandOption {
   blockedCommandShouldStillExecute = false;
   description = 'Create a Tag Alias';
   descriptionLocalizations = I18n.localizations('commands.tag.alias.description');

@@ -2840,6 +2840,7 @@ export const Japanese: Translations = Object.freeze({
   'tag.not_owner': 'それはあなたのタグじゃありません！',
   'tag.rename_needs_name': '変更後のタグ名が必要です',
   'tag.search_needs_query': '検索ワードかユーザーを指定してください。',
+  'tag.server_not_installed': 'タグの作成・変更は、NotSoBotを追加しているサーバーでのみ行えます。',
 
   'tools.code.invalid_language': '有効な言語を指定してね！({languages}のどれか)',
   'voice.record.max_duration': '長さは60秒以下にしてください',

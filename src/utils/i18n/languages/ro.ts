@@ -2840,6 +2840,7 @@ export const Romanian: Translations = Object.freeze({
   'tag.not_owner': 'Tagul ăsta nu e al tău!',
   'tag.rename_needs_name': 'Trebuie să dai un nume nou pentru tag',
   'tag.search_needs_query': 'Trebuie să dai un termen de căutare sau un utilizator.',
+  'tag.server_not_installed': 'Etichetele pot fi create sau modificate doar pe serverele care au adăugat NotSoBot.',
 
   'tools.code.invalid_language': 'Dă-mi un limbaj valid! (Unul dintre {languages})',
   'voice.record.max_duration': 'Durata trebuie să fie de cel mult 60 de secunde',

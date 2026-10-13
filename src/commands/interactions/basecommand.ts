@@ -330,6 +330,23 @@ export class BaseInteractionCommandOption extends Interaction.InteractionCommand
 }
 
 
+// tags are stored per server, so only let them be written in servers that installed the bot (not through a user install)
+export function canWriteServerTags(context: Interaction.InteractionContext): boolean {
+  return !context.guildId || context.hasServerPermissions;
+}
+
+export class BaseInteractionTagWriteCommandOption extends BaseInteractionCommandOption {
+  onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
+    return canWriteServerTags(context);
+  }
+
+  async onCancel(context: Interaction.InteractionContext) {
+    const { translate } = await I18n.getTranslator(context);
+    return replyWarning(context, translate('tag.server_not_installed'));
+  }
+}
+
+
 export class BaseInteractionAudioOrVideoCommandOption extends BaseInteractionCommandOption {
   constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
     super({

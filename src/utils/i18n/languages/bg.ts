@@ -2840,6 +2840,7 @@ export const Bulgarian: Translations = Object.freeze({
   'tag.not_owner': 'Този таг не е твой!',
   'tag.rename_needs_name': 'Трябва ти някакво ново име за тага',
   'tag.search_needs_query': 'Трябва да дадеш някаква дума за търсене или потребител.',
+  'tag.server_not_installed': 'Таговете могат да се създават или променят само в сървъри, които са добавили NotSoBot.',
 
   'tools.code.invalid_language': 'Дай ми валиден език! (Един от {languages})',
   'voice.record.max_duration': 'Продължителността трябва да е до 60 секунди',

@@ -2840,6 +2840,7 @@ export const Czech: Translations = Object.freeze({
   'tag.not_owner': 'Tenhle tag nevlastníš!',
   'tag.rename_needs_name': 'Musíš zadat nový název tagu',
   'tag.search_needs_query': 'Musíš zadat nějaký hledaný výraz nebo uživatele.',
+  'tag.server_not_installed': 'Tagy lze vytvářet nebo měnit pouze na serverech, které přidaly NotSoBot.',
 
   'tools.code.invalid_language': 'Zadej platný jazyk! (Jeden z {languages})',
   'voice.record.max_duration': 'Délka musí být maximálně 60 sekund',

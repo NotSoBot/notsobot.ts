@@ -2840,6 +2840,7 @@ export const Finnish: Translations = Object.freeze({
   'tag.not_owner': 'Et omista tuota tagia!',
   'tag.rename_needs_name': 'Tarvitset jonkin uuden nimen tagille',
   'tag.search_needs_query': 'Anna jokin hakusana tai käyttäjä.',
+  'tag.server_not_installed': 'Tageja voi luoda tai muuttaa vain palvelimilla, joille NotSoBot on lisätty.',
 
   'tools.code.invalid_language': 'Anna kelvollinen kieli! (Jokin näistä: {languages})',
   'voice.record.max_duration': 'Keston on oltava enintään 60 sekuntia',

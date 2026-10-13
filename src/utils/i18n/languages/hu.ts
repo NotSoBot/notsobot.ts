@@ -2840,6 +2840,7 @@ export const Hungarian: Translations = Object.freeze({
   'tag.not_owner': 'Nem a tiéd ez a címke!',
   'tag.rename_needs_name': 'Kell egy új címkenév az átnevezéshez',
   'tag.search_needs_query': 'Meg kell adnod valamilyen keresőkifejezést vagy egy felhasználót.',
+  'tag.server_not_installed': 'Tageket csak olyan szervereken lehet létrehozni vagy módosítani, amelyek hozzáadták a NotSoBotot.',
 
   'tools.code.invalid_language': 'Adj meg egy érvényes nyelvet! (Ezek egyikét: {languages})',
   'voice.record.max_duration': 'Az időtartam legfeljebb 60 másodperc lehet',

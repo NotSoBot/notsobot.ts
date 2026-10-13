@@ -2840,6 +2840,7 @@ export const Hebrew: Translations = Object.freeze({
   'tag.not_owner': 'התג הזה לא שלך!',
   'tag.rename_needs_name': 'חייב להיות שם תג כלשהו לשנות אליו',
   'tag.search_needs_query': 'חובה לתת מונח חיפוש כלשהו או משתמש.',
+  'tag.server_not_installed': 'ניתן ליצור או לשנות תגים רק בשרתים שהוסיפו את NotSoBot.',
 
   'tools.code.invalid_language': 'תן לי שפה תקינה! (אחת מ: {languages})',
   'voice.record.max_duration': 'המשך חייב להיות 60 שניות או פחות',

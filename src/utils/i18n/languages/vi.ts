@@ -2840,6 +2840,7 @@ export const Vietnamese: Translations = Object.freeze({
   'tag.not_owner': 'Bạn không sở hữu tag đó!',
   'tag.rename_needs_name': 'Phải có tên tag mới nào đó để đổi tên chứ',
   'tag.search_needs_query': 'Phải cung cấp từ khóa tìm kiếm hoặc một người dùng.',
+  'tag.server_not_installed': 'Chỉ có thể tạo hoặc thay đổi thẻ trong các máy chủ đã thêm NotSoBot.',
 
   'tools.code.invalid_language': 'Cho mình một ngôn ngữ hợp lệ đi! (Một trong {languages})',
   'voice.record.max_duration': 'Thời lượng phải nhỏ hơn hoặc bằng 60 giây',

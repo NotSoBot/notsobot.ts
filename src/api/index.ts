@@ -2285,6 +2285,22 @@ export async function putInfoDiscord(
 }
 
 
+export async function putInfoDiscordGuilds(
+  context: RequestContext,
+  options: RestOptions.PutInfoDiscordGuilds,
+) {
+  return raw.putInfoDiscordGuilds(context, options);
+}
+
+
+export async function postInfoDiscordGuildsChanges(
+  context: RequestContext,
+  options: RestOptions.PostInfoDiscordGuildsChanges,
+) {
+  return raw.postInfoDiscordGuildsChanges(context, options);
+}
+
+
 export async function putServerSettings(
   context: RequestContext,
   serverId: string,

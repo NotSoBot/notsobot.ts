@@ -2840,6 +2840,7 @@ export const Dutch: Translations = Object.freeze({
   'tag.not_owner': 'Die tag is niet van jou!',
   'tag.rename_needs_name': 'Je moet wel een tagnaam opgeven om naar te hernoemen',
   'tag.search_needs_query': 'Je moet een zoekterm of een gebruiker opgeven.',
+  'tag.server_not_installed': 'Tags kunnen alleen worden gemaakt of gewijzigd in servers die NotSoBot hebben toegevoegd.',
 
   'tools.code.invalid_language': 'Geef me een geldige taal! (Een van {languages})',
   'voice.record.max_duration': 'Duur mag maximaal 60 seconden zijn',

@@ -2840,6 +2840,7 @@ export const Ukrainian: Translations = Object.freeze({
   'tag.not_owner': 'Цей тег не ваш!',
   'tag.rename_needs_name': 'Треба вказати нову назву тегу',
   'tag.search_needs_query': 'Треба вказати пошуковий запит або користувача.',
+  'tag.server_not_installed': 'Теги можна створювати або змінювати лише на серверах, куди додано NotSoBot.',
 
   'tools.code.invalid_language': 'Вкажіть правильну мову! (Одну з {languages})',
   'voice.record.max_duration': 'Тривалість має бути не більше 60 секунд',

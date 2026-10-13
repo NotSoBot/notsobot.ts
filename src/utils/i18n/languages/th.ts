@@ -2840,6 +2840,7 @@ export const Thai: Translations = Object.freeze({
   'tag.not_owner': 'คุณไม่ได้เป็นเจ้าของแท็กนั้น!',
   'tag.rename_needs_name': 'ต้องระบุชื่อแท็กใหม่ที่จะเปลี่ยนเป็นด้วยนะ',
   'tag.search_needs_query': 'ต้องระบุคำค้นหาหรือผู้ใช้',
+  'tag.server_not_installed': 'สามารถสร้างหรือแก้ไขแท็กได้เฉพาะในเซิร์ฟเวอร์ที่เพิ่ม NotSoBot แล้วเท่านั้น',
 
   'tools.code.invalid_language': 'ขอภาษาที่ถูกต้องหน่อย! (หนึ่งใน {languages})',
   'voice.record.max_duration': 'ระยะเวลาต้องไม่เกิน 60 วินาที',

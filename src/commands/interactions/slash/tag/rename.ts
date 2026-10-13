@@ -3,12 +3,12 @@ import { Interaction } from 'detritus-client';
 import { StatusEmojis } from '../../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../../utils';
 
-import { BaseInteractionCommandOption } from '../../basecommand';
+import { BaseInteractionTagWriteCommandOption } from '../../basecommand';
 
 
 export const COMMAND_NAME = 'rename';
 
-export class TagRenameCommand extends BaseInteractionCommandOption {
+export class TagRenameCommand extends BaseInteractionTagWriteCommandOption {
   blockedCommandShouldStillExecute = false;
   description = 'Rename a tag';
   descriptionLocalizations = I18n.localizations('commands.tag.rename.description');

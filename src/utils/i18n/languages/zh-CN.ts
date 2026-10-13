@@ -2840,6 +2840,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'tag.not_owner': '这个标签不是你的！',
   'tag.rename_needs_name': '得给个新的标签名才能重命名',
   'tag.search_needs_query': '必须提供搜索词或用户。',
+  'tag.server_not_installed': '只能在已添加 NotSoBot 的服务器中创建或更改标签。',
 
   'tools.code.invalid_language': '给我一个有效的语言！（{languages} 之一）',
   'voice.record.max_duration': '时长必须不超过 60 秒',

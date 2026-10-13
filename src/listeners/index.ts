@@ -2,6 +2,7 @@ export { Listener, connectAllListeners } from './listener';
 
 export { default as BulkDeleteListener } from './bulkdelete';
 export { default as ChannelDeleteListener } from './channeldelete';
+export { default as BotGuildsListener } from './botguilds';
 export { default as ClusterInfoInterval } from './clusterinfointerval';
 export { default as ComponentsListener } from './components';
 export { default as EntitlementsListener } from './entitlements';

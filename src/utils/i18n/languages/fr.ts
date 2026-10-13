@@ -2840,6 +2840,7 @@ export const French: Translations = Object.freeze({
   'tag.not_owner': 'Ce tag ne t\'appartient pas !',
   'tag.rename_needs_name': 'Il faut un nouveau nom de tag',
   'tag.search_needs_query': 'Tu dois fournir un terme de recherche ou un utilisateur.',
+  'tag.server_not_installed': 'Les tags ne peuvent être créés ou modifiés que sur les serveurs qui ont ajouté NotSoBot.',
 
   'tools.code.invalid_language': 'Donne-moi un langage valide ! (Parmi {languages})',
   'voice.record.max_duration': 'La durée doit être de 60 secondes maximum',

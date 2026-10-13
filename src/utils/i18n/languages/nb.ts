@@ -2840,6 +2840,7 @@ export const Norwegian: Translations = Object.freeze({
   'tag.not_owner': 'Du eier ikke den taggen!',
   'tag.rename_needs_name': 'Må ha et eller annet taggnavn å gi nytt navn til',
   'tag.search_needs_query': 'Du må oppgi et eller annet søkeord eller en bruker.',
+  'tag.server_not_installed': 'Tagger kan bare opprettes eller endres på servere som har lagt til NotSoBot.',
 
   'tools.code.invalid_language': 'Gi meg et gyldig språk! (Et av {languages})',
   'voice.record.max_duration': 'Varigheten må være 60 sekunder eller mindre',

@@ -2840,6 +2840,7 @@ export const Indonesian: Translations = Object.freeze({
   'tag.not_owner': 'Kamu bukan pemilik tag itu!',
   'tag.rename_needs_name': 'Harus ada nama tag baru untuk mengganti nama',
   'tag.search_needs_query': 'Harus memberikan kata kunci pencarian atau pengguna.',
+  'tag.server_not_installed': 'Tag hanya dapat dibuat atau diubah di server yang telah menambahkan NotSoBot.',
 
   'tools.code.invalid_language': 'Kasih bahasa yang valid dong! (Salah satu dari {languages})',
   'voice.record.max_duration': 'Durasi harus 60 detik atau kurang',

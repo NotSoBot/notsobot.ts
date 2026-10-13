@@ -2840,6 +2840,7 @@ export const Swedish: Translations = Object.freeze({
   'tag.not_owner': 'Du äger inte den taggen!',
   'tag.rename_needs_name': 'Du måste ange något slags taggnamn att byta namn till',
   'tag.search_needs_query': 'Du måste ange något slags sökord eller en användare.',
+  'tag.server_not_installed': 'Taggar kan bara skapas eller ändras på servrar som har lagt till NotSoBot.',
 
   'tools.code.invalid_language': 'Ge mig ett giltigt språk! (Ett av {languages})',
   'voice.record.max_duration': 'Längden måste vara 60 sekunder eller kortare',
