@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, editOrReply } from '../../../utils';
@@ -30,7 +29,6 @@ export default class AvatarCommand extends BaseCommand {
         id: Formatter.Commands.InfoAvatar.COMMAND_ID,
         usage: '?<user:id|mention|name> (-default) (-noembed)',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.memberOrUser(),
     });
   }

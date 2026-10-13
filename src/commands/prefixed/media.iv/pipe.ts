@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter, Parameters, imageReply } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand, BaseImageOrVideoCommand } from '../basecommand';
 

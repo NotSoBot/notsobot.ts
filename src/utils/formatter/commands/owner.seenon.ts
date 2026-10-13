@@ -9,6 +9,7 @@ import {
   Paginator,
   Parameters,
   createTimestampMomentFromGuild,
+  createUserEmbed,
 } from '../../../utils';
 
 
@@ -95,6 +96,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const { results, user } = args.payload;
 
   const pageLimit = results.length || 1;
@@ -102,8 +104,9 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     onPage: (page) => {
-      const embed = new Embed();
-      embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
+      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
+      embed.setTitle(user.toString());
+      embed.setUrl(user.jumpLink);
       embed.setColor(Colors.BLURPLE);
 
       const resultNumber = page - 1;
@@ -111,14 +114,15 @@ export async function createMessage(
         const { guild, joinPosition, member, owner } = results[resultNumber];
 
         if (guild.description) {
-          embed.setDescription(guild.description);
+          embed.setDescription(`**${Markup.escape.all(guild.name)}**\n${guild.description}`);
+        } else {
+          embed.setDescription(`**${Markup.escape.all(guild.name)}**`);
         }
 
         if (guild.icon) {
           embed.setThumbnail(<string> guild.iconUrlFormat(null, {size: 1024}));
         }
 
-        embed.setTitle(guild.name);
         {
           const description: Array<string> = [];
           description.push(translate('owner_seenon.acronym', {acronym: guild.acronym}));

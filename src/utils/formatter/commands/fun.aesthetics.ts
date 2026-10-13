@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'fun.aesthetics';
@@ -23,5 +23,5 @@ export async function createMessage(
     }
   }
   // maybe delete original message and dont reply like the original bot does?
-  return editOrReply(context, content);
+  return displayReply(context, {description: content});
 }

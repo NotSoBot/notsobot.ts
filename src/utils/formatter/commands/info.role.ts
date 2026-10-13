@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Embed, Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
+import { Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 
 import {
   DateOptions,
@@ -9,8 +9,16 @@ import {
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
 } from '../../../constants';
+import { Endpoints } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { createColorUrl, editOrReply, padCodeBlockFromRows, permissionsToObject } from '../../../utils';
+import {
+  DisplayPayload,
+  createColorUrl,
+  displayReply,
+  padCodeBlockFromRows,
+  permissionsToObject,
+  toCodePointForTwemoji,
+} from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -34,15 +42,21 @@ export async function createMessage(
 
   const { channel, role } = args;
 
-  const embed = new Embed();
-  embed.setAuthor(role.name);
-  embed.setDescription(translate('info.role.description', {role: role.mention, channel: channel.mention}));
+  const payload: DisplayPayload = {fields: []};
+  payload.title = role.name;
+  payload.description = translate('info.role.description', {role: role.mention, channel: channel.mention});
 
   if (role.color) {
-    embed.setColor(role.color);
+    payload.color = role.color;
+  }
 
-    const url = createColorUrl(role.color);
-    embed.setAuthor(role.name, url);
+  // the role's icon wins, then its unicode emoji, then its color
+  if (role.icon) {
+    payload.thumbnail = role.iconUrlFormat(null, {size: 512}) as string;
+  } else if (role.unicodeEmoji) {
+    payload.thumbnail = Endpoints.CUSTOM.TWEMOJI_PNG(toCodePointForTwemoji(role.unicodeEmoji));
+  } else if (role.color) {
+    payload.thumbnail = createColorUrl(role.color, 128, 128);
   }
 
   {
@@ -84,7 +98,7 @@ export async function createMessage(
       }
     }
 
-    embed.addField(translate('common.information'), description.join('\n'), true);
+    payload.fields!.push({inline: true, name: translate('common.information'), value: description.join('\n')});
   }
 
   {
@@ -92,11 +106,11 @@ export async function createMessage(
 
     description.push(`${translate('counts.members')}: ${role.members.length.toLocaleString(language)}`);
     if (description.length) {
-      embed.addField(translate('common.counts'), Markup.codeblock(description.join('\n'), {language: 'css'}), true);
+      payload.fields!.push({inline: true, name: translate('common.counts'), value: Markup.codeblock(description.join('\n'), {language: 'css'})});
     }
   }
 
-  embed.addField('\u200b', '\u200b');
+  payload.fields!.push({name: '\u200b', value: '\u200b'});
 
   {
     const permissions = permissionsToObject(role.permissionsIn(channel as Structures.ChannelGuildBase));
@@ -110,7 +124,7 @@ export async function createMessage(
         rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
-      embed.addField(translate('info.role.moderation'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
+      payload.fields!.push({inline: true, name: translate('info.role.moderation'), value: Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'})});
     }
 
     if (channel.isText) {
@@ -122,7 +136,7 @@ export async function createMessage(
         rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
-      embed.addField(translate('info.role.text'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
+      payload.fields!.push({inline: true, name: translate('info.role.text'), value: Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'})});
     } else if (channel.isVoice) {
       const rows: Array<Array<string>> = [];
 
@@ -132,9 +146,9 @@ export async function createMessage(
         rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
       }
 
-      embed.addField(translate('info.role.voice'), Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'}), true);
+      payload.fields!.push({inline: true, name: translate('info.role.voice'), value: Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'})});
     }
   }
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

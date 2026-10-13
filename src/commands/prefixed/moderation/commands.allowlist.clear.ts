@@ -25,12 +25,11 @@ export default class CommandsAllowlistClearCommand extends BaseCommand {
         description: 'Clear out Channels/Roles/Users/Server-Wide allowlisted commands.',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} channels`,
+          `${COMMAND_NAME} channel`,
         ],
         id: Formatter.Commands.ModerationCommandsAllowlistClear.COMMAND_ID,
         usage: '?<GuildCommandsAllowlistType>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       priority: -1,
       type: (value: string) => value.toLowerCase(),

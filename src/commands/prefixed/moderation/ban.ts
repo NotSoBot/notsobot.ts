@@ -33,7 +33,7 @@ export default class BanCommand extends BaseCommand {
         id: Formatter.Commands.ModerationBan.COMMAND_ID,
         usage: '...?<user:id|mention> <reason:string> (-clean <days>)',
       },
-      permissionsClient: [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS],
+      permissionsClient: [Permissions.BAN_MEMBERS],
       permissions: [Permissions.BAN_MEMBERS],
       type: Parameters.banPayload(),
     });

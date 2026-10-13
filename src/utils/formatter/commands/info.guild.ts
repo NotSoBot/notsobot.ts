@@ -1,6 +1,6 @@
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { Colors } from 'detritus-client/lib/constants';
-import { Embed, Markup, guildIdToShardId } from 'detritus-client/lib/utils';
+import { Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import {
@@ -9,7 +9,7 @@ import {
   VerificationLevelTexts,
 } from '../../../constants';
 import { TranslationKey, getTranslator } from '../../i18n';
-import { createTimestampMomentFromGuild, editOrReply, formatMemory, toTitleCase } from '../../../utils';
+import { DisplayPayload, createTimestampMomentFromGuild, displayReply, formatMemory, toTitleCase } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -58,28 +58,32 @@ export async function createMessage(
     voiceStateCount,
   } = args.payload;
 
-  const embed = new Embed();
-  embed.setAuthor(guild.name, guild.iconUrlFormat(null, {size: 1024}) || undefined, guild.jumpLink);
-  embed.setColor(Colors.BLURPLE);
+  const payload: DisplayPayload = {fields: []};
+  payload.title = guild.name;
+  payload.url = guild.jumpLink;
+  payload.color = Colors.BLURPLE;
 
-  if (guild.vanityUrlCode) {
-    embed.setFooter(Endpoints.Invite.SHORT(guild.vanityUrlCode));
+  {
+    // a footer icon needs footer text to show up
+    const footer = (guild.vanityUrlCode) ? Endpoints.Invite.SHORT(guild.vanityUrlCode) : guild.name;
+    payload.footer = footer;
+    payload.footerIconUrl = guild.iconUrlFormat(null, {size: 1024}) || undefined;
   }
 
   if (guild.description) {
-    embed.setDescription(guild.description);
+    payload.description = guild.description;
   }
 
   if (guild.banner) {
-    embed.setThumbnail(<string> guild.bannerUrlFormat(null, {size: 1024}));
+    payload.thumbnail = <string> guild.bannerUrlFormat(null, {size: 1024});
   } else {
     if (guild.icon) {
-      embed.setThumbnail(<string> guild.iconUrlFormat(null, {size: 1024}));
+      payload.thumbnail = <string> guild.iconUrlFormat(null, {size: 1024});
     }
   }
 
   if (guild.splash) {
-    embed.setImage(<string> guild.splashUrlFormat(null, {size: 128}));
+    payload.image = <string> guild.splashUrlFormat(null, {size: 128});
   }
 
   {
@@ -112,7 +116,7 @@ export async function createMessage(
     // lazy
     // system channel flags
 
-    embed.addField(translate('common.information'), description.join('\n'), true);
+    payload.fields!.push({inline: true, name: translate('common.information'), value: description.join('\n')});
   }
 
   {
@@ -143,7 +147,7 @@ export async function createMessage(
       }
     }
 
-    embed.addField(translate('info.guild.moderation'), description.join('\n'), true);
+    payload.fields!.push({inline: true, name: translate('info.guild.moderation'), value: description.join('\n')});
   }
 
   {
@@ -178,7 +182,7 @@ export async function createMessage(
       description.push(`**${translate('info.guild.widget')}**: ${name}`);
     }
     if (description.length) {
-      embed.addField(translate('info.guild.channels'), description.join('\n'), false);
+      payload.fields!.push({inline: false, name: translate('info.guild.channels'), value: description.join('\n')});
     }
   }
 
@@ -213,7 +217,7 @@ export async function createMessage(
       column.push(` -[${translate('counts.anim')}]: ${animatedEmojis.toLocaleString(language)}`);
       column.push(` -[${translate('counts.regular')}]: ${(emojis.length - animatedEmojis).toLocaleString(language)}`);
 
-      embed.addField(translate('common.counts'), Markup.codeblock(column.join('\n'), {language: 'css'}), true);
+      payload.fields!.push({inline: true, name: translate('common.counts'), value: Markup.codeblock(column.join('\n'), {language: 'css'})});
     }
 
     {
@@ -234,11 +238,11 @@ export async function createMessage(
       }
       column.push(`${translate('counts.voice_states')}: ${voiceStateCount.toLocaleString(language)}`);
 
-      embed.addField(translate('common.counts'), Markup.codeblock(column.join('\n'), {language: 'css'}), true);
+      payload.fields!.push({inline: true, name: translate('common.counts'), value: Markup.codeblock(column.join('\n'), {language: 'css'})});
     }
   }
 
-  embed.addField('\u200b', '\u200b');
+  payload.fields!.push({name: '\u200b', value: '\u200b'});
   {
     const description: Array<string> = [];
 
@@ -250,12 +254,12 @@ export async function createMessage(
     description.push(`${translate('counts.members')}: ${guild.maxMembers.toLocaleString(language)}`);
     description.push(`${translate('counts.presences')}: ${guild.maxPresences.toLocaleString(language)}`);
 
-    embed.addField(translate('info.guild.limits'), Markup.codeblock(description.join('\n'), {language: 'css'}), true);
+    payload.fields!.push({inline: true, name: translate('info.guild.limits'), value: Markup.codeblock(description.join('\n'), {language: 'css'})});
   }
 
   if (guild.features.length) {
     const description = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
-    embed.addField(translate('common.features'), Markup.codeblock(description.join('\n')), true);
+    payload.fields!.push({inline: true, name: translate('common.features'), value: Markup.codeblock(description.join('\n'))});
   }
 
   {
@@ -279,7 +283,7 @@ export async function createMessage(
       description.push(`[**${translate('info.guild.widget_image')}**](${guild.widgetImageUrl})`);
     }
 
-    embed.addField(translate('common.urls'), description.join(', '));
+    payload.fields!.push({name: translate('common.urls'), value: description.join(', ')});
   }
 
   /*
@@ -297,5 +301,5 @@ export async function createMessage(
   }
   */
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

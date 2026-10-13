@@ -10,6 +10,7 @@ import {
   InteractionCallbackTypes,
   MarkupTimestampStyles,
   MessageEmbedTypes,
+  MessageFlags,
   Permissions,
   PremiumUserLimits,
   PremiumUserTypes,
@@ -132,6 +133,7 @@ export async function checkNSFW(
     return [true, null];
   }
 }
+
 
 
 export function createColorUrl(color: number, width: number = 2, height: number = 2): string {
@@ -1615,209 +1617,6 @@ export function htmlDecode(value: string): string {
 }
 
 
-export function generateImageReplyOptionsFromResponse(
-  response: RestResponsesRaw.FileResponse,
-  options: {
-    args?: boolean,
-    content?: string,
-    filename?: string,
-    spoiler?: boolean,
-  } | string = {},
-): {description?: string, options: ImageReplyOptions} {
-  if (typeof(options) === 'string') {
-    options = {filename: options};
-  }
-
-  let descriptionText: string | undefined;
-  if ((options.args || options.args === undefined) && response.arguments) {
-    const description: Array<string> = [];
-    for (let key in response.arguments) {
-      const title = toTitleCase(key);
-      const value = response.arguments[key];
-
-      let text: string;
-      if (typeof(value) === 'boolean') {
-        text = (value) ? 'Yes' : 'No';
-      } else if (typeof(value) === 'number') {
-        text = value.toLocaleString();
-      } else {
-        text = Markup.escape.all(String(value));
-      }
-
-      description.push(`${title}: ${text}`);
-    }
-    descriptionText = description.join(' | ');
-  }
-
-  return {
-    description: descriptionText,
-    options: {
-      content: options.content,
-      extension: response.file.metadata.extension,
-      filename: options.filename, // we will get the filename based off the command name
-      framesNew: response.file.metadata.framecount,
-      framesOld: response.file_old.metadata.framecount,
-      height: response.file.metadata.height,
-      mimetype: response.file.metadata.mimetype,
-      size: response.file.metadata.size,
-      spoiler: options.spoiler,
-      storage: response.storage,
-      took: response.took,//+(response.headers.get('x-took') || 0),
-      width: response.file.metadata.width,
-    },
-  };
-}
-
-export async function imageReply(
-  context: Command.Context | Interaction.InteractionContext,
-  response: RestResponsesRaw.FileResponse,
-  options: {
-    args?: boolean,
-    content?: string,
-    filename?: string,
-    spoiler?: boolean,
-  } | string = {},
-) {
-  if (typeof(options) === 'string') {
-    options = {filename: options};
-  }
-  if (!options.filename) {
-    options.filename = response.file.filename_safe_base;
-  }
-  if (context instanceof Interaction.InteractionContext) {
-    options.args = options.args || false;
-  }
-
-  const imageReplyOptions = generateImageReplyOptionsFromResponse(response, options);
-  if (imageReplyOptions.description) {
-    imageReplyOptions.options.embed = new Embed();
-    imageReplyOptions.options.embed.setDescription(imageReplyOptions.description);
-  }
-
-  const buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-  return imageReplyFromOptions(context, buffer, imageReplyOptions.options);
-}
-
-
-export interface ImageReplyOptions {
-  content?: string,
-  embed?: Embed,
-  extension?: string,
-  filename?: string,
-  framesNew?: number,
-  framesOld?: number,
-  height: number,
-  mimetype?: string,
-  size: number,
-  spoiler?: boolean,
-  storage?: null | RestResponsesRaw.FileResponseStorage,
-  took?: number,
-  width: number,
-}
-
-export async function imageReplyFromOptions(
-  context: Command.Context | Interaction.InteractionContext,
-  value: any,
-  options: ImageReplyOptions,
-) {
-  const { language, translate } = await getTranslator(context);
-
-  let filename: string = '';
-  if (options.filename) {
-    filename = options.filename;
-  } else {
-    if (context.command) {
-      filename = context.command.name.replace(' ', '-');
-    } else {
-      filename = 'edited-image';
-    }
-  }
-  filename = `${filename}.${options.extension || 'png'}`;
-
-  if (options.storage) {
-    const content: Array<string> = [options.storage.urls.vanity];
-    if (options.storage && options.storage.expires_at) {
-      const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
-      const downloadText = Markup.url(translate('media.download_it'), `<${options.storage.urls.cdn}?download=true>`);
-      const warning: Array<string> = [
-        translate('media.expires', {download: downloadText, expires: expiresAtText}),
-      ];
-      if (context instanceof Command.Context && userMaybeHasNitro(context)) {
-        warning.push(translate('media.nitro_upload_limits'));
-      }
-      content.push(`> -# **${warning.join(' ')}**`);
-    }
-    return editOrReply(context, content.join('\n'));
-  }
-
-  let embed: Embed;
-  if (options.embed) {
-    embed = options.embed;
-  } else {
-    embed = new Embed();
-  }
-  embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
-
-  let shouldSetImage = !options.mimetype || MIMETYPES_SAFE_EMBED.includes(options.mimetype as Mimetypes);
-  let footer = `${options.width}x${options.height}`;
-  if (options.framesNew) {
-    let showFrames = (options.framesNew !== 1);
-    switch (options.mimetype) {
-      case Mimetypes.IMAGE_GIF: showFrames = true; break;
-      case Mimetypes.IMAGE_WEBP: {
-        if (showFrames) {
-          shouldSetImage = false; // discord doesnt support embedding animated webps
-        }
-      }; break;
-    }
-
-    if (showFrames) {
-      footer = `${footer}, ${translate('media.frames', {count: options.framesNew.toLocaleString(language)})}`;
-    }
-  }
-
-  switch (options.mimetype) {
-    case Mimetypes.IMAGE_X_APNG: shouldSetImage = false; break; // discord now only uploads the first frame of an apng, so we will just send a file ending in `.apng`
-  }
-
-  footer = `${footer}, ${formatMemory(options.size, 2)}`;
-  if (options.took) {
-    let took = options.took;
-    if (context.metadata && context.metadata.started) {
-      took = Date.now() - context.metadata.started;
-    }
-    if (2000 <= took) {
-      const seconds = (took / 1000).toLocaleString(language, {maximumFractionDigits: 1, minimumFractionDigits: 1});
-      footer = `${footer}, ${translate('media.took', {seconds})}`;
-    }
-  }
-  embed.setFooter(footer);
-
-  /*
-  if (options.storage) {
-    embed.setImage(options.storage.urls.cdn);
-    if (!shouldSetImage) {
-      embed.addField('Image URL', options.storage.urls.cdn);
-    }
-    return editOrReply(context, {
-      content: options.content || '',
-      embed,
-    });
-  }
-  */
-
-  if (shouldSetImage) {
-    embed.setImage(`attachment://${filename}`);
-  }
-
-  return editOrReply(context, {
-    content: options.content || '',
-    embed,
-    file: {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value},
-  });
-}
-
-
 export async function jobReply(
   context: Command.Context | Interaction.InteractionContext,
   job: RestResponsesRaw.JobResponse,
@@ -1912,6 +1711,231 @@ export async function getResponseDisplay(
     }
   }
   return UserSettingsResponseDisplayTypes.DEFAULT;
+}
+
+
+// a command's response, built once and rendered with the response display setting
+// (components v2 container, embed, or plain text)
+export interface DisplayField {
+  inline?: boolean,
+  name: string,
+  value: string,
+}
+
+export interface DisplayPayload {
+  color?: number,
+  description?: string,
+  fields?: Array<DisplayField>,
+  files?: Array<RequestTypes.File>,
+  footer?: string,
+  // only embeds can show a footer icon
+  footerIconUrl?: string,
+  image?: string,
+  thumbnail?: string,
+  title?: string,
+  url?: string,
+}
+
+// prefixed embeds need the embed links permission, components v2 and interactions don't
+// so fall back to components v2 instead of requiring the permission
+export async function getResponseDisplayForReply(
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<UserSettingsResponseDisplayTypes> {
+  const display = await getResponseDisplay(context);
+  if (
+    display === UserSettingsResponseDisplayTypes.LEGACY &&
+    context instanceof Command.Context &&
+    context.channel && !context.channel.canEmbedLinks
+  ) {
+    return UserSettingsResponseDisplayTypes.DEFAULT;
+  }
+  return display;
+}
+
+const DISPLAY_MAX_COMPONENTS_TEXT_LENGTH = 4000;
+const DISPLAY_MAX_EMBED_DESCRIPTION_LENGTH = 4096;
+const DISPLAY_MAX_EMBED_FIELD_LENGTH = 1024;
+const DISPLAY_MAX_EMBED_FIELDS = 25;
+const DISPLAY_MAX_EMBED_LENGTH = 6000;
+const DISPLAY_MAX_TEXT_LENGTH = 2000;
+
+const DISPLAY_UPLOAD_FILENAME = 'response.txt';
+
+// blank fields only exist to space out inline embed fields
+function isDisplayFieldBlank(field: DisplayField): boolean {
+  return !field.name.replace(/\u200b/g, '').trim() && !field.value.replace(/\u200b/g, '').trim();
+}
+
+interface DisplayRendered {
+  fits: boolean,
+  message: Command.EditOrReply | Structures.InteractionEditOrRespond,
+}
+
+function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): DisplayRendered {
+  const components = new Components();
+  const container = components.createContainer();
+  if (payload.color !== undefined) {
+    container.setAccentColor(payload.color);
+  }
+
+  const lines: Array<string> = [];
+  if (payload.title) {
+    lines.push((payload.url) ? `### ${Markup.url(payload.title, payload.url)}` : `### ${payload.title}`);
+  }
+  if (payload.description) {
+    lines.push(payload.description);
+  }
+  for (let field of payload.fields || []) {
+    if (!isDisplayFieldBlank(field)) {
+      lines.push(`**${field.name}**\n${field.value}`);
+    }
+  }
+
+  const content = lines.join('\n');
+  if (content) {
+    if (payload.thumbnail) {
+      const section = container.createSection();
+      section.addTextDisplay({content});
+      section.setAccessoryThumbnail({media: {url: payload.thumbnail}});
+    } else {
+      container.addTextDisplay({content});
+    }
+  }
+  if (payload.image) {
+    const mediaGallery = container.createMediaGallery();
+    mediaGallery.addItem({media: {url: payload.image}});
+  }
+  // components v2 only shows attachments that a component points to
+  for (let file of payload.files || []) {
+    if (payload.image !== `attachment://${file.filename}`) {
+      container.createFile({file: {url: `attachment://${file.filename}`}});
+    }
+  }
+
+  const footer = [invokedBy, (payload.footer) ? `-# ${payload.footer}` : ''].filter(Boolean).join('\n');
+  if (footer) {
+    container.addSeparator();
+    container.addTextDisplay({content: footer});
+  }
+
+  // the limit is for every text display in the message combined
+  return {
+    fits: (content.length + footer.length) <= DISPLAY_MAX_COMPONENTS_TEXT_LENGTH,
+    message: {components, files: payload.files, flags: MessageFlags.IS_COMPONENTS_V2},
+  };
+}
+
+function renderDisplayEmbed(
+  context: Command.Context | Interaction.InteractionContext,
+  payload: DisplayPayload,
+): DisplayRendered {
+  const embed = (context instanceof Interaction.InteractionContext) ? new Embed() : createUserEmbed(context.user);
+  embed.setColor((payload.color === undefined) ? EmbedColors.DEFAULT : payload.color);
+  if (payload.title) {
+    embed.setTitle(payload.title);
+  }
+  if (payload.url) {
+    embed.setUrl(payload.url);
+  }
+  if (payload.description) {
+    embed.setDescription(payload.description);
+  }
+  const fields = payload.fields || [];
+  for (let field of fields) {
+    embed.addField(field.name, field.value, field.inline);
+  }
+  if (payload.thumbnail) {
+    embed.setThumbnail(payload.thumbnail);
+  }
+  if (payload.image) {
+    embed.setImage(payload.image);
+  }
+  if (payload.footer) {
+    embed.setFooter(payload.footer, payload.footerIconUrl);
+  }
+
+  const length = (
+    (payload.title || '').length +
+    (payload.description || '').length +
+    (payload.footer || '').length +
+    fields.reduce((x, field) => x + field.name.length + field.value.length, 0)
+  );
+  const fits = (
+    (payload.description || '').length <= DISPLAY_MAX_EMBED_DESCRIPTION_LENGTH &&
+    fields.length <= DISPLAY_MAX_EMBED_FIELDS &&
+    fields.every((field) => field.value.length <= DISPLAY_MAX_EMBED_FIELD_LENGTH) &&
+    length <= DISPLAY_MAX_EMBED_LENGTH
+  );
+  return {fits, message: {embed, files: payload.files}};
+}
+
+function renderDisplayText(payload: DisplayPayload, invokedBy: string): DisplayRendered {
+  const lines: Array<string> = [];
+  if (payload.title) {
+    lines.push((payload.url) ? `**${Markup.url(payload.title, `<${payload.url}>`)}**` : `**${payload.title}**`);
+  }
+  if (payload.description) {
+    lines.push(payload.description);
+  }
+  for (let field of payload.fields || []) {
+    if (!isDisplayFieldBlank(field)) {
+      lines.push(`**${field.name}**\n${field.value}`);
+    }
+  }
+  // attachments show on their own, links need to be posted
+  if (payload.image && !payload.image.startsWith('attachment://')) {
+    lines.push(payload.image);
+  }
+  lines.push(invokedBy);
+  if (payload.footer) {
+    lines.push(`-# ${payload.footer}`);
+  }
+
+  const content = lines.filter(Boolean).join('\n');
+  return {
+    fits: content.length <= DISPLAY_MAX_TEXT_LENGTH,
+    message: {content, files: payload.files},
+  };
+}
+
+export async function displayReply(
+  context: Command.Context | Interaction.InteractionContext,
+  payload: DisplayPayload,
+) {
+  const [ display, { translate } ] = await Promise.all([
+    getResponseDisplayForReply(context),
+    getTranslator(context),
+  ]);
+  const invokedBy = (context instanceof Interaction.InteractionContext) ? '' : `-# **${translate('media.invoked_by', {user: `<@${context.userId}>`})}**`;
+
+  const render = (payload: DisplayPayload): DisplayRendered => {
+    switch (display) {
+      case UserSettingsResponseDisplayTypes.LEGACY: return renderDisplayEmbed(context, payload);
+      case UserSettingsResponseDisplayTypes.NO_EMBED: return renderDisplayText(payload, invokedBy);
+    }
+    return renderDisplayComponents(payload, invokedBy);
+  };
+
+  let rendered = render(payload);
+  if (!rendered.fits) {
+    // too long for discord, upload the description and fields as a file instead
+    const parts: Array<string> = [];
+    if (payload.description) {
+      parts.push(payload.description);
+    }
+    for (let field of payload.fields || []) {
+      if (!isDisplayFieldBlank(field)) {
+        parts.push(`${field.name}:\n${field.value}`);
+      }
+    }
+    rendered = render({
+      ...payload,
+      description: translate('media.response_uploaded'),
+      fields: [],
+      files: [...(payload.files || []), {filename: DISPLAY_UPLOAD_FILENAME, value: parts.join('\n\n')}],
+    });
+  }
+  return editOrReply(context, rendered.message);
 }
 
 
@@ -2176,6 +2200,9 @@ export async function mediaReplyFromOptions(
       }
       content.push(`> -# **${warning.join(' ')}**`);
     }
+    if (!isFromInteraction) {
+      content.push(`> -# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`);
+    }
     if (footer) {
       content.push(`> ${footer}`);
     }
@@ -2195,6 +2222,7 @@ export async function mediaReplyFromOptions(
     content: [
       options.content || '',
       options.description || '',
+      (isFromInteraction) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`,
       `-# ${footer}`,
     ].filter(Boolean).join('\n'),
     file: {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value},

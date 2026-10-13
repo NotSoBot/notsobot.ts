@@ -8,7 +8,7 @@ import UserAvatarDecorations from '../../../stores/useravatardecorations';
 import { utilitiesFetchMedia } from '../../../api';
 import { PresenceStatusColors } from '../../../constants';
 import { getTranslator } from '../../i18n';
-import { createUserEmbed, editOrReply } from '../../../utils';
+import { DisplayPayload, displayReply, editOrReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -65,8 +65,10 @@ export async function createMessage(
     return editOrReply(context, avatarUrl);
   }
 
-  const embed = createUserEmbed(user);
-  embed.setColor(PresenceStatusColors['offline']);
+  const payload: DisplayPayload = {fields: []};
+  payload.title = user.toString();
+  payload.url = user.jumpLink;
+  payload.color = PresenceStatusColors['offline'];
 
   {
     const description: Array<string> = [];
@@ -119,23 +121,23 @@ export async function createMessage(
         description.push(Markup.url(name, avatarDecoration.url));
       }
     }
-    embed.setDescription(description.join(', '));
+    payload.description = description.join(', ');
   }
 
   if (args.default) {
-    embed.setImage(avatarUrl);
+    payload.image = avatarUrl;
   } else {
     const url = (file) ? `attachment://${file.filename}` : user.avatarUrlFormat(null, {size: 1024});
-    embed.setImage(url);
+    payload.image = url;
     if (file) {
-      embed.setAuthor(undefined, url);
+      payload.files = [file];
     }
   }
 
   const presence = user.presence;
   if (presence && presence.status in PresenceStatusColors) {
-    embed.setColor(PresenceStatusColors[presence.status]);
+    payload.color = PresenceStatusColors[presence.status];
   }
 
-  return editOrReply(context, {embed, file});
+  return displayReply(context, payload);
 }

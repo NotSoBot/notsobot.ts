@@ -16,6 +16,7 @@ import { getTranslator } from '../../i18n';
 import {
   Paginator,
   createTimestampMomentFromContext,
+  createUserEmbed,
   getMemberJoinPosition,
   toTitleCase,
 } from '../../../utils';
@@ -30,6 +31,7 @@ export async function createMessage(
   args: {isEphemeral?: boolean, user: Structures.Member | Structures.User | Structures.UserWithBanner},
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const isMember = (args.user instanceof Structures.Member);
   const member = args.user as Structures.Member;
@@ -96,16 +98,16 @@ export async function createMessage(
     pageLimit,
     isEphemeral: args.isEphemeral,
     onPage: async (page) => {
-      const embed = new Embed();
+      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
       embed.setColor(PresenceStatusColors['offline']);
       embed.setDescription(user.mention);
+      embed.setTitle(user.toString());
+      embed.setUrl(user.jumpLink);
 
       if (files.length) {
         const file = files[0]!;
-        embed.setAuthor(user.toString(), `attachment://${file.filename}`, user.jumpLink);
         embed.setThumbnail(`attachment://${file.filename}`);
       } else {
-        embed.setAuthor(user.toString(), avatarUrl, user.jumpLink);
         embed.setThumbnail(avatarUrl);
       }
 

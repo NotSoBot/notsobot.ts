@@ -1,11 +1,9 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
-import { RequestTypes } from 'detritus-client-rest';
 
 import { searchImgur } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
-import { DiscordEmojis, EmbedBrands, EmbedColors } from '../../../constants';
-import { DefaultParameters, Paginator, createUserEmbed, editOrReply, shuffleArray } from '../..';
+import { EmbedColors } from '../../../constants';
+import { displayReply, shuffleArray } from '../..';
 import { getTranslator } from '../../i18n';
 
 
@@ -19,23 +17,17 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const isFromInteraction = (context instanceof Interaction.InteractionContext);
-
   const { results } = await searchImgur(context, {query: 'meme'});
   const shuffled = shuffleArray<RestResponsesRaw.SearchImgurResult>(results);
   if (shuffled.length) {
-    const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
-    embed.setColor(EmbedColors.DARK_MESSAGE_BACKGROUND);
-    embed.setImage(shuffled[0].thumbnail);
-
     const url = shuffled[0].thumbnail;
     const filename = url.split('/').pop()!;
-    embed.setImage(`attachment://${filename}`);
-    return editOrReply(context, {
-      embed,
-      file: {filename, value: await context.rest.get(url)},
+    return displayReply(context, {
+      color: EmbedColors.DARK_MESSAGE_BACKGROUND,
+      files: [{filename, value: await context.rest.get(url)}],
+      image: `attachment://${filename}`,
     });
   }
   const { translate } = await getTranslator(context);
-  return editOrReply(context, translate('fun.badmeme.not_found'));
+  return displayReply(context, {description: translate('fun.badmeme.not_found')});
 }

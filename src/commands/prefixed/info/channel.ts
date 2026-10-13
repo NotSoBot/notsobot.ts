@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
@@ -27,7 +26,6 @@ export default class ChannelCommand extends BaseCommand {
         id: Formatter.Commands.InfoChannel.COMMAND_ID,
         usage: '?<channel:id|mention|name>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.channelMetadata,
     });
   }

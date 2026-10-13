@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
@@ -24,7 +23,6 @@ export default class InviteInfoCommand extends BaseCommand {
         id: Formatter.Commands.InfoInvite.COMMAND_ID,
         usage: '<code>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
     });
   }
 

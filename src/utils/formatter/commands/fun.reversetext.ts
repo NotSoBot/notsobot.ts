@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'reversetext';
@@ -21,5 +21,5 @@ export async function createMessage(
     text = args.text;
   }
   const reversed = text.split('').reverse().join('');
-  return editOrReply(context, Markup.escape.all(reversed));
+  return displayReply(context, {description: Markup.escape.all(reversed)});
 }

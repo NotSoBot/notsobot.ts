@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { editOrReply, replaceToken } from '../../../utils';
+import { createUserEmbed, editOrReply, replaceToken } from '../../../utils';
 
 
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
@@ -64,7 +64,7 @@ export async function createMessage(
 
     content = replaceToken(context, content);
     if (!args.noembed) {
-      const embed = new Embed();
+      const embed = (context instanceof Command.Context) ? createUserEmbed(context.user) : new Embed();
       if (errored) {
         embed.setColor(EmbedColors.ERROR);
       } else {

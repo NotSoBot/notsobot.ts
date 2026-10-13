@@ -1,13 +1,13 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { ChannelVideoQualityModes, Colors } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Snowflake } from 'detritus-utils';
 
 import { ChannelTypesText, DateMomentLogFormat } from '../../../constants';
 import { GuildChannelsStored } from '../../../stores/guildchannels';
 import { getTranslator } from '../../i18n';
-import { createTimestampMomentFromGuild, editOrReply } from '../../../utils';
+import { DisplayPayload, createTimestampMomentFromGuild, displayReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -35,9 +35,13 @@ export async function createMessage(
 
   const { channel, channels } = args.payload;
 
-  const embed = new Embed();
-  embed.setAuthor(`${channel}`, channel.iconUrl || undefined, channel.jumpLink);
-  embed.setColor(Colors.BLURPLE);
+  const payload: DisplayPayload = {fields: []};
+  payload.title = `${channel}`;
+  payload.url = channel.jumpLink;
+  if (channel.iconUrl) {
+    payload.thumbnail = channel.iconUrl;
+  }
+  payload.color = Colors.BLURPLE;
 
   {
     const description: Array<string> = [];
@@ -46,7 +50,7 @@ export async function createMessage(
       description.push('');
       description.push(channel.topic);
     }
-    embed.setDescription(description.join('\n'));
+    payload.description = description.join('\n');
   }
 
   {
@@ -77,7 +81,7 @@ export async function createMessage(
     }
     description.push(`**${translate('common.type')}**: ${translateMaybe(`channel.type.${channel.type}`, ChannelTypesText[channel.type] || translate('common.unknown'))}`);
 
-    embed.addField(translate('common.information'), description.join('\n'), true);
+    payload.fields!.push({inline: true, name: translate('common.information'), value: description.join('\n')});
   }
 
   if (channel.isText) {
@@ -102,7 +106,7 @@ export async function createMessage(
       }
     }
 
-    embed.addField(translate('info.channel.text_information'), description.join('\n'), true);
+    payload.fields!.push({inline: true, name: translate('info.channel.text_information'), value: description.join('\n')});
   } else if (channel.isVoice && channel.isGuildChannel) {
     const description: Array<string> = [];
 
@@ -123,7 +127,7 @@ export async function createMessage(
       description.push(`**${translate('info.channel.voice_status')}**: ${Markup.escape.all(channel.status)}`);
     }
 
-    embed.addField(translate('info.channel.voice_information'), description.join('\n'), true);
+    payload.fields!.push({inline: true, name: translate('info.channel.voice_information'), value: description.join('\n')});
   }
 
   if (channel.isDm) {
@@ -137,7 +141,7 @@ export async function createMessage(
     const users = channel.recipients.map((user: Structures.User) => (insideDm) ? user.mention : user.toString());
     description.push(`**${translate('info.channel.recipients', {count: users.length.toLocaleString(language)})}**: ${users.join(', ')}`);
 
-    embed.addField(translate('info.channel.dm_information'), description.join('\n'));
+    payload.fields!.push({name: translate('info.channel.dm_information'), value: description.join('\n')});
   }
 
   if (channel.isGuildChannel) {
@@ -183,7 +187,7 @@ export async function createMessage(
     }
 
     if (description.length) {
-      embed.addField(translate('common.counts'), Markup.codeblock(description.join('\n'), {language: 'css'}));
+      payload.fields!.push({name: translate('common.counts'), value: Markup.codeblock(description.join('\n'), {language: 'css'})});
     }
   }
 
@@ -199,8 +203,8 @@ export async function createMessage(
       description.push(`[**${translate('info.channel.last_message')}**](${Endpoints.Routes.URL + route})`)
     }
 
-    embed.addField(translate('common.urls'), description.join(', '));
+    payload.fields!.push({name: translate('common.urls'), value: description.join(', ')});
   }
 
-  return editOrReply(context, {embed});
+  return displayReply(context, payload);
 }

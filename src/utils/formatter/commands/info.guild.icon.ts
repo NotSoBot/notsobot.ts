@@ -1,9 +1,8 @@
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import { Colors } from 'detritus-client/lib/constants';
-import { Embed } from 'detritus-client/lib/utils';
 
 import { getTranslator } from '../../i18n';
-import { editOrReply } from '../../../utils';
+import { DisplayPayload, displayReply } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -43,17 +42,13 @@ export async function createMessage(
   if (guild.icon) {
     const url = guild.iconUrlFormat(null, {size: 512}) as string;
 
-    const channel = context.channel;
-    if (channel && channel.canEmbedLinks) {
-      const embed = new Embed();
-      embed.setAuthor(guild.name, url, guild.jumpLink);
-      embed.setColor(Colors.BLURPLE);
-      embed.setDescription(`[**${translate('info.guild.icon_url')}**](${guild.iconUrl})`);
-      embed.setImage(url);
-
-      return editOrReply(context, {embed});
-    }
-    return editOrReply(context, url);
+    return displayReply(context, {
+      color: Colors.BLURPLE,
+      description: `[**${translate('info.guild.icon_url')}**](${guild.iconUrl})`,
+      image: url,
+      title: guild.name,
+      url: guild.jumpLink,
+    });
   }
-  return editOrReply(context, translate('info.guild.no_icon'));
+  return displayReply(context, {description: translate('info.guild.no_icon')});
 }

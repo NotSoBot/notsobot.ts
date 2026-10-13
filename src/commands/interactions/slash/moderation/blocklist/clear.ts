@@ -1,7 +1,8 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { Formatter, I18n } from '../../../../../utils';
+import { GuildBlocklistTypes } from '../../../../../constants';
+import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
@@ -20,11 +21,13 @@ export class ModerationBlocklistClearCommand extends BaseInteractionCommandOptio
   constructor() {
     super({
       permissions: [Permissions.ADMINISTRATOR],
-      permissionsClient: [Permissions.EMBED_LINKS],
+      options: [
+        {name: 'only', description: 'Only clear entries of this type', ...I18n.optionLocalizations('commands.moderation.blocklist.clear.only'), choices: Parameters.Slash.oneOf({choices: GuildBlocklistTypes, localizationKey: 'choices.guild_command_list_types'})},
+      ],
     });
   }
 
-  async run(context: Interaction.InteractionContext) {
-    return Formatter.Commands.ModerationBlocklistClear.createMessage(context, {only: null});
+  async run(context: Interaction.InteractionContext, args: {only?: GuildBlocklistTypes}) {
+    return Formatter.Commands.ModerationBlocklistClear.createMessage(context, {only: args.only || null});
   }
 }

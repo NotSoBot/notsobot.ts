@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { Embed, Markup } from 'detritus-client/lib/utils';
 
-import { editOrReply, padCodeBlockFromRows, splitTextByAmount } from '../../../utils';
+import { createUserEmbed, editOrReply, padCodeBlockFromRows, splitTextByAmount } from '../../../utils';
 
 
 export const COMMAND_ID = 'memoryusage';
@@ -66,7 +66,7 @@ export async function createMessage(
     });
   }
 
-  const embed = new Embed();
+  const embed = (context instanceof Command.Context) ? createUserEmbed(context.user) : new Embed();
   {
     const parts = splitTextByAmount(content, 1988, '\n');
     embed.setDescription(Markup.codeblock(parts.shift()!, {language: 'py'}));

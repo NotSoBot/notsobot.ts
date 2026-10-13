@@ -1,5 +1,4 @@
 import { Command, CommandClient } from 'detritus-client';
-import { Permissions } from 'detritus-client/lib/constants';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
@@ -25,7 +24,6 @@ export default class GuildIconCommand extends BaseCommand {
         id: Formatter.Commands.InfoGuildIcon.COMMAND_ID,
         usage: '?<guild:id>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       type: Parameters.guildMetadata,
     });
   }

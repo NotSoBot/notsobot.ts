@@ -12,6 +12,7 @@ import { getTranslator } from '../../i18n';
 import {
   Paginator,
   createTimestampMomentFromGuild,
+  createUserEmbed,
   editOrReply,
   getMemberJoinPosition,
   toTitleCase,
@@ -40,6 +41,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { users } = args;
 
@@ -90,13 +92,14 @@ export async function createMessage(
       const member = memberOrUser as Structures.Member;
       const user = ((isMember) ? member.user : memberOrUser) as Structures.User;
 
-      const embed = new Embed();
-      embed.setAuthor(user.toString(), user.avatarUrlFormat(null, {size: 1024}), user.jumpLink);
+      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
+      embed.setTitle(user.toString());
+      embed.setUrl(user.jumpLink);
       embed.setColor(PresenceStatusColors['offline']);
       embed.setDescription(member.mention);
       embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
 
-      embed.setTitle(translate('user.page', {page: page.toLocaleString(language), total: pageLimit.toLocaleString(language)}));
+      embed.setFooter(translate('user.page', {page: page.toLocaleString(language), total: pageLimit.toLocaleString(language)}));
       {
         const description: Array<string> = [];
         {

@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'fun.textwall';
@@ -21,5 +21,5 @@ export async function createMessage(
     content += `\n${text.slice(i, text.length)} ${text.slice(0, i)}`;
   }
 
-  return editOrReply(context, Markup.codeblock(content));
+  return displayReply(context, {description: Markup.codeblock(content)});
 }

@@ -1,6 +1,6 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Colors } from 'detritus-client/lib/constants';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import {
@@ -10,7 +10,7 @@ import {
   VerificationLevelTexts,
 } from '../../../constants';
 import { getTranslator } from '../../i18n';
-import { createTimestampMomentFromGuild, editOrReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, createTimestampMomentFromGuild, displayReply, toTitleCase } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -33,17 +33,20 @@ export async function createMessage(
   try {
     const invite = await context.rest.fetchInvite(args.code, {withCounts: true});
 
-    const embed = new Embed();
-    embed.setColor(Colors.BLURPLE);
-    embed.setTitle(`discord.gg/${invite.code}`);
+    const payload: DisplayPayload = {fields: []};
+    payload.color = Colors.BLURPLE;
+    payload.url = Endpoints.Invite.SHORT(invite.code);
 
     const { guild } = invite;
     const channel = invite.channel as Structures.Channel;
 
+    payload.footer = `discord.gg/${invite.code}`;
+    payload.footerIconUrl = (guild && guild.iconUrlFormat(null, {size: 1024})) || undefined;
+
     if (guild) {
-      embed.setAuthor(guild.name, guild.iconUrlFormat(null, {size: 1024}) || undefined, guild.jumpLink);
+      payload.title = guild.name;
     } else {
-      embed.setAuthor(channel.name, undefined, channel.jumpLink);
+      payload.title = channel.name;
     }
 
     {
@@ -56,24 +59,24 @@ export async function createMessage(
       description.push(`**${translate('common.id')}**: ${Markup.codestring(channel.id)}`);
       description.push(`**${translate('common.name')}**: ${Markup.escape.all(channel.name)}`);
       description.push(`**${translate('common.type')}**: ${translateMaybe(`channel.type.${channel.type}`, ChannelTypesText[channel.type] || String(channel.type))}`);
-      embed.addField(translate('info.invite.channel_information'), description.join('\n'), true);
+      payload.fields!.push({inline: true, name: translate('info.invite.channel_information'), value: description.join('\n')});
     }
 
     if (guild) {
       if (guild.banner) {
-        embed.setThumbnail(guild.bannerUrlFormat(null, {size: 1024}) as string);
+        payload.thumbnail = guild.bannerUrlFormat(null, {size: 1024}) as string;
       } else {
         if (guild.icon) {
-          embed.setThumbnail(guild.iconUrlFormat(null, {size: 1024}) as string);
+          payload.thumbnail = guild.iconUrlFormat(null, {size: 1024}) as string;
         }
       }
 
       if (guild.splash) {
-        embed.setImage(guild.splashUrlFormat(null, {size: 128}) as string);
+        payload.image = guild.splashUrlFormat(null, {size: 128}) as string;
       }
 
       if (guild.description) {
-        embed.setDescription(guild.description);
+        payload.description = guild.description;
       }
 
       {
@@ -93,12 +96,12 @@ export async function createMessage(
         }
         description.push(`**${translate('info.guild.verification_level')}**: ${translateMaybe(`guild.verification.${guild.verificationLevel}`, VerificationLevelTexts[guild.verificationLevel] || translate('common.unknown'))}`);
 
-        embed.addField(translate('info.invite.guild_information'), description.join('\n'), true);
+        payload.fields!.push({inline: true, name: translate('info.invite.guild_information'), value: description.join('\n')});
       }
 
       if (guild.features.length) {
         const description = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
-        embed.addField(translate('common.features'), Markup.codeblock(description.join('\n')));
+        payload.fields!.push({name: translate('common.features'), value: Markup.codeblock(description.join('\n'))});
       }
     }
 
@@ -120,10 +123,10 @@ export async function createMessage(
         }
       }
 
-      embed.addField(translate('common.urls'), description.sort().join(', '));
+      payload.fields!.push({name: translate('common.urls'), value: description.sort().join(', ')});
     }
 
-    return editOrReply(context, {embed});
+    return displayReply(context, payload);
   } catch(error) {
     let message: string;
     if (error.response && error.response.statusCode === 404) {
@@ -131,6 +134,6 @@ export async function createMessage(
     } else {
       message = `${StatusEmojis.WARNING} ${error}`;
     }
-    return editOrReply(context, message);
+    return displayReply(context, {description: message});
   }
 }

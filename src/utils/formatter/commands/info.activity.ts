@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
   PresenceStatusColors,
@@ -30,6 +30,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { user } = args;
 
@@ -47,8 +48,11 @@ export async function createMessage(
   const paginator = new Paginator(context, {
     pageLimit,
     onPage: (page) => {
-      const embed = createUserEmbed(user);
+      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
       embed.setColor(PresenceStatusColors['offline']);
+      embed.setTitle(user.toString());
+      embed.setUrl(user.jumpLink);
+      embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
 
       if (presence) {
         if (presence.clientStatus) {

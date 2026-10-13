@@ -1,8 +1,8 @@
 import { Command, Interaction } from 'detritus-client';
-import { Embed, Markup } from 'detritus-client/lib/utils';
+import { Markup } from 'detritus-client/lib/utils';
 
 import { funAsciiArtFromText } from '../../../api';
-import { imageReplyFromOptions } from '../../../utils';
+import { mediaReplyFromOptions } from '../../../utils';
 
 
 export const COMMAND_ID = 'fun.ascii';
@@ -25,10 +25,12 @@ export async function createMessage(
   }
 
   const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-  return imageReplyFromOptions(context, value, {
+  return mediaReplyFromOptions(context, value, {
     content,
-    filename: file.filename,
+    extension: file.metadata.extension,
+    filename: file.filename_safe_base,
     height: file.metadata.height,
+    mimetype: file.metadata.mimetype,
     size: value.length,
     width: file.metadata.width,
   });

@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
+import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import {
   DateMomentLogFormat,
@@ -63,6 +63,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const guild =  context.guild as Structures.Guild;
 
@@ -82,12 +83,14 @@ export async function createMessage(
         const member = members[page - 1];
         const user = member;
 
-        const embed = createUserEmbed(user);
+        const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
+        embed.setTitle(user.toString());
+        embed.setUrl(user.jumpLink);
         embed.setColor(PresenceStatusColors['offline']);
         embed.setDescription(member.mention);
         embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
 
-        embed.setTitle(translate('user.page', {page: page.toLocaleString(language), total: pageLimit.toLocaleString(language)}));
+        embed.setFooter(translate('user.page', {page: page.toLocaleString(language), total: pageLimit.toLocaleString(language)}));
         {
           const description: Array<string> = [];
           {

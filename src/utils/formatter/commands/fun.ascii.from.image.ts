@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { funAsciiArtFromImage } from '../../../api';
-import { editOrReply } from '../../../utils';
+import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'fun.ascii.from.image';
@@ -22,5 +22,5 @@ export async function createMessage(
   }
   const response = await funAsciiArtFromImage(context, args);
   const language = '';
-  return editOrReply(context, Markup.codeblock(response.text, {language}));
+  return displayReply(context, {description: Markup.codeblock(response.text, {language})});
 }

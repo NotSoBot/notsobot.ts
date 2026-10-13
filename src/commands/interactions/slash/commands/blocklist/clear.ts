@@ -21,7 +21,6 @@ export class CommandsBlocklistClearCommand extends BaseInteractionCommandOption 
   constructor() {
     super({
       permissions: [Permissions.MANAGE_GUILD],
-      permissionsClient: [Permissions.EMBED_LINKS],
       options: [
         {name: 'only', description: 'Only clear entries of this type', ...I18n.optionLocalizations('commands.commands.blocklist.clear.only'), choices: Parameters.Slash.oneOf({choices: GuildCommandsBlocklistTypes, localizationKey: 'choices.guild_command_list_types'})},
       ],

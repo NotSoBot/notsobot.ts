@@ -670,6 +670,8 @@ export const CUSTOM = Tools.URIEncodeWrap({
     `https://raw.githubusercontent.com/AdvenaHQ/fluent-emoji/main/dist/100x100/${codepoint}.png`,
   STEAM_EMOJI: (name: string): string =>
     `https://steamcommunity-a.akamaihd.net/economy/emoticon/${name}`,
+  TWEMOJI_PNG: (codepoint: string) =>
+    `https://raw.githubusercontent.com/jdecked/twemoji/master/assets/72x72/${codepoint}.png`,
   TWEMOJI_SVG: (codepoint: string) =>
     TWEMOJI_SVG_BASE + `${codepoint}.svg`,
 });

@@ -1,7 +1,8 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { CDN } from '../../../api/endpoints';
-import { editOrReply } from '../..';
+import { Mimetypes } from '../../../constants';
+import { editOrReply, mediaReplyFromOptions } from '../..';
 
 
 export const COMMAND_ID = 'fun.b1';
@@ -17,7 +18,12 @@ export async function createMessage(
   const url = CDN.URL + CDN.COMMAND_ASSETS_B1;
   try {
     const value = await context.rest.get(url);
-    return editOrReply(context, {file: {filename: 'b1.png', value}});
+    return mediaReplyFromOptions(context, value, {
+      extension: 'png',
+      filename: 'b1',
+      mimetype: Mimetypes.IMAGE_PNG,
+      size: value.length,
+    });
   } catch(error) {
     return editOrReply(context, url);
   }

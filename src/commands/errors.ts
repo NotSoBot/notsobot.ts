@@ -241,6 +241,20 @@ function translateApiError(
 }
 
 
+// our translations drift from the api's wording a little ('The media...' vs 'This media...'), don't show both when they say the same thing
+function normalizeErrorMessage(message: string): string {
+  return message
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim()
+    .replace(/^(the|this|that) /, '');
+}
+
+function isSameErrorMessage(a: string, b: string): boolean {
+  return normalizeErrorMessage(a) === normalizeErrorMessage(b);
+}
+
+
 async function describeResponseError(
   context: ErrorContext,
   error: any,
@@ -275,7 +289,7 @@ async function describeResponseError(
   if (apiError && apiErrorKey) {
     const { specific, text } = translateApiError(apiError, apiErrorKey, translator);
     description.push(text);
-    if (!specific && apiError.message && apiError.message !== text) {
+    if (!specific && apiError.message && !isSameErrorMessage(apiError.message, text)) {
       fields.push({name: translate('errors.field.details'), value: apiError.message});
     }
   } else {

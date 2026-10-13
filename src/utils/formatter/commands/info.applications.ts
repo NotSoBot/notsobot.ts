@@ -3,7 +3,7 @@ import { Colors } from 'detritus-client/lib/constants';
 import { Embed } from 'detritus-client/lib/utils';
 
 import { getTranslator } from '../../i18n';
-import { Paginator } from '../../../utils';
+import { Paginator, createUserEmbed } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -22,6 +22,7 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const isFromInteraction = (context instanceof Interaction.InteractionContext);
 
   const { applications } = args;
 
@@ -31,18 +32,9 @@ export async function createMessage(
     onPage: (page) => {
       const application = applications[page - 1];
 
-      const embed = new Embed();
+      const embed = (isFromInteraction) ? new Embed() : createUserEmbed(context.user);
       embed.setColor(Colors.BLURPLE);
-
-      if (1 < pageLimit) {
-        embed.setTitle(translate('common.page_of', {page, total: pageLimit}));
-      }
-      if (application.icon) {
-        const iconUrl = application.iconUrlFormat(null, {size: 1024}) as string;
-        embed.setAuthor(application.name, iconUrl);
-      } else {
-        embed.setAuthor(application.name);
-      }
+      embed.setTitle(application.name);
 
       {
         const description: Array<string> = [];
@@ -100,7 +92,12 @@ export async function createMessage(
         embed.addField(translate('info.applications.trailer'), `[**YouTube**](${url})`, true);
       }
 
-      embed.setFooter(translate('info.applications.added'));
+      const footerIconUrl = (application.icon) ? application.iconUrlFormat(null, {size: 1024}) as string : undefined;
+      if (1 < pageLimit) {
+        embed.setFooter(`${translate('common.page_of', {page, total: pageLimit})} • ${translate('info.applications.added')}`, footerIconUrl);
+      } else {
+        embed.setFooter(translate('info.applications.added'), footerIconUrl);
+      }
       embed.setTimestamp(application.createdAt);
 
       return embed;

@@ -38,7 +38,7 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       permissions: [Permissions.BAN_MEMBERS],
-      permissionsClient: [Permissions.BAN_MEMBERS, Permissions.EMBED_LINKS],
+      permissionsClient: [Permissions.BAN_MEMBERS],
       options: [
         {
           name: 'users',

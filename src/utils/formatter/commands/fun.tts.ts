@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { funTextToSpeech } from '../../../api';
 import { TTSVoices } from '../../../constants';
-import { editOrReply } from '../../../utils';
+import { mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'fun.tts';
@@ -22,12 +22,5 @@ export async function createMessage(
     voiceId: args.use && args.use.voiceId,
   });
 
-  if (response.storage) {
-    return editOrReply(context, response.storage.urls.vanity);
-  }
-
-  const filename = response.file.filename;
-  return editOrReply(context, {
-    file: {filename, value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0)},
-  });
+  return mediaReply(context, response);
 }

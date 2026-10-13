@@ -25,12 +25,11 @@ export default class CommandsBlocklistClearCommand extends BaseCommand {
         description: 'Clear out Channels/Roles/Users/Server-Wide blocked commands.',
         examples: [
           COMMAND_NAME,
-          `${COMMAND_NAME} channels`,
+          `${COMMAND_NAME} channel`,
         ],
         id: Formatter.Commands.ModerationCommandsBlocklistClear.COMMAND_ID,
         usage: '?<GuildCommandsBlocklistType>',
       },
-      permissionsClient: [Permissions.EMBED_LINKS],
       permissions: [Permissions.MANAGE_GUILD],
       priority: -1,
       type: (value: string) => value.toLowerCase(),

@@ -4,7 +4,8 @@ import { Embed, Markup } from 'detritus-client/lib/utils';
 
 import { Writer as WavWriter } from 'wav';
 
-import { editOrReply } from '../../../utils';
+import { Mimetypes } from '../../../constants';
+import { editOrReply, mediaReplyFromOptions } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -67,10 +68,13 @@ export async function createMessage(
     connection.kill();
 
     writer.end();
-    const buffer = await onHeader;
-    await editOrReply(context, {
+    const buffer = await onHeader as Buffer;
+    await mediaReplyFromOptions(context, buffer, {
       content: translate('voice_record.successfully_recorded_seconds_worth_of_audio_from', {seconds: args.seconds}),
-      file: {filename: 'recording.wav', value: buffer},
+      extension: 'wav',
+      filename: 'recording',
+      mimetype: Mimetypes.AUDIO_WAV,
+      size: buffer.length,
     });
   }, args.seconds * 1000);
 
