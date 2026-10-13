@@ -42,10 +42,9 @@ export default class EditCommand extends BaseMediasCommand {
         {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLEdit.COMMAND_ID, type: 'channel'},
       ],
       type: [
-        {name: 'urls', type: Parameters.mediaUrls({maxAmount: 3, minAmount: 1, positional: true, audio: false, video: false})},
-        // todo: fix this to support `.edit @cake @notsobot make them kiss`
-        // right now to achieve this, you must do `.edit "@cake @notsobot" make them kiss`
-        {name: 'query', type: Parameters.targetTextWithParsedMentions, consume: true},
+        // both see the whole content, so `.edit @cake @notsobot make them kiss` works without quoting the users
+        {name: 'urls', type: Parameters.mediaUrlsLeading({maxAmount: 3, minAmount: 1, audio: false, video: false}), consume: true},
+        {name: 'query', type: Parameters.textAfterLeadingMedia(3), consume: true},
       ],
     });
   }

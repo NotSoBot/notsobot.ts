@@ -158,6 +158,15 @@ export namespace RestOptions {
     timezone?: string,
   }
 
+  export interface EditReminder {
+    channelId?: null | string,
+    content?: string,
+    guildId?: null | string,
+    messageId?: null | string,
+    timestampEnd?: null | number,
+    timestampStart?: number,
+  }
+
   export interface EditTag {
     content?: string,
     isCommand?: boolean,
@@ -1500,6 +1509,8 @@ export namespace RestResponsesRaw {
   export type DeleteGuildPrefix = Array<GuildPrefix>;
 
   export type DeleteReminder = null;
+
+  export type EditReminder = Reminder;
 
   export type DeleteTagSearch = null;
   export type DeleteTagVariable = null;

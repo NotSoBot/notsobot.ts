@@ -220,6 +220,8 @@ export async function createMessage(
       personality: personality || TAG_GENERATION_PERSONALITY_DEFAULT,
       serverPersonality,
       userPersonality,
+      // NotSoAI wrote this, unlocks the NotSoAI-only functions
+      [TagFormatter.PrivateVariables.IS_FROM_AI]: 1,
       [TagFormatter.PrivateVariables.SETTINGS]: {
         [TagFormatter.TagSettings.AI_MODEL]: args.model,
       },

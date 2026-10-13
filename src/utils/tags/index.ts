@@ -16,11 +16,16 @@ import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
 
 import {
+  createReminder,
+  deleteReminderPositional,
+  editReminder,
   editUserSettings,
   fetchTagBlobs,
   fetchTagId,
   fetchTagVariable,
+  fetchReminderPositional,
   fetchTagVariables,
+  fetchUserReminders,
   deleteTagVariable,
   generateTag,
   googleContentVisionOCR,
@@ -43,6 +48,9 @@ import {
   utilitiesMLImagine,
   utilitiesMLInterrogate,
   utilitiesProxyRequest,
+  utilitiesQrCreate,
+  utilitiesQrScan,
+  utilitiesScreenshot,
   utilitiesWeather,
 } from '../../api';
 import { RestOptions, RestResponses, RestResponsesRaw } from '../../api/types';
@@ -56,11 +64,14 @@ import {
   TagBlobStorageTypes,
   TagGenerationModels,
   TagVariableStorageTypes,
+  Timezones,
+  TimezonesToText,
   YoutubeResultTypes,
   CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   MAX_MEMBERS_SAFE,
 } from '../../constants';
 
+import { ReminderInterval } from '../../listeners';
 import { getAIPersonality } from '../formatter/commands/tag.generate';
 import { increaseUsage } from '../formatter/commands/tag.show';
 
@@ -96,7 +107,12 @@ export { TagExitError, TagRequestError };
 
 
 
-const findChannel = Parameters.channel({inGuild: true});
+const findChannelParameter = Parameters.channel({inGuild: true});
+// channel names are compared lowercased, so lowercase the query too
+const findChannel = (
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Structures.Channel | null => findChannelParameter(value.toLowerCase(), context);
 const findMemberOrUser = Parameters.memberOrUser();
 
 const lastAudioUrl = Parameters.lastMediaUrl({image: false, video: false});
@@ -199,6 +215,12 @@ export const URL_FILE_REPLACEMENT_REGEX = /FILE_([0-9]+)(_COPY)?/g;
 
 export const REGEX_ARGUMENT_SPLITTER = new RegExp(`(?<!\\\\)[${TagSymbols.SPLITTER_ARGUMENT}]`, 'g');
 export const REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT = new RegExp(`\\\\\\${TagSymbols.SPLITTER_ARGUMENT}`, 'g');
+export const REGEX_BRACKET_OR_SPLITTER_ESCAPE_REPLACEMENT = /\\([{}|])/g;
+
+// {newline} inserts this (a unicode noncharacter, reserved for internal use) and it gets replaced with `\n` at the end
+// so trimming in between does not eat the newlines
+export const NEWLINE_SENTINEL = '\uFDD0';
+export const REGEX_NEWLINE_SENTINEL = /\uFDD0/g;
 
 
 export enum PrivateVariables {
@@ -209,6 +231,7 @@ export enum PrivateVariables {
   COMPONENT_EXECUTIONS = '__componentExecutions',
   FILE_SIZE = '__fileSize',
   FILES = '__files',
+  IS_FROM_AI = '__isFromAI',
   IS_FROM_CHILD_PARSING = '__isFromChildParsing',
   ITERATIONS_REMAINING = '__iterationsRemaining',
   NETWORK_REQUESTS = '__networkRequests',
@@ -262,9 +285,15 @@ export const TAG_IF_COMPARISONS = [
 export enum TagFunctions {
   AI = 'AI',
   API_CREATE_REMINDER = 'API_CREATE_REMINDER',
+  API_DELETE_REMINDER = 'API_DELETE_REMINDER',
+  API_EDIT_REMINDER = 'API_EDIT_REMINDER',
+  API_FETCH_REMINDERS = 'API_FETCH_REMINDERS',
   API_SEARCH_DUCKDUCKGO_IMAGES = 'API_SEARCH_DUCKDUCKGO_IMAGES',
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
   API_UTILITIES_LOCATIONS = 'API_UTILITIES_LOCATIONS',
+  API_UTILITIES_QR_CREATE = 'API_UTILITIES_QR_CREATE',
+  API_UTILITIES_QR_SCAN = 'API_UTILITIES_QR_SCAN',
+  API_UTILITIES_SCREENSHOT = 'API_UTILITIES_SCREENSHOT',
   API_UTILITIES_WEATHER = 'API_UTILITIES_WEATHER',
   ARG = 'ARG',
   ARG_SAFE = 'ARG_SAFE',
@@ -376,6 +405,8 @@ export enum TagFunctions {
   SETTINGS = 'SETTINGS',
   SETTINGS_SET_SERVER_AI_PERSONALITY = 'SETTINGS_SET_SERVER_AI_PERSONALITY',
   SETTINGS_SET_USER_AI_PERSONALITY = 'SETTINGS_SET_USER_AI_PERSONALITY',
+  SETTINGS_SET_USER_LOCALE = 'SETTINGS_SET_USER_LOCALE',
+  SETTINGS_SET_USER_TIMEZONE = 'SETTINGS_SET_USER_TIMEZONE',
   STRING_INDEX_OF = 'STRING_INDEX_OF',
   STRING_JSONIFY = 'STRING_JSONIFY',
   STRING_LENGTH = 'STRING_LENGTH',
@@ -446,9 +477,15 @@ export const TagFunctionsToString = Object.freeze({
 
   [TagFunctions.AI]: ['ai'],
   [TagFunctions.API_CREATE_REMINDER]: ['api.create.reminder'],
+  [TagFunctions.API_DELETE_REMINDER]: ['api.delete.reminder'],
+  [TagFunctions.API_EDIT_REMINDER]: ['api.edit.reminder'],
+  [TagFunctions.API_FETCH_REMINDERS]: ['api.fetch.reminders'],
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: ['api.search.duckduckgo.images'],
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
   [TagFunctions.API_UTILITIES_LOCATIONS]: ['api.utilities.locations'],
+  [TagFunctions.API_UTILITIES_QR_CREATE]: ['api.utilities.qr.create'],
+  [TagFunctions.API_UTILITIES_QR_SCAN]: ['api.utilities.qr.scan'],
+  [TagFunctions.API_UTILITIES_SCREENSHOT]: ['api.utilities.screenshot'],
   [TagFunctions.API_UTILITIES_WEATHER]: ['api.utilities.weather'],
   [TagFunctions.ARG]: ['arg'],
   [TagFunctions.ARG_SAFE]: ['argsafe'],
@@ -560,6 +597,8 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.SETTINGS]: ['settings'],
   [TagFunctions.SETTINGS_SET_SERVER_AI_PERSONALITY]: ['settings.set.server.ai.personality'],
   [TagFunctions.SETTINGS_SET_USER_AI_PERSONALITY]: ['settings.set.user.ai.personality'],
+  [TagFunctions.SETTINGS_SET_USER_LOCALE]: ['settings.set.user.locale'],
+  [TagFunctions.SETTINGS_SET_USER_TIMEZONE]: ['settings.set.user.timezone'],
   [TagFunctions.STRING_INDEX_OF]: ['indexof'],
   [TagFunctions.STRING_JSONIFY]: ['jsonify'],
   [TagFunctions.STRING_LENGTH]: ['len', 'length'],
@@ -643,6 +682,7 @@ export interface TagVariables {
   [PrivateVariables.ARGS_STRING]: string,
   [PrivateVariables.COMPONENT_EXECUTIONS]: number,
   [PrivateVariables.FILE_SIZE]: number,
+  [PrivateVariables.IS_FROM_AI]: number,
   [PrivateVariables.IS_FROM_CHILD_PARSING]: number,
   [PrivateVariables.ITERATIONS_REMAINING]: number,
   [PrivateVariables.NETWORK_REQUESTS]: number,
@@ -665,7 +705,7 @@ export interface TagVariables {
     [TagSettings.ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE]?: boolean,
     [TagSettings.DISPLAY_MEDIA_AS_NATIVE]?: boolean,
     [TagSettings.MEDIA_AV_FALLBACK]?: TagFunctions.SEARCH_YOUTUBE,
-    [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_GOOGLE_IMAGES | TagFunctions.SEARCH_YOUTUBE,
+    [TagSettings.MEDIA_IV_FALLBACK]?: TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_DUCKDUCKGO_IMAGES | TagFunctions.SEARCH_GOOGLE_IMAGES,
     [TagSettings.ML_IMAGINE_DO_NOT_ERROR]?: boolean,
     [TagSettings.ML_IMAGINE_MODEL]?: MLDiffusionModels,
   },
@@ -750,6 +790,9 @@ export async function parse(
   }
   if (!(PrivateVariables.FILE_SIZE in variables)) {
     (variables as any)[PrivateVariables.FILE_SIZE] = 0;
+  }
+  if (!(PrivateVariables.IS_FROM_AI in variables)) {
+    (variables as any)[PrivateVariables.IS_FROM_AI] = 0;
   }
   if (!(PrivateVariables.IS_FROM_CHILD_PARSING in variables)) {
     (variables as any)[PrivateVariables.IS_FROM_CHILD_PARSING] = 0;
@@ -850,14 +893,28 @@ export async function parse(
     }
 
     if (depth === 0) {
+      // in the main tag's own text (not inside a function), `\{`, `\}` and `\|` output the literal character and `\{` does not start a function
+      // arguments keep their escapes as-is since `split()` and functions like {replace} rely on them
+      const shouldUnescape = isFirstParse;
+
       // find next left bracket
-      const nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
+      let nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
+      if (shouldUnescape) {
+        while (nextLeftBracket !== -1 && position < nextLeftBracket && value[nextLeftBracket - 1] === TagSymbols.IGNORE) {
+          nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, nextLeftBracket + 1);
+        }
+      }
+
+      let text = (nextLeftBracket === -1) ? value.slice(position) : value.slice(position, nextLeftBracket);
+      if (shouldUnescape && text.includes(TagSymbols.IGNORE)) {
+        text = text.replace(REGEX_BRACKET_OR_SPLITTER_ESCAPE_REPLACEMENT, '$1');
+      }
+      tag.text += text;
+
       if (nextLeftBracket === -1) {
-        tag.text += value.slice(position);
         position = value.length;
         continue;
       }
-      tag.text += value.slice(position, nextLeftBracket);
       position = nextLeftBracket;
     }
 
@@ -1096,9 +1153,163 @@ export async function parse(
 
   tag.text = (tag.text + scriptBuffer);
   if (isFirstParse) {
-    tag.text = tag.text.replace(/\u200B/g, '\n');
+    tag.text = tag.text.replace(REGEX_NEWLINE_SENTINEL, '\n');
   }
   return tag;
+}
+
+
+// storage values are strings, objects/arrays from code get stored as json instead of `[object Object]`
+function stringifyStorageValue(value: any): string {
+  if (typeof(value) === 'string') {
+    return value;
+  }
+  if (value && typeof(value) === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+
+// the api does not store empty values, so they do not count towards the storage amount limits
+function countStorageValues(values: Record<string, any>): number {
+  return Object.values(values).filter((value) => stringifyStorageValue(value)).length;
+}
+
+
+// the tagscript being ran was written by NotSoAI (not a user's tag)
+// `PrivateVariables.IS_FROM_AI` is set by the NotSoAI command when it parses the AI's response, and by {ai} when it parses its response outside of a tag
+// users cannot set private variables, and {tag} clears it for the tag it calls
+export function isFromAI(context: Command.Context | Interaction.InteractionContext, tag: TagResult): boolean {
+  if (context.metadata && context.metadata.tag) {
+    return false;
+  }
+  return !!tag.variables[PrivateVariables.IS_FROM_AI];
+}
+
+
+// attaches a file api response (like {api.utilities.screenshot}) to the tag's output
+function addFileResponseToTag(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  response: RestResponsesRaw.FileResponse,
+): void {
+  if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+    throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+  }
+
+  const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+  if (context.maxAttachmentSize < data.length) {
+    throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: context.maxAttachmentSize}));
+  }
+  tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+  tag.files.push({
+    buffer: data,
+    filename: response.file.filename_safe,
+    spoiler: false,
+    url: '',
+  });
+}
+
+
+// accepts an IANA name (`america/new_york`), the enum name (`AMERICA_NEW_YORK`), or an abbreviation/city from the display text (`EST`, `alaska`)
+function resolveTimezone(value: string): string | null {
+  const insensitive = value.toLowerCase().replace(/\s+/g, '_');
+  for (let key in Timezones) {
+    const timezone = (Timezones as any)[key] as string;
+    if (timezone.toLowerCase() === insensitive || key.toLowerCase() === insensitive) {
+      return timezone;
+    }
+  }
+
+  const upper = value.toUpperCase();
+  const lower = value.toLowerCase();
+  for (let timezone in TimezonesToText) {
+    const text = (TimezonesToText as any)[timezone] as string;
+    if (text && text.includes(`(${upper})`)) {
+      return timezone;
+    }
+  }
+  if (lower.length < 3) {
+    return null;
+  }
+  for (let timezone in TimezonesToText) {
+    const text = (TimezonesToText as any)[timezone] as string;
+    if (text && text.toLowerCase().includes(lower)) {
+      return timezone;
+    }
+  }
+  return null;
+}
+
+
+// strips the user object out since the AI only ever sees the command user's reminders
+function serializeReminderForTag(reminder: RestResponsesRaw.Reminder) {
+  return {
+    channel_id: reminder.channel_id,
+    content: reminder.content,
+    guild_id: reminder.guild_id,
+    id: reminder.id,
+    is_all_day: reminder.is_all_day,
+    position: reminder.position,
+    timestamp_end: reminder.timestamp_end,
+    timestamp_start: reminder.timestamp_start,
+  };
+}
+
+
+// fallback settings accept the function's names (`search.google.images`) or the enum names (`SEARCH_GOOGLE_IMAGES`)
+// `choices` maps the function to store to the functions/names that select it
+function parseFallbackSetting(value: string, choices: Record<string, Array<string>>): string | null {
+  const insensitive = value.toLowerCase();
+  const upper = value.toUpperCase();
+  for (let tagFunction in choices) {
+    for (let choice of choices[tagFunction]) {
+      if (choice === upper) {
+        return tagFunction;
+      }
+      if (choice in TagFunctionsToString && (TagFunctionsToString as any)[choice].includes(insensitive)) {
+        return tagFunction;
+      }
+    }
+  }
+  return null;
+}
+
+
+// accepts the style names (`RELATIVE`, case insensitive) and discord's letters (`R`, case sensitive)
+export function parseMarkupTimestampStyle(value: string): MarkupTimestampStyles | undefined {
+  value = value.trim();
+  if ((Object.values(MarkupTimestampStyles) as Array<string>).includes(value)) {
+    return value as MarkupTimestampStyles;
+  }
+  const insensitive = value.toUpperCase();
+  if (insensitive in MarkupTimestampStyles) {
+    return (MarkupTimestampStyles as any)[insensitive] as MarkupTimestampStyles;
+  }
+  return undefined;
+}
+
+
+// not every node version has `crypto.randomUUIDv7()`
+export function randomUUIDv7(): string {
+  if (typeof((crypto as any).randomUUIDv7) === 'function') {
+    return (crypto as any).randomUUIDv7();
+  }
+
+  // 48 bit unix timestamp in milliseconds, then version 7, then variant 10, the rest is random
+  const bytes = crypto.randomBytes(16);
+  let timestamp = Date.now();
+  for (let i = 5; 0 <= i; i--) {
+    bytes[i] = timestamp % 256;
+    timestamp = Math.floor(timestamp / 256);
+  }
+  bytes[6] = (bytes[6] & 0x0f) | 0x70;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+  const hex = bytes.toString('hex');
+  return [hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20)].join('-');
 }
 
 
@@ -1357,6 +1568,8 @@ export function split(value: string, amount: number = 0): Array<string> {
         } else if (nextValue === TagSymbols.BRACKET_RIGHT) {
           depth++;
         } else if (nextValue === TagSymbols.SPLITTER_ARGUMENT) {
+          // `\|` is a literal `|`, same as the regex path above
+          text = text.slice(0, -1) + TagSymbols.SPLITTER_ARGUMENT;
           position++;
         }
       }; break;
@@ -1503,7 +1716,7 @@ const ScriptTags = Object.freeze({
           guildId: context.guildId,
           userId: context.userId,
         });
-        for (let key in Object.keys(response)) {
+        for (let key of Object.keys(response)) {
           const storageType = parseInt(key) as TagBlobStorageTypes;
           switch (storageType) {
             case TagBlobStorageTypes.CHANNEL: {
@@ -1527,7 +1740,7 @@ const ScriptTags = Object.freeze({
           guildId: context.guildId,
           userId: context.userId,
         });
-        for (let key in Object.keys(response)) {
+        for (let key of Object.keys(response)) {
           const storageType = parseInt(key) as TagVariableStorageTypes;
           switch (storageType) {
             case TagVariableStorageTypes.CHANNEL: {
@@ -1586,7 +1799,8 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    for (let i = 0; i < tag.files.length; i++) {
+    // backwards since splicing shifts the later files down
+    for (let i = tag.files.length - 1; 0 <= i; i--) {
       if (tag.files[i].deleted) {
         tag.files.splice(i, 1);
       }
@@ -1605,7 +1819,7 @@ const ScriptTags = Object.freeze({
     if (result.error) {
       // if it starts with ffmpeg error, check if its only 1 or less files to throw error
       if (result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) || result.error.includes('Input')) {
-        if (result.files.every((x) => x.filename === '___internals__.json')) {
+        if (result.files.every((x) => x.filename === '__internals__.json')) {
           throw new Error(result.error);
         }
       } else {
@@ -1666,7 +1880,8 @@ const ScriptTags = Object.freeze({
                 // clear the blob
               } else {
                 if (variables.global && typeof(variables.global) === 'object') {
-                  variables.global = Buffer.from(JSON.stringify(variables.global));
+                  // objects get stored as their json, base64 encoded like the string values
+                  variables.global = Buffer.from(JSON.stringify(variables.global)).toString('base64');
                 }
                 if (!variables.global || typeof(variables.global) === 'string') {
                   // assume its base64 already
@@ -1706,7 +1921,8 @@ const ScriptTags = Object.freeze({
                 // clear the blob
               } else {
                 if (variables.server && typeof(variables.server) === 'object') {
-                  variables.server = Buffer.from(JSON.stringify(variables.server));
+                  // objects get stored as their json, base64 encoded like the string values
+                  variables.server = Buffer.from(JSON.stringify(variables.server)).toString('base64');
                 }
                 if (!variables.server || typeof(variables.server) === 'string') {
                   // assume its base64 already
@@ -1746,7 +1962,8 @@ const ScriptTags = Object.freeze({
                 // clear the blob
               } else {
                 if (variables.channel && typeof(variables.channel) === 'object') {
-                  variables.channel = Buffer.from(JSON.stringify(variables.channel));
+                  // objects get stored as their json, base64 encoded like the string values
+                  variables.channel = Buffer.from(JSON.stringify(variables.channel)).toString('base64');
                 }
                 if (!variables.channel || typeof(variables.channel) === 'string') {
                   // assume its base64 already
@@ -1786,7 +2003,8 @@ const ScriptTags = Object.freeze({
                 // clear the blob
               } else {
                 if (variables.user && typeof(variables.user) === 'object') {
-                  variables.user = Buffer.from(JSON.stringify(variables.user));
+                  // objects get stored as their json, base64 encoded like the string values
+                  variables.user = Buffer.from(JSON.stringify(variables.user)).toString('base64');
                 }
                 if (!variables.user || typeof(variables.user) === 'string') {
                   // assume its base64 already
@@ -1854,14 +2072,14 @@ const ScriptTags = Object.freeze({
               } else if (variables.global === null) {
                 // clear the variables
               } else if (typeof(variables.global) === 'object') {
-                if (tag.limits.MAX_STORAGE_GLOBAL_AMOUNT < Object.keys(variables.global).length) {
+                if (tag.limits.MAX_STORAGE_GLOBAL_AMOUNT < countStorageValues(variables.global)) {
                   throw new Error(tag.translate('tagscript.global_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_GLOBAL_AMOUNT}));
                 }
                 for (let key in variables.global) {
                   if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
                     throw new Error(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
                   }
-                  const value = String(variables.global[key]);
+                  const value = stringifyStorageValue(variables.global[key]);
                   if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
                     throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
                   }
@@ -1889,14 +2107,14 @@ const ScriptTags = Object.freeze({
               } else if (variables.server === null) {
                 // clear the variables
               } else if (typeof(variables.server) === 'object') {
-                if (tag.limits.MAX_STORAGE_GUILD_AMOUNT < Object.keys(variables.server).length) {
+                if (tag.limits.MAX_STORAGE_GUILD_AMOUNT < countStorageValues(variables.server)) {
                   throw new Error(tag.translate('tagscript.server_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_GUILD_AMOUNT}));
                 }
                 for (let key in variables.server) {
                   if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
                     throw new Error(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
                   }
-                  const value = String(variables.server[key]);
+                  const value = stringifyStorageValue(variables.server[key]);
                   if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
                     throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
                   }
@@ -1924,14 +2142,14 @@ const ScriptTags = Object.freeze({
               } else if (variables.channel === null) {
                 // clear the variables
               } else if (typeof(variables.channel) === 'object') {
-                if (tag.limits.MAX_STORAGE_CHANNEL_AMOUNT < Object.keys(variables.channel).length) {
+                if (tag.limits.MAX_STORAGE_CHANNEL_AMOUNT < countStorageValues(variables.channel)) {
                   throw new Error(tag.translate('tagscript.channel_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_CHANNEL_AMOUNT}));
                 }
                 for (let key in variables.channel) {
                   if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
                     throw new Error(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
                   }
-                  const value = String(variables.channel[key]);
+                  const value = stringifyStorageValue(variables.channel[key]);
                   if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
                     throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
                   }
@@ -1959,14 +2177,14 @@ const ScriptTags = Object.freeze({
               } else if (variables.user === null) {
                 // clear the variables
               } else if (typeof(variables.user) === 'object') {
-                if (tag.limits.MAX_STORAGE_USER_AMOUNT < Object.keys(variables.user).length) {
+                if (tag.limits.MAX_STORAGE_USER_AMOUNT < countStorageValues(variables.user)) {
                   throw new Error(tag.translate('tagscript.user_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_USER_AMOUNT}));
                 }
                 for (let key in variables.user) {
                   if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
                     throw new Error(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
                   }
-                  const value = String(variables.user[key]);
+                  const value = stringifyStorageValue(variables.user[key]);
                   if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
                     throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
                   }
@@ -2081,6 +2299,7 @@ const ScriptTags = Object.freeze({
 
     let isComponents = false;
     let isEmbed = false;
+    // only check for json in smaller outputs, bigger outputs are always text
     if (result.output.length <= 16000) {
       // just incase its a big content lol
       let object: any = null;
@@ -2193,10 +2412,10 @@ const ScriptTags = Object.freeze({
           }
         }
       }
+    }
 
-      if (!isComponents && !isEmbed) {
-        tag.text += result.output;
-      }
+    if (!isComponents && !isEmbed) {
+      tag.text += result.output;
     }
 
     return true;
@@ -2245,7 +2464,8 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    for (let i = 0; i < tag.files.length; i++) {
+    // backwards since splicing shifts the later files down
+    for (let i = tag.files.length - 1; 0 <= i; i--) {
       if (tag.files[i].deleted) {
         tag.files.splice(i, 1);
       }
@@ -2270,7 +2490,7 @@ const ScriptTags = Object.freeze({
         `${PrivateVariables.AI_EXECUTIONS} count: ${tag.variables[PrivateVariables.AI_EXECUTIONS]}`,
         prompt,
       ].join('\n').slice(0, 12000),
-      urls: Object.values(urls).filter(Boolean),
+      urls: Object.values(urls).filter((x) => x.url),
     });
 
     tag.variables[PrivateVariables.RESULTS][TagFunctions.AI] = response;
@@ -2280,7 +2500,13 @@ const ScriptTags = Object.freeze({
       tag.text += response.text;
     } else {
       // is from ai, parse the text first
-      tag.text += await parseValue(context, tag, response.text);
+      const isFromAICache = tag.variables[PrivateVariables.IS_FROM_AI];
+      tag.variables[PrivateVariables.IS_FROM_AI] = 1;
+      try {
+        tag.text += await parseValue(context, tag, response.text);
+      } finally {
+        tag.variables[PrivateVariables.IS_FROM_AI] = isFromAICache;
+      }
     }
 
     return true;
@@ -2288,6 +2514,11 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.API_CREATE_REMINDER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.create.reminder:time} {api.create.reminder:time|text}
+    // only NotSoAI can use this
+
+    if (!isFromAI(context, tag)) {
+      return false;
+    }
 
     if (!arg) {
       return true;
@@ -2306,21 +2537,131 @@ const ScriptTags = Object.freeze({
     increaseAPIManipulations(tag);
     increaseNetworkRequests(tag);
 
-    /*
     // todo: add a tag id to this
     const reminder = await createReminder(context, {
       channelId: context.channelId,
-      content: result.content,
+      content: (text || '').slice(0, 512),
       guildId: context.guildId,
       messageId: (context instanceof Command.Context) ? context.messageId : null,
       timestampEnd: (result.end) ? result.end.getTime() : undefined,
       timestampStart: result.start.getTime(),
     });
-    */
 
-    // maybe store it in tag.variables[PrivateVariables][TagFunctions.API_CREATE_REMINDER]
+    if (context.manager) {
+      await context.manager.broadcastEval(ReminderInterval.broadcastEvalInsert, reminder);
+    } else if (context.cluster) {
+      ReminderInterval.insertReminder(context.cluster, reminder);
+    }
 
-    tag.text += result.start + ' ' + text;
+    tag.text += JSON.stringify(serializeReminderForTag(reminder));
+
+    return true;
+  },
+
+  [TagFunctions.API_DELETE_REMINDER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.delete.reminder:position}
+    // only NotSoAI can use this, deletes one of the command user's reminders by its position (from {api.fetch.reminders})
+
+    if (!isFromAI(context, tag)) {
+      return false;
+    }
+
+    arg = arg.trim();
+    if (!arg) {
+      return true;
+    }
+
+    const position = parseInt(arg);
+    if (isNaN(position) || position < 1) {
+      throw new Error('Reminder position must be a positive number');
+    }
+
+    increaseAPIManipulations(tag);
+    increaseNetworkRequests(tag);
+
+    try {
+      await deleteReminderPositional(context, context.userId, position);
+    } catch(error) {
+      if (error.response && error.response.status === 404) {
+        throw new Error(`Unknown reminder at position ${position}`);
+      }
+      throw error;
+    }
+
+    tag.text += 'true';
+
+    return true;
+  },
+
+  [TagFunctions.API_EDIT_REMINDER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.edit.reminder:position|time} {api.edit.reminder:position|time|text} {api.edit.reminder:position||text}
+    // only NotSoAI can use this, an empty time keeps the current time, no text keeps the current text
+
+    if (!isFromAI(context, tag)) {
+      return false;
+    }
+
+    if (!arg) {
+      return true;
+    }
+
+    const [ positionText, timeText, text ] = split(arg, 3);
+    const position = parseInt((positionText || '').trim());
+    if (isNaN(position) || position < 1) {
+      throw new Error('Reminder position must be a positive number');
+    }
+
+    const options: RestOptions.EditReminder = {};
+    if (timeText && timeText.trim()) {
+      const result = Parameters.nlpTimestamp(timeText, context);
+      options.timestampStart = result.start.getTime();
+      options.timestampEnd = (result.end) ? result.end.getTime() : null;
+    }
+    if (text !== undefined) {
+      options.content = text.slice(0, 512);
+    }
+    if (!('timestampStart' in options) && !('content' in options)) {
+      return true;
+    }
+
+    increaseAPIManipulations(tag);
+    increaseNetworkRequests(tag, 2);
+
+    let reminder: RestResponsesRaw.Reminder;
+    try {
+      reminder = await fetchReminderPositional(context, context.userId, position);
+    } catch(error) {
+      if (error.response && error.response.status === 404) {
+        throw new Error(`Unknown reminder at position ${position}`);
+      }
+      throw error;
+    }
+
+    // the api publishes the update so the reminder gets rescheduled
+    const edited = await editReminder(context, reminder.id, options);
+    tag.text += JSON.stringify(serializeReminderForTag(edited));
+
+    return true;
+  },
+
+  [TagFunctions.API_FETCH_REMINDERS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.fetch.reminders} {api.fetch.reminders:global}
+    // only NotSoAI can use this, lists the command user's reminders (for this server, or every server if `global`)
+
+    if (!isFromAI(context, tag)) {
+      return false;
+    }
+
+    const isGlobal = arg.trim().toLowerCase() === 'global';
+    const guildId = (isGlobal) ? undefined : (context.guildId || 0);
+
+    increaseNetworkRequests(tag);
+
+    const response = await fetchUserReminders(context, context.userId, {guildId});
+    tag.text += JSON.stringify({
+      count: response.count,
+      reminders: response.reminders.map(serializeReminderForTag),
+    });
 
     return true;
   },
@@ -2411,6 +2752,58 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_UTILITIES_QR_CREATE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.utilities.qr.create:text}
+
+    if (!arg) {
+      return true;
+    }
+
+    increaseNetworkRequests(tag);
+
+    const response = await utilitiesQrCreate(context, {query: arg.slice(0, 2048)});
+    addFileResponseToTag(context, tag, response);
+
+    return true;
+  },
+
+  [TagFunctions.API_UTILITIES_QR_SCAN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.utilities.qr.scan} {api.utilities.qr.scan:url}
+
+    increaseNetworkRequests(tag);
+
+    const url = await lastImageUrl(arg.trim(), context);
+    if (!url) {
+      throw new Error('Cannot find any images');
+    }
+
+    increaseNetworkRequests(tag);
+
+    const response = await utilitiesQrScan(context, {url});
+    tag.text += JSON.stringify({results: response.results});
+
+    return true;
+  },
+
+  [TagFunctions.API_UTILITIES_SCREENSHOT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.utilities.screenshot:url}
+
+    arg = arg.trim();
+    if (!arg) {
+      return true;
+    }
+
+    increaseNetworkRequests(tag);
+
+    const response = await utilitiesScreenshot(context, {
+      safe: DefaultParameters.safe(context),
+      url: arg,
+    });
+    addFileResponseToTag(context, tag, response);
+
+    return true;
+  },
+
   [TagFunctions.API_UTILITIES_WEATHER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.utilities.weather:query|units?}
   
@@ -2435,16 +2828,18 @@ const ScriptTags = Object.freeze({
     );
 
     arg = arg.slice(0, 1024);
-    if (!(arg in cachedResults)) {
+    // the units change the response, so cache per query and units
+    const cacheKey = `${units || ''}:${arg}`;
+    if (!(cacheKey in cachedResults)) {
       increaseNetworkRequests(tag);
     }
 
-    const response = cachedResults[arg] || await utilitiesWeather(context, {
+    const response = cachedResults[cacheKey] || await utilitiesWeather(context, {
       query: arg,
       units: units,
     });
-    if (!(arg in cachedResults)) {
-      cachedResults[arg] = response;
+    if (!(cacheKey in cachedResults)) {
+      cachedResults[cacheKey] = response;
     }
 
     tag.text += JSON.stringify(response);
@@ -2870,7 +3265,8 @@ const ScriptTags = Object.freeze({
     let data : any = null;
     if (text) {
       try {
-        data = JSON.parse(text);
+        // {newline} inside of json strings becomes an actual newline
+        data = JSON.parse(text.replace(REGEX_NEWLINE_SENTINEL, '\\n'));
       } catch(error) {
         throw new Error(tag.translate('tagscript.invalid_component_given'));
       }
@@ -2948,7 +3344,8 @@ const ScriptTags = Object.freeze({
     // {embedjson:{"title": "asd"}}
 
     try {
-      let object = JSON.parse(arg);
+      // {newline} inside of json strings becomes an actual newline
+      let object = JSON.parse(arg.replace(REGEX_NEWLINE_SENTINEL, '\\n'));
       if (typeof(object) !== 'object') {
         throw new Error(tag.translate('tagscript.invalid_embed_given'));
       }
@@ -2988,7 +3385,9 @@ const ScriptTags = Object.freeze({
     try {
       tag.text += await parseValue(context, tag, arg);
     } catch(error) {
-      
+      if (error instanceof TagExitError) {
+        throw error;
+      }
     }
 
     return true;
@@ -3164,9 +3563,9 @@ const ScriptTags = Object.freeze({
       if (amount <= 0 || tag.limits.MAX_VARIABLE_LENGTH < amount) {
         throw new Error(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
       }
-      tag.text += '\u200b'.repeat(amount);
+      tag.text += NEWLINE_SENTINEL.repeat(amount);
     } else {
-      tag.text += '\u200b';
+      tag.text += NEWLINE_SENTINEL;
     }
 
     return true;
@@ -3470,7 +3869,7 @@ const ScriptTags = Object.freeze({
     if (valuex === undefined) {
       delete tag.variables[PrivateVariables.VALUE_X];
     } else {
-      tag.variables[PrivateVariables.VALUE_X] = idx;
+      tag.variables[PrivateVariables.VALUE_X] = valuex;
     }
 
     return true;
@@ -3573,7 +3972,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    key = key.trim();
+    key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
       throw new Error(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
     }
@@ -3605,7 +4004,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    key = key.trim();
+    key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
@@ -3668,7 +4067,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    key = key.trim();
+    key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
@@ -3708,7 +4107,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    key = key.trim();
+    key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
@@ -3748,7 +4147,7 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    key = key.trim();
+    key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
       throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
@@ -3787,7 +4186,7 @@ const ScriptTags = Object.freeze({
     }
 
     const values = split(arg);
-    const text = values[0]!;
+    const text = await parseValue(context, tag, values[0]!);
 
     for (let i = 1; i < values.length; i++) {
       const value = values[i];
@@ -3910,7 +4309,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (finallyValue) {
-      tag.text += await parseValue(context, tag, finallyValue);
+      tag.text += await parseValue(context, tag, finallyValue.slice(8));
     }
 
     return true;
@@ -3919,16 +4318,14 @@ const ScriptTags = Object.freeze({
   [TagFunctions.LOGICAL_IF_ERROR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {iferror:action|action}, unlimited actions
 
-    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      tag.text += arg;
-      return true;
-    }
-
     const conditionals = split(arg);
     for (let conditional of conditionals) {
       try {
         tag.text += await parseValue(context, tag, conditional);
       } catch(error) {
+        if (error instanceof TagExitError) {
+          throw error;
+        }
         // go to the next one if it errors
         continue;
       }
@@ -3941,11 +4338,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.LOGICAL_IS_FROM_AI]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {isfromai}
 
-    if (tag.variables[PrivateVariables.AI_EXECUTIONS] <= 0) {
-      tag.text += String(false);
-    } else {
-      tag.text += String(true);
-    }
+    tag.text += String(isFromAI(context, tag));
 
     return true;
   },
@@ -3976,11 +4369,6 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.LOGICAL_OR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {or:action|action}, unlimited actions
-
-    if (!arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
-      tag.text += arg;
-      return true;
-    }
 
     const conditionals = split(arg);
     for (let conditional of conditionals) {
@@ -4241,9 +4629,9 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_ABS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {abs:integer}
+    // {abs:number}
 
-    const value = parseInt(arg);
+    const value = parseFloat(arg);
     if (isNaN(value)) {
       return false;
     }
@@ -4254,9 +4642,9 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.MATH_COS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {cos:integer}
+    // {cos:number}
 
-    const value = parseInt(arg);
+    const value = parseFloat(arg);
     if (isNaN(value)) {
       return false;
     }
@@ -4329,7 +4717,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.MATH_SIN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {sin:number}
 
-    const value = parseInt(arg);
+    const value = parseFloat(arg);
     if (isNaN(value)) {
       return false;
     }
@@ -4342,7 +4730,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.MATH_TAN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {tan:number}
 
-    const value = parseInt(arg);
+    const value = parseFloat(arg);
     if (isNaN(value)) {
       return false;
     }
@@ -4841,8 +5229,10 @@ const ScriptTags = Object.freeze({
     }
 
     if (index === -1) {
-      const message = randomFromArray(messagesFound);
-      tag.text += message.id;
+      if (messagesFound.length) {
+        const message = randomFromArray(messagesFound);
+        tag.text += message.id;
+      }
     } else if (index in messagesFound) {
       const message = messagesFound[index];
       if (message) {
@@ -4926,8 +5316,10 @@ const ScriptTags = Object.freeze({
       }
     }
 
-    const message = randomFromArray(messagesFound);
-    tag.text += message.id;
+    if (messagesFound.length) {
+      const message = randomFromArray(messagesFound);
+      tag.text += message.id;
+    }
 
     return true;
   },
@@ -5032,7 +5424,8 @@ const ScriptTags = Object.freeze({
       return keyCache[group1];
     });
 
-    for (let i = 0; i < tag.files.length; i++) {
+    // backwards since splicing shifts the later files down
+    for (let i = tag.files.length - 1; 0 <= i; i--) {
       if (tag.files[i].deleted) {
         tag.files.splice(i, 1);
       }
@@ -5122,7 +5515,8 @@ const ScriptTags = Object.freeze({
       return keyCache[group1];
     });
 
-    for (let i = 0; i < tag.files.length; i++) {
+    // backwards since splicing shifts the later files down
+    for (let i = tag.files.length - 1; 0 <= i; i--) {
       if (tag.files[i].deleted) {
         tag.files.splice(i, 1);
       }
@@ -5215,7 +5609,8 @@ const ScriptTags = Object.freeze({
       return keyCache[group1];
     });
 
-    for (let i = 0; i < tag.files.length; i++) {
+    // backwards since splicing shifts the later files down
+    for (let i = tag.files.length - 1; 0 <= i; i--) {
       if (tag.files[i].deleted) {
         tag.files.splice(i, 1);
       }
@@ -5293,7 +5688,8 @@ const ScriptTags = Object.freeze({
 
     const pages: Array<any> = [];
     try {
-      let data = JSON.parse(arg);
+      // {newline} inside of json strings becomes an actual newline
+      let data = JSON.parse(arg.replace(REGEX_NEWLINE_SENTINEL, '\\n'));
       if (Array.isArray(data)) {
         for (let child of data) {
           pages.push(child);
@@ -5473,6 +5869,8 @@ const ScriptTags = Object.freeze({
       throw new Error(tag.translate('tagscript.request_options_failed_to_parse'));
     }
 
+    increaseNetworkRequests(tag);
+
     try {
       const response = await utilitiesProxyRequest(context, options);
       tag.text += JSON.stringify(response);
@@ -5565,7 +5963,7 @@ const ScriptTags = Object.freeze({
     switch (arg) {
       case '':
       case '4': tag.text += crypto.randomUUID(); break;
-      case '7': tag.text += (crypto as any).randomUUIDv7(); break;
+      case '7': tag.text += randomUUIDv7(); break;
       default: {
         return false;
       };
@@ -5724,118 +6122,90 @@ const ScriptTags = Object.freeze({
   [TagFunctions.SETTINGS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {settings:SETTING|VALUE}
     // {settings:MEDIA_IV_FALLBACK|search.google.images}
+    // {settings:MEDIA_IV_FALLBACK|SEARCH_GOOGLE_IMAGES}
+    // {settings:ML_IMAGINE_DO_NOT_ERROR|} (empty value clears it)
 
     const parts = split(arg);
     if (parts.length !== 2) {
       return false;
     }
 
-    let [ settingValue, value ] = parts;
+    const settingValue = parts[0].trim();
+    let value = parts[1].trim();
 
     const setting = settingValue.toUpperCase() as TagSettings;
     if (!(setting in TagSettings)) {
       return false;
     }
 
+    const settings = tag.variables[PrivateVariables.SETTINGS];
     switch (setting) {
       case TagSettings.AI_PERSONALITY: {
         if (value) {
-          tag.variables[PrivateVariables.SETTINGS][setting] = value;
+          settings[setting] = value;
         } else {
-          delete tag.variables[setting];
+          delete settings[setting];
         }
       }; break;
       case TagSettings.AI_MODEL: {
         if (value) {
           value = value.toUpperCase();
           if (value in TagGenerationModels) {
-            tag.variables[PrivateVariables.SETTINGS][setting] = value as TagGenerationModels;
+            settings[setting] = value as TagGenerationModels;
           } else {
             throw new Error(tag.translate('tagscript.ai_model_must_be_one_of', {choices: Object.values(TagGenerationModels).map((x) => Markup.codestring(x)).join(', ')}));
           }
         } else {
-          delete tag.variables[setting];
+          delete settings[setting];
         }
       }; break;
-      case TagSettings.ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE: {
-        if (value) {
-          value = value.toLowerCase();
-          if (value === 'true') {
-            tag.variables[PrivateVariables.SETTINGS][setting] = true;
-          } else {
-            delete tag.variables[setting];
-          }
+      case TagSettings.ALLOW_COMPONENT_EXECUTIONS_FROM_EVERYONE:
+      case TagSettings.DISPLAY_MEDIA_AS_NATIVE:
+      case TagSettings.ML_IMAGINE_DO_NOT_ERROR: {
+        // false (or empty) clears it, since false is the default
+        if (value && textToBoolean(value)) {
+          settings[setting] = true;
         } else {
-          delete tag.variables[setting];
-        }
-      }; break;
-      case TagSettings.DISPLAY_MEDIA_AS_NATIVE: {
-        if (value) {
-          value = value.toLowerCase();
-          if (value === 'true') {
-            tag.variables[PrivateVariables.SETTINGS][setting] = true;
-          } else {
-            delete tag.variables[setting];
-          }
-        } else {
-          delete tag.variables[setting];
+          delete settings[setting];
         }
       }; break;
       case TagSettings.MEDIA_AV_FALLBACK: {
         if (value) {
-          value = value.toLowerCase();
-
-          let parsedValue: any = null;
-          for (let tagFunction of [TagFunctions.SEARCH_YOUTUBE]) {
-            if (TagFunctionsToString[tagFunction].includes(value)) {
-              parsedValue = tagFunction;
-              break;
-            }
-          }
-
+          const parsedValue = parseFallbackSetting(value, {
+            [TagFunctions.SEARCH_YOUTUBE]: [TagFunctions.SEARCH_YOUTUBE],
+          });
           if (parsedValue) {
-            tag.variables[PrivateVariables.SETTINGS][setting] = parsedValue;
+            settings[setting] = parsedValue as TagFunctions.SEARCH_YOUTUBE;
           }
         } else {
-          delete tag.variables[setting];
+          delete settings[setting];
         }
       }; break;
       case TagSettings.MEDIA_IV_FALLBACK: {
         if (value) {
-          value = value.toLowerCase();
-
-          let parsedValue: any = null;
-          for (let tagFunction of [TagFunctions.MEDIA_IMAGE_IMAGINE, TagFunctions.SEARCH_DUCKDUCKGO_IMAGES, TagFunctions.SEARCH_GOOGLE_IMAGES]) {
-            if (TagFunctionsToString[tagFunction].includes(value)) {
-              parsedValue = tagFunction;
-              break;
-            }
-          }
-
+          // imagine falls back to the url version, the media functions need a url back (not an attached file)
+          const parsedValue = parseFallbackSetting(value, {
+            [TagFunctions.MEDIA_IMAGE_IMAGINE_URL]: [TagFunctions.MEDIA_IMAGE_IMAGINE, TagFunctions.MEDIA_IMAGE_IMAGINE_URL],
+            [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES]: [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES, 'SEARCH_DUCK_DUCK_GO_IMAGES'],
+            [TagFunctions.SEARCH_GOOGLE_IMAGES]: [TagFunctions.SEARCH_GOOGLE_IMAGES],
+          });
           if (parsedValue) {
-            tag.variables[PrivateVariables.SETTINGS][setting] = parsedValue;
+            settings[setting] = parsedValue as TagFunctions.MEDIA_IMAGE_IMAGINE_URL | TagFunctions.SEARCH_DUCKDUCKGO_IMAGES | TagFunctions.SEARCH_GOOGLE_IMAGES;
           }
         } else {
-          delete tag.variables[setting];
-        }
-      }; break;
-      case TagSettings.ML_IMAGINE_DO_NOT_ERROR: {
-        if (value) {
-          tag.variables[PrivateVariables.SETTINGS][setting] = textToBoolean(value);
-        } else {
-          delete tag.variables[setting];
+          delete settings[setting];
         }
       }; break;
       case TagSettings.ML_IMAGINE_MODEL: {
         if (value) {
           value = value.toUpperCase();
           if (value in MLDiffusionModels) {
-            tag.variables[PrivateVariables.SETTINGS][setting] = value as MLDiffusionModels;
+            settings[setting] = value as MLDiffusionModels;
           } else {
             throw new Error(tag.translate('tagscript.ml_imagine_model_must_be_one_of', {choices: Object.values(MLDiffusionModels).map((x) => Markup.codestring(x)).join(', ')}));
           }
         } else {
-          delete tag.variables[setting];
+          delete settings[setting];
         }
       }; break;
       default: {
@@ -5855,8 +6225,9 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.SETTINGS_SET_USER_AI_PERSONALITY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {settings.set.user.ai.personality:prompt?}
+    // only NotSoAI can use this
 
-    if (1 <= tag.variables[PrivateVariables.AI_EXECUTIONS]) {
+    if (!isFromAI(context, tag)) {
       return false;
     }
 
@@ -5877,6 +6248,79 @@ const ScriptTags = Object.freeze({
       const settings = await editUserSettings(context, context.userId, {
         mlLLMPersonality: personality,
       });
+      UserSettingsStore.insert(context.userId, settings);
+
+      tag.text += String(true);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.SETTINGS_SET_USER_LOCALE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {settings.set.user.locale:locale?}
+    // only NotSoAI can use this, empty outputs the current locale, `clear` clears it
+
+    if (!isFromAI(context, tag)) {
+      return false;
+    }
+
+    const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
+    if (!oldSettings) {
+      throw new Error('Error fetching your current locale preference');
+    }
+
+    arg = arg.trim();
+    if (!arg) {
+      tag.text += oldSettings.locale || '';
+      return true;
+    }
+
+    const locale = (arg.toLowerCase() === 'clear') ? null : await Parameters.locale(arg, context);
+    if (oldSettings.locale === locale) {
+      tag.text += String(false);
+    } else {
+      increaseNetworkRequests(tag);
+      const settings = await editUserSettings(context, context.userId, {locale});
+      UserSettingsStore.insert(context.userId, settings);
+
+      tag.text += String(true);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.SETTINGS_SET_USER_TIMEZONE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {settings.set.user.timezone:timezone?}
+    // only NotSoAI can use this, empty outputs the current timezone, `clear` clears it
+
+    if (!isFromAI(context, tag)) {
+      return false;
+    }
+
+    const oldSettings = await UserSettingsStore.getOrFetch(context, context.userId);
+    if (!oldSettings) {
+      throw new Error('Error fetching your current timezone preference');
+    }
+
+    arg = arg.trim();
+    if (!arg) {
+      tag.text += oldSettings.timezone || '';
+      return true;
+    }
+
+    let timezone: string | null = null;
+    if (arg.toLowerCase() !== 'clear') {
+      timezone = resolveTimezone(arg);
+      if (!timezone) {
+        throw new Error(`Unknown timezone \`${arg.slice(0, 64)}\`, use an IANA name like \`America/New_York\``);
+      }
+    }
+
+    if (oldSettings.timezone === timezone) {
+      tag.text += String(false);
+    } else {
+      increaseNetworkRequests(tag);
+      const settings = await editUserSettings(context, context.userId, {timezone});
       UserSettingsStore.insert(context.userId, settings);
 
       tag.text += String(true);
@@ -6034,7 +6478,7 @@ const ScriptTags = Object.freeze({
     // {markuplistnumbered:text|text|...}
 
     tag.text += split(arg).map((x, i) => {
-      return Markup.list(x, {ordered: i});
+      return Markup.list(x, {ordered: i + 1});
     }).join('\n');
   
     return true;
@@ -6069,35 +6513,46 @@ const ScriptTags = Object.freeze({
   },
 
   [TagFunctions.STRING_MARKUP_TIME]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {markuptime:text?|format?}
+    // {markuptime:timestamp?|format?}
+    // {markuptime:RELATIVE}
+    // {markuptime:1700000000000|R}
 
     let format: MarkupTimestampStyles | undefined;
     let timestamp: string = '';
     if (arg.length) {
-      if (arg in MarkupTimestampStyles) {
-        // do it
+      format = parseMarkupTimestampStyle(arg);
+      if (format) {
+        // only the format was given
       } else if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
         const parts = split(arg);
 
         const suspectedFormat = parts.pop()!;
-        if (suspectedFormat in MarkupTimestampStyles) {
-          
-        } else {
+        format = parseMarkupTimestampStyle(suspectedFormat);
+        if (!format) {
           parts.push(suspectedFormat);
         }
         timestamp = parts.join(TagSymbols.SPLITTER_ARGUMENT).trim();
       } else {
-        timestamp = arg;
+        timestamp = arg.trim();
       }
+    }
+
+    let date: Date;
+    if (!timestamp) {
+      date = new Date();
+    } else if (/^-?[0-9]+$/.test(timestamp)) {
+      // milliseconds
+      date = new Date(parseInt(timestamp));
     } else {
-      timestamp = String(Date.now());
+      // date string
+      date = new Date(timestamp);
     }
 
-    if (format && format.length !== 1) {
-      format = (MarkupTimestampStyles as any)[format] as MarkupTimestampStyles;
+    if (isNaN(date.getTime())) {
+      return false;
     }
 
-    tag.text += Markup.timestamp(timestamp, format);
+    tag.text += Markup.timestamp(date, format);
     return true;
   },
 
@@ -6338,6 +6793,8 @@ const ScriptTags = Object.freeze({
       }
       variables[PrivateVariables.ARGS_STRING] = tagArguments;
       variables[PrivateVariables.ARGS] = Parameters.stringArguments(tagArguments);
+      // the called tag is a user's tag, even if NotSoAI called it
+      variables[PrivateVariables.IS_FROM_AI] = 0;
 
       if (context.metadata && context.metadata.tag) {
         variables[PrivateVariables.PARENT_TAG_ID] = context.metadata.tag.id;
@@ -6363,6 +6820,7 @@ const ScriptTags = Object.freeze({
       tag.variables[PrivateVariables.ARGS_STRING] = oldVariables[PrivateVariables.ARGS_STRING];
       tag.variables[PrivateVariables.ARGS] = oldVariables[PrivateVariables.ARGS];
       tag.variables[PrivateVariables.PARENT_TAG_ID] = oldVariables[PrivateVariables.PARENT_TAG_ID];
+      tag.variables[PrivateVariables.IS_FROM_AI] = oldVariables[PrivateVariables.IS_FROM_AI];
 
       if (context.metadata) {
         context.metadata.tag = oldTag;
@@ -6907,7 +7365,7 @@ const ScriptTags = Object.freeze({
         guildId: context.guildId,
         userId: context.userId,
       });
-      for (let key in Object.keys(response)) {
+      for (let key of Object.keys(response)) {
         const storageType = parseInt(key) as TagVariableStorageTypes;
         switch (storageType) {
           case TagVariableStorageTypes.CHANNEL: {
@@ -6952,7 +7410,7 @@ const ScriptTags = Object.freeze({
         guildId: context.guildId,
         userId: context.userId,
       });
-      for (let key in Object.keys(response)) {
+      for (let key of Object.keys(response)) {
         const storageType = parseInt(key) as TagVariableStorageTypes;
         switch (storageType) {
           case TagVariableStorageTypes.CHANNEL: {
@@ -6997,7 +7455,7 @@ const ScriptTags = Object.freeze({
         guildId: context.guildId,
         userId: context.userId,
       });
-      for (let key in Object.keys(response)) {
+      for (let key of Object.keys(response)) {
         const storageType = parseInt(key) as TagVariableStorageTypes;
         switch (storageType) {
           case TagVariableStorageTypes.CHANNEL: {
@@ -7042,7 +7500,7 @@ const ScriptTags = Object.freeze({
         guildId: context.guildId,
         userId: context.userId,
       });
-      for (let key in Object.keys(response)) {
+      for (let key of Object.keys(response)) {
         const storageType = parseInt(key) as TagVariableStorageTypes;
         switch (storageType) {
           case TagVariableStorageTypes.CHANNEL: {

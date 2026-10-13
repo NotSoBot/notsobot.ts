@@ -62,6 +62,7 @@ export class RedisSpewer extends EventSpewer {
   on(event: RedisChannels.GUILD_SETTINGS_UPDATE, listener: (payload: RedisPayloads.GuildSettingsUpdate) => any): this;
   on(event: RedisChannels.REMINDER_CREATE, listener: (payload: RedisPayloads.ReminderCreate) => any): this;
   on(event: RedisChannels.REMINDER_DELETE, listener: (payload: RedisPayloads.ReminderDelete) => any): this;
+  on(event: RedisChannels.REMINDER_UPDATE, listener: (payload: RedisPayloads.ReminderUpdate) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;

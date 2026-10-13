@@ -63,6 +63,8 @@ export async function createTagMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
+  // component/timeout executions are not the first parse, so their {newline}s are not replaced yet
+  parsedTag.text = parsedTag.text.replace(TagFormatter.REGEX_NEWLINE_SENTINEL, '\n');
 
   if (parsedTag.pages.length) {
     if (context instanceof ComponentContext) {

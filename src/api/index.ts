@@ -275,6 +275,15 @@ export async function deleteReminder(
 }
 
 
+export async function editReminder(
+  context: RequestContext,
+  reminderId: string,
+  options: RestOptions.EditReminder,
+) {
+  return raw.editReminder(context, reminderId, options);
+}
+
+
 export async function deleteReminderPositional(
   context: RequestContext,
   userId: string,

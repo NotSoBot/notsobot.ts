@@ -1,22 +1,20 @@
-import { Interaction } from 'detritus-client';
+import { Command, Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 
-import {
-  GuildAllowlistTypes,
-  GuildBlocklistTypes,
-  GuildCommandsAllowlistTypes,
-  GuildCommandsBlocklistTypes,
-  UserFlags,
-} from '../../../constants';
-import { I18n, displayReply } from '../../../utils';
+import { GuildCommandsAllowlistTypes, StatusEmojis } from '../../../constants';
+import { I18n, Parameters, displayReply, getCommandIdFromInvoker } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
 
 export const COMMAND_NAME = 'help-permissions-check';
+
+export interface CommandArgs {
+  command?: Command.Command | false,
+}
 
 export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
   description = 'Help, the bot doesn\'t respond to prefix commands';
@@ -34,18 +32,36 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
     ApplicationIntegrationTypes.USER_INSTALL,
   ];
 
-  async run(context: Interaction.InteractionContext) {
+  constructor() {
+    super({
+      options: [
+        {
+          name: 'command',
+          description: 'Command name or ID',
+          ...I18n.optionLocalizations('commands.help_permissions_check.command'),
+          value: async (value: string, context: Interaction.InteractionContext) => {
+            return (await Parameters.prefixedCommand(value, context)) || false;
+          },
+        },
+      ],
+    });
+  }
+
+  async run(context: Interaction.InteractionContext, args: CommandArgs) {
     const { translate } = await I18n.getTranslator(context);
+    if (args.command === false) {
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.unknown_command')}`});
+    }
     let willPrefixCommandsWork = true;
 
     const description: Array<string> = [];
 
     const { channel, guild, me, member } = context;
     if (channel) {
-      // todo: check if single dm or group dm, single dms i probably could check perms
       description.push(`**${translate('permcheck.channel_permissions')}**`);
       if (context.inDm) {
-        if (context.hasServerPermissions) {
+        // the bot can always see its own dms, but never dms/group dms between users
+        if (context.inDmWithBot) {
           description.push(`-> ${translate('permcheck.send_message')}: ✅`);
           description.push(`-> ${translate('permcheck.view')}: ✅`);
         } else {
@@ -77,7 +93,7 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
 
     description.push('');
     if (context.hasServerPermissions) {
-      description.push(translate('permcheck.installed'));
+      description.push(translate((context.inDmWithBot) ? 'permcheck.bot_dm' : 'permcheck.installed'));
 
       description.push('');
       description.push(`**${translate('permcheck.server_prefixes')}**`);
@@ -104,66 +120,81 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
         } else if (member && (member.isOwner || member.canAdministrator)) {
           description.push(`-> ${translate('permcheck.bypass_admin')}`);
         } else {
-          // todo: add command allowlist/blocklist checks, add parameter to slash command for command id
+          // same order as `NotSoCommandClient.onCommandCheck`, the server and command lists all share these types
           const parent = (channel) ? channel.parent : null;
-  
-          const { allowlist } = settings;
-          if (allowlist.length) {
-            const shouldAllow = allowlist.some((allow) => {
-              switch (allow.type) {
-                case GuildAllowlistTypes.CHANNEL: {
-                  if (allow.id === context.channelId) {
-                    return true;
-                  }
-                  if (channel && channel.parentId === allow.id) {
-                    return true;
-                  }
-                  if (parent && parent.parentId === allow.id) {
-                    return true;
-                  }
-                }; break;
-                case GuildAllowlistTypes.ROLE: {
-                  if (member) {
-                    return member.roles.has(allow.id);
-                  }
-                }; break;
-                case GuildAllowlistTypes.USER: {
-                  return allow.id === context.userId;
-                };
-              }
-              return false;
-            });
-            description.push(`-> ${translate('permcheck.allowlist_bypassed')}: ${(shouldAllow) ? '✅': '❌'}`);
-            description.push(`-> ${translate('permcheck.blocklist_bypassed_allowlist')}`);
-          } else {
-            const { blocklist } = settings;
-            if (blocklist.length) {
-              const shouldIgnore = blocklist.some((blocked) => {
-                switch (blocked.type) {
-                  case GuildBlocklistTypes.CHANNEL: {
-                    if (blocked.id === context.channelId) {
-                      return true;
-                    }
-                    if (channel && channel.parentId === blocked.id) {
-                      return true;
-                    }
-                    if (parent && parent.parentId === blocked.id) {
-                      return true;
-                    }
-                  }; break;
-                  case GuildBlocklistTypes.ROLE: {
-                    if (member) {
-                      return member.roles.has(blocked.id);
-                    }
-                  }; break;
-                  case GuildBlocklistTypes.USER: {
-                    return blocked.id === context.userId;
-                  }; break;
+          const matches = (item: {id: string, type: string}): boolean => {
+            switch (item.type) {
+              case GuildCommandsAllowlistTypes.CHANNEL: {
+                if (item.id === context.channelId) {
+                  return true;
                 }
-                return false;
-              });
+                if (channel && channel.parentId === item.id) {
+                  return true;
+                }
+                if (parent && parent.parentId === item.id) {
+                  return true;
+                }
+              }; break;
+              case GuildCommandsAllowlistTypes.GUILD: {
+                return true;
+              };
+              case GuildCommandsAllowlistTypes.ROLE: {
+                if (member) {
+                  return member.roles.has(item.id);
+                }
+              }; break;
+              case GuildCommandsAllowlistTypes.USER: {
+                return item.id === context.userId;
+              };
+            }
+            return false;
+          };
+
+          let checkServerLists = true;
+          if (args.command) {
+            const commandId = getCommandIdFromInvoker(args.command);
+            const commandsAllowlist = settings.commandsAllowlist.filter((allowed) => allowed.command === commandId);
+            if (commandsAllowlist.length) {
+              // a command allowlist decides by itself, the server lists are never checked
+              const shouldAllow = commandsAllowlist.some(matches);
+              description.push(`-> ${translate('permcheck.command_allowlist_bypassed', {command: Markup.codestring(args.command.name)})}: ${(shouldAllow) ? '✅': '❌'}`);
+              description.push(`-> ${translate('permcheck.command_blocklist_bypassed_allowlist')}`);
+              description.push(`-> ${translate('permcheck.command_allowlist_overrides')}`);
+              if (!shouldAllow) {
+                willPrefixCommandsWork = false;
+              }
+              checkServerLists = false;
+            } else {
+              description.push(`-> ${translate('permcheck.command_allowlist_empty', {command: Markup.codestring(args.command.name)})}`);
+              const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => blocked.command === commandId);
+              if (commandsBlocklist.length) {
+                const shouldIgnore = commandsBlocklist.some(matches);
+                description.push(`-> ${translate('permcheck.command_blocklist_bypassed', {command: Markup.codestring(args.command.name)})}: ${(!shouldIgnore) ? '✅': '❌'}`);
+                if (shouldIgnore) {
+                  willPrefixCommandsWork = false;
+                }
+              } else {
+                description.push(`-> ${translate('permcheck.command_blocklist_empty', {command: Markup.codestring(args.command.name)})}`);
+              }
+            }
+          }
+
+          if (checkServerLists) {
+            const { allowlist, blocklist } = settings;
+            if (allowlist.length) {
+              const shouldAllow = allowlist.some(matches);
+              description.push(`-> ${translate('permcheck.allowlist_bypassed')}: ${(shouldAllow) ? '✅': '❌'}`);
+              description.push(`-> ${translate('permcheck.blocklist_bypassed_allowlist')}`);
+              if (!shouldAllow) {
+                willPrefixCommandsWork = false;
+              }
+            } else if (blocklist.length) {
+              const shouldIgnore = blocklist.some(matches);
               description.push(`-> ${translate('permcheck.allowlist_empty')}`);
               description.push(`-> ${translate('permcheck.blocklist_bypassed')}: ${(!shouldIgnore) ? '✅': '❌'}`);
+              if (shouldIgnore) {
+                willPrefixCommandsWork = false;
+              }
             } else {
               description.push(`-> ${translate('permcheck.allowlist_empty')}`);
               description.push(`-> ${translate('permcheck.blocklist_empty')}`);
@@ -173,7 +204,7 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
       }
     } else {
       if (context.inDm) {
-        description.push(translate('permcheck.group_dm'));
+        description.push(translate((channel && channel.isDmGroup) ? 'permcheck.group_dm' : 'permcheck.user_dm'));
       } else {
         description.push(translate('permcheck.not_installed'));
       }

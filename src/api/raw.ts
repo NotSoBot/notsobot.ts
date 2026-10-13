@@ -710,6 +710,32 @@ export async function editServerSettings(
 }
 
 
+export async function editReminder(
+  context: RequestContext,
+  reminderId: string,
+  options: RestOptions.EditReminder,
+): Promise<RestResponsesRaw.EditReminder> {
+  // undefined fields are left out of the json, null clears them
+  const body = {
+    channel_id: options.channelId,
+    content: options.content,
+    guild_id: options.guildId,
+    message_id: options.messageId,
+    timestamp_end: options.timestampEnd,
+    timestamp_start: options.timestampStart,
+  };
+  const params = {reminderId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.REMINDER,
+      params,
+    },
+  });
+}
+
+
 export async function editTag(
   context: RequestContext,
   tagId: string,

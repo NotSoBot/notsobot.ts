@@ -14,17 +14,18 @@ export default class RemindDeleteServerCommand extends BaseCommand {
 	    name: COMMAND_NAME,
   
 	    aliases: ['reminder delete server'],
+	    disableDm: true,
 	    label: 'position',
 	    metadata: {
 		    category: CommandCategories.UTILITY,
 		    pipeable: true,
-		    description: 'Delete a User\'s Reminder from the Server',
+		    description: 'Move a User\'s Reminder out of the Server and into their DMs',
 		    examples: [
-		      `${COMMAND_NAME} 1`,
-		      `${COMMAND_NAME} 5`,
+		      `${COMMAND_NAME} @cake 1`,
+		      `${COMMAND_NAME} @cake 5`,
 		    ],
 		    id: Formatter.Commands.ReminderDeleteServer.COMMAND_ID,
-		    usage: '<user:id|mention|name> ?<position,number>',
+		    usage: '<user:id|mention|name> <position,number>',
 	    },
 	    priority: -1,
 	    type: [

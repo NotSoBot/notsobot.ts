@@ -284,6 +284,16 @@ class ReminderInterval extends Listener {
       subscriptions.push(subscription);
     }
 
+    {
+      // reschedule with the new data (like being moved to dms or a new time)
+      // insertReminder skips ones that are already being sent or too far in the future
+      const subscription = redis.subscribe(RedisChannels.REMINDER_UPDATE, async (payload) => {
+        this.removeReminder(payload.id);
+        this.insertReminder(cluster, payload);
+      });
+      subscriptions.push(subscription);
+    }
+
     this.startup(cluster).catch((error) => {
       console.error('Failed to scan for reminders on startup', error);
     });

@@ -5,7 +5,7 @@ import { Endpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import { deleteReminder, fetchReminderPositional } from '../../../api';
-import { getTranslator } from '../../i18n';
+import { Translator, getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
@@ -38,35 +38,50 @@ export async function createMessage(
     }
     throw error;
   }
+  return confirmReminderDeletion(context, reminder);
+}
+
+
+// the reminder's position, a link to the message that made it, when it goes off, and its content
+export function describeReminder(
+  context: Command.Context | Interaction.InteractionContext,
+  reminder: RestResponsesRaw.Reminder,
+  translate: Translator['translate'],
+): Array<string> {
+  const description: Array<string> = [];
+  const serverId = context.guildId || null;
+  const title = (reminder.guild_id === serverId) ? translate('reminder_delete_me.message_in_this_server') : translate('reminder_delete_me.message');
+  let content: string;
+  if (!reminder.content) {
+    content = ''; //getReminderMessage(reminder.id);
+  } else if (128 < reminder.content.length) {
+    // maybe make this 69?
+    content = `${Markup.codestring(reminder.content.slice(0, 126))}...`;
+  } else {
+    content = Markup.codestring(reminder.content);
+  }
+
+  const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(reminder.guild_id, reminder.channel_id, reminder.message_id);
+  const timestamp = Markup.timestamp(Date.parse(reminder.timestamp_start), MarkupTimestampStyles.RELATIVE);
+  description.push(`${Markup.bold(String(reminder.position))}: ${Markup.url(title, jumpLink)} ${timestamp}`);
+  if (content) {
+    description.push(`-> ${content}`);
+  }
+  return description;
+}
+
+
+// asks to confirm with buttons before deleting
+export async function confirmReminderDeletion(
+  context: Command.Context | Interaction.InteractionContext,
+  reminder: RestResponsesRaw.Reminder,
+) {
+  const { translate } = await getTranslator(context);
 
   const payload: DisplayPayload = {fields: []};
   payload.color = EmbedColors.DEFAULT;
   payload.title = translate('reminder_delete_me.are_you_sure_you_want_to_delete');
-
-  {
-    const description: Array<string> = [];
-    {
-      const serverId = context.guildId || null;
-      const title = (reminder.guild_id === serverId) ? translate('reminder_delete_me.message_in_this_server') : translate('reminder_delete_me.message');
-      let content: string;
-      if (!reminder.content) {
-        content = ''; //getReminderMessage(reminder.id);
-      } else if (128 < reminder.content.length) {
-        // maybe make this 69?
-        content = `${Markup.codestring(reminder.content.slice(0, 126))}...`;
-      } else {
-        content = Markup.codestring(reminder.content);
-      }
-      
-      const jumpLink = Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(reminder.guild_id, reminder.channel_id, reminder.message_id);
-      const timestamp = Markup.timestamp(Date.parse(reminder.timestamp_start), MarkupTimestampStyles.RELATIVE);
-      description.push(`${Markup.bold(String(reminder.position))}: ${Markup.url(title, jumpLink)} ${timestamp}`);
-      if (content) {
-        description.push(`-> ${content}`);
-      }
-    }
-    payload.description = description.join('\n');
-  }
+  payload.description = describeReminder(context, reminder, translate).join('\n');
 
   const components = new Components({timeout: 5 * (60 * 1000)});
   components.createButton({

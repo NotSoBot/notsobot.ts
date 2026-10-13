@@ -26,7 +26,7 @@ export class TagDirectoryEditCommand extends BaseInteractionCommandOption {
           ...I18n.optionLocalizations('commands.tag.directory.edit.tag'),
           required: true,
           value: Parameters.tagFromDirectoryToEdit,
-          // todo: add autocomplete
+          onAutoComplete: Parameters.AutoComplete.tagsOnDirectoryToEdit,
         },
         {
           name: 'content',

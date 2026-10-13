@@ -8,7 +8,7 @@ import {
   LocalesText as DiscordLocalesText,
   DiscordRegexNames,
 } from 'detritus-client/lib/constants';
-import { Markup, parseMentionsInText, regex as discordRegex } from 'detritus-client/lib/utils';
+import { Markup, getFirstArgument, parseMentionsInText, regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
@@ -862,20 +862,38 @@ export async function tagFromDirectoryToEdit(
 ): Promise<false | null | RestResponsesRaw.Tag> {
   if (value) {
     try {
-      // todo: parse it if its a tag directory url
-
-      if (isSnowflake(value)) {
-        const tag = await fetchTagId(context, value);
-        if (tag.is_on_directory && tag.user.id === context.userId) {
-          return tag;
+      const directoryTagId = parseTagDirectoryUrl(value);
+      const tagId = directoryTagId || ((isSnowflake(value)) ? value : null);
+      if (tagId) {
+        try {
+          const tag = await fetchTagId(context, tagId);
+          if (tag.is_on_directory && tag.user.id === context.userId) {
+            return tag;
+          }
+        } catch(error) {
+          if (!error.response || error.response.statusCode !== 404) {
+            throw error;
+          }
         }
+        if (directoryTagId) {
+          return false;
+        }
+        // could still be a tag named after a number, search for it below
       }
 
-      // now search
-      return await fetchTag(context, {
+      // directory tags are added from the user's dms with the bot
+      const user = await UserStore.getOrFetch(context, context.userId);
+      if (!user || !user.channelId) {
+        return false;
+      }
+      const tag = await fetchTag(context, {
         name: value,
-        serverId: context.userId,
+        serverId: user.channelId,
       });
+      if (tag.is_on_directory && tag.user.id === context.userId) {
+        return tag;
+      }
+      return false;
     } catch(error) {
       if (error.response && error.response.statusCode === 404) {
         return false;
@@ -1929,6 +1947,116 @@ export function mediaUrls(
     }
     return parsedUrls;
   }
+}
+
+
+// if a single argument points to media (a url, user, emoji or `^`)
+// users by name or id are looked up, so an unknown `@someone` stays in the text instead of being dropped
+async function isMediaArgument(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<boolean> {
+  const parts = stringArguments(value);
+  if (!parts.length) {
+    return false;
+  }
+  for (let part of parts) {
+    if (part === '^') {
+      continue;
+    }
+    if ((part.includes('#') && !part.startsWith('#')) || part.startsWith('@')) {
+      const found = await findMemberByChunkText(context, (part.startsWith('@')) ? part.slice(1) : part).catch(() => null);
+      if (found) {
+        continue;
+      }
+      return false;
+    }
+    if (isSnowflake(part)) {
+      const found = await fetchMemberOrUserById(context, part).catch(() => null);
+      if (found) {
+        continue;
+      }
+      return false;
+    }
+    let matched = false;
+    for (let name of [DiscordRegexNames.TEXT_URL, DiscordRegexNames.MENTION_USER, DiscordRegexNames.EMOJI]) {
+      const { matches } = discordRegex(name, part) as {matches: Array<any>};
+      if (matches.length) {
+        matched = true;
+        break;
+      }
+    }
+    if (matched) {
+      continue;
+    }
+    const emojis = onlyEmoji(part);
+    if (!emojis || !emojis.length || emojis.join('') !== part) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+// `mediaUrlsLeading` and `textAfterLeadingMedia` both split the same content, so share the user lookups
+const leadingMediaCache = new WeakMap<object, Map<string, Promise<{media: Array<string>, text: string}>>>();
+
+// splits off up to `maxAmount` leading media arguments, so `@cake @notsobot make them kiss` gives the two users and `make them kiss`
+export function splitLeadingMediaArguments(
+  value: string,
+  maxAmount: number,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<{media: Array<string>, text: string}> {
+  let cache = leadingMediaCache.get(context);
+  if (!cache) {
+    cache = new Map();
+    leadingMediaCache.set(context, cache);
+  }
+  const key = `${maxAmount}:${value}`;
+  let promise = cache.get(key);
+  if (!promise) {
+    promise = (async () => {
+      const media: Array<string> = [];
+      let text = value.trim();
+      while (text && media.length < maxAmount) {
+        const [ part, rest ] = getFirstArgument(text);
+        if (!(await isMediaArgument(part, context))) {
+          break;
+        }
+        media.push(part);
+        text = rest.trim();
+      }
+      return {media, text};
+    })();
+    cache.set(key, promise);
+  }
+  return promise;
+}
+
+
+// use with `consume: true` before a `textAfterLeadingMedia` argument, it never consumes the content itself
+export function mediaUrlsLeading(
+  mediaSearchOptions: FindMediaUrlsOptions = {},
+): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<[true, Array<string>]> {
+  const maxAmount = mediaSearchOptions.maxAmount || 2;
+  const parse = mediaUrls({...mediaSearchOptions, positional: true});
+  return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
+    const { media } = await splitLeadingMediaArguments(value, maxAmount, context);
+    const result = await parse(media.join(' '), context);
+    const urls = (result[0] === true) ? result[1] as Array<string> : result as Array<string>;
+    return [true, urls];
+  };
+}
+
+
+// the text left after `mediaUrlsLeading` takes its media arguments, with mentions parsed
+export function textAfterLeadingMedia(
+  maxAmount: number,
+): (x: string, context: Command.Context | Interaction.InteractionContext) => Promise<string> {
+  return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
+    const { text } = await splitLeadingMediaArguments(value, maxAmount, context);
+    return targetTextWithParsedMentions(text, context);
+  };
 }
 
 

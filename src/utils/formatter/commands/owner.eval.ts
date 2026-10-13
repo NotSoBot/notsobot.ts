@@ -41,8 +41,16 @@ export async function createMessage(
     }
   } catch(error) {
     message = (error) ? error.stack || error.message : error;
+    if (message === undefined && error && typeof(error) === 'object') {
+      // errors passed over ipc can be plain objects without a stack or message
+      try {
+        message = JSON.stringify(error, null, args.jsonspacing);
+      } catch {}
+    }
     errored = true;
   }
+  // replaceToken needs a string, the code can return/throw anything (including undefined)
+  message = String(message);
 
   if (!args.noreply) {
     let content: string;

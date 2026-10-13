@@ -1,4 +1,4 @@
-import { Interaction } from 'detritus-client';
+import { Interaction, Structures } from 'detritus-client';
 import { BaseSet } from 'detritus-client/lib/collections';
 
 import MiniSearch from 'minisearch';
@@ -10,6 +10,7 @@ import UserSettingsStore from '../../stores/usersettings';
 
 import {
   fetchTagId,
+  fetchReminders,
   fetchTagsServer,
   fetchUserReminders,
   fetchUserVoices,
@@ -301,12 +302,50 @@ const REMINDER_TIMESTAMP_FORMAT = 'MM/DD/YYYY, h:mm:ss a z';
 const REMINDER_TIMESTAMP_FILTER_FORMAT = 'dddd, MMMM Do YYYY, MM/DD/YY, h:mm:ss a z';
 
 export async function reminder(context: Interaction.InteractionAutoCompleteContext) {
-  const value = (context.value || '').toLowerCase();
-
-  const serverId = context.guildId || null;
-
   const response = await fetchUserReminders(context, context.userId);
-  const reminders = response.reminders.reverse();
+  return respondWithReminders(context, response.reminders.reverse());
+}
+
+
+// the value of another option filled out alongside the focused one (looks inside subcommands too)
+function getSiblingOptionValue(context: Interaction.InteractionAutoCompleteContext, name: string): string | null {
+  const search = (options: Iterable<[string, Structures.InteractionDataApplicationCommandOption]> | null | undefined): string | null => {
+    if (options) {
+      for (let [ optionName, option ] of options) {
+        if (option.options) {
+          const found = search(option.options);
+          if (found !== null) {
+            return found;
+          }
+        } else if (optionName === name && !option.focused && option.value !== undefined) {
+          return String(option.value);
+        }
+      }
+    }
+    return null;
+  };
+  return search(context.options);
+}
+
+
+// a user's reminders in this server, for `reminder delete server`
+export async function reminderServer(context: Interaction.InteractionAutoCompleteContext) {
+  const userId = getSiblingOptionValue(context, 'user');
+  if (!userId) {
+    return context.respond({choices: []});
+  }
+  const serverId = context.guildId || null;
+  if (!serverId && userId !== context.userId) {
+    return context.respond({choices: []});
+  }
+  const response = await fetchReminders(context, {guildId: serverId || 0, userId});
+  return respondWithReminders(context, response.reminders.reverse());
+}
+
+
+async function respondWithReminders(context: Interaction.InteractionAutoCompleteContext, reminders: Array<RestResponsesRaw.Reminder>) {
+  const value = (context.value || '').toLowerCase();
+  const serverId = context.guildId || null;
 
   let filtered: Array<StoredReminder>;
   if (value) {
@@ -384,14 +423,6 @@ export async function reminder(context: Interaction.InteractionAutoCompleteConte
     return {name: content, value: String(reminder.position)};
   });
   return context.respond({choices});
-}
-
-
-
-export async function reminderServer(context: Interaction.InteractionAutoCompleteContext) {
-  // check if user is filled out, then filter out by that
-  // if user is not filled out, show everything
-  // return reminder id
 }
 
 
@@ -547,6 +578,46 @@ export async function tagsToAdd(context: Interaction.InteractionAutoCompleteCont
   return context.respond({choices});
 }
 
+
+
+// your own tags that are on the tag directory, for `tag directory edit`
+export async function tagsOnDirectoryToEdit(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}> = [];
+  if (context.value) {
+    const maybeTagId = parseTagDirectoryUrl(context.value) || context.value;
+    if (isSnowflake(maybeTagId)) {
+      try {
+        const tag = await fetchTagId(context, maybeTagId);
+        if (tag.is_on_directory && tag.user.id === context.userId) {
+          choices.push({name: tag.name, value: tag.id});
+        }
+      } catch(error) {
+        
+      }
+    }
+  }
+
+  if (!choices.length) {
+    try {
+      // directory tags are added from the user's dms with the bot
+      const user = await UserStore.getOrFetch(context, context.userId);
+      if (user && user.channelId) {
+        const { tags } = await fetchTagsServer(context, user.channelId, {
+          name: context.value,
+          limit: 25,
+          sortBy: TagSearchSortByFilters.LAST_USED,
+          userId: context.userId,
+        });
+        choices = tags.filter((tag) => tag.is_on_directory).map((tag) => {
+          return {name: tag.name, value: tag.id};
+        });
+      }
+    } catch(error) {
+      choices = [];
+    }
+  }
+  return context.respond({choices});
+}
 
 
 // needs better sorting

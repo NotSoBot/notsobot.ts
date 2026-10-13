@@ -153,10 +153,10 @@ export function parseComponentFromData(
         items: [],
         type: MessageComponentTypes.MEDIA_GALLERY,
       };
-      if (!data.items || !Array.isArray(gallery.items) || !gallery.items.length) {
+      if (!Array.isArray(data.items) || !data.items.length) {
         throw new Error(translate('tagscript.components.media_galleries_must_contain_at_least_1_item'));
       }
-      if (10 < gallery.items.length) {
+      if (10 < data.items.length) {
         throw new Error(translate('tagscript.components.media_galleries_must_contain_at_most_10_items'));
       }
       for (let x of data.items) {
