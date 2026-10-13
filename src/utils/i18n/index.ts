@@ -304,6 +304,17 @@ export const DiscordLocalesForLanguage: Record<Languages, Array<string>> = Objec
   [Languages.VIETNAMESE]: ['vi'],
 });
 
+// TEMPORARY: locales left out of slash command uploads because of issues on discord's end
+// the 14 least used of the locales we upload, replies in these languages still work
+// empty this to upload them again
+export const DiscordLocalesUploadDisabled: ReadonlySet<string> = new Set([
+  'bg', 'cs', 'da', 'el', 'fi', 'hi', 'hr', 'hu', 'lt', 'no', 'ro', 'sv-SE', 'th', 'uk',
+]);
+
+export function uploadableDiscordLocales(language: Languages): Array<string> {
+  return DiscordLocalesForLanguage[language].filter((locale) => !DiscordLocalesUploadDisabled.has(locale));
+}
+
 
 // for slash command `nameLocalizations`/`descriptionLocalizations`
 // returns null instead of {} when nothing is translated, so detritus' command hash still matches what discord has
@@ -313,7 +324,7 @@ export function localizations(key: TranslationKey): Record<string, string> | nul
   for (let language of Object.values(Languages)) {
     const text = LanguageTranslations[language][key];
     if (text) {
-      for (let locale of DiscordLocalesForLanguage[language]) {
+      for (let locale of uploadableDiscordLocales(language)) {
         entries.push([locale, text]);
       }
     }
@@ -347,7 +358,7 @@ export function choiceLocalizations(
     if (isDefault) {
       text = `${text} ${translations['choices.default'] ?? English['choices.default']}`;
     }
-    for (let locale of DiscordLocalesForLanguage[language]) {
+    for (let locale of uploadableDiscordLocales(language)) {
       entries.push([locale, text]);
     }
   }

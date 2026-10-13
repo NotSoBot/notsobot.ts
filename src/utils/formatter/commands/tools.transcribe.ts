@@ -25,14 +25,26 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, languageName, translate, translateMaybe } = await getTranslator(context);
 
   const { duration, languages, text } = await mediaAVToolsTranscribe(context, {
     url: args.url,
   });
 
   const durationText = moment.duration(duration, 'milliseconds').format(MOMENT_FORMAT, DateMomentOptions);
-  const languageTitle = joinArrayWithNouns(languages.map((x) => toTitleCase(x)));
+  // the api returns language codes ("en") now, older responses had full names ("english")
+  const languageTitle = joinArrayWithNouns(languages.map((x) => {
+    let englishText = toTitleCase(x);
+    try {
+      const name = new Intl.DisplayNames(['en'], {type: 'language'}).of(x);
+      if (name && name.toLowerCase() !== x.toLowerCase()) {
+        englishText = name;
+      }
+    } catch(error) {
+      // full names aren't valid codes and throw a RangeError
+    }
+    return languageName(x, englishText, {capitalize: true});
+  }));
   const title = translate('tools_transcribe.transcription_from_audio', {durationText: durationText, languageTitle: languageTitle}).trim();
 
   let description: string = '';

@@ -16,7 +16,7 @@ import {
 import { DefaultParameters, fetchMemberOrUserById, isSnowflake, toTitleCase } from '../../utils';
 
 import {
-  DiscordLocalesForLanguage,
+  uploadableDiscordLocales,
   Languages,
   choiceLocalizations,
   getCachedTranslator,
@@ -116,7 +116,7 @@ export const GOOGLE_LOCALES = [
   for (let language of Object.values(Languages)) {
     const text = getLanguageName(language, x, name, {capitalize: true});
     if (text !== name) {
-      for (let locale of DiscordLocalesForLanguage[language]) {
+      for (let locale of uploadableDiscordLocales(language)) {
         entries.push([locale, text]);
       }
     }

@@ -20,6 +20,6 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  //return await createMessageGoogleImages(context, args);
-  return await createMessageDuckDuckGoImages(context, args);
+  return await createMessageGoogleImages(context, args);
+  //return await createMessageDuckDuckGoImages(context, args);
 }

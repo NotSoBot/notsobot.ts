@@ -1,6 +1,7 @@
-import { Command, CommandAttributes, CommandClient, Interaction } from 'detritus-client';
+import { Command, CommandAttributes, CommandClient, Interaction, Structures } from 'detritus-client';
 import { LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
+import { fetchCommandsResponses } from './api';
 import { BaseInteractionCommand } from './commands/interactions/basecommand';
 import { CommandMetadata } from './commands/prefixed/basecommand';
 
@@ -225,7 +226,7 @@ export class NotSoCommandClient extends CommandClient {
     }
     if (context.message.messageReference) {
       const replyMessage = context.message.messageReference.message;
-      if (replyMessage && replyMessage.author.isMe) {
+      if (replyMessage && await isAIResponse(context, replyMessage)) {
         let command = this.commands.find((x) => x.name === 'ai') || null;
         if (command && typeof(command.onBefore) === 'function') {
           const hasPremium = await Promise.resolve(command.onBefore(context));
@@ -245,7 +246,7 @@ export class NotSoCommandClient extends CommandClient {
       let maybePassToAICommand = this.prefixes.mention.has(attributes.prefix);
       if (!maybePassToAICommand && !attributes.prefix) {
         const replyMessage = (context.message.messageReference && context.message.messageReference.message);
-        maybePassToAICommand = !!(replyMessage && replyMessage.author.isMe);
+        maybePassToAICommand = !!(replyMessage && await isAIResponse(context, replyMessage));
       }
       if (maybePassToAICommand) {
         command = this.commands.find((x) => x.name === 'ai') || null;
@@ -290,5 +291,44 @@ export class NotSoCommandClient extends CommandClient {
       }
     }
     return this.prefixes.custom;
+  }
+}
+
+
+
+// getAttributes and getCommand both check the same reply, only hit the api once per message
+const aiResponseChecks = new WeakMap<Structures.Message, Promise<boolean>>();
+
+function isAIResponse(context: Command.Context, message: Structures.Message): Promise<boolean> {
+  let check = aiResponseChecks.get(context.message);
+  if (!check) {
+    check = checkIsAIResponse(context, message);
+    aiResponseChecks.set(context.message, check);
+  }
+  return check;
+}
+
+async function checkIsAIResponse(context: Command.Context, message: Structures.Message): Promise<boolean> {
+  if (!message.author.isMe) {
+    return false;
+  }
+  if (message.interaction) {
+    return message.interaction.name === 'ai';
+  }
+  // prefixed responses reply to the message that triggered them
+  const { messageReference } = message;
+  if (!messageReference || !messageReference.messageId) {
+    return false;
+  }
+  try {
+    const { results } = await fetchCommandsResponses(context, {
+      channelId: message.channelId,
+      triggerIds: [messageReference.messageId],
+    });
+    return results.some((result) => {
+      return result.message_response_id === message.id && result.command_id === Formatter.Commands.TagGenerate.COMMAND_ID;
+    });
+  } catch(error) {
+    return false;
   }
 }

@@ -684,13 +684,28 @@ export class Paginator {
       }
 
       if (deleteMessage) {
-        if (this.message && !this.message.deleted) {
+        // prefer the button press's own token, it's fresh and its `@original` is the message the button is on
+        // (interaction responses aren't cached in group dms/user installs since we get no gateway events for them)
+        if (context) {
           try {
-            if (this.context instanceof Interaction.InteractionContext) {
-              await this.context.deleteMessage(this.message.id);
-            } else {
-              await this.message.delete();
+            if (!context.responded) {
+              await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
             }
+            await context.deleteResponse();
+          } catch(error) {
+
+          }
+        } else if (this.context instanceof Interaction.InteractionContext) {
+          if (!this.context.responseDeleted) {
+            try {
+              await this.context.deleteMessage((this.message) ? this.message.id : '@original');
+            } catch(error) {
+
+            }
+          }
+        } else if (this.message && !this.message.deleted) {
+          try {
+            await this.message.delete();
           } catch(error) {
 
           }
@@ -699,6 +714,12 @@ export class Paginator {
         if (context) {
           // the whole page is sent again, temporarily here until they fix ephemeral message component clearing on button press
           await context.editOrRespond(await this.getPageMessage(this.page, false));
+        } else if (this.context instanceof Interaction.InteractionContext && !this.message) {
+          try {
+            await this.context.editResponse(await this.getButtonsMessage(false));
+          } catch(error) {
+
+          }
         } else if (this.message && !this.message.deleted && this.message.components.length) {
           try {
             const message = await this.getButtonsMessage(false);

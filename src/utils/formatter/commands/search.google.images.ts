@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { searchGoogleImages } from '../../../api';
+import { searchGoogleImages, utilitiesFetchMedia } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../../constants';
 import { DisplayPayload, Paginator, displayReply, shuffleArray } from '../../../utils';
@@ -34,7 +34,7 @@ export async function createMessage(
     const pageLimit = results.length;
     const paginator = new Paginator(context, {
       pageLimit,
-      onPage: (page) => {
+      onPage: async (page) => {
         const payload: DisplayPayload = {fields: []};
         payload.color = EmbedColors.DEFAULT;
 
@@ -146,8 +146,21 @@ export async function createMessage(
           payload.description = description.join('\n');
         }
 
-        payload.image = result.imageUrl;
+        const response = await utilitiesFetchMedia(context, {
+          doNotError: true,
+          safe: args.safe,
+          upload: false,
+          url: result.imageUrl,
+        });
+        if (response) {
+          const filename = response.file.filename_safe;
+          payload.image = `attachment://${filename}`;
 
+          const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+          return {display: {...payload, files: [{filename, value}]}};
+        }
+
+        payload.image = result.imageUrl;
         return {display: payload};
       },
     });

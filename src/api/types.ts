@@ -1526,6 +1526,7 @@ export namespace RestResponsesRaw {
     count: number,
     results: Array<{
       channel_id: string,
+      command_id: string | null,
       last_touched: string,
       message_response_id: string,
       message_trigger_id: string,
