@@ -2853,7 +2853,7 @@ export const Finnish: Translations = Object.freeze({
   'prune.starting': 'Ok, siivotaan {count} viestiä.',
   'prune.until_after_current': 'Until-viestin ID ei voi olla nykyisen viestin ID:n jälkeen',
 
-  'tag.disabled_body': 'Discord antoi meille kaksi viikkoa aikaa poistaa tagijärjestelmä sisällön moderointiin liittyvien huolien vuoksi. Olemme sittemmin lisänneet uusia turvasuodattimia ja olleet yhteydessä Discordiin ominaisuuden säilyttämiseksi. Pahoittelemme häiriötä, erityisesti kaikille, jotka rakensivat pelejä ja kokoelmia tageilla. Päivityksiä ja kysymyksiä varten liity tukipalvelimellemme: {invite}',
+  'tag.disabled_body': 'Discord pyysi 28. syyskuuta meitä poistamaan tagijärjestelmän 9. lokakuuta mennessä sisällön moderointiin liittyvien huolien vuoksi. Vastasimme 1. lokakuuta, olemme sittemmin lisänneet uusia turvasuodattimia ja odotamme yhä Discordin vastausta ominaisuuden säilyttämisestä. Odottaessamme meidän piti poistaa se käytöstä määräpäivänä 9. lokakuuta, jotta noudatamme vaatimuksia. Pahoittelemme häiriötä, erityisesti kaikille, jotka rakensivat pelejä ja kokoelmia tageilla. Päivityksiä ja kysymyksiä varten liity tukipalvelimellemme: {invite}',
   'tag.disabled_title': 'Tagijärjestelmä on toistaiseksi poistettu käytöstä Discordin pyynnöstä.',
   'tag.not_owner': 'Et omista tuota tagia!',
   'tag.rename_needs_name': 'Tarvitset jonkin uuden nimen tagille',

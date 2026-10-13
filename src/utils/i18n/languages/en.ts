@@ -2851,7 +2851,7 @@ export const English = Object.freeze({
   'prune.starting': 'Ok, pruning {count} messages.',
   'prune.until_after_current': 'Until message id cannot be after the current message id',
 
-  'tag.disabled_body': 'Discord gave us two weeks to remove the tag system due to content moderation concerns. We\'ve since added new safety filters and reached out to Discord about keeping the feature. We\'re sorry for the disruption, especially to everyone who built games and collections with tags. For updates or questions, join our support server: {invite}',
+  'tag.disabled_body': 'On September 28th, Discord told us to remove the tag system by October 9th due to content moderation concerns. We responded on October 1st, have since added new safety filters, and are still waiting to hear back from Discord about keeping the feature. While we wait, we had to disable it on the October 9th deadline to stay compliant. We\'re sorry for the disruption, especially to everyone who built games and collections with tags. For updates or questions, join our support server: {invite}',
   'tag.disabled_title': 'The tag system has been disabled at this time at Discord\'s request.',
   'tag.not_owner': 'You don\'t own that tag!',
   'tag.rename_needs_name': 'Gotta have some sort of tag name to rename to',

@@ -2853,7 +2853,7 @@ export const Vietnamese: Translations = Object.freeze({
   'prune.starting': 'Ok, đang dọn {count} tin nhắn.',
   'prune.until_after_current': 'ID tin nhắn Until không được ở sau ID tin nhắn hiện tại',
 
-  'tag.disabled_body': 'Discord đã cho bọn mình hai tuần để gỡ hệ thống tag vì lo ngại về kiểm duyệt nội dung. Từ đó bọn mình đã thêm các bộ lọc an toàn mới và liên hệ với Discord để giữ lại tính năng này. Bọn mình rất xin lỗi vì sự gián đoạn, đặc biệt với những ai đã xây dựng game và bộ sưu tập bằng tag. Để cập nhật hoặc đặt câu hỏi, hãy tham gia máy chủ hỗ trợ của bọn mình: {invite}',
+  'tag.disabled_body': 'Ngày 28 tháng 9, Discord yêu cầu bọn mình gỡ hệ thống tag trước ngày 9 tháng 10 vì lo ngại về kiểm duyệt nội dung. Bọn mình đã phản hồi vào ngày 1 tháng 10, từ đó đã thêm các bộ lọc an toàn mới và vẫn đang chờ Discord trả lời về việc giữ lại tính năng này. Trong lúc chờ, bọn mình buộc phải tắt nó vào đúng hạn chót ngày 9 tháng 10 để tuân thủ yêu cầu. Bọn mình rất xin lỗi vì sự gián đoạn, đặc biệt với những ai đã xây dựng game và bộ sưu tập bằng tag. Để cập nhật hoặc đặt câu hỏi, hãy tham gia máy chủ hỗ trợ của bọn mình: {invite}',
   'tag.disabled_title': 'Hệ thống tag hiện đã bị tắt theo yêu cầu của Discord.',
   'tag.not_owner': 'Bạn không sở hữu tag đó!',
   'tag.rename_needs_name': 'Phải có tên tag mới nào đó để đổi tên chứ',

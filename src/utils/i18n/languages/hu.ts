@@ -2853,7 +2853,7 @@ export const Hungarian: Translations = Object.freeze({
   'prune.starting': 'Oké, {count} üzenet törlése folyamatban.',
   'prune.until_after_current': 'A „meddig” üzenetazonosító nem lehet későbbi a jelenlegi üzenetazonosítónál',
 
-  'tag.disabled_body': 'A Discord két hetet adott a címkerendszer eltávolítására tartalommoderálási aggályok miatt. Azóta új biztonsági szűrőket vezettünk be, és felvettük a kapcsolatot a Discorddal a funkció megtartása érdekében. Sajnáljuk a kellemetlenséget, főleg mindenkinek, aki játékokat és gyűjteményeket épített címkékkel. Hírekért vagy kérdésekkel csatlakozz a támogatói szerverünkhöz: {invite}',
+  'tag.disabled_body': 'Szeptember 28-án a Discord arra kért minket, hogy tartalommoderálási aggályok miatt október 9-ig távolítsuk el a címkerendszert. Október 1-jén válaszoltunk, azóta új biztonsági szűrőket vezettünk be, és még mindig várjuk a Discord válaszát a funkció megtartásáról. Amíg várunk, a határidőn, október 9-én ki kellett kapcsolnunk, hogy megfeleljünk az előírásoknak. Sajnáljuk a kellemetlenséget, főleg mindenkinek, aki játékokat és gyűjteményeket épített címkékkel. Hírekért vagy kérdésekkel csatlakozz a támogatói szerverünkhöz: {invite}',
   'tag.disabled_title': 'A címkerendszer jelenleg a Discord kérésére ki van kapcsolva.',
   'tag.not_owner': 'Nem a tiéd ez a címke!',
   'tag.rename_needs_name': 'Kell egy új címkenév az átnevezéshez',

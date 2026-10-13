@@ -2853,7 +2853,7 @@ export const Danish: Translations = Object.freeze({
   'prune.starting': 'Ok, rydder op i {count} beskeder.',
   'prune.until_after_current': 'Until-besked-ID\'et kan ikke være efter det nuværende besked-ID',
 
-  'tag.disabled_body': 'Discord gav os to uger til at fjerne tag-systemet på grund af bekymringer om indholdsmoderering. Vi har siden tilføjet nye sikkerhedsfiltre og kontaktet Discord om at beholde funktionen. Vi beklager forstyrrelsen, især over for alle, der har bygget spil og samlinger med tags. For opdateringer eller spørgsmål, tilslut dig vores supportserver: {invite}',
+  'tag.disabled_body': 'Den 28. september bad Discord os om at fjerne tag-systemet senest den 9. oktober på grund af bekymringer om indholdsmoderering. Vi svarede den 1. oktober, har siden tilføjet nye sikkerhedsfiltre og venter stadig på svar fra Discord om at beholde funktionen. Mens vi venter, var vi nødt til at deaktivere det ved fristen den 9. oktober for at overholde kravene. Vi beklager forstyrrelsen, især over for alle, der har bygget spil og samlinger med tags. For opdateringer eller spørgsmål, tilslut dig vores supportserver: {invite}',
   'tag.disabled_title': 'Tag-systemet er deaktiveret i øjeblikket på Discords anmodning.',
   'tag.not_owner': 'Du ejer ikke det tag!',
   'tag.rename_needs_name': 'Der skal være en eller anden form for tagnavn at omdøbe til',

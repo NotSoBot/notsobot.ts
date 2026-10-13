@@ -2853,7 +2853,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'prune.starting': '好，正在清除 {count} 則訊息。',
   'prune.until_after_current': 'Until 訊息 ID 不能晚於目前的訊息 ID',
 
-  'tag.disabled_body': 'Discord 基於內容審核的考量，給了我們兩週的時間移除標籤系統。我們之後已經加入了新的安全過濾機制，並聯絡 Discord 希望能保留這個功能。對於造成的不便我們深感抱歉，尤其是那些用標籤製作遊戲和收藏的大家。如需最新消息或有任何問題，請加入我們的支援伺服器：{invite}',
+  'tag.disabled_body': '9 月 28 日，Discord 基於內容審核的考量，要求我們在 10 月 9 日前移除標籤系統。我們已於 10 月 1 日回覆，之後也加入了新的安全過濾機制，目前仍在等待 Discord 關於保留這個功能的回覆。在等待期間，為了遵守規定，我們不得不在 10 月 9 日截止日當天將其停用。對於造成的不便我們深感抱歉，尤其是那些用標籤製作遊戲和收藏的大家。如需最新消息或有任何問題，請加入我們的支援伺服器：{invite}',
   'tag.disabled_title': '應 Discord 的要求，標籤系統目前已停用。',
   'tag.not_owner': '這個標籤不是你的！',
   'tag.rename_needs_name': '要重新命名，至少要有個標籤名稱吧',

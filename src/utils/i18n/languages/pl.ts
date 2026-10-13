@@ -2853,7 +2853,7 @@ export const Polish: Translations = Object.freeze({
   'prune.starting': 'Ok, usuwam {count} wiadomości.',
   'prune.until_after_current': 'ID wiadomości „do” nie może być późniejsze niż ID bieżącej wiadomości',
 
-  'tag.disabled_body': 'Discord dał nam dwa tygodnie na usunięcie systemu tagów z powodu obaw dotyczących moderacji treści. Od tego czasu dodaliśmy nowe filtry bezpieczeństwa i skontaktowaliśmy się z Discordem w sprawie zachowania tej funkcji. Przepraszamy za utrudnienia, szczególnie wszystkich, którzy tworzyli gry i kolekcje z tagami. Po aktualizacje lub z pytaniami wpadnij na nasz serwer wsparcia: {invite}',
+  'tag.disabled_body': '28 września Discord poprosił nas o usunięcie systemu tagów do 9 października z powodu obaw dotyczących moderacji treści. Odpowiedzieliśmy 1 października, od tego czasu dodaliśmy nowe filtry bezpieczeństwa i wciąż czekamy na odpowiedź Discorda w sprawie zachowania tej funkcji. Czekając, musieliśmy go wyłączyć w terminie 9 października, aby zachować zgodność z wymaganiami. Przepraszamy za utrudnienia, szczególnie wszystkich, którzy tworzyli gry i kolekcje z tagami. Po aktualizacje lub z pytaniami wpadnij na nasz serwer wsparcia: {invite}',
   'tag.disabled_title': 'System tagów został na razie wyłączony na prośbę Discorda.',
   'tag.not_owner': 'To nie twój tag!',
   'tag.rename_needs_name': 'Musisz podać nową nazwę tagu',

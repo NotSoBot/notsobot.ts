@@ -2853,7 +2853,7 @@ export const Indonesian: Translations = Object.freeze({
   'prune.starting': 'Oke, menghapus {count} pesan.',
   'prune.until_after_current': 'ID pesan Until tidak boleh setelah ID pesan saat ini',
 
-  'tag.disabled_body': 'Discord memberi kami waktu dua minggu untuk menghapus sistem tag karena masalah moderasi konten. Sejak itu kami sudah menambahkan filter keamanan baru dan menghubungi Discord agar fitur ini bisa tetap ada. Kami minta maaf atas gangguannya, terutama untuk kalian semua yang sudah membuat game dan koleksi pakai tag. Untuk info terbaru atau pertanyaan, gabung ke server support kami: {invite}',
+  'tag.disabled_body': 'Pada 28 September, Discord meminta kami menghapus sistem tag paling lambat 9 Oktober karena masalah moderasi konten. Kami sudah membalas pada 1 Oktober, sejak itu menambahkan filter keamanan baru, dan masih menunggu jawaban dari Discord soal mempertahankan fitur ini. Sambil menunggu, kami terpaksa menonaktifkannya pada batas waktu 9 Oktober agar tetap patuh. Kami minta maaf atas gangguannya, terutama untuk kalian semua yang sudah membuat game dan koleksi pakai tag. Untuk info terbaru atau pertanyaan, gabung ke server support kami: {invite}',
   'tag.disabled_title': 'Sistem tag saat ini dinonaktifkan atas permintaan Discord.',
   'tag.not_owner': 'Kamu bukan pemilik tag itu!',
   'tag.rename_needs_name': 'Harus ada nama tag baru untuk mengganti nama',

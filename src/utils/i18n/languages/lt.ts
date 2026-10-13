@@ -2853,7 +2853,7 @@ export const Lithuanian: Translations = Object.freeze({
   'prune.starting': 'Gerai, valau žinutes ({count} žin.).',
   'prune.until_after_current': '„Until“ žinutės ID negali būti vėlesnis už dabartinės žinutės ID',
 
-  'tag.disabled_body': 'Discord davė mums dvi savaites pašalinti žymų sistemą dėl turinio moderavimo problemų. Nuo tada pridėjome naujus saugumo filtrus ir susisiekėme su Discord dėl šios funkcijos išsaugojimo. Atsiprašome už nepatogumus, ypač visų, kurie kūrė žaidimus ir kolekcijas su žymomis. Dėl naujienų ar klausimų prisijunk prie mūsų pagalbos serverio: {invite}',
+  'tag.disabled_body': 'Rugsėjo 28 d. Discord paprašė mūsų iki spalio 9 d. pašalinti žymų sistemą dėl turinio moderavimo problemų. Atsakėme spalio 1 d., nuo tada pridėjome naujus saugumo filtrus ir vis dar laukiame Discord atsakymo dėl šios funkcijos išsaugojimo. Kol laukiame, turėjome ją išjungti nustatytą dieną, spalio 9 d., kad laikytumės reikalavimų. Atsiprašome už nepatogumus, ypač visų, kurie kūrė žaidimus ir kolekcijas su žymomis. Dėl naujienų ar klausimų prisijunk prie mūsų pagalbos serverio: {invite}',
   'tag.disabled_title': 'Žymų sistema šiuo metu išjungta Discord prašymu.',
   'tag.not_owner': 'Ši žyma ne tavo!',
   'tag.rename_needs_name': 'Reikia nurodyti naują žymos pavadinimą',

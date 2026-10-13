@@ -2853,7 +2853,7 @@ export const PortuguesePortugal: Translations = Object.freeze({
   'prune.starting': 'Ok, a limpar {count} mensagens.',
   'prune.until_after_current': 'O ID da mensagem "até" não pode ser posterior ao ID da mensagem atual',
 
-  'tag.disabled_body': 'O Discord deu-nos duas semanas para remover o sistema de tags por questões de moderação de conteúdo. Desde então adicionámos novos filtros de segurança e entrámos em contacto com o Discord para manter a funcionalidade. Pedimos desculpa pelo incómodo, especialmente a todos os que criaram jogos e coleções com tags. Para novidades ou dúvidas, entra no nosso servidor de suporte: {invite}',
+  'tag.disabled_body': 'A 28 de setembro, o Discord pediu-nos para remover o sistema de tags até 9 de outubro por questões de moderação de conteúdo. Respondemos a 1 de outubro, desde então adicionámos novos filtros de segurança e ainda estamos à espera da resposta do Discord sobre manter a funcionalidade. Enquanto esperamos, tivemos de o desativar no prazo de 9 de outubro para cumprirmos as regras. Pedimos desculpa pelo incómodo, especialmente a todos os que criaram jogos e coleções com tags. Para novidades ou dúvidas, entra no nosso servidor de suporte: {invite}',
   'tag.disabled_title': 'O sistema de tags foi desativado por agora a pedido do Discord.',
   'tag.not_owner': 'Essa tag não é a tua!',
   'tag.rename_needs_name': 'É preciso ter algum nome de tag para mudar o nome',

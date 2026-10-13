@@ -2853,7 +2853,7 @@ export const Korean: Translations = Object.freeze({
   'prune.starting': '알겠어요, 메시지 {count}개를 정리할게요.',
   'prune.until_after_current': 'Until 메시지 ID는 현재 메시지 ID보다 뒤일 수 없어요',
 
-  'tag.disabled_body': 'Discord가 콘텐츠 관리 문제로 태그 시스템을 2주 안에 제거하라고 요청했어요. 그 후 새로운 안전 필터를 추가했고, 이 기능을 유지하기 위해 Discord에 문의했어요. 불편을 드려 죄송해요. 특히 태그로 게임과 컬렉션을 만들어 주신 모든 분께 죄송해요. 소식이나 문의 사항은 지원 서버에 참가해 주세요: {invite}',
+  'tag.disabled_body': '9월 28일, Discord가 콘텐츠 관리 문제로 10월 9일까지 태그 시스템을 제거하라고 요청했어요. 저희는 10월 1일에 답변했고, 그 후 새로운 안전 필터도 추가했으며, 이 기능을 유지할 수 있을지 Discord의 답변을 기다리고 있어요. 답변을 기다리는 동안 규정을 지키기 위해 기한인 10월 9일에 비활성화할 수밖에 없었어요. 불편을 드려 죄송해요. 특히 태그로 게임과 컬렉션을 만들어 주신 모든 분께 죄송해요. 소식이나 문의 사항은 지원 서버에 참가해 주세요: {invite}',
   'tag.disabled_title': 'Discord의 요청으로 현재 태그 시스템이 비활성화됐어요.',
   'tag.not_owner': '내 태그가 아니에요!',
   'tag.rename_needs_name': '바꿀 태그 이름이 있어야 해요',

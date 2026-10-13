@@ -2853,7 +2853,7 @@ export const Croatian: Translations = Object.freeze({
   'prune.starting': 'Ok, brišem poruke: {count}.',
   'prune.until_after_current': 'ID poruke "until" ne može biti nakon ID-a trenutne poruke',
 
-  'tag.disabled_body': 'Discord nam je dao dva tjedna da uklonimo sustav tagova zbog zabrinutosti oko moderiranja sadržaja. Od tada smo dodali nove sigurnosne filtre i obratili se Discordu kako bismo zadržali ovu značajku. Ispričavamo se zbog prekida, posebno svima koji su s tagovima napravili igre i kolekcije. Za novosti ili pitanja pridruži se našem serveru za podršku: {invite}',
+  'tag.disabled_body': 'Discord nam je 28. rujna rekao da uklonimo sustav tagova do 9. listopada zbog zabrinutosti oko moderiranja sadržaja. Odgovorili smo 1. listopada, u međuvremenu dodali nove sigurnosne filtre i još čekamo odgovor Discorda o zadržavanju ove značajke. Dok čekamo, morali smo ga isključiti na rok 9. listopada kako bismo se uskladili sa zahtjevima. Ispričavamo se zbog prekida, posebno svima koji su s tagovima napravili igre i kolekcije. Za novosti ili pitanja pridruži se našem serveru za podršku: {invite}',
   'tag.disabled_title': 'Sustav tagova trenutno je onemogućen na zahtjev Discorda.',
   'tag.not_owner': 'Taj tag nije tvoj!',
   'tag.rename_needs_name': 'Moraš navesti novi naziv taga',

@@ -2853,7 +2853,7 @@ export const Czech: Translations = Object.freeze({
   'prune.starting': 'Ok, promazávám {count} zpráv.',
   'prune.until_after_current': 'ID zprávy „do“ nemůže být za ID aktuální zprávy',
 
-  'tag.disabled_body': 'Discord nám dal dva týdny na odstranění systému tagů kvůli obavám z moderace obsahu. Mezitím jsme přidali nové bezpečnostní filtry a kontaktovali Discord ohledně zachování této funkce. Omlouváme se za potíže, hlavně všem, kdo s tagy vytvořili hry a sbírky. Pro novinky a dotazy se připoj na náš server podpory: {invite}',
+  'tag.disabled_body': 'Discord nám 28. září řekl, že musíme systém tagů odstranit do 9. října kvůli obavám z moderace obsahu. Odpověděli jsme 1. října, mezitím jsme přidali nové bezpečnostní filtry a stále čekáme na odpověď od Discordu ohledně zachování této funkce. Mezitím jsme ho museli v termínu 9. října vypnout, abychom vyhověli požadavkům. Omlouváme se za potíže, hlavně všem, kdo s tagy vytvořili hry a sbírky. Pro novinky a dotazy se připoj na náš server podpory: {invite}',
   'tag.disabled_title': 'Systém tagů je momentálně na žádost Discordu vypnutý.',
   'tag.not_owner': 'Tenhle tag nevlastníš!',
   'tag.rename_needs_name': 'Musíš zadat nový název tagu',

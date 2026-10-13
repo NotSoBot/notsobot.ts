@@ -2853,7 +2853,7 @@ export const German: Translations = Object.freeze({
   'prune.starting': 'Ok, lösche {count} Nachrichten.',
   'prune.until_after_current': 'Die Until-Nachrichten-ID darf nicht nach der aktuellen Nachrichten-ID liegen',
 
-  'tag.disabled_body': 'Discord hat uns zwei Wochen gegeben, um das Tag-System wegen Bedenken zur Inhaltsmoderation zu entfernen. Wir haben inzwischen neue Sicherheitsfilter eingebaut und Discord kontaktiert, um das Feature behalten zu dürfen. Sorry für die Unterbrechung, vor allem an alle, die mit Tags Spiele und Sammlungen gebaut haben. Für Updates oder Fragen tritt unserem Support-Server bei: {invite}',
+  'tag.disabled_body': 'Am 28. September hat Discord uns aufgefordert, das Tag-System wegen Bedenken zur Inhaltsmoderation bis zum 9. Oktober zu entfernen. Wir haben am 1. Oktober geantwortet, inzwischen neue Sicherheitsfilter eingebaut und warten noch auf eine Antwort von Discord, ob wir das Feature behalten dürfen. Während wir warten, mussten wir es zur Frist am 9. Oktober deaktivieren, um die Vorgaben einzuhalten. Sorry für die Unterbrechung, vor allem an alle, die mit Tags Spiele und Sammlungen gebaut haben. Für Updates oder Fragen tritt unserem Support-Server bei: {invite}',
   'tag.disabled_title': 'Das Tag-System wurde auf Wunsch von Discord vorerst deaktiviert.',
   'tag.not_owner': 'Dieser Tag gehört dir nicht!',
   'tag.rename_needs_name': 'Du musst schon einen neuen Tag-Namen angeben',

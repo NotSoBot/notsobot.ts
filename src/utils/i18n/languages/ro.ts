@@ -2853,7 +2853,7 @@ export const Romanian: Translations = Object.freeze({
   'prune.starting': 'Ok, șterg {count} mesaje.',
   'prune.until_after_current': 'ID-ul mesajului „până la” nu poate fi după ID-ul mesajului curent',
 
-  'tag.disabled_body': 'Discord ne-a dat două săptămâni să eliminăm sistemul de taguri din cauza unor probleme de moderare a conținutului. Între timp am adăugat filtre noi de siguranță și am contactat Discord ca să păstrăm funcția. Ne pare rău pentru neplăcere, mai ales pentru toți cei care au construit jocuri și colecții cu taguri. Pentru noutăți sau întrebări, intră pe serverul nostru de suport: {invite}',
+  'tag.disabled_body': 'Pe 28 septembrie, Discord ne-a cerut să eliminăm sistemul de taguri până pe 9 octombrie din cauza unor probleme de moderare a conținutului. Am răspuns pe 1 octombrie, între timp am adăugat filtre noi de siguranță și încă așteptăm un răspuns de la Discord despre păstrarea funcției. Cât așteptăm, a trebuit să-l dezactivăm la termenul limită de 9 octombrie ca să respectăm cerințele. Ne pare rău pentru neplăcere, mai ales pentru toți cei care au construit jocuri și colecții cu taguri. Pentru noutăți sau întrebări, intră pe serverul nostru de suport: {invite}',
   'tag.disabled_title': 'Sistemul de taguri a fost dezactivat momentan la cererea Discord.',
   'tag.not_owner': 'Tagul ăsta nu e al tău!',
   'tag.rename_needs_name': 'Trebuie să dai un nume nou pentru tag',

@@ -2853,7 +2853,7 @@ export const Dutch: Translations = Object.freeze({
   'prune.starting': 'Oké, {count} berichten worden opgeruimd.',
   'prune.until_after_current': 'Het Until-bericht-ID kan niet na het huidige bericht-ID liggen',
 
-  'tag.disabled_body': 'Discord heeft ons twee weken gegeven om het tagsysteem te verwijderen vanwege zorgen over contentmoderatie. Sindsdien hebben we nieuwe veiligheidsfilters toegevoegd en contact opgenomen met Discord om de functie te mogen houden. Sorry voor het ongemak, vooral voor iedereen die games en collecties met tags heeft gebouwd. Voor updates of vragen kun je onze supportserver joinen: {invite}',
+  'tag.disabled_body': 'Op 28 september vroeg Discord ons om het tagsysteem vóór 9 oktober te verwijderen vanwege zorgen over contentmoderatie. We hebben op 1 oktober gereageerd, sindsdien nieuwe veiligheidsfilters toegevoegd en wachten nog op antwoord van Discord of we de functie mogen houden. In afwachting daarvan moesten we het op de deadline van 9 oktober uitschakelen om aan de eisen te voldoen. Sorry voor het ongemak, vooral voor iedereen die games en collecties met tags heeft gebouwd. Voor updates of vragen kun je onze supportserver joinen: {invite}',
   'tag.disabled_title': 'Het tagsysteem is op dit moment uitgeschakeld op verzoek van Discord.',
   'tag.not_owner': 'Die tag is niet van jou!',
   'tag.rename_needs_name': 'Je moet wel een tagnaam opgeven om naar te hernoemen',

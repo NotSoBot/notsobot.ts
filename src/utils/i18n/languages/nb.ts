@@ -2853,7 +2853,7 @@ export const Norwegian: Translations = Object.freeze({
   'prune.starting': 'Ok, rydder {count} meldinger.',
   'prune.until_after_current': 'Til-meldings-ID-en kan ikke være etter den nåværende meldings-ID-en',
 
-  'tag.disabled_body': 'Discord ga oss to uker på å fjerne taggsystemet på grunn av bekymringer rundt innholdsmoderering. Vi har siden lagt til nye sikkerhetsfiltre og tatt kontakt med Discord for å få beholde funksjonen. Vi beklager forstyrrelsen, spesielt overfor alle som har bygget spill og samlinger med tagger. For oppdateringer eller spørsmål, bli med på støtteserveren vår: {invite}',
+  'tag.disabled_body': 'Den 28. september ba Discord oss om å fjerne taggsystemet innen 9. oktober på grunn av bekymringer rundt innholdsmoderering. Vi svarte 1. oktober, har siden lagt til nye sikkerhetsfiltre og venter fortsatt på svar fra Discord om å få beholde funksjonen. Mens vi venter, måtte vi deaktivere det ved fristen 9. oktober for å overholde kravene. Vi beklager forstyrrelsen, spesielt overfor alle som har bygget spill og samlinger med tagger. For oppdateringer eller spørsmål, bli med på støtteserveren vår: {invite}',
   'tag.disabled_title': 'Taggsystemet er deaktivert for øyeblikket etter forespørsel fra Discord.',
   'tag.not_owner': 'Du eier ikke den taggen!',
   'tag.rename_needs_name': 'Må ha et eller annet taggnavn å gi nytt navn til',

@@ -2852,7 +2852,7 @@ export const Turkish: Translations = Object.freeze({
   'prune.starting': 'Tamam, {count} mesaj temizleniyor.',
   'prune.until_after_current': 'Until mesaj ID\'si mevcut mesaj ID\'sinden sonra olamaz',
 
-  'tag.disabled_body': 'Discord, içerik moderasyonu endişeleri nedeniyle etiket sistemini kaldırmamız için bize iki hafta verdi. O zamandan beri yeni güvenlik filtreleri ekledik ve özelliği korumak için Discord ile iletişime geçtik. Özellikle etiketlerle oyunlar ve koleksiyonlar oluşturan herkes için yaşanan aksaklıktan dolayı özür dileriz. Güncellemeler veya sorular için destek sunucumuza katıl: {invite}',
+  'tag.disabled_body': '28 Eylül\'de Discord, içerik moderasyonu endişeleri nedeniyle etiket sistemini 9 Ekim\'e kadar kaldırmamızı istedi. 1 Ekim\'de yanıt verdik, o zamandan beri yeni güvenlik filtreleri ekledik ve özelliği korumak konusunda hâlâ Discord\'dan yanıt bekliyoruz. Beklerken, kurallara uymak için son tarih olan 9 Ekim\'de sistemi devre dışı bırakmak zorunda kaldık. Özellikle etiketlerle oyunlar ve koleksiyonlar oluşturan herkes için yaşanan aksaklıktan dolayı özür dileriz. Güncellemeler veya sorular için destek sunucumuza katıl: {invite}',
   'tag.disabled_title': 'Etiket sistemi Discord\'un isteği üzerine şu anda devre dışı bırakıldı.',
   'tag.not_owner': 'Bu etiketin sahibi sen değilsin!',
   'tag.rename_needs_name': 'Yeniden adlandırmak için bir etiket adı olmalı',
