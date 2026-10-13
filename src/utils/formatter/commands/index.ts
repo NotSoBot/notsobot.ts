@@ -293,6 +293,7 @@ import * as ReminderDeleteMe from './reminder.delete.me';
 import * as ReminderDeleteServer from './reminder.delete.server';
 import * as ReminderListMe from './reminder.list.me';
 import * as ReminderListServer from './reminder.list.server';
+import * as Report from './report';
 
 import * as Search4Chan from './search.4chan';
 import * as SearchDiscordEmojis from './search.discord.emojis';
@@ -346,7 +347,8 @@ import * as TagDirectoryEdit from './tag.directory.edit';
 import * as TagEdit from './tag.edit';
 import * as TagExport from './tag.export';
 import * as TagGenerate from './tag.generate';
-import * as TagImportDM from './tag.import.dm';
+import * as TagAdd from './tag.add';
+import * as TagImport from './tag.import';
 import * as TagInfo from './tag.info';
 import * as TagListServer from './tag.list.server';
 import * as TagListUser from './tag.list.user';
@@ -692,6 +694,7 @@ export {
   ReminderDeleteServer,
   ReminderListMe,
   ReminderListServer,
+  Report,
 
   Search4Chan,
   SearchDiscordEmojis,
@@ -746,7 +749,8 @@ export {
   TagEdit,
   TagExport,
   TagGenerate,
-  TagImportDM,
+  TagAdd,
+  TagImport,
   TagInfo,
   TagListServer,
   TagListUser,

@@ -60,6 +60,7 @@ import {
   getTimezoneFromContext,
   isSnowflake,
   jobWaitForResult,
+  parseTagDirectoryUrl,
   toCodePointForTwemoji,
   validateUrl,
   FindMediaUrlOptions,
@@ -668,9 +669,10 @@ export async function NotSoTag(
 ): Promise<false | null | RestResponsesRaw.Tag> {
   if (value) {
     try {
-      if (isSnowflake(value)) {
+      const tagId = parseTagDirectoryUrl(value) || value;
+      if (isSnowflake(tagId)) {
         try {
-          const tag = await fetchTagId(context, value);
+          const tag = await fetchTagId(context, tagId);
           if (tag.is_on_directory) {
             return tag;
           }
@@ -801,33 +803,46 @@ export function tagName(
 }
 
 
+// for `tag add`: a tag directory id/link, or a tag (name or id) from the user's DMs with the bot
 export async function tagToAdd(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<false | null | RestResponsesRaw.Tag> {
   if (value) {
-    const user = await UserStore.getOrFetch(context, context.userId);
-    if (!user || !user.channelId) {
-      return false;
-    }
-
     try {
-      // parse it if its a tag directory url
-      if (isSnowflake(value)) {
-        const tag = await fetchTagId(context, value);
-        // add check to see if its a directory tag, if so then allow it
-        if (tag.user.id !== context.userId) {
+      const directoryTagId = parseTagDirectoryUrl(value);
+      const tagId = directoryTagId || ((isSnowflake(value)) ? value : null);
+
+      const user = await UserStore.getOrFetch(context, context.userId);
+      const dmChannelId = (user && user.channelId) || null;
+
+      if (tagId) {
+        try {
+          const tag = await fetchTagId(context, tagId);
+          if (tag.is_on_directory) {
+            return tag;
+          }
+          // your own tag from your DMs
+          if (tag.user.id === context.userId && dmChannelId && tag.server_id === dmChannelId) {
+            return tag;
+          }
+        } catch(error) {
+          if (!error.response || error.response.statusCode !== 404) {
+            throw error;
+          }
+        }
+        if (directoryTagId) {
           return false;
         }
-        if (tag.server_id === user.channelId) {
-          return tag;
-        }
+        // could still be a tag named after a number, search for it below
       }
 
-      // now search
+      if (!dmChannelId) {
+        return false;
+      }
       return await fetchTag(context, {
         name: value,
-        serverId: user.channelId,
+        serverId: dmChannelId,
       });
     } catch(error) {
       if (error.response && error.response.statusCode === 404) {

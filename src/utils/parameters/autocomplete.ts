@@ -38,6 +38,7 @@ import {
   createTimestampMomentFromContext,
   getReminderMessage,
   isSnowflake,
+  parseTagDirectoryUrl,
   toTitleCase,
 } from '../tools';
 
@@ -398,10 +399,7 @@ export async function reminderServer(context: Interaction.InteractionAutoComplet
 export async function tags(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}> = [];
   if (context.value) {
-    let maybeTagId = context.value;
-
-    // todo: add tag directory link support
-
+    const maybeTagId = parseTagDirectoryUrl(context.value) || context.value;
     if (isSnowflake(maybeTagId)) {
       try {
         const tag = await fetchTagId(context, maybeTagId);
@@ -509,10 +507,7 @@ export async function tagsCustomCommands(context: Interaction.InteractionAutoCom
 export async function tagsToAdd(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}> = [];
   if (context.value) {
-    let maybeTagId = context.value;
-
-    // todo: add tag directory link support
-
+    const maybeTagId = parseTagDirectoryUrl(context.value) || context.value;
     if (isSnowflake(maybeTagId)) {
       try {
         const tag = await fetchTagId(context, maybeTagId);

@@ -128,6 +128,14 @@ export async function createReminder(
 }
 
 
+export async function createReport(
+  context: RequestContext,
+  options: RestOptions.CreateReport,
+) {
+  return raw.createReport(context, options);
+}
+
+
 export async function createTagUse(
   context: RequestContext,
   tagId: string,
@@ -536,6 +544,24 @@ export async function fetchTagsServer(
   options: RestOptions.FetchTags = {},
 ) {
   return raw.fetchTagsServer(context, guildId, options);
+}
+
+
+export async function postTagsImport(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.PostTagsImport,
+) {
+  return raw.postTagsImport(context, serverId, options);
+}
+
+
+export async function fetchTagsExport(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.FetchTagsExport = {},
+) {
+  return raw.fetchTagsExport(context, serverId, options);
 }
 
 

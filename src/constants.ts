@@ -68,6 +68,7 @@ export enum ApiErrorCodes {
   MAX_CUSTOM_COMMANDS = 30012,
   MAX_TAG_DIRECTORY = 30013,
   MAX_VOICE_CLONES = 30014,
+  MAX_REPORTS = 30015,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -129,6 +130,7 @@ export enum ApiErrorCodes {
   TTS_TEXT_TOO_LONG = 50028,
   TTS_LANGUAGE_NOT_SUPPORTED = 50029,
   INVALID_VANITY = 50030,
+  TAG_IMPORT_INVALID = 50031,
 
   DISCORD_OAUTH_ERROR = 60001,
   DISCORD_OAUTH_SCOPE_MISMATCH = 60002,
@@ -1534,6 +1536,19 @@ export const ReminderMessages = [
   'ur face',
   'water',
 ];
+
+
+export enum ReportStatuses {
+  OPEN = 0,
+  RESOLVED = 1,
+  DISMISSED = 2,
+}
+
+export enum ReportTypes {
+  BUG = 0,
+  USER = 1,
+  SERVER = 2,
+}
 
 
 export enum ReuploadStatuses {

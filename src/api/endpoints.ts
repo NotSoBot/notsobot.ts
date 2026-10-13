@@ -487,6 +487,9 @@ export const Api = Object.freeze({
   REMINDER_POSITIONAL:
     '/reminders/positional/:userId/:position',
 
+  REPORTS:
+    '/reports',
+
   SEARCH_4CHAN:
     '/search/4chan',
   SEARCH_4CHAN_RANDOM:
@@ -557,6 +560,10 @@ export const Api = Object.freeze({
     '/tags/search',
   TAGS_SEARCH_RANDOM:
     '/tags/search/random',
+  TAGS_EXPORT:
+    '/tags/export',
+  TAGS_IMPORT:
+    '/tags/import',
   TAG:
     '/tags/:tagId',
   TAG_BLOBS:

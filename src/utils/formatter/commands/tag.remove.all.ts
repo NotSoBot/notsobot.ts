@@ -3,7 +3,7 @@ import { ChannelTypes, InteractionCallbackTypes, MessageComponentButtonStyles, M
 import { ComponentContext, Components, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
-import { deleteTagsServer } from '../../../api';
+import { deleteTagsServer, fetchTagsExport } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
@@ -17,7 +17,6 @@ import {
   displayReply,
 } from '../../../utils';
 
-import { exportTags } from './tag.export';
 import { FetchTagsServerSearch, fetchTagsServerSearch } from './tag.list.server';
 
 
@@ -129,17 +128,16 @@ export async function createMessage(
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
 
-        let flags = 0;
+        const content = translate('tag_remove_all.successfully_exported_tags', {filterText: filterText, tags_count: tags.length.toLocaleString(language)});
         if (exportedTagsFile) {
-          flags = MessageFlags.EPHEMERAL;
-        } else {
-          exportedTagsFile = exportTags(serverId, tags, fetchTagsServerSearchOptions);
+          return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {content, file: exportedTagsFile, flags: MessageFlags.EPHEMERAL});
         }
-        return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
-          content: translate('tag_remove_all.successfully_exported_tags', {filterText: filterText, tags_count: tags.length.toLocaleString(language)}),
-          file: exportedTagsFile,
-          flags,
-        });
+
+        // the api builds and signs the export (so it can be imported later), that can take longer than discord waits
+        await ctx.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+        const response = await fetchTagsExport(context, serverId, fetchTagsServerSearchOptions);
+        exportedTagsFile = {filename: response.filename, value: JSON.stringify(response.export)};
+        return ctx.editOrRespond({content, file: exportedTagsFile});
       },
     });
 

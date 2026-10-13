@@ -2354,6 +2354,16 @@ export function isSnowflake(value: string): boolean {
 }
 
 
+// a tag directory link, like https://notsobot.com/directory/tags/123 (or the older /tags/directory/123)
+const TAG_DIRECTORY_URL = /\/(?:directory\/tags|tags\/directory)\/(\d{15,21})(?:[/?#]|$)/;
+
+// the tag id from a tag directory link, null if it isn't one
+export function parseTagDirectoryUrl(value: string): string | null {
+  const match = value.match(TAG_DIRECTORY_URL);
+  return (match) ? match[1] : null;
+}
+
+
 const IS_HEX_REGEX = /^[0-9a-fA-F]+$/;
 
 export function isValidAttachmentUrl(urlString: string): boolean {

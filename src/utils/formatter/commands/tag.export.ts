@@ -1,7 +1,7 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { fetchTagsServer } from '../../../api';
+import { fetchTagsExport } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
@@ -15,39 +15,10 @@ import {
   displayReply,
 } from '../../../utils';
 
-import { FetchTagsServerSearch, fetchTagsServerSearch } from './tag.list.server';
 
 
 export const COMMAND_ID = 'tag.export';
 
-
-export function exportTags(
-  serverId: string,
-  tags: Array<RestResponsesRaw.Tag>,
-  options: FetchTagsServerSearch = {},
-): {filename: string, value: string} {
-  let filename: string;
-  if (options.content || options.name || options.userId) {
-    filename = `tags-exported-${serverId}-${tags.length}-filtered-${Date.now()}.json`;
-  } else {
-    filename = `tags-exported-${serverId}-${tags.length}.json`;
-  }
-
-  return {
-    filename,
-    value: JSON.stringify({
-      options: (Object.values(options).some(Boolean)) ? options : undefined,
-      serverId,
-      tags: tags.map((tag) => {
-        if (tag.reference_tag && tag.reference_tag.server_id) {
-          tag.reference_tag.content = '';
-        }
-        return tag;
-      }),
-      timestamp: Date.now(),
-    }),
-  };
-}
 
 export interface CommandArgs {
   content?: string,
@@ -86,16 +57,15 @@ export async function createMessage(
     }
   }
 
-  const fetchTagsServerSearchOptions = {
+  // the api builds and signs the file, so an import can check it was never edited
+  const response = await fetchTagsExport(context, serverId, {
     content: args.content,
     name: args.name,
     userId: (args.user) ? args.user.id : undefined,
-  };
-
-  const tags = await fetchTagsServerSearch(context, serverId, fetchTagsServerSearchOptions);
-  if (tags.length) {
-    const file = exportTags(serverId, tags, fetchTagsServerSearchOptions);
-    return displayReply(context, {description: translate('tag_export.successfully_exported_tags', {tags_count: tags.length.toLocaleString(language)}), files: [file]});
+  });
+  if (response.count) {
+    const file = {filename: response.filename, value: JSON.stringify(response.export)};
+    return displayReply(context, {description: translate('tag_export.successfully_exported_tags', {tags_count: response.count.toLocaleString(language)}), files: [file]});
   }
 
   if (args.content || args.name || args.user) {

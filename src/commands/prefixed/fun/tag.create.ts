@@ -13,7 +13,7 @@ export default class TagCreateCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['t create', 'tag add', 't add'],
+      aliases: ['t create'],
       metadata: {
         category: CommandCategories.TAGS,
         description: 'Create a tag',

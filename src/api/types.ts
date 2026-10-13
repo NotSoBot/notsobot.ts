@@ -15,6 +15,8 @@ import {
   MediaQuadartTypes,
   RedditSortTypes,
   RedditTimeTypes,
+  ReportStatuses,
+  ReportTypes,
   TagBlobStorageTypes,
   TagVariableStorageTypes,
   UserSettingsApplicationCommandResponseTypes,
@@ -55,6 +57,15 @@ export namespace RestOptions {
     messageId?: null | string,
     timestampEnd?: number,
     timestampStart: number,
+  }
+
+  export interface CreateReport {
+    channelId?: string,
+    content: string,
+    guildId?: string,
+    messageId?: null | string,
+    targetId?: string,
+    type: ReportTypes,
   }
 
   export interface CreateTagUse {
@@ -212,6 +223,20 @@ export namespace RestOptions {
     limit?: number,
     timestampMax?: number,
     timestampMin?: number,
+    userId?: string,
+  }
+
+  export interface PostTagsImport {
+    canManage?: boolean,
+    guildId?: string | null,
+    // names from a previous import's conflicts to replace
+    overwrite?: Array<string>,
+    url: string,
+  }
+
+  export interface FetchTagsExport {
+    content?: string,
+    name?: string,
     userId?: string,
   }
 
@@ -1451,6 +1476,8 @@ export namespace RestResponsesRaw {
 
   export type CreateReminder = Reminder;
 
+  export type CreateReport = Report;
+
   export interface CreateTagUse {
     last_used: string,
   }
@@ -1520,6 +1547,21 @@ export namespace RestResponsesRaw {
   export interface FetchTags {
     count: number,
     tags: Array<Tag>,
+  }
+
+  export interface PostTagsImport {
+    conflicts: Array<{can_overwrite: boolean, name: string}>,
+    imported: number,
+    overwritten: number,
+    skipped: {invalid: number, limit: number, missing_reference: number, not_yours: number},
+    total: number,
+  }
+
+  // `export` is the file's contents, signed by the api (`signature`) so imports can tell it wasn't edited
+  export interface FetchTagsExport {
+    count: number,
+    export: Record<string, any>,
+    filename: string,
   }
 
   export type FetchTagId = Tag;
@@ -2737,6 +2779,22 @@ export namespace RestResponsesRaw {
     position: number,
     timestamp_end: string | null,
     timestamp_start: string,
+    user: User,
+  }
+
+  export interface Report {
+    channel_id: string | null,
+    content: string,
+    created: string,
+    guild_id: string | null,
+    id: string,
+    message_id: string | null,
+    notes: string | null,
+    reviewed_at: string | null,
+    reviewed_by: string | null,
+    status: ReportStatuses,
+    target_id: string | null,
+    type: ReportTypes,
     user: User,
   }
 

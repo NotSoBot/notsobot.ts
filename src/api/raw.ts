@@ -304,6 +304,28 @@ export async function createReminder(
 }
 
 
+export async function createReport(
+  context: RequestContext,
+  options: RestOptions.CreateReport,
+): Promise<RestResponsesRaw.CreateReport> {
+  const body = {
+    channel_id: options.channelId,
+    content: options.content,
+    guild_id: options.guildId,
+    message_id: options.messageId,
+    target_id: options.targetId,
+    type: options.type,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.REPORTS,
+    },
+  });
+}
+
+
 export async function createTagUse(
   context: RequestContext,
   tagId: string,
@@ -1025,6 +1047,49 @@ export async function fetchTagsServer(
     route: {
       method: HTTPMethods.GET,
       path: Api.TAGS,
+    },
+  });
+}
+
+
+export async function postTagsImport(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.PostTagsImport,
+): Promise<RestResponsesRaw.PostTagsImport> {
+  const body = {
+    can_manage: options.canManage,
+    guild_id: options.guildId,
+    overwrite: options.overwrite,
+    server_id: serverId,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.TAGS_IMPORT,
+    },
+  });
+}
+
+
+export async function fetchTagsExport(
+  context: RequestContext,
+  serverId: string,
+  options: RestOptions.FetchTagsExport = {},
+): Promise<RestResponsesRaw.FetchTagsExport> {
+  const query = {
+    content: options.content,
+    name: options.name,
+    server_id: serverId,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAGS_EXPORT,
     },
   });
 }
