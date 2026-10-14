@@ -90,6 +90,7 @@ import {
   getGuildObjectForJSONSerialization,
   isSnowflake,
   isValidAttachmentUrl,
+  jobWaitForResponse,
   jobWaitForResult,
   languageCodeToText,
   randomFromArray,
@@ -3208,7 +3209,7 @@ const ScriptTags = Object.freeze({
         maxFileSize,
         safe: DefaultParameters.safe(context),
         url,
-      });
+      }).then((x) => jobWaitForResponse(context, x));
 
       if (!(url in cachedResults)) {
         cachedResults[url] = response;

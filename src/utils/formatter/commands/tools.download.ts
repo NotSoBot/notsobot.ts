@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesFetchMedia } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.download';
@@ -21,7 +21,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await utilitiesFetchMedia(context, {
+  const job = await utilitiesFetchMedia(context, {
     downloadQuality: args.quality,
     locale: args.locale,
     mediaFormat: args.mediaFormat,
@@ -29,5 +29,5 @@ export async function createMessage(
     safe: args.safe,
     url: args.url,
   });
-  return mediaReply(context, response, {spoiler: args.spoiler});
+  return jobReply(context, job, {spoiler: args.spoiler});
 }

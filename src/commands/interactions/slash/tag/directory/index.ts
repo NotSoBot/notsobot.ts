@@ -4,6 +4,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { TagDirectoryAddCommand } from './add';
 import { TagDirectoryEditCommand } from './edit';
+import { TagDirectoryVerifyCommand } from './verify';
 
 
 export class TagDirectoryGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -16,6 +17,7 @@ export class TagDirectoryGroupCommand extends BaseInteractionCommandOptionGroup 
       options: [
         new TagDirectoryAddCommand(),
         new TagDirectoryEditCommand(),
+        new TagDirectoryVerifyCommand(),
       ],
     });
   }

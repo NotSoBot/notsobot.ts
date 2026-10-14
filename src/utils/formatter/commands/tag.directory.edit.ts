@@ -13,6 +13,7 @@ export const COMMAND_ID = 'tag.directory.edit';
 export interface CommandArgsBefore {
   content?: string,
   description?: string,
+  showContent?: boolean,
   tag: false | null | RestResponsesRaw.Tag,
   title?: string,
 }
@@ -20,6 +21,7 @@ export interface CommandArgsBefore {
 export interface CommandArgs {
   content?: string,
   description?: string,
+  showContent?: boolean,
   tag: RestResponsesRaw.Tag,
   title?: string,
 }
@@ -40,12 +42,16 @@ export async function createMessage(
     }
   }
 
-  if (args.description || args.title) {
+  if (args.description || args.title || typeof(args.showContent) === 'boolean') {
     // just force update it
     const directory = await editTagsDirectoryTag(context, args.tag.id, {
+      contentPublic: args.showContent,
       description: args.description,
       title: args.title,
     });
+    if (typeof(args.showContent) === 'boolean') {
+      description.push(translate((directory.content_public) ? 'tag_directory_edit.tag_s_content_is_now_public' : 'tag_directory_edit.tag_s_content_is_now_hidden'));
+    }
     if (args.title) {
       description.push(translate('tag_directory_edit.tag_s_directory_title_has_been_updated'));
     }

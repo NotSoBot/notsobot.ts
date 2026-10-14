@@ -133,7 +133,7 @@ export async function createMessage(
         if (content.length) {
           promptExtra.push([
             `Message Reply Context ${chain}`,
-            `-> Author: ${JSON.stringify(message.author.name)} (${message.author.id})`,
+            `-> Author: ${JSON.stringify(message.author.name)}`,
             ...content,
             (url && mediaIsFromHere) ? '-> Media is from here' : null,
             (message.deleted) ? `-> Message Deleted` : null,
@@ -145,7 +145,7 @@ export async function createMessage(
         if (replyText) {
           promptExtra.push([
             `Message Reply Context ${chain}`,
-            `-> Author: ${JSON.stringify(message.author.name)} (${message.author.id})`,
+            `-> Author: ${JSON.stringify(message.author.name)}`,
             `-> Content: ${JSON.stringify(replyText)}`,
             (url && mediaIsFromHere) ? '-> Media is from here' : null,
             (message.deleted) ? `-> Message Deleted` : null,
@@ -162,7 +162,7 @@ export async function createMessage(
     if (promptExtra.length) {
       promptExtra.unshift([
         `Current Message Context`,
-        `-> Author: ${JSON.stringify(context.message.author.name)} (${context.message.author.id})`,
+        `-> Author: ${JSON.stringify(context.message.author.name)}`,
       ].join('\n'));
     }
   } else if (context instanceof Interaction.InteractionContext) {

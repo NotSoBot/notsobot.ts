@@ -1,0 +1,12 @@
+import { Command, Interaction } from 'detritus-client';
+
+import { displayReply } from '../../../utils';
+
+
+export const COMMAND_ID = 'terms';
+
+export async function createMessage(
+  context: Command.Context | Interaction.InteractionContext,
+) {
+  return displayReply(context, {description: '<https://notsobot.com/legal/tos>', ephemeral: true});
+}

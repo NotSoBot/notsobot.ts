@@ -42,6 +42,7 @@ import UserSettingsStore from '../stores/usersettings';
 import { getTranslator } from './i18n';
 
 import { Endpoints, fetchJob, moderationSafetyScan, moderationTextScan } from '../api';
+import { JobError } from '../api/errors';
 import { RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
@@ -1701,13 +1702,14 @@ const JOB_TIMED_OUT_MESSAGE = 'Timed out waiting for the job to finish';
 export async function jobReply(
   context: Command.Context | Interaction.InteractionContext,
   job: RestResponsesRaw.JobResponse,
+  options: {spoiler?: boolean} = {},
   pollingTime: number = 500,
 ) {
   if (job.result.error) {
-    throw new Error(`Job Failed: ${job.result.error}`);
+    throw new JobError(job);
   }
   if (job.result.response) {
-    return mediaReply(context, job.result.response);
+    return mediaReply(context, job.result.response, options);
   }
 
   const { translate } = await getTranslator(context);
@@ -1730,7 +1732,7 @@ export async function jobReply(
         return await editOrReply(context, translate('media.job_failed', {error: String(refreshedJob.result.error)}));
       }
       if (refreshedJob.result.response) {
-        return await mediaReply(context, refreshedJob.result.response);
+        return await mediaReply(context, refreshedJob.result.response, options);
       }
       if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
         return await editOrReply(context, translate('media.job_unknown_status', {status: refreshedJob.status}));
@@ -1786,6 +1788,22 @@ export async function jobWaitForResult(
     };
     timer.start(pollingTime, pollingFunction);
   });
+}
+
+
+// for when the file itself is needed instead of a reply, throws the job's error
+export async function jobWaitForResponse(
+  context: Command.Context | Interaction.InteractionContext,
+  job: RestResponsesRaw.JobResponse,
+): Promise<RestResponsesRaw.FileResponse> {
+  const result = await jobWaitForResult(context, job);
+  if (result.result.error) {
+    throw new JobError(result);
+  }
+  if (!result.result.response) {
+    throw new Error(`Job did not return a response (status: ${result.status})`);
+  }
+  return result.result.response;
 }
 
 

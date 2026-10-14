@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { searchGoogleImages, utilitiesFetchMedia } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../../constants';
-import { DisplayPayload, Paginator, displayReply, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, displayReply, jobWaitForResponse, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.google.images';
@@ -151,7 +151,7 @@ export async function createMessage(
           safe: args.safe,
           upload: false,
           url: result.imageUrl,
-        });
+        }).then((x) => jobWaitForResponse(context, x));
         if (response) {
           const filename = response.file.filename_safe;
           payload.image = `attachment://${filename}`;

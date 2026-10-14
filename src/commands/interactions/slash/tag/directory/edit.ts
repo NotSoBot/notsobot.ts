@@ -32,15 +32,33 @@ export class TagDirectoryEditCommand extends BaseInteractionCommandOption {
           name: 'content',
           description: 'Tag\'s Content',
           ...I18n.optionLocalizations('commands.tag.directory.edit.content'),
-          required: true,
           value: Parameters.tagContent,
+        },
+        {
+          name: 'title',
+          description: 'Title shown on the Tag Directory',
+          ...I18n.optionLocalizations('commands.tag.directory.edit.title'),
+          maxLength: 128,
+        },
+        {
+          name: 'description',
+          description: 'Description shown on the Tag Directory',
+          ...I18n.optionLocalizations('commands.tag.directory.edit.description-option'),
+          maxLength: 2000,
+        },
+        {
+          name: 'show-content',
+          description: 'Show the tag\'s content publicly on the Tag Directory',
+          ...I18n.optionLocalizations('commands.tag.directory.edit.show-content'),
+          label: 'showContent',
+          type: Boolean,
         },
       ],
     });
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagDirectoryEdit.CommandArgsBefore) {
-    return !!args.tag && (!!args.content || !!args.description || !!args.title);
+    return !!args.tag && (!!args.content || !!args.description || !!args.title || typeof(args.showContent) === 'boolean');
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagDirectoryEdit.CommandArgsBefore) {
@@ -50,7 +68,7 @@ export class TagDirectoryEditCommand extends BaseInteractionCommandOption {
         return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`});
       }
     }
-    if (!args.content && !args.description && !args.title) {
+    if (!args.content && !args.description && !args.title && typeof(args.showContent) !== 'boolean') {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.directory_edit_needs_field')}`});
     }
     return super.onCancelRun(context, args);

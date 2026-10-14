@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesFetchMedia, utilitiesMLMashup } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { EmojiKitchen, jobWaitForResult, mediaReply } from '../../../utils';
+import { EmojiKitchen, jobWaitForResponse, jobWaitForResult, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.ml.mashup';
@@ -30,7 +30,7 @@ export async function createResponse(
       const mashupUrl = EmojiKitchen.codepointsToUrl(codepoints[0], codepoints[1]);
       if (mashupUrl) {
         // download it
-        return utilitiesFetchMedia(context, {url: mashupUrl});
+        return utilitiesFetchMedia(context, {url: mashupUrl}).then((x) => jobWaitForResponse(context, x));
       }
     }
   }

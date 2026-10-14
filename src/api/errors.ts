@@ -1,5 +1,7 @@
 import { ApiErrorCodes } from '../constants';
 
+import { RestResponsesRaw } from './types';
+
 
 // every error response from the notsobot api looks like this, `metadata` from the api is spread into it too
 export interface ApiErrorBody {
@@ -45,6 +47,27 @@ export async function getApiError(error: any): Promise<ApiErrorBody | null> {
 export async function isApiError(error: any, ...codes: Array<ApiErrorCodes>): Promise<boolean> {
   const information = await getApiError(error);
   return !!information && (!codes.length || codes.includes(information.code));
+}
+
+
+// failed jobs have the code and metadata separately, put them in the same shape as an error response
+export function getJobApiError(job: RestResponsesRaw.JobResponse): ApiErrorBody | null {
+  const { error, error_code, error_metadata } = job.result;
+  if (!error || typeof(error_code) !== 'number') {
+    return null;
+  }
+  return {...error_metadata, code: error_code, message: error, status: 400};
+}
+
+
+// thrown for failed jobs so the command error handler can translate them like any other api error
+export class JobError extends Error {
+  apiError: ApiErrorBody | null;
+
+  constructor(job: RestResponsesRaw.JobResponse) {
+    super(`Job Failed: ${job.result.error}`);
+    this.apiError = getJobApiError(job);
+  }
 }
 
 

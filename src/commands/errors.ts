@@ -4,7 +4,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
-import { ApiErrorBody, getApiError, getApiErrorTranslationKey, readErrorBody } from '../api/errors';
+import { ApiErrorBody, JobError, getApiError, getApiErrorTranslationKey, readErrorBody } from '../api/errors';
 import { ApiErrorCodes, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
 import { I18n, displayReply, formatMemory } from '../utils';
 
@@ -123,6 +123,27 @@ function isSameErrorMessage(a: string, b: string): boolean {
 }
 
 
+// notsobot api errors have a stable `code` we can translate, the api's own message is kept as the details
+// returns false for codes without a translation
+function describeApiError(
+  apiError: ApiErrorBody,
+  translator: I18n.Translator,
+  description: Array<string>,
+  fields: Array<ErrorField>,
+): boolean {
+  const apiErrorKey = getApiErrorTranslationKey(apiError.code);
+  if (!apiErrorKey) {
+    return false;
+  }
+  const { specific, text } = translateApiError(apiError, apiErrorKey, translator);
+  description.push(text);
+  if (!specific && apiError.message && !isSameErrorMessage(apiError.message, text)) {
+    fields.push({name: translator.translate('errors.field.details'), value: apiError.message});
+  }
+  return true;
+}
+
+
 async function describeResponseError(
   context: ErrorContext,
   error: any,
@@ -151,16 +172,8 @@ async function describeResponseError(
     return {description, fields};
   }
 
-  // notsobot api errors have a stable `code` we can translate, the api's own message is kept as the details
   const apiError = await getApiError(error);
-  const apiErrorKey = (apiError) ? getApiErrorTranslationKey(apiError.code) : null;
-  if (apiError && apiErrorKey) {
-    const { specific, text } = translateApiError(apiError, apiErrorKey, translator);
-    description.push(text);
-    if (!specific && apiError.message && !isSameErrorMessage(apiError.message, text)) {
-      fields.push({name: translate('errors.field.details'), value: apiError.message});
-    }
-  } else {
+  if (!(apiError && describeApiError(apiError, translator, description, fields))) {
     description.push(error.message || error.stack);
   }
   if (information && typeof(information) === 'object' && 'errors' in information) {
@@ -198,6 +211,11 @@ export async function createRunErrorPayload(
   let fields: Array<ErrorField> = [];
   if (error.response) {
     ({ description, fields } = await describeResponseError(context, error, translator));
+  } else if (error instanceof JobError && error.apiError) {
+    description = [];
+    if (!describeApiError(error.apiError, translator, description, fields)) {
+      description.push(error.message);
+    }
   } else {
     const message = String(error.message || error.stack);
     if (message.includes('reason: connect ECONNREFUSED 127.0.0.1:80')) {

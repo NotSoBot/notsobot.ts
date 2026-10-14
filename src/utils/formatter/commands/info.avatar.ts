@@ -8,7 +8,7 @@ import UserAvatarDecorations from '../../../stores/useravatardecorations';
 import { utilitiesFetchMedia } from '../../../api';
 import { PresenceStatusColors } from '../../../constants';
 import { getTranslator } from '../../i18n';
-import { DisplayPayload, displayReply } from '../../../utils';
+import { DisplayPayload, displayReply, jobWaitForResponse } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -46,7 +46,7 @@ export async function createMessage(
       const response = await utilitiesFetchMedia(context, {
         maxFileSize,
         url: avatarUrl,
-      });
+      }).then((x) => jobWaitForResponse(context, x));
       file = {
         filename: response.file.filename,
         value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),

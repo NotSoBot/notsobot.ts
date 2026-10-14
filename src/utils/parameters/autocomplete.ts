@@ -580,6 +580,50 @@ export async function tagsToAdd(context: Interaction.InteractionAutoCompleteCont
 
 
 
+// your own tags from your dms with the bot that aren't on the tag directory yet, for `tag directory add`
+export async function tagsToAddToDirectory(context: Interaction.InteractionAutoCompleteContext) {
+  let choices: Array<{name: string, value: string}> = [];
+  try {
+    let dmChannelId: string | null = null;
+    if (context.inDm && context.hasServerPermissions) {
+      // we are in our one-on-one dms with the bot
+      dmChannelId = context.channelId!;
+    } else {
+      const user = await UserStore.getOrFetch(context, context.userId);
+      dmChannelId = (user && user.channelId) || null;
+    }
+
+    if (dmChannelId) {
+      if (context.value && isSnowflake(context.value)) {
+        try {
+          const tag = await fetchTagId(context, context.value);
+          if (tag.user.id === context.userId && tag.server_id === dmChannelId && !tag.is_on_directory && !tag.reference_tag) {
+            choices.push({name: tag.name, value: tag.id});
+          }
+        } catch(error) {
+
+        }
+      }
+
+      if (!choices.length) {
+        const { tags } = await fetchTagsServer(context, dmChannelId, {
+          name: context.value,
+          limit: 25,
+          sortBy: TagSearchSortByFilters.LAST_USED,
+          userId: context.userId,
+        });
+        choices = tags.filter((tag) => !tag.reference_tag && !tag.is_on_directory).map((tag) => {
+          return {name: tag.name, value: tag.id};
+        });
+      }
+    }
+  } catch(error) {
+    choices = [];
+  }
+  return context.respond({choices});
+}
+
+
 // your own tags that are on the tag directory, for `tag directory edit`
 export async function tagsOnDirectoryToEdit(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}> = [];

@@ -176,6 +176,7 @@ export namespace RestOptions {
   }
 
   export interface EditTagsDirectoryTag {
+    contentPublic?: boolean,
     description?: string,
     title?: string,
   }
@@ -1390,6 +1391,9 @@ export namespace RestResponsesRaw {
     id: string,
     result: {
       error: string | null,
+      // the same code and metadata the api would've errored with if it ran outside of a job
+      error_code?: number | null,
+      error_metadata?: Record<string, unknown>,
       response: FileResponse | null,
     },
     status: string,
@@ -1487,6 +1491,8 @@ export namespace RestResponsesRaw {
     last_used: string,
   }
 
+  export type CreateTagsDirectoryTagVerification = TagDirectory;
+
   export interface CreateUserCommand {
     
   }
@@ -1509,6 +1515,7 @@ export namespace RestResponsesRaw {
   export type EditReminder = Reminder;
 
   export type DeleteTagSearch = null;
+  export type DeleteTagsDirectoryTagVerification = TagDirectory;
   export type DeleteTagVariable = null;
 
   export type EditGuildSettings = GuildSettings;
@@ -2835,6 +2842,8 @@ export namespace RestResponsesRaw {
     assets: Array<{
       // todo: fill this in
     }>,
+    // the owner shows `tag.content` on the public directory, it's '' otherwise
+    content_public: boolean,
     created: string,
     description: string,
     edited: string | null,

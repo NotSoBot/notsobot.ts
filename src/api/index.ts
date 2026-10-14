@@ -145,6 +145,14 @@ export async function createTagUse(
 }
 
 
+export async function createTagsDirectoryTagVerification(
+  context: RequestContext,
+  tagId: string,
+) {
+  return raw.createTagsDirectoryTagVerification(context, tagId);
+}
+
+
 export async function createUserCommand(
   context: RequestContext,
   userId: string,
@@ -318,6 +326,14 @@ export async function deleteTag(
   options: RestOptions.DeleteTagSearch,
 ) {
   return raw.deleteTag(context, options);
+}
+
+
+export async function deleteTagsDirectoryTagVerification(
+  context: RequestContext,
+  tagId: string,
+) {
+  return raw.deleteTagsDirectoryTagVerification(context, tagId);
 }
 
 

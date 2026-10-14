@@ -347,6 +347,22 @@ export async function createTagUse(
 }
 
 
+// asks for the directory listing to be verified, locks the tag until staff review it
+export async function createTagsDirectoryTagVerification(
+  context: RequestContext,
+  tagId: string,
+): Promise<RestResponsesRaw.CreateTagsDirectoryTagVerification> {
+  const params = {tagId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.TAGS_DIRECTORY_TAG_VERIFY,
+      params,
+    },
+  });
+}
+
+
 export async function createUserCommand(
   context: RequestContext,
   userId: string,
@@ -594,6 +610,21 @@ export async function deleteTag(
   });
 }
 
+// cancels a pending verification request, unlocking the tag
+export async function deleteTagsDirectoryTagVerification(
+  context: RequestContext,
+  tagId: string,
+): Promise<RestResponsesRaw.DeleteTagsDirectoryTagVerification> {
+  const params = {tagId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.TAGS_DIRECTORY_TAG_VERIFY,
+      params,
+    },
+  });
+}
+
 // rename
 export async function deleteTagsServer(
   context: RequestContext,
@@ -781,6 +812,7 @@ export async function editTagsDirectoryTag(
   options: RestOptions.EditTagsDirectoryTag,
 ): Promise<RestResponsesRaw.EditTagsDirectoryTag> {
   const body = {
+    content_public: options.contentPublic,
     description: options.description,
     title: options.title,
   };
@@ -6641,7 +6673,7 @@ export async function utilitiesCodeRun(
 export async function utilitiesFetchMedia(
   context: RequestContext,
   options: RestOptions.UtilitiesFetchMedia,
-): Promise<RestResponsesRaw.FileResponse> {
+): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
     do_not_error: options.doNotError,

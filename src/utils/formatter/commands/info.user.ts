@@ -18,6 +18,7 @@ import {
   Paginator,
   createTimestampMomentFromContext,
   getMemberJoinPosition,
+  jobWaitForResponse,
   toTitleCase,
 } from '../../../utils';
 
@@ -73,7 +74,7 @@ export async function createMessage(
     const response = await utilitiesFetchMedia(context, {
       maxFileSize,
       url: avatarUrl,
-    });
+    }).then((x) => jobWaitForResponse(context, x));
     files.push({
       filename: response.file.filename,
       value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),

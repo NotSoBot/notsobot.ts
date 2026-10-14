@@ -12,6 +12,7 @@ import {
   displayReply,
   findMediaUrlInMessages,
   getOrFetchRealUrl,
+  jobWaitForResponse,
 } from '../../../../utils';
 
 import { BaseContextMenuMessageCommand, ContextMenuMessageArgs } from '../../basecommand';
@@ -63,7 +64,7 @@ export default class TranslateCommand extends BaseContextMenuMessageCommand {
   async run(context: Interaction.InteractionContext, args: TranslateCommandArgs) {
     const to = await DefaultParameters.locale(context);
     if (args.url) {
-      const response = await utilitiesFetchMedia(context, {url: args.url});
+      const response = await utilitiesFetchMedia(context, {url: args.url}).then((x) => jobWaitForResponse(context, x));
       const file = {
         filename: response.file.filename,
         value: (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0),

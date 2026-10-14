@@ -9,7 +9,7 @@ import {
   Paginator,
   chunkArray,
   displayReply,
-  jobWaitForResult,
+  jobWaitForResponse,
   shuffleArray,
 } from '../../../utils';
 
@@ -53,24 +53,12 @@ export async function createMessage(
           payload.description = Markup.url(Markup.escape.all(result.header), result.url);
         }
 
-        /*
-        const job = await utilitiesFetchMedia(context, {
-          doNotError: true,
-          safe: args.safe,
-          upload: false,
-          url: result.proxy_url,
-        }).then((response) => jobWaitForResult(context, response));
-        if (job.result.response) {
-          const { response } = job.result;
-        }
-        */
-
         const response = await utilitiesFetchMedia(context, {
           doNotError: true,
           safe: args.safe,
           upload: false,
           url: result.proxy_url,
-        });
+        }).then((x) => jobWaitForResponse(context, x));
         if (response) {
           const filename = response.file.filename_safe;
           payload.image = `attachment://${filename}`;

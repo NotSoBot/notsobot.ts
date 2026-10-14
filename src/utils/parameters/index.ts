@@ -880,6 +880,58 @@ export async function tagToAdd(
 }
 
 
+// for `tag directory add`: one of your own tags (name or id) from your DMs with the bot
+export async function tagToAddToDirectory(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<false | null | RestResponsesRaw.Tag> {
+  if (value) {
+    try {
+      let dmChannelId: string | null = null;
+      if (context.inDm && context.hasServerPermissions) {
+        dmChannelId = context.channelId || null;
+      } else {
+        const user = await UserStore.getOrFetch(context, context.userId);
+        dmChannelId = (user && user.channelId) || null;
+      }
+      if (!dmChannelId) {
+        return false;
+      }
+
+      if (isSnowflake(value)) {
+        try {
+          const tag = await fetchTagId(context, value);
+          if (tag.user.id === context.userId && tag.server_id === dmChannelId) {
+            return tag;
+          }
+        } catch(error) {
+          if (!error.response || error.response.statusCode !== 404) {
+            throw error;
+          }
+        }
+        // could still be a tag named after a number, search for it below
+      }
+
+      const tag = await fetchTag(context, {
+        name: value,
+        serverId: dmChannelId,
+      });
+      if (tag.user.id !== context.userId) {
+        return false;
+      }
+      return tag;
+    } catch(error) {
+      if (error.response && error.response.statusCode === 404) {
+        return false;
+      }
+      Sentry.captureException(error);
+      throw error;
+    }
+  }
+  return null;
+}
+
+
 export async function tagFromDirectoryToEdit(
   value: string,
   context: Command.Context | Interaction.InteractionContext,

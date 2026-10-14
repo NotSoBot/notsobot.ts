@@ -339,6 +339,7 @@ import * as TagCommandsRemove from './tag.commands.remove';
 import * as TagCreate from './tag.create';
 import * as TagDirectoryAdd from './tag.directory.add';
 import * as TagDirectoryEdit from './tag.directory.edit';
+import * as TagDirectoryVerify from './tag.directory.verify';
 import * as TagEdit from './tag.edit';
 import * as TagExport from './tag.export';
 import * as TagGenerate from './tag.generate';
@@ -382,6 +383,7 @@ import * as UtilsMemoryUsage from './utils.memory.usage';
 import * as UtilsPing from './utils.ping';
 import * as UtilsPrivacy from './utils.privacy';
 import * as UtilsShards from './utils.shards';
+import * as UtilsTerms from './utils.terms';
 import * as UtilsUndo from './utils.undo';
 import * as UtilsUsage from './utils.usage';
 
@@ -736,6 +738,7 @@ export {
   TagCreate,
   TagDirectoryAdd,
   TagDirectoryEdit,
+  TagDirectoryVerify,
   TagEdit,
   TagExport,
   TagGenerate,
@@ -779,6 +782,7 @@ export {
   UtilsPing,
   UtilsPrivacy,
   UtilsShards,
+  UtilsTerms,
   UtilsUndo,
   UtilsUsage,
 

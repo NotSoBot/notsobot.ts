@@ -25,8 +25,8 @@ export class TagDirectoryAddCommand extends BaseInteractionCommandOption {
           description: 'Tag to add to directory from DM',
           ...I18n.optionLocalizations('commands.tag.directory.add.tag'),
           required: true,
-          value: Parameters.tagToAdd,
-          onAutoComplete: Parameters.AutoComplete.tagsToAdd,
+          value: Parameters.tagToAddToDirectory,
+          onAutoComplete: Parameters.AutoComplete.tagsToAddToDirectory,
         },
       ],
     });
