@@ -24,7 +24,7 @@ export async function createMessage(
     return displayReply(context, {description: translate('voice_delete.you_have_no_cloned_voices')});
   }
 
-  const voice = findVoice(voices, args.voice);
+  const voice = findVoice(voices, args.voice, true);
   if (!voice) {
     return displayReply(context, {description: translate('voice_delete.no_cloned_voices_found_matching_that')});
   }

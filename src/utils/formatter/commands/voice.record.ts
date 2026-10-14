@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { DiscordOpusFormat } from 'detritus-client/lib/constants';
+import { DiscordOpusFormat, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { Writer as WavWriter } from 'wav';
@@ -35,7 +35,12 @@ export async function createMessage(
   }
 
   const channel = member.voiceState.channel;
-  if (!channel || !channel.canJoin) {
+  // canJoin only checks the bot, also make sure the invoker can view/connect to the target's channel
+  const invoker = context.member;
+  if (!invoker || !channel || !channel.can([Permissions.VIEW_CHANNEL, Permissions.CONNECT], invoker)) {
+    return displayReply(context, {description: translateMaybe('voice_record.you_cannot_access_that_channel', 'You cannot view or connect to that voice channel')});
+  }
+  if (!channel.canJoin) {
     return displayReply(context, {description: translate('voice_record.cannot_join_ur_channel')});
   }
 

@@ -81,7 +81,7 @@ export async function createCommandsAllowlistsEmbed(
               }; break;
             }
             return [
-              translate('moderation_commands_allowlist.added', {addedAtText: moment(allowed.added).locale(language).fromNow(), command: allowed.command, index: (i * pageNumber) + 1}),
+              translate('moderation_commands_allowlist.added', {addedAtText: moment(allowed.added).locale(language).fromNow(), command: allowed.command, index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1}),
               `-> ${type}`,
               translate('moderation_commands_allowlist.by', {userId: allowed.userId}),
             ].join('\n');

@@ -20,8 +20,46 @@ setGlobalDispatcher(new Agent({
 if (process.env.SENTRY_DSN) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
+    // the process handlers below capture these themselves, sentry's own would double report them (and they only exist
+    // when a dsn is set)
+    integrations: (integrations) => {
+      return integrations.filter((integration) => {
+        return integration.name !== 'OnUncaughtException' && integration.name !== 'OnUnhandledRejection';
+      });
+    },
   });
 }
+
+// without a handler node kills the whole cluster (and its 8 shards) on any stray rejection, so log + report and keep going
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection', reason);
+  if (Sentry.isInitialized()) {
+    Sentry.captureException(reason);
+  }
+});
+
+// a thrown exception can leave things half updated (gateway sockets, caches, timers), so report it and exit, the
+// cluster manager respawns the process
+let isExitingFromException = false;
+process.on('uncaughtException', async (error) => {
+  console.error('Uncaught Exception', error);
+  if (isExitingFromException) {
+    return;
+  }
+  isExitingFromException = true;
+  if (Sentry.isInitialized()) {
+    Sentry.captureException(error);
+    try {
+      await Sentry.flush(2000);
+    } catch(e) {
+
+    }
+  }
+  process.exit(1);
+});
+
+// expected rest errors (missing/deleted things, no permissions, ratelimits the lib retries) aren't worth a sentry event
+const SENTRY_IGNORED_REST_STATUSES = [403, 404, 429];
 
 const cluster = new ClusterClient('', {
   cache: {
@@ -30,7 +68,6 @@ const cluster = new ClusterClient('', {
     messages: {expire: 6 * 60 * 60 * 1000}, // messages expire after 6 hours
   },
   gateway: {
-    compress: false,
     identifyProperties: {
       $browser: 'Discord iOS',
     },
@@ -62,8 +99,14 @@ const cluster = new ClusterClient('', {
       } else {
         const message = `Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.method}-${response.request.url} (${route.path})`;
         console.log(message);
-        console.log(await response.text());
-        Sentry.captureException(new Error(message));
+        try {
+          console.log(await response.text());
+        } catch(error) {
+
+        }
+        if (!SENTRY_IGNORED_REST_STATUSES.includes(response.statusCode)) {
+          Sentry.captureException(new Error(message));
+        }
       }
     }
   });

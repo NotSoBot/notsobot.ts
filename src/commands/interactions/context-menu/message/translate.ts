@@ -42,10 +42,15 @@ export default class TranslateCommand extends BaseContextMenuMessageCommand {
   ];
 
   async onBeforeRun(context: Interaction.InteractionContext, args: TranslateCommandArgs) {
-    args.text = args.message.content;
-    args.url = findMediaUrlInMessages([args.message]);
-    if (args.url) {
-      args.url = await getOrFetchRealUrl(context, args.url);
+    args.text = args.message.content || '';
+    // translate the message's own text when it has any, any media (even an embed thumbnail from a link) used to make
+    // it ocr the image instead. only look for media when there's no text besides links
+    const hasText = !!args.text.replace(/https?:\/\/\S+/gi, '').trim();
+    if (!hasText) {
+      args.url = findMediaUrlInMessages([args.message]);
+      if (args.url) {
+        args.url = await getOrFetchRealUrl(context, args.url);
+      }
     }
     return !!(args.text || args.url);
   }

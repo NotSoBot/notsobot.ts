@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup, addQuery } from 'detritus-client/lib/utils';
 
-import { searchUrban, searchUrbanRandom } from '../../../api';
+import { moderationSafetyScan, searchUrban, searchUrbanRandom } from '../../../api';
 import { getCachedTranslator, getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
-import { DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../../constants';
+import { DateMomentLogFormat, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
 import {
   DisplayPayload,
   Paginator,
@@ -26,12 +26,51 @@ export async function createMessage(
   const { language, translate, translateMaybe } = await getTranslator(context);
   const results = await ((args.query) ? searchUrban(context, {query: args.query}) : searchUrbanRandom(context));
   if (results.length) {
+    // page => whether the definition was blocked by the safety scan
+    const blockedCached: Record<number, boolean> = {};
+
     const pageLimit = results.length;
     const paginator = new Paginator(context, {
       pageLimit,
-      onPage: (page) => {
-        const payload = createPayload(context, results[page - 1]);
-        payload.footer = translate('search_urban.page_of_urban_dictionary_results', {page: page, pageLimit: pageLimit});
+      onPage: async (page) => {
+        const result = results[page - 1];
+        const footer = translate('search_urban.page_of_urban_dictionary_results', {page: page, pageLimit: pageLimit});
+
+        if (!(page in blockedCached)) {
+          // the safety scan endpoint accepts at most 4000 characters of text
+          const text = [result.word, result.definition, result.example].filter(Boolean).join('\n').trim().slice(0, 4000);
+          if (text) {
+            try {
+              const response = await moderationSafetyScan(context, {
+                logFlags: true,
+                safe: true,
+                sourceUrl: result.permalink,
+                text,
+              });
+              blockedCached[page] = !!(response.text && response.text.unsafe);
+            } catch(error) {
+              // fail closed, hide the definition if the safety scan fails
+              console.error('Failed to scan urban dictionary definition', error);
+              blockedCached[page] = true;
+            }
+          } else {
+            blockedCached[page] = false;
+          }
+        }
+
+        if (blockedCached[page]) {
+          return {
+            display: {
+              color: EmbedColors.DEFAULT,
+              description: `${StatusEmojis.WARNING} ${translate('search_urban.definition_blocked')}`,
+              footer,
+              footerIconUrl: EmbedBrands.URBAN,
+            },
+          };
+        }
+
+        const payload = createPayload(context, result);
+        payload.footer = footer;
         payload.footerIconUrl = EmbedBrands.URBAN;
 
         return {display: payload};

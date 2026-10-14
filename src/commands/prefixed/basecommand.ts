@@ -15,7 +15,6 @@ import {
   GuildFeatures,
   RatelimitKeys,
   UserFlags,
-  UserPremiumTypes,
 } from '../../constants';
 import { I18n, Parameters, displayReply, findMediaUrlInMessages } from '../../utils';
 
@@ -96,11 +95,8 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           const user = await UserStore.getOrFetch(context, context.userId);
           if (user) {
             if (metadata.premiumPlus) {
-              hasPremium = (
-                (user.premiumType === UserPremiumTypes.PREMIUM_FREE) ||
-                (user.premiumType === UserPremiumTypes.PREMIUM_PLUS) ||
-                (user.hasFlag(UserFlags.OWNER))
-              );
+              // PLUS_AI subscribers were locked out of plus commands
+              hasPremium = user.isPremiumPlus || user.hasFlag(UserFlags.OWNER);
             } else {
               hasPremium = !!user.premiumType || user.hasFlag(UserFlags.OWNER);
             }

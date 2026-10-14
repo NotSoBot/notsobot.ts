@@ -85,6 +85,8 @@ async function replyMediaUrlNotFound(
 export class BaseInteractionCommand extends Interaction.InteractionCommand {
   _commandIds?: Collections.BaseSet<string>;
   blockedCommandShouldStillExecute = true;
+  // commands that answer with a modal can't be deferred first (a deferred interaction can't open a modal)
+  respondsWithModal = false;
   error = 'Command';
 
   get commandIds() {
@@ -139,7 +141,8 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 
   onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
     return new Promise(async (resolve) => {
-      if (!context.responded && UserSettingsStore.has(context.userId)) {
+      const respondsWithModal = !!(context.invoker as any).respondsWithModal || !!(context.command as any).respondsWithModal;
+      if (!context.responded && !respondsWithModal && UserSettingsStore.has(context.userId)) {
         const settings = UserSettingsStore.get(context.userId)!;
         switch (settings.application_command_response_type) {
           case UserSettingsApplicationCommandResponseTypes.EPHEMERAL: {
@@ -590,6 +593,17 @@ export class BaseSlashCommand extends BaseInteractionCommand {
 }
 
 
+// context menus are user installable so they're global by default, but when scoped to `guildIds` they must not also be
+// global or they get registered twice and show up as duplicates in those guilds' Apps menu
+// (a `global = true` class field used to override detritus' `global = false` for commands with `guildIds`)
+function isContextMenuGlobal(data: Interaction.InteractionCommandOptions): boolean {
+  if (data.global !== undefined) {
+    return !!data.global;
+  }
+  return !(data.guildIds && data.guildIds.length);
+}
+
+
 export interface ContextMenuMessageArgs {
   message: Structures.Message,
 }
@@ -598,13 +612,13 @@ export class BaseContextMenuMessageCommand extends BaseInteractionCommand {
   error = 'Message Context Menu';
   type = ApplicationCommandTypes.MESSAGE;
 
-  global = true;
   permissionsIgnoreClientOwner = true;
   triggerLoadingAfter = 1000;
   triggerLoadingAsEphemeral = true;
 
   constructor(data: Interaction.InteractionCommandOptions = {}) {
-    super(Object.assign({guildIds: ['178313653177548800', '621077547471601685']}, data));
+    super(data);
+    this.global = isContextMenuGlobal(data);
   }
 }
 
@@ -618,11 +632,13 @@ export class BaseContextMenuUserCommand extends BaseInteractionCommand {
   error = 'User Context Menu';
   type = ApplicationCommandTypes.USER;
 
-  global = true;
   permissionsIgnoreClientOwner = true;
+  // same as message/slash commands, defer before discord's 3s window runs out on slow api calls
+  triggerLoadingAfter = 1000;
   triggerLoadingAsEphemeral = true;
 
   constructor(data: Interaction.InteractionCommandOptions = {}) {
-    super(Object.assign({guildIds: ['178313653177548800']}, data));
+    super(data);
+    this.global = isContextMenuGlobal(data);
   }
 }

@@ -5,6 +5,8 @@ import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
+import { sendReport } from './report.bug';
+
 
 export const COMMAND_NAME = 'report user';
 
@@ -29,9 +31,6 @@ export default class ReportUserCommand extends BaseCommand {
         usage: '<user:id|mention> <reason>',
       },
       priority: -1,
-      ratelimits: [
-        {duration: 60000, limit: 1, key: Formatter.Commands.Report.COMMAND_ID, type: 'user'},
-      ],
       type: Parameters.string({maxLength: Formatter.Commands.Report.MAX_CONTENT_LENGTH}),
     });
   }
@@ -39,7 +38,7 @@ export default class ReportUserCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const { rest, target } = Formatter.Commands.Report.splitTarget(args.content);
     const user = (target) ? await Parameters.memberOrUser()(target, context) : undefined;
-    return Formatter.Commands.Report.createMessage(context, {
+    return sendReport(this, context, {
       content: rest,
       type: ReportTypes.USER,
       user,

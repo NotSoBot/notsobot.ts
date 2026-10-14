@@ -10,7 +10,8 @@ export function parseComponentFromData(
   isChildFromParameter?: 'accessory' | 'components',
   translate: Translator['translate'] = getTranslatorForLanguage(Languages.ENGLISH).translate,
 ): Record<string, any> {
-  if (typeof(data) !== 'object') {
+  // `typeof null` is 'object' too, `{"components":[null]}` crashed on `data.type`
+  if (!data || typeof(data) !== 'object' || Array.isArray(data)) {
     throw new Error(translate('tagscript.components.components_must_be_objects'));
   }
   switch (data.type) {
@@ -40,7 +41,8 @@ export function parseComponentFromData(
         isChildFrom !== undefined &&
         (
           isChildFrom !== MessageComponentTypes.ACTION_ROW &&
-          (isChildFrom !== MessageComponentTypes.SECTION && isChildFromParameter !== 'accessory')
+          // only an action row or a section's accessory (`&&` here let buttons into a section's components)
+          !(isChildFrom === MessageComponentTypes.SECTION && isChildFromParameter === 'accessory')
         )
       ) {
         throw new Error(translate('tagscript.components.buttons_must_only_be_in_action_rows_or'));
@@ -97,7 +99,8 @@ export function parseComponentFromData(
         } else if (typeof(data.accent_color) === 'object' && Array.isArray(data.accent_color) && data.accent_color.length === 3) {
           // is rgb
           try {
-            const [r, g, b] = data.accent_color.map((x) => parseInt(x) || 0);
+            // each channel clamped to 0-255, `[999,0,0]` used to spill into the other channels' bits
+            const [r, g, b] = data.accent_color.map((x: any) => Math.max(0, Math.min(255, parseInt(x) || 0)));
             container.accent_color = (r << 16) | (g << 8) | b;
           } catch(error) {
             // this should not happen
@@ -126,7 +129,7 @@ export function parseComponentFromData(
         throw new Error(translate('tagscript.components.files_must_be_a_parent_component_or_inside'));
       }
 
-      if (!data.file || typeof(data.file) !== 'object' || !data.file.url) {
+      if (!data.file || typeof(data.file) !== 'object' || typeof(data.file.url) !== 'string' || !data.file.url) {
         throw new Error(translate('tagscript.components.file_must_contain_a_media_object'));
       }
 
@@ -163,7 +166,7 @@ export function parseComponentFromData(
         if (!x || typeof(x) !== 'object') {
           throw new Error(translate('tagscript.components.media_gallery_items_must_be_objects'));
         }
-        if (!x.media || typeof(x.media) !== 'object' || !x.media.url) {
+        if (!x.media || typeof(x.media) !== 'object' || typeof(x.media.url) !== 'string' || !x.media.url) {
           throw new Error(translate('tagscript.components.media_gallery_items_must_contain_a_media_object'));
         }
         const item: Record<string, any> = {
@@ -283,7 +286,8 @@ export function parseComponentFromData(
         isChildFrom !== undefined &&
         (
           isChildFrom !== MessageComponentTypes.CONTAINER &&
-          (isChildFrom !== MessageComponentTypes.SECTION && isChildFromParameter !== 'components')
+          // only a container or a section's components (`&&` here let text displays be a section's accessory)
+          !(isChildFrom === MessageComponentTypes.SECTION && isChildFromParameter === 'components')
         )
       ) {
         throw new Error(translate('tagscript.components.text_displays_must_be_a_parent_component_or'));
@@ -302,7 +306,7 @@ export function parseComponentFromData(
         throw new Error(translate('tagscript.components.thumbnails_must_only_be_in_section_accessories'));
       }
 
-      if (!data.media || typeof(data.media) !== 'object' || !data.media.url) {
+      if (!data.media || typeof(data.media) !== 'object' || typeof(data.media.url) !== 'string' || !data.media.url) {
         throw new Error(translate('tagscript.components.thumbnails_must_contain_a_media_object'));
       }
   

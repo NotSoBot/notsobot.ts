@@ -381,6 +381,7 @@ export class GuildSettingsCommandsBlocklist extends BaseStructure {
 const keysGuildSettingsLogger = new Collections.BaseSet<string>([
   NotSoApiKeys.ADDED,
   NotSoApiKeys.CHANNEL_ID,
+  NotSoApiKeys.DISABLED_EVENTS,
   NotSoApiKeys.GUILD_ID,
   NotSoApiKeys.TYPE,
   NotSoApiKeys.USER_ID,

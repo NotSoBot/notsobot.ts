@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, MediaEyeTypes } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -15,7 +15,8 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
 
       aliases: ['eye'],
       args: [
-        {name: 'type', choices: Object.values(MediaEyeTypes), help: `Must be one of: (${Object.values(MediaEyeTypes).join(', ')})`},
+        // case insensitive, the choices are uppercase so the documented `-type spongebob` always failed
+        {name: 'type', type: Parameters.oneOf({choices: MediaEyeTypes})},
       ],
       metadata: {
         description: 'Attach eyes to people\'s faces in an Image or Video',

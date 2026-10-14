@@ -72,6 +72,7 @@ export async function removeAllowlist(
 
     settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
 
+    // the api only takes {id, type} and leaves rows that already exist alone, so the remaining entries keep their added/userId
     const allowlist = new Collections.BaseCollection<string, {id: string, type: string}>();
     for (let [key, allowed] of settings.allowlist) {
       allowlist.set(key, {id: allowed.id, type: allowed.type});

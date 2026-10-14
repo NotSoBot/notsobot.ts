@@ -33,6 +33,7 @@ import { RestResponsesRaw } from '../../api/types';
 import {
   GoogleLocales,
   GoogleLocalesText,
+  TimezonesToText,
   TTSVoices,
   TTSVoicesToText,
   UserSettingsFallbacksMediaImageTypes,
@@ -45,6 +46,7 @@ import {
   TagFormatter,
   durationToMilliseconds,
   fetchMemberOrUserById,
+  fetchMessageFromJumpLink,
   findMediaUrlInEmbed,
   findMediaUrlInMessage,
   findMediaUrlsInMessage,
@@ -76,6 +78,23 @@ import * as Slash from './slash';
 export { AutoComplete, ContextMenu, Prefixed, Slash };
 
 export * from './prefixed';
+
+
+// the replied to message can be deleted or in a channel we can't read, treat that as no reply instead of erroring
+async function fetchReplyMessage(context: Command.Context): Promise<Structures.Message | null> {
+  const { messageReference } = context.message;
+  if (messageReference && messageReference.messageId) {
+    if (messageReference.message) {
+      return messageReference.message;
+    }
+    try {
+      return await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+    } catch(error) {
+
+    }
+  }
+  return null;
+}
 
 
 
@@ -261,7 +280,8 @@ export function nlpTimestamp(
     instant = new Date();
   }
 
-  if (value.toLowerCase().startsWith('me')) {
+  // `.remind me in 5 minutes`, only the word "me" (this used to strip "me" off of "meeting" too)
+  if (/^me(\s|$)/i.test(value)) {
     value = value.slice(2).trim();
   }
 
@@ -382,9 +402,12 @@ export function percentage(value: number | string): number {
   if (isNaN(percentage)) {
     return percentage;
   }
-  return Math.max(0, Math.min(percentage / 100));
+  // `Math.min` was missing its upper bound, so "500%" came out as 5
+  return Math.max(0, Math.min(percentage / 100, 1));
 }
 
+
+const MAX_PHOSIMP_FILTER = 1256;
 
 export function phosimpFilters(value: string, context?: Command.Context | Interaction.InteractionContext): Array<number> {
   if (value) {
@@ -393,7 +416,8 @@ export function phosimpFilters(value: string, context?: Command.Context | Intera
       if (isNaN(filter)) {
         throw new Error(getCachedTranslator(context).translate('params.phosimp_number'));
       }
-      if (filter < 0) {
+      // the api's filters go from 0 to 1256 (the message said 999 and only negatives were rejected here)
+      if (filter < 0 || MAX_PHOSIMP_FILTER < filter) {
         throw new Error(getCachedTranslator(context).translate('params.phosimp_range'));
       }
       return filter;
@@ -510,6 +534,10 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
     let duration = seconds(valueString, allowFloats, context);
     if (isNegative && 0 < duration) {
       duration = -duration;
+    }
+    // `-5` parsed fine and went straight through for commands that don't take negatives (voice record, ban clean)
+    if (!allowNegatives && duration < 0) {
+      throw new Error(getCachedTranslator(context).translate('params.time_format', {text: Markup.codestring(valueString)}));
     }
 
     if (allowFloats) {
@@ -644,11 +672,8 @@ export async function url(
   }
 
   if (context instanceof Command.Context) {
-    const { messageReference } = context.message;
-    if (messageReference && messageReference.messageId) {
-      const message = messageReference.message || await context.rest.fetchMessage(
-        messageReference.channelId, messageReference.messageId,
-      );
+    const message = await fetchReplyMessage(context);
+    if (message) {
       if (message.content) {
         return url(message.content, context);
       }
@@ -701,7 +726,7 @@ export async function tagCustomCommand(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<false | null | RestResponsesRaw.Tag> {
-  let tag: false | null | RestResponsesRaw.Tag = null;
+  let tag: null | RestResponsesRaw.Tag = null;
   if (value) {
     if (isSnowflake(value)) {
       try {
@@ -745,8 +770,10 @@ export async function tagCustomCommand(
         }
       }
     }
+    // a tag id from somewhere else isn't one of this server's (or the user's) commands, don't let it be removed from here
+    return false;
   }
-  return tag;
+  return null;
 }
 
 
@@ -775,11 +802,8 @@ export async function tagContent(
 
       // check for reply and if it has an image
       {
-        const { messageReference } = context.message;
-        if (messageReference && messageReference.messageId) {
-          const message = messageReference.message || await context.rest.fetchMessage(
-            messageReference.channelId, messageReference.messageId,
-          );
+        const message = await fetchReplyMessage(context);
+        if (message) {
           const urls = findUrlsInMessages([message]);
           if (urls.length) {
             return [
@@ -906,6 +930,47 @@ export async function tagFromDirectoryToEdit(
 }
 
 
+// `alaska`, `mst` or `America/Anchorage` -> a timezone we support, same matching as the slash command autocomplete
+// returns null when nothing matches (and undefined when nothing was given)
+export function timezone(
+  value: string,
+  context?: Command.Context | Interaction.InteractionContext,
+): string | null | undefined {
+  value = (value || '').trim();
+  if (!value) {
+    return undefined;
+  }
+  const lowered = value.toLowerCase().replace(/\s\s+/g, ' ');
+  for (let key in TimezonesToText) {
+    if (key.toLowerCase() === lowered) {
+      return key;
+    }
+  }
+  const searchKey = lowered.replace(/\s/g, '_');
+  const matches: Array<[string, string]> = [];
+  for (let key in TimezonesToText) {
+    const text = (TimezonesToText as any)[key] as string;
+    if (!text) {
+      continue;
+    }
+    if (key.toLowerCase().includes(searchKey) || text.toLowerCase().includes(lowered)) {
+      matches.push([key, text]);
+    }
+  }
+  if (!matches.length) {
+    return null;
+  }
+  // prefer an exact abbreviation like `(MST)` over a partial match, and the main zone for shared ones
+  // (`pst` is Pacific Time, not the Pitcairn Islands)
+  const abbreviations = matches.filter(([key, text]) => text.toLowerCase().endsWith(`(${lowered})`));
+  if (abbreviations.length) {
+    const main = abbreviations.find(([key, text]) => text.includes(' Time ('));
+    return (main || abbreviations[0])[0];
+  }
+  return matches.sort((x, y) => x[1].localeCompare(y[1]))[0][0];
+}
+
+
 export async function targetText(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
@@ -919,10 +984,12 @@ export async function targetText(
       {
         const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
         if (messageLink.matches.length) {
-          const [ { channelId, messageId } ] = messageLink.matches;
+          const [ { channelId, guildId, messageId } ] = messageLink.matches;
           if (channelId && messageId) {
-            const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-            if (message.content) {
+            const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
+            if (!message) {
+              // the user can't read that channel, don't leak it
+            } else if (message.content) {
               value = message.content;
             } else if (message.embeds.length) {
               for (let [embedId, embed] of message.embeds) {
@@ -948,11 +1015,8 @@ export async function targetText(
   if (!value) {
     // check if reply exists
     if (context instanceof Command.Context) {
-      const { messageReference } = context.message;
-      if (messageReference && messageReference.messageId) {
-        const message = messageReference.message || await context.rest.fetchMessage(
-          messageReference.channelId, messageReference.messageId,
-        );
+      const message = await fetchReplyMessage(context);
+      if (message) {
         if (message.content) {
           value = message.content;
         } else if (message.embeds.length) {
@@ -1069,6 +1133,8 @@ export function channel(options: ChannelOptions = {}) {
       }
       const { guild } = context;
       if (guild) {
+        // channel names were lowercased but the input wasn't, so "General" never matched
+        const insensitive = value.toLowerCase().replace(/^#/, '');
         let channels: Array<Structures.Channel>;
 
         const { types: channelTypes } = options;
@@ -1079,12 +1145,12 @@ export function channel(options: ChannelOptions = {}) {
         }
         channels = channels.sort((x, y) => (x.position || 0) - (y.position || 0));
         for (let channel of channels) {
-          if (channel.name.toLowerCase().startsWith(value)) {
+          if (channel.name.toLowerCase().startsWith(insensitive)) {
             return channel;
           }
         }
         for (let channel of channels) {
-          if (channel.name.toLowerCase().includes(value)) {
+          if (channel.name.toLowerCase().includes(insensitive)) {
             return channel;
           }
         }
@@ -1412,11 +1478,8 @@ export function mediaUrl(
 
           // check for reply and if it has a url
           {
-            const { messageReference } = context.message;
-            if (messageReference && messageReference.messageId) {
-              const message = messageReference.message || await context.rest.fetchMessage(
-                messageReference.channelId, messageReference.messageId,
-              );
+            const message = await fetchReplyMessage(context);
+            if (message) {
               const url = findUrlInMessages([message], mediaSearchOptions);
               if (url) {
                 return getOrFetchRealUrl(context, url, mediaSearchOptions);
@@ -1442,10 +1505,10 @@ export function mediaUrl(
             {
               const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
               if (messageLink.matches.length) {
-                const [ { channelId, messageId } ] = messageLink.matches;
+                const [ { channelId, guildId, messageId } ] = messageLink.matches;
                 if (channelId && messageId) {
-                  const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-                  const url = findMediaUrlInMessages([message], mediaSearchOptions);
+                  const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
+                  const url = (message) ? findMediaUrlInMessages([message], mediaSearchOptions) : null;
                   if (url) {
                     return url;
                   }
@@ -1572,9 +1635,10 @@ export function mediaUrl(
                   query: value,
                   safe: DefaultParameters.safe(context),
                 });
-                const page = Math.floor(Math.random() * results.length);
-                const result = results[page];
-                return result.imageUrl;
+                if (results.length) {
+                  const result = results[Math.floor(Math.random() * results.length)];
+                  return result.imageUrl;
+                }
               }; break;
               case UserSettingsFallbacksMediaImageTypes.IMAGINE: {
                 const job = await utilitiesMLImagine(context, {
@@ -1597,9 +1661,11 @@ export function mediaUrl(
                   query: value,
                   safe: DefaultParameters.safe(context),
                 });
-                const page = Math.floor(Math.random() * results.length);
-                const result = results[page];
-                return result.image;
+                if (results.length) {
+                  // `image` is an object, the proxied url is the actual string (same as mediaUrls and the ddg command)
+                  const result = results[Math.floor(Math.random() * results.length)];
+                  return result.proxy_url;
+                }
               }; break;
             }
           }
@@ -1650,11 +1716,8 @@ export function mediaUrls(
 
         // check for reply and if it has an attachments/embed/stickers
         if (urls.length < maxAmount) {
-          const { messageReference } = context.message;
-          if (messageReference && messageReference.messageId) {
-            const message = messageReference.message || await context.rest.fetchMessage(
-              messageReference.channelId, messageReference.messageId,
-            );
+          const message = await fetchReplyMessage(context);
+          if (message) {
             for (let url of findMediaUrlsInMessage(message, mediaSearchOptions)) {
               urls.push(url);
             }
@@ -1697,10 +1760,10 @@ export function mediaUrls(
               {
                 const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
                 if (messageLink.matches.length) {
-                  const [ { channelId, messageId } ] = messageLink.matches;
+                  const [ { channelId, guildId, messageId } ] = messageLink.matches;
                   if (channelId && messageId) {
-                    const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-                    const url = findMediaUrlInMessages([message], mediaSearchOptions);
+                    const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
+                    const url = (message) ? findMediaUrlInMessages([message], mediaSearchOptions) : null;
                     if (url) {
                       foundFromText = true;
                       urls.push(url);
@@ -1791,12 +1854,16 @@ export function mediaUrls(
           {
             const emojis = onlyEmoji(part);
             if (emojis && emojis.length) {
+              foundFromText = true;
               for (let emoji of emojis) {
-                foundFromText = true;
+                if (maxAmount <= urls.length) {
+                  break;
+                }
                 const codepoint = toCodePointForTwemoji(emoji);
                 urls.push(CUSTOM.TWEMOJI_SVG(codepoint));
-                continue;
               }
+              // the `continue` used to be inside the emoji loop, so it fell through to the user search below
+              continue;
             }
           }
 
@@ -1839,13 +1906,19 @@ export function mediaUrls(
           if (shouldFallback) {
             switch (settings.fallbacks_media_image) {
               case UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES: {
-                const results = await searchGoogleImages(context, {
-                  query: value,
-                  safe: DefaultParameters.safe(context),
-                });
-                const page = Math.floor(Math.random() * results.length);
-                const result = results[page];
-                urls.push(result.imageUrl);
+                // a failed search or no results just means no fallback, it'll keep looking in the channel's messages
+                try {
+                  const results = await searchGoogleImages(context, {
+                    query: value,
+                    safe: DefaultParameters.safe(context),
+                  });
+                  if (results.length) {
+                    const result = results[Math.floor(Math.random() * results.length)];
+                    urls.push(result.imageUrl);
+                  }
+                } catch(error) {
+
+                }
               }; break;
               case UserSettingsFallbacksMediaImageTypes.IMAGINE: {
                 const job = await utilitiesMLImagine(context, {
@@ -1864,13 +1937,18 @@ export function mediaUrls(
                 }
               }; break;
               case UserSettingsFallbacksMediaImageTypes.SEARCH_DUCK_DUCK_GO_IMAGES: {
-                const { results } = await searchDuckDuckGoImages(context, {
-                  query: value,
-                  safe: DefaultParameters.safe(context),
-                });
-                const page = Math.floor(Math.random() * results.length);
-                const result = results[page];
-                urls.push(result.proxy_url);
+                try {
+                  const { results } = await searchDuckDuckGoImages(context, {
+                    query: value,
+                    safe: DefaultParameters.safe(context),
+                  });
+                  if (results.length) {
+                    const result = results[Math.floor(Math.random() * results.length)];
+                    urls.push(result.proxy_url);
+                  }
+                } catch(error) {
+
+                }
               }; break;
             }
           }
@@ -1938,7 +2016,8 @@ export function mediaUrls(
       }
     }
 
-    if (minAmount && urls.length < minAmount) {
+    // some urls can fail to resolve, check what's actually left
+    if (minAmount && parsedUrls.length < minAmount) {
       throw new Error(getCachedTranslator(context).translate('params.not_enough_media', {amount: minAmount}));
     }
 
@@ -2096,11 +2175,8 @@ export function mediaUrlPositional(
 
         // check for reply and if it has an media
         {
-          const { messageReference } = context.message;
-          if (messageReference && messageReference.messageId) {
-            const message = messageReference.message || await context.rest.fetchMessage(
-              messageReference.channelId, messageReference.messageId,
-            );
+          const message = await fetchReplyMessage(context);
+          if (message) {
             const url = findUrlInMessages([message], mediaSearchOptions);
             if (url) {
               const realUrl = await getOrFetchRealUrl(context, url, mediaSearchOptions);
@@ -2126,10 +2202,10 @@ export function mediaUrlPositional(
             {
               const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
               if (messageLink.matches.length) {
-                const [ { channelId, messageId } ] = messageLink.matches;
+                const [ { channelId, guildId, messageId } ] = messageLink.matches;
                 if (channelId && messageId) {
-                  const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-                  const url = findMediaUrlInMessages([message], mediaSearchOptions);
+                  const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
+                  const url = (message) ? findMediaUrlInMessages([message], mediaSearchOptions) : null;
                   if (url) {
                     return url;
                   }

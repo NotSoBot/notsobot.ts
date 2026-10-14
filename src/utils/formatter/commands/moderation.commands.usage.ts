@@ -85,8 +85,9 @@ export async function createMessage(
       }
       payload.footer = footer;
 
+      // no results means no pages, `pages[0]` is undefined
       const usages = pages[pageNumber - 1];
-      if (usages.length) {
+      if (usages && usages.length) {
         const description: Array<string> = [];
         for (let i = 0; i < usages.length; i++) {
           const usage = usages[i];

@@ -27,6 +27,7 @@ export default class ReportCommand extends BaseSlashCommand {
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.report.name');
   // a deferred interaction can't respond with a modal anymore
+  respondsWithModal = true;
   triggerLoadingAfter = -1;
 
   contexts = [

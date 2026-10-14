@@ -8,6 +8,12 @@ import { LogPayloadFiles } from './types';
 
 export const MAX_EMBED_DESCRIPTION_LENGTH = 4096;
 export const MAX_EMBED_FIELD_VALUE_LENGTH = 1024;
+// every embed in a message shares this, one embed over it makes discord reject the whole batch
+export const MAX_EMBED_TOTAL_LENGTH = 6000;
+
+// message content longer than this gets uploaded as a file instead of filling the log channel
+export const MAX_LOGGED_CONTENT_LENGTH = 2000;
+export const LOGGED_CONTENT_PREVIEW_LENGTH = 300;
 export const MAX_MENTIONS = 10;
 
 // components v2 limits are per message, shared between every container in the webhook request
@@ -49,10 +55,44 @@ export function sanitizeEmbed(embed: Embed): Embed {
         embed.fields.delete(key);
         continue;
       }
-      field.value = truncate(field.value, MAX_EMBED_FIELD_VALUE_LENGTH);
+      field.value = truncateMarkdown(field.value, MAX_EMBED_FIELD_VALUE_LENGTH);
     }
   }
+
+  // last resort for the 6000 total, shrink the description and then the biggest fields
+  let overflow = embed.length - MAX_EMBED_TOTAL_LENGTH;
+  if (0 < overflow && embed.description) {
+    const max = Math.max(embed.description.length - overflow, 32);
+    embed.description = truncateMarkdown(embed.description, max);
+    overflow = embed.length - MAX_EMBED_TOTAL_LENGTH;
+  }
+  while (0 < overflow && embed.fields && embed.fields.length) {
+    const largest = embed.fields.toArray().reduce((x, y) => (x.value.length < y.value.length) ? y : x);
+    const max = Math.max(largest.value.length - overflow, 32);
+    if (largest.value.length <= max) {
+      break;
+    }
+    largest.value = truncateMarkdown(largest.value, max);
+    overflow = embed.length - MAX_EMBED_TOTAL_LENGTH;
+  }
   return embed;
+}
+
+
+// long message content goes into a file, the log just shows a preview and the filename
+export function getLoggedContent(
+  content: string,
+  filename: string,
+  files: LogPayloadFiles,
+): string {
+  if (content.length <= MAX_LOGGED_CONTENT_LENGTH) {
+    return Markup.codeblock(content);
+  }
+  files.push({filename, value: content});
+  return [
+    Markup.codeblock(truncate(content, LOGGED_CONTENT_PREVIEW_LENGTH)),
+    `-> ${Markup.codestring(filename)}`,
+  ].join('\n');
 }
 
 

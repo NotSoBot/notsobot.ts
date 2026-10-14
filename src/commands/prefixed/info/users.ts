@@ -42,13 +42,17 @@ export default class UsersCommand extends BaseCommand {
     if (args.role === null) {
       return false;
     }
-    return !!args.users.length;
+    // the search parameter returns null when nobody matched
+    return !!args.users && !!args.users.length;
   }
 
   async onCancelRun(context: Command.Context, args: Formatter.Commands.InfoUsers.CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
     if (args.role === null) {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('logger.unknown_role')}`});
+    }
+    if (!args.users) {
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
     }
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('info.users.not_found')}`});
   }

@@ -49,7 +49,10 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
       const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
         timeout.start(5000, () => {
-          UserSettingsPromisesStore.delete(userId);
+          // a newer fetch may have replaced this entry after a timeout, only remove our own
+          if (UserSettingsPromisesStore.get(userId)?.promise === promise) {
+            UserSettingsPromisesStore.delete(userId);
+          }
           resolve(null);
         });
 
@@ -61,7 +64,9 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
           resolve(null);
         }
         timeout.stop();
-        UserSettingsPromisesStore.delete(userId);
+        if (UserSettingsPromisesStore.get(userId)?.promise === promise) {
+          UserSettingsPromisesStore.delete(userId);
+        }
       });
       UserSettingsPromisesStore.insert(userId, {promise, timeout});
     }

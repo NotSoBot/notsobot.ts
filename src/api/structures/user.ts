@@ -88,10 +88,12 @@ export class UserFull extends User {
     return this.premiumType === UserPremiumTypes.PREMIUM || this.isPremiumPlus;
   }
 
+  // PLUS_AI is the tier above PLUS and includes it, same as the api's `has_premium_plus`
   get isPremiumPlus(): boolean {
     return (
       (this.premiumType === UserPremiumTypes.PREMIUM_FREE) ||
       (this.premiumType === UserPremiumTypes.PREMIUM_PLUS) ||
+      (this.premiumType === UserPremiumTypes.PREMIUM_PLUS_AI) ||
       this.hasOwner()
     );
   }

@@ -1,6 +1,7 @@
 import { ClusterClient, Collections, Command, Interaction } from 'detritus-client';
 import { EventSubscription, Timers } from 'detritus-utils';
 
+import GuildMetadataStore from './guildmetadata';
 import GuildSettingsStore from './guildsettings';
 import { Store } from './store';
 import UserStore from './users';
@@ -15,6 +16,9 @@ import { RedisPayloads } from '../types';
 
 export type TagCustomCommandStored = Collections.BaseCollection<string, RestResponsesRaw.Tag>;
 
+
+const GUILD_OWNER_ID_CACHE_MAX = 5000;
+const GUILD_OWNER_ID_CACHE_TIME = 10 * 60 * 1000;
 
 class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
   constructor() {
@@ -67,7 +71,10 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
         timeout.start(5000, () => {
-          TagCustomCommandPromisesStore.delete(guildId);
+          // a newer fetch may have replaced this entry after a timeout, only remove our own
+          if (TagCustomCommandPromisesStore.get(guildId)?.promise === promise) {
+            TagCustomCommandPromisesStore.delete(guildId);
+          }
           resolve(null);
         });
 
@@ -85,7 +92,9 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
           resolve(null);
         }
         timeout.stop();
-        TagCustomCommandPromisesStore.delete(guildId);
+        if (TagCustomCommandPromisesStore.get(guildId)?.promise === promise) {
+          TagCustomCommandPromisesStore.delete(guildId);
+        }
       });
       TagCustomCommandPromisesStore.insert(guildId, {promise, timeout});
     }
@@ -121,7 +130,10 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
         timeout.start(5000, () => {
-          TagCustomCommandPromisesStore.delete(userId);
+          // a newer fetch may have replaced this entry after a timeout, only remove our own
+          if (TagCustomCommandPromisesStore.get(userId)?.promise === promise) {
+            TagCustomCommandPromisesStore.delete(userId);
+          }
           resolve(null);
         });
 
@@ -138,7 +150,9 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
           resolve(null);
         }
         timeout.stop();
-        TagCustomCommandPromisesStore.delete(userId);
+        if (TagCustomCommandPromisesStore.get(userId)?.promise === promise) {
+          TagCustomCommandPromisesStore.delete(userId);
+        }
       });
       TagCustomCommandPromisesStore.insert(userId, {promise, timeout});
     }
@@ -159,10 +173,10 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     if (settings && settings.features.has(GuildFeatures.FREE_CUSTOM_COMMANDS)) {
       shouldSearchGuild = true;
     } else {
-      const guild = context.guilds.get(guildId);
-      if (guild) {
-        // get owner
-        const owner = await UserStore.getOrFetch(context, guild.ownerId);
+      // uncached guilds used to skip the owner check entirely, so premium servers lost their custom commands
+      const ownerId = await this.getGuildOwnerId(context, guildId);
+      if (ownerId) {
+        const owner = await UserStore.getOrFetch(context, ownerId);
         if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
           shouldSearchGuild = true;
         }
@@ -173,6 +187,38 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       return await this.getOrFetchGuildCommands(context, guildId);
     }
     return null;
+  }
+
+  // this runs for every message, so a fetched owner id (or a failed fetch) is remembered for a while instead of hitting
+  // the rest api each time
+  guildOwnerIds = new Map<string, {expiresAt: number, ownerId: null | string}>();
+
+  async getGuildOwnerId(
+    context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+    guildId: string,
+  ): Promise<null | string> {
+    const guild = context.guilds.get(guildId) || (GuildMetadataStore.get(guildId) || {}).guild;
+    if (guild) {
+      return guild.ownerId;
+    }
+
+    const cached = this.guildOwnerIds.get(guildId);
+    if (cached && Date.now() < cached.expiresAt) {
+      return cached.ownerId;
+    }
+
+    let ownerId: null | string = null;
+    try {
+      const fetched = await context.rest.fetchGuild(guildId);
+      ownerId = fetched.ownerId;
+    } catch(error) {
+
+    }
+    if (GUILD_OWNER_ID_CACHE_MAX <= this.guildOwnerIds.size) {
+      this.guildOwnerIds.clear();
+    }
+    this.guildOwnerIds.set(guildId, {expiresAt: Date.now() + GUILD_OWNER_ID_CACHE_TIME, ownerId});
+    return ownerId;
   }
 
   async maybeGetOrFetchUserCommands(
@@ -196,11 +242,21 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     return null;
   }
 
+  // server tags only ever go in that server's collection, falling back to the author's personal commands when the
+  // server isn't cached used to add the server's command to them. personal commands are stored on the user's dm
+  // channel id but cached under their user id
+  getCollectionForTag(payload: RedisPayloads.TagUpdate | RedisPayloads.TagDelete): null | TagCustomCommandStored {
+    if (payload.guild_id) {
+      return this.get(payload.guild_id) || null;
+    }
+    return ((payload.server_id) ? this.get(payload.server_id) : null) || this.get(payload.user.id) || null;
+  }
+
   create(cluster: ClusterClient, redis: RedisSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
       const subscription = redis.subscribe(RedisChannels.TAG_DELETE, (payload: RedisPayloads.TagDelete) => {
-        const collection = ((payload.server_id) ? this.get(payload.server_id) : null) || this.get(payload.user.id);
+        const collection = this.getCollectionForTag(payload);
         if (collection) {
           collection.delete(payload.id);
         }
@@ -220,7 +276,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     }
     {
       const subscription = redis.subscribe(RedisChannels.TAG_UPDATE, (payload: RedisPayloads.TagUpdate) => {
-        const collection = ((payload.server_id) ? this.get(payload.server_id) : null) || this.get(payload.user.id);
+        const collection = this.getCollectionForTag(payload);
         if (collection) {
           if (payload.is_command) {
             collection.set(payload.id, payload);

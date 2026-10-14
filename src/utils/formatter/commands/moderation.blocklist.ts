@@ -81,7 +81,7 @@ export async function createBlocklistEmbed(
             description = `${description} ||(${blocked.id})||`;
 
             return [
-              translate('moderation.entry_added', {index: (i * pageNumber) + 1, type, when: moment(blocked.added).locale(language).fromNow()}),
+              translate('moderation.entry_added', {index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1, type, when: moment(blocked.added).locale(language).fromNow()}),
               `-> ${description}`,
               `-> ${translate('logger.by', {user: `<@${blocked.userId}>`})}`,
             ].join('\n');

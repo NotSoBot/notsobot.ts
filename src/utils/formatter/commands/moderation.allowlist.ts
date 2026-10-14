@@ -81,7 +81,7 @@ export async function createAllowlistEmbed(
             description = `${description} ||(${allowed.id})||`;
 
             return [
-              translate('moderation.entry_added', {index: (i * pageNumber) + 1, type, when: moment(allowed.added).locale(language).fromNow()}),
+              translate('moderation.entry_added', {index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1, type, when: moment(allowed.added).locale(language).fromNow()}),
               `-> ${description}`,
               `-> ${translate('logger.by', {user: `<@${allowed.userId}>`})}`,
             ].join('\n');

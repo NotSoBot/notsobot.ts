@@ -1,11 +1,13 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationOverlayHalfLifeShotgun } from '../../../api';
-import { DefaultParameters, jobReply } from '../../../utils';
+import { getTranslator } from '../../i18n';
+import { DefaultParameters, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.halflife.shotgun';
-export const IS_PIPEABLE = true;
+// disabled until Discord Compliance confirms the half-life weapon props are allowed
+export const IS_PIPEABLE = false;
 
 export interface CommandArgs {
   url: string,
@@ -25,6 +27,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const response = await createJob(context, args);
-  return jobReply(context, response);
+  // disabled until Discord Compliance confirms the half-life weapon props are allowed
+  const { translate } = await getTranslator(context);
+  return displayReply(context, {description: translate('commands.media_iv.overlay.awaiting_compliance')});
 }

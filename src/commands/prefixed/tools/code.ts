@@ -8,6 +8,7 @@ import { BaseCommand } from '../basecommand';
 
 export interface CommandArgs {
   code: string,
+  language?: string,
 }
 
 export const COMMAND_NAME = 'code';
@@ -75,6 +76,17 @@ export default class CodeCommand extends BaseCommand {
       }
     }
     code = codeblock.text;
+
+    // `-language` was declared but never read, it wins over anything detected from the code or attachment
+    if (args.language) {
+      const parsed = getCodeLanguage(args.language.trim());
+      if (!parsed) {
+        const { translate } = await I18n.getTranslator(context);
+        return displayReply(context, {description: translate('tools.code.invalid_language', {languages: Formatter.Commands.ToolsCode.languagesText})});
+      }
+      language = parsed.language;
+      version = parsed.version || null;
+    }
 
     if (!language) {
       const { translate } = await I18n.getTranslator(context);

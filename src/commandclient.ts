@@ -19,6 +19,29 @@ import {
 import { Formatter, getCommandIdFromInvoker } from './utils';
 
 
+
+// detritus' fill() puts an empty collection in the cache before fetching, so commands that run while it's fetching
+// (or after it failed, it was never removed) saw no slash command permission overrides at all
+const applicationCommandPermissionFills = new Map<string, Promise<void>>();
+
+async function fillApplicationCommandPermissions(context: Command.Context, guildId: string): Promise<void> {
+  let promise = applicationCommandPermissionFills.get(guildId);
+  if (!promise) {
+    promise = (async () => {
+      try {
+        await context.client.applicationCommandPermissions.fill(guildId);
+      } catch(error) {
+        context.client.applicationCommandPermissions.delete(guildId);
+        throw error;
+      } finally {
+        applicationCommandPermissionFills.delete(guildId);
+      }
+    })();
+    applicationCommandPermissionFills.set(guildId, promise);
+  }
+  return promise;
+}
+
 export class NotSoCommandClient extends CommandClient {
   async onCommandCheck(context: Command.Context, command: Command.Command) {
     if (context.metadata) {
@@ -26,6 +49,8 @@ export class NotSoCommandClient extends CommandClient {
     }
 
     if (context.user.isClientOwner) {
+      // the timezone and language come from these, so load them before any early return
+      await UserSettingsStore.getOrFetch(context, context.userId);
       return true;
     }
 
@@ -33,6 +58,10 @@ export class NotSoCommandClient extends CommandClient {
     if (!user || user.blocked) {
       return false;
     }
+
+    // load their settings into cache before any early return (dms, admins, allowlists), the timezone and parser
+    // error language are read from the cache only
+    await UserSettingsStore.getOrFetch(context, context.userId);
 
     if (context.inDm) {
       return !command.disableDm;
@@ -57,7 +86,7 @@ export class NotSoCommandClient extends CommandClient {
       });
       if (interactionCommand) {
         try {
-          await context.client.applicationCommandPermissions.fill(guildId);
+          await fillApplicationCommandPermissions(context, guildId);
         } catch(error) {
           
         }
@@ -207,10 +236,6 @@ export class NotSoCommandClient extends CommandClient {
           }
         }
       }
-
-      await UserSettingsStore.getOrFetch(context, context.userId);
-      // load their settings into cache, todo: maybe only load it as needed?
-      // loading as needed breaks the timestamp function in certain situations
 
       return true;
     } else {

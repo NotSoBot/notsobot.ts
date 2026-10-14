@@ -19,12 +19,18 @@ class MessageDeleteListener extends Listener {
         const me = guild && guild.me;
 
         if (me && shard.commandClient) {
-          const bulkToDelete = [];
+          const bulkToDelete: Array<string> = [];
 
-          const { count, results } = await fetchCommandsResponses({client: shard}, {
-            channelId,
-            triggerIds: Array.from(messages.keys()),
-          });
+          // this runs as a bare event handler, anything thrown here would be an unhandled rejection
+          let results: Awaited<ReturnType<typeof fetchCommandsResponses>>['results'];
+          try {
+            ({ results } = await fetchCommandsResponses({client: shard}, {
+              channelId,
+              triggerIds: Array.from(messages.keys()),
+            }));
+          } catch(error) {
+            return;
+          }
 
           for (let result of results) {
             const message = shard.messages.get(result.message_response_id);
@@ -47,15 +53,24 @@ class MessageDeleteListener extends Listener {
             if (me.canManageMessages) {
               for (let i = 0; i < bulkToDelete.length; i += 100) {
                 const messageIds = bulkToDelete.slice(i, i + 100);
-                if (messageIds.length === 1) {
-                  await shard.rest.deleteMessage(channelId, messageIds[0]);
-                } else {
-                  await shard.rest.bulkDeleteMessages(channelId, messageIds);
+                // one failed chunk (already deleted, too old for bulk delete, etc) shouldn't stop the rest
+                try {
+                  if (messageIds.length === 1) {
+                    await shard.rest.deleteMessage(channelId, messageIds[0]);
+                  } else {
+                    await shard.rest.bulkDeleteMessages(channelId, messageIds);
+                  }
+                } catch(error) {
+
                 }
               }
             } else {
               for (let messageId of bulkToDelete) {
-                await shard.rest.deleteMessage(channelId, messageId);
+                try {
+                  await shard.rest.deleteMessage(channelId, messageId);
+                } catch(error) {
+
+                }
               }
             }
           }

@@ -16,11 +16,8 @@ export default class OverlayShotgunCommand extends BaseImageOrVideoCommand {
       aliases: ['o shotgun', 'shotgun'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Overlay a Half Life Shotgun over an Image or Video',
-        examples: [
-          COMMAND_NAME,
-          `${COMMAND_NAME} notsobot`,
-        ],
+        description: 'This command is disabled while we wait for Discord Compliance approval.',
+        examples: [],
         id: Formatter.Commands.MediaIVManipulationOverlayHalfLifeShotgun.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

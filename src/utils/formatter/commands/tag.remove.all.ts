@@ -134,10 +134,11 @@ export async function createMessage(
         }
 
         // the api builds and signs the export (so it can be imported later), that can take longer than discord waits
-        await ctx.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE);
+        // ephemeral like the cached reply above, the first press used to post every user's tags in the channel
+        await ctx.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {flags: MessageFlags.EPHEMERAL});
         const response = await fetchTagsExport(context, serverId, fetchTagsServerSearchOptions);
         exportedTagsFile = {filename: response.filename, value: JSON.stringify(response.export)};
-        return ctx.editOrRespond({content, file: exportedTagsFile});
+        return ctx.editOrRespond({content, file: exportedTagsFile, flags: MessageFlags.EPHEMERAL});
       },
     });
 

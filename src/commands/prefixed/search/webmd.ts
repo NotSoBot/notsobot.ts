@@ -11,7 +11,8 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'webmd';
 
-export default class WebMDCommand extends BaseSearchCommand<CommandArgs> {
+// not registered (no default export) until it has an implementation, the empty `run()` showed up in help and never replied
+export class WebMDCommand extends BaseSearchCommand<CommandArgs> {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

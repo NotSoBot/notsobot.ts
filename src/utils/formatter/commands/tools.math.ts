@@ -27,6 +27,8 @@ export async function createMessage(
     } else {
       content = translate('tools_math.math_equation_errored_out', {message: error.message});
     }
+  } finally {
+    mathWorker.terminate();
   }
 
   return displayReply(context, {description: content});

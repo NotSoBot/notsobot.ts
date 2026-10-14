@@ -16,11 +16,8 @@ export default class OverlayPistolCommand extends BaseImageOrVideoCommand {
       aliases: ['o pistol', 'pistol'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Overlay a Half Life Pistol over an Image or Video',
-        examples: [
-          COMMAND_NAME,
-          `${COMMAND_NAME} notsobot`,
-        ],
+        description: 'This command is disabled while we wait for Discord Compliance approval.',
+        examples: [],
         id: Formatter.Commands.MediaIVManipulationOverlayHalfLifePistol.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

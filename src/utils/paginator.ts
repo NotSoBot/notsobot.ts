@@ -395,7 +395,6 @@ export class Paginator {
             } else {
               await this.custom.message.delete();
             }
-            await this.custom.message.delete();
           } catch(error) {
 
           }
@@ -410,7 +409,7 @@ export class Paginator {
   async resolvePage(pageNumber: number): Promise<Page> {
     let page: Page | undefined;
     if (typeof(this.onPage) === 'function') {
-      page = await Promise.resolve(this.onPage(this.page));
+      page = await Promise.resolve(this.onPage(pageNumber));
     } else {
       if (Array.isArray(this.pages)) {
         if ((pageNumber - 1) in this.pages) {
@@ -522,11 +521,12 @@ export class Paginator {
       await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
 
+    // `attachments: []` drops the old page's files, otherwise discord keeps them and adds the new ones on every page turn
     const message = await this.getPageMessage(this.page);
     if (context) {
-      await context.editOrRespond(message);
+      await context.editOrRespond({...message, attachments: []});
     } else if (this.context instanceof Interaction.InteractionContext) {
-      await this.context.editOrRespond(message);
+      await this.context.editOrRespond({...message, attachments: []});
     } else if (this.message) {
       await this.message.edit({...message, attachments: []});
     }
@@ -713,7 +713,12 @@ export class Paginator {
       } else if (clearButtons) {
         if (context) {
           // the whole page is sent again, temporarily here until they fix ephemeral message component clearing on button press
-          await context.editOrRespond(await this.getPageMessage(this.page, false));
+          // (inside a try so a failing page render doesn't skip the cleanup below)
+          try {
+            await context.editOrRespond({...(await this.getPageMessage(this.page, false)), attachments: []});
+          } catch(error) {
+
+          }
         } else if (this.context instanceof Interaction.InteractionContext && !this.message) {
           try {
             await this.context.editResponse(await this.getButtonsMessage(false));
@@ -733,12 +738,14 @@ export class Paginator {
           }
         }
       }
-      await this.clearCustomMessage();
-
-      this.onError = undefined;
-      this.onExpire = undefined;
-      this.onPage = undefined;
-      this.onPageNumber = undefined;
+      try {
+        await this.clearCustomMessage();
+      } finally {
+        this.onError = undefined;
+        this.onExpire = undefined;
+        this.onPage = undefined;
+        this.onPageNumber = undefined;
+      }
     }
   }
 

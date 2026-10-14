@@ -68,6 +68,8 @@ SLASH_PARAMETERS.VIDEO.SLASH_CHOICES = [...MIMETYPES_AUDIO_EMBEDDABLE, ...MIMETY
 export interface CommandArgs {
   file?: RequestFile,
   noaudio?: boolean,
+  // WIDTHxHEIGHT or a single number for the longest side (images/video, and emojis render at it)
+  size?: string,
   to?: string,
   url: string,
 }

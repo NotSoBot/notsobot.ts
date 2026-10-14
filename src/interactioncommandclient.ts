@@ -167,9 +167,12 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         });
         if (!shouldAllow) {
           if (invoker.blockedCommandShouldStillExecute) {
-            await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-              flags: MessageFlags.EPHEMERAL,
-            });
+            // a modal has to be the first response, and it's private anyway
+            if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
+              await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+                flags: MessageFlags.EPHEMERAL,
+              });
+            }
             return true;
           }
           contextMetadata.reason = translate('blocked.not_in_command_allowlist');
@@ -217,9 +220,12 @@ export class NotSoInteractionClient extends InteractionCommandClient {
           });
           if (shouldIgnore) {
             if (invoker.blockedCommandShouldStillExecute) {
-              await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-                flags: MessageFlags.EPHEMERAL,
-              });
+              // a modal has to be the first response, and it's private anyway
+              if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
+                await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+                  flags: MessageFlags.EPHEMERAL,
+                });
+              }
               return true;
             }
             return false;
@@ -254,9 +260,12 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         });
         if (!shouldAllow) {
           if (invoker.blockedCommandShouldStillExecute) {
-            await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-              flags: MessageFlags.EPHEMERAL,
-            });
+            // a modal has to be the first response, and it's private anyway
+            if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
+              await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+                flags: MessageFlags.EPHEMERAL,
+              });
+            }
             return true;
           }
           contextMetadata.reason = translate('blocked.not_in_allowlist');
@@ -298,9 +307,12 @@ export class NotSoInteractionClient extends InteractionCommandClient {
           });
           if (shouldIgnore) {
             if (invoker.blockedCommandShouldStillExecute) {
-              await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-                flags: MessageFlags.EPHEMERAL,
-              });
+              // a modal has to be the first response, and it's private anyway
+              if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
+                await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+                  flags: MessageFlags.EPHEMERAL,
+                });
+              }
               return true;
             }
             return false;

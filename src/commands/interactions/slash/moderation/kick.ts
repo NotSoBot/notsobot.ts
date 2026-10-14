@@ -29,7 +29,8 @@ export class ModerationKickCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       permissions: [Permissions.KICK_MEMBERS],
-      permissionsClient: [Permissions.BAN_MEMBERS, Permissions.KICK_MEMBERS],
+      // BAN_MEMBERS is only needed for `clean`, checked in the formatter
+      permissionsClient: [Permissions.KICK_MEMBERS],
       options: [
         {
           name: 'users',

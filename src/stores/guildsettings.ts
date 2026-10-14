@@ -4,7 +4,7 @@ import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Store } from './store';
 
-import { RequestContext, deleteChannel, fetchGuildSettings, putGuildSettings } from '../api';
+import { RequestContext, fetchGuildSettings, putGuildSettings } from '../api';
 import { GuildSettings } from '../api/structures/guildsettings';
 import { RedisChannels } from '../constants';
 import { RedisSpewer } from '../redis';
@@ -45,7 +45,10 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
         timeout.start(15000, () => {
-          GuildSettingsPromisesStore.delete(guildId);
+          // a newer fetch may have replaced this entry after a timeout, only remove our own
+          if (GuildSettingsPromisesStore.get(guildId)?.promise === promise) {
+            GuildSettingsPromisesStore.delete(guildId);
+          }
           resolve(null);
         });
 
@@ -69,7 +72,9 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
           resolve(null);
         }
         timeout.stop();
-        GuildSettingsPromisesStore.delete(guildId);
+        if (GuildSettingsPromisesStore.get(guildId)?.promise === promise) {
+          GuildSettingsPromisesStore.delete(guildId);
+        }
       });
       GuildSettingsPromisesStore.set(guildId, {promise, timeout});
     }
@@ -83,13 +88,9 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         const { channel, shard } = event;
         const { guildId } = channel;
 
+        // the api call to delete the channel's settings is done in listeners/channeldelete.ts, doing it here too made
+        // the api get every channel delete twice
         if (guildId) {
-          try {
-            await deleteChannel({client: shard}, channel.id, {guildId});
-          } catch(e) {
-
-          }
-
           if (this.has(guildId)) {
             // clear from cache even tho redis will give us the stuff
             const settings = this.get(guildId)!;

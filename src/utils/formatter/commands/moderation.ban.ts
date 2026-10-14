@@ -71,33 +71,46 @@ export async function createMessage(
   }
 
   const guild = context.guild;
-  if (guild) {
-    for (let memberOrUser of canEdit) {
-      /*
-      let doesBanExist = false;
-      try {
-        await guild.fetchBan(memberOrUser.id);
-        doesBanExist = true;
-      } catch(error) {
-        // does not exist
-      }
-      if (!doesBanExist) {
-      */
-
-      if (memberOrUser instanceof Structures.Member) {
-        try {
-          await memberOrUser.createMessage([
-            translate('moderation_ban.you_have_been_banned_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
-            '',
-            translate('moderation_ban.information', {reason: Markup.codeblock(reason)}),
-          ].join('\n'));
-        } catch(error) {
-          // maybe log this?
-        }
-      }
-
-      await guild.createBan(memberOrUser.id, {deleteMessageSeconds, reason});
+  const guildId = context.guildId;
+  const failed: Array<{error: any, memberOrUser: Structures.Member | Structures.User}> = [];
+  // ban through rest by guild id so an uncached guild still bans (and the summary reflects what actually happened)
+  for (let memberOrUser of canEdit) {
+    /*
+    let doesBanExist = false;
+    try {
+      await guild.fetchBan(memberOrUser.id);
+      doesBanExist = true;
+    } catch(error) {
+      // does not exist
     }
+    if (!doesBanExist) {
+    */
+    if (!guildId) {
+      failed.push({error: new Error('Unknown Guild'), memberOrUser});
+      continue;
+    }
+
+    if (guild && memberOrUser instanceof Structures.Member) {
+      try {
+        await memberOrUser.createMessage([
+          translate('moderation_ban.you_have_been_banned_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
+          '',
+          translate('moderation_ban.information', {reason: Markup.codeblock(reason)}),
+        ].join('\n'));
+      } catch(error) {
+        // maybe log this?
+      }
+    }
+
+    // one failure (rate limit, 5xx, missing permissions) shouldn't stop the rest or the summary
+    try {
+      await context.rest.createGuildBan(guildId, memberOrUser.id, {deleteMessageSeconds, reason});
+    } catch(error) {
+      failed.push({error, memberOrUser});
+    }
+  }
+  for (let { memberOrUser } of failed) {
+    canEdit.splice(canEdit.indexOf(memberOrUser), 1);
   }
 
   const display: DisplayPayload = {fields: []};
@@ -141,6 +154,14 @@ export async function createMessage(
       description.push('');
     }
 
+    if (failed.length) {
+      description.push(translateMaybe('moderation_ban.couldn_t_ban_errored', 'Couldn\'t ban (the request failed)'));
+      for (let { error, memberOrUser } of failed) {
+        description.push(`-> ${memberOrUser.mention} ${Markup.spoiler(`(${memberOrUser})`)} ${Markup.codestring(String((error && error.message) || error).slice(0, 100))}`);
+      }
+      description.push('');
+    }
+
     if (us.length) {
       const members = us.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
       description.push(translate('moderation_ban.cannot_ban_yourself_or_myself'));
@@ -161,7 +182,7 @@ export async function createMessage(
 
   {
     const banned = canEdit.length;
-    const unableToBan = cannotEdit.length + clientCannotEdit.length + us.length;
+    const unableToBan = cannotEdit.length + clientCannotEdit.length + us.length + failed.length;
     const notFound = payload.notFound.length;
 
     const description: Array<string> = [];

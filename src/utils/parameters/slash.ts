@@ -169,15 +169,8 @@ export const USER_SETTINGS_UPLOAD_TYPES = [
 
 
 export function safe(value: boolean, context: Interaction.InteractionContext): Boolean {
-  if (value) {
-    return value;
-  }
-
-  const shouldBeSafe = DefaultParameters.safe(context);
-  if (shouldBeSafe) {
-    throw new Error(getCachedTranslator(context).translate('params.safe_required'));
-  }
-  return value;
+  // the safe option can't be turned off anymore, ignore whatever the user picked
+  return DefaultParameters.safe(context);
 }
 
 

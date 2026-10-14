@@ -146,7 +146,7 @@ export namespace RestOptions {
     mlLLMPersonality?: string | null,
     prefixes?: Array<string>,
     responseDisplay?: GuildSettingsResponseDisplayTypes | null,
-    timezone?: string,
+    timezone?: string | null,
   }
 
   export interface EditServerSettings {
@@ -375,6 +375,7 @@ export namespace RestOptions {
 
   export interface MediaAIVManipulationConvert extends MediaBaseOptions {
     removeAudio?: boolean,
+    size?: string,
     to?: string,
   }
 
@@ -930,8 +931,14 @@ export namespace RestOptions {
 
 
   export interface ModerationSafetyScan extends MediaBaseOptionsMultiple {
+    customCategory?: string,
+    customInstruct?: string,
+    customQuery?: string,
+    customThreshold?: number,
     extractFrames?: boolean,
+    logFlags?: boolean,
     safe?: boolean,
+    sourceUrl?: string,
     text?: string,
   }
 
@@ -1049,6 +1056,7 @@ export namespace RestOptions {
 
   export interface Search4Chan {
     board: string,
+    safe?: boolean,
   }
 
   export interface Search4ChanRandom {
@@ -1178,18 +1186,6 @@ export namespace RestOptions {
     stdin?: string,
     urls?: Array<string | {filename?: string, url: string}>,
     version?: string,
-  }
-
-  export interface UtilitiesFetchData {
-    maxFileSize?: number,
-    safe?: boolean,
-    url: string,
-  }
-
-  export interface UtilitiesFetchImage {
-    maxFileSize?: number,
-    safe?: boolean,
-    url: string,
   }
 
   export interface UtilitiesFetchMedia extends MediaUploadBaseOptions {
@@ -1746,10 +1742,14 @@ export namespace RestResponsesRaw {
     user_id: string,
   }
 
+  // matches GuildLogger.to_dict() on the api
   export interface GuildLogger {
+    added: string,
     channel_id: string,
+    disabled_events: number,
     guild_id: string,
-    logger_type: number,
+    type: number,
+    user_id: string | null,
     webhook_id?: string,
     webhook_token?: string,
   }
@@ -1868,6 +1868,8 @@ export namespace RestResponsesRaw {
 
   export interface ModerationSafetyScanResult {
     identification: {
+      // nudenet boxes per frame, null where it didn't run
+      detections_frames?: Array<null | Array<{box: [number, number, number, number], class: string, score: number}>>,
       flagged: Array<string>,
       child_safety: boolean,
       needs_human_review: boolean,

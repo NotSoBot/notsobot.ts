@@ -20,6 +20,9 @@ class ReminderInterval extends Listener {
   // every 12 hours we will scan for reminders for the next 12 hour
   interval = new Timers.Interval();
   intervalTime = 12 * 60 * 60 * 1000;
+  // reminders missed over pub/sub (like during a redis reconnect) would otherwise only be found on the next restart
+  catchUpInterval = new Timers.Interval();
+  catchUpIntervalTime = 5 * 60 * 1000;
   // scan a bit past the next interval so timer drift can't leave a gap between scans
   scanMargin = 5 * 60 * 1000;
   reminders = new Collections.BaseCollection<string, ReminderItem>();
@@ -242,7 +245,7 @@ class ReminderInterval extends Listener {
     }
   }
 
-  async scanForReminders(cluster: ClusterClient, timestampMin?: number) {
+  async scanForReminders(cluster: ClusterClient, timestampMin?: number, timestampMax?: number) {
     const shard = cluster.shards.first();
     if (!shard) {
       return;
@@ -255,7 +258,10 @@ class ReminderInterval extends Listener {
     if (timestampMin === undefined) {
       timestampMin = now - 2000;
     }
-    const reminders = await this.fetchReminders(shard, timestampMin, now + this.intervalTime + this.scanMargin);
+    if (timestampMax === undefined) {
+      timestampMax = now + this.intervalTime + this.scanMargin;
+    }
+    const reminders = await this.fetchReminders(shard, timestampMin, timestampMax);
     for (let [reminderId, reminder] of reminders) {
       this.insertReminder(cluster, reminder);
     }
@@ -302,6 +308,17 @@ class ReminderInterval extends Listener {
         console.error('Failed to scan for reminders', error);
       });
     });
+    // send overdue ones that nothing scheduled, then schedule the ones due before the next catch up
+    // (both skip reminders that are already scheduled or being sent)
+    this.catchUpInterval.start(this.catchUpIntervalTime, async () => {
+      try {
+        const now = Date.now();
+        await this.scanForRemindersExpired(cluster, now - 2000);
+        await this.scanForReminders(cluster, now - 2000, now + this.catchUpIntervalTime + this.scanMargin);
+      } catch(error) {
+        console.error('Failed to catch up on reminders', error);
+      }
+    });
 
     return subscriptions;
   }
@@ -322,6 +339,7 @@ class ReminderInterval extends Listener {
   stop(cluster: ClusterClient | ShardClient) {
     super.stop(cluster);
     this.interval.stop();
+    this.catchUpInterval.stop();
     for (let [reminderId, item] of this.reminders) {
       item.timeout.stop();
     }

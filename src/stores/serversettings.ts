@@ -45,7 +45,10 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
       const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
         timeout.start(15000, () => {
-          ServerSettingsPromisesStore.delete(serverId);
+          // a newer fetch may have replaced this entry after a timeout, only remove our own
+          if (ServerSettingsPromisesStore.get(serverId)?.promise === promise) {
+            ServerSettingsPromisesStore.delete(serverId);
+          }
           resolve(null);
         });
 
@@ -66,7 +69,9 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
           resolve(null);
         }
         timeout.stop();
-        ServerSettingsPromisesStore.delete(serverId);
+        if (ServerSettingsPromisesStore.get(serverId)?.promise === promise) {
+          ServerSettingsPromisesStore.delete(serverId);
+        }
       });
       ServerSettingsPromisesStore.set(serverId, {promise, timeout});
     }

@@ -74,29 +74,49 @@ export async function fetchMessages(
     }
   }
 
+  // cached messages can be newer than the starting cursor (reply/before), skip those
+  let startBefore: bigint | null = null;
+  if (before) {
+    try {
+      startBefore = BigInt(before);
+    } catch(error) {
+      startBefore = null;
+    }
+  }
+
   const messagesFound: Array<Structures.Message> = [];
   if (args.channel) {
     for (let message of args.channel.messages.toArray().reverse()) {
+      if (limit <= messagesFound.length) {
+        break;
+      }
+      if (startBefore !== null && startBefore <= BigInt(message.id)) {
+        continue;
+      }
+      // advance the cursor even for skipped messages so the next fetch doesn't overlap and double count
+      before = message.id;
       if (context instanceof Command.Context && message.id === context.messageId) {
         continue;
       }
       if (message.embeds.length === 1 && message.embeds.first()!.url === message.content) {
         continue;
       }
-      if (limit <= messagesFound.length) {
-        break;
-      }
       if (!user || message.author.id === user.id) {
         messagesFound.push(message);
       }
-      before = message.id;
     }
   }
 
   let tries = 0;
   while (tries++ < MAX_FETCHES && messagesFound.length < limit) {
-    const messages = await context.rest.fetchMessages(channelId, {before, limit: 100});
-    for (let message of messages.toArray()) {
+    const messages = (await context.rest.fetchMessages(channelId, {before, limit: 100})).toArray();
+    if (!messages.length) {
+      // reached the start of the channel
+      break;
+    }
+    // advance the cursor from the oldest fetched message regardless of whether it gets skipped
+    before = messages.reduce((oldest, message) => (BigInt(message.id) < BigInt(oldest)) ? message.id : oldest, messages[0].id);
+    for (let message of messages) {
       if (limit <= messagesFound.length) {
         break;
       }
@@ -106,7 +126,9 @@ export async function fetchMessages(
       if (!user || message.author.id === user.id) {
         messagesFound.push(message);
       }
-      before = message.id;
+    }
+    if (messages.length < 100) {
+      break;
     }
   }
 

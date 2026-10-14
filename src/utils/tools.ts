@@ -427,14 +427,9 @@ export function findMediaUrlInComponent(
     }
   } else if (component instanceof Structures.ComponentContainer) {
     const components = component.components.toArray().sort((x, y) => {
-      // put gallery first, then file, then the rest
-      if (x instanceof Structures.ComponentMediaGallery) {
-        return 2;
-      } else if (x instanceof Structures.ComponentFile) {
-        return 1;
-      } else {
-        return 0;
-      }
+      // put gallery first, then file, then the rest (a positive result used to sort them last)
+      const rank = (z: any) => (z instanceof Structures.ComponentMediaGallery) ? 0 : (z instanceof Structures.ComponentFile) ? 1 : 2;
+      return rank(x) - rank(y);
     });
     for (let child of components) {
       const url = findMediaUrlInComponent(child, options);
@@ -621,14 +616,9 @@ export function findMediaUrlInMessage(
   }
   if (message.hasFlagComponentsV2) {
     const components = message.components.toArray().sort((x, y) => {
-      // put gallery first, then container, then the rest
-      if (x instanceof Structures.ComponentMediaGallery) {
-        return 2;
-      } else if (x instanceof Structures.ComponentFile || x instanceof Structures.ComponentContainer) {
-        return 1;
-      } else {
-        return 0;
-      }
+      // put gallery first, then container, then the rest (a positive result used to sort them last)
+      const rank = (z: any) => (z instanceof Structures.ComponentMediaGallery) ? 0 : (z instanceof Structures.ComponentFile || z instanceof Structures.ComponentContainer) ? 1 : 2;
+      return rank(x) - rank(y);
     });
     for (let component of components) {
       const url = findMediaUrlInComponent(component, options);
@@ -765,36 +755,36 @@ export function findMediaUrlsInMessage(
 
   if (message.hasFlagComponentsV2) {
     const components = message.components.toArray().sort((x, y) => {
-      // put gallery first, then container, then the rest
-      if (x instanceof Structures.ComponentMediaGallery) {
-        return 2;
-      } else if (x instanceof Structures.ComponentFile || x instanceof Structures.ComponentContainer) {
-        return 1;
-      } else {
-        return 0;
-      }
+      // put gallery first, then container, then the rest (a positive result used to sort them last)
+      const rank = (z: any) => (z instanceof Structures.ComponentMediaGallery) ? 0 : (z instanceof Structures.ComponentFile || z instanceof Structures.ComponentContainer) ? 1 : 2;
+      return rank(x) - rank(y);
     });
     for (let component of components) {
       if (component instanceof Structures.ComponentContainer) {
         const children = component.components.toArray().sort((x, y) => {
-          // put gallery first, then file, then the rest
-          if (x instanceof Structures.ComponentMediaGallery) {
-            return 2;
-          } else if (x instanceof Structures.ComponentFile) {
-            return 1;
-          } else {
-            return 0;
-          }
+          // put gallery first, then file, then the rest (a positive result used to sort them last)
+          const rank = (z: any) => (z instanceof Structures.ComponentMediaGallery) ? 0 : (z instanceof Structures.ComponentFile) ? 1 : 2;
+          return rank(x) - rank(y);
         });
         for (let child of children) {
+          if (child instanceof Structures.ComponentMediaGallery) {
+            for (let item of child.items.values()) {
+              const url = findMediaUrlInComponent(item, options);
+              if (url) {
+                urls.add(url);
+              }
+            }
+            continue;
+          }
           const url = findMediaUrlInComponent(child, options);
           if (url) {
             urls.add(url);
           }
         }
       } else if (component instanceof Structures.ComponentMediaGallery) {
-        for (let item of component.items) {
-          const url = findMediaUrlInComponent(component, options);
+        // every item, this used to pass the gallery itself so only its first image was ever found
+        for (let item of component.items.values()) {
+          const url = findMediaUrlInComponent(item, options);
           if (url) {
             urls.add(url);
           }
@@ -1172,7 +1162,8 @@ export function findMemberByUsername(
       }
     }
   }
-  if (8 <= username.length && 21 <= username.length && !isNaN(username as any)) {
+  // partial ids between 8 and 21 digits (this was `21 <= length`, so only full-length ids ever got here)
+  if (8 <= username.length && username.length <= 21 && /^\d+$/.test(username)) {
     // search the ids now, cause harrisson19 (692547945697902592) asked for it
     for (const memberOrUser of members.values()) {
       if (memberOrUser) {
@@ -1249,6 +1240,83 @@ export function getMemberJoinPosition(
 }
 
 
+// only allow message links the invoker could read themselves, otherwise the bot leaks messages from other servers/channels
+export async function canUserReadChannelMessage(
+  context: Command.Context | Interaction.InteractionContext,
+  guildId: string | undefined,
+  channelId: string,
+): Promise<boolean> {
+  if (channelId === context.channelId) {
+    return true;
+  }
+
+  // dm links (`@me`) are only allowed for the current channel
+  if (!guildId || guildId === '@me') {
+    return false;
+  }
+
+  let channel: Structures.Channel | null = context.channels.get(channelId) || null;
+  if (!channel) {
+    try {
+      channel = await context.rest.fetchChannel(channelId);
+    } catch(error) {
+      return false;
+    }
+  }
+  if (!channel || channel.guildId !== guildId) {
+    return false;
+  }
+
+  if (channel.isGuildThread) {
+    // private threads need membership which we cannot reliably check, only allow them from inside the thread
+    if (channel.isGuildThreadPrivate) {
+      return false;
+    }
+    const parent = (channel.parentId) ? context.channels.get(channel.parentId) : null;
+    if (!parent) {
+      return false;
+    }
+    channel = parent;
+  }
+
+  let member: Structures.Member | null = null;
+  if (context.guildId === guildId && context.member) {
+    member = context.member;
+  } else {
+    member = context.members.get(guildId, context.userId) || null;
+    if (!member) {
+      try {
+        member = await context.rest.fetchGuildMember(guildId, context.userId);
+      } catch(error) {
+        return false;
+      }
+    }
+  }
+  if (!member) {
+    return false;
+  }
+
+  return channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member);
+}
+
+
+export async function fetchMessageFromJumpLink(
+  context: Command.Context | Interaction.InteractionContext,
+  guildId: string | undefined,
+  channelId: string,
+  messageId: string,
+): Promise<Structures.Message | null> {
+  if (!(await canUserReadChannelMessage(context, guildId, channelId))) {
+    return null;
+  }
+  const cached = context.messages.get(messageId);
+  if (cached) {
+    return (cached.channelId === channelId) ? cached : null;
+  }
+  return context.rest.fetchMessage(channelId, messageId);
+}
+
+
 const DEFAULT_FIND_URL_OPTIONS: FindMediaUrlOptions = Object.freeze({audio: true, image: true, text: true, video: true});
 
 export async function getOrFetchRealUrl(
@@ -1265,11 +1333,13 @@ export async function getOrFetchRealUrl(
     const [ { text } ] = matches;
     const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
     if (messageLink.matches.length) {
-      const [ { channelId, messageId } ] = messageLink.matches;
+      const [ { channelId, guildId, messageId } ] = messageLink.matches;
       if (channelId && messageId) {
         try {
-          const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-          return findUrlInMessages([message], options);
+          const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
+          if (message) {
+            return findUrlInMessages([message], options);
+          }
         } catch(error) {
 
         }
@@ -1298,11 +1368,13 @@ export async function getOrFetchRealUrls(
       // if its a jump link, just return the results from that
       const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, text) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
       if (messageLink.matches.length) {
-        const [ { channelId, messageId } ] = messageLink.matches;
+        const [ { channelId, guildId, messageId } ] = messageLink.matches;
         if (channelId && messageId) {
           try {
-            const message = context.messages.get(messageId) || await context.rest.fetchMessage(channelId, messageId);
-            return findUrlsInMessages([message], options);
+            const message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
+            if (message) {
+              return findUrlsInMessages([message], options);
+            }
           } catch(error) {
 
           }
@@ -1367,9 +1439,12 @@ export function getTimezoneFromGuild(guildId?: string): string {
 
 export function formatMemory(bytes: number, decimals: number = 0): string {
   const divideBy = 1024;
-  const amount = Math.floor(Math.log(bytes) / Math.log(divideBy));
-  const type = (['B', 'KB', 'MB','GB', 'TB'])[amount];
-  return (bytes / Math.pow(divideBy, amount)).toFixed(decimals) + ' ' + type;
+  const types = ['B', 'KB', 'MB','GB', 'TB'];
+  // log(0) is -Infinity and log of a negative is NaN, so size by the absolute value and clamp to the known units
+  const absolute = Math.abs(bytes);
+  let amount = (absolute < 1) ? 0 : Math.floor(Math.log(absolute) / Math.log(divideBy));
+  amount = Math.max(0, Math.min(amount, types.length - 1));
+  return (bytes / Math.pow(divideBy, amount)).toFixed(decimals) + ' ' + types[amount];
 }
 
 
@@ -1618,6 +1693,11 @@ export function htmlDecode(value: string): string {
 }
 
 
+// jobs are killed by the api well before this, it's only a safety net so polling always ends
+export const MAX_JOB_WAIT_TIME = 5 * 60 * 1000;
+const JOB_TIMED_OUT_MESSAGE = 'Timed out waiting for the job to finish';
+
+
 export async function jobReply(
   context: Command.Context | Interaction.InteractionContext,
   job: RestResponsesRaw.JobResponse,
@@ -1635,22 +1715,37 @@ export async function jobReply(
   const messageEditedAtUnix = message && message.editedAtUnix;
 
   const timer = new Timers.Timeout();
+  const deadline = Date.now() + MAX_JOB_WAIT_TIME;
   const pollingFunction = async () => {
-    if (message) {
-      if (messageEditedAtUnix !== message.editedAtUnix || !message.canEdit) {
-        return;
+    // errors in here would be unhandled rejections (and leave the user at "thinking"), so show them instead
+    try {
+      if (message) {
+        if (messageEditedAtUnix !== message.editedAtUnix || !message.canEdit) {
+          return;
+        }
       }
-    }
-    // todo: if message is null, it means the context is an interaction, check that
-    const refreshedJob = await fetchJob(context, job.id);
-    if (refreshedJob.result.error) {
-      return editOrReply(context, translate('media.job_failed', {error: String(refreshedJob.result.error)}));
-    }
-    if (refreshedJob.result.response) {
-      return mediaReply(context, refreshedJob.result.response);
-    }
-    if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
-      return editOrReply(context, translate('media.job_unknown_status', {status: refreshedJob.status}));
+      // todo: if message is null, it means the context is an interaction, check that
+      const refreshedJob = await fetchJob(context, job.id);
+      if (refreshedJob.result.error) {
+        return await editOrReply(context, translate('media.job_failed', {error: String(refreshedJob.result.error)}));
+      }
+      if (refreshedJob.result.response) {
+        return await mediaReply(context, refreshedJob.result.response);
+      }
+      if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
+        return await editOrReply(context, translate('media.job_unknown_status', {status: refreshedJob.status}));
+      }
+      // interactions have no message to check, so this is the only thing that stops a stuck job from polling forever
+      if (deadline <= Date.now()) {
+        return await editOrReply(context, translate('media.job_failed', {error: JOB_TIMED_OUT_MESSAGE}));
+      }
+    } catch(error) {
+      try {
+        await editOrReply(context, translate('media.job_failed', {error: String(error.message || error)}));
+      } catch(replyError) {
+        
+      }
+      return;
     }
     timer.start(pollingTime, pollingFunction);
   };
@@ -1670,16 +1765,20 @@ export async function jobWaitForResult(
   }
   return new Promise((resolve, reject) => {
     const timer = new Timers.Timeout();
+    const deadline = Date.now() + MAX_JOB_WAIT_TIME;
     const pollingFunction = async () => {
       try {
         const refreshedJob = await fetchJob(context, job.id);
         if (refreshedJob.result.error || refreshedJob.result.response) {
           return resolve(refreshedJob);
         }
-        if (refreshedJob.status !== 'started') {
+        // queued jobs haven't started yet, keep waiting (this used to resolve with no result)
+        if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
           return resolve(refreshedJob);
         }
-        // todo: this has the potential to go on forever, fix this?
+        if (deadline <= Date.now()) {
+          return reject(new Error(JOB_TIMED_OUT_MESSAGE));
+        }
       } catch(error) {
         return reject(error);
       }
@@ -2346,11 +2445,10 @@ export async function mediaReplyFromOptions(
 
 
 // Snowflakes cannot be larger than 9223372036854775807 (according to the api)
+// discord ids are 17-20 digits right now, keep some slack on both ends. parseInt used to accept trailing garbage
+// (`123...abc`), signs and hex
 export function isSnowflake(value: string): boolean {
-  if (16 <= value.length && value.length <= 21) {
-    return !!parseInt(value);
-  }
-  return false;
+  return /^[1-9]\d{15,20}$/.test(value);
 }
 
 
@@ -2569,11 +2667,17 @@ export function splitTextByAmount(text: string, amount: number, character = '\n'
     while (split.length) {
       let newText: string = '';
       while (newText.length < amount && split.length) {
-        const part = split.shift()!;
+        let part = split.shift()!;
         if (part) {
           if (amount < newText.length + part.length + 2) {
-            split.unshift(part);
-            break;
+            if (newText) {
+              split.unshift(part);
+              break;
+            }
+            // a single part bigger than the amount would never fit, it used to be put back forever, so hard split it
+            const size = Math.max(amount - 1, 1);
+            split.unshift(part.slice(size));
+            part = part.slice(0, size);
           }
           newText += part + '\n';
         }
@@ -2797,7 +2901,8 @@ export function bigIntGenerateBetween(value1: bigint, value2: bigint): bigint {
   const differenceLength = difference.toString().length;
   let multiplier = '';
   while (multiplier.length < differenceLength) {
-    multiplier += Math.random().toString().split('.')[1];
+    // `Math.random().toString()` can be in exponent form (`1e-7`) or just `0`, so build the digits one at a time
+    multiplier += String(Math.floor(Math.random() * 10));
   }
   multiplier = multiplier.slice(0, differenceLength);
   const divisor = '1' + '0'.repeat(differenceLength);
@@ -2965,13 +3070,15 @@ export function stringOccurances(
   search: string,
   value: string,
 ): number {
+  // an empty search would match at every position forever
+  if (!search) {
+    return 0;
+  }
   let i = 0;
-  let position = 0;
+  let position = value.indexOf(search);
   while (position !== -1) {
-    position = value.indexOf(search, position);
-    if (position !== -1) {
-      i++;
-    }
+    i++;
+    position = value.indexOf(search, position + search.length);
   }
   return i;
 }

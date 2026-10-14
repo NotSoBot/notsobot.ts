@@ -36,8 +36,6 @@ class ComponentsListener extends Listener {
                 return await this.makePermanentUsingNitro(context, fileId);
               } catch(error) {
                 
-              } finally {
-                this.componentsProcessing.delete(context.customId);
               }
             }
           }; break;
@@ -60,6 +58,18 @@ class ComponentsListener extends Listener {
       });
     }
 
+    // take the lock right away (a second click during the fetch below used to get through), and only the click that
+    // took it releases it (an "already in progress" click used to release it, letting a third click re-upload again)
+    this.componentsProcessing.add(context.customId);
+    try {
+      return await this.makePermanentUsingNitroLocked(context, fileId);
+    } finally {
+      this.componentsProcessing.delete(context.customId);
+    }
+  }
+
+  async makePermanentUsingNitroLocked(context: ComponentContext, fileId: string) {
+    const { translate } = I18n.getCachedTranslator(context);
     let storage: RestResponsesRaw.FileResponseStorage;
 
     try {
@@ -79,8 +89,6 @@ class ComponentsListener extends Listener {
         flags: MessageFlags.EPHEMERAL,
       });
     }
-
-    this.componentsProcessing.add(context.customId);
 
     if (context.metadata) {
       context.metadata.started = Date.now();

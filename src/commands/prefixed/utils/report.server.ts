@@ -5,6 +5,8 @@ import { Formatter, Parameters, isSnowflake } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
+import { sendReport } from './report.bug';
+
 
 export const COMMAND_NAME = 'report server';
 
@@ -29,9 +31,6 @@ export default class ReportServerCommand extends BaseCommand {
         usage: '?<server:id> <reason>',
       },
       priority: -1,
-      ratelimits: [
-        {duration: 60000, limit: 1, key: Formatter.Commands.Report.COMMAND_ID, type: 'user'},
-      ],
       type: Parameters.string({maxLength: Formatter.Commands.Report.MAX_CONTENT_LENGTH}),
     });
   }
@@ -39,8 +38,8 @@ export default class ReportServerCommand extends BaseCommand {
   async run(context: Command.Context, args: CommandArgs) {
     const { rest, target } = Formatter.Commands.Report.splitTarget(args.content);
     if (isSnowflake(target)) {
-      return Formatter.Commands.Report.createMessage(context, {content: rest, server: target, type: ReportTypes.SERVER});
+      return sendReport(this, context, {content: rest, server: target, type: ReportTypes.SERVER});
     }
-    return Formatter.Commands.Report.createMessage(context, {content: args.content, type: ReportTypes.SERVER});
+    return sendReport(this, context, {content: args.content, type: ReportTypes.SERVER});
   }
 }

@@ -338,8 +338,6 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-ussr',
   MEDIA_IV_MANIPULATION_OVERLAY_FLIES:
     '/media/iv/manipulation/overlay/flies',
-  MEDIA_IV_MANIPULATION_OVERLAY_GOLDSTAR:
-    '/media/iv/manipulation/overlay/goldstar',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_PISTOL:
     '/media/iv/manipulation/overlay/half-life-pistol',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SHOTGUN:
@@ -354,8 +352,6 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/persons/gaben-1',
   MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_LTT_LINUS_1:
     '/media/iv/manipulation/overlay/persons/ltt-linus-1',
-  MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK:
-    '/media/iv/manipulation/overlay/shutterstock',
   MEDIA_IV_MANIPULATION_OVERLAY_STARMAN:
     '/media/iv/manipulation/overlay/starman',
   MEDIA_IV_MANIPULATION_OVERLAY_WASTED:
@@ -484,6 +480,8 @@ export const Api = Object.freeze({
     '/reminders',
   REMINDER:
     '/reminders/:reminderId',
+  REMINDER_MOVE_TO_DMS:
+    '/reminders/:reminderId/move-to-dms',
   REMINDER_POSITIONAL:
     '/reminders/positional/:userId/:position',
 
@@ -598,10 +596,6 @@ export const Api = Object.freeze({
 
   UTILITIES_CODE_RUN:
     '/utilities/code/run',
-  UTILITIES_FETCH_DATA:
-    '/utilities/fetch/data',
-  UTILITIES_FETCH_IMAGE:
-    '/utilities/fetch/image',
   UTILITIES_FETCH_MEDIA:
     '/utilities/fetch/media',
   UTILITIES_FETCH_TEXT:

@@ -236,6 +236,18 @@ export async function deleteGuildLogger(
 ): Promise<RestResponses.DeleteGuildLogger> {
   const data = await raw.deleteGuildLogger(context, guildId, options);
   const collection = new Collections.BaseCollection<string, GuildSettingsLogger>();
+  // older api versions answered with the number 204 instead of the remaining loggers
+  if (!Array.isArray(data)) {
+    if (GuildSettingsStore.has(guildId)) {
+      const settings = GuildSettingsStore.get(guildId)!;
+      for (let [key, logger] of settings.loggers) {
+        if (logger.channelId === options.channelId && logger.type === options.type) {
+          settings.loggers.delete(key);
+        }
+      }
+    }
+    return collection;
+  }
   for (let raw of data) {
     const item = new GuildSettingsLogger(raw);
     collection.set(item.key, item);
@@ -281,6 +293,14 @@ export async function editReminder(
   options: RestOptions.EditReminder,
 ) {
   return raw.editReminder(context, reminderId, options);
+}
+
+
+export async function moveReminderToDms(
+  context: RequestContext,
+  reminderId: string,
+) {
+  return raw.moveReminderToDms(context, reminderId);
 }
 
 
@@ -1829,14 +1849,6 @@ export async function mediaIVManipulationOverlayPersonsLTTLinus1(
 }
 
 
-export async function mediaIVManipulationOverlayShutterstock(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-) {
-  return raw.mediaIVManipulationOverlayShutterstock(context, options);
-}
-
-
 export async function mediaIVManipulationOverlayStarman(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2632,20 +2644,6 @@ export async function utilitiesCodeRun(
   return raw.utilitiesCodeRun(context, options);
 }
 
-
-export async function utilitiesFetchData(
-  context: RequestContext,
-  options: RestOptions.UtilitiesFetchData,
-) {
-  return raw.utilitiesFetchData(context, options);
-}
-
-export async function utilitiesFetchImage(
-  context: RequestContext,
-  options: RestOptions.UtilitiesFetchImage,
-) {
-  return raw.utilitiesFetchImage(context, options);
-}
 
 export async function utilitiesFetchMedia(
   context: RequestContext,

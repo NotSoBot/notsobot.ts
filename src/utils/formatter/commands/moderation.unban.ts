@@ -28,6 +28,7 @@ export async function createMessage(
   const us: Array<Structures.Member | Structures.User> = [];
 
   const unsure: Array<Structures.Member | Structures.User> = [];
+  const failed: Array<{error: any, memberOrUser: Structures.Member | Structures.User}> = [];
 
   // const bans = await context.rest.fetchGuildBans(context.guildId as string);
 
@@ -63,6 +64,9 @@ export async function createMessage(
       } catch(error) {
         if (error.response && error.response.statusCode === 404) {
           cannotEdit.push(member);
+        } else {
+          // don't let the target vanish from the result on non-404 errors
+          failed.push({error, memberOrUser: member});
         }
       }
     }
@@ -80,10 +84,18 @@ export async function createMessage(
     reason = description.join('\n');
   }
 
-  const guild = context.guild;
-  if (guild) {
-    for (let member of canEdit) {
-      await guild.removeBan(member.id, {reason});
+  // unban through rest by guild id so an uncached guild still unbans, and one failure doesn't stop the rest
+  for (let member of canEdit) {
+    try {
+      await context.rest.removeGuildBan(context.guildId!, member.id, {reason});
+    } catch(error) {
+      failed.push({error, memberOrUser: member});
+    }
+  }
+  for (let { memberOrUser } of failed) {
+    const index = canEdit.indexOf(memberOrUser);
+    if (index !== -1) {
+      canEdit.splice(index, 1);
     }
   }
 
@@ -121,6 +133,14 @@ export async function createMessage(
       description.push('');
     }
 
+    if (failed.length) {
+      description.push(translateMaybe('moderation_unban.couldn_t_unban_errored', 'Couldn\'t unban (the request failed)'));
+      for (let { error, memberOrUser } of failed) {
+        description.push(`-> ${memberOrUser.mention} ${Markup.spoiler(`(${memberOrUser})`)} ${Markup.codestring(String((error && error.message) || error).slice(0, 100))}`);
+      }
+      description.push('');
+    }
+
     if (us.length) {
       const members = us.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
       description.push(translate('moderation_unban.cannot_unban_yourself_or_myself'));
@@ -141,7 +161,7 @@ export async function createMessage(
 
   {
     const unbanned = canEdit.length;
-    const unableToBan = cannotEdit.length + us.length;
+    const unableToBan = cannotEdit.length + us.length + failed.length;
     const notFound = payload.notFound.length;
 
     const description: Array<string> = [];

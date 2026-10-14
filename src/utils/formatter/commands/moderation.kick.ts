@@ -1,7 +1,8 @@
 import { Command, Interaction, Structures } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { DateMomentLogFormat, EmbedColors } from '../../../constants';
+import { DateMomentLogFormat, EmbedColors, PermissionsText, StatusEmojis } from '../../../constants';
 import { getTranslator } from '../../i18n';
 import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
 
@@ -22,8 +23,24 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { label, language, translate, translateMaybe } = await getTranslator(context);
   const { payload } = args;
+
+  // cleaning messages bans then unbans the member, so it needs the same permissions as a ban
+  if (args.clean && 0 < args.clean) {
+    const permissions = Markup.codestring(label('permissions', (PermissionsText as any)[String(Permissions.BAN_MEMBERS)]));
+    const command = Markup.codestring(`${COMMAND_ID} -clean`);
+    if (!context.member || !context.member.can(Permissions.BAN_MEMBERS)) {
+      return displayReply(context, {
+        description: `${StatusEmojis.WARNING} ${translate('errors.prefix_user_missing_permissions', {command, permissions})}`,
+      });
+    }
+    if (!context.me || !context.me.can(Permissions.BAN_MEMBERS)) {
+      return displayReply(context, {
+        description: `${StatusEmojis.WARNING} ${translate('errors.prefix_bot_missing_permissions', {command, permissions})}`,
+      });
+    }
+  }
 
   const canEdit: Array<Structures.Member> = [];
   const cannotEdit: Array<Structures.Member> = [];
@@ -67,6 +84,7 @@ export async function createMessage(
   }
 
   const guild = context.guild;
+  const failed: Array<{error: any, member: Structures.Member}> = [];
   for (let member of canEdit) {
     if (guild) {
       try {
@@ -80,12 +98,25 @@ export async function createMessage(
       }
     }
 
-    if (deleteMessageSeconds) {
-      await member.ban({deleteMessageSeconds, reason});
-      await member.removeBan({reason});
-    } else {
-      await member.remove({reason});
+    // one failure (rate limit, 5xx, missing permissions) shouldn't stop the rest or the summary
+    try {
+      if (deleteMessageSeconds) {
+        await member.ban({deleteMessageSeconds, reason});
+        try {
+          await member.removeBan({reason});
+        } catch(error) {
+          // retry once, otherwise a kick would leave them banned
+          await member.removeBan({reason});
+        }
+      } else {
+        await member.remove({reason});
+      }
+    } catch(error) {
+      failed.push({error, member});
     }
+  }
+  for (let { member } of failed) {
+    canEdit.splice(canEdit.indexOf(member), 1);
   }
 
   const display: DisplayPayload = {fields: []};
@@ -129,6 +160,14 @@ export async function createMessage(
       description.push('');
     }
 
+    if (failed.length) {
+      description.push(translateMaybe('moderation_kick.couldn_t_kick_errored', 'Couldn\'t kick (the request failed)'));
+      for (let { error, member } of failed) {
+        description.push(`-> ${member.mention} ${Markup.spoiler(`(${member})`)} ${Markup.codestring(String((error && error.message) || error).slice(0, 100))}`);
+      }
+      description.push('');
+    }
+
     if (us.length) {
       const members = us.map((member) => `${member.mention} ${Markup.spoiler(`(${member})`)}`);
       description.push(translate('moderation_kick.cannot_kick_yourself_or_myself'));
@@ -149,7 +188,7 @@ export async function createMessage(
 
   {
     const kicked = canEdit.length;
-    const unableToKick = cannotEdit.length + clientCannotEdit.length + us.length;
+    const unableToKick = cannotEdit.length + clientCannotEdit.length + us.length + failed.length;
     const notFound = payload.notFound.length;
 
     const description: Array<string> = [];

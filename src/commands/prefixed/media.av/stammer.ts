@@ -14,8 +14,9 @@ export default class StammerCommand extends BaseAudioOrVideosCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['c'], name: 'color', type: Parameters.oneOf({choices: MediaStammerColorModes})},
-        {aliases: ['m'], name: 'matcher', type: Parameters.oneOf({choices: MediaStammerMatcherModes})},
+        // the api reads `colorMode`/`matcherMode` (same labels as the slash command), they were ignored as `color`/`matcher`
+        {aliases: ['c'], label: 'colorMode', name: 'color', type: Parameters.oneOf({choices: MediaStammerColorModes})},
+        {aliases: ['m'], label: 'matcherMode', name: 'matcher', type: Parameters.oneOf({choices: MediaStammerMatcherModes})},
       ],
       metadata: {
         category: CommandCategories.AUDIO,

@@ -34,9 +34,9 @@ export default class CommandsUsageCommand extends BaseCommand {
         category: CommandCategories.SERVER,
         description: 'Show the latest commands used by the Server',
         examples: [
-          `${COMMAND_NAME} rule34`,
-          `${COMMAND_NAME} rule34 -channel lobby`,
-          `${COMMAND_NAME} rule34 -user cake`,
+          `${COMMAND_NAME} imagine`,
+          `${COMMAND_NAME} imagine -channel lobby`,
+          `${COMMAND_NAME} imagine -user cake`,
         ],
         id: Formatter.Commands.ModerationCommandsUsage.COMMAND_ID,
         usage: '<command-name> (-channel <channel:id|mention|name>) (-user <user:id|mention|name>)',

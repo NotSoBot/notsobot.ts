@@ -69,8 +69,9 @@ export async function createMessage(
       }
       payload.footer = footer;
 
+      // no reminders means no pages, `pages[0]` is undefined
       const reminders = pages[pageNumber - 1];
-      if (reminders.length) {
+      if (reminders && reminders.length) {
         const description: Array<string> = [];
         for (let i = 0; i < reminders.length; i++) {
           const reminder = reminders[i];

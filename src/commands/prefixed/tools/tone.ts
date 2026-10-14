@@ -12,7 +12,8 @@ export interface CommandArgs {
 
 }
 
-export default class ToneCommand extends BaseCommand {
+// not registered (no default export) until it has an implementation, the empty `run()` showed up in help and never replied
+export class ToneCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: 'tone',

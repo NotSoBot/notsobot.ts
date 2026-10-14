@@ -44,9 +44,9 @@ export default class CommandsAllowlistAddCommand extends BaseCommand {
         category: CommandCategories.SERVER,
         description: 'Add a command to an allowlist for a Channel/Role/User or Server-Wide',
         examples: [
-          `${COMMAND_NAME} rule34`,
-          `${COMMAND_NAME} rule34 -channels lobby`,
-          `${COMMAND_NAME} rule34 -roles members everyone`,
+          `${COMMAND_NAME} imagine`,
+          `${COMMAND_NAME} imagine -channels lobby`,
+          `${COMMAND_NAME} imagine -roles members everyone`,
         ],
         id: Formatter.Commands.ModerationCommandsAllowlistAdd.COMMAND_ID,
         usage: '<command-name> (-channels ...<channel:id|mention|name>) (-roles ...<role:id|mention|name>) (-users ...<user:id|mention|name>)',

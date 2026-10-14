@@ -1,13 +1,15 @@
 import { Interaction } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 
-import { Formatter, I18n, Parameters } from '../../../../../utils';
+import { StatusEmojis } from '../../../../../constants';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export interface CommandArgs {
-  timezone: string,
+  clear?: boolean,
+  timezone?: string | null,
 }
 
 export class SettingsServerSetTimezoneCommand extends BaseInteractionCommandOption {
@@ -29,6 +31,8 @@ export class SettingsServerSetTimezoneCommand extends BaseInteractionCommandOpti
           description: 'Timezone to choose from',
           ...I18n.optionLocalizations('commands.settings_server.set.set_timezone.timezone'),
           onAutoComplete: Parameters.AutoComplete.timezone,
+          // autocomplete gives the code, but anything can be typed in
+          value: (value: string) => Parameters.timezone(value),
         },
         {
           name: 'clear',
@@ -38,6 +42,15 @@ export class SettingsServerSetTimezoneCommand extends BaseInteractionCommandOpti
         },
       ],
     });
+  }
+
+  onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {
+    return args.timezone !== null;
+  }
+
+  async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
+    const { translateMaybe } = await I18n.getTranslator(context);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translateMaybe('params.unknown_timezone', 'Unknown timezone, try a city or an abbreviation like PST')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {

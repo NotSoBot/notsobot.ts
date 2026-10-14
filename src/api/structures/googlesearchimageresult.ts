@@ -53,8 +53,8 @@ export class GoogleSearchImageResult extends BaseStructure {
     if (this.image.isRawImage || this.image.isSVG) {
       return this.thumbnail.url;
     }
-    return this.proxyUrl;
-    // return this.image.url;
+    // fall back for results the api couldn't build a proxy url for
+    return this.proxyUrl || this.image.url || this.thumbnail.url;
   }
 
   mergeValue(key: string, value: any): void {

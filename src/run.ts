@@ -18,6 +18,11 @@ Object.assign(process.env, {
 
 if (SENTRY_DSN) {
   Sentry.init({dsn: SENTRY_DSN});
+} else {
+  // sentry's default integrations keep the manager alive on a stray rejection, without a dsn node would exit
+  process.on('unhandledRejection', (reason) => {
+    console.error('Unhandled Rejection', reason);
+  });
 }
 
 

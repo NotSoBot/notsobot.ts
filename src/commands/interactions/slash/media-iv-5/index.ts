@@ -9,6 +9,7 @@ import { I18n } from '../../../../utils';
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaAnimateGroupCommand } from './animate';
+import { MediaFun5GroupCommand } from './fun';
 
 
 // split off of /media-iv-3, which went over discord's 8000 character command size limit
@@ -32,6 +33,7 @@ export default class MediaIV5GroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new MediaAnimateGroupCommand(),
+        new MediaFun5GroupCommand(),
       ],
     });
   }

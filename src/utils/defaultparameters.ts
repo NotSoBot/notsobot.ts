@@ -1,5 +1,4 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { GuildExplicitContentFilterTypes } from 'detritus-client/lib/constants';
 
 import GuildSettingsStore from '../stores/guildsettings';
 import UserSettingsStore from '../stores/usersettings';
@@ -305,33 +304,6 @@ export async function replyString(context: Command.Context | Interaction.Interac
 
 
 export function safe(context: Command.Context | Interaction.InteractionContext): boolean {
-  // from a user install in a group dm, one-on-one dm (not bot), or server
-  if (!context.hasServerPermissions) {
-    return true;
-  }
-
-  const { channel, guild } = context;
-  if (channel) {
-    if (channel.isDm) {
-      return false;
-    }
-    if (channel.nsfw) {
-      return false;
-    }
-  }
-  if (guild) {
-    switch (guild.explicitContentFilter) {
-      case GuildExplicitContentFilterTypes.MEMBERS_WITHOUT_ROLES: {
-        const { member } = context;
-        if (member && member.roles.length === 1) {
-          return true;
-        }
-      }; break;
-      case GuildExplicitContentFilterTypes.ALL_MEMBERS: {
-        return true;
-      };
-    }
-  }
-  // default to safe filter being off
-  return false;
+  // always safe, adult content is not allowed anywhere (including age-restricted channels and dms)
+  return true;
 }

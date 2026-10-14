@@ -50,7 +50,15 @@ export async function createMessage(
 export function findVoice(
   voices: Array<RestResponsesRaw.Voice>,
   voice: string,
+  exact: boolean = false,
 ): {id: string, name: string} | null {
+  if (exact) {
+    // for anything destructive, fuzzy matching could pick a different voice (`bob` deleting `rob`)
+    const query = voice.trim().toLowerCase();
+    const found = voices.find((x) => x.id === query) || voices.find((x) => x.name.toLowerCase() === query);
+    return (found) ? {id: found.id, name: found.name} : null;
+  }
+
   const search = new MiniSearch({
     fields: ['id', 'name'],
     storeFields: ['id', 'name'],

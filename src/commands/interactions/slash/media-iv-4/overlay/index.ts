@@ -4,7 +4,6 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { MediaIVOverlayBernieCommand } from './bernie';
 import { MediaIVOverlayBobRossCommand } from './bob.ross';
-import { MediaIVOverlayBrazzersCommand } from './brazzers';
 import { MediaIVOverlayFaceCommand } from './face';
 import { MediaIVOverlayFliesCommand } from './flies';
 import { MediaIVOverlayGabenCommand } from './gaben';
@@ -36,7 +35,6 @@ export class MediaIVOverlayGroupCommand extends BaseInteractionCommandOptionGrou
       options: [
         new MediaIVOverlayBernieCommand(),
         new MediaIVOverlayBobRossCommand(),
-        new MediaIVOverlayBrazzersCommand(),
         new MediaIVOverlayFaceCommand(),
         new MediaIVOverlayFliesCommand(),
         new MediaIVOverlayGabenCommand(),

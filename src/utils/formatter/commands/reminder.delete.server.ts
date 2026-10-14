@@ -2,7 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { editReminder, fetchReminderPositional } from '../../../api';
+import { fetchReminderPositional, moveReminderToDms } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { EmbedColors, StatusEmojis } from '../../../constants';
@@ -53,7 +53,7 @@ export async function createMessage(
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('reminder_delete_me.unknown_reminder')}`});
   }
 
-  await editReminder(context, reminder.id, {channelId: null, guildId: null, messageId: null});
+  await moveReminderToDms(context, reminder.id);
 
   const payload: DisplayPayload = {};
   payload.color = EmbedColors.LOG_CREATION;

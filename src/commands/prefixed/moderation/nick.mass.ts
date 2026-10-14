@@ -1,5 +1,5 @@
 import { Command, CommandClient, Interaction, Structures } from 'detritus-client';
-import { InteractionCallbackTypes, MessageComponentButtonStyles, Permissions } from 'detritus-client/lib/constants';
+import { InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags, Permissions } from 'detritus-client/lib/constants';
 import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 import { Timers } from 'detritus-utils';
 
@@ -118,6 +118,12 @@ export async function createNickMassMessage(
 
   const nick = args.text;
 
+  // the person running it has to outrank them too, not just the bot (this let someone with a low role rename admins)
+  const invoker = context.member;
+  const canInvokerEdit = (member: Structures.Member) => {
+    return !!invoker && (invoker.isOwner || invoker.id === member.id || invoker.canEdit(member));
+  };
+
   const members = guild.members.filter((member) => {
     if (args.nobots && member.bot) {
       return false;
@@ -128,7 +134,7 @@ export async function createNickMassMessage(
     if (args.role && !member.roles.has(args.role.id)) {
       return false;
     }
-    return member.name !== nick && me.canEdit(member);
+    return member.name !== nick && me.canEdit(member) && canInvokerEdit(member);
   });
 
   const [ amount, time ] = RATELIMIT_TIME;
@@ -151,6 +157,15 @@ export async function createNickMassMessage(
         if (ctx.userId !== context.userId) {
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
         }
+
+        // checked again here, two prompts could both be continued and rename everyone twice at the same time
+        if (isExecuting.nick) {
+          return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+            content: translate('nickmass.in_progress'),
+            flags: MessageFlags.EPHEMERAL,
+          });
+        }
+        isExecuting.nick = true;
 
         const amounts = {
           changed: 0,
@@ -232,7 +247,12 @@ export async function createNickMassMessage(
               return displayReply(context, payload, {replyTo: ctx});
             },
           });
-          await displayReply(context, {...payload, components}, {replyTo: ctx});
+          try {
+            await displayReply(context, {...payload, components}, {replyTo: ctx});
+          } catch(error) {
+            isExecuting.nick = false;
+            throw error;
+          }
         }
 
         isExecuting.nick = true;
@@ -287,6 +307,8 @@ export async function createNickMassMessage(
                 canChangeNicknames: me.canChangeNicknames,
                 user: member.user,
               };
+              // otherwise the server stays "in progress" until a restart
+              isExecuting.nick = false;
               throw error;
             }
           }

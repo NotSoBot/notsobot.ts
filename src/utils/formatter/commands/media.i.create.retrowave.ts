@@ -33,10 +33,8 @@ export async function createMessage(
       } else if (1 < split.length && split.length <= 3) {
         parts = split;
       } else {
-        parts = args.text.split('');
-        if (parts.length === 4) {
-          parts[2] = parts[2] + parts.pop()!;
-        }
+        // more than 3 words, put the overflow words onto the last line (split('') was splitting into characters)
+        parts = [split[0], split[1], split.slice(2).join(' ')];
       }
     }
   }

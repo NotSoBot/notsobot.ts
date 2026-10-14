@@ -12,6 +12,7 @@ import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } fro
 import ServerExecutionsStore from '../../../stores/serverexecutions';
 import { DefaultParameters, I18n, Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
 
+import { formatPermissions, replyWarning } from '../../errors';
 import { BaseCommand } from '../basecommand';
 
 
@@ -83,6 +84,15 @@ export default class PruneCommand extends BaseCommand {
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
+    // `-in` was given but didn't resolve, don't fall back to pruning the current channel
+    if (args.in === null) {
+      return false;
+    }
+    // `-from` with no value (or nobody found) used to come through as null, which turned the author filter off and
+    // pruned everyone's messages
+    if (args.from === null || (args.from && !args.from.length)) {
+      return false;
+    }
     // if afterId is after beforeId, error out
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
       return false;
@@ -106,6 +116,12 @@ export default class PruneCommand extends BaseCommand {
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
     const { translate } = await I18n.getTranslator(context);
+    if (args.in === null) {
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.channel_not_found')}`});
+    }
+    if (args.from === null || (args.from && !args.from.length)) {
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
+    }
     if (args.after && args.before && BigInt(args.before) <= BigInt(args.after)) {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('prune.after_before')}`});
     }
@@ -128,11 +144,40 @@ export async function createPruneMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate } = await I18n.getTranslator(context);
+  const translator = await I18n.getTranslator(context);
+  const { language, translate } = translator;
   const bulk = new Collections.BaseCollection<string, Structures.Message>();
   const manual = new Collections.BaseCollection<string, Structures.Message>();
 
   const channelId = (args.in) ? args.in.id : context.channelId!;
+
+  // command permissions are only checked in the channel the command was used in, so check the `in` channel ourselves
+  if (args.in && args.in.id !== context.channelId) {
+    // use the cached channel, slash command resolved channels don't include permission overwrites
+    const channel = context.channels.get(args.in.id);
+    if (!channel || !context.guildId || channel.guildId !== context.guildId || !context.member) {
+      return replyWarning(context, translate('errors.channel_not_found'));
+    }
+    const command = `${Markup.codestring(COMMAND_NAME)} -> ${channel.mention}`;
+
+    const requiredUser = [Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY, Permissions.MANAGE_MESSAGES];
+    const failedUser = requiredUser.filter((permission) => !channel.can(permission, context.member!));
+    if (failedUser.length) {
+      return replyWarning(context, translate('errors.prefix_user_missing_permissions', {
+        command,
+        permissions: formatPermissions(failedUser, translator),
+      }));
+    }
+
+    const requiredBot = [Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY, Permissions.MANAGE_MESSAGES];
+    const failedBot = requiredBot.filter((permission) => !channel.can(permission));
+    if (failedBot.length) {
+      return replyWarning(context, translate('errors.prefix_bot_missing_permissions', {
+        command,
+        permissions: formatPermissions(failedBot, translator),
+      }));
+    }
+  }
 
   const isExecuting = ServerExecutionsStore.getOrCreate((context.guildId || context.channelId)!);
   if (isExecuting.prune) {
@@ -301,18 +346,28 @@ export async function createPruneMessage(
         isExecuting.prune = false;
       }
     } else {
-      const components = new Components({timeout: MAX_TIME_TO_RESPOND});
+      // keep holding the prune lock until continue/cancel is pressed (or nobody answers), otherwise another large prune
+      // could be started while this one is waiting on confirmation
+      let responded = false;
+      const components = new Components({
+        timeout: MAX_TIME_TO_RESPOND,
+        onTimeout: () => {
+          if (!responded) {
+            isExecuting.prune = false;
+          }
+        },
+      });
       components.createButton({
         label: translate('common.continue'),
         run: async (ctx: ComponentContext) => {
-          if (!timeout.hasStarted || ctx.userId !== context.userId) {
+          if (responded || !timeout.hasStarted || ctx.userId !== context.userId) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
+          responded = true;
           timeout.stop();
 
-          await displayReply(context, {description: translate('prune.starting', {count: total.toLocaleString(language)})}, {replyTo: ctx});
-
           try {
+            await displayReply(context, {description: translate('prune.starting', {count: total.toLocaleString(language)})}, {replyTo: ctx});
             const deletedTotal = await deleteMessages(context, channelId, bulk, manual);
             if (deletedTotal === total) {
               await displayReply(context, {description: translate('prune.deleted', {count: deletedTotal.toLocaleString(language)})}, {replyTo: ctx});
@@ -333,9 +388,10 @@ export async function createPruneMessage(
         label: translate('common.cancel'),
         style: MessageComponentButtonStyles.DANGER,
         run: async (ctx: ComponentContext) => {
-          if (!timeout.hasStarted || ctx.userId !== context.userId) {
+          if (responded || !timeout.hasStarted || ctx.userId !== context.userId) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
           }
+          responded = true;
           timeout.stop();
 
           isExecuting.prune = false;
@@ -352,9 +408,17 @@ export async function createPruneMessage(
         content = translate('prune.found_partial', {count: total.toLocaleString(language), requested: args.amount.toLocaleString(language)});
       }
 
-      isExecuting.prune = false;
-      const message = await displayReply(context, {components, description: content});
-      clearMessages(timeout, messagesToClear(context, message), MAX_TIME_TO_RESPOND);
+      const message = await displayReply(context, {components, description: content}).catch((error) => {
+        isExecuting.prune = false;
+        throw error;
+      });
+      clearMessages(timeout, messagesToClear(context, message), MAX_TIME_TO_RESPOND).then(() => {
+        // the confirmation expired without an answer
+        if (!responded) {
+          responded = true;
+          isExecuting.prune = false;
+        }
+      });
     }
   } else {
     isExecuting.prune = false;

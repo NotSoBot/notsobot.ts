@@ -50,7 +50,10 @@ class UserStore extends Store<string, UserFull> {
       const timeout = new Timers.Timeout();
       promise = new Promise(async (resolve) => {
         timeout.start(5000, () => {
-          UserPromisesStore.delete(userId);
+          // a newer fetch may have replaced this entry after a timeout, only remove our own
+          if (UserPromisesStore.get(userId)?.promise === promise) {
+            UserPromisesStore.delete(userId);
+          }
           resolve(null);
         });
 
@@ -84,7 +87,9 @@ class UserStore extends Store<string, UserFull> {
           resolve(null);
         }
         timeout.stop();
-        UserPromisesStore.delete(userId);
+        if (UserPromisesStore.get(userId)?.promise === promise) {
+          UserPromisesStore.delete(userId);
+        }
       });
       UserPromisesStore.insert(userId, {promise, timeout});
     }

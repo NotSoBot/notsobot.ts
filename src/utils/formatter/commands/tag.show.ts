@@ -50,6 +50,8 @@ export async function createMessage(
   context.metadata = Object.assign({}, context.metadata, {tag});
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
   const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
+  // maybeReplaceContent reads the refreshed attachment urls from here, it used to only be set later in createTagMessage
+  context.metadata = Object.assign({}, context.metadata, {parsedTag});
   await maybeReplaceContent(context, tag);
   return await createTagMessage(context, parsedTag);
 }
@@ -217,6 +219,8 @@ export function generateComponents(
           parsedTag.context,
           parsedTag.limits,
           parsedTag.files,
+          true,
+          {isRoot: true},
         );
         return createTagMessage(context, newParsedTag);
       }
@@ -340,62 +344,70 @@ export function generateComponents(
           return;
         }
         if (isExecuting) {
+          // ack it so a double click doesn't show 'This interaction failed'
+          await componentContext.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE).catch(() => {});
           return;
         }
 
         isExecuting = true;
-
-        for (let x of components.components) {
-          if (x instanceof ComponentActionRow) {
-            for (let v of x.components) {
-              if (v instanceof ComponentButton || v instanceof ComponentSelectMenu) {
-                v.disabled = true;
+        // reset in a finally, otherwise one failed parse leaves every later click doing nothing
+        try {
+          for (let x of components.components) {
+            if (x instanceof ComponentActionRow) {
+              for (let v of x.components) {
+                if (v instanceof ComponentButton || v instanceof ComponentSelectMenu) {
+                  v.disabled = true;
+                }
               }
-            }
-          } else if (x instanceof ComponentContainer) {
-            for (let v of x.components) {
-              if (v instanceof ComponentActionRow) {
-                for (let c of v.components) {
-                  if (c instanceof ComponentButton || c instanceof ComponentSelectMenu) {
-                    c.disabled = true;
+            } else if (x instanceof ComponentContainer) {
+              for (let v of x.components) {
+                if (v instanceof ComponentActionRow) {
+                  for (let c of v.components) {
+                    if (c instanceof ComponentButton || c instanceof ComponentSelectMenu) {
+                      c.disabled = true;
+                    }
+                  }
+                } else if (v instanceof ComponentSection) {
+                  if (v.accessory instanceof ComponentButton) {
+                    v.accessory.disabled = true;
                   }
                 }
-              } else if (v instanceof ComponentSection) {
-                if (v.accessory instanceof ComponentButton) {
-                  v.accessory.disabled = true;
-                }
+              }
+            } else if (x instanceof ComponentSection) {
+              if (x.accessory instanceof ComponentButton) {
+                x.accessory.disabled = true;
               }
             }
-          } else if (x instanceof ComponentSection) {
-            if (x.accessory instanceof ComponentButton) {
-              x.accessory.disabled = true;
-            }
           }
+
+          await componentContext.editOrRespond({
+            attachments: undefined,
+            content: undefined,
+            components,
+            embeds: undefined,
+          });
+
+          if (componentContext.data.values) {
+            parsedTag.variables[TagFormatter.PrivateVariables.VALUES] = JSON.stringify(componentContext.data.values);
+          }
+
+          await TagFormatter.resetTagLimits(parsedTag);
+          await TagFormatter.increaseComponentExecutions(parsedTag);
+          const newParsedTag = await TagFormatter.parse(
+            context,
+            runTagScript,
+            '',
+            parsedTag.variables,
+            parsedTag.context,
+            parsedTag.limits,
+            parsedTag.files,
+            true,
+            {isRoot: true},
+          );
+          return await createTagMessage(context, newParsedTag, '', componentContext);
+        } finally {
+          isExecuting = false;
         }
-
-        await componentContext.editOrRespond({
-          attachments: undefined,
-          content: undefined,
-          components,
-          embeds: undefined,
-        });
-
-        if (componentContext.data.values) {
-          parsedTag.variables[TagFormatter.PrivateVariables.VALUES] = JSON.stringify(componentContext.data.values);
-        }
-
-        await TagFormatter.resetTagLimits(parsedTag);
-        await TagFormatter.increaseComponentExecutions(parsedTag);
-        const newParsedTag = await TagFormatter.parse(
-          context,
-          runTagScript,
-          '',
-          parsedTag.variables,
-          parsedTag.context,
-          parsedTag.limits,
-          parsedTag.files,
-        );
-        return createTagMessage(context, newParsedTag, '', componentContext);
       };
     }
   }

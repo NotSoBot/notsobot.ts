@@ -8,8 +8,8 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'shotgun';
 
 export class MediaIVOverlayShotgunCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Overlay a Half Life Shotgun over an Image or Video';
-  descriptionLocalizations = I18n.localizations('commands.media_iv.overlay.shotgun.description');
+  description = 'This command is disabled while we wait for Discord Compliance approval.';
+  descriptionLocalizations = I18n.localizations('commands.media_iv.overlay.awaiting_compliance');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayHalfLifeShotgun.COMMAND_ID,
   };

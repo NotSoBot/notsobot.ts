@@ -5,6 +5,7 @@ import { editTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { GuildFeatures, UserFlags } from '../../../constants';
+import GuildMetadataStore from '../../../stores/guildmetadata';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import TagCustomCommandsStore from '../../../stores/tagcustomcommands';
 import UserStore from '../../../stores/users';
@@ -43,13 +44,28 @@ export async function getCannotAddReason(
       return null;
     }
 
-    const guild = context.guild;
-    if (guild) {
-      // get owner
-      const owner = await UserStore.getOrFetch(context, guild.ownerId);
-      if (!owner || (!owner.hasFlag(UserFlags.OWNER) && !owner.hasFlag(UserFlags.PREMIUM_DISCORD))) {
-        return 'The server owner must have NotSoPremium to have custom commands here!';
+    // don't skip the owner check when the guild isn't cached, fetch it instead (and fail closed if we can't)
+    let ownerId: null | string = null;
+    if (context.guild) {
+      ownerId = context.guild.ownerId;
+    } else {
+      const metadata = GuildMetadataStore.get(guildId);
+      if (metadata && metadata.guild) {
+        ownerId = metadata.guild.ownerId;
+      } else {
+        try {
+          const guild = await context.rest.fetchGuild(guildId);
+          ownerId = guild.ownerId;
+        } catch(error) {
+          ownerId = null;
+        }
       }
+    }
+
+    // get owner
+    const owner = (ownerId) ? await UserStore.getOrFetch(context, ownerId) : null;
+    if (!owner || (!owner.premiumType && !owner.hasFlag(UserFlags.OWNER))) {
+      return 'The server owner must have NotSoPremium to have custom commands here!';
     }
   }
 

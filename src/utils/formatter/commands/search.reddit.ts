@@ -71,8 +71,18 @@ export async function createMessage(
           description.push(translate('search_reddit.ratio_upvotes', {upvote_ratio: data.upvote_ratio * 100}));
 
           if (data.is_video) {
-            description.push('');
-            description.push(Markup.url('Video URL', data.media.reddit_video.fallback_url));
+            // crossposts have no media of their own, fall back to the parent post's
+            let media: any = data.media;
+            if (!media || !media.reddit_video) {
+              const parents: Array<any> | undefined = (data as any).crosspost_parent_list;
+              if (Array.isArray(parents) && parents.length) {
+                media = parents[0].media;
+              }
+            }
+            if (media && media.reddit_video && media.reddit_video.fallback_url) {
+              description.push('');
+              description.push(Markup.url('Video URL', media.reddit_video.fallback_url));
+            }
           }
 
           payload.fields!.push({name: translate('search_reddit.details'), value: description.join('\n')});

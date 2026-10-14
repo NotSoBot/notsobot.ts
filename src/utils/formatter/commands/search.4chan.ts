@@ -2,10 +2,10 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 
-import { search4Chan, search4ChanRandom } from '../../../api';
+import { moderationSafetyScan, search4Chan, search4ChanRandom } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
-import { DiscordEmojis, EmbedBrands, EmbedColors } from '../../../constants';
+import { DiscordEmojis, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
 import { DefaultParameters, DisplayPayload, Paginator, displayReply, shuffleArray } from '../../../utils';
 
 
@@ -15,6 +15,7 @@ export interface CommandArgs {
   closed?: boolean,
   board?: string,
   randomize?: boolean,
+  safe?: boolean,
 }
 
 export async function createMessage(
@@ -23,17 +24,26 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
 
-  const board = await ((args.board) ? search4Chan(context, {board: args.board}) : search4ChanRandom(context, {nsfw: !DefaultParameters.safe(context)}));
-  if (board.threads.length) {
-    let threads: Array<RestResponsesRaw.Search4ChanThread> = board.threads;
-    if (!args.closed) {
-      threads = threads.filter((thread) => !thread.closed);
-    }
+  // the `safe` option can only turn safe mode on, never off in a sfw channel
+  const safe = !!args.safe || DefaultParameters.safe(context);
+  // nsfw boards (like /b/) used to be shown anywhere when picked by name, only random boards checked the channel
+  const board = await ((args.board) ? search4Chan(context, {board: args.board, safe}) : search4ChanRandom(context, {nsfw: !safe}));
+  if (safe && board.nsfw) {
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.not_nsfw_channel')}`});
+  }
+  let threads: Array<RestResponsesRaw.Search4ChanThread> = board.threads;
+  if (!args.closed) {
+    threads = threads.filter((thread) => !thread.closed);
+  }
+  // checked after filtering, every thread being closed used to crash on `threads[0]`
+  if (threads.length) {
     if (args.randomize) {
       shuffleArray(threads);
     }
 
     const filesCached: Record<string, RequestTypes.File | null> = {};
+    // page => whether the thread was blocked by the safety scan
+    const blockedCached: Record<number, boolean> = {};
 
     const pageLimit = threads.length;
     const paginator = new Paginator(context, {
@@ -67,6 +77,7 @@ export async function createMessage(
         }
 
         const files: Array<RequestTypes.File> = [];
+        let mediaFile: RequestTypes.File | null = null;
         if (thread.media && !thread.media.deleted) {
           let url: string;
           if (thread.media.extension === 'webm') {
@@ -85,13 +96,45 @@ export async function createMessage(
             }
           }
 
-          const file = filesCached[url];
-          if (file) {
-            files.push(file);
-            url = `attachment://${file.filename}`;
+          // only show media we downloaded and scanned, a raw url would get embedded by discord without being scanned
+          mediaFile = filesCached[url];
+          if (mediaFile) {
+            files.push(mediaFile);
+            payload.image = `attachment://${mediaFile.filename}`;
           }
+        }
 
-          payload.image = url;
+        if (!(page in blockedCached)) {
+          // the safety scan endpoint accepts at most 4000 characters of text
+          const text = [thread.title, thread.comment].filter(Boolean).join('\n').trim().slice(0, 4000);
+          if (text || mediaFile) {
+            try {
+              const response = await moderationSafetyScan(context, {
+                files: (mediaFile) ? [mediaFile] : undefined,
+                logFlags: true,
+                safe: true,
+                sourceUrl: thread.url,
+                text: text || undefined,
+              });
+              blockedCached[page] = !!((response.media && response.media.unsafe) || (response.text && response.text.unsafe));
+            } catch(error) {
+              // fail closed, hide the thread if the safety scan fails
+              console.error('Failed to scan 4chan thread', error);
+              blockedCached[page] = true;
+            }
+          } else {
+            blockedCached[page] = false;
+          }
+        }
+
+        if (blockedCached[page]) {
+          return {
+            display: {
+              color: EmbedColors.DEFAULT,
+              description: `${StatusEmojis.WARNING} ${translate('search_4chan.thread_blocked')}`,
+              footer,
+            },
+          };
         }
 
         {

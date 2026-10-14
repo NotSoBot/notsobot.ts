@@ -45,6 +45,8 @@ export async function request(
   context: RequestContext | Interaction.InteractionContext | Command.Context,
   options: RequestOptions,
 ): Promise<any> {
+  // shallow copy so the caller's options object can be reused/retried safely
+  options = Object.assign({}, options);
   options.url = Api.URL + Api.PATH;
   options.headers = createHeaders(options.headers);
 
@@ -119,11 +121,8 @@ export async function request(
   }
 
   if (options.file) {
-    if (options.files) {
-      options.files.unshift(options.file);
-    } else {
-      options.files = [options.file];
-    }
+    // copy instead of unshift so the caller's array isn't mutated (retries would upload the file twice)
+    options.files = (options.files) ? [options.file, ...options.files] : [options.file];
   }
 
   try {
@@ -704,6 +703,22 @@ export async function editServerSettings(
     route: {
       method: HTTPMethods.PATCH,
       path: Api.SERVER,
+      params,
+    },
+  });
+}
+
+
+// only for `reminder delete server`, the api only lets this through for reminders in the same server
+export async function moveReminderToDms(
+  context: RequestContext,
+  reminderId: string,
+): Promise<RestResponsesRaw.EditReminder> {
+  const params = {reminderId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.REMINDER_MOVE_TO_DMS,
       params,
     },
   });
@@ -1646,6 +1661,7 @@ export async function mediaAIVManipulationConvert(
     max_file_size: maxFileSize,
     remove_audio: options.removeAudio,
     safe: options.safe,
+    size: options.size,
     to: options.to,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
@@ -4452,27 +4468,6 @@ export async function mediaIVManipulationOverlayFlies(
 }
 
 
-export async function mediaIVManipulationOverlayGoldstar(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.JobResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    max_file_size: maxFileSize,
-    safe: options.safe,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_GOLDSTAR,
-    },
-  });
-}
-
-
 export async function mediaIVManipulationOverlayHalfLifePistol(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -4615,27 +4610,6 @@ export async function mediaIVManipulationOverlayPersonsLTTLinus1(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_LTT_LINUS_1,
-    },
-  });
-}
-
-
-export async function mediaIVManipulationOverlayShutterstock(
-  context: RequestContext,
-  options: RestOptions.MediaBaseOptions,
-): Promise<RestResponsesRaw.JobResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    max_file_size: maxFileSize,
-    safe: options.safe,
-    url: options.url,
-  };
-  return request(context, {
-    file: options.file,
-    query,
-    route: {
-      method: HTTPMethods.POST,
-      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK,
     },
   });
 }
@@ -5870,9 +5844,15 @@ export async function moderationSafetyScan(
 ): Promise<RestResponsesRaw.ModerationSafetyScan> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    custom_category: options.customCategory,
+    custom_instruct: options.customInstruct,
+    custom_query: options.customQuery,
+    custom_threshold: options.customThreshold,
     extract_frames: options.extractFrames,
+    log_flags: options.logFlags,
     max_file_size: maxFileSize,
     safe: options.safe,
+    source_url: options.sourceUrl,
     text: options.text,
     urls: options.urls,
   };
@@ -6224,6 +6204,7 @@ export async function search4Chan(
 ): Promise<RestResponsesRaw.Search4Chan> {
   const query = {
     board: options.board,
+    safe: options.safe,
   };
   return request(context, {
     query,
@@ -6292,6 +6273,7 @@ export async function searchE621(
   options: RestOptions.SearchE621,
 ): Promise<any> {
   const query = {
+    max_results: options.max_results,
     query: options.query,
   };
   return request(context, {
@@ -6309,6 +6291,7 @@ export async function searchE926(
   options: RestOptions.SearchE926,
 ): Promise<any> {
   const query = {
+    max_results: options.max_results,
     query: options.query,
   };
   return request(context, {
@@ -6401,6 +6384,7 @@ export async function searchReddit(
   options: RestOptions.SearchReddit,
 ): Promise<RestResponsesRaw.SearchReddit> {
   const query = {
+    max_results: options.maxResults,
     query: options.query,
     safe: options.safe,
     sort: options.sort,
@@ -6649,46 +6633,6 @@ export async function utilitiesCodeRun(
     route: {
       method: HTTPMethods.POST,
       path: Api.UTILITIES_CODE_RUN,
-    },
-  });
-}
-
-
-export async function utilitiesFetchData(
-  context: RequestContext,
-  options: RestOptions.UtilitiesFetchData,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    max_file_size: maxFileSize,
-    safe: options.safe,
-    url: options.url,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.UTILITIES_FETCH_DATA,
-    },
-  });
-}
-
-
-export async function utilitiesFetchImage(
-  context: RequestContext,
-  options: RestOptions.UtilitiesFetchImage,
-): Promise<RestResponsesRaw.FileResponse> {
-  const maxFileSize = getDefaultMaxFileSize(context, options);
-  const query = {
-    max_file_size: maxFileSize,
-    safe: options.safe,
-    url: options.url,
-  };
-  return request(context, {
-    query,
-    route: {
-      method: HTTPMethods.GET,
-      path: Api.UTILITIES_FETCH_IMAGE,
     },
   });
 }
@@ -6965,6 +6909,8 @@ export async function utilitiesScreenshot(
 ): Promise<RestResponsesRaw.FileResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    // the api defaults to dark mode, so `-lightmode` did nothing without this
+    darkmode: options.darkmode,
     height: options.height,
     max_file_size: maxFileSize,
     safe: options.safe,

@@ -12,8 +12,9 @@ import {
   TagGenerationPersonalityPreferencesToText,
   UserFlags,
 } from '../../../constants';
-import { Formatter, Parameters } from '../../../utils';
+import { Formatter, I18n, Parameters } from '../../../utils';
 
+import { warning } from '../../errors';
 import { BaseCommand, CommandMetadata } from '../basecommand';
 
 
@@ -86,6 +87,14 @@ export default class AiCommand extends BaseCommand {
           hasPremium = true;
         }
       }
+    }
+
+    if (!hasPremium) {
+      // without a reason `onCancel` doesn't reply at all, so non-premium users got nothing back
+      const { translate } = await I18n.getTranslator(context);
+      context.metadata = context.metadata || {};
+      context.metadata.reason = warning(translate('errors.premium_ai_required'));
+      context.metadata.reasonIsPremiumRequired = true;
     }
 
     return hasPremium;

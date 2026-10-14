@@ -15,6 +15,7 @@ export { ERROR_TIMEOUT_MESSAGE as MATH_ERROR_TIMEOUT_MESSAGE };
 
 export class MathWorker {
   private worker: Worker | null = null;
+  private workerStarting: Promise<Worker> | null = null;
   private isProcessing: boolean;
   private pendingEquations: Array<{
     equation: string;
@@ -22,76 +23,96 @@ export class MathWorker {
     reject: (error: Error) => void;
     timeoutId: NodeJS.Timeout;
   }>;
+  private terminateAfter: number;
   private terminateAfterTimeout: NodeJS.Timeout | null = null;
 
   constructor(terminateAfter: number = 60000) {
     this.isProcessing = false;
     this.pendingEquations = [];
-    if (terminateAfter) {
-      this.terminateAfterTimeout = setTimeout(() => this.terminate(), terminateAfter);
+    this.terminateAfter = terminateAfter;
+    this.startTerminateTimer();
+  }
+
+  private startTerminateTimer(): void {
+    if (this.terminateAfter && !this.terminateAfterTimeout) {
+      this.terminateAfterTimeout = setTimeout(() => this.terminate(), this.terminateAfter);
     }
   }
 
-  async initialize() {
+  // only one worker is ever alive, concurrent callers share the one being started
+  private async getWorker(): Promise<Worker> {
     if (this.worker) {
-      this.worker.terminate();
-      this.worker = null;
+      return this.worker;
     }
-    this.worker = await this.createWorker();
+    if (!this.workerStarting) {
+      this.workerStarting = this.createWorker().finally(() => {
+        this.workerStarting = null;
+      });
+    }
+    return this.workerStarting;
   }
 
-  private async createWorker(): Promise<Worker> {
+  private createWorker(): Promise<Worker> {
     const worker = new Worker(path.join(__dirname, 'worker.js'));
-    await this.setupEventHandlers(worker);
-    return worker;
-  }
+    this.worker = worker;
 
-  private async setupEventHandlers(worker: Worker): Promise<void> {
     return new Promise((resolve, reject) => {
-      worker.on('error', async (error: Error) => {
-        console.error('Worker error:', error);
-        await this.handleWorkerFailure(error);
-        reject(error);
-      });
-
-      worker.on('exit', async (code: number) => {
-        if (code !== 0) {
-          console.error(`Worker stopped with exit code ${code}`);
-          const error = new Error(`Worker stopped with exit code ${code}`);
-          await this.handleWorkerFailure(error);
-          reject(error);
-        }
-        reject();
-      });
-
-      worker.on('message', (response: WorkerResponse) => {
-        this.handleWorkerResponse(response);
-      });
-
       const timeoutId = setTimeout(() => {
+        this.killWorker(worker);
         reject(new Error('Math Worker took too long to initialize'));
       }, 1000);
 
       worker.on('online', () => {
         clearTimeout(timeoutId);
-        resolve();
+        resolve(worker);
+      });
+
+      worker.on('message', (response: WorkerResponse) => {
+        if (worker === this.worker) {
+          this.handleWorkerResponse(response);
+        }
+      });
+
+      // `error` is followed by `exit`, so only handle the crash once, on exit
+      worker.on('error', (error: Error) => {
+        console.error('Math Worker error:', error);
+      });
+
+      worker.on('exit', (code: number) => {
+        clearTimeout(timeoutId);
+        reject(new Error(`Math Worker stopped with exit code ${code}`));
+        // workers we terminate ourselves are detached first, so this is only an unexpected crash
+        if (worker === this.worker) {
+          this.worker = null;
+          this.handleWorkerFailure(new Error(`Math Worker stopped with exit code ${code}`));
+        }
       });
     });
   }
 
-  private async handleWorkerFailure(error: Error): Promise<void> {
-    // Clear current equation
-    const currentEquation = this.pendingEquations.shift();
-    if (currentEquation) {
-      clearTimeout(currentEquation.timeoutId);
-      currentEquation.reject(error);
+  // unset it before terminating so its exit isn't treated as a crash (which used to spawn a new, never terminated worker)
+  // the exit listener stays so a worker killed while starting still rejects its startup promise
+  private killWorker(worker: Worker | null = this.worker): void {
+    if (!worker) {
+      return;
     }
+    if (worker === this.worker) {
+      this.worker = null;
+    }
+    worker.removeAllListeners('message');
+    worker.terminate().catch(() => {});
+  }
 
-    // Recreate worker
-    await this.initialize();
+  private handleWorkerFailure(error: Error): void {
+    // the equation being processed is what crashed it
+    if (this.isProcessing) {
+      const currentEquation = this.pendingEquations.shift();
+      if (currentEquation) {
+        clearTimeout(currentEquation.timeoutId);
+        currentEquation.reject(error);
+      }
+    }
     this.isProcessing = false;
-
-    // Process next equation if any
     this.processNextEquation();
   }
 
@@ -112,13 +133,24 @@ export class MathWorker {
   }
 
   private processNextEquation(): void {
-    if (this.isProcessing || this.pendingEquations.length === 0 || !this.worker) return;
+    if (this.isProcessing || this.pendingEquations.length === 0) return;
 
     const nextEquation = this.pendingEquations[0];
-    if (!nextEquation) return;
-
     this.isProcessing = true;
-    this.worker.postMessage({ equation: nextEquation.equation });
+    this.getWorker().then((worker) => {
+      // it might've timed out while the worker was starting
+      if (this.pendingEquations[0] === nextEquation) {
+        worker.postMessage({equation: nextEquation.equation});
+      }
+    }).catch((error) => {
+      if (this.pendingEquations[0] === nextEquation) {
+        this.pendingEquations.shift();
+        clearTimeout(nextEquation.timeoutId);
+        nextEquation.reject(error);
+      }
+      this.isProcessing = false;
+      this.processNextEquation();
+    });
   }
 
   public async evaluate(equation: string, timeout: number = MAX_TIME_MATH): Promise<string> {
@@ -129,16 +161,17 @@ export class MathWorker {
         {timeout},
       ));
     }
-    if (!this.worker) {
-      await this.initialize();
-    }
+    // used again after being terminated, make sure the new worker gets cleaned up too
+    this.startTerminateTimer();
+
     return new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(async () => {
-        const index = this.pendingEquations.findIndex(eq => eq.timeoutId === timeoutId);
+      const timeoutId = setTimeout(() => {
+        const index = this.pendingEquations.findIndex((eq) => eq.timeoutId === timeoutId);
         if (index !== -1) {
           this.pendingEquations.splice(index, 1);
           if (index === 0 && this.isProcessing) {
-            await this.initialize();
+            // the worker is stuck on this equation, kill it and start the next one on a fresh worker
+            this.killWorker();
             this.isProcessing = false;
             this.processNextEquation();
           }
@@ -146,10 +179,8 @@ export class MathWorker {
         reject(new Error(`${ERROR_TIMEOUT_MESSAGE} after ${timeout}ms`));
       }, timeout);
 
-      this.pendingEquations.push({ equation, resolve, reject, timeoutId });
-      if (!this.isProcessing) {
-        this.processNextEquation();
-      }
+      this.pendingEquations.push({equation, resolve, reject, timeoutId});
+      this.processNextEquation();
     });
   }
 
@@ -159,11 +190,11 @@ export class MathWorker {
       eq.reject(new Error('Worker terminated'));
     }
     this.pendingEquations = [];
-    if (this.worker) {
-      this.worker.terminate();
-    }
+    this.isProcessing = false;
+    this.killWorker();
     if (this.terminateAfterTimeout) {
       clearTimeout(this.terminateAfterTimeout);
+      this.terminateAfterTimeout = null;
     }
   }
 }

@@ -143,11 +143,20 @@ export async function createBlocklist(
     title = translate('moderation.blocklist.add_many', {items: comments.join(', ')});
 
     settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
+    // keep existing entries keyed so re-adding one doesn't duplicate it (and count twice towards the limit)
+    // the api only takes {id, type} and leaves rows that already exist alone, so their added/userId is kept
+    const blocklist = new Collections.BaseCollection<string, {id: string, type: string}>();
+    for (let [key, blocked] of settings.blocklist) {
+      blocklist.set(key, {id: blocked.id, type: blocked.type});
+    }
+    for (let {item, type} of payloads) {
+      const key = `${item.id}.${type}`;
+      if (!blocklist.has(key)) {
+        blocklist.set(key, {id: item.id, type});
+      }
+    }
     settings = await editGuildSettings(context, guildId, {
-      blocklist: [
-        ...payloads.map((payload) => ({id: payload.item.id, type: payload.type})),
-        ...settings.blocklist.map((blocked) => ({id: blocked.id, type: blocked.type})),
-      ],
+      blocklist: blocklist.toArray(),
     });
   }
   return {settings, title};

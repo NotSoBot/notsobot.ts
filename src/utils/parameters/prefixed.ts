@@ -240,7 +240,9 @@ export async function guildMetadata(
           // read from the cached guild, a rest-fetched one won't have the sounds
           payload.soundboardSoundCount = payload.guild.soundboardSounds.length;
           if (!payload.guild.hasMetadata) {
-            payload.guild = await context.rest.fetchGuild(guildId);
+            // the fetch merges into the cached guild, keep the cached object so its presences/voice states/channels
+            // are still what gets counted (a rest-only guild has none of them)
+            await context.rest.fetchGuild(guildId);
           }
           payload.channels = payload.guild.channels;
           payload.memberCount = payload.guild.memberCount;
@@ -384,6 +386,6 @@ export function oneOf<T>(options: OneOfOptions<T>) {
       }
       return null;
     }
-    return options.defaultChoice || null;
+    return options.defaultChoice ?? null;
   }
 }

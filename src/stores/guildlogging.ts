@@ -31,6 +31,7 @@ import {
 
 export interface GuildLogStorage {
   queues: Collections.BaseCollection<GuildLoggerTypes, Array<GuildLoggingEventItem>>,
+  settingsRetries: number,
   shard: ShardClient,
   timeout: Timers.Timeout,
 }
@@ -58,6 +59,13 @@ export const AUDIT_LEEWAY_TIME = 2000;
 
 export const COLLECTION_TIME = 1000;
 
+// when the guild's settings can't be fetched (api down/timing out), keep the logs queued and retry a few times
+export const SETTINGS_RETRY_MAX = 5;
+export const SETTINGS_RETRY_TIME = 5000;
+
+// cap each logger type's queue so an api outage can't grow it forever, the oldest events get dropped first
+export const MAX_QUEUE_LENGTH = 200;
+
 export const MAX_EMBED_SIZE = 6000;
 
 // <guildId, GuildLogStorage>
@@ -74,6 +82,9 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       storage.queues.set(type, queue);
     }
     queue.push(event);
+    if (MAX_QUEUE_LENGTH < queue.length) {
+      queue.splice(0, queue.length - MAX_QUEUE_LENGTH);
+    }
     this.startTimeout(guildId);
   }
 
@@ -84,6 +95,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     } else {
       storage = {
         queues: new Collections.BaseCollection<GuildLoggerTypes, Array<GuildLoggingEventItem>>(),
+        settingsRetries: 0,
         shard,
         timeout: new Timers.Timeout(),
       };
@@ -92,14 +104,14 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
     return storage;
   }
 
-  startTimeout(guildId: string): void {
+  startTimeout(guildId: string, delay: number = COLLECTION_TIME): void {
     const storage = this.get(guildId);
     if (!storage) {
       return;
     }
 
     const { queues, shard, timeout } = storage;
-    timeout.start(COLLECTION_TIME, async () => {
+    timeout.start(delay, async () => {
       try {
         await this.populateAuditLogs(guildId, storage);
       } catch(error) {
@@ -109,6 +121,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
       try {
         const settings = await GuildSettingsStore.getOrFetch({client: shard}, guildId);
         if (settings) {
+          storage.settingsRetries = 0;
           const promises: Array<Promise<any>> = [];
           // legacy and no embed both stay as embeds, there is no text only log format
           const componentsV2 = !!settings.settings && (settings.settings.responseDisplay ?? GuildSettingsResponseDisplayTypes.DEFAULT) === GuildSettingsResponseDisplayTypes.DEFAULT;
@@ -140,6 +153,15 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
           if (queues.some((queue) => !!queue.length)) {
             return this.startTimeout(guildId);
           }
+        } else if (storage.settingsRetries < SETTINGS_RETRY_MAX) {
+          storage.settingsRetries++;
+          return this.startTimeout(guildId, SETTINGS_RETRY_TIME);
+        } else {
+          let amount = 0;
+          for (let [loggerType, queue] of queues) {
+            amount += queue.length;
+          }
+          console.error(`Guild Logging dropped ${amount} logs for ${guildId}, couldn't fetch the guild's settings`);
         }
       } catch(error) {
         console.error(`Guild Logging failed for ${guildId}`, error);

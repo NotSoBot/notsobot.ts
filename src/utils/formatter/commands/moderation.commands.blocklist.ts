@@ -81,7 +81,7 @@ export async function createCommandsBlocklistsEmbed(
               }; break;
             }
             return [
-              translate('moderation_commands_blocklist.added', {addedAtText: moment(blocked.added).locale(language).fromNow(), command: blocked.command, index: (i * pageNumber) + 1}),
+              translate('moderation_commands_blocklist.added', {addedAtText: moment(blocked.added).locale(language).fromNow(), command: blocked.command, index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1}),
               `-> ${type}`,
               translate('moderation_commands_blocklist.by', {userId: blocked.userId}),
             ].join('\n');

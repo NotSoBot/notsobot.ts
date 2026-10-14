@@ -12,7 +12,8 @@ export interface CommandArgs {
 
 }
 
-export default class EmojifyCommand extends BaseCommand {
+// not registered (no default export) until it has an implementation, the empty `run()` showed up in help and never replied
+export class EmojifyCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: 'emojify',

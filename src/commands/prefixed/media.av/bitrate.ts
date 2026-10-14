@@ -32,6 +32,10 @@ export default class BitRateCommand extends BaseMediaCommand {
   }
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.MediaAVManipulationSetBitRate.CommandArgs) {
+    // run the base media check first so a missing/invalid url gets the proper error instead of running with no media
+    if (!super.onBeforeRun(context, args)) {
+      return false;
+    }
     return args.audio !== undefined || args.video !== undefined;
   }
 

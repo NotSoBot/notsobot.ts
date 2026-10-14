@@ -47,6 +47,9 @@ export enum ApiErrorCodes {
   UNKNOWN_TTS_VOICE = 10013,
   UNKNOWN_LOCATION = 10014,
   NO_TAGS_FOUND = 10015,
+  UNKNOWN_CONTENT_FLAG = 10016,
+  UNKNOWN_REPORT = 10017,
+  UNKNOWN_LLM_RESPONSE = 10018,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -69,6 +72,7 @@ export enum ApiErrorCodes {
   MAX_TAG_DIRECTORY = 30013,
   MAX_VOICE_CLONES = 30014,
   MAX_REPORTS = 30015,
+  RATELIMITED = 30016,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -150,6 +154,8 @@ export enum ApiErrorCodes {
   VANITY_GENERATION_FAILED = 90003,
   JOB_TIMEOUT = 90004,
   JOB_TERMINATED = 90005,
+  JOB_EXPIRED = 90006,
+  NOT_IMPLEMENTED = 90007,
 }
 
 
@@ -1930,7 +1936,7 @@ export enum UserSettingsUploadTypes {
 export enum UserFlags {
   NONE = 0,
   OWNER = 1 << 0,
-  PREMIUM_DISCORD = 1 << 1,
+  MODERATOR = 1 << 1,
 }
 
 
@@ -2071,6 +2077,7 @@ export const NotSoApiKeys = Object.freeze({
   CREATED: 'created',
   CURRENCY: 'currency',
   DESCRIPTION: 'description',
+  DISABLED_EVENTS: 'disabled_events',
   DISABLED_LOGGER_EVENTS: 'disabled_logger_events',
   DISCRIMINATOR: 'discriminator',
   DURATION: 'duration',
@@ -2147,11 +2154,13 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.CHANNEL_ID]: 'channelId',
   [NotSoApiKeys.COLOR]: 'color',
   [NotSoApiKeys.COMMAND]: 'command',
-  [NotSoApiKeys.COMMANDS_ALLOWLIST]: 'commandAllowlist',
-  [NotSoApiKeys.COMMANDS_BLOCKLIST]: 'commandBlocklist',
+  // must match the GuildSettings getters (commandsAllowlist/commandsBlocklist) for differences()/toJSON()
+  [NotSoApiKeys.COMMANDS_ALLOWLIST]: 'commandsAllowlist',
+  [NotSoApiKeys.COMMANDS_BLOCKLIST]: 'commandsBlocklist',
   [NotSoApiKeys.CREATED]: 'created',
   [NotSoApiKeys.CURRENCY]: 'currency',
   [NotSoApiKeys.DESCRIPTION]: 'description',
+  [NotSoApiKeys.DISABLED_EVENTS]: 'disabledEvents',
   [NotSoApiKeys.DISABLED_LOGGER_EVENTS]: 'disabledLoggerEvents',
   [NotSoApiKeys.DISCRIMINATOR]: 'discriminator',
   [NotSoApiKeys.DURATION]: 'duration',

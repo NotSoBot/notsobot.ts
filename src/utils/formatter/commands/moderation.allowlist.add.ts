@@ -143,11 +143,20 @@ export async function createAllowlist(
     title = translate('moderation.allowlist.add_many', {items: comments.join(', ')});
 
     settings = await GuildSettingsStore.getOrFetch(context, guildId) as GuildSettings;
+    // keep existing entries keyed so re-adding one doesn't duplicate it (and count twice towards the limit)
+    // the api only takes {id, type} and leaves rows that already exist alone, so their added/userId is kept
+    const allowlist = new Collections.BaseCollection<string, {id: string, type: string}>();
+    for (let [key, allowed] of settings.allowlist) {
+      allowlist.set(key, {id: allowed.id, type: allowed.type});
+    }
+    for (let {item, type} of payloads) {
+      const key = `${item.id}.${type}`;
+      if (!allowlist.has(key)) {
+        allowlist.set(key, {id: item.id, type});
+      }
+    }
     settings = await editGuildSettings(context, guildId, {
-      allowlist: [
-        ...payloads.map((payload) => ({id: payload.item.id, type: payload.type})),
-        ...settings.allowlist.map((allowed) => ({id: allowed.id, type: allowed.type})),
-      ],
+      allowlist: allowlist.toArray(),
     });
   }
   return {settings, title};

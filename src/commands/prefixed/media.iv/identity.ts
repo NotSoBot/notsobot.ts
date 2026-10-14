@@ -14,7 +14,8 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'identity';
 
-export default class IdentityCommand extends BaseCommand {
+// not registered (no default export) until it has an implementation, the empty `run()` showed up in help and never replied
+export class IdentityCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,

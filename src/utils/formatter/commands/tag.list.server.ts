@@ -98,7 +98,7 @@ export async function createMessage(
         const payload: DisplayPayload = {fields: []};
         payload.color = EmbedColors.DEFAULT;
 
-        if (args.content || args.content || args.user) {
+        if (args.content || args.name || args.user) {
           const description: Array<string> = [];
           if (args.user) {
             description.push(translate('tag_list_server.showing_tags_owned_by', {user: createUserString(args.user.id, args.user)}));

@@ -82,8 +82,6 @@ import { PageObject } from '../paginator';
 import * as Parameters from '../parameters';
 import {
   bigIntGenerateBetween,
-  bigIntMax,
-  bigIntMin,
   checkNSFW,
   convertToBigIntFloats,
   generateCodeFromLanguage,
@@ -174,7 +172,9 @@ export interface TagLimits {
   MAX_STORAGE_USER_AMOUNT: number,
   MAX_STORAGE_KEY_LENGTH: number,
   MAX_STORAGE_VALUE_LENGTH: number,
+  MAX_SYNC_TIME: number,
   MAX_TAG_EXECUTIONS: number,
+  MAX_TEXT_LENGTH: number,
   MAX_TIME_REGEX: number,
   MAX_VARIABLE_KEY_LENGTH: number,
   MAX_VARIABLE_LENGTH: number,
@@ -199,12 +199,38 @@ export const TagLimitDefaults: TagLimits = Object.freeze({
   MAX_STORAGE_USER_AMOUNT: 5,
   MAX_STORAGE_KEY_LENGTH: 128,
   MAX_STORAGE_VALUE_LENGTH: 16384,
+  // total ms a tag (and the tags it calls) can spend in {math}/{replace}, they block the bot while running
+  MAX_SYNC_TIME: 2000,
   MAX_TAG_EXECUTIONS: 2,
+  // total output text, on top of the attachment size limit (which can be hundreds of mb)
+  MAX_TEXT_LENGTH: 10 * 1024 * 1024,
   MAX_TIME_REGEX: 25,
   MAX_VARIABLE_KEY_LENGTH: 64,
   MAX_VARIABLE_LENGTH: 1 * 1024 * 1024,
   MAX_VARIABLES: 100,
 });
+
+export function getMaxTextLength(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+): number {
+  return Math.min(context.maxAttachmentSize, tag.limits.MAX_TEXT_LENGTH);
+}
+
+
+// check before appending so one function (like {foreach} running {repeat}) can't build a huge string first
+export function appendTagText(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  text: string,
+): void {
+  const maxTextLength = getMaxTextLength(context, tag);
+  if (maxTextLength < tag.text.length + text.length) {
+    throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
+  }
+  tag.text += text;
+}
+
 
 export const PRIVATE_VARIABLE_PREFIX = '__';
 
@@ -240,11 +266,27 @@ export enum PrivateVariables {
   PARENT_TAG_ID = '__parentTagId',
   RESULTS = '__results',
   SETTINGS = '__settings',
+  SYNC_TIME = '__syncTime',
   TAG_EXECUTIONS = '__tagExecutions',
   VALUES = '__values',
   ID_X = 'idx',
   VALUE_X = 'valuex',
 }
+
+
+// counters that enforce a tag's limits, these carry over from called tags even when they error
+export const TAG_LIMIT_VARIABLES: ReadonlyArray<string> = Object.freeze([
+  PrivateVariables.AI_EXECUTIONS,
+  PrivateVariables.API_MANIPULATIONS,
+  PrivateVariables.COMPONENT_EXECUTIONS,
+  PrivateVariables.FILE_SIZE,
+  PrivateVariables.ITERATIONS_REMAINING,
+  PrivateVariables.NETWORK_REQUESTS,
+  PrivateVariables.NETWORK_REQUESTS_ML,
+  PrivateVariables.NETWORK_REQUESTS_SAFETY,
+  PrivateVariables.SYNC_TIME,
+  PrivateVariables.TAG_EXECUTIONS,
+]);
 
 
 export const AllowedDiscordProperties = Object.freeze({
@@ -742,7 +784,18 @@ export interface TagResult {
   text: string,
   // for error messages, in the language of whoever is running the tag
   translate: Translator['translate'],
+  // whether `\{`, `\}` and `\|` in this script's own text become the literal characters, see `ParseOptions`
+  unescapesText: boolean,
   variables: TagVariables,
+}
+
+export interface ParseOptions {
+  // a separate script that shares the tag's variables, like a button's or the timeout's script. it gets the same
+  // treatment as the tag itself: its text is unescaped and `{exit}` ends it instead of erroring
+  isRoot?: boolean,
+  // a called tag (`{tag:name}`) whose output goes straight into the caller's text, it's unescaped like the caller's
+  // own text would be. `{exit}` still stops the caller too
+  unescapeText?: boolean,
 }
 
 export async function parse(
@@ -763,6 +816,7 @@ export async function parse(
     url: string,
   }> = [],
   shouldTrim: boolean = true,
+  parseOptions: ParseOptions = {},
 ): Promise<TagResult> {
   const tagLimits: TagLimits = Object.assign({}, TagLimitDefaults);
   for (let key in limits) {
@@ -771,10 +825,16 @@ export async function parse(
     }
   }
 
-  let isFirstParse = true;
-  if (PrivateVariables.ITERATIONS_REMAINING in variables) {
-    isFirstParse = false;
-  } else {
+  // shared variables mean this is a function's argument, a called tag, or a button/timeout script. only the last kind
+  // is treated like the tag itself (they used to all be treated like arguments)
+  // callers like NotSoAI's tag generation pass a plain `{...}`, where `key in variables` also finds the prototype's
+  // properties (`{get:constructor}` printed `function Object()...`). variables never need a prototype
+  if (Object.getPrototypeOf(variables) !== null) {
+    Object.setPrototypeOf(variables, null);
+  }
+  const hasSharedVariables = PrivateVariables.ITERATIONS_REMAINING in variables;
+  const isFirstParse = !hasSharedVariables || !!parseOptions.isRoot;
+  if (!hasSharedVariables) {
     (variables as any)[PrivateVariables.ITERATIONS_REMAINING] = tagLimits.MAX_ITERATIONS;
     (variables as any)[PrivateVariables.ARGS_STRING] = args;
     (variables as any)[PrivateVariables.ARGS] = Parameters.stringArguments(args);
@@ -815,50 +875,65 @@ export async function parse(
   if (!(PrivateVariables.SETTINGS in variables)) {
     (variables as any)[PrivateVariables.SETTINGS] = {};
   }
+  if (!(PrivateVariables.SYNC_TIME in variables)) {
+    (variables as any)[PrivateVariables.SYNC_TIME] = 0;
+  }
   if (!(PrivateVariables.TAG_EXECUTIONS in variables)) {
     (variables as any)[PrivateVariables.TAG_EXECUTIONS] = 0;
   }
 
   let replacement: string | null = null;
-  if (isFirstParse) {
+  if (!hasSharedVariables) {
     // go through the text and replace
 
-    const expired = new Set();
+    const expired = new Set<string>();
     // go through them all and see if they are expired, if so then replace
     for (let match of value.matchAll(ATTACHMENT_URL_REGEX)) {
-      const isValid = isValidAttachmentUrl(match[0]);
       if (!isValidAttachmentUrl(match[0])) {
         expired.add(match[0]);
       }
     }
 
     for (let match of args.matchAll(ATTACHMENT_URL_REGEX)) {
-      const isValid = isValidAttachmentUrl(match[0]);
       if (!isValidAttachmentUrl(match[0])) {
         expired.add(match[0]);
       }
     }
 
+    // discord refreshes 50 urls per request. this used to skip refreshing entirely past 50, only replaced the first
+    // occurrence of each url, didn't count as a network request and failed the whole tag if discord errored
     const oldValue = value;
-    if (expired.size && expired.size <= 50) {
-      const { refreshed_urls: refreshedUrls } = await context.rest.request({
-        body: {attachment_urls: Array.from(expired)},
-        route: {
-          method: 'post',
-          path: '/attachments/refresh-urls',
-        },
-      });
+    const urls = Array.from(expired).slice(0, ATTACHMENT_REFRESH_MAX_URLS);
+    for (let i = 0; i < urls.length; i += ATTACHMENT_REFRESH_CHUNK_SIZE) {
+      if (tagLimits.MAX_NETWORK_REQUESTS <= (variables as any)[PrivateVariables.NETWORK_REQUESTS]) {
+        break;
+      }
+      (variables as any)[PrivateVariables.NETWORK_REQUESTS] += 1;
+
+      let refreshedUrls: Array<{original: string, refreshed: string}> = [];
+      try {
+        ({ refreshed_urls: refreshedUrls } = await context.rest.request({
+          body: {attachment_urls: urls.slice(i, i + ATTACHMENT_REFRESH_CHUNK_SIZE)},
+          route: {
+            method: 'post',
+            path: '/attachments/refresh-urls',
+          },
+        }));
+      } catch(error) {
+        // the urls just stay expired
+        break;
+      }
       for (let item of refreshedUrls) {
-        value = value.replace(item.original, item.refreshed);
-        args = args.replace(item.original, item.refreshed);
+        value = value.split(item.original).join(item.refreshed);
+        args = args.split(item.original).join(item.refreshed);
       }
-      if (oldValue !== value) {
-        replacement = value;
-      }
-      if ((variables as any)[PrivateVariables.ARGS_STRING] !== args) {
-        (variables as any)[PrivateVariables.ARGS_STRING] = args;
-        (variables as any)[PrivateVariables.ARGS] = Parameters.stringArguments(args);
-      }
+    }
+    if (oldValue !== value) {
+      replacement = value;
+    }
+    if ((variables as any)[PrivateVariables.ARGS_STRING] !== args) {
+      (variables as any)[PrivateVariables.ARGS_STRING] = args;
+      (variables as any)[PrivateVariables.ARGS] = Parameters.stringArguments(args);
     }
   }
 
@@ -872,18 +947,19 @@ export async function parse(
     replacement,
     text: '',
     translate: getCachedTranslator(context).translate,
+    unescapesText: isFirstParse || !!parseOptions.unescapeText,
     variables,
   };
   tag.variables[PrivateVariables.ITERATIONS_REMAINING]--;
 
-  const maxFileSize = context.maxAttachmentSize;
+  const maxTextLength = getMaxTextLength(context, tag);
 
   let depth = 0;
   let scriptBuffer = '';
   let position = 0;
   while (position < value.length) {
-    if (maxFileSize < tag.text.length) {
-      throw new Error(getCachedTranslator(context).translate('tagscript.text_exceeded_bytes', {max: maxFileSize}));
+    if (maxTextLength < tag.text.length) {
+      throw new Error(getCachedTranslator(context).translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
     }
 
     if (tag.variables[PrivateVariables.ITERATIONS_REMAINING] <= 0) {
@@ -895,7 +971,7 @@ export async function parse(
     if (depth === 0) {
       // in the main tag's own text (not inside a function), `\{`, `\}` and `\|` output the literal character and `\{` does not start a function
       // arguments keep their escapes as-is since `split()` and functions like {replace} rely on them
-      const shouldUnescape = isFirstParse;
+      const shouldUnescape = tag.unescapesText;
 
       // find next left bracket
       let nextLeftBracket = value.indexOf(TagSymbols.BRACKET_LEFT, position);
@@ -1087,12 +1163,20 @@ export async function parse(
             } else {
               // check the other tags now
               let codeLanguage = getCodeLanguage(scriptName);
+              // restore whatever it was before, not 0 (that let `{tag}` run inside of a {componentjson} after a code block)
+              // and in a finally, so an error inside of {iferror} can't leave it set and block every later {tag}
+              const wasChildParsing = tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING];
               if (codeLanguage) {
                 // check code languages first to stop {tag} parsing
                 tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = 1;
               }
 
-              const text = await parseValue(context, tag, arg);
+              let text: string;
+              try {
+                text = await parseValue(context, tag, arg);
+              } finally {
+                tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = wasChildParsing;
+              }
               if (arg !== text) {
                 arg = text;
                 const firstSplitter = scriptBuffer.indexOf(TagSymbols.SPLITTER_FUNCTION);
@@ -1103,7 +1187,6 @@ export async function parse(
 
               let found = !!codeLanguage;
               if (codeLanguage) {
-                tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = 0;
                 const wasValid = await ScriptTags._code(context, arg, tag, codeLanguage.language, codeLanguage.version);
                 if (!wasValid) {
                   tag.text += scriptBuffer;
@@ -1159,6 +1242,125 @@ export async function parse(
 }
 
 
+// discord limits the whole message, not just each file. the old running total (`FILE_SIZE`) never went down when a
+// file was used up by a mediascript/code call, so this checks the files the message will actually carry
+function assertTotalFileSize(context: Command.Context | Interaction.InteractionContext, tag: TagResult, adding: number): void {
+  const maxFileSize = context.maxAttachmentSize;
+  let total = adding;
+  for (let file of tag.files) {
+    if (!file.deleted && file.buffer) {
+      total += (typeof(file.buffer) === 'string') ? Buffer.byteLength(file.buffer) : file.buffer.length;
+    }
+  }
+  if (maxFileSize < total) {
+    throw new Error(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+  }
+}
+
+
+const ATTACHMENT_REFRESH_CHUNK_SIZE = 50;
+const ATTACHMENT_REFRESH_MAX_URLS = 200;
+
+
+// sets a variable from data (not tagscript), with the same limits `{set}` has
+function setVariableRaw(tag: TagResult, key: string, value: any): void {
+  if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
+    return;
+  }
+  if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
+    throw new Error(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
+  }
+  if (!(key in tag.variables)) {
+    if (tag.limits.MAX_VARIABLES <= Object.keys(tag.variables).filter((x) => !x.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
+      throw new Error(tag.translate('tagscript.reached_max_variable_amount_max_variables', {max: tag.limits.MAX_VARIABLES.toLocaleString()}));
+    }
+  }
+  tag.variables[key] = stringifyStorageValue(value).slice(0, tag.limits.MAX_VARIABLE_LENGTH).trim();
+}
+
+
+// `load FILE_n NAME` lines in code: files with a buffer are sent as uploads (and the line dropped), url-only files get
+// their url. a second line for the same file used to be dropped entirely, so its name never existed in the code
+function collectCodeFiles(tag: TagResult, urls: Record<string, {filename?: string, url: string}>): Array<RequestFile> {
+  const files: Array<RequestFile> = [];
+  const uploadedNames = new Map<number, Set<string>>();
+  for (let urlObj of Object.values(urls)) {
+    const match = urlObj.url.matchAll(URL_FILE_REPLACEMENT_REGEX).next().value;
+    if (!match) {
+      continue;
+    }
+    const fileKey = parseInt(match[1]) - 1;
+    const file = tag.files[fileKey];
+    if (!file) {
+      throw new Error(tag.translate('tagscript.invalid_file_provied'));
+    }
+    if (!file.buffer) {
+      urlObj.url = file.url;
+      continue;
+    }
+
+    const filename = urlObj.filename || file.filename;
+    const names = uploadedNames.get(fileKey) || new Set<string>();
+    uploadedNames.set(fileKey, names);
+    if (!names.has(filename)) {
+      names.add(filename);
+      files.push({filename, value: file.buffer});
+    }
+    if (!match[2]) {
+      file.deleted = true;
+    }
+    urlObj.url = '';
+  }
+  return files;
+}
+
+
+const PLAIN_DECIMAL_REGEX = /^([+-]?)(\d*)(?:\.(\d*))?$/;
+
+// turns a number into a canonical plain decimal string (no exponent, no leading/trailing zeros) so huge integers and
+// decimals compare exactly, or null if it isn't a number. empty strings are 0 like they were with BigInt('')
+export function toPlainDecimal(value: string): string | null {
+  let text = value.trim();
+  if (!PLAIN_DECIMAL_REGEX.test(text) || text === '.' || /^[+-]\.?$/.test(text)) {
+    const number = Number(text);
+    if (!text || !Number.isFinite(number)) {
+      return (text) ? null : '0';
+    }
+    if (Number.isInteger(number) && 1e21 <= Math.abs(number)) {
+      text = BigInt(number).toString();
+    } else {
+      text = (String(number).includes('e')) ? number.toFixed(20) : String(number);
+    }
+  }
+  const [ , sign, integer, fraction ] = text.match(PLAIN_DECIMAL_REGEX)!;
+  const integerPart = integer.replace(/^0+/, '') || '0';
+  const fractionPart = (fraction || '').replace(/0+$/, '');
+  const isZero = integerPart === '0' && !fractionPart;
+  return ((sign === '-' && !isZero) ? '-' : '') + integerPart + ((fractionPart) ? `.${fractionPart}` : '');
+}
+
+// compares two strings from `toPlainDecimal`
+export function compareDecimals(x: string, y: string): number {
+  const xNegative = x.startsWith('-'), yNegative = y.startsWith('-');
+  if (xNegative !== yNegative) {
+    return (xNegative) ? -1 : 1;
+  }
+  const direction = (xNegative) ? -1 : 1;
+  const [ xInteger, xFraction = '' ] = x.replace('-', '').split('.');
+  const [ yInteger, yFraction = '' ] = y.replace('-', '').split('.');
+  if (xInteger.length !== yInteger.length) {
+    return (xInteger.length < yInteger.length) ? -direction : direction;
+  }
+  const length = Math.max(xFraction.length, yFraction.length);
+  const xDigits = xInteger + xFraction.padEnd(length, '0');
+  const yDigits = yInteger + yFraction.padEnd(length, '0');
+  if (xDigits === yDigits) {
+    return 0;
+  }
+  return (xDigits < yDigits) ? -direction : direction;
+}
+
+
 // storage values are strings, objects/arrays from code get stored as json instead of `[object Object]`
 function stringifyStorageValue(value: any): string {
   if (typeof(value) === 'string') {
@@ -1202,6 +1404,7 @@ function addFileResponseToTag(
   if (context.maxAttachmentSize < data.length) {
     throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: context.maxAttachmentSize}));
   }
+  assertTotalFileSize(context, tag, data.length);
   tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
   tag.files.push({
@@ -1373,6 +1576,28 @@ export function increaseNetworkRequestsSafety(tag: TagResult, amount: number = 1
 }
 
 
+// {math} and {replace} each have their own timeout, but nothing stopped a tag from running hundreds of them
+export async function withSyncTimeBudget<T>(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  func: () => Promise<T> | T,
+): Promise<T> {
+  const max = tag.limits.MAX_SYNC_TIME;
+  if (max <= (tag.variables as any)[PrivateVariables.SYNC_TIME]) {
+    throw new Error(getCachedTranslator(context).translateMaybe(
+      'tagscript.tag_used_too_much_processing_time',
+      `Tag spent too long in {math}/{replace} (max ${max.toLocaleString()}ms)`,
+    ));
+  }
+  const started = Date.now();
+  try {
+    return await func();
+  } finally {
+    (tag.variables as any)[PrivateVariables.SYNC_TIME] += Date.now() - started;
+  }
+}
+
+
 export function increaseTagExecutions(tag: TagResult, amount: number = 1) {
   if (amount) {
     tag.variables[PrivateVariables.TAG_EXECUTIONS] += amount;
@@ -1520,6 +1745,14 @@ export function split(value: string, amount: number = 0): Array<string> {
 
   const args: Array<string> = [];
   while (position < value.length) {
+    // the last argument (when there's a limit) is always the raw rest of the value, escapes and all. functions like
+    // {if}/{foreach} parse it again as code. it used to be unescaped when nothing came after it and raw otherwise, so
+    // `{set:x|a\|b}` and `{set:x|a\|b|c}` stored `a\|b` differently
+    if (amount && args.length === amount - 1 && !text) {
+      args.push(value.slice(position));
+      position = value.length;
+      break;
+    }
     if (amount && amount <= args.length) {
       if (args.length) {
         args[args.length - 1] += value.slice(position - 1);
@@ -1542,8 +1775,13 @@ export function split(value: string, amount: number = 0): Array<string> {
           }
           args.push(remaining.slice(consumed)); // raw tail, splitters preserved
         } else {
-          for (let x of parts) {
-            args.push(x.replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
+          for (let i = 0; i < parts.length; i++) {
+            if (amount && args.length === amount - 1) {
+              // the last argument stays raw, see above
+              args.push(parts.slice(i).join(TagSymbols.SPLITTER_ARGUMENT));
+              break;
+            }
+            args.push(parts[i].replace(REGEX_ARGUMENT_SPLITTER_ESCAPE_REPLACEMENT, TagSymbols.SPLITTER_ARGUMENT));
           }
         }
         position = value.length;
@@ -1568,8 +1806,14 @@ export function split(value: string, amount: number = 0): Array<string> {
         } else if (nextValue === TagSymbols.BRACKET_RIGHT) {
           depth++;
         } else if (nextValue === TagSymbols.SPLITTER_ARGUMENT) {
-          // `\|` is a literal `|`, same as the regex path above
-          text = text.slice(0, -1) + TagSymbols.SPLITTER_ARGUMENT;
+          if (depth <= 0) {
+            // `\|` is a literal `|`, same as the regex path above
+            text = text.slice(0, -1) + TagSymbols.SPLITTER_ARGUMENT;
+          } else {
+            // inside a nested function keep the escape, that function splits its own arguments
+            // (unescaping here turned `{choose:{choose:a\|b}|c}` into `{choose:a|b}`)
+            text += TagSymbols.SPLITTER_ARGUMENT;
+          }
           position++;
         }
       }; break;
@@ -1630,6 +1874,10 @@ async function parseValue(
 
 function normalizeTagResults(main: TagResult, other: TagResult, content: boolean = true): void {
   if (content) {
+    // the main tag's own parse loop also checks this, but a child result can be appended many times before that runs
+    if (main.limits.MAX_TEXT_LENGTH < main.text.length + other.text.length) {
+      throw new Error(main.translate('tagscript.text_exceeded_bytes', {max: main.limits.MAX_TEXT_LENGTH}));
+    }
     main.text += other.text;
   }
 
@@ -1711,6 +1959,8 @@ const ScriptTags = Object.freeze({
 
     if (tagId) {
       {
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         const response = await fetchTagBlobs(context, tagId, {
           channelId: context.channelId!,
           guildId: context.guildId,
@@ -1735,6 +1985,8 @@ const ScriptTags = Object.freeze({
         }
       }
       {
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         const response = await fetchTagVariables(context, tagId, {
           channelId: context.channelId!,
           guildId: context.guildId,
@@ -1774,30 +2026,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const files: Array<RequestFile> = [];
-    const cache = new Set<number>();
-    for (let urlObj of Object.values(urls)) {
-      for (let match of urlObj.url.matchAll(URL_FILE_REPLACEMENT_REGEX)) {
-        const fileKey = parseInt(match[1]) - 1;
-        if (!cache.has(fileKey)) {
-          cache.add(fileKey);
-          const file = tag.files[fileKey];
-          if (!file) {
-            throw new Error(tag.translate('tagscript.invalid_file_provied'));
-          }
-          if (!file.buffer) {
-            urlObj.url = file.url;
-            continue;
-          }
-          files.push({filename: urlObj.filename || file.filename, value: file.buffer});
-          if (!match[2]) {
-            file.deleted = true;
-          }
-        }
-        urlObj.url = '';
-        break;
-      }
-    }
+    const files = collectCodeFiles(tag, urls);
 
     // backwards since splicing shifts the later files down
     for (let i = tag.files.length - 1; 0 <= i; i--) {
@@ -1831,7 +2060,9 @@ const ScriptTags = Object.freeze({
       const maxFileSize = context.maxAttachmentSize;
       for (let file of result.files) {
         const { filename, size, value } = file;
-        if (maxFileSize < size) {
+        // oversized output files used to be skipped here without a word, the error further down was unreachable.
+        // only the internal state file is still skipped when it's too big
+        if (maxFileSize < size && filename === '__internals__.json') {
           continue;
         }
         if (filename === '__internals__.json') {
@@ -2046,6 +2277,8 @@ const ScriptTags = Object.freeze({
               }
 
               if (hasChange && tagId) {
+                // tag storage goes through our api, so it counts like any other request
+                increaseNetworkRequests(tag);
                 const blobsResponse = await putTagBlobs(context, tagId, {
                   blobs: formattedBlobs,
                   channelId: context.channelId!,
@@ -2260,6 +2493,8 @@ const ScriptTags = Object.freeze({
               }
 
               if (hasChange && tagId) {
+                // tag storage goes through our api, so it counts like any other request
+                increaseNetworkRequests(tag);
                 const storageResponse = await putTagVariables(context, tagId, {
                   channelId: context.channelId!,
                   guildId: context.guildId,
@@ -2277,12 +2512,7 @@ const ScriptTags = Object.freeze({
           throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
         }
 
-        /*
-        const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-        if (maxFileSize <= currentFileSize + size) {
-          throw new Error(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
-        }
-        */
+        assertTotalFileSize(context, tag, size);
         tag.variables[PrivateVariables.FILE_SIZE] += size;
 
         tag.files.push({
@@ -2439,30 +2669,7 @@ const ScriptTags = Object.freeze({
       return true;
     }
 
-    const files: Array<RequestFile> = [];
-    const cache = new Set<number>();
-    for (let urlObj of Object.values(urls)) {
-      for (let match of urlObj.url.matchAll(URL_FILE_REPLACEMENT_REGEX)) {
-        const fileKey = parseInt(match[1]) - 1;
-        if (!cache.has(fileKey)) {
-          cache.add(fileKey);
-          const file = tag.files[fileKey];
-          if (!file) {
-            throw new Error(tag.translate('tagscript.invalid_file_provied'));
-          }
-          if (!file.buffer) {
-            urlObj.url = file.url;
-            continue;
-          }
-          files.push({filename: urlObj.filename || file.filename, value: file.buffer});
-          if (!match[2]) {
-            file.deleted = true;
-          }
-        }
-        urlObj.url = '';
-        break;
-      }
-    }
+    const files = collectCodeFiles(tag, urls);
 
     // backwards since splicing shifts the later files down
     for (let i = tag.files.length - 1; 0 <= i; i--) {
@@ -2908,7 +3115,8 @@ const ScriptTags = Object.freeze({
       }
 
       let indexStop = parseInt(indexStopString || String(tag.variables[PrivateVariables.ARGS].length));
-      if (isNaN(index)) {
+      // this checked `index` again, so `{args:0|x}` sliced with NaN and gave nothing
+      if (isNaN(indexStop)) {
         return false;
       }
 
@@ -2950,7 +3158,8 @@ const ScriptTags = Object.freeze({
       }
   
       let indexStop = parseInt(indexStopString || String(tag.variables[PrivateVariables.ARGS].length));
-      if (isNaN(index)) {
+      // this checked `index` again, so `{args:0|x}` sliced with NaN and gave nothing
+      if (isNaN(indexStop)) {
         return false;
       }
   
@@ -3016,12 +3225,7 @@ const ScriptTags = Object.freeze({
         throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
 
-      /*
-      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-      if (maxFileSize <= currentFileSize + data.length) {
-        throw new Error(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
-      }
-      */
+      assertTotalFileSize(context, tag, data.length);
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({
@@ -3088,12 +3292,7 @@ const ScriptTags = Object.freeze({
         throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
 
-      /*
-      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-      if (maxFileSize <= currentFileSize + data.length) {
-        throw new Error(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
-      }
-      */
+      assertTotalFileSize(context, tag, data.length);
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({buffer: data, filename: `${filename}.${extension}`, spoiler: false, url: ''});
@@ -3140,12 +3339,7 @@ const ScriptTags = Object.freeze({
         throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
 
-      /*
-      const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-      if (maxFileSize <= currentFileSize + data.length) {
-        throw new Error(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
-      }
-      */
+      assertTotalFileSize(context, tag, data.length);
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
       tag.files.push({
@@ -3258,9 +3452,15 @@ const ScriptTags = Object.freeze({
       arg = text;
     }
 
+    // restore the previous value (it can already be set from an outer {componentjson}/code block), even on errors
+    const wasChildParsing = tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING];
     tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = 1;
-    const text = await parseValue(context, tag, arg);
-    tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = 0;
+    let text: string;
+    try {
+      text = await parseValue(context, tag, arg);
+    } finally {
+      tag.variables[PrivateVariables.IS_FROM_CHILD_PARSING] = wasChildParsing;
+    }
 
     let data : any = null;
     if (text) {
@@ -3850,26 +4050,30 @@ const ScriptTags = Object.freeze({
 
     const idx = tag.variables[PrivateVariables.ID_X];
     const valuex = tag.variables[PrivateVariables.VALUE_X];
-    for (let [key, value] of values) {
-      let text: string = '';
-      if (code.includes(TagSymbols.BRACKET_LEFT)) {
-        tag.variables[PrivateVariables.ID_X] = String(key);
-        tag.variables[PrivateVariables.VALUE_X] = (typeof(value) === 'object') ? JSON.stringify(value) : String(value);
-        text = await parseValue(context, tag, code);
-      } else {
-        text = code;
+    // restored even when the loop body errors (like inside {iferror}), the outer loop's values used to be lost
+    try {
+      for (let [key, value] of values) {
+        let text: string = '';
+        if (code.includes(TagSymbols.BRACKET_LEFT)) {
+          tag.variables[PrivateVariables.ID_X] = String(key);
+          tag.variables[PrivateVariables.VALUE_X] = (typeof(value) === 'object') ? JSON.stringify(value) : String(value);
+          text = await parseValue(context, tag, code);
+        } else {
+          text = code;
+        }
+        appendTagText(context, tag, text);
       }
-      tag.text += text;
-    }
-    if (idx === undefined) {
-      delete tag.variables[PrivateVariables.ID_X];
-    } else {
-      tag.variables[PrivateVariables.ID_X] = idx;
-    }
-    if (valuex === undefined) {
-      delete tag.variables[PrivateVariables.VALUE_X];
-    } else {
-      tag.variables[PrivateVariables.VALUE_X] = valuex;
+    } finally {
+      if (idx === undefined) {
+        delete tag.variables[PrivateVariables.ID_X];
+      } else {
+        tag.variables[PrivateVariables.ID_X] = idx;
+      }
+      if (valuex === undefined) {
+        delete tag.variables[PrivateVariables.VALUE_X];
+      } else {
+        tag.variables[PrivateVariables.VALUE_X] = valuex;
+      }
     }
 
     return true;
@@ -3902,6 +4106,8 @@ const ScriptTags = Object.freeze({
     if (tagId) {
       try {
         const storageId = context.channelId!;
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         await deleteTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
           name: arg,
         });
@@ -3927,6 +4133,8 @@ const ScriptTags = Object.freeze({
     if (tagId) {
       try {
         const storageId = context.guildId || context.channelId!;
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         await deleteTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
           name: arg,
         });
@@ -3952,6 +4160,8 @@ const ScriptTags = Object.freeze({
     if (tagId) {
       try {
         const storageId = context.userId;
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         await deleteTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
           name: arg,
         });
@@ -4017,6 +4227,8 @@ const ScriptTags = Object.freeze({
     if (tagId) {
       try {
         const storageId = context.channelId!;
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         const response = await fetchTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
           name: key,
         });
@@ -4080,6 +4292,8 @@ const ScriptTags = Object.freeze({
     if (tagId) {
       try {
         const storageId = '0';
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         const response = await fetchTagVariable(context, tagId, TagVariableStorageTypes.GLOBAL, storageId, {
           name: key,
         });
@@ -4120,6 +4334,8 @@ const ScriptTags = Object.freeze({
     if (tagId) {
       try {
         const storageId = context.guildId || context.channelId!;
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         const response = await fetchTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
           name: key,
         });
@@ -4160,6 +4376,8 @@ const ScriptTags = Object.freeze({
     if (tagId) {
       try {
         const storageId = context.userId;
+        // tag storage goes through our api, so it counts like any other request
+        increaseNetworkRequests(tag);
         const response = await fetchTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
           name: key,
         });
@@ -4440,6 +4658,8 @@ const ScriptTags = Object.freeze({
   
     if (tagId) {
       const storageId = context.channelId!;
+      // tag storage goes through our api, so it counts like any other request
+      increaseNetworkRequests(tag);
       const response = await putTagVariable(context, tagId, TagVariableStorageTypes.CHANNEL, storageId, {
         name: key,
         value: storageValue,
@@ -4528,6 +4748,8 @@ const ScriptTags = Object.freeze({
 
     if (tagId) {
       const storageId = '0';
+      // tag storage goes through our api, so it counts like any other request
+      increaseNetworkRequests(tag);
       const response = await putTagVariable(context, tagId, TagVariableStorageTypes.GLOBAL, storageId, {
         name: key,
         value: storageValue,
@@ -4564,6 +4786,8 @@ const ScriptTags = Object.freeze({
   
     if (tagId) {
       const storageId = context.guildId || context.channelId!;
+      // tag storage goes through our api, so it counts like any other request
+      increaseNetworkRequests(tag);
       const response = await putTagVariable(context, tagId, TagVariableStorageTypes.GUILD, storageId, {
         name: key,
         value: storageValue,
@@ -4600,6 +4824,8 @@ const ScriptTags = Object.freeze({
   
     if (tagId) {
       const storageId = context.userId;
+      // tag storage goes through our api, so it counts like any other request
+      increaseNetworkRequests(tag);
       const response = await putTagVariable(context, tagId, TagVariableStorageTypes.USER, storageId, {
         name: key,
         value: storageValue,
@@ -4616,7 +4842,7 @@ const ScriptTags = Object.freeze({
 
     const mathWorker = tag.context.mathWorker = tag.context.mathWorker || new MathWorker();
     try {
-      tag.text += await mathWorker.evaluate(equation);
+      tag.text += await withSyncTimeBudget(context, tag, () => mathWorker.evaluate(equation));
     } catch(error) {
       if (error.message.includes(MATH_ERROR_TIMEOUT_MESSAGE)) {
         throw new Error(tag.translate('tagscript.math_equation_timed_out'))
@@ -4668,18 +4894,12 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const numbers = split(arg).map((x) => x.split('.').shift()!);
-    if (numbers.some((x) => isNaN(x as any))) {
+    // these used to drop the decimals (`{max:1.9|1.5}` gave `1`) and threw on things like `1e3`
+    const numbers = split(arg).map(toPlainDecimal);
+    if (numbers.some((x) => x === null)) {
       return false;
     }
-
-    let value: bigint;
-    if (numbers.length === 1) {
-      value = BigInt(numbers[0]);
-    } else {
-      value = bigIntMax(...numbers.map(BigInt));
-    }
-    tag.text += value;
+    tag.text += (numbers as Array<string>).reduce((x, y) => (compareDecimals(y, x) > 0) ? y : x);
 
     return true;
   },
@@ -4691,18 +4911,11 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    const numbers = split(arg).map((x) => x.split('.').shift()!);
-    if (numbers.some((x) => isNaN(x as any))) {
+    const numbers = split(arg).map(toPlainDecimal);
+    if (numbers.some((x) => x === null)) {
       return false;
     }
-
-    let value: bigint;
-    if (numbers.length === 1) {
-      value = BigInt(numbers[0]);
-    } else {
-      value = bigIntMin(...numbers.map(BigInt));
-    }
-    tag.text += value;
+    tag.text += (numbers as Array<string>).reduce((x, y) => (compareDecimals(y, x) < 0) ? y : x);
 
     return true;
   },
@@ -4876,12 +5089,7 @@ const ScriptTags = Object.freeze({
       throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
     }
 
-    /*
-    const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-    if (maxFileSize <= currentFileSize + data.length) {
-      throw new Error(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
-    }
-    */
+    assertTotalFileSize(context, tag, data.length);
     tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
     tag.files.push({
@@ -4995,12 +5203,7 @@ const ScriptTags = Object.freeze({
       throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
     }
 
-    /*
-    const currentFileSize = tag.variables[PrivateVariables.FILE_SIZE];
-    if (maxFileSize <= currentFileSize + data.length) {
-      throw new Error(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
-    }
-    */
+    assertTotalFileSize(context, tag, data.length);
     tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
     tag.files.push({
@@ -5217,8 +5420,13 @@ const ScriptTags = Object.freeze({
       const limit = MAX_LIMIT - messagesFound.length;
       const messages = await context.rest.fetchMessages(channelId, {before, limit});
       for (let message of messages.toArray()) {
-        if (limit <= messagesFound.length) {
+        // `messagesFound` already has the cached messages in it, comparing against `limit` stopped early
+        // (50 cached and `{messagelastid:80}` gave nothing)
+        if (MAX_LIMIT <= messagesFound.length) {
           break;
+        }
+        if (context instanceof Command.Context && message.id === context.messageId) {
+          continue;
         }
         if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
           continue;
@@ -5305,8 +5513,13 @@ const ScriptTags = Object.freeze({
       const limit = MAX_LIMIT - messagesFound.length;
       const messages = await context.rest.fetchMessages(channelId, {before, limit});
       for (let message of messages.toArray()) {
-        if (limit <= messagesFound.length) {
+        // `messagesFound` already has the cached messages in it, comparing against `limit` stopped early
+        // (50 cached and `{messagelastid:80}` gave nothing)
+        if (MAX_LIMIT <= messagesFound.length) {
           break;
+        }
+        if (context instanceof Command.Context && message.id === context.messageId) {
+          continue;
         }
         if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
           continue;
@@ -5405,16 +5618,18 @@ const ScriptTags = Object.freeze({
     const keyCache: Record<string, string> = {};
     code = code.replace(URL_FILE_REPLACEMENT_REGEX, (match, group1, group2, offset) => {
       if (!(group1 in keyCache)) {
-        keyCache[group1] = `FILE_${files.length + 1}`;
-
         const file = tag.files[parseInt(group1) - 1];
         if (!file) {
           throw new Error(tag.translate('tagscript.invalid_file_provided'));
         }
         if (!file.buffer) {
+          // every reference to a url-only file is its url (this cached a FILE_n that was never sent, so later
+          // references pointed at whichever file got that number next)
+          keyCache[group1] = file.url;
           return file.url;
         }
 
+        keyCache[group1] = `FILE_${files.length + 1}`;
         files.push({filename: file.filename, value: file.buffer});
         if (!group2) {
           // kill it from tag.files
@@ -5451,7 +5666,8 @@ const ScriptTags = Object.freeze({
       const response = job.result.response;
       if (response.arguments) {
         for (let key in response.arguments) {
-          await ScriptTags[TagFunctions.LOGICAL_SET](context, [key, response.arguments[key]].join(TagSymbols.SPLITTER_ARGUMENT), tag);
+          // stored as-is, going through {set} parsed the values as tagscript (a `{...}` in them ran) and cut them at `|`
+          setVariableRaw(tag, key, response.arguments[key]);
         }
       }
 
@@ -5466,6 +5682,7 @@ const ScriptTags = Object.freeze({
       if (maxFileSize < data.length) {
         throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
+      assertTotalFileSize(context, tag, data.length);
       
       tag.variables[PrivateVariables.FILE_SIZE] += data.length;
       
@@ -5496,16 +5713,18 @@ const ScriptTags = Object.freeze({
     const keyCache: Record<string, string> = {};
     code = code.replace(URL_FILE_REPLACEMENT_REGEX, (match, group1, group2, offset) => {
       if (!(group1 in keyCache)) {
-        keyCache[group1] = `FILE_${files.length + 1}`;
-    
         const file = tag.files[parseInt(group1) - 1];
         if (!file) {
           throw new Error(tag.translate('tagscript.invalid_file_provided'));
         }
         if (!file.buffer) {
+          // every reference to a url-only file is its url (this cached a FILE_n that was never sent, so later
+          // references pointed at whichever file got that number next)
+          keyCache[group1] = file.url;
           return file.url;
         }
-  
+
+        keyCache[group1] = `FILE_${files.length + 1}`;
         files.push({filename: file.filename, value: file.buffer});
         if (!group2) {
           // kill it from tag.files
@@ -5542,7 +5761,8 @@ const ScriptTags = Object.freeze({
       const response = job.result.response;
       if (response.arguments) {
         for (let key in response.arguments) {
-          await ScriptTags[TagFunctions.LOGICAL_SET](context, [key, response.arguments[key]].join(TagSymbols.SPLITTER_ARGUMENT), tag);
+          // stored as-is, going through {set} parsed the values as tagscript (a `{...}` in them ran) and cut them at `|`
+          setVariableRaw(tag, key, response.arguments[key]);
         }
       }
 
@@ -5560,6 +5780,7 @@ const ScriptTags = Object.freeze({
         if (maxFileSize < data.length) {
           throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
         }
+        assertTotalFileSize(context, tag, data.length);
 
         tag.variables[PrivateVariables.FILE_SIZE] += data.length;
 
@@ -5590,16 +5811,18 @@ const ScriptTags = Object.freeze({
     const keyCache: Record<string, string> = {};
     code = code.replace(URL_FILE_REPLACEMENT_REGEX, (match, group1, group2, offset) => {
       if (!(group1 in keyCache)) {
-        keyCache[group1] = `FILE_${files.length + 1}`;
-    
         const file = tag.files[parseInt(group1) - 1];
         if (!file) {
           throw new Error(tag.translate('tagscript.invalid_file_provided'));
         }
         if (!file.buffer) {
+          // every reference to a url-only file is its url (this cached a FILE_n that was never sent, so later
+          // references pointed at whichever file got that number next)
+          keyCache[group1] = file.url;
           return file.url;
         }
-    
+
+        keyCache[group1] = `FILE_${files.length + 1}`;
         files.push({filename: file.filename, value: file.buffer});
         if (!group2) {
           // kill it from tag.files
@@ -5642,7 +5865,8 @@ const ScriptTags = Object.freeze({
 
       if (response.arguments) {
         for (let key in response.arguments) {
-          await ScriptTags[TagFunctions.LOGICAL_SET](context, [key, response.arguments[key]].join(TagSymbols.SPLITTER_ARGUMENT), tag);
+          // stored as-is, going through {set} parsed the values as tagscript (a `{...}` in them ran) and cut them at `|`
+          setVariableRaw(tag, key, response.arguments[key]);
         }
       }
 
@@ -5875,10 +6099,17 @@ const ScriptTags = Object.freeze({
       const response = await utilitiesProxyRequest(context, options);
       tag.text += JSON.stringify(response);
     } catch(error) {
+      // the detailed errors used to be thrown inside the `try` that only meant to catch a bad json body, so they were
+      // swallowed and everything came out as the generic `request_failed`
       if (error.response) {
+        let information: any = null;
         try {
-          const information = await error.response.json() as any;
-          if ('errors' in information) {
+          information = await error.response.json();
+        } catch(parseError) {
+
+        }
+        if (information && typeof(information) === 'object') {
+          if ('errors' in information && information.errors && typeof(information.errors) === 'object') {
             const description: Array<string> = [];
             for (let key in information.errors) {
               const value = information.errors[key];
@@ -5894,11 +6125,9 @@ const ScriptTags = Object.freeze({
               throw new Error(tag.translate('tagscript.requested_failed', {details: description.join('\n')}));
             }
           }
-          if ('message' in information) {
-            throw new Error(information.message);
+          if ('message' in information && information.message) {
+            throw new Error(String(information.message));
           }
-        } catch(error) {
-          
         }
       }
       throw new Error(tag.translate('tagscript.request_failed'));
@@ -6016,7 +6245,8 @@ const ScriptTags = Object.freeze({
     }
 
     const { results } = response;
-    page = Math.min(page, results.length);
+    // past the end gives the last result (this used `length`, which is one past the end, so it gave nothing)
+    page = Math.min(page, results.length - 1);
     if (page === -1) {
       page = Math.floor(Math.random() * results.length);
     }
@@ -6073,7 +6303,8 @@ const ScriptTags = Object.freeze({
       cachedResults[arg] = results;
     }
 
-    page = Math.min(page, results.length);
+    // past the end gives the last result (this used `length`, which is one past the end, so it gave nothing)
+    page = Math.min(page, results.length - 1);
     if (page === -1) {
       page = Math.floor(Math.random() * results.length);
     }
@@ -6587,9 +6818,9 @@ const ScriptTags = Object.freeze({
 
     const text = value.join(TagSymbols.SPLITTER_ARGUMENT).trim();
 
-    const maxFileSize = context.maxAttachmentSize;
-    if (maxFileSize < (text.length * amount) + tag.text.length) {
-      throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxFileSize}));
+    const maxTextLength = getMaxTextLength(context, tag);
+    if (maxTextLength < (text.length * amount) + tag.text.length) {
+      throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
     }
     tag.text += text.repeat(amount);
 
@@ -6630,19 +6861,21 @@ const ScriptTags = Object.freeze({
       source = source.slice(3);
     }
 
-    try {
-      tag.text += vm.runInNewContext(
-        `source.replace(new RegExp(regex, 'gi'), replaceWith);`,
-        {
-          regex: regex.trim(),
-          source,
-          replaceWith,
-        },
-        {timeout: tag.limits.MAX_TIME_REGEX},
-      );
-    } catch {
-      throw new Error(tag.translate('tagscript.text_replacing_errored_or_timed_out'));
-    }
+    tag.text += await withSyncTimeBudget(context, tag, () => {
+      try {
+        return vm.runInNewContext(
+          `source.replace(new RegExp(regex, 'gi'), replaceWith);`,
+          {
+            regex: regex.trim(),
+            source,
+            replaceWith,
+          },
+          {timeout: tag.limits.MAX_TIME_REGEX},
+        );
+      } catch {
+        throw new Error(tag.translate('tagscript.text_replacing_errored_or_timed_out'));
+      }
+    });
 
     return true;
   },
@@ -6804,26 +7037,40 @@ const ScriptTags = Object.freeze({
         context.metadata.tag = fetchedTag;
       }
 
-      const tagContent = (fetchedTag.reference_tag) ? fetchedTag.reference_tag.content : fetchedTag.content;
-      const argParsed = await parse(context, tagContent, tagArguments, variables, tag.context, tag.limits, tag.files);
-      normalizeTagResults(tag, argParsed);
+      // always restore the calling tag, even if the called tag errors (like inside of {iferror})
+      // otherwise storage functions after this would read/write the called tag's storage
+      try {
+        const tagContent = (fetchedTag.reference_tag) ? fetchedTag.reference_tag.content : fetchedTag.content;
+        const argParsed = await parse(context, tagContent, tagArguments, variables, tag.context, tag.limits, tag.files, true, {
+          unescapeText: tag.unescapesText,
+        });
+        normalizeTagResults(tag, argParsed);
 
-      if (oldTag && oldTag.id === fetchedTag.id) {
-        Object.assign(tag.variables, argParsed.variables);
-      } else {
-        for (let key in PrivateVariables) {
-          const storedKey = (PrivateVariables as any)[key];
-          tag.variables[storedKey] = argParsed.variables[storedKey];
+        if (oldTag && oldTag.id === fetchedTag.id) {
+          Object.assign(tag.variables, argParsed.variables);
+        } else {
+          for (let key in PrivateVariables) {
+            const storedKey = (PrivateVariables as any)[key];
+            tag.variables[storedKey] = argParsed.variables[storedKey];
+          }
         }
-      }
+      } catch(error) {
+        // keep whatever limits the called tag used up, `parse` uses the same `variables` object we gave it
+        for (let storedKey of TAG_LIMIT_VARIABLES) {
+          if (storedKey in variables) {
+            tag.variables[storedKey] = variables[storedKey];
+          }
+        }
+        throw error;
+      } finally {
+        tag.variables[PrivateVariables.ARGS_STRING] = oldVariables[PrivateVariables.ARGS_STRING];
+        tag.variables[PrivateVariables.ARGS] = oldVariables[PrivateVariables.ARGS];
+        tag.variables[PrivateVariables.PARENT_TAG_ID] = oldVariables[PrivateVariables.PARENT_TAG_ID];
+        tag.variables[PrivateVariables.IS_FROM_AI] = oldVariables[PrivateVariables.IS_FROM_AI];
 
-      tag.variables[PrivateVariables.ARGS_STRING] = oldVariables[PrivateVariables.ARGS_STRING];
-      tag.variables[PrivateVariables.ARGS] = oldVariables[PrivateVariables.ARGS];
-      tag.variables[PrivateVariables.PARENT_TAG_ID] = oldVariables[PrivateVariables.PARENT_TAG_ID];
-      tag.variables[PrivateVariables.IS_FROM_AI] = oldVariables[PrivateVariables.IS_FROM_AI];
-
-      if (context.metadata) {
-        context.metadata.tag = oldTag;
+        if (context.metadata) {
+          context.metadata.tag = oldTag;
+        }
       }
     } catch(error) {
       throw error;
@@ -6885,10 +7132,7 @@ const ScriptTags = Object.freeze({
       const response = await utilitiesFetchText(context, {maxFileSize, url});
 
       const text = await response.text();
-      if (maxFileSize < text.length + tag.text.length) {
-        throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxFileSize}));
-      }
-      tag.text += text
+      appendTagText(context, tag, text);
 
     } catch(error) {
       console.log(error);
@@ -6913,11 +7157,7 @@ const ScriptTags = Object.freeze({
       });
 
       const text = await response.text();
-      if (maxFileSize < text.length + tag.text.length) {
-        throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxFileSize}));
-      }
-
-      tag.text += text;
+      appendTagText(context, tag, text);
     } catch(error) {
       console.log(error);
       throw error;
@@ -7235,7 +7475,9 @@ const ScriptTags = Object.freeze({
 
     // all online users are already in cache pretty sure
     if (context.guild) {
-      const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
+      // no presences cached (no presence intent, or everyone offline) used to crash on `undefined`, use the invoker
+      const online = context.guild.members.filter((member) => !!member.presence);
+      const member = (online.length) ? randomFromArray<Structures.Member>(online) : (context.member || context.user);
       tag.text += member.name;
     } else {
       // is dm
@@ -7250,7 +7492,9 @@ const ScriptTags = Object.freeze({
 
     // all online users are already in cache pretty sure
     if (context.guild) {
-      const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
+      // no presences cached (no presence intent, or everyone offline) used to crash on `undefined`, use the invoker
+      const online = context.guild.members.filter((member) => !!member.presence);
+      const member = (online.length) ? randomFromArray<Structures.Member>(online) : (context.member || context.user);
       tag.text += member.id;
     } else {
       // is dm
@@ -7265,7 +7509,9 @@ const ScriptTags = Object.freeze({
 
     // all online users are already in cache pretty sure
     if (context.guild) {
-      const member = randomFromArray<Structures.Member>(context.guild.members.filter((member) => !!member.presence));
+      // no presences cached (no presence intent, or everyone offline) used to crash on `undefined`, use the invoker
+      const online = context.guild.members.filter((member) => !!member.presence);
+      const member = (online.length) ? randomFromArray<Structures.Member>(online) : (context.member || context.user);
       tag.text += member.toString();
     } else {
       // is dm
@@ -7360,6 +7606,8 @@ const ScriptTags = Object.freeze({
     } = {channel: {}, global: {}, server: {}, user: {}};
 
     if (tagId) {
+      // tag storage goes through our api, so it counts like any other request
+      increaseNetworkRequests(tag);
       const response = await fetchTagVariables(context, tagId, {
         channelId: context.channelId!,
         guildId: context.guildId,
@@ -7405,6 +7653,8 @@ const ScriptTags = Object.freeze({
     } = {channel: {}, global: {}, server: {}, user: {}};
 
     if (tagId) {
+      // tag storage goes through our api, so it counts like any other request
+      increaseNetworkRequests(tag);
       const response = await fetchTagVariables(context, tagId, {
         channelId: context.channelId!,
         guildId: context.guildId,
@@ -7450,6 +7700,8 @@ const ScriptTags = Object.freeze({
     } = {channel: {}, global: {}, server: {}, user: {}};
 
     if (tagId) {
+      // tag storage goes through our api, so it counts like any other request
+      increaseNetworkRequests(tag);
       const response = await fetchTagVariables(context, tagId, {
         channelId: context.channelId!,
         guildId: context.guildId,
@@ -7495,6 +7747,8 @@ const ScriptTags = Object.freeze({
     } = {channel: {}, global: {}, server: {}, user: {}};
 
     if (tagId) {
+      // tag storage goes through our api, so it counts like any other request
+      increaseNetworkRequests(tag);
       const response = await fetchTagVariables(context, tagId, {
         channelId: context.channelId!,
         guildId: context.guildId,

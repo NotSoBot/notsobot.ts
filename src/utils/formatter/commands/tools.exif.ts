@@ -34,9 +34,11 @@ export async function createMessage(
     description.push(translate('tools_exif.color_profile', {interpretation: channel.interpretation}));
     description.push(translate('tools_exif.dimensions_x', {height: metadata.height, width: metadata.width}));
     if (channel.frames !== 1) {
-      let delay = channel.delay[0]!.toLocaleString();
-      if (channel.delay.some((x) => x !== channel.delay[0]!)) {
-        delay = channel.delay.join(', ');
+      // delay can be missing/empty for some animated formats
+      const delays = channel.delay || [];
+      let delay = (delays.length) ? delays[0]!.toLocaleString() : translate('common.unknown');
+      if (delays.some((x) => x !== delays[0]!)) {
+        delay = delays.join(', ');
       }
 
       description.push(translate('tools_exif.duration_milliseconds', {duration: metadata.duration.toLocaleString(language)}));

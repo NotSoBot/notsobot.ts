@@ -16,6 +16,7 @@ import {
   addContainerFooter,
   addContainerHeader,
   createUserHeaderLines,
+  getLoggedContent,
 } from './tools';
 import { LogPayloadFiles, GuildLoggingEventMessageDelete, GuildLoggingEventMessageDeleteBulk, GuildLoggingEventMessageUpdate } from './types';
 
@@ -437,16 +438,22 @@ export function formatMessageUpdate(
 
   if (old && differences) {
     if (message.content !== old.content) {
+      // content over 2000 characters is uploaded as a file, so an edit can't spam the channel or go past discord's 6000 embed limit
       if (old.content) {
-        embed.setDescription(Markup.codeblock(old.content));
+        embed.setDescription(getLoggedContent(old.content, 'old_content.txt', files));
       } else {
         embed.setDescription(translate('logger.message.empty'));
       }
       if (message.content) {
+        const newContent = getLoggedContent(message.content, 'new_content.txt', files);
         // do 1014 instead of 1024 to add for codeblocks
-        const chunks = message.content.match(/[\s\S]{1,1014}/g) || [];
-        for (let i = 0; i < chunks.length; i++) {
-          embed.addField((i) ? '​' : translate('logger.message.new_content'), Markup.codeblock(chunks[i]));
+        if (newContent.length <= 1024) {
+          embed.addField(translate('logger.message.new_content'), newContent);
+        } else {
+          const chunks = message.content.match(/[\s\S]{1,1014}/g) || [];
+          for (let i = 0; i < chunks.length; i++) {
+            embed.addField((i) ? '​' : translate('logger.message.new_content'), Markup.codeblock(chunks[i]));
+          }
         }
       } else {
         embed.addField(translate('logger.message.new_content'), translate('logger.message.empty'));
@@ -500,9 +507,9 @@ export function formatMessageUpdateComponents(
   const sections = getMessageUpdateSections(event, translator);
   if (old && differences) {
     if (message.content !== old.content) {
-      // no 1024 field limit here, so the content stays in one codeblock
-      oldContent.push((old.content) ? Markup.codeblock(old.content) : translate('logger.message.empty'));
-      newContent.push((message.content) ? Markup.codeblock(message.content) : translate('logger.message.empty'));
+      // no 1024 field limit here, so the content stays in one codeblock (content over 2000 characters is uploaded as a file)
+      oldContent.push((old.content) ? getLoggedContent(old.content, 'old_content.txt', files) : translate('logger.message.empty'));
+      newContent.push((message.content) ? getLoggedContent(message.content, 'new_content.txt', files) : translate('logger.message.empty'));
     }
   } else {
     // old wasn't in cache
@@ -519,6 +526,7 @@ export function formatMessageUpdateComponents(
     {title: translate('logger.message.mentions'), lines: sections.mentions},
     {title: translate('common.information'), lines: getMessageInformationLines(guildId, channelId, messageId, message, translator)},
   ]);
+  addContainerFiles(container, files);
 
   const time = (message && message.isEdited && !event.payload.isEmbedUpdate) ? message.editedAtUnix : happened;
   addContainerFooter(container, `${translate('logger.footer.message_updated')} • ${createTimestampStringFromGuild(time, guildId)}`);
