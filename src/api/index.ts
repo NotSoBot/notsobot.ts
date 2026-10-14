@@ -524,6 +524,14 @@ export async function fetchReminderPositional(
 }
 
 
+export async function fetchReports(
+  context: RequestContext,
+  options: RestOptions.FetchReports = {},
+) {
+  return raw.fetchReports(context, options);
+}
+
+
 export async function fetchServerSettings(
   context: RequestContext,
   serverId: string,
@@ -1065,11 +1073,51 @@ export async function mediaAVToolsTranscribe(
 }
 
 
+export async function mediaICreateHacker(
+  context: RequestContext,
+  options: RestOptions.MediaICreateHacker,
+) {
+  return raw.mediaICreateHacker(context, options);
+}
+
+
+export async function mediaICreatePresidential(
+  context: RequestContext,
+  options: RestOptions.MediaICreatePresidential,
+) {
+  return raw.mediaICreatePresidential(context, options);
+}
+
+
+export async function mediaICreateRealfact(
+  context: RequestContext,
+  options: RestOptions.MediaICreateText,
+) {
+  return raw.mediaICreateRealfact(context, options);
+}
+
+
 export async function mediaICreateRetrowave(
   context: RequestContext,
   options: RestOptions.MediaICreateRetrowave,
 ) {
   return raw.mediaICreateRetrowave(context, options);
+}
+
+
+export async function mediaICreateSonic(
+  context: RequestContext,
+  options: RestOptions.MediaICreateText,
+) {
+  return raw.mediaICreateSonic(context, options);
+}
+
+
+export async function mediaICreateThonkify(
+  context: RequestContext,
+  options: RestOptions.MediaICreateText,
+) {
+  return raw.mediaICreateThonkify(context, options);
 }
 
 
@@ -1577,11 +1625,43 @@ export async function mediaIVManipulationJPEG(
 }
 
 
+export async function mediaIVManipulationLabelsAnalysis(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationLabelsAnalysis(context, options);
+}
+
+
+export async function mediaIVManipulationLabelsExcuse(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationLabelsExcuse(context, options);
+}
+
+
 export async function mediaIVManipulationLabelsIFunny(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationLabelsIFunny(context, options);
+}
+
+
+export async function mediaIVManipulationLabelsKirby(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationLabelsKirby(context, options);
+}
+
+
+export async function mediaIVManipulationLabelsPerfection(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationLabelsPerfection(context, options);
 }
 
 
@@ -1721,11 +1801,67 @@ export async function mediaIVManipulationOutIn(
 }
 
 
+export async function mediaIVManipulationOverlay9Gag(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlay9Gag(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayAdidas(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayAdidas(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayBandicam(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayBandicam(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayBinoculars(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayBinoculars(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayBlackPanther(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayBlackPanther(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayBrazzers(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayBrazzers(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayCoolGuy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayCoolGuy(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayDork(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayDork(context, options);
 }
 
 
@@ -1809,6 +1945,22 @@ export async function mediaIVManipulationOverlayFlies(
 }
 
 
+export async function mediaIVManipulationOverlayGod(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayGod(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayGoldStar(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayGoldStar(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayHalfLifePistol(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -1830,6 +1982,54 @@ export async function mediaIVManipulationOverlayHalfLifeSMG(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayHalfLifeSMG(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayHyperCam(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayHyperCam(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayMistake(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayMistake(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayOldGuy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayOldGuy(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayOwO(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayOwO(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsAjitPai1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsAjitPai1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsAustinEvans1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsAustinEvans1(context, options);
 }
 
 
@@ -1857,11 +2057,99 @@ export async function mediaIVManipulationOverlayPersonsGaben1(
 }
 
 
+export async function mediaIVManipulationOverlayPersonsIDubbbz1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsIDubbbz1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsJacksfilms1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsJacksfilms1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsJesus1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsJesus1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsKeemstar1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsKeemstar1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsKeemstar2(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsKeemstar2(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayPersonsLTTLinus1(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayPersonsLTTLinus1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsMirandaCosgrove1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsMirandaCosgrove1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsTrump1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsTrump1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsZuckerberg1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsZuckerberg1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayRespects(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayRespects(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayRTX(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptionsMultiple,
+) {
+  return raw.mediaIVManipulationOverlayRTX(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayShutterstock(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayShutterstock(context, options);
 }
 
 
@@ -1873,11 +2161,35 @@ export async function mediaIVManipulationOverlayStarman(
 }
 
 
+export async function mediaIVManipulationOverlaySupreme(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlaySupreme(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayThinking(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayThinking(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayWasted(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayWasted(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayWatchMojo(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayWatchMojo,
+) {
+  return raw.mediaIVManipulationOverlayWatchMojo(context, options);
 }
 
 
@@ -1889,11 +2201,27 @@ export async function mediaIVManipulationOverlayWatermark(
 }
 
 
+export async function mediaIVManipulationOverlayWheeze(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayWheeze(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayWhoDidThis(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayWhoDidThis(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayYusuke(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayYusuke(context, options);
 }
 
 

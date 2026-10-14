@@ -1029,6 +1029,24 @@ export async function fetchReminderPositional(
 }
 
 
+export async function fetchReports(
+  context: RequestContext,
+  options: RestOptions.FetchReports = {},
+): Promise<RestResponsesRaw.FetchReports> {
+  const query = {
+    limit: options.limit,
+    status: options.status,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.REPORTS,
+    },
+  });
+}
+
+
 export async function fetchServerSettings(
   context: RequestContext,
   serverId: string,
@@ -2428,6 +2446,69 @@ export async function mediaAVToolsTranscribe(
 }
 
 
+export async function mediaICreateHacker(
+  context: RequestContext,
+  options: RestOptions.MediaICreateHacker,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    template: options.template,
+    text: options.text,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_HACKER,
+    },
+  });
+}
+
+
+export async function mediaICreatePresidential(
+  context: RequestContext,
+  options: RestOptions.MediaICreatePresidential,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    date: options.date,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+    time: options.time,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_PRESIDENTIAL,
+    },
+  });
+}
+
+
+export async function mediaICreateRealfact(
+  context: RequestContext,
+  options: RestOptions.MediaICreateText,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_REALFACT,
+    },
+  });
+}
+
+
 export async function mediaICreateRetrowave(
   context: RequestContext,
   options: RestOptions.MediaICreateRetrowave,
@@ -2447,6 +2528,46 @@ export async function mediaICreateRetrowave(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_I_CREATE_RETROWAVE,
+    },
+  });
+}
+
+
+export async function mediaICreateSonic(
+  context: RequestContext,
+  options: RestOptions.MediaICreateText,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_SONIC,
+    },
+  });
+}
+
+
+export async function mediaICreateThonkify(
+  context: RequestContext,
+  options: RestOptions.MediaICreateText,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_THONKIFY,
     },
   });
 }
@@ -3863,6 +3984,48 @@ export async function mediaIVManipulationJPEG(
 }
 
 
+export async function mediaIVManipulationLabelsAnalysis(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LABELS_ANALYSIS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationLabelsExcuse(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LABELS_EXCUSE,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationLabelsIFunny(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -3879,6 +4042,48 @@ export async function mediaIVManipulationLabelsIFunny(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_LABELS_IFUNNY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationLabelsKirby(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LABELS_KIRBY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationLabelsPerfection(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_LABELS_PERFECTION,
     },
   });
 }
@@ -4264,6 +4469,111 @@ export async function mediaIVManipulationOutIn(
 }
 
 
+export async function mediaIVManipulationOverlay9Gag(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_9GAG,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayAdidas(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_ADIDAS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayBandicam(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_BANDICAM,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayBinoculars(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_BINOCULARS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayBlackPanther(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_BLACK_PANTHER,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayBrazzers(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -4280,6 +4590,48 @@ export async function mediaIVManipulationOverlayBrazzers(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_BRAZZERS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayCoolGuy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_COOL_GUY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayDork(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_DORK,
     },
   });
 }
@@ -4500,6 +4852,48 @@ export async function mediaIVManipulationOverlayFlies(
 }
 
 
+export async function mediaIVManipulationOverlayGod(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_GOD,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayGoldStar(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_GOLD_STAR,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayHalfLifePistol(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -4558,6 +4952,132 @@ export async function mediaIVManipulationOverlayHalfLifeSMG(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SMG,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayHyperCam(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_HYPERCAM,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayMistake(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_MISTAKE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayOldGuy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_OLD_GUY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayOwO(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_OWO,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsAjitPai1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_AJIT_PAI_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsAustinEvans1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_AUSTIN_EVANS_1,
     },
   });
 }
@@ -4626,6 +5146,111 @@ export async function mediaIVManipulationOverlayPersonsGaben1(
 }
 
 
+export async function mediaIVManipulationOverlayPersonsIDubbbz1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_IDUBBBZ_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsJacksfilms1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_JACKSFILMS_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsJesus1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_JESUS_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsKeemstar1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_KEEMSTAR_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsKeemstar2(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_KEEMSTAR_2,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayPersonsLTTLinus1(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -4642,6 +5267,133 @@ export async function mediaIVManipulationOverlayPersonsLTTLinus1(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_LTT_LINUS_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsMirandaCosgrove1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_MIRANDA_COSGROVE_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsTrump1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_TRUMP_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsZuckerberg1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_ZUCKERBERG_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayRespects(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_RESPECTS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayRTX(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptionsMultiple,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_RTX,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayShutterstock(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK,
     },
   });
 }
@@ -4668,6 +5420,48 @@ export async function mediaIVManipulationOverlayStarman(
 }
 
 
+export async function mediaIVManipulationOverlaySupreme(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_SUPREME,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayThinking(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_THINKING,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayWasted(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -4684,6 +5478,28 @@ export async function mediaIVManipulationOverlayWasted(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_WASTED,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayWatchMojo(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayWatchMojo,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_WATCHMOJO,
     },
   });
 }
@@ -4716,6 +5532,27 @@ export async function mediaIVManipulationOverlayWatermark(
 }
 
 
+export async function mediaIVManipulationOverlayWheeze(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_WHEEZE,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayWhoDidThis(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -4732,6 +5569,27 @@ export async function mediaIVManipulationOverlayWhoDidThis(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_WHO_DID_THIS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayYusuke(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_YUSUKE,
     },
   });
 }

@@ -12,6 +12,7 @@ import { MediaIVCaptionCommand } from './caption';
 import { MediaIVMemeCommand } from './meme';
 import { MediaIVRecaptionCommand } from './recaption';
 import { MediaIVVaporwaveCommand } from './vaporwave';
+import { MediaIVWatchMojoCommand } from './watchmojo';
 
 
 export default class MediaIVTextGroupCommand extends BaseSlashCommand {
@@ -37,6 +38,7 @@ export default class MediaIVTextGroupCommand extends BaseSlashCommand {
         new MediaIVMemeCommand(),
         new MediaIVRecaptionCommand(),
         new MediaIVVaporwaveCommand(),
+        new MediaIVWatchMojoCommand(),
       ],
     });
   }

@@ -19,7 +19,7 @@ export class MediaIVOverlayFaceCommand extends BaseInteractionMediasCommandOptio
   constructor() {
     super({
       options: [
-        {name: 'scale', description: 'Overlay Media\'s Scale relative to the face (default: 1.35)', ...I18n.optionLocalizations('commands.media_iv.overlay.face.scale'), type: Boolean},
+        {name: 'scale', description: 'Overlay Media\'s Scale relative to the face (default: 1.35)', ...I18n.optionLocalizations('commands.media_iv.overlay.face.scale'), type: 'number'},
       ],
       minAmount: 2,
     });

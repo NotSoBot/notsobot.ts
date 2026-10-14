@@ -28,7 +28,7 @@ export class MediaIVOverlayFliesCommand extends BaseInteractionImageOrVideoComma
           label: 'flyImage',
           value: Parameters.mediaUrl({audio: false, video: false, onlyContent: true}),
         },
-        {name: 'speed', description: 'Fly Speed (0.01..1000.0) (Default: 10.0)', ...I18n.optionLocalizations('commands.media_iv.overlay.flies.speed'), type: Number},
+        {name: 'speed', description: 'Fly Speed (0.01..1000.0) (Default: 10.0)', ...I18n.optionLocalizations('commands.media_iv.overlay.flies.speed'), type: 'number'},
       ],
     });
   }

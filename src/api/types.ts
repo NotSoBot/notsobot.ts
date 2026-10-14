@@ -236,6 +236,11 @@ export namespace RestOptions {
     userId?: string,
   }
 
+  export interface FetchReports {
+    limit?: number,
+    status?: ReportStatuses,
+  }
+
   export interface PostTagsImport {
     canManage?: boolean,
     guildId?: string | null,
@@ -505,6 +510,24 @@ export namespace RestOptions {
     textStyle?: number,
   }
 
+  export interface MediaICreateHacker {
+    safe?: boolean,
+    template?: number,
+    text: string,
+  }
+
+  export interface MediaICreatePresidential {
+    date?: string,
+    safe?: boolean,
+    text: string,
+    time?: string,
+  }
+
+  export interface MediaICreateText {
+    safe?: boolean,
+    text: string,
+  }
+
   export interface MediaICreateTombstone {
     line1?: string,
     line2?: string,
@@ -545,6 +568,10 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaIVManipulationOverlayWatchMojo extends MediaBaseOptions {
+    text: string,
   }
 
   export interface MediaIVManipulationCaption extends MediaBaseOptions {
@@ -1556,6 +1583,12 @@ export namespace RestResponsesRaw {
   }
 
   export type FetchReminderPositional = Reminder;
+
+  export interface FetchReports {
+    count: number,
+    // the api leaves out the staff-only `notes` and `reviewed_by`
+    reports: Array<Omit<Report, 'notes' | 'reviewed_by'>>,
+  }
 
   export type FetchServerSettings = ServerSettings;
 

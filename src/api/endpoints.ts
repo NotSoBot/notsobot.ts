@@ -146,8 +146,18 @@ export const Api = Object.freeze({
   MEDIA_AV_TOOLS_TRANSCRIBE:
     '/media/av/tools/transcribe',
 
+  MEDIA_I_CREATE_HACKER:
+    '/media/i/create/hacker',
+  MEDIA_I_CREATE_PRESIDENTIAL:
+    '/media/i/create/presidential',
+  MEDIA_I_CREATE_REALFACT:
+    '/media/i/create/realfact',
   MEDIA_I_CREATE_RETROWAVE:
     '/media/i/create/retrowave',
+  MEDIA_I_CREATE_SONIC:
+    '/media/i/create/sonic',
+  MEDIA_I_CREATE_THONKIFY:
+    '/media/i/create/thonkify',
   MEDIA_I_CREATE_TOMBSTONE:
     '/media/i/create/tombstone',
   MEDIA_I_CREATE_WORDCLOUD:
@@ -278,8 +288,16 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/invert/rgba',
   MEDIA_IV_MANIPULATION_JPEG:
     '/media/iv/manipulation/jpeg',
+  MEDIA_IV_MANIPULATION_LABELS_ANALYSIS:
+    '/media/iv/manipulation/labels/analysis',
+  MEDIA_IV_MANIPULATION_LABELS_EXCUSE:
+    '/media/iv/manipulation/labels/excuse',
   MEDIA_IV_MANIPULATION_LABELS_IFUNNY:
     '/media/iv/manipulation/labels/ifunny',
+  MEDIA_IV_MANIPULATION_LABELS_KIRBY:
+    '/media/iv/manipulation/labels/kirby',
+  MEDIA_IV_MANIPULATION_LABELS_PERFECTION:
+    '/media/iv/manipulation/labels/perfection',
   MEDIA_IV_MANIPULATION_LABELS_TRIGGERED_2:
     '/media/iv/manipulation/labels/triggered-2',
   MEDIA_IV_MANIPULATION_LABELS_TRIGGERED_3:
@@ -314,8 +332,22 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/orb',
   MEDIA_IV_MANIPULATION_OUT_IN:
     '/media/iv/manipulation/out-in',
+  MEDIA_IV_MANIPULATION_OVERLAY_9GAG:
+    '/media/iv/manipulation/overlay/9gag',
+  MEDIA_IV_MANIPULATION_OVERLAY_ADIDAS:
+    '/media/iv/manipulation/overlay/adidas',
+  MEDIA_IV_MANIPULATION_OVERLAY_BANDICAM:
+    '/media/iv/manipulation/overlay/bandicam',
+  MEDIA_IV_MANIPULATION_OVERLAY_BINOCULARS:
+    '/media/iv/manipulation/overlay/binoculars',
+  MEDIA_IV_MANIPULATION_OVERLAY_BLACK_PANTHER:
+    '/media/iv/manipulation/overlay/black-panther',
   MEDIA_IV_MANIPULATION_OVERLAY_BRAZZERS:
     '/media/iv/manipulation/overlay/brazzers',
+  MEDIA_IV_MANIPULATION_OVERLAY_COOL_GUY:
+    '/media/iv/manipulation/overlay/cool-guy',
+  MEDIA_IV_MANIPULATION_OVERLAY_DORK:
+    '/media/iv/manipulation/overlay/dork',
   MEDIA_IV_MANIPULATION_OVERLAY_FACE:
     '/media/iv/manipulation/overlay/face',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISIS:
@@ -338,28 +370,76 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-ussr',
   MEDIA_IV_MANIPULATION_OVERLAY_FLIES:
     '/media/iv/manipulation/overlay/flies',
+  MEDIA_IV_MANIPULATION_OVERLAY_GOD:
+    '/media/iv/manipulation/overlay/god',
+  MEDIA_IV_MANIPULATION_OVERLAY_GOLD_STAR:
+    '/media/iv/manipulation/overlay/gold-star',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_PISTOL:
     '/media/iv/manipulation/overlay/half-life-pistol',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SHOTGUN:
     '/media/iv/manipulation/overlay/half-life-shotgun',
   MEDIA_IV_MANIPULATION_OVERLAY_HALF_LIFE_SMG:
     '/media/iv/manipulation/overlay/half-life-smg',
+  MEDIA_IV_MANIPULATION_OVERLAY_HYPERCAM:
+    '/media/iv/manipulation/overlay/hypercam',
+  MEDIA_IV_MANIPULATION_OVERLAY_MISTAKE:
+    '/media/iv/manipulation/overlay/mistake',
+  MEDIA_IV_MANIPULATION_OVERLAY_OLD_GUY:
+    '/media/iv/manipulation/overlay/old-guy',
+  MEDIA_IV_MANIPULATION_OVERLAY_OWO:
+    '/media/iv/manipulation/overlay/owo',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_AJIT_PAI_1:
+    '/media/iv/manipulation/overlay/persons/ajit-pai-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_AUSTIN_EVANS_1:
+    '/media/iv/manipulation/overlay/persons/austin-evans-1',
   MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_BERNIE_1:
     '/media/iv/manipulation/overlay/persons/bernie-1',
   MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_BOB_ROSS:
     '/media/iv/manipulation/overlay/persons/bob-ross',
   MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_GABEN_1:
     '/media/iv/manipulation/overlay/persons/gaben-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_IDUBBBZ_1:
+    '/media/iv/manipulation/overlay/persons/idubbbz-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_JACKSFILMS_1:
+    '/media/iv/manipulation/overlay/persons/jacksfilms-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_JESUS_1:
+    '/media/iv/manipulation/overlay/persons/jesus-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_KEEMSTAR_1:
+    '/media/iv/manipulation/overlay/persons/keemstar-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_KEEMSTAR_2:
+    '/media/iv/manipulation/overlay/persons/keemstar-2',
   MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_LTT_LINUS_1:
     '/media/iv/manipulation/overlay/persons/ltt-linus-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_MIRANDA_COSGROVE_1:
+    '/media/iv/manipulation/overlay/persons/miranda-cosgrove-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_TRUMP_1:
+    '/media/iv/manipulation/overlay/persons/trump-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_ZUCKERBERG_1:
+    '/media/iv/manipulation/overlay/persons/zuckerberg-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_RESPECTS:
+    '/media/iv/manipulation/overlay/respects',
+  MEDIA_IV_MANIPULATION_OVERLAY_RTX:
+    '/media/iv/manipulation/overlay/rtx',
+  MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK:
+    '/media/iv/manipulation/overlay/shutterstock',
   MEDIA_IV_MANIPULATION_OVERLAY_STARMAN:
     '/media/iv/manipulation/overlay/starman',
+  MEDIA_IV_MANIPULATION_OVERLAY_SUPREME:
+    '/media/iv/manipulation/overlay/supreme',
+  MEDIA_IV_MANIPULATION_OVERLAY_THINKING:
+    '/media/iv/manipulation/overlay/thinking',
   MEDIA_IV_MANIPULATION_OVERLAY_WASTED:
     '/media/iv/manipulation/overlay/wasted',
+  MEDIA_IV_MANIPULATION_OVERLAY_WATCHMOJO:
+    '/media/iv/manipulation/overlay/watchmojo',
   MEDIA_IV_MANIPULATION_OVERLAY_WATERMARK:
     '/media/iv/manipulation/overlay/watermark',
+  MEDIA_IV_MANIPULATION_OVERLAY_WHEEZE:
+    '/media/iv/manipulation/overlay/wheeze',
   MEDIA_IV_MANIPULATION_OVERLAY_WHO_DID_THIS:
     '/media/iv/manipulation/overlay/who-did-this',
+  MEDIA_IV_MANIPULATION_OVERLAY_YUSUKE:
+    '/media/iv/manipulation/overlay/yusuke',
   MEDIA_IV_MANIPULATION_PAINT:
     '/media/iv/manipulation/paint',
   MEDIA_IV_MANIPULATION_PAINT_ANIMATED:
