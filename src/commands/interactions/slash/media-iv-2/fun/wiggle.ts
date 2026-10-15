@@ -34,6 +34,8 @@ export class MediaIVWiggleCommand extends BaseInteractionImageOrVideoCommandOpti
           }),
         },
         {name: 'wavelengths', description: 'Sinusoidal Wavelengths Amount (Default: 0.5)', ...I18n.optionLocalizations('commands.media_iv_2.fun.wiggle.wavelengths'), type: 'number'},
+        {name: 'speed', description: 'Wiggle Speed (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_2.fun.wiggle.speed'), type: 'number'},
+        {name: 'loop', description: 'Wiggle continuously without restarting for a smooth loop (Default: False)', ...I18n.optionLocalizations('commands.media_iv_2.fun.wiggle.loop'), type: Boolean},
       ],
     });
   }

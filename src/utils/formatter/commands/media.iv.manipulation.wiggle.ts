@@ -13,6 +13,8 @@ export const DEFAULT_DIRECTION = MediaWiggleDirections.RIGHT;
 export interface CommandArgs {
   amount?: number,
   direction?: string,
+  loop?: boolean,
+  speed?: number,
   url: string,
   wavelengths?: number,
 }

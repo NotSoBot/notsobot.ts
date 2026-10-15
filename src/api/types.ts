@@ -957,6 +957,8 @@ export namespace RestOptions {
   export interface MediaIVManipulationWiggle extends MediaBaseOptions {
     amount?: number,
     direction?: string,
+    loop?: boolean,
+    speed?: number,
     wavelengths?: number,
   }
 

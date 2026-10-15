@@ -333,9 +333,10 @@ export class BaseInteractionCommandOption extends Interaction.InteractionCommand
 }
 
 
-// tags are stored per server, so only let them be written in servers that installed the bot (not through a user install)
+// tags are stored per server, so only let them be written in servers that added the bot (not through a user install)
+// the bot user can be in the server without the server install of the slash commands (old invites), then the command comes through the user install
 export function canWriteServerTags(context: Interaction.InteractionContext): boolean {
-  return !context.guildId || context.isFromGuildInstall;
+  return !context.guildId || context.isFromGuildInstall || context.isBotPresent;
 }
 
 export class BaseInteractionTagWriteCommandOption extends BaseInteractionCommandOption {

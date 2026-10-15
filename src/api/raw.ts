@@ -6696,8 +6696,10 @@ export async function mediaIVManipulationWiggle(
   const query = {
     amount: options.amount,
     direction: options.direction,
+    loop: options.loop,
     max_file_size: maxFileSize,
     safe: options.safe,
+    speed: options.speed,
     url: options.url,
     wavelengths: options.wavelengths,
   };

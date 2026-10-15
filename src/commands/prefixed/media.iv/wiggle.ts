@@ -16,6 +16,8 @@ export default class WiggleCommand extends BaseImageOrVideoCommand {
       args: [
         {aliases: ['a'], name: 'amount', type: Number},
         {aliases: ['d'], name: 'direction', type: Parameters.oneOf({choices: MediaWiggleDirections})},
+        {aliases: ['l'], name: 'loop', type: Boolean},
+        {aliases: ['s'], name: 'speed', type: Number},
         {aliases: ['w'], name: 'wavelengths', type: Number},
       ],
       metadata: {
@@ -25,9 +27,10 @@ export default class WiggleCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -direction down`,
+          `${COMMAND_NAME} notsobot -speed 2 -loop`,
         ],
         id: Formatter.Commands.MediaIVManipulationWiggle.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-direction <MediaWiggleDirections>) (-wavelengths <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-direction <MediaWiggleDirections>) (-loop) (-speed <float>) (-wavelengths <number>)',
       },
     });
   }
