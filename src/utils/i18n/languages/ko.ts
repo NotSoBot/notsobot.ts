@@ -3490,7 +3490,6 @@ export const Korean: Translations = Object.freeze({
   'tag_import.skipped_invalid': '올바르지 않은 태그 {count}개를 건너뛰었어요.',
   'tag_import.overwrite': '{count}개 덮어쓰기',
   'tag_info.using_tag_from_the_tag_directory': '태그 디렉터리의 {reference_tag} 태그를 사용해요.',
-  'tag_info.name': '-> 이름: {name}',
   'tag_info.alias_of_tag': '{name} 태그의 별칭',
   'tag_info.from_s_dms': '{user} 님의 DM에서 가져온 {message}',
   'tag_info.tag_from_the_tag_directory': '태그 디렉터리의 태그예요.',

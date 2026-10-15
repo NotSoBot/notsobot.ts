@@ -26,7 +26,7 @@ export default class TagCreateCommand extends BaseCommand {
       },
       type: [
         {name: 'tag', type: Parameters.tagName},
-        {name: 'content', type: Parameters.tagContent, consume: true},
+        {name: 'content', default: '', type: Parameters.tagContent, consume: true},
       ],
     });
   }

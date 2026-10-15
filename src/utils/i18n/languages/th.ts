@@ -3490,7 +3490,6 @@ export const Thai: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'ข้ามแท็กที่ไม่ถูกต้อง {count} รายการ',
   'tag_import.overwrite': 'เขียนทับ {count}',
   'tag_info.using_tag_from_the_tag_directory': 'ใช้แท็ก {reference_tag} จากไดเรกทอรีแท็ก',
-  'tag_info.name': '-> ชื่อ: {name}',
   'tag_info.alias_of_tag': 'ชื่อแทนของแท็ก {name}',
   'tag_info.from_s_dms': '{message} จาก DM ของ {user}',
   'tag_info.tag_from_the_tag_directory': 'แท็กจากไดเรกทอรีแท็ก',

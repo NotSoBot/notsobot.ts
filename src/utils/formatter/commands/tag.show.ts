@@ -93,6 +93,7 @@ export async function createTagMessage(
   if (title) {
     content = [title + '\n', content].join('\n').slice(0, 4000).trim();
   }
+  content = TagFormatter.breakInviteLinks(content);
 
   if (content) {
     if (isComponentsV2) {

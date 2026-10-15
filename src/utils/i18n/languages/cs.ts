@@ -3490,7 +3490,6 @@ export const Czech: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Přeskočeno {count} neplatných tagů.',
   'tag_import.overwrite': 'Přepsat {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Používá se tag {reference_tag} z adresáře tagů.',
-  'tag_info.name': '-> Název: {name}',
   'tag_info.alias_of_tag': 'Alias tagu {name}',
   'tag_info.from_s_dms': '{message} z DM uživatele {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag z adresáře tagů.',

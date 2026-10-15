@@ -3490,7 +3490,6 @@ export const Bulgarian: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Пропуснати {count} невалидни тага.',
   'tag_import.overwrite': 'Презапиши {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Ползва тага {reference_tag} от директорията с тагове.',
-  'tag_info.name': '-> Име: {name}',
   'tag_info.alias_of_tag': 'Псевдоним на тага {name}',
   'tag_info.from_s_dms': '{message} от ЛС на {user}',
   'tag_info.tag_from_the_tag_directory': 'Таг от директорията с тагове.',

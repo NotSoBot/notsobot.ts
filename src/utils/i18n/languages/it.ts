@@ -3490,7 +3490,6 @@ export const Italian: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Saltati {count} tag non validi.',
   'tag_import.overwrite': 'Sovrascrivi {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Usa il tag {reference_tag} dalla directory dei tag.',
-  'tag_info.name': '-> Nome: {name}',
   'tag_info.alias_of_tag': 'Alias del tag {name}',
   'tag_info.from_s_dms': '{message} dai DM di {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag dalla directory dei tag.',

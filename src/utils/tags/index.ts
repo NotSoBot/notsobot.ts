@@ -103,6 +103,7 @@ import { TagExitError, TagRequestError } from './exceptions';
 import { isAllowedMediaUrl, isAttachmentUrl, isDiscordAssetUrl, parseComponentFromData } from './tools';
 
 export { TagExitError, TagRequestError };
+export { breakInviteLinks } from './tools';
 
 
 

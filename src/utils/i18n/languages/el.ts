@@ -3490,7 +3490,6 @@ export const Greek: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Παραλείφθηκαν {count} μη έγκυρα tag.',
   'tag_import.overwrite': 'Αντικατάσταση {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Χρησιμοποιείται το tag {reference_tag} από τον κατάλογο tags.',
-  'tag_info.name': '-> Όνομα: {name}',
   'tag_info.alias_of_tag': 'Ψευδώνυμο του tag {name}',
   'tag_info.from_s_dms': '{message} από τα DM του {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag από τον κατάλογο tags.',

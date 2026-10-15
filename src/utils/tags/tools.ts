@@ -1,7 +1,17 @@
 import { MessageComponentButtonStyles, MessageComponentTypes } from 'detritus-client/lib/constants';
 
+import { ZERO_WIDTH_SPACE } from '../../constants';
 import { Languages, Translator, getTranslatorForLanguage } from '../i18n';
 
+
+
+// server invites (discord.gg/x, discord.com/invite/x) and bot invites (discord.com/oauth2/authorize) render as cards
+const REGEX_DISCORD_INVITE_LINK = /\b(discord(?:app)?)(\.(?:gg\/|com\/(?:invite\/|(?:api\/(?:v\d+\/)?)?oauth2\/authorize)))/gi;
+
+// a zero width space after `discord` keeps the link text but stops discord from detecting it as an invite
+export function breakInviteLinks(text: string): string {
+  return text.replace(REGEX_DISCORD_INVITE_LINK, `$1${ZERO_WIDTH_SPACE}$2`);
+}
 
 
 // media in embeds/components can only point to files the tag uploads, never to an outside url
@@ -327,7 +337,7 @@ export function parseComponentFromData(
         throw new Error(translate('tagscript.components.text_displays_must_be_a_parent_component_or'));
       }
       return {
-        content: String(data.content).slice(0, 4000),
+        content: breakInviteLinks(String(data.content).slice(0, 4000)),
         type: MessageComponentTypes.TEXT_DISPLAY,
       };
     }; break;

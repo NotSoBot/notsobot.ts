@@ -3490,7 +3490,6 @@ export const Ukrainian: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Пропущено недійсних тегів: {count}.',
   'tag_import.overwrite': 'Перезаписати {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Використовується тег {reference_tag} з каталогу тегів.',
-  'tag_info.name': '-> Назва: {name}',
   'tag_info.alias_of_tag': 'Псевдонім тегу {name}',
   'tag_info.from_s_dms': '{message} з ОП {user}',
   'tag_info.tag_from_the_tag_directory': 'Тег із каталогу тегів.',

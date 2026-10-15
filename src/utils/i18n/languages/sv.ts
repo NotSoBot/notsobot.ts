@@ -3490,7 +3490,6 @@ export const Swedish: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Hoppade över {count} ogiltiga taggar.',
   'tag_import.overwrite': 'Skriv över {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Använder taggen {reference_tag} från taggkatalogen.',
-  'tag_info.name': '-> Namn: {name}',
   'tag_info.alias_of_tag': 'Alias för taggen {name}',
   'tag_info.from_s_dms': '{message} från DM med {user}',
   'tag_info.tag_from_the_tag_directory': 'Tagg från taggkatalogen.',

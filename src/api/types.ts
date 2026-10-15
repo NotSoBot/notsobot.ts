@@ -64,6 +64,8 @@ export namespace RestOptions {
     content: string,
     guildId?: string,
     messageId?: null | string,
+    // message reports of a tag's output
+    tagId?: string,
     targetId?: string,
     type: ReportTypes,
   }
@@ -210,6 +212,7 @@ export namespace RestOptions {
     before?: string,
     channelId?: string,
     limit?: number,
+    responseIds?: Array<string>,
     triggerIds?: Array<string>,
     userId?: string,
   }
@@ -1561,6 +1564,7 @@ export namespace RestResponsesRaw {
       message_response_id: string,
       message_trigger_id: string,
       message_trigger_type: number,
+      tag_id: string | null,
       user_id: string,
     }>,
   }
@@ -2847,6 +2851,7 @@ export namespace RestResponsesRaw {
     reviewed_at: string | null,
     reviewed_by: string | null,
     status: ReportStatuses,
+    tag_id: string | null,
     target_id: string | null,
     type: ReportTypes,
     user: User,

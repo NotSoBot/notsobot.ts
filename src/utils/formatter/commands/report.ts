@@ -1,7 +1,7 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { createReport } from '../../../api';
+import { createReport, fetchCommandsResponses } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { getTranslator } from '../../i18n';
 import { ReportTypes, StatusEmojis } from '../../../constants';
@@ -52,6 +52,7 @@ export async function createPayload(
   let channelId: string | undefined = context.channelId;
   let guildId: string | undefined = context.guildId;
   let messageId: null | string = (context instanceof Command.Context) ? context.messageId : null;
+  let tagId: string | undefined;
   let targetId: string | undefined;
   switch (args.type) {
     case ReportTypes.USER: {
@@ -77,17 +78,19 @@ export async function createPayload(
       if (!message) {
         throw new Error('Message reports need the reported message');
       }
-      if (message.author.id === context.userId) {
-        return {description: `${StatusEmojis.WARNING} ${translate('report.cannot_report_yourself')}`, ephemeral: true};
-      }
       // the context menu only allows our own responses, they're reported for whoever used the command
-      targetId = message.author.id;
-      if (message.fromMe) {
-        if (message.interactionMetadata) {
-          targetId = message.interactionMetadata.user.id;
-        } else if (message.referencedMessage) {
-          targetId = message.referencedMessage.author.id;
-        }
+      const response = await fetchCommandResponse(context, message);
+      if (response) {
+        targetId = response.user_id;
+        tagId = response.tag_id || undefined;
+      } else if (message.interactionMetadata) {
+        targetId = message.interactionMetadata.user.id;
+      } else {
+        // the stored response is gone (cleaned up after a while), the api stores our own id when it's unknown
+        targetId = message.author.id;
+      }
+      if (targetId === context.userId) {
+        return {description: `${StatusEmojis.WARNING} ${translate('report.cannot_report_yourself')}`, ephemeral: true};
       }
       // the message id points to the reported message instead of where the report was sent from
       channelId = message.channelId;
@@ -110,6 +113,7 @@ export async function createPayload(
     content,
     guildId,
     messageId,
+    tagId,
     targetId,
     type: args.type,
   });
@@ -121,6 +125,23 @@ export async function createPayload(
     ].join('\n'),
     ephemeral: true,
   };
+}
+
+
+async function fetchCommandResponse(
+  context: Command.Context | Interaction.InteractionContext,
+  message: Structures.Message,
+) {
+  try {
+    const { results } = await fetchCommandsResponses(context, {
+      channelId: message.channelId,
+      limit: 1,
+      responseIds: [message.id],
+    });
+    return results[0] || null;
+  } catch(error) {
+    return null;
+  }
 }
 
 

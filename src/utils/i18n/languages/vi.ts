@@ -3490,7 +3490,6 @@ export const Vietnamese: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Đã bỏ qua {count} tag không hợp lệ.',
   'tag_import.overwrite': 'Ghi đè {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Đang dùng tag {reference_tag} từ thư mục tag.',
-  'tag_info.name': '-> Tên: {name}',
   'tag_info.alias_of_tag': 'Alias của tag {name}',
   'tag_info.from_s_dms': '{message} từ tin nhắn trực tiếp của {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag từ thư mục tag.',

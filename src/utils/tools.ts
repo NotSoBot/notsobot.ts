@@ -2532,6 +2532,11 @@ export function parseTagDirectoryUrl(value: string): string | null {
   return (match) ? match[1] : null;
 }
 
+// a directory entry shares its tag's id
+export function createTagDirectoryUrl(tagId: string): string {
+  return `${Endpoints.Domains.STABLE}/directory/tags/${tagId}`;
+}
+
 
 const IS_HEX_REGEX = /^[0-9a-fA-F]+$/;
 

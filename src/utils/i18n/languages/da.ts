@@ -3490,7 +3490,6 @@ export const Danish: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Sprang {count} ugyldige tags over.',
   'tag_import.overwrite': 'Overskriv {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Bruger tagget {reference_tag} fra tag-kataloget.',
-  'tag_info.name': '-> Navn: {name}',
   'tag_info.alias_of_tag': 'Alias for tagget {name}',
   'tag_info.from_s_dms': '{message} fra {user}s DM\'er',
   'tag_info.tag_from_the_tag_directory': 'Tag fra tag-kataloget.',

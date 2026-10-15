@@ -3490,7 +3490,6 @@ export const Indonesian: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Melewati {count} tag yang tidak valid.',
   'tag_import.overwrite': 'Timpa {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Memakai tag {reference_tag} dari direktori tag.',
-  'tag_info.name': '-> Nama: {name}',
   'tag_info.alias_of_tag': 'Alias dari tag {name}',
   'tag_info.from_s_dms': '{message} dari DM {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag dari direktori tag.',

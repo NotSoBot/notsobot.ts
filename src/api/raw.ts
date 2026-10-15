@@ -312,6 +312,7 @@ export async function createReport(
     content: options.content,
     guild_id: options.guildId,
     message_id: options.messageId,
+    tag_id: options.tagId,
     target_id: options.targetId,
     type: options.type,
   };
@@ -892,6 +893,7 @@ export async function fetchCommandsResponses(
     before: options.before,
     channel_id: options.channelId,
     limit: options.limit,
+    response_ids: options.responseIds && JSON.stringify(options.responseIds),
     trigger_ids: options.triggerIds && JSON.stringify(options.triggerIds),
     user_id: options.userId,
   };

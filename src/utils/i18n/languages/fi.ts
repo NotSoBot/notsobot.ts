@@ -3490,7 +3490,6 @@ export const Finnish: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Ohitettiin {count} virheellistä tagia.',
   'tag_import.overwrite': 'Korvaa {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Käytetään tagia {reference_tag} tagihakemistosta.',
-  'tag_info.name': '-> Nimi: {name}',
   'tag_info.alias_of_tag': 'Alias tagille {name}',
   'tag_info.from_s_dms': '{message} käyttäjän {user} yksityisviesteistä',
   'tag_info.tag_from_the_tag_directory': 'Tagi tagihakemistosta.',

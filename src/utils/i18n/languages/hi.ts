@@ -3490,7 +3490,6 @@ export const Hindi: Translations = Object.freeze({
   'tag_import.skipped_invalid': '{count} अमान्य टैग छोड़े गए।',
   'tag_import.overwrite': '{count} ओवरराइट करें',
   'tag_info.using_tag_from_the_tag_directory': 'टैग डायरेक्टरी से टैग {reference_tag} इस्तेमाल हो रहा है।',
-  'tag_info.name': '-> नाम: {name}',
   'tag_info.alias_of_tag': 'टैग {name} का उपनाम',
   'tag_info.from_s_dms': '{message}, {user} के DM से',
   'tag_info.tag_from_the_tag_directory': 'टैग डायरेक्टरी से टैग।',

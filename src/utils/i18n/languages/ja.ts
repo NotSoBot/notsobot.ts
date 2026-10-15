@@ -3490,7 +3490,6 @@ export const Japanese: Translations = Object.freeze({
   'tag_import.skipped_invalid': '無効なタグ{count}個をスキップしました。',
   'tag_import.overwrite': '{count}個を上書き',
   'tag_info.using_tag_from_the_tag_directory': 'タグディレクトリのタグ{reference_tag}を使用中。',
-  'tag_info.name': '-> 名前: {name}',
   'tag_info.alias_of_tag': 'タグ{name}のエイリアス',
   'tag_info.from_s_dms': '{message} ({user}のDMから)',
   'tag_info.tag_from_the_tag_directory': 'タグディレクトリのタグ。',

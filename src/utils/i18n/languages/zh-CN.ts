@@ -3490,7 +3490,6 @@ export const ChineseSimplified: Translations = Object.freeze({
   'tag_import.skipped_invalid': '已跳过 {count} 个无效标签。',
   'tag_import.overwrite': '覆盖 {count} 个',
   'tag_info.using_tag_from_the_tag_directory': '正在使用标签目录中的标签 {reference_tag}。',
-  'tag_info.name': '-> 名称：{name}',
   'tag_info.alias_of_tag': '标签 {name} 的别名',
   'tag_info.from_s_dms': '{message}，来自 {user} 的私信',
   'tag_info.tag_from_the_tag_directory': '来自标签目录的标签。',

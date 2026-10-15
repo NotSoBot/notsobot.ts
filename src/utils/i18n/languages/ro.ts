@@ -3490,7 +3490,6 @@ export const Romanian: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Am sărit {count} taguri invalide.',
   'tag_import.overwrite': 'Suprascrie {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Se folosește tagul {reference_tag} din directorul de taguri.',
-  'tag_info.name': '-> Nume: {name}',
   'tag_info.alias_of_tag': 'Alias al tagului {name}',
   'tag_info.from_s_dms': '{message} din MD-urile lui {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag din directorul de taguri.',

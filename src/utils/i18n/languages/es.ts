@@ -3490,7 +3490,6 @@ export const Spanish: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Se omitieron {count} tags no válidos.',
   'tag_import.overwrite': 'Sobrescribir {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Usando el tag {reference_tag} del directorio de tags.',
-  'tag_info.name': '-> Nombre: {name}',
   'tag_info.alias_of_tag': 'Alias del tag {name}',
   'tag_info.from_s_dms': '{message} de los MD de {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag del directorio de tags.',

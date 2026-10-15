@@ -3606,7 +3606,6 @@ export const English = Object.freeze({
   'tag_import.skipped_invalid': 'Skipped {count} invalid tags.',
   'tag_import.overwrite': 'Overwrite {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Using tag {reference_tag} from the tag directory.',
-  'tag_info.name': '-> Name: {name}',
   'tag_info.alias_of_tag': 'Alias of tag {name}',
   'tag_info.from_s_dms': '{message} from {user}\'s DMs',
   'tag_info.tag_from_the_tag_directory': 'Tag from the tag directory.',

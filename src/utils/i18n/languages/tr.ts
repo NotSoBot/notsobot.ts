@@ -3489,7 +3489,6 @@ export const Turkish: Translations = Object.freeze({
   'tag_import.skipped_invalid': '{count} geçersiz etiket atlandı.',
   'tag_import.overwrite': '{count} üzerine yaz',
   'tag_info.using_tag_from_the_tag_directory': 'Etiket dizinindeki {reference_tag} etiketi kullanılıyor.',
-  'tag_info.name': '-> Ad: {name}',
   'tag_info.alias_of_tag': '{name} etiketinin takma adı',
   'tag_info.from_s_dms': '{message}, {user} kullanıcısının DM\'lerinden',
   'tag_info.tag_from_the_tag_directory': 'Etiket dizininden etiket.',

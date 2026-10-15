@@ -3490,7 +3490,6 @@ export const Lithuanian: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Praleista netinkamų žymų: {count}.',
   'tag_import.overwrite': 'Perrašyti {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Naudojama žyma {reference_tag} iš žymų katalogo.',
-  'tag_info.name': '-> Pavadinimas: {name}',
   'tag_info.alias_of_tag': 'Žymos {name} sinonimas',
   'tag_info.from_s_dms': '{message} iš {user} TŽ',
   'tag_info.tag_from_the_tag_directory': 'Žyma iš žymų katalogo.',

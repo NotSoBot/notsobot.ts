@@ -3490,7 +3490,6 @@ export const Arabic: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'تم تخطي {count} وسم غير صالح.',
   'tag_import.overwrite': 'الكتابة فوق {count}',
   'tag_info.using_tag_from_the_tag_directory': 'يستخدم الوسم {reference_tag} من دليل الوسوم.',
-  'tag_info.name': '-> الاسم: {name}',
   'tag_info.alias_of_tag': 'اسم بديل للوسم {name}',
   'tag_info.from_s_dms': '{message} من الرسائل الخاصة لـ {user}',
   'tag_info.tag_from_the_tag_directory': 'وسم من دليل الوسوم.',

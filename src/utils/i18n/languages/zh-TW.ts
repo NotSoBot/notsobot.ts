@@ -3490,7 +3490,6 @@ export const ChineseTraditional: Translations = Object.freeze({
   'tag_import.skipped_invalid': '已略過 {count} 個無效標籤。',
   'tag_import.overwrite': '覆寫 {count} 個',
   'tag_info.using_tag_from_the_tag_directory': '使用標籤目錄中的標籤 {reference_tag}。',
-  'tag_info.name': '-> 名稱：{name}',
   'tag_info.alias_of_tag': '標籤 {name} 的別名',
   'tag_info.from_s_dms': '{message}，來自 {user} 的私訊',
   'tag_info.tag_from_the_tag_directory': '來自標籤目錄的標籤。',

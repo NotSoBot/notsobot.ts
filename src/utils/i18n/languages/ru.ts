@@ -3490,7 +3490,6 @@ export const Russian: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Пропущено недействительных тегов: {count}.',
   'tag_import.overwrite': 'Перезаписать {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Используется тег {reference_tag} из каталога тегов.',
-  'tag_info.name': '-> Название: {name}',
   'tag_info.alias_of_tag': 'Псевдоним тега {name}',
   'tag_info.from_s_dms': '{message} из ЛС {user}',
   'tag_info.tag_from_the_tag_directory': 'Тег из каталога тегов.',

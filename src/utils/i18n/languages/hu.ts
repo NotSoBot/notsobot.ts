@@ -3490,7 +3490,6 @@ export const Hungarian: Translations = Object.freeze({
   'tag_import.skipped_invalid': '{count} érvénytelen címke kihagyva.',
   'tag_import.overwrite': '{count} felülírása',
   'tag_info.using_tag_from_the_tag_directory': 'A címkekönyvtár címkéjét használja: {reference_tag}',
-  'tag_info.name': '-> Név: {name}',
   'tag_info.alias_of_tag': 'Álnév ehhez a címkéhez: {name}',
   'tag_info.from_s_dms': '{message} – felhasználó DM-jeiből: {user}',
   'tag_info.tag_from_the_tag_directory': 'Címke a címkekönyvtárból.',

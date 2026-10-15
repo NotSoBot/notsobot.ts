@@ -3490,7 +3490,6 @@ export const Dutch: Translations = Object.freeze({
   'tag_import.skipped_invalid': '{count} ongeldige tags overgeslagen.',
   'tag_import.overwrite': '{count} overschrijven',
   'tag_info.using_tag_from_the_tag_directory': 'Gebruikt tag {reference_tag} uit de taggids.',
-  'tag_info.name': '-> Naam: {name}',
   'tag_info.alias_of_tag': 'Alias van tag {name}',
   'tag_info.from_s_dms': '{message} uit de DM\'s van {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag uit de taggids.',

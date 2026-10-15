@@ -3490,7 +3490,6 @@ export const Croatian: Translations = Object.freeze({
   'tag_import.skipped_invalid': 'Preskočeno {count} nevažećih tagova.',
   'tag_import.overwrite': 'Prepiši {count}',
   'tag_info.using_tag_from_the_tag_directory': 'Koristi se tag {reference_tag} iz direktorija tagova.',
-  'tag_info.name': '-> Naziv: {name}',
   'tag_info.alias_of_tag': 'Alias taga {name}',
   'tag_info.from_s_dms': '{message} iz izravnih poruka korisnika {user}',
   'tag_info.tag_from_the_tag_directory': 'Tag iz direktorija tagova.',
