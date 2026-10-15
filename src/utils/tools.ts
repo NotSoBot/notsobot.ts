@@ -1963,8 +1963,17 @@ function displayFooterText(payload: DisplayPayload): string {
 }
 
 // blank fields only exist to space out inline embed fields
+function isDisplayTextBlank(text: string): boolean {
+  return !text.replace(/\u200b/g, '').trim();
+}
+
 function isDisplayFieldBlank(field: DisplayField): boolean {
-  return !field.name.replace(/\u200b/g, '').trim() && !field.value.replace(/\u200b/g, '').trim();
+  return isDisplayTextBlank(field.name) && isDisplayTextBlank(field.value);
+}
+
+// fields with a blank name are just embed columns, skip the name so it doesn't leave an empty line
+function displayFieldText(field: DisplayField): string {
+  return (isDisplayTextBlank(field.name)) ? field.value : `**${field.name}**\n${field.value}`;
 }
 
 interface DisplayRendered {
@@ -1996,7 +2005,7 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): Di
   }
   for (let field of payload.fields || []) {
     if (!isDisplayFieldBlank(field)) {
-      lines.push(`**${field.name}**\n${field.value}`);
+      lines.push(displayFieldText(field));
     }
   }
 
@@ -2134,7 +2143,7 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string): DisplayR
   }
   for (let field of payload.fields || []) {
     if (!isDisplayFieldBlank(field)) {
-      lines.push(`**${field.name}**\n${field.value}`);
+      lines.push(displayFieldText(field));
     }
   }
   // attachments show on their own, links need to be posted

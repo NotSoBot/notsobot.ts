@@ -1030,6 +1030,21 @@ export namespace RestOptions {
     }>,
   }
 
+  export interface PutInfoMetrics {
+    clusterId: number,
+    histograms: Array<{
+      counts: Array<number>,
+      labels: Record<string, string>,
+      name: string,
+      sum: number,
+    }>,
+    samples: Array<{
+      labels: Record<string, string>,
+      name: string,
+      value: number,
+    }>,
+  }
+
   export interface PutServerSettings {
 
   }
@@ -1344,6 +1359,7 @@ export namespace RestResponses {
 
   export type PutGuildSettings = GuildSettings;
   export type PutInfoDiscord = null;
+  export type PutInfoMetrics = null;
   export type PutInfoDiscordGuilds = null;
   export type PostInfoDiscordGuildsChanges = null;
   export type PutServerSettings = ServerSettings;

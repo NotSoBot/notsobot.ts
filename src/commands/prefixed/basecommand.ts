@@ -74,9 +74,6 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   onBefore(context: Command.Context): Promise<boolean> | boolean {
-    if (context.inDm) {
-      return false;
-    }
     return new Promise(async (resolve) => {
       const contextMetadata = context.metadata = context.metadata || {};
       const { translate } = await I18n.getTranslator(context);

@@ -535,7 +535,7 @@ export async function tagsCustomCommands(context: Interaction.InteractionAutoCom
 }
 
 
-export async function tagsToAdd(context: Interaction.InteractionAutoCompleteContext) {
+export async function tagsToGet(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}> = [];
   if (context.value) {
     const maybeTagId = parseTagDirectoryUrl(context.value) || context.value;

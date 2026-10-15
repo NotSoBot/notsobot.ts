@@ -384,7 +384,7 @@ import * as TagDirectoryVerify from './tag.directory.verify';
 import * as TagEdit from './tag.edit';
 import * as TagExport from './tag.export';
 import * as TagGenerate from './tag.generate';
-import * as TagAdd from './tag.add';
+import * as TagGet from './tag.get';
 import * as TagImport from './tag.import';
 import * as TagInfo from './tag.info';
 import * as TagListServer from './tag.list.server';
@@ -824,7 +824,7 @@ export {
   TagEdit,
   TagExport,
   TagGenerate,
-  TagAdd,
+  TagGet,
   TagImport,
   TagInfo,
   TagListServer,

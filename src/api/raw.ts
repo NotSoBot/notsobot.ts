@@ -6864,6 +6864,25 @@ export async function putInfoDiscord(
 }
 
 
+export async function putInfoMetrics(
+  context: RequestContext,
+  options: RestOptions.PutInfoMetrics,
+): Promise<RestResponses.PutInfoMetrics> {
+  const body = {
+    cluster_id: options.clusterId,
+    histograms: options.histograms,
+    samples: options.samples,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.INFO_METRICS,
+    },
+  });
+}
+
+
 export async function putInfoDiscordGuilds(
   context: RequestContext,
   options: RestOptions.PutInfoDiscordGuilds,

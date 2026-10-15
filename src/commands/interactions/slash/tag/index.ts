@@ -4,13 +4,13 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { TagAddCommand } from './add';
 import { TagAliasCommand } from './alias';
 import { TagCommandsGroupCommand } from './commands';
 import { TagCreateCommand } from './create';
 import { TagDirectoryGroupCommand } from './directory';
 import { TagEditCommand } from './edit';
 import { TagExportCommand } from './export';
+import { TagGetCommand } from './get';
 import { TagImportCommand } from './import';
 import { TagInfoCommand } from './info';
 import { TagListGroupCommand } from './list';
@@ -41,13 +41,13 @@ export default class TagGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new TagShowCommand(),
-        new TagAddCommand(),
         new TagAliasCommand(),
         new TagCommandsGroupCommand(),
         new TagCreateCommand(),
         new TagDirectoryGroupCommand(),
         new TagEditCommand(),
         new TagExportCommand(),
+        new TagGetCommand(),
         new TagImportCommand(),
         new TagInfoCommand(),
         new TagRandomCommand(),

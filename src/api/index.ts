@@ -2676,6 +2676,14 @@ export async function putInfoDiscord(
 }
 
 
+export async function putInfoMetrics(
+  context: RequestContext,
+  options: RestOptions.PutInfoMetrics,
+) {
+  return raw.putInfoMetrics(context, options);
+}
+
+
 export async function putInfoDiscordGuilds(
   context: RequestContext,
   options: RestOptions.PutInfoDiscordGuilds,

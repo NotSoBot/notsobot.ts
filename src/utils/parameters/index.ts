@@ -827,8 +827,8 @@ export function tagName(
 }
 
 
-// for `tag add`: a tag directory id/link, or a tag (name or id) from the user's DMs with the bot
-export async function tagToAdd(
+// for `tag get`: a tag directory id/link, or a tag (name or id) from the user's DMs with the bot
+export async function tagToGet(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
 ): Promise<false | null | RestResponsesRaw.Tag> {
