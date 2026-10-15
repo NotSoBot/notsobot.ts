@@ -1,6 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
+import { Endpoints } from 'detritus-client-rest';
 
 import { fetchReports } from '../../../api';
 import { getTranslator } from '../../i18n';
@@ -49,6 +50,14 @@ export async function createMessage(
       case ReportTypes.BUG: return translate('report_list.type_bug');
       case ReportTypes.USER: return translate('report_list.type_user', {target: `<@${report.target_id}>`});
       case ReportTypes.SERVER: return translate('report_list.type_server', {target: Markup.codestring(report.target_id || '')});
+      case ReportTypes.MESSAGE: {
+        // message reports store the reported message, not where the report was sent from
+        const target = (report.channel_id && report.message_id)
+          ? Endpoints.Routes.URL + Endpoints.Routes.MESSAGE(report.guild_id, report.channel_id, report.message_id)
+          : Markup.codestring(report.message_id || '');
+        return translate('report_list.type_message', {target});
+      };
+      case ReportTypes.TAG: return translate('report_list.type_tag', {target: Markup.codestring(report.target_id || '')});
     }
     return String(report.type);
   };

@@ -888,7 +888,7 @@ export async function tagToAddToDirectory(
   if (value) {
     try {
       let dmChannelId: string | null = null;
-      if (context.inDm && context.hasServerPermissions) {
+      if (context.inDm && context.isBotPresent) {
         dmChannelId = context.channelId || null;
       } else {
         const user = await UserStore.getOrFetch(context, context.userId);
@@ -2038,7 +2038,7 @@ export function mediaUrls(
 
       if (
         (urls.length < minAmount && urls.length < maxAmount) &&
-        ((context.inDm && context.hasServerPermissions) || (context.channel && context.channel.canReadHistory))
+        ((context.inDm && context.isBotPresent) || (context.channel && context.channel.canReadHistory))
       ) {
         const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
         for (let [messageId, message] of messages) {

@@ -109,6 +109,18 @@ function translateApiError(
 }
 
 
+// the api's message for these only rewords the translation ('An outputted media was blocked...'), it never adds anything
+const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
+  ApiErrorCodes.MEDIA_BLOCKED_GUIDELINES,
+  ApiErrorCodes.MEDIA_BLOCKED_NSFW,
+  ApiErrorCodes.MEDIA_NOT_HOSTED_GUIDELINES,
+  ApiErrorCodes.MEDIA_NOT_HOSTED_NSFW,
+  ApiErrorCodes.MEDIA_TOO_LARGE_NOT_HOSTED_GUIDELINES,
+  ApiErrorCodes.MEDIA_TOO_LARGE_NOT_HOSTED_NSFW,
+  ApiErrorCodes.TEXT_BLOCKED_GUIDELINES,
+];
+
+
 // our translations drift from the api's wording a little ('The media...' vs 'This media...'), don't show both when they say the same thing
 function normalizeErrorMessage(message: string): string {
   return message
@@ -137,7 +149,8 @@ function describeApiError(
   }
   const { specific, text } = translateApiError(apiError, apiErrorKey, translator);
   description.push(text);
-  if (!specific && apiError.message && !isSameErrorMessage(apiError.message, text)) {
+  const showDetails = !specific && !API_ERRORS_WITHOUT_DETAILS.includes(apiError.code);
+  if (showDetails && apiError.message && !isSameErrorMessage(apiError.message, text)) {
     fields.push({name: translator.translate('errors.field.details'), value: apiError.message});
   }
   return true;

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, editOrReply } from '../../../utils';
+import { CommandCategories } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -25,20 +25,6 @@ export default class TagRandomCommand extends BaseCommand {
         usage: '<...arguments>',
       },
     });
-  }
-
-  onBefore(context: Command.Context) {
-    return false;
-  }
-
-  async onCancel(context: Command.Context) {
-    const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, [
-      '',
-      `### ${StatusEmojis.WARNING} ${translate('tag.disabled_title')}`,
-      translate('tag.disabled_body', {invite: '<https://notsobot.com/support/invite>'}),
-      '',
-    ].join('\n'));
   }
 
   async run(context: Command.Context, args: Formatter.Commands.TagRandom.CommandArgs) {

@@ -64,7 +64,7 @@ export function lastMediaUrl(
           let message = messageReference.message;
 
           const shouldFetchMessage = !message && (
-            (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+            (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
           );
           if (shouldFetchMessage) {
             try {
@@ -106,7 +106,7 @@ export function lastMediaUrl(
     }
 
     const shouldFetchMessages = (
-      (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+      (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
     );
     if (shouldFetchMessages) {
       const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
@@ -142,7 +142,7 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
         let message = messageReference.message;
 
         const shouldFetchMessage = !message && (
-          (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+          (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
         );
         if (shouldFetchMessage) {
           try {
@@ -184,7 +184,7 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
   }
 
   const shouldFetchMessages = (
-    (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+    (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
   );
   if (shouldFetchMessages) {
     const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
@@ -285,7 +285,7 @@ export async function replyString(context: Command.Context | Interaction.Interac
         let message = messageReference.message;
 
         const shouldFetchMessage = !message && (
-          (context.inDm) ? context.hasServerPermissions : (context.channel && context.channel.canReadHistory)
+          (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
         );
         if (shouldFetchMessage) {
           try {

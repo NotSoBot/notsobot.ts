@@ -490,7 +490,8 @@ export function generatePages(
   const pages = parsedTag.pages;
   if (parsedTag.files.length) {
     const used = new Set<string>();
-    const files: Record<string, any> = {};
+    // no prototype, a file named `constructor` used to be found in a plain object
+    const files: Record<string, any> = Object.create(null);
     for (let file of parsedTag.files.slice(0, 10)) {
       files[file.filename] = {
         description: file.description,
@@ -500,6 +501,29 @@ export function generatePages(
         value: file.buffer,
       };
     }
+
+    // spoilered files are uploaded as `SPOILER_filename` (detritus adds it), so a page can point at either name. the
+    // prefixed one used to be missed, and the file got treated as unused and sent with every page
+    const addFileToPage = (page: TagFormatter.TagResult['pages'][number], url: string | undefined | null): void => {
+      if (!url || !url.startsWith('attachment://')) {
+        return;
+      }
+      let filename: string | null = url.slice('attachment://'.length);
+      if (!(filename in files)) {
+        const unprefixed = (filename.startsWith('SPOILER_')) ? filename.slice('SPOILER_'.length) : null;
+        filename = (unprefixed && unprefixed in files && files[unprefixed].hasSpoiler) ? unprefixed : null;
+      }
+      if (filename !== null) {
+        if (!Array.isArray(page.files)) {
+          page.files = [];
+        }
+        // the same file in multiple spots (like the embed's image and thumbnail) used to be uploaded multiple times
+        if (!page.files.includes(files[filename])) {
+          page.files.push(files[filename]);
+        }
+        used.add(filename);
+      }
+    };
 
     for (let i = 0; i < pages.length; i++) {
       const page = pages[i];
@@ -513,65 +537,21 @@ export function generatePages(
 
       if (page.embeds && page.embeds.length) {
         const embed = page.embeds[0];
-        if (!Array.isArray(page.files)) {
-          page.files = [];
-        }
-  
-        if (embed.author && embed.author.iconUrl && embed.author.iconUrl.startsWith('attachment://')) {
-          const filename = embed.author.iconUrl.split('attachment://')[1]!;
-          if (filename in files) {
-            page.files.push(files[filename]);
-            used.add(filename);
-          }
-        }
-        if (embed.footer && embed.footer.iconUrl && embed.footer.iconUrl.startsWith('attachment://')) {
-          const filename = embed.footer.iconUrl.split('attachment://')[1]!;
-          if (filename in files) {
-            page.files.push(files[filename]);
-            used.add(filename);
-          }
-        }
-        if (embed.thumbnail && embed.thumbnail.url.startsWith('attachment://')) {
-          const filename = embed.thumbnail.url.split('attachment://')[1]!;
-          if (filename in files) {
-            page.files.push(files[filename]);
-            used.add(filename);
-          }
-        }
-        if (embed.image && embed.image.url.startsWith('attachment://')) {
-          const filename = embed.image.url.split('attachment://')[1]!;
-          if (filename in files) {
-            page.files.push(files[filename]);
-            used.add(filename);
-          }
-        }
+        addFileToPage(page, (embed.author) ? embed.author.iconUrl : null);
+        addFileToPage(page, (embed.footer) ? embed.footer.iconUrl : null);
+        addFileToPage(page, (embed.thumbnail) ? embed.thumbnail.url : null);
+        addFileToPage(page, (embed.image) ? embed.image.url : null);
       }
       if (page.components && page.components.length) {
         // files the page's components point to (media galleries, files, thumbnails)
-        if (!Array.isArray(page.files)) {
-          page.files = [];
-        }
         const raw = JSON.stringify(page.components);
         for (let match of raw.matchAll(/attachment:\/\/([^"?\s]+)/g)) {
-          const filename = match[1]!;
-          if (filename in files && !page.files.some((file) => file.filename === filename)) {
-            page.files.push(files[filename]);
-            used.add(filename);
-          }
+          addFileToPage(page, match[0]);
         }
       }
       if (page.filenames && page.filenames.length) {
-        if (!Array.isArray(page.files)) {
-          page.files = [];
-        }
         for (let filename of page.filenames) {
-          if (filename.startsWith('attachment://')) {
-            filename = filename.split('attachment://')[1]!;
-          }
-          if (filename in files) {
-            page.files.push(files[filename]);
-            used.add(filename);
-          }
+          addFileToPage(page, (filename.startsWith('attachment://')) ? filename : `attachment://${filename}`);
         }
       }
     }
@@ -663,6 +643,9 @@ export async function maybeCheckNSFW(
     }
   }
 
+  // text that's only links reads like spam to the scanner and gets falsely flagged, there's nothing to scan in it anyways
+  contentToCheck = contentToCheck.filter((text) => !isOnlyUrls(text));
+
   if (contentToCheck.length) {
     const [ isAwfulNSFW ] = await checkNSFW(context, contentToCheck.join('\n'), {safe: DefaultParameters.safe(context)});
     if (isAwfulNSFW) {
@@ -672,6 +655,13 @@ export async function maybeCheckNSFW(
       options.embeds = [];
     }
   }
+}
+
+
+// true if every whitespace separated piece is a url (embed suppressing <url> included)
+export function isOnlyUrls(text: string): boolean {
+  const parts = text.split(/\s+/).filter(Boolean);
+  return !!parts.length && parts.every((part) => /^<?https?:\/\/[^\s<>]+>?$/i.test(part));
 }
 
 

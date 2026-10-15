@@ -16,7 +16,7 @@ export default class ReportCommand extends BaseCommand {
 
       metadata: {
         category: CommandCategories.UTILITY,
-        description: 'Send a bug, user, or server report to the NotSoBot developers',
+        description: 'Send a bug, user, server, or tag report to the NotSoBot developers',
         examples: [
           `${COMMAND_NAME} bug the caption command cuts off long text`,
           `${COMMAND_NAME} user @someone using the bot to spam slurs`,
@@ -38,6 +38,7 @@ export default class ReportCommand extends BaseCommand {
         `${Markup.codestring(`${prefix}${COMMAND_NAME} bug <description>`)}`,
         `${Markup.codestring(`${prefix}${COMMAND_NAME} user <user> <reason>`)}`,
         `${Markup.codestring(`${prefix}${COMMAND_NAME} server ?<server-id> <reason>`)}`,
+        `${Markup.codestring(`${prefix}tag report <tagname> <reason>`)}`,
       ].join('\n'),
     });
   }

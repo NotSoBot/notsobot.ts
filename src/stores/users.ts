@@ -67,7 +67,7 @@ class UserStore extends Store<string, UserFull> {
           if (discordUser) {
             let channelId: string | undefined;
             if (discordUser.id === context.userId) {
-              if (context.inDm && context.hasServerPermissions) {
+              if (context.inDm && context.isBotPresent) {
                 channelId = context.channelId;
               }
             }

@@ -12,7 +12,7 @@ export interface CommandArgs {
   content: string,
 }
 
-// shared 60s ratelimit between `report bug`, `report server`, and `report user`, checked by hand so it's only consumed once
+// shared 60s ratelimit between `report bug`, `report server`, `report user`, and `tag report`, checked by hand so it's only consumed once
 // a valid report is about to be sent (a typo used to lock the user out for a minute)
 export const REPORT_RATELIMIT = new CommandRatelimit.CommandRatelimit({
   duration: 60000,
@@ -33,6 +33,9 @@ export function isValidReport(context: Command.Context, args: Formatter.Commands
     case ReportTypes.SERVER: {
       const serverId = args.server || context.guildId;
       return !!serverId && isSnowflake(serverId);
+    };
+    case ReportTypes.TAG: {
+      return !!args.tag && args.tag.user.id !== context.userId;
     };
   }
   return true;

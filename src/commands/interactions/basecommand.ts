@@ -75,7 +75,7 @@ async function replyMediaUrlNotFound(
   if (url === null) {
     return replyWarning(context, translate('errors.invalid_user_or_url'));
   }
-  if (!context.hasServerPermissions) {
+  if (!context.isBotPresent) {
     return replyWarning(context, translate('errors.no_channel_history'));
   }
   return replyWarning(context, translate(notFound));
@@ -335,7 +335,7 @@ export class BaseInteractionCommandOption extends Interaction.InteractionCommand
 
 // tags are stored per server, so only let them be written in servers that installed the bot (not through a user install)
 export function canWriteServerTags(context: Interaction.InteractionContext): boolean {
-  return !context.guildId || context.hasServerPermissions;
+  return !context.guildId || context.isFromGuildInstall;
 }
 
 export class BaseInteractionTagWriteCommandOption extends BaseInteractionCommandOption {
@@ -523,12 +523,12 @@ export class BaseInteractionMediasCommandOption extends BaseInteractionCommandOp
   async onCancelRun(context: Interaction.InteractionContext, args: {urls: Array<string>}) {
     const { translate } = await I18n.getTranslator(context);
     if (!args.urls.length) {
-      if (!context.hasServerPermissions) {
+      if (!context.isBotPresent) {
         return replyWarning(context, translate('errors.no_channel_history'));
       }
       return replyWarning(context, translate('errors.no_media_found'));
     } else if (args.urls.length < this.minAmount) {
-      if (!context.hasServerPermissions) {
+      if (!context.isBotPresent) {
         return replyWarning(context, translate('errors.no_channel_history_amount', {amount: this.minAmount}));
       }
       return replyWarning(context, translate('errors.not_enough_media_found', {amount: this.minAmount}));

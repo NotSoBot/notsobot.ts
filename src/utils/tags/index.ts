@@ -100,7 +100,7 @@ import {
 } from '../tools';
 
 import { TagExitError, TagRequestError } from './exceptions';
-import { parseComponentFromData } from './tools';
+import { isAllowedMediaUrl, isAttachmentUrl, isDiscordAssetUrl, parseComponentFromData } from './tools';
 
 export { TagExitError, TagRequestError };
 
@@ -162,6 +162,7 @@ export interface TagLimits {
   MAX_BLOB_VALUE_LENGTH: number,
   MAX_COMPONENT_EXECUTIONS: number,
   MAX_EMBEDS: number,
+  MAX_FUNCTION_CALLS: number,
   MAX_ITERATIONS: number,
   MAX_NETWORK_REQUESTS: number,
   MAX_NETWORK_REQUESTS_ML: number,
@@ -189,6 +190,9 @@ export const TagLimitDefaults: TagLimits = Object.freeze({
   MAX_BLOB_VALUE_LENGTH: 256 * 1024,
   MAX_COMPONENT_EXECUTIONS: 2,
   MAX_EMBEDS: 10,
+  // every function call, not just the ones that parse their argument. `{eval}` on a generated string of `{lower:a}`s
+  // only used a couple iterations but ran hundreds of thousands of calls
+  MAX_FUNCTION_CALLS: 10000,
   MAX_ITERATIONS: 450,
   MAX_NETWORK_REQUESTS: 15,
   MAX_NETWORK_REQUESTS_ML: 5,
@@ -258,6 +262,7 @@ export enum PrivateVariables {
   COMPONENT_EXECUTIONS = '__componentExecutions',
   FILE_SIZE = '__fileSize',
   FILES = '__files',
+  FUNCTION_CALLS = '__functionCalls',
   IS_FROM_AI = '__isFromAI',
   IS_FROM_CHILD_PARSING = '__isFromChildParsing',
   ITERATIONS_REMAINING = '__iterationsRemaining',
@@ -270,6 +275,7 @@ export enum PrivateVariables {
   SYNC_TIME = '__syncTime',
   TAG_EXECUTIONS = '__tagExecutions',
   VALUES = '__values',
+  ERROR = 'error',
   ID_X = 'idx',
   VALUE_X = 'valuex',
 }
@@ -281,6 +287,7 @@ export const TAG_LIMIT_VARIABLES: ReadonlyArray<string> = Object.freeze([
   PrivateVariables.API_MANIPULATIONS,
   PrivateVariables.COMPONENT_EXECUTIONS,
   PrivateVariables.FILE_SIZE,
+  PrivateVariables.FUNCTION_CALLS,
   PrivateVariables.ITERATIONS_REMAINING,
   PrivateVariables.NETWORK_REQUESTS,
   PrivateVariables.NETWORK_REQUESTS_ML,
@@ -309,6 +316,7 @@ export enum TagIfComparisons {
   GREATER_THAN_OR_EQUAL = '>=',
   LESS_THAN = '<',
   LESS_THAN_OR_EQUAL = '<=',
+  REGEX = '?',
   TILDE = '~',
 }
 
@@ -320,6 +328,7 @@ export const TAG_IF_COMPARISONS = [
   TagIfComparisons.GREATER_THAN_OR_EQUAL,
   TagIfComparisons.LESS_THAN,
   TagIfComparisons.LESS_THAN_OR_EQUAL,
+  TagIfComparisons.REGEX,
   TagIfComparisons.TILDE,
 ];
 
@@ -705,6 +714,23 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.VARIABLES_USER]: ['variablesuser'],
 });
 
+// name -> function, built once. this used to scan every function's names on every call
+const TAG_FUNCTION_BY_NAME: Map<string, TagFunctions> = (() => {
+  const map = new Map<string, TagFunctions>();
+  for (let TAG_FUNCTION of Object.values(TagFunctions)) {
+    for (let name of TagFunctionsToString[TAG_FUNCTION]) {
+      if (!map.has(name)) {
+        map.set(name, TAG_FUNCTION);
+      }
+    }
+  }
+  return map;
+})();
+
+export function getTagFunctionByName(name: string): TagFunctions | undefined {
+  return TAG_FUNCTION_BY_NAME.get(name);
+}
+
 
 export enum TagSettings {
   AI_MODEL = 'AI_MODEL',
@@ -725,6 +751,7 @@ export interface TagVariables {
   [PrivateVariables.ARGS_STRING]: string,
   [PrivateVariables.COMPONENT_EXECUTIONS]: number,
   [PrivateVariables.FILE_SIZE]: number,
+  [PrivateVariables.FUNCTION_CALLS]: number,
   [PrivateVariables.IS_FROM_AI]: number,
   [PrivateVariables.IS_FROM_CHILD_PARSING]: number,
   [PrivateVariables.ITERATIONS_REMAINING]: number,
@@ -851,6 +878,9 @@ export async function parse(
   }
   if (!(PrivateVariables.FILE_SIZE in variables)) {
     (variables as any)[PrivateVariables.FILE_SIZE] = 0;
+  }
+  if (!(PrivateVariables.FUNCTION_CALLS in variables)) {
+    (variables as any)[PrivateVariables.FUNCTION_CALLS] = 0;
   }
   if (!(PrivateVariables.IS_FROM_AI in variables)) {
     (variables as any)[PrivateVariables.IS_FROM_AI] = 0;
@@ -1024,6 +1054,7 @@ export async function parse(
           // end of the script
           depth--;
           if (depth <= 0) {
+            await increaseFunctionCalls(context, tag);
             let [scriptName, arg] = parseInnerScript(scriptBuffer, shouldTrim);
             if (TagFunctionsToString.EVAL_SILENT.includes(scriptName)) {
               const wasValid = await ScriptTags[TagFunctions.EVAL_SILENT](context, arg, tag);
@@ -1195,14 +1226,12 @@ export async function parse(
               }
 
               if (!found) {
-                for (let TAG_FUNCTION of Object.values(TagFunctions)) {
-                  if (TagFunctionsToString[TAG_FUNCTION].includes(scriptName)) {
-                    found = true;
-                    const wasValid = await ScriptTags[TAG_FUNCTION](context, arg, tag);
-                    if (!wasValid) {
-                      tag.text += scriptBuffer;
-                    }
-                    break;
+                const TAG_FUNCTION = getTagFunctionByName(scriptName);
+                if (TAG_FUNCTION) {
+                  found = true;
+                  const wasValid = await ScriptTags[TAG_FUNCTION](context, arg, tag);
+                  if (!wasValid) {
+                    tag.text += scriptBuffer;
                   }
                 }
               }
@@ -1236,6 +1265,10 @@ export async function parse(
   }
 
   tag.text = (tag.text + scriptBuffer);
+  // the loop only checks before each step, so a function at the very end (like {replace}) could return a huge string
+  if (maxTextLength < tag.text.length) {
+    throw new Error(getCachedTranslator(context).translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
+  }
   if (isFirstParse) {
     tag.text = tag.text.replace(REGEX_NEWLINE_SENTINEL, '\n');
   }
@@ -1418,6 +1451,89 @@ function addFileResponseToTag(
 
 
 // accepts an IANA name (`america/new_york`), the enum name (`AMERICA_NEW_YORK`), or an abbreviation/city from the display text (`EST`, `alaska`)
+// `image.png` -> `image_2.png` if the tag already has a file with that name, `attachment://` can only point at one
+function getUniqueFilename(tag: TagResult, filename: string): string {
+  const taken = new Set(tag.files.map((file) => file.filename));
+  if (!taken.has(filename)) {
+    return filename;
+  }
+  const dot = filename.lastIndexOf('.');
+  const [ base, extension ] = (0 < dot) ? [filename.slice(0, dot), filename.slice(dot)] : [filename, ''];
+  for (let i = 2; ; i++) {
+    const unique = `${base}_${i}${extension}`;
+    if (!taken.has(unique)) {
+      return unique;
+    }
+  }
+}
+
+// downloads a url into the tag's files (`{attach}`, and media urls in embeds/components)
+async function attachFileFromUrl(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  urlString: string,
+  options: {description?: string, filename?: string, spoiler?: boolean, uniqueFilename?: boolean} = {},
+): Promise<TagResult['files'][number]> {
+  if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
+    throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+  }
+
+  const url = await Parameters.url(urlString.trim(), context);
+
+  const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.ATTACHMENT] = (
+    tag.variables[PrivateVariables.RESULTS][TagFunctions.ATTACHMENT] ||
+    {}
+  );
+
+  if (!(url in cachedResults)) {
+    increaseNetworkRequests(tag);
+  }
+
+  try {
+    const maxFileSize = context.maxAttachmentSize;
+    const response = cachedResults[url] || await utilitiesFetchMedia(context, {
+      maxFileSize,
+      safe: DefaultParameters.safe(context),
+      url,
+    }).then((x) => jobWaitForResponse(context, x));
+
+    if (!(url in cachedResults)) {
+      cachedResults[url] = response;
+    }
+
+    let filename = options.filename || response.file.filename_safe;
+    if (options.uniqueFilename) {
+      filename = getUniqueFilename(tag, filename);
+    }
+
+    let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
+    if (response.file.metadata.mimetype.startsWith('text/')) {
+      data = data.toString();
+    }
+
+    if (maxFileSize < data.length) {
+      throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+    }
+
+    assertTotalFileSize(context, tag, data.length);
+    tag.variables[PrivateVariables.FILE_SIZE] += data.length;
+
+    const file = {
+      buffer: data,
+      description: options.description,
+      filename,
+      spoiler: options.spoiler,
+      url,
+    };
+    tag.files.push(file);
+    return file;
+  } catch(error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+
 function resolveTimezone(value: string): string | null {
   const insensitive = value.toLowerCase().replace(/\s+/g, '_');
   for (let key in Timezones) {
@@ -1543,6 +1659,28 @@ export function increaseComponentExecutions(tag: TagResult, amount: number = 1) 
   }
   if (tag.limits.MAX_COMPONENT_EXECUTIONS < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS]) {
     throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_component', {max: tag.limits.MAX_COMPONENT_EXECUTIONS.toLocaleString()}));
+  }
+}
+
+
+// how many function calls run between giving the event loop back, a tag is one long chain of already-resolved
+// promises otherwise and blocks every other guild on the process until it finishes
+const FUNCTION_CALLS_PER_YIELD = 200;
+
+export async function increaseFunctionCalls(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+): Promise<void> {
+  const calls = ++(tag.variables as any)[PrivateVariables.FUNCTION_CALLS];
+  if (tag.limits.MAX_FUNCTION_CALLS < calls) {
+    const max = tag.limits.MAX_FUNCTION_CALLS.toLocaleString();
+    throw new Error(getCachedTranslator(context).translateMaybe(
+      'tagscript.tag_attempted_to_use_too_many_function_calls',
+      `Tag attempted to use too many function calls (max ${max})`,
+    ));
+  }
+  if (calls % FUNCTION_CALLS_PER_YIELD === 0) {
+    await new Promise((resolve) => setImmediate(resolve));
   }
 }
 
@@ -1675,6 +1813,128 @@ export function parsePageComponents(data: unknown, tag: TagResult): Array<Record
 }
 
 
+// `$FILE_1` as a media url in an embed/component is the tag's 1st attachment so far, same numbering as `FILE_1` in code
+const MEDIA_FILE_REFERENCE_REGEX = /^\$FILE_([0-9]+)$/;
+
+function getAttachmentUrlForFile(file: TagResult['files'][number]): string {
+  // detritus uploads spoilered files as `SPOILER_filename`, the reference has to use the uploaded name
+  const filename = (file.spoiler && !file.filename.startsWith('SPOILER_')) ? `SPOILER_${file.filename}` : file.filename;
+  return `attachment://${filename}`;
+}
+
+// `$FILE_n` is that file, attachments and discord's own assets stay as is. anything else (outside urls, discord
+// attachments) gets downloaded into the tag's files like `{attach}` and pointed at, if the tag has room for it.
+// file components need an actual attachment, so discord's assets get downloaded for those too
+export async function resolveMediaUrl(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  url: string,
+  requireAttachment: boolean = false,
+): Promise<string> {
+  const match = url.trim().match(MEDIA_FILE_REFERENCE_REGEX);
+  if (match) {
+    const file = tag.files[parseInt(match[1]) - 1];
+    if (!file || !file.buffer || file.deleted) {
+      throw new Error(tag.translate('tagscript.invalid_file_provided'));
+    }
+    return getAttachmentUrlForFile(file);
+  }
+  if (isAttachmentUrl(url) || (!requireAttachment && isDiscordAssetUrl(url))) {
+    return url;
+  }
+  // not a url we can download, the parser's check throws the error for it
+  if (!/^https?:\/\//i.test(url.trim()) || tag.limits.MAX_ATTACHMENTS === 0) {
+    return url;
+  }
+  // the same url in multiple places (or already `{attach}`ed) is only downloaded once
+  const existing = tag.files.find((file) => file.url === url && file.buffer && !file.deleted);
+  if (existing) {
+    return getAttachmentUrlForFile(existing);
+  }
+  const file = await attachFileFromUrl(context, tag, url, {uniqueFilename: true});
+  return getAttachmentUrlForFile(file);
+}
+
+// resolves (downloading if needed) and checks the media urls of a built embed. this runs after every embed/component
+// of the output has been built, so an invalid one errors before anything gets downloaded for it
+export async function resolveEmbedMediaUrls(
+  context: Command.Context | Interaction.InteractionContext,
+  embed: Embed,
+  tag: TagResult,
+): Promise<void> {
+  const targets: Array<[Record<string, any> | null | undefined, string]> = [
+    [embed.author, 'iconUrl'],
+    [embed.footer, 'iconUrl'],
+    [embed.image, 'url'],
+    [embed.thumbnail, 'url'],
+    [embed.video, 'url'],
+  ];
+  for (let [ object, urlKey ] of targets) {
+    if (object && typeof(object[urlKey]) === 'string' && object[urlKey]) {
+      object[urlKey] = await resolveMediaUrl(context, tag, object[urlKey]);
+      if (!isAllowedMediaUrl(object[urlKey])) {
+        throw new Error(tag.translate('tagscript.embed_media_urls_must_be_attachments'));
+      }
+    }
+  }
+}
+
+// resolves (downloading if needed) and checks the media urls of components from `parseComponentFromData()`, which
+// only checks their structure. every parsed component has to go through this before it's sent
+export async function resolveComponentMediaUrls(
+  context: Command.Context | Interaction.InteractionContext,
+  components: Array<Record<string, any>>,
+  tag: TagResult,
+): Promise<void> {
+  for (let component of components) {
+    switch (component.type) {
+      case MessageComponentTypes.FILE: {
+        component.file.url = await resolveMediaUrl(context, tag, component.file.url, true);
+        if (!isAttachmentUrl(component.file.url)) {
+          throw new Error(tag.translate('tagscript.components.file_media_object_url_must_be_an_attachment'));
+        }
+      }; break;
+      case MessageComponentTypes.MEDIA_GALLERY: {
+        for (let item of component.items) {
+          item.media.url = await resolveMediaUrl(context, tag, item.media.url);
+          if (!isAllowedMediaUrl(item.media.url)) {
+            throw new Error(tag.translate('tagscript.components.media_gallery_item_url_must_be_an_attachment'));
+          }
+        }
+      }; break;
+      case MessageComponentTypes.THUMBNAIL: {
+        component.media.url = await resolveMediaUrl(context, tag, component.media.url);
+        if (!isAllowedMediaUrl(component.media.url)) {
+          throw new Error(tag.translate('tagscript.components.thumbnail_media_object_url_must_be_an_attachment'));
+        }
+      }; break;
+    }
+    if (Array.isArray(component.components)) {
+      await resolveComponentMediaUrls(context, component.components, tag);
+    }
+    if (component.accessory) {
+      await resolveComponentMediaUrls(context, [component.accessory], tag);
+    }
+  }
+}
+
+// resolves the media of pages added since `start`, once they've all been built
+async function resolvePagesMediaUrls(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  start: number,
+): Promise<void> {
+  for (let page of tag.pages.slice(start)) {
+    for (let embed of page.embeds || []) {
+      await resolveEmbedMediaUrls(context, embed, tag);
+    }
+    if (page.components) {
+      await resolveComponentMediaUrls(context, page.components, tag);
+    }
+  }
+}
+
+
 export function checkTagComponentsLimit(components: TagResultComponents | null, translate: Translator['translate']) {
   if (components && components.components.length) {
     let actionRows: number = 0;
@@ -1725,6 +1985,7 @@ export function resetTagLimits(tag: TagResult) {
   (variables as any)[PrivateVariables.NETWORK_REQUESTS_ML] = 0;
   (variables as any)[PrivateVariables.NETWORK_REQUESTS_SAFETY] = 0;
   (variables as any)[PrivateVariables.FILE_SIZE] = 0;
+  (variables as any)[PrivateVariables.FUNCTION_CALLS] = 0;
   (variables as any)[PrivateVariables.TAG_EXECUTIONS] = 0;
   Object.assign(tag.variables, {
     [PrivateVariables.RESULTS]: Object.assign({}, tag.variables[PrivateVariables.RESULTS], {
@@ -2541,6 +2802,10 @@ const ScriptTags = Object.freeze({
       }
       
       if (object && typeof(object) === 'object') {
+        const embedsStart = tag.embeds.length;
+        const pagesStart = tag.pages.length;
+        let newComponents: Array<Record<string, any>> | null = null;
+
         const keysLength = Object.keys(object).length;
         if (keysLength === 1 && 'pages' in object && Array.isArray(object.pages)) {
           // parse them
@@ -2604,6 +2869,7 @@ const ScriptTags = Object.freeze({
           }
           if (components.components.length) {
             tag.components = components;
+            newComponents = components.components;
             isComponents = true;
           }
         }
@@ -2641,6 +2907,15 @@ const ScriptTags = Object.freeze({
           if (tag.limits.MAX_EMBEDS < tag.embeds.length) {
             throw new Error(tag.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: tag.limits.MAX_EMBEDS}));
           }
+        }
+
+        // everything's been built and checked, only now download what the media urls point to
+        await resolvePagesMediaUrls(context, tag, pagesStart);
+        if (newComponents) {
+          await resolveComponentMediaUrls(context, newComponents, tag);
+        }
+        for (let embed of tag.embeds.slice(embedsStart)) {
+          await resolveEmbedMediaUrls(context, embed, tag);
         }
       }
     }
@@ -3186,60 +3461,12 @@ const ScriptTags = Object.freeze({
       return false;
     }
 
-    if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
-    }
-
     let [ urlString, filenameArg, descriptionValue ] = split(arg, 3);
-
-    const url = await Parameters.url(urlString.trim(), context);
-
-    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.ATTACHMENT] = (
-      tag.variables[PrivateVariables.RESULTS][TagFunctions.ATTACHMENT] ||
-      {}
-    );
-
-    if (!(url in cachedResults)) {
-      increaseNetworkRequests(tag);
-    }
-
-    try {
-      const maxFileSize = context.maxAttachmentSize;
-      const response = cachedResults[url] || await utilitiesFetchMedia(context, {
-        maxFileSize,
-        safe: DefaultParameters.safe(context),
-        url,
-      }).then((x) => jobWaitForResponse(context, x));
-
-      if (!(url in cachedResults)) {
-        cachedResults[url] = response;
-      }
-
-      const filename = filenameArg || response.file.filename_safe;
-
-      let data: Buffer | string = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-      if (response.file.metadata.mimetype.startsWith('text/')) {
-        data = data.toString();
-      }
-
-      if (maxFileSize < data.length) {
-        throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
-      }
-
-      assertTotalFileSize(context, tag, data.length);
-      tag.variables[PrivateVariables.FILE_SIZE] += data.length;
-
-      tag.files.push({
-        buffer: data,
-        description: descriptionValue,
-        filename,
-        spoiler,
-        url,
-      });
-    } catch(error) {
-      console.log(error);
-      throw error;
-    }
+    await attachFileFromUrl(context, tag, urlString, {
+      description: descriptionValue,
+      filename: filenameArg,
+      spoiler,
+    });
 
     return true;
   },
@@ -3482,6 +3709,7 @@ const ScriptTags = Object.freeze({
     const component = parseComponentFromData(data, undefined, undefined, tag.translate);
     components.components.push(component);
     checkTagComponentsLimit(components, tag.translate);
+    await resolveComponentMediaUrls(context, [component], tag);
 
     if (components.components.length) {
       tag.components = components;
@@ -3568,6 +3796,8 @@ const ScriptTags = Object.freeze({
     if (tag.limits.MAX_EMBEDS < tag.embeds.length) {
       throw new Error(tag.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: tag.limits.MAX_EMBEDS}));
     }
+    // outside of the try, a bad `$FILE_n` or a blocked download should error instead of printing the raw function
+    await resolveEmbedMediaUrls(context, tag.embeds[tag.embeds.length - 1]!, tag);
 
     return true;
   },
@@ -3912,7 +4142,7 @@ const ScriptTags = Object.freeze({
         if (!channel.canReadHistory) {
           throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
         }
-      } else if (!context.inDm && !context.hasServerPermissions) {
+      } else if (!context.inDm && !context.isBotPresent) {
         throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
 
@@ -4484,6 +4714,21 @@ const ScriptTags = Object.freeze({
       case TagIfComparisons.EQUAL_NOT: {
         compared = values[0] !== values[1];
       }; break;
+      case TagIfComparisons.REGEX: {
+        // {if:text|?|regex|then:...}, case-insensitive like {replace}
+        const [ source, regex ] = values;
+        compared = await withSyncTimeBudget(context, tag, () => {
+          try {
+            return vm.runInNewContext(
+              `new RegExp(regex, 'i').test(source);`,
+              {regex, source},
+              {timeout: tag.limits.MAX_TIME_REGEX},
+            );
+          } catch {
+            throw new Error(tag.translate('tagscript.regex_matching_errored_or_timed_out'));
+          }
+        });
+      }; break;
       case TagIfComparisons.GREATER_THAN:
       case TagIfComparisons.GREATER_THAN_OR_EQUAL:
       case TagIfComparisons.LESS_THAN:
@@ -4536,19 +4781,31 @@ const ScriptTags = Object.freeze({
 
   [TagFunctions.LOGICAL_IF_ERROR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {iferror:action|action}, unlimited actions
+    // {get:error} inside an action is the message of the previous action's error
 
     const conditionals = split(arg);
-    for (let conditional of conditionals) {
-      try {
-        tag.text += await parseValue(context, tag, conditional);
-      } catch(error) {
-        if (error instanceof TagExitError) {
-          throw error;
+    const previousError = tag.variables[PrivateVariables.ERROR];
+    try {
+      for (let conditional of conditionals) {
+        try {
+          tag.text += await parseValue(context, tag, conditional);
+        } catch(error) {
+          if (error instanceof TagExitError) {
+            throw error;
+          }
+          // go to the next one if it errors
+          tag.variables[PrivateVariables.ERROR] = String((error instanceof Error) ? error.message : error).slice(0, tag.limits.MAX_VARIABLE_LENGTH);
+          continue;
         }
-        // go to the next one if it errors
-        continue;
+        return true;
       }
-      return true;
+    } finally {
+      // scoped like idx/valuex in {foreach}, so nested {iferror}s don't leak their error outwards
+      if (previousError === undefined) {
+        delete tag.variables[PrivateVariables.ERROR];
+      } else {
+        tag.variables[PrivateVariables.ERROR] = previousError;
+      }
     }
 
     return true;
@@ -5315,7 +5572,7 @@ const ScriptTags = Object.freeze({
         if (!channel.canReadHistory) {
           throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
         }
-      } else if (!context.inDm && !context.hasServerPermissions) {
+      } else if (!context.inDm && !context.isBotPresent) {
         throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
 
@@ -5387,7 +5644,7 @@ const ScriptTags = Object.freeze({
       if (!channel.canReadHistory) {
         throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
-    } else if (!context.inDm && !context.hasServerPermissions) {
+    } else if (!context.inDm && !context.isBotPresent) {
       throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
     }
 
@@ -5480,7 +5737,7 @@ const ScriptTags = Object.freeze({
       if (!channel.canReadHistory) {
         throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
-    } else if (!context.inDm && !context.hasServerPermissions) {
+    } else if (!context.inDm && !context.isBotPresent) {
       throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
     }
 
@@ -5570,7 +5827,7 @@ const ScriptTags = Object.freeze({
         if (!channel.canReadHistory) {
           throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
         }
-      } else if (!context.inDm && !context.hasServerPermissions) {
+      } else if (!context.inDm && !context.isBotPresent) {
         throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
 
@@ -5926,6 +6183,7 @@ const ScriptTags = Object.freeze({
       throw new Error(tag.translate('tagscript.invalid_page_given'));
     }
 
+    const pagesStart = tag.pages.length;
     for (let page of pages) {
       let components: Array<Record<string, any>> | undefined;
       let content: string | undefined;
@@ -5978,6 +6236,9 @@ const ScriptTags = Object.freeze({
         throw new Error(tag.translate('tagscript.pages_surpassed_max_pages_length_of', {max: tag.limits.MAX_PAGES}));
       }
     }
+
+    // every page has been built and checked, only now download what the media urls point to
+    await resolvePagesMediaUrls(context, tag, pagesStart);
 
     return true;
   },
@@ -6862,7 +7123,9 @@ const ScriptTags = Object.freeze({
       source = source.slice(3);
     }
 
-    tag.text += await withSyncTimeBudget(context, tag, () => {
+    // an empty regex matches between every character, so a 20k source and 20k replacement made a 400m character
+    // string in a few ms. it's only a rope until something flattens it, so check the length before keeping it
+    const replaced: string = await withSyncTimeBudget(context, tag, () => {
       try {
         return vm.runInNewContext(
           `source.replace(new RegExp(regex, 'gi'), replaceWith);`,
@@ -6877,6 +7140,7 @@ const ScriptTags = Object.freeze({
         throw new Error(tag.translate('tagscript.text_replacing_errored_or_timed_out'));
       }
     });
+    appendTagText(context, tag, replaced);
 
     return true;
   },

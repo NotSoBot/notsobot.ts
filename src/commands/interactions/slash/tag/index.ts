@@ -17,6 +17,7 @@ import { TagListGroupCommand } from './list';
 import { TagRandomCommand } from './random';
 import { TagRemoveGroupCommand } from './remove';
 import { TagRenameCommand } from './rename';
+import { TagReportCommand } from './report';
 import { TagShowCommand } from './show';
 import { TagStorageGroupCommand } from './storage';
 
@@ -52,6 +53,7 @@ export default class TagGroupCommand extends BaseSlashCommand {
         new TagRandomCommand(),
         new TagRemoveGroupCommand(),
         new TagRenameCommand(),
+        new TagReportCommand(),
         new TagListGroupCommand(),
         new TagStorageGroupCommand(),
       ],

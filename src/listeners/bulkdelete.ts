@@ -1,8 +1,10 @@
 import { ClusterClient, ShardClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
+import { Snowflake } from 'detritus-client/lib/utils';
 import { EventSubscription, Timers } from 'detritus-utils';
 
 import { deleteCommandsResponses, fetchCommandsResponses } from '../api';
+import { COMMAND_EDIT_DURATION } from '../constants';
 import { RedisSpewer } from '../redis';
 
 import { Listener } from './listener';
@@ -86,6 +88,49 @@ class MessageDeleteListener extends Listener {
               }
             }
           }
+        }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      const subscription = cluster.subscribe(ClientEvents.MESSAGE_DELETE, async (event) => {
+        const { channelId, message, messageId, shard } = event;
+        // newer triggers still have their reply in the command client's memory, the COMMAND_DELETE handler covers those
+        if (Date.now() - Snowflake.timestamp(messageId) < COMMAND_EDIT_DURATION) {
+          return;
+        }
+        // bots (us included) can't trigger commands
+        if (message && message.author.bot) {
+          return;
+        }
+
+        let results: Awaited<ReturnType<typeof fetchCommandsResponses>>['results'];
+        try {
+          ({ results } = await fetchCommandsResponses({client: shard}, {channelId, triggerIds: [messageId]}));
+        } catch(error) {
+          return;
+        }
+        if (!results.length) {
+          return;
+        }
+
+        for (let result of results) {
+          const response = shard.messages.get(result.message_response_id);
+          if (response && response.deleted) {
+            continue;
+          }
+          try {
+            await shard.rest.deleteMessage(channelId, result.message_response_id);
+          } catch(error) {
+            // already deleted (an edit within the window may have stored it in memory too)
+          }
+        }
+
+        try {
+          await deleteCommandsResponses({client: shard}, {channelId, triggerIds: [messageId]});
+        } catch(error) {
+          // the stale cleanup will get them eventually
         }
       });
       subscriptions.push(subscription);

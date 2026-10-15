@@ -11,12 +11,58 @@ import { EmbedColors, ReportTypes } from '../../../constants';
 import { Formatter, I18n, Parameters, renderDisplay } from '../../../utils';
 
 import { createRunErrorPayload, warning } from '../../errors';
-import { BaseSlashCommand, translateErrorLabel } from '../basecommand';
+import { BaseInteractionCommand, BaseSlashCommand, translateErrorLabel } from '../basecommand';
 
 
 export const COMMAND_NAME = 'report';
 
 const MAX_SERVER_ID_LENGTH = 20;
+
+async function onModalError(context: Interaction.InteractionContext, modalContext: InteractionModalContext, error: any) {
+  const translator = await I18n.getTranslator(context);
+  // the context menus use this too, so label it with whichever command the modal came from
+  const label = translateErrorLabel((context.command as BaseInteractionCommand).error || 'Slash', translator.translate);
+  const title = warning(translator.translate('errors.run_title', {label}));
+  const payload = await createRunErrorPayload(context, title, error, translator);
+  return modalContext.editOrRespond(await renderDisplay(context, {
+    color: EmbedColors.ERROR,
+    description: payload.description,
+    ephemeral: true,
+    fields: payload.fields,
+    title: payload.title,
+  }));
+}
+
+// the user/message context menus already know what's reported, so they only ask for the reason
+export async function createReportReasonModal(
+  context: Interaction.InteractionContext,
+  createArgs: (content: string) => Omit<Formatter.Commands.Report.CommandArgs, 'content'>,
+): Promise<InteractionModal> {
+  const { translate } = await I18n.getTranslator(context);
+
+  const modal = new InteractionModal({
+    title: translate('report.modal_title'),
+    run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
+      const payload = await Formatter.Commands.Report.createPayload(context, {...createArgs(args.content), content: args.content});
+      return modalContext.editOrRespond(await renderDisplay(context, payload));
+    },
+    onError: (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
+      return onModalError(context, modalContext, error);
+    },
+  });
+
+  modal.createLabel({
+    description: translate('report.modal_reason_description'),
+    label: translate('report.modal_reason'),
+  }).createInputText({
+    customId: 'content',
+    maxLength: Formatter.Commands.Report.MAX_CONTENT_LENGTH,
+    required: true,
+    style: MessageComponentInputTextStyles.PARAGRAPH,
+  });
+
+  return modal;
+}
 
 export default class ReportCommand extends BaseSlashCommand {
   description = 'Send a report to the NotSoBot developers';
@@ -56,17 +102,8 @@ export default class ReportCommand extends BaseSlashCommand {
         });
         return modalContext.editOrRespond(await renderDisplay(context, payload));
       },
-      onError: async (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
-        const translator = await I18n.getTranslator(context);
-        const title = warning(translator.translate('errors.run_title', {label: translateErrorLabel('Slash', translator.translate)}));
-        const payload = await createRunErrorPayload(context, title, error, translator);
-        return modalContext.editOrRespond(await renderDisplay(context, {
-          color: EmbedColors.ERROR,
-          description: payload.description,
-          ephemeral: true,
-          fields: payload.fields,
-          title: payload.title,
-        }));
+      onError: (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
+        return onModalError(context, modalContext, error);
       },
     });
 

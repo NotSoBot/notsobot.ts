@@ -92,8 +92,13 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
     }
 
     description.push('');
-    if (context.hasServerPermissions) {
-      description.push(translate((context.inDmWithBot) ? 'permcheck.bot_dm' : 'permcheck.installed'));
+    // prefix commands only need the bot user in the server, not the server install of the slash commands (`isFromGuildInstall`)
+    if (context.isBotPresent) {
+      if (context.inDmWithBot) {
+        description.push(translate('permcheck.bot_dm'));
+      } else {
+        description.push(translate((context.isFromGuildInstall) ? 'permcheck.installed' : 'permcheck.installed_bot_only'));
+      }
 
       description.push('');
       description.push(`**${translate('permcheck.server_prefixes')}**`);
@@ -206,7 +211,7 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
       if (context.inDm) {
         description.push(translate((channel && channel.isDmGroup) ? 'permcheck.group_dm' : 'permcheck.user_dm'));
       } else {
-        description.push(translate('permcheck.not_installed'));
+        description.push(translate((context.isFromGuildInstall) ? 'permcheck.installed_commands_only' : 'permcheck.not_installed'));
       }
       willPrefixCommandsWork = false;
     }

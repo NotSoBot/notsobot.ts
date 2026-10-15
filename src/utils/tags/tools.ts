@@ -4,6 +4,44 @@ import { Languages, Translator, getTranslatorForLanguage } from '../i18n';
 
 
 
+// media in embeds/components can only point to files the tag uploads, never to an outside url
+export function isAttachmentUrl(url: string): boolean {
+  return url.startsWith('attachment://');
+}
+
+const DISCORD_MEDIA_HOSTS = ['cdn.discordapp.com', 'media.discordapp.net'];
+// user uploaded content (or a proxy of any outside url) on discord's cdn
+const DISCORD_MEDIA_BLOCKED_PATHS = ['attachments', 'ephemeral-attachments', 'external'];
+
+// discord's own assets (avatars, icons, emojis, banners, stickers, etc) are fine, its attachments aren't
+export function isDiscordAssetUrl(url: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch(error) {
+    return false;
+  }
+  if (parsed.protocol !== 'https:' || parsed.username || parsed.password || parsed.port) {
+    return false;
+  }
+  if (!DISCORD_MEDIA_HOSTS.includes(parsed.hostname)) {
+    return false;
+  }
+  // asset paths never need encoding, so `%2e%2e`/`%2f` tricks can't reach a blocked path
+  if (parsed.pathname.includes('%')) {
+    return false;
+  }
+  const [ , root ] = parsed.pathname.toLowerCase().split('/');
+  return !!root && !DISCORD_MEDIA_BLOCKED_PATHS.includes(root);
+}
+
+export function isAllowedMediaUrl(url: string): boolean {
+  return isAttachmentUrl(url) || isDiscordAssetUrl(url);
+}
+
+
+// only checks the structure, the media urls (files, media galleries, thumbnails) are resolved and checked after by
+// `resolveComponentMediaUrls()` in the tag parser
 export function parseComponentFromData(
   data: Record<string, any>,
   isChildFrom?: MessageComponentTypes,
@@ -131,10 +169,6 @@ export function parseComponentFromData(
 
       if (!data.file || typeof(data.file) !== 'object' || typeof(data.file.url) !== 'string' || !data.file.url) {
         throw new Error(translate('tagscript.components.file_must_contain_a_media_object'));
-      }
-
-      if (!data.file.url.startsWith('attachment://')) {
-        throw new Error(translate('tagscript.components.file_media_object_url_must_be_an_attachment'));
       }
 
       const file: Record<string, any> = {

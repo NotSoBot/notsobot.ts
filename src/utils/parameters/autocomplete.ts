@@ -552,7 +552,7 @@ export async function tagsToAdd(context: Interaction.InteractionAutoCompleteCont
   }
 
   if (!choices.length) {
-    if (context.inDm && context.hasServerPermissions) {
+    if (context.inDm && context.isBotPresent) {
       // we are in our one-on-one dms, we cannot add our own tags into here, only support tag directory
       choices = [];
     } else {
@@ -585,7 +585,7 @@ export async function tagsToAddToDirectory(context: Interaction.InteractionAutoC
   let choices: Array<{name: string, value: string}> = [];
   try {
     let dmChannelId: string | null = null;
-    if (context.inDm && context.hasServerPermissions) {
+    if (context.inDm && context.isBotPresent) {
       // we are in our one-on-one dms with the bot
       dmChannelId = context.channelId!;
     } else {

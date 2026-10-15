@@ -26,7 +26,7 @@ export interface RequestContext {
   client: ShardClient,
   guild?: Structures.Guild | null,
   guildId?: string,
-  hasServerPermissions?: boolean,
+  isBotPresent?: boolean,
   inDm?: boolean,
   interaction?: Structures.Interaction,
   maxAttachmentSize?: number,
@@ -85,7 +85,7 @@ export async function request(
     const bareUser = JSON.stringify({
       avatar: user.avatar,
       discriminator: user.discriminator,
-      channel_id: (context.inDm && context.hasServerPermissions) ? context.channelId : undefined,
+      channel_id: (context.inDm && context.isBotPresent) ? context.channelId : undefined,
       bot: user.bot,
       id: user.id,
       username: user.username,

@@ -239,13 +239,12 @@ export async function editOrReply(
       channelId = context.channelId;
     } else {
       // find a random channel from cache?
-      if (context.hasServerPermissions) {
+      if (context.isBotPresent) {
         if (context.inDm) {
           channelId = context.channelId!;
         } else {
           const { channel } = context;
           if (channel && channel.canView) {
-            // we can only use the channel if the bot is in the server anyways
             channelId = channel.id;
           }
         }
@@ -522,6 +521,53 @@ export function findMediaUrlInComponent(
 }
 
 
+// search commands whose result url is what should be used instead of the thumbnail (like .yt then .dl)
+const SEARCH_COMMAND_URL_PREFIXES: Array<string> = [
+  'https://youtu.be/',
+];
+
+// the title line of our own responses, `### [title](url)` in components v2 and `**[title](<url>)**` in text
+const DISPLAY_TITLE_URL_REGEX = /^(?:### |\*\*)\[.*\]\(<?(https?:\/\/[^\s<>]+?)>?\)(?:\*\*)?$/;
+
+// the first text display in the message, including ones inside a container or section
+function findFirstTextDisplayContent(
+  components: Iterable<Structures.ComponentsTopLevel | Structures.ComponentTextDisplay | Structures.ComponentUnknown>,
+): null | string {
+  for (let component of components) {
+    if (component instanceof Structures.ComponentTextDisplay) {
+      return component.content;
+    } else if (component instanceof Structures.ComponentContainer || component instanceof Structures.ComponentSection) {
+      const content = findFirstTextDisplayContent(component.components.values());
+      if (content !== null) {
+        return content;
+      }
+    }
+  }
+  return null;
+}
+
+// the result url from our own search command responses, it's on the title like the embed url used to be
+export function findSearchCommandUrl(message: Structures.Message): null | string {
+  if (!message.fromMe) {
+    return null;
+  }
+  for (let [embedId, embed] of message.embeds) {
+    if (embed.url && SEARCH_COMMAND_URL_PREFIXES.some((prefix) => embed.url!.startsWith(prefix))) {
+      return embed.url;
+    }
+  }
+  const content = (message.hasFlagComponentsV2) ? findFirstTextDisplayContent(message.components.values()) : message.content;
+  if (content) {
+    const [ title ] = content.split('\n');
+    const match = title.match(DISPLAY_TITLE_URL_REGEX);
+    if (match && SEARCH_COMMAND_URL_PREFIXES.some((prefix) => match[1].startsWith(prefix))) {
+      return match[1];
+    }
+  }
+  return null;
+}
+
+
 export function findMediaUrlInEmbed(
   embed: Structures.MessageEmbed,
   ignoreGIFV: boolean = false,
@@ -609,6 +655,13 @@ export function findMediaUrlInMessage(
       }
     }
   }
+  if (!ignoreEmbed) {
+    // checked before components since the thumbnail is in a gallery
+    const searchUrl = findSearchCommandUrl(message);
+    if (searchUrl) {
+      return searchUrl;
+    }
+  }
   for (let [attachmentId, attachment] of message.attachments) {
     const url = findMediaUrlInAttachment(attachment, options);
     if (url) {
@@ -632,9 +685,6 @@ export function findMediaUrlInMessage(
     for (let [embedId, embed] of message.embeds) {
       if (message.fromMe) {
         if (embed.url && embed.image && embed.title && embed.title === 'Video Post') {
-          return embed.url;
-        }
-        if (embed.url && embed.url.startsWith('https://youtu.be/')) {
           return embed.url;
         }
       }
@@ -747,6 +797,13 @@ export function findMediaUrlsInMessage(
   const findImage = (!options || options.image || options.image === undefined);
 
   const urls = new Set<string>();
+  if (!ignoreEmbed) {
+    // skip the thumbnail, the result url is the media
+    const searchUrl = findSearchCommandUrl(message);
+    if (searchUrl) {
+      return [searchUrl];
+    }
+  }
   for (let [attachmentId, attachment] of message.attachments) {
     const url = findMediaUrlInAttachment(attachment, options);
     if (url) {
@@ -802,10 +859,6 @@ export function findMediaUrlsInMessage(
     for (let [embedId, embed] of message.embeds) {
       if (message.fromMe) {
         if (embed.url && embed.image && embed.title && embed.title === 'Video Post') {
-          urls.add(embed.url);
-          continue;
-        }
-        if (embed.url && embed.url.startsWith('https://youtu.be/')) {
           urls.add(embed.url);
           continue;
         }

@@ -4,8 +4,9 @@ import * as Sentry from '@sentry/node';
 import { ClusterClient, ShardClient } from 'detritus-client';
 import { ActivityTypes, ClientEvents, PresenceStatuses, SocketStates } from 'detritus-client/lib/constants';
 
+import { deleteCommandsResponses } from './api';
 import { NotSoCommandClient } from './commandclient';
-import { DiscordReactionEmojis } from './constants';
+import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
 import { connectAllListeners } from './listeners';
 import { connectAllStores } from './stores';
@@ -168,7 +169,7 @@ const cluster = new ClusterClient('', {
     {
       const notSoCommandBot = new NotSoCommandClient(cluster, {
         activateOnEdits: true,
-        maxEditDuration: 10 * 60 * 1000,
+        maxEditDuration: COMMAND_EDIT_DURATION,
         mentionsEnabled: true,
         prefix: '.',
         ratelimits: [
@@ -183,6 +184,27 @@ const cluster = new ClusterClient('', {
 
       notSoCommandBot.on(ClientEvents.COMMAND_RUN_ERROR, async ({command, context}) => {
         // log channelId, command.name, content, messageId, context.metadata.referenceId, userId, error
+      });
+
+      // the trigger message got deleted (or edited into something that isn't a command anymore), take our response with
+      // it, detritus already dropped it from the stored replies
+      notSoCommandBot.on(ClientEvents.COMMAND_DELETE, async ({context, event, reply}) => {
+        // purges are handled by the MESSAGE_DELETE_BULK listener, it bulk deletes every response (any age) at once
+        if (event === ClientEvents.MESSAGE_DELETE_BULK) {
+          return;
+        }
+        if (reply && !reply.deleted) {
+          try {
+            await reply.delete();
+          } catch(error) {
+
+          }
+        }
+        try {
+          await deleteCommandsResponses(context, {channelId: context.channelId, triggerIds: [context.messageId]});
+        } catch(error) {
+          // the stale cleanup will get them eventually
+        }
       });
 
       await notSoCommandBot.addMultipleIn('./commands/prefixed');

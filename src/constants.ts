@@ -20,6 +20,9 @@ export const ZERO_WIDTH_SPACE = '\u200b';
 
 export const ONE_DAY = 24 * 60 * 60 * 1000;
 
+// how long an edited trigger reruns its command (and we remember its reply in memory)
+export const COMMAND_EDIT_DURATION = 15 * 60 * 1000;
+
 
 export enum StatusEmojis {
   NO = '❌',
@@ -1556,6 +1559,8 @@ export enum ReportTypes {
   BUG = 0,
   USER = 1,
   SERVER = 2,
+  MESSAGE = 3,
+  TAG = 4,
 }
 
 

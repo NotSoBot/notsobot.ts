@@ -1,16 +1,20 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { RestResponsesRaw } from '../../../api/types';
-import { CommandCategories, GuildFeatures, StatusEmojis, UserFlags } from '../../../constants';
+import { CommandCategories, GuildFeatures, UserFlags } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import TagCustomCommandStore, { TagCustomCommandStored } from '../../../stores/tagcustomcommands';
 import UserStore from '../../../stores/users';
-import { Formatter, I18n, editOrReply } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
 
 export const COMMAND_NAME = '';
+
+// this command is the fallback for every prefixed message that matches no other command (`.hello`, `...`), only the
+// ones that found a custom command are logged as a use. `onFinally` only gets the context
+const MATCHED_CONTEXTS = new WeakSet<Command.Context>();
 
 export default class TagShowCustomCommand extends BaseCommand {
   constructor(client: CommandClient) {
@@ -46,6 +50,7 @@ export default class TagShowCustomCommand extends BaseCommand {
         if (tag) {
           args.tag = tag;
           args.arguments = args.text.slice(tag.name.length).trim();
+          MATCHED_CONTEXTS.add(context);
           return true;
         }
       }
@@ -58,6 +63,7 @@ export default class TagShowCustomCommand extends BaseCommand {
         if (tag) {
           args.tag = tag;
           args.arguments = args.text.slice(tag.name.length).trim();
+          MATCHED_CONTEXTS.add(context);
           return true;
         }
       }
@@ -70,15 +76,14 @@ export default class TagShowCustomCommand extends BaseCommand {
     return undefined as any;
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.TagShowCustomCommand.CommandArgs) {
-    const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, [
-      '',
-      `### ${StatusEmojis.WARNING} ${translate('tag.disabled_title')}`,
-      translate('tag.disabled_body', {invite: '<https://notsobot.com/support/invite>'}),
-      '',
-    ].join('\n'));
+  async onFinally(context: Command.Context) {
+    // logging every unmatched message cost an api call (2 postgres reads and a clickhouse insert) each
+    if (MATCHED_CONTEXTS.has(context)) {
+      return super.onFinally(context);
+    }
+  }
 
+  async run(context: Command.Context, args: Formatter.Commands.TagShowCustomCommand.CommandArgs) {
     return Formatter.Commands.TagShowCustomCommand.createMessage(context, args);
   }
 

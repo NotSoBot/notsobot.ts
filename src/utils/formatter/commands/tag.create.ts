@@ -39,7 +39,7 @@ export async function createMessage(
     }
   }
 
-  if (isFromInteraction && !context.hasServerPermissions && context.guildId && context.guildPartial) {
+  if (isFromInteraction && !context.isFromGuildInstall && context.guildId && context.guildPartial) {
     // create server in database
     const settings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
   }

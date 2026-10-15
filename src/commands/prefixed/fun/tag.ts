@@ -39,20 +39,6 @@ export default class TagCommand extends BaseCommand {
     });
   }
 
-  onBefore(context: Command.Context) {
-    return false;
-  }
-
-  async onCancel(context: Command.Context) {
-    const { translate } = await I18n.getTranslator(context);
-    return editOrReply(context, [
-      '',
-      `### ${StatusEmojis.WARNING} ${translate('tag.disabled_title')}`,
-      translate('tag.disabled_body', {invite: '<https://notsobot.com/support/invite>'}),
-      '',
-    ].join('\n'));
-  }
-
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
     return !!args.tag;
   }

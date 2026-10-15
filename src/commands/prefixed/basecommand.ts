@@ -268,6 +268,15 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     if (!context.command) {
       return;
     }
+    // the trigger got deleted while we were still running, so the COMMAND_DELETE cleanup never saw this reply
+    const response = context.response;
+    if (context.message.deleted && response && !response.deleted) {
+      try {
+        await response.delete();
+      } catch(error) {
+
+      }
+    }
     const metadata = context.command.metadata;
     const commandId = metadata.id || context.command.fullName.split(' ').join('.');
     await createUserCommand(
