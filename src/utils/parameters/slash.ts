@@ -6,6 +6,7 @@ import {
   GoogleLocales,
   GoogleLocalesText,
   MLDiffusionModels,
+  TagDirectoryCategories,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
   GuildSettingsResponseDisplayTypes,
@@ -165,6 +166,20 @@ export const USER_SETTINGS_UPLOAD_THRESHOLD_TYPES = [
 export const USER_SETTINGS_UPLOAD_TYPES = [
   createChoice('Automatic', UserSettingsUploadTypes.AUTOMATIC, {isDefault: true, localizationKey: 'choices.settings.upload_types.automatic'}),
   createChoice('Temporary', UserSettingsUploadTypes.TEMPORARY, {localizationKey: 'choices.settings.upload_types.temporary'}),
+];
+
+
+// a fixed order instead of alphabetical, so `Other` goes last
+export const TAG_DIRECTORY_CATEGORIES = [
+  createChoice('Fun', TagDirectoryCategories.FUN, {localizationKey: 'choices.tag_directory_categories.fun'}),
+  createChoice('Games', TagDirectoryCategories.GAMES, {localizationKey: 'choices.tag_directory_categories.games'}),
+  createChoice('Images', TagDirectoryCategories.IMAGES, {localizationKey: 'choices.tag_directory_categories.images'}),
+  createChoice('Memes', TagDirectoryCategories.MEMES, {localizationKey: 'choices.tag_directory_categories.memes'}),
+  createChoice('Utility', TagDirectoryCategories.UTILITY, {localizationKey: 'choices.tag_directory_categories.utility'}),
+  createChoice('AI', TagDirectoryCategories.AI, {localizationKey: 'choices.tag_directory_categories.ai'}),
+  createChoice('Text', TagDirectoryCategories.TEXT, {localizationKey: 'choices.tag_directory_categories.text'}),
+  createChoice('Audio', TagDirectoryCategories.AUDIO, {localizationKey: 'choices.tag_directory_categories.audio'}),
+  createChoice('Other', TagDirectoryCategories.OTHER, {localizationKey: 'choices.tag_directory_categories.other'}),
 ];
 
 

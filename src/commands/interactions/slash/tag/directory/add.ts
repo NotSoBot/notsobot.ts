@@ -28,6 +28,13 @@ export class TagDirectoryAddCommand extends BaseInteractionCommandOption {
           value: Parameters.tagToAddToDirectory,
           onAutoComplete: Parameters.AutoComplete.tagsToAddToDirectory,
         },
+        {
+          name: 'category',
+          description: 'Category to list the tag under (Default: Other)',
+          ...I18n.optionLocalizations('commands.tag.directory.add.category'),
+          choices: Parameters.Slash.TAG_DIRECTORY_CATEGORIES,
+          type: Number,
+        },
       ],
     });
   }

@@ -324,6 +324,13 @@ export async function applications(
     }
 
     const search = new MiniSearch({
+      // aliases is a BaseSet, which minisearch would stringify as `BaseSet (2 items)`
+      extractField: (document, field) => {
+        if (field === 'aliases') {
+          return Array.from(document.aliases || []).join(' ');
+        }
+        return document[field];
+      },
       fields: ['id', 'aliases', 'name'],
       storeFields: ['id'],
       searchOptions: {

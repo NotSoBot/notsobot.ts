@@ -47,6 +47,13 @@ export class TagDirectoryEditCommand extends BaseInteractionCommandOption {
           maxLength: 2000,
         },
         {
+          name: 'category',
+          description: 'Category the tag is listed under on the Tag Directory',
+          ...I18n.optionLocalizations('commands.tag.directory.edit.category'),
+          choices: Parameters.Slash.TAG_DIRECTORY_CATEGORIES,
+          type: Number,
+        },
+        {
           name: 'show-content',
           description: 'Show the tag\'s content publicly on the Tag Directory',
           ...I18n.optionLocalizations('commands.tag.directory.edit.show-content'),
@@ -58,7 +65,9 @@ export class TagDirectoryEditCommand extends BaseInteractionCommandOption {
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagDirectoryEdit.CommandArgsBefore) {
-    return !!args.tag && (!!args.content || !!args.description || !!args.title || typeof(args.showContent) === 'boolean');
+    return !!args.tag && (
+      !!args.content || !!args.description || !!args.title || typeof(args.category) === 'number' || typeof(args.showContent) === 'boolean'
+    );
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.TagDirectoryEdit.CommandArgsBefore) {
@@ -68,7 +77,7 @@ export class TagDirectoryEditCommand extends BaseInteractionCommandOption {
         return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.unknown')}`});
       }
     }
-    if (!args.content && !args.description && !args.title && typeof(args.showContent) !== 'boolean') {
+    if (!args.content && !args.description && !args.title && typeof(args.category) !== 'number' && typeof(args.showContent) !== 'boolean') {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag.directory_edit_needs_field')}`});
     }
     return super.onCancelRun(context, args);

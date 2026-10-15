@@ -18,6 +18,8 @@ import {
   ReportStatuses,
   ReportTypes,
   TagBlobStorageTypes,
+  TagDirectoryCategories,
+  TagDirectoryVerificationStates,
   TagVariableStorageTypes,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
@@ -178,6 +180,7 @@ export namespace RestOptions {
   }
 
   export interface EditTagsDirectoryTag {
+    category?: TagDirectoryCategories,
     contentPublic?: boolean,
     description?: string,
     title?: string,
@@ -256,6 +259,12 @@ export namespace RestOptions {
     content?: string,
     name?: string,
     userId?: string,
+  }
+
+  export interface FetchTagsDirectory {
+    limit?: number,
+    // title/description/name, or `id:<tag id>` / `user:<owner id>`
+    query?: string,
   }
 
   export interface FetchTags{
@@ -995,7 +1004,7 @@ export namespace RestOptions {
   }
 
   export interface PostInfoDiscordGuildsChanges {
-    added: Array<{guildId: string, shardId: number}>,
+    added: Array<{guildId: string, memberCount?: number, shardId: number}>,
     removed: Array<string>,
     shardCount: number,
   }
@@ -1057,6 +1066,7 @@ export namespace RestOptions {
   }
 
   export interface PutTagsDirectoryTag {
+    category?: TagDirectoryCategories,
     description?: string,
     title?: string,
   }
@@ -1630,6 +1640,11 @@ export namespace RestResponsesRaw {
     count: number,
     export: Record<string, any>,
     filename: string,
+  }
+
+  export interface FetchTagsDirectory {
+    count: number,
+    items: Array<TagDirectory>,
   }
 
   export type FetchTagId = Tag;
@@ -2896,6 +2911,7 @@ export namespace RestResponsesRaw {
     assets: Array<{
       // todo: fill this in
     }>,
+    category: TagDirectoryCategories,
     // the owner shows `tag.content` on the public directory, it's '' otherwise
     content_public: boolean,
     created: string,
@@ -2905,7 +2921,7 @@ export namespace RestResponsesRaw {
     server_count: number,
     tag: Tag,
     title: string,
-    verified: number,
+    verified: TagDirectoryVerificationStates,
   }
 
   export interface User {

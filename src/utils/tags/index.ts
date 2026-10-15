@@ -6878,7 +6878,8 @@ const ScriptTags = Object.freeze({
         prefix: true,
       },
     });
-    search.addAll(choices.map((id) => ({id})));
+    // minisearch throws on duplicate ids, and repeated choices are valid tagscript
+    search.addAll([...new Set(choices)].map((id) => ({id})));
 
     const results = search.search(value);
     if (results.length) {

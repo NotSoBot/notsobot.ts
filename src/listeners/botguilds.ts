@@ -22,7 +22,7 @@ class BotGuildsListener extends Listener {
   changesInterval = new Timers.Interval();
   fullSyncInterval = new Timers.Interval();
   // guildId -> latest known state; the last event for a guild wins, so a batch never contradicts itself
-  pending = new Map<string, {present: boolean, shardId: number}>();
+  pending = new Map<string, {memberCount?: number, present: boolean, shardId: number}>();
   flushing = false;
 
   async syncShard(cluster: ClusterClient, shard: ShardClient): Promise<void> {
@@ -62,11 +62,11 @@ class BotGuildsListener extends Listener {
     const batch = this.pending;
     this.pending = new Map();
 
-    const added: Array<{guildId: string, shardId: number}> = [];
+    const added: Array<{guildId: string, memberCount?: number, shardId: number}> = [];
     const removed: Array<string> = [];
-    for (let [guildId, { present, shardId }] of batch) {
+    for (let [guildId, { memberCount, present, shardId }] of batch) {
       if (present) {
-        added.push({guildId, shardId});
+        added.push({guildId, memberCount, shardId});
       } else {
         removed.push(guildId);
       }
@@ -100,7 +100,7 @@ class BotGuildsListener extends Listener {
       const subscription = cluster.subscribe(ClientEvents.GUILD_CREATE, ({ fromUnavailable, guild, shard }) => {
         // `fromUnavailable` is the startup/outage flood of guilds we already sent with the full list
         if (!fromUnavailable) {
-          this.pending.set(guild.id, {present: true, shardId: shard.shardId});
+          this.pending.set(guild.id, {memberCount: guild.memberCount, present: true, shardId: shard.shardId});
         }
       });
       subscriptions.push(subscription);

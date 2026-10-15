@@ -591,6 +591,14 @@ export async function fetchTagStorage(
 }
 
 
+export async function fetchTagsDirectory(
+  context: RequestContext,
+  options: RestOptions.FetchTagsDirectory = {},
+) {
+  return raw.fetchTagsDirectory(context, options);
+}
+
+
 export async function fetchTagsServer(
   context: RequestContext,
   guildId: string,

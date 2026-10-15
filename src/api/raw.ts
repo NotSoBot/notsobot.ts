@@ -6,6 +6,7 @@ import { HTTPMethods } from 'detritus-rest/lib/constants';
 
 import { Api, Domains } from './endpoints';
 import { IS_NOTSOBOT_API_ERROR } from './errors';
+import { recordApiRequest } from '../metrics';
 import { RestOptions, RestResponsesRaw, RestResponses } from './types';
 
 import {
@@ -125,12 +126,18 @@ export async function request(
     options.files = (options.files) ? [options.file, ...options.files] : [options.file];
   }
 
+  const route = (options.route && options.route.path) || 'unknown';
+  const started = Date.now();
   try {
-    return await client.rest.request(options);
+    const response = await client.rest.request(options);
+    recordApiRequest(route, '2xx', started);
+    return response;
   } catch(error) {
     if (error && error.response) {
       error[IS_NOTSOBOT_API_ERROR] = true;
     }
+    const status = (error && error.response) ? `${Math.floor(error.response.statusCode / 100)}xx` : 'error';
+    recordApiRequest(route, status, started);
     throw error;
   }
 }
@@ -813,6 +820,7 @@ export async function editTagsDirectoryTag(
   options: RestOptions.EditTagsDirectoryTag,
 ): Promise<RestResponsesRaw.EditTagsDirectoryTag> {
   const body = {
+    category: options.category,
     content_public: options.contentPublic,
     description: options.description,
     title: options.title,
@@ -1114,6 +1122,25 @@ export async function fetchTagRandom(
     route: {
       method: HTTPMethods.GET,
       path: Api.TAGS_SEARCH_RANDOM,
+    },
+  });
+}
+
+
+// the public tag directory listing
+export async function fetchTagsDirectory(
+  context: RequestContext,
+  options: RestOptions.FetchTagsDirectory = {},
+): Promise<RestResponsesRaw.FetchTagsDirectory> {
+  const query = {
+    limit: options.limit,
+    query: options.query,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TAGS_DIRECTORY,
     },
   });
 }
@@ -6907,7 +6934,7 @@ export async function postInfoDiscordGuildsChanges(
   options: RestOptions.PostInfoDiscordGuildsChanges,
 ): Promise<RestResponses.PostInfoDiscordGuildsChanges> {
   const body = {
-    added: options.added.map((x) => ({guild_id: x.guildId, shard_id: x.shardId})),
+    added: options.added.map((x) => ({guild_id: x.guildId, member_count: x.memberCount || 0, shard_id: x.shardId})),
     removed: options.removed,
     shard_count: options.shardCount,
   };
@@ -6965,6 +6992,7 @@ export async function putTagsDirectoryTag(
   options: RestOptions.PutTagsDirectoryTag,
 ): Promise<RestResponsesRaw.PutTagsDirectoryTag> {
   const body = {
+    category: options.category,
     description: options.description,
     title: options.title,
   };

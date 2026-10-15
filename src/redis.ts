@@ -26,7 +26,7 @@ export class RedisSpewer extends EventSpewer {
 
   end(): void {
     if (!this.ended && this.client) {
-      this.client.quit();
+      this.client.close();
       this.client.removeAllListeners();
       this.ended = true;
     }

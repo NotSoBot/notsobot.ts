@@ -1581,6 +1581,28 @@ export enum TagBlobStorageTypes {
 }
 
 
+// the API's `TagDirectoryCategories`, a directory listing has one (`OTHER` by default)
+export enum TagDirectoryCategories {
+  OTHER = 0,
+  FUN = 1,
+  GAMES = 2,
+  IMAGES = 3,
+  MEMES = 4,
+  UTILITY = 5,
+  AI = 6,
+  TEXT = 7,
+  AUDIO = 8,
+}
+
+
+// the API's `TagDirectoryVerificationStates`
+export enum TagDirectoryVerificationStates {
+  UNVERIFIED = 0,
+  PENDING_VERIFICATION = 1,
+  VERIFIED = 2,
+}
+
+
 export enum TagGenerationModels {
   ANTHROPIC_CLAUDE_HAIKU_5_5 = 'ANTHROPIC_CLAUDE_HAIKU_5_5',
   ANTHROPIC_CLAUDE_SONNET_5_5 = 'ANTHROPIC_CLAUDE_SONNET_5_5',
@@ -1588,7 +1610,7 @@ export enum TagGenerationModels {
   DEEPSEEK_PRO = 'DEEPSEEK_PRO',
   GOOGLE_GEMINI_3_8_FLASH = 'GOOGLE_GEMINI_3_8_FLASH',
   GOOGLE_GEMMA_4 = 'GOOGLE_GEMMA_4',
-  META_LLAMA = 'META_LLAMA',
+  META_LLAMA_4_MAVERICK = 'META_LLAMA_4_MAVERICK',
   META_MUSE_SPARK_1_3 = 'META_MUSE_SPARK_1_3',
   META_MUSE_SPARK_1_3_CONTRIBUTOR = 'META_MUSE_SPARK_1_3_CONTRIBUTOR',
   MOONSHOT_AI_KIMI_K2_7_CODE = 'MOONSHOT_AI_KIMI_K2_7_CODE',
@@ -1616,7 +1638,7 @@ export const TagGenerationModelsToText = Object.freeze({
   [TagGenerationModels.DEEPSEEK_PRO]: 'DeepSeek Pro',
   [TagGenerationModels.GOOGLE_GEMINI_3_8_FLASH]: 'Google Gemini 3.8 Flash',
   [TagGenerationModels.GOOGLE_GEMMA_4]: 'Google Gemma 4',
-  [TagGenerationModels.META_LLAMA]: 'Meta Llama (Latest)',
+  [TagGenerationModels.META_LLAMA_4_MAVERICK]: 'Meta Llama 4 Maverick',
   [TagGenerationModels.META_MUSE_SPARK_1_3]: 'Meta Muse Spark 1.3',
   [TagGenerationModels.META_MUSE_SPARK_1_3_CONTRIBUTOR]: 'Meta Muse Spark 1.3 Contributor',
   [TagGenerationModels.MOONSHOT_AI_KIMI_K2_7_CODE]: 'Moonshot AI Kimi K2.7 Code',

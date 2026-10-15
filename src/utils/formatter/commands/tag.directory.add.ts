@@ -4,19 +4,21 @@ import { Markup } from 'detritus-client/lib/utils';
 import { putTagsDirectoryTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
-import { StatusEmojis } from '../../../constants';
+import { StatusEmojis, TagDirectoryCategories } from '../../../constants';
 import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.directory.add';
 
 export interface CommandArgsBefore {
+  category?: TagDirectoryCategories,
   description?: string,
   tag: false | null | RestResponsesRaw.Tag,
   title?: string,
 }
 
 export interface CommandArgs {
+  category?: TagDirectoryCategories,
   description?: string,
   tag: RestResponsesRaw.Tag,
   title?: string,
@@ -33,6 +35,7 @@ export async function createMessage(
   }
 
   const directory = await putTagsDirectoryTag(context, args.tag.id, {
+    category: args.category,
     description: args.description,
     title: args.title,
   });

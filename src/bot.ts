@@ -9,6 +9,7 @@ import { NotSoCommandClient } from './commandclient';
 import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
 import { connectAllListeners } from './listeners';
+import { incrementCounter } from './metrics';
 import { connectAllStores } from './stores';
 
 
@@ -34,6 +35,7 @@ if (process.env.SENTRY_DSN) {
 // without a handler node kills the whole cluster (and its 8 shards) on any stray rejection, so log + report and keep going
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled Rejection', reason);
+  incrementCounter('notsobot_unhandled_rejections_total', {});
   if (Sentry.isInitialized()) {
     Sentry.captureException(reason);
   }

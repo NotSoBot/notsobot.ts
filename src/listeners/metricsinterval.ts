@@ -9,10 +9,12 @@ import { Listener } from './listener';
 import { putInfoMetrics } from '../api';
 import { getApiError } from '../api/errors';
 import {
+  INTERACTION_RESPONSE_BUCKETS,
   MetricsCounter,
   connectCommandMetrics,
   connectInteractionCommandMetrics,
   incrementCounter,
+  observeHistogram,
   restoreMetricsChanges,
   takeMetricsChanges,
 } from '../metrics';
@@ -23,6 +25,9 @@ import { RedisSpewer } from '../redis';
 const REPORT_INTERVAL = 15 * 1000;
 
 const PROCESS_START_TIME = Math.round(Date.now() / 1000 - process.uptime());
+
+const DISCORD_EPOCH = 1420070400000n;
+const INTERACTION_CALLBACK_ROUTE = '/interactions/:interactionId/:token/callback';
 
 // module scope so a `.refresh -listeners` (which reloads this file and `../metrics`) hooks the clients up again
 let hookedCommandClients = new WeakSet<object>();
@@ -67,6 +72,13 @@ class MetricsInterval extends Listener {
       add('notsobot_shard_presences', shard.presences.length, labels);
       add('notsobot_shard_users', shard.users.length, labels);
       add('notsobot_shard_voice_states', shard.voiceStates.length, labels);
+
+      // the last heartbeat's round trip, once it's been acknowledged (an internal of the gateway, so checked first,
+      // a throw here would stop every report)
+      const heartbeat = shard.gateway._heartbeat;
+      if (heartbeat && heartbeat.lastAck && heartbeat.lastSent && heartbeat.lastSent <= heartbeat.lastAck) {
+        add('notsobot_shard_gateway_latency_seconds', (heartbeat.lastAck - heartbeat.lastSent) / 1000, labels);
+      }
     }
     return values;
   }
@@ -127,6 +139,16 @@ class MetricsInterval extends Listener {
           route: route.path,
           status: String(response.statusCode),
         });
+
+        // how long after the interaction was made discord got our response, from the id's timestamp
+        if (route.path === INTERACTION_CALLBACK_ROUTE && route.params && route.params.interactionId) {
+          try {
+            const created = Number((BigInt(route.params.interactionId) >> 22n) + DISCORD_EPOCH);
+            observeHistogram('notsobot_interaction_response_seconds', {}, INTERACTION_RESPONSE_BUCKETS, (Date.now() - created) / 1000);
+          } catch(error) {
+
+          }
+        }
       }
     }));
 
@@ -135,6 +157,12 @@ class MetricsInterval extends Listener {
         if (packet.t) {
           incrementCounter('notsobot_gateway_events_total', {event: packet.t});
         }
+      }));
+      subscriptions.push(shard.gateway.subscribe('close', ({code}: {code: number}) => {
+        incrementCounter('notsobot_gateway_closes_total', {code: String(code)});
+      }));
+      subscriptions.push(shard.gateway.subscribe('state', ({state}: {state: string}) => {
+        incrementCounter('notsobot_gateway_state_changes_total', {state});
       }));
     };
     if (cluster.shards.length) {

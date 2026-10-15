@@ -8,6 +8,9 @@ import { EventSubscription } from 'detritus-utils';
 // the names, labels and buckets have to match notsobot.api's `utilities/tools/metrics.py`, it rejects anything else
 
 export const COMMAND_DURATION_BUCKETS = [0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60];
+// discord gives an interaction 3 seconds to get a response
+export const INTERACTION_RESPONSE_BUCKETS = [0.25, 0.5, 1, 1.5, 2, 2.5, 3, 5, 10];
+export const API_REQUEST_DURATION_BUCKETS = [0.1, 0.25, 0.5, 1, 2.5, 5, 10, 30, 60];
 
 export interface MetricsCounter {
   labels: Record<string, string>,
@@ -28,8 +31,11 @@ export interface MetricsChanges {
   histograms: Array<MetricsHistogram>,
 }
 
-const counters = new Map<string, MetricsCounter>();
-const histograms = new Map<string, MetricsHistogram>();
+// kept on the process instead of this module, so code a `.refresh` doesn't reload (bot.ts' handlers) and the reloaded
+// listener still share one set of counters
+const state: {counters: Map<string, MetricsCounter>, histograms: Map<string, MetricsHistogram>} =
+  (globalThis as any).notsobotMetricsState = (globalThis as any).notsobotMetricsState || {counters: new Map(), histograms: new Map()};
+const { counters, histograms } = state;
 
 
 function getKey(name: string, labels: Record<string, string>): string {
@@ -81,6 +87,15 @@ export function restoreMetricsChanges(changes: MetricsChanges): void {
       histograms.set(key, {counts, labels, name, sum});
     }
   }
+}
+
+
+// the bot's requests to the notsobot api (`api/raw.ts`), `status` is the status class or `error` without a response
+export function recordApiRequest(route: string, status: string, started: number): void {
+  const seconds = (Date.now() - started) / 1000;
+  incrementCounter('notsobot_api_requests_total', {route, status});
+  incrementCounter('notsobot_api_request_seconds_total', {route}, seconds);
+  observeHistogram('notsobot_api_request_duration_seconds', {}, API_REQUEST_DURATION_BUCKETS, seconds);
 }
 
 

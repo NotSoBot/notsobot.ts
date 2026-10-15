@@ -4,13 +4,14 @@ import { Markup } from 'detritus-client/lib/utils';
 import { editTag, editTagsDirectoryTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
-import { StatusEmojis } from '../../../constants';
+import { StatusEmojis, TagDirectoryCategories } from '../../../constants';
 import { displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tag.directory.edit';
 
 export interface CommandArgsBefore {
+  category?: TagDirectoryCategories,
   content?: string,
   description?: string,
   showContent?: boolean,
@@ -19,6 +20,7 @@ export interface CommandArgsBefore {
 }
 
 export interface CommandArgs {
+  category?: TagDirectoryCategories,
   content?: string,
   description?: string,
   showContent?: boolean,
@@ -42,9 +44,10 @@ export async function createMessage(
     }
   }
 
-  if (args.description || args.title || typeof(args.showContent) === 'boolean') {
+  if (args.description || args.title || typeof(args.category) === 'number' || typeof(args.showContent) === 'boolean') {
     // just force update it
     const directory = await editTagsDirectoryTag(context, args.tag.id, {
+      category: args.category,
       contentPublic: args.showContent,
       description: args.description,
       title: args.title,
@@ -57,6 +60,11 @@ export async function createMessage(
     }
     if (args.description) {
       description.push(translate('tag_directory_edit.tag_s_directory_description_has_been_updated'));
+    }
+    if (typeof(args.category) === 'number') {
+      const key = (TagDirectoryCategories[directory.category] || TagDirectoryCategories[TagDirectoryCategories.OTHER]).toLowerCase();
+      const category = translateMaybe(`choices.tag_directory_categories.${key}`, key);
+      description.push(translate('tag_directory_edit.tag_s_directory_category_is_now', {category: Markup.bold(category)}));
     }
   }
 
