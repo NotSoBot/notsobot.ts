@@ -42,6 +42,7 @@ export async function createMessage(
           if (text) {
             try {
               const response = await moderationSafetyScan(context, {
+                context: 'urban',
                 logFlags: true,
                 safe: true,
                 sourceUrl: result.permalink,

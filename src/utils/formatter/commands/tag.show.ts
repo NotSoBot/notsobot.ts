@@ -648,7 +648,7 @@ export async function maybeCheckNSFW(
   contentToCheck = contentToCheck.filter((text) => !isOnlyUrls(text));
 
   if (contentToCheck.length) {
-    const [ isAwfulNSFW ] = await checkNSFW(context, contentToCheck.join('\n'), {safe: DefaultParameters.safe(context)});
+    const [ isAwfulNSFW ] = await checkNSFW(context, contentToCheck.join('\n'), {context: 'tag', safe: DefaultParameters.safe(context)});
     if (isAwfulNSFW) {
       // drop the components too, components v2 messages can't have content alongside them
       options.content = translate('tag_show.content_has_been_filtered_due_to_potential');

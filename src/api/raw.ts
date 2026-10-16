@@ -6765,6 +6765,7 @@ export async function moderationSafetyScan(
 ): Promise<RestResponsesRaw.ModerationSafetyScan> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    context: options.context,
     custom_category: options.customCategory,
     custom_instruct: options.customInstruct,
     custom_query: options.customQuery,
@@ -6794,6 +6795,7 @@ export async function moderationTextScan(
   options: RestOptions.ModerationTextScan,
 ): Promise<RestResponsesRaw.ModerationTextScan> {
   const body = {
+    context: options.context,
     safe: options.safe,
     text: options.text,
   };

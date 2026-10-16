@@ -43,7 +43,7 @@ import { getTranslator } from './i18n';
 
 import { Endpoints, fetchJob, moderationSafetyScan, moderationTextScan } from '../api';
 import { JobError } from '../api/errors';
-import { RestResponsesRaw } from '../api/types';
+import { RestOptions, RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
 import {
@@ -116,7 +116,7 @@ const MODERATION_TEXT_MAX_LENGTH = 10000;
 export async function checkNSFW(
   context: Command.Context | Interaction.InteractionContext,
   content: string,
-  options: {safe?: boolean} = {},
+  options: {context?: RestOptions.ModerationTextContext, safe?: boolean} = {},
 ): Promise<[boolean, RestResponsesRaw.ModerationTextScan | null]> {
   const text = content.trim().slice(0, MODERATION_TEXT_MAX_LENGTH);
   if (!text) {
@@ -125,6 +125,7 @@ export async function checkNSFW(
 
   try {
     const response = await moderationTextScan(context, {
+      context: options.context,
       safe: (options.safe === undefined) ? true : options.safe,
       text,
     });

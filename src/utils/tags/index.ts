@@ -6155,7 +6155,7 @@ const ScriptTags = Object.freeze({
     increaseNetworkRequestsSafety(tag);
 
     if (arg) {
-      const [ isAwfulNSFW ] = await checkNSFW(context, arg.slice(0, 2000), {safe: DefaultParameters.safe(context)});
+      const [ isAwfulNSFW ] = await checkNSFW(context, arg.slice(0, 2000), {context: 'tag', safe: DefaultParameters.safe(context)});
       if (!isAwfulNSFW) {
         tag.text += arg.slice(0, 2000);
       }

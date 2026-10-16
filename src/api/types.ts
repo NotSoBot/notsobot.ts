@@ -973,6 +973,7 @@ export namespace RestOptions {
 
 
   export interface ModerationSafetyScan extends MediaBaseOptionsMultiple {
+    context?: ModerationTextContext,
     customCategory?: string,
     customInstruct?: string,
     customQuery?: string,
@@ -985,9 +986,13 @@ export namespace RestOptions {
   }
 
   export interface ModerationTextScan {
+    context?: ModerationTextContext,
     safe?: boolean,
     text: string,
   }
+
+  // where scanned text came from, so the scanner doesn't read tag games or dictionary definitions as someone's message
+  export type ModerationTextContext = 'tag' | 'urban';
 
 
   export interface PutGeneratedTagError {
