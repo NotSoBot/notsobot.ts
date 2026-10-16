@@ -8,6 +8,7 @@ import GuildSettingsStore from '../../stores/guildsettings';
 import UserStore from '../../stores/users';
 
 import { createUserCommand } from '../../api';
+import { CommandResults, getCommandResult, setCommandResult } from '../../commandresults';
 import {
   CommandCategories,
   DiscordReactionEmojis,
@@ -285,11 +286,13 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
         guildId: context.guildId,
         messageResponseId: (context.response) ? context.response.id : undefined,
         messageTriggerId: context.messageId,
+        result: getCommandResult(context),
       },
     );
   }
 
   async onTypeError(context: Command.Context, args: ParsedArgsFinished, errors: Command.ParsedErrors) {
+    setCommandResult(context, CommandResults.ARGUMENT_ERROR);
     const translator = await I18n.getTranslator(context);
     const title = warning(translator.translate('errors.prefix_argument_title'));
     return replyError(context, createArgumentErrorPayload(title, errors, translator));

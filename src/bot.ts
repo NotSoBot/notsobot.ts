@@ -6,6 +6,7 @@ import { ActivityTypes, ClientEvents, PresenceStatuses, SocketStates } from 'det
 
 import { deleteCommandsResponses } from './api';
 import { NotSoCommandClient } from './commandclient';
+import { connectCommandResults } from './commandresults';
 import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
 import { connectAllListeners } from './listeners';
@@ -179,6 +180,7 @@ const cluster = new ClusterClient('', {
           {duration: 5000, limit: 5, type: 'channel'},
         ],
       });
+      connectCommandResults(notSoCommandBot);
 
       notSoCommandBot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
         // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
@@ -216,6 +218,7 @@ const cluster = new ClusterClient('', {
 
     {
       const notSoInteractionBot = new NotSoInteractionClient(cluster);
+      connectCommandResults(notSoInteractionBot);
       await notSoInteractionBot.addMultipleIn('./commands/interactions');
       for (let x of notSoInteractionBot.getOversizedCommands()) {
         console.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);

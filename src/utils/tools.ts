@@ -2579,7 +2579,7 @@ export function isSnowflake(value: string): boolean {
 }
 
 
-// a tag directory link, like https://notsobot.com/directory/tags/123 (or the older /tags/directory/123)
+// a tag directory link, like https://notsobot.com/tags/directory/123 (or /directory/tags/123)
 const TAG_DIRECTORY_URL = /\/(?:directory\/tags|tags\/directory)\/(\d{15,21})(?:[/?#]|$)/;
 
 // the tag id from a tag directory link, null if it isn't one
@@ -2590,7 +2590,7 @@ export function parseTagDirectoryUrl(value: string): string | null {
 
 // a directory entry shares its tag's id
 export function createTagDirectoryUrl(tagId: string): string {
-  return `${Endpoints.Domains.STABLE}/directory/tags/${tagId}`;
+  return `${Endpoints.Domains.STABLE}/tags/directory/${tagId}`;
 }
 
 

@@ -17,6 +17,7 @@ import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
 
 import { createUserCommand } from '../../api';
+import { CommandResults, getCommandResult, setCommandResult } from '../../commandresults';
 import {
   CommandCategories,
   CommandTypes,
@@ -304,12 +305,14 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           guildId: context.guildId,
           messageResponseId: context.responseId,
           messageTriggerId: context.interactionId,
+          result: getCommandResult(context),
         },
       );
     }
   }
 
   async onValueError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, errors: Interaction.ParsedErrors) {
+    setCommandResult(context, CommandResults.ARGUMENT_ERROR);
     const translator = await I18n.getTranslator(context);
     const title = warning(translator.translate('errors.argument_title', {label: translateErrorLabel(this.error, translator.translate)}));
     return replyError(context, createArgumentErrorPayload(title, errors, translator), {ephemeral: true});

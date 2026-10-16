@@ -6695,6 +6695,9 @@ const ScriptTags = Object.freeze({
           value = value.toUpperCase();
           if (value in MLDiffusionModels) {
             settings[setting] = value as MLDiffusionModels;
+          } else if (value === 'SDXL_TURBO') {
+            // removed model, old tags that still pick it fall back to the default instead of erroring
+            delete settings[setting];
           } else {
             throw new Error(tag.translate('tagscript.ml_imagine_model_must_be_one_of', {choices: Object.values(MLDiffusionModels).map((x) => Markup.codestring(x)).join(', ')}));
           }

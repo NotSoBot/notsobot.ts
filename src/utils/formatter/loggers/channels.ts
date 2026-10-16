@@ -6,7 +6,7 @@ import { ChannelTypesText, DateMomentLogFormat, EmbedColors, PermissionsText } f
 import { createTimestampMomentFromGuild, createTimestampStringFromGuild, createUserString, permissionsToObject } from '../../../utils';
 
 import type { Translator } from '../../i18n';
-import { addContainerBody, addContainerFooter, addContainerHeader } from './tools';
+import { ContainerSection, addContainerBody, addContainerFooter, addContainerHeader, hasContainerSections } from './tools';
 import {
   GuildLoggingEventItemAudits,
   LogPayloadFiles,
@@ -54,7 +54,8 @@ export function getChannelOverwriteTargetText(guildId: string, overwrite: Struct
 }
 
 
-export function getChannelInformationLines(channel: Structures.Channel, guildId: string, translator: Translator): Array<string> {
+// components use discord's relative timestamp, it stays accurate and shows the full date on hover
+export function getChannelInformationLines(channel: Structures.Channel, guildId: string, translator: Translator, relative: boolean = false): Array<string> {
   const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
   description.push(`**${translate('common.type')}**: ${getChannelTypeText(channel.type, translator)}`);
@@ -80,7 +81,9 @@ export function getChannelInformationLines(channel: Structures.Channel, guildId:
   if (channel.permissionOverwrites.length) {
     description.push(`**${translate('logger.channel.permission_overwrites')}**: ${channel.permissionOverwrites.length.toLocaleString(language)}`);
   }
-  {
+  if (relative) {
+    description.push(`**${translate('common.created')}**: <t:${Math.floor(channel.createdAtUnix / 1000)}:R>`);
+  } else {
     const timestamp = createTimestampMomentFromGuild(channel.createdAtUnix, guildId);
     description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
     description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
@@ -265,11 +268,13 @@ export function formatChannelCreateComponents(
   const { channel } = event.cached;
 
   container.setAccentColor(EmbedColors.LOG_CREATION);
-  addContainerHeader(container, getChannelHeaderLines(channel));
-  addContainerBody(container, [
+  // the moderation action goes right under the name, like the ban logs
+  addContainerHeader(container, getChannelHeaderLines(channel), null, true, [
     {title: translate('logger.moderation_action'), lines: getChannelModerationLines(audits, translate('logger.created_by'), translator)},
+  ]);
+  addContainerBody(container, [
     {title: translate('logger.topic'), lines: getChannelTopicLines(channel)},
-    {title: translate('common.information'), lines: getChannelInformationLines(channel, guildId, translator)},
+    {title: translate('common.information'), lines: getChannelInformationLines(channel, guildId, translator, true)},
   ]);
   addContainerFooter(container, `${translate('logger.footer.channel_created')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
@@ -312,11 +317,13 @@ export function formatChannelDeleteComponents(
   const { channel } = event.cached;
 
   container.setAccentColor(EmbedColors.LOG_DELETION);
-  addContainerHeader(container, getChannelHeaderLines(channel, true));
-  addContainerBody(container, [
+  // the moderation action goes right under the name, like the ban logs
+  addContainerHeader(container, getChannelHeaderLines(channel, true), null, true, [
     {title: translate('logger.moderation_action'), lines: getChannelModerationLines(audits, translate('logger.deleted_by'), translator)},
+  ]);
+  addContainerBody(container, [
     {title: translate('logger.topic'), lines: getChannelTopicLines(channel)},
-    {title: translate('common.information'), lines: getChannelInformationLines(channel, guildId, translator)},
+    {title: translate('common.information'), lines: getChannelInformationLines(channel, guildId, translator, true)},
   ]);
   addContainerFooter(container, `${translate('logger.footer.channel_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
@@ -359,11 +366,14 @@ export function formatChannelUpdateComponents(
   const { channel, old } = event.cached;
 
   container.setAccentColor(EmbedColors.LOG_UPDATE);
-  addContainerHeader(container, getChannelHeaderLines(channel));
-  addContainerBody(container, [
-    {title: translate('logger.moderation_action'), lines: getChannelModerationLines(audits, translate('logger.updated_by'), translator)},
+  // the moderation action goes right under the name, like the ban logs
+  const sections: Array<ContainerSection> = [
     {title: translate('logger.changes'), lines: getChannelUpdateChanges(old, channel, translator)},
     {title: translate('logger.channel.permission_overwrites'), lines: getChannelOverwriteChanges(guildId, old, channel, translator)},
+  ];
+  addContainerHeader(container, getChannelHeaderLines(channel), null, hasContainerSections(sections), [
+    {title: translate('logger.moderation_action'), lines: getChannelModerationLines(audits, translate('logger.updated_by'), translator)},
   ]);
+  addContainerBody(container, sections);
   addContainerFooter(container, `${translate('logger.footer.channel_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }

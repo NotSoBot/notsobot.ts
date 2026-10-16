@@ -19,6 +19,7 @@ import {
   GuildCommandsBlocklistTypes,
 } from './constants';
 import { Formatter, I18n, editOrReply, getCommandIdFromInvoker } from './utils';
+import { CommandResults, setCommandResult } from './commandresults';
 
 
 // discord's limit for a whole command (names, descriptions and choice values of it, its options and its choices)
@@ -333,6 +334,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
   }
 
   async onCommandCancel(context: Interaction.InteractionContext, command: Interaction.InteractionCommand) {
+    setCommandResult(context, CommandResults.BLOCKED);
     let content = context.metadata && context.metadata.reason;
     if (!content) {
       const { translate } = await I18n.getTranslator(context);

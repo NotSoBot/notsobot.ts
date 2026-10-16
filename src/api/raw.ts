@@ -383,6 +383,7 @@ export async function createUserCommand(
     guild_id: options.guildId,
     message_response_id: options.messageResponseId,
     message_trigger_id: options.messageTriggerId,
+    result: options.result,
   };
   const params = {userId, command};
   return request(context, {

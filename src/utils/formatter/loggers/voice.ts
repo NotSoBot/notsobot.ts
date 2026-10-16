@@ -6,7 +6,7 @@ import { EmbedColors } from '../../../constants';
 import { createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
 
 import type { Translator } from '../../i18n';
-import { ContainerSection, addContainerBody, addContainerFooter, addContainerHeader, createUserHeaderLines } from './tools';
+import { ContainerSection, addContainerFooter, addContainerHeader, createUserHeaderLines } from './tools';
 import { LogPayloadFiles, GuildLoggingEventVoiceStateUpdate } from './types';
 
 
@@ -232,18 +232,20 @@ export function formatVoiceStateUpdateComponents(
 
   const { actions, audit, changes, color, footer } = getVoiceStateUpdateSections(event, translator);
 
-  container.setAccentColor(color);
-  addContainerHeader(
-    container,
-    [...createUserHeaderLines(voiceState.userId, member, translator), ...actions],
-    (member) ? member.avatarUrlFormat(null, {size: 1024}) : null,
-  );
-
   const sections: Array<ContainerSection> = [];
   if (audit) {
     sections.push(audit);
   }
   sections.push({title: translate('logger.changes'), lines: changes});
-  addContainerBody(container, sections);
+
+  container.setAccentColor(color);
+  // the changes go next to the avatar thumbnail, the footer adds the divider so there's no body
+  addContainerHeader(
+    container,
+    [...createUserHeaderLines(voiceState.userId, member, translator), ...actions],
+    (member) ? member.avatarUrlFormat(null, {size: 1024}) : null,
+    false,
+    sections,
+  );
   addContainerFooter(container, footer);
 }

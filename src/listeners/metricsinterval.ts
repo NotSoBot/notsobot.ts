@@ -15,6 +15,8 @@ import {
   connectInteractionCommandMetrics,
   incrementCounter,
   observeHistogram,
+  recordRestRequest,
+  recordRestWait,
   restoreMetricsChanges,
   takeMetricsChanges,
 } from '../metrics';
@@ -131,14 +133,32 @@ class MetricsInterval extends Listener {
   create(cluster: ClusterClient, redis: RedisSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
+    // `REST_RESPONSE` only fires with a response, so each send is wrapped to count the ones without (timed out,
+    // connection reset) and how long it waited to go out. `request.send()` is only called when it actually goes out,
+    // a request queued behind a bucket goes through `restRequest.sendRequest()` twice
+    subscriptions.push(cluster.subscribe(ClientEvents.REST_REQUEST, ({request}) => {
+      const route = request.route;
+      if (route) {
+        const send = request.send;
+        let ready = Date.now();
+        request.send = function () {
+          recordRestWait(request.method, route.path, Date.now() - ready);
+          return send.call(this).then((response) => {
+            ready = Date.now();
+            return response;
+          }, (error) => {
+            ready = Date.now();
+            recordRestRequest(request.method, route.path, 'error');
+            throw error;
+          });
+        };
+      }
+    }));
+
     subscriptions.push(cluster.subscribe(ClientEvents.REST_RESPONSE, ({response}) => {
       const route = response.request.route;
       if (route) {
-        incrementCounter('notsobot_rest_responses_total', {
-          method: response.request.method,
-          route: route.path,
-          status: String(response.statusCode),
-        });
+        recordRestRequest(response.request.method, route.path, String(response.statusCode), response.took);
 
         // how long after the interaction was made discord got our response, from the id's timestamp
         if (route.path === INTERACTION_CALLBACK_ROUTE && route.params && route.params.interactionId) {

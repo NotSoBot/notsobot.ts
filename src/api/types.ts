@@ -84,6 +84,7 @@ export namespace RestOptions {
     guildId?: string,
     messageResponseId?: string,
     messageTriggerId?: string,
+    result?: string,
   }
 
   export interface CreateVoiceClone {

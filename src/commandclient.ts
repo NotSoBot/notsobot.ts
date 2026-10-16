@@ -2,6 +2,7 @@ import { Command, CommandAttributes, CommandClient, Interaction, Structures } fr
 import { LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
 import { fetchCommandsResponses } from './api';
+import { CommandResults, setCommandResult } from './commandresults';
 import { BaseInteractionCommand } from './commands/interactions/basecommand';
 import { CommandMetadata } from './commands/prefixed/basecommand';
 
@@ -44,9 +45,8 @@ async function fillApplicationCommandPermissions(context: Command.Context, guild
 
 export class NotSoCommandClient extends CommandClient {
   async onCommandCheck(context: Command.Context, command: Command.Command) {
-    if (context.metadata) {
-      context.metadata.started = Date.now();
-    }
+    const contextMetadata = context.metadata = context.metadata || {};
+    contextMetadata.started = Date.now();
 
     if (context.user.isClientOwner) {
       // the timezone and language come from these, so load them before any early return
@@ -290,6 +290,11 @@ export class NotSoCommandClient extends CommandClient {
       command = this.commands.find((x) => !x.name) || null;
     }
     return command;
+  }
+
+  // only so the attempt's usage says it was blocked, prefixed commands don't tell the user anything
+  async onCommandCancel(context: Command.Context, command: Command.Command) {
+    setCommandResult(context, CommandResults.BLOCKED);
   }
 
   async onMessageCheck(context: Command.Context) {

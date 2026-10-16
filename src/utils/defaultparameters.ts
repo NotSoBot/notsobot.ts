@@ -244,14 +244,15 @@ export async function mlDiffusionModel(
 ): Promise<MLDiffusionModels | undefined> {
   {
     const settings = await UserSettingsStore.getOrFetch(context, context.userId);
-    if (settings && settings.ml_diffusion_model) {
+    // a stored model that was since removed (like SDXL_TURBO) is skipped, the api rejects it
+    if (settings && settings.ml_diffusion_model && settings.ml_diffusion_model in MLDiffusionModels) {
       return settings.ml_diffusion_model as unknown as MLDiffusionModels;
     }
   }
 
   if (context.guildId) {
     const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
-    if (settings && settings.settings.mlDiffusionModel) {
+    if (settings && settings.settings.mlDiffusionModel && settings.settings.mlDiffusionModel in MLDiffusionModels) {
       return settings.settings.mlDiffusionModel as unknown as MLDiffusionModels;
     }
   }

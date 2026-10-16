@@ -5,7 +5,7 @@ import { DateMomentLogFormat, EmbedColors, PermissionsText, StatusEmojis } from 
 import { createColorUrl, createTimestampMomentFromGuild, createTimestampStringFromGuild, createUserString, permissionsToObject } from '../../../utils';
 
 import type { Translator } from '../../i18n';
-import { addContainerBody, addContainerFooter, addContainerGallery, addContainerHeader } from './tools';
+import { ContainerSection, addContainerBody, addContainerFooter, addContainerGallery, addContainerHeader, hasContainerSections } from './tools';
 import {
   GuildLoggingEventItemAudits,
   LogPayloadFiles,
@@ -33,7 +33,14 @@ export function getRoleColorText(color: number): string {
 }
 
 
-export function getRoleInformationLines(role: Structures.Role, guildId: string, showCreated: boolean, translator: Translator): Array<string> {
+// components use discord's relative timestamp, it stays accurate and shows the full date on hover
+export function getRoleInformationLines(
+  role: Structures.Role,
+  guildId: string,
+  showCreated: boolean,
+  translator: Translator,
+  relative: boolean = false,
+): Array<string> {
   const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
 
@@ -43,9 +50,13 @@ export function getRoleInformationLines(role: Structures.Role, guildId: string, 
     description.push(`**${translate('info.role.color')}**: ${translate('info.role.no_color')}`);
   }
   if (showCreated) {
-    const timestamp = createTimestampMomentFromGuild(role.createdAtUnix, guildId);
-    description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
-    description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+    if (relative) {
+      description.push(`**${translate('common.created')}**: <t:${Math.floor(role.createdAtUnix / 1000)}:R>`);
+    } else {
+      const timestamp = createTimestampMomentFromGuild(role.createdAtUnix, guildId);
+      description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
+      description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+    }
   }
   description.push(`**${translate('info.role.hoisted')}**: ${(role.hoist) ? translate('common.yes') : translate('common.no')}`);
   description.push(`**${translate('common.id')}**: \`${role.id}\``);
@@ -137,10 +148,10 @@ export function formatGuildRoleCreateComponents(
   const { role } = event.cached;
 
   container.setAccentColor(EmbedColors.LOG_CREATION);
-  addContainerHeader(container, getRoleHeaderLines(role, role.id, translator), getRoleThumbnailUrl(role));
-  addContainerBody(container, [
+  // everything goes next to the role's icon/color thumbnail, the footer adds the divider so there's no body
+  addContainerHeader(container, getRoleHeaderLines(role, role.id, translator), getRoleThumbnailUrl(role), false, [
     {title: translate('logger.moderation_action'), lines: getRoleModerationLines(audits, translate('logger.created_by'), translator)},
-    {title: translate('common.information'), lines: getRoleInformationLines(role, guildId, false, translator)},
+    {title: translate('common.information'), lines: getRoleInformationLines(role, guildId, false, translator, true)},
   ]);
   addContainerFooter(container, `${translate('logger.footer.role_created')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
@@ -193,10 +204,10 @@ export function formatGuildRoleDeleteComponents(
   const { role, roleId } = event.payload;
 
   container.setAccentColor(EmbedColors.LOG_DELETION);
-  addContainerHeader(container, getRoleHeaderLines(role, roleId, translator), (role) ? getRoleThumbnailUrl(role) : null);
-  addContainerBody(container, [
+  // everything goes next to the role's icon/color thumbnail, the footer adds the divider so there's no body
+  addContainerHeader(container, getRoleHeaderLines(role, roleId, translator), (role) ? getRoleThumbnailUrl(role) : null, false, [
     {title: translate('logger.moderation_action'), lines: getRoleModerationLines(audits, translate('logger.deleted_by'), translator)},
-    {title: translate('common.information'), lines: (role) ? getRoleInformationLines(role, guildId, true, translator) : []},
+    {title: translate('common.information'), lines: (role) ? getRoleInformationLines(role, guildId, true, translator, true) : []},
   ]);
   addContainerFooter(container, `${translate('logger.footer.role_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
@@ -424,13 +435,16 @@ export function formatGuildRoleUpdateComponents(
   const { added, removed } = getGuildRolePermissionChanges(old, role, translator);
 
   container.setAccentColor(EmbedColors.LOG_UPDATE);
-  addContainerHeader(container, getRoleHeaderLines(role, role.id, translator), urls.current || getRoleThumbnailUrl(role));
-  addContainerBody(container, [
-    {title: translate('logger.moderation_action'), lines: getRoleModerationLines(audits, translate('logger.updated_by'), translator)},
-    {title: translate('logger.changes'), lines: getGuildRoleUpdateChanges(old, role, translator)},
+  // the changes go next to the role's icon/color thumbnail, the permission codeblocks are too wide for that so they stay in the body
+  const permissions: Array<ContainerSection> = [
     {title: translate('logger.role.enabled_permissions'), lines: (added.length) ? [Markup.codeblock(added.join('\n'))] : []},
     {title: translate('logger.role.removed_permissions'), lines: (removed.length) ? [Markup.codeblock(removed.join('\n'))] : []},
+  ];
+  addContainerHeader(container, getRoleHeaderLines(role, role.id, translator), urls.current || getRoleThumbnailUrl(role), hasContainerSections(permissions), [
+    {title: translate('logger.moderation_action'), lines: getRoleModerationLines(audits, translate('logger.updated_by'), translator)},
+    {title: translate('logger.changes'), lines: getGuildRoleUpdateChanges(old, role, translator)},
   ]);
+  addContainerBody(container, permissions);
 
   if (urls.old) {
     const images = [{description: translate('logger.role.old_icon'), url: urls.old}];

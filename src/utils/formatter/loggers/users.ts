@@ -6,7 +6,6 @@ import { createTimestampStringFromGuild, createUserEmbed } from '../../../utils'
 
 import type { Translator } from '../../i18n';
 import {
-  addContainerBody,
   addContainerFooter,
   addContainerGallery,
   addContainerHeader,
@@ -173,8 +172,14 @@ export function formatUsersUpdateComponents(
   }
 
   container.setAccentColor(EmbedColors.LOG_UPDATE);
-  addContainerHeader(container, createUserHeaderLines(user.id, user, translator), urls.current || user.avatarUrlFormat(null, {size: 1024}));
-  addContainerBody(container, [{title: translate('logger.changes'), lines: getUsersUpdateChanges(event, translator)}]);
+  // the changes go next to the avatar thumbnail, the footer adds the divider so there's no body
+  addContainerHeader(
+    container,
+    createUserHeaderLines(user.id, user, translator),
+    urls.current || user.avatarUrlFormat(null, {size: 1024}),
+    false,
+    [{title: translate('logger.changes'), lines: getUsersUpdateChanges(event, translator)}],
+  );
 
   if (urls.old) {
     const images = [{description: translate('logger.user.old_avatar'), url: urls.old}];

@@ -120,13 +120,23 @@ export function createUserHeaderLines(userId: string, user: Structures.User | nu
 
 
 // header with an optional thumbnail on the right, followed by a divider unless the log has no body
+// sections passed in go next to the thumbnail too, otherwise the thumbnail leaves a big gap under the two name lines
 export function addContainerHeader(
   container: ComponentContainer,
   lines: Array<string>,
   thumbnailUrl?: null | string,
   separator: boolean = true,
+  sections: Array<ContainerSection> = [],
 ): void {
-  const content = lines.filter((line) => !!line).map(collapseCodeblock).join('\n');
+  let content = lines.filter((line) => !!line).map(collapseCodeblock).join('\n');
+  {
+    // leave room for the body and footer that come after
+    const budget = MAX_CONTAINER_TEXT_LENGTH - getComponentsInfo(container).textLength - content.length - 200;
+    const rendered = renderContainerSections(sections, budget);
+    if (rendered) {
+      content = [content, rendered].join('\n');
+    }
+  }
   if (thumbnailUrl) {
     const section = container.createSection();
     section.addTextDisplay({content});
@@ -141,13 +151,28 @@ export function addContainerHeader(
 
 
 // every section goes into one text display to keep the component count low (40 per message)
-// the biggest line gets shrunk until the container fits, so a huge message edit doesn't push out the other sections
 export function addContainerBody(container: ComponentContainer, sections: Array<ContainerSection>): void {
+  // leave room for the footer that comes after
+  const budget = MAX_CONTAINER_TEXT_LENGTH - getComponentsInfo(container).textLength - 200;
+  const content = renderContainerSections(sections, budget);
+  if (content) {
+    container.addTextDisplay({content});
+  }
+}
+
+
+export function hasContainerSections(sections: Array<ContainerSection>): boolean {
+  return sections.some((section) => !!section.lines.length);
+}
+
+
+// the biggest line gets shrunk until the sections fit, so a huge message edit doesn't push out the other sections
+export function renderContainerSections(sections: Array<ContainerSection>, budget: number): string {
   sections = sections.filter((section) => !!section.lines.length).map((section) => {
     return {title: section.title, lines: section.lines.map(collapseCodeblock)};
   });
   if (!sections.length) {
-    return;
+    return '';
   }
 
   // sections are only split by a newline, the heading titles are enough to tell them apart
@@ -160,8 +185,6 @@ export function addContainerBody(container: ComponentContainer, sections: Array<
     }).join('\n');
   };
 
-  // leave room for the footer that comes after
-  const budget = MAX_CONTAINER_TEXT_LENGTH - getComponentsInfo(container).textLength - 200;
   let content = render();
   while (budget < content.length) {
     let largest: {index: number, section: ContainerSection} | null = null;
@@ -183,7 +206,7 @@ export function addContainerBody(container: ComponentContainer, sections: Array<
     largest.section.lines[largest.index] = truncateMarkdown(line, max);
     content = render();
   }
-  container.addTextDisplay({content});
+  return content;
 }
 
 
@@ -210,6 +233,8 @@ export function addContainerGallery(container: ComponentContainer, images: Array
   if (!images.length) {
     return;
   }
+  // the changes are usually next to the thumbnail now, so without a divider the gallery looks like part of the header
+  container.addSeparator();
   if (title) {
     container.addTextDisplay({content: createContainerTitle(title)});
   }

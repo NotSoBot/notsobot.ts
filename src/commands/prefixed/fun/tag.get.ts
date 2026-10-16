@@ -19,7 +19,7 @@ export default class TagGetCommand extends BaseCommand {
         description: 'Get a tag from the Tag Directory or your DMs',
         examples: [
           `${COMMAND_NAME} 1290000000000000000`,
-          `${COMMAND_NAME} https://notsobot.com/directory/tags/1290000000000000000 coolname`,
+          `${COMMAND_NAME} https://notsobot.com/tags/directory/1290000000000000000 coolname`,
           `${COMMAND_NAME} "my dm tag" newname`,
         ],
         id: Formatter.Commands.TagGet.COMMAND_ID,

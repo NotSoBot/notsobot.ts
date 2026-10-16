@@ -570,15 +570,14 @@ export function formatGuildMemberUpdateComponents(
   }
 
   container.setAccentColor(EmbedColors.LOG_UPDATE);
-  addContainerHeader(container, createUserHeaderLines(member.id, member, translator), urls.current || member.avatarUrlFormat(null, {size: 1024}));
-
   const sections: Array<ContainerSection> = [];
   const auditSection = getGuildMemberUpdateAuditSection(event, translator);
   if (auditSection) {
     sections.push(auditSection);
   }
   sections.push({title: translate('logger.changes'), lines: getGuildMemberUpdateChanges(event, translator)});
-  addContainerBody(container, sections);
+  // the changes go next to the avatar thumbnail, the footer adds the divider so there's no body
+  addContainerHeader(container, createUserHeaderLines(member.id, member, translator), urls.current || member.avatarUrlFormat(null, {size: 1024}), false, sections);
 
   if (urls.old) {
     const images = [{description: translate('logger.member.old_server_avatar'), url: urls.old}];
