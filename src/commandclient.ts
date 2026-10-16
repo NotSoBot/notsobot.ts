@@ -1,5 +1,5 @@
-import { Command, CommandAttributes, CommandClient, Interaction, Structures } from 'detritus-client';
-import { LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
+import { Command, CommandAttributes, CommandClient, GatewayClientEvents, Interaction, Structures } from 'detritus-client';
+import { ClientEvents, LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
 import { fetchCommandsResponses } from './api';
 import { CommandResults, setCommandResult } from './commandresults';
@@ -17,7 +17,14 @@ import {
   GuildCommandsBlocklistTypes,
   UserFlags,
 } from './constants';
-import { Formatter, getCommandIdFromInvoker, isGuildListCommandId } from './utils';
+import {
+  Formatter,
+  cancelCommandRun,
+  getCommandIdFromInvoker,
+  isGuildListCommandId,
+  trackCommandRun,
+  untrackCommandRun,
+} from './utils';
 
 
 
@@ -298,6 +305,38 @@ export class NotSoCommandClient extends CommandClient {
       command = this.commands.find((x) => !x.name) || null;
     }
     return command;
+  }
+
+  // an edit re-runs the command, so cancel the previous run of it (and its jobs) before it can reply over this one
+  async handleContext(
+    name: ClientEvents.MESSAGE_CREATE | ClientEvents.MESSAGE_UPDATE,
+    event: GatewayClientEvents.MessageCreate | GatewayClientEvents.MessageUpdate,
+    context: Command.Context,
+  ) {
+    // edits past the edit duration don't re-run anything, leave the old run alone
+    if (!this.isWithinEditDuration(context.message)) {
+      return super.handleContext(name, event, context);
+    }
+    trackCommandRun(context);
+    try {
+      return await super.handleContext(name, event, context);
+    } finally {
+      if (!context.command) {
+        untrackCommandRun(context);
+      }
+    }
+  }
+
+  async handleDelete(name: ClientEvents.MESSAGE_DELETE, deletePayload: {raw: {id: string}}) {
+    cancelCommandRun(deletePayload.raw.id);
+    return super.handleDelete(name, deletePayload);
+  }
+
+  async handleDeleteBulk(deletePayload: {raw: {ids: Array<string>}}) {
+    for (let messageId of deletePayload.raw.ids) {
+      cancelCommandRun(messageId);
+    }
+    return super.handleDeleteBulk(deletePayload);
   }
 
   // only so the attempt's usage says it was blocked, prefixed commands don't tell the user anything

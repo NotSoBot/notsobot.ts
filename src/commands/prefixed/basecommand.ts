@@ -17,7 +17,7 @@ import {
   RatelimitKeys,
   UserFlags,
 } from '../../constants';
-import { I18n, Parameters, displayReply, findMediaUrlInMessages } from '../../utils';
+import { CommandRunCancelledError, I18n, Parameters, displayReply, findMediaUrlInMessages } from '../../utils';
 
 import {
   createArgumentErrorPayload,
@@ -256,6 +256,10 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   async onRunError(context: Command.Context, args: ParsedArgsFinished, error: any) {
+    // its trigger was edited or deleted, the newer run (if any) owns the reply
+    if (error instanceof CommandRunCancelledError) {
+      return;
+    }
     const translator = await I18n.getTranslator(context);
     const title = warning(translator.translate('errors.prefix_run_title'));
     return replyError(context, await createRunErrorPayload(context, title, error, translator));

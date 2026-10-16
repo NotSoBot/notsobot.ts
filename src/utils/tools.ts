@@ -48,6 +48,7 @@ import { JobError } from '../api/errors';
 import { RestOptions, RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
 import { CommandMetadata } from '../commands/prefixed/basecommand';
+import { CommandResults, setCommandResult } from '../commandresults';
 import {
   CodeLanguages,
   CodeLanguagesToName,
@@ -71,6 +72,7 @@ import {
   MIMETYPES_VIDEO_EMBEDDABLE,
   SNOWFLAKE_EPOCH,
   TRUSTED_URLS,
+  COMMAND_EDIT_DURATION,
 } from '../constants';
 
 import * as Formatter from './formatter';
@@ -222,6 +224,11 @@ export async function editOrReply(
   context: Command.Context | Interaction.InteractionContext | ComponentContext,
   options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
 ): Promise<Structures.Message | void> {
+  // the trigger was edited (re-running the command) or deleted, the reply belongs to the newer run now
+  if (isCommandRunCancelled(context)) {
+    throw new CommandRunCancelledError();
+  }
+
   if (typeof(options) === 'string') {
     options = {content: options};
   }
@@ -1768,6 +1775,71 @@ function cancelJob(context: Command.Context | Interaction.InteractionContext, jo
 }
 
 
+// thrown in a prefixed command run that got cancelled by its trigger being edited or deleted, `onRunError` ignores it
+export class CommandRunCancelledError extends Error {
+  constructor() {
+    super('Command run was cancelled');
+  }
+}
+
+// the latest run of each trigger message, edits past the edit duration don't re-run anything so they're dropped by then
+const commandRuns = new Collections.BaseCollection<string, Command.Context>({expire: COMMAND_EDIT_DURATION});
+
+export function trackCommandRun(context: Command.Context): void {
+  cancelCommandRun(context.messageId);
+  commandRuns.set(context.messageId, context);
+}
+
+export function untrackCommandRun(context: Command.Context): void {
+  if (commandRuns.get(context.messageId) === context) {
+    commandRuns.delete(context.messageId);
+  }
+}
+
+// stops the run's jobs, and anything it tries to reply with afterwards, so a slow old run can't overwrite the new reply
+export function cancelCommandRun(messageId: string): void {
+  const context = commandRuns.get(messageId);
+  if (!context) {
+    return;
+  }
+  commandRuns.delete(messageId);
+  const metadata = context.metadata = context.metadata || {};
+  metadata.cancelled = true;
+  setCommandResult(context, CommandResults.CANCELLED);
+  if (metadata.jobIds) {
+    for (let jobId of metadata.jobIds) {
+      cancelJob(context, jobId);
+    }
+    metadata.jobIds.clear();
+  }
+}
+
+export function isCommandRunCancelled(context: Command.Context | Interaction.InteractionContext | ComponentContext): boolean {
+  return context instanceof Command.Context && !!context.metadata && !!context.metadata.cancelled;
+}
+
+// returns false (after cancelling the job) if the run was already cancelled
+function trackJob(context: Command.Context | Interaction.InteractionContext, jobId: string): boolean {
+  if (!(context instanceof Command.Context)) {
+    return true;
+  }
+  if (isCommandRunCancelled(context)) {
+    cancelJob(context, jobId);
+    return false;
+  }
+  const metadata = context.metadata = context.metadata || {};
+  const jobIds: Set<string> = metadata.jobIds = metadata.jobIds || new Set();
+  jobIds.add(jobId);
+  return true;
+}
+
+function untrackJob(context: Command.Context | Interaction.InteractionContext, jobId: string): void {
+  if (context instanceof Command.Context && context.metadata && context.metadata.jobIds) {
+    context.metadata.jobIds.delete(jobId);
+  }
+}
+
+
 export async function jobReply(
   context: Command.Context | Interaction.InteractionContext,
   job: RestResponsesRaw.JobResponse,
@@ -1781,14 +1853,30 @@ export async function jobReply(
     return mediaReply(context, job.result.response, options);
   }
 
+  if (!trackJob(context, job.id)) {
+    throw new CommandRunCancelledError();
+  }
+
   const { translate } = await getTranslator(context);
-  const message = await editOrReply(context, translate('media.thinking'));
+  let message: Structures.Message | void;
+  try {
+    message = await editOrReply(context, translate('media.thinking'));
+  } catch(error) {
+    untrackJob(context, job.id);
+    cancelJob(context, job.id);
+    throw error;
+  }
   const messageEditedAtUnix = message && message.editedAtUnix;
 
   const timer = new Timers.Timeout();
   const deadline = Date.now() + MAX_JOB_WAIT_TIME;
   const pollingFunction = async () => {
+    // the trigger was edited or deleted, its job was already cancelled with it
+    if (isCommandRunCancelled(context)) {
+      return;
+    }
     // errors in here would be unhandled rejections (and leave the user at "thinking"), so show them instead
+    let keepPolling = false;
     try {
       if (message) {
         // the reply was edited or can't be anymore, nothing's waiting on the job
@@ -1812,6 +1900,7 @@ export async function jobReply(
         cancelJob(context, job.id);
         return await editOrReply(context, translate('media.job_failed', {error: JOB_TIMED_OUT_MESSAGE}));
       }
+      keepPolling = true;
     } catch(error) {
       cancelJob(context, job.id);
       try {
@@ -1820,6 +1909,10 @@ export async function jobReply(
         
       }
       return;
+    } finally {
+      if (!keepPolling) {
+        untrackJob(context, job.id);
+      }
     }
     timer.start(pollingTime, pollingFunction);
   };
@@ -1837,10 +1930,17 @@ export async function jobWaitForResult(
   if (job.result.error || job.result.response) {
     return job;
   }
-  return new Promise((resolve, reject) => {
+  if (!trackJob(context, job.id)) {
+    throw new CommandRunCancelledError();
+  }
+  return new Promise<RestResponsesRaw.JobResponse>((resolve, reject) => {
     const timer = new Timers.Timeout();
     const deadline = Date.now() + MAX_JOB_WAIT_TIME;
     const pollingFunction = async () => {
+      // the trigger was edited or deleted, its job was already cancelled with it
+      if (isCommandRunCancelled(context)) {
+        return reject(new CommandRunCancelledError());
+      }
       try {
         const refreshedJob = await fetchJob(context, job.id);
         if (refreshedJob.result.error || refreshedJob.result.response) {
@@ -1861,7 +1961,7 @@ export async function jobWaitForResult(
       timer.start(pollingTime, pollingFunction);
     };
     timer.start(pollingTime, pollingFunction);
-  });
+  }).finally(() => untrackJob(context, job.id));
 }
 
 
@@ -2421,8 +2521,10 @@ export async function mediaReplyFromOptions(
       MIMETYPES_IMAGE_EMBEDDABLE.includes(options.mimetype as Mimetypes) ||
       MIMETYPES_VIDEO_EMBEDDABLE.includes(options.mimetype as Mimetypes)
     );
+    const isAudio = !!options.mimetype && options.mimetype.startsWith('audio/');
+    // uploaded files are always components v2, attached audio keeps discord's own audio player
     let shouldUseComponents = true;
-    if (!canBeMedia && (options.storage || (options.mimetype && options.mimetype.startsWith('audio/')))) {
+    if (!canBeMedia && !options.storage && isAudio) {
       shouldUseComponents = false;
     }
 
@@ -2536,8 +2638,10 @@ export async function mediaReplyFromOptions(
       }
     }
 
+    // `?embed=true` gets nsb.gg's regular embed instead of its components v2 one, since this response is meant to be text
+    const vanityUrl = `${options.storage.urls.vanity}?embed=true`;
     const content: Array<string> = [
-      `> ${(options.spoiler) ? Markup.spoiler(options.storage.urls.vanity) : options.storage.urls.vanity}`,
+      `> ${(options.spoiler) ? Markup.spoiler(vanityUrl) : vanityUrl}`,
     ];
     if (options.storage.expires_at) {
       const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);

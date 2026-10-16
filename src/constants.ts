@@ -1988,6 +1988,7 @@ export enum UserFlags {
   NONE = 0,
   OWNER = 1 << 0,
   MODERATOR = 1 << 1,
+  API_ACCESS = 1 << 2,
 }
 
 
