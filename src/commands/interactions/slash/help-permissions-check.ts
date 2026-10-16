@@ -2,10 +2,11 @@ import { Command, Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
+import { GuildSettingsListItem } from '../../../api/structures/guildsettings';
 import GuildSettingsStore from '../../../stores/guildsettings';
 
 import { GuildCommandsAllowlistTypes, StatusEmojis } from '../../../constants';
-import { I18n, Parameters, displayReply, getCommandIdFromInvoker } from '../../../utils';
+import { I18n, Parameters, displayReply, getCommandIdFromInvoker, isGuildListCommandId } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -120,11 +121,16 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
       if (settings) {
         description.push('');
         description.push(`**${translate('permcheck.user_permissions')}**`);
+        const isAdmin = !!member && (member.isOwner || member.canAdministrator);
+        const isListCommand = !!args.command && isGuildListCommandId(getCommandIdFromInvoker(args.command));
         if (context.user.isClientOwner) {
           description.push(`-> ${translate('permcheck.bypass_owner')}`);
-        } else if (member && (member.isOwner || member.canAdministrator)) {
+        } else if (isAdmin && (isListCommand || settings.adminBypassesEverything)) {
           description.push(`-> ${translate('permcheck.bypass_admin')}`);
         } else {
+          if (isAdmin) {
+            description.push(`-> ${translate('permcheck.bypass_admin_partial')}`);
+          }
           // same order as `NotSoCommandClient.onCommandCheck`, the server and command lists all share these types
           const parent = (channel) ? channel.parent : null;
           const matches = (item: {id: string, type: string}): boolean => {
@@ -154,6 +160,9 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
             }
             return false;
           };
+          // the owner and admins pass entries they bypass, on an allowlist that lets them in, on a blocklist it's skipped
+          const allows = (item: GuildSettingsListItem) => (isAdmin && settings.canAdminBypass(item)) || matches(item);
+          const blocks = (item: GuildSettingsListItem) => !(isAdmin && settings.canAdminBypass(item)) && matches(item);
 
           let checkServerLists = true;
           if (args.command) {
@@ -161,7 +170,7 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
             const commandsAllowlist = settings.commandsAllowlist.filter((allowed) => allowed.command === commandId);
             if (commandsAllowlist.length) {
               // a command allowlist decides by itself, the server lists are never checked
-              const shouldAllow = commandsAllowlist.some(matches);
+              const shouldAllow = commandsAllowlist.some(allows);
               description.push(`-> ${translate('permcheck.command_allowlist_bypassed', {command: Markup.codestring(args.command.name)})}: ${(shouldAllow) ? '✅': '❌'}`);
               description.push(`-> ${translate('permcheck.command_blocklist_bypassed_allowlist')}`);
               description.push(`-> ${translate('permcheck.command_allowlist_overrides')}`);
@@ -173,7 +182,7 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
               description.push(`-> ${translate('permcheck.command_allowlist_empty', {command: Markup.codestring(args.command.name)})}`);
               const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => blocked.command === commandId);
               if (commandsBlocklist.length) {
-                const shouldIgnore = commandsBlocklist.some(matches);
+                const shouldIgnore = commandsBlocklist.some(blocks);
                 description.push(`-> ${translate('permcheck.command_blocklist_bypassed', {command: Markup.codestring(args.command.name)})}: ${(!shouldIgnore) ? '✅': '❌'}`);
                 if (shouldIgnore) {
                   willPrefixCommandsWork = false;
@@ -187,14 +196,14 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
           if (checkServerLists) {
             const { allowlist, blocklist } = settings;
             if (allowlist.length) {
-              const shouldAllow = allowlist.some(matches);
+              const shouldAllow = allowlist.some(allows);
               description.push(`-> ${translate('permcheck.allowlist_bypassed')}: ${(shouldAllow) ? '✅': '❌'}`);
               description.push(`-> ${translate('permcheck.blocklist_bypassed_allowlist')}`);
               if (!shouldAllow) {
                 willPrefixCommandsWork = false;
               }
             } else if (blocklist.length) {
-              const shouldIgnore = blocklist.some(matches);
+              const shouldIgnore = blocklist.some(blocks);
               description.push(`-> ${translate('permcheck.allowlist_empty')}`);
               description.push(`-> ${translate('permcheck.blocklist_bypassed')}: ${(!shouldIgnore) ? '✅': '❌'}`);
               if (shouldIgnore) {

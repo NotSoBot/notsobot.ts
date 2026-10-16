@@ -1,5 +1,5 @@
 import { Command, Interaction } from 'detritus-client';
-import { ApplicationCommandTypes } from 'detritus-client/lib/constants';
+import { ApplicationCommandTypes, LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
 import { uploadCommands } from '../../../api';
 import type { CommandMetadata } from '../../../commands/prefixed/basecommand';
@@ -131,6 +131,8 @@ export async function createMessage(
         enabled: true,
         description: invoker.description,
         dmable: !invoker.disableDm,
+        // the global application command's id, a subcommand mentions its top-level command's (`</tag get:id>`)
+        external_id: command.ids.get(LOCAL_GUILD_ID) || null,
         id,
         name: invoker.fullName,
         ratelimits: invoker.ratelimits?.map((ratelimit) => {

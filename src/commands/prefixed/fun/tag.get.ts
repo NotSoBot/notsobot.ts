@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, StatusEmojis } from '../../../constants';
-import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
+import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -18,15 +18,17 @@ export default class TagGetCommand extends BaseCommand {
         category: CommandCategories.TAGS,
         description: 'Get a tag from the Tag Directory or your DMs',
         examples: [
+          COMMAND_NAME,
           `${COMMAND_NAME} 1290000000000000000`,
           `${COMMAND_NAME} https://notsobot.com/tags/directory/1290000000000000000 coolname`,
           `${COMMAND_NAME} "my dm tag" newname`,
         ],
         id: Formatter.Commands.TagGet.COMMAND_ID,
-        usage: '<tag directory id/link or dm tag> ?<name>',
+        // without a tag, the newest tag directory link posted in the channel
+        usage: '?<tag directory id/link or dm tag> ?<name>',
       },
       type: [
-        {name: 'tag', type: Parameters.tagToGet},
+        {name: 'tag', type: Parameters.tagToGet, default: DefaultParameters.lastTagDirectoryId},
         {name: 'name', type: Parameters.tagName, consume: true},
       ],
     });

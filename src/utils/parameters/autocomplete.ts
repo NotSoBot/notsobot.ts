@@ -37,6 +37,7 @@ import {
 } from '../../constants';
 import {
   createTimestampMomentFromContext,
+  findCachedTagDirectoryIds,
   getReminderMessage,
   isSnowflake,
   parseTagDirectoryUrl,
@@ -535,6 +536,49 @@ export async function tagsCustomCommands(context: Interaction.InteractionAutoCom
 }
 
 
+// how many tag directory links from the channel to suggest, each one is a tag fetch
+const TAGS_TO_GET_LINKED_MAX = 3;
+
+// the tag directory tags linked in the channel's cached messages, newest first
+async function linkedTagDirectoryChoices(
+  context: Interaction.InteractionAutoCompleteContext,
+): Promise<Array<{name: string, value: string}>> {
+  const tags = await Promise.all(findCachedTagDirectoryIds(context, TAGS_TO_GET_LINKED_MAX).map((tagId) => {
+    return fetchTagId(context, tagId).catch(() => null);
+  }));
+  const choices: Array<{name: string, value: string}> = [];
+  for (const tag of tags) {
+    if (tag && tag.is_on_directory) {
+      choices.push({name: `${tag.name.slice(0, 80)} (linked in chat)`, value: tag.id});
+    }
+  }
+  return choices;
+}
+
+
+// for `tag show`: with nothing typed yet, the tag directory links posted in the channel come before the server's tags
+export async function tagsToShow(context: Interaction.InteractionAutoCompleteContext) {
+  if (context.value) {
+    return tags(context);
+  }
+
+  const choices = await linkedTagDirectoryChoices(context);
+  try {
+    const serverId = context.guildId || context.channelId!;
+    const { tags } = await fetchTagsServer(context, serverId, {
+      name: context.value,
+      limit: 25,
+      sortBy: TagSearchSortByFilters.LAST_USED,
+    });
+    for (const tag of tags) {
+      choices.push({name: tag.name, value: tag.name});
+    }
+  } catch(error) {
+    // keep the linked tags
+  }
+  return context.respond({choices: choices.slice(0, 25)});
+}
+
 export async function tagsToGet(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}> = [];
   if (context.value) {
@@ -549,12 +593,15 @@ export async function tagsToGet(context: Interaction.InteractionAutoCompleteCont
         
       }
     }
+  } else {
+    // nothing typed yet: tag directory links posted in the channel first (newest first), like the "Add to Server"
+    // embed on notsobot.com/tags/directory/<id> links
+    choices = await linkedTagDirectoryChoices(context);
   }
 
-  if (!choices.length) {
+  if (!choices.length || !context.value) {
     if (context.inDm && context.isBotPresent) {
       // we are in our one-on-one dms, we cannot add our own tags into here, only support tag directory
-      choices = [];
     } else {
       try {
         const user = await UserStore.getOrFetch(context, context.userId);
@@ -566,16 +613,19 @@ export async function tagsToGet(context: Interaction.InteractionAutoCompleteCont
             limit: 25,
             sortBy: TagSearchSortByFilters.LAST_USED,
           });
-          choices = tags.filter((tag) => !tag.reference_tag).map((tag) => {
-            return {name: tag.name, value: tag.id};
-          });
+          // after the linked tags, if there are any
+          for (const tag of tags) {
+            if (!tag.reference_tag && !choices.some((choice) => choice.value === tag.id)) {
+              choices.push({name: tag.name, value: tag.id});
+            }
+          }
         }
       } catch(error) {
-        choices = [];
+        // keep the linked tags
       }
     }
   }
-  return context.respond({choices});
+  return context.respond({choices: choices.slice(0, 25)});
 }
 
 

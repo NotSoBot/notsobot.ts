@@ -275,6 +275,7 @@ import * as MediaIVManipulationWiggle from './media.iv.manipulation.wiggle';
 import * as MediaIVManipulationZoom from './media.iv.manipulation.zoom';
 import * as MediaIVManipulationZoomBlur from './media.iv.manipulation.zoom.blur';
 
+import * as ModerationAdminBypass from './moderation.adminbypass';
 import * as ModerationAllowlist from './moderation.allowlist';
 import * as ModerationAllowlistAdd from './moderation.allowlist.add';
 import * as ModerationAllowlistAddChannels from './moderation.allowlist.add.channels';
@@ -714,6 +715,7 @@ export {
   MediaIVManipulationZoom,
   MediaIVManipulationZoomBlur,
 
+  ModerationAdminBypass,
   ModerationAllowlist,
   ModerationAllowlistAdd,
   ModerationAllowlistAddChannels,

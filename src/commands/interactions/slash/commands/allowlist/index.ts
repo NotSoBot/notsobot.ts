@@ -3,6 +3,7 @@ import { I18n } from '../../../../../utils';
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
 import { CommandsAllowlistAddCommand } from './add';
+import { CommandsAllowlistAdminBypassCommand } from './admin-bypass';
 import { CommandsAllowlistClearCommand } from './clear';
 import { CommandsAllowlistListCommand } from './list';
 import { CommandsAllowlistRemoveCommand } from './remove';
@@ -18,6 +19,7 @@ export class CommandsAllowlistGroupCommand extends BaseInteractionCommandOptionG
     super({
       options: [
         new CommandsAllowlistAddCommand(),
+        new CommandsAllowlistAdminBypassCommand(),
         new CommandsAllowlistClearCommand(),
         new CommandsAllowlistListCommand(),
         new CommandsAllowlistRemoveCommand(),

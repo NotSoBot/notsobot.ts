@@ -27,7 +27,7 @@ export class TagShowCommand extends BaseInteractionCommandOption {
           label: 'tag',
           required: true,
           value: Parameters.NotSoTag,
-          onAutoComplete: Parameters.AutoComplete.tags,
+          onAutoComplete: Parameters.AutoComplete.tagsToShow,
         },
         {
           name: 'arguments',

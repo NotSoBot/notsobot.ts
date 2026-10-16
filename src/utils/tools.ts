@@ -5,6 +5,7 @@ import moment from 'moment';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import {
+  ApplicationCommandTypes,
   DiscordAbortCodes,
   DiscordRegexNames,
   InteractionCallbackTypes,
@@ -15,6 +16,7 @@ import {
   PremiumUserLimits,
   PremiumUserTypes,
   StickerFormats,
+  LOCAL_GUILD_ID,
   MAX_ATTACHMENT_SIZE_PREMIUM,
 } from 'detritus-client/lib/constants';
 import {
@@ -1274,6 +1276,13 @@ export function getCommandIdFromInvoker(
     commandId = Formatter.Commands.TagShow.COMMAND_ID;
   }
   return commandId;
+}
+
+
+// the commands that manage the allowlist/blocklist/command lists (and their owner/admin bypass), the server owner and
+// admins can always use these so turning their bypass off can't lock them out of undoing it
+export function isGuildListCommandId(commandId: string): boolean {
+  return /^(moderation\.)?(commands\.)?(allowlist|blocklist)(\.|$)/.test(commandId);
 }
 
 
@@ -2591,6 +2600,64 @@ export function parseTagDirectoryUrl(value: string): string | null {
 // a directory entry shares its tag's id
 export function createTagDirectoryUrl(tagId: string): string {
   return `${Endpoints.Domains.STABLE}/tags/directory/${tagId}`;
+}
+
+
+// a slash command (or subcommand, like `tag show`) as a clickable `</tag show:id>`, using the global command ids the
+// interaction command client keeps from registering. `/tag show` in a code block when it doesn't have one
+export function slashCommandMention(
+  context: Command.Context | Interaction.InteractionContext,
+  fullName: string,
+): string {
+  const [ topLevelName ] = fullName.split(' ');
+  const command = (context.interactionCommandClient) ? context.interactionCommandClient.commands.find((x) => {
+    return x.type === ApplicationCommandTypes.CHAT_INPUT && x.name === topLevelName;
+  }) : undefined;
+  const commandId = (command) ? command.ids.get(LOCAL_GUILD_ID) : undefined;
+  return (commandId) ? `</${fullName}:${commandId}>` : Markup.codestring(`/${fullName}`);
+}
+
+
+// only our own links when going through chat, not any site's /tags/directory/<id>
+const TAG_DIRECTORY_URLS_IN_TEXT = /notsobot\.com\/(?:directory\/tags|tags\/directory)\/(\d{15,21})(?=[/?#>)\s]|$)/g;
+
+// tag directory ids linked in the channel's cached messages (content and embeds), newest first and without
+// duplicates. only the cache, it never fetches messages
+export function findCachedTagDirectoryIds(
+  context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+  limit: number,
+): Array<string> {
+  const beforeId = (context instanceof Command.Context) ? BigInt(context.messageId) : null;
+  // we dont get DM channels anymore so we must manually find messages now
+  const messages = context.messages.filter((message) => {
+    if (message.channelId !== context.channelId) {
+      return false;
+    }
+    if (message.interaction && message.hasFlagEphemeral) {
+      return message.interaction.user.id === context.userId;
+    }
+    if (beforeId) {
+      return BigInt(message.id) <= beforeId;
+    }
+    return true;
+  }).reverse();
+
+  const ids = new Set<string>();
+  for (const message of messages) {
+    const texts = [message.content];
+    for (const [ , embed ] of message.embeds) {
+      texts.push(embed.url || '', embed.description || '');
+    }
+    for (const text of texts) {
+      for (const match of text.matchAll(TAG_DIRECTORY_URLS_IN_TEXT)) {
+        ids.add(match[1]);
+        if (limit <= ids.size) {
+          return Array.from(ids);
+        }
+      }
+    }
+  }
+  return Array.from(ids);
 }
 
 

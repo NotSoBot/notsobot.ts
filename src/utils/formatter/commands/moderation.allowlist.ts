@@ -3,10 +3,12 @@ import moment from 'moment';
 import { Collections, Command, Interaction } from 'detritus-client';
 
 import { GuildSettings, GuildSettingsAllowlist } from '../../../api/structures/guildsettings';
-import { EmbedColors, GuildAllowlistTypes } from '../../../constants';
+import { EmbedColors, GuildAdminBypassLists, GuildAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { DisplayPayload, Paginator, chunkArray, displayReply, toTitleCase } from '../../../utils';
 import { getTranslator } from '../../i18n';
+
+import * as ModerationAdminBypass from './moderation.adminbypass';
 
 
 export interface CommandArgs {
@@ -21,6 +23,7 @@ export async function createAllowlistEmbed(
   options: {only?: GuildAllowlistTypes | null, title?: string} = {},
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const adminBypassLine = ModerationAdminBypass.getListLine(translate, GuildSettingsStore.get(context.guildId!), GuildAdminBypassLists.ALLOWLIST);
 
   let sorted = allowlist.toArray();
   if (options.only) {
@@ -84,10 +87,11 @@ export async function createAllowlistEmbed(
               translate('moderation.entry_added', {index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1, type, when: moment(allowed.added).locale(language).fromNow()}),
               `-> ${description}`,
               `-> ${translate('logger.by', {user: `<@${allowed.userId}>`})}`,
-            ].join('\n');
+              ModerationAdminBypass.getEntryLine(translate, allowed),
+            ].filter((line): line is string => !!line).join('\n');
           });
 
-          payload.description = description.join('\n');
+          payload.description = ((adminBypassLine) ? [adminBypassLine, '', ...description] : description).join('\n');
         }
         return {display: payload};
       },

@@ -304,12 +304,9 @@ export const DiscordLocalesForLanguage: Record<Languages, Array<string>> = Objec
   [Languages.VIETNAMESE]: ['vi'],
 });
 
-// TEMPORARY: locales left out of slash command uploads because of issues on discord's end
-// the 14 least used of the locales we upload, replies in these languages still work
-// empty this to upload them again
-export const DiscordLocalesUploadDisabled: ReadonlySet<string> = new Set([
-  'bg', 'cs', 'da', 'el', 'fi', 'hi', 'hr', 'hu', 'lt', 'no', 'ro', 'sv-SE', 'th', 'uk',
-]);
+// locales left out of slash command uploads (for when discord has issues with them), replies in these languages
+// still work. empty uploads every locale
+export const DiscordLocalesUploadDisabled: ReadonlySet<string> = new Set([]);
 
 export function uploadableDiscordLocales(language: Languages): Array<string> {
   return DiscordLocalesForLanguage[language].filter((locale) => !DiscordLocalesUploadDisabled.has(locale));

@@ -136,9 +136,14 @@ class MetricsInterval extends Listener {
     // `REST_RESPONSE` only fires with a response, so each send is wrapped to count the ones without (timed out,
     // connection reset) and how long it waited to go out. `request.send()` is only called when it actually goes out,
     // a request queued behind a bucket goes through `restRequest.sendRequest()` twice
+    // the notsobot api is called through the same rest client (`api/raw.ts`) with its own routes, it has its own
+    // `notsobot_api_*` metrics so only count what went to discord here. plain url fetches don't have a route
+    const { baseUrl } = cluster.rest.restClient;
+    const isDiscord = (url: URL) => !(baseUrl instanceof URL) || baseUrl.host === url.host;
+
     subscriptions.push(cluster.subscribe(ClientEvents.REST_REQUEST, ({request}) => {
       const route = request.route;
-      if (route) {
+      if (route && isDiscord(request.parsedUrl)) {
         const send = request.send;
         let ready = Date.now();
         request.send = function () {
@@ -157,7 +162,7 @@ class MetricsInterval extends Listener {
 
     subscriptions.push(cluster.subscribe(ClientEvents.REST_RESPONSE, ({response}) => {
       const route = response.request.route;
-      if (route) {
+      if (route && isDiscord(response.request.parsedUrl)) {
         recordRestRequest(response.request.method, route.path, String(response.statusCode), response.took);
 
         // how long after the interaction was made discord got our response, from the id's timestamp

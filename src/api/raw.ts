@@ -699,11 +699,15 @@ export async function editGuildSettings(
 ): Promise<RestResponsesRaw.EditGuildSettings> {
   const body = {
     allowlist: options.allowlist,
+    allowlist_admin_bypass: options.allowlistAdminBypass,
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
     blocklist: options.blocklist,
+    blocklist_admin_bypass: options.blocklistAdminBypass,
     commands_allowlist: options.commandsAllowlist,
+    commands_allowlist_admin_bypass: options.commandsAllowlistAdminBypass,
     commands_blocklist: options.commandsBlocklist,
+    commands_blocklist_admin_bypass: options.commandsBlocklistAdminBypass,
     locale: options.locale,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,

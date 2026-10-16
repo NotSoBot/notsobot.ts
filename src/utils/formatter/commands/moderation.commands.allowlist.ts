@@ -5,9 +5,11 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsCommandsAllowlist } from '../../../api/structures/guildsettings';
 import { getTranslator } from '../../i18n';
-import { CommandCategories, EmbedColors, GuildCommandsAllowlistTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildAdminBypassLists, GuildCommandsAllowlistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { DisplayPayload, Paginator, chunkArray, displayReply, toTitleCase } from '../../../utils';
+
+import * as ModerationAdminBypass from './moderation.adminbypass';
 
 
 export const COMMAND_ID = 'moderation.commands.allowlist';
@@ -36,6 +38,7 @@ export async function createCommandsAllowlistsEmbed(
   options: {only?: GuildCommandsAllowlistTypes | null, title?: string} = {},
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const adminBypassLine = ModerationAdminBypass.getListLine(translate, GuildSettingsStore.get(context.guildId!), GuildAdminBypassLists.COMMANDS_ALLOWLIST);
   let sorted = commandsAllowlist.toArray();
   if (options.only) {
     sorted = sorted.filter((allowed) => allowed.type === options.only);
@@ -84,9 +87,10 @@ export async function createCommandsAllowlistsEmbed(
               translate('moderation_commands_allowlist.added', {addedAtText: moment(allowed.added).locale(language).fromNow(), command: allowed.command, index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1}),
               `-> ${type}`,
               translate('moderation_commands_allowlist.by', {userId: allowed.userId}),
-            ].join('\n');
+              ModerationAdminBypass.getEntryLine(translate, allowed),
+            ].filter((line): line is string => !!line).join('\n');
           });
-          payload.description = description.join('\n');
+          payload.description = ((adminBypassLine) ? [adminBypassLine, '', ...description] : description).join('\n');
         }
         return {display: payload};
       },

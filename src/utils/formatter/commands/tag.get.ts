@@ -11,6 +11,7 @@ import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import { StatusEmojis, TagDirectoryVerificationStates } from '../../../constants';
 import { displayReply } from '../../../utils';
+import { slashCommandMention } from '../../tools';
 
 
 // `tag get`: adds a tag from the tag directory or your DMs (as an alias) to this server/DM
@@ -158,14 +159,17 @@ async function addTag(
     message = `${message} as ${Markup.codestring(tag.name)}`;
   }
 
+  let added: string;
   if (context.guildId) {
-    return translate('tag_get.to_this_server', {message});
+    added = translate('tag_get.to_this_server', {message});
+  } else {
+    const user = await UserStore.getOrFetch(context, context.userId);
+    added = (user && user.channelId === context.channelId) ?
+      translate('tag_get.to_your_dms', {message}) :
+      translate('tag_get.to_this_channel', {message});
   }
-  const user = await UserStore.getOrFetch(context, context.userId);
-  if (user && user.channelId === context.channelId) {
-    return translate('tag_get.to_your_dms', {message});
-  }
-  return translate('tag_get.to_this_channel', {message});
+  const usage = translate('tag_get.use_it_with', {command: slashCommandMention(context, 'tag show')});
+  return `${added}\n${usage}`;
 }
 
 

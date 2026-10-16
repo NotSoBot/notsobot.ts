@@ -5,9 +5,11 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { GuildSettings, GuildSettingsCommandsBlocklist } from '../../../api/structures/guildsettings';
 import { getTranslator } from '../../i18n';
-import { CommandCategories, EmbedColors, GuildCommandsBlocklistTypes } from '../../../constants';
+import { CommandCategories, EmbedColors, GuildAdminBypassLists, GuildCommandsBlocklistTypes } from '../../../constants';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import { DisplayPayload, Paginator, chunkArray, displayReply, toTitleCase } from '../../../utils';
+
+import * as ModerationAdminBypass from './moderation.adminbypass';
 
 
 export const COMMAND_ID = 'commands.blocklist';
@@ -36,6 +38,7 @@ export async function createCommandsBlocklistsEmbed(
   options: {only?: GuildCommandsBlocklistTypes | null, title?: string} = {},
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  const adminBypassLine = ModerationAdminBypass.getListLine(translate, GuildSettingsStore.get(context.guildId!), GuildAdminBypassLists.COMMANDS_BLOCKLIST);
   let sorted = commandsBlocklist.toArray();
   if (options.only) {
     sorted = sorted.filter((blocked) => blocked.type === options.only);
@@ -84,9 +87,10 @@ export async function createCommandsBlocklistsEmbed(
               translate('moderation_commands_blocklist.added', {addedAtText: moment(blocked.added).locale(language).fromNow(), command: blocked.command, index: ((pageNumber - 1) * ELEMENTS_PER_PAGE) + i + 1}),
               `-> ${type}`,
               translate('moderation_commands_blocklist.by', {userId: blocked.userId}),
-            ].join('\n');
+              ModerationAdminBypass.getEntryLine(translate, blocked),
+            ].filter((line): line is string => !!line).join('\n');
           });
-          payload.description = description.join('\n');
+          payload.description = ((adminBypassLine) ? [adminBypassLine, '', ...description] : description).join('\n');
         }
         return {display: payload};
       },

@@ -55,6 +55,7 @@ export enum ApiErrorCodes {
   UNKNOWN_LLM_RESPONSE = 10018,
   UNKNOWN_TAG_DIRECTORY_ASSET = 10020,
   UNKNOWN_TAG_DIRECTORY_EDIT_REQUEST = 10021,
+  UNKNOWN_GUILD_LIST_ITEM = 10022,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -1026,6 +1027,22 @@ export enum GuildCommandsBlocklistTypes {
   GUILD = 'guild',
   ROLE = 'role',
   USER = 'user',
+}
+
+
+// the `admin-bypass` commands, default clears an entry's own setting (or turns the server's back on)
+export enum GuildAdminBypassValues {
+  DEFAULT = 'default',
+  DISABLED = 'disabled',
+  ENABLED = 'enabled',
+}
+
+// the lists the server owner and admins can be made to follow, same names as the api's settings
+export enum GuildAdminBypassLists {
+  ALLOWLIST = 'allowlist',
+  BLOCKLIST = 'blocklist',
+  COMMANDS_ALLOWLIST = 'commands_allowlist',
+  COMMANDS_BLOCKLIST = 'commands_blocklist',
 }
 
 
@@ -2095,11 +2112,14 @@ export enum NotSoHeaders {
 export const NotSoApiKeys = Object.freeze({
   ABOUT: 'about',
   ADDED: 'added',
+  ADMIN_BYPASS: 'admin_bypass',
   ALLOWLIST: 'allowlist',
+  ALLOWLIST_ADMIN_BYPASS: 'allowlist_admin_bypass',
   AVATAR: 'avatar',
   BLOCKED: 'blocked',
   BLOCKED_REASON: 'blocked_reason',
   BLOCKLIST: 'blocklist',
+  BLOCKLIST_ADMIN_BYPASS: 'blocklist_admin_bypass',
   BOT: 'bot',
   BRAND: 'brand',
   CHANNEL: 'channel',
@@ -2107,7 +2127,9 @@ export const NotSoApiKeys = Object.freeze({
   COLOR: 'color',
   COMMAND: 'command',
   COMMANDS_ALLOWLIST: 'commands_allowlist',
+  COMMANDS_ALLOWLIST_ADMIN_BYPASS: 'commands_allowlist_admin_bypass',
   COMMANDS_BLOCKLIST: 'commands_blocklist',
+  COMMANDS_BLOCKLIST_ADMIN_BYPASS: 'commands_blocklist_admin_bypass',
   CREATED: 'created',
   CURRENCY: 'currency',
   DESCRIPTION: 'description',
@@ -2177,11 +2199,14 @@ export const NotSoApiKeys = Object.freeze({
 export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ABOUT]: 'about',
   [NotSoApiKeys.ADDED]: 'added',
+  [NotSoApiKeys.ADMIN_BYPASS]: 'adminBypass',
   [NotSoApiKeys.ALLOWLIST]: 'allowlist',
+  [NotSoApiKeys.ALLOWLIST_ADMIN_BYPASS]: 'allowlistAdminBypass',
   [NotSoApiKeys.AVATAR]: 'avatar',
   [NotSoApiKeys.BLOCKED]: 'blocked',
   [NotSoApiKeys.BLOCKED_REASON]: 'blockedReason',
   [NotSoApiKeys.BLOCKLIST]: 'blocklist',
+  [NotSoApiKeys.BLOCKLIST_ADMIN_BYPASS]: 'blocklistAdminBypass',
   [NotSoApiKeys.BOT]: 'bot',
   [NotSoApiKeys.BRAND]: 'brand',
   [NotSoApiKeys.CHANNEL]: 'channel',
@@ -2190,7 +2215,9 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.COMMAND]: 'command',
   // must match the GuildSettings getters (commandsAllowlist/commandsBlocklist) for differences()/toJSON()
   [NotSoApiKeys.COMMANDS_ALLOWLIST]: 'commandsAllowlist',
+  [NotSoApiKeys.COMMANDS_ALLOWLIST_ADMIN_BYPASS]: 'commandsAllowlistAdminBypass',
   [NotSoApiKeys.COMMANDS_BLOCKLIST]: 'commandsBlocklist',
+  [NotSoApiKeys.COMMANDS_BLOCKLIST_ADMIN_BYPASS]: 'commandsBlocklistAdminBypass',
   [NotSoApiKeys.CREATED]: 'created',
   [NotSoApiKeys.CURRENCY]: 'currency',
   [NotSoApiKeys.DESCRIPTION]: 'description',

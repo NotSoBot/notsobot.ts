@@ -18,7 +18,7 @@ import {
   GuildCommandsAllowlistTypes,
   GuildCommandsBlocklistTypes,
 } from './constants';
-import { Formatter, I18n, editOrReply, getCommandIdFromInvoker } from './utils';
+import { Formatter, I18n, editOrReply, getCommandIdFromInvoker, isGuildListCommandId } from './utils';
 import { CommandResults, setCommandResult } from './commandresults';
 
 
@@ -125,12 +125,14 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     }
 
     const { member } = context;
-    if (member && (member.isOwner || member.canAdministrator)) {
-      return true;
-    }
-
     const invoker = context.invoker as BaseInteractionCommand | BaseInteractionCommandOption;
     const commandId = getCommandIdFromInvoker(invoker);
+
+    // the owner and admins skip the lists unless the server turned that off (for a list or an entry)
+    const isAdmin = !!member && (member.isOwner || member.canAdministrator);
+    if (isAdmin && (!settings || isGuildListCommandId(commandId))) {
+      return true;
+    }
 
     const channel = context.channel;
     const parent = (channel) ? channel.parent : null;
@@ -139,6 +141,9 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         return allowed.command === commandId;
       });
       if (commandsAllowlist.length) {
+        if (isAdmin && commandsAllowlist.some((allowed) => settings.canAdminBypass(allowed))) {
+          return true;
+        }
         const shouldAllow = commandsAllowlist.some((allowed) => {
           switch (allowed.type) {
             case GuildCommandsAllowlistTypes.CHANNEL: {
@@ -181,7 +186,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         return shouldAllow;
       } else {
         const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => {
-          return blocked.command === commandId;
+          return blocked.command === commandId && !(isAdmin && settings.canAdminBypass(blocked));
         });
         if (commandsBlocklist.length) {
           const shouldIgnore = commandsBlocklist.some((blocked) => {
@@ -235,6 +240,9 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       }
       const { allowlist } = settings;
       if (allowlist.length) {
+        if (isAdmin && allowlist.some((allowed) => settings.canAdminBypass(allowed))) {
+          return true;
+        }
         const shouldAllow = allowlist.some((allow) => {
           switch (allow.type) {
             case GuildAllowlistTypes.CHANNEL: {
@@ -273,7 +281,7 @@ export class NotSoInteractionClient extends InteractionCommandClient {
         }
         return shouldAllow;
       } else {
-        const { blocklist } = settings;
+        const blocklist = settings.blocklist.filter((blocked) => !(isAdmin && settings.canAdminBypass(blocked)));
         if (blocklist.length) {
           const shouldIgnore = blocklist.some((blocked) => {
             switch (blocked.type) {

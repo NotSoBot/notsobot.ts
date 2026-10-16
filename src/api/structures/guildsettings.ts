@@ -40,6 +40,8 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.TIMEZONE,
 ]);
 
+export type GuildSettingsListItem = GuildSettingsAllowlist | GuildSettingsBlocklist | GuildSettingsCommandsAllowlist | GuildSettingsCommandsBlocklist;
+
 export class GuildSettings extends BaseStructure {
   readonly _keys = keysGuildSettings;
   _allowlist?: Collections.BaseCollection<string, GuildSettingsAllowlist>;
@@ -105,6 +107,43 @@ export class GuildSettings extends BaseStructure {
       return this._prefixes;
     }
     return Collections.emptyBaseCollection;
+  }
+
+  // if the server owner and admins skip this entry, entries without their own setting follow the server's for the list
+  canAdminBypass(item: GuildSettingsListItem): boolean {
+    if (typeof(item.adminBypass) === 'boolean') {
+      return item.adminBypass;
+    }
+    if (!this.settings) {
+      return true;
+    }
+    if (item instanceof GuildSettingsAllowlist) {
+      return this.settings.allowlistAdminBypass;
+    }
+    if (item instanceof GuildSettingsBlocklist) {
+      return this.settings.blocklistAdminBypass;
+    }
+    if (item instanceof GuildSettingsCommandsAllowlist) {
+      return this.settings.commandsAllowlistAdminBypass;
+    }
+    return this.settings.commandsBlocklistAdminBypass;
+  }
+
+  // if the owner and admins skip every list and entry (the default)
+  get adminBypassesEverything(): boolean {
+    if (this.settings) {
+      const { allowlistAdminBypass, blocklistAdminBypass, commandsAllowlistAdminBypass, commandsBlocklistAdminBypass } = this.settings;
+      if (!allowlistAdminBypass || !blocklistAdminBypass || !commandsAllowlistAdminBypass || !commandsBlocklistAdminBypass) {
+        return false;
+      }
+    }
+    const lists: Array<Collections.BaseCollection<string, GuildSettingsListItem>> = [
+      this.allowlist,
+      this.blocklist,
+      this.commandsAllowlist,
+      this.commandsBlocklist,
+    ];
+    return lists.every((list) => list.every((item) => item.adminBypass !== false));
   }
 
   hasFeature(feature: string): boolean {
@@ -245,6 +284,7 @@ export class GuildSettings extends BaseStructure {
 
 const keysGuildSettingsAllowlistAndBlocklist = new Collections.BaseSet<string>([
   NotSoApiKeys.ADDED,
+  NotSoApiKeys.ADMIN_BYPASS,
   NotSoApiKeys.ID,
   NotSoApiKeys.TYPE,
   NotSoApiKeys.USER_ID,
@@ -254,6 +294,8 @@ export class GuildSettingsAllowlist extends BaseStructure {
   readonly _keys = keysGuildSettingsAllowlistAndBlocklist;
 
   added: string = '';
+  // null follows the server's setting for the list
+  adminBypass: boolean | null = null;
   id: string = '';
   type!: GuildAllowlistTypes;
   userId: string = '';
@@ -277,6 +319,8 @@ export class GuildSettingsBlocklist extends BaseStructure {
   readonly _keys = keysGuildSettingsAllowlistAndBlocklist;
 
   added: string = '';
+  // null follows the server's setting for the list
+  adminBypass: boolean | null = null;
   id: string = '';
   type!: GuildBlocklistTypes;
   userId: string = '';
@@ -298,6 +342,7 @@ export class GuildSettingsBlocklist extends BaseStructure {
 
 const keysGuildSettingsCommandsAllowlist = new Collections.BaseSet<string>([
   NotSoApiKeys.ADDED,
+  NotSoApiKeys.ADMIN_BYPASS,
   NotSoApiKeys.COMMAND,
   NotSoApiKeys.ID,
   NotSoApiKeys.TYPE,
@@ -308,6 +353,8 @@ export class GuildSettingsCommandsAllowlist extends BaseStructure {
   readonly _keys = keysGuildSettingsCommandsAllowlist;
 
   added: string = '';
+  // null follows the server's setting for the list
+  adminBypass: boolean | null = null;
   command: string = '';
   id: string = '';
   type!: GuildCommandsAllowlistTypes;
@@ -339,6 +386,7 @@ export class GuildSettingsCommandsAllowlist extends BaseStructure {
 
 const keysGuildSettingsCommandsBlocklist = new Collections.BaseSet<string>([
   NotSoApiKeys.ADDED,
+  NotSoApiKeys.ADMIN_BYPASS,
   NotSoApiKeys.COMMAND,
   NotSoApiKeys.ID,
   NotSoApiKeys.TYPE,
@@ -349,6 +397,8 @@ export class GuildSettingsCommandsBlocklist extends BaseStructure {
   readonly _keys = keysGuildSettingsCommandsBlocklist;
 
   added: string = '';
+  // null follows the server's setting for the list
+  adminBypass: boolean | null = null;
   command: string = '';
   id: string = '';
   type!: GuildCommandsBlocklistTypes;
@@ -486,6 +536,10 @@ export class GuildSettingsPrefix extends BaseStructure {
 
 
 const keysGuildSettingsChild = new Collections.BaseSet<string>([
+  NotSoApiKeys.ALLOWLIST_ADMIN_BYPASS,
+  NotSoApiKeys.BLOCKLIST_ADMIN_BYPASS,
+  NotSoApiKeys.COMMANDS_ALLOWLIST_ADMIN_BYPASS,
+  NotSoApiKeys.COMMANDS_BLOCKLIST_ADMIN_BYPASS,
   NotSoApiKeys.ML_DIFFUSION_MODEL,
   NotSoApiKeys.ML_LLM_MODEL,
   NotSoApiKeys.ML_LLM_PERSONALITY,
@@ -495,6 +549,11 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
 export class GuildSettingsChild extends BaseStructure {
   readonly _keys = keysGuildSettingsChild;
 
+  // if the server owner and admins skip each list, entries can override it with their own `adminBypass`
+  allowlistAdminBypass: boolean = true;
+  blocklistAdminBypass: boolean = true;
+  commandsAllowlistAdminBypass: boolean = true;
+  commandsBlocklistAdminBypass: boolean = true;
   mlDiffusionModel: null | string = null;
   mlLLMModel: null | string = null;
   mlLLMPersonality: null | string = null;

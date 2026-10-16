@@ -124,27 +124,36 @@ export namespace RestOptions {
   }
 
 
+  // `admin_bypass` on an entry is only changed when given, null follows the server's setting for the list
   export interface EditGuildSettings {
     allowlist?: Array<{
+      admin_bypass?: boolean | null,
       id: string,
       type: string,
     }>,
+    allowlistAdminBypass?: boolean | null,
     blocked?: boolean,
     blockedReason?: null | string,
     blocklist?: Array<{
+      admin_bypass?: boolean | null,
       id: string,
       type: string,
     }>,
+    blocklistAdminBypass?: boolean | null,
     commandsAllowlist?: Array<{
+      admin_bypass?: boolean | null,
       command: string,
       id: string,
       type: string,
     }>,
+    commandsAllowlistAdminBypass?: boolean | null,
     commandsBlocklist?: Array<{
+      admin_bypass?: boolean | null,
       command: string,
       id: string,
       type: string,
     }>,
+    commandsBlocklistAdminBypass?: boolean | null,
     locale?: string | null,
     mlDiffusionModel?: string,
     mlLLMModel?: string | null,
@@ -1787,6 +1796,10 @@ export namespace RestResponsesRaw {
     name: string,
     prefixes: Array<GuildPrefix>,
     settings: {
+      allowlist_admin_bypass: boolean,
+      blocklist_admin_bypass: boolean,
+      commands_allowlist_admin_bypass: boolean,
+      commands_blocklist_admin_bypass: boolean,
       ml_diffusion_model: string | null,
       ml_llm_model: string | null,
       ml_llm_personality: string | null,
@@ -1797,6 +1810,7 @@ export namespace RestResponsesRaw {
 
   export interface GuildAllowlist {
     added: string,
+    admin_bypass: boolean | null,
     id: string,
     type: string,
     user_id: string,
@@ -1804,6 +1818,7 @@ export namespace RestResponsesRaw {
 
   export interface GuildBlocklist {
     added: string,
+    admin_bypass: boolean | null,
     id: string,
     type: string,
     user_id: string,
@@ -1811,6 +1826,7 @@ export namespace RestResponsesRaw {
 
   export interface GuildCommandsAllowlist {
     added: string,
+    admin_bypass: boolean | null,
     command: string,
     id: string,
     type: string,
@@ -1819,6 +1835,7 @@ export namespace RestResponsesRaw {
 
   export interface GuildCommandsBlocklist {
     added: string,
+    admin_bypass: boolean | null,
     command: string,
     id: string,
     type: string,

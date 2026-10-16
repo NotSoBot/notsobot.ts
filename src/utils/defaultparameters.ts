@@ -6,6 +6,7 @@ import UserSettingsStore from '../stores/usersettings';
 import { GoogleLocales, GoogleLocaleFromDiscord, MLDiffusionModels } from '../constants';
 
 import {
+  findCachedTagDirectoryIds,
   findMediaUrlInMessages,
   findUrlInMessages,
   getOrFetchRealUrl,
@@ -116,6 +117,12 @@ export function lastMediaUrl(
       }
     }
   };
+}
+
+
+// the newest tag directory link in the channel's cached messages, for `tag get` without a tag
+export function lastTagDirectoryId(context: Command.Context | Interaction.InteractionContext): string | undefined {
+  return findCachedTagDirectoryIds(context, 1)[0];
 }
 
 
