@@ -5,7 +5,7 @@ import { EmbedColors } from '../../../constants';
 import { createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
 
 import type { Translator } from '../../i18n';
-import { addContainerBody, addContainerFooter, addContainerHeader, createUserHeaderLines } from './tools';
+import { addContainerFooter, addContainerHeader, createContainerTitle, createUserHeaderLines } from './tools';
 import { GuildLoggingEventItemAudits, LogPayloadFiles, GuildLoggingEventGuildBanAdd, GuildLoggingEventGuildBanRemove } from './types';
 
 
@@ -63,11 +63,12 @@ export function formatGuildBanAddComponents(
   const { user } = event.payload;
 
   container.setAccentColor(EmbedColors.LOG_DELETION);
-  addContainerHeader(container, createUserHeaderLines(user.id, user, translator), user.avatarUrlFormat(null, {size: 1024}));
-  addContainerBody(container, [
-    {title: translate('logger.moderation_action'), lines: getBanModerationLines(audits, translate('logger.banned_by'), translator)},
-    {title: translate('common.information'), lines: [`**${translate('common.id')}**: ${Markup.codestring(user.id)}`]},
-  ]);
+  // the moderation action goes right under the name, next to the avatar thumbnail, so there's no body
+  const moderation = getBanModerationLines(audits, translate('logger.banned_by'), translator);
+  addContainerHeader(container, [
+    ...createUserHeaderLines(user.id, user, translator),
+    ...((moderation.length) ? [createContainerTitle(translate('logger.moderation_action')), ...moderation] : []),
+  ], user.avatarUrlFormat(null, {size: 1024}), false);
   addContainerFooter(container, `${translate('logger.footer.user_banned')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }
 
@@ -112,10 +113,11 @@ export function formatGuildBanRemoveComponents(
   const { user } = event.payload;
 
   container.setAccentColor(EmbedColors.LOG_CREATION);
-  addContainerHeader(container, createUserHeaderLines(user.id, user, translator), user.avatarUrlFormat(null, {size: 1024}));
-  addContainerBody(container, [
-    {title: translate('logger.moderation_action'), lines: getBanModerationLines(audits, translate('logger.unbanned_by'), translator)},
-    {title: translate('common.information'), lines: [`**${translate('common.id')}**: ${Markup.codestring(user.id)}`]},
-  ]);
+  // the moderation action goes right under the name, next to the avatar thumbnail, so there's no body
+  const moderation = getBanModerationLines(audits, translate('logger.unbanned_by'), translator);
+  addContainerHeader(container, [
+    ...createUserHeaderLines(user.id, user, translator),
+    ...((moderation.length) ? [createContainerTitle(translate('logger.moderation_action')), ...moderation] : []),
+  ], user.avatarUrlFormat(null, {size: 1024}), false);
   addContainerFooter(container, `${translate('logger.footer.user_unbanned')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 }

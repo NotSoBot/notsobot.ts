@@ -53,6 +53,26 @@ export function getMessageAuthorHeaderLines(message: Structures.Message | null |
 }
 
 
+// the information goes next to the avatar thumbnail, otherwise the thumbnail leaves a big gap under the two name lines
+// discord's relative timestamp stays accurate and shows the full date on hover, so the spoilered date isn't needed
+export function getMessageHeaderLines(
+  guildId: string,
+  channelId: string,
+  messageId: string,
+  message: Structures.Message | null | undefined,
+  translator: Translator,
+): Array<string> {
+  const { language, translate, translateMaybe } = translator;
+  const timestamp = Math.floor(((message) ? message.timestampUnix : Snowflake.timestamp(messageId)) / 1000);
+  return [
+    ...getMessageAuthorHeaderLines(message, translator),
+    `**${translate('common.channel')}**: <#${channelId}>`,
+    `**${translate('common.created')}**: <t:${timestamp}:R>`,
+    `**${translate('logger.message.link')}**: ${Markup.url(messageId, DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(guildId, channelId, messageId))}`,
+  ];
+}
+
+
 export function getMessageDeleteSections(event: GuildLoggingEventMessageDelete, translator: Translator): {
   attachments: Array<string>,
   content: string,
@@ -192,7 +212,7 @@ export function formatMessageDeleteComponents(
   container.setAccentColor(EmbedColors.LOG_DELETION);
   addContainerHeader(
     container,
-    getMessageAuthorHeaderLines(message, translator),
+    getMessageHeaderLines(guildId, channelId, messageId, message, translator),
     (message) ? message.author.avatarUrlFormat(null, {size: 1024}) : null,
   );
   addContainerBody(container, [
@@ -202,7 +222,6 @@ export function formatMessageDeleteComponents(
     {title: translate('logger.message.embeds'), lines: sections.embeds},
     {title: translate('logger.message.mentions'), lines: sections.mentions},
     {title: translate('logger.message.role_mentions'), lines: sections.roleMentions},
-    {title: translate('common.information'), lines: getMessageInformationLines(guildId, channelId, messageId, message, translator)},
   ]);
   // no gallery, the attachment cdn urls are dead once the message is deleted and a media gallery with a dead url fails to render
   addContainerFooter(container, `${translate('logger.footer.message_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
@@ -497,7 +516,7 @@ export function formatMessageUpdateComponents(
   container.setAccentColor(EmbedColors.LOG_UPDATE);
   addContainerHeader(
     container,
-    getMessageAuthorHeaderLines(message, translator),
+    getMessageHeaderLines(guildId, channelId, messageId, message, translator),
     (message) ? message.author.avatarUrlFormat(null, {size: 1024}) : null,
   );
 
@@ -524,7 +543,6 @@ export function formatMessageUpdateComponents(
     {title: translate('logger.message.embeds'), lines: sections.embeds},
     {title: translate('logger.message.flags'), lines: sections.flags},
     {title: translate('logger.message.mentions'), lines: sections.mentions},
-    {title: translate('common.information'), lines: getMessageInformationLines(guildId, channelId, messageId, message, translator)},
   ]);
   addContainerFiles(container, files);
 

@@ -985,6 +985,21 @@ export async function fetchGuildTagsCommands(
 }
 
 
+export async function deleteJob(
+  context: RequestContext,
+  jobId: string,
+): Promise<null> {
+  const params = {jobId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.JOB,
+      params,
+    },
+  });
+}
+
+
 export async function fetchJob(
   context: RequestContext,
   jobId: string,

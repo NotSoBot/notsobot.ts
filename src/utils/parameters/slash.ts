@@ -169,16 +169,14 @@ export const USER_SETTINGS_UPLOAD_TYPES = [
 ];
 
 
-// a fixed order instead of alphabetical, so `Other` goes last
+// alphabetical, except `Other` goes last
 export const TAG_DIRECTORY_CATEGORIES = [
-  createChoice('Fun', TagDirectoryCategories.FUN, {localizationKey: 'choices.tag_directory_categories.fun'}),
+  createChoice('AI', TagDirectoryCategories.AI, {localizationKey: 'choices.tag_directory_categories.ai'}),
+  createChoice('Clips', TagDirectoryCategories.CLIPS, {localizationKey: 'choices.tag_directory_categories.clips'}),
+  createChoice('Filters', TagDirectoryCategories.FILTERS, {localizationKey: 'choices.tag_directory_categories.filters'}),
   createChoice('Games', TagDirectoryCategories.GAMES, {localizationKey: 'choices.tag_directory_categories.games'}),
-  createChoice('Images', TagDirectoryCategories.IMAGES, {localizationKey: 'choices.tag_directory_categories.images'}),
   createChoice('Memes', TagDirectoryCategories.MEMES, {localizationKey: 'choices.tag_directory_categories.memes'}),
   createChoice('Utility', TagDirectoryCategories.UTILITY, {localizationKey: 'choices.tag_directory_categories.utility'}),
-  createChoice('AI', TagDirectoryCategories.AI, {localizationKey: 'choices.tag_directory_categories.ai'}),
-  createChoice('Text', TagDirectoryCategories.TEXT, {localizationKey: 'choices.tag_directory_categories.text'}),
-  createChoice('Audio', TagDirectoryCategories.AUDIO, {localizationKey: 'choices.tag_directory_categories.audio'}),
   createChoice('Other', TagDirectoryCategories.OTHER, {localizationKey: 'choices.tag_directory_categories.other'}),
 ];
 

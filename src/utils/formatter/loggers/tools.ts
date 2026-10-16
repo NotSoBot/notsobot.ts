@@ -24,7 +24,6 @@ export const MAX_COMPONENTS_TEXT_LENGTH = 4000;
 export const MAX_CONTAINER_TEXT_LENGTH = 3500;
 
 export const MAX_INLINE_CODE_LENGTH = 200;
-export const MAX_INLINE_SECTION_LENGTH = 80;
 
 export function truncate(text: string, max: number): string {
   if (max < text.length) {
@@ -120,13 +119,14 @@ export function createUserHeaderLines(userId: string, user: Structures.User | nu
 }
 
 
-// header with an optional thumbnail on the right, always followed by a divider
+// header with an optional thumbnail on the right, followed by a divider unless the log has no body
 export function addContainerHeader(
   container: ComponentContainer,
   lines: Array<string>,
   thumbnailUrl?: null | string,
+  separator: boolean = true,
 ): void {
-  const content = lines.filter((line) => !!line).join('\n');
+  const content = lines.filter((line) => !!line).map(collapseCodeblock).join('\n');
   if (thumbnailUrl) {
     const section = container.createSection();
     section.addTextDisplay({content});
@@ -134,7 +134,9 @@ export function addContainerHeader(
   } else {
     container.addTextDisplay({content});
   }
-  container.addSeparator();
+  if (separator) {
+    container.addSeparator();
+  }
 }
 
 
@@ -148,16 +150,11 @@ export function addContainerBody(container: ComponentContainer, sections: Array<
     return;
   }
 
-  // sections are only split by a newline, the bold titles are enough to tell them apart
+  // sections are only split by a newline, the heading titles are enough to tell them apart
   const render = () => {
     return sections.map((section) => {
       if (section.title) {
-        const [ line ] = section.lines;
-        // a single short value goes next to its title (`**Content**: \`a\``)
-        if (section.lines.length === 1 && line.startsWith('`') && !line.startsWith('```') && line.length <= MAX_INLINE_SECTION_LENGTH) {
-          return `**${section.title}**: ${line}`;
-        }
-        return [`**${section.title}**`, ...section.lines].join('\n');
+        return [createContainerTitle(section.title), ...section.lines].join('\n');
       }
       return section.lines.join('\n');
     }).join('\n');
@@ -190,13 +187,18 @@ export function addContainerBody(container: ComponentContainer, sections: Array<
 }
 
 
-// codeblocks have a lot of padding in text displays, so short single line ones become inline code
-// works with a prefix too, like `**${translate('logger.reason')}**: ` + codeblock
+export function createContainerTitle(title: string): string {
+  return `### ${title}`;
+}
+
+
+// codeblocks have a lot of padding in text displays, so short single line ones after a label become inline code
+// like `**${translate('logger.reason')}**: ` + codeblock, a codeblock on its own line (under a section title) stays a codeblock
 export function collapseCodeblock(line: string): string {
   const match = line.match(/^([\s\S]*?)```[^\n`]*\n([^\n`]+)\n```$/);
   if (match) {
     const [ , prefix, text ] = match;
-    if (!prefix.includes('```') && text.trim() && text.length <= MAX_INLINE_CODE_LENGTH) {
+    if (prefix.trim() && !prefix.includes('```') && text.trim() && text.length <= MAX_INLINE_CODE_LENGTH) {
       return `${prefix}\`${text}\``;
     }
   }
@@ -209,7 +211,7 @@ export function addContainerGallery(container: ComponentContainer, images: Array
     return;
   }
   if (title) {
-    container.addTextDisplay({content: `**${title}**`});
+    container.addTextDisplay({content: createContainerTitle(title)});
   }
   const gallery = container.createMediaGallery();
   for (let image of images.slice(0, 10)) {

@@ -1,15 +1,15 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { searchDuckDuckGoImages, utilitiesFetchMedia } from '../../../api';
+import { searchDuckDuckGoImages } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
 import {
   DisplayPayload,
   Paginator,
   chunkArray,
+  createPaginatorMediaCache,
   displayReply,
-  jobWaitForResponse,
   shuffleArray,
 } from '../../../utils';
 
@@ -39,6 +39,7 @@ export async function createMessage(
 
   if (results.length) {
     const pageLimit = results.length;
+    const fetchMedia = createPaginatorMediaCache(context, {safe: args.safe});
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: async (page) => {
@@ -53,23 +54,11 @@ export async function createMessage(
           payload.description = Markup.url(Markup.escape.all(result.header), result.url);
         }
 
-        const response = await utilitiesFetchMedia(context, {
-          doNotError: true,
-          safe: args.safe,
-          upload: false,
-          url: result.proxy_url,
-        }).then((x) => jobWaitForResponse(context, x));
-        if (response) {
-          const filename = response.file.filename_safe;
-          payload.image = `attachment://${filename}`;
-
-          const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-          return {display: {...payload, files: [{filename, value}]}};
-        } else {
-          const imageUrl = (result.image.extension === 'svg') ? result.thumbnail.url : result.proxy_url;
-          payload.image = imageUrl;
-          return {display: payload};
-        }
+        // throws if it can't be fetched (and scanned), the raw url is never shown; svgs use the thumbnail
+        const imageUrl = (result.image.extension === 'svg') ? result.thumbnail.url : result.proxy_url;
+        const media = await fetchMedia(page, imageUrl);
+        payload.image = `attachment://${media.filename}`;
+        return {display: {...payload, files: [{filename: media.filename, value: media.value}]}};
       },
     });
     return await paginator.start();

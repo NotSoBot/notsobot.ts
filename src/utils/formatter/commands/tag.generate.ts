@@ -1,12 +1,12 @@
 import * as Sentry from '@sentry/node';
 
-import { Command, Interaction } from 'detritus-client';
+import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserSettingsStore from '../../../stores/usersettings';
 
-import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError } from '../../../api';
+import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError, utilitiesFetchText } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
 import { Paginator, Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
@@ -15,6 +15,8 @@ import { createTagMessage } from './tag.show';
 
 
 export const COMMAND_ID = 'tag.generate';
+
+export const MAX_TEXT_FILE_LENGTH = 20000;
 
 export interface CommandArgsBefore {
   debug?: boolean,
@@ -39,7 +41,10 @@ export async function createMessage(
   const urls: Array<string> = [];
   const promptExtra: Array<string> = [];
   if (context instanceof Command.Context) {
-    let url = findMediaUrlInMessage(context.message);
+    // only the media from the command message itself and the first media found going up the reply chain
+    const current = findMediaForAI(context.message);
+    const currentText = (current && current.isText) ? await fetchTextForAI(context, current.url) : null;
+    let reply: null | {isText: boolean, url: string} = null;
 
     let { message } = context;
     let chain = 0;
@@ -60,12 +65,19 @@ export async function createMessage(
         }
 
         let mediaIsFromHere = false;
-        if (!url) {
-          url = findMediaUrlInMessage(message);
-          mediaIsFromHere = true;
+        let replyText: null | string = null;
+        if (!reply) {
+          reply = findMediaForAI(message);
+          mediaIsFromHere = !!reply;
+          if (reply && reply.isText) {
+            replyText = await fetchTextForAI(context, reply.url);
+          }
         }
 
         const content: Array<string> = [];
+        if (replyText) {
+          content.push(`-> Text File: ${replyText}`);
+        }
         if (message.content) {
           content.push(`-> Content: ${JSON.stringify(message.content)}`);
         }
@@ -135,7 +147,7 @@ export async function createMessage(
             `Message Reply Context ${chain}`,
             `-> Author: ${JSON.stringify(message.author.name)}`,
             ...content,
-            (url && mediaIsFromHere) ? '-> Media is from here' : null,
+            (mediaIsFromHere && !reply!.isText) ? '-> Media is from here' : null,
             (message.deleted) ? `-> Message Deleted` : null,
           ].filter(Boolean).join('\n'));
         }
@@ -155,20 +167,32 @@ export async function createMessage(
       }
     }
 
-    if (url) {
-      urls.push(url);
+    if (current && !current.isText) {
+      urls.push(current.url);
+    }
+    if (reply && !reply.isText && (!current || reply.url !== current.url)) {
+      urls.push(reply.url);
     }
 
-    if (promptExtra.length) {
+    if (promptExtra.length || currentText) {
       promptExtra.unshift([
         `Current Message Context`,
         `-> Author: ${JSON.stringify(context.message.author.name)}`,
-      ].join('\n'));
+        (currentText) ? `-> Text File: ${currentText}` : null,
+        (current && !current.isText) ? '-> Media is from here' : null,
+      ].filter(Boolean).join('\n'));
     }
   } else if (context instanceof Interaction.InteractionContext) {
     if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
       for (let [attachmentId, attachment] of context.data.resolved.attachments) {
-        urls.push(attachment.url);
+        if (isTextContentType(attachment.contentType)) {
+          const text = await fetchTextForAI(context, attachment.url);
+          if (text) {
+            promptExtra.push(`Text File ${JSON.stringify(attachment.filename)}: ${text}`);
+          }
+        } else {
+          urls.push(attachment.url);
+        }
       }
     }
   }
@@ -266,6 +290,42 @@ export async function createMessage(
   }
 }
 
+
+
+function isTextContentType(contentType?: null | string): boolean {
+  return !!contentType && (contentType.startsWith('text/') || contentType.startsWith('application/json'));
+}
+
+
+function findMediaForAI(message: Structures.Message): null | {isText: boolean, url: string} {
+  // `{}` turns off text files, so anything only found without it is a text file
+  const url = findMediaUrlInMessage(message, null, {});
+  if (url) {
+    return {isText: false, url};
+  }
+  const textUrl = findMediaUrlInMessage(message);
+  if (textUrl) {
+    return {isText: true, url: textUrl};
+  }
+  return null;
+}
+
+
+async function fetchTextForAI(
+  context: Command.Context | Interaction.InteractionContext,
+  url: string,
+): Promise<string> {
+  try {
+    const response = await utilitiesFetchText(context, {maxFileSize: context.maxAttachmentSize, url});
+    const text = await response.text();
+    if (MAX_TEXT_FILE_LENGTH < text.length) {
+      return `${JSON.stringify(text.slice(0, MAX_TEXT_FILE_LENGTH))} (Truncated from ${text.length} characters)`;
+    }
+    return JSON.stringify(text);
+  } catch(error) {
+    return (error.response) ? `Fetching Errored due to status code ${error.response.statusCode}` : 'Unable to fetch data';
+  }
+}
 
 
 export async function getAIPersonality(

@@ -18,10 +18,33 @@ import {
 import { LogPayloadFiles, GuildLoggingEventGuildMemberAdd, GuildLoggingEventGuildMemberRemove, GuildLoggingEventGuildMemberUpdate } from './types';
 
 
+export interface JoinedTimestamp {
+  title: string,
+  unix: number,
+}
+
+// embeds get the date in the guild's timezone under a spoiler
+// components use discord's relative timestamp, it stays accurate and shows the full date on hover
+export function createJoinedLines(joined: Array<JoinedTimestamp>, guildId: string, translator: Translator, relative: boolean = false): Array<string> {
+  const { language, translate, translateMaybe } = translator;
+  const lines: Array<string> = [];
+  for (let { title, unix } of joined) {
+    if (relative) {
+      lines.push(`**${title}**: <t:${Math.floor(unix / 1000)}:R>`);
+    } else {
+      const timestamp = createTimestampMomentFromGuild(unix, guildId);
+      lines.push(`**${title}**: ${timestamp.locale(language).fromNow()}`);
+      lines.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+    }
+  }
+  return lines;
+}
+
+
 export function getGuildMemberAddSections(event: GuildLoggingEventGuildMemberAdd, translator: Translator): {
   footer: string,
   information: Array<string>,
-  joined: Array<string>,
+  joined: Array<JoinedTimestamp>,
   moderation: Array<string>,
 } {
   const { language, translate, translateMaybe } = translator;
@@ -52,12 +75,9 @@ export function getGuildMemberAddSections(event: GuildLoggingEventGuildMemberAdd
     information.push(`**${translate('info.guild.members')}**: ${(memberCount - 1).toLocaleString(language)} -> ${memberCount.toLocaleString(language)}`);
   }
 
-  const joined: Array<string> = [];
-  {
-    const timestamp = createTimestampMomentFromGuild(member.createdAtUnix, guildId);
-    joined.push(`**${translate('user.joined_discord')}**: ${timestamp.locale(language).fromNow()}`);
-    joined.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
-  }
+  const joined: Array<JoinedTimestamp> = [
+    {title: translate('user.joined_discord'), unix: member.createdAtUnix},
+  ];
 
   return {footer, information, joined, moderation};
 }
@@ -70,6 +90,7 @@ export function formatGuildMemberAdd(
   translator: Translator,
 ): void {
   const { language, translate, translateMaybe } = translator;
+  const { guildId } = event;
   const { member } = event.payload;
 
   createUserEmbed(member, embed);
@@ -83,7 +104,7 @@ export function formatGuildMemberAdd(
     embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
   embed.addField(translate('common.information'), information.join('\n'), true);
-  embed.addField(translate('user.joined'), joined.join('\n'), true);
+  embed.addField(translate('user.joined'), createJoinedLines(joined, guildId, translator).join('\n'), true);
 }
 
 
@@ -94,16 +115,17 @@ export function formatGuildMemberAddComponents(
   translator: Translator,
 ): void {
   const { language, translate, translateMaybe } = translator;
+  const { guildId } = event;
   const { member } = event.payload;
 
   const { footer, information, joined, moderation } = getGuildMemberAddSections(event, translator);
 
   container.setAccentColor(EmbedColors.LOG_CREATION);
-  addContainerHeader(container, createUserHeaderLines(member.id, member, translator), member.avatarUrlFormat(null, {size: 1024}));
+  // the information goes next to the avatar thumbnail, otherwise the thumbnail leaves a big gap under the two name lines
+  addContainerHeader(container, [...createUserHeaderLines(member.id, member, translator), ...information], member.avatarUrlFormat(null, {size: 1024}));
   addContainerBody(container, [
     {title: translate('logger.moderation_action'), lines: moderation},
-    {title: translate('common.information'), lines: information},
-    {title: translate('user.joined'), lines: joined},
+    {title: translate('user.joined'), lines: createJoinedLines(joined, guildId, translator, true)},
   ]);
   addContainerFooter(container, footer);
 }
@@ -112,7 +134,7 @@ export function formatGuildMemberAddComponents(
 export function getGuildMemberRemoveSections(event: GuildLoggingEventGuildMemberRemove, translator: Translator): {
   footer: string,
   information: Array<string>,
-  joined: Array<string>,
+  joined: Array<JoinedTimestamp>,
   moderation: Array<string>,
   user: Structures.User | null,
 } {
@@ -166,17 +188,11 @@ export function getGuildMemberRemoveSections(event: GuildLoggingEventGuildMember
     information.push(`**${translate('info.guild.members')}**: ${(memberCount + 1).toLocaleString(language)} -> ${memberCount.toLocaleString(language)}`);
   }
 
-  const joined: Array<string> = [];
+  const joined: Array<JoinedTimestamp> = [];
   if (user) {
-    {
-      const timestamp = createTimestampMomentFromGuild(user.createdAtUnix, guildId);
-      joined.push(`**${translate('user.joined_discord')}**: ${timestamp.locale(language).fromNow()}`);
-      joined.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
-    }
+    joined.push({title: translate('user.joined_discord'), unix: user.createdAtUnix});
     if (member && member.joinedAtUnix) {
-      const timestamp = createTimestampMomentFromGuild(member.joinedAtUnix, guildId);
-      joined.push(`**${translate('user.joined_guild')}**: ${timestamp.locale(language).fromNow()}`);
-      joined.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+      joined.push({title: translate('user.joined_guild'), unix: member.joinedAtUnix});
     }
   }
 
@@ -191,6 +207,7 @@ export function formatGuildMemberRemove(
   translator: Translator,
 ): void {
   const { language, translate, translateMaybe } = translator;
+  const { guildId } = event;
   const { userId } = event.payload;
 
   const { footer, information, joined, moderation, user } = getGuildMemberRemoveSections(event, translator);
@@ -209,7 +226,7 @@ export function formatGuildMemberRemove(
   }
   embed.addField(translate('common.information'), information.join('\n'), true);
   if (joined.length) {
-    embed.addField(translate('user.joined'), joined.join('\n'), true);
+    embed.addField(translate('user.joined'), createJoinedLines(joined, guildId, translator).join('\n'), true);
   }
 }
 
@@ -221,16 +238,17 @@ export function formatGuildMemberRemoveComponents(
   translator: Translator,
 ): void {
   const { language, translate, translateMaybe } = translator;
+  const { guildId } = event;
   const { userId } = event.payload;
 
   const { footer, information, joined, moderation, user } = getGuildMemberRemoveSections(event, translator);
 
   container.setAccentColor(EmbedColors.LOG_DELETION);
-  addContainerHeader(container, createUserHeaderLines(userId, user, translator), (user) ? user.avatarUrlFormat(null, {size: 1024}) : null);
+  // the information goes next to the avatar thumbnail, otherwise the thumbnail leaves a big gap under the two name lines
+  addContainerHeader(container, [...createUserHeaderLines(userId, user, translator), ...information], (user) ? user.avatarUrlFormat(null, {size: 1024}) : null);
   addContainerBody(container, [
     {title: translate('logger.moderation_action'), lines: moderation},
-    {title: translate('common.information'), lines: information},
-    {title: translate('user.joined'), lines: joined},
+    {title: translate('user.joined'), lines: createJoinedLines(joined, guildId, translator, true)},
   ]);
   addContainerFooter(container, footer);
 }

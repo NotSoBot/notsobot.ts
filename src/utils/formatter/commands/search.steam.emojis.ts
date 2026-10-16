@@ -3,7 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { searchSteamEmojis } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { DisplayPayload, Paginator, displayReply } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, createPaginatorMediaCache, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.steam.emojis';
@@ -22,9 +22,10 @@ export async function createMessage(
 
   if (results.length) {
     const pageLimit = results.length;
+    const fetchMedia = createPaginatorMediaCache(context, {safe: DefaultParameters.safe(context)});
     const paginator = new Paginator(context, {
       pageLimit,
-      onPage: (page) => {
+      onPage: async (page) => {
         const payload: DisplayPayload = {fields: []};
         payload.color = EmbedColors.DEFAULT;
 
@@ -34,7 +35,9 @@ export async function createMessage(
 
         payload.title = result.name;
         payload.url = result.url;
-        payload.image = result.icon;
+        // downloaded and scanned through the api, throws if it can't be (the raw url is never shown)
+        const media = await fetchMedia(page, result.icon);
+        payload.image = `attachment://${media.filename}`;
 
         {
           const description: Array<string> = [result.metadata.type, ''];
@@ -49,7 +52,7 @@ export async function createMessage(
           payload.description = description.join('\n');
         }
 
-        return {display: payload};
+        return {display: {...payload, files: [{filename: media.filename, value: media.value}]}};
       },
     });
     return await paginator.start();

@@ -1,10 +1,10 @@
 import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { searchGoogleImages, utilitiesFetchMedia } from '../../../api';
+import { searchGoogleImages } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../../constants';
-import { DisplayPayload, Paginator, displayReply, jobWaitForResponse, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, createPaginatorMediaCache, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.google.images';
@@ -32,6 +32,7 @@ export async function createMessage(
       shuffleArray(results);
     }
     const pageLimit = results.length;
+    const fetchMedia = createPaginatorMediaCache(context, {safe: args.safe});
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: async (page) => {
@@ -146,22 +147,10 @@ export async function createMessage(
           payload.description = description.join('\n');
         }
 
-        const response = await utilitiesFetchMedia(context, {
-          doNotError: true,
-          safe: args.safe,
-          upload: false,
-          url: result.imageUrl,
-        }).then((x) => jobWaitForResponse(context, x));
-        if (response) {
-          const filename = response.file.filename_safe;
-          payload.image = `attachment://${filename}`;
-
-          const value = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
-          return {display: {...payload, files: [{filename, value}]}};
-        }
-
-        payload.image = result.imageUrl;
-        return {display: payload};
+        // throws if it can't be fetched (and scanned), the raw url is never shown
+        const media = await fetchMedia(page, result.imageUrl);
+        payload.image = `attachment://${media.filename}`;
+        return {display: {...payload, files: [{filename: media.filename, value: media.value}]}};
       },
     });
     return await paginator.start();

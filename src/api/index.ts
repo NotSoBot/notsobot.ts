@@ -499,6 +499,15 @@ export async function fetchGuildTagsCommands(
 }
 
 
+// stops it if it's queued or running, then deletes it (and its temp file)
+export async function deleteJob(
+  context: RequestContext,
+  jobId: string,
+) {
+  return raw.deleteJob(context, jobId);
+}
+
+
 export async function fetchJob(
   context: RequestContext,
   jobId: string,

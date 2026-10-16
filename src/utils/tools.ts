@@ -41,7 +41,7 @@ import UserSettingsStore from '../stores/usersettings';
 
 import { getTranslator } from './i18n';
 
-import { Endpoints, fetchJob, moderationSafetyScan, moderationTextScan } from '../api';
+import { Endpoints, deleteJob, fetchJob, moderationSafetyScan, moderationTextScan, utilitiesFetchMedia } from '../api';
 import { JobError } from '../api/errors';
 import { RestOptions, RestResponsesRaw } from '../api/types';
 import { InteractionCommandMetadata } from '../commands/interactions/basecommand';
@@ -1748,9 +1748,15 @@ export function htmlDecode(value: string): string {
 }
 
 
-// jobs are killed by the api well before this, it's only a safety net so polling always ends
-export const MAX_JOB_WAIT_TIME = 5 * 60 * 1000;
+// how long a job is polled for before giving up on it, the api kills them well before this so it's only a safety net
+export const MAX_JOB_WAIT_TIME = 2 * 60 * 1000;
 const JOB_TIMED_OUT_MESSAGE = 'Timed out waiting for the job to finish';
+
+
+// for when polling gives up on a job, so it doesn't keep running (or leave its file behind) with nobody waiting on it
+function cancelJob(context: Command.Context | Interaction.InteractionContext, jobId: string): void {
+  deleteJob(context, jobId).catch(() => {});
+}
 
 
 export async function jobReply(
@@ -1776,8 +1782,9 @@ export async function jobReply(
     // errors in here would be unhandled rejections (and leave the user at "thinking"), so show them instead
     try {
       if (message) {
+        // the reply was edited or can't be anymore, nothing's waiting on the job
         if (messageEditedAtUnix !== message.editedAtUnix || !message.canEdit) {
-          return;
+          return cancelJob(context, job.id);
         }
       }
       // todo: if message is null, it means the context is an interaction, check that
@@ -1793,9 +1800,11 @@ export async function jobReply(
       }
       // interactions have no message to check, so this is the only thing that stops a stuck job from polling forever
       if (deadline <= Date.now()) {
+        cancelJob(context, job.id);
         return await editOrReply(context, translate('media.job_failed', {error: JOB_TIMED_OUT_MESSAGE}));
       }
     } catch(error) {
+      cancelJob(context, job.id);
       try {
         await editOrReply(context, translate('media.job_failed', {error: String(error.message || error)}));
       } catch(replyError) {
@@ -1833,9 +1842,11 @@ export async function jobWaitForResult(
           return resolve(refreshedJob);
         }
         if (deadline <= Date.now()) {
+          cancelJob(context, job.id);
           return reject(new Error(JOB_TIMED_OUT_MESSAGE));
         }
       } catch(error) {
+        cancelJob(context, job.id);
         return reject(error);
       }
       timer.start(pollingTime, pollingFunction);
@@ -1858,6 +1869,41 @@ export async function jobWaitForResponse(
     throw new Error(`Job did not return a response (status: ${result.status})`);
   }
   return result.result.response;
+}
+
+
+export interface CachedMedia {
+  filename: string,
+  value: Buffer,
+}
+
+// for paginators, keeps each page's fetched media around so paging back and forth doesn't redownload (or rescan) it
+// failed fetches aren't cached so they can be retried, a `safe` replacement (black image) is cached like any other response
+// a failed fetch throws, never fall back to showing the raw url: discord would embed it without it being scanned
+export function createPaginatorMediaCache(
+  context: Command.Context | Interaction.InteractionContext,
+  options: {safe?: boolean},
+) {
+  const cache = new Map<number, Promise<CachedMedia>>();
+  return (page: number, url: string): Promise<CachedMedia> => {
+    let promise = cache.get(page);
+    if (!promise) {
+      promise = utilitiesFetchMedia(context, {
+        doNotError: true,
+        safe: options.safe,
+        upload: false,
+        url,
+      }).then((x) => jobWaitForResponse(context, x)).then((response) => {
+        if (!response.file.value) {
+          throw new Error('Couldn\'t fetch the media');
+        }
+        return {filename: response.file.filename_safe, value: Buffer.from(response.file.value, 'base64')};
+      });
+      promise.catch(() => cache.delete(page));
+      cache.set(page, promise);
+    }
+    return promise;
+  };
 }
 
 

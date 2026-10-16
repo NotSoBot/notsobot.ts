@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { searchReddit } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { DateMomentLogFormat, EmbedBrands, EmbedColors, RedditKindTypes, RedditSortTypes, RedditTimeTypes } from '../../../constants';
-import { DisplayPayload, Paginator, chunkArray, createTimestampMomentFromGuild, displayReply, htmlDecode, shuffleArray } from '../../../utils';
+import { DisplayPayload, Paginator, chunkArray, createPaginatorMediaCache, createTimestampMomentFromGuild, displayReply, htmlDecode, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.reddit';
@@ -29,9 +29,10 @@ export async function createMessage(
   const { results } = await searchReddit(context, args);
   if (results.length) {
     const pageLimit = results.length;
+    const fetchMedia = createPaginatorMediaCache(context, {safe: args.safe});
     const paginator = new Paginator(context, {
       pageLimit,
-      onPage: (page) => {
+      onPage: async (page) => {
         const data = results[page - 1];
 
         const payload: DisplayPayload = {fields: []};
@@ -88,10 +89,13 @@ export async function createMessage(
           payload.fields!.push({name: translate('search_reddit.details'), value: description.join('\n')});
         }
 
+        // downloaded and scanned through the api, throws if it can't be (the raw url is never shown)
+        let file: {filename: string, value: Buffer} | null = null;
         if (data.preview) {
           const [ image ] = data.preview.images;
           if (image) {
-            payload.image = htmlDecode(image.source.url);
+            file = await fetchMedia(page, htmlDecode(image.source.url));
+            payload.image = `attachment://${file.filename}`;
           }
         }
 
@@ -110,7 +114,7 @@ export async function createMessage(
           }; break;
         }
 
-        return {display: payload};
+        return {display: (file) ? {...payload, files: [file]} : payload};
       },
     });
     return await paginator.start();
