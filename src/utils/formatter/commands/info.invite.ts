@@ -22,7 +22,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'inviteinfo';
+export const COMMAND_ID = 'info.invite';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

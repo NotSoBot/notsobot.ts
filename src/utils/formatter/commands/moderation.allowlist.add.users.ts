@@ -14,7 +14,7 @@ export interface CommandArgs {
   users: Array<Structures.Member | Structures.User>,
 }
 
-export const COMMAND_ID = 'moderation.allowlist.add.users';
+export const COMMAND_ID = 'server.allowlist.add.users';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

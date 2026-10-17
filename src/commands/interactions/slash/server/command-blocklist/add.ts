@@ -1,0 +1,89 @@
+import { Interaction } from 'detritus-client';
+import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
+
+import { StatusEmojis } from '../../../../../constants';
+import { Formatter, I18n, Parameters, displayReply } from '../../../../../utils';
+
+import { BaseInteractionCommandOption } from '../../../basecommand';
+
+
+export const COMMAND_NAME = 'add';
+
+export class ServerCommandBlocklistAddCommand extends BaseInteractionCommandOption {
+  description = 'Add a command to the blocklist for Channels/Roles/Users or Server-Wide';
+  descriptionLocalizations = I18n.localizations('commands.commands.blocklist.add.description');
+  metadata = {
+    id: Formatter.Commands.ModerationCommandsBlocklistAdd.COMMAND_ID,
+  };
+  name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.commands.blocklist.add.name');
+
+  constructor() {
+    super({
+      permissions: [Permissions.MANAGE_GUILD],
+      options: [
+        {name: 'command', description: 'Command name or ID', ...I18n.optionLocalizations('commands.commands.blocklist.add.command'), required: true, value: Parameters.prefixedCommand},
+        {
+          name: 'channels',
+          description: 'Channels (Mentions or IDs, separated by spaces)',
+          ...I18n.optionLocalizations('commands.commands.blocklist.add.channels'),
+          value: Parameters.channels({
+            types: [
+              ChannelTypes.GUILD_CATEGORY,
+              ChannelTypes.GUILD_NEWS,
+              ChannelTypes.GUILD_TEXT,
+            ],
+          }),
+        },
+        {name: 'roles', description: 'Roles (Mentions or IDs, separated by spaces)', ...I18n.optionLocalizations('commands.commands.blocklist.add.roles'), value: Parameters.roles},
+        {name: 'users', description: 'Users (Mentions or IDs, separated by spaces)', ...I18n.optionLocalizations('commands.commands.blocklist.add.users'), value: Parameters.membersOrUsers({allowBots: false})},
+      ],
+    });
+  }
+
+  onBeforeRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationCommandsBlocklistAdd.CommandArgsBefore) {
+    if (!args.command) {
+      return false;
+    }
+    if (args.channels && !args.channels.length) {
+      return false;
+    }
+    if (args.roles && !args.roles.length) {
+      return false;
+    }
+    if (args.users && !args.users.length) {
+      return false;
+    }
+    return true;
+  }
+
+  async onCancelRun(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationCommandsBlocklistAdd.CommandArgsBefore) {
+    const { translate } = await I18n.getTranslator(context);
+    let content: string;
+    if (args.command) {
+      const errors: Array<string> = [];
+      if (args.channels && !args.channels.length) {
+        errors.push(translate('moderation.types.channel').toLowerCase());
+      }
+      if (args.roles && !args.roles.length) {
+        errors.push(translate('moderation.types.role').toLowerCase());
+      }
+      if (args.users && !args.users.length) {
+        errors.push(translate('moderation.types.user').toLowerCase());
+      }
+      content = translate('moderation.items_not_found', {items: errors.join(', ')});
+    } else {
+      content = translate('errors.unknown_command');
+    }
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${content}`, ephemeral: true});
+  }
+
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.ModerationCommandsBlocklistAdd.CommandArgs) {
+    return Formatter.Commands.ModerationCommandsBlocklistAdd.createMessage(context, {
+      channels: args.channels || null,
+      command: args.command,
+      roles: args.roles || null,
+      users: args.users || null,
+    });
+  }
+}

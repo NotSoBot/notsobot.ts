@@ -59,6 +59,7 @@ export default class NickMassResetCommand extends BaseCommand {
           `${COMMAND_NAME} -nousers`,
         ],
         category: CommandCategories.MODERATION,
+        id: 'moderation.nick.mass.reset',
         usage: '(-nobots) (-nousers) (-role <role:id|name>)',
       },
       permissionsClient: [Permissions.CHANGE_NICKNAMES],

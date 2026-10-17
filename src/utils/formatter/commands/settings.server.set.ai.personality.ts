@@ -8,7 +8,7 @@ import { editGuildSettings } from '../../../api';
 import { displayReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'settings.server.set.ai.personality';
+export const COMMAND_ID = 'server.set.ai.personality';
 
 export interface CommandArgs {
   clear?: boolean,

@@ -20,6 +20,7 @@ export default class LoggersAddMessagesCommand extends LoggersAddBaseCommand {
           `${COMMAND_NAME} -in logs`,
         ],
         category: CommandCategories.SERVER,
+        id: 'server.loggers.add.messages',
         usage: '(-channel <text-channel:id|mention|name>) (-in <category-channel:id|mention|name>)',
       },
     });

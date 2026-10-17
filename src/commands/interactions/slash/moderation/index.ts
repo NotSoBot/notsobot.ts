@@ -4,11 +4,8 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { ModerationAllowlistGroupCommand } from './allowlist';
 import { ModerationBanCommand } from './ban';
-import { ModerationBlocklistGroupCommand } from './blocklist';
 import { ModerationKickCommand } from './kick';
-import { ModerationLoggersGroupCommand } from './loggers';
 import { ModerationNickMassGroupCommand } from './nick-mass';
 import { ModerationPruneCommand } from './prune';
 import { ModerationUnbanCommand } from './unban';
@@ -30,11 +27,8 @@ export default class ModerationGroupCommand extends BaseSlashCommand {
   constructor() {
     super({
       options: [
-        new ModerationAllowlistGroupCommand(),
         new ModerationBanCommand(),
-        new ModerationBlocklistGroupCommand(),
         new ModerationKickCommand(),
-        new ModerationLoggersGroupCommand(),
         new ModerationNickMassGroupCommand(),
         new ModerationPruneCommand(),
         new ModerationUnbanCommand(),

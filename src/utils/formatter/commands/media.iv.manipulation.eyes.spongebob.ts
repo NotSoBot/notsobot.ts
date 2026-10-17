@@ -5,7 +5,7 @@ import { MediaEyeTypes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'eyes.spongebob';
+export const COMMAND_ID = 'media.iv.manipulation.eyes.spongebob';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

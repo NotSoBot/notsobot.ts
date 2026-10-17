@@ -14,7 +14,7 @@ export interface CommandArgs {
   channels: Array<Structures.Channel>,
 }
 
-export const COMMAND_ID = 'blocklist.add.channels';
+export const COMMAND_ID = 'server.blocklist.add.channels';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

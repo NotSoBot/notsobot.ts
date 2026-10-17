@@ -14,7 +14,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'applications';
+export const COMMAND_ID = 'info.applications';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

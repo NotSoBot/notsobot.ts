@@ -383,11 +383,10 @@ export const PIPEABLE_COMMAND_CATEGORIES: ReadonlyArray<CommandCategories> = Obj
 // Slash-only commands have no prefixed twin to inherit a category from; matched by id prefix,
 // first match wins (so the more specific prefixes come first).
 export const SLASH_COMMAND_CATEGORY_FALLBACKS: ReadonlyArray<[string, CommandCategories]> = Object.freeze([
-  ['settings.server.', CommandCategories.SERVER],
+  ['server.', CommandCategories.SERVER],
   ['settings.', CommandCategories.PERSONAL],
   ['media.', CommandCategories.CONVERSION],
   ['tag.', CommandCategories.TAGS],
-  ['moderation.loggers.', CommandCategories.SERVER],
   ['moderation.', CommandCategories.MODERATION],
   ['reminder.', CommandCategories.UTILITY],
   ['owner.', CommandCategories.OWNER],

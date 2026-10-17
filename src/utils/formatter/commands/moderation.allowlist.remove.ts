@@ -88,7 +88,7 @@ export async function removeAllowlist(
   return {settings, title};
 }
 
-export const COMMAND_ID = 'allowlist.remove';
+export const COMMAND_ID = 'server.allowlist.remove';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

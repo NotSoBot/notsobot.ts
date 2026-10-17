@@ -7,7 +7,7 @@ import { CommandCategories, CommandTypes, SLASH_COMMAND_CATEGORY_FALLBACKS } fro
 import { displayReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'upload-commands';
+export const COMMAND_ID = 'owner.upload.commands';
 
 // explicit category, else the prefixed command with the same id, else an id-prefix fallback
 function resolveInteractionCategory(

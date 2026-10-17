@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { DisplayPayload, displayReply, padCodeBlockFromRows, splitTextByAmount } from '../../../utils';
 
 
-export const COMMAND_ID = 'memoryusage';
+export const COMMAND_ID = 'bot.memory.usage';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

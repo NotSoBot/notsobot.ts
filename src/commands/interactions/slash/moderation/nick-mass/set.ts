@@ -16,6 +16,9 @@ export const COMMAND_NAME = 'set';
 export class ModerationNickMassSetCommand extends BaseNickMassCommandOption {
   description = 'Change the nickname of multiple members';
   descriptionLocalizations = I18n.localizations('commands.moderation.nick_mass.set.description');
+  metadata = {
+    id: 'moderation.nick.mass',
+  };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.moderation.nick_mass.set.name');
 

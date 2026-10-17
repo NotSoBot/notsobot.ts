@@ -12,6 +12,9 @@ export const COMMAND_NAME = 'reset';
 export class ModerationNickMassResetCommand extends BaseNickMassCommandOption {
   description = 'Reset the nickname of multiple members';
   descriptionLocalizations = I18n.localizations('commands.moderation.nick_mass.reset.description');
+  metadata = {
+    id: 'moderation.nick.mass.reset',
+  };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.moderation.nick_mass.reset.name');
 

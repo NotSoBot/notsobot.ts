@@ -12,7 +12,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'labels';
+export const COMMAND_ID = 'tools.labels';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

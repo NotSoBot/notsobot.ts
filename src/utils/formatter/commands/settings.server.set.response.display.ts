@@ -8,7 +8,7 @@ import { GuildSettingsResponseDisplayTypes } from '../../../constants';
 import { displayReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'settings.server.set.response.display';
+export const COMMAND_ID = 'server.set.response.display';
 
 export interface CommandArgs {
   clear?: boolean,

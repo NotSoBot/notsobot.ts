@@ -30,7 +30,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'guildicon';
+export const COMMAND_ID = 'info.guild.icon';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

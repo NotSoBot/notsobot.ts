@@ -112,7 +112,7 @@ export async function createAllowlistEmbed(
   }
 }
 
-export const COMMAND_ID = 'allowlist';
+export const COMMAND_ID = 'server.allowlist.list';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

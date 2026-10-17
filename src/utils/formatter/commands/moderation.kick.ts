@@ -17,7 +17,7 @@ export interface CommandArgs {
   payload: Parameters.BanPayloadMembersOnly,
 }
 
-export const COMMAND_ID = 'kick';
+export const COMMAND_ID = 'moderation.kick';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

@@ -10,7 +10,7 @@ import { DisplayPayload, displayReply } from '../../tools';
 import * as PrefixesList from './prefixes.list';
 
 
-export const COMMAND_ID = 'prefixes.add';
+export const COMMAND_ID = 'server.prefixes.add';
 
 export interface CommandArgs {
   prefix: string,

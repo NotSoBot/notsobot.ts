@@ -112,7 +112,7 @@ export async function createBlocklistEmbed(
   }
 }
 
-export const COMMAND_ID = 'blocklist';
+export const COMMAND_ID = 'server.blocklist.list';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

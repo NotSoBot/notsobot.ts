@@ -16,10 +16,10 @@ import { Translator, getTranslator } from '../../i18n';
 
 
 // same prefixes as each list's other commands, `isGuildListCommandId` relies on it
-export const ALLOWLIST_COMMAND_ID = 'allowlist.admin-bypass';
-export const BLOCKLIST_COMMAND_ID = 'blocklist.admin-bypass';
-export const COMMANDS_ALLOWLIST_COMMAND_ID = 'moderation.commands.allowlist.admin-bypass';
-export const COMMANDS_BLOCKLIST_COMMAND_ID = 'commands.blocklist.admin-bypass';
+export const ALLOWLIST_COMMAND_ID = 'server.allowlist.admin.bypass';
+export const BLOCKLIST_COMMAND_ID = 'server.blocklist.admin.bypass';
+export const COMMANDS_ALLOWLIST_COMMAND_ID = 'server.commands.allowlist.admin.bypass';
+export const COMMANDS_BLOCKLIST_COMMAND_ID = 'server.commands.blocklist.admin.bypass';
 
 // for `Parameters.Slash.oneOf`, in this order
 export const VALUE_CHOICES = Object.freeze({

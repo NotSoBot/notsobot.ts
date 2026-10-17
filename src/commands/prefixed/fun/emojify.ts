@@ -1,6 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 import { BaseCommand } from '../basecommand';
 
 
@@ -12,7 +13,7 @@ export interface CommandArgs {
 
 }
 
-// not registered (no default export) until it has an implementation, the empty `run()` showed up in help and never replied
+// not registered (no default export) until its formatter has an implementation, an empty command showed up in help and never replied
 export class EmojifyCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
@@ -21,11 +22,12 @@ export class EmojifyCommand extends BaseCommand {
       aliases: ['efy'],
       metadata: {
         category: CommandCategories.FUN,
+        id: Formatter.Commands.FunEmojify.COMMAND_ID,
       },
     });
   }
 
-  run(context: Command.Context, args: CommandArgs) {
-
+  run(context: Command.Context, args: Formatter.Commands.FunEmojify.CommandArgs) {
+    return Formatter.Commands.FunEmojify.createMessage(context, args);
   }
 }

@@ -11,7 +11,7 @@ export interface CommandArgs {
   only: GuildCommandsBlocklistTypes | null,
 }
 
-export const COMMAND_ID = 'commands.blocklist.clear';
+export const COMMAND_ID = 'server.commands.blocklist.clear';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

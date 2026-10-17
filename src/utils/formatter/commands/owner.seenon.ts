@@ -89,7 +89,7 @@ export async function getSharedGuilds(value: string, context: Command.Context | 
 }
 
 
-export const COMMAND_ID = 'seenon';
+export const COMMAND_ID = 'owner.seenon';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

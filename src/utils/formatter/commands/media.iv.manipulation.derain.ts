@@ -4,7 +4,7 @@ import { mediaIVManipulationDerain } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.manipulations.derain';
+export const COMMAND_ID = 'media.iv.manipulation.derain';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

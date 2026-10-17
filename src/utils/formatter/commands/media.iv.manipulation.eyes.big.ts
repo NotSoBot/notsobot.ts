@@ -5,7 +5,7 @@ import { MediaEyeTypes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'eyes.big';
+export const COMMAND_ID = 'media.iv.manipulation.eyes.big';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

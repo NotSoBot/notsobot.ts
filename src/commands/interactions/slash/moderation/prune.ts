@@ -23,6 +23,9 @@ export const COMMAND_NAME = 'prune';
 export class ModerationPruneCommand extends BaseInteractionCommandOption {
   description = 'Prune multiple messages';
   descriptionLocalizations = I18n.localizations('commands.moderation.prune.description');
+  metadata = {
+    id: 'moderation.prune',
+  };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.moderation.prune.name');
 

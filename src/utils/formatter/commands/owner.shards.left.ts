@@ -10,7 +10,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'shardsleft';
+export const COMMAND_ID = 'owner.shards.left';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

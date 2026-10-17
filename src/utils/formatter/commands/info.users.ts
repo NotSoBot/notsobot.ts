@@ -34,7 +34,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'users';
+export const COMMAND_ID = 'info.users';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

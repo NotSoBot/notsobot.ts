@@ -32,7 +32,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'role';
+export const COMMAND_ID = 'info.role';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

@@ -1,6 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
 import { BaseCommand } from '../basecommand';
 
 
@@ -14,7 +15,7 @@ export interface CommandArgs {
 
 export const COMMAND_NAME = 'merge';
 
-// not registered (no default export) until it has an implementation, the empty `run()` showed up in help and never replied
+// not registered (no default export) until its formatter has an implementation, an empty command showed up in help and never replied
 export class MergeCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
@@ -22,11 +23,12 @@ export class MergeCommand extends BaseCommand {
 
       metadata: {
         category: CommandCategories.EFFECTS,
+        id: Formatter.Commands.MediaIVManipulationMerge.COMMAND_ID,
       },
     });
   }
 
-  run(context: Command.Context, args: CommandArgs) {
-
+  run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationMerge.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationMerge.createMessage(context, args);
   }
 }

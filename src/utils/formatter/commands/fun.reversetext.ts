@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { displayReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'reversetext';
+export const COMMAND_ID = 'fun.reverse.text';
 
 export interface CommandArgs {
   text: string,

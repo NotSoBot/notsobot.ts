@@ -17,7 +17,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'safetylabels';
+export const COMMAND_ID = 'tools.safety.labels';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

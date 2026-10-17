@@ -5,7 +5,7 @@ import { mediaIVManipulationShakeTriggered } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'triggered';
+export const COMMAND_ID = 'media.iv.manipulation.labels.triggered';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

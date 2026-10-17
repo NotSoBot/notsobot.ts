@@ -14,7 +14,7 @@ export interface CommandArgs {
   roles: Array<Structures.Role>,
 }
 
-export const COMMAND_ID = 'blocklist.add.roles';
+export const COMMAND_ID = 'server.blocklist.add.roles';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

@@ -75,6 +75,7 @@ export default class PruneCommand extends BaseCommand {
           `${COMMAND_NAME} 500 -with discord.gg -in general`
         ],
         category: CommandCategories.MODERATION,
+        id: 'moderation.prune',
         usage: '<max_messages> (-after <message_id>) (-before <message_id>) (-from <user>) (-in <channel>) (-until <message_id>) (-with <text>)',
       },
       permissionsClient: [Permissions.MANAGE_MESSAGES],

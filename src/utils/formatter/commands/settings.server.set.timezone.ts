@@ -7,7 +7,7 @@ import { getTranslator } from '../../i18n';
 import { displayReply, timezoneCodeToText } from '../..';
 
 
-export const COMMAND_ID = 'settings.server.set.timezone';
+export const COMMAND_ID = 'server.set.timezone';
 
 export interface CommandArgs {
   clear?: boolean,

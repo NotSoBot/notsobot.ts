@@ -9,7 +9,7 @@ import { DisplayPayload, displayReply } from '../../tools';
 import * as PrefixesList from './prefixes.list';
 
 
-export const COMMAND_ID = 'prefixes.clear';
+export const COMMAND_ID = 'server.prefixes.clear';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

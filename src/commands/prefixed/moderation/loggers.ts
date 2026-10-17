@@ -127,6 +127,7 @@ export default class LoggersCommand extends BaseCommand {
           `${COMMAND_NAME} members`,
         ],
         category: CommandCategories.SERVER,
+        id: 'server.loggers.list',
         usage: '?<GuildLoggerTypes>',
       },
       permissions: [Permissions.MANAGE_GUILD],

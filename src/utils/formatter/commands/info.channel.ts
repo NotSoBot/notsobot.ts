@@ -25,7 +25,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'channel';
+export const COMMAND_ID = 'info.channel';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

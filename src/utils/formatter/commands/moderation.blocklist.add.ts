@@ -162,7 +162,7 @@ export async function createBlocklist(
   return {settings, title};
 }
 
-export const COMMAND_ID = 'blocklist.add';
+export const COMMAND_ID = 'server.blocklist.add';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

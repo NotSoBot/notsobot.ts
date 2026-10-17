@@ -113,7 +113,7 @@ export async function getClusterInformation(context: Command.Context | Interacti
 }
 
 
-export const COMMAND_ID = 'shards';
+export const COMMAND_ID = 'bot.shards';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

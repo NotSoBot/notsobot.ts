@@ -12,6 +12,9 @@ export const COMMAND_NAME = 'cancel';
 export class ModerationNickMassCancelCommand extends BaseInteractionCommandOption {
   description = 'Cancel an ongoing mass nickname change';
   descriptionLocalizations = I18n.localizations('commands.moderation.nick_mass.cancel.description');
+  metadata = {
+    id: 'moderation.nick.mass.cancel',
+  };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.moderation.nick_mass.cancel.name');
 

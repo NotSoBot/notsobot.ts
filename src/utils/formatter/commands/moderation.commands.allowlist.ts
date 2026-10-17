@@ -12,7 +12,7 @@ import { DisplayPayload, Paginator, chunkArray, displayReply, toTitleCase } from
 import * as ModerationAdminBypass from './moderation.adminbypass';
 
 
-export const COMMAND_ID = 'moderation.commands.allowlist';
+export const COMMAND_ID = 'server.commands.allowlist.list';
 
 export interface CommandArgs {
   only: GuildCommandsAllowlistTypes | null,

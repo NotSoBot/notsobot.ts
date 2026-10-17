@@ -210,7 +210,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'refresh';
+export const COMMAND_ID = 'owner.refresh';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

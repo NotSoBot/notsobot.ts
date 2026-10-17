@@ -4,7 +4,7 @@ import { mediaIVManipulationRain } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
-export const COMMAND_ID = 'media.iv.manipulations.rain';
+export const COMMAND_ID = 'media.iv.manipulation.rain';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

@@ -10,7 +10,7 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 import { createCommandsBlocklistsEmbed } from './moderation.commands.blocklist';
 
 
-export const COMMAND_ID = 'commands.blocklist.add';
+export const COMMAND_ID = 'server.commands.blocklist.add';
 
 export interface CommandArgsBefore {
   channels: Array<Structures.Channel> | null,

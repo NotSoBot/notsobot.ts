@@ -18,7 +18,7 @@ import {
 } from '../../../utils';
 
 
-export const COMMAND_ID = 'moderation.commands.usage';
+export const COMMAND_ID = 'server.commands.usage';
 
 export const MAX_RESULTS = 100000;
 export const RESULTS_PER_PAGE = 10;

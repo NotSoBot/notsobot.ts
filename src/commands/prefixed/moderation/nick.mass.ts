@@ -62,6 +62,7 @@ export default class NickMassCommand extends BaseCommand {
           `${COMMAND_NAME} troy -nousers`,
         ],
         category: CommandCategories.MODERATION,
+        id: 'moderation.nick.mass',
         usage: '<text> (-nobots) (-nousers) (-role <role:id|name>)',
       },
       permissionsClient: [Permissions.CHANGE_NICKNAMES],

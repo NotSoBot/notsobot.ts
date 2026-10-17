@@ -11,7 +11,7 @@ export interface CommandArgs {
   only?: GuildAllowlistTypes | null,
 }
 
-export const COMMAND_ID = 'allowlist.clear';
+export const COMMAND_ID = 'server.allowlist.clear';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

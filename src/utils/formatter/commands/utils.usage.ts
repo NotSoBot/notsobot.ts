@@ -8,7 +8,7 @@ import { displayReply, padCodeBlockFromRows } from '../../../utils';
 import { ClusterInformation, getClusterInformation } from './utils.shards';
 
 
-export const COMMAND_ID = 'usage';
+export const COMMAND_ID = 'bot.usage';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

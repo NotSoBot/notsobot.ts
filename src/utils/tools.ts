@@ -1289,7 +1289,7 @@ export function getCommandIdFromInvoker(
 // the commands that manage the allowlist/blocklist/command lists (and their owner/admin bypass), the server owner and
 // admins can always use these so turning their bypass off can't lock them out of undoing it
 export function isGuildListCommandId(commandId: string): boolean {
-  return /^(moderation\.)?(commands\.)?(allowlist|blocklist)(\.|$)/.test(commandId);
+  return /^server\.(commands\.)?(allowlist|blocklist)(\.|$)/.test(commandId);
 }
 
 

@@ -4,6 +4,7 @@ import * as FunAesthetics from './fun.aesthetics';
 import * as FunB1 from './fun.b1';
 import * as FunBadMeme from './fun.badmeme';
 import * as FunEmoji from './fun.emoji';
+import * as FunEmojify from './fun.emojify';
 import * as FunGameImagine from './fun.game.imagine';
 import * as FunRegional from './fun.regional';
 import * as FunReverseText from './fun.reversetext';
@@ -142,6 +143,7 @@ import * as MediaIVManipulationHueCurveRGBA from './media.iv.manipulation.hue.cu
 import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
 import * as MediaIVManipulationHueShiftHSVFFMPEG from './media.iv.manipulation.hue.shift.hsv.ffmpeg';
 import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shift.rgb';
+import * as MediaIVManipulationIdentity from './media.iv.manipulation.identity';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationImplodeAnimated from './media.iv.manipulation.implode.animated';
 import * as MediaIVManipulationInOut from './media.iv.manipulation.in.out';
@@ -162,6 +164,7 @@ import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
 import * as MediaIVManipulationMagikAnimated from './media.iv.manipulation.magik.animated';
 import * as MediaIVManipulationMandalaScope from './media.iv.manipulation.mandalascope';
 import * as MediaIVManipulationMeme from './media.iv.manipulation.meme';
+import * as MediaIVManipulationMerge from './media.iv.manipulation.merge';
 import * as MediaIVManipulationMirrorBottom from './media.iv.manipulation.mirror.bottom';
 import * as MediaIVManipulationMirrorLeft from './media.iv.manipulation.mirror.left';
 import * as MediaIVManipulationMirrorRight from './media.iv.manipulation.mirror.right';
@@ -340,6 +343,7 @@ import * as Search4Chan from './search.4chan';
 import * as SearchDiscordEmojis from './search.discord.emojis';
 import * as SearchDuckDuckGo from './search.duckduckgo';
 import * as SearchDuckDuckGoImages from './search.duckduckgo.images';
+import * as SearchGiphy from './search.giphy';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleReverse from './search.google.reverse';
 import * as SearchGoogleWeb from './search.google.web';
@@ -350,6 +354,7 @@ import * as SearchSteamCommunity from './search.steam.community';
 import * as SearchSteamEmojis from './search.steam.emojis';
 import * as SearchSteamProfile from './search.steam.profile';
 import * as SearchUrban from './search.urban';
+import * as SearchWebMD from './search.webmd';
 import * as SearchWikihow from './search.wikihow';
 import * as SearchWolframAlpha from './search.wolframalpha';
 import * as SearchYoutube from './search.youtube';
@@ -415,6 +420,7 @@ import * as ToolsQrCreate from './tools.qr.create';
 import * as ToolsQrScan from './tools.qr.scan';
 import * as ToolsSafetyLabels from './tools.safety.labels';
 import * as ToolsScreenshot from './tools.screenshot';
+import * as ToolsTone from './tools.tone';
 import * as ToolsTranscribe from './tools.transcribe';
 import * as ToolsTranscribeTranslate from './tools.transcribe.translate';
 import * as ToolsTranslate from './tools.translate';
@@ -444,6 +450,7 @@ export {
   FunB1,
   FunBadMeme,
   FunEmoji,
+  FunEmojify,
   FunGameImagine,
   FunRegional,
   FunReverseText,
@@ -582,6 +589,7 @@ export {
   MediaIVManipulationHueShiftHSV,
   MediaIVManipulationHueShiftHSVFFMPEG,
   MediaIVManipulationHueShiftRGB,
+  MediaIVManipulationIdentity,
   MediaIVManipulationImplode,
   MediaIVManipulationImplodeAnimated,
   MediaIVManipulationInOut,
@@ -602,6 +610,7 @@ export {
   MediaIVManipulationMagikAnimated,
   MediaIVManipulationMandalaScope,
   MediaIVManipulationMeme,
+  MediaIVManipulationMerge,
   MediaIVManipulationMirrorBottom,
   MediaIVManipulationMirrorLeft,
   MediaIVManipulationMirrorRight,
@@ -780,6 +789,7 @@ export {
   SearchDiscordEmojis,
   SearchDuckDuckGo,
   SearchDuckDuckGoImages,
+  SearchGiphy,
   SearchGoogleImages,
   SearchGoogleReverse,
   SearchGoogleWeb,
@@ -790,7 +800,7 @@ export {
   SearchSteamEmojis,
   SearchSteamProfile,
   SearchUrban,
-//  SearchWebMD,
+  SearchWebMD,
   SearchWikihow,
   SearchWolframAlpha,
   SearchYoutube,
@@ -856,6 +866,7 @@ export {
   ToolsQrScan,
   ToolsSafetyLabels,
   ToolsScreenshot,
+  ToolsTone,
   ToolsTranscribe,
   ToolsTranscribeTranslate,
   ToolsTranslate,

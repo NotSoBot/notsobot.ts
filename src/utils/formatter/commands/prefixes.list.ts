@@ -10,7 +10,7 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 import { DisplayPayload, displayReply } from '../../tools';
 
 
-export const COMMAND_ID = 'prefixes.list';
+export const COMMAND_ID = 'server.prefixes.list';
 
 export function formatPrefixes(
   context: Command.Context | Interaction.InteractionContext,

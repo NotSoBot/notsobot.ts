@@ -14,7 +14,7 @@ export interface CommandArgs {
   payload: Parameters.BanPayload,
 }
 
-export const COMMAND_ID = 'unban';
+export const COMMAND_ID = 'moderation.unban';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

@@ -18,6 +18,9 @@ export const COMMAND_NAME = 'eval';
 export class OwnerEvalCommand extends BaseInteractionCommandOption {
   description = 'Eval some code ;)';
   descriptionLocalizations = I18n.localizations('commands.owner.eval.description');
+  metadata = {
+    id: Formatter.Commands.OwnerEval.COMMAND_ID,
+  };
   name = COMMAND_NAME;
   triggerLoadingAfter = 2000;
 

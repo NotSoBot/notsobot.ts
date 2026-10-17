@@ -56,7 +56,7 @@ export function activityFilter(activity: Structures.PresenceActivity, text: stri
 }
 
 
-export const COMMAND_ID = 'playing';
+export const COMMAND_ID = 'info.playing';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

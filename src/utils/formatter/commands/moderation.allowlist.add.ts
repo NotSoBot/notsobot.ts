@@ -162,7 +162,7 @@ export async function createAllowlist(
   return {settings, title};
 }
 
-export const COMMAND_ID = 'allowlist.add';
+export const COMMAND_ID = 'server.allowlist.add';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

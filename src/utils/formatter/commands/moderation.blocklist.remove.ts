@@ -88,7 +88,7 @@ export async function removeBlocklist(
   return {settings, title};
 }
 
-export const COMMAND_ID = 'blocklist.remove';
+export const COMMAND_ID = 'server.blocklist.remove';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

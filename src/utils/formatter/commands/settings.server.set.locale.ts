@@ -10,7 +10,7 @@ import { GoogleLocales } from '../../../constants';
 import { displayReply, languageCodeToText } from '../../../utils';
 
 
-export const COMMAND_ID = 'settings.server.set.locale';
+export const COMMAND_ID = 'server.set.locale';
 
 export interface CommandArgs {
   clear?: boolean,

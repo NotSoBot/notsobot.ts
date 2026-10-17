@@ -10,7 +10,7 @@ import GuildSettingsStore from '../../../stores/guildsettings';
 import { createCommandsAllowlistsEmbed } from './moderation.commands.allowlist';
 
 
-export const COMMAND_ID = 'moderation.commands.allowlist.remove';
+export const COMMAND_ID = 'server.commands.allowlist.remove';
 
 export interface CommandArgsBefore {
   channels: Array<Structures.Channel> | null,

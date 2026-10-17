@@ -6,7 +6,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'say';
+export const COMMAND_ID = 'owner.say';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

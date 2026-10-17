@@ -23,7 +23,7 @@ export interface CommandArgs {
 }
 
 
-export const COMMAND_ID = 'activity';
+export const COMMAND_ID = 'info.activity';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

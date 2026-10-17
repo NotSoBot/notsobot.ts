@@ -14,7 +14,7 @@ export interface CommandArgs {
   channels: Array<Structures.Channel>,
 }
 
-export const COMMAND_ID = 'allowlist.remove.channels';
+export const COMMAND_ID = 'server.allowlist.remove.channels';
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,

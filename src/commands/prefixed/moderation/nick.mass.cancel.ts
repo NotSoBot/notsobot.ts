@@ -32,6 +32,7 @@ export default class NickMassCancelCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         category: CommandCategories.MODERATION,
+        id: 'moderation.nick.mass.cancel',
         usage: '',
       },
       permissionsClient: [Permissions.CHANGE_NICKNAMES],
