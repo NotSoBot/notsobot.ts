@@ -13,8 +13,9 @@ import {
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
 import { getCachedTranslator, getTranslator } from '../../i18n';
 
-import { createTagUse, editTag } from '../../../api';
+import { createTagUse, editTag, fetchFileVanity } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
+import { Mimetypes, MimetypesToExtension } from '../../../constants';
 import {
   DefaultParameters,
   Page,
@@ -150,46 +151,121 @@ export async function createTagMessage(
     options.flags = (options.flags || 0) | MessageFlags.SUPPRESS_EMBEDS;
   }
 
-  const shouldDisplayMediaAsNative = !!(
-    parsedTag.variables
-    [TagFormatter.PrivateVariables.SETTINGS]
-    [TagFormatter.TagSettings.DISPLAY_MEDIA_AS_NATIVE]
-  );
-  if (
-    shouldDisplayMediaAsNative &&
-    !options.flags &&
-    !(!parsedTag.components || !parsedTag.components.components.length) &&
-    !parsedTag.embeds.length &&
-    parsedTag.files.length === 1
-  ) {
-    // todo: maybe store our fileresponse with the file object so we can refer back to it
-    /*
-    const file = parsedTag.files[0];
-    return mediaReplyFromOptions(context, {
-      content,
-      context: componentContext,
-
-      
-      args?: boolean,
-      content?: string,
-      context?: ComponentContext,
-      description?: string,
-      extension?: string,
-      filename?: string,
-      framecount?: number,
-      height?: number,
-      mimetype?: string,
-      reuploading?: ReuploadStatuses,
-      size: number,
-      spoiler?: boolean,
-      storage?: null | RestResponsesRaw.FileResponseStorage,
-      took?: number,
-      width?: number,
-    });
-    */
+  // a lone file or nsb.gg url gets shown like a media command's reply. not for button/select runs, editing their
+  // message into components v2 would keep its old content
+  if (!componentContext) {
+    const media = await getMediaReplyOptions(context, parsedTag, content, options);
+    if (media) {
+      return mediaReplyFromOptions(context, media.value, media.options);
+    }
   }
 
   return editOrReply(componentContext || context, options);
+}
+
+
+// `https://cdn.nsb.gg/{vanity}.{extension}` or `https://nsb.gg/{vanity}.{extension}`, assets (`/assets/...`) aren't files
+const REGEX_NSB_GG_URL = /^<?(https?:\/\/(?:cdn\.)?nsb\.gg\/([^\s\/<>.]+)\.[a-z0-9]+)>?$/i;
+
+export async function getMediaReplyOptions(
+  context: Command.Context | Interaction.InteractionContext,
+  parsedTag: TagFormatter.TagResult,
+  content: string,
+  options: Command.EditOrReply,
+): Promise<{options: Parameters<typeof mediaReplyFromOptions>[2], value: Buffer} | null> {
+  if (
+    // the tag asked for discord's own attachment/link instead
+    parsedTag.variables[TagFormatter.PrivateVariables.SETTINGS][TagFormatter.TagSettings.DISPLAY_MEDIA_AS_NATIVE] ||
+    (parsedTag.components && parsedTag.components.components.length) ||
+    parsedTag.embeds.length ||
+    // voice messages stay as discord's own player
+    (options.flags && (options.flags & MessageFlags.IS_VOICE_MESSAGE))
+  ) {
+    return null;
+  }
+
+  if (!content && parsedTag.files.length === 1) {
+    const file = parsedTag.files[0];
+    if (!file.buffer) {
+      return null;
+    }
+    // mediaReply adds the extension back on
+    const dot = file.filename.lastIndexOf('.');
+    if (dot <= 0) {
+      return null;
+    }
+    const extension = file.filename.slice(dot + 1);
+    const value = (typeof(file.buffer) === 'string') ? Buffer.from(file.buffer) : file.buffer;
+    const { response } = file;
+    const metadata = (response) ? response.file.metadata : null;
+    return {
+      options: {
+        altText: file.description,
+        extension,
+        filename: file.filename.slice(0, dot),
+        framecount: (metadata) ? metadata.framecount : undefined,
+        height: (metadata) ? metadata.height : undefined,
+        mimetype: (metadata) ? metadata.mimetype : getMimetypeFromExtension(extension),
+        size: value.length,
+        spoiler: file.spoiler || (!!response && response.file.has_nsfw),
+        took: (response) ? response.took : undefined,
+        width: (metadata) ? metadata.width : undefined,
+      },
+      value,
+    };
+  }
+
+  if (!parsedTag.files.length) {
+    const match = content.match(REGEX_NSB_GG_URL);
+    if (match) {
+      const [ , url, vanity ] = match;
+      // uploads from the tag's own functions are saved, anything else gets looked up
+      const response = TagFormatter.getStorageResponse(parsedTag, url);
+      let storage = (response) ? response.storage : null;
+      if (!storage) {
+        try {
+          storage = await fetchFileVanity(context, vanity);
+        } catch(error) {
+          // expired or not a file, leave it as a link
+          return null;
+        }
+      }
+      return {
+        options: {
+          extension: storage.metadata.extension,
+          filename: storage.filename_safe_base,
+          framecount: storage.metadata.framecount,
+          height: storage.metadata.height,
+          mimetype: storage.metadata.mimetype,
+          size: storage.metadata.size,
+          spoiler: !!response && response.file.has_nsfw,
+          storage,
+          took: (response) ? response.took : undefined,
+          width: storage.metadata.width,
+        },
+        value: Buffer.alloc(0),
+      };
+    }
+  }
+
+  return null;
+}
+
+
+function getMimetypeFromExtension(extension: string): string | undefined {
+  extension = extension.toLowerCase();
+  if (extension === 'jpeg') {
+    return Mimetypes.IMAGE_JPEG;
+  }
+  if (extension === 'apng') {
+    return Mimetypes.IMAGE_X_APNG;
+  }
+  for (let mimetype of Object.values(Mimetypes)) {
+    if (MimetypesToExtension[mimetype] === extension) {
+      return mimetype;
+    }
+  }
+  return undefined;
 }
 
 

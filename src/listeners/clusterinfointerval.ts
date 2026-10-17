@@ -29,7 +29,8 @@ class ClusterInfoInterval extends Listener {
         this.lastUpload = Date.now();
         await putInfoDiscord({client: shard}, {
           clusterId: cluster.clusterId,
-          ramUsage: usage.heapTotal + usage.external + usage.arrayBuffers,//usage.heapUsed + usage.external + Math.max(0, usage.rss - usage.heapTotal),
+          // rss is what the os actually charges the process; external already includes arrayBuffers so summing heap fields double counts buffers
+          ramUsage: usage.rss,
           shardCount: cluster.shardCount,
           shardsPerCluster: (cluster.manager) ? cluster.manager.clusterShardsPer : 1,
           shards: cluster.shards.map((shard) => {

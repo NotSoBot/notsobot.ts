@@ -474,6 +474,14 @@ export async function fetchFile(
 }
 
 
+export async function fetchFileVanity(
+  context: RequestContext,
+  vanity: string,
+) {
+  return raw.fetchFileVanity(context, vanity);
+}
+
+
 export async function fetchGuildSettings(
   context: RequestContext,
   guildId: string,

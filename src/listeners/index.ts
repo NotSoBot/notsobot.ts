@@ -8,3 +8,4 @@ export { default as ComponentsListener } from './components';
 export { default as EntitlementsListener } from './entitlements';
 export { default as MetricsInterval } from './metricsinterval';
 export { default as ReminderInterval } from './reminders';
+export { default as ReportMessagesListener } from './reportmessages';

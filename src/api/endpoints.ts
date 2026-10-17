@@ -25,6 +25,8 @@ export const Api = Object.freeze({
 
   FILE:
     '/files/:fileId',
+  FILE_VANITY:
+    '/files/vanity/:vanity',
 
   FUN_ASCII_ART_FROM_IMAGE:
     '/fun/ascii/art/from-image',

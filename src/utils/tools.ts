@@ -2289,7 +2289,7 @@ function renderDisplayEmbed(
   return {fits, message: {embed, files: payload.files}};
 }
 
-function renderDisplayText(payload: DisplayPayload, invokedBy: string): DisplayRendered {
+function renderDisplayText(payload: DisplayPayload, invokedBy: string, imageLabel: string): DisplayRendered {
   const lines: Array<string> = [];
   if (payload.title) {
     lines.push((payload.url) ? `**${Markup.url(payload.title, `<${payload.url}>`)}**` : `**${payload.title}**`);
@@ -2302,9 +2302,9 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string): DisplayR
       lines.push(displayFieldText(field));
     }
   }
-  // attachments show on their own, links need to be posted
+  // attachments show on their own, links need to be posted (a short masked link still previews, without the long url)
   if (payload.image && !payload.image.startsWith('attachment://')) {
-    lines.push(payload.image);
+    lines.push(`-# ${Markup.url(imageLabel, payload.image)}`);
   }
   lines.push(invokedBy);
   const footerText = displayFooterText(payload);
@@ -2334,7 +2334,7 @@ export async function renderDisplay(
   const render = (payload: DisplayPayload): DisplayRendered => {
     switch (display) {
       case UserSettingsResponseDisplayTypes.LEGACY: return renderDisplayEmbed(context, payload);
-      case UserSettingsResponseDisplayTypes.NO_EMBED: return renderDisplayText(payload, invokedBy);
+      case UserSettingsResponseDisplayTypes.NO_EMBED: return renderDisplayText(payload, invokedBy, translate('media.image'));
     }
     return renderDisplayComponents(payload, invokedBy);
   };
@@ -2427,6 +2427,8 @@ export async function mediaReplyFromOptions(
   context: ComponentContext | Command.Context | Interaction.InteractionContext,
   value: any,
   options: {
+    // alt text for the media, `description` is shown as text above it
+    altText?: string,
     content?: string,
     context?: ComponentContext,
     description?: string,
@@ -2543,17 +2545,17 @@ export async function mediaReplyFromOptions(
       if (canBeMedia) {
         const mediaGallery = container.createMediaGallery();
         if (options.storage) {
-          mediaGallery.addItem({media: {url: options.storage.urls.cdn}, spoiler: options.spoiler});
+          mediaGallery.addItem({description: options.altText, media: {url: options.storage.urls.cdn}, spoiler: options.spoiler});
         } else {
-          mediaGallery.addItem({media: {url: `attachment://${filename}`}, spoiler: options.spoiler});
-          file = {contentType: options.mimetype, filename, value};
+          mediaGallery.addItem({description: options.altText, media: {url: `attachment://${filename}`}, spoiler: options.spoiler});
+          file = {contentType: options.mimetype, description: options.altText, filename, value};
         }
       } else {
         if (options.storage) {
           container.addTextDisplay({content: options.storage.urls.vanity});
         } else {
           container.createFile({file: {url: `attachment://${filename}`}, spoiler: options.spoiler});
-          file = {contentType: options.mimetype, filename, value};
+          file = {contentType: options.mimetype, description: options.altText, filename, value};
         }
       }
       container.addSeparator();
@@ -2618,7 +2620,7 @@ export async function mediaReplyFromOptions(
       embed.setImage(options.storage.urls.cdn);
     } else {
       embed.setImage(`attachment://${filename}`);
-      file = {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value};
+      file = {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, value};
     }
 
     return editOrReply(options.context || context, {components, content: options.content || '', embed, file});
@@ -2679,7 +2681,7 @@ export async function mediaReplyFromOptions(
       (isFromInteraction) ? '' : `-# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`,
       `-# ${footer}`,
     ].filter(Boolean).join('\n'),
-    file: {contentType: options.mimetype, filename, hasSpoiler: options.spoiler, value},
+    file: {contentType: options.mimetype, description: options.altText, filename, hasSpoiler: options.spoiler, value},
   });
 }
 

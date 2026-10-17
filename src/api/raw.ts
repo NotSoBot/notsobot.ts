@@ -960,6 +960,21 @@ export async function fetchFile(
 }
 
 
+export async function fetchFileVanity(
+  context: RequestContext,
+  vanity: string,
+): Promise<RestResponsesRaw.FileResponseStorage> {
+  const params = {vanity};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.FILE_VANITY,
+      params,
+    },
+  });
+}
+
+
 export async function fetchGuildSettings(
   context: RequestContext,
   guildId: string,

@@ -82,64 +82,19 @@ export async function createMessage(
           content.push(`-> Content: ${JSON.stringify(message.content)}`);
         }
         if (message.components.length) {
-          // get content from components v2
-          content.push(`-> Components: ${JSON.stringify(message.components)}`);
+          // the text inside components v2 (text displays, labels, media urls), the raw json was mostly noise
+          const componentsText = componentsToText(JSON.parse(JSON.stringify(message.components)));
+          if (componentsText) {
+            content.push(`-> Components: ${JSON.stringify(componentsText)}`);
+          }
         }
         if (message.embeds.length) {
-          const filteredEmbeds: Array<string> = [];
           for (let [embedId, embed] of message.embeds) {
-            const filteredEmbed = JSON.parse(JSON.stringify(embed));
-            if (filteredEmbed.author) {
-              delete filteredEmbed.author.proxy_icon_url;
-            }
-            if (filteredEmbed.footer) {
-              delete filteredEmbed.footer.proxy_icon_url;
-            }
-            if (filteredEmbed.image) {
-              delete filteredEmbed.image.proxy_url;
-            }
-            if (filteredEmbed.thumbnail) {
-              delete filteredEmbed.thumbnail.proxy_url;
-            }
-            if (filteredEmbed.video) {
-              delete filteredEmbed.video.proxy_url;
-            }
-            filteredEmbeds.push(filteredEmbed);
-          }
-          content.push(`-> Embeds: ${JSON.stringify(filteredEmbeds)}`);
-          // content.push(`-> Embeds: ${JSON.stringify(message.embeds)}`);
-          /*
-          for (let [embedId, embed] of message.embeds) {
-            const description: Array<string> = [];
-            if (embed.title) {
-              description.push(embed.title);
-            }
-            if (embed.description) {
-              let value = embed.description;
-              if (value.startsWith('```') && value.endsWith('```')) {
-                value = value.slice(3, -3).trim();
-                const newLineIndex = value.indexOf('\n');
-                if (newLineIndex !== -1) {
-                  value = value.slice(newLineIndex).trim();
-                }
-              }
-              description.push(value);
-            }
-            if (embed.fields) {
-              for (let [fieldId, field] of embed.fields) {
-                description.push(`${field.name}: ${field.value}`);
-              }
-            }
-            if (embed.footer && embed.footer.text.length) {
-              description.push(embed.footer.text);
-            }
-            const text = description.filter(Boolean).join('\n').trim();
-            if (text) {
-              content.push(text);
-              break;
+            const embedText = embedToText(JSON.parse(JSON.stringify(embed)));
+            if (embedText) {
+              content.push(`-> Embed: ${JSON.stringify(embedText)}`);
             }
           }
-          */
         }
 
         if (content.length) {
@@ -214,6 +169,7 @@ export async function createMessage(
       content: [
         'Model: ' + response.model,
         'Prompt Complexity Level: ' + response.prompt_complexity_level,
+        ...formatCheckDebug(response),
         `Tokens Input Count: ` + [
           `${response.usage.input_tokens}`,
           (response.usage.input_tokens_cached) ? `(Cached: ${response.usage.input_tokens_cached})` : '',
@@ -232,6 +188,7 @@ export async function createMessage(
       content: [
         'Model: ' + response.model,
         'Prompt Complexity Level: ' + response.prompt_complexity_level,
+        ...formatCheckDebug(response),
         'Took: ' + String(Date.now() - now),
       ].join('\n'),
       file: {filename: 'response.txt', value: response.text},
@@ -290,6 +247,78 @@ export async function createMessage(
   }
 }
 
+
+
+// what the api's static check found, and whether the reply was repaired because of it
+function formatCheckDebug(response: RestResponsesRaw.GenerateTag): Array<string> {
+  const lines: Array<string> = [];
+  if (response.output_kind) {
+    lines.push('Output Kind: ' + response.output_kind);
+  }
+  if (response.repair_errors && response.repair_errors.length) {
+    lines.push(`Repair: ${(response.repaired) ? 'used' : 'discarded'} (first reply had ${response.repair_errors.length} problem(s))`);
+  }
+  if (response.check_errors && response.check_errors.length) {
+    lines.push('Check Problems: ' + response.check_errors.join('; '));
+  }
+  return lines;
+}
+
+
+// the visible parts of an embed as plain text, instead of the whole json with its proxy urls and colors
+function embedToText(embed: any): string {
+  const lines: Array<string> = [];
+  if (embed.author && embed.author.name) {
+    lines.push(`Author: ${embed.author.name}`);
+  }
+  if (embed.title) {
+    lines.push(`Title: ${embed.title}`);
+  }
+  if (embed.url) {
+    lines.push(`Url: ${embed.url}`);
+  }
+  if (embed.description) {
+    lines.push(embed.description);
+  }
+  // a collection turns into an array or an object of fields depending on how it was serialized
+  const fields = Array.isArray(embed.fields) ? embed.fields : Object.values(embed.fields || {});
+  for (let field of fields as Array<any>) {
+    lines.push(`${field.name}: ${field.value}`);
+  }
+  for (let key of ['image', 'thumbnail', 'video']) {
+    if (embed[key] && embed[key].url) {
+      lines.push(`${key[0].toUpperCase()}${key.slice(1)}: ${embed[key].url}`);
+    }
+  }
+  if (embed.footer && embed.footer.text) {
+    lines.push(`Footer: ${embed.footer.text}`);
+  }
+  return lines.join('\n').trim();
+}
+
+
+const COMPONENT_TEXT_KEYS = ['content', 'label', 'title', 'description', 'placeholder', 'url'];
+
+// every piece of text in a components v2 tree (text displays, button labels, media urls), in order
+function componentsToText(value: any, lines: Array<string> = []): string {
+  if (Array.isArray(value)) {
+    for (let item of value) {
+      componentsToText(item, lines);
+    }
+  } else if (value && typeof(value) === 'object') {
+    for (let key of COMPONENT_TEXT_KEYS) {
+      if (typeof(value[key]) === 'string' && value[key] && lines[lines.length - 1] !== value[key]) {
+        lines.push(value[key]);
+      }
+    }
+    for (let key in value) {
+      if (value[key] && typeof(value[key]) === 'object') {
+        componentsToText(value[key], lines);
+      }
+    }
+  }
+  return lines.join('\n').trim();
+}
 
 
 function isTextContentType(contentType?: null | string): boolean {

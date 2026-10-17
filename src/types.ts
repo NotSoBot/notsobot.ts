@@ -47,6 +47,21 @@ export namespace RedisPayloads {
   export type ReminderDelete = RestResponsesRaw.Reminder;
   export type ReminderUpdate = RestResponsesRaw.Reminder;
 
+  // a staff reply on a report, to DM the reporter (the dashboard's shape, staff are NotSoAdmin)
+  export interface ReportMessageCreate {
+    // the reporter's saved DM channel with us, null if we never saw it
+    channel_id: null | string,
+    message: {
+      author: 'reporter' | 'staff',
+      content: null | string,
+      created: string,
+      id: string,
+      status: null | number,
+    },
+    report: Omit<RestResponsesRaw.Report, 'notes' | 'reviewed_by' | 'user'>,
+    user_id: string,
+  }
+
   export interface ServerFeaturesUpdate {
     features: Array<string>,
     id: string,

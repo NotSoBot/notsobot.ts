@@ -96,8 +96,9 @@ export async function createMessage(
   if (result.files.length) {
     let currentFileSize = 0;
     const maxFileSize = ((context.guild) ? context.guild.maxAttachmentSize : MAX_ATTACHMENT_SIZE);
-    for (let file of result.files) {
-      const { filename, size, value } = file;
+    for (let fileResponse of result.files) {
+      const { filename, value } = fileResponse.file;
+      const { size } = fileResponse.file.metadata;
       if (filename === '__internals__.json') {
         continue;
       }
@@ -106,7 +107,7 @@ export async function createMessage(
       }
       currentFileSize += size;
 
-      files.push({filename, value: Buffer.from(value, 'base64')});
+      files.push({filename, value: Buffer.from(value || '', 'base64')});
     }
   }
 

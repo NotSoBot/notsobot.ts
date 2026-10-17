@@ -1419,7 +1419,8 @@ export namespace RestResponsesRaw {
       has_nsfw: boolean,
       value: null | string,
     },
-    file_old: {
+    // null when nothing was edited (a code run's output)
+    file_old: null | {
       metadata: {
         duration: number,
         extension: string,
@@ -1721,11 +1722,21 @@ export namespace RestResponsesRaw {
   }
 
   export interface GenerateTag {
+    // problems the static check still found in `text` (after the repair attempt, if there was one)
+    check_errors?: Array<string>,
     external_id: string,
     id?: string,
     model: string,
+    // `answer`, `tagscript`, `mixed` or `legacy` (the model ignored the block format)
+    output_kind?: string,
     prompt_complexity_level: number,
+    // problems the first reply had, which triggered the repair attempt
+    repair_errors?: Array<string>,
+    repaired?: boolean,
+    // the tagscript to run, plain answers are already escaped so they show as is
     text: string,
+    // the plain text when the reply is only an answer, for showing it without running it
+    text_answer?: null | string,
     text_full: string,
     usage: {
       input_tokens: number,
@@ -2736,11 +2747,8 @@ export namespace RestResponsesRaw {
     },
     result: {
       error: string,
-      files: Array<{
-        filename: string,
-        size: number,
-        value: string,
-      }>,
+      // `file.filename` is the output's own name
+      files: Array<FileResponse>,
       output: string,
     },
     took: number,

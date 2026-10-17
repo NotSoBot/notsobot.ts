@@ -803,6 +803,8 @@ export interface TagResult {
     description?: string,
     durationSecs?: number,
     filename: string,
+    // the api's response this file came from (without the base64 value, that's `buffer`), so the reply can use its metadata
+    response?: RestResponsesRaw.FileResponse,
     spoiler?: boolean,
     waveform?: string,
     url: string,
@@ -840,6 +842,8 @@ export async function parse(
     description?: string,
     durationSecs?: number,
     filename: string,
+    // the api's response this file came from (without the base64 value, that's `buffer`), so the reply can use its metadata
+    response?: RestResponsesRaw.FileResponse,
     spoiler?: boolean,
     waveform?: string,
     url: string,
@@ -1425,6 +1429,37 @@ export function isFromAI(context: Command.Context | Interaction.InteractionConte
 }
 
 
+// the file responses of uploads (`upload: true`) whose url went into the tag's text, by cdn and vanity url. kept by the
+// tag's variables since those are shared with called tags and button/timeout scripts, and kept out of the variables
+// themselves since those get sent to code execution
+const storageResponses = new WeakMap<TagVariables, Record<string, RestResponsesRaw.FileResponse>>();
+
+// the file response without its base64 value, the file's data is kept in `buffer` already
+function stripFileResponse(response: RestResponsesRaw.FileResponse): RestResponsesRaw.FileResponse {
+  return Object.assign({}, response, {file: Object.assign({}, response.file, {value: null})});
+}
+
+function addStorageUrlToTag(tag: TagResult, response: RestResponsesRaw.FileResponse): void {
+  if (!response.storage) {
+    return;
+  }
+  let responses = storageResponses.get(tag.variables);
+  if (!responses) {
+    responses = Object.create(null) as Record<string, RestResponsesRaw.FileResponse>;
+    storageResponses.set(tag.variables, responses);
+  }
+  const stripped = stripFileResponse(response);
+  responses[response.storage.urls.cdn] = stripped;
+  responses[response.storage.urls.vanity] = stripped;
+  tag.text += response.storage.urls.cdn;
+}
+
+export function getStorageResponse(tag: TagResult, url: string): RestResponsesRaw.FileResponse | null {
+  const responses = storageResponses.get(tag.variables);
+  return (responses && responses[url]) || null;
+}
+
+
 // attaches a file api response (like {api.utilities.screenshot}) to the tag's output
 function addFileResponseToTag(
   context: Command.Context | Interaction.InteractionContext,
@@ -1445,6 +1480,7 @@ function addFileResponseToTag(
   tag.files.push({
     buffer: data,
     filename: response.file.filename_safe,
+    response: stripFileResponse(response),
     spoiler: false,
     url: '',
   });
@@ -1523,6 +1559,7 @@ async function attachFileFromUrl(
       buffer: data,
       description: options.description,
       filename,
+      response: stripFileResponse(response),
       spoiler: options.spoiler,
       url,
     };
@@ -2311,7 +2348,7 @@ const ScriptTags = Object.freeze({
     if (result.error) {
       // if it starts with ffmpeg error, check if its only 1 or less files to throw error
       if (result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) || result.error.includes('Input')) {
-        if (result.files.every((x) => x.filename === '__internals__.json')) {
+        if (result.files.every((x) => x.file.filename === '__internals__.json')) {
           throw new Error(result.error);
         }
       } else {
@@ -2321,8 +2358,9 @@ const ScriptTags = Object.freeze({
 
     if (result.files.length) {
       const maxFileSize = context.maxAttachmentSize;
-      for (let file of result.files) {
-        const { filename, size, value } = file;
+      for (let fileResponse of result.files) {
+        const { filename, value } = fileResponse.file;
+        const { size } = fileResponse.file.metadata;
         // oversized output files used to be skipped here without a word, the error further down was unreachable.
         // only the internal state file is still skipped when it's too big
         if (maxFileSize < size && filename === '__internals__.json') {
@@ -2331,7 +2369,7 @@ const ScriptTags = Object.freeze({
         if (filename === '__internals__.json') {
           let response: any = {};
           try {
-            response = JSON.parse(Buffer.from(value, 'base64').toString());
+            response = JSON.parse(Buffer.from(value || '', 'base64').toString());
           } catch(error) {
 
           }
@@ -2779,8 +2817,9 @@ const ScriptTags = Object.freeze({
         tag.variables[PrivateVariables.FILE_SIZE] += size;
 
         tag.files.push({
-          buffer: Buffer.from(value, 'base64'),
+          buffer: Buffer.from(value || '', 'base64'),
           filename,
+          response: stripFileResponse(fileResponse),
           url: '',
         });
 
@@ -2980,8 +3019,8 @@ const ScriptTags = Object.freeze({
     tag.variables[PrivateVariables.RESULTS][TagFunctions.AI] = response;
 
     if (context.metadata && context.metadata.tag) {
-      // is from a tag
-      tag.text += response.text;
+      // is from a tag, the text isn't run so a plain answer goes in as itself (`text` has its braces escaped)
+      tag.text += (typeof(response.text_answer) === 'string') ? response.text_answer : response.text;
     } else {
       // is from ai, parse the text first
       const isFromAICache = tag.variables[PrivateVariables.IS_FROM_AI];
@@ -3575,6 +3614,7 @@ const ScriptTags = Object.freeze({
         buffer: data,
         durationSecs: 2147483647, //response.file.metadata.duration / 1000,
         filename,
+        response: stripFileResponse(response),
         spoiler: false,
         waveform,
         url,
@@ -5354,6 +5394,7 @@ const ScriptTags = Object.freeze({
     tag.files.push({
       buffer: data,
       filename,
+      response: stripFileResponse(response),
       spoiler: false,
       url: '',
     });
@@ -5417,7 +5458,7 @@ const ScriptTags = Object.freeze({
 
     const response = job.result.response;
     if (response.storage) {
-      tag.text += response.storage.urls.cdn;
+      addStorageUrlToTag(tag, response);
     }
 
     return true;
@@ -5468,6 +5509,7 @@ const ScriptTags = Object.freeze({
     tag.files.push({
       buffer: data,
       filename,
+      response: stripFileResponse(response),
       spoiler: false,
       url: '',
     });
@@ -5500,7 +5542,7 @@ const ScriptTags = Object.freeze({
 
     const response = job.result.response;
     if (response.storage) {
-      tag.text += response.storage.urls.cdn;
+      addStorageUrlToTag(tag, response);
     }
 
     return true;
@@ -5948,6 +5990,7 @@ const ScriptTags = Object.freeze({
       tag.files.push({
         buffer: data,
         filename,
+        response: stripFileResponse(response),
         spoiler: false,
         url: '',
       });
@@ -6026,7 +6069,7 @@ const ScriptTags = Object.freeze({
       }
 
       if (response.storage) {
-        tag.text += response.storage.urls.cdn;
+        addStorageUrlToTag(tag, response);
       } else {
         const maxFileSize = context.maxAttachmentSize;
         const filename = response.file.filename_safe;
@@ -6046,6 +6089,7 @@ const ScriptTags = Object.freeze({
         tag.files.push({
           buffer: data,
           filename,
+          response: stripFileResponse(response),
           spoiler: false,
           url: '',
         });
@@ -6119,7 +6163,7 @@ const ScriptTags = Object.freeze({
 
       const response = job.result.response;
       if (response.storage) {
-        tag.text += response.storage.urls.cdn;
+        addStorageUrlToTag(tag, response);
       }
 
       if (response.arguments) {
