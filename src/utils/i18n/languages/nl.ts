@@ -620,6 +620,7 @@ export const Dutch: Translations = Object.freeze({
   'tools.translate.no_speech': 'Geen spraak gedetecteerd',
   'tools.translate.result_characters': 'Resultaat: {count} tekens',
   'tools.translate.title': 'Vertaald van {from} naar {to}',
+  'tools.translate.title_untranslated': 'Google Translate heeft dit niet vertaald van {from} naar {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Plak de audio van een audio/afbeelding/video achter een ander audiobestand',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'langste',
@@ -1671,7 +1672,7 @@ export const Dutch: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Genereren van een vanity mislukt.',
   'api_errors.voice_clone_type_not_supported': 'Dat type stemkloon wordt niet ondersteund.',
 
-  'errors.api_restarting': 'Onze API start opnieuw op, dit kan even duren. Sorry ;(',
+  'errors.api_restarting': 'Onze API ligt eruit of start opnieuw op, dit kan even duren. Sorry ;(',
   'errors.argument_title': '{label} argumentfout',
   'errors.bot_missing_permissions': '{label} {command} werkt alleen als de bot {permissions} heeft.',
   'errors.cancel_run': '{label} {command} gaf een vreemde fout, stuur alsjeblieft een melding naar de devs.',

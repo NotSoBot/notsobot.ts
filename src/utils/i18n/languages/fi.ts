@@ -620,6 +620,7 @@ export const Finnish: Translations = Object.freeze({
   'tools.translate.no_speech': 'Puhetta ei havaittu',
   'tools.translate.result_characters': 'Tulos: {count} merkkiä',
   'tools.translate.title': 'Käännetty: {from} -> {to}',
+  'tools.translate.title_untranslated': 'Google Translate ei kääntänyt tätä kielestä {from} kielelle {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Liitä äänen/kuvan/videon ääni toisen äänitiedoston perään',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'pisin',
@@ -1671,7 +1672,7 @@ export const Finnish: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Mukautetun tunnisteen luominen epäonnistui.',
   'api_errors.voice_clone_type_not_supported': 'Tätä ääniklooni-tyyppiä ei tueta.',
 
-  'errors.api_restarting': 'API:mme käynnistyy uudelleen, tässä voi mennä hetki. Sori ;(',
+  'errors.api_restarting': 'API:mme on alhaalla tai käynnistyy uudelleen, tässä voi mennä hetki. Sori ;(',
   'errors.argument_title': '{label}: argumenttivirhe',
   'errors.bot_missing_permissions': '{label} {command} vaatii botilta oikeudet {permissions} toimiakseen.',
   'errors.cancel_run': '{label} {command} kaatui oudosti, lähetä raportti kehittäjille.',

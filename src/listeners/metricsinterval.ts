@@ -20,7 +20,7 @@ import {
   restoreMetricsChanges,
   takeMetricsChanges,
 } from '../metrics';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer } from '../apievents';
 
 
 // the api expires a cluster's values after 90 seconds without a report
@@ -130,7 +130,7 @@ class MetricsInterval extends Listener {
     }
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
     // `REST_RESPONSE` only fires with a response, so each send is wrapped to count the ones without (timed out,

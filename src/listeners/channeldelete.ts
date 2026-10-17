@@ -3,13 +3,13 @@ import { ClientEvents } from 'detritus-client/lib/constants';
 import { EventSubscription, Timers } from 'detritus-utils';
 
 import { deleteChannel } from '../api';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer } from '../apievents';
 
 import { Listener } from './listener';
 
 
 class ChannelDeleteListener extends Listener {
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
     {

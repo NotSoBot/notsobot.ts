@@ -620,6 +620,7 @@ export const Hindi: Translations = Object.freeze({
   'tools.translate.no_speech': 'कोई आवाज़ नहीं मिली',
   'tools.translate.result_characters': 'नतीजा: {count} अक्षर',
   'tools.translate.title': '{from} से {to} में अनुवाद किया गया',
+  'tools.translate.title_untranslated': 'Google Translate ने इसे {from} से {to} में अनुवाद नहीं किया',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'ऑडियो/इमेज/वीडियो के ऑडियो के बाद दूसरी ऑडियो फ़ाइल जोड़ें',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'सबसे-लंबा',
@@ -1671,7 +1672,7 @@ export const Hindi: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'वैनिटी नहीं बन सकी।',
   'api_errors.voice_clone_type_not_supported': 'वह वॉइस क्लोन टाइप सपोर्टेड नहीं है।',
 
-  'errors.api_restarting': 'हमारी API रीस्टार्ट हो रही है, इसमें थोड़ा समय लग सकता है। माफ़ करें ;(',
+  'errors.api_restarting': 'हमारी API बंद है या रीस्टार्ट हो रही है, इसमें थोड़ा समय लग सकता है। माफ़ करें ;(',
   'errors.argument_title': '{label} आर्ग्युमेंट एरर',
   'errors.bot_missing_permissions': '{label} {command} के काम करने के लिए बॉट के पास {permissions} होनी चाहिए।',
   'errors.cancel_run': '{label} {command} में अजीब एरर आया, कृपया डेवलपर्स को रिपोर्ट भेजें।',

@@ -1781,6 +1781,7 @@ export namespace RestResponsesRaw {
     from_text: string,
     translated_language: GoogleLocales,
     translated_text: string,
+    untranslated: boolean,
   }
 
   export interface GuildSettings {

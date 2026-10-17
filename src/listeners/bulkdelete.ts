@@ -5,13 +5,13 @@ import { EventSubscription, Timers } from 'detritus-utils';
 
 import { deleteCommandsResponses, fetchCommandsResponses } from '../api';
 import { COMMAND_EDIT_DURATION } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer } from '../apievents';
 
 import { Listener } from './listener';
 
 
 class MessageDeleteListener extends Listener {
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
     {

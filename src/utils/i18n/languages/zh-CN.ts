@@ -620,6 +620,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'tools.translate.no_speech': '未检测到语音',
   'tools.translate.result_characters': '结果：{count} 个字符',
   'tools.translate.title': '从 {from} 翻译为 {to}',
+  'tools.translate.title_untranslated': 'Google 翻译没有将此内容从{from}翻译为{to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': '把音频/图片/视频的音频和另一个音频文件拼接起来',
   'commands.media_aiv_tools.audio.put_concat.longest.name': '最长',
@@ -1671,7 +1672,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': '生成个性链接失败。',
   'api_errors.voice_clone_type_not_supported': '不支持该语音克隆类型。',
 
-  'errors.api_restarting': '我们的 API 正在重启，可能要等一会儿。抱歉 ;(',
+  'errors.api_restarting': '我们的 API 宕机了或正在重启，可能要等一会儿。抱歉 ;(',
   'errors.argument_title': '{label}参数错误',
   'errors.bot_missing_permissions': '{label} {command} 需要机器人拥有 {permissions} 权限才能使用。',
   'errors.cancel_run': '{label} {command} 出现了奇怪的错误，请向开发者报告。',

@@ -620,6 +620,7 @@ export const Norwegian: Translations = Object.freeze({
   'tools.translate.no_speech': 'Ingen tale funnet',
   'tools.translate.result_characters': 'Resultat: {count} tegn',
   'tools.translate.title': 'Oversatt fra {from} til {to}',
+  'tools.translate.title_untranslated': 'Google Translate oversatte ikke dette fra {from} til {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Sett sammen lyden fra en lyd/et bilde/en video med en annen lydfil',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'lengste',
@@ -1671,7 +1672,7 @@ export const Norwegian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Klarte ikke å generere en vanity.',
   'api_errors.voice_clone_type_not_supported': 'Den typen stemmekloning støttes ikke.',
 
-  'errors.api_restarting': 'API-et vårt starter på nytt, dette kan ta litt tid. Beklager ;(',
+  'errors.api_restarting': 'API-et vårt er nede eller starter på nytt, dette kan ta litt tid. Beklager ;(',
   'errors.argument_title': '{label} argumentfeil',
   'errors.bot_missing_permissions': '{label} {command} krever at boten har {permissions} for å fungere.',
   'errors.cancel_run': '{label} {command} feilet på en merkelig måte, send gjerne en rapport til utviklerne.',

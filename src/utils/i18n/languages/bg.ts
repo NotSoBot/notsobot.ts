@@ -620,6 +620,7 @@ export const Bulgarian: Translations = Object.freeze({
   'tools.translate.no_speech': 'Не е открита реч',
   'tools.translate.result_characters': 'Резултат: {count} символа',
   'tools.translate.title': 'Преведено от {from} на {to}',
+  'tools.translate.title_untranslated': 'Google Translate не преведе това от {from} на {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Слепи звука на аудио/изображение/видео с друг аудио файл',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'най-дълго',
@@ -1671,7 +1672,7 @@ export const Bulgarian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Неуспешно генериране на персонален адрес.',
   'api_errors.voice_clone_type_not_supported': 'Този тип клониране на глас не се поддържа.',
 
-  'errors.api_restarting': 'Нашето API се рестартира, може да отнеме малко. Сори ;(',
+  'errors.api_restarting': 'Нашето API не работи или се рестартира, може да отнеме малко. Сори ;(',
   'errors.argument_title': '{label} грешка в аргумент',
   'errors.bot_missing_permissions': '{label} {command} изисква ботът да има {permissions}, за да работи.',
   'errors.cancel_run': '{label} {command} даде странна грешка, моля, пратете доклад на разработчиците.',

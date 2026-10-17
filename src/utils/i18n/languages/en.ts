@@ -618,6 +618,7 @@ export const English = Object.freeze({
   'tools.translate.no_speech': 'No speech detected',
   'tools.translate.result_characters': 'Result: {count} Characters',
   'tools.translate.title': 'Translated from {from} to {to}',
+  'tools.translate.title_untranslated': 'Google Translate didn\'t translate this from {from} to {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Concat an Audio/Image/Video\'s audio with another audio file',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'longest',
@@ -1771,7 +1772,7 @@ export const English = Object.freeze({
   'api_errors.vanity_generation_failed': 'Failed to generate a vanity.',
   'api_errors.voice_clone_type_not_supported': 'That voice clone type isn\'t supported.',
 
-  'errors.api_restarting': 'Our API is restarting, this might take a bit. Sorry ;(',
+  'errors.api_restarting': 'Our API is down or restarting, this might take a bit. Sorry ;(',
   'errors.argument_title': '{label} Argument Error',
   'errors.bot_missing_permissions': '{label} {command} requires the bot to have {permissions} to work.',
   'errors.cancel_run': '{label} {command} errored strangely, please send a report to the devs.',

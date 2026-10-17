@@ -8,7 +8,7 @@ import { Listener } from './listener';
 import { deleteReminder, fetchReminders } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 
 
 export interface ReminderItem {
@@ -20,7 +20,7 @@ class ReminderInterval extends Listener {
   // every 12 hours we will scan for reminders for the next 12 hour
   interval = new Timers.Interval();
   intervalTime = 12 * 60 * 60 * 1000;
-  // reminders missed over pub/sub (like during a redis reconnect) would otherwise only be found on the next restart
+  // reminders missed over the api events (like during a reconnect) would otherwise only be found on the next restart
   catchUpInterval = new Timers.Interval();
   catchUpIntervalTime = 5 * 60 * 1000;
   // scan a bit past the next interval so timer drift can't leave a gap between scans
@@ -267,7 +267,7 @@ class ReminderInterval extends Listener {
     }
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     // we only want to deal with reminders on cluster 0, cause we're awesome like that
 
     if (!this.shouldHandle(cluster)) {
@@ -277,14 +277,14 @@ class ReminderInterval extends Listener {
     const subscriptions: Array<EventSubscription> = [];
 
     {
-      const subscription = redis.subscribe(RedisChannels.REMINDER_CREATE, async (payload) => {
+      const subscription = apiEvents.subscribe(RedisChannels.REMINDER_CREATE, async (payload) => {
         this.insertReminder(cluster, payload);
       });
       subscriptions.push(subscription);
     }
 
     {
-      const subscription = redis.subscribe(RedisChannels.REMINDER_DELETE, async (payload) => {
+      const subscription = apiEvents.subscribe(RedisChannels.REMINDER_DELETE, async (payload) => {
         this.removeReminder(payload.id);
       });
       subscriptions.push(subscription);
@@ -293,9 +293,19 @@ class ReminderInterval extends Listener {
     {
       // reschedule with the new data (like being moved to dms or a new time)
       // insertReminder skips ones that are already being sent or too far in the future
-      const subscription = redis.subscribe(RedisChannels.REMINDER_UPDATE, async (payload) => {
+      const subscription = apiEvents.subscribe(RedisChannels.REMINDER_UPDATE, async (payload) => {
         this.removeReminder(payload.id);
         this.insertReminder(cluster, payload);
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      // missed deletes/updates would leave stale timers around, reschedule everything from the api
+      const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.resync(cluster).catch((error) => {
+          console.error('Failed to resync reminders', error);
+        });
       });
       subscriptions.push(subscription);
     }
@@ -321,6 +331,35 @@ class ReminderInterval extends Listener {
     });
 
     return subscriptions;
+  }
+
+  async resync(cluster: ClusterClient): Promise<void> {
+    const shard = cluster.shards.first();
+    if (!shard) {
+      return;
+    }
+
+    // remember what was scheduled before fetching, anything an event changes while we wait is newer than the fetch
+    const scheduled = new Map<string, ReminderItem>();
+    for (let [reminderId, item] of this.reminders) {
+      scheduled.set(reminderId, item);
+    }
+
+    // fetch before dropping anything so a failed fetch keeps the current timers
+    const now = Date.now();
+    const timestampMin = now - 2000;
+    const reminders = await this.fetchReminders(shard, timestampMin, now + this.intervalTime + this.scanMargin);
+    for (let [reminderId, item] of scheduled) {
+      // older ones are outside what we fetched and about to fire anyways
+      if (this.reminders.get(reminderId) === item && timestampMin <= Date.parse(item.reminder.timestamp_start)) {
+        this.removeReminder(reminderId);
+      }
+    }
+    // skips the ones that were sent or rescheduled by an event in the meantime
+    for (let [reminderId, reminder] of reminders) {
+      this.insertReminder(cluster, reminder);
+    }
+    await this.scanForRemindersExpired(cluster, timestampMin);
   }
 
   async startup(cluster: ClusterClient) {

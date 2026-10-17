@@ -620,6 +620,7 @@ export const Arabic: Translations = Object.freeze({
   'tools.translate.no_speech': 'لم يُكتشف أي كلام',
   'tools.translate.result_characters': 'النتيجة: {count} حرفًا',
   'tools.translate.title': 'مترجم من {from} إلى {to}',
+  'tools.translate.title_untranslated': 'لم يترجم Google Translate هذا من {from} إلى {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'دمج صوت ملف صوتي/صورة/فيديو مع ملف صوتي آخر بالتتابع',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'الأطول',
@@ -1671,7 +1672,7 @@ export const Arabic: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'فشل إنشاء رابط مخصص.',
   'api_errors.voice_clone_type_not_supported': 'نوع استنساخ الصوت هذا غير مدعوم.',
 
-  'errors.api_restarting': 'واجهتنا البرمجية قيد إعادة التشغيل، قد يستغرق ذلك بعض الوقت. آسفون ;(',
+  'errors.api_restarting': 'واجهتنا البرمجية متوقفة أو قيد إعادة التشغيل، قد يستغرق ذلك بعض الوقت. آسفون ;(',
   'errors.argument_title': 'خطأ في وسيط {label}',
   'errors.bot_missing_permissions': '{label} {command} يتطلب أن يملك البوت {permissions} ليعمل.',
   'errors.cancel_run': '{label} {command} واجه خطأ غريبًا، يرجى إرسال بلاغ إلى المطورين.',

@@ -1,20 +1,26 @@
 import { ClusterManager } from 'detritus-client';
 import * as Sentry from '@sentry/node';
 
-import {
+import * as config from '../config.json';
+
+
+const {
   NOTSOBOT_API_TOKEN,
   NOTSOBOT_DISCORD_TOKEN,
-  REDIS_URL,
   SENTRY_DSN,
-} from '../config.json';
+} = config;
+// optional (so it isn't a named import), the cluster processes default to the public api events url without it
+const NOTSOBOT_GATEWAY_URL = (config as Record<string, unknown>).NOTSOBOT_GATEWAY_URL;
 
-
+// the cluster processes inherit these
 Object.assign(process.env, {
   NOTSOBOT_API_TOKEN,
   NOTSOBOT_DISCORD_TOKEN,
-  REDIS_URL,
   SENTRY_DSN,
 });
+if (typeof(NOTSOBOT_GATEWAY_URL) === 'string' && NOTSOBOT_GATEWAY_URL) {
+  process.env.NOTSOBOT_GATEWAY_URL = NOTSOBOT_GATEWAY_URL;
+}
 
 if (SENTRY_DSN) {
   Sentry.init({dsn: SENTRY_DSN});

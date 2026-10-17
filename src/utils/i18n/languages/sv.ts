@@ -620,6 +620,7 @@ export const Swedish: Translations = Object.freeze({
   'tools.translate.no_speech': 'Inget tal hittades',
   'tools.translate.result_characters': 'Resultat: {count} tecken',
   'tools.translate.title': 'Översatt från {from} till {to}',
+  'tools.translate.title_untranslated': 'Google Translate översatte inte detta från {from} till {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Sätt ihop ljudet i ett ljud/en bild/en video med en annan ljudfil',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'längsta',
@@ -1671,7 +1672,7 @@ export const Swedish: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Kunde inte generera en anpassad länk.',
   'api_errors.voice_clone_type_not_supported': 'Den typen av röstklon stöds inte.',
 
-  'errors.api_restarting': 'Vårt API startar om, det kan ta en stund. Sorry ;(',
+  'errors.api_restarting': 'Vårt API ligger nere eller startar om, det kan ta en stund. Sorry ;(',
   'errors.argument_title': '{label} Argumentfel',
   'errors.bot_missing_permissions': '{label} {command} kräver att boten har {permissions} för att fungera.',
   'errors.cancel_run': '{label} {command} fick ett konstigt fel, skicka en rapport till utvecklarna.',

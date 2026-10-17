@@ -620,6 +620,7 @@ export const Indonesian: Translations = Object.freeze({
   'tools.translate.no_speech': 'Tidak ada suara bicara yang terdeteksi',
   'tools.translate.result_characters': 'Hasil: {count} Karakter',
   'tools.translate.title': 'Diterjemahkan dari {from} ke {to}',
+  'tools.translate.title_untranslated': 'Google Translate tidak menerjemahkan ini dari {from} ke {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Sambung audio dari Audio/Gambar/Video dengan file audio lain',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'terpanjang',
@@ -1671,7 +1672,7 @@ export const Indonesian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Gagal membuat vanity.',
   'api_errors.voice_clone_type_not_supported': 'Tipe kloning suara itu tidak didukung.',
 
-  'errors.api_restarting': 'API kami sedang restart, mungkin butuh sebentar. Maaf ;(',
+  'errors.api_restarting': 'API kami sedang down atau restart, mungkin butuh sebentar. Maaf ;(',
   'errors.argument_title': 'Error Argumen {label}',
   'errors.bot_missing_permissions': '{label} {command} butuh bot punya izin {permissions} agar bisa jalan.',
   'errors.cancel_run': '{label} {command} error dengan aneh, tolong kirim laporan ke developer.',

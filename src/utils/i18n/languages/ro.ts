@@ -620,6 +620,7 @@ export const Romanian: Translations = Object.freeze({
   'tools.translate.no_speech': 'N-am detectat nicio vorbire',
   'tools.translate.result_characters': 'Rezultat: {count} caractere',
   'tools.translate.title': 'Tradus din {from} în {to}',
+  'tools.translate.title_untranslated': 'Google Translate nu a tradus asta din {from} în {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Concatenează audio-ul unui audio/imagine/video cu alt fișier audio',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'cel-mai-lung',
@@ -1671,7 +1672,7 @@ export const Romanian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'N-am reușit să generez un vanity.',
   'api_errors.voice_clone_type_not_supported': 'Tipul ăsta de clonare a vocii nu e suportat.',
 
-  'errors.api_restarting': 'API-ul nostru se repornește, poate dura puțin. Scuze ;(',
+  'errors.api_restarting': 'API-ul nostru e căzut sau se repornește, poate dura puțin. Scuze ;(',
   'errors.argument_title': 'Eroare de argument {label}',
   'errors.bot_missing_permissions': '{label} {command} necesită ca botul să aibă {permissions} ca să meargă.',
   'errors.cancel_run': '{label} {command} a dat o eroare ciudată, te rog trimite un raport dezvoltatorilor.',

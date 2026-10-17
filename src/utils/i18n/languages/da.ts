@@ -620,6 +620,7 @@ export const Danish: Translations = Object.freeze({
   'tools.translate.no_speech': 'Ingen tale fundet',
   'tools.translate.result_characters': 'Resultat: {count} tegn',
   'tools.translate.title': 'Oversat fra {from} til {to}',
+  'tools.translate.title_untranslated': 'Google Translate oversatte ikke dette fra {from} til {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Sæt lyden fra en lyd/billede/video sammen med en anden lydfil',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'længste',
@@ -1671,7 +1672,7 @@ export const Danish: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Kunne ikke generere en vanity.',
   'api_errors.voice_clone_type_not_supported': 'Den type stemmeklon understøttes ikke.',
 
-  'errors.api_restarting': 'Vores API genstarter, det kan tage lidt tid. Sorry ;(',
+  'errors.api_restarting': 'Vores API er nede eller genstarter, det kan tage lidt tid. Sorry ;(',
   'errors.argument_title': '{label} argumentfejl',
   'errors.bot_missing_permissions': '{label} {command} kræver, at botten har {permissions} for at virke.',
   'errors.cancel_run': '{label} {command} fejlede mærkeligt, send venligst en rapport til udviklerne.',

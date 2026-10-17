@@ -4,7 +4,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
-import { ApiErrorBody, JobError, getApiError, getApiErrorTranslationKey, readErrorBody } from '../api/errors';
+import { ApiErrorBody, JobError, getApiError, getApiErrorTranslationKey, isApiDownError, readErrorBody } from '../api/errors';
 import { ApiErrorCodes, EmbedColors, PermissionsText, StatusEmojis } from '../constants';
 import { I18n, displayReply, formatMemory } from '../utils';
 
@@ -167,13 +167,14 @@ async function describeResponseError(
   const description: Array<string> = [];
   const fields: Array<ErrorField> = [];
 
+  if (await isApiDownError(error)) {
+    return {description: [translate('errors.api_restarting')], fields};
+  }
+
   let information: any;
   try {
     information = await readErrorBody(error);
   } catch(e) {
-    if (response.statusCode === 502 || response.statusCode === 521) {
-      return {description: [translate('errors.api_restarting')], fields};
-    }
     description.push(translate('errors.http_exception', {status: response.statusCode}));
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.startsWith('text/html')) {

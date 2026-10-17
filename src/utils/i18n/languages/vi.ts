@@ -620,6 +620,7 @@ export const Vietnamese: Translations = Object.freeze({
   'tools.translate.no_speech': 'Không phát hiện giọng nói nào',
   'tools.translate.result_characters': 'Kết quả: {count} ký tự',
   'tools.translate.title': 'Đã dịch từ {from} sang {to}',
+  'tools.translate.title_untranslated': 'Google Translate không dịch nội dung này từ {from} sang {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Nối âm thanh của Audio/Ảnh/Video với một tệp âm thanh khác',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'dài-nhất',
@@ -1671,7 +1672,7 @@ export const Vietnamese: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Không tạo được URL tùy chỉnh.',
   'api_errors.voice_clone_type_not_supported': 'Kiểu nhân bản giọng đó không được hỗ trợ.',
 
-  'errors.api_restarting': 'API của bọn mình đang khởi động lại, có thể mất một lúc. Xin lỗi nha ;(',
+  'errors.api_restarting': 'API của bọn mình đang sập hoặc đang khởi động lại, có thể mất một lúc. Xin lỗi nha ;(',
   'errors.argument_title': 'Lỗi tham số {label}',
   'errors.bot_missing_permissions': '{label} {command} cần bot có quyền {permissions} để hoạt động.',
   'errors.cancel_run': '{label} {command} gặp lỗi lạ, vui lòng gửi báo cáo cho dev.',

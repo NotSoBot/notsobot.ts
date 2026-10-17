@@ -620,6 +620,7 @@ export const Korean: Translations = Object.freeze({
   'tools.translate.no_speech': '감지된 음성이 없어요',
   'tools.translate.result_characters': '결과: {count}자',
   'tools.translate.title': '{from}에서 {to}(으)로 번역함',
+  'tools.translate.title_untranslated': 'Google 번역이 {from}에서 {to}(으)로 번역하지 않았습니다',
 
   'commands.media_aiv_tools.audio.put_concat.description': '오디오/이미지/동영상의 오디오 뒤에 다른 오디오 파일을 이어 붙여요',
   'commands.media_aiv_tools.audio.put_concat.longest.name': '가장-긴',
@@ -1671,7 +1672,7 @@ export const Korean: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': '고유 URL을 생성하지 못했어요.',
   'api_errors.voice_clone_type_not_supported': '해당 음성 복제 유형은 지원하지 않아요.',
 
-  'errors.api_restarting': 'API가 재시작 중이에요. 시간이 좀 걸릴 수 있어요. 죄송해요 ;(',
+  'errors.api_restarting': 'API가 다운됐거나 재시작 중이에요. 시간이 좀 걸릴 수 있어요. 죄송해요 ;(',
   'errors.argument_title': '{label} 인수 오류',
   'errors.bot_missing_permissions': '{label} {command}을(를) 사용하려면 봇에게 {permissions} 권한이 필요해요.',
   'errors.cancel_run': '{label} {command}에서 이상한 오류가 발생했어요. 개발자에게 신고해 주세요.',

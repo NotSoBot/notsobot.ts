@@ -43,6 +43,23 @@ export async function getApiError(error: any): Promise<ApiErrorBody | null> {
 }
 
 
+// statuses for when the api itself is down or restarting
+// 502 is nginx with no upstream, 520-523 are cloudflare not getting a response from (or not reaching) the server
+// 503/504/524 are left out, the api sends its own 503s and the timeouts mean it's up but slow
+const API_DOWN_STATUSES: ReadonlyArray<number> = [502, 520, 521, 522, 523];
+
+// the api also sends its own 502s (discord/external service failures), those have a coded body and aren't it being down
+export async function isApiDownError(error: any): Promise<boolean> {
+  if (!error || !error.response || !error[IS_NOTSOBOT_API_ERROR]) {
+    return false;
+  }
+  if (!API_DOWN_STATUSES.includes(error.response.statusCode)) {
+    return false;
+  }
+  return !(await getApiError(error));
+}
+
+
 // `if (await isApiError(error, ApiErrorCodes.UNKNOWN_TAG)) {...}`
 export async function isApiError(error: any, ...codes: Array<ApiErrorCodes>): Promise<boolean> {
   const information = await getApiError(error);

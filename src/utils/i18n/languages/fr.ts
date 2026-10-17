@@ -620,6 +620,7 @@ export const French: Translations = Object.freeze({
   'tools.translate.no_speech': 'Aucune parole détectée',
   'tools.translate.result_characters': 'Résultat : {count} caractères',
   'tools.translate.title': 'Traduit du {from} vers le {to}',
+  'tools.translate.title_untranslated': 'Google Translate n\'a pas traduit ceci du {from} vers le {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Enchaîne l\'audio d\'un audio/image/vidéo avec un autre fichier audio',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'plus-long',
@@ -1671,7 +1672,7 @@ export const French: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Impossible de générer une URL personnalisée.',
   'api_errors.voice_clone_type_not_supported': 'Ce type de clone de voix n\'est pas pris en charge.',
 
-  'errors.api_restarting': 'Notre API redémarre, ça peut prendre un moment. Désolé ;(',
+  'errors.api_restarting': 'Notre API est hors ligne ou redémarre, ça peut prendre un moment. Désolé ;(',
   'errors.argument_title': 'Erreur d\'argument {label}',
   'errors.bot_missing_permissions': '{label} {command} nécessite que le bot ait {permissions} pour fonctionner.',
   'errors.cancel_run': '{label} {command} a planté bizarrement, envoie un rapport aux devs s\'il te plaît.',

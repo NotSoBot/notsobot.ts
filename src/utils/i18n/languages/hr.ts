@@ -620,6 +620,7 @@ export const Croatian: Translations = Object.freeze({
   'tools.translate.no_speech': 'Nije pronađen govor',
   'tools.translate.result_characters': 'Rezultat: {count} znakova',
   'tools.translate.title': 'Prevedeno s {from} na {to}',
+  'tools.translate.title_untranslated': 'Google Translate ovo nije preveo s {from} na {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Nadoveži drugu audiodatoteku na zvuk audija/slike/videa',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'najduže',
@@ -1671,7 +1672,7 @@ export const Croatian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Generiranje prilagođenog URL-a nije uspjelo.',
   'api_errors.voice_clone_type_not_supported': 'Ta vrsta kloniranja glasa nije podržana.',
 
-  'errors.api_restarting': 'Naš API se ponovno pokreće, ovo bi moglo potrajati. Oprosti ;(',
+  'errors.api_restarting': 'Naš API je pao ili se ponovno pokreće, ovo bi moglo potrajati. Oprosti ;(',
   'errors.argument_title': '{label} – pogreška argumenta',
   'errors.bot_missing_permissions': '{label} {command} zahtijeva da bot ima {permissions} da bi radila.',
   'errors.cancel_run': '{label} {command} je čudno pukla, molimo pošalji prijavu developerima.',

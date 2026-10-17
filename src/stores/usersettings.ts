@@ -5,7 +5,7 @@ import { Store } from './store';
 
 import { RequestContext, RestResponsesRaw, fetchUserSettings } from '../api';
 import { RedisChannels } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
 
 
@@ -73,14 +73,21 @@ class UserSettingsStore extends Store<string, RestResponsesRaw.UserSettings> {
     return promise;
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
-      const subscription = redis.subscribe(RedisChannels.USER_SETTINGS_UPDATE, (payload: RedisPayloads.UserSettingsUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.USER_SETTINGS_UPDATE, (payload: RedisPayloads.UserSettingsUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           Object.assign(settings, payload.settings);
         }
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      // events were missed, so anything cached could be stale. drop it all and let the next use refetch
+      const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.clear();
       });
       subscriptions.push(subscription);
     }

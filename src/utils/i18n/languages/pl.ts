@@ -620,6 +620,7 @@ export const Polish: Translations = Object.freeze({
   'tools.translate.no_speech': 'Nie wykryto mowy',
   'tools.translate.result_characters': 'Wynik: {count} znaków',
   'tools.translate.title': 'Przetłumaczono z {from} na {to}',
+  'tools.translate.title_untranslated': 'Google Translate nie przetłumaczył tego z {from} na {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Doklej do dźwięku audio/obrazu/wideo inny plik audio',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'najdłuższy',
@@ -1671,7 +1672,7 @@ export const Polish: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Nie udało się wygenerować własnego linku.',
   'api_errors.voice_clone_type_not_supported': 'Ten typ klonu głosu nie jest obsługiwany.',
 
-  'errors.api_restarting': 'Nasze API się restartuje, to może chwilę potrwać. Sorki ;(',
+  'errors.api_restarting': 'Nasze API nie działa albo się restartuje, to może chwilę potrwać. Sorki ;(',
   'errors.argument_title': 'Błąd argumentu ({label})',
   'errors.bot_missing_permissions': '{label} {command} wymaga, żeby bot miał uprawnienia: {permissions}.',
   'errors.cancel_run': '{label} {command} wywaliła dziwny błąd, wyślij zgłoszenie do devów.',

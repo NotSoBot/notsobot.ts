@@ -16,7 +16,7 @@ import UserAvatarDecorationStore, { UserAvatarDecorationStored } from './userava
 import { Store } from './store';
 
 import { GuildLoggerFlags, GuildLoggerTypes, GuildSettingsResponseDisplayTypes } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer } from '../apievents';
 import { Languages, languageFromLocale } from '../utils/i18n';
 import {
   ClientStatusType,
@@ -344,7 +344,7 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
   }
 
   // theres a race condition because the member/message might get updated in between the create and update event while we collect events over the second
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
     {

@@ -6,7 +6,7 @@ import { Listener } from './listener';
 
 import { putInfoDiscord } from '../api';
 import { RedisChannels } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer } from '../apievents';
 import { RedisPayloads } from '../types';
 
 
@@ -64,11 +64,11 @@ class ClusterInfoInterval extends Listener {
     }
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
     {
-      const subscription = redis.subscribe(RedisChannels.INFO_DISCORD_REQUEST, async (payload: RedisPayloads.InfoDiscordRequest) => {
+      const subscription = apiEvents.subscribe(RedisChannels.INFO_DISCORD_REQUEST, async (payload: RedisPayloads.InfoDiscordRequest) => {
         this.maybeUploadInformation(cluster, true);
       });
       subscriptions.push(subscription);

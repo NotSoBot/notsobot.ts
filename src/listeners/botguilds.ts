@@ -5,7 +5,7 @@ import { EventSubscription, Timers } from 'detritus-utils';
 import { Listener } from './listener';
 
 import { postInfoDiscordGuildsChanges, putInfoDiscordGuilds } from '../api';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer } from '../apievents';
 
 
 // Keeps the API's `bot_guilds` table (which guilds the bot is in) up to date, so the website can check
@@ -86,7 +86,7 @@ class BotGuildsListener extends Listener {
     }
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
     {

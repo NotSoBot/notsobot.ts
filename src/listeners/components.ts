@@ -11,7 +11,7 @@ import { EventSubscription, Timers } from 'detritus-utils';
 import { deleteFile, fetchFile } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { MessageComponentCustomIds } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer } from '../apievents';
 import { I18n, mediaReplyFromOptions } from '../utils';
 
 import { Listener } from './listener';
@@ -20,7 +20,7 @@ import { Listener } from './listener';
 class ComponentsListener extends Listener {
   componentsProcessing = new Collections.BaseSet<string>();
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
     {

@@ -620,6 +620,7 @@ export const Ukrainian: Translations = Object.freeze({
   'tools.translate.no_speech': 'Мовлення не виявлено',
   'tools.translate.result_characters': 'Результат: {count} симв.',
   'tools.translate.title': 'Переклад: {from} → {to}',
+  'tools.translate.title_untranslated': 'Google Translate не переклав це: {from} → {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Склеїти звук аудіо/зображення/відео з іншим аудіофайлом',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'за-найдовшим',
@@ -1671,7 +1672,7 @@ export const Ukrainian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Не вдалося згенерувати персональне посилання.',
   'api_errors.voice_clone_type_not_supported': 'Цей тип клонування голосу не підтримується.',
 
-  'errors.api_restarting': 'Наш API перезапускається, це може зайняти трохи часу. Вибачте ;(',
+  'errors.api_restarting': 'Наш API недоступний або перезапускається, це може зайняти трохи часу. Вибачте ;(',
   'errors.argument_title': 'Помилка аргументу ({label})',
   'errors.bot_missing_permissions': '{label} {command}: боту потрібні права {permissions}.',
   'errors.cancel_run': '{label} {command}: сталася дивна помилка, будь ласка, повідомте розробникам.',

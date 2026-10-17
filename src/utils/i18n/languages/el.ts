@@ -620,6 +620,7 @@ export const Greek: Translations = Object.freeze({
   'tools.translate.no_speech': 'Δεν εντοπίστηκε ομιλία',
   'tools.translate.result_characters': 'Αποτέλεσμα: {count} χαρακτήρες',
   'tools.translate.title': 'Μετάφραση από {from} σε {to}',
+  'tools.translate.title_untranslated': 'Το Google Translate δεν το μετέφρασε από {from} σε {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Συνένωση του ήχου ενός ήχου/εικόνας/βίντεο με άλλο αρχείο ήχου',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'μεγαλύτερο',
@@ -1671,7 +1672,7 @@ export const Greek: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Αποτυχία δημιουργίας vanity.',
   'api_errors.voice_clone_type_not_supported': 'Αυτός ο τύπος κλώνου φωνής δεν υποστηρίζεται.',
 
-  'errors.api_restarting': 'Το API μας επανεκκινείται, μπορεί να πάρει λίγο. Sorry ;(',
+  'errors.api_restarting': 'Το API μας είναι εκτός λειτουργίας ή επανεκκινείται, μπορεί να πάρει λίγο. Sorry ;(',
   'errors.argument_title': 'Σφάλμα ορίσματος {label}',
   'errors.bot_missing_permissions': '{label} Το {command} χρειάζεται το bot να έχει {permissions} για να δουλέψει.',
   'errors.cancel_run': '{label} Το {command} έβγαλε περίεργο σφάλμα, στείλε μια αναφορά στους devs.',

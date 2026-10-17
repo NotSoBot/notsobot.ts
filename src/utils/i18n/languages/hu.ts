@@ -620,6 +620,7 @@ export const Hungarian: Translations = Object.freeze({
   'tools.translate.no_speech': 'Nem észleltem beszédet',
   'tools.translate.result_characters': 'Eredmény: {count} karakter',
   'tools.translate.title': 'Fordítás: {from} → {to}',
+  'tools.translate.title_untranslated': 'A Google Translate nem fordította le ezt {from} nyelvről {to} nyelvre',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Hang/kép/videó hangjának összefűzése egy másik hangfájllal',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'leghosszabb',
@@ -1671,7 +1672,7 @@ export const Hungarian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Nem sikerült egyedi URL-t generálni.',
   'api_errors.voice_clone_type_not_supported': 'Ez a hangklóntípus nem támogatott.',
 
-  'errors.api_restarting': 'Az API-nk újraindul, ez eltarthat egy kicsit. Bocsi ;(',
+  'errors.api_restarting': 'Az API-nk nem elérhető vagy újraindul, ez eltarthat egy kicsit. Bocsi ;(',
   'errors.argument_title': '{label} – argumentumhiba',
   'errors.bot_missing_permissions': '{label} {command}: a működéshez a botnak ezek az engedélyek kellenek: {permissions}.',
   'errors.cancel_run': '{label} {command}: furcsa hiba történt, kérlek, jelezd a fejlesztőknek.',

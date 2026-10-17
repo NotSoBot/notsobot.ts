@@ -620,6 +620,7 @@ export const Japanese: Translations = Object.freeze({
   'tools.translate.no_speech': '音声が検出されませんでした',
   'tools.translate.result_characters': '結果: {count}文字',
   'tools.translate.title': '{from}から{to}に翻訳',
+  'tools.translate.title_untranslated': 'Google翻訳は{from}から{to}に翻訳しませんでした',
 
   'commands.media_aiv_tools.audio.put_concat.description': '音声/画像/動画の音声の後ろに別の音声ファイルをつなげる',
   'commands.media_aiv_tools.audio.put_concat.longest.name': '最長',
@@ -1671,7 +1672,7 @@ export const Japanese: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'バニティの生成に失敗しました。',
   'api_errors.voice_clone_type_not_supported': 'そのボイスクローンの種類には対応していません。',
 
-  'errors.api_restarting': 'APIが再起動中です。少し時間がかかるかもしれません。ごめんね ;(',
+  'errors.api_restarting': 'APIがダウンしているか再起動中です。少し時間がかかるかもしれません。ごめんね ;(',
   'errors.argument_title': '{label}引数エラー',
   'errors.bot_missing_permissions': '{label} {command}を使うにはBotに{permissions}の権限が必要です。',
   'errors.cancel_run': '{label} {command}で謎のエラーが発生しました。開発者に報告してください。',

@@ -4,13 +4,13 @@ import { EventSubscription, Timers } from 'detritus-utils';
 
 import { Listener } from './listener';
 
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer } from '../apievents';
 
 
 // Do I want to interval here for the current users entitlements or in the api
 
 class EntitlementsListener extends Listener {
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
 
     {

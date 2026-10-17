@@ -7,7 +7,7 @@ import { Store } from './store';
 import { RequestContext, fetchServerSettings, putServerSettings } from '../api';
 import { ServerSettings } from '../api/structures/serversettings';
 import { RedisChannels } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
 
 
@@ -78,10 +78,10 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
     return promise;
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
-      const subscription = redis.subscribe(RedisChannels.SERVER_FEATURES_UPDATE, (payload: RedisPayloads.ServerFeaturesUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.SERVER_FEATURES_UPDATE, (payload: RedisPayloads.ServerFeaturesUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -90,11 +90,19 @@ class ServerSettingsStore extends Store<string, ServerSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.SERVER_SETTINGS_UPDATE, (payload: RedisPayloads.ServerSettingsUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.SERVER_SETTINGS_UPDATE, (payload: RedisPayloads.ServerSettingsUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
         }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      // events were missed, so anything cached could be stale. drop it all and let the next use refetch
+      const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.clear();
       });
       subscriptions.push(subscription);
     }

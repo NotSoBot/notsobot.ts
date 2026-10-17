@@ -620,6 +620,7 @@ export const Lithuanian: Translations = Object.freeze({
   'tools.translate.no_speech': 'Kalbos neaptikta',
   'tools.translate.result_characters': 'Rezultatas: {count} simb.',
   'tools.translate.title': 'Išversta iš {from} į {to}',
+  'tools.translate.title_untranslated': 'Google Translate to neišvertė iš {from} į {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Sujungti garso / vaizdo / video failo garsą su kitu garso failu',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'ilgiausias',
@@ -1671,7 +1672,7 @@ export const Lithuanian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Nepavyko sugeneruoti asmeninės nuorodos.',
   'api_errors.voice_clone_type_not_supported': 'Šis balso klono tipas nepalaikomas.',
 
-  'errors.api_restarting': 'Mūsų API persikrauna, tai gali šiek tiek užtrukti. Atsiprašome ;(',
+  'errors.api_restarting': 'Mūsų API neveikia arba persikrauna, tai gali šiek tiek užtrukti. Atsiprašome ;(',
   'errors.argument_title': '{label} argumento klaida',
   'errors.bot_missing_permissions': '{label} {command}: kad veiktų, botui reikia leidimų {permissions}.',
   'errors.cancel_run': '{label} {command} keistai sugedo, praneškite kūrėjams.',

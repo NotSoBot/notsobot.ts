@@ -19,9 +19,9 @@
     "moment-duration-format": "^2.3.2",
     "moment-timezone": "^0.6.5",
     "opusscript": "^0.1.1",
-    "redis": "^6.3.0",
     "typescript": "^7.0.2",
-    "wav": "^1.0.2"
+    "wav": "^1.0.2",
+    "ws": "^8.22.0"
   },
   "overrides": {
     "whatwg-url": "13.0.0"
@@ -29,7 +29,8 @@
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.7",
     "@types/node": "^26.6.5",
-    "@types/wav": "^1.0.4"
+    "@types/wav": "^1.0.4",
+    "@types/ws": "^8.18.2"
   },
   "scripts": {
     "build": "tsc",

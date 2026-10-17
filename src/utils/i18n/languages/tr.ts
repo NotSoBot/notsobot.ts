@@ -619,6 +619,7 @@ export const Turkish: Translations = Object.freeze({
   'tools.translate.no_speech': 'Konuşma algılanmadı',
   'tools.translate.result_characters': 'Sonuç: {count} Karakter',
   'tools.translate.title': '{from} dilinden {to} diline çevrildi',
+  'tools.translate.title_untranslated': 'Google Translate bunu {from} dilinden {to} diline çevirmedi',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Bir Ses/Görsel/Videonun sesini başka bir ses dosyasıyla uç uca ekle',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'en-uzun',
@@ -1670,7 +1671,7 @@ export const Turkish: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Özel URL oluşturulamadı.',
   'api_errors.voice_clone_type_not_supported': 'Bu ses klonu türü desteklenmiyor.',
 
-  'errors.api_restarting': 'API\'miz yeniden başlatılıyor, bu biraz sürebilir. Üzgünüz ;(',
+  'errors.api_restarting': 'API\'miz çalışmıyor ya da yeniden başlatılıyor, bu biraz sürebilir. Üzgünüz ;(',
   'errors.argument_title': '{label} Argüman Hatası',
   'errors.bot_missing_permissions': '{label} {command} çalışması için botun {permissions} iznine sahip olması gerekir.',
   'errors.cancel_run': '{label} {command} garip bir hata verdi, lütfen geliştiricilere bir rapor gönder.',

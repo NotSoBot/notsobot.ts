@@ -56,6 +56,7 @@ export async function createMessage(
       from_language: fromLanguage,
       translated_language: translatedLanguage,
       translated_text: translatedText,
+      untranslated,
     } = await googleTranslate(context, {
       from: locale,
       text: annotation.description.slice(0, 5000),
@@ -68,7 +69,7 @@ export async function createMessage(
     const fromLanguageTitle = languageName(fromLanguage, fromLanguageText, {capitalize: true});
     const translatedLanguageName = languageName(translatedLanguage, translatedLanguageText);
     const translatedLanguageTitle = languageName(translatedLanguage, translatedLanguageText, {capitalize: true});
-    payload.title = translate('tools.translate.title', {from: fromLanguageName, to: translatedLanguageName});
+    payload.title = translate((untranslated) ? 'tools.translate.title_untranslated' : 'tools.translate.title', {from: fromLanguageName, to: translatedLanguageName});
 
     const shouldShowInput = (translatedText !== annotation.description);
     const totalLength = annotation.description.length + translatedText.length;
@@ -85,7 +86,11 @@ export async function createMessage(
       {
         // 1024 - 10 ('```\n\n```')
         const parts = splitTextByAmount(translatedText, 1014, '');
-        const title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageTitle : `${fromLanguageTitle} -> ${translatedLanguageTitle}`;
+        let title = (fromLanguage === translatedLanguage || shouldShowInput) ? translatedLanguageTitle : `${fromLanguageTitle} -> ${translatedLanguageTitle}`;
+        if (untranslated) {
+          // it's still the input text, google didn't translate it
+          title = fromLanguageTitle;
+        }
         payload.fields!.push({name: title, value: Markup.codeblock(parts.shift() as string)});
         for (let part of parts) {
           payload.fields!.push({name: '\u200b', value: Markup.codeblock(part)});

@@ -17,7 +17,8 @@ async function refreshCommands(
   const LISTENERS_PATH = '/listeners/';
   const STORE_PATH = '/stores/';
 
-  const IGNORE = ['/bot.', '/redis.'];
+  // the api events module holds this process' connection, reloading it would leave the old one running
+  const IGNORE = ['/apievents.', '/bot.'];
 
   const errors: Array<string> = [];
   let dump: Record<string, any> | null = null;
@@ -29,14 +30,6 @@ async function refreshCommands(
       continue;
     }
     if (IGNORE.some((file) => key.includes(file))) {
-      continue;
-    }
-
-    if (key.includes('/redis.')) {
-      const { default: redisObject } = require(key);
-      if (redisObject && extras && extras.redisChannels && redisObject.subscribeToChannels) {
-        redisObject.subscribeToChannels(extras.redisChannels);
-      }
       continue;
     }
 

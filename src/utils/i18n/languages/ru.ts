@@ -620,6 +620,7 @@ export const Russian: Translations = Object.freeze({
   'tools.translate.no_speech': 'Речь не обнаружена',
   'tools.translate.result_characters': 'Результат: {count} симв.',
   'tools.translate.title': 'Перевод: {from} → {to}',
+  'tools.translate.title_untranslated': 'Google Translate не перевёл это: {from} → {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Склеить звук аудио/изображения/видео с другим аудиофайлом',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'по-длинному',
@@ -1671,7 +1672,7 @@ export const Russian: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Не удалось сгенерировать персональную ссылку.',
   'api_errors.voice_clone_type_not_supported': 'Этот тип клонирования голоса не поддерживается.',
 
-  'errors.api_restarting': 'Наш API перезапускается, это может занять немного времени. Извините ;(',
+  'errors.api_restarting': 'Наш API недоступен или перезапускается, это может занять немного времени. Извините ;(',
   'errors.argument_title': 'Ошибка аргумента ({label})',
   'errors.bot_missing_permissions': '{label} {command}: боту нужны права {permissions}.',
   'errors.cancel_run': '{label} {command}: произошла странная ошибка, пожалуйста, сообщите разработчикам.',

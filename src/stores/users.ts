@@ -6,7 +6,7 @@ import { Store } from './store';
 import { fetchUser, putUser } from '../api';
 import { UserFull } from '../api/structures/user';
 import { RedisChannels } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
 
 
@@ -96,14 +96,21 @@ class UserStore extends Store<string, UserFull> {
     return promise;
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
-      const subscription = redis.subscribe(RedisChannels.USER_UPDATE, (payload: RedisPayloads.UserUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.USER_UPDATE, (payload: RedisPayloads.UserUpdate) => {
         if (this.has(payload.id)) {
           const user = this.get(payload.id)!;
           user.merge(payload);
         }
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      // events were missed, so anything cached could be stale. drop it all and let the next use refetch
+      const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.clear();
       });
       subscriptions.push(subscription);
     }

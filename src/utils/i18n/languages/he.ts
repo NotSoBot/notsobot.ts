@@ -620,6 +620,7 @@ export const Hebrew: Translations = Object.freeze({
   'tools.translate.no_speech': 'לא זוהה דיבור',
   'tools.translate.result_characters': 'תוצאה: {count} תווים',
   'tools.translate.title': 'תורגם מ{from} ל{to}',
+  'tools.translate.title_untranslated': 'Google Translate לא תרגם את זה מ{from} ל{to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'חבר את האודיו של אודיו/תמונה/וידאו עם קובץ אודיו אחר ברצף',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'הארוך',
@@ -1671,7 +1672,7 @@ export const Hebrew: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'יצירת כתובת מותאמת נכשלה.',
   'api_errors.voice_clone_type_not_supported': 'סוג שיבוט הקול הזה לא נתמך.',
 
-  'errors.api_restarting': 'ה-API שלנו מופעל מחדש, זה עלול לקחת קצת זמן. סליחה ;(',
+  'errors.api_restarting': 'ה-API שלנו מושבת או מופעל מחדש, זה עלול לקחת קצת זמן. סליחה ;(',
   'errors.argument_title': 'שגיאת ארגומנט ב{label}',
   'errors.bot_missing_permissions': '{label} {command} דורשת שלבוט יהיו {permissions} כדי לעבוד.',
   'errors.cancel_run': '{label} {command} נתקלה בשגיאה מוזרה, בבקשה שלח דיווח למפתחים.',

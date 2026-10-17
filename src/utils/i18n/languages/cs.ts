@@ -620,6 +620,7 @@ export const Czech: Translations = Object.freeze({
   'tools.translate.no_speech': 'Nebyla rozpoznána žádná řeč',
   'tools.translate.result_characters': 'Výsledek: {count} znaků',
   'tools.translate.title': 'Přeloženo z jazyka {from} do jazyka {to}',
+  'tools.translate.title_untranslated': 'Google Translate tohle nepřeložil z {from} do {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Spojí zvuk audia/obrázku/videa s jiným zvukovým souborem',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'nejdelší',
@@ -1671,7 +1672,7 @@ export const Czech: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Vygenerování vlastní URL selhalo.',
   'api_errors.voice_clone_type_not_supported': 'Tento typ klonu hlasu není podporovaný.',
 
-  'errors.api_restarting': 'Naše API se restartuje, může to chvíli trvat. Sorry ;(',
+  'errors.api_restarting': 'Naše API je mimo provoz nebo se restartuje, může to chvíli trvat. Sorry ;(',
   'errors.argument_title': '{label} – chyba argumentu',
   'errors.bot_missing_permissions': '{label} {command} vyžaduje, aby bot měl {permissions}.',
   'errors.cancel_run': '{label} {command} skončil podivnou chybou, pošli prosím hlášení vývojářům.',

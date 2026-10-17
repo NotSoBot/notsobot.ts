@@ -620,6 +620,7 @@ export const PortugueseBrazil: Translations = Object.freeze({
   'tools.translate.no_speech': 'Nenhuma fala detectada',
   'tools.translate.result_characters': 'Resultado: {count} caracteres',
   'tools.translate.title': 'Traduzido de {from} para {to}',
+  'tools.translate.title_untranslated': 'O Google Translate não traduziu isto de {from} para {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Concatenar o áudio de um áudio/imagem/vídeo com outro arquivo de áudio',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'mais-longo',
@@ -1671,7 +1672,7 @@ export const PortugueseBrazil: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'Falha ao gerar uma URL personalizada.',
   'api_errors.voice_clone_type_not_supported': 'Esse tipo de clone de voz não é suportado.',
 
-  'errors.api_restarting': 'Nossa API está reiniciando, isso pode demorar um pouco. Desculpe ;(',
+  'errors.api_restarting': 'Nossa API está fora do ar ou reiniciando, isso pode demorar um pouco. Desculpe ;(',
   'errors.argument_title': 'Erro de argumento ({label})',
   'errors.bot_missing_permissions': '{label} {command} precisa que o bot tenha {permissions} para funcionar.',
   'errors.cancel_run': '{label} {command} deu um erro estranho, por favor envie um relatório para os devs.',

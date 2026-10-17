@@ -9,7 +9,7 @@ import UserStore from './users';
 import { fetchGuildTagsCommands, fetchUserTagsCommands } from '../api';
 import { RestResponsesRaw } from '../api/types';
 import { GuildFeatures, RedisChannels, UserFlags } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
 
 
@@ -252,10 +252,10 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     return ((payload.server_id) ? this.get(payload.server_id) : null) || this.get(payload.user.id) || null;
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
-      const subscription = redis.subscribe(RedisChannels.TAG_DELETE, (payload: RedisPayloads.TagDelete) => {
+      const subscription = apiEvents.subscribe(RedisChannels.TAG_DELETE, (payload: RedisPayloads.TagDelete) => {
         const collection = this.getCollectionForTag(payload);
         if (collection) {
           collection.delete(payload.id);
@@ -264,7 +264,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.TAG_DELETE_BULK, (payload: RedisPayloads.TagDeleteBulk) => {
+      const subscription = apiEvents.subscribe(RedisChannels.TAG_DELETE_BULK, (payload: RedisPayloads.TagDeleteBulk) => {
         const collection = this.get(payload.dm_user_id || payload.server_id);
         if (collection) {
           for (let tagId of payload.tag_ids) {
@@ -275,7 +275,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.TAG_UPDATE, (payload: RedisPayloads.TagUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.TAG_UPDATE, (payload: RedisPayloads.TagUpdate) => {
         const collection = this.getCollectionForTag(payload);
         if (collection) {
           if (payload.is_command) {
@@ -284,6 +284,13 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
             collection.delete(payload.id);
           }
         }
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      // events were missed, so anything cached could be stale. drop it all and let the next use refetch
+      const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.clear();
       });
       subscriptions.push(subscription);
     }

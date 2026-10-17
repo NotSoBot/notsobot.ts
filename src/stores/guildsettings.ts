@@ -7,7 +7,7 @@ import { Store } from './store';
 import { RequestContext, fetchGuildSettings, putGuildSettings } from '../api';
 import { GuildSettings } from '../api/structures/guildsettings';
 import { RedisChannels } from '../constants';
-import { RedisSpewer } from '../redis';
+import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
 import { RedisPayloads } from '../types';
 
 
@@ -81,7 +81,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     return promise;
   }
 
-  create(cluster: ClusterClient, redis: RedisSpewer) {
+  create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
     {
       const subscription = cluster.subscribe(ClientEvents.CHANNEL_DELETE, async (event) => {
@@ -92,7 +92,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
         // the api get every channel delete twice
         if (guildId) {
           if (this.has(guildId)) {
-            // clear from cache even tho redis will give us the stuff
+            // clear from cache even tho the api events will give us the stuff
             const settings = this.get(guildId)!;
             {
               const loggers = settings.loggers.filter((logger) => logger.channelId === channel.id);
@@ -165,7 +165,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_ALLOWLIST_UPDATE, (payload: RedisPayloads.GuildAllowlistUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_ALLOWLIST_UPDATE, (payload: RedisPayloads.GuildAllowlistUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -174,7 +174,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_BLOCKLIST_UPDATE, (payload: RedisPayloads.GuildBlocklistUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_BLOCKLIST_UPDATE, (payload: RedisPayloads.GuildBlocklistUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -183,7 +183,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_COMMANDS_ALLOWLIST_UPDATE, (payload: RedisPayloads.GuildCommandsAllowlistUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_COMMANDS_ALLOWLIST_UPDATE, (payload: RedisPayloads.GuildCommandsAllowlistUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -192,7 +192,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_COMMANDS_BLOCKLIST_UPDATE, (payload: RedisPayloads.GuildCommandsBlocklistUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_COMMANDS_BLOCKLIST_UPDATE, (payload: RedisPayloads.GuildCommandsBlocklistUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -201,7 +201,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_FEATURES_UPDATE, (payload: RedisPayloads.GuildFeaturesUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_FEATURES_UPDATE, (payload: RedisPayloads.GuildFeaturesUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -210,7 +210,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_LOGGER_UPDATE, (payload: RedisPayloads.GuildLoggerUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_LOGGER_UPDATE, (payload: RedisPayloads.GuildLoggerUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -219,7 +219,7 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_PREFIX_UPDATE, (payload: RedisPayloads.GuildPrefixUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_PREFIX_UPDATE, (payload: RedisPayloads.GuildPrefixUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
@@ -228,11 +228,19 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = redis.subscribe(RedisChannels.GUILD_SETTINGS_UPDATE, (payload: RedisPayloads.GuildSettingsUpdate) => {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_SETTINGS_UPDATE, (payload: RedisPayloads.GuildSettingsUpdate) => {
         if (this.has(payload.id)) {
           const settings = this.get(payload.id)!;
           settings.merge(payload);
         }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      // events were missed, so anything cached could be stale. drop it all and let the next use refetch
+      const subscription = apiEvents.subscribe(ApiEventsSpewerEvents.RESYNC, () => {
+        this.clear();
       });
       subscriptions.push(subscription);
     }

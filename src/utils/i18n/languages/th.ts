@@ -620,6 +620,7 @@ export const Thai: Translations = Object.freeze({
   'tools.translate.no_speech': 'ไม่พบเสียงพูด',
   'tools.translate.result_characters': 'ผลลัพธ์: {count} ตัวอักษร',
   'tools.translate.title': 'แปลจาก{from}เป็น{to}',
+  'tools.translate.title_untranslated': 'Google Translate ไม่ได้แปลข้อความนี้จาก{from}เป็น{to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'ต่อเสียงของเสียง/รูปภาพ/วิดีโอเข้ากับไฟล์เสียงอื่น',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'ยาวที่สุด',
@@ -1671,7 +1672,7 @@ export const Thai: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'สร้างลิงก์แบบกำหนดเองไม่สำเร็จ',
   'api_errors.voice_clone_type_not_supported': 'ไม่รองรับประเภทการโคลนเสียงนั้น',
 
-  'errors.api_restarting': 'API ของเรากำลังรีสตาร์ท อาจใช้เวลาสักครู่ ขอโทษนะ ;(',
+  'errors.api_restarting': 'API ของเราล่มหรือกำลังรีสตาร์ท อาจใช้เวลาสักครู่ ขอโทษนะ ;(',
   'errors.argument_title': 'ข้อผิดพลาดอาร์กิวเมนต์ของ{label}',
   'errors.bot_missing_permissions': '{label} {command} ต้องให้บอทมีสิทธิ์ {permissions} จึงจะทำงานได้',
   'errors.cancel_run': '{label} {command} เกิดข้อผิดพลาดแปลกๆ โปรดส่งรายงานถึงผู้พัฒนา',

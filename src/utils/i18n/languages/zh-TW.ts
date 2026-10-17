@@ -620,6 +620,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'tools.translate.no_speech': '沒有偵測到語音',
   'tools.translate.result_characters': '結果：{count} 個字元',
   'tools.translate.title': '從{from}翻譯成{to}',
+  'tools.translate.title_untranslated': 'Google 翻譯沒有將此內容從{from}翻譯為{to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': '將音訊/圖片/影片的音訊與另一個音訊檔案串接',
   'commands.media_aiv_tools.audio.put_concat.longest.name': '最長',
@@ -1671,7 +1672,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': '產生自訂網址失敗。',
   'api_errors.voice_clone_type_not_supported': '不支援這個語音複製類型。',
 
-  'errors.api_restarting': '我們的 API 正在重新啟動，可能需要一點時間。抱歉 ;(',
+  'errors.api_restarting': '我們的 API 目前停擺或正在重新啟動，可能需要一點時間。抱歉 ;(',
   'errors.argument_title': '{label}參數錯誤',
   'errors.bot_missing_permissions': '{label} {command} 需要機器人擁有 {permissions} 才能運作。',
   'errors.cancel_run': '{label} {command} 發生了奇怪的錯誤，請回報給開發者。',

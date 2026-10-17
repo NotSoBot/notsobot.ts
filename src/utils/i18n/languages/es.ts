@@ -620,6 +620,7 @@ export const Spanish: Translations = Object.freeze({
   'tools.translate.no_speech': 'No se detectó voz',
   'tools.translate.result_characters': 'Resultado: {count} caracteres',
   'tools.translate.title': 'Traducido de {from} a {to}',
+  'tools.translate.title_untranslated': 'Google Translate no tradujo esto de {from} a {to}',
 
   'commands.media_aiv_tools.audio.put_concat.description': 'Concatena el audio de un audio, imagen o video con otro archivo de audio',
   'commands.media_aiv_tools.audio.put_concat.longest.name': 'más-largo',
@@ -1671,7 +1672,7 @@ export const Spanish: Translations = Object.freeze({
   'api_errors.vanity_generation_failed': 'No se pudo generar un vanity.',
   'api_errors.voice_clone_type_not_supported': 'Ese tipo de clonación de voz no es compatible.',
 
-  'errors.api_restarting': 'Nuestra API se está reiniciando, puede tardar un poco. Perdón ;(',
+  'errors.api_restarting': 'Nuestra API está caída o reiniciándose, puede tardar un poco. Perdón ;(',
   'errors.argument_title': '{label}: error de argumentos',
   'errors.bot_missing_permissions': '{label} {command} necesita que el bot tenga {permissions} para funcionar.',
   'errors.cancel_run': '{label} {command} falló de forma extraña, envía un reporte a los desarrolladores por favor.',
