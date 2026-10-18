@@ -27,7 +27,7 @@ export default class ConvertCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://cdn.discordapp.com/attachments/560593330270896129/1054322096420950097/igVideo.mp4 mov`,
         ],
         id: Formatter.Commands.MediaAIVManipulationConvert.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>',
+        usage: '<emoji,user:id|mention,url> <...format> (-size <number|(width)x(height)>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional()},

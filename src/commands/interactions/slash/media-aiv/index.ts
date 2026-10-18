@@ -23,6 +23,7 @@ import { MediaAIVSeeSawCommand } from './seesaw';
 import { MediaAIVShuffleCommand } from './shuffle';
 import { MediaAIVSnipCommand } from './snip';
 import { MediaAIVSpeedCommand } from './speed';
+import { MediaAIVVegCommand } from './veg';
 
 
 export default class MediaAIVGroupCommand extends BaseSlashCommand {
@@ -58,6 +59,7 @@ export default class MediaAIVGroupCommand extends BaseSlashCommand {
         new MediaAIVShuffleCommand,
         new MediaAIVSnipCommand(),
         new MediaAIVSpeedCommand(),
+        new MediaAIVVegCommand(),
 	  ],
 	});
   }

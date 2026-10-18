@@ -9,8 +9,8 @@ import { deleteGuildTimedBan, deleteGuildTimedBans, fetchTimedBans } from '../ap
 import { RestResponsesRaw } from '../api/types';
 import { DateMomentLogFormat, RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
-import { createTimestampMomentFromGuild, formatUserTag } from '../utils';
-import { getTranslatorForGuildId } from '../utils/i18n';
+import { createTimestampMomentFromGuild, formatTime, formatUserTag } from '../utils';
+import { Translator, getTranslatorForGuildId } from '../utils/i18n';
 
 
 // discord's error codes for what to do with a timed ban whose unban failed
@@ -148,13 +148,60 @@ class TimedBanScheduler extends Listener {
   }
 
   async createReason(shard: ShardClient, timedBan: RestResponsesRaw.TimedBan): Promise<string> {
-    // in the server's language since the whole server sees it, like the ban's own reason
+    // in the server's language since the whole server sees it, laid out like the ban's own reason
     const { translate } = await getTranslatorForGuildId({client: shard}, timedBan.guild_id);
-    const moderator = shard.users.get(timedBan.moderator_id);
-    const user = (moderator) ? `${formatUserTag(moderator)} (${moderator.id})` : timedBan.moderator_id;
-    const bannedAt = Snowflake.timestamp(timedBan.id, {epoch: SNOWFLAKE_EPOCH});
-    const timestamp = createTimestampMomentFromGuild(bannedAt, timedBan.guild_id).format(DateMomentLogFormat);
-    return translate('timed_bans.audit_reason', {timestamp, user}).slice(0, 512);
+    let moderator = shard.users.get(timedBan.moderator_id);
+    if (!moderator) {
+      // cluster 0 only has its own servers' users cached
+      try {
+        moderator = await shard.rest.fetchUser(timedBan.moderator_id);
+      } catch(error) {}
+    }
+    const description: Array<string> = [];
+    description.push(translate('moderation_ban.admin', {
+      user: (moderator) ? formatUserTag(moderator) : timedBan.moderator_id,
+      user2: timedBan.moderator_id,
+    }));
+    description.push(translate('moderation_ban.timestamp', {
+      timestamp: createTimestampMomentFromGuild(Date.now(), timedBan.guild_id).format(DateMomentLogFormat),
+    }));
+    {
+      // the timed ban is saved right as they get banned, so its id is when they got banned (rounded since the end was
+      // picked a few ms before the id was made)
+      const bannedAt = Snowflake.timestamp(timedBan.id, {epoch: SNOWFLAKE_EPOCH});
+      const duration = Math.round((Date.parse(timedBan.timestamp_end) - bannedAt) / 1000) * 1000;
+      description.push(translate('timed_bans.type_expired', {
+        duration: formatTime(Math.max(duration, 0)),
+        timestamp: createTimestampMomentFromGuild(bannedAt, timedBan.guild_id).format(DateMomentLogFormat),
+      }));
+    }
+    description.push(translate('moderation_ban.reason', {
+      text: (await this.fetchBanReason(shard, timedBan, translate)) || translate('moderation.unspecified_reason'),
+    }));
+    return description.join('\n').slice(0, 512);
+  }
+
+  // the reason isn't saved with the timed ban, so it comes from the ban's audit log reason that the ban command wrote
+  // (`Admin: ...\nTimestamp: ...\nType: ...\nReason: {text}`, the text last)
+  async fetchBanReason(shard: ShardClient, timedBan: RestResponsesRaw.TimedBan, translate: Translator['translate']): Promise<string | null> {
+    let reason: string | null = null;
+    try {
+      const ban = await shard.rest.fetchGuildBan(timedBan.guild_id, timedBan.user_id);
+      reason = ban.reason || null;
+    } catch(error) {
+      // the unban right after runs into the same error and handles it
+      return null;
+    }
+    if (!reason) {
+      return null;
+    }
+    const [ prefix ] = translate('moderation_ban.reason', {text: '\u0000'}).split('\u0000');
+    const index = (reason.startsWith(prefix)) ? 0 : reason.lastIndexOf(`\n${prefix}`);
+    if (index !== -1) {
+      return reason.slice(index + ((index) ? 1 : 0) + prefix.length).trim() || null;
+    }
+    // banned some other way (or the server's language changed since), a multi-line reason is someone else's layout
+    return (reason.includes('\n')) ? null : reason;
   }
 
   async executeUnban(shard: ShardClient, timedBan: RestResponsesRaw.TimedBan): Promise<void> {

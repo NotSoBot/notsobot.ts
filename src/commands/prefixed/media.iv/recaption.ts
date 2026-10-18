@@ -14,7 +14,7 @@ export default class RecaptionCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'tolerance', aliases: ['t'], type: Number},
+        {name: 'tolerance', aliases: ['t'], type: Number, metadata: {description: '0 to 255'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

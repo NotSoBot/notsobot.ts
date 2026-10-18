@@ -15,7 +15,7 @@ export default class DeepfryCommand extends BaseImageOrVideoCommand {
 
       args: [
         {aliases: ['nt'], name: 'notransparency', type: Boolean},
-        {aliases: ['s'], name: 'scale', type: 'float'},
+        {aliases: ['s'], name: 'scale', type: 'float', metadata: {description: '0 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

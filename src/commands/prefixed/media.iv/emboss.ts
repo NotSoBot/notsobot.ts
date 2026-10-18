@@ -14,12 +14,12 @@ export default class EmbossCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'azimuth', type: Number},
+        {aliases: ['a'], name: 'azimuth', type: Number, metadata: {description: '0 to 360'}},
         {aliases: ['c'], name: 'compose', type: Parameters.oneOf({choices: MediaEmbossComposeMethods})},
-        {aliases: ['e'], name: 'elevation', type: Number},
-        {aliases: ['d'], name: 'depth', type: Number},
-        {aliases: ['i'], name: 'intensity', type: Number},
-        {aliases: ['g'], name: 'gray', type: 'float'},
+        {aliases: ['e'], name: 'elevation', type: Number, metadata: {description: '0 to 90'}},
+        {aliases: ['d'], name: 'depth', type: Number, metadata: {description: '0 to 100'}},
+        {aliases: ['i'], name: 'intensity', type: Number, metadata: {description: '-50 to 50'}},
+        {aliases: ['g'], name: 'gray', type: 'float', metadata: {description: '0 to 1'}},
         {aliases: ['m'], name: 'method', type: Parameters.oneOf({choices: MediaEmbossMethods})},
       ],
       metadata: {

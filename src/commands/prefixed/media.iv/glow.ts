@@ -14,7 +14,7 @@ export default class GlowCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'amount', type: Number},
+        {aliases: ['a'], name: 'amount', type: Number, metadata: {description: '1 to 20'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

@@ -14,11 +14,11 @@ export default class RippleCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'amplitude', type: Number},
-        {aliases: ['o'], name: 'offset', type: Number},
-        {aliases: ['p'], name: 'power', type: 'float'},
-        {aliases: ['r'], name: 'rmin', type: Number},
-        {aliases: ['w'], name: 'width', type: Number},
+        {aliases: ['a'], name: 'amplitude', type: Number, metadata: {description: '0 to 1000'}},
+        {aliases: ['o'], name: 'offset', type: Number, metadata: {description: '0 to 1000'}},
+        {aliases: ['p'], name: 'power', type: 'float', metadata: {description: '0 to 1000'}},
+        {aliases: ['r'], name: 'rmin', type: Number, metadata: {description: '0 to 1000'}},
+        {aliases: ['w'], name: 'width', type: Number, metadata: {description: '0 to 1000'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

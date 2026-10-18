@@ -17,13 +17,13 @@ export default class PixelSortCommand extends BaseImageOrVideoCommand {
       args: [
         {aliases: ['i'], name: 'interval', type: Parameters.oneOf({choices: MediaPixelSortIntervals})},
         {aliases: ['sb'], name: 'sort', type: Parameters.oneOf({choices: MediaPixelSortFunctions})},
-        {aliases: ['a'], name: 'angle', type: Number},
-        {name: 'lower', type: 'float'},
-        {name: 'upper', type: 'float'},
-        {aliases: ['l'], name: 'length', type: Number},
-        {aliases: ['r'], name: 'randomness', type: Number},
+        {aliases: ['a'], name: 'angle', type: Number, metadata: {description: '0 to 359'}},
+        {name: 'lower', type: 'float', metadata: {description: '0 to 1'}},
+        {name: 'upper', type: 'float', metadata: {description: '0 to 1'}},
+        {aliases: ['l'], name: 'length', type: Number, metadata: {description: '2 to 1000'}},
+        {aliases: ['r'], name: 'randomness', type: Number, metadata: {description: '0 to 100'}},
         {name: 'reverse', type: Boolean},
-        {aliases: ['s'], name: 'seed', type: Number},
+        {aliases: ['s'], name: 'seed', type: Number, metadata: {description: '0 to 2147483647'}},
       ],
       metadata: {
         description: 'Sort runs of pixels in an Image or Video',
@@ -35,7 +35,7 @@ export default class PixelSortCommand extends BaseImageOrVideoCommand {
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationPixelSort.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-interval <type>) (-sort <type>) (-angle <number>) (-lower <float>) (-upper <float>) (-length <number>) (-randomness <number>) (-reverse) (-seed <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-interval <MediaPixelSortIntervals>) (-sort <MediaPixelSortFunctions>) (-angle <number>) (-lower <float>) (-upper <float>) (-length <number>) (-randomness <number>) (-reverse) (-seed <number>)',
       },
     });
   }

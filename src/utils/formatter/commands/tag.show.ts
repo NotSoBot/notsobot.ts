@@ -11,7 +11,7 @@ import {
 } from 'detritus-client/lib/utils';
 
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
-import { getCachedTranslator, getTranslator } from '../../i18n';
+import { getCachedTranslator, getTranslator, randomThinkingKey } from '../../i18n';
 
 import { createTagUse, editTag, fetchFileVanity } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
@@ -57,7 +57,7 @@ export async function parseTag(
   const timeout = setTimeout(() => {
     thinking = (async () => {
       const { translate } = await getTranslator(context);
-      await editOrReply(context, translate('media.thinking'));
+      await editOrReply(context, translate(randomThinkingKey()));
     })().catch(() => {
       // the trigger was edited/deleted or the channel can't be replied in, the tag's own reply will deal with it
     });
@@ -242,7 +242,8 @@ export async function getMediaReplyOptions(
     return null;
   }
 
-  if (!content && parsedTag.files.length === 1) {
+  // text alongside the file goes above it, like a media command's description
+  if (parsedTag.files.length === 1) {
     const file = parsedTag.files[0];
     if (!file.buffer) {
       return null;
@@ -259,6 +260,7 @@ export async function getMediaReplyOptions(
     return {
       options: {
         altText: file.description,
+        content: content.slice(0, 2000) || undefined,
         extension,
         filename: file.filename.slice(0, dot),
         framecount: (metadata) ? metadata.framecount : undefined,

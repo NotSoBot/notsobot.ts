@@ -14,11 +14,11 @@ export default class MandalaScopeCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'amount', type: Number},
-        {aliases: ['r'], name: 'rotation', type: Number},
-        {aliases: ['s'], name: 'scale', type: 'float'},
-        {aliases: ['t'], name: 'translation', type: Number},
-        {aliases: ['z'], name: 'zoom', type: 'float'},
+        {aliases: ['a'], name: 'amount', type: Number, metadata: {description: '3 to 16'}},
+        {aliases: ['r'], name: 'rotation', type: Number, metadata: {description: '0 to 360'}},
+        {aliases: ['s'], name: 'scale', type: 'float', metadata: {description: '0.01 to 10'}},
+        {aliases: ['t'], name: 'translation', type: Number, metadata: {description: '0 to 200'}},
+        {aliases: ['z'], name: 'zoom', type: 'float', metadata: {description: '0.01 to 10'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

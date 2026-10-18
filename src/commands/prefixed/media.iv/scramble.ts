@@ -14,9 +14,9 @@ export default class ScrambleCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['g'], name: 'grid', type: Number},
+        {aliases: ['g'], name: 'grid', type: Number, metadata: {description: '2 to 32'}},
         {aliases: ['nr'], name: 'norotate', type: Boolean},
-        {aliases: ['s'], name: 'seed', type: Number},
+        {aliases: ['s'], name: 'seed', type: Number, metadata: {description: '0 to 2147483647'}},
       ],
       metadata: {
         description: 'Shuffle the tiles of an Image or Video around',

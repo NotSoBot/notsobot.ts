@@ -14,9 +14,9 @@ export default class ShakeCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['h'], name: 'horizontal', type: 'float'},
+        {aliases: ['h'], name: 'horizontal', type: 'float', metadata: {description: '-10000 to 10000'}},
         {aliases: ['r'], name: 'randomize', type: Boolean},
-        {aliases: ['v'], name: 'vertical', type: 'float'},
+        {aliases: ['v'], name: 'vertical', type: 'float', metadata: {description: '-10000 to 10000'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

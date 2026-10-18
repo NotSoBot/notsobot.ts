@@ -8,7 +8,7 @@ import { BaseInteractionAudioOrVideoCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'multipitch';
 
 export class MediaAVAudioMultiPitchCommand extends BaseInteractionAudioOrVideoCommandOption {
-  description = 'Pitch shift an Audio or Video by semitones without changing its speed, or mix several pitches into a chord';
+  description = 'Pitch shift an Audio or Video by semitones without changing its speed, or mix pitches into a chord';
   descriptionLocalizations = I18n.localizations('commands.media_av.audio.multipitch.description');
   metadata = {
     id: Formatter.Commands.MediaAVManipulationAudioMultiPitch.COMMAND_ID,

@@ -27,7 +27,7 @@ import {
   UserPremiumTypes,
   UserSettingsApplicationCommandResponseTypes,
 } from '../../constants';
-import { DefaultParameters, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
+import { DefaultParameters, FindMediaUrlOptions, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
 
 import {
   createArgumentErrorPayload,
@@ -450,12 +450,12 @@ export class BaseInteractionImageOrVideoCommandOption extends BaseInteractionCom
 
 
 export class BaseInteractionMediaCommandOption extends BaseInteractionCommandOption {
-  constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
+  constructor(data: Interaction.InteractionCommandOptionOptions = {}, mediaSearchOptions: FindMediaUrlOptions = {}) {
     super({
       ...data,
       options: [
         ...(data.options || []),
-        {name: 'url', description: 'Emoji/Media URL/User', ...I18n.optionLocalizations('commands.options.media.url'), default: DefaultParameters.lastMediaUrl(), value: Parameters.lastMediaUrl()},
+        {name: 'url', description: 'Emoji/Media URL/User', ...I18n.optionLocalizations('commands.options.media.url'), default: DefaultParameters.lastMediaUrl(mediaSearchOptions), value: Parameters.lastMediaUrl(mediaSearchOptions)},
         {name: 'attachment', description: 'Media File', ...I18n.optionLocalizations('commands.options.media.attachment'), type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });

@@ -25,7 +25,7 @@ export default class SetMyAIMemoryCommand extends BaseCommand {
           `${COMMAND_NAME} off`,
         ],
         id: Formatter.Commands.SettingsSetAIMemory.COMMAND_ID,
-        usage: '(on|off)',
+        usage: '?<on|off>',
       },
       // nothing shows the current setting
       type: (value: string): boolean | undefined => {

@@ -14,8 +14,8 @@ export default class PhoSimpCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'gridx', aliases: ['gx'], type: Number},
-        {name: 'gridy', aliases: ['gy'], type: Number},
+        {name: 'gridx', aliases: ['gx'], type: Number, metadata: {description: '1 to 16'}},
+        {name: 'gridy', aliases: ['gy'], type: Number, metadata: {description: '1 to 16'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

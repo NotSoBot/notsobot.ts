@@ -15,7 +15,7 @@ export default class CharcoalAnimatedCommand extends BaseImageOrVideoCommand {
 
       aliases: ['gcharcoal'],
       args: [
-        {aliases: ['r'], name: 'radius', type: Number},
+        {aliases: ['r'], name: 'radius', type: Number, metadata: {description: '2 to 10'}},
       ],
       metadata: {
         description: 'Apply a gradually increasing Charcoal effect to a Single-framed Image',

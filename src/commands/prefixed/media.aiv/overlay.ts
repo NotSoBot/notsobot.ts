@@ -14,12 +14,12 @@ export default class OverlayCommand extends BaseMediasCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'blend', aliases: ['b'], type: 'float'},
+        {name: 'blend', aliases: ['b'], type: 'float', metadata: {description: '0 to 1'}},
         {name: 'color', aliases: ['c']},
         {name: 'noloop', aliases: ['nl'], type: Boolean},
-        {name: 'opacity', aliases: ['o'], type: Number},
+        {name: 'opacity', aliases: ['o'], type: Number, metadata: {description: '0 to 100'}},
         {name: 'resize', aliases: ['r']},
-        {name: 'similarity', aliases: ['s'], type: 'float'},
+        {name: 'similarity', aliases: ['s'], type: 'float', metadata: {description: '0.01 to 1'}},
         {name: 'x'},
         {name: 'y'},
       ],

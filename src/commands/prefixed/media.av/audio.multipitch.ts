@@ -19,7 +19,7 @@ export default class AudioMultiPitchCommand extends BaseMediaCommand {
       ],
       metadata: {
         category: CommandCategories.AUDIO,
-        description: 'Pitch shift an Audio or Video by semitones without changing its speed, or mix several pitches into a chord',
+        description: 'Pitch shift an Audio or Video by semitones without changing its speed, or mix pitches into a chord',
         examples: [
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 7`,
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 0,7,12`,

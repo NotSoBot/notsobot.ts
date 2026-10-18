@@ -32,7 +32,7 @@ export default class UsersCommand extends BaseCommand {
         ],
         category: CommandCategories.INFO,
         id: Formatter.Commands.InfoUsers.COMMAND_ID,
-        usage: '?<user:id|mention|name>',
+        usage: '?<user:id|mention|name> (-bots) (-hasnick) (-role <role:id|mention|name>)',
       },
       type: Parameters.membersOrUsersSearch(),
     });

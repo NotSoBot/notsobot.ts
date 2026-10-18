@@ -16,7 +16,7 @@ export default class PixelateCommand extends BaseImageOrVideoCommand {
       aliases: ['pixel'],
       args: [
         {name: 'nolines', aliases: ['nl'], label: 'noLines', type: Boolean},
-        {name: 'width', aliases: ['w'], type: Number},
+        {name: 'width', aliases: ['w'], type: Number, metadata: {description: '2 to 100'}},
       ],
       metadata: {
         description: 'Pixelate an Image or Video',

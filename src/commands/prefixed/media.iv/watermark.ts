@@ -14,9 +14,9 @@ export default class WatermarkCommand extends BaseMediasCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'margin', aliases: ['m'], type: Number},
-        {name: 'opacity', aliases: ['o'], type: Number},
-        {name: 'size', aliases: ['s'], type: Number},
+        {name: 'margin', aliases: ['m'], type: Number, metadata: {description: '0 to 50'}},
+        {name: 'opacity', aliases: ['o'], type: Number, metadata: {description: '0 to 100'}},
+        {name: 'size', aliases: ['s'], type: Number, metadata: {description: '1 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
@@ -26,7 +26,7 @@ export default class WatermarkCommand extends BaseMediasCommand {
           `${COMMAND_NAME} @cakedan @notsobot -size 30 -opacity 75 -margin 5`,
         ],
         id: Formatter.Commands.MediaIVManipulationOverlayWatermark.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-margin <number 0..50>) (-opacity <number 0..100>) (-size <number 1..100>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-margin <number>) (-opacity <number>) (-size <number>)',
       },
       maxAmount: 2,
       minAmount: 2,

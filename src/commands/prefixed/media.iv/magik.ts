@@ -15,7 +15,7 @@ export default class MagikCommand extends BaseImageOrVideoCommand {
 
       aliases: ['magic'],
       args: [
-        {aliases: ['s'], name: 'scale', type: 'float'},
+        {aliases: ['s'], name: 'scale', type: 'float', metadata: {description: '1 to 10'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

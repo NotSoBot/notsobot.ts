@@ -25,7 +25,7 @@ export default class VoiceRecordCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         id: Formatter.Commands.VoiceRecord.COMMAND_ID,
-        usage: '<duration:number>',
+        usage: '<duration:number> (-target <user:id|mention|name>)',
       },
       type: Parameters.secondsWithOptions(),
     });

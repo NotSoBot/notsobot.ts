@@ -63,7 +63,7 @@ export default class NickMassCommand extends BaseCommand {
         ],
         category: CommandCategories.MODERATION,
         id: 'moderation.nick.mass',
-        usage: '<text> (-nobots) (-nousers) (-role <role:id|name>)',
+        usage: '<text> (-nobots) (-nousers) (-role <role:id|mention|name>)',
       },
       permissionsClient: [Permissions.CHANGE_NICKNAMES],
       permissions: [Permissions.CHANGE_NICKNAMES, Permissions.MANAGE_GUILD],

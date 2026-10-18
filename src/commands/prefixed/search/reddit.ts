@@ -16,7 +16,7 @@ export default class RedditCommand extends BaseSearchCommand {
       args: [
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
         {name: 'sort', choices: Object.values(RedditSortTypes), help: `Must be one of: (${Object.values(RedditSortTypes).join(', ')})`, type: (value) => value.toUpperCase()},
-        {name: 'subreddit'},
+        {name: 'subreddit', metadata: {description: '1 to 20 characters'}},
         {name: 'time', choices: Object.values(RedditTimeTypes), help: `Must be one of: (${Object.values(RedditTimeTypes).join(', ')})`, type: (value) => value.toUpperCase()},
       ],
       metadata: {

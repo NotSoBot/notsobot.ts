@@ -1018,6 +1018,14 @@ export async function mediaAIVManipulationSpeed(
 }
 
 
+export async function mediaAIVManipulationVeg(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationVeg,
+) {
+  return raw.mediaAIVManipulationVeg(context, options);
+}
+
+
 export async function mediaAIVToolsAnalyze(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -1095,6 +1103,14 @@ export async function mediaAVManipulationAudioFlanger(
   options: RestOptions.MediaAVManipulationAudioFlanger,
 ) {
   return raw.mediaAVManipulationAudioFlanger(context, options);
+}
+
+
+export async function mediaAVManipulationAudioVocoder(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioVocoder,
+) {
+  return raw.mediaAVManipulationAudioVocoder(context, options);
 }
 
 

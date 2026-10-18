@@ -15,7 +15,7 @@ export default class OverlayFaceCommand extends BaseMediasCommand {
 
 	  aliases: ['o face'],
 	  args: [
-		{name: 'scale', aliases: ['s'], type: 'float'},
+		{name: 'scale', aliases: ['s'], type: 'float', metadata: {description: '0.01 to 1000'}},
 	  ],
 	  metadata: {
 		category: CommandCategories.EFFECTS,

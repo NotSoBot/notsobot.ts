@@ -15,7 +15,7 @@ export default class RGBSplitCommand extends BaseImageOrVideoCommand {
 
       aliases: ['glitch2'],
       args: [
-        {aliases: ['o'], name: 'offset', type: Number},
+        {aliases: ['o'], name: 'offset', type: Number, metadata: {description: '1 to 100'}},
       ],
       metadata: {
         description: 'Split the red, green and blue channels of an Image or Video apart',

@@ -15,7 +15,7 @@ export default class AsciiImageCommand extends BaseImageCommand {
 
       args: [
         {name: 'mobile', aliases: ['m'], type: Boolean},
-        {name: 'size', aliases: ['s'], type: Number},
+        {name: 'size', aliases: ['s'], type: Number, metadata: {description: '1 to 15'}},
       ],
       aliases: ['ascii i'],
       metadata: {

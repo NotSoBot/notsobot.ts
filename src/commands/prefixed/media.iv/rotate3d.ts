@@ -15,8 +15,8 @@ export default class Rotate3dCommand extends BaseImageOrVideoCommand {
 
       args: [
         {name: 'crop', aliases: ['c'], type: Parameters.oneOf({choices: MediaRotate3dCropModes})},
-        {name: 'order', aliases: ['o']},
-        {name: 'zoom', aliases: ['z'], type: 'float'},
+        {name: 'order', aliases: ['o'], metadata: {description: '1 to 3 characters'}},
+        {name: 'zoom', aliases: ['z'], type: 'float', metadata: {description: '-3 to 3'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

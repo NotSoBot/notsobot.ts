@@ -14,8 +14,8 @@ export default class TrimCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'margin', aliases: ['m'], type: Number},
-        {name: 'threshold', aliases: ['t'], type: Number},
+        {name: 'margin', aliases: ['m'], type: Number, metadata: {description: '0 to 2560'}},
+        {name: 'threshold', aliases: ['t'], type: Number, metadata: {description: '0 to 100000'}},
       ],
       metadata: {
         category: CommandCategories.CONVERSION,

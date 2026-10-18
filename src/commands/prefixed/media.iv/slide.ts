@@ -15,7 +15,7 @@ export default class SlideCommand extends BaseImageOrVideoCommand {
 
       args: [
         {name: 'direction', aliases: ['d'], type: Parameters.oneOf({choices: MediaSlideDirections})},
-        {name: 'speed', aliases: ['s'], type: 'float'},
+        {name: 'speed', aliases: ['s'], type: 'float', metadata: {description: '0.01 to 10'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

@@ -28,7 +28,7 @@ export class WebMDCommand extends BaseSearchCommand<CommandArgs> {
         ],
         category: CommandCategories.SEARCH,
         id: Formatter.Commands.SearchWebMD.COMMAND_ID,
-        usage: '<query>',
+        usage: '<query> (-random)',
       },
     });
   }

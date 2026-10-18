@@ -16,7 +16,7 @@ export default class NeedsMoreJPEGCommand extends BaseImageOrVideoCommand {
       aliases: ['nmj', 'jpeg'],
       args: [
         {aliases: ['nt'], name: 'notransparency', type: Boolean},
-        {aliases: ['q'], name: 'quality', type: Number},
+        {aliases: ['q'], name: 'quality', type: Number, metadata: {description: '1 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

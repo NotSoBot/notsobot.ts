@@ -15,13 +15,13 @@ export default class AudioEqualizerCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['a equalizer'],
       args: [
-        {name: 'air', aliases: ['a']},
-        {name: 'bass', aliases: ['b']},
-        {name: 'highmids', aliases: ['hm'], label: 'highMids'},
-        {name: 'lowmids', aliases: ['lm'], label: 'lowMids'},
-        {name: 'mids', aliases: ['m']},
-        {name: 'subbass', aliases: ['sb'], label: 'subBass'},
-        {name: 'treble', aliases: ['t']},
+        {name: 'air', aliases: ['a'], metadata: {description: '-50 to 50'}},
+        {name: 'bass', aliases: ['b'], metadata: {description: '-50 to 50'}},
+        {name: 'highmids', aliases: ['hm'], label: 'highMids', metadata: {description: '-50 to 50'}},
+        {name: 'lowmids', aliases: ['lm'], label: 'lowMids', metadata: {description: '-50 to 50'}},
+        {name: 'mids', aliases: ['m'], metadata: {description: '-50 to 50'}},
+        {name: 'subbass', aliases: ['sb'], label: 'subBass', metadata: {description: '-50 to 50'}},
+        {name: 'treble', aliases: ['t'], metadata: {description: '-50 to 50'}},
       ],
       metadata: {
         category: CommandCategories.AUDIO,

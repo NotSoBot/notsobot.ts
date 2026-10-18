@@ -14,7 +14,7 @@ export default class BlurCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['s'], name: 'scale', type: 'float'},
+        {aliases: ['s'], name: 'scale', type: 'float', metadata: {description: '1 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

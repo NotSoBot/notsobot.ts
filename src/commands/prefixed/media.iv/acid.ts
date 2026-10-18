@@ -14,9 +14,9 @@ export default class AcidCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'amount', type: Number},
-        {aliases: ['l'], name: 'levels', type: Number},
-        {aliases: ['s'], name: 'seed', type: Number},
+        {aliases: ['a'], name: 'amount', type: Number, metadata: {description: '0 to 100'}},
+        {aliases: ['l'], name: 'levels', type: Number, metadata: {description: '2 to 16'}},
+        {aliases: ['s'], name: 'seed', type: Number, metadata: {description: '0 to 2147483647'}},
       ],
       metadata: {
         description: 'Scramble the color palette of an Image or Video',

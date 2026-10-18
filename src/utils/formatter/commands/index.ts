@@ -40,6 +40,7 @@ import * as MediaAIVManipulationSeeSaw from './media.aiv.manipulation.seesaw';
 import * as MediaAIVManipulationShuffle from './media.aiv.manipulation.shuffle';
 import * as MediaAIVManipulationSnip from './media.aiv.manipulation.snip';
 import * as MediaAIVManipulationSpeed from './media.aiv.manipulation.speed';
+import * as MediaAIVManipulationVeg from './media.aiv.manipulation.veg';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
 
@@ -53,6 +54,7 @@ import * as MediaAVManipulationAudioDestroy from './media.av.manipulation.audio.
 import * as MediaAVManipulationAudioEqualizer from './media.av.manipulation.audio.equalizer';
 import * as MediaAVManipulationAudioFlanger from './media.av.manipulation.audio.flanger';
 import * as MediaAVManipulationAudioMultiPitch from './media.av.manipulation.audio.multipitch';
+import * as MediaAVManipulationAudioVocoder from './media.av.manipulation.audio.vocoder';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
 import * as MediaAVManipulationAudioReverb from './media.av.manipulation.audio.reverb';
 import * as MediaAVManipulationAudioReverse from './media.av.manipulation.audio.reverse';
@@ -500,6 +502,7 @@ export {
   MediaAIVManipulationShuffle,
   MediaAIVManipulationSnip,
   MediaAIVManipulationSpeed,
+  MediaAIVManipulationVeg,
 
   MediaAIVPipe,
 
@@ -513,6 +516,7 @@ export {
   MediaAVManipulationAudioEqualizer,
   MediaAVManipulationAudioFlanger,
   MediaAVManipulationAudioMultiPitch,
+  MediaAVManipulationAudioVocoder,
   MediaAVManipulationAudioPitch,
   MediaAVManipulationAudioReverb,
   MediaAVManipulationAudioReverse,

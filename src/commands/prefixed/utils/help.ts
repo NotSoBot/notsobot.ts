@@ -32,7 +32,7 @@ export default class HelpCommand extends BaseCommand {
           `${COMMAND_NAME} loggers`,
         ],
         category: CommandCategories.UTILITY,
-        usage: '',
+        usage: '?<command-name>',
       },
       type: (content: string, context: Command.Context) => {
         if (content) {
@@ -142,6 +142,25 @@ export default class HelpCommand extends BaseCommand {
               text = translate('help.usage_unfinished');
             }
             payload.fields!.push({name: translate('help.usage'), value: text});
+          }
+          {
+            // only args with a description, so hidden flags stay out of help
+            const lines: Array<string> = [];
+            for (let arg of command.argParser.args) {
+              const description = (arg.metadata && arg.metadata.description) || '';
+              if (!description) {
+                continue;
+              }
+              const prefix = Array.from(arg.prefixes).shift() || '';
+              let line = `**${prefix}${arg.name}**`;
+              if (arg.aliases.length) {
+                line += ` (${arg.aliases.map((alias) => `${prefix}${alias}`).join(', ')})`;
+              }
+              lines.push(`${line}: ${description}`);
+            }
+            if (lines.length) {
+              payload.fields!.push({name: translate('help.arguments'), value: lines.join('\n')});
+            }
           }
         }
         payload.footer = translate('help.footer', {page, total: pageLimit});

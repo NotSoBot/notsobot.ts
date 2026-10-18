@@ -14,10 +14,10 @@ export default class GlitchAnimatedCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'amount', aliases: ['a'], type: Number},
-        {name: 'iterations', aliases: ['i'], type: Number},
+        {name: 'amount', aliases: ['a'], type: Number, metadata: {description: '1 to 99'}},
+        {name: 'iterations', aliases: ['i'], type: Number, metadata: {description: '1 to 115'}},
         {name: 'notransparency', aliases: ['nt'], type: Boolean},
-        {name: 'seed', aliases: ['s'], type: Number},
+        {name: 'seed', aliases: ['s'], type: Number, metadata: {description: '1 to 99'}},
         //{name: 'type'}, // theres glitch2, but maybe get rid of it?
       ],
       metadata: {

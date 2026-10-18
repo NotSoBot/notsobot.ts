@@ -10,6 +10,7 @@ import {
   findMediaUrlInMessages,
   findUrlInMessages,
   getOrFetchRealUrl,
+  isVegAttachment,
   FindMediaUrlOptions,
 } from './tools';
 
@@ -45,8 +46,10 @@ export function lastMediaUrl(
   return async (context: Command.Context | Interaction.InteractionContext) => {
     if (context instanceof Interaction.InteractionContext) {
       if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
-        const attachment = context.data.resolved.attachments.first()!;
-        return attachment.url!;
+        const attachment = context.data.resolved.attachments.find((x) => !(mediaSearchOptions.skipVeg && isVegAttachment(x)));
+        if (attachment) {
+          return attachment.url!;
+        }
       }
     }
   

@@ -196,6 +196,15 @@ export function t(
 }
 
 
+// every `media.thinking.N` in en.ts, so adding a phrase is just adding the translations
+const THINKING_KEYS = (Object.keys(English) as Array<TranslationKey>).filter((key) => key.startsWith('media.thinking.'));
+
+// the "still processing" reply, a different phrase each time so slow commands don't all say the same thing
+export function randomThinkingKey(): TranslationKey {
+  return THINKING_KEYS[Math.floor(Math.random() * THINKING_KEYS.length)];
+}
+
+
 // Returns `t` with the language already bound, so formatters can call `translate('key')`
 export function createTranslator(language: Languages) {
   return (key: TranslationKey, variables?: TranslationVariables) => t(language, key, variables);

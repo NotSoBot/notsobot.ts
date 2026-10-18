@@ -18,6 +18,9 @@ import {
 
 export const COMMAND_ID = 'tag.info';
 
+// longer content gets uploaded as a file, so the tag info stays readable (and fits in a 2000 character text message)
+const TAG_CONTENT_MAX_INLINE_LENGTH = 1000;
+
 export interface CommandArgs {
   tag: RestResponsesRaw.Tag,
 }
@@ -38,12 +41,12 @@ export async function createMessage(
   payload.color = EmbedColors.DEFAULT;
   payload.title = tag.name;
 
-  // where the tag comes from goes in the footer (under the invoker line), so the content stays right under the title
-  // plain text since embed footers don't render markdown, the title links to the directory page instead
+  // where the tag comes from goes in its own block between the tag info and the invoker line, so the content stays right under the title
+  // plain text since embed footers (where embeds show it) don't render markdown, the title links to the directory page instead
   if (tag.reference_tag) {
     if (tag.reference_tag.is_on_directory) {
       payload.url = createTagDirectoryUrl(tag.reference_tag.id);
-      payload.footer = translate('tag_info.using_tag_from_the_tag_directory', {reference_tag: tag.reference_tag.name});
+      payload.note = translate('tag_info.using_tag_from_the_tag_directory', {reference_tag: tag.reference_tag.name});
     } else {
       let message = translate('tag_info.alias_of_tag', {name: tag.reference_tag.name});
 
@@ -53,11 +56,14 @@ export async function createMessage(
         message = translate('tag_info.from_s_dms', {message: message, user: (owner) ? String(owner) : translate('tag.deleted_user')});
       }
 
-      payload.footer = message;
+      payload.note = message;
     }
   } else if (tag.is_on_directory) {
     payload.url = createTagDirectoryUrl(tag.id);
-    payload.footer = translate('tag_info.tag_from_the_tag_directory');
+    payload.note = translate('tag_info.tag_from_the_tag_directory');
+  } else if (TAG_CONTENT_MAX_INLINE_LENGTH < tag.content.length) {
+    const filename = tag.name.replace(/[^\w.+-]/g, '_').slice(0, 64);
+    payload.files = [{filename: `${tag.id}.${filename}.txt`, value: tag.content}];
   } else {
     payload.description = Markup.codeblock(tag.content);
   }

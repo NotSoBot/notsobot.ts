@@ -175,6 +175,7 @@ export const TAG_DIRECTORY_CATEGORIES = [
   createChoice('Clips', TagDirectoryCategories.CLIPS, {localizationKey: 'choices.tag_directory_categories.clips'}),
   createChoice('Filters', TagDirectoryCategories.FILTERS, {localizationKey: 'choices.tag_directory_categories.filters'}),
   createChoice('Games', TagDirectoryCategories.GAMES, {localizationKey: 'choices.tag_directory_categories.games'}),
+  createChoice('Logo Editing', TagDirectoryCategories.LOGO_EDITING, {localizationKey: 'choices.tag_directory_categories.logo_editing'}),
   createChoice('Memes', TagDirectoryCategories.MEMES, {localizationKey: 'choices.tag_directory_categories.memes'}),
   createChoice('Utility', TagDirectoryCategories.UTILITY, {localizationKey: 'choices.tag_directory_categories.utility'}),
   createChoice('Other', TagDirectoryCategories.OTHER, {localizationKey: 'choices.tag_directory_categories.other'}),

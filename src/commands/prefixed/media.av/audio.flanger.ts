@@ -15,12 +15,12 @@ export default class AudioFlangerCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['a flanger'],
       args: [
-        {name: 'delay', aliases: ['d'], type: Number},
-        {name: 'depth', aliases: ['dp'], type: Number},
-        {name: 'phase', aliases: ['p'], type: Number},
-        {name: 'regen', aliases: ['r'], type: Number},
-        {name: 'speed', aliases: ['s'], type: 'float'},
-        {name: 'width', aliases: ['w'], type: Number},
+        {name: 'delay', aliases: ['d'], type: Number, metadata: {description: '0 to 30'}},
+        {name: 'depth', aliases: ['dp'], type: Number, metadata: {description: '0 to 10'}},
+        {name: 'phase', aliases: ['p'], type: Number, metadata: {description: '0 to 100'}},
+        {name: 'regen', aliases: ['r'], type: Number, metadata: {description: '-95 to 95'}},
+        {name: 'speed', aliases: ['s'], type: 'float', metadata: {description: '0.1 to 10'}},
+        {name: 'width', aliases: ['w'], type: Number, metadata: {description: '0 to 100'}},
       ],
       metadata: {
         category: CommandCategories.AUDIO,

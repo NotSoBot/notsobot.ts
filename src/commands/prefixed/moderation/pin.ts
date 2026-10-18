@@ -71,7 +71,7 @@ export default class PinCommand extends BaseCommand {
           `${COMMAND_NAME} -first`,
         ],
         id: COMMAND_ID,
-        usage: '<message_id|message_link|date|text> (-first) (-in <channel>)',
+        usage: '<message_id|message_link|date|text> (-first) (-in <channel:id|mention|name>)',
       },
       permissionsClient: [Permissions.PIN_MESSAGES],
       permissions: [Permissions.PIN_MESSAGES],

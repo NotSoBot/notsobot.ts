@@ -14,9 +14,9 @@ export default class CartoonCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'amount', type: 'float'},
-        {aliases: ['b'], name: 'brightness', type: Number},
-        {aliases: ['l'], name: 'levels', type: Number},
+        {aliases: ['a'], name: 'amount', type: 'float', metadata: {description: '0 to 10'}},
+        {aliases: ['b'], name: 'brightness', type: Number, metadata: {description: '0 to 100'}},
+        {aliases: ['l'], name: 'levels', type: Number, metadata: {description: '2 to 10'}},
         {
           aliases: ['m'],
           name: 'method',
@@ -24,8 +24,8 @@ export default class CartoonCommand extends BaseImageOrVideoCommand {
           help: `Must be one of: (${Object.values(MediaCartoonMethods).join(', ')})`,
           type: (value: string) => value.toUpperCase(),
         },
-        {aliases: ['p'], name: 'pattern', type: Number},
-        {aliases: ['s', 'strength'], name: 'saturation', type: Number},
+        {aliases: ['p'], name: 'pattern', type: Number, metadata: {description: '0 to 100'}},
+        {aliases: ['s', 'strength'], name: 'saturation', type: Number, metadata: {description: '0 to 300'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

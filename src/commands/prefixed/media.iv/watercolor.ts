@@ -14,10 +14,10 @@ export default class WatercolorCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['c'], name: 'contrast', type: 'float'},
-        {aliases: ['e'], name: 'edge', type: 'float'},
-        {aliases: ['m'], name: 'mixing', type: Number},
-        {aliases: ['s'], name: 'smoothing', type: Number},
+        {aliases: ['c'], name: 'contrast', type: 'float', metadata: {description: '0 to 1000'}},
+        {aliases: ['e'], name: 'edge', type: 'float', metadata: {description: '1 to 1000'}},
+        {aliases: ['m'], name: 'mixing', type: Number, metadata: {description: '0 to 100'}},
+        {aliases: ['s'], name: 'smoothing', type: Number, metadata: {description: '0 to 1000'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

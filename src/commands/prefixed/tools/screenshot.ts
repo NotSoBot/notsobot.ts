@@ -15,12 +15,12 @@ export default class ScreenshotCommand extends BaseCommand {
 
       aliases: ['ss'],
       args: [
-        {name: 'height', aliases: ['h'], type: Number},
+        {name: 'height', aliases: ['h'], type: Number, metadata: {description: '1 to 4096'}},
         {name: 'lightmode', aliases: ['light'], type: Boolean},
         {name: 'safe', default: DefaultParameters.safe, type: () => true},
-        {name: 'timeout', aliases: ['t'], type: 'float'},
-        {name: 'wait', aliases: ['wa'], type: 'float'},
-        {name: 'width', aliases: ['wd'], type: Number},
+        {name: 'timeout', aliases: ['t'], type: 'float', metadata: {description: '1 to 15'}},
+        {name: 'wait', aliases: ['wa'], type: 'float', metadata: {description: '0 to 5'}},
+        {name: 'width', aliases: ['wd'], type: Number, metadata: {description: '1 to 2048'}},
       ],
       label: 'url',
       metadata: {
@@ -31,7 +31,7 @@ export default class ScreenshotCommand extends BaseCommand {
           `${COMMAND_NAME} https://discordapp.com`,
         ],
         id: Formatter.Commands.ToolsScreenshot.COMMAND_ID,
-        usage: '<url> (-height <number>) (-lightmode) (-safe) (-timeout <seconds>) (-wait <number>) (-width <number>)',
+        usage: '<url> (-height <number>) (-lightmode) (-safe) (-timeout <seconds>) (-wait <float>) (-width <number>)',
       },
       type: Parameters.url,
     });

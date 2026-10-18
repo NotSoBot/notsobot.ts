@@ -2229,6 +2229,33 @@ export async function mediaAIVManipulationSpeed(
 }
 
 
+export async function mediaAIVManipulationVeg(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationVeg,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    cutoff: options.cutoff,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    url: options.url,
+    veg_url: options.vegUrl,
+  };
+  return request(context, {
+    file: options.file,
+    // the api tells the .veg upload apart from the media by its key
+    files: (options.vegFile) ? [{...options.vegFile, key: 'veg_file'}] : undefined,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_VEG,
+    },
+  });
+}
+
+
 export async function mediaAIVToolsAnalyze(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2471,6 +2498,29 @@ export async function mediaAVManipulationAudioFlanger(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_MANIPULATION_AUDIO_FLANGER,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationAudioVocoder(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioVocoder,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    bands: options.bands,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_VOCODER,
     },
   });
 }
@@ -6830,6 +6880,7 @@ export async function mediaIVManipulationTVSimulator(
     max_file_size: maxFileSize,
     safe: options.safe,
     url: options.url,
+    vertical: options.vertical,
   };
   return request(context, {
     file: options.file,

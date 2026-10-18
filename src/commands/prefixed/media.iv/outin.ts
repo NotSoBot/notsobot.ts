@@ -14,7 +14,7 @@ export default class OutInCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['d'], name: 'delay', type: Number},
+        {aliases: ['d'], name: 'delay', type: Number, metadata: {description: '20 to 10000'}},
       ],
       metadata: {
         description: 'Zoom out of an Image or Video through copies of itself and back in',

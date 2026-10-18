@@ -17,7 +17,7 @@ export default class LegofyCommand extends BaseImageOrVideoCommand {
       args: [
         {name: 'dither', type: Boolean},
         {name: 'palette', type: Parameters.oneOf({choices: MediaLegofyPalettes})},
-        {name: 'size', type: Number},
+        {name: 'size', type: Number, metadata: {description: '1 to 50'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

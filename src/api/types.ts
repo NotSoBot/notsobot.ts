@@ -482,6 +482,13 @@ export namespace RestOptions {
     speed: number,
   }
 
+  export interface MediaAIVManipulationVeg extends MediaBaseOptions {
+    cutoff?: boolean,
+    // the .veg as an upload or a url, one of them is needed
+    vegFile?: RequestFile,
+    vegUrl?: string,
+  }
+
   export interface MediaAIVManipulationSnip extends MediaBaseOptions {
     audioOnly?: boolean,
     end?: number,
@@ -546,6 +553,10 @@ export namespace RestOptions {
   export interface MediaAVManipulationAudioVibrato extends MediaBaseOptions {
     depth?: number,
     frequency?: number,
+  }
+
+  export interface MediaAVManipulationAudioVocoder extends MediaBaseOptionsMultiple {
+    bands?: number,
   }
 
   export interface MediaAVManipulationAudioVolume extends MediaBaseOptions {
@@ -997,6 +1008,7 @@ export namespace RestOptions {
   export interface MediaIVManipulationTVSimulator extends MediaBaseOptions {
     detailZoom?: number,
     lineSync?: number,
+    vertical?: boolean,
   }
 
   export interface MediaIVManipulationUncaption extends MediaBaseOptions {

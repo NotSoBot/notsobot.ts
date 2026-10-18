@@ -16,8 +16,8 @@ export default class EdgeDetectCommand extends BaseImageOrVideoCommand {
       args: [
         {aliases: ['i'], name: 'invert', type: Boolean},
         {aliases: ['m'], name: 'method', type: Parameters.oneOf({choices: MediaEdgeDetectMethods})},
-        {aliases: ['mi'], name: 'mix', type: Number},
-        {aliases: ['s'], name: 'strength', type: 'float'},
+        {aliases: ['mi'], name: 'mix', type: Number, metadata: {description: '0 to 100'}},
+        {aliases: ['s'], name: 'strength', type: 'float', metadata: {description: '0 to 50'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
@@ -27,7 +27,7 @@ export default class EdgeDetectCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.MediaIVManipulationEdgeDetect.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-invert) (-method <MediaEmbossMethods>) (-mix <number>) (-strength <float>)',
+        usage: '?<emoji,user:id|mention|name,url> (-invert) (-method <MediaEdgeDetectMethods>) (-mix <number>) (-strength <float>)',
       },
     });
   }

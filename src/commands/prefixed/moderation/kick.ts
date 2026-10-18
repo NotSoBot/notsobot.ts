@@ -30,7 +30,7 @@ export default class KickCommand extends BaseCommand {
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
         ],
         id: Formatter.Commands.ModerationKick.COMMAND_ID,
-        usage: '...?<user:id|mention> <reason (string)> (-clean <days>)',
+        usage: '...?<user:id|mention> <reason:string> (-clean <days>)',
       },
       // BAN_MEMBERS is only needed for `-clean`, checked in the formatter
       permissionsClient: [Permissions.KICK_MEMBERS],

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -14,7 +14,7 @@ export default class CircleCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['s'], name: 'scale', type: 'float'},
+        {aliases: ['s'], name: 'scale', type: Parameters.number({max: 20, min: 1}), metadata: {description: '1 to 20'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

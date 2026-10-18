@@ -14,11 +14,11 @@ export default class WiggleCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'amount', type: Number},
+        {aliases: ['a'], name: 'amount', type: Number, metadata: {description: '1 to 100'}},
         {aliases: ['d'], name: 'direction', type: Parameters.oneOf({choices: MediaWiggleDirections})},
         {aliases: ['l'], name: 'loop', type: Boolean},
-        {aliases: ['s'], name: 'speed', type: Number},
-        {aliases: ['w'], name: 'wavelengths', type: Number},
+        {aliases: ['s'], name: 'speed', type: Number, metadata: {description: '0.25 to 10'}},
+        {aliases: ['w'], name: 'wavelengths', type: Number, metadata: {description: '0 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
@@ -30,7 +30,7 @@ export default class WiggleCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -speed 2 -loop`,
         ],
         id: Formatter.Commands.MediaIVManipulationWiggle.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-direction <MediaWiggleDirections>) (-loop) (-speed <float>) (-wavelengths <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-direction <MediaWiggleDirections>) (-loop) (-speed <number>) (-wavelengths <number>)',
       },
     });
   }

@@ -14,8 +14,8 @@ export default class ImagineCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'seed', type: Number, metadata: {description: 'initial noise'}},
-        {name: 'steps', type: Number, metadata: {description: 'number of samples to take (2..8)'}},
+        {name: 'seed', type: Number, metadata: {description: 'initial noise (at least 1)'}},
+        {name: 'steps', type: Number, metadata: {description: 'number of samples to take (1 to 8)'}},
         {
           name: 'use',
           label: 'model',

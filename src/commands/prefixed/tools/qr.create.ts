@@ -14,7 +14,7 @@ export default class QRCreateCommand extends BaseCommand<Formatter.Commands.Tool
       name: COMMAND_NAME,
 
       args: [
-        {name: 'margin', type: Number},
+        {name: 'margin', type: Number, metadata: {description: '0 to 50'}},
         {name: 'size'},
       ],
       label: 'query',

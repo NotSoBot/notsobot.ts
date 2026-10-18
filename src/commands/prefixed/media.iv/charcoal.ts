@@ -14,7 +14,7 @@ export default class CharcoalCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['r'], name: 'radius', type: Number},
+        {aliases: ['r'], name: 'radius', type: Number, metadata: {description: '1 to 10'}},
       ],
       metadata: {
         description: 'Apply a Charcoal Drawing effect to an Image or Video',

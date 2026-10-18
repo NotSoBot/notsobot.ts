@@ -90,7 +90,7 @@ export default class PruneCommand extends BaseCommand {
         ],
         category: CommandCategories.MODERATION,
         id: 'moderation.prune',
-        usage: '<max_messages> (-after <message_id>) (-attachments) (-before <message_id>) (-bots) (-embeds) (-from <user>) (-images) (-in <channel>) (-until <message_id>) (-with <text>)',
+        usage: '<max_messages> (-after <message_id>) (-attachments) (-before <message_id>) (-bots) (-embeds) (-from ...<user:id|mention|name>) (-images) (-in <channel:id|mention|name>) (-until <message_id>) (-with <text>)',
       },
       permissionsClient: [Permissions.MANAGE_MESSAGES],
       permissions: [Permissions.MANAGE_MESSAGES],

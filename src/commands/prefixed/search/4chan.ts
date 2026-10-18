@@ -28,7 +28,7 @@ export default class ChanCommand extends BaseSearchCommand<Formatter.Commands.Se
           `${COMMAND_NAME} fitness`,
         ],
         id: Formatter.Commands.Search4Chan.COMMAND_ID,
-        usage: '?<board>',
+        usage: '?<board> (-closed) (-randomize) (-safe)',
       },
     });
   }

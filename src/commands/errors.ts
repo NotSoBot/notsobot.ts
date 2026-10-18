@@ -14,6 +14,8 @@ import { I18n, displayReply, formatMemory } from '../utils';
 // (components v2 container, embed, or plain text, with the invoker and too long errors uploaded as a file)
 
 const ERROR_FILENAME = 'error.txt';
+// discord takes up to 4000, but walls of text (like a full ffmpeg log) are easier to read as a file
+const ERROR_MAX_INLINE_LENGTH = 1000;
 
 export type ErrorContext = Command.Context | Interaction.InteractionContext;
 
@@ -68,6 +70,7 @@ export async function replyError(
     fields: payload.fields,
     title: payload.title,
   }, {
+    maxInlineLength: ERROR_MAX_INLINE_LENGTH,
     uploadDescription: translate('errors.uploaded'),
     uploadFilename: ERROR_FILENAME,
   });

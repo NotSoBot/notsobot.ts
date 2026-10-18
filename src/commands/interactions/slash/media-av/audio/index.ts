@@ -18,6 +18,7 @@ import { MediaAVAudioReverbCommand } from './reverb';
 import { MediaAVAudioReverseCommand } from './reverse';
 import { MediaAVAudioTremoloCommand } from './tremolo';
 import { MediaAVAudioVibratoCommand } from './vibrato';
+import { MediaAVAudioVocoderCommand } from './vocoder';
 import { MediaAVAudioVolumeCommand } from './volume';
 
 
@@ -44,6 +45,7 @@ export class MediaAVAudioGroupCommand extends BaseInteractionCommandOptionGroup 
           new MediaAVAudioReverseCommand(),
           new MediaAVAudioTremoloCommand(),
           new MediaAVAudioVibratoCommand(),
+          new MediaAVAudioVocoderCommand(),
           new MediaAVAudioVolumeCommand(),
 	    ],
 	  });

@@ -18,7 +18,7 @@ export default class WordcloudCommand extends BaseCommand {
       aliases: ['wc'],
       args: [
         {name: 'before', type: Parameters.snowflake},
-        {name: 'max', default: 500, type: Parameters.number({max: 1000, min: 0})},
+        {name: 'max', default: 500, type: Parameters.number({max: 1000, min: 0}), metadata: {description: '0 to 1000'}},
       ],
       default: DefaultParameters.channel,
       label: 'channel',
@@ -30,7 +30,7 @@ export default class WordcloudCommand extends BaseCommand {
           `${COMMAND_NAME} <#585639594574217232> -max 500`,
         ],
         id: Formatter.Commands.MediaICreateWordcloudChannel.COMMAND_ID,
-        usage: '...<channel:id|mention|name> (-max <number>)',
+        usage: '...<channel:id|mention|name> (-before <message_id>) (-max <number>)',
       },
       type: Parameters.channel({
         types: [

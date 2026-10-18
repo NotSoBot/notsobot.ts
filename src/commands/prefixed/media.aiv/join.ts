@@ -28,7 +28,7 @@ export default class JoinCommand extends BaseMediasCommand {
           `${COMMAND_NAME} @cakedan @notsobot -vertical`,
         ],
         id: Formatter.Commands.MediaAIVManipulationJoin.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-noloop) (-vertical)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-noloop) (-noresize) (-vertical)',
       },
       minAmount: 2,
     });

@@ -15,7 +15,7 @@ export default class ImplodeAnimatedCommand extends BaseImageOrVideoCommand {
 
       aliases: ['gimplode'],
       args: [
-        {aliases: ['s'], name: 'scale', type: 'float'},
+        {aliases: ['s'], name: 'scale', type: 'float', metadata: {description: '0 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

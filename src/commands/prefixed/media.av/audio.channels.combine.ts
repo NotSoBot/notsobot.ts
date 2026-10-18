@@ -21,7 +21,7 @@ export default class AudioChannelsCombineCommand extends BaseAudioOrVideoCommand
 		  `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
 		],
 		id: Formatter.Commands.MediaAVManipulationAudioChannelsCombine.COMMAND_ID,
-		usage: '?<emoji,user:id|mention|name,url> (-norevert)',
+		usage: '?<emoji,user:id|mention|name,url>',
 	  },
 	});
   }

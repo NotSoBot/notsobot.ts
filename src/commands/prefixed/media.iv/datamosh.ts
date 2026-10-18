@@ -14,8 +14,8 @@ export default class DatamoshCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['c'], name: 'chance', type: Number},
-        {aliases: ['r'], name: 'repeat', type: Number},
+        {aliases: ['c'], name: 'chance', type: Number, metadata: {description: '0 to 100'}},
+        {aliases: ['r'], name: 'repeat', type: Number, metadata: {description: '0 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

@@ -15,8 +15,8 @@ export default class Spin3dCommand extends BaseImageOrVideoCommand {
 
       args: [
         {name: 'clockwise', aliases: ['c'], type: Boolean},
-        {name: 'tilt', aliases: ['t'], type: Number},
-        {name: 'zoom', aliases: ['z'], type: 'float'},
+        {name: 'tilt', aliases: ['t'], type: Number, metadata: {description: '-360 to 360'}},
+        {name: 'zoom', aliases: ['z'], type: 'float', metadata: {description: '-3 to 3'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

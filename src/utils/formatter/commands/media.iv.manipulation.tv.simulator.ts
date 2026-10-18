@@ -11,6 +11,7 @@ export interface CommandArgs {
   detailZoom?: number,
   lineSync?: number,
   url: string,
+  vertical?: boolean,
 }
 
 export function createJob(

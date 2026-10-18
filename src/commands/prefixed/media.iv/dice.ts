@@ -14,8 +14,8 @@ export default class DiceCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['g'], name: 'grid', type: Number},
-        {aliases: ['s'], name: 'seed', type: Number},
+        {aliases: ['g'], name: 'grid', type: Number, metadata: {description: '2 to 32'}},
+        {aliases: ['s'], name: 'seed', type: Number, metadata: {description: '0 to 2147483647'}},
       ],
       metadata: {
         description: 'Cut an Image or Video into tiles and randomly rotate each one',

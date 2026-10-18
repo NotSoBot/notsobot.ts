@@ -14,7 +14,7 @@ export default class ZoomBlurCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'amount', type: 'float'},
+        {aliases: ['a'], name: 'amount', type: 'float', metadata: {description: '1 to 10'}},
         {aliases: ['e'], name: 'expand', type: Boolean},
       ],
       metadata: {

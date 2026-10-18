@@ -14,7 +14,7 @@ export default class AndroidCommand extends BaseMediaCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'scale', aliases: ['s'], type: Number},
+        {name: 'scale', aliases: ['s'], type: Number, metadata: {description: '1 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

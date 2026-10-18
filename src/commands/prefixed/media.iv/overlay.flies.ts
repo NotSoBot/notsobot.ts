@@ -15,10 +15,10 @@ export default class OverlayFliesCommand extends BaseImageOrVideoCommand {
 
       aliases: ['o flies', 'flies'],
       args: [
-        {name: 'amount', aliases: ['a'], type: Number},
-        {name: 'degrees', aliases: ['d'], type: Number},
+        {name: 'amount', aliases: ['a'], type: Number, metadata: {description: '1 to 100'}},
+        {name: 'degrees', aliases: ['d'], type: Number, metadata: {description: '-360 to 360'}},
         {name: 'fly', label: 'flyImage', type: Parameters.mediaUrl({audio: false, video: false, onlyContent: true})},
-        {name: 'speed', aliases: ['s'], type: 'float'},
+        {name: 'speed', aliases: ['s'], type: 'float', metadata: {description: '0.01 to 1000'}},
       ],
       metadata: {
         description: 'Overlay some flies over an Image or Video',

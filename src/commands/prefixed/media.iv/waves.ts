@@ -14,9 +14,9 @@ export default class WavesCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['a'], name: 'amplitude', type: Number},
-        {aliases: ['l'], name: 'length', label: 'waveLength', type: Number},
-        {aliases: ['s'], name: 'speed', type: Number},
+        {aliases: ['a'], name: 'amplitude', type: Number, metadata: {description: '-2048 to 2048'}},
+        {aliases: ['l'], name: 'length', label: 'waveLength', type: Number, metadata: {description: '1 to 20480'}},
+        {aliases: ['s'], name: 'speed', type: Number, metadata: {description: '1 to 10'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

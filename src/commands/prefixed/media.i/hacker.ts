@@ -14,7 +14,7 @@ export default class HackerCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'template', aliases: ['t'], type: (value: string) => Math.max(0, Math.min(1, (parseInt(value) || 1) - 1))},
+        {name: 'template', aliases: ['t'], type: (value: string) => Math.max(0, Math.min(1, (parseInt(value) || 1) - 1)), metadata: {description: '0 to 1'}},
       ],
       label: 'text',
       metadata: {

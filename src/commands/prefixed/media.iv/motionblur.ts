@@ -14,7 +14,7 @@ export default class MotionBlurCommand extends BaseImageOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {aliases: ['s'], name: 'strength', type: Number},
+        {aliases: ['s'], name: 'strength', type: Number, metadata: {description: '1 to 50'}},
         {aliases: ['v'], name: 'vertical', type: Boolean},
       ],
       metadata: {

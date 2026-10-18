@@ -43,7 +43,7 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
-import { getTranslator } from './i18n';
+import { getTranslator, randomThinkingKey } from './i18n';
 
 import { Endpoints, deleteJob, fetchJob, moderationSafetyScan, moderationTextScan, utilitiesFetchMedia } from '../api';
 import { JobError } from '../api/errors';
@@ -400,8 +400,25 @@ function isURLTrusted(value: string): boolean {
 export interface FindMediaUrlOptions {
   audio?: boolean,
   image?: boolean,
+  // leave out `.veg` attachments, for commands that take one next to the media (tags still get them as FILE_n)
+  skipVeg?: boolean,
   text?: boolean,
   video?: boolean,
+}
+
+
+export function isVegAttachment(attachment: Structures.Attachment): boolean {
+  return !!attachment.filename && attachment.filename.toLowerCase().endsWith('.veg');
+}
+
+
+export function findVegUrlInMessage(message: Structures.Message): null | string {
+  for (let [attachmentId, attachment] of message.attachments) {
+    if (isVegAttachment(attachment)) {
+      return attachment.url || attachment.proxyUrl || null;
+    }
+  }
+  return null;
 }
 
 
@@ -409,6 +426,9 @@ export function findMediaUrlInAttachment(
   attachment: Structures.Attachment,
   options?: FindMediaUrlOptions,
 ): null | string {
+  if (options && options.skipVeg && isVegAttachment(attachment)) {
+    return null;
+  }
   const findAudio = (!options || options.audio || options.audio === undefined);
   const findImage = (!options || options.image || options.image === undefined);
   const findText = (!options || !!options.text);
@@ -1651,6 +1671,8 @@ export function generateCodeFromLanguage(
         '__onExit__()',
       ].join('');
     }; break;
+    // bun runs node code, so it gets the same `discord` wrapper
+    case CodeLanguages.BUN:
     case CodeLanguages.NODE: {
       code = [
         '(() => {',
@@ -1875,7 +1897,7 @@ export async function jobReply(
   const { translate } = await getTranslator(context);
   let message: Structures.Message | void;
   try {
-    message = await editOrReply(context, translate('media.thinking'));
+    message = await editOrReply(context, translate(randomThinkingKey()));
   } catch(error) {
     untrackJob(context, job.id);
     cancelJob(context, job.id);
@@ -2107,6 +2129,8 @@ export interface DisplayPayload {
   // only embeds can show a footer icon
   footerIconUrl?: null | string,
   image?: null | string,
+  // a small line between the content and the invoker, in its own block in components v2 (embeds show it in the footer)
+  note?: null | string,
   thumbnail?: null | string,
   // embeds show it next to the footer, components/text show it as a discord timestamp in the footer
   timestamp?: Date | number | string,
@@ -2218,6 +2242,8 @@ interface DisplayRendered {
 export interface DisplayReplyOptions {
   // a button/select menu press to respond through, the display setting and invoker still come from the command's context
   replyTo?: ComponentContext,
+  // upload the description and fields once they're longer than this, even if discord would still take them
+  maxInlineLength?: number,
   // when the response is too long, what the uploaded file is called and the text shown instead
   uploadDescription?: string,
   uploadFilename?: string,
@@ -2274,6 +2300,12 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): Di
     }
   }
 
+  const note = (payload.note) ? `-# ${payload.note}` : '';
+  if (note) {
+    container.addSeparator();
+    container.addTextDisplay({content: note});
+  }
+
   const footerText = displayFooterText(payload);
   const footer = [invokedBy, (footerText) ? `-# ${footerText}` : ''].filter(Boolean).join('\n');
   if (footer) {
@@ -2283,7 +2315,7 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): Di
 
   // the limit is for every text display in the message combined
   return {
-    fits: (content.length + footer.length) <= DISPLAY_MAX_COMPONENTS_TEXT_LENGTH,
+    fits: (content.length + note.length + footer.length) <= DISPLAY_MAX_COMPONENTS_TEXT_LENGTH,
     message: {components, files: payload.files, flags: MessageFlags.IS_COMPONENTS_V2},
   };
 }
@@ -2345,8 +2377,9 @@ function renderDisplayEmbed(
   if (payload.image) {
     embed.setImage(payload.image);
   }
-  if (payload.footer) {
-    embed.setFooter(payload.footer, payload.footerIconUrl || undefined);
+  const footer = [payload.note, payload.footer].filter(Boolean).join(' • ');
+  if (footer) {
+    embed.setFooter(footer, payload.footerIconUrl || undefined);
   }
   if (payload.timestamp !== undefined) {
     embed.setTimestamp(payload.timestamp);
@@ -2355,7 +2388,7 @@ function renderDisplayEmbed(
   const length = (
     (payload.title || '').length +
     (payload.description || '').length +
-    (payload.footer || '').length +
+    footer.length +
     fields.reduce((x, field) => x + field.name.length + field.value.length, 0)
   );
   const fits = (
@@ -2383,6 +2416,9 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string, imageLabe
   // attachments show on their own, links need to be posted (a short masked link still previews, without the long url)
   if (payload.image && !payload.image.startsWith('attachment://')) {
     lines.push(`-# ${Markup.url(imageLabel, payload.image)}`);
+  }
+  if (payload.note) {
+    lines.push(`-# ${payload.note}`);
   }
   lines.push(invokedBy);
   const footerText = displayFooterText(payload);
@@ -2417,23 +2453,26 @@ export async function renderDisplay(
     return renderDisplayComponents(payload, invokedBy);
   };
 
+  const parts: Array<string> = [];
+  if (payload.description) {
+    parts.push(payload.description);
+  }
+  for (let field of payload.fields || []) {
+    if (!isDisplayFieldBlank(field)) {
+      parts.push(`${field.name}:\n${field.value}`);
+    }
+  }
+  const body = parts.join('\n\n');
+
   let rendered = render(payload);
-  if (!rendered.fits) {
-    // too long for discord, upload the description and fields as a file instead
-    const parts: Array<string> = [];
-    if (payload.description) {
-      parts.push(payload.description);
-    }
-    for (let field of payload.fields || []) {
-      if (!isDisplayFieldBlank(field)) {
-        parts.push(`${field.name}:\n${field.value}`);
-      }
-    }
+  const tooLong = options.maxInlineLength !== undefined && options.maxInlineLength < body.length;
+  if (!rendered.fits || tooLong) {
+    // too long for discord (or the caller), upload the description and fields as a file instead
     rendered = render({
       ...payload,
       description: options.uploadDescription || translate('media.response_uploaded'),
       fields: [],
-      files: [...(payload.files || []), {filename: options.uploadFilename || DISPLAY_UPLOAD_FILENAME, value: parts.join('\n\n')}],
+      files: [...(payload.files || []), {filename: options.uploadFilename || DISPLAY_UPLOAD_FILENAME, value: body}],
     });
   }
 
@@ -2740,11 +2779,15 @@ export async function mediaReplyFromOptions(
     if (footer) {
       content.push(`> ${footer}`);
     }
-    if (options.content) {
-      content.push(options.content);
-    }
     if (options.description) {
       content.push(options.description);
+    }
+    // text above the media information, cut down so the link itself always fits
+    if (options.content) {
+      const remaining = 2000 - content.join('\n').length - 1;
+      if (0 < remaining) {
+        content.unshift(options.content.slice(0, remaining));
+      }
     }
     return editOrReply(options.context || context, {
       components,

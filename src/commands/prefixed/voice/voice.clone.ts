@@ -14,7 +14,7 @@ export default class VoiceCloneCommand extends BaseAudioOrVideoCommand {
       name: COMMAND_NAME,
 
       args: [
-        {name: 'name'},
+        {name: 'name', metadata: {description: '1 to 128 characters'}},
       ],
       metadata: {
         category: CommandCategories.AUDIO,

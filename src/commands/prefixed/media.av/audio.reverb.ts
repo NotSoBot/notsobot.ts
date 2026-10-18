@@ -15,9 +15,9 @@ export default class AudioReverbCommand extends BaseAudioOrVideoCommand {
   
       aliases: ['a reverb'],
       args: [
-        {name: 'decay', aliases: ['dc'], metadata: {description: 'Reverb Decay (Default: 0.88)'}},
-        {name: 'delay', aliases: ['dl'], metadata: {description: 'Reverb Delay (Default: 60ms)'}},
-        {name: 'volume', aliases: ['v'], metadata: {description: 'Reverb Volume (Default: 0.4)'}},
+        {name: 'decay', aliases: ['dc'], metadata: {description: 'Reverb Decay (0.001 to 1, default: 0.88)'}},
+        {name: 'delay', aliases: ['dl'], metadata: {description: 'Reverb Delay (1 to 20000, default: 60ms)'}},
+        {name: 'volume', aliases: ['v'], metadata: {description: 'Reverb Volume (0 to 1000, default: 0.4)'}},
       ],
       metadata: {
       category: CommandCategories.AUDIO,

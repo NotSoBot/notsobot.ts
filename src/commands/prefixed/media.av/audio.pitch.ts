@@ -15,7 +15,7 @@ export default class AudioPitchCommand extends BaseAudioOrVideoCommand {
   
 	    aliases: ['a pitch'],
 	    args: [
-		    {name: 'scale', aliases: ['s'], metadata: {description: 'Pitch Scale (default: 2.0)'}},
+		    {name: 'scale', aliases: ['s'], metadata: {description: 'Pitch Scale (0.17 to 2, default: 2.0)'}},
 	    ],
 	    metadata: {
 		  category: CommandCategories.AUDIO,

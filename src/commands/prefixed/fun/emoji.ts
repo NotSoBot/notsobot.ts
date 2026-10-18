@@ -21,6 +21,7 @@ export default class EmojiCommand extends BaseCommand {
           name: 'size',
           default: 512,
           type: Parameters.number({max: 2048, min: 8}),
+          metadata: {description: '8 to 2048'},
         },
         {
           name: 'type',
@@ -41,7 +42,7 @@ export default class EmojiCommand extends BaseCommand {
           `${COMMAND_NAME} 😩 -type google -size 1024`,
         ],
         id: Formatter.Commands.FunEmoji.COMMAND_ID,
-        usage: '<emojis> (-type <EmojiTypes>)',
+        usage: '<emojis> (-size <number>) (-type <EmojiTypes>)',
       },
     });
   }

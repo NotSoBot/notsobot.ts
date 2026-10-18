@@ -15,7 +15,7 @@ export default class GrainCommand extends BaseImageOrVideoCommand {
 
       args: [
         {name: 'flags', aliases: ['f']},
-        {name: 'strength', aliases: ['s'], type: Number},
+        {name: 'strength', aliases: ['s'], type: Number, metadata: {description: '0 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

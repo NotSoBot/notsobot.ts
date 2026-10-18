@@ -31,7 +31,7 @@ export default class CodeCommand extends BaseCommand {
           `${COMMAND_NAME} js console.log('lol');`,
         ],
         id: Formatter.Commands.ToolsCode.COMMAND_ID,
-        usage: '<?language> <code>',
+        usage: '?<language> <code> (-language <string>)',
       },
       type: Parameters.targetText,
     });

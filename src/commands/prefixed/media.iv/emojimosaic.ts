@@ -16,7 +16,7 @@ export default class EmojiMosaicCommand extends BaseImageOrVideoCommand {
       // the old bot's `emojimosaic2` took the size as `scale`
       aliases: ['e2m', 'emojim', 'emojimosaic2', 'e2m2', 'fe2m'],
       args: [
-        {name: 'size', aliases: ['scale', 's'], type: Number},
+        {name: 'size', aliases: ['scale', 's'], type: Number, metadata: {description: '2 to 100'}},
       ],
       metadata: {
         category: CommandCategories.EFFECTS,

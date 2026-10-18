@@ -15,9 +15,9 @@ export default class AudioBitcrushCommand extends BaseAudioOrVideoCommand {
 
       aliases: ['a bitcrush', 'audio crush', 'a crush'],
       args: [
-        {name: 'samples', aliases: ['s'], type: Number},
-        {name: 'bits', aliases: ['b'], type: Number},
-        {name: 'mix', aliases: ['m'], type: 'float'},
+        {name: 'samples', aliases: ['s'], type: Number, metadata: {description: '1 to 250'}},
+        {name: 'bits', aliases: ['b'], type: Number, metadata: {description: '1 to 64'}},
+        {name: 'mix', aliases: ['m'], type: 'float', metadata: {description: '0 to 1'}},
         {name: 'mode', type: Parameters.oneOf({choices: MediaAudioBitcrushModes, descriptions: MediaAudioBitcrushModesToText})},
       ],
       metadata: {

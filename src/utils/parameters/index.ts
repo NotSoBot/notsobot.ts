@@ -57,11 +57,13 @@ import {
   findMembersByChunkText,
   findUrlInMessages,
   findUrlsInMessages,
+  findVegUrlInMessage,
   getOrFetchRealUrl,
   getOrFetchRealUrls,
   getTimezoneAbbreviation,
   getTimezoneFromContext,
   isSnowflake,
+  isVegAttachment,
   jobWaitForResult,
   parseTagDirectoryUrl,
   searchTimezones,
@@ -2360,8 +2362,10 @@ export function lastMediaUrl(
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
     if (context instanceof Interaction.InteractionContext) {
       if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
-        const attachment = context.data.resolved.attachments.first()!;
-        return attachment.url;
+        const attachment = context.data.resolved.attachments.find((x) => !(mediaSearchOptions.skipVeg && isVegAttachment(x)));
+        if (attachment) {
+          return attachment.url;
+        }
       }
     }
 
@@ -2369,6 +2373,39 @@ export function lastMediaUrl(
       return customMediaUrl(value, context);
     }
     return await customLastMediaUrl(context) || undefined;
+  };
+}
+
+
+export interface VegPayload {
+  url?: null | string,
+  veg?: null | string,
+}
+
+// `veg <veg url> <media>`, a `.veg` attachment (on the message or the one it replies to) takes the leading url's place
+export function vegPayload(): (x: string, context: Command.Context) => Promise<VegPayload> {
+  const customLastMediaUrl = lastMediaUrl({skipVeg: true});
+
+  return async (value: string, context: Command.Context) => {
+    let veg = findVegUrlInMessage(context.message);
+    if (!veg) {
+      const message = await fetchReplyMessage(context);
+      if (message) {
+        veg = findVegUrlInMessage(message);
+      }
+    }
+
+    if (!veg && value) {
+      const [ first, ...rest ] = value.trim().split(/\s+/);
+      const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, first) as {matches: Array<{text: string}>};
+      if (matches.length) {
+        veg = matches[0].text;
+        value = rest.join(' ');
+      }
+    }
+
+    const url = await customLastMediaUrl(value, context);
+    return {url, veg};
   };
 }
 

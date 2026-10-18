@@ -102,6 +102,8 @@ export const Api = Object.freeze({
     '/media/aiv/manipulation/snip',
   MEDIA_AIV_MANIPULATION_SPEED:
     '/media/aiv/manipulation/speed',
+  MEDIA_AIV_MANIPULATION_VEG:
+    '/media/aiv/manipulation/veg',
 
   MEDIA_AIV_TOOLS_ANALYZE:
     '/media/aiv/tools/analyze',
@@ -130,6 +132,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/audio/multipitch',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:
     '/media/av/manipulation/audio/pitch',
+  MEDIA_AV_MANIPULATION_AUDIO_VOCODER:
+    '/media/av/manipulation/audio/vocoder',
   MEDIA_AV_MANIPULATION_AUDIO_REVERB:
     '/media/av/manipulation/audio/reverb',
   MEDIA_AV_MANIPULATION_AUDIO_REVERSE:

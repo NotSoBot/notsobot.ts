@@ -15,7 +15,7 @@ export default class FadeInCommand extends BaseMediaCommand {
 
       args: [
         {name: 'color', aliases: ['c']},
-        {name: 'duration', aliases: ['d'], type: 'float'},
+        {name: 'duration', aliases: ['d'], type: 'float', metadata: {description: '0 to 120'}},
       ],
       metadata: {
         category: CommandCategories.CONVERSION,

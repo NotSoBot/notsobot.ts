@@ -15,8 +15,8 @@ export default class AudioTremoloCommand extends BaseAudioOrVideoCommand {
   
       aliases: ['a tremolo'],
       args: [
-        {name: 'depth', aliases: ['d'], metadata: {description: 'Depth of Modulation (Default: 0.5)'}},
-        {name: 'frequency', aliases: ['f'], metadata: {description: 'Modulation Frequency (Default: 5.0)'}},
+        {name: 'depth', aliases: ['d'], metadata: {description: 'Depth of Modulation (0 to 1, default: 0.5)'}},
+        {name: 'frequency', aliases: ['f'], metadata: {description: 'Modulation Frequency (0.1 to 20000, default: 5.0)'}},
       ],
       metadata: {
       category: CommandCategories.AUDIO,

@@ -15,7 +15,7 @@ export default class TagRemoveAllCommand extends BaseCommand {
 
       aliases: ['t remove all'],
       args: [
-        {name: 'content', type: Parameters.string({maxLength: 1000})},
+        {name: 'content', type: Parameters.string({maxLength: 1000}), metadata: {description: '3 to 2000 characters'}},
         {name: 'name', type: Parameters.string({maxLength: 64})},
         {name: 'user', type: Parameters.memberOrUser({allowBots: false})},
       ],

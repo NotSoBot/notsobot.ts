@@ -60,7 +60,7 @@ export default class NickMassResetCommand extends BaseCommand {
         ],
         category: CommandCategories.MODERATION,
         id: 'moderation.nick.mass.reset',
-        usage: '(-nobots) (-nousers) (-role <role:id|name>)',
+        usage: '(-nobots) (-nousers) (-role <role:id|mention|name>)',
       },
       permissionsClient: [Permissions.CHANGE_NICKNAMES],
       permissions: [Permissions.CHANGE_NICKNAMES, Permissions.MANAGE_GUILD],
