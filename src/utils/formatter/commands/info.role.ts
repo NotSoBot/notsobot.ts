@@ -2,9 +2,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup, intToHex, intToRGB } from 'detritus-client/lib/utils';
 
 import {
-  DateOptions,
   PermissionsText,
-  StatusEmojis,
   PERMISSIONS_ADMIN,
   PERMISSIONS_TEXT,
   PERMISSIONS_VOICE,
@@ -14,8 +12,11 @@ import { getTranslator } from '../../i18n';
 import {
   DisplayPayload,
   createColorUrl,
+  displayDetail,
+  displayDetails,
+  displayDetailsLine,
   displayReply,
-  padCodeBlockFromRows,
+  displayTimestamp,
   permissionsToObject,
   toCodePointForTwemoji,
 } from '../../../utils';
@@ -42,9 +43,8 @@ export async function createMessage(
 
   const { channel, role } = args;
 
-  const payload: DisplayPayload = {fields: []};
+  const payload: DisplayPayload = {};
   payload.title = role.name;
-  payload.description = translate('info.role.description', {role: role.mention, channel: channel.mention});
 
   if (role.color) {
     payload.color = role.color;
@@ -59,96 +59,76 @@ export async function createMessage(
     payload.thumbnail = createColorUrl(role.color, 128, 128);
   }
 
-  {
-    const description: Array<string> = [];
+  const lines: Array<string> = [translate('info.role.description', {role: role.mention, channel: channel.mention})];
 
+  {
+    let color: string | null = null;
     if (role.color) {
-      const color = intToRGB(role.color);
-      const hex = Markup.codestring(intToHex(role.color, true));
-      const rgb = Markup.codestring(`(${color.r}, ${color.g}, ${color.b})`);
-      description.push(`**${translate('info.role.color')}**: ${hex} ${rgb}`);
-    } else {
-      description.push(`**${translate('info.role.color')}**: ${translate('info.role.no_color')}`);
+      const rgb = intToRGB(role.color);
+      color = `${Markup.codestring(intToHex(role.color, true))} ${Markup.codestring(`(${rgb.r}, ${rgb.g}, ${rgb.b})`)}`;
     }
-    description.push(`**${translate('common.created')}**: ${role.createdAt.toLocaleString(language, DateOptions)}`);
-    description.push(`**${translate('info.role.default_role')}**: ${(role.isDefault) ? translate('common.yes') : translate('common.no')}`);
-    description.push(`**${translate('info.role.hoisted')}**: ${(role.hoist) ? translate('common.yes') : translate('common.no')}`);
-    description.push(`**${translate('common.id')}**: \`${role.id}\``);
-    description.push(`**${translate('common.managed')}**: ${(role.managed) ? translate('common.yes') : translate('common.no')}`);
-    description.push(`**${translate('info.role.mentionable')}**: ${(role.mentionable) ? translate('common.yes') : translate('common.no')}`);
+
+    let position = role.position.toLocaleString(language);
     if (role.guild) {
-      const position = role.guild.roles.sort((x, y) => x.position - y.position).findIndex((r) => r.id === role.id) + 1;
-      description.push(`**${translate('common.position')}**: ${role.position} (${position}/${role.guild.roles.length})`);
+      const index = role.guild.roles.sort((x, y) => x.position - y.position).findIndex((r) => r.id === role.id) + 1;
+      position += ` (${index.toLocaleString(language)}/${role.guild.roles.length.toLocaleString(language)})`;
+    }
+
+    lines.push(displayDetailsLine([
+      (color) && displayDetail(translate('info.role.color'), color),
+      displayDetail(translate('common.position'), position),
+      displayDetail(translate('counts.members'), role.members.length.toLocaleString(language)),
+    ]));
+  }
+
+  if (role.tags) {
+    let type: string;
+    if (role.isBoosterRole) {
+      type = translate('info.role.booster_role');
+    } else if (role.botId) {
+      type = translate('info.role.bot_role', {bot: `<@${role.botId}>`});
+    } else if (role.subscriptionListingId) {
+      type = translate('info.role.subscription_role', {id: role.subscriptionListingId});
+    } else if (role.tags.guildConnections) {
+      type = translate('info.role.linked_role');
+    } else if (role.integrationId) {
+      type = translate('info.role.integration_role', {id: String(role.integrationId)});
     } else {
-      description.push(`**${translate('common.position')}**: ${role.position}`);
+      type = translate('common.unknown_value', {value: JSON.stringify(role.tags)});
     }
-    if (role.tags) {
-      if (role.isBoosterRole) {
-        description.push(`**${translate('common.type')}**: ${translate('info.role.booster_role')}`);
-      } else if (role.botId) {
-        description.push(`**${translate('common.type')}**: ${translate('info.role.bot_role', {bot: `<@${role.botId}>`})}`);
-      } else if (role.subscriptionListingId) {
-        description.push(`**${translate('common.type')}**: ${translate('info.role.subscription_role', {id: role.subscriptionListingId})}`);
-      } else if (role.tags.guildConnections) {
-        description.push(`**${translate('common.type')}**: ${translate('info.role.linked_role')}`);
-      } else if (role.integrationId) {
-        description.push(`**${translate('common.type')}**: ${translate('info.role.integration_role', {id: String(role.integrationId)})}`);
-      } else {
-        description.push(`**${translate('common.type')}**: ${translate('common.unknown_value', {value: JSON.stringify(role.tags)})}`);
-      }
-    }
-
-    payload.fields!.push({inline: true, name: translate('common.information'), value: description.join('\n')});
+    lines.push(displayDetail(translate('common.type'), type));
   }
 
-  {
-    const description: Array<string> = [];
+  // only the ones that are on
+  lines.push(displayDetailsLine([
+    (role.isDefault) && displayDetail(translate('info.role.default_role'), translate('common.yes')),
+    (role.hoist) && displayDetail(translate('info.role.hoisted'), translate('common.yes')),
+    (role.managed) && displayDetail(translate('common.managed'), translate('common.yes')),
+    (role.mentionable) && displayDetail(translate('info.role.mentionable'), translate('common.yes')),
+  ]));
 
-    description.push(`${translate('counts.members')}: ${role.members.length.toLocaleString(language)}`);
-    if (description.length) {
-      payload.fields!.push({inline: true, name: translate('common.counts'), value: Markup.codeblock(description.join('\n'), {language: 'css'})});
-    }
-  }
-
-  payload.fields!.push({name: '\u200b', value: '\u200b'});
-
+  // only the permissions the role has in the channel, instead of a table with every one
   {
     const permissions = permissionsToObject(role.permissionsIn(channel as Structures.ChannelGuildBase));
+    const allowed = (list: ReadonlyArray<bigint>): string => {
+      const names = list.filter((permission) => permissions[String(permission)]).map((permission) => label('permissions', PermissionsText[String(permission)]));
+      return (names.length) ? names.join(', ') : translate('common.none');
+    };
 
-    {
-      const rows: Array<Array<string>> = [];
-
-      for (const permission of PERMISSIONS_ADMIN) {
-        const key = String(permission);
-        const can = permissions[key];
-        rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
-      }
-
-      payload.fields!.push({inline: true, name: translate('info.role.moderation'), value: Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'})});
-    }
-
+    lines.push(displayDetail(translate('info.role.moderation'), allowed(PERMISSIONS_ADMIN)));
     if (channel.isText) {
-      const rows: Array<Array<string>> = [];
-
-      for (const permission of PERMISSIONS_TEXT) {
-        const key = String(permission);
-        const can = permissions[key];
-        rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
-      }
-
-      payload.fields!.push({inline: true, name: translate('info.role.text'), value: Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'})});
+      lines.push(displayDetail(translate('info.role.text'), allowed(PERMISSIONS_TEXT)));
     } else if (channel.isVoice) {
-      const rows: Array<Array<string>> = [];
-
-      for (const permission of PERMISSIONS_VOICE) {
-        const key = String(permission);
-        const can = permissions[key];
-        rows.push([`${label('permissions', PermissionsText[key])}:`, `${(can) ? StatusEmojis.YES : StatusEmojis.NO}`]);
-      }
-
-      payload.fields!.push({inline: true, name: translate('info.role.voice'), value: Markup.codeblock(padCodeBlockFromRows(rows).join('\n'), {language: 'css'})});
+      lines.push(displayDetail(translate('info.role.voice'), allowed(PERMISSIONS_VOICE)));
     }
   }
+
+  lines.push(displayDetailsLine([
+    displayDetail(translate('common.created'), displayTimestamp(role.createdAt)),
+    displayDetail(translate('common.id'), Markup.codestring(role.id)),
+  ], true));
+
+  payload.description = displayDetails(lines);
 
   return displayReply(context, payload);
 }

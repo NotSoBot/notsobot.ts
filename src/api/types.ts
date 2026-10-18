@@ -8,6 +8,7 @@ import {
   GuildLoggerTypes,
   GuildSettingsResponseDisplayTypes,
   MeasurementUnits,
+  MediaAudioBitcrushModes,
   MediaEyeTypes,
   MediaMemeFonts,
   MediaPixelSortFunctions,
@@ -487,6 +488,13 @@ export namespace RestOptions {
     start?: number,
   }
 
+  export interface MediaAVManipulationAudioBitcrush extends MediaBaseOptions {
+    bits?: number,
+    mix?: number,
+    mode?: MediaAudioBitcrushModes,
+    samples?: number,
+  }
+
   export interface MediaAVManipulationAudioCompress extends MediaBaseOptions {
     norevert?: boolean,
   }
@@ -513,6 +521,11 @@ export namespace RestOptions {
     regen?: number,
     speed?: number,
     width?: number,
+  }
+
+  export interface MediaAVManipulationAudioMultiPitch extends MediaBaseOptions {
+    normalize?: boolean,
+    semitones?: string,
   }
 
   export interface MediaAVManipulationAudioPitch extends MediaBaseOptions {
@@ -979,6 +992,11 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationTunnel extends MediaBaseOptions {
     spiral?: boolean,
+  }
+
+  export interface MediaIVManipulationTVSimulator extends MediaBaseOptions {
+    detailZoom?: number,
+    lineSync?: number,
   }
 
   export interface MediaIVManipulationUncaption extends MediaBaseOptions {

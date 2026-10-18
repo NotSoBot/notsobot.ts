@@ -43,6 +43,7 @@ import * as MediaAIVManipulationSpeed from './media.aiv.manipulation.speed';
 
 import * as MediaAIVPipe from './media.aiv.pipe';
 
+import * as MediaAVManipulationAudioBitcrush from './media.av.manipulation.audio.bitcrush';
 import * as MediaAVManipulationAudioBoostBass from './media.av.manipulation.audio.boost.bass';
 import * as MediaAVManipulationAudioChannelsCombine from './media.av.manipulation.audio.channels.combine';
 import * as MediaAVManipulationAudioChannelsInvert from './media.av.manipulation.audio.channels.invert';
@@ -51,6 +52,7 @@ import * as MediaAVManipulationAudioDelay from './media.av.manipulation.audio.de
 import * as MediaAVManipulationAudioDestroy from './media.av.manipulation.audio.destroy';
 import * as MediaAVManipulationAudioEqualizer from './media.av.manipulation.audio.equalizer';
 import * as MediaAVManipulationAudioFlanger from './media.av.manipulation.audio.flanger';
+import * as MediaAVManipulationAudioMultiPitch from './media.av.manipulation.audio.multipitch';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
 import * as MediaAVManipulationAudioReverb from './media.av.manipulation.audio.reverb';
 import * as MediaAVManipulationAudioReverse from './media.av.manipulation.audio.reverse';
@@ -267,6 +269,7 @@ import * as MediaIVManipulationToGif from './media.iv.manipulation.to.gif';
 import * as MediaIVManipulationTrace from './media.iv.manipulation.trace';
 import * as MediaIVManipulationTrim from './media.iv.manipulation.trim';
 import * as MediaIVManipulationTunnel from './media.iv.manipulation.tunnel';
+import * as MediaIVManipulationTVSimulator from './media.iv.manipulation.tv.simulator';
 import * as MediaIVManipulationUncaption from './media.iv.manipulation.uncaption';
 import * as MediaIVManipulationUpToDown from './media.iv.manipulation.up.to.down';
 import * as MediaIVManipulationVaporwave from './media.iv.manipulation.vaporwave';
@@ -500,6 +503,7 @@ export {
 
   MediaAIVPipe,
 
+  MediaAVManipulationAudioBitcrush,
   MediaAVManipulationAudioBoostBass,
   MediaAVManipulationAudioChannelsCombine,
   MediaAVManipulationAudioChannelsInvert,
@@ -508,6 +512,7 @@ export {
   MediaAVManipulationAudioDestroy,
   MediaAVManipulationAudioEqualizer,
   MediaAVManipulationAudioFlanger,
+  MediaAVManipulationAudioMultiPitch,
   MediaAVManipulationAudioPitch,
   MediaAVManipulationAudioReverb,
   MediaAVManipulationAudioReverse,
@@ -724,6 +729,7 @@ export {
   MediaIVManipulationTrace,
   MediaIVManipulationTrim,
   MediaIVManipulationTunnel,
+  MediaIVManipulationTVSimulator,
   MediaIVManipulationUncaption,
   MediaIVManipulationUpToDown,
   MediaIVManipulationVaporwave,

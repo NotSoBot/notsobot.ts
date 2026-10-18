@@ -5,12 +5,13 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 import { deleteTag } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
-import { DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
+import { EmbedColors, StatusEmojis } from '../../../constants';
 import {
   DisplayPayload,
-  createTimestampMomentFromGuild,
   createUserString,
+  displayDetailsLine,
   displayReply,
+  displayTimestamp,
   fetchMemberOrUserById,
 } from '../../../utils';
 
@@ -56,35 +57,31 @@ export async function createMessage(
         return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('tag_remove.you_re_not_the_owner_of_this')}`});
       }
 
-      const payload: DisplayPayload = {fields: []};
+      const payload: DisplayPayload = {};
       payload.color = EmbedColors.DEFAULT;
       payload.title = translate('tag_remove.force_remove_tag');
-      payload.description = translate('tag_remove.tag', {name: Markup.codestring(tag.name)});
 
+      // same layout as tag info, nsfw only shows when it is
       {
-        const description: Array<string> = [];
-
-        {
-          const timestamp = createTimestampMomentFromGuild(tag.created, context.guildId);
-          description.push(translate('tag_remove.created', {timestamp: timestamp.locale(language).fromNow()}));
-          description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+        const owner = await fetchMemberOrUserById(context, tag.user.id);
+        const first = [
+          translate('tag_remove.owner', {user: createUserString(tag.user.id, owner, translate('tag.deleted_user'))}),
+          translate('tag_remove.uses', {uses: tag.uses.toLocaleString(language)}),
+        ];
+        if (tag.nsfw) {
+          first.push(translate('tag_remove.nsfw', {nsfw: translate('common.yes')}));
         }
+
+        const second = [translate('tag_remove.created', {timestamp: displayTimestamp(tag.created)})];
         if (tag.edited) {
-          const timestamp = createTimestampMomentFromGuild(tag.edited, context.guildId);
-          description.push(translate('tag_remove.edited', {timestamp: timestamp.locale(language).fromNow()}));
-          description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
+          second.push(translate('tag_remove.edited', {timestamp: displayTimestamp(tag.edited)}));
         }
 
-        description.push(translate('tag_remove.nsfw', {nsfw: (tag.nsfw) ? translate('common.yes') : translate('common.no')}));
-
-        {
-          const owner = await fetchMemberOrUserById(context, tag.user.id);
-          description.push(translate('tag_remove.owner', {user: createUserString(tag.user.id, owner, translate('tag.deleted_user'))}));
-        }
-
-        description.push(translate('tag_remove.uses', {uses: tag.uses.toLocaleString(language)}));
-
-        payload.fields!.push({name: translate('tag_remove.information'), value: description.join('\n')});
+        payload.description = [
+          translate('tag_remove.tag', {name: Markup.codestring(tag.name)}),
+          displayDetailsLine(first, true),
+          displayDetailsLine(second, true),
+        ].join('\n');
       }
 
       const components = new Components({timeout: 5 * (60 * 1000)});

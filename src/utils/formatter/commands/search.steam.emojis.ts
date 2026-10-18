@@ -3,7 +3,7 @@ import { Command, Interaction } from 'detritus-client';
 import { searchSteamEmojis } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { DefaultParameters, DisplayPayload, Paginator, createPaginatorMediaCache, displayReply } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, createPaginatorMediaCache, displayDetails, displayDetailsLine, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.steam.emojis';
@@ -26,7 +26,7 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: async (page) => {
-        const payload: DisplayPayload = {fields: []};
+        const payload: DisplayPayload = {};
         payload.color = EmbedColors.DEFAULT;
 
         const result = results[page - 1];
@@ -39,18 +39,17 @@ export async function createMessage(
         const media = await fetchMedia(page, result.icon);
         payload.image = `attachment://${media.filename}`;
 
-        {
-          const description: Array<string> = [result.metadata.type, ''];
-
-          description.push(translate('search_steam_emojis.commodity', {commodity: (result.metadata.commodity) ? translate('common.yes') : translate('common.no')}));
-          description.push(translate('search_steam_emojis.market_listings', {sell_listings: result.sell_listings}));
-          if (result.sell_listings) {
-            description.push(translate('search_steam_emojis.market_price', {sell_price_text: result.sell_price_text}));
-          }
-          description.push(translate('search_steam_emojis.tradable', {tradable: (result.metadata.tradable) ? translate('common.yes') : translate('common.no')}));
-
-          payload.description = description.join('\n');
-        }
+        payload.description = displayDetails([
+          result.metadata.type,
+          displayDetailsLine([
+            translate('search_steam_emojis.market_listings', {sell_listings: result.sell_listings}),
+            (result.sell_listings) && translate('search_steam_emojis.market_price', {sell_price_text: result.sell_price_text}),
+          ]),
+          displayDetailsLine([
+            translate('search_steam_emojis.commodity', {commodity: (result.metadata.commodity) ? translate('common.yes') : translate('common.no')}),
+            translate('search_steam_emojis.tradable', {tradable: (result.metadata.tradable) ? translate('common.yes') : translate('common.no')}),
+          ]),
+        ]);
 
         return {display: {...payload, files: [{filename: media.filename, value: media.value}]}};
       },

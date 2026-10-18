@@ -2,6 +2,7 @@ import { I18n } from '../../../../../utils';
 
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
+import { MediaAVAudioBitcrushCommand } from './bitcrush';
 import { MediaAVAudioBoostBassCommand } from './boost-bass';
 import { MediaAVAudioChannelsCombineCommand } from './channels-combine';
 import { MediaAVAudioChannelsInvertCommand } from './channels-invert';
@@ -11,6 +12,7 @@ import { MediaAVAudioDestroyCommand } from './destroy';
 import { MediaAVAudioEqualizerCommand } from './equalizer';
 import { MediaAVAudioFlangerCommand } from './flanger';
 import { MediaAVToolsIdentifyCommand } from './identify';
+import { MediaAVAudioMultiPitchCommand } from './multipitch';
 import { MediaAVAudioPitchCommand } from './pitch';
 import { MediaAVAudioReverbCommand } from './reverb';
 import { MediaAVAudioReverseCommand } from './reverse';
@@ -26,6 +28,7 @@ export class MediaAVAudioGroupCommand extends BaseInteractionCommandOptionGroup 
   constructor() {
 	  super({
 	    options: [
+          new MediaAVAudioBitcrushCommand(),
           new MediaAVAudioBoostBassCommand(),
           new MediaAVAudioChannelsCombineCommand(),
           new MediaAVAudioChannelsInvertCommand(),
@@ -35,6 +38,7 @@ export class MediaAVAudioGroupCommand extends BaseInteractionCommandOptionGroup 
           new MediaAVAudioEqualizerCommand(),
           new MediaAVAudioFlangerCommand(),
           new MediaAVToolsIdentifyCommand(),
+          new MediaAVAudioMultiPitchCommand(),
           new MediaAVAudioPitchCommand(),
           new MediaAVAudioReverbCommand(),
           new MediaAVAudioReverseCommand(),

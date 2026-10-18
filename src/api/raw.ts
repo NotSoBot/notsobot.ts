@@ -2267,6 +2267,31 @@ export async function mediaAIVToolsExif(
 }
 
 
+export async function mediaAVManipulationAudioBitcrush(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioBitcrush,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    bits: options.bits,
+    max_file_size: maxFileSize,
+    mix: options.mix,
+    mode: options.mode,
+    safe: options.safe,
+    samples: options.samples,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_BITCRUSH,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationAudioBoostBass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2446,6 +2471,29 @@ export async function mediaAVManipulationAudioFlanger(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_MANIPULATION_AUDIO_FLANGER,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationAudioMultiPitch(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioMultiPitch,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    normalize: options.normalize,
+    safe: options.safe,
+    semitones: options.semitones,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_MULTIPITCH,
     },
   });
 }
@@ -6766,6 +6814,29 @@ export async function mediaIVManipulationTunnel(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_TUNNEL,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationTVSimulator(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTVSimulator,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    detail_zoom: options.detailZoom,
+    line_sync: options.lineSync,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_TV_SIMULATOR,
     },
   });
 }

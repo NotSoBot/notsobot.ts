@@ -108,6 +108,8 @@ export const Api = Object.freeze({
   MEDIA_AIV_TOOLS_EXIF:
     '/media/aiv/tools/exif',
 
+  MEDIA_AV_MANIPULATION_AUDIO_BITCRUSH:
+    '/media/av/manipulation/audio/bitcrush',
   MEDIA_AV_MANIPULATION_AUDIO_BOOST_BASS:
     '/media/av/manipulation/audio/boost/bass',
   MEDIA_AV_MANIPULATION_AUDIO_CHANNELS_COMBINE:
@@ -124,6 +126,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/audio/equalizer',
   MEDIA_AV_MANIPULATION_AUDIO_FLANGER:
     '/media/av/manipulation/audio/flanger',
+  MEDIA_AV_MANIPULATION_AUDIO_MULTIPITCH:
+    '/media/av/manipulation/audio/multipitch',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:
     '/media/av/manipulation/audio/pitch',
   MEDIA_AV_MANIPULATION_AUDIO_REVERB:
@@ -524,6 +528,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/trim',
   MEDIA_IV_MANIPULATION_TUNNEL:
     '/media/iv/manipulation/tunnel',
+  MEDIA_IV_MANIPULATION_TV_SIMULATOR:
+    '/media/iv/manipulation/tv/simulator',
   MEDIA_IV_MANIPULATION_UNCAPTION:
     '/media/iv/manipulation/uncaption',
   MEDIA_IV_MANIPULATION_UP_TO_DOWN:

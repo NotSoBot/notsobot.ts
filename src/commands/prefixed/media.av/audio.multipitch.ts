@@ -1,0 +1,41 @@
+import { Command, CommandClient } from 'detritus-client';
+
+import { CommandCategories } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
+
+import { BaseMediaCommand } from '../basecommand';
+
+
+export const COMMAND_NAME = 'audio multipitch';
+
+export default class AudioMultiPitchCommand extends BaseMediaCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['a multipitch'],
+      args: [
+        {name: 'normalize', aliases: ['n'], type: Boolean},
+      ],
+      metadata: {
+        category: CommandCategories.AUDIO,
+        description: 'Pitch shift an Audio or Video by semitones without changing its speed, or mix several pitches into a chord',
+        examples: [
+          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 7`,
+          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 0,7,12`,
+          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 0,4,7 -normalize`,
+        ],
+        id: Formatter.Commands.MediaAVManipulationAudioMultiPitch.COMMAND_ID,
+        usage: '?<emoji,user:id|mention|name,url> ?<semitones,comma-separated> (-normalize)',
+      },
+      type: [
+        {name: 'url', type: Parameters.mediaUrlPositional({audio: true, image: false, video: true})},
+        {name: 'semitones', consume: true},
+      ],
+    });
+  }
+
+  async run(context: Command.Context, args: Formatter.Commands.MediaAVManipulationAudioMultiPitch.CommandArgs) {
+    return Formatter.Commands.MediaAVManipulationAudioMultiPitch.createMessage(context, args);
+  }
+}

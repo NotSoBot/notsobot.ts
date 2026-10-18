@@ -12,9 +12,9 @@ import { MediaIVUpToDownCommand } from './up-to-down';
 
 export class MediaAnimateGroupCommand extends BaseInteractionCommandOptionGroup {
   description = 'Animation Commands';
-  descriptionLocalizations = I18n.localizations('commands.media_iv_3.animate.description');
+  descriptionLocalizations = I18n.localizations('commands.media_iv_5.animate.description');
   name = 'animate';
-  nameLocalizations = I18n.localizations('commands.media_iv_3.animate.name');
+  nameLocalizations = I18n.localizations('commands.media_iv_5.animate.name');
 
   constructor() {
     super({

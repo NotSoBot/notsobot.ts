@@ -8,8 +8,8 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 export const COMMAND_NAME = 'smg';
 
 export class MediaIVOverlaySMGCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'This command is disabled while we wait for Discord Compliance approval.';
-  descriptionLocalizations = I18n.localizations('commands.media_iv.overlay.awaiting_compliance');
+  description = 'Overlay a Half Life SMG over an Image or Video';
+  descriptionLocalizations = I18n.localizations('commands.media_iv.overlay.smg.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationOverlayHalfLifeSMG.COMMAND_ID,
   };

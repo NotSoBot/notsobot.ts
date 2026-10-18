@@ -1,5 +1,4 @@
 import { Command, Interaction } from 'detritus-client';
-import { Markup } from 'detritus-client/lib/utils';
 
 import { mediaAVToolsIdentify } from '../../../api';
 import { DateMomentLogFormat, EmbedBrands, EmbedColors } from '../../../constants';
@@ -8,6 +7,10 @@ import {
   Paginator,
   createTimestampMomentFromGuild,
   createUserString,
+  displayDetail,
+  displayDetails,
+  displayDetailsLine,
+  displayLinks,
   displayReply,
   fetchMemberOrUserById,
   formatTime,
@@ -41,7 +44,7 @@ export async function createMessage(
       onPage: (page) => {
         const song = songs[page - 1];
 
-        const payload: DisplayPayload = {fields: []};
+        const payload: DisplayPayload = {};
         payload.color = EmbedColors.DEFAULT;
         payload.title = translate('media.identify.title', {artist: song.artists[0]!.name, title: song.title});
 
@@ -69,65 +72,42 @@ export async function createMessage(
           payload.thumbnail = thumbnail;
         }
 
-        {
-          const description: Array<string> = [];
-          description.push(`**${translate('activity.album')}**: ${song.album.name}`);
-          description.push(`**${translate('media.identify.artist')}**: ${song.artists[0]!.name}`);
-          description.push(`**${translate('media.identify.duration')}**: ${formatTime(song.duration)}`);
-          if (song.label) {
-            description.push(`**${translate('media.identify.label')}**: ${song.label}`);
-          }
-          if (song.genres.length) {
-            description.push(`**${translate('media.identify.genres')}**: ${song.genres.join(', ')}`);
-          }
-          description.push(`**${translate('media.identify.match')}**: ${song.score}%`);
-          if (song.release_date) {
-            description.push(`**${translate('media.identify.release_date')}**: ${song.release_date}`);
-          }
-          if (song.timestamp) {
-            description.push(`**${translate('media.identify.timestamp')}**: ${formatTime(song.timestamp)}`);
-          }
-          description.push(`**${translate('media.identify.title_label')}**: ${song.title}`);
-          payload.description = description.join('\n');
-        }
+        // the artist and song are already the title
+        const lines: Array<string> = [];
+        lines.push(displayDetailsLine([
+          displayDetail(translate('activity.album'), song.album.name),
+          displayDetail(translate('media.identify.duration'), formatTime(song.duration)),
+          displayDetail(translate('media.identify.match'), `${song.score}%`),
+          (song.timestamp) && displayDetail(translate('media.identify.timestamp'), formatTime(song.timestamp)),
+        ]));
+        lines.push(displayDetailsLine([
+          (song.genres.length) && displayDetail(translate('media.identify.genres'), song.genres.join(', ')),
+          (song.label) && displayDetail(translate('media.identify.label'), song.label),
+          (song.release_date) && displayDetail(translate('media.identify.release_date'), song.release_date),
+        ]));
 
         {
-          const urls: Array<string> = [];
-          if (song.platforms.apple_music && song.platforms.apple_music.url) {
-            urls.push(Markup.url('Apple Music', song.platforms.apple_music.url));
+          const { apple_music, deezer, musicbrainz, spotify, youtube } = song.platforms;
+          const links = displayLinks([
+            ['Apple Music', apple_music && apple_music.url],
+            ['Deezer', deezer && deezer.url],
+            ['MusicBrainz', musicbrainz && musicbrainz.url],
+            ['Spotify', spotify && spotify.url],
+            ['YouTube', youtube && youtube.url],
+          ]);
+          if (links) {
+            lines.push(links.replace('-# ', `-# ${translate('media.identify.platform_links')}: `));
           }
-          if (song.platforms.deezer && song.platforms.deezer.url) {
-            urls.push(Markup.url('Deezer', song.platforms.deezer.url));
-          }
-          if (song.platforms.musicbrainz && song.platforms.musicbrainz.url) {
-            urls.push(Markup.url('MusicBrainz', song.platforms.musicbrainz.url));
-          }
-          if (song.platforms.spotify && song.platforms.spotify.url) {
-            urls.push(Markup.url('Spotify', song.platforms.spotify.url));
-          }
-          if (song.platforms.youtube && song.platforms.youtube.url) {
-            urls.push(Markup.url('YouTube', song.platforms.youtube.url));
-          }
-          if (urls.length) {
-            payload.fields!.push({name: translate('media.identify.platform_links'), value: urls.join(', ')});
-          }
-        }
-
-        {
-          const urls: Array<string> = [];
-          if (song.platforms.apple_music && song.platforms.apple_music.preview_url) {
-            urls.push(Markup.url('Apple Music', song.platforms.apple_music.preview_url));
-          }
-          if (song.platforms.deezer && song.platforms.deezer.preview_url) {
-            urls.push(Markup.url('Deezer', song.platforms.deezer.preview_url));
-          }
-          if (song.platforms.spotify && song.platforms.spotify.preview_url) {
-            urls.push(Markup.url('Spotify', song.platforms.spotify.preview_url));
-          }
-          if (urls.length) {
-            payload.fields!.push({name: translate('media.identify.preview_links'), value: urls.join(', ')});
+          const previews = displayLinks([
+            ['Apple Music', apple_music && apple_music.preview_url],
+            ['Deezer', deezer && deezer.preview_url],
+            ['Spotify', spotify && spotify.preview_url],
+          ]);
+          if (previews) {
+            lines.push(previews.replace('-# ', `-# ${translate('media.identify.preview_links')}: `));
           }
         }
+        payload.description = displayDetails(lines);
 
         return {display: payload};
       },

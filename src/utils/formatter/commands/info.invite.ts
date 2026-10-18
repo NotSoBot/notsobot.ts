@@ -5,12 +5,20 @@ import { Endpoints } from 'detritus-client-rest';
 
 import {
   ChannelTypesText,
-  DateMomentLogFormat,
   StatusEmojis,
   VerificationLevelTexts,
 } from '../../../constants';
 import { getTranslator } from '../../i18n';
-import { DisplayPayload, createTimestampMomentFromGuild, displayReply, toTitleCase } from '../../../utils';
+import {
+  DisplayPayload,
+  displayDetail,
+  displayDetails,
+  displayDetailsLine,
+  displayLinks,
+  displayReply,
+  displayTimestamp,
+  toTitleCase,
+} from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -33,7 +41,7 @@ export async function createMessage(
   try {
     const invite = await context.rest.fetchInvite(args.code, {withCounts: true});
 
-    const payload: DisplayPayload = {fields: []};
+    const payload: DisplayPayload = {};
     payload.color = Colors.BLURPLE;
     payload.url = Endpoints.Invite.SHORT(invite.code);
 
@@ -42,89 +50,68 @@ export async function createMessage(
 
     payload.footer = `discord.gg/${invite.code}`;
     payload.footerIconUrl = (guild && guild.iconUrlFormat(null, {size: 1024})) || undefined;
+    payload.title = (guild) ? guild.name : channel.name;
 
-    if (guild) {
-      payload.title = guild.name;
-    } else {
-      payload.title = channel.name;
-    }
-
-    {
-      const description: Array<string> = [];
-      {
-        const timestamp = createTimestampMomentFromGuild(channel.createdAtUnix, context.guildId);
-        description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
-        description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
-      }
-      description.push(`**${translate('common.id')}**: ${Markup.codestring(channel.id)}`);
-      description.push(`**${translate('common.name')}**: ${Markup.escape.all(channel.name)}`);
-      description.push(`**${translate('common.type')}**: ${translateMaybe(`channel.type.${channel.type}`, ChannelTypesText[channel.type] || String(channel.type))}`);
-      payload.fields!.push({inline: true, name: translate('info.invite.channel_information'), value: description.join('\n')});
-    }
+    const lines: Array<string> = [];
+    const channelType = translateMaybe(`channel.type.${channel.type}`, ChannelTypesText[channel.type] || String(channel.type));
 
     if (guild) {
       if (guild.banner) {
         payload.thumbnail = guild.bannerUrlFormat(null, {size: 1024}) as string;
-      } else {
-        if (guild.icon) {
-          payload.thumbnail = guild.iconUrlFormat(null, {size: 1024}) as string;
-        }
+      } else if (guild.icon) {
+        payload.thumbnail = guild.iconUrlFormat(null, {size: 1024}) as string;
       }
-
       if (guild.splash) {
         payload.image = guild.splashUrlFormat(null, {size: 128}) as string;
       }
-
       if (guild.description) {
-        payload.description = guild.description;
+        lines.push(guild.description);
       }
 
-      {
-        const description: Array<string> = [];
-        description.push(`**${translate('info.guild.acronym')}**: ${guild.acronym}`);
-        {
-          const timestamp = createTimestampMomentFromGuild(guild.createdAtUnix, context.guildId);
-          description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
-          description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
-        }
-        description.push(`**${translate('common.id')}**: ${Markup.codestring(guild.id)}`);
-        description.push(`**${translate('info.guild.members')}**: ${(invite.approximateMemberCount || 0).toLocaleString(language)}`);
-        description.push(`**${translate('info.guild.members_online')}**: ${(invite.approximatePresenceCount || 0).toLocaleString(language)}`);
-        description.push(`**${translate('common.name')}**: ${Markup.escape.all(guild.name)}`);
-        if (guild.vanityUrlCode) {
-          description.push(`**${translate('info.guild.vanity')}**: ${Markup.url(guild.vanityUrlCode, Endpoints.Invite.SHORT(guild.vanityUrlCode))}`);
-        }
-        description.push(`**${translate('info.guild.verification_level')}**: ${translateMaybe(`guild.verification.${guild.verificationLevel}`, VerificationLevelTexts[guild.verificationLevel] || translate('common.unknown'))}`);
-
-        payload.fields!.push({inline: true, name: translate('info.invite.guild_information'), value: description.join('\n')});
-      }
-
-      if (guild.features.length) {
-        const description = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
-        payload.fields!.push({name: translate('common.features'), value: Markup.codeblock(description.join('\n'))});
-      }
+      lines.push(displayDetailsLine([
+        displayDetail(translate('info.guild.members'), (invite.approximateMemberCount || 0).toLocaleString(language)),
+        displayDetail(translate('info.guild.members_online'), (invite.approximatePresenceCount || 0).toLocaleString(language)),
+        displayDetail(translate('info.guild.verification_level'), translateMaybe(`guild.verification.${guild.verificationLevel}`, VerificationLevelTexts[guild.verificationLevel] || translate('common.unknown'))),
+      ]));
+      lines.push(displayDetailsLine([
+        displayDetail(translate('common.created'), displayTimestamp(guild.createdAtUnix)),
+        displayDetail(translate('info.guild.acronym'), guild.acronym),
+        (guild.vanityUrlCode) && displayDetail(translate('info.guild.vanity'), Markup.url(guild.vanityUrlCode, Endpoints.Invite.SHORT(guild.vanityUrlCode))),
+      ]));
     }
+
+    lines.push(displayDetailsLine([
+      displayDetail(translate('common.channel'), `${Markup.escape.all(channel.name)} (${channelType})`),
+      displayDetail(translate('common.created'), displayTimestamp(channel.createdAtUnix)),
+    ]));
+
+    if (guild && guild.features.length) {
+      const features = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
+      lines.push(`-# ${translate('common.features')}: ${features.join(', ')}`);
+    }
+
+    lines.push(displayDetailsLine([
+      (guild) && `${translate('info.channel.guild_id')}: ${Markup.codestring(guild.id)}`,
+      `${translate('common.channel')}: ${Markup.codestring(channel.id)}`,
+    ], true));
 
     {
-      const description: Array<string> = [];
-      description.push(`[**${translate('common.channel')}**](${channel.jumpLink})`);
-      description.push(`[**${translate('info.invite.invite')}**](${Endpoints.Invite.SHORT(invite.code)})`);
-
+      const links: Array<[string, null | string | undefined]> = [
+        [translate('info.invite.invite'), Endpoints.Invite.SHORT(invite.code)],
+        [translate('common.channel'), channel.jumpLink],
+      ];
       if (guild) {
-        if (guild.banner) {
-          description.push(`[**${translate('info.guild.banner_image')}**](${guild.bannerUrlFormat(null, {size: 1024})})`);
-        }
-        description.push(`[**${translate('common.guild')}**](${guild.jumpLink})`);
-        if (guild.icon) {
-          description.push(`[**${translate('info.guild.icon_image')}**](${guild.iconUrlFormat(null, {size: 1024})})`);
-        }
-        if (guild.splash) {
-          description.push(`[**${translate('info.guild.splash_image')}**](${guild.splashUrlFormat(null, {size: 1024})})`);
-        }
+        links.push(
+          [translate('common.guild'), guild.jumpLink],
+          [translate('info.guild.icon_image'), guild.iconUrlFormat(null, {size: 1024})],
+          [translate('info.guild.banner_image'), guild.bannerUrlFormat(null, {size: 1024})],
+          [translate('info.guild.splash_image'), guild.splashUrlFormat(null, {size: 1024})],
+        );
       }
-
-      payload.fields!.push({name: translate('common.urls'), value: description.sort().join(', ')});
+      lines.push(displayLinks(links));
     }
+
+    payload.description = displayDetails(lines);
 
     return displayReply(context, payload);
   } catch(error) {

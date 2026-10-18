@@ -2145,6 +2145,41 @@ const DISPLAY_MAX_TEXT_LENGTH = 2000;
 const DISPLAY_UPLOAD_FILENAME = 'response.txt';
 const DISPLAY_IMAGE_FILENAME_REGEX = /\.(gif|jpe?g|png|webp)$/i;
 
+// informational responses put a few details on each line instead of one per line under section headers
+// `**label**: value`
+export function displayDetail(label: string, value: number | string): string {
+  return `**${label}**: ${value}`;
+}
+
+// details joined on one line, empty ones are skipped so optional details can be inlined, small lines are subtext
+export function displayDetailsLine(details: Array<0 | false | null | string | undefined>, small: boolean = false): string {
+  const text = details.filter(Boolean).join(' • ');
+  return (text && small) ? `-# ${text}` : text;
+}
+
+// lines of details, empty lines are skipped
+export function displayDetails(lines: Array<0 | false | null | string | undefined>): string {
+  return lines.filter(Boolean).join('\n');
+}
+
+// relative time, discord shows the full date in the viewer's own timezone and language when hovering it
+export function displayTimestamp(value: Date | number | string): string {
+  return Markup.timestamp(value, MarkupTimestampStyles.RELATIVE);
+}
+
+// a breakdown after a total, like ` (2 Text, 3 Voice)`, zero counts are skipped
+export function displayCounts(language: string, counts: Array<[string, number]>): string {
+  const text = counts.filter(([, count]) => count).map(([name, count]) => `${count.toLocaleString(language)} ${name}`).join(', ');
+  return (text) ? ` (${text})` : '';
+}
+
+// masked links on one small line, for the urls at the bottom of informational responses
+// ones without a url are skipped, and repeats (like a game listing the same store twice) only show once
+export function displayLinks(links: Array<[string, null | string | undefined]>): string {
+  const text = new Set(links.filter(([, url]) => url).map(([name, url]) => Markup.url(name, url!)));
+  return displayDetailsLine(Array.from(text), true);
+}
+
 // the footer line for components/text, which have no timestamp of their own
 function displayFooterText(payload: DisplayPayload): string {
   const parts: Array<string> = [];

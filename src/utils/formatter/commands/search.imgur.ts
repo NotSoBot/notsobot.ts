@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { searchImgur } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedColors } from '../../../constants';
-import { DefaultParameters, DisplayPayload, Paginator, createPaginatorMediaCache, displayReply } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, createPaginatorMediaCache, displayDetailsLine, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.imgur';
@@ -31,23 +31,21 @@ export async function createMessage(
       onPage: async (page) => {
         const post = posts[page - 1];
 
-        const payload: DisplayPayload = {fields: []};
+        const payload: DisplayPayload = {};
         payload.color = EmbedColors.DEFAULT;
         payload.footer = translate('search_imgur.page_of_imgur_results', {page, pageLimit});
         payload.title = (post.title || post.id).slice(0, 256);
         payload.url = post.url!;
 
-        {
-          const description: Array<string> = [];
-          description.push(translate('search_imgur.type', {type: Markup.escape.all(post.type)}));
-          description.push(translate('search_imgur.points', {points: post.points.toLocaleString(language)}));
-          description.push(translate('search_imgur.votes', {
+        payload.description = displayDetailsLine([
+          translate('search_imgur.type', {type: Markup.escape.all(post.type)}),
+          translate('search_imgur.points', {points: post.points.toLocaleString(language)}),
+          translate('search_imgur.votes', {
             dislikes: post.dislikes.toLocaleString(language),
             likes: post.likes.toLocaleString(language),
-          }));
-          description.push(translate('search_imgur.views', {views: post.views.toLocaleString(language)}));
-          payload.fields!.push({name: translate('search_imgur.details'), value: description.join('\n')});
-        }
+          }),
+          translate('search_imgur.views', {views: post.views.toLocaleString(language)}),
+        ]);
 
         const file = await fetchMedia(page, post.thumbnail!);
         payload.image = `attachment://${file.filename}`;

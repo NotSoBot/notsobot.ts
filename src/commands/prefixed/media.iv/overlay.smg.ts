@@ -16,8 +16,11 @@ export default class OverlaySMGCommand extends BaseImageOrVideoCommand {
       aliases: ['o smg', 'smg'],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'This command is disabled while we wait for Discord Compliance approval.',
-        examples: [],
+        description: 'Overlay a Half Life SMG over an Image or Video',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+        ],
         id: Formatter.Commands.MediaIVManipulationOverlayHalfLifeSMG.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',
       },

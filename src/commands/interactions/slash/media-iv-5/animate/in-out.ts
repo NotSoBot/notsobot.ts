@@ -9,17 +9,17 @@ export const COMMAND_NAME = 'in-out';
 
 export class MediaIVInOutCommand extends BaseInteractionImageOrVideoCommandOption {
   description = 'Zoom into an Image or Video through copies of itself and back out';
-  descriptionLocalizations = I18n.localizations('commands.media_iv_3.animate.in_out.description');
+  descriptionLocalizations = I18n.localizations('commands.media_iv_5.animate.in_out.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationInOut.COMMAND_ID,
   };
   name = COMMAND_NAME;
-  nameLocalizations = I18n.localizations('commands.media_iv_3.animate.in_out.name');
+  nameLocalizations = I18n.localizations('commands.media_iv_5.animate.in_out.name');
 
   constructor() {
     super({
       options: [
-        {name: 'delay', description: 'Frame Delay in ms (20..10000) (Default: 100)', ...I18n.optionLocalizations('commands.media_iv_3.animate.in_out.delay'), type: Number},
+        {name: 'delay', description: 'Frame Delay in ms (20..10000) (Default: 100)', ...I18n.optionLocalizations('commands.media_iv_5.animate.in_out.delay'), type: Number},
       ],
     });
   }

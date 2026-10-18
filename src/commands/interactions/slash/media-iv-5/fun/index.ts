@@ -2,7 +2,8 @@ import { I18n } from '../../../../../utils';
 
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
-import { MediaIVTunnelCommand } from '../../media-iv-2/fun/tunnel';
+import { MediaIVTunnelCommand } from './tunnel';
+import { MediaIVTVSimulatorCommand } from './tv-simulator';
 
 
 // overflow for the /media-iv, /media-iv-2 and /media-iv-3 `fun` groups, which are all at discord's 25 subcommand limit
@@ -10,12 +11,13 @@ import { MediaIVTunnelCommand } from '../../media-iv-2/fun/tunnel';
 export class MediaFun5GroupCommand extends BaseInteractionCommandOptionGroup {
   description = '.';
   name = 'fun';
-  nameLocalizations = I18n.localizations('commands.media_iv_2.fun.name');
+  nameLocalizations = I18n.localizations('commands.media_iv_5.fun.name');
 
   constructor() {
     super({
       options: [
         new MediaIVTunnelCommand(),
+        new MediaIVTVSimulatorCommand(),
       ],
     });
   }

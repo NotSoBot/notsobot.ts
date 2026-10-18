@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { searchSteam } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { DisplayPayload, Paginator, displayReply } from '../../../utils';
+import { DisplayPayload, Paginator, displayDetails, displayDetailsLine, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.steam.community';
@@ -30,7 +30,7 @@ export async function createMessage(
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: (page) => {
-        const payload: DisplayPayload = {fields: []};
+        const payload: DisplayPayload = {};
         payload.color = EmbedColors.DEFAULT;
 
         const result = results[page - 1];
@@ -41,39 +41,19 @@ export async function createMessage(
         payload.title = result.username;
         payload.url = result.url;
 
-        {
-          const description: Array<string> = [];
-
-          if (result.real_name) {
-            description.push(Markup.escape.all(result.real_name));
-          }
-          if (result.country) {
-            description.push(translate('search_steam_community.located', {country: result.country}));
-          }
-          if (description.length) {
-            description.push('');
-          }
-
-          if (result.past_names.length) {
-            description.push(translate('search_steam_community.also_known_as', {past_names: result.past_names.map((name) => Markup.bold(Markup.codestring(name))).join(', ')}));
-          }
-          if (result.in_common.length) {
-            description.push(translate('search_steam_community.in_common', {in_common: result.in_common.map((string) => Markup.bold(string)).join(translate('logger.and'))}));
-          }
-          if (result.custom_url) {
-            description.push(translate('search_steam_community.custom_url', {custom_url: Markup.codestring(result.custom_url)}));
-          }
-          if (result.steam_id) {
-            description.push(translate('search_steam_community.id', {steam_id: Markup.codestring(result.steam_id)}));
-          }
-          if (result.steam_id_64) {
-            description.push(translate('search_steam_community.id64', {steam_id_64: Markup.codestring(result.steam_id_64)}));
-          }
-
-          if (description.length) {
-            payload.description = description.join('\n');
-          }
-        }
+        payload.description = displayDetails([
+          displayDetailsLine([
+            (result.real_name) && Markup.escape.all(result.real_name),
+            (result.country) && translate('search_steam_community.located', {country: result.country}),
+          ]),
+          (result.past_names.length) && translate('search_steam_community.also_known_as', {past_names: result.past_names.map((name) => Markup.codestring(name)).join(', ')}),
+          (result.in_common.length) && translate('search_steam_community.in_common', {in_common: result.in_common.map((string) => Markup.bold(string)).join(translate('logger.and'))}),
+          displayDetailsLine([
+            (result.custom_url) && translate('search_steam_community.custom_url', {custom_url: Markup.codestring(result.custom_url)}),
+            (result.steam_id) && translate('search_steam_community.id', {steam_id: Markup.codestring(result.steam_id)}),
+            (result.steam_id_64) && translate('search_steam_community.id64', {steam_id_64: Markup.codestring(result.steam_id_64)}),
+          ], true),
+        ]) || undefined;
 
         return {display: payload};
       },

@@ -1034,6 +1034,14 @@ export async function mediaAIVToolsExif(
 }
 
 
+export async function mediaAVManipulationAudioBitcrush(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioBitcrush,
+) {
+  return raw.mediaAVManipulationAudioBitcrush(context, options);
+}
+
+
 export async function mediaAVManipulationAudioBoostBass(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -1087,6 +1095,14 @@ export async function mediaAVManipulationAudioFlanger(
   options: RestOptions.MediaAVManipulationAudioFlanger,
 ) {
   return raw.mediaAVManipulationAudioFlanger(context, options);
+}
+
+
+export async function mediaAVManipulationAudioMultiPitch(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioMultiPitch,
+) {
+  return raw.mediaAVManipulationAudioMultiPitch(context, options);
 }
 
 
@@ -2663,6 +2679,14 @@ export async function mediaIVManipulationTunnel(
   options: RestOptions.MediaIVManipulationTunnel,
 ) {
   return raw.mediaIVManipulationTunnel(context, options);
+}
+
+
+export async function mediaIVManipulationTVSimulator(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationTVSimulator,
+) {
+  return raw.mediaIVManipulationTVSimulator(context, options);
 }
 
 

@@ -3,8 +3,20 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { searchReddit } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { DateMomentLogFormat, EmbedBrands, EmbedColors, RedditKindTypes, RedditSortTypes, RedditTimeTypes } from '../../../constants';
-import { DisplayPayload, Paginator, chunkArray, createPaginatorMediaCache, createTimestampMomentFromGuild, displayReply, htmlDecode, shuffleArray } from '../../../utils';
+import { EmbedBrands, EmbedColors, RedditKindTypes, RedditSortTypes, RedditTimeTypes } from '../../../constants';
+import {
+  DisplayPayload,
+  Paginator,
+  chunkArray,
+  createPaginatorMediaCache,
+  displayDetails,
+  displayDetailsLine,
+  displayLinks,
+  displayReply,
+  displayTimestamp,
+  htmlDecode,
+  shuffleArray,
+} from '../../../utils';
 
 
 export const COMMAND_ID = 'search.reddit';
@@ -35,7 +47,8 @@ export async function createMessage(
       onPage: async (page) => {
         const data = results[page - 1];
 
-        const payload: DisplayPayload = {fields: []};
+        const payload: DisplayPayload = {};
+        let details = '';
         payload.color = EmbedColors.DEFAULT;
         payload.footer = translate('search_reddit.page_of_reddit_results', {page: page, pageLimit: pageLimit});
         payload.footerIconUrl = EmbedBrands.REDDIT;
@@ -48,29 +61,10 @@ export async function createMessage(
         }
 
         {
-          const description: Array<string> = [];
-
           const author = Markup.url(Markup.escape.all(data.author), `https://reddit.com/u/${data.author}`);
           const subreddit = Markup.url(Markup.escape.all(data.subreddit_name_prefixed), 'https://reddit.com/' + data.subreddit_name_prefixed);
-          description.push(translate('search_reddit.created_in_by', {author: author, subreddit: subreddit}));
-          description.push('');
 
-          description.push(translate('search_reddit.awards', {total_awards_received: data.total_awards_received.toLocaleString(language)}));
-          description.push(translate('search_reddit.comments', {num_comments: data.num_comments.toLocaleString(language)}));
-
-          {
-            const timestamp = createTimestampMomentFromGuild(data.created * 1000, context.guildId);
-            description.push(translate('search_reddit.created', {timestamp: timestamp.locale(language).fromNow()}));
-            description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
-          }
-
-          description.push(translate('search_reddit.nsfw', {over_18: (data.over_18) ? translate('common.yes') : translate('common.no')}));
-
-          description.push('');
-          description.push(translate('search_reddit.downvotes', {downs: data.downs.toLocaleString(language)}));
-          description.push(translate('search_reddit.upvotes', {ups: data.ups.toLocaleString(language)}));
-          description.push(translate('search_reddit.ratio_upvotes', {upvote_ratio: data.upvote_ratio * 100}));
-
+          let videoUrl: string | null = null;
           if (data.is_video) {
             // crossposts have no media of their own, fall back to the parent post's
             let media: any = data.media;
@@ -81,12 +75,25 @@ export async function createMessage(
               }
             }
             if (media && media.reddit_video && media.reddit_video.fallback_url) {
-              description.push('');
-              description.push(Markup.url('Video URL', media.reddit_video.fallback_url));
+              videoUrl = media.reddit_video.fallback_url;
             }
           }
 
-          payload.fields!.push({name: translate('search_reddit.details'), value: description.join('\n')});
+          details = displayDetails([
+            translate('search_reddit.created_in_by', {author: author, subreddit: subreddit}),
+            displayDetailsLine([
+              translate('search_reddit.upvotes', {ups: data.ups.toLocaleString(language)}),
+              translate('search_reddit.downvotes', {downs: data.downs.toLocaleString(language)}),
+              translate('search_reddit.ratio_upvotes', {upvote_ratio: data.upvote_ratio * 100}),
+            ]),
+            displayDetailsLine([
+              translate('search_reddit.comments', {num_comments: data.num_comments.toLocaleString(language)}),
+              (data.total_awards_received) && translate('search_reddit.awards', {total_awards_received: data.total_awards_received.toLocaleString(language)}),
+              translate('search_reddit.created', {timestamp: displayTimestamp(data.created * 1000)}),
+              (data.over_18) && translate('search_reddit.nsfw', {over_18: translate('common.yes')}),
+            ]),
+            displayLinks([['Video URL', videoUrl]]),
+          ]);
         }
 
         // downloaded and scanned through the api, throws if it can't be (the raw url is never shown)
@@ -114,6 +121,8 @@ export async function createMessage(
           }; break;
         }
 
+        // the post's text first, the details under it
+        payload.description = [payload.description, details].filter(Boolean).join('\n\n');
         return {display: (file) ? {...payload, files: [file]} : payload};
       },
     });

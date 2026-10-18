@@ -1096,6 +1096,17 @@ export enum MeasurementUnits {
 }
 
 
+export enum MediaAudioBitcrushModes {
+  LIN = 'LIN',
+  LOG = 'LOG',
+}
+
+export const MediaAudioBitcrushModesToText: Record<MediaAudioBitcrushModes, string> = Object.freeze({
+  [MediaAudioBitcrushModes.LIN]: 'Linear',
+  [MediaAudioBitcrushModes.LOG]: 'Logarithmic (Softer)',
+});
+
+
 export enum MediaBackgroundRemovalModels {
   ALPHA_MATTING = 'ALPHA_MATTING',
   BIREFNET_COD = 'BIREFNET_COD',

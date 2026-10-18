@@ -6,7 +6,7 @@ import { moderationSafetyScan, search4Chan, search4ChanRandom } from '../../../a
 import { getTranslator } from '../../i18n';
 import { RestResponsesRaw } from '../../../api/types';
 import { DiscordEmojis, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
-import { DefaultParameters, DisplayPayload, Paginator, displayReply, shuffleArray } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, displayLinks, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.4chan';
@@ -51,7 +51,7 @@ export async function createMessage(
       onPage: async (page) => {
         const thread = threads[page - 1];
 
-        const payload: DisplayPayload = {fields: []};
+        const payload: DisplayPayload = {};
         payload.color = EmbedColors.DEFAULT;
 
         let footer = translate('search_4chan.4chan_s', {board: board.board});
@@ -182,16 +182,14 @@ export async function createMessage(
           payload.description = description.join('\n');
         }
 
+        // links in small text under the post instead of their own sections
         {
-          const description: Array<string> = [];
-          description.push(Markup.url('Board', board.url));
-          description.push(Markup.url('Thread', thread.url));
-          payload.fields!.push({name: 'Urls', value: description.join(', ')});
-        }
-
-        if (thread.media) {
-          const filename = `${thread.media.name}.${thread.media.extension}`;
-          payload.fields!.push({name: translate('search_4chan.media'), value: Markup.url(filename, thread.media.url)});
+          const links = displayLinks([
+            ['Board', board.url],
+            ['Thread', thread.url],
+            [(thread.media) ? `${translate('search_4chan.media')}: ${thread.media.name}.${thread.media.extension}` : '', (thread.media) ? thread.media.url : null],
+          ]);
+          payload.description = [payload.description, links].filter(Boolean).join('\n');
         }
 
         return {display: {...payload, files}};

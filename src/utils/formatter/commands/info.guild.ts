@@ -4,12 +4,22 @@ import { Markup, guildIdToShardId } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import {
-  DateMomentLogFormat,
   GuildExplicitContentFilterTypeTexts,
   VerificationLevelTexts,
 } from '../../../constants';
 import { TranslationKey, getTranslator } from '../../i18n';
-import { DisplayPayload, createTimestampMomentFromGuild, displayReply, formatMemory, toTitleCase } from '../../../utils';
+import {
+  DisplayPayload,
+  displayCounts,
+  displayDetail,
+  displayDetails,
+  displayDetailsLine,
+  displayLinks,
+  displayReply,
+  displayTimestamp,
+  formatMemory,
+  toTitleCase,
+} from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -58,7 +68,7 @@ export async function createMessage(
     voiceStateCount,
   } = args.payload;
 
-  const payload: DisplayPayload = {fields: []};
+  const payload: DisplayPayload = {};
   payload.title = guild.name;
   payload.url = guild.jumpLink;
   payload.color = Colors.BLURPLE;
@@ -70,221 +80,147 @@ export async function createMessage(
     payload.footerIconUrl = guild.iconUrlFormat(null, {size: 1024}) || undefined;
   }
 
-  if (guild.description) {
-    payload.description = guild.description;
-  }
-
   if (guild.banner) {
     payload.thumbnail = <string> guild.bannerUrlFormat(null, {size: 1024});
-  } else {
-    if (guild.icon) {
-      payload.thumbnail = <string> guild.iconUrlFormat(null, {size: 1024});
-    }
+  } else if (guild.icon) {
+    payload.thumbnail = <string> guild.iconUrlFormat(null, {size: 1024});
   }
 
   if (guild.splash) {
     payload.image = <string> guild.splashUrlFormat(null, {size: 128});
   }
 
-  {
-    const description: Array<string> = [];
-
-    description.push(`**${translate('info.guild.acronym')}**: ${guild.acronym}`);
-    {
-      const timestamp = createTimestampMomentFromGuild(guild.createdAtUnix, context.guildId);
-      description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
-      description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
-    }
-    description.push(`**${translate('common.id')}**: \`${guild.id}\``);
-    description.push(`**${translate('info.guild.locale')}**: \`${guild.preferredLocaleText || guild.preferredLocale}\``);
-    description.push(`**${translate('info.guild.nitro_tier')}**: ${(guild.premiumTier) ? translate('info.guild.nitro_level', {level: guild.premiumTier}) : translate('common.none')}`);
-    if (guild.id === context.guildId) {
-      description.push(`**${translate('common.owner')}**: <@!${guild.ownerId}>`);
-    } else {
-      description.push(`**${translate('common.owner')}**: ${owner}`);
-      description.push(`**${translate('info.guild.owner_id')}**: \`${owner.id}\``);
-    }
-    description.push(`**${translate('info.guild.region')}**: \`${guild.region}\``);
-    description.push(`**${translate('info.guild.server_type')}**: ${translate((guild.isPublic) ? 'info.guild.server_type_public' : 'info.guild.server_type_private')}`);
-
-    if (context.client.shardCount !== 1) {
-      description.push(`**${translate('info.guild.shard')}**: ${guildIdToShardId(guild.id, context.client.shardCount)}/${context.client.shardCount}`);
-    }
-
-    // Application Id
-    // large
-    // lazy
-    // system channel flags
-
-    payload.fields!.push({inline: true, name: translate('common.information'), value: description.join('\n')});
+  const lines: Array<string> = [];
+  if (guild.description) {
+    lines.push(guild.description);
   }
 
+  const isThisGuild = (guild.id === context.guildId);
+  lines.push(displayDetailsLine([
+    displayDetail(translate('common.owner'), (isThisGuild) ? `<@!${guild.ownerId}>` : String(owner)),
+    displayDetail(translate('common.created'), displayTimestamp(guild.createdAtUnix)),
+    displayDetail(translate('info.guild.nitro_tier'), ((guild.premiumTier) ? translate('info.guild.nitro_level', {level: guild.premiumTier}) : translate('common.none')) + displayCounts(language, [
+      [translate('counts.boosts'), guild.premiumSubscriptionCount],
+    ])),
+  ]));
+
+  lines.push(displayDetailsLine([
+    displayDetail(translate('counts.members'), memberCount.toLocaleString(language)),
+    displayDetail(translate('counts.presences'), presenceCount.toLocaleString(language)),
+    displayDetail(translate('counts.voice_states'), voiceStateCount.toLocaleString(language)),
+  ]));
+
   {
-    const description: Array<string> = [];
+    const animatedEmojis = emojis.filter((emoji: Structures.Emoji) => emoji.animated).length;
+    const managedRoles = guild.roles.filter((role) => role.managed).length;
+    lines.push(displayDetailsLine([
+      displayDetail(translate('counts.channels'), channels.length.toLocaleString(language) + displayCounts(language, [
+        [translate('counts.category'), channels.filter((channel: Structures.Channel) => channel.isGuildCategory).length],
+        [translate('counts.news'), channels.filter((channel: Structures.Channel) => channel.isGuildNews).length],
+        [translate('counts.store'), channels.filter((channel: Structures.Channel) => channel.isGuildStore).length],
+        [translate('counts.text'), channels.filter((channel: Structures.Channel) => channel.isGuildText).length],
+        [translate('counts.voice'), channels.filter((channel: Structures.Channel) => channel.isGuildVoice).length],
+      ])),
+      displayDetail(translate('counts.roles'), guild.roles.length.toLocaleString(language) + displayCounts(language, [
+        [translate('counts.managed'), managedRoles],
+      ])),
+      displayDetail(translate('counts.emojis'), emojis.length.toLocaleString(language) + displayCounts(language, [
+        [translate('counts.anim'), animatedEmojis],
+      ])),
+      // null when the guild isn't on any of our clusters
+      (soundboardSoundCount !== null) && displayDetail(translate('counts.soundboard'), soundboardSoundCount.toLocaleString(language)),
+      displayDetail(translate('counts.overwrites'), channels.reduce((x: number, channel: Structures.Channel) => x + channel.permissionOverwrites.length, 0).toLocaleString(language)),
+    ]));
+  }
 
-    description.push(`**${translate('info.guild.afk_timeout')}**: ${translate('info.guild.afk_timeout_seconds', {seconds: guild.afkTimeout})}`);
-    description.push(`**${translate('info.guild.content_filter')}**: ${translateMaybe(`guild.content_filter.${guild.explicitContentFilter}`, GuildExplicitContentFilterTypeTexts[guild.explicitContentFilter] || translate('common.unknown'))}`);
-    description.push(`**${translate('info.guild.message_notifications')}**: ${translate((guild.defaultMessageNotifications) ? 'info.guild.mentions' : 'info.guild.all')}`);
-    description.push(`**${translate('info.guild.mfa')}**: ${translate((guild.mfaLevel) ? 'info.guild.mfa_required' : 'info.guild.mfa_optional')}`);
-    description.push(`**${translate('info.guild.verification')}**: ${translateMaybe(`guild.verification.${guild.verificationLevel}`, VerificationLevelTexts[guild.verificationLevel] || translate('common.unknown'))}`);
-    if (guild.incidentsData) {
-      const { dmSpamDetectedAt, dmsDisabledUntil, invitesDisabledUntil, raidDetectedAt } = guild.incidentsData;
-      const now = Date.now();
-      // the `Until` timestamps stay on the guild after they expire, so only show them while they're active
-      const incidents: Array<[TranslationKey, string | null, boolean]> = [
-        ['info.guild.invites_paused_until', invitesDisabledUntil, true],
-        ['info.guild.dms_paused_until', dmsDisabledUntil, true],
-        ['info.guild.raid_detected', raidDetectedAt, false],
-        ['info.guild.dm_spam_detected', dmSpamDetectedAt, false],
-      ];
-      for (const [key, value, isUntil] of incidents) {
-        const timestamp = (value) ? Date.parse(value) : NaN;
-        if (isNaN(timestamp) || (isUntil && timestamp < now)) {
-          continue;
-        }
-        const moment = createTimestampMomentFromGuild(timestamp, context.guildId);
-        description.push(`**${translate(key)}**: ${moment.locale(language).fromNow()}`);
+  lines.push(displayDetailsLine([
+    displayDetail(translate('info.guild.verification'), translateMaybe(`guild.verification.${guild.verificationLevel}`, VerificationLevelTexts[guild.verificationLevel] || translate('common.unknown'))),
+    displayDetail(translate('info.guild.content_filter'), translateMaybe(`guild.content_filter.${guild.explicitContentFilter}`, GuildExplicitContentFilterTypeTexts[guild.explicitContentFilter] || translate('common.unknown'))),
+    displayDetail(translate('info.guild.mfa'), translate((guild.mfaLevel) ? 'info.guild.mfa_required' : 'info.guild.mfa_optional')),
+    displayDetail(translate('info.guild.message_notifications'), translate((guild.defaultMessageNotifications) ? 'info.guild.mentions' : 'info.guild.all')),
+    displayDetail(translate('info.guild.afk_timeout'), translate('info.guild.afk_timeout_seconds', {seconds: guild.afkTimeout})),
+  ]));
+
+  if (guild.incidentsData) {
+    const { dmSpamDetectedAt, dmsDisabledUntil, invitesDisabledUntil, raidDetectedAt } = guild.incidentsData;
+    const now = Date.now();
+    // the `Until` timestamps stay on the guild after they expire, so only show them while they're active
+    const incidents: Array<[TranslationKey, string | null, boolean]> = [
+      ['info.guild.invites_paused_until', invitesDisabledUntil, true],
+      ['info.guild.dms_paused_until', dmsDisabledUntil, true],
+      ['info.guild.raid_detected', raidDetectedAt, false],
+      ['info.guild.dm_spam_detected', dmSpamDetectedAt, false],
+    ];
+    const details: Array<string> = [];
+    for (const [key, value, isUntil] of incidents) {
+      const timestamp = (value) ? Date.parse(value) : NaN;
+      if (isNaN(timestamp) || (isUntil && timestamp < now)) {
+        continue;
       }
+      details.push(displayDetail(translate(key), displayTimestamp(timestamp)));
     }
-
-    payload.fields!.push({inline: true, name: translate('info.guild.moderation'), value: description.join('\n')});
+    lines.push(displayDetailsLine(details));
   }
 
   {
     function getChannelName(channelId: string): string {
-      if (context.guildId !== guild.id && channels.has(channelId)) {
+      if (!isThisGuild && channels.has(channelId)) {
         const channel = <Structures.Channel> channels.get(channelId);
         return `${channel} (${channelId})`;
       }
       return `<#${channelId}>`;
     }
 
-    const description: Array<string> = [];
-    if (guild.afkChannelId) {
-      const name = getChannelName(guild.afkChannelId);
-      description.push(`**${translate('info.guild.afk')}**: ${name}`);
-    }
     const defaultChannel = channels.find((channel: Structures.Channel) => channel.position === 0 && channel.isGuildText);
-    if (defaultChannel) {
-      const name = (context.guildId === guild.id) ? defaultChannel.mention : `${defaultChannel} (${defaultChannel.id})`;
-      description.push(`**${translate('info.guild.default')}**: ${name}`);
-    }
-    if (guild.rulesChannelId) {
-      const name = getChannelName(guild.rulesChannelId);
-      description.push(`**${translate('info.guild.rules')}**: ${name}`);
-    }
-    if (guild.systemChannelId) {
-      const name = getChannelName(guild.systemChannelId);
-      description.push(`**${translate('info.guild.system')}**: ${name}`);
-    }
-    if (guild.widgetChannelId) {
-      const name = getChannelName(guild.widgetChannelId);
-      description.push(`**${translate('info.guild.widget')}**: ${name}`);
-    }
-    if (description.length) {
-      payload.fields!.push({inline: false, name: translate('info.guild.channels'), value: description.join('\n')});
-    }
+    lines.push(displayDetailsLine([
+      (guild.afkChannelId) && displayDetail(translate('info.guild.afk'), getChannelName(guild.afkChannelId)),
+      (defaultChannel) && displayDetail(translate('info.guild.default'), (isThisGuild) ? defaultChannel.mention : `${defaultChannel} (${defaultChannel.id})`),
+      (guild.rulesChannelId) && displayDetail(translate('info.guild.rules'), getChannelName(guild.rulesChannelId)),
+      (guild.systemChannelId) && displayDetail(translate('info.guild.system'), getChannelName(guild.systemChannelId)),
+      (guild.widgetChannelId) && displayDetail(translate('info.guild.widget'), getChannelName(guild.widgetChannelId)),
+    ]));
   }
 
+  lines.push(displayDetailsLine([
+    displayDetail(translate('info.guild.locale'), Markup.codestring(guild.preferredLocaleText || guild.preferredLocale)),
+    displayDetail(translate('info.guild.region'), Markup.codestring(guild.region)),
+    displayDetail(translate('info.guild.server_type'), translate((guild.isPublic) ? 'info.guild.server_type_public' : 'info.guild.server_type_private')),
+    displayDetail(translate('info.guild.acronym'), guild.acronym),
+    (context.client.shardCount !== 1) && displayDetail(translate('info.guild.shard'), `${guildIdToShardId(guild.id, context.client.shardCount)}/${context.client.shardCount}`),
+  ]));
+
+  // limits and features are reference info, so they go small at the bottom
   {
-    {
-      const animatedEmojis = emojis.filter((emoji: Structures.Emoji) => emoji.animated).length;
-      const categoryChannels = channels.filter((channel: Structures.Channel) => channel.isGuildCategory).length;
-      const newsChannels = channels.filter((channel: Structures.Channel) => channel.isGuildNews).length;
-      const storeChannels = channels.filter((channel: Structures.Channel) => channel.isGuildStore).length;
-      const textChannels = channels.filter((channel: Structures.Channel) => channel.isGuildText).length;
-      const voiceChannels = channels.filter((channel: Structures.Channel) => channel.isGuildVoice).length;
-
-      const column: Array<string> = [];
-
-      column.push(`${translate('counts.channels')}: ${channels.length.toLocaleString(language)}`);
-      if (categoryChannels) {
-        column.push(` -[${translate('counts.category')}]: ${categoryChannels.toLocaleString(language)}`);
-      }
-      if (newsChannels) {
-        column.push(` -[${translate('counts.news')}]: ${newsChannels.toLocaleString(language)}`);
-      }
-      if (storeChannels) {
-        column.push(` -[${translate('counts.store')}]: ${storeChannels.toLocaleString(language)}`);
-      }
-      if (textChannels) {
-        column.push(` -[${translate('counts.text')}]: ${textChannels.toLocaleString(language)}`);
-      }
-      if (voiceChannels) {
-        column.push(` -[${translate('counts.voice')}]: ${voiceChannels.toLocaleString(language)}`);
-      }
-      column.push(`${translate('counts.emojis')}: ${emojis.length.toLocaleString(language)}`);
-      column.push(` -[${translate('counts.anim')}]: ${animatedEmojis.toLocaleString(language)}`);
-      column.push(` -[${translate('counts.regular')}]: ${(emojis.length - animatedEmojis).toLocaleString(language)}`);
-
-      payload.fields!.push({inline: true, name: translate('common.counts'), value: Markup.codeblock(column.join('\n'), {language: 'css'})});
-    }
-
-    {
-      const column: Array<string> = [];
-
-      column.push(`${translate('counts.boosts')}: ${guild.premiumSubscriptionCount.toLocaleString(language)}`);
-      column.push(`${translate('counts.members')}: ${memberCount.toLocaleString(language)}`);
-      column.push(`${translate('counts.overwrites')}: ${channels.reduce((x: number, channel: Structures.Channel) => x + channel.permissionOverwrites.length, 0).toLocaleString(language)}`);
-      column.push(`${translate('counts.presences')}: ${presenceCount.toLocaleString(language)}`);
-
-      const managedRoles = guild.roles.filter((role) => role.managed).length;
-      column.push(`${translate('counts.roles')}: ${guild.roles.length.toLocaleString(language)}`);
-      column.push(` -[${translate('counts.managed')}]: ${managedRoles.toLocaleString(language)}`);
-      column.push(` -[${translate('counts.regular')}]: ${(guild.roles.length - managedRoles).toLocaleString(language)}`);
-      // null when the guild isn't on any of our clusters
-      if (soundboardSoundCount !== null) {
-        column.push(`${translate('counts.soundboard')}: ${soundboardSoundCount.toLocaleString(language)}`);
-      }
-      column.push(`${translate('counts.voice_states')}: ${voiceStateCount.toLocaleString(language)}`);
-
-      payload.fields!.push({inline: true, name: translate('common.counts'), value: Markup.codeblock(column.join('\n'), {language: 'css'})});
-    }
+    const limits = [
+      `${translate('counts.attachment')} ${formatMemory(guild.maxAttachmentSize)}`,
+      `${translate('counts.bitrate')} ${translate('info.channel.kbps', {value: (guild.maxBitrate / 1000).toLocaleString(language)})}`,
+      `${translate('counts.emojis')} ${(guild.maxEmojis * 2).toLocaleString(language)}`,
+      `${translate('counts.members')} ${guild.maxMembers.toLocaleString(language)}`,
+      `${translate('counts.presences')} ${guild.maxPresences.toLocaleString(language)}`,
+    ];
+    lines.push(`-# ${translate('info.guild.limits')}: ${limits.join(', ')}`);
   }
-
-  payload.fields!.push({name: '\u200b', value: '\u200b'});
-  {
-    const description: Array<string> = [];
-
-    description.push(`${translate('counts.attachment')}: ${formatMemory(guild.maxAttachmentSize)}`);
-    description.push(`${translate('counts.bitrate')}: ${translate('info.channel.kbps', {value: (guild.maxBitrate / 1000).toLocaleString(language)})}`);
-    description.push(`${translate('counts.emojis')}: ${guild.maxEmojis * 2}`);
-    description.push(` -[${translate('counts.anim')}]: ${guild.maxEmojis}`);
-    description.push(` -[${translate('counts.regular')}]: ${guild.maxEmojis}`);
-    description.push(`${translate('counts.members')}: ${guild.maxMembers.toLocaleString(language)}`);
-    description.push(`${translate('counts.presences')}: ${guild.maxPresences.toLocaleString(language)}`);
-
-    payload.fields!.push({inline: true, name: translate('info.guild.limits'), value: Markup.codeblock(description.join('\n'), {language: 'css'})});
-  }
-
   if (guild.features.length) {
-    const description = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
-    payload.fields!.push({inline: true, name: translate('common.features'), value: Markup.codeblock(description.join('\n'))});
+    const features = guild.features.toArray().sort().map((feature: string) => toTitleCase(feature));
+    lines.push(`-# ${translate('common.features')}: ${features.join(', ')}`);
   }
 
-  {
-    const description: Array<string> = [];
+  lines.push(displayDetailsLine([
+    `${translate('common.id')}: ${Markup.codestring(guild.id)}`,
+    (!isThisGuild) && `${translate('info.guild.owner_id')}: ${Markup.codestring(owner.id)}`,
+  ], true));
 
-    if (guild.banner) {
-      description.push(`[**${translate('info.guild.banner_image')}**](${guild.bannerUrlFormat(null, {size: 1024})})`);
-    }
-    if (guild.discoverySplash) {
-      description.push(`[**${translate('info.guild.discovery_splash')}**](${guild.discoverySplashUrlFormat(null, {size: 1024})})`);
-    }
-    description.push(`[**${translate('common.guild')}**](${guild.jumpLink})`);
-    if (guild.icon) {
-      description.push(`[**${translate('info.guild.icon_image')}**](${guild.iconUrlFormat(null, {size: 1024})})`);
-    }
-    if (guild.splash) {
-      description.push(`[**${translate('info.guild.splash_image')}**](${guild.splashUrlFormat(null, {size: 1024})})`);
-    }
-    if (guild.widgetEnabled) {
-      description.push(`[**${translate('info.guild.widget')}**](${guild.widgetUrl})`);
-      description.push(`[**${translate('info.guild.widget_image')}**](${guild.widgetImageUrl})`);
-    }
+  lines.push(displayLinks([
+    [translate('common.guild'), guild.jumpLink],
+    [translate('info.guild.icon_image'), guild.iconUrlFormat(null, {size: 1024})],
+    [translate('info.guild.banner_image'), guild.bannerUrlFormat(null, {size: 1024})],
+    [translate('info.guild.splash_image'), guild.splashUrlFormat(null, {size: 1024})],
+    [translate('info.guild.discovery_splash'), guild.discoverySplashUrlFormat(null, {size: 1024})],
+    [translate('info.guild.widget'), (guild.widgetEnabled) ? guild.widgetUrl : null],
+    [translate('info.guild.widget_image'), (guild.widgetEnabled) ? guild.widgetImageUrl : null],
+  ]));
 
-    payload.fields!.push({name: translate('common.urls'), value: description.join(', ')});
-  }
+  payload.description = displayDetails(lines);
 
   /*
   let content = `Emojis (${emojis.length}): `;

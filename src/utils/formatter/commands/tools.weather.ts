@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { utilitiesWeather } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, MeasurementUnits } from '../../../constants';
-import { DisplayPayload, displayReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, displayDetails, displayDetailsLine, displayReply, toTitleCase } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.weather';
@@ -26,7 +26,7 @@ export async function createMessage(
     units: args.units,
   });
 
-  const payload: DisplayPayload = {fields: []};
+  const payload: DisplayPayload = {};
   payload.color = EmbedColors.DEFAULT;
   payload.footer = 'OpenWeather';
   payload.footerIconUrl = EmbedBrands.OPEN_WEATHER_MAP;
@@ -44,38 +44,38 @@ export async function createMessage(
 
   const { current, units } = weather;
   {
-    const windBeaufortScale = (current.wind) ? speedToBeaufortScale(current.wind.speed, units) : null;
-
-    const description: Array<string> = [];
+    const lines: Array<string> = [];
     {
       let text = translate('tools_weather.currently', {temperature: current.temperature, unitTextForTemperature: unitTextForTemperature(units)});
       if (current.conditions.length) {
         text = `${text} with ${current.conditions.map((x) => toTitleCase(x.description)).join(', ')}`;
       }
-      text = translate('tools_weather.feels_like', {feels_like: current.feels_like, text: text, unitTextForTemperature: unitTextForTemperature(units)});
-      description.push(text + '\n');
-    }
-    if (current.pressure) {
-      description.push(translate('tools_weather.atmospheric_pressure_hpa', {pressure: current.pressure}));
-    }
-    description.push(translate('tools_weather.cloud_coverage', {clouds: current.clouds}));
-    {
-      const coordinates = `${location.latitude}, ${location.longitude}`;
-      description.push(translate('tools_weather.coordinates', {coordinates: Markup.url(coordinates, location.urls.place)}));
-    }
-    if (current.dew_point) {
-      description.push(translate('tools_weather.dew_point', {dew_point: current.dew_point, unitTextForTemperature: unitTextForTemperature(units)}));
-    }
-    description.push(translate('tools_weather.humidity', {humidity: current.humidity}));
-    description.push(translate('tools_weather.uv_index', {uv_index: current.uv_index}));
-    description.push(translate('tools_weather.visibility_km', {visibility: current.visibility}));
-    if (current.wind) {
-      const beaufortScale = speedToBeaufortScale(current.wind.speed, units);
-      description.push(translate('tools_weather.wind', {degreesToDirection: degreesToDirection(current.wind.direction), speed: current.wind.speed, unitTextForSpeed: unitTextForSpeed(units)}));
-      description.push(translate('tools_weather.wind_feels', {description: beaufortScale.description, value: toTitleCase(beaufortScale.text)}));
+      lines.push(translate('tools_weather.feels_like', {feels_like: current.feels_like, text: text, unitTextForTemperature: unitTextForTemperature(units)}));
     }
 
-    payload.description = description.join('\n');
+    lines.push(displayDetailsLine([
+      translate('tools_weather.humidity', {humidity: current.humidity}),
+      translate('tools_weather.cloud_coverage', {clouds: current.clouds}),
+      translate('tools_weather.uv_index', {uv_index: current.uv_index}),
+    ]));
+    if (current.wind) {
+      const beaufortScale = speedToBeaufortScale(current.wind.speed, units);
+      lines.push(displayDetailsLine([
+        translate('tools_weather.wind', {degreesToDirection: degreesToDirection(current.wind.direction), speed: current.wind.speed, unitTextForSpeed: unitTextForSpeed(units)}),
+        translate('tools_weather.wind_feels', {description: beaufortScale.description, value: toTitleCase(beaufortScale.text)}),
+      ]));
+    }
+    lines.push(displayDetailsLine([
+      (current.dew_point) && translate('tools_weather.dew_point', {dew_point: current.dew_point, unitTextForTemperature: unitTextForTemperature(units)}),
+      (current.pressure) && translate('tools_weather.atmospheric_pressure_hpa', {pressure: current.pressure}),
+      translate('tools_weather.visibility_km', {visibility: current.visibility}),
+    ]));
+    {
+      const coordinates = `${location.latitude}, ${location.longitude}`;
+      lines.push(`-# ${translate('tools_weather.coordinates', {coordinates: Markup.url(coordinates, location.urls.place)})}`);
+    }
+
+    payload.description = displayDetails(lines);
     // add sunrise, sunset
   }
 

@@ -9,7 +9,7 @@ import {
   GoogleContentVisionSafeSearchAttributeValues,
   GoogleContentVisionSafeSearchAttributes,
 } from '../../../constants';
-import { DefaultParameters, DisplayPayload, displayReply, toTitleCase } from '../../../utils';
+import { DefaultParameters, DisplayPayload, displayDetail, displayDetails, displayDetailsLine, displayReply, toTitleCase } from '../../../utils';
 
 
 export interface CommandArgs {
@@ -28,14 +28,13 @@ export async function createMessage(
 
   const { safe_search_annotation: safeSearchAnnotation } = await googleContentVisionSafeSearch(context, args);
 
-  const payload: DisplayPayload = {fields: []};
+  const payload: DisplayPayload = {};
   payload.color = EmbedColors.DEFAULT;
   payload.footer = translate('tools_safety_labels.safe_search_detection');
   payload.footerIconUrl = EmbedBrands.GOOGLE_CONTENT_VISION_SAFETY;
 
-  const safeValues = Object.values(GoogleContentVisionSafeSearchAttributes).map((value) => Markup.codestring(toTitleCase(value))).join(', ');
-  payload.description = translate('tools_safety_labels.likeliness_values_are', {safeValues: safeValues});
-
+  // the labels on one line, with the scale they're on in small text under it
+  const labels: Array<string> = [];
   const toxic: Array<number> = [];
   for (let [key, value] of Object.entries(safeSearchAnnotation)) {
     switch (value) {
@@ -46,7 +45,7 @@ export async function createMessage(
         toxic.push(GoogleContentVisionSafeSearchAttributeValues[value]);
       }; break;
     }
-    payload.fields!.push({inline: true, name: toTitleCase(key), value: toTitleCase(value)});
+    labels.push(displayDetail(toTitleCase(key), toTitleCase(value)));
   }
 
   if (toxic.length) {
@@ -64,12 +63,18 @@ export async function createMessage(
     }
 
     const percentage = Math.round(average * 100);
-    payload.fields!.push({inline: true, name: translate('tools_safety_labels.nsfw_percentage'), value: `${percentage}%`});
+    labels.push(displayDetail(translate('tools_safety_labels.nsfw_percentage'), `${percentage}%`));
   } else {
     const color = rgbToInt(0, 255, 129);
     payload.color = color;
     payload.thumbnail = args.url;
   }
+
+  const safeValues = Object.values(GoogleContentVisionSafeSearchAttributes).map((value) => Markup.codestring(toTitleCase(value))).join(', ');
+  payload.description = displayDetails([
+    displayDetailsLine(labels),
+    `-# ${translate('tools_safety_labels.likeliness_values_are', {safeValues: safeValues})}`,
+  ]);
 
   return displayReply(context, payload);
 }
