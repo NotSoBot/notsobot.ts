@@ -11,8 +11,9 @@ import { DisplayPayload, displayReply } from '../../../utils';
 
 export const COMMAND_ID = 'settings.ai.memory.list';
 
-// same as the api's `MAX_LLM_MEMORY_AMOUNT`
-export const MAX_MEMORIES = 20;
+// same as the api's `MAX_LLM_MEMORY_AMOUNT_GLOBAL` and `MAX_LLM_MEMORY_AMOUNT_SERVER`: global ones, and more for each server
+export const MAX_MEMORIES_GLOBAL = 10;
+export const MAX_MEMORIES_SERVER = 10;
 
 export interface CommandArgs {
 
@@ -49,7 +50,8 @@ export async function createMessage(
     ephemeral: true,
     footer: translate('settings_ai_memory.footer', {
       count: response.count.toLocaleString(language),
-      max: MAX_MEMORIES.toLocaleString(language),
+      // what this list can hold: the global ones, plus this server's in a server
+      max: (MAX_MEMORIES_GLOBAL + ((context.guildId) ? MAX_MEMORIES_SERVER : 0)).toLocaleString(language),
     }),
     title: translate('settings_ai_memory.title'),
   };
