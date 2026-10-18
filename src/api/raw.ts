@@ -310,6 +310,27 @@ export async function createReminder(
 }
 
 
+export async function createUserLLMMemory(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.CreateUserLLMMemory,
+): Promise<RestResponsesRaw.CreateUserLLMMemory> {
+  const body = {
+    content: options.content,
+    server: options.server,
+  };
+  const params = {userId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.USER_LLM_MEMORIES,
+      params,
+    },
+  });
+}
+
+
 export async function createReport(
   context: RequestContext,
   options: RestOptions.CreateReport,
@@ -601,6 +622,36 @@ export async function deleteReminderPositional(
   });
 }
 
+export async function deleteUserLLMMemories(
+  context: RequestContext,
+  userId: string,
+): Promise<RestResponsesRaw.DeleteUserLLMMemories> {
+  const params = {userId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.USER_LLM_MEMORIES,
+      params,
+    },
+  });
+}
+
+
+export async function deleteUserLLMMemory(
+  context: RequestContext,
+  userId: string,
+  position: number | string,
+): Promise<RestResponsesRaw.DeleteUserLLMMemory> {
+  const params = {userId, position};
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.USER_LLM_MEMORY,
+      params,
+    },
+  });
+}
+
 // rename
 export async function deleteTag(
   context: RequestContext,
@@ -864,6 +915,27 @@ export async function editUser(
 }
 
 
+export async function editUserLLMMemory(
+  context: RequestContext,
+  userId: string,
+  position: number | string,
+  options: RestOptions.EditUserLLMMemory,
+): Promise<RestResponsesRaw.EditUserLLMMemory> {
+  const body = {
+    content: options.content,
+  };
+  const params = {userId, position};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.USER_LLM_MEMORY,
+      params,
+    },
+  });
+}
+
+
 export async function editUserSettings(
   context: RequestContext,
   userId: string,
@@ -877,6 +949,7 @@ export async function editUserSettings(
     file_upload_type: options.fileUploadType,
     locale: options.locale,
     ml_diffusion_model: options.mlDiffusionModel,
+    ml_llm_memory_disabled: options.mlLLMMemoryDisabled,
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
     response_display: options.responseDisplay,
@@ -1053,6 +1126,101 @@ export async function fetchReminders(
     route: {
       method: HTTPMethods.GET,
       path: Api.REMINDERS,
+    },
+  });
+}
+
+
+export async function putGuildTimedBans(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildTimedBans,
+): Promise<RestResponsesRaw.PutGuildTimedBans> {
+  const body = {
+    moderator_id: options.moderatorId,
+    timestamp_end: options.timestampEnd,
+    user_ids: options.userIds,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_TIMED_BANS,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function deleteGuildTimedBan(
+  context: RequestContext,
+  guildId: string,
+  userId: string,
+  options: RestOptions.DeleteGuildTimedBan = {},
+): Promise<RestResponsesRaw.DeleteGuildTimedBan> {
+  const query = {
+    timed_ban_id: options.timedBanId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.GUILD_TIMED_BAN,
+      params: {guildId, userId},
+    },
+  });
+}
+
+
+export async function deleteGuildTimedBans(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildTimedBans,
+): Promise<RestResponsesRaw.DeleteGuildTimedBans> {
+  const body = {
+    user_ids: options.userIds,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_TIMED_BANS_DELETE,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function fetchGuildTimedBans(
+  context: RequestContext,
+  guildId: string,
+): Promise<RestResponsesRaw.FetchGuildTimedBans> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GUILD_TIMED_BANS,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function fetchTimedBans(
+  context: RequestContext,
+  options: RestOptions.FetchTimedBans = {},
+): Promise<RestResponsesRaw.FetchTimedBans> {
+  const query = {
+    after: options.after,
+    before: options.before,
+    limit: options.limit,
+    timestamp_max: options.timestampMax,
+    timestamp_min: options.timestampMin,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.TIMED_BANS,
     },
   });
 }
@@ -1376,6 +1544,21 @@ export async function fetchUserReminders(
 }
 
 
+export async function fetchUserLLMMemories(
+  context: RequestContext,
+  userId: string,
+): Promise<RestResponsesRaw.FetchUserLLMMemories> {
+  const params = {userId};
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.USER_LLM_MEMORIES,
+      params,
+    },
+  });
+}
+
+
 export async function fetchUserSettings(
   context: RequestContext,
   userId: string,
@@ -1513,6 +1696,7 @@ export async function generateTag(
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
     max_file_size: maxFileSize,
+    memory: options.memory,
     model: options.model,
     personality: options.personality,
     personality_preference: options.personalityPreference,
@@ -3482,6 +3666,28 @@ export async function mediaIVManipulationEmboss(
 }
 
 
+export async function mediaIVManipulationEmojiMosaic(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationEmojiMosaic,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_EMOJI_MOSAIC,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationExo(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationExo,
@@ -3555,6 +3761,7 @@ export async function mediaIVManipulationEyes(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const query = {
+    flipped: options.flipped,
     max_file_size: maxFileSize,
     safe: options.safe,
     type: options.type,

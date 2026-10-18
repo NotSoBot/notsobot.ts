@@ -321,6 +321,50 @@ export async function deleteReminderPositional(
 }
 
 
+export async function createUserLLMMemory(
+  context: RequestContext,
+  userId: string,
+  options: RestOptions.CreateUserLLMMemory,
+) {
+  return raw.createUserLLMMemory(context, userId, options);
+}
+
+
+export async function deleteUserLLMMemories(
+  context: RequestContext,
+  userId: string,
+) {
+  return raw.deleteUserLLMMemories(context, userId);
+}
+
+
+export async function deleteUserLLMMemory(
+  context: RequestContext,
+  userId: string,
+  position: number | string,
+) {
+  return raw.deleteUserLLMMemory(context, userId, position);
+}
+
+
+export async function editUserLLMMemory(
+  context: RequestContext,
+  userId: string,
+  position: number | string,
+  options: RestOptions.EditUserLLMMemory,
+) {
+  return raw.editUserLLMMemory(context, userId, position, options);
+}
+
+
+export async function fetchUserLLMMemories(
+  context: RequestContext,
+  userId: string,
+) {
+  return raw.fetchUserLLMMemories(context, userId);
+}
+
+
 export async function deleteTag(
   context: RequestContext,
   options: RestOptions.DeleteTagSearch,
@@ -529,6 +573,50 @@ export async function fetchReminders(
   options: RestOptions.FetchReminders,
 ) {
   return raw.fetchReminders(context, options);
+}
+
+
+export async function putGuildTimedBans(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildTimedBans,
+) {
+  return raw.putGuildTimedBans(context, guildId, options);
+}
+
+
+export async function deleteGuildTimedBan(
+  context: RequestContext,
+  guildId: string,
+  userId: string,
+  options: RestOptions.DeleteGuildTimedBan = {},
+) {
+  return raw.deleteGuildTimedBan(context, guildId, userId, options);
+}
+
+
+export async function deleteGuildTimedBans(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildTimedBans,
+) {
+  return raw.deleteGuildTimedBans(context, guildId, options);
+}
+
+
+export async function fetchGuildTimedBans(
+  context: RequestContext,
+  guildId: string,
+) {
+  return raw.fetchGuildTimedBans(context, guildId);
+}
+
+
+export async function fetchTimedBans(
+  context: RequestContext,
+  options: RestOptions.FetchTimedBans,
+) {
+  return raw.fetchTimedBans(context, options);
 }
 
 
@@ -1447,6 +1535,14 @@ export async function mediaIVManipulationEmboss(
   options: RestOptions.MediaIVManipulationEmboss,
 ) {
   return raw.mediaIVManipulationEmboss(context, options);
+}
+
+
+export async function mediaIVManipulationEmojiMosaic(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationEmojiMosaic,
+) {
+  return raw.mediaIVManipulationEmojiMosaic(context, options);
 }
 
 

@@ -5,7 +5,7 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { DisplayPayload, I18n, Parameters, createTimestampMomentFromGuild, displayReply, renderDisplay } from '../../../utils';
+import { DisplayPayload, I18n, Parameters, createTimestampMomentFromGuild, displayReply, formatUserForAuditLog, renderDisplay } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -174,7 +174,8 @@ export async function createNickMassMessage(
           skipped: 0,
         };
         const errors: Array<any> = [];
-        const reason = translate('nickmass.audit_reason', {user: `${context.user} (${context.user.id})`});
+        // in the server's language since the whole server sees it
+        const reason = I18n.getCachedGuildTranslator(context).translate('nickmass.audit_reason', {user: formatUserForAuditLog(context.user)});
 
         {
           payload.description = translate('nickmass.starting', {count: members.length.toLocaleString(language), seconds: ((members.length / amount) * time).toLocaleString(language)});

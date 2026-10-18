@@ -1,9 +1,10 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
+import { deleteGuildTimedBans } from '../../../api';
 import { DateMomentLogFormat, EmbedColors } from '../../../constants';
-import { getTranslator } from '../../i18n';
-import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
+import { getGuildTranslator, getTranslator } from '../../i18n';
+import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatUserTag } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -20,7 +21,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   const { payload } = args;
 
   const canEdit: Array<Structures.Member | Structures.User> = [];
@@ -74,14 +75,17 @@ export async function createMessage(
 
   let reason: string | undefined;
   {
+    // in the server's language since the whole server sees it, and the reason goes last since it can be multiple lines
+    // (discord caps audit log reasons at 512 characters, so only the end of a long reason gets cut off)
+    const audit = await getGuildTranslator(context);
     const description: Array<string> = [];
-    description.push(translate('moderation_unban.admin', {user: context.user, user2: context.user.id}));
-    description.push(translate('moderation_unban.reason', {text: (payload.text) ? Markup.escape.all(payload.text) : translate('moderation.unspecified_reason')}));
+    description.push(audit.translate('moderation_unban.admin', {user: formatUserTag(context.user), user2: context.user.id}));
     {
       const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
-      description.push(translate('moderation_unban.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
+      description.push(audit.translate('moderation_unban.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
     }
-    reason = description.join('\n');
+    description.push(audit.translate('moderation_unban.reason', {text: payload.text || audit.translate('moderation.unspecified_reason')}));
+    reason = description.join('\n').slice(0, 512);
   }
 
   // unban through rest by guild id so an uncached guild still unbans, and one failure doesn't stop the rest
@@ -96,6 +100,14 @@ export async function createMessage(
     const index = canEdit.indexOf(memberOrUser);
     if (index !== -1) {
       canEdit.splice(index, 1);
+    }
+  }
+  // they're not banned anymore, so a timed ban on them shouldn't do anything later
+  if (context.guildId && canEdit.length) {
+    try {
+      await deleteGuildTimedBans(context, context.guildId, {userIds: canEdit.map((member) => member.id)});
+    } catch(error) {
+      // the scheduler's unban would just fail on someone that isn't banned
     }
   }
 
@@ -134,7 +146,7 @@ export async function createMessage(
     }
 
     if (failed.length) {
-      description.push(translateMaybe('moderation_unban.couldn_t_unban_errored', 'Couldn\'t unban (the request failed)'));
+      description.push(translate('moderation_unban.couldn_t_unban_errored'));
       for (let { error, memberOrUser } of failed) {
         description.push(`-> ${memberOrUser.mention} ${Markup.spoiler(`(${memberOrUser})`)} ${Markup.codestring(String((error && error.message) || error).slice(0, 100))}`);
       }

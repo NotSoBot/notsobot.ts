@@ -39,8 +39,8 @@ export default class SetMyTimezoneCommand extends BaseCommand {
   }
 
   async onCancelRun(context: Command.Context, args: Formatter.Commands.SettingsSetTimezone.CommandArgs) {
-    const { translateMaybe } = await I18n.getTranslator(context);
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translateMaybe('params.unknown_timezone', 'Unknown timezone, try a city or an abbreviation like PST')}`});
+    const { translate } = await I18n.getTranslator(context);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('params.unknown_timezone')}`});
   }
 
   async run(context: Command.Context, args: Formatter.Commands.SettingsSetTimezone.CommandArgs) {

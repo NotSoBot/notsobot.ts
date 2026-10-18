@@ -56,6 +56,8 @@ export enum ApiErrorCodes {
   UNKNOWN_TAG_DIRECTORY_ASSET = 10020,
   UNKNOWN_TAG_DIRECTORY_EDIT_REQUEST = 10021,
   UNKNOWN_GUILD_LIST_ITEM = 10022,
+  UNKNOWN_LLM_MEMORY = 10023,
+  UNKNOWN_TIMED_BAN = 10024,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -80,6 +82,8 @@ export enum ApiErrorCodes {
   MAX_REPORTS = 30015,
   RATELIMITED = 30016,
   MAX_TAG_DIRECTORY_ASSETS = 30018,
+  MAX_LLM_MEMORIES = 30020,
+  MAX_TIMED_BANS = 30021,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -150,6 +154,7 @@ export enum ApiErrorCodes {
   TAG_DIRECTORY_EDIT_REQUEST_NOT_DRAFT = 50036,
   TAG_DIRECTORY_EDIT_REQUEST_NOT_PENDING = 50037,
   TAG_DIRECTORY_EDIT_REQUEST_NO_CHANGES = 50038,
+  TIMED_BAN_TIMESTAMP_IN_PAST = 50039,
 
   DISCORD_OAUTH_ERROR = 60001,
   DISCORD_OAUTH_SCOPE_MISMATCH = 60002,
@@ -1549,6 +1554,8 @@ export enum RedisChannels {
   TAG_DELETE = 'TAG_DELETE',
   TAG_DELETE_BULK = 'TAG_DELETE_BULK',
   TAG_UPDATE = 'TAG_UPDATE',
+  TIMED_BAN_CREATE = 'TIMED_BAN_CREATE',
+  TIMED_BAN_DELETE = 'TIMED_BAN_DELETE',
   USER_SETTINGS_UPDATE = 'USER_SETTINGS_UPDATE',
   USER_UPDATE = 'USER_UPDATE',
 }
@@ -1633,11 +1640,10 @@ export enum TagGenerationModels {
   DEEPSEEK_PRO = 'DEEPSEEK_PRO',
   GOOGLE_GEMINI_3_8_FLASH = 'GOOGLE_GEMINI_3_8_FLASH',
   GOOGLE_GEMMA_4 = 'GOOGLE_GEMMA_4',
-  META_LLAMA_4_MAVERICK = 'META_LLAMA_4_MAVERICK',
   META_MUSE_SPARK_1_3 = 'META_MUSE_SPARK_1_3',
   META_MUSE_SPARK_1_3_CONTRIBUTOR = 'META_MUSE_SPARK_1_3_CONTRIBUTOR',
+  MINIMAX_M3 = 'MINIMAX_M3',
   MOONSHOT_AI_KIMI_K2_7_CODE = 'MOONSHOT_AI_KIMI_K2_7_CODE',
-  MOONSHOT_AI_KIMI_K2_6 = 'MOONSHOT_AI_KIMI_K2_6',
   NVIDIA_NEMOTRON_3_NANO_OMNI = 'NVIDIA_NEMOTRON_3_NANO_OMNI',
   NVIDIA_NEMOTRON_3_SUPER = 'NVIDIA_NEMOTRON_3_SUPER',
   NVIDIA_NEMOTRON_3_ULTRA = 'NVIDIA_NEMOTRON_3_ULTRA',
@@ -1661,11 +1667,10 @@ export const TagGenerationModelsToText = Object.freeze({
   [TagGenerationModels.DEEPSEEK_PRO]: 'DeepSeek Pro',
   [TagGenerationModels.GOOGLE_GEMINI_3_8_FLASH]: 'Google Gemini 3.8 Flash',
   [TagGenerationModels.GOOGLE_GEMMA_4]: 'Google Gemma 4',
-  [TagGenerationModels.META_LLAMA_4_MAVERICK]: 'Meta Llama 4 Maverick',
   [TagGenerationModels.META_MUSE_SPARK_1_3]: 'Meta Muse Spark 1.3',
   [TagGenerationModels.META_MUSE_SPARK_1_3_CONTRIBUTOR]: 'Meta Muse Spark 1.3 Contributor',
+  [TagGenerationModels.MINIMAX_M3]: 'MiniMax M3',
   [TagGenerationModels.MOONSHOT_AI_KIMI_K2_7_CODE]: 'Moonshot AI Kimi K2.7 Code',
-  [TagGenerationModels.MOONSHOT_AI_KIMI_K2_6]: 'Moonshot AI Kimi K2.6',
   [TagGenerationModels.NVIDIA_NEMOTRON_3_NANO_OMNI]: 'NVIDIA Nemotron 3 Nano Omni',
   [TagGenerationModels.NVIDIA_NEMOTRON_3_SUPER]: 'NVIDIA Nemotron 3 Super',
   [TagGenerationModels.NVIDIA_NEMOTRON_3_ULTRA]: 'NVIDIA Nemotron 3 Ultra',
@@ -1680,6 +1685,52 @@ export const TagGenerationModelsToText = Object.freeze({
   [TagGenerationModels.ZAI_GLM_5_3]: 'ZAI GLM 5.3',
   [TagGenerationModels.ZAI_GLM_5_3_FLASH]: 'ZAI GLM 5.3 Flash',
 });
+
+
+// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM`, usable with the user's or the server owner's plus ai
+export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM = Object.freeze([
+  TagGenerationModels.ANTHROPIC_CLAUDE_HAIKU_5_5,
+  TagGenerationModels.DEEPSEEK_FLASH,
+  TagGenerationModels.GOOGLE_GEMMA_4,
+  TagGenerationModels.META_MUSE_SPARK_1_3_CONTRIBUTOR,
+  TagGenerationModels.MINIMAX_M3,
+  TagGenerationModels.NVIDIA_NEMOTRON_3_NANO_OMNI,
+  TagGenerationModels.NVIDIA_NEMOTRON_3_SUPER,
+  TagGenerationModels.NVIDIA_NEMOTRON_3_ULTRA,
+  TagGenerationModels.OPENAI_GPT_6_LUNA,
+  TagGenerationModels.OPENAI_GPT_OSS,
+  TagGenerationModels.QWEN_3_8_FLASH,
+  TagGenerationModels.XIAOMI_MIMO_V2_6_FLASH,
+  TagGenerationModels.XIAOMI_MIMO_V2_6_PRO,
+  TagGenerationModels.ZAI_GLM_5_3_FLASH,
+]);
+
+
+// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS`, needs the user's own plus ai (a server owner's doesn't count)
+export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS = Object.freeze([
+  TagGenerationModels.ANTHROPIC_CLAUDE_SONNET_5_5,
+  TagGenerationModels.DEEPSEEK_PRO,
+  TagGenerationModels.GOOGLE_GEMINI_3_8_FLASH,
+  TagGenerationModels.META_MUSE_SPARK_1_3,
+  TagGenerationModels.MOONSHOT_AI_KIMI_K2_7_CODE,
+  TagGenerationModels.OPENAI_GPT_6_1_SOL,
+  TagGenerationModels.QWEN_3_8_MAX,
+  TagGenerationModels.XAI_GROK_4_7,
+  TagGenerationModels.ZAI_GLM_5_3,
+]);
+
+
+// the tier is in the name so people know what they need before picking it, since the api errors instead of falling back
+export const TagGenerationModelsToTextWithTier = Object.freeze(Object.fromEntries(Object.values(TagGenerationModels).map((value) => {
+  const name = TagGenerationModelsToText[value] || value;
+  if (TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS.includes(value)) {
+    return [value, `${name} (Plus AI, personal)`];
+  }
+  if (TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM.includes(value)) {
+    return [value, `${name} (Plus AI)`];
+  }
+  return [value, name];
+})) as Record<TagGenerationModels, string>);
 
 
 export enum TagGenerationPersonalityPreferences {
@@ -1734,6 +1785,10 @@ export enum Timezones {
   AMERICA_NEW_YORK = 'America/New_York',
   AMERICA_TORONTO = 'America/Toronto',
   AMERICA_MEXICO_CITY = 'America/Mexico_City',
+  // british columbia, alberta and manitoba stop changing clocks on 2026-11-01 (tzdata 2026e), so they no longer match the us zones
+  AMERICA_VANCOUVER = 'America/Vancouver',
+  AMERICA_EDMONTON = 'America/Edmonton',
+  AMERICA_WINNIPEG = 'America/Winnipeg',
   
   // Americas - Caribbean & Atlantic
   AMERICA_PUERTO_RICO = 'America/Puerto_Rico',
@@ -1847,6 +1902,9 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
   [Timezones.AMERICA_NEW_YORK]: '(GMT-05:00) Eastern Time (EST)',
   [Timezones.AMERICA_TORONTO]: '(GMT-05:00) Toronto (EST)',
   [Timezones.AMERICA_MEXICO_CITY]: '(GMT-06:00) Mexico City (CST)',
+  [Timezones.AMERICA_VANCOUVER]: '(GMT-07:00) Vancouver (MST)',
+  [Timezones.AMERICA_EDMONTON]: '(GMT-06:00) Edmonton (CST)',
+  [Timezones.AMERICA_WINNIPEG]: '(GMT-05:00) Winnipeg (EST)',
 
   // Americas - Caribbean & Atlantic
   [Timezones.AMERICA_PUERTO_RICO]: '(GMT-04:00) Puerto Rico (AST)',
@@ -1888,7 +1946,7 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
   [Timezones.EUROPE_KYIV]: '(GMT+02:00) Kyiv (EET)',
 
   // Africa
-  [Timezones.AFRICA_CASABLANCA]: '(GMT+00:00) Casablanca (WET)',
+  [Timezones.AFRICA_CASABLANCA]: '(GMT+01:00) Casablanca',
   [Timezones.AFRICA_LAGOS]: '(GMT+01:00) Lagos (WAT)',
   [Timezones.AFRICA_CAIRO]: '(GMT+02:00) Cairo (EET)',
   [Timezones.AFRICA_JOHANNESBURG]: '(GMT+02:00) Johannesburg (SAST)',
@@ -1940,6 +1998,153 @@ export const TimezonesToText: Record<Timezones, string> = Object.freeze({
 
   // Special
   [Timezones.UTC]: '(GMT+00:00) UTC',
+});
+
+
+// which zone a word shared by several zones usually means, ranked first in search and picked by prefixed commands
+// (`bst` is British Summer Time far more often than Bangladesh, `pacific` shouldn't pick Pacific/Midway, `usa` shouldn't pick Alaska)
+// keys are single lowercase words, a multi word country is keyed by its last word (`united states` -> `states`)
+export const TimezoneSearchPreferences: Record<string, Timezones> = Object.freeze({
+  // abbreviations and regions
+  adt: Timezones.AMERICA_HALIFAX,
+  ast: Timezones.AMERICA_HALIFAX,
+  atlantic: Timezones.AMERICA_HALIFAX,
+  bst: Timezones.EUROPE_LONDON,
+  cdt: Timezones.AMERICA_CHICAGO,
+  central: Timezones.AMERICA_CHICAGO,
+  cst: Timezones.AMERICA_CHICAGO,
+  eastern: Timezones.AMERICA_NEW_YORK,
+  edt: Timezones.AMERICA_NEW_YORK,
+  est: Timezones.AMERICA_NEW_YORK,
+  ist: Timezones.ASIA_KOLKATA,
+  mdt: Timezones.AMERICA_DENVER,
+  mountain: Timezones.AMERICA_DENVER,
+  mst: Timezones.AMERICA_DENVER,
+  pacific: Timezones.AMERICA_LOS_ANGELES,
+  pdt: Timezones.AMERICA_LOS_ANGELES,
+  pst: Timezones.AMERICA_LOS_ANGELES,
+
+  // countries with more than one zone
+  australia: Timezones.AUSTRALIA_SYDNEY,
+  canada: Timezones.AMERICA_TORONTO,
+  portugal: Timezones.EUROPE_LISBON,
+  russia: Timezones.EUROPE_MOSCOW,
+  states: Timezones.AMERICA_NEW_YORK,
+  us: Timezones.AMERICA_NEW_YORK,
+  usa: Timezones.AMERICA_NEW_YORK,
+  zealand: Timezones.PACIFIC_AUCKLAND,
+});
+
+
+// extra search words, countries (and some regions/cities) only go on zones that keep the same time as them
+// (diacritics are ignored when searching, so `sao paulo` already finds São Paulo)
+export const TimezonesToAliases: Partial<Record<Timezones, Array<string>>> = Object.freeze({
+  // Pacific (far west)
+  [Timezones.PACIFIC_MIDWAY]: ['american samoa', 'pago pago', 'niue'],
+  [Timezones.PACIFIC_HONOLULU]: ['united states', 'usa', 'us', 'cook islands', 'tahiti', 'french polynesia'],
+  [Timezones.PACIFIC_MARQUESAS]: ['french polynesia'],
+  [Timezones.PACIFIC_GAMBIER]: ['french polynesia'],
+
+  // Americas - North America
+  [Timezones.AMERICA_ANCHORAGE]: ['united states', 'usa', 'us'],
+  [Timezones.AMERICA_LOS_ANGELES]: ['united states', 'usa', 'us', 'california', 'oregon', 'nevada', 'washington state', 'seattle', 'san francisco', 'las vegas', 'tijuana'],
+  [Timezones.AMERICA_PHOENIX]: ['united states', 'usa', 'us', 'hermosillo', 'sonora'],
+  [Timezones.AMERICA_DENVER]: ['united states', 'usa', 'us', 'colorado', 'utah', 'salt lake city', 'boise'],
+  [Timezones.AMERICA_CHICAGO]: ['united states', 'usa', 'us', 'texas', 'dallas', 'houston', 'illinois', 'minneapolis', 'new orleans'],
+  [Timezones.AMERICA_NEW_YORK]: ['united states', 'usa', 'us', 'florida', 'miami', 'boston', 'washington dc', 'atlanta', 'philadelphia', 'detroit', 'bahamas', 'haiti'],
+  [Timezones.AMERICA_TORONTO]: ['canada', 'ontario', 'quebec', 'montreal', 'ottawa'],
+  [Timezones.AMERICA_MEXICO_CITY]: ['mexico', 'guadalajara', 'monterrey', 'guatemala', 'belize', 'el salvador', 'honduras', 'nicaragua', 'costa rica'],
+  [Timezones.AMERICA_VANCOUVER]: ['canada', 'british columbia', 'victoria'],
+  [Timezones.AMERICA_EDMONTON]: ['canada', 'alberta', 'calgary', 'saskatchewan', 'regina'],
+  [Timezones.AMERICA_WINNIPEG]: ['canada', 'manitoba'],
+
+  // Americas - Caribbean & Atlantic
+  [Timezones.AMERICA_PUERTO_RICO]: ['dominican republic', 'santo domingo', 'barbados', 'trinidad and tobago', 'martinique', 'virgin islands'],
+  [Timezones.AMERICA_HALIFAX]: ['canada', 'nova scotia', 'new brunswick', 'bermuda'],
+  [Timezones.AMERICA_ST_JOHNS]: ['canada'],
+
+  // Americas - South America
+  [Timezones.AMERICA_CARACAS]: ['venezuela'],
+  [Timezones.AMERICA_SANTIAGO]: ['chile'],
+  [Timezones.AMERICA_BOGOTA]: ['colombia', 'panama', 'jamaica', 'cayman islands'],
+  [Timezones.AMERICA_LIMA]: ['peru', 'ecuador'],
+  [Timezones.AMERICA_LA_PAZ]: ['bolivia', 'guyana', 'manaus', 'amazonas'],
+  [Timezones.AMERICA_SAO_PAULO]: ['brazil', 'brasil', 'rio de janeiro', 'brasilia'],
+  [Timezones.AMERICA_ARGENTINA_BUENOS_AIRES]: ['argentina', 'uruguay', 'montevideo', 'paraguay', 'suriname'],
+
+  // Atlantic
+  [Timezones.ATLANTIC_AZORES]: ['portugal'],
+
+  // Europe
+  [Timezones.EUROPE_LONDON]: ['united kingdom', 'uk', 'britain', 'great britain', 'england', 'scotland', 'wales', 'northern ireland', 'jersey', 'guernsey', 'isle of man'],
+  [Timezones.EUROPE_LISBON]: ['portugal', 'madeira', 'canary islands', 'faroe islands'],
+  [Timezones.EUROPE_DUBLIN]: ['ireland', 'eire'],
+  [Timezones.EUROPE_PARIS]: ['france', 'monaco'],
+  [Timezones.EUROPE_BERLIN]: ['germany', 'deutschland', 'denmark', 'copenhagen', 'norway', 'oslo', 'sweden', 'stockholm'],
+  [Timezones.EUROPE_ROME]: ['italy', 'italia', 'vatican', 'san marino', 'malta'],
+  [Timezones.EUROPE_MADRID]: ['spain', 'espana'],
+  [Timezones.EUROPE_AMSTERDAM]: ['netherlands', 'holland', 'nederland', 'belgium', 'brussels', 'luxembourg'],
+  [Timezones.EUROPE_ZURICH]: ['switzerland', 'schweiz', 'suisse', 'liechtenstein'],
+  [Timezones.EUROPE_WARSAW]: ['poland', 'polska'],
+  [Timezones.EUROPE_PRAGUE]: ['czechia', 'czech republic', 'slovakia', 'bratislava'],
+  [Timezones.EUROPE_VIENNA]: ['austria', 'osterreich', 'hungary', 'budapest', 'croatia', 'zagreb', 'slovenia', 'serbia', 'belgrade', 'bosnia', 'north macedonia', 'albania', 'montenegro'],
+  [Timezones.EUROPE_ATHENS]: ['greece', 'cyprus'],
+  [Timezones.EUROPE_BUCHAREST]: ['romania', 'bulgaria', 'sofia', 'moldova'],
+  [Timezones.EUROPE_HELSINKI]: ['finland', 'estonia', 'tallinn', 'latvia', 'riga', 'lithuania', 'vilnius'],
+  [Timezones.EUROPE_ISTANBUL]: ['turkey', 'turkiye', 'ankara'],
+  [Timezones.EUROPE_MOSCOW]: ['russia', 'saint petersburg'],
+  [Timezones.EUROPE_MINSK]: ['belarus'],
+  [Timezones.EUROPE_KYIV]: ['ukraine', 'kiev'],
+
+  // Africa
+  [Timezones.AFRICA_CASABLANCA]: ['morocco'],
+  [Timezones.AFRICA_LAGOS]: ['nigeria', 'algeria', 'tunisia', 'angola', 'cameroon', 'kinshasa'],
+  [Timezones.AFRICA_CAIRO]: ['egypt'],
+  [Timezones.AFRICA_JOHANNESBURG]: ['south africa', 'zimbabwe', 'zambia', 'mozambique', 'botswana', 'malawi', 'rwanda'],
+  [Timezones.AFRICA_NAIROBI]: ['kenya', 'ethiopia', 'tanzania', 'uganda', 'somalia'],
+
+  // Middle East
+  [Timezones.ASIA_DUBAI]: ['united arab emirates', 'uae', 'abu dhabi', 'oman', 'georgia', 'tbilisi', 'armenia', 'yerevan', 'mauritius'],
+  [Timezones.ASIA_TEHRAN]: ['iran'],
+  [Timezones.ASIA_JERUSALEM]: ['israel', 'tel aviv'],
+  [Timezones.ASIA_RIYADH]: ['saudi arabia', 'kuwait', 'qatar', 'bahrain', 'yemen'],
+  [Timezones.ASIA_BAGHDAD]: ['iraq', 'jordan', 'syria'],
+  [Timezones.ASIA_BAKU]: ['azerbaijan'],
+
+  // Central Asia
+  [Timezones.ASIA_KABUL]: ['afghanistan'],
+  [Timezones.ASIA_YEKATERINBURG]: ['russia'],
+  [Timezones.ASIA_KARACHI]: ['pakistan'],
+  [Timezones.ASIA_TASHKENT]: ['uzbekistan', 'kazakhstan', 'tajikistan', 'turkmenistan', 'maldives'],
+  [Timezones.ASIA_KOLKATA]: ['india', 'mumbai', 'delhi', 'bangalore', 'chennai', 'sri lanka'],
+  [Timezones.ASIA_KATHMANDU]: ['nepal'],
+  [Timezones.ASIA_DHAKA]: ['bangladesh', 'bhutan', 'kyrgyzstan'],
+  [Timezones.ASIA_YANGON]: ['myanmar', 'burma'],
+
+  // East & Southeast Asia
+  [Timezones.ASIA_BANGKOK]: ['thailand', 'vietnam', 'hanoi', 'ho chi minh', 'cambodia', 'laos'],
+  [Timezones.ASIA_JAKARTA]: ['indonesia'],
+  [Timezones.ASIA_KRASNOYARSK]: ['russia'],
+  [Timezones.ASIA_SINGAPORE]: ['malaysia', 'kuala lumpur', 'brunei'],
+  [Timezones.ASIA_HONG_KONG]: ['macau'],
+  [Timezones.ASIA_SHANGHAI]: ['china', 'beijing'],
+  [Timezones.ASIA_TAIPEI]: ['taiwan'],
+  [Timezones.ASIA_MANILA]: ['philippines'],
+  [Timezones.ASIA_IRKUTSK]: ['russia', 'mongolia'],
+  [Timezones.ASIA_TOKYO]: ['japan'],
+  [Timezones.ASIA_SEOUL]: ['south korea', 'korea', 'north korea'],
+  [Timezones.ASIA_VLADIVOSTOK]: ['russia'],
+
+  // Australia & Pacific
+  [Timezones.AUSTRALIA_PERTH]: ['australia', 'western australia'],
+  [Timezones.AUSTRALIA_DARWIN]: ['australia', 'northern territory'],
+  [Timezones.AUSTRALIA_ADELAIDE]: ['australia', 'south australia'],
+  [Timezones.AUSTRALIA_BRISBANE]: ['australia', 'queensland', 'guam', 'papua new guinea'],
+  [Timezones.AUSTRALIA_SYDNEY]: ['australia', 'new south wales', 'canberra'],
+  [Timezones.AUSTRALIA_MELBOURNE]: ['australia', 'victoria'],
+  [Timezones.PACIFIC_AUCKLAND]: ['new zealand', 'nz', 'wellington'],
+  [Timezones.PACIFIC_TONGATAPU]: ['tonga', 'samoa'],
+  [Timezones.PACIFIC_CHATHAM]: ['new zealand'],
 });
 
 

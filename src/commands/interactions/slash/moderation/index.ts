@@ -5,10 +5,15 @@ import { I18n } from '../../../../utils';
 import { BaseSlashCommand } from '../../basecommand';
 
 import { ModerationBanCommand } from './ban';
+import { ModerationCleanCommand } from './clean';
 import { ModerationKickCommand } from './kick';
+import { ModerationMuteCommand } from './mute';
+import { ModerationNickCommand } from './nick';
 import { ModerationNickMassGroupCommand } from './nick-mass';
+import { ModerationPinCommand } from './pin';
 import { ModerationPruneCommand } from './prune';
 import { ModerationUnbanCommand } from './unban';
+import { ModerationUnmuteCommand } from './unmute';
 
 
 export default class ModerationGroupCommand extends BaseSlashCommand {
@@ -28,10 +33,15 @@ export default class ModerationGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new ModerationBanCommand(),
+        new ModerationCleanCommand(),
         new ModerationKickCommand(),
+        new ModerationMuteCommand(),
+        new ModerationNickCommand(),
         new ModerationNickMassGroupCommand(),
+        new ModerationPinCommand(),
         new ModerationPruneCommand(),
         new ModerationUnbanCommand(),
+        new ModerationUnmuteCommand(),
       ],
     });
   }

@@ -3,8 +3,8 @@ import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, EmbedColors, PermissionsText, StatusEmojis } from '../../../constants';
-import { getTranslator } from '../../i18n';
-import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
+import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
+import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatUserTag } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -23,7 +23,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { label, language, translate, translateMaybe } = await getTranslator(context);
+  const { label, language, translate } = await getTranslator(context);
   const { payload } = args;
 
   // cleaning messages bans then unbans the member, so it needs the same permissions as a ban
@@ -68,30 +68,37 @@ export async function createMessage(
     deleteMessageSeconds = Math.max(Math.min(args.clean, 7 * 24 * 60 * 60), 0);
   }
 
-  let reason: string | undefined;
-  {
+  // built in a given language: the server's for the audit log (the whole server sees it), the member's for their dm
+  // the reason goes last since it can be multiple lines (discord caps audit log reasons at 512 characters, so only the
+  // end of a long reason gets cut off)
+  const createReason = (translator: Translator): string => {
     const description: Array<string> = [];
-    description.push(translate('moderation_kick.admin', {user: context.user, user2: context.user.id}));
-    description.push(translate('moderation_kick.reason', {text: (payload.text) ? Markup.escape.all(payload.text) : translate('moderation.unspecified_reason')}));
+    description.push(translator.translate('moderation_kick.admin', {user: formatUserTag(context.user), user2: context.user.id}));
     {
       const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
-      description.push(translate('moderation_kick.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
+      description.push(translator.translate('moderation_kick.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
     }
     if (deleteMessageSeconds) {
-      description.push(((deleteMessageSeconds === 1) ? translate('moderation_kick.type_kick_w_message_cleaning_of_second_one', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(language)}) : translate('moderation_kick.type_kick_w_message_cleaning_of_seconds_other', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(language)})));
+      description.push(((deleteMessageSeconds === 1) ? translator.translate('moderation_kick.type_kick_w_message_cleaning_of_second_one', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(translator.language)}) : translator.translate('moderation_kick.type_kick_w_message_cleaning_of_seconds_other', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(translator.language)})));
     }
-    reason = description.join('\n');
-  }
+    description.push(translator.translate('moderation_kick.reason', {text: payload.text || translator.translate('moderation.unspecified_reason')}));
+    return description.join('\n').slice(0, 512);
+  };
+  const auditTranslator = await getGuildTranslator(context);
+  const reason = createReason(auditTranslator);
 
   const guild = context.guild;
   const failed: Array<{error: any, member: Structures.Member}> = [];
   for (let member of canEdit) {
     if (guild) {
       try {
+        // in their language (or the server's), not the moderator's
+        const dm = await getTranslatorForUser(context, member.id);
+        const dmReason = (dm.language === auditTranslator.language) ? reason : createReason(dm);
         await member.createMessage([
-          translate('moderation_kick.you_have_been_kicked_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
+          dm.translate('moderation_kick.you_have_been_kicked_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
           '',
-          translate('moderation_kick.information', {reason: Markup.codeblock(reason)}),
+          dm.translate('moderation_kick.information', {reason: Markup.codeblock(dmReason)}),
         ].join('\n'));
       } catch(error) {
         // maybe log this?
@@ -161,7 +168,7 @@ export async function createMessage(
     }
 
     if (failed.length) {
-      description.push(translateMaybe('moderation_kick.couldn_t_kick_errored', 'Couldn\'t kick (the request failed)'));
+      description.push(translate('moderation_kick.couldn_t_kick_errored'));
       for (let { error, member } of failed) {
         description.push(`-> ${member.mention} ${Markup.spoiler(`(${member})`)} ${Markup.codestring(String((error && error.message) || error).slice(0, 100))}`);
       }

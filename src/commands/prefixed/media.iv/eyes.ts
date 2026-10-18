@@ -15,6 +15,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
 
       aliases: ['eye'],
       args: [
+        {name: 'flipped', aliases: ['flip'], type: Boolean},
         // case insensitive, the choices are uppercase so the documented `-type spongebob` always failed
         {name: 'type', type: Parameters.oneOf({choices: MediaEyeTypes})},
       ],
@@ -24,10 +25,11 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg -type spongebob`,
+          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg -type googly -flipped`,
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationEyes.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-type <MediaEyeTypes>)',
+        usage: '?<emoji,user:id|mention|name,url> (-type <MediaEyeTypes>) (-flipped)',
       },
       priority: -1,
     });

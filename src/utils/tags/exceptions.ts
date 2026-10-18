@@ -15,3 +15,12 @@ export class TagRequestError extends Error {
     this.name = 'TagRequestError';
   }
 }
+
+
+// thrown once a tag has run longer than its MAX_TIME, functions that catch errors (like {iferror}) let it through
+export class TagTimeoutError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TagTimeoutError';
+  }
+}

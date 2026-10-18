@@ -28,7 +28,7 @@ export class ServerSetTimezoneCommand extends BaseInteractionCommandOption {
       options: [
         {
           name: 'timezone',
-          description: 'Timezone to choose from',
+          description: 'Type a city, abbreviation or offset to search (e.g. tokyo, EST, GMT+09)',
           ...I18n.optionLocalizations('commands.settings_server.set.set_timezone.timezone'),
           onAutoComplete: Parameters.AutoComplete.timezone,
           // autocomplete gives the code, but anything can be typed in
@@ -49,8 +49,8 @@ export class ServerSetTimezoneCommand extends BaseInteractionCommandOption {
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {
-    const { translateMaybe } = await I18n.getTranslator(context);
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translateMaybe('params.unknown_timezone', 'Unknown timezone, try a city or an abbreviation like PST')}`, ephemeral: true});
+    const { translate } = await I18n.getTranslator(context);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('params.unknown_timezone')}`, ephemeral: true});
   }
 
   async run(context: Interaction.InteractionContext, args: CommandArgs) {

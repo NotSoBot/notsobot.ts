@@ -13,7 +13,7 @@ import {
   CommandCategories,
   GuildFeatures,
   TagGenerationModels,
-  TagGenerationModelsToText,
+  TagGenerationModelsToTextWithTier,
   TagGenerationPersonalityPreferences,
   TagGenerationPersonalityPreferencesToText,
   UserFlags,
@@ -56,7 +56,7 @@ export default class AICommand extends BaseSlashCommand {
           name: 'model',
           description: 'AI Model',
           ...I18n.optionLocalizations('commands.ai.model'),
-          choices: Parameters.Slash.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToText}),
+          choices: Parameters.Slash.oneOf({choices: TagGenerationModels, descriptions: TagGenerationModelsToTextWithTier}),
         },
         {
           name: 'personalitypreference',

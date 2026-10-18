@@ -20,7 +20,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { translate, translateMaybe } = await getTranslator(context);
+  const { translate } = await getTranslator(context);
 
   const oldSettings = await GuildSettingsStore.getOrFetch(context, context.guildId!);
 
@@ -29,10 +29,11 @@ export async function createMessage(
     const timezone = (args.clear) ? null : args.timezone!;
     if (oldSettings && (oldSettings.timezone || null) === timezone) {
       if (timezone) {
-        text = translateMaybe('settings_server_set_timezone.the_server_s_timezone_is_already', 'The server\'s timezone is already {timezoneText}')
-          .replace('{timezoneText}', Markup.bold(timezoneCodeToText(timezone)));
+        text = translate('settings_server_set_timezone.the_server_s_timezone_is_already', {
+          timezoneText: Markup.bold(timezoneCodeToText(timezone)),
+        });
       } else {
-        text = translateMaybe('settings_server_set_timezone.the_server_does_not_have_a_timezone', 'The server does not have a timezone set');
+        text = translate('settings_server_set_timezone.the_server_does_not_have_a_timezone');
       }
     } else {
       const guild = await editGuildSettings(context, context.guildId!, {timezone});
@@ -44,10 +45,11 @@ export async function createMessage(
     }
   } else if (oldSettings) {
     if (oldSettings.timezone) {
-      text = translateMaybe('settings_server_set_timezone.the_server_s_current_timezone_is', 'The server\'s current timezone is {timezoneText}')
-        .replace('{timezoneText}', Markup.bold(timezoneCodeToText(oldSettings.timezone)));
+      text = translate('settings_server_set_timezone.the_server_s_current_timezone_is', {
+        timezoneText: Markup.bold(timezoneCodeToText(oldSettings.timezone)),
+      });
     } else {
-      text = translateMaybe('settings_server_set_timezone.the_server_does_not_have_a_timezone', 'The server does not have a timezone set');
+      text = translate('settings_server_set_timezone.the_server_does_not_have_a_timezone');
     }
   } else {
     text = translate('settings_set_timezone.error_fetching_your_current_timezone');

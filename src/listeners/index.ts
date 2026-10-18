@@ -9,3 +9,4 @@ export { default as EntitlementsListener } from './entitlements';
 export { default as MetricsInterval } from './metricsinterval';
 export { default as ReminderInterval } from './reminders';
 export { default as ReportMessagesListener } from './reportmessages';
+export { default as TimedBanScheduler } from './timedbans';

@@ -88,6 +88,7 @@ export async function createMessage(
 
   const description = [
     `${StatusEmojis.WARNING} ${translate('tag_directory_verify.confirm_request', {tag: tagText})}`,
+    translate('tag_directory_verify.warning_rights'),
     translate('tag_directory_verify.warning_locks'),
     translate('tag_directory_verify.warning_staff'),
     translate('tag_directory_verify.warning_cancel', {command: Markup.codestring('/tag directory verify cancel: True')}),

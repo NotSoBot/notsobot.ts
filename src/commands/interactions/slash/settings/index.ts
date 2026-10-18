@@ -4,6 +4,7 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { SettingsAIMemoryGroupCommand } from './ai-memory';
 import { SettingsSetGroupCommand } from './set';
 
 
@@ -26,6 +27,7 @@ export default class SettingsGroupCommand extends BaseSlashCommand {
   constructor() {
     super({
       options: [
+        new SettingsAIMemoryGroupCommand(),
         new SettingsSetGroupCommand(),
       ],
     });

@@ -4,9 +4,8 @@ import { MessageFlags } from 'detritus-client/lib/constants';
 import { TagCustomCommandStored } from '../../../stores/tagcustomcommands';
 
 import { RestResponsesRaw } from '../../../api/types';
-import { TagFormatter } from '../../../utils';
 
-import { createTagMessage, increaseUsage, maybeReplaceContent } from './tag.show';
+import { createTagMessage, increaseUsage, maybeReplaceContent, parseTag } from './tag.show';
 
 
 
@@ -34,7 +33,7 @@ export async function createMessage(
 
   context.metadata = Object.assign({}, context.metadata, {tag});
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
-  const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
+  const parsedTag = await parseTag(context, tagContent, args.arguments);
 
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
   await maybeReplaceContent(context, tag);

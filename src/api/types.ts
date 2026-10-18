@@ -202,6 +202,16 @@ export namespace RestOptions {
     channelId?: null | string,
   }
 
+  export interface CreateUserLLMMemory {
+    content: string,
+    // only for the server the request comes from
+    server?: boolean,
+  }
+
+  export interface EditUserLLMMemory {
+    content: string,
+  }
+
   export interface EditUserSettings {
     applicationCommandResponseType?: null | UserSettingsApplicationCommandResponseTypes,
     downloadQuality?: null | string,
@@ -210,6 +220,7 @@ export namespace RestOptions {
     fileUploadType?: null | UserSettingsUploadTypes,
     locale?: null | string,
     mlDiffusionModel?: null | string,
+    mlLLMMemoryDisabled?: boolean,
     mlLLMModel?: null | string,
     mlLLMPersonality?: null | string,
     responseDisplay?: null | UserSettingsResponseDisplayTypes,
@@ -250,6 +261,29 @@ export namespace RestOptions {
     timestampMax?: number,
     timestampMin?: number,
     userId?: string,
+  }
+
+  export interface PutGuildTimedBans {
+    moderatorId: string,
+    timestampEnd: number,
+    userIds: Array<string>,
+  }
+
+  export interface DeleteGuildTimedBan {
+    // only delete it if it's still this one
+    timedBanId?: string,
+  }
+
+  export interface DeleteGuildTimedBans {
+    userIds: Array<string>,
+  }
+
+  export interface FetchTimedBans {
+    after?: string,
+    before?: string,
+    limit?: number,
+    timestampMax?: number,
+    timestampMin?: number,
   }
 
   export interface FetchReports {
@@ -352,6 +386,8 @@ export namespace RestOptions {
 
   
   export interface GenerateTag extends MediaBaseOptionsMultiple {
+    // send the user's memories along, never for `{ai}` inside of a user's tag
+    memory?: boolean,
     model?: string,
     personality?: null | string,
     personalityPreference?: string,
@@ -663,6 +699,10 @@ export namespace RestOptions {
     method?: string,
   }
 
+  export interface MediaIVManipulationEmojiMosaic extends MediaBaseOptions {
+    size?: number,
+  }
+
   export interface MediaIVManipulationExo extends MediaBaseOptions {
     rain?: boolean,
     swirl?: boolean,
@@ -673,6 +713,7 @@ export namespace RestOptions {
   }
 
   export interface MediaIVManipulationEyes extends MediaBaseOptions {
+    flipped?: boolean,
     type?: MediaEyeTypes,
   }
 
@@ -1630,7 +1671,53 @@ export namespace RestResponsesRaw {
     reminders: Array<Reminder>,
   }
 
+  export interface PutGuildTimedBans {
+    timed_bans: Array<TimedBan>,
+  }
+
+  export type DeleteGuildTimedBan = null;
+
+  export interface DeleteGuildTimedBans {
+    timed_bans: Array<TimedBan>,
+  }
+
+  export interface FetchGuildTimedBans {
+    count: number,
+    timed_bans: Array<TimedBan>,
+  }
+
+  export interface FetchTimedBans {
+    count: number,
+    timed_bans: Array<TimedBan>,
+  }
+
+  export interface TimedBan {
+    guild_id: string,
+    id: string,
+    moderator_id: string,
+    timestamp_end: string,
+    user_id: string,
+  }
+
   export type FetchReminderPositional = Reminder;
+
+  // every call that changes a memory returns the list the request's server sees afterwards
+  export interface FetchUserLLMMemories {
+    count: number,
+    memories: Array<LLMMemory>,
+  }
+
+  export interface CreateUserLLMMemory extends FetchUserLLMMemories {
+    // false when the same memory was already there
+    created: boolean,
+  }
+
+  export type EditUserLLMMemory = FetchUserLLMMemories;
+  export type DeleteUserLLMMemory = FetchUserLLMMemories;
+
+  export interface DeleteUserLLMMemories {
+    count: number,
+  }
 
   export interface FetchReports {
     count: number,
@@ -2248,9 +2335,10 @@ export namespace RestResponsesRaw {
     id: string,
     likes: number,
     points: number,
-    thumbnail: string,
+    thumbnail: string | null,
+    title: string,
     type: string,
-    url: string,
+    url: string | null,
     views: number,
   }
 
@@ -2891,6 +2979,15 @@ export namespace RestResponsesRaw {
 
 
 
+  export interface LLMMemory {
+    content: string,
+    created: string,
+    // null for a global one
+    guild_id: null | string,
+    id: string,
+    position: number,
+  }
+
   export interface Reminder {
     channel_id: string | null,
     channel_id_backup: string | null,
@@ -2981,6 +3078,7 @@ export namespace RestResponsesRaw {
     file_upload_vanity: string | null,
     locale: string | null,
     ml_diffusion_model: string | null,
+    ml_llm_memory_disabled: boolean,
     ml_llm_model: string | null,
     ml_llm_personality: string | null,
     opted_out_content: string | null,

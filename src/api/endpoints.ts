@@ -240,6 +240,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/edge/detect',
   MEDIA_IV_MANIPULATION_EMBOSS:
     '/media/iv/manipulation/emboss',
+  MEDIA_IV_MANIPULATION_EMOJI_MOSAIC:
+    '/media/iv/manipulation/emoji/mosaic',
   MEDIA_IV_MANIPULATION_EXO:
     '/media/iv/manipulation/exo',
   MEDIA_IV_MANIPULATION_EXPLODE:
@@ -564,6 +566,14 @@ export const Api = Object.freeze({
     '/reminders',
   REMINDER:
     '/reminders/:reminderId',
+  GUILD_TIMED_BANS:
+    '/guilds/:guildId/bans/timed',
+  GUILD_TIMED_BANS_DELETE:
+    '/guilds/:guildId/bans/timed/delete',
+  GUILD_TIMED_BAN:
+    '/guilds/:guildId/bans/timed/:userId',
+  TIMED_BANS:
+    '/bans/timed',
   REMINDER_MOVE_TO_DMS:
     '/reminders/:reminderId/move-to-dms',
   REMINDER_POSITIONAL:
@@ -661,6 +671,10 @@ export const Api = Object.freeze({
 
   USER:
     '/users/:userId',
+  USER_LLM_MEMORIES:
+    '/users/:userId/llm/memories',
+  USER_LLM_MEMORY:
+    '/users/:userId/llm/memories/:position',
   USER_REMINDERS:
     '/users/:userId/reminders',
   USER_REMINDERS_EXPIRED:

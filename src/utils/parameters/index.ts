@@ -33,6 +33,7 @@ import { RestResponsesRaw } from '../../api/types';
 import {
   GoogleLocales,
   GoogleLocalesText,
+  TimezoneSearchPreferences,
   TimezonesToText,
   TTSVoices,
   TTSVoicesToText,
@@ -63,6 +64,7 @@ import {
   isSnowflake,
   jobWaitForResult,
   parseTagDirectoryUrl,
+  searchTimezones,
   toCodePointForTwemoji,
   validateUrl,
   FindMediaUrlOptions,
@@ -998,28 +1000,17 @@ export function timezone(
       return key;
     }
   }
-  const searchKey = lowered.replace(/\s/g, '_');
-  const matches: Array<[string, string]> = [];
-  for (let key in TimezonesToText) {
-    const text = (TimezonesToText as any)[key] as string;
-    if (!text) {
-      continue;
-    }
-    if (key.toLowerCase().includes(searchKey) || text.toLowerCase().includes(lowered)) {
-      matches.push([key, text]);
-    }
+  if (Object.prototype.hasOwnProperty.call(TimezoneSearchPreferences, lowered)) {
+    return (TimezoneSearchPreferences as any)[lowered];
   }
-  if (!matches.length) {
-    return null;
-  }
-  // prefer an exact abbreviation like `(MST)` over a partial match, and the main zone for shared ones
-  // (`pst` is Pacific Time, not the Pitcairn Islands)
-  const abbreviations = matches.filter(([key, text]) => text.toLowerCase().endsWith(`(${lowered})`));
+  // prefer the abbreviation a label shows like `(MST)`, and the main zone for shared ones
+  const abbreviations = Object.entries(TimezonesToText).filter(([key, text]) => text.toLowerCase().endsWith(`(${lowered})`));
   if (abbreviations.length) {
     const main = abbreviations.find(([key, text]) => text.includes(' Time ('));
     return (main || abbreviations[0])[0];
   }
-  return matches.sort((x, y) => x[1].localeCompare(y[1]))[0][0];
+  const results = searchTimezones(value);
+  return (results.length) ? results[0].value : null;
 }
 
 

@@ -11,8 +11,12 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 export interface CommandArgs {
   after?: string,
   amount?: number,
+  attachments?: boolean,
   before?: string,
+  bots?: boolean,
+  embeds?: boolean,
   from?: Array<Structures.Member | Structures.User>,
+  images?: boolean,
   in?: Structures.Channel,
   until?: string,
   with?: string,
@@ -41,6 +45,10 @@ export class ModerationPruneCommand extends BaseInteractionCommandOption {
         {name: 'after', description: 'Only delete messages after this message ID', ...I18n.optionLocalizations('commands.moderation.prune.after'), value: Parameters.snowflake},
         {name: 'before', description: 'Only delete messages before this message ID', ...I18n.optionLocalizations('commands.moderation.prune.before'), value: Parameters.snowflake},
         {name: 'until', description: 'Delete messages until this message ID', ...I18n.optionLocalizations('commands.moderation.prune.until'), value: Parameters.snowflake},
+        {name: 'bots', description: 'Only delete messages from bots and webhooks', ...I18n.optionLocalizations('commands.moderation.prune.bots'), type: Boolean},
+        {name: 'attachments', description: 'Only delete messages with attachments', ...I18n.optionLocalizations('commands.moderation.prune.attachments'), type: Boolean},
+        {name: 'embeds', description: 'Only delete messages with embeds', ...I18n.optionLocalizations('commands.moderation.prune.embeds'), type: Boolean},
+        {name: 'images', description: 'Only delete messages with images or videos (attachments or embeds)', ...I18n.optionLocalizations('commands.moderation.prune.images'), type: Boolean},
       ],
     });
   }

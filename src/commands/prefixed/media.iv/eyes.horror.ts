@@ -14,6 +14,9 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
       name: 'horror',
       prefixes: ['eyes ', 'eye '],
 
+      args: [
+        {name: 'flipped', aliases: ['flip'], type: Boolean},
+      ],
       metadata: {
         description: 'Attach horror eyes to people\'s faces in an Image or Video',
         examples: [
@@ -22,7 +25,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationEyesHorror.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-flipped)',
       },
     });
   }

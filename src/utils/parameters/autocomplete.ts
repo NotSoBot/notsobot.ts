@@ -28,6 +28,7 @@ import {
   MLDiffusionModelsToText,
   TagGenerationModels,
   TagGenerationModelsToText,
+  TagGenerationModelsToTextWithTier,
   TagSearchSortByFilters,
   Timezones,
   TimezonesToText,
@@ -41,6 +42,7 @@ import {
   getReminderMessage,
   isSnowflake,
   parseTagDirectoryUrl,
+  searchTimezones,
   toTitleCase,
 } from '../tools';
 
@@ -137,26 +139,27 @@ export async function mlDiffusionModel(context: Interaction.InteractionAutoCompl
 
 const mlLLMModelSearch = new MiniSearch({
   fields: ['id', 'name'],
-  storeFields: ['id', 'name'],
+  storeFields: ['id', 'label'],
   searchOptions: {
     boost: {id: 2},
     fuzzy: true,
     prefix: true,
   },
 });
+// search the plain name so the tier text doesn't match everything
 mlLLMModelSearch.addAll(Object.values(TagGenerationModels).map((value) => {
-  return {id: value, name: TagGenerationModelsToText[value] || value};
+  return {id: value, name: TagGenerationModelsToText[value] || value, label: TagGenerationModelsToTextWithTier[value]};
 }));
 
 export async function mlLLMModel(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}>;
   if (context.value) {
     choices = mlLLMModelSearch.search(context.value).slice(0, 25).map((result) => {
-      return {name: result.name, value: result.id};
+      return {name: result.label, value: result.id};
     });
   } else {
     choices = Object.values(TagGenerationModels).map((value) => {
-      return {name: TagGenerationModelsToText[value] || value, value};
+      return {name: TagGenerationModelsToTextWithTier[value], value};
     });
 
     let hasDefault = false;
@@ -714,36 +717,55 @@ export async function tagsOnDirectoryToEdit(context: Interaction.InteractionAuto
 }
 
 
-// needs better sorting
+// shown before anything is typed, one well known zone per hour so the whole -11 to +13 range is visible
+// (discord only shows 25 choices, with the user's/server's current timezone pinned above these)
+const timezonesDefaultChoices: Array<string> = [
+  Timezones.PACIFIC_MIDWAY,
+  Timezones.PACIFIC_HONOLULU,
+  Timezones.AMERICA_ANCHORAGE,
+  Timezones.AMERICA_LOS_ANGELES,
+  Timezones.AMERICA_DENVER,
+  Timezones.AMERICA_CHICAGO,
+  Timezones.AMERICA_NEW_YORK,
+  Timezones.AMERICA_HALIFAX,
+  Timezones.AMERICA_SAO_PAULO,
+  Timezones.ATLANTIC_AZORES,
+  Timezones.EUROPE_LONDON,
+  Timezones.EUROPE_PARIS,
+  Timezones.EUROPE_ATHENS,
+  Timezones.EUROPE_MOSCOW,
+  Timezones.ASIA_DUBAI,
+  Timezones.ASIA_KARACHI,
+  Timezones.ASIA_KOLKATA,
+  Timezones.ASIA_DHAKA,
+  Timezones.ASIA_BANGKOK,
+  Timezones.ASIA_SHANGHAI,
+  Timezones.ASIA_TOKYO,
+  Timezones.AUSTRALIA_SYDNEY,
+  Timezones.PACIFIC_AUCKLAND,
+  Timezones.PACIFIC_TONGATAPU,
+];
+
 export async function timezone(context: Interaction.InteractionAutoCompleteContext) {
   let choices: Array<{name: string, value: string}>;
   if (context.value) {
-    const value = context.value.toLowerCase().replace(/\s\s+/g, ' ');
-    const searchKey = value.replace(/\s/g, '_');
-    const searchValue = value.replace(/\\/g, ' ')
-
-    const collection = new Set<string>();
-    for (let key in TimezonesToText) {
-      const keyInsensitive = key.toLowerCase();
-      const valueInsensitive = (TimezonesToText as any)[key].toLowerCase();
-      if (!valueInsensitive) {
-        continue;
-      }
-
-      if (keyInsensitive.includes(searchKey) || valueInsensitive.includes(searchValue)) {
-        collection.add(key);
+    choices = searchTimezones(context.value).slice(0, 25);
+  } else {
+    const pinned: Array<string> = [];
+    const userSettings = UserSettingsStore.get(context.userId);
+    if (userSettings && userSettings.timezone) {
+      pinned.push(userSettings.timezone);
+    }
+    if (context.guildId) {
+      const guildSettings = GuildSettingsStore.get(context.guildId);
+      if (guildSettings && guildSettings.timezone) {
+        pinned.push(guildSettings.timezone);
       }
     }
-    choices = Array.from(collection).map((timezone: string) => {
+
+    const timezones = new Set<string>([...pinned, ...timezonesDefaultChoices]);
+    choices = Array.from(timezones).filter((timezone) => timezone in TimezonesToText).slice(0, 25).map((timezone) => {
       return {name: (TimezonesToText as any)[timezone], value: timezone};
-    }).sort((x, y) => {
-      return x.name.localeCompare(y.name);
-    }).slice(0, 25);
-  } else {
-    choices = Object.entries(TimezonesToText).filter((x) => x[1]).sort((x, y) => {
-      return x[1].localeCompare(y[1]);
-    }).slice(0, 25).map(([timezone, name]) => {
-      return {name, value: timezone};
     });
   }
   return context.respond({choices});

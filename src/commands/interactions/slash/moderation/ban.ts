@@ -9,6 +9,7 @@ import { BaseInteractionCommandOption } from '../../basecommand';
 
 export interface CommandArgs {
   clean: number,
+  duration?: number,
   reason?: string,
   users: Parameters.BanPayload,
 }
@@ -56,6 +57,12 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
           default: 24 * 60 * 60,
           type: Number,
         },
+        {
+          name: 'duration',
+          description: 'Unban them after this long, like 12h or 7 days (Default: Permanent, Max: 365 days)',
+          ...I18n.optionLocalizations('commands.moderation.ban.duration'),
+          value: Parameters.secondsWithOptions({float: false}),
+        },
       ],
     });
   }
@@ -72,6 +79,7 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
   async run(context: Interaction.InteractionContext, args: CommandArgs) {
     return Formatter.Commands.ModerationBan.createMessage(context, {
       clean: args.clean,
+      duration: args.duration,
       payload: {...args.users, text: args.reason || ''},
     });
   }

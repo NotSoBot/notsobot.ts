@@ -23,7 +23,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
+  const { language, translate } = await getTranslator(context);
   const targetId = (args.target) ? args.target.id : context.userId;
 
 
@@ -38,7 +38,7 @@ export async function createMessage(
   // canJoin only checks the bot, also make sure the invoker can view/connect to the target's channel
   const invoker = context.member;
   if (!invoker || !channel || !channel.can([Permissions.VIEW_CHANNEL, Permissions.CONNECT], invoker)) {
-    return displayReply(context, {description: translateMaybe('voice_record.you_cannot_access_that_channel', 'You cannot view or connect to that voice channel')});
+    return displayReply(context, {description: translate('voice_record.you_cannot_access_that_channel')});
   }
   if (!channel.canJoin) {
     return displayReply(context, {description: translate('voice_record.cannot_join_ur_channel')});

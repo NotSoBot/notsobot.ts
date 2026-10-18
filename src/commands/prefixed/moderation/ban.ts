@@ -17,6 +17,8 @@ export default class BanCommand extends BaseCommand {
       aliases: ['hackban'],
       args: [
         {name: 'clean', default: 1 * 24 * 60 * 60, type: (value: string, context: Command.Context) => Parameters.seconds(value, false, context)},
+        // the bot unbans them once it's over
+        {name: 'for', aliases: ['duration', 'time', 't'], label: 'duration', type: Parameters.secondsWithOptions({float: false})},
       ],
       default: null,
       disableDm: true,
@@ -29,9 +31,10 @@ export default class BanCommand extends BaseCommand {
           `${COMMAND_NAME} 300505364032389122 -clean 1 day`,
           `${COMMAND_NAME} 300505364032389122 <@439205512425504771>`,
           `${COMMAND_NAME} <@300505364032389122> <@439205512425504771> some reason here`,
+          `${COMMAND_NAME} <@300505364032389122> spamming -for 7 days`,
         ],
         id: Formatter.Commands.ModerationBan.COMMAND_ID,
-        usage: '...?<user:id|mention> <reason:string> (-clean <days>)',
+        usage: '...?<user:id|mention> <reason:string> (-clean <days>) (-for <duration>)',
       },
       permissionsClient: [Permissions.BAN_MEMBERS],
       permissions: [Permissions.BAN_MEMBERS],

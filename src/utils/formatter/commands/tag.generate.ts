@@ -11,6 +11,8 @@ import { RestResponsesRaw } from '../../../api/types';
 import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
 import { Paginator, Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
 
+import { getTranslator } from '../../i18n';
+
 import { createTagMessage } from './tag.show';
 
 
@@ -158,6 +160,7 @@ export async function createMessage(
 
   const now = Date.now();
   const response = await generateTag(context, {
+    memory: true,
     model: args.model,
     personality,
     personalityPreference: args.personalityPreference,
@@ -207,6 +210,14 @@ export async function createMessage(
         [TagFormatter.TagSettings.AI_MODEL]: args.model,
       },
     } as any);
+
+    // always say when NotSoAI changed what it remembers, instead of trusting it to mention it
+    const memoryChanges = TagFormatter.getAIMemoryChanges(parsedTag);
+    if (memoryChanges) {
+      const { translate } = await getTranslator(context);
+      const receipt = (memoryChanges.added && !memoryChanges.changed) ? translate('tag_generate.memory_saved') : translate('tag_generate.memory_updated');
+      parsedTag.text = [parsedTag.text.trimEnd(), `-# 🧠 ${receipt}`].join('\n');
+    }
     return await createTagMessage(context, parsedTag);
   } catch(error) {
     if (response.id) {

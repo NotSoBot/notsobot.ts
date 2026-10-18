@@ -1,7 +1,9 @@
 import { URL } from 'url';
 
 import { onlyEmoji } from 'emoji-aware';
+import MiniSearch from 'minisearch';
 import moment from 'moment';
+import 'moment-timezone';
 
 import { Collections, Command, Interaction, Structures } from 'detritus-client';
 import {
@@ -64,6 +66,8 @@ import {
   TagBlobStorageTypes,
   TagVariableStorageTypes,
   Timezones,
+  TimezoneSearchPreferences,
+  TimezonesToAliases,
   TimezonesToText,
   UserSettingsResponseDisplayTypes,
   MAX_MEMBERS_SAFE,
@@ -168,6 +172,17 @@ export function createTimestampMomentFromContext(timestamp: number | string, opt
 export function createTimestampMomentFromGuild(timestamp: number | string, guildId?: string): moment.Moment {
   const timezone = getTimezoneFromGuild(guildId);
   return createTimestampMoment(timestamp, timezone);
+}
+
+
+// `name#1234` for users that still have a discriminator, just `name` for new-style usernames (their discriminator is `0`)
+export function formatUserTag(user: {discriminator?: string, username: string}): string {
+  return (user.discriminator && user.discriminator !== '0') ? `${user.username}#${user.discriminator}` : user.username;
+}
+
+// `name (id)` for audit log reasons
+export function formatUserForAuditLog(user: {discriminator?: string, id: string, username: string}): string {
+  return `${formatUserTag(user)} (${user.id})`;
 }
 
 
@@ -1926,17 +1941,35 @@ export async function jobWaitForResult(
   context: Command.Context | Interaction.InteractionContext,
   job: RestResponsesRaw.JobResponse,
   pollingTime: number = 500,
+  // aborting stops polling and cancels the job, like a tag running out of time
+  signal?: AbortSignal,
 ): Promise<RestResponsesRaw.JobResponse> {
   if (job.result.error || job.result.response) {
     return job;
   }
+  if (signal && signal.aborted) {
+    cancelJob(context, job.id);
+    throw signal.reason;
+  }
   if (!trackJob(context, job.id)) {
     throw new CommandRunCancelledError();
   }
+  let onAbort: (() => void) | undefined;
   return new Promise<RestResponsesRaw.JobResponse>((resolve, reject) => {
     const timer = new Timers.Timeout();
     const deadline = Date.now() + MAX_JOB_WAIT_TIME;
+    if (signal) {
+      onAbort = () => {
+        timer.stop();
+        cancelJob(context, job.id);
+        reject(signal.reason);
+      };
+      signal.addEventListener('abort', onAbort, {once: true});
+    }
     const pollingFunction = async () => {
+      if (signal && signal.aborted) {
+        return;
+      }
       // the trigger was edited or deleted, its job was already cancelled with it
       if (isCommandRunCancelled(context)) {
         return reject(new CommandRunCancelledError());
@@ -1958,10 +1991,19 @@ export async function jobWaitForResult(
         cancelJob(context, job.id);
         return reject(error);
       }
+      // aborted while fetching, `onAbort` already cancelled it
+      if (signal && signal.aborted) {
+        return;
+      }
       timer.start(pollingTime, pollingFunction);
     };
     timer.start(pollingTime, pollingFunction);
-  }).finally(() => untrackJob(context, job.id));
+  }).finally(() => {
+    if (signal && onAbort) {
+      signal.removeEventListener('abort', onAbort);
+    }
+    untrackJob(context, job.id);
+  });
 }
 
 
@@ -1969,8 +2011,9 @@ export async function jobWaitForResult(
 export async function jobWaitForResponse(
   context: Command.Context | Interaction.InteractionContext,
   job: RestResponsesRaw.JobResponse,
+  signal?: AbortSignal,
 ): Promise<RestResponsesRaw.FileResponse> {
-  const result = await jobWaitForResult(context, job);
+  const result = await jobWaitForResult(context, job, undefined, signal);
   if (result.result.error) {
     throw new JobError(result);
   }
@@ -3032,6 +3075,81 @@ export function timezoneCodeToText(timezone: string): string {
     return (TimezonesToText as any)[timezone];
   }
   return timezone;
+}
+
+
+// `+9`, `9`, `utc+9`, `gmt+09:00` and `+0900` all become `utc+9` (and `-3:30` becomes `utc-3:30`)
+function timezoneOffsetTerm(term: string): string | null {
+  const match = term.match(/^(?:utc|gmt)?([+-])?(\d{1,2})(?::?(\d{2}))?$/);
+  if (!match) {
+    return null;
+  }
+  const hours = parseInt(match[2]);
+  const minutes = (match[3]) ? parseInt(match[3]) : 0;
+  if (14 < hours || 60 <= minutes) {
+    return null;
+  }
+  const sign = (match[1] === '-' && (hours || minutes)) ? '-' : '+';
+  return `utc${sign}${hours}` + ((minutes) ? `:${String(minutes).padStart(2, '0')}` : '');
+}
+
+function timezoneOffsetToTerm(offset: number): string {
+  const minutes = Math.abs(offset);
+  return timezoneOffsetTerm(`${(offset < 0) ? '-' : '+'}${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`) as string;
+}
+
+// sorted west to east by the `(GMT±HH:MM)` offset each label shows, then by name
+// (search results with the same score keep this order)
+export const TimezoneChoicesSortedByOffset: Array<{name: string, value: string}> = Object.entries(TimezonesToText).filter((x) => x[1]).map(([timezone, name]) => {
+  const match = name.match(/^\(GMT([+-])(\d{2}):(\d{2})\)/);
+  const offset = (match) ? (parseInt(match[2]) * 60 + parseInt(match[3])) * ((match[1] === '-') ? -1 : 1) : 0;
+  return {name, offset, value: timezone};
+}).sort((x, y) => {
+  return (x.offset - y.offset) || x.name.localeCompare(y.name);
+}).map(({name, value}) => {
+  return {name, value};
+});
+
+const timezoneSearch = new MiniSearch<{id: string, name: string, aliases: string}>({
+  fields: ['id', 'name', 'aliases'],
+  storeFields: ['name'],
+  // keep `+`, `-` and `:` so offsets survive, `America/Los_Angeles` still splits into words
+  tokenize: (text) => text.split(/[\s()\/_,]+/).filter(Boolean),
+  processTerm: (term) => {
+    term = term.toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu, '');
+    return timezoneOffsetTerm(term) || term || null;
+  },
+  searchOptions: {
+    boost: {name: 2},
+    // offsets and abbreviations have to match exactly, `est` shouldn't bring up `cst` and `+1` shouldn't bring up `+10`
+    // (and a plain `utc` would prefix match every zone's offset alias)
+    fuzzy: (term) => (5 <= term.length && !/^utc[+-]/.test(term)) ? 0.2 : false,
+    prefix: (term) => term !== 'utc' && !/^utc[+-]\d/.test(term),
+    combineWith: 'AND',
+    // `term` is the indexed word that matched, so typing `pac` already ranks Pacific Time first
+    boostDocument: (id, term) => ((TimezoneSearchPreferences as any)[term] === id) ? 10 : 1,
+  },
+});
+timezoneSearch.addAll(TimezoneChoicesSortedByOffset.map(({name, value}) => {
+  // also match the summer offset and abbreviations (`utc-4` and `edt` find New York), checked over the coming year
+  // so zones that stop changing clocks (vancouver from 2026-11) don't keep their old offset
+  const aliases = new Set<string>((TimezonesToAliases as any)[value] || []);
+  for (let months of [0, 3, 6, 9]) {
+    const date = moment.tz(Date.now(), value).add(months, 'months');
+    aliases.add(timezoneOffsetToTerm(date.utcOffset()));
+    const abbreviation = date.zoneAbbr();
+    if (/^[a-z]+$/i.test(abbreviation)) {
+      aliases.add(abbreviation);
+    }
+  }
+  return {id: value, name, aliases: Array.from(aliases).join(' ')};
+}));
+
+// every word typed has to match, so `new zealand` finds nothing instead of New York
+export function searchTimezones(query: string): Array<{name: string, value: string}> {
+  return timezoneSearch.search(query).map((result) => {
+    return {name: result.name, value: result.id};
+  });
 }
 
 

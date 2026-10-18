@@ -2,6 +2,7 @@ import { I18n } from '../../../../../utils';
 
 import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 
+import { SettingsSetAIMemoryCommand } from './ai-memory';
 import { SettingsSetAIModelCommand } from './ai-model';
 import { SettingsSetAIPersonalityCommand } from './ai-personality';
 import { SettingsSetApplicationCommandResponseTypeCommand } from './app-command-response-type';
@@ -25,6 +26,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
   constructor() {
     super({
       options: [
+        new SettingsSetAIMemoryCommand(),
         new SettingsSetAIModelCommand(),
         new SettingsSetAIPersonalityCommand(),
         new SettingsSetApplicationCommandResponseTypeCommand(),

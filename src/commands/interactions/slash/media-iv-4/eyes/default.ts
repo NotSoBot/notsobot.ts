@@ -5,6 +5,8 @@ import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
+import { EYES_FLIPPED_OPTION } from './options';
+
 
 export const COMMAND_NAME = 'default';
 
@@ -20,6 +22,7 @@ export class MediaIVEyesDefaultCommand extends BaseInteractionImageOrVideoComman
   constructor() {
     super({
       options: [
+        EYES_FLIPPED_OPTION,
         {
           name: 'type',
           description: 'Eye Type',

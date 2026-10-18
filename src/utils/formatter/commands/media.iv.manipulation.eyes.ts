@@ -9,6 +9,7 @@ export const COMMAND_ID = 'media.iv.manipulation.eyes';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  flipped?: boolean,
   type?: MediaEyeTypes,
   url: string,
 }

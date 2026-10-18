@@ -13,6 +13,8 @@ export default class JoinCommand extends BaseMediasCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      // the old bot's `merge` (and `merge vertical` is `merge -vertical`)
+      aliases: ['merge'],
       args: [
         {name: 'noresize', aliases: ['nr'], type: Boolean},
         {name: 'noloop', aliases: ['nl'], type: Boolean},
@@ -23,6 +25,7 @@ export default class JoinCommand extends BaseMediasCommand {
         description: 'Join two medias together',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
+          `${COMMAND_NAME} @cakedan @notsobot -vertical`,
         ],
         id: Formatter.Commands.MediaAIVManipulationJoin.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-noloop) (-vertical)',

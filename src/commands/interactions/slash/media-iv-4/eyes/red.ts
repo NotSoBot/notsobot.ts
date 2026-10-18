@@ -4,6 +4,8 @@ import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
+import { EYES_FLIPPED_OPTION } from './options';
+
 
 export const COMMAND_NAME = 'red';
 
@@ -15,6 +17,14 @@ export class MediaIVEyesRedCommand extends BaseInteractionImageOrVideoCommandOpt
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv_4.eyes.red.name');
+
+  constructor() {
+    super({
+      options: [
+        EYES_FLIPPED_OPTION,
+      ],
+    });
+  }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationEyesRed.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationEyesRed.createMessage(context, args);

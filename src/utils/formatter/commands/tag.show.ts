@@ -40,6 +40,40 @@ export interface CommandArgs {
   tag: RestResponsesRaw.Tag,
 }
 
+// prefix commands only get a typing indicator, so a slow tag replies with "Thinking..." and its result edits that
+// reply. interactions already defer into discord's own thinking state
+export const THINKING_REPLY_AFTER = 2000;
+
+export async function parseTag(
+  context: Command.Context | Interaction.InteractionContext,
+  tagContent: string,
+  args?: string,
+): Promise<TagFormatter.TagResult> {
+  if (!(context instanceof Command.Context)) {
+    return TagFormatter.parse(context, tagContent, args);
+  }
+
+  let thinking: Promise<unknown> | null = null;
+  const timeout = setTimeout(() => {
+    thinking = (async () => {
+      const { translate } = await getTranslator(context);
+      await editOrReply(context, translate('media.thinking'));
+    })().catch(() => {
+      // the trigger was edited/deleted or the channel can't be replied in, the tag's own reply will deal with it
+    });
+  }, THINKING_REPLY_AFTER);
+  try {
+    return await TagFormatter.parse(context, tagContent, args);
+  } finally {
+    clearTimeout(timeout);
+    // the tag's reply (or error) has to edit the thinking reply, not race it into a second message
+    if (thinking) {
+      await thinking;
+    }
+  }
+}
+
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
@@ -50,7 +84,7 @@ export async function createMessage(
 
   context.metadata = Object.assign({}, context.metadata, {tag});
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
-  const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
+  const parsedTag = await parseTag(context, tagContent, args.arguments);
   // maybeReplaceContent reads the refreshed attachment urls from here, it used to only be set later in createTagMessage
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
   await maybeReplaceContent(context, tag);
@@ -160,7 +194,31 @@ export async function createTagMessage(
     }
   }
 
+  if (!componentContext && options.flags && (options.flags & MessageFlags.IS_VOICE_MESSAGE)) {
+    await deletePreviousReply(context);
+  }
+
   return editOrReply(componentContext || context, options);
+}
+
+
+// a message can't be edited into a voice message, so a reply from before (like "Thinking...") has to go first
+async function deletePreviousReply(context: Command.Context | Interaction.InteractionContext): Promise<void> {
+  if (!(context instanceof Command.Context)) {
+    return;
+  }
+  const old = context.commandClient.replies.get(context.messageId);
+  if (!old) {
+    return;
+  }
+  context.commandClient.replies.delete(context.messageId);
+  if (!old.reply.deleted) {
+    try {
+      await old.reply.delete();
+    } catch(error) {
+      // already deleted
+    }
+  }
 }
 
 

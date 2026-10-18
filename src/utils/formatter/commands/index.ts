@@ -107,6 +107,7 @@ import * as MediaIVManipulationEdges2Emoji from './media.iv.manipulation.edges2e
 import * as MediaIVManipulationEdges2Flesh from './media.iv.manipulation.edges2flesh';
 import * as MediaIVManipulationEdgeDetect from './media.iv.manipulation.edge.detect';
 import * as MediaIVManipulationEmboss from './media.iv.manipulation.emboss';
+import * as MediaIVManipulationEmojiMosaic from './media.iv.manipulation.emoji.mosaic';
 import * as MediaIVManipulationExo from './media.iv.manipulation.exo';
 import * as MediaIVManipulationExplode from './media.iv.manipulation.explode';
 import * as MediaIVManipulationExplodeAnimated from './media.iv.manipulation.explode.animated';
@@ -164,7 +165,6 @@ import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
 import * as MediaIVManipulationMagikAnimated from './media.iv.manipulation.magik.animated';
 import * as MediaIVManipulationMandalaScope from './media.iv.manipulation.mandalascope';
 import * as MediaIVManipulationMeme from './media.iv.manipulation.meme';
-import * as MediaIVManipulationMerge from './media.iv.manipulation.merge';
 import * as MediaIVManipulationMirrorBottom from './media.iv.manipulation.mirror.bottom';
 import * as MediaIVManipulationMirrorLeft from './media.iv.manipulation.mirror.left';
 import * as MediaIVManipulationMirrorRight from './media.iv.manipulation.mirror.right';
@@ -310,7 +310,13 @@ import * as ModerationCommandsBlocklistClear from './moderation.commands.blockli
 import * as ModerationCommandsBlocklistRemove from './moderation.commands.blocklist.remove';
 import * as ModerationCommandsUsage from './moderation.commands.usage';
 import * as ModerationKick from './moderation.kick';
+import * as ModerationMute from './moderation.mute';
+import * as ModerationNick from './moderation.nick';
 import * as ModerationUnban from './moderation.unban';
+import * as ModerationUnmute from './moderation.unmute';
+
+import * as ServerBans from './server.bans';
+import * as ServerInvites from './server.invites';
 
 import * as OwnerBlockGuild from './owner.block.guild';
 import * as OwnerBlockUser from './owner.block.user';
@@ -359,12 +365,17 @@ import * as SearchWikihow from './search.wikihow';
 import * as SearchWolframAlpha from './search.wolframalpha';
 import * as SearchYoutube from './search.youtube';
 
+import * as SettingsAIMemoryClear from './settings.ai.memory.clear';
+import * as SettingsAIMemoryForget from './settings.ai.memory.forget';
+import * as SettingsAIMemoryList from './settings.ai.memory.list';
+
 import * as SettingsServerSetAIPersonality from './settings.server.set.ai.personality';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetResponseDisplay from './settings.server.set.response.display';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
 import * as SettingsSetAIModel from './settings.set.ai.model';
+import * as SettingsSetAIMemory from './settings.set.ai.memory';
 import * as SettingsSetAIPersonality from './settings.set.ai.personality';
 import * as SettingsSetApplicationCommandResponseType from './settings.set.application.command.response.type';
 import * as SettingsSetDownloadQuality from './settings.set.download.quality';
@@ -553,6 +564,7 @@ export {
   MediaIVManipulationEdges2Flesh,
   MediaIVManipulationEdgeDetect,
   MediaIVManipulationEmboss,
+  MediaIVManipulationEmojiMosaic,
   MediaIVManipulationExo,
   MediaIVManipulationExplode,
   MediaIVManipulationExplodeAnimated,
@@ -610,7 +622,6 @@ export {
   MediaIVManipulationMagikAnimated,
   MediaIVManipulationMandalaScope,
   MediaIVManipulationMeme,
-  MediaIVManipulationMerge,
   MediaIVManipulationMirrorBottom,
   MediaIVManipulationMirrorLeft,
   MediaIVManipulationMirrorRight,
@@ -756,7 +767,13 @@ export {
   ModerationCommandsBlocklistRemove,
   ModerationCommandsUsage,
   ModerationKick,
+  ModerationMute,
+  ModerationNick,
   ModerationUnban,
+  ModerationUnmute,
+
+  ServerBans,
+  ServerInvites,
 
   OwnerBlockGuild,
   OwnerBlockUser,
@@ -805,12 +822,16 @@ export {
   SearchWolframAlpha,
   SearchYoutube,
 
+  SettingsAIMemoryClear,
+  SettingsAIMemoryForget,
+  SettingsAIMemoryList,
   SettingsServerSetAIPersonality,
   SettingsServerSetLocale,
   SettingsServerSetResponseDisplay,
   SettingsServerSetTimezone,
 
   SettingsSetAIModel,
+  SettingsSetAIMemory,
   SettingsSetAIPersonality,
   SettingsSetApplicationCommandResponseType,
   SettingsSetDownloadQuality,

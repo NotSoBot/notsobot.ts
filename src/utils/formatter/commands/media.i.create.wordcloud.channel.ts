@@ -18,9 +18,11 @@ export interface CommandArgs {
   max?: number,
 }
 
+// `user` only uses that user's messages (used by `wordcloud user`)
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
+  user?: Structures.User,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   const channel = args.channel;
@@ -41,7 +43,7 @@ export async function createMessage(
 
   isExecuting.wordcloud = true;
   try {
-    const words = await fetchMessages(context, args).then((x) => x.slice(0, 3000));
+    const words = await fetchMessages(context, args, user).then((x) => x.slice(0, 3000));
     const response = await mediaICreateWordcloud(context, {words});
     isExecuting.wordcloud = false;
     return mediaReply(context, response);

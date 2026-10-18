@@ -4,6 +4,8 @@ import { Formatter, I18n } from '../../../../../utils';
 
 import { BaseInteractionImageOrVideoCommandOption } from '../../../basecommand';
 
+import { EYES_FLIPPED_OPTION } from './options';
+
 
 export const COMMAND_NAME = 'googly';
 
@@ -15,6 +17,14 @@ export class MediaIVEyesGooglyCommand extends BaseInteractionImageOrVideoCommand
   };
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.media_iv_4.eyes.googly.name');
+
+  constructor() {
+    super({
+      options: [
+        EYES_FLIPPED_OPTION,
+      ],
+    });
+  }
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationEyesGoogly.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationEyesGoogly.createMessage(context, args);

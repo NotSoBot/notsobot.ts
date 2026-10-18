@@ -9,6 +9,7 @@ export const COMMAND_ID = 'media.iv.manipulation.eyes.money';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  flipped?: boolean,
   url: string,
 }
 

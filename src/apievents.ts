@@ -278,6 +278,8 @@ export class ApiEventsSpewer extends EventSpewer {
   on(event: RedisChannels.REMINDER_DELETE, listener: (payload: RedisPayloads.ReminderDelete) => any): this;
   on(event: RedisChannels.REMINDER_UPDATE, listener: (payload: RedisPayloads.ReminderUpdate) => any): this;
   on(event: RedisChannels.REPORT_MESSAGE_CREATE, listener: (payload: RedisPayloads.ReportMessageCreate) => any): this;
+  on(event: RedisChannels.TIMED_BAN_CREATE, listener: (payload: RedisPayloads.TimedBanCreate) => any): this;
+  on(event: RedisChannels.TIMED_BAN_DELETE, listener: (payload: RedisPayloads.TimedBanDelete) => any): this;
   on(event: string | symbol, listener: (...args: any[]) => void): this {
     super.on(event, listener);
     return this;

@@ -10,7 +10,7 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { DefaultParameters, I18n, Parameters, createTimestampMomentFromGuild, displayReply } from '../../../utils';
+import { DefaultParameters, I18n, Parameters, createTimestampMomentFromGuild, displayReply, formatUserForAuditLog } from '../../../utils';
 
 import { formatPermissions, replyWarning } from '../../errors';
 import { BaseCommand } from '../basecommand';
@@ -27,8 +27,12 @@ export const TWO_WEEKS_IN_MILLISECONDS_WITH_LEEWAY = TWO_WEEKS_IN_MILLISECONDS -
 export interface CommandArgsBefore {
   after?: string,
   amount: number,
+  attachments?: boolean,
   before?: string,
+  bots?: boolean,
+  embeds?: boolean,
   from?: Array<Structures.Member | Structures.User>,
+  images?: boolean,
   in?: Structures.Channel,
   until?: string,
   with?: string,
@@ -37,8 +41,12 @@ export interface CommandArgsBefore {
 export interface CommandArgs {
   after?: string,
   amount: number,
+  attachments?: boolean,
   before?: string,
+  bots?: boolean,
+  embeds?: boolean,
   from?: Array<Structures.Member | Structures.User>,
+  images?: boolean,
   in?: Structures.Channel,
   until?: string,
   with?: string,
@@ -56,8 +64,12 @@ export default class PruneCommand extends BaseCommand {
       ],
       args: [
         {name: 'after', type: Parameters.snowflake},
+        {name: 'attachments', aliases: ['files'], type: Boolean},
         {name: 'before', type: Parameters.snowflake},
+        {name: 'bots', type: Boolean},
+        {name: 'embeds', type: Boolean},
         {name: 'from', type: Parameters.membersOrUsers()},
+        {name: 'images', type: Boolean},
         {name: 'in', default: DefaultParameters.channel, type: Parameters.channel({
           types: [ChannelTypes.GUILD_TEXT, ChannelTypes.GUILD_NEWS],
         })},
@@ -72,11 +84,13 @@ export default class PruneCommand extends BaseCommand {
           `${COMMAND_NAME} 100`,
           `${COMMAND_NAME} 100 -from cake`,
           `${COMMAND_NAME} 500 -with discord.gg`,
-          `${COMMAND_NAME} 500 -with discord.gg -in general`
+          `${COMMAND_NAME} 500 -with discord.gg -in general`,
+          `${COMMAND_NAME} 100 -bots`,
+          `${COMMAND_NAME} 100 -images -from cake`,
         ],
         category: CommandCategories.MODERATION,
         id: 'moderation.prune',
-        usage: '<max_messages> (-after <message_id>) (-before <message_id>) (-from <user>) (-in <channel>) (-until <message_id>) (-with <text>)',
+        usage: '<max_messages> (-after <message_id>) (-attachments) (-before <message_id>) (-bots) (-embeds) (-from <user>) (-images) (-in <channel>) (-until <message_id>) (-with <text>)',
       },
       permissionsClient: [Permissions.MANAGE_MESSAGES],
       permissions: [Permissions.MANAGE_MESSAGES],
@@ -141,9 +155,15 @@ export default class PruneCommand extends BaseCommand {
 }
 
 
+export interface PruneOptions {
+  // extra check on top of `shouldDelete`, used by `clean` to only pick our messages and command invocations
+  filter?: (message: Structures.Message) => boolean,
+}
+
 export async function createPruneMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
+  options: PruneOptions = {},
 ) {
   const translator = await I18n.getTranslator(context);
   const { language, translate } = translator;
@@ -179,6 +199,11 @@ export async function createPruneMessage(
       }));
     }
   }
+
+  // bulk deleting needs Manage Messages even for our own messages, `clean` can run without it
+  const cachedChannel = context.channels.get(channelId);
+  const canBulkDelete = !context.inDm && (!cachedChannel || cachedChannel.can(Permissions.MANAGE_MESSAGES));
+  const isMatch = (message: Structures.Message) => shouldDelete(message, args) && (!options.filter || options.filter(message));
 
   const isExecuting = ServerExecutionsStore.getOrCreate((context.guildId || context.channelId)!);
   if (isExecuting.prune) {
@@ -256,8 +281,8 @@ export async function createPruneMessage(
         if (args.amount <= bulk.length + manual.length) {
           break;
         }
-        if (shouldDelete(message, args)) {
-          if (!context.inDm && shouldBulkDelete(message.createdAtUnix)) {
+        if (isMatch(message)) {
+          if (canBulkDelete && shouldBulkDelete(message.createdAtUnix)) {
             bulk.set(message.id, message);
           } else {
             manual.set(message.id, message);
@@ -301,8 +326,8 @@ export async function createPruneMessage(
         if (args.amount <= bulk.length + manual.length) {
           break;
         }
-        if (shouldDelete(message, args)) {
-          if (!context.inDm && shouldBulkDelete(message.createdAtUnix)) {
+        if (isMatch(message)) {
+          if (canBulkDelete && shouldBulkDelete(message.createdAtUnix)) {
             bulk.set(message.id, message);
           } else {
             manual.set(message.id, message);
@@ -435,30 +460,25 @@ export async function deleteMessages(
   bulk: Collections.BaseCollection<string, Structures.Message>,
   manual: Collections.BaseCollection<string, Structures.Message>,
 ): Promise<number> {
-  let deletedTotal = 0;
-  if (bulk.length) {
-    const bulkToDelete = bulk.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
-    deletedTotal += bulkToDelete.length;
+  const bulkToDelete = bulk.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
+  const manualToDelete = manual.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
+  const deletedTotal = bulkToDelete.length + manualToDelete.length;
 
-    for (let i = 0; i < bulkToDelete.length; i += 100) {
-      const messageIds = bulkToDelete.slice(i, i + 100);
-      if (messageIds.length === 1) {
-        await context.rest.deleteMessage(channelId, messageIds[0]);
-      } else {
-        await context.rest.bulkDeleteMessages(channelId, messageIds);
-      }
+  // audit log reasons are in the server's language since the whole server sees them
+  const { translate } = I18n.getCachedGuildTranslator(context);
+  const reason = translate('prune.audit_reason', {count: deletedTotal.toLocaleString(), user: formatUserForAuditLog(context.user)});
+
+  for (let i = 0; i < bulkToDelete.length; i += 100) {
+    const messageIds = bulkToDelete.slice(i, i + 100);
+    if (messageIds.length === 1) {
+      await context.rest.deleteMessage(channelId, messageIds[0], {reason});
+    } else {
+      await context.rest.bulkDeleteMessages(channelId, messageIds, {reason});
     }
   }
 
-  if (manual.length) {
-    const manualToDelete = manual.filter((message) => message.canDelete && !message.deleted).map((message) => message.id);
-    deletedTotal += manualToDelete.length;
-
-    const { translate } = I18n.getCachedTranslator(context);
-    const reason = translate('prune.audit_reason', {count: deletedTotal.toLocaleString(), user: `${context.user} (${context.user.id})`});
-    for (let messageId of manualToDelete) {
-      await context.rest.deleteMessage(channelId, messageId, {reason});
-    }
+  for (let messageId of manualToDelete) {
+    await context.rest.deleteMessage(channelId, messageId, {reason});
   }
 
   return deletedTotal;
@@ -514,7 +534,31 @@ export function shouldDelete(message: Structures.Message, args: CommandArgs): bo
     return false;
   }
 
+  // the content filters stack with each other (and with `from`/`with`), `-bots -images` only deletes bot messages with images
+  if (args.bots && !(message.author.bot || message.fromWebhook)) {
+    return false;
+  }
+
+  if (args.attachments && !message.attachments.length) {
+    return false;
+  }
+
+  if (args.embeds && !message.embeds.length) {
+    return false;
+  }
+
+  if (args.images && !hasImage(message)) {
+    return false;
+  }
+
   return true;
+}
+
+export function hasImage(message: Structures.Message): boolean {
+  if (message.attachments.some((attachment) => attachment.isImage || attachment.isVideo)) {
+    return true;
+  }
+  return message.embeds.some((embed) => !!(embed.image || embed.thumbnail || embed.video));
 }
 
 

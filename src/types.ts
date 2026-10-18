@@ -47,6 +47,10 @@ export namespace RedisPayloads {
   export type ReminderDelete = RestResponsesRaw.Reminder;
   export type ReminderUpdate = RestResponsesRaw.Reminder;
 
+  // also sent when banning someone again replaces their timed ban (a delete for the old one comes first)
+  export type TimedBanCreate = RestResponsesRaw.TimedBan;
+  export type TimedBanDelete = RestResponsesRaw.TimedBan;
+
   // a staff reply on a report, to DM the reporter (the dashboard's shape, staff are NotSoAdmin)
   export interface ReportMessageCreate {
     // the reporter's saved DM channel with us, null if we never saw it

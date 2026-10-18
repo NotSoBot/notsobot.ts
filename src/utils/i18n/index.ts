@@ -1,4 +1,4 @@
-import { Command, Interaction } from 'detritus-client';
+import { Command, Interaction, ShardClient } from 'detritus-client';
 import { ComponentContext } from 'detritus-client/lib/utils';
 
 import GuildSettingsStore from '../../stores/guildsettings';
@@ -253,6 +253,57 @@ export function getLanguageName(
 
 export async function getTranslator(context: LanguageContext): Promise<Translator> {
   return getTranslatorForLanguage(await getLanguage(context));
+}
+
+// for text the whole server sees (like audit log reasons) instead of just the person running the command
+// Guild's notsobot setting -> Guild's preferred locale -> English
+// `guildSettings` defaults to whatever is cached for the context's guild
+export function resolveGuildLanguage(
+  context: LanguageContext,
+  guildSettings?: {locale: string | null} | null,
+): Languages {
+  if (guildSettings === undefined) {
+    guildSettings = (context.guildId) ? GuildSettingsStore.get(context.guildId) : null;
+  }
+  const language = (
+    languageFromLocale(guildSettings && guildSettings.locale) ||
+    languageFromLocale((context.guild) ? context.guild.preferredLocale : null)
+  );
+  return language || Languages.ENGLISH;
+}
+
+export async function getGuildTranslator(context: LanguageContext): Promise<Translator> {
+  const guildSettings = (context.guildId) ? await GuildSettingsStore.getOrFetch(context, context.guildId) : null;
+  return getTranslatorForLanguage(resolveGuildLanguage(context, guildSettings));
+}
+
+// for messages sent to someone other than the person running the command (like the dm a muted/kicked/banned member gets)
+// Their notsobot setting -> Guild's notsobot setting -> Guild's preferred locale -> English
+// (their discord client locale is only known when they run an interaction themselves)
+export async function getTranslatorForUser(context: LanguageContext, userId: string): Promise<Translator> {
+  const [ settings, guildSettings ] = await Promise.all([
+    UserSettingsStore.getOrFetch(context, userId),
+    (context.guildId) ? GuildSettingsStore.getOrFetch(context, context.guildId) : null,
+  ]);
+  const language = languageFromLocale(settings && settings.locale) || resolveGuildLanguage(context, guildSettings);
+  return getTranslatorForLanguage(language);
+}
+
+// for code that only has a guild id (like the timed ban scheduler, which runs on one cluster for every guild)
+// Guild's notsobot setting -> Guild's preferred locale (only if this cluster has the guild) -> English
+export async function getTranslatorForGuildId(context: {client: ShardClient}, guildId: string): Promise<Translator> {
+  const guildSettings = await GuildSettingsStore.getOrFetch(context, guildId);
+  const guild = context.client.guilds.get(guildId);
+  const language = (
+    languageFromLocale(guildSettings && guildSettings.locale) ||
+    languageFromLocale((guild) ? guild.preferredLocale : null)
+  );
+  return getTranslatorForLanguage(language || Languages.ENGLISH);
+}
+
+// sync version, uses the guild's settings only if they're already cached
+export function getCachedGuildTranslator(context: LanguageContext): Translator {
+  return getTranslatorForLanguage(resolveGuildLanguage(context));
 }
 
 // for sync code (like argument parsers), uses the user's settings only if they're already cached

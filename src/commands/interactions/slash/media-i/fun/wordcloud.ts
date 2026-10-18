@@ -1,10 +1,14 @@
-import { Interaction } from 'detritus-client';
+import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes, ChannelTypes } from 'detritus-client/lib/constants';
 
 import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
+
+export interface CommandArgs extends Formatter.Commands.MediaICreateWordcloudChannel.CommandArgs {
+  user?: Structures.Member | Structures.User,
+}
 
 export const COMMAND_NAME = 'wordcloud';
 
@@ -38,6 +42,12 @@ export class MediaIWordcloudCommand extends BaseInteractionCommandOption {
           type: Number,
         },
         {
+          name: 'user',
+          description: 'Only use this user\'s messages',
+          ...I18n.optionLocalizations('commands.media_i.fun.wordcloud.user'),
+          type: ApplicationCommandOptionTypes.USER,
+        },
+        {
           name: 'before',
           description: 'Only read messages before this Message ID',
           ...I18n.optionLocalizations('commands.media_i.fun.wordcloud.before'),
@@ -47,7 +57,10 @@ export class MediaIWordcloudCommand extends BaseInteractionCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaICreateWordcloudChannel.CommandArgs) {
+  async run(context: Interaction.InteractionContext, args: CommandArgs) {
+    if (args.user) {
+      return Formatter.Commands.MediaICreateWordcloudUser.createMessage(context, {...args, user: args.user});
+    }
     return Formatter.Commands.MediaICreateWordcloudChannel.createMessage(context, args);
   }
 }

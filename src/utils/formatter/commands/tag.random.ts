@@ -4,9 +4,9 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchTagRandom } from '../../../api';
 import { getTranslator } from '../../i18n';
-import { Paginator, TagFormatter, editOrReply } from '../../../utils';
+import { Paginator, editOrReply } from '../../../utils';
 
-import { generatePages, increaseUsage, maybeCheckNSFW, maybeReplaceContent } from './tag.show';
+import { generatePages, increaseUsage, maybeCheckNSFW, maybeReplaceContent, parseTag } from './tag.show';
 
 
 export const COMMAND_ID = 'tag.random';
@@ -38,7 +38,7 @@ export async function createMessage(
   try {
     context.metadata = Object.assign({}, context.metadata, {tag});
     const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
-    const parsedTag = await TagFormatter.parse(context, tagContent, args.arguments);
+    const parsedTag = await parseTag(context, tagContent, args.arguments);
 
     context.metadata = Object.assign({}, context.metadata, {parsedTag});
     await maybeReplaceContent(context, tag);
