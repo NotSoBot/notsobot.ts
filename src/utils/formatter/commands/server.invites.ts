@@ -37,7 +37,7 @@ export async function createMessage(
     onPage: (page) => {
       const description: Array<string> = [];
       for (let invite of pages[page - 1]) {
-        description.push(`**${Markup.url(Markup.codestring(invite.code), invite.url)}** · <#${invite.channel.id}>`);
+        description.push(`**${Markup.url(Markup.codestring(invite.code), `<${invite.url}>`)}** · <#${invite.channel.id}>`);
 
         const details: Array<string> = [];
         details.push(translate('server_invites.inviter', {user: (invite.inviter) ? invite.inviter.mention : translate('common.unknown')}));

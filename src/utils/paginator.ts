@@ -40,13 +40,13 @@ export interface PageButton {
 }
 
 export const PageButtons: Record<PageButtonNames, PageButton> = Object.freeze({
-  [PageButtonNames.CUSTOM]: {emoji: '<:b_custom_message:848392318776377364>'},
-  [PageButtonNames.NEXT]: {emoji: '<:b_next:848383585374830623>'},
-  [PageButtonNames.NEXT_DOUBLE]: {emoji: '<:b_next_double:848383585701330944>'},
-  [PageButtonNames.PREVIOUS]: {emoji: '<:b_previous:848383585962819585>'},
-  [PageButtonNames.PREVIOUS_DOUBLE]: {emoji: '<:b_previous_double:848383585807106064>'},
-  [PageButtonNames.SHUFFLE]: {emoji: '<:b_shuffle:848380144338993174>'},
-  [PageButtonNames.STOP]: {emoji: '<:b_stop_delete:945057641103753377>'},//{emoji: '<:b_stop:848383585873428520>'},
+  [PageButtonNames.CUSTOM]: {emoji: '<:b_custom_message:1561508445637709954>'},
+  [PageButtonNames.NEXT]: {emoji: '<:b_next:1561508439027486832>'},
+  [PageButtonNames.NEXT_DOUBLE]: {emoji: '<:b_next_double:1561508440306618458>'},
+  [PageButtonNames.PREVIOUS]: {emoji: '<:b_previous:1561508443859452067>'},
+  [PageButtonNames.PREVIOUS_DOUBLE]: {emoji: '<:b_previous_double:1561508441644736552>'},
+  [PageButtonNames.SHUFFLE]: {emoji: '<:b_shuffle:1561508438012338236>'},
+  [PageButtonNames.STOP]: {emoji: '<:b_stop_delete:1561508447776940062>'},//{emoji: '<:b_stop:1561508442928054383>'},
 });
 
 export type PageObject = {
@@ -532,11 +532,15 @@ export class Paginator {
     }
   }
 
-  // only the buttons changed, components v2 has the page inside of the components so it gets sent again (without re-uploading files)
+  // only the buttons changed, components v2 has the page inside of the components so it gets sent again
+  // the files get re-uploaded too, discord doesn't resolve `attachment://` against the attachments an edit keeps
+  // (UNFURLED_MEDIA_ITEM_REFERENCED_ATTACHMENT_NOT_FOUND), `attachments: []` stops the old ones from piling up
   async getButtonsMessage(withButtons: boolean = true): Promise<PageMessage> {
     if (this.isComponentsV2) {
       const message = await this.getPageMessage(this.page, withButtons);
-      delete message.files;
+      if (message.files && message.files.length) {
+        message.attachments = [];
+      }
       return message;
     }
     return {allowedMentions: {parse: []}, components: (withButtons) ? this.components : []};

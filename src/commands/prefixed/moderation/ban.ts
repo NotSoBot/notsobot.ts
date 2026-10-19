@@ -20,7 +20,7 @@ export default class BanCommand extends BaseCommand {
         // the bot unbans them once it's over
         {name: 'for', aliases: ['duration', 'time', 't'], label: 'duration', type: Parameters.secondsWithOptions({float: false})},
       ],
-      default: null,
+      default: Parameters.banPayloadDefault,
       disableDm: true,
       label: 'payload',
       metadata: {

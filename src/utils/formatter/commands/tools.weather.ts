@@ -72,7 +72,7 @@ export async function createMessage(
     ]));
     {
       const coordinates = `${location.latitude}, ${location.longitude}`;
-      lines.push(`-# ${translate('tools_weather.coordinates', {coordinates: Markup.url(coordinates, location.urls.place)})}`);
+      lines.push(`-# ${translate('tools_weather.coordinates', {coordinates: Markup.url(coordinates, `<${location.urls.place}>`)})}`);
     }
 
     payload.description = displayDetails(lines);

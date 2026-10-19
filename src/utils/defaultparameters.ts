@@ -6,11 +6,12 @@ import UserSettingsStore from '../stores/usersettings';
 import { GoogleLocales, GoogleLocaleFromDiscord, MLDiffusionModels } from '../constants';
 
 import {
+  fetchMemberOrUserById,
   findCachedTagDirectoryIds,
   findMediaUrlInMessages,
   findUrlInMessages,
   getOrFetchRealUrl,
-  isVegAttachment,
+  isFileAttachment,
   FindMediaUrlOptions,
 } from './tools';
 
@@ -22,6 +23,40 @@ export function applications(context: Command.Context | Interaction.InteractionC
 
 export function author(context: Command.Context | Interaction.InteractionContext): Structures.Member | Structures.User {
   return context.member || context.user;
+}
+
+
+export interface AuthorOrReplyAuthorOptions {
+  allowBots?: boolean,
+}
+
+// the replied to message's author (as a member if they're still in the server), otherwise the command's author
+export function authorOrReplyAuthor(options: AuthorOrReplyAuthorOptions = {}) {
+  return async (context: Command.Context | Interaction.InteractionContext): Promise<Structures.Member | Structures.User> => {
+    if (context instanceof Command.Context) {
+      const { messageReference } = context.message;
+      if (messageReference && messageReference.messageId) {
+        let message = messageReference.message;
+
+        const shouldFetchMessage = !message && (
+          (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
+        );
+        if (shouldFetchMessage) {
+          try {
+            message = await context.rest.fetchMessage(messageReference.channelId, messageReference.messageId);
+          } catch(error) {
+            // /shrug
+          }
+        }
+
+        if (message && (!message.author.bot || options.allowBots !== false)) {
+          const found = await fetchMemberOrUserById(context, message.author.id);
+          return found || message.author;
+        }
+      }
+    }
+    return author(context);
+  };
 }
 
 
@@ -46,7 +81,7 @@ export function lastMediaUrl(
   return async (context: Command.Context | Interaction.InteractionContext) => {
     if (context instanceof Interaction.InteractionContext) {
       if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
-        const attachment = context.data.resolved.attachments.find((x) => !(mediaSearchOptions.skipVeg && isVegAttachment(x)));
+        const attachment = context.data.resolved.attachments.find((x) => !isFileAttachment(x, mediaSearchOptions.skipFiles));
         if (attachment) {
           return attachment.url!;
         }

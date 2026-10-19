@@ -130,6 +130,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/audio/flanger',
   MEDIA_AV_MANIPULATION_AUDIO_MULTIPITCH:
     '/media/av/manipulation/audio/multipitch',
+  MEDIA_AV_MANIPULATION_AUDIO_PAULSTRETCH:
+    '/media/av/manipulation/audio/paulstretch',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:
     '/media/av/manipulation/audio/pitch',
   MEDIA_AV_MANIPULATION_AUDIO_VOCODER:
@@ -156,60 +158,58 @@ export const Api = Object.freeze({
   MEDIA_AV_TOOLS_TRANSCRIBE:
     '/media/av/tools/transcribe',
 
+  MEDIA_I_CREATE_FOGGY_WINDOW:
+    '/media/i/create/foggy-window',
   MEDIA_I_CREATE_HACKER:
     '/media/i/create/hacker',
+  MEDIA_I_CREATE_NEON:
+    '/media/i/create/neon',
   MEDIA_I_CREATE_PRESIDENTIAL:
     '/media/i/create/presidential',
   MEDIA_I_CREATE_REALFACT:
     '/media/i/create/realfact',
   MEDIA_I_CREATE_RETROWAVE:
     '/media/i/create/retrowave',
+  MEDIA_I_CREATE_EINSTEIN:
+    '/media/i/create/einstein',
+  MEDIA_I_CREATE_SNOW_WRITING:
+    '/media/i/create/snow-writing',
   MEDIA_I_CREATE_SONIC:
     '/media/i/create/sonic',
+  MEDIA_I_CREATE_SOUP:
+    '/media/i/create/soup',
   MEDIA_I_CREATE_THONKIFY:
     '/media/i/create/thonkify',
   MEDIA_I_CREATE_TOMBSTONE:
     '/media/i/create/tombstone',
+  MEDIA_I_CREATE_TREE_CARVING:
+    '/media/i/create/tree-carving',
+  MEDIA_I_CREATE_WOODEN_SIGN:
+    '/media/i/create/wooden-sign',
+  MEDIA_I_CREATE_YACHT:
+    '/media/i/create/yacht',
   MEDIA_I_CREATE_WORDCLOUD:
     '/media/i/create/wordcloud',
   MEDIA_I_CREATE_WORDCLOUD_BACKGROUND:
     '/media/i/create/wordcloud/background',
 
-  MEDIA_I_MANIPULATION_BILL:
-    '/media/i/manipulation/bill',
-  MEDIA_I_MANIPULATION_BURN:
-    '/media/i/manipulation/burn',
-  MEDIA_I_MANIPULATION_FACE_ALIEN:
-    '/media/i/manipulation/face/alien',
-  MEDIA_I_MANIPULATION_FACE_ANIME:
-    '/media/i/manipulation/face/anime',
-  MEDIA_I_MANIPULATION_FACE_CLOWN:
-    '/media/i/manipulation/face/clown',
-  MEDIA_I_MANIPULATION_FACE_FAT:
-    '/media/i/manipulation/face/fat',
-  MEDIA_I_MANIPULATION_FACE_MOUNT_RUSHMORE:
-    '/media/i/manipulation/face/mount-rushmore',
-  MEDIA_I_MANIPULATION_LATTE:
-    '/media/i/manipulation/latte',
-  MEDIA_I_MANIPULATION_MUSEUM:
-    '/media/i/manipulation/museum',
-  MEDIA_I_MANIPULATION_POP_ART:
-    '/media/i/manipulation/popart',
-  MEDIA_I_MANIPULATION_TIMESQUARE:
-    '/media/i/manipulation/timesquare',
-  MEDIA_I_MANIPULATION_UNIVERSE:
-    '/media/i/manipulation/universe',
 
   MEDIA_IV_MANIPULATION_ACID:
     '/media/iv/manipulation/acid',
+  MEDIA_IV_MANIPULATION_ARTISTIC:
+    '/media/iv/manipulation/artistic',
   MEDIA_IV_MANIPULATION_ASCII:
     '/media/iv/manipulation/ascii',
   MEDIA_IV_MANIPULATION_BACKGROUND_REMOVE:
     '/media/iv/manipulation/background/remove',
+  MEDIA_IV_MANIPULATION_BILL:
+    '/media/iv/manipulation/bill',
   MEDIA_IV_MANIPULATION_BLUR:
     '/media/iv/manipulation/blur',
   MEDIA_IV_MANIPULATION_BLURPLE:
     '/media/iv/manipulation/blurple',
+  MEDIA_IV_MANIPULATION_BURN:
+    '/media/iv/manipulation/burn',
   MEDIA_IV_MANIPULATION_CAPTION:
     '/media/iv/manipulation/caption',
   MEDIA_IV_MANIPULATION_CARTOON:
@@ -258,6 +258,32 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/explode/animated',
   MEDIA_IV_MANIPULATION_EYES:
     '/media/iv/manipulation/eyes',
+  MEDIA_IV_MANIPULATION_FACE_ALIEN:
+    '/media/iv/manipulation/face/alien',
+  MEDIA_IV_MANIPULATION_FACE_ANIME:
+    '/media/iv/manipulation/face/anime',
+  MEDIA_IV_MANIPULATION_FACE_CLOWN:
+    '/media/iv/manipulation/face/clown',
+  MEDIA_IV_MANIPULATION_FACE_FAT:
+    '/media/iv/manipulation/face/fat',
+  MEDIA_IV_MANIPULATION_FACE_FEATURES_EXPRESSION_MOOD:
+    '/media/iv/manipulation/face/features/expression/mood/:mood:',
+  MEDIA_IV_MANIPULATION_FACE_FEATURES_SWAP:
+    '/media/iv/manipulation/face/features/swap',
+  MEDIA_IV_MANIPULATION_FACE_HALLOWEEN_HAT:
+    '/media/iv/manipulation/face/halloween-hat',
+  MEDIA_IV_MANIPULATION_FACE_KNIGHT:
+    '/media/iv/manipulation/face/knight',
+  MEDIA_IV_MANIPULATION_FACE_LENIN:
+    '/media/iv/manipulation/face/lenin',
+  MEDIA_IV_MANIPULATION_FACE_MONA_LISA:
+    '/media/iv/manipulation/face/mona-lisa',
+  MEDIA_IV_MANIPULATION_FACE_MOUNT_RUSHMORE:
+    '/media/iv/manipulation/face/mount-rushmore',
+  MEDIA_IV_MANIPULATION_FACE_SWAP:
+    '/media/iv/manipulation/face/swap',
+  MEDIA_IV_MANIPULATION_FACE_XMAS_CAP:
+    '/media/iv/manipulation/face/xmas-cap',
   MEDIA_IV_MANIPULATION_FISHEYE:
     '/media/iv/manipulation/fisheye',
   MEDIA_IV_MANIPULATION_FLASH:
@@ -266,6 +292,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/flip',
   MEDIA_IV_MANIPULATION_FLOP:
     '/media/iv/manipulation/flop',
+  MEDIA_IV_MANIPULATION_GLASS:
+    '/media/iv/manipulation/glass',
   MEDIA_IV_MANIPULATION_GLITCH:
     '/media/iv/manipulation/glitch',
   MEDIA_IV_MANIPULATION_GLITCH_ANIMATED:
@@ -282,6 +310,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/grayscale',
   MEDIA_IV_MANIPULATION_HUE_CURVE_RGBA:
     '/media/iv/manipulation/hue/curve/rgba',
+  MEDIA_IV_MANIPULATION_HUE_SHIFT_CCS:
+    '/media/iv/manipulation/hue/shift/ccs',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV:
     '/media/iv/manipulation/hue/shift/hsv',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_HSV_FFMPEG:
@@ -292,10 +322,14 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/implode',
   MEDIA_IV_MANIPULATION_IMPLODE_ANIMATED:
     '/media/iv/manipulation/implode/animated',
+  MEDIA_IV_MANIPULATION_INSTANT_CAMERA:
+    '/media/iv/manipulation/instant-camera',
   MEDIA_IV_MANIPULATION_IN_OUT:
     '/media/iv/manipulation/in-out',
   MEDIA_IV_MANIPULATION_INVERT:
     '/media/iv/manipulation/invert',
+  MEDIA_IV_MANIPULATION_INVERT_LAB:
+    '/media/iv/manipulation/invert/lab',
   MEDIA_IV_MANIPULATION_INVERT_RGBA:
     '/media/iv/manipulation/invert/rgba',
   MEDIA_IV_MANIPULATION_JPEG:
@@ -314,10 +348,14 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/labels/triggered-2',
   MEDIA_IV_MANIPULATION_LABELS_TRIGGERED_3:
     '/media/iv/manipulation/labels/triggered-3',
+  MEDIA_IV_MANIPULATION_LATTE:
+    '/media/iv/manipulation/latte',
   MEDIA_IV_MANIPULATION_LAYER:
     '/media/iv/manipulation/layer',
   MEDIA_IV_MANIPULATION_LEGOFY:
     '/media/iv/manipulation/legofy',
+  MEDIA_IV_MANIPULATION_LUT:
+    '/media/iv/manipulation/lut',
   MEDIA_IV_MANIPULATION_MAGIK:
     '/media/iv/manipulation/magik',
   MEDIA_IV_MANIPULATION_MAGIK_ANIMATED:
@@ -338,8 +376,12 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/motion/blur',
   MEDIA_IV_MANIPULATION_MULTIPLY:
     '/media/iv/manipulation/multiply',
+  MEDIA_IV_MANIPULATION_MUSEUM:
+    '/media/iv/manipulation/museum',
   MEDIA_IV_MANIPULATION_OFFSET:
     '/media/iv/manipulation/offset',
+  MEDIA_IV_MANIPULATION_OLD_TV:
+    '/media/iv/manipulation/old-tv',
   MEDIA_IV_MANIPULATION_ORB:
     '/media/iv/manipulation/orb',
   MEDIA_IV_MANIPULATION_OUT_IN:
@@ -466,6 +508,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/pixel-sort',
   MEDIA_IV_MANIPULATION_PIXELATE:
     '/media/iv/manipulation/pixelate',
+  MEDIA_IV_MANIPULATION_POP_ART:
+    '/media/iv/manipulation/popart',
   MEDIA_IV_MANIPULATION_QUADART:
     '/media/iv/manipulation/quadart',
   MEDIA_IV_MANIPULATION_RAIN:
@@ -504,12 +548,12 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/side-to-side',
   MEDIA_IV_MANIPULATION_SLIDE:
     '/media/iv/manipulation/slide',
-  MEDIA_IV_MANIPULATION_SMILE:
-    '/media/iv/manipulation/smile',
   MEDIA_IV_MANIPULATION_SNIP_FRAMES:
     '/media/iv/manipulation/snip/frames',
   MEDIA_IV_MANIPULATION_SOLARIZE:
     '/media/iv/manipulation/solarize',
+  MEDIA_IV_MANIPULATION_SPHERES:
+    '/media/iv/manipulation/spheres',
   MEDIA_IV_MANIPULATION_SPIN:
     '/media/iv/manipulation/spin',
   MEDIA_IV_MANIPULATION_SPIN_3D:
@@ -524,6 +568,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/swap/rgba',
   MEDIA_IV_MANIPULATION_SWIRL:
     '/media/iv/manipulation/swirl',
+  MEDIA_IV_MANIPULATION_TIMESQUARE:
+    '/media/iv/manipulation/timesquare',
   MEDIA_IV_MANIPULATION_TO_GIF:
     '/media/iv/manipulation/to/gif',
   MEDIA_IV_MANIPULATION_TRACE:
@@ -536,10 +582,14 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/tv/simulator',
   MEDIA_IV_MANIPULATION_UNCAPTION:
     '/media/iv/manipulation/uncaption',
+  MEDIA_IV_MANIPULATION_UNIVERSE:
+    '/media/iv/manipulation/universe',
   MEDIA_IV_MANIPULATION_UP_TO_DOWN:
     '/media/iv/manipulation/up-to-down',
   MEDIA_IV_MANIPULATION_VAPORWAVE:
     '/media/iv/manipulation/vaporwave',
+  MEDIA_IV_MANIPULATION_VHS:
+    '/media/iv/manipulation/vhs',
   MEDIA_IV_MANIPULATION_WALL:
     '/media/iv/manipulation/wall',
   MEDIA_IV_MANIPULATION_WATERCOLOR:

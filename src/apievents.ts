@@ -1,8 +1,8 @@
 import { EventSpewer, Timers } from 'detritus-utils';
-import * as Sentry from '@sentry/node';
 import WebSocket from 'ws';
 
 import { NotSoHeaders, RedisChannels } from './constants';
+import { captureError } from './sentry';
 import { RedisPayloads } from './types';
 
 
@@ -214,7 +214,7 @@ export class ApiEventsSpewer extends EventSpewer {
     try {
       payload = JSON.parse(raw);
     } catch(error) {
-      Sentry.captureException(error);
+      captureError(error, {tags: {source: 'api_events'}});
       return;
     }
     if (!payload || typeof(payload) !== 'object') {
@@ -243,7 +243,7 @@ export class ApiEventsSpewer extends EventSpewer {
           try {
             this.emit(payload.channel, (payload.data === undefined) ? null : payload.data);
           } catch(error) {
-            Sentry.captureException(error);
+            captureError(error, {tags: {'api_events.channel': payload.channel, source: 'api_events'}});
           }
         }
         if (typeof(payload.id) === 'string') {
@@ -258,7 +258,7 @@ export class ApiEventsSpewer extends EventSpewer {
     try {
       this.emit(ApiEventsSpewerEvents.RESYNC);
     } catch(error) {
-      Sentry.captureException(error);
+      captureError(error, {tags: {'api_events.channel': ApiEventsSpewerEvents.RESYNC, source: 'api_events'}});
     }
   }
 
@@ -267,7 +267,7 @@ export class ApiEventsSpewer extends EventSpewer {
     const now = Date.now();
     if (SENTRY_REPORT_INTERVAL <= now - this.lastReportedAt) {
       this.lastReportedAt = now;
-      Sentry.captureException(error);
+      captureError(error, {level: 'warning', tags: {source: 'api_events.connection'}});
     }
   }
 

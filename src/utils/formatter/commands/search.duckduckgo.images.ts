@@ -51,7 +51,7 @@ export async function createMessage(
         const result = results[page - 1];
         if (!args.simple) {
           payload.title = translate('search_duckduckgo_images.found_from', {footer: result.footer});
-          payload.description = Markup.url(Markup.escape.all(result.header), result.url);
+          payload.description = Markup.url(Markup.escape.all(result.header), `<${result.url}>`);
         }
 
         // throws if it can't be fetched (and scanned), the raw url is never shown; svgs use the thumbnail

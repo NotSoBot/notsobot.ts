@@ -25,7 +25,7 @@ export default class MuteCommand extends BaseCommand {
           type: Parameters.secondsWithOptions({float: false}),
         },
       ],
-      default: null,
+      default: Parameters.banPayloadDefault,
       disableDm: true,
       label: 'payload',
       metadata: {

@@ -8,7 +8,6 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { MediaFaceGroupCommand } from './face';
 import { MediaFunGroupCommand } from './fun';
 // mirror
 
@@ -32,7 +31,6 @@ export default class MediaIGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
-        new MediaFaceGroupCommand(),
         new MediaFunGroupCommand(),
       ],
     });

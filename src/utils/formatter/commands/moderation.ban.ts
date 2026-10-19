@@ -5,7 +5,7 @@ import { deleteGuildTimedBans, putGuildTimedBans } from '../../../api';
 import { getApiError } from '../../../api/errors';
 import { ApiErrorCodes, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatTime, formatUserTag } from '../../../utils';
+import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -76,19 +76,21 @@ export async function createMessage(
   // end of a long reason gets cut off)
   const createReason = (translator: Translator): string => {
     const description: Array<string> = [];
-    description.push(translator.translate('moderation_ban.admin', {user: formatUserTag(context.user), user2: context.user.id}));
+    description.push(translator.translate('moderation_ban.moderator', {user: formatUserTag(context.user), user2: context.user.id}));
     {
       const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
-      description.push(translator.translate('moderation_ban.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
-    }
-    if (deleteMessageSeconds) {
-      description.push(((deleteMessageSeconds === 1) ? translator.translate('moderation_ban.message_cleaning_of_second_one', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(translator.language)}) : translator.translate('moderation_ban.message_cleaning_of_seconds_other', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(translator.language)})));
+      description.push(translator.translate('moderation_ban.date', {timestamp: timestamp.format(DateMomentLogFormat)}));
     }
     if (until) {
-      description.push(translator.translate('moderation_ban.type_timed', {
-        duration: formatTime(args.duration! * 1000),
+      description.push(translator.translate('moderation_ban.duration', {
+        duration: formatDuration(args.duration! * 1000, translator.language),
         until: createTimestampMomentFromGuild(until.getTime(), context.guildId).format(DateMomentLogFormat),
       }));
+    } else {
+      description.push(translator.translate('moderation_ban.duration_permanent'));
+    }
+    if (deleteMessageSeconds) {
+      description.push(translator.translate('moderation_ban.message_cleaning', {duration: formatDuration(deleteMessageSeconds * 1000, translator.language)}));
     }
     description.push(translator.translate('moderation_ban.reason', {text: payload.text || translator.translate('moderation.unspecified_reason')}));
     return description.join('\n').slice(0, 512);
@@ -149,7 +151,7 @@ export async function createMessage(
         await memberOrUser.createMessage([
           dm.translate('moderation_ban.you_have_been_banned_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
           '',
-          dm.translate('moderation_ban.information', {reason: Markup.codeblock(dmReason)}),
+          dm.translate('moderation_ban.details', {reason: Markup.codeblock(dmReason)}),
         ].join('\n'));
       } catch(error) {
         // maybe log this?

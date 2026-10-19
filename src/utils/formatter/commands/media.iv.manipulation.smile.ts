@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { mediaIVManipulationSmile } from '../../../api';
+import { mediaIVManipulationFaceFeaturesExpressionMood } from '../../../api';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
@@ -8,6 +8,7 @@ export const COMMAND_ID = 'media.iv.manipulation.smile';
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {
+  level?: string,
   url: string,
 }
 
@@ -15,7 +16,8 @@ export function createJob(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  return mediaIVManipulationSmile(context, {
+  return mediaIVManipulationFaceFeaturesExpressionMood(context, {
+    mood: 'smile',
     safe: DefaultParameters.safe(context),
     ...args,
   });

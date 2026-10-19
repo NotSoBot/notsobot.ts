@@ -2,8 +2,8 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
-import { getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatTime, formatUserTag } from '../../../utils';
+import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
+import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
 
 // discord's limit for timeouts
@@ -67,18 +67,22 @@ export async function createMessage(
 
   const until = new Date(Date.now() + duration * 1000);
   const timestamp = `<t:${Math.floor(until.getTime() / 1000)}:F> (<t:${Math.floor(until.getTime() / 1000)}:R>)`;
-  // same block as kick/ban: in the server's language since the whole server sees it, and the reason goes last since it can be
-  // multiple lines (discord caps audit log reasons at 512 characters, so only the end of a long reason gets cut off)
+  // same block as kick/ban, built in a given language: the server's for the audit log (the whole server sees it), the member's
+  // for their dm. the reason goes last since it can be multiple lines (discord caps audit log reasons at 512 characters, so
+  // only the end of a long reason gets cut off)
+  const createReason = (translator: Translator): string => {
+    return [
+      translator.translate('moderation_mute.moderator', {user: formatUserTag(context.user), user2: context.user.id}),
+      translator.translate('moderation_mute.date', {timestamp: createTimestampMomentFromGuild(Date.now(), context.guildId).format(DateMomentLogFormat)}),
+      translator.translate('moderation_mute.duration', {
+        duration: formatDuration(duration * 1000, translator.language),
+        until: createTimestampMomentFromGuild(until.getTime(), context.guildId).format(DateMomentLogFormat),
+      }),
+      translator.translate('moderation_mute.reason', {text: payload.text || translator.translate('moderation.unspecified_reason')}),
+    ].join('\n').slice(0, 512);
+  };
   const audit = await getGuildTranslator(context);
-  const reason = [
-    audit.translate('moderation_mute.admin', {user: formatUserTag(context.user), user2: context.user.id}),
-    audit.translate('moderation_mute.timestamp', {timestamp: createTimestampMomentFromGuild(Date.now(), context.guildId).format(DateMomentLogFormat)}),
-    audit.translate('moderation_mute.type', {
-      duration: formatTime(duration * 1000),
-      until: createTimestampMomentFromGuild(until.getTime(), context.guildId).format(DateMomentLogFormat),
-    }),
-    audit.translate('moderation_mute.reason', {text: payload.text || audit.translate('moderation.unspecified_reason')}),
-  ].join('\n').slice(0, 512);
+  const reason = createReason(audit);
 
   const muted: Array<Structures.Member> = [];
   const unable: Array<string> = [];
@@ -100,11 +104,12 @@ export async function createMessage(
       try {
         // in their language (or the server's), not the moderator's
         const dm = await getTranslatorForUser(context, member.id);
-        await member.createMessage(dm.translate('moderation_mute.dm', {
-          name: Markup.escape.all(context.guild.name),
-          reason: Markup.codeblock(payload.text || dm.translate('moderation.unspecified_reason')),
-          timestamp,
-        }));
+        const dmReason = (dm.language === audit.language) ? reason : createReason(dm);
+        await member.createMessage([
+          dm.translate('moderation_mute.you_have_been_muted_in', {guild: context.guild.id, name: Markup.escape.all(context.guild.name), timestamp}),
+          '',
+          dm.translate('moderation_mute.details', {reason: Markup.codeblock(dmReason)}),
+        ].join('\n'));
       } catch(error) {
         // they have dms closed
       }

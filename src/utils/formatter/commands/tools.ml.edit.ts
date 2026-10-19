@@ -6,6 +6,8 @@ import { jobReply } from '../../../utils';
 
 export const COMMAND_ID = 'tools.ml.edit';
 export const IS_PIPEABLE = true;
+// evan built the original ai imagine command on his mac mini, which this came from too
+export const CREDITS = [{id: '188836645670223872', name: 'evan'}];
 
 export interface CommandArgs {
   expand?: boolean,

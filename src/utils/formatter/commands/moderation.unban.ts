@@ -79,10 +79,10 @@ export async function createMessage(
     // (discord caps audit log reasons at 512 characters, so only the end of a long reason gets cut off)
     const audit = await getGuildTranslator(context);
     const description: Array<string> = [];
-    description.push(audit.translate('moderation_unban.admin', {user: formatUserTag(context.user), user2: context.user.id}));
+    description.push(audit.translate('moderation_unban.moderator', {user: formatUserTag(context.user), user2: context.user.id}));
     {
       const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
-      description.push(audit.translate('moderation_unban.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
+      description.push(audit.translate('moderation_unban.date', {timestamp: timestamp.format(DateMomentLogFormat)}));
     }
     description.push(audit.translate('moderation_unban.reason', {text: payload.text || audit.translate('moderation.unspecified_reason')}));
     reason = description.join('\n').slice(0, 512);

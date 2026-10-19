@@ -63,13 +63,13 @@ export async function createMessage(
 
   {
     const description: Array<string> = [];
-    description.push(Markup.url(`**${translate('info.avatar.default')}**`, user.defaultAvatarUrl));
+    description.push(Markup.url(`**${translate('info.avatar.default')}**`, `<${user.defaultAvatarUrl}>`));
     if (user instanceof Structures.Member) {
       if (user.avatar) {
-        description.push(Markup.url(`**${translate('info.avatar.server')}**`, user.avatarUrl));
+        description.push(Markup.url(`**${translate('info.avatar.server')}**`, `<${user.avatarUrl}>`));
       }
       if (user.user.avatar) {
-        description.push(Markup.url(`**${translate('info.avatar.user')}**`, user.user.avatarUrl));
+        description.push(Markup.url(`**${translate('info.avatar.user')}**`, `<${user.user.avatarUrl}>`));
       }
       if (user.avatarDecorationData) {
         const avatarDecoration = await UserAvatarDecorations.getOrFetch(
@@ -81,7 +81,7 @@ export async function createMessage(
         } else {
           name = `**${translate('info.avatar.server_decoration_named', {name: avatarDecoration.name})}**`;
         }
-        description.push(Markup.url(name, avatarDecoration.url));
+        description.push(Markup.url(name, `<${avatarDecoration.url}>`));
       }
       if (user.user.avatarDecorationData) {
         const avatarDecoration = await UserAvatarDecorations.getOrFetch(
@@ -93,11 +93,11 @@ export async function createMessage(
         } else {
           name = `**${translate('info.avatar.user_decoration_named', {name: avatarDecoration.name})}**`;
         }
-        description.push(Markup.url(name, avatarDecoration.url));
+        description.push(Markup.url(name, `<${avatarDecoration.url}>`));
       }
     } else {
       if (user.avatar) {
-        description.push(Markup.url(`**${translate('info.avatar.user')}**`, user.avatarUrl));
+        description.push(Markup.url(`**${translate('info.avatar.user')}**`, `<${user.avatarUrl}>`));
       }
       if (user.avatarDecorationData) {
         const avatarDecoration = await UserAvatarDecorations.getOrFetch(
@@ -109,7 +109,7 @@ export async function createMessage(
         } else {
           name = `**${translate('info.avatar.user_decoration_named', {name: avatarDecoration.name})}**`;
         }
-        description.push(Markup.url(name, avatarDecoration.url));
+        description.push(Markup.url(name, `<${avatarDecoration.url}>`));
       }
     }
     payload.description = description.join(', ');

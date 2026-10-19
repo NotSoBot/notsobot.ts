@@ -106,7 +106,7 @@ export function createPayload(
   if (definition.length <= MAX_LENGTH) {
     const formattedDefinition = definition.replace(ReplacementRegex, (found: string, word: string) => {
       const url = addQuery(UrbanUrl, {term: word});
-      return Markup.url(word, url);
+      return Markup.url(word, `<${url}>`);
     });
     if (formattedDefinition.length <= MAX_LENGTH) {
       definition = formattedDefinition;
@@ -123,7 +123,7 @@ export function createPayload(
 
   const example = Markup.escape.all(result.example).replace(ReplacementRegex, (found: string, word: string) => {
     const url = addQuery(UrbanUrl, {term: word});
-    return Markup.url(word, url);
+    return Markup.url(word, `<${url}>`);
   });
   if (example) {
     payload.fields!.push({name: translate('search_urban.example'), value: example});

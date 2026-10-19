@@ -29,7 +29,8 @@ export default class EditCommand extends BaseMediasCommand {
       minAmount: 1,
       metadata: {
         category: CommandCategories.AI,
-        description: 'Alter an Image with machine learning (thanks evan)',
+        credits: Formatter.Commands.ToolsMLEdit.CREDITS,
+        description: 'Alter an Image with machine learning',
         examples: [
           `${COMMAND_NAME} an animal eating strawberries`,
           `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png an animal eating strawberries -seed 5`,

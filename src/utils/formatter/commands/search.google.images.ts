@@ -58,7 +58,7 @@ export async function createMessage(
             payload.title = result.footer;
           }
 
-          const description: Array<string> = [Markup.url(Markup.escape.all(result.description), result.url)];
+          const description: Array<string> = [Markup.url(Markup.escape.all(result.description), `<${result.url}>`)];
           if (result.metadata.product) {
             const { product } = result.metadata;
 
@@ -141,7 +141,7 @@ export async function createMessage(
           }
 
           if (result.image.isSVG) {
-            description.push(Markup.url('**Image URL**', result.image.url));
+            description.push(Markup.url('**Image URL**', `<${result.image.url}>`));
           }
 
           payload.description = description.join('\n');

@@ -51,7 +51,7 @@ export async function createMessage(
               }
 
               if (result.video) {
-                description.push(Markup.url('Video', result.video.url));
+                description.push(Markup.url('Video', `<${result.video.url}>`));
               }
 
               payload.description = description.join('\n');

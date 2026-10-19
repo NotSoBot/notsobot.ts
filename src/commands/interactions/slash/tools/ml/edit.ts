@@ -12,6 +12,7 @@ export class ToolsMLEditCommand extends BaseInteractionMediasCommandOption {
   description = 'Alter an Image with Machine Learning';
   descriptionLocalizations = I18n.localizations('commands.tools.ml.edit.description');
   metadata = {
+    credits: Formatter.Commands.ToolsMLEdit.CREDITS,
     id: Formatter.Commands.ToolsMLEdit.COMMAND_ID,
   };
   name = COMMAND_NAME;

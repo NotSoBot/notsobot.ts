@@ -15,7 +15,7 @@ export default class UnmuteCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['untimeout'],
-      default: null,
+      default: Parameters.banPayloadDefault,
       disableDm: true,
       label: 'payload',
       metadata: {

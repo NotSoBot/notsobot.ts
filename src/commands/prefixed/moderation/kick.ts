@@ -17,7 +17,7 @@ export default class KickCommand extends BaseCommand {
       args: [
         {name: 'clean', type: (value: string, context: Command.Context) => Parameters.seconds(value, false, context)},
       ],
-      default: null,
+      default: Parameters.banPayloadDefault,
       disableDm: true,
       label: 'payload',
       metadata: {

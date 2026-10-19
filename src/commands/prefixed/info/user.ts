@@ -29,7 +29,7 @@ export default class UserCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['userinfo', 'member', 'memberinfo'],
-      default: DefaultParameters.author,
+      default: DefaultParameters.authorOrReplyAuthor(),
       label: 'user',
       metadata: {
         category: CommandCategories.INFO,

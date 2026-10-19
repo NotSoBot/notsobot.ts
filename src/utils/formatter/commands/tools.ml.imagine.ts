@@ -5,6 +5,8 @@ import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.ml.imagine';
+// evan built the original ai imagine command, running it on his mac mini
+export const CREDITS = [{id: '188836645670223872', name: 'evan'}];
 
 export interface CommandArgs {
   model?: string,

@@ -9,6 +9,7 @@ import {
   GuildSettingsResponseDisplayTypes,
   MeasurementUnits,
   MediaAudioBitcrushModes,
+  MediaAudioMultiPitchEngines,
   MediaEyeTypes,
   MediaMemeFonts,
   MediaPixelSortFunctions,
@@ -531,8 +532,14 @@ export namespace RestOptions {
   }
 
   export interface MediaAVManipulationAudioMultiPitch extends MediaBaseOptions {
+    engine?: MediaAudioMultiPitchEngines,
     normalize?: boolean,
     semitones?: string,
+  }
+
+  export interface MediaAVManipulationAudioPaulstretch extends MediaBaseOptions {
+    resolution?: number,
+    stretch?: number,
   }
 
   export interface MediaAVManipulationAudioPitch extends MediaBaseOptions {
@@ -557,6 +564,8 @@ export namespace RestOptions {
 
   export interface MediaAVManipulationAudioVocoder extends MediaBaseOptionsMultiple {
     bands?: number,
+    chord?: string,
+    synth?: string,
   }
 
   export interface MediaAVManipulationAudioVolume extends MediaBaseOptions {
@@ -610,6 +619,14 @@ export namespace RestOptions {
     text: string,
   }
 
+  export interface MediaICreateTextLines extends MediaICreateText {
+    text2?: string,
+  }
+
+  export interface MediaICreateFoggyWindow extends MediaICreateText {
+    background?: number,
+  }
+
   export interface MediaICreateTombstone {
     line1?: string,
     line2?: string,
@@ -624,8 +641,27 @@ export namespace RestOptions {
     words: Array<string>,
   }
 
-  export interface MediaIManipulationFaceFat extends MediaBaseOptions {
+  export interface MediaIVManipulationFaceAnime extends MediaBaseOptions {
+    eyes?: string,
+  }
+
+  export interface MediaIVManipulationFaceFat extends MediaBaseOptions {
     size?: number,
+  }
+
+  export interface MediaIVManipulationFaceFeaturesExpressionMood extends MediaBaseOptions {
+    level?: string,
+    mood: string,
+  }
+
+  export interface MediaIVManipulationFaceFeaturesSwap extends MediaBaseOptionsMultiple {
+    mode?: string,
+    multiplier?: number,
+    regions?: string,
+  }
+
+  export interface MediaIVManipulationFaceSwap extends MediaBaseOptionsMultiple {
+    maxFaces?: number,
   }
 
   export interface MediaIVManipulationAcid extends MediaBaseOptions {
@@ -650,6 +686,23 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaIVManipulationFaceHalloweenHat extends MediaBaseOptions {
+    hat?: string,
+  }
+
+  export interface MediaIVManipulationFaceXmasCap extends MediaBaseOptions {
+    color?: string,
+  }
+
+  export interface MediaIVManipulationInstantCamera extends MediaBaseOptions {
+    text?: string,
+  }
+
+  export interface MediaIVManipulationOldTV extends MediaBaseOptions {
+    animated?: boolean,
+    grayscale?: boolean,
   }
 
   export interface MediaIVManipulationOverlayWatchMojo extends MediaBaseOptions {
@@ -769,6 +822,14 @@ export namespace RestOptions {
     red?: Array<[number, number]>,
   }
 
+  export interface MediaIVManipulationHueShiftCCS extends MediaBaseOptions {
+    gain?: number,
+    gamma?: number,
+    hue?: number,
+    offset?: number,
+    saturation?: number,
+  }
+
   export interface MediaIVManipulationHueShiftHSV extends MediaBaseOptions {
     brightness?: number,
     hue?: number,
@@ -783,6 +844,12 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationImplode extends MediaBaseOptions {
     scale?: number,
+  }
+
+  export interface MediaIVManipulationInvertLAB extends MediaBaseOptions {
+    a?: number,
+    b?: number,
+    lightness?: number,
   }
 
   export interface MediaIVManipulationInvertRGBA extends MediaBaseOptions {
@@ -801,6 +868,14 @@ export namespace RestOptions {
     dither?: boolean,
     palette?: string,
     size?: number,
+  }
+
+  export interface MediaIVManipulationLUT extends MediaBaseOptions {
+    // the .cube as an upload or a url, one of them is needed
+    cubeFile?: RequestFile,
+    cubeUrl?: string,
+    interpolation?: string,
+    strength?: number,
   }
 
   export interface MediaIVManipulationMagik extends MediaBaseOptions {
@@ -895,6 +970,10 @@ export namespace RestOptions {
     seed?: number,
     sortBy?: MediaPixelSortFunctions,
     upper?: number,
+  }
+
+  export interface MediaIVManipulationPopArt extends MediaBaseOptions {
+    grid?: number,
   }
 
   export interface MediaIVManipulationQuadart extends MediaBaseOptions {
@@ -1013,6 +1092,10 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationUncaption extends MediaBaseOptions {
     tolerance?: number,
+  }
+
+  export interface MediaIVManipulationUniverse extends MediaBaseOptions {
+    space?: number,
   }
 
   export interface MediaIVManipulationVaporwave extends MediaBaseOptions {
@@ -1311,6 +1394,7 @@ export namespace RestOptions {
       aliases?: Array<string>,
       args?: Array<{aliases: Array<string>, description?: string, name: string, prefix: string}>,
       category: string,
+      credits?: Array<{id: string, name: string}>,
       description?: string,
       dmable?: boolean,
       examples?: Array<string>,

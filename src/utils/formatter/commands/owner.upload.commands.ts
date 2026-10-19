@@ -65,6 +65,7 @@ export async function createMessage(
           };
         }),
         category: metadata.category,
+        credits: metadata.credits || [],
         enabled: true,
         description: metadata.description || '',
         dmable: !command.disableDm,
@@ -128,6 +129,7 @@ export async function createMessage(
       commands.push({
         args: [],
         category: resolveInteractionCategory(id, invoker.metadata.category, prefixedCategories),
+        credits: invoker.metadata.credits || [],
         enabled: true,
         description: invoker.description,
         dmable: !invoker.disableDm,

@@ -69,7 +69,7 @@ export async function createMessage(
 
         for (let result of similarResults) {
           const description: Array<string> = [
-            Markup.url(`**${Markup.escape.all(result.cite)}**`, result.url),
+            Markup.url(`**${Markup.escape.all(result.cite)}**`, `<${result.url}>`),
             Markup.escape.all(result.description),
           ];
           if (result.footer) {
@@ -78,7 +78,7 @@ export async function createMessage(
           if (result.suggestions.length) {
             const suggestions = result.suggestions.map((suggestion: {text: string, url: string}) => {
               if (suggestion.url.length < 100) {
-                return Markup.url(Markup.escape.all(suggestion.text), suggestion.url);
+                return Markup.url(Markup.escape.all(suggestion.text), `<${suggestion.url}>`);
               }
             }).filter((v: string | undefined) => v);
             if (suggestions.length) {

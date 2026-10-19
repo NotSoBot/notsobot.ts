@@ -42,6 +42,12 @@ import {
   searchDuckDuckGoImages,
   searchGoogleImages,
   searchImgur,
+  searchReddit,
+  searchUrban,
+  searchUrbanRandom,
+  searchWikihow,
+  searchWikihowRandom,
+  searchWolframAlpha,
   searchYoutube,
   utilitiesCodeRun,
   utilitiesFetchMedia,
@@ -92,6 +98,7 @@ import {
   generateCodeStdin,
   getCodeLanguage,
   getGuildObjectForJSONSerialization,
+  htmlDecode,
   isSnowflake,
   isValidAttachmentUrl,
   jobWaitForResponse,
@@ -359,6 +366,10 @@ export enum TagFunctions {
   API_FETCH_REMINDERS = 'API_FETCH_REMINDERS',
   API_SEARCH_DUCKDUCKGO_IMAGES = 'API_SEARCH_DUCKDUCKGO_IMAGES',
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
+  API_SEARCH_REDDIT = 'API_SEARCH_REDDIT',
+  API_SEARCH_URBAN = 'API_SEARCH_URBAN',
+  API_SEARCH_WIKIHOW = 'API_SEARCH_WIKIHOW',
+  API_SEARCH_WOLFRAM_ALPHA = 'API_SEARCH_WOLFRAM_ALPHA',
   API_UTILITIES_LOCATIONS = 'API_UTILITIES_LOCATIONS',
   API_UTILITIES_QR_CREATE = 'API_UTILITIES_QR_CREATE',
   API_UTILITIES_QR_SCAN = 'API_UTILITIES_QR_SCAN',
@@ -406,6 +417,7 @@ export enum TagFunctions {
   JSON_MEMBER_OR_USER = 'JSON_MEMBER_OR_USER',
   JSON_MESSAGE = 'JSON_MESSAGE',
   JSON_MESSAGE_REPLY = 'JSON_MESSAGE_REPLY',
+  JSON_ROLE = 'JSON_ROLE',
   JSON_USER = 'JSON_USER',
   LOGICAL_AND = 'LOGICAL_AND',
   LOGICAL_DELETE = 'LOGICAL_DELETE',
@@ -555,6 +567,10 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.API_FETCH_REMINDERS]: ['api.fetch.reminders'],
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: ['api.search.duckduckgo.images'],
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
+  [TagFunctions.API_SEARCH_REDDIT]: ['api.search.reddit'],
+  [TagFunctions.API_SEARCH_URBAN]: ['api.search.urban'],
+  [TagFunctions.API_SEARCH_WIKIHOW]: ['api.search.wikihow'],
+  [TagFunctions.API_SEARCH_WOLFRAM_ALPHA]: ['api.search.wolframalpha'],
   [TagFunctions.API_UTILITIES_LOCATIONS]: ['api.utilities.locations'],
   [TagFunctions.API_UTILITIES_QR_CREATE]: ['api.utilities.qr.create'],
   [TagFunctions.API_UTILITIES_QR_SCAN]: ['api.utilities.qr.scan'],
@@ -602,6 +618,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.JSON_MEMBER_OR_USER]: ['json.memberoruser'],
   [TagFunctions.JSON_MESSAGE]: ['json.message'],
   [TagFunctions.JSON_MESSAGE_REPLY]: ['json.messagereply'],
+  [TagFunctions.JSON_ROLE]: ['json.role'],
   [TagFunctions.JSON_USER]: ['json.user', 'userjson'],
   [TagFunctions.LOGICAL_AND]: ['and'],
   [TagFunctions.LOGICAL_DELETE]: ['delete'],
@@ -787,6 +804,10 @@ export interface TagVariables {
     [TagFunctions.AI_MEMORY_ADD]?: AIMemoryChanges,
     [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
     [TagFunctions.API_SEARCH_IMGUR]?: Record<string, RestResponsesRaw.SearchImgur>,
+    [TagFunctions.API_SEARCH_REDDIT]?: Record<string, {results: Array<Record<string, any>>}>,
+    [TagFunctions.API_SEARCH_URBAN]?: Record<string, RestResponsesRaw.SearchUrbanDictionary>,
+    [TagFunctions.API_SEARCH_WIKIHOW]?: Record<string, RestResponsesRaw.SearchWikihow>,
+    [TagFunctions.API_SEARCH_WOLFRAM_ALPHA]?: Record<string, any>,
     [TagFunctions.API_UTILITIES_LOCATIONS]?: Record<string, RestResponsesRaw.UtilitiesLocations>,
     [TagFunctions.API_UTILITIES_WEATHER]?: Record<string, RestResponsesRaw.UtilitiesWeather>,
     [TagFunctions.ATTACHMENT]?: Record<string, RestResponsesRaw.FileResponse>,
@@ -3514,6 +3535,147 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_SEARCH_REDDIT]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.search.reddit:query} {api.search.reddit:query|subreddit}
+
+    if (!arg) {
+      return true;
+    }
+
+    let [ query, subreddit ] = split(arg, 2);
+    query = (query || '').trim().slice(0, 1024);
+    if (!query) {
+      return true;
+    }
+    subreddit = (subreddit || '').trim().replace(/^\/?r\//i, '').slice(0, 20);
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_REDDIT] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_REDDIT] ||
+      {}
+    );
+
+    const safe = DefaultParameters.safe(context);
+    // the subreddit and safe setting change the response, so cache per all of them
+    const cacheKey = `${+safe}:${subreddit}:${query}`;
+    if (!(cacheKey in cachedResults)) {
+      increaseNetworkRequests(tag);
+
+      const { results } = await withDeadline(context, tag, () => searchReddit(context, {
+        query,
+        safe,
+        subreddit: subreddit || undefined,
+      }));
+      // the raw posts have ~100 fields each, only keep what's useful
+      // media urls are left out since the command scans them before showing them, link to the post instead
+      cachedResults[cacheKey] = {
+        results: results.filter((post) => !safe || !post.over_18).map((post) => ({
+          author: post.author,
+          created_utc: post.created_utc,
+          is_video: post.is_video,
+          num_comments: post.num_comments,
+          over_18: post.over_18,
+          score: post.score,
+          selftext: htmlDecode(post.selftext || '').slice(0, 1000),
+          subreddit: post.subreddit,
+          title: htmlDecode(post.title || ''),
+          url: 'https://reddit.com' + post.permalink,
+        })),
+      };
+    }
+
+    tag.text += JSON.stringify(cachedResults[cacheKey]);
+
+    return true;
+  },
+
+  [TagFunctions.API_SEARCH_URBAN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.search.urban} (random definitions) {api.search.urban:term}
+
+    arg = arg.trim().slice(0, 1024);
+    if (!arg) {
+      increaseNetworkRequests(tag);
+      const response = await withDeadline(context, tag, () => searchUrbanRandom(context));
+      tag.text += JSON.stringify(response);
+      return true;
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_URBAN] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_URBAN] ||
+      {}
+    );
+
+    if (!(arg in cachedResults)) {
+      increaseNetworkRequests(tag);
+    }
+
+    const response = cachedResults[arg] || await withDeadline(context, tag, () => searchUrban(context, {query: arg}));
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = response;
+    }
+
+    tag.text += JSON.stringify(response);
+
+    return true;
+  },
+
+  [TagFunctions.API_SEARCH_WIKIHOW]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.search.wikihow} (random article with its steps) {api.search.wikihow:query} (search results)
+
+    arg = arg.trim().slice(0, 1024);
+    if (!arg) {
+      increaseNetworkRequests(tag);
+      const response = await withDeadline(context, tag, () => searchWikihowRandom(context));
+      tag.text += JSON.stringify(response);
+      return true;
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_WIKIHOW] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_WIKIHOW] ||
+      {}
+    );
+
+    if (!(arg in cachedResults)) {
+      increaseNetworkRequests(tag);
+    }
+
+    const response = cachedResults[arg] || await withDeadline(context, tag, () => searchWikihow(context, {query: arg}));
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = response;
+    }
+
+    tag.text += JSON.stringify(response);
+
+    return true;
+  },
+
+  [TagFunctions.API_SEARCH_WOLFRAM_ALPHA]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.search.wolframalpha:query}
+
+    arg = arg.trim().slice(0, 1024);
+    if (!arg) {
+      return true;
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_WOLFRAM_ALPHA] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_WOLFRAM_ALPHA] ||
+      {}
+    );
+
+    if (!(arg in cachedResults)) {
+      increaseNetworkRequests(tag);
+    }
+
+    const response = cachedResults[arg] || await withDeadline(context, tag, () => searchWolframAlpha(context, {query: arg}));
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = response;
+    }
+
+    // {fields: [{name, value}], images: [url], url}
+    tag.text += JSON.stringify(response);
+
+    return true;
+  },
+
   [TagFunctions.API_UTILITIES_LOCATIONS]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.utilities.locations:query}
 
@@ -4482,6 +4644,37 @@ const ScriptTags = Object.freeze({
 
     if (context instanceof Command.Context && context.message && context.message.referencedMessage) {
       tag.text += JSON.stringify(context.message.referencedMessage);
+    }
+
+    return true;
+  },
+
+  [TagFunctions.JSON_ROLE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // returns a json object of the role, with how many cached members have it
+    // {json.role} (the command user's highest role)
+    // {json.role:moderator}
+    // {json.role:560595518129045504}
+
+    const guild = context.guild;
+    if (!guild) {
+      return true;
+    }
+
+    let role: Structures.Role | null = null;
+    if (arg.trim()) {
+      role = Parameters.role(arg.trim(), context);
+    } else if (context.member) {
+      role = context.member.highestRole;
+    }
+
+    if (role) {
+      let memberCount = 0;
+      for (let [userId, member] of guild.members) {
+        if (member.roles.has(role.id)) {
+          memberCount++;
+        }
+      }
+      tag.text += JSON.stringify({...role.toJSON(), member_count: memberCount});
     }
 
     return true;

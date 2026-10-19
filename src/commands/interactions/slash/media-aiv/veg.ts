@@ -32,7 +32,7 @@ export class MediaAIVVegCommand extends BaseInteractionMediaCommandOption {
         {name: 'veg-url', description: 'Vegas project URL, instead of the file', ...I18n.optionLocalizations('commands.media_aiv.veg.veg_url'), label: 'vegUrl'},
         {name: 'cutoff', description: 'A clip that starts on a track cuts off the one before it (Default: True)', ...I18n.optionLocalizations('commands.media_aiv.veg.cutoff'), type: Boolean},
       ],
-    }, {skipVeg: true});
+    }, {skipFiles: ['.veg']});
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgsBefore) {

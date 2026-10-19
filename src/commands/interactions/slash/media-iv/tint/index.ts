@@ -7,6 +7,7 @@ import { MediaIVDerainCommand } from './derain';
 import { MediaIVGoldCommand } from './gold';
 import { MediaIVGrayscaleCommand } from './grayscale';
 import { MediaIVInvertCommand } from './invert';
+import { MediaIVInvertLABCommand } from './invert-lab';
 import { MediaIVInvertRGBACommand } from './invert-rgba';
 import { MediaIVRainCommand } from './rain';
 import { MediaIVRainGoldCommand } from './raingold';
@@ -28,6 +29,7 @@ export class MediaIVTintGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVGoldCommand(),
         new MediaIVGrayscaleCommand(),
         new MediaIVInvertCommand(),
+        new MediaIVInvertLABCommand(),
         new MediaIVInvertRGBACommand(),
         new MediaIVRainCommand(),
         new MediaIVRainGoldCommand(),

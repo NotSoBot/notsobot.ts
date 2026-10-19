@@ -36,6 +36,12 @@ export interface BanPayloadMembersOnly {
   text: string,
 }
 
+// for a command's `default`, an empty command skips the parser, so return a string (gets parsed) on a reply to check it
+export function banPayloadDefault(context: Command.Context): string | null {
+  const { messageReference } = context.message;
+  return (messageReference && messageReference.messageId) ? '' : null;
+}
+
 export function banPayload(
   options: BanPayloadOptions = {},
 ) {

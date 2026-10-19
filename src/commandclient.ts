@@ -5,6 +5,7 @@ import { fetchCommandsResponses } from './api';
 import { CommandResults, setCommandResult } from './commandresults';
 import { BaseInteractionCommand } from './commands/interactions/basecommand';
 import { CommandMetadata } from './commands/prefixed/basecommand';
+import { runWithCommandContext } from './sentry';
 
 import GuildSettingsStore from './stores/guildsettings';
 import UserStore from './stores/users';
@@ -307,24 +308,40 @@ export class NotSoCommandClient extends CommandClient {
     return command;
   }
 
+  // an update to an uncached message (like pinning or starting a thread on one from years ago) has nothing to compare
+  // with, detritus counts it as a content edit if it was ever edited and the edit duration only compares the edit to
+  // when it was sent, so the command would re-run on it today. only trust uncached ones that were edited just now
+  isContentEdit(event: GatewayClientEvents.MessageUpdate): boolean {
+    if (!super.isContentEdit(event)) {
+      return false;
+    }
+    if (event.differences) {
+      return true;
+    }
+    const { message } = event;
+    return !!message && message.isEdited && Math.abs(Date.now() - message.editedAtUnix) <= this.maxEditDuration;
+  }
+
   // an edit re-runs the command, so cancel the previous run of it (and its jobs) before it can reply over this one
   async handleContext(
     name: ClientEvents.MESSAGE_CREATE | ClientEvents.MESSAGE_UPDATE,
     event: GatewayClientEvents.MessageCreate | GatewayClientEvents.MessageUpdate,
     context: Command.Context,
   ) {
-    // edits past the edit duration don't re-run anything, leave the old run alone
-    if (!this.isWithinEditDuration(context.message)) {
-      return super.handleContext(name, event, context);
-    }
-    trackCommandRun(context);
-    try {
-      return await super.handleContext(name, event, context);
-    } finally {
-      if (!context.command) {
-        untrackCommandRun(context);
+    return runWithCommandContext(context, async () => {
+      // edits past the edit duration don't re-run anything, leave the old run alone
+      if (!this.isWithinEditDuration(context.message)) {
+        return super.handleContext(name, event, context);
       }
-    }
+      trackCommandRun(context);
+      try {
+        return await super.handleContext(name, event, context);
+      } finally {
+        if (!context.command) {
+          untrackCommandRun(context);
+        }
+      }
+    });
   }
 
   async handleDelete(name: ClientEvents.MESSAGE_DELETE, deletePayload: {raw: {id: string}}) {

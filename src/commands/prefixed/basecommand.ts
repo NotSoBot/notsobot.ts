@@ -17,6 +17,7 @@ import {
   RatelimitKeys,
   UserFlags,
 } from '../../constants';
+import { captureCommandError } from '../../sentry';
 import { CommandRunCancelledError, I18n, Parameters, displayReply, findMediaUrlInMessages } from '../../utils';
 
 import {
@@ -37,9 +38,16 @@ function commandNameForError(context: Command.Context, translator: I18n.Translat
 }
 
 
+// people who made a command (or the program behind it), shown in its help and on the site
+export interface CommandCredit {
+  id: string,
+  name: string,
+}
+
 // description and usage shouldnt be optional, temporary for now
 export interface CommandMetadata {
   category: CommandCategories,
+  credits?: Array<CommandCredit>,
   description?: string,
   examples?: Array<string>,
   id?: string,
@@ -260,6 +268,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     if (error instanceof CommandRunCancelledError) {
       return;
     }
+    captureCommandError(context, error);
     const translator = await I18n.getTranslator(context);
     const title = warning(translator.translate('errors.prefix_run_title'));
     return replyError(context, await createRunErrorPayload(context, title, error, translator));

@@ -35,7 +35,7 @@ export async function createMessage(
 
   const suggestionText = (
     (suggestion) ?
-    translate('search_google_web.did_you_mean', {value: Markup.bold(Markup.url(Markup.escape.all(suggestion.text), suggestion.url))}) :
+    translate('search_google_web.did_you_mean', {value: Markup.bold(Markup.url(Markup.escape.all(suggestion.text), `<${suggestion.url}>`))}) :
     null
   );
 
@@ -72,7 +72,7 @@ export async function createMessage(
             for (let result of page) {
               const cite = result.cite.replace('https://', '').replace('http://', '');
               const description: Array<string> = [
-                Markup.url(`**${Markup.escape.all(cite)}**`, result.url),
+                Markup.url(`**${Markup.escape.all(cite)}**`, `<${result.url}>`),
                 Markup.escape.all(result.description),
               ];
               if (result.footer) {
@@ -81,7 +81,7 @@ export async function createMessage(
               if (result.suggestions.length) {
                 const suggestions = result.suggestions.map((suggestion: {text: string, url: string}) => {
                   if (suggestion.url.length < 100) {
-                    return Markup.url(Markup.escape.all(suggestion.text), suggestion.url);
+                    return Markup.url(Markup.escape.all(suggestion.text), `<${suggestion.url}>`);
                   }
                 }).filter((v: string | undefined) => v);
                 if (suggestions.length) {
@@ -106,7 +106,7 @@ export async function createMessage(
               case GoogleCardTypes.DEFINITION: {
                 payload.title = translate('search_google_web.definition_of', {header: page.header});
                 if (page.description) {
-                  const pronunciation = (page.url) ? Markup.bold(Markup.url(page.description, page.url)) : Markup.codestring(page.description);
+                  const pronunciation = (page.url) ? Markup.bold(Markup.url(page.description, `<${page.url}>`)) : Markup.codestring(page.description);
                   payload.description = translate('search_google_web.pronounced', {pronunciation: pronunciation});
                   // maybe put `page.footer` in here for credits?
                 }
@@ -232,7 +232,7 @@ export async function createMessage(
                 if (page.header) {
                   const cite = page.footer!.replace('https://', '').replace('http://', '');
                   payload.fields!.push({name: `**${Markup.escape.all(page.header!)}**`, value: [
-                    Markup.url(`**${Markup.escape.all(cite)}**`, page.url!),
+                    Markup.url(`**${Markup.escape.all(cite)}**`, `<${page.url!}>`),
                     Markup.escape.all(page.description!),
                   ].join('\n')});
                 }

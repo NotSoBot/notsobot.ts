@@ -3,5 +3,6 @@
 	"NOTSOBOT_API_TOKEN": "",
 	"NOTSOBOT_DISCORD_TOKEN": "NDM5MjA1NTEyNDI1NTA0Nzcx.secret.secret2",
 	"NOTSOBOT_GATEWAY_URL": "wss://gateway.nsb.gg/events",
-	"SENTRY_DSN": "https://ingest.sentry.io/"
+	"SENTRY_DSN": "https://ingest.sentry.io/",
+	"SENTRY_ENVIRONMENT": "production"
 }

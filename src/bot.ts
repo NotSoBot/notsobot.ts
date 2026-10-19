@@ -1,8 +1,15 @@
 import './bootstrap';
 import * as Sentry from '@sentry/node';
+import { URL } from 'url';
 
 import { ClusterClient, ShardClient } from 'detritus-client';
-import { ActivityTypes, ClientEvents, PresenceStatuses, SocketStates } from 'detritus-client/lib/constants';
+import {
+  ActivityTypes,
+  ClientEvents,
+  PresenceStatuses,
+  SocketGatewayCloseCodes,
+  SocketStates,
+} from 'detritus-client/lib/constants';
 
 import { deleteCommandsResponses } from './api';
 import { NotSoCommandClient } from './commandclient';
@@ -11,6 +18,15 @@ import { COMMAND_EDIT_DURATION, DiscordReactionEmojis } from './constants';
 import { NotSoInteractionClient } from './interactioncommandclient';
 import { connectAllListeners } from './listeners';
 import { incrementCounter } from './metrics';
+import {
+  SentryCommandContext,
+  captureError,
+  captureRestResponse,
+  captureUnhandledError,
+  connectCommandErrorReporting,
+  getCommandContext,
+  initSentry,
+} from './sentry';
 import { connectAllStores } from './stores';
 
 
@@ -20,26 +36,13 @@ setGlobalDispatcher(new Agent({
   allowH2: false,
 }));
 
-if (process.env.SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    // the process handlers below capture these themselves, sentry's own would double report them (and they only exist
-    // when a dsn is set)
-    integrations: (integrations) => {
-      return integrations.filter((integration) => {
-        return integration.name !== 'OnUncaughtException' && integration.name !== 'OnUnhandledRejection';
-      });
-    },
-  });
-}
+initSentry('cluster');
 
 // without a handler node kills the whole cluster (and its 8 shards) on any stray rejection, so log + report and keep going
 process.on('unhandledRejection', (reason) => {
   console.error('Unhandled Rejection', reason);
   incrementCounter('notsobot_unhandled_rejections_total', {});
-  if (Sentry.isInitialized()) {
-    Sentry.captureException(reason);
-  }
+  captureUnhandledError(reason, 'onunhandledrejection');
 });
 
 // a thrown exception can leave things half updated (gateway sockets, caches, timers), so report it and exit, the
@@ -51,19 +54,24 @@ process.on('uncaughtException', async (error) => {
     return;
   }
   isExitingFromException = true;
-  if (Sentry.isInitialized()) {
-    Sentry.captureException(error);
-    try {
-      await Sentry.flush(2000);
-    } catch(e) {
+  captureUnhandledError(error, 'onuncaughtexception');
+  try {
+    await Sentry.flush(2000);
+  } catch(e) {
 
-    }
   }
   process.exit(1);
 });
 
-// expected rest errors (missing/deleted things, no permissions, ratelimits the lib retries) aren't worth a sentry event
-const SENTRY_IGNORED_REST_STATUSES = [403, 404, 429];
+// closes we can't recover from by reconnecting (bad token, bad shard/intent setup), anything else is a normal reconnect
+const FATAL_GATEWAY_CLOSE_CODES: ReadonlyArray<number> = [
+  SocketGatewayCloseCodes.AUTHENTICATION_FAILED,
+  SocketGatewayCloseCodes.INVALID_SHARD,
+  SocketGatewayCloseCodes.SHARDING_REQUIRED,
+  SocketGatewayCloseCodes.INVALID_VERSION,
+  SocketGatewayCloseCodes.INVALID_INTENTS,
+  SocketGatewayCloseCodes.DISALLOWED_INTENTS,
+];
 
 const cluster = new ClusterClient('', {
   cache: {
@@ -94,6 +102,17 @@ const cluster = new ClusterClient('', {
   } else {
     process.title = `S:(${cluster.shardStart}-${cluster.shardEnd})`;
   }
+  Sentry.setTags({cluster_id: cluster.clusterId, shards: `${cluster.shardStart}-${cluster.shardEnd}`});
+
+  // the request is made from the command's run, the response can come back from a ratelimit bucket's queue that another
+  // request started, so the command is remembered per request
+  const restRequestCommandContexts = new WeakMap<object, SentryCommandContext>();
+  cluster.on(ClientEvents.REST_REQUEST, ({restRequest}) => {
+    const context = getCommandContext();
+    if (context) {
+      restRequestCommandContexts.set(restRequest, context);
+    }
+  });
 
   cluster.on(ClientEvents.REST_RESPONSE, async ({response, restRequest, shard}) => {
     const route = response.request.route;
@@ -103,14 +122,25 @@ const cluster = new ClusterClient('', {
       } else {
         const message = `Shard #${shard.shardId}: (NOT OK) ${response.statusCode} ${response.request.method}-${response.request.url} (${route.path})`;
         console.log(message);
+        let body: string = '';
         try {
-          console.log(await response.text());
+          body = await response.text();
+          console.log(body);
         } catch(error) {
 
         }
-        if (!SENTRY_IGNORED_REST_STATUSES.includes(response.statusCode)) {
-          Sentry.captureException(new Error(message));
-        }
+        // our api goes through the same rest client, with its own url
+        const { baseUrl } = shard.rest.raw.restClient;
+        captureRestResponse({
+          body,
+          context: restRequestCommandContexts.get(restRequest),
+          isNotSoBotApi: !(baseUrl instanceof URL && baseUrl.host === response.request.parsedUrl.host),
+          method: response.request.method,
+          route: route.path,
+          shardId: shard.shardId,
+          status: response.statusCode,
+          url: response.request.url.href,
+        });
       }
     }
   });
@@ -121,14 +151,25 @@ const cluster = new ClusterClient('', {
     shard.gateway.on('state', ({state}) => {
       const message = `Shard #${shardId} - ${state}`;
       console.log(message);
-      if (state === SocketStates.IDENTIFYING) {
-        Sentry.captureMessage(message, 'log');
-      }
+      // breadcrumbs instead of events, they show up on whatever error happens next
+      Sentry.addBreadcrumb({
+        category: 'gateway',
+        data: {shard_id: shardId, state},
+        // a fresh identify means the session couldn't be resumed
+        level: (state === SocketStates.IDENTIFYING) ? 'warning' : 'info',
+        message,
+      });
     });
     shard.gateway.on('close', ({code, reason}) => {
       const message = `Shard #${shardId} closed - ${code}, ${reason}`;
       console.log(message);
-      Sentry.captureMessage(message, 'debug');
+      Sentry.addBreadcrumb({category: 'gateway', data: {code, reason, shard_id: shardId}, level: 'warning', message});
+      if (FATAL_GATEWAY_CLOSE_CODES.includes(code)) {
+        captureError(new Error(`Gateway closed with ${code}, ${reason}`), {
+          fingerprint: ['gateway-close', String(code)],
+          tags: {'gateway.close_code': code, shard_id: shardId},
+        });
+      }
     });
 
     /*
@@ -145,7 +186,7 @@ const cluster = new ClusterClient('', {
   });
 
   cluster.on(ClientEvents.WARN, ({error}) => {
-    Sentry.captureException(error);
+    captureError(error, {level: 'warning', tags: {source: 'cluster.warn'}});
   });
 
   /*
@@ -181,6 +222,7 @@ const cluster = new ClusterClient('', {
         ],
       });
       connectCommandResults(notSoCommandBot);
+      connectCommandErrorReporting(notSoCommandBot);
 
       notSoCommandBot.on(ClientEvents.COMMAND_RAN, async ({command, context}) => {
         // log channelId, command.name, content, messageId, context.metadata.referenceId, userId
@@ -219,6 +261,7 @@ const cluster = new ClusterClient('', {
     {
       const notSoInteractionBot = new NotSoInteractionClient(cluster);
       connectCommandResults(notSoInteractionBot);
+      connectCommandErrorReporting(notSoInteractionBot);
       await notSoInteractionBot.addMultipleIn('./commands/interactions');
       for (let x of notSoInteractionBot.getOversizedCommands()) {
         console.error(`${shardsText} - /${x.name} (#${x.index}) is too big to upload, ${x.size.toLocaleString()} characters`);
@@ -229,5 +272,6 @@ const cluster = new ClusterClient('', {
   } catch(error) {
     console.log(error);
     console.log(error.errors);
+    captureError(error, {tags: {source: 'cluster.startup'}});
   }
 })();

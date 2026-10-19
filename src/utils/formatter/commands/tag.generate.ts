@@ -1,5 +1,3 @@
-import * as Sentry from '@sentry/node';
-
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
@@ -9,6 +7,7 @@ import UserSettingsStore from '../../../stores/usersettings';
 import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError, utilitiesFetchText } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
+import { captureError } from '../../../sentry';
 import { Paginator, Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
 
 import { getTranslator } from '../../i18n';
@@ -228,21 +227,16 @@ export async function createMessage(
       }
     }
 
-    Sentry.withScope((scope) => {
-      scope.setUser({ id: context.userId });
-      scope.setTags({
-        channelId: context.channelId,
-        guildId: context.guildId,
-        model: response.model,
-        ...response.usage,
-      });
-      scope.setExtras({
-        prompt: args.prompt,
+    captureError(error, {
+      context,
+      // the prompt and result stay in our db with the generated tag, look them up by its id instead of copying them to sentry
+      extra: {
+        generated_tag_id: response.id,
         prompt_complexity_level: response.prompt_complexity_level,
-        result: response.text,
         took: Date.now() - now,
-      });
-      Sentry.captureException(error);
+        usage: response.usage,
+      },
+      tags: {model: response.model},
     });
 
     return editOrReply(context, {

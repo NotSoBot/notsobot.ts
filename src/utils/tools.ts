@@ -43,7 +43,7 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
-import { getTranslator, randomThinkingKey } from './i18n';
+import { getTranslator, randomThinkingText } from './i18n';
 
 import { Endpoints, deleteJob, fetchJob, moderationSafetyScan, moderationTextScan, utilitiesFetchMedia } from '../api';
 import { JobError } from '../api/errors';
@@ -400,21 +400,26 @@ function isURLTrusted(value: string): boolean {
 export interface FindMediaUrlOptions {
   audio?: boolean,
   image?: boolean,
-  // leave out `.veg` attachments, for commands that take one next to the media (tags still get them as FILE_n)
-  skipVeg?: boolean,
+  // leave out attachments with these extensions (`.veg`, `.cube`), for commands that take one next to the media (tags
+  // still get them as FILE_n)
+  skipFiles?: Array<string>,
   text?: boolean,
   video?: boolean,
 }
 
 
-export function isVegAttachment(attachment: Structures.Attachment): boolean {
-  return !!attachment.filename && attachment.filename.toLowerCase().endsWith('.veg');
+export function isFileAttachment(attachment: Structures.Attachment, extensions?: Array<string>): boolean {
+  if (!extensions || !attachment.filename) {
+    return false;
+  }
+  const filename = attachment.filename.toLowerCase();
+  return extensions.some((extension) => filename.endsWith(extension));
 }
 
 
-export function findVegUrlInMessage(message: Structures.Message): null | string {
+export function findFileUrlInMessage(message: Structures.Message, extension: string): null | string {
   for (let [attachmentId, attachment] of message.attachments) {
-    if (isVegAttachment(attachment)) {
+    if (isFileAttachment(attachment, [extension])) {
       return attachment.url || attachment.proxyUrl || null;
     }
   }
@@ -426,7 +431,7 @@ export function findMediaUrlInAttachment(
   attachment: Structures.Attachment,
   options?: FindMediaUrlOptions,
 ): null | string {
-  if (options && options.skipVeg && isVegAttachment(attachment)) {
+  if (options && isFileAttachment(attachment, options.skipFiles)) {
     return null;
   }
   const findAudio = (!options || options.audio || options.audio === undefined);
@@ -1611,6 +1616,20 @@ export function formatTime(ms: number, options: FormatTimeOptions = {}): string 
 }
 
 
+// a length of time in words (`7 days`, `1 hour, 30 minutes`) in the given language, zero units are left out
+export function formatDuration(ms: number, language: string): string {
+  const seconds = Math.max(Math.round(ms / 1000), 0);
+  const duration = {
+    days: Math.floor(seconds / 86400),
+    hours: Math.floor(seconds / 3600) % 24,
+    minutes: Math.floor(seconds / 60) % 60,
+    seconds: seconds % 60,
+  };
+  // without any units it would be an empty string
+  return new Intl.DurationFormat(language, {style: 'long', secondsDisplay: (seconds) ? 'auto' : 'always'}).format(duration);
+}
+
+
 export function generateCodeFromLanguage(
   language: CodeLanguages | null,
   code: string,
@@ -1897,7 +1916,7 @@ export async function jobReply(
   const { translate } = await getTranslator(context);
   let message: Structures.Message | void;
   try {
-    message = await editOrReply(context, translate(randomThinkingKey()));
+    message = await editOrReply(context, randomThinkingText(translate));
   } catch(error) {
     untrackJob(context, job.id);
     cancelJob(context, job.id);
@@ -2199,8 +2218,9 @@ export function displayCounts(language: string, counts: Array<[string, number]>)
 
 // masked links on one small line, for the urls at the bottom of informational responses
 // ones without a url are skipped, and repeats (like a game listing the same store twice) only show once
+// urls are wrapped in <> so they don't get link previews when shown as text
 export function displayLinks(links: Array<[string, null | string | undefined]>): string {
-  const text = new Set(links.filter(([, url]) => url).map(([name, url]) => Markup.url(name, url!)));
+  const text = new Set(links.filter(([, url]) => url).map(([name, url]) => Markup.url(name, `<${url}>`)));
   return displayDetailsLine(Array.from(text), true);
 }
 

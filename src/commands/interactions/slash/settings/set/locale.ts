@@ -1,15 +1,10 @@
 import { Interaction } from 'detritus-client';
 import { MessageFlags } from 'detritus-client/lib/constants';
 
-import { GoogleLocales } from '../../../../../constants';
 import { Formatter, I18n, Parameters, editOrReply } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
-
-export interface CommandArgs {
-  language: GoogleLocales,
-}
 
 export class SettingsSetLocaleCommand extends BaseInteractionCommandOption {
   description = 'Set your default language for the bot.';
@@ -24,9 +19,9 @@ export class SettingsSetLocaleCommand extends BaseInteractionCommandOption {
     super({
       options: [
         {
-          name: 'language',
+          name: 'locale',
           description: 'Language',
-          ...I18n.optionLocalizations('commands.settings.set.locale.language'),
+          ...I18n.optionLocalizations('commands.settings.set.locale.locale'),
           value: Parameters.locale,
           onAutoComplete: Parameters.AutoComplete.googleLocales,
         },
@@ -40,7 +35,7 @@ export class SettingsSetLocaleCommand extends BaseInteractionCommandOption {
     });
   }
 
-  async run(context: Interaction.InteractionContext, args: CommandArgs) {
-    return Formatter.Commands.SettingsSetLocale.createMessage(context, {locale: args.language});
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.SettingsSetLocale.CommandArgs) {
+    return Formatter.Commands.SettingsSetLocale.createMessage(context, args);
   }
 }

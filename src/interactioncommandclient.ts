@@ -1,4 +1,4 @@
-import { InteractionCommandClient, Interaction } from 'detritus-client';
+import { InteractionCommandClient, Interaction, Structures } from 'detritus-client';
 import { InteractionCallbackTypes, MessageFlags } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
@@ -20,6 +20,7 @@ import {
 } from './constants';
 import { Formatter, I18n, editOrReply, getCommandIdFromInvoker, isGuildListCommandId } from './utils';
 import { CommandResults, setCommandResult } from './commandresults';
+import { runWithCommandContext } from './sentry';
 
 
 // discord's limit for a whole command (names, descriptions and choice values of it, its options and its choices)
@@ -70,6 +71,13 @@ export class NotSoInteractionClient extends InteractionCommandClient {
       index++;
     }
     return oversized;
+  }
+
+  async handleApplicationCommandContext(
+    context: Interaction.InteractionContext,
+    data: Structures.InteractionDataApplicationCommand,
+  ) {
+    return runWithCommandContext(context, () => super.handleApplicationCommandContext(context, data));
   }
 
   async onCommandCheck(context: Interaction.InteractionContext, command: Interaction.InteractionCommand) {

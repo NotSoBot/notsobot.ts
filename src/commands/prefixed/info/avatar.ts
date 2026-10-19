@@ -16,7 +16,7 @@ export default class AvatarCommand extends BaseCommand {
       args: [
         {name: 'default', type: Boolean},
       ],
-      default: DefaultParameters.author,
+      default: DefaultParameters.authorOrReplyAuthor(),
       label: 'user',
       metadata: {
         category: CommandCategories.INFO,

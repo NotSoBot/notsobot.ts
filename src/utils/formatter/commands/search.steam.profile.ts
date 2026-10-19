@@ -44,7 +44,7 @@ export async function createMessage(
   const lines: Array<string> = [translate('search_steam_profile.currently', {state_message: profile.state_message})];
   if (profile.in_game) {
     lines.push(displayDetailsLine([
-      translate('search_steam_profile.game', {name: Markup.url(profile.in_game.name, profile.in_game.url)}),
+      translate('search_steam_profile.game', {name: Markup.url(profile.in_game.name, `<${profile.in_game.url}>`)}),
       (profile.in_game_ip) && translate('search_steam_profile.server_ip', {in_game_ip: Markup.codestring(profile.in_game_ip)}),
       (profile.in_game.join_link) && translate('search_steam_profile.server_link', {join_link: profile.in_game.join_link}),
     ]));

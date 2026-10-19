@@ -1,6 +1,7 @@
 import { Command, Interaction, ShardClient } from 'detritus-client';
 import { ComponentContext } from 'detritus-client/lib/utils';
 
+import { DiscordEmojis } from '../../constants';
 import GuildSettingsStore from '../../stores/guildsettings';
 import UserSettingsStore from '../../stores/usersettings';
 
@@ -202,6 +203,11 @@ const THINKING_KEYS = (Object.keys(English) as Array<TranslationKey>).filter((ke
 // the "still processing" reply, a different phrase each time so slow commands don't all say the same thing
 export function randomThinkingKey(): TranslationKey {
   return THINKING_KEYS[Math.floor(Math.random() * THINKING_KEYS.length)];
+}
+
+// every translation ends its phrase in "...", which gets swapped for the animated typing dots
+export function randomThinkingText(translate: Translator['translate']): string {
+  return translate(randomThinkingKey()).replace(/\s*(\.\.\.|…)$/, ` ${DiscordEmojis.TYPING}`);
 }
 
 

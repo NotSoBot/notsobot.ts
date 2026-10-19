@@ -11,7 +11,7 @@ import {
 } from 'detritus-client/lib/utils';
 
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
-import { getCachedTranslator, getTranslator, randomThinkingKey } from '../../i18n';
+import { getCachedTranslator, getTranslator, randomThinkingText } from '../../i18n';
 
 import { createTagUse, editTag, fetchFileVanity } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
@@ -57,7 +57,7 @@ export async function parseTag(
   const timeout = setTimeout(() => {
     thinking = (async () => {
       const { translate } = await getTranslator(context);
-      await editOrReply(context, translate(randomThinkingKey()));
+      await editOrReply(context, randomThinkingText(translate));
     })().catch(() => {
       // the trigger was edited/deleted or the channel can't be replied in, the tag's own reply will deal with it
     });

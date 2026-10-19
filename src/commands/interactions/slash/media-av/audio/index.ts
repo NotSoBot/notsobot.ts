@@ -13,12 +13,14 @@ import { MediaAVAudioEqualizerCommand } from './equalizer';
 import { MediaAVAudioFlangerCommand } from './flanger';
 import { MediaAVToolsIdentifyCommand } from './identify';
 import { MediaAVAudioMultiPitchCommand } from './multipitch';
+import { MediaAVAudioPaulstretchCommand } from './paulstretch';
 import { MediaAVAudioPitchCommand } from './pitch';
 import { MediaAVAudioReverbCommand } from './reverb';
 import { MediaAVAudioReverseCommand } from './reverse';
 import { MediaAVAudioTremoloCommand } from './tremolo';
 import { MediaAVAudioVibratoCommand } from './vibrato';
 import { MediaAVAudioVocoderCommand } from './vocoder';
+import { MediaAVAudioVocoderChordCommand } from './vocoder-chord';
 import { MediaAVAudioVolumeCommand } from './volume';
 
 
@@ -40,12 +42,14 @@ export class MediaAVAudioGroupCommand extends BaseInteractionCommandOptionGroup 
           new MediaAVAudioFlangerCommand(),
           new MediaAVToolsIdentifyCommand(),
           new MediaAVAudioMultiPitchCommand(),
+          new MediaAVAudioPaulstretchCommand(),
           new MediaAVAudioPitchCommand(),
           new MediaAVAudioReverbCommand(),
           new MediaAVAudioReverseCommand(),
           new MediaAVAudioTremoloCommand(),
           new MediaAVAudioVibratoCommand(),
           new MediaAVAudioVocoderCommand(),
+          new MediaAVAudioVocoderChordCommand(),
           new MediaAVAudioVolumeCommand(),
 	    ],
 	  });

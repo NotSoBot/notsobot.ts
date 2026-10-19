@@ -12,7 +12,7 @@ export const COMMAND_NAME = 'veg';
 // the label is `payload` instead of the media command's `url`, both are here so the hooks below can override its own
 export interface CommandArgsBefore {
   nocutoff?: boolean,
-  payload?: Parameters.VegPayload,
+  payload?: Parameters.FilePayload,
   url?: null | string,
 }
 
@@ -36,12 +36,12 @@ export default class VegCommand extends BaseMediaCommand {
         id: Formatter.Commands.MediaAIVManipulationVeg.COMMAND_ID,
         usage: '<.veg url or attachment> ?<emoji,user:id|mention|name,url> (-nocutoff)',
       },
-      type: Parameters.vegPayload(),
+      type: Parameters.filePayload('.veg'),
     });
   }
 
   onBeforeRun(context: Command.Context, args: CommandArgsBefore) {
-    const { url, veg } = args.payload || {};
+    const { file: veg, url } = args.payload || {};
     if (url) {
       context.metadata = Object.assign({}, context.metadata, {contentUrl: url});
     }
@@ -49,7 +49,7 @@ export default class VegCommand extends BaseMediaCommand {
   }
 
   async onCancelRun(context: Command.Context, args: CommandArgsBefore) {
-    const { url, veg } = args.payload || {};
+    const { file: veg, url } = args.payload || {};
     if (!veg) {
       const { translate } = await I18n.getTranslator(context);
       return replyWarning(context, translate('errors.no_veg_found'));
@@ -58,7 +58,7 @@ export default class VegCommand extends BaseMediaCommand {
   }
 
   async run(context: Command.Context, args: CommandArgsBefore) {
-    const { url, veg } = args.payload!;
+    const { file: veg, url } = args.payload!;
     return Formatter.Commands.MediaAIVManipulationVeg.createMessage(context, {
       cutoff: !args.nocutoff,
       url: url!,

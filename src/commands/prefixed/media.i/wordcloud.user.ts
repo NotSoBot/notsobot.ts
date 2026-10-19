@@ -18,7 +18,7 @@ export default class WordcloudUserCommand extends BaseCommand {
         {name: 'before', type: Parameters.snowflake},
         {name: 'max', default: 500, type: Parameters.number({max: 1000, min: 1}), metadata: {description: '1 to 1000'}},
       ],
-      default: DefaultParameters.author,
+      default: DefaultParameters.authorOrReplyAuthor(),
       label: 'user',
       metadata: {
         category: CommandCategories.EFFECTS,

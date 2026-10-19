@@ -44,7 +44,7 @@ export async function createMessage(
 
     return displayReply(context, {
       color: Colors.BLURPLE,
-      description: `[**${translate('info.guild.icon_url')}**](${guild.iconUrl})`,
+      description: `[**${translate('info.guild.icon_url')}**](<${guild.iconUrl}>)`,
       image: url,
       title: guild.name,
       url: guild.jumpLink,

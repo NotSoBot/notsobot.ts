@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, EmbedColors, PermissionsText, StatusEmojis } from '../../../constants';
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatUserTag } from '../../../utils';
+import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -73,13 +73,15 @@ export async function createMessage(
   // end of a long reason gets cut off)
   const createReason = (translator: Translator): string => {
     const description: Array<string> = [];
-    description.push(translator.translate('moderation_kick.admin', {user: formatUserTag(context.user), user2: context.user.id}));
+    description.push(translator.translate('moderation_kick.moderator', {user: formatUserTag(context.user), user2: context.user.id}));
     {
       const timestamp = createTimestampMomentFromGuild(Date.now(), context.guildId);
-      description.push(translator.translate('moderation_kick.timestamp', {timestamp: timestamp.format(DateMomentLogFormat)}));
+      description.push(translator.translate('moderation_kick.date', {timestamp: timestamp.format(DateMomentLogFormat)}));
     }
     if (deleteMessageSeconds) {
-      description.push(((deleteMessageSeconds === 1) ? translator.translate('moderation_kick.type_kick_w_message_cleaning_of_second_one', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(translator.language)}) : translator.translate('moderation_kick.type_kick_w_message_cleaning_of_seconds_other', {deleteMessageSeconds: deleteMessageSeconds.toLocaleString(translator.language)})));
+      // the audit log only shows a ban and an unban for these, so say it was a kick
+      description.push(translator.translate('moderation_kick.type_kick_cleaning'));
+      description.push(translator.translate('moderation_kick.message_cleaning', {duration: formatDuration(deleteMessageSeconds * 1000, translator.language)}));
     }
     description.push(translator.translate('moderation_kick.reason', {text: payload.text || translator.translate('moderation.unspecified_reason')}));
     return description.join('\n').slice(0, 512);
@@ -98,7 +100,7 @@ export async function createMessage(
         await member.createMessage([
           dm.translate('moderation_kick.you_have_been_kicked_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
           '',
-          dm.translate('moderation_kick.information', {reason: Markup.codeblock(dmReason)}),
+          dm.translate('moderation_kick.details', {reason: Markup.codeblock(dmReason)}),
         ].join('\n'));
       } catch(error) {
         // maybe log this?

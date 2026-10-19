@@ -136,7 +136,7 @@ export function createActivityLines(
 
   let emoji: string | null = null;
   if (activity.emoji) {
-    emoji = (activity.emoji.id) ? Markup.url(activity.emoji.format, activity.emoji.url) : activity.emoji.format;
+    emoji = (activity.emoji.id) ? Markup.url(activity.emoji.format, `<${activity.emoji.url}>`) : activity.emoji.format;
   }
 
   if (activity.isCustomStatus) {

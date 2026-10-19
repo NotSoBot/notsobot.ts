@@ -14,7 +14,7 @@ export default class UnbanCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      default: null,
+      default: Parameters.banPayloadDefault,
       disableDm: true,
       label: 'payload',
       metadata: {

@@ -30,6 +30,7 @@ import {
 } from '../../api';
 import { CDN, CUSTOM } from '../../api/endpoints';
 import { RestResponsesRaw } from '../../api/types';
+import { captureCommandError } from '../../sentry';
 import {
   GoogleLocales,
   GoogleLocalesText,
@@ -48,6 +49,7 @@ import {
   durationToMilliseconds,
   fetchMemberOrUserById,
   fetchMessageFromJumpLink,
+  findFileUrlInMessage,
   findMediaUrlInEmbed,
   findMediaUrlInMessage,
   findMediaUrlsInMessage,
@@ -57,13 +59,12 @@ import {
   findMembersByChunkText,
   findUrlInMessages,
   findUrlsInMessages,
-  findVegUrlInMessage,
   getOrFetchRealUrl,
   getOrFetchRealUrls,
   getTimezoneAbbreviation,
   getTimezoneFromContext,
+  isFileAttachment,
   isSnowflake,
-  isVegAttachment,
   jobWaitForResult,
   parseTagDirectoryUrl,
   searchTimezones,
@@ -690,8 +691,6 @@ export async function url(
 
 /* NotSoBot Stuff */
 
-import * as Sentry from '@sentry/node';
-
 export async function NotSoTag(
   value: string,
   context: Command.Context | Interaction.InteractionContext,
@@ -718,7 +717,7 @@ export async function NotSoTag(
       if (error.response && error.response.statusCode === 404) {
         return false;
       }
-      Sentry.captureException(error);
+      captureCommandError(context, error, 'parameter');
       throw error;
     }
   }
@@ -876,7 +875,7 @@ export async function tagToGet(
       if (error.response && error.response.statusCode === 404) {
         return false;
       }
-      Sentry.captureException(error);
+      captureCommandError(context, error, 'parameter');
       throw error;
     }
   }
@@ -928,7 +927,7 @@ export async function tagToAddToDirectory(
       if (error.response && error.response.statusCode === 404) {
         return false;
       }
-      Sentry.captureException(error);
+      captureCommandError(context, error, 'parameter');
       throw error;
     }
   }
@@ -978,7 +977,7 @@ export async function tagFromDirectoryToEdit(
       if (error.response && error.response.statusCode === 404) {
         return false;
       }
-      Sentry.captureException(error);
+      captureCommandError(context, error, 'parameter');
       throw error;
     }
   }
@@ -2362,7 +2361,7 @@ export function lastMediaUrl(
   return async (value: string, context: Command.Context | Interaction.InteractionContext) => {
     if (context instanceof Interaction.InteractionContext) {
       if (context.data.resolved && context.data.resolved.attachments && context.data.resolved.attachments) {
-        const attachment = context.data.resolved.attachments.find((x) => !(mediaSearchOptions.skipVeg && isVegAttachment(x)));
+        const attachment = context.data.resolved.attachments.find((x) => !isFileAttachment(x, mediaSearchOptions.skipFiles));
         if (attachment) {
           return attachment.url;
         }
@@ -2377,35 +2376,40 @@ export function lastMediaUrl(
 }
 
 
-export interface VegPayload {
+export interface FilePayload {
+  // the non media file's url (the `.veg`, `.cube`)
+  file?: null | string,
   url?: null | string,
-  veg?: null | string,
 }
 
-// `veg <veg url> <media>`, a `.veg` attachment (on the message or the one it replies to) takes the leading url's place
-export function vegPayload(): (x: string, context: Command.Context) => Promise<VegPayload> {
-  const customLastMediaUrl = lastMediaUrl({skipVeg: true});
+// `veg <veg url> <media>`, an attachment with `extension` (on the message or the one it replies to) takes the leading
+// url's place
+export function filePayload(
+  extension: string,
+  mediaSearchOptions: FindMediaUrlOptions = {},
+): (x: string, context: Command.Context) => Promise<FilePayload> {
+  const customLastMediaUrl = lastMediaUrl({...mediaSearchOptions, skipFiles: [extension]});
 
   return async (value: string, context: Command.Context) => {
-    let veg = findVegUrlInMessage(context.message);
-    if (!veg) {
+    let file = findFileUrlInMessage(context.message, extension);
+    if (!file) {
       const message = await fetchReplyMessage(context);
       if (message) {
-        veg = findVegUrlInMessage(message);
+        file = findFileUrlInMessage(message, extension);
       }
     }
 
-    if (!veg && value) {
+    if (!file && value) {
       const [ first, ...rest ] = value.trim().split(/\s+/);
       const { matches } = discordRegex(DiscordRegexNames.TEXT_URL, first) as {matches: Array<{text: string}>};
       if (matches.length) {
-        veg = matches[0].text;
+        file = matches[0].text;
         value = rest.join(' ');
       }
     }
 
     const url = await customLastMediaUrl(value, context);
-    return {url, veg};
+    return {file, url};
   };
 }
 

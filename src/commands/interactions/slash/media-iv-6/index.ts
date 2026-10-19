@@ -10,6 +10,7 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaIVMemeGroupCommand } from './meme';
 import { MediaIVMeme2GroupCommand } from './meme-2';
+import { MediaMood6GroupCommand } from './mood';
 
 
 export default class MediaIV6GroupCommand extends BaseSlashCommand {
@@ -33,6 +34,7 @@ export default class MediaIV6GroupCommand extends BaseSlashCommand {
       options: [
         new MediaIVMemeGroupCommand(),
         new MediaIVMeme2GroupCommand(),
+        new MediaMood6GroupCommand(),
       ],
     });
   }

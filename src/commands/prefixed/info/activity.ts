@@ -14,7 +14,7 @@ export default class ActivityCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['presence'],
-      default: DefaultParameters.author,
+      default: DefaultParameters.authorOrReplyAuthor(),
       label: 'user',
       metadata: {
         description: 'Get a user\'s current activity, defaults to self',

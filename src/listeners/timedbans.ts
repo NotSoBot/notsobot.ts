@@ -9,7 +9,7 @@ import { deleteGuildTimedBan, deleteGuildTimedBans, fetchTimedBans } from '../ap
 import { RestResponsesRaw } from '../api/types';
 import { DateMomentLogFormat, RedisChannels, SNOWFLAKE_EPOCH } from '../constants';
 import { ApiEventsSpewer, ApiEventsSpewerEvents } from '../apievents';
-import { createTimestampMomentFromGuild, formatTime, formatUserTag } from '../utils';
+import { createTimestampMomentFromGuild, formatDuration, formatUserTag } from '../utils';
 import { Translator, getTranslatorForGuildId } from '../utils/i18n';
 
 
@@ -149,7 +149,7 @@ class TimedBanScheduler extends Listener {
 
   async createReason(shard: ShardClient, timedBan: RestResponsesRaw.TimedBan): Promise<string> {
     // in the server's language since the whole server sees it, laid out like the ban's own reason
-    const { translate } = await getTranslatorForGuildId({client: shard}, timedBan.guild_id);
+    const { language, translate } = await getTranslatorForGuildId({client: shard}, timedBan.guild_id);
     let moderator = shard.users.get(timedBan.moderator_id);
     if (!moderator) {
       // cluster 0 only has its own servers' users cached
@@ -158,11 +158,11 @@ class TimedBanScheduler extends Listener {
       } catch(error) {}
     }
     const description: Array<string> = [];
-    description.push(translate('moderation_ban.admin', {
+    description.push(translate('moderation_ban.moderator', {
       user: (moderator) ? formatUserTag(moderator) : timedBan.moderator_id,
       user2: timedBan.moderator_id,
     }));
-    description.push(translate('moderation_ban.timestamp', {
+    description.push(translate('moderation_ban.date', {
       timestamp: createTimestampMomentFromGuild(Date.now(), timedBan.guild_id).format(DateMomentLogFormat),
     }));
     {
@@ -170,8 +170,8 @@ class TimedBanScheduler extends Listener {
       // picked a few ms before the id was made)
       const bannedAt = Snowflake.timestamp(timedBan.id, {epoch: SNOWFLAKE_EPOCH});
       const duration = Math.round((Date.parse(timedBan.timestamp_end) - bannedAt) / 1000) * 1000;
-      description.push(translate('timed_bans.type_expired', {
-        duration: formatTime(Math.max(duration, 0)),
+      description.push(translate('timed_bans.expired', {
+        duration: formatDuration(duration, language),
         timestamp: createTimestampMomentFromGuild(bannedAt, timedBan.guild_id).format(DateMomentLogFormat),
       }));
     }
@@ -182,7 +182,7 @@ class TimedBanScheduler extends Listener {
   }
 
   // the reason isn't saved with the timed ban, so it comes from the ban's audit log reason that the ban command wrote
-  // (`Admin: ...\nTimestamp: ...\nType: ...\nReason: {text}`, the text last)
+  // (`Moderator: ...\nDate: ...\nDuration: ...\nReason: {text}`, the text last)
   async fetchBanReason(shard: ShardClient, timedBan: RestResponsesRaw.TimedBan, translate: Translator['translate']): Promise<string | null> {
     let reason: string | null = null;
     try {

@@ -24,7 +24,6 @@ import { MediaIVQuadartCommand } from './quadart';
 import { MediaIVRGBSplitCommand } from './rgb-split';
 import { MediaIVRippleCommand } from './ripple';
 import { MediaIVScrambleCommand } from './scramble';
-import { MediaIVSmileCommand } from './smile';
 import { MediaIVStretchCommand } from './stretch';
 import { MediaIVTriggeredCommand } from './triggered';
 // rip command
@@ -60,7 +59,6 @@ export class MediaFunGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVRGBSplitCommand(),
         new MediaIVRippleCommand(),
         new MediaIVScrambleCommand(),
-        new MediaIVSmileCommand(),
         new MediaIVStretchCommand(),
         new MediaIVTriggeredCommand(),
       ],

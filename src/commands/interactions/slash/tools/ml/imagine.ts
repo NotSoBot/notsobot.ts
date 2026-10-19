@@ -11,6 +11,7 @@ export class ToolsMLImagineCommand extends BaseInteractionCommandOption {
   description = 'Generate an Image based off a prompt';
   descriptionLocalizations = I18n.localizations('commands.tools.ml.imagine.description');
   metadata = {
+    credits: Formatter.Commands.ToolsMLImagine.CREDITS,
     id: Formatter.Commands.ToolsMLImagine.COMMAND_ID,
   };
   name = 'imagine';

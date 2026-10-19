@@ -55,6 +55,8 @@ import * as MediaAVManipulationAudioEqualizer from './media.av.manipulation.audi
 import * as MediaAVManipulationAudioFlanger from './media.av.manipulation.audio.flanger';
 import * as MediaAVManipulationAudioMultiPitch from './media.av.manipulation.audio.multipitch';
 import * as MediaAVManipulationAudioVocoder from './media.av.manipulation.audio.vocoder';
+import * as MediaAVManipulationAudioVocoderChord from './media.av.manipulation.audio.vocoder.chord';
+import * as MediaAVManipulationAudioPaulstretch from './media.av.manipulation.audio.paulstretch';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
 import * as MediaAVManipulationAudioReverb from './media.av.manipulation.audio.reverb';
 import * as MediaAVManipulationAudioReverse from './media.av.manipulation.audio.reverse';
@@ -67,29 +69,33 @@ import * as MediaAVManipulationStammer from './media.av.manipulation.stammer';
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
 import * as MediaAVToolsIdentify from './media.av.tools.identify';
 
+import * as MediaICreateEinstein from './media.i.create.einstein';
+import * as MediaICreateFoggyWindow from './media.i.create.foggy.window';
 import * as MediaICreateHacker from './media.i.create.hacker';
+import * as MediaICreateNeon from './media.i.create.neon';
 import * as MediaICreatePresidential from './media.i.create.presidential';
 import * as MediaICreateRealfact from './media.i.create.realfact';
 import * as MediaICreateRetrowave from './media.i.create.retrowave';
+import * as MediaICreateSnowWriting from './media.i.create.snow.writing';
 import * as MediaICreateSonic from './media.i.create.sonic';
+import * as MediaICreateSoup from './media.i.create.soup';
 import * as MediaICreateThonkify from './media.i.create.thonkify';
 import * as MediaICreateTombstone from './media.i.create.tombstone';
+import * as MediaICreateTreeCarving from './media.i.create.tree.carving';
+import * as MediaICreateWoodenSign from './media.i.create.wooden.sign';
 import * as MediaICreateWordcloudChannel from './media.i.create.wordcloud.channel';
 import * as MediaICreateWordcloudUser from './media.i.create.wordcloud.user';
+import * as MediaICreateYacht from './media.i.create.yacht';
 
-import * as MediaIManipulationBill from './media.i.manipulation.bill';
-import * as MediaIManipulationBurn from './media.i.manipulation.burn';
-import * as MediaIManipulationFaceAlien from './media.i.manipulation.face.alien';
-import * as MediaIManipulationFaceAnime from './media.i.manipulation.face.anime';
-import * as MediaIManipulationFaceClown from './media.i.manipulation.face.clown';
-import * as MediaIManipulationFaceFat from './media.i.manipulation.face.fat';
-import * as MediaIManipulationLatte from './media.i.manipulation.latte';
 
 import * as MediaIVManipulationAcid from './media.iv.manipulation.acid';
 import * as MediaIVManipulationASCII from './media.iv.manipulation.ascii';
+import * as MediaIVManipulationArtistic from './media.iv.manipulation.artistic';
 import * as MediaIVManipulationBackgroundRemove from './media.iv.manipulation.background.remove';
+import * as MediaIVManipulationBill from './media.iv.manipulation.bill';
 import * as MediaIVManipulationBlur from './media.iv.manipulation.blur';
 import * as MediaIVManipulationBlurple from './media.iv.manipulation.blurple';
+import * as MediaIVManipulationBurn from './media.iv.manipulation.burn';
 import * as MediaIVManipulationCaption from './media.iv.manipulation.caption';
 import * as MediaIVManipulationCartoon from './media.iv.manipulation.cartoon';
 import * as MediaIVManipulationCharcoal from './media.iv.manipulation.charcoal';
@@ -133,10 +139,28 @@ import * as MediaIVManipulationEyesSpinner from './media.iv.manipulation.eyes.sp
 import * as MediaIVManipulationEyesSpongebob from './media.iv.manipulation.eyes.spongebob';
 import * as MediaIVManipulationEyesWhite from './media.iv.manipulation.eyes.white';
 import * as MediaIVManipulationEyesYellow from './media.iv.manipulation.eyes.yellow';
+import * as MediaIVManipulationFaceAlien from './media.iv.manipulation.face.alien';
+import * as MediaIVManipulationFaceAnime from './media.iv.manipulation.face.anime';
+import * as MediaIVManipulationFaceClown from './media.iv.manipulation.face.clown';
+import * as MediaIVManipulationFaceFat from './media.iv.manipulation.face.fat';
+import * as MediaIVManipulationFaceFeaturesSwap from './media.iv.manipulation.face.features.swap';
+import * as MediaIVManipulationFaceHalloweenHat from './media.iv.manipulation.face.halloween.hat';
+import * as MediaIVManipulationFaceKnight from './media.iv.manipulation.face.knight';
+import * as MediaIVManipulationFaceLenin from './media.iv.manipulation.face.lenin';
+import * as MediaIVManipulationFaceMonaLisa from './media.iv.manipulation.face.mona.lisa';
+import * as MediaIVManipulationFaceMoodAngry from './media.iv.manipulation.face.mood.angry';
+import * as MediaIVManipulationFaceMoodGrumpy from './media.iv.manipulation.face.mood.grumpy';
+import * as MediaIVManipulationFaceMoodSad from './media.iv.manipulation.face.mood.sad';
+import * as MediaIVManipulationFaceMoodSmug from './media.iv.manipulation.face.mood.smug';
+import * as MediaIVManipulationFaceMoodSurprised from './media.iv.manipulation.face.mood.surprised';
+import * as MediaIVManipulationFaceMountRushmore from './media.iv.manipulation.face.mount.rushmore';
+import * as MediaIVManipulationFaceSwap from './media.iv.manipulation.face.swap';
+import * as MediaIVManipulationFaceXmasCap from './media.iv.manipulation.face.xmas.cap';
 import * as MediaIVManipulationFisheye from './media.iv.manipulation.fisheye';
 import * as MediaIVManipulationFlash from './media.iv.manipulation.flash';
 import * as MediaIVManipulationFlip from './media.iv.manipulation.flip';
 import * as MediaIVManipulationFlop from './media.iv.manipulation.flop';
+import * as MediaIVManipulationGlass from './media.iv.manipulation.glass';
 import * as MediaIVManipulationGlitch from './media.iv.manipulation.glitch';
 import * as MediaIVManipulationGlitchAnimated from './media.iv.manipulation.glitch.animated';
 import * as MediaIVManipulationGlobe from './media.iv.manipulation.globe';
@@ -145,6 +169,7 @@ import * as MediaIVManipulationGold from './media.iv.manipulation.gold';
 import * as MediaIVManipulationGrain from './media.iv.manipulation.grain';
 import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale';
 import * as MediaIVManipulationHueCurveRGBA from './media.iv.manipulation.hue.curve.rgba';
+import * as MediaIVManipulationHueShiftCCS from './media.iv.manipulation.hue.shift.ccs';
 import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
 import * as MediaIVManipulationHueShiftHSVFFMPEG from './media.iv.manipulation.hue.shift.hsv.ffmpeg';
 import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shift.rgb';
@@ -152,7 +177,9 @@ import * as MediaIVManipulationIdentity from './media.iv.manipulation.identity';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationImplodeAnimated from './media.iv.manipulation.implode.animated';
 import * as MediaIVManipulationInOut from './media.iv.manipulation.in.out';
+import * as MediaIVManipulationInstantCamera from './media.iv.manipulation.instant.camera';
 import * as MediaIVManipulationInvert from './media.iv.manipulation.invert';
+import * as MediaIVManipulationInvertLAB from './media.iv.manipulation.invert.lab';
 import * as MediaIVManipulationInvertRGBA from './media.iv.manipulation.invert.rgba';
 import * as MediaIVManipulationKek from './media.iv.manipulation.kek';
 import * as MediaIVManipulationKekRain from './media.iv.manipulation.kek.rain';
@@ -163,8 +190,10 @@ import * as MediaIVManipulationLabelsKirby from './media.iv.manipulation.labels.
 import * as MediaIVManipulationLabelsPerfection from './media.iv.manipulation.labels.perfection';
 import * as MediaIVManipulationLabelsTriggered2 from './media.iv.manipulation.labels.triggered.2';
 import * as MediaIVManipulationLabelsTriggered3 from './media.iv.manipulation.labels.triggered.3';
+import * as MediaIVManipulationLatte from './media.iv.manipulation.latte';
 import * as MediaIVManipulationLayer from './media.iv.manipulation.layer';
 import * as MediaIVManipulationLegofy from './media.iv.manipulation.legofy';
+import * as MediaIVManipulationLUT from './media.iv.manipulation.lut';
 import * as MediaIVManipulationMagik from './media.iv.manipulation.magik';
 import * as MediaIVManipulationMagikAnimated from './media.iv.manipulation.magik.animated';
 import * as MediaIVManipulationMandalaScope from './media.iv.manipulation.mandalascope';
@@ -175,7 +204,9 @@ import * as MediaIVManipulationMirrorRight from './media.iv.manipulation.mirror.
 import * as MediaIVManipulationMirrorTop from './media.iv.manipulation.mirror.top';
 import * as MediaIVManipulationMotionBlur from './media.iv.manipulation.motion.blur';
 import * as MediaIVManipulationMultiply from './media.iv.manipulation.multiply';
+import * as MediaIVManipulationMuseum from './media.iv.manipulation.museum';
 import * as MediaIVManipulationOffset from './media.iv.manipulation.offset';
+import * as MediaIVManipulationOldTV from './media.iv.manipulation.old.tv';
 import * as MediaIVManipulationOrb from './media.iv.manipulation.orb';
 import * as MediaIVManipulationOutIn from './media.iv.manipulation.out.in';
 import * as MediaIVManipulationOverlay9Gag from './media.iv.manipulation.overlay.9gag';
@@ -237,6 +268,7 @@ import * as MediaIVManipulationPaper from './media.iv.manipulation.paper';
 import * as MediaIVManipulationPhoSimp from './media.iv.manipulation.phosimp';
 import * as MediaIVManipulationPixelate from './media.iv.manipulation.pixelate';
 import * as MediaIVManipulationPixelSort from './media.iv.manipulation.pixel.sort';
+import * as MediaIVManipulationPopArt from './media.iv.manipulation.pop.art';
 import * as MediaIVManipulationQuadart from './media.iv.manipulation.quadart';
 import * as MediaIVManipulationRain from './media.iv.manipulation.rain';
 import * as MediaIVManipulationRainbow from './media.iv.manipulation.rainbow';
@@ -260,6 +292,7 @@ import * as MediaIVManipulationSlide from './media.iv.manipulation.slide';
 import * as MediaIVManipulationSmile from './media.iv.manipulation.smile';
 import * as MediaIVManipulationSnipFrames from './media.iv.manipulation.snip.frames';
 import * as MediaIVManipulationSolarize from './media.iv.manipulation.solarize';
+import * as MediaIVManipulationSpheres from './media.iv.manipulation.spheres';
 import * as MediaIVManipulationSpin from './media.iv.manipulation.spin';
 import * as MediaIVManipulationSpin3d from './media.iv.manipulation.spin.3d';
 import * as MediaIVManipulationStretch from './media.iv.manipulation.stretch';
@@ -267,13 +300,16 @@ import * as MediaIVManipulationSwapColors from './media.iv.manipulation.swap.col
 import * as MediaIVManipulationSwapPixels from './media.iv.manipulation.swap.pixels';
 import * as MediaIVManipulationSwapRGBA from './media.iv.manipulation.swap.rgba';
 import * as MediaIVManipulationSwirl from './media.iv.manipulation.swirl';
+import * as MediaIVManipulationTimesquare from './media.iv.manipulation.timesquare';
 import * as MediaIVManipulationToGif from './media.iv.manipulation.to.gif';
 import * as MediaIVManipulationTrace from './media.iv.manipulation.trace';
 import * as MediaIVManipulationTrim from './media.iv.manipulation.trim';
 import * as MediaIVManipulationTunnel from './media.iv.manipulation.tunnel';
 import * as MediaIVManipulationTVSimulator from './media.iv.manipulation.tv.simulator';
 import * as MediaIVManipulationUncaption from './media.iv.manipulation.uncaption';
+import * as MediaIVManipulationUniverse from './media.iv.manipulation.universe';
 import * as MediaIVManipulationUpToDown from './media.iv.manipulation.up.to.down';
+import * as MediaIVManipulationVHS from './media.iv.manipulation.vhs';
 import * as MediaIVManipulationVaporwave from './media.iv.manipulation.vaporwave';
 import * as MediaIVManipulationWall from './media.iv.manipulation.wall';
 import * as MediaIVManipulationWatercolor from './media.iv.manipulation.watercolor';
@@ -517,6 +553,8 @@ export {
   MediaAVManipulationAudioFlanger,
   MediaAVManipulationAudioMultiPitch,
   MediaAVManipulationAudioVocoder,
+  MediaAVManipulationAudioVocoderChord,
+  MediaAVManipulationAudioPaulstretch,
   MediaAVManipulationAudioPitch,
   MediaAVManipulationAudioReverb,
   MediaAVManipulationAudioReverse,
@@ -529,29 +567,33 @@ export {
   MediaAVToolsExtractAudio,
   MediaAVToolsIdentify,
 
+  MediaICreateEinstein,
+  MediaICreateFoggyWindow,
   MediaICreateHacker,
+  MediaICreateNeon,
   MediaICreatePresidential,
   MediaICreateRealfact,
   MediaICreateRetrowave,
+  MediaICreateSnowWriting,
   MediaICreateSonic,
+  MediaICreateSoup,
   MediaICreateThonkify,
   MediaICreateTombstone,
+  MediaICreateTreeCarving,
+  MediaICreateWoodenSign,
   MediaICreateWordcloudChannel,
   MediaICreateWordcloudUser,
+  MediaICreateYacht,
 
-  MediaIManipulationBill,
-  MediaIManipulationBurn,
-  MediaIManipulationFaceAlien,
-  MediaIManipulationFaceAnime,
-  MediaIManipulationFaceClown,
-  MediaIManipulationFaceFat,
-  MediaIManipulationLatte,
 
   MediaIVManipulationAcid,
   MediaIVManipulationASCII,
+  MediaIVManipulationArtistic,
   MediaIVManipulationBackgroundRemove,
+  MediaIVManipulationBill,
   MediaIVManipulationBlur,
   MediaIVManipulationBlurple,
+  MediaIVManipulationBurn,
   MediaIVManipulationCaption,
   MediaIVManipulationCartoon,
   MediaIVManipulationCharcoal,
@@ -595,10 +637,28 @@ export {
   MediaIVManipulationEyesSpongebob,
   MediaIVManipulationEyesWhite,
   MediaIVManipulationEyesYellow,
+  MediaIVManipulationFaceAlien,
+  MediaIVManipulationFaceAnime,
+  MediaIVManipulationFaceClown,
+  MediaIVManipulationFaceFat,
+  MediaIVManipulationFaceFeaturesSwap,
+  MediaIVManipulationFaceHalloweenHat,
+  MediaIVManipulationFaceKnight,
+  MediaIVManipulationFaceLenin,
+  MediaIVManipulationFaceMonaLisa,
+  MediaIVManipulationFaceMoodAngry,
+  MediaIVManipulationFaceMoodGrumpy,
+  MediaIVManipulationFaceMoodSad,
+  MediaIVManipulationFaceMoodSmug,
+  MediaIVManipulationFaceMoodSurprised,
+  MediaIVManipulationFaceMountRushmore,
+  MediaIVManipulationFaceSwap,
+  MediaIVManipulationFaceXmasCap,
   MediaIVManipulationFisheye,
   MediaIVManipulationFlash,
   MediaIVManipulationFlip,
   MediaIVManipulationFlop,
+  MediaIVManipulationGlass,
   MediaIVManipulationGlitch,
   MediaIVManipulationGlitchAnimated,
   MediaIVManipulationGlobe,
@@ -607,6 +667,7 @@ export {
   MediaIVManipulationGrain,
   MediaIVManipulationGrayscale,
   MediaIVManipulationHueCurveRGBA,
+  MediaIVManipulationHueShiftCCS,
   MediaIVManipulationHueShiftHSV,
   MediaIVManipulationHueShiftHSVFFMPEG,
   MediaIVManipulationHueShiftRGB,
@@ -614,7 +675,9 @@ export {
   MediaIVManipulationImplode,
   MediaIVManipulationImplodeAnimated,
   MediaIVManipulationInOut,
+  MediaIVManipulationInstantCamera,
   MediaIVManipulationInvert,
+  MediaIVManipulationInvertLAB,
   MediaIVManipulationInvertRGBA,
   MediaIVManipulationKek,
   MediaIVManipulationKekRain,
@@ -625,8 +688,10 @@ export {
   MediaIVManipulationLabelsPerfection,
   MediaIVManipulationLabelsTriggered2,
   MediaIVManipulationLabelsTriggered3,
+  MediaIVManipulationLatte,
   MediaIVManipulationLayer,
   MediaIVManipulationLegofy,
+  MediaIVManipulationLUT,
   MediaIVManipulationMagik,
   MediaIVManipulationMagikAnimated,
   MediaIVManipulationMandalaScope,
@@ -637,7 +702,9 @@ export {
   MediaIVManipulationMirrorTop,
   MediaIVManipulationMotionBlur,
   MediaIVManipulationMultiply,
+  MediaIVManipulationMuseum,
   MediaIVManipulationOffset,
+  MediaIVManipulationOldTV,
   MediaIVManipulationOrb,
   MediaIVManipulationOutIn,
   MediaIVManipulationOverlay9Gag,
@@ -699,6 +766,7 @@ export {
   MediaIVManipulationPhoSimp,
   MediaIVManipulationPixelate,
   MediaIVManipulationPixelSort,
+  MediaIVManipulationPopArt,
   MediaIVManipulationQuadart,
   MediaIVManipulationRain,
   MediaIVManipulationRainbow,
@@ -722,6 +790,7 @@ export {
   MediaIVManipulationSmile,
   MediaIVManipulationSnipFrames,
   MediaIVManipulationSolarize,
+  MediaIVManipulationSpheres,
   MediaIVManipulationSpin,
   MediaIVManipulationSpin3d,
   MediaIVManipulationStretch,
@@ -729,13 +798,16 @@ export {
   MediaIVManipulationSwapPixels,
   MediaIVManipulationSwapRGBA,
   MediaIVManipulationSwirl,
+  MediaIVManipulationTimesquare,
   MediaIVManipulationToGif,
   MediaIVManipulationTrace,
   MediaIVManipulationTrim,
   MediaIVManipulationTunnel,
   MediaIVManipulationTVSimulator,
   MediaIVManipulationUncaption,
+  MediaIVManipulationUniverse,
   MediaIVManipulationUpToDown,
+  MediaIVManipulationVHS,
   MediaIVManipulationVaporwave,
   MediaIVManipulationWall,
   MediaIVManipulationWatercolor,

@@ -22,7 +22,7 @@ export default class TagListCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       aliases: ['t list'],
-      default: DefaultParameters.author,
+      default: DefaultParameters.authorOrReplyAuthor({allowBots: false}),
       label: 'user',
       metadata: {
         category: CommandCategories.TAGS,

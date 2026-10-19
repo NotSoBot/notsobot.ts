@@ -44,7 +44,7 @@ export async function createMessage(
         for (let result of page) {
           const cite = result.cite.replace('https://', '').replace('http://', '');
           const description: Array<string> = [
-            Markup.url(`**${Markup.escape.all(cite)}**`, result.url),
+            Markup.url(`**${Markup.escape.all(cite)}**`, `<${result.url}>`),
             Markup.escape.all(result.description),
           ];
           payload.fields!.push({name: `**${Markup.escape.all(result.title)}**`, value: description.join('\n')});

@@ -1,7 +1,7 @@
 import { ClusterManager } from 'detritus-client';
-import * as Sentry from '@sentry/node';
 
 import * as config from '../config.json';
+import { captureError, initSentry } from './sentry';
 
 
 const {
@@ -9,8 +9,9 @@ const {
   NOTSOBOT_DISCORD_TOKEN,
   SENTRY_DSN,
 } = config;
-// optional (so it isn't a named import), the cluster processes default to the public api events url without it
-const NOTSOBOT_GATEWAY_URL = (config as Record<string, unknown>).NOTSOBOT_GATEWAY_URL;
+// optional (so they aren't named imports), the cluster processes default to the public api events url without it
+// and sentry falls back to its own release detection and no environment
+const OPTIONAL_ENV_KEYS = ['NOTSOBOT_GATEWAY_URL', 'SENTRY_ENVIRONMENT', 'SENTRY_RELEASE'];
 
 // the cluster processes inherit these
 Object.assign(process.env, {
@@ -18,13 +19,15 @@ Object.assign(process.env, {
   NOTSOBOT_DISCORD_TOKEN,
   SENTRY_DSN,
 });
-if (typeof(NOTSOBOT_GATEWAY_URL) === 'string' && NOTSOBOT_GATEWAY_URL) {
-  process.env.NOTSOBOT_GATEWAY_URL = NOTSOBOT_GATEWAY_URL;
+for (let key of OPTIONAL_ENV_KEYS) {
+  const value = (config as Record<string, unknown>)[key];
+  if (typeof(value) === 'string' && value) {
+    process.env[key] = value;
+  }
 }
 
-if (SENTRY_DSN) {
-  Sentry.init({dsn: SENTRY_DSN});
-} else {
+initSentry('manager');
+if (!SENTRY_DSN) {
   // sentry's default integrations keep the manager alive on a stray rejection, without a dsn node would exit
   process.on('unhandledRejection', (reason) => {
     console.error('Unhandled Rejection', reason);
@@ -44,11 +47,15 @@ const manager = new ClusterManager('./bot', NOTSOBOT_DISCORD_TOKEN, {
 (async () => {
   manager.on('clusterProcess', ({clusterProcess}) => {
     clusterProcess.on('close', ({code, signal}) => {
-      const error = new Error(`(C: ${clusterProcess.clusterId}): Process has closed with '${code}' code and '${signal}' signal.`);
-      Sentry.captureException(error);
+      const error = new Error(`Cluster process closed with '${code}' code and '${signal}' signal`);
+      captureError(error, {
+        // one issue per way of dying (crash exit code, oom kill signal) instead of per cluster
+        fingerprint: ['cluster-close', String(code), String(signal)],
+        tags: {cluster_id: clusterProcess.clusterId, 'process.exit_code': code, 'process.signal': signal},
+      });
     });
     clusterProcess.on('warn', ({error}) => {
-      Sentry.captureException(error);
+      captureError(error, {level: 'warning', tags: {cluster_id: clusterProcess.clusterId, source: 'cluster_process.warn'}});
     });
   });
 

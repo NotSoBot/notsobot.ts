@@ -76,7 +76,7 @@ export async function createMessage(
       lines.push(displayDetailsLine([
         displayDetail(translate('common.created'), displayTimestamp(guild.createdAtUnix)),
         displayDetail(translate('info.guild.acronym'), guild.acronym),
-        (guild.vanityUrlCode) && displayDetail(translate('info.guild.vanity'), Markup.url(guild.vanityUrlCode, Endpoints.Invite.SHORT(guild.vanityUrlCode))),
+        (guild.vanityUrlCode) && displayDetail(translate('info.guild.vanity'), Markup.url(guild.vanityUrlCode, `<${Endpoints.Invite.SHORT(guild.vanityUrlCode)}>`)),
       ]));
     }
 

@@ -61,8 +61,8 @@ export async function createMessage(
         }
 
         {
-          const author = Markup.url(Markup.escape.all(data.author), `https://reddit.com/u/${data.author}`);
-          const subreddit = Markup.url(Markup.escape.all(data.subreddit_name_prefixed), 'https://reddit.com/' + data.subreddit_name_prefixed);
+          const author = Markup.url(Markup.escape.all(data.author), `<https://reddit.com/u/${data.author}>`);
+          const subreddit = Markup.url(Markup.escape.all(data.subreddit_name_prefixed), `<https://reddit.com/${data.subreddit_name_prefixed}>`);
 
           let videoUrl: string | null = null;
           if (data.is_video) {

@@ -1,5 +1,3 @@
-import * as Sentry from '@sentry/node';
-
 import { Collections, Interaction, Structures } from 'detritus-client';
 import {
   ApplicationCommandTypes,
@@ -27,6 +25,7 @@ import {
   UserPremiumTypes,
   UserSettingsApplicationCommandResponseTypes,
 } from '../../constants';
+import { captureCommandError, captureError } from '../../sentry';
 import { DefaultParameters, FindMediaUrlOptions, I18n, Parameters, getCommandIdFromInvoker } from '../../utils';
 
 import {
@@ -102,7 +101,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   }
 
   onAutoCompleteError(context: Interaction.InteractionAutoCompleteContext, error: any) {
-    Sentry.captureException(error);
+    captureError(error, {context});
   }
 
   onLoadingTrigger(context: Interaction.InteractionContext) {
@@ -273,6 +272,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   }
 
   async onRunError(context: Interaction.InteractionContext, args: Interaction.ParsedArgs, error: any) {
+    captureCommandError(context, error);
     const translator = await I18n.getTranslator(context);
     const title = warning(translator.translate('errors.run_title', {label: translateErrorLabel(this.error, translator.translate)}));
     await replyError(context, await createRunErrorPayload(context, title, error, translator), {ephemeral: true});
@@ -422,12 +422,12 @@ export class BaseInteractionImageCommandOption extends BaseInteractionCommandOpt
 
 
 export class BaseInteractionImageOrVideoCommandOption extends BaseInteractionCommandOption {
-  constructor(data: Interaction.InteractionCommandOptionOptions = {}) {
+  constructor(data: Interaction.InteractionCommandOptionOptions = {}, mediaSearchOptions: FindMediaUrlOptions = {}) {
     super({
       ...data,
       options: [
         ...(data.options || []),
-        {name: 'url', description: 'Emoji/Media URL/User', ...I18n.optionLocalizations('commands.options.media.url'), default: DefaultParameters.lastMediaUrl({audio: false}), value: Parameters.lastMediaUrl({audio: false})},
+        {name: 'url', description: 'Emoji/Media URL/User', ...I18n.optionLocalizations('commands.options.media.url'), default: DefaultParameters.lastMediaUrl({...mediaSearchOptions, audio: false}), value: Parameters.lastMediaUrl({...mediaSearchOptions, audio: false})},
         {name: 'attachment', description: 'Media File', ...I18n.optionLocalizations('commands.options.media.attachment'), type: ApplicationCommandOptionTypes.ATTACHMENT},
       ],
     });

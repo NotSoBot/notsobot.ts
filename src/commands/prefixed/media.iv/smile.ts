@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { CommandCategories, MediaFaceSmileLevels } from '../../../constants';
+import { Formatter, Parameters } from '../../../utils';
 
 import { BaseImageOrVideoCommand } from '../basecommand';
 
@@ -13,20 +13,20 @@ export default class SmileCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
+      args: [
+        {name: 'level', aliases: ['l'], type: Parameters.oneOf({choices: MediaFaceSmileLevels})},
+      ],
       metadata: {
-        description: 'Make all the characters in an Image or Video (first frame) smile so big.',
+        description: 'Make all the characters in an Image or Video smile so big.',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} notsobot`,
+          `${COMMAND_NAME} notsobot -level HUGE`,
         ],
         id: Formatter.Commands.MediaIVManipulationSmile.COMMAND_ID,
         category: CommandCategories.EFFECTS,
-        usage: '?<emoji,user:id|mention|name,url>',
+        usage: '?<emoji,user:id|mention|name,url> (-level <MediaFaceSmileLevels>)',
       },
-      ratelimits: [
-        {duration: 6000, limit: 3, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'guild'},
-        {duration: 2000, limit: 1, key: Formatter.Commands.ToolsMLImagine.COMMAND_ID, type: 'channel'},
-      ],
     });
   }
 

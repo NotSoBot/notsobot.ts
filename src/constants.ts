@@ -422,30 +422,31 @@ export const DateOptions = Object.freeze({
 
 export const DiscordEmojis = Object.freeze({
   CHAN: {
-    BADGE_MOD: '<:4chan_mod:968301568564789320>',
-    CLOSED: '<:4chan_closed:968295513344589884>',
-    STICKIED: '<:4chan_stickied:968295513302659122>',
+    BADGE_MOD: '<:4chan_mod:1561507810787860531>',
+    CLOSED: '<:4chan_closed:1561507808749420565>',
+    STICKIED: '<:4chan_stickied:1561507807063179344>',
   },
   DISCORD_BADGES: {
-    [DiscordUserFlags.STAFF]: '<:d_staff:826576202189373471> ',
-    [DiscordUserFlags.PARTNER]: '<:d_partner:826576193717272587>',
-    [DiscordUserFlags.HYPESQUAD]: '<:d_hypesquad:826576151534108722>',
-    [DiscordUserFlags.BUG_HUNTER_LEVEL_1]: '<:d_bug_hunter_level_1:826576135353139272>',
-    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_1]: '<:d_hypesquad_bravery:826576173915308034>',
-    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_2]: '<:d_hypesquad_brilliance:826576182308241459>',
-    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_3]: '<:d_hypesquad_balance:826576159789285427>',
-    [DiscordUserFlags.PREMIUM_EARLY_SUPPORTER]: '<:d_early_supporter:826577164966166548>',
-    [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: '<:d_bug_hunter_level_2:826576144001794088>',
-    [DiscordUserFlags.VERIFIED_DEVELOPER]: '<:d_verified_developer:826576213493153822>',
-    [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: '<:d_certified_moderator:874967819463327775>',
+    [DiscordUserFlags.STAFF]: '<:d_staff:1561507805972930652> ',
+    [DiscordUserFlags.PARTNER]: '<:d_partner:1561507804693663846>',
+    [DiscordUserFlags.HYPESQUAD]: '<:d_hypesquad:1561509278781669436>',
+    [DiscordUserFlags.BUG_HUNTER_LEVEL_1]: '<:d_bug_hunter_level_1:1561507801908383754>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_1]: '<:d_hypesquad_bravery:1561507802936119460>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_2]: '<:d_hypesquad_brilliance:1561508431523745804>',
+    [DiscordUserFlags.HYPESQUAD_ONLINE_HOUSE_3]: '<:d_hypesquad_balance:1561508429812731986>',
+    [DiscordUserFlags.PREMIUM_EARLY_SUPPORTER]: '<:d_early_supporter:1561508437009891398>',
+    [DiscordUserFlags.BUG_HUNTER_LEVEL_2]: '<:d_bug_hunter_level_2:1561508428516687932>',
+    [DiscordUserFlags.VERIFIED_DEVELOPER]: '<:d_verified_developer:1561508435403608125>',
+    [DiscordUserFlags.DISCORD_CERTIFIED_MODERATOR]: '<:d_certified_moderator:1561508446325444680>',
   },
-  DISCORD_TAG_BOT: '<:d_tag_bot_1:826576077736378428><:d_tag_bot_2:826576087684349983>',
-  DISCORD_TAG_SYSTEM: '<:d_tag_system_1:826576106592665662><:d_tag_system_2:826576115698237481>',
+  DISCORD_TAG_BOT: '<:d_tag_bot_1:1561508421164081243><:d_tag_bot_2:1561508422266912849>',
+  DISCORD_TAG_SYSTEM: '<:d_tag_system_1:1561508423638589450><:d_tag_system_2:1561508425517768714>',
+  TYPING: '<a:typingdown:1561506806667149412>',
 });
 
 
 export const DiscordReactionEmojis = Object.freeze({
-  WAIT: {id: '580670599630946314', name: 'stopthonk'},
+  WAIT: {id: '1561508420144734278', name: 'stopthonk'},
 });
 
 
@@ -1109,6 +1110,37 @@ export const MediaAudioBitcrushModesToText: Record<MediaAudioBitcrushModes, stri
 });
 
 
+export enum MediaAudioMultiPitchEngines {
+  BUNGEE = 'BUNGEE',
+  RUBBERBAND = 'RUBBERBAND',
+  SIGNALSMITH = 'SIGNALSMITH',
+}
+
+export const MediaAudioMultiPitchEnginesToText: Record<MediaAudioMultiPitchEngines, string> = Object.freeze({
+  [MediaAudioMultiPitchEngines.BUNGEE]: 'Bungee (like the multipitch program)',
+  [MediaAudioMultiPitchEngines.RUBBERBAND]: 'Rubber Band (like ffmpeg\'s rubberband)',
+  [MediaAudioMultiPitchEngines.SIGNALSMITH]: 'Signalsmith Stretch',
+});
+
+
+// the sounds a vocoder's chord is played with
+export enum MediaAudioVocoderSynths {
+  CHOIR = 'CHOIR',
+  ORGAN = 'ORGAN',
+  PAD = 'PAD',
+  ROBOT = 'ROBOT',
+  SAW = 'SAW',
+}
+
+export const MediaAudioVocoderSynthsToText: Record<MediaAudioVocoderSynths, string> = Object.freeze({
+  [MediaAudioVocoderSynths.CHOIR]: 'Choir (soft voices with vibrato)',
+  [MediaAudioVocoderSynths.ORGAN]: 'Organ',
+  [MediaAudioVocoderSynths.PAD]: 'Pad (slow and dark)',
+  [MediaAudioVocoderSynths.ROBOT]: 'Robot (one square wave)',
+  [MediaAudioVocoderSynths.SAW]: 'Saw (bright and wide)',
+});
+
+
 export enum MediaBackgroundRemovalModels {
   ALPHA_MATTING = 'ALPHA_MATTING',
   BIREFNET_COD = 'BIREFNET_COD',
@@ -1260,10 +1292,54 @@ export enum MediaEyeTypes {
 }
 
 
+export enum MediaFaceAnimeEyes {
+  NORMAL = 'NORMAL',
+  AQUA = 'AQUA',
+  BLUE = 'BLUE',
+  BROWN = 'BROWN',
+  GREEN = 'GREEN',
+  PURPLE = 'PURPLE',
+  RED = 'RED',
+}
+
+export enum MediaFaceHalloweenHats {
+  WITCH = 'WITCH',
+  WITCH_BUCKLE = 'WITCH_BUCKLE',
+  TOP_HAT = 'TOP_HAT',
+}
+
+export enum MediaFaceXmasCapColors {
+  RED = 'RED',
+  BLUE = 'BLUE',
+}
+
 export enum MediaFaceFatSizes {
   XL = 'XL',
   XXL = 'XXL',
   XXXL = 'XXXL',
+}
+
+
+export enum MediaFaceFeaturesSwapModes {
+  ABSOLUTE = 'ABSOLUTE',
+  RELATIVE = 'RELATIVE',
+}
+
+
+export enum MediaFaceFeaturesSwapRegions {
+  ALL = 'ALL',
+  EXPRESSION = 'EXPRESSION',
+  EYES = 'EYES',
+  LIPS = 'LIPS',
+  POSE = 'POSE',
+}
+
+
+export enum MediaFaceSmileLevels {
+  SUBTLE = 'SUBTLE',
+  NORMAL = 'NORMAL',
+  BIG = 'BIG',
+  HUGE = 'HUGE',
 }
 
 
@@ -1272,6 +1348,16 @@ export enum MediaLegofyPalettes {
   EFFECTS = 'EFFECTS',
   MONO = 'MONO',
   TRANSPARENT = 'TRANSPARENT',
+}
+
+
+// ffmpeg's `lut3d` interpolations
+export enum MediaLUTInterpolations {
+  NEAREST = 'NEAREST',
+  PRISM = 'PRISM',
+  PYRAMID = 'PYRAMID',
+  TETRAHEDRAL = 'TETRAHEDRAL',
+  TRILINEAR = 'TRILINEAR',
 }
 
 

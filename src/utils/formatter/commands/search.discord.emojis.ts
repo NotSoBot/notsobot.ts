@@ -40,7 +40,7 @@ export async function createMessage(
       const emoji = emojis[i];
       const timestamp = createTimestampMomentFromGuild(emoji.createdAtUnix as number, context.guildId);
       const part = translate('search_discord_emojis.created', {
-        emoji: Markup.url(emoji.format, emoji.url + `?g=${emoji.guildId}`),
+        emoji: Markup.url(emoji.format, `<${emoji.url}?g=${emoji.guildId}>`),
         number: i + 1,
         timestamp: timestamp.locale(language).fromNow(),
       }) + '\n';

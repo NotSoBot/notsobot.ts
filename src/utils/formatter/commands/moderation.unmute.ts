@@ -29,8 +29,8 @@ export async function createMessage(
   // multiple lines (discord caps audit log reasons at 512 characters, so only the end of a long reason gets cut off)
   const audit = await getGuildTranslator(context);
   const reason = [
-    audit.translate('moderation_unmute.admin', {user: formatUserTag(context.user), user2: context.user.id}),
-    audit.translate('moderation_unmute.timestamp', {timestamp: createTimestampMomentFromGuild(Date.now(), context.guildId).format(DateMomentLogFormat)}),
+    audit.translate('moderation_unmute.moderator', {user: formatUserTag(context.user), user2: context.user.id}),
+    audit.translate('moderation_unmute.date', {timestamp: createTimestampMomentFromGuild(Date.now(), context.guildId).format(DateMomentLogFormat)}),
     audit.translate('moderation_unmute.reason', {text: payload.text || audit.translate('moderation.unspecified_reason')}),
   ].join('\n').slice(0, 512);
 
