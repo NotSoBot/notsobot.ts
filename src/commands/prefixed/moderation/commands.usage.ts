@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { CommandCategories, GuildCommandsBlocklistTypes, StatusEmojis } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';

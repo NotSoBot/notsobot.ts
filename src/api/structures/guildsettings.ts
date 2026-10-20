@@ -7,12 +7,10 @@ import { RequestTypes } from 'detritus-client-rest';
 import { deleteGuildLogger } from '../../api';
 import {
   EmbedBrands,
-  GuildAllowlistTypes,
-  GuildBlocklistTypes,
-  GuildCommandsAllowlistTypes,
-  GuildCommandsBlocklistTypes,
   GuildLoggerFlags,
   GuildLoggerTypes,
+  GuildRuleActions,
+  GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
   NotSoApiKeys,
 } from '../../constants';
@@ -21,12 +19,8 @@ import { BaseStructure } from './basestructure';
 
 
 const keysGuildSettings = new Collections.BaseSet<string>([
-  NotSoApiKeys.ALLOWLIST,
   NotSoApiKeys.BLOCKED,
   NotSoApiKeys.BLOCKED_REASON,
-  NotSoApiKeys.BLOCKLIST,
-  NotSoApiKeys.COMMANDS_ALLOWLIST,
-  NotSoApiKeys.COMMANDS_BLOCKLIST,
   NotSoApiKeys.DISABLED_LOGGER_EVENTS,
   NotSoApiKeys.FEATURES,
   NotSoApiKeys.ICON,
@@ -36,20 +30,16 @@ const keysGuildSettings = new Collections.BaseSet<string>([
   NotSoApiKeys.LOGGERS,
   NotSoApiKeys.NAME,
   NotSoApiKeys.PREFIXES,
+  NotSoApiKeys.RULES,
   NotSoApiKeys.SETTINGS,
   NotSoApiKeys.TIMEZONE,
 ]);
 
-export type GuildSettingsListItem = GuildSettingsAllowlist | GuildSettingsBlocklist | GuildSettingsCommandsAllowlist | GuildSettingsCommandsBlocklist;
-
 export class GuildSettings extends BaseStructure {
   readonly _keys = keysGuildSettings;
-  _allowlist?: Collections.BaseCollection<string, GuildSettingsAllowlist>;
-  _blocklist?: Collections.BaseCollection<string, GuildSettingsBlocklist>;
-  _commandsAllowlist?: Collections.BaseCollection<string, GuildSettingsCommandsAllowlist>;
-  _commandsBlocklist?: Collections.BaseCollection<string, GuildSettingsCommandsBlocklist>;
   _loggers?: Collections.BaseCollection<string, GuildSettingsLogger>;
   _prefixes?: Collections.BaseCollection<string, GuildSettingsPrefix>;
+  _rules?: Collections.BaseCollection<string, GuildSettingsRule>;
 
   blocked: boolean = false;
   blockedReason: string | null = null;
@@ -67,34 +57,6 @@ export class GuildSettings extends BaseStructure {
     this.merge(data);
   }
 
-  get allowlist(): Collections.BaseCollection<string, GuildSettingsAllowlist> {
-    if (this._allowlist) {
-      return this._allowlist;
-    }
-    return Collections.emptyBaseCollection;
-  }
-
-  get blocklist(): Collections.BaseCollection<string, GuildSettingsBlocklist> {
-    if (this._blocklist) {
-      return this._blocklist;
-    }
-    return Collections.emptyBaseCollection;
-  }
-
-  get commandsAllowlist(): Collections.BaseCollection<string, GuildSettingsCommandsAllowlist> {
-    if (this._commandsAllowlist) {
-      return this._commandsAllowlist;
-    }
-    return Collections.emptyBaseCollection;
-  }
-
-  get commandsBlocklist(): Collections.BaseCollection<string, GuildSettingsCommandsBlocklist> {
-    if (this._commandsBlocklist) {
-      return this._commandsBlocklist;
-    }
-    return Collections.emptyBaseCollection;
-  }
-
   get loggers(): Collections.BaseCollection<string, GuildSettingsLogger> {
     if (this._loggers) {
       return this._loggers;
@@ -109,41 +71,24 @@ export class GuildSettings extends BaseStructure {
     return Collections.emptyBaseCollection;
   }
 
-  // if the server owner and admins skip this entry, entries without their own setting follow the server's for the list
-  canAdminBypass(item: GuildSettingsListItem): boolean {
-    if (typeof(item.adminBypass) === 'boolean') {
-      return item.adminBypass;
+  get rules(): Collections.BaseCollection<string, GuildSettingsRule> {
+    if (this._rules) {
+      return this._rules;
     }
-    if (!this.settings) {
-      return true;
-    }
-    if (item instanceof GuildSettingsAllowlist) {
-      return this.settings.allowlistAdminBypass;
-    }
-    if (item instanceof GuildSettingsBlocklist) {
-      return this.settings.blocklistAdminBypass;
-    }
-    if (item instanceof GuildSettingsCommandsAllowlist) {
-      return this.settings.commandsAllowlistAdminBypass;
-    }
-    return this.settings.commandsBlocklistAdminBypass;
+    return Collections.emptyBaseCollection;
   }
 
-  // if the owner and admins skip every list and entry (the default)
-  get adminBypassesEverything(): boolean {
-    if (this.settings) {
-      const { allowlistAdminBypass, blocklistAdminBypass, commandsAllowlistAdminBypass, commandsBlocklistAdminBypass } = this.settings;
-      if (!allowlistAdminBypass || !blocklistAdminBypass || !commandsAllowlistAdminBypass || !commandsBlocklistAdminBypass) {
-        return false;
-      }
+  // if the server owner and admins skip this rule, rules without their own setting follow the server's
+  canAdminBypass(rule: GuildSettingsRule): boolean {
+    if (typeof(rule.adminBypass) === 'boolean') {
+      return rule.adminBypass;
     }
-    const lists: Array<Collections.BaseCollection<string, GuildSettingsListItem>> = [
-      this.allowlist,
-      this.blocklist,
-      this.commandsAllowlist,
-      this.commandsBlocklist,
-    ];
-    return lists.every((list) => list.every((item) => item.adminBypass !== false));
+    return (this.settings) ? this.settings.rulesAdminBypass : true;
+  }
+
+  // if the owner and admins skip every rule (the default)
+  get adminBypassesEverything(): boolean {
+    return this.rules.every((rule) => this.canAdminBypass(rule));
   }
 
   hasFeature(feature: string): boolean {
@@ -160,74 +105,6 @@ export class GuildSettings extends BaseStructure {
   mergeValue(key: string, value: any): void {
     if (value !== undefined) {
       switch (key) {
-        case NotSoApiKeys.ALLOWLIST: {
-          if (value.length) {
-            if (!this._allowlist) {
-              this._allowlist = new Collections.BaseCollection<string, GuildSettingsAllowlist>();
-            }
-            this._allowlist.clear();
-            for (let raw of value) {
-              const item = new GuildSettingsAllowlist(raw);
-              this._allowlist.set(item.key, item);
-            }
-          } else {
-            if (this._allowlist) {
-              this._allowlist.clear();
-              this._allowlist = undefined;
-            }
-          }
-        }; return;
-        case NotSoApiKeys.BLOCKLIST: {
-          if (value.length) {
-            if (!this._blocklist) {
-              this._blocklist = new Collections.BaseCollection<string, GuildSettingsBlocklist>();
-            }
-            this._blocklist.clear();
-            for (let raw of value) {
-              const item = new GuildSettingsBlocklist(raw);
-              this._blocklist.set(item.key, item);
-            }
-          } else {
-            if (this._blocklist) {
-              this._blocklist.clear();
-              this._blocklist = undefined;
-            }
-          }
-        }; return;
-        case NotSoApiKeys.COMMANDS_ALLOWLIST: {
-          if (value.length) {
-            if (!this._commandsAllowlist) {
-              this._commandsAllowlist = new Collections.BaseCollection<string, GuildSettingsCommandsAllowlist>();
-            }
-            this._commandsAllowlist.clear();
-            for (let raw of value) {
-              const item = new GuildSettingsCommandsAllowlist(raw);
-              this._commandsAllowlist.set(item.key, item);
-            }
-          } else {
-            if (this._commandsAllowlist) {
-              this._commandsAllowlist.clear();
-              this._commandsAllowlist = undefined;
-            }
-          }
-        }; return;
-        case NotSoApiKeys.COMMANDS_BLOCKLIST: {
-          if (value.length) {
-            if (!this._commandsBlocklist) {
-              this._commandsBlocklist = new Collections.BaseCollection<string, GuildSettingsCommandsBlocklist>();
-            }
-            this._commandsBlocklist.clear();
-            for (let raw of value) {
-              const item = new GuildSettingsCommandsBlocklist(raw);
-              this._commandsBlocklist.set(item.key, item);
-            }
-          } else {
-            if (this._commandsBlocklist) {
-              this._commandsBlocklist.clear();
-              this._commandsBlocklist = undefined;
-            }
-          }
-        }; return;
         case NotSoApiKeys.FEATURES: {
           if (this.features) {
             this.features.clear();
@@ -272,6 +149,23 @@ export class GuildSettings extends BaseStructure {
             }
           }
         }; return;
+        case NotSoApiKeys.RULES: {
+          if (value.length) {
+            if (!this._rules) {
+              this._rules = new Collections.BaseCollection<string, GuildSettingsRule>();
+            }
+            this._rules.clear();
+            for (let raw of value) {
+              const rule = new GuildSettingsRule(raw);
+              this._rules.set(rule.id, rule);
+            }
+          } else {
+            if (this._rules) {
+              this._rules.clear();
+              this._rules = undefined;
+            }
+          }
+        }; return;
         case NotSoApiKeys.SETTINGS: {
           value = new GuildSettingsChild(value);
         }; break;
@@ -282,127 +176,41 @@ export class GuildSettings extends BaseStructure {
 }
 
 
-const keysGuildSettingsAllowlistAndBlocklist = new Collections.BaseSet<string>([
+const keysGuildSettingsRule = new Collections.BaseSet<string>([
+  NotSoApiKeys.ACTION,
   NotSoApiKeys.ADDED,
   NotSoApiKeys.ADMIN_BYPASS,
-  NotSoApiKeys.ID,
-  NotSoApiKeys.TYPE,
-  NotSoApiKeys.USER_ID,
-]);
-
-export class GuildSettingsAllowlist extends BaseStructure {
-  readonly _keys = keysGuildSettingsAllowlistAndBlocklist;
-
-  added: string = '';
-  // null follows the server's setting for the list
-  adminBypass: boolean | null = null;
-  id: string = '';
-  type!: GuildAllowlistTypes;
-  userId: string = '';
-
-  constructor(data: Structures.BaseStructureData) {
-    super();
-    this.merge(data);
-  }
-
-  get addedAtText(): string {
-    return moment(this.added).fromNow();
-  }
-
-  get key(): string {
-    return `${this.id}.${this.type}`;
-  }
-}
-
-
-export class GuildSettingsBlocklist extends BaseStructure {
-  readonly _keys = keysGuildSettingsAllowlistAndBlocklist;
-
-  added: string = '';
-  // null follows the server's setting for the list
-  adminBypass: boolean | null = null;
-  id: string = '';
-  type!: GuildBlocklistTypes;
-  userId: string = '';
-
-  constructor(data: Structures.BaseStructureData) {
-    super();
-    this.merge(data);
-  }
-
-  get addedAtText(): string {
-    return moment(this.added).fromNow();
-  }
-
-  get key(): string {
-    return `${this.id}.${this.type}`;
-  }
-}
-
-
-const keysGuildSettingsCommandsAllowlist = new Collections.BaseSet<string>([
-  NotSoApiKeys.ADDED,
-  NotSoApiKeys.ADMIN_BYPASS,
+  NotSoApiKeys.CATEGORY,
   NotSoApiKeys.COMMAND,
   NotSoApiKeys.ID,
-  NotSoApiKeys.TYPE,
+  NotSoApiKeys.TARGET_ID,
+  NotSoApiKeys.TARGET_TYPE,
   NotSoApiKeys.USER_ID,
+  NotSoApiKeys.VALUE,
 ]);
 
-export class GuildSettingsCommandsAllowlist extends BaseStructure {
-  readonly _keys = keysGuildSettingsCommandsAllowlist;
-
-  added: string = '';
-  // null follows the server's setting for the list
-  adminBypass: boolean | null = null;
-  command: string = '';
-  id: string = '';
-  type!: GuildCommandsAllowlistTypes;
-  userId: string = '';
-
-  constructor(data: Structures.BaseStructureData) {
-    super();
-    this.merge(data);
-  }
-
-  get addedAtText(): string {
-    return moment(this.added).fromNow();
-  }
-
-  get key(): string {
-    return `${this.command}.${this.id}.${this.type}`;
-  }
-
-  /*
-  async delete(shard: ShardClient) {
-    return deleteGuildDisabledCommand({client: shard}, this.guildId, {
-      channelId: this.channelId,
-      loggerType: this.type,
-    });
-  }
-  */
+export interface GuildSettingsRuleAccessValue {
+  allow: boolean,
+  // shown to whoever a block rule stops
+  message: string | null,
 }
 
+// who can use what, see `resolveGuildRule` for how they're matched
+export class GuildSettingsRule extends BaseStructure {
+  readonly _keys = keysGuildSettingsRule;
 
-const keysGuildSettingsCommandsBlocklist = new Collections.BaseSet<string>([
-  NotSoApiKeys.ADDED,
-  NotSoApiKeys.ADMIN_BYPASS,
-  NotSoApiKeys.COMMAND,
-  NotSoApiKeys.ID,
-  NotSoApiKeys.TYPE,
-  NotSoApiKeys.USER_ID,
-]);
-
-export class GuildSettingsCommandsBlocklist extends BaseStructure {
-  readonly _keys = keysGuildSettingsCommandsBlocklist;
-
+  action!: GuildRuleActions;
   added: string = '';
-  // null follows the server's setting for the list
+  // null follows the server's setting
   adminBypass: boolean | null = null;
-  command: string = '';
+  // what it covers, a command, a command category or (both null) everything
+  category: string | null = null;
+  command: string | null = null;
   id: string = '';
-  type!: GuildCommandsBlocklistTypes;
-  userId: string = '';
+  targetId: string = '';
+  targetType!: GuildRuleTargetTypes;
+  userId: string | null = null;
+  value: GuildSettingsRuleAccessValue = {allow: true, message: null};
 
   constructor(data: Structures.BaseStructureData) {
     super();
@@ -413,18 +221,25 @@ export class GuildSettingsCommandsBlocklist extends BaseStructure {
     return moment(this.added).fromNow();
   }
 
-  get key(): string {
-    return `${this.command}.${this.id}.${this.type}`;
+  get allows(): boolean {
+    return !!this.value.allow;
   }
 
-  /*
-  async delete(shard: ShardClient) {
-    return deleteGuildDisabledCommand({client: shard}, this.guildId, {
-      channelId: this.channelId,
-      loggerType: this.type,
-    });
+  get coversEverything(): boolean {
+    return !this.command && !this.category;
   }
-  */
+
+  // the rule's what/who, the api keeps one rule per action for each
+  get key(): string {
+    return `${this.action}.${this.targetType}.${this.targetId}.${this.command || ''}.${this.category || ''}`;
+  }
+
+  mergeValue(key: string, value: any): void {
+    if (key === NotSoApiKeys.VALUE && value) {
+      value = {allow: !!value.allow, message: value.message || null};
+    }
+    return super.mergeValue(key, value);
+  }
 }
 
 
@@ -536,29 +351,23 @@ export class GuildSettingsPrefix extends BaseStructure {
 
 
 const keysGuildSettingsChild = new Collections.BaseSet<string>([
-  NotSoApiKeys.ALLOWLIST_ADMIN_BYPASS,
-  NotSoApiKeys.BLOCKLIST_ADMIN_BYPASS,
-  NotSoApiKeys.COMMANDS_ALLOWLIST_ADMIN_BYPASS,
-  NotSoApiKeys.COMMANDS_BLOCKLIST_ADMIN_BYPASS,
   NotSoApiKeys.ML_DIFFUSION_MODEL,
   NotSoApiKeys.ML_LLM_MODEL,
   NotSoApiKeys.ML_LLM_PERSONALITY,
   NotSoApiKeys.RESPONSE_DISPLAY,
+  NotSoApiKeys.RULES_ADMIN_BYPASS,
 ]);
 
 export class GuildSettingsChild extends BaseStructure {
   readonly _keys = keysGuildSettingsChild;
 
-  // if the server owner and admins skip each list, entries can override it with their own `adminBypass`
-  allowlistAdminBypass: boolean = true;
-  blocklistAdminBypass: boolean = true;
-  commandsAllowlistAdminBypass: boolean = true;
-  commandsBlocklistAdminBypass: boolean = true;
   mlDiffusionModel: null | string = null;
   mlLLMModel: null | string = null;
   mlLLMPersonality: null | string = null;
   // null uses each user's preference, then our latest format
   responseDisplay: GuildSettingsResponseDisplayTypes | null = null;
+  // if the server owner and admins skip the rules, rules can override it with their own `adminBypass`
+  rulesAdminBypass: boolean = true;
 
   constructor(data: Structures.BaseStructureData) {
     super();

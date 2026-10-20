@@ -11,10 +11,6 @@ import { RestOptions, RestResponsesRaw, RestResponses } from './types';
 
 import {
   GoogleLocales,
-  GuildAllowlistTypes,
-  GuildBlocklistTypes,
-  GuildCommandsAllowlistTypes,
-  GuildCommandsBlocklistTypes,
   NotSoHeaders,
 } from '../constants';
 import { createColorUrl } from '../utils';
@@ -174,72 +170,6 @@ export async function addGuildFeature(
       method: HTTPMethods.PUT,
       path: Api.GUILD_FEATURES,
       params,
-    },
-  });
-}
-
-
-export async function createGuildAllowlist(
-  context: RequestContext,
-  guildId: string,
-  allowlistId: string,
-  type: GuildAllowlistTypes,
-): Promise<RestResponsesRaw.CreateGuildAllowlist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD_ALLOWLIST,
-      params: {allowlistId, guildId, type},
-    },
-  });
-}
-
-
-export async function createGuildBlocklist(
-  context: RequestContext,
-  guildId: string,
-  blocklistId: string,
-  type: GuildBlocklistTypes,
-): Promise<RestResponsesRaw.CreateGuildBlocklist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD_BLOCKLIST,
-      params: {blocklistId, guildId, type},
-    },
-  });
-}
-
-
-export async function createGuildCommandsAllowlist(
-  context: RequestContext,
-  guildId: string,
-  command: string,
-  allowlistId: string,
-  type: GuildCommandsAllowlistTypes,
-): Promise<RestResponsesRaw.CreateGuildCommandsAllowlist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD_COMMANDS_ALLOWLIST,
-      params: {allowlistId, command, guildId, type},
-    },
-  });
-}
-
-
-export async function createGuildCommandsBlocklist(
-  context: RequestContext,
-  guildId: string,
-  command: string,
-  blocklistId: string,
-  type: GuildCommandsBlocklistTypes,
-): Promise<RestResponsesRaw.CreateGuildCommandsBlocklist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.PUT,
-      path: Api.GUILD_COMMANDS_BLOCKLIST,
-      params: {command, blocklistId, guildId, type},
     },
   });
 }
@@ -487,72 +417,6 @@ export async function deleteFile(
 }
 
 
-export async function deleteGuildAllowlist(
-  context: RequestContext,
-  guildId: string,
-  allowlistId: string,
-  type: GuildAllowlistTypes,
-): Promise<RestResponsesRaw.DeleteGuildAllowlist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.DELETE,
-      path: Api.GUILD_ALLOWLIST,
-      params: {allowlistId, guildId, type},
-    },
-  });
-}
-
-
-export async function deleteGuildBlocklist(
-  context: RequestContext,
-  guildId: string,
-  blocklistId: string,
-  type: GuildBlocklistTypes,
-): Promise<RestResponsesRaw.DeleteGuildBlocklist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.DELETE,
-      path: Api.GUILD_BLOCKLIST,
-      params: {blocklistId, guildId, type},
-    },
-  });
-}
-
-
-export async function deleteGuildCommandsAllowlist(
-  context: RequestContext,
-  guildId: string,
-  command: string,
-  allowlistId: string,
-  type: GuildCommandsAllowlistTypes,
-): Promise<RestResponsesRaw.DeleteGuildCommandsAllowlist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.DELETE,
-      path: Api.GUILD_COMMANDS_ALLOWLIST,
-      params: {allowlistId, command, guildId, type},
-    },
-  });
-}
-
-
-export async function deleteGuildCommandsBlocklist(
-  context: RequestContext,
-  guildId: string,
-  command: string,
-  blocklistId: string,
-  type: GuildCommandsBlocklistTypes,
-): Promise<RestResponsesRaw.DeleteGuildCommandsBlocklist> {
-  return request(context, {
-    route: {
-      method: HTTPMethods.DELETE,
-      path: Api.GUILD_COMMANDS_BLOCKLIST,
-      params: {blocklistId, command, guildId, type},
-    },
-  });
-}
-
-
 export async function deleteGuildLogger(
   context: RequestContext,
   guildId: string,
@@ -587,6 +451,87 @@ export async function deleteGuildPrefix(
       method: HTTPMethods.POST,
       path: Api.GUILD_PREFIXES_DELETE,
       params,
+    },
+  });
+}
+
+
+export async function clearGuildRules(
+  context: RequestContext,
+  guildId: string,
+): Promise<RestResponsesRaw.DeleteGuildRules> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.GUILD_RULES,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function deleteGuildRules(
+  context: RequestContext,
+  guildId: string,
+  ruleIds: Array<string>,
+): Promise<RestResponsesRaw.DeleteGuildRules> {
+  const body = {ids: ruleIds};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_RULES_DELETE,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function editGuildRule(
+  context: RequestContext,
+  guildId: string,
+  ruleId: string,
+  options: RestOptions.EditGuildRule,
+): Promise<RestResponsesRaw.EditGuildRule> {
+  const body = {
+    admin_bypass: options.adminBypass,
+    value: options.value,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.GUILD_RULE,
+      params: {guildId, ruleId},
+    },
+  });
+}
+
+
+export async function putGuildRules(
+  context: RequestContext,
+  guildId: string,
+  rules: Array<RestOptions.PutGuildRule>,
+): Promise<RestResponsesRaw.PutGuildRules> {
+  const body = {
+    rules: rules.map((rule) => {
+      return {
+        action: rule.action,
+        admin_bypass: rule.adminBypass,
+        category: rule.category,
+        command: rule.command,
+        target_id: rule.targetId,
+        target_type: rule.targetType,
+        value: rule.value,
+      };
+    }),
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_RULES,
+      params: {guildId},
     },
   });
 }
@@ -748,22 +693,15 @@ export async function editGuildSettings(
   options: RestOptions.EditGuildSettings = {},
 ): Promise<RestResponsesRaw.EditGuildSettings> {
   const body = {
-    allowlist: options.allowlist,
-    allowlist_admin_bypass: options.allowlistAdminBypass,
     blocked: options.blocked,
     blocked_reason: options.blockedReason,
-    blocklist: options.blocklist,
-    blocklist_admin_bypass: options.blocklistAdminBypass,
-    commands_allowlist: options.commandsAllowlist,
-    commands_allowlist_admin_bypass: options.commandsAllowlistAdminBypass,
-    commands_blocklist: options.commandsBlocklist,
-    commands_blocklist_admin_bypass: options.commandsBlocklistAdminBypass,
     locale: options.locale,
     ml_diffusion_model: options.mlDiffusionModel,
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
     prefixes: options.prefixes,
     response_display: options.responseDisplay,
+    rules_admin_bypass: options.rulesAdminBypass,
     timezone: options.timezone,
   };
   const params = {guildId};
@@ -4105,6 +4043,27 @@ export async function mediaIVManipulationFaceHalloweenHat(
 }
 
 
+export async function mediaIVManipulationFaceJoy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FACE_JOY,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationFaceKnight(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -6664,6 +6623,27 @@ export async function mediaIVManipulationOverlayPersonsMirandaCosgrove1(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_MIRANDA_COSGROVE_1,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayPersonsStephenHawking1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_STEPHEN_HAWKING_1,
     },
   });
 }

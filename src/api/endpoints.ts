@@ -37,14 +37,6 @@ export const Api = Object.freeze({
 
   GUILD:
     '/guilds/:guildId',
-  GUILD_ALLOWLIST:
-    '/guilds/:guildId/allowlist/:allowlistId/:type',
-  GUILD_BLOCKLIST:
-    '/guilds/:guildId/blocklist/:blocklistId/:type',
-  GUILD_COMMANDS_ALLOWLIST:
-    '/guilds/:guildId/commands/:command/allowlist/:allowlistId/:type',
-  GUILD_COMMANDS_BLOCKLIST:
-    '/guilds/:guildId/commands/:command/blocklist/:blocklistId/:type',
   GUILD_LOGGERS:
     '/guilds/:guildId/loggers',
   GUILD_LOGGERS_DELETE:
@@ -57,6 +49,12 @@ export const Api = Object.freeze({
     '/guilds/:guildId/prefixes',
   GUILD_PREFIXES_DELETE:
     '/guilds/:guildId/prefixes/delete',
+  GUILD_RULES:
+    '/guilds/:guildId/rules',
+  GUILD_RULES_DELETE:
+    '/guilds/:guildId/rules/delete',
+  GUILD_RULE:
+    '/guilds/:guildId/rules/:ruleId',
   GUILD_TAGS_COMMANDS:
     '/guilds/:guildId/tags/commands',
 
@@ -272,6 +270,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/face/features/swap',
   MEDIA_IV_MANIPULATION_FACE_HALLOWEEN_HAT:
     '/media/iv/manipulation/face/halloween-hat',
+  MEDIA_IV_MANIPULATION_FACE_JOY:
+    '/media/iv/manipulation/face/joy',
   MEDIA_IV_MANIPULATION_FACE_KNIGHT:
     '/media/iv/manipulation/face/knight',
   MEDIA_IV_MANIPULATION_FACE_LENIN:
@@ -510,6 +510,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/persons/ltt-linus-1',
   MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_MIRANDA_COSGROVE_1:
     '/media/iv/manipulation/overlay/persons/miranda-cosgrove-1',
+  MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_STEPHEN_HAWKING_1:
+    '/media/iv/manipulation/overlay/persons/stephen-hawking-1',
   MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_TRUMP_1:
     '/media/iv/manipulation/overlay/persons/trump-1',
   MEDIA_IV_MANIPULATION_OVERLAY_PERSONS_ZUCKERBERG_1:

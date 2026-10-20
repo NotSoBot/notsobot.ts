@@ -6,6 +6,7 @@ import * as Parameters from './parameters';
 import * as TagFormatter from './tags';
 
 export { Formatter, DefaultParameters, EmojiKitchen, I18n, Parameters, TagFormatter };
+export * from './guildrules';
 export * from './math';
 export * from './paginator';
 export * from './tools';

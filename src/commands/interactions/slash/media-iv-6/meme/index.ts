@@ -12,6 +12,7 @@ import { MediaIVMemeDorkCommand } from './dork';
 import { MediaIVMemeExcuseCommand } from './excuse';
 import { MediaIVMemeGodCommand } from './god';
 import { MediaIVMemeGoldStarCommand } from './goldstar';
+import { MediaIVMemeStephenHawking1Command } from './hawking';
 import { MediaIVMemeJacksfilms1Command } from './jack';
 import { MediaIVMemeJesus1Command } from './jesus';
 import { MediaIVMemeOwOCommand } from './owo';
@@ -37,6 +38,7 @@ export class MediaIVMemeGroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVMemeExcuseCommand(),
         new MediaIVMemeGodCommand(),
         new MediaIVMemeGoldStarCommand(),
+        new MediaIVMemeStephenHawking1Command(),
         new MediaIVMemeJacksfilms1Command(),
         new MediaIVMemeJesus1Command(),
         new MediaIVMemeOwOCommand(),

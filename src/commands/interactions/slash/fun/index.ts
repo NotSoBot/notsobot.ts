@@ -9,6 +9,8 @@ import { I18n } from '../../../../utils';
 import { BaseSlashCommand } from '../../basecommand';
 
 import { AestheticsCommand } from './aesthetics';
+import { AgarCommand } from './agar';
+import { AgarifyCommand } from './agarify';
 import { AsciiFromImageCommand } from './ascii-from-image';
 import { AsciiFromTextCommand } from './ascii-from-text';
 import { B1Command } from './b1';
@@ -18,6 +20,8 @@ import { RegionalCommand } from './regional';
 import { ReverseTextCommand } from './reverse-text';
 import { TextwallCommand } from './textwall';
 import { TTSCommand } from './tts';
+import { XDCommand } from './xd';
+import { ZalgoCommand } from './zalgo';
 
 
 export default class FunGroupCommand extends BaseSlashCommand {
@@ -41,6 +45,8 @@ export default class FunGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new AestheticsCommand(),
+        new AgarCommand(),
+        new AgarifyCommand(),
         new AsciiFromImageCommand(),
         new AsciiFromTextCommand(),
         new B1Command(),
@@ -50,6 +56,8 @@ export default class FunGroupCommand extends BaseSlashCommand {
         new ReverseTextCommand(),
         new TextwallCommand(),
         new TTSCommand(),
+        new XDCommand(),
+        new ZalgoCommand(),
       ],
     });
   }

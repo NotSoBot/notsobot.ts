@@ -2,12 +2,6 @@ import { Collections, Command } from 'detritus-client';
 import { Response } from 'detritus-rest';
 import { HTTPMethods } from 'detritus-rest/lib/constants';
 
-import {
-  GuildAllowlistTypes,
-  GuildBlocklistTypes,
-  GuildCommandsAllowlistTypes,
-  GuildCommandsBlocklistTypes,
-} from '../constants';
 import GuildSettingsStore from '../stores/guildsettings';
 import ServerSettingsStore from '../stores/serversettings';
 import UserStore from '../stores/users';
@@ -37,48 +31,6 @@ export async function addGuildFeature(
   feature: string,
 ) {
   return raw.addGuildFeature(context, guildId, feature);
-}
-
-
-export async function createGuildAllowlist(
-  context: RequestContext,
-  guildId: string,
-  allowlistId: string,
-  type: GuildAllowlistTypes,
-): Promise<RestResponses.CreateGuildAllowlist> {
-  return raw.createGuildAllowlist(context, guildId, allowlistId, type);
-}
-
-
-export async function createGuildBlocklist(
-  context: RequestContext,
-  guildId: string,
-  blocklistId: string,
-  type: GuildBlocklistTypes,
-): Promise<RestResponses.CreateGuildBlocklist> {
-  return raw.createGuildBlocklist(context, guildId, blocklistId, type);
-}
-
-
-export async function createGuildCommandsAllowlist(
-  context: RequestContext,
-  guildId: string,
-  command: string,
-  allowlistId: string,
-  type: GuildCommandsAllowlistTypes,
-): Promise<RestResponses.CreateGuildCommandsAllowlist> {
-  return raw.createGuildCommandsAllowlist(context, guildId, command, allowlistId, type);
-}
-
-
-export async function createGuildCommandsBlocklist(
-  context: RequestContext,
-  guildId: string,
-  command: string,
-  blocklistId: string,
-  type: GuildCommandsBlocklistTypes,
-): Promise<RestResponses.CreateGuildCommandsBlocklist> {
-  return raw.createGuildCommandsBlocklist(context, guildId, command, blocklistId, type);
 }
 
 
@@ -192,48 +144,6 @@ export async function deleteFile(
   fileId: string,
 ) {
   return raw.deleteFile(context, fileId);
-}
-
-
-export async function deleteGuildAllowlist(
-  context: RequestContext,
-  guildId: string,
-  allowlistId: string,
-  type: GuildAllowlistTypes,
-): Promise<RestResponses.DeleteGuildAllowlist> {
-  return raw.deleteGuildAllowlist(context, guildId, allowlistId, type);
-}
-
-
-export async function deleteGuildBlocklist(
-  context: RequestContext,
-  guildId: string,
-  blocklistId: string,
-  type: GuildBlocklistTypes,
-): Promise<RestResponses.DeleteGuildBlocklist> {
-  return raw.deleteGuildBlocklist(context, guildId, blocklistId, type);
-}
-
-
-export async function deleteGuildCommandsAllowlist(
-  context: RequestContext,
-  guildId: string,
-  command: string,
-  allowlistId: string,
-  type: GuildCommandsAllowlistTypes,
-): Promise<RestResponses.DeleteGuildCommandsAllowlist> {
-  return raw.deleteGuildCommandsAllowlist(context, guildId, command, allowlistId, type);
-}
-
-
-export async function deleteGuildCommandsBlocklist(
-  context: RequestContext,
-  guildId: string,
-  command: string,
-  blocklistId: string,
-  type: GuildCommandsBlocklistTypes,
-): Promise<RestResponses.DeleteGuildCommandsBlocklist> {
-  return raw.deleteGuildCommandsBlocklist(context, guildId, command, blocklistId, type);
 }
 
 
@@ -446,6 +356,62 @@ export async function deleteVoice(
   voiceId: string,
 ) {
   return raw.deleteVoice(context, voiceId);
+}
+
+
+// the rule routes return the server's rules, put them on its cached settings (the redis event does the same)
+async function mergeGuildRules(
+  context: RequestContext,
+  guildId: string,
+  rules: Array<RestResponsesRaw.GuildRule>,
+): Promise<GuildSettings> {
+  let settings = GuildSettingsStore.get(guildId);
+  if (settings) {
+    settings.merge({rules});
+  } else {
+    settings = await GuildSettingsStore.fetch(context, guildId) || new GuildSettings({id: guildId, rules});
+  }
+  return settings;
+}
+
+
+export async function clearGuildRules(
+  context: RequestContext,
+  guildId: string,
+): Promise<RestResponses.DeleteGuildRules> {
+  const data = await raw.clearGuildRules(context, guildId);
+  return mergeGuildRules(context, guildId, data);
+}
+
+
+export async function deleteGuildRules(
+  context: RequestContext,
+  guildId: string,
+  ruleIds: Array<string>,
+): Promise<RestResponses.DeleteGuildRules> {
+  const data = await raw.deleteGuildRules(context, guildId, ruleIds);
+  return mergeGuildRules(context, guildId, data);
+}
+
+
+export async function editGuildRule(
+  context: RequestContext,
+  guildId: string,
+  ruleId: string,
+  options: RestOptions.EditGuildRule,
+): Promise<RestResponses.EditGuildRule> {
+  const data = await raw.editGuildRule(context, guildId, ruleId, options);
+  return mergeGuildRules(context, guildId, data);
+}
+
+
+export async function putGuildRules(
+  context: RequestContext,
+  guildId: string,
+  rules: Array<RestOptions.PutGuildRule>,
+): Promise<RestResponses.PutGuildRules> {
+  const data = await raw.putGuildRules(context, guildId, rules);
+  return mergeGuildRules(context, guildId, data);
 }
 
 
@@ -1706,6 +1672,14 @@ export async function mediaIVManipulationFaceHalloweenHat(
 }
 
 
+export async function mediaIVManipulationFaceJoy(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationFaceJoy(context, options);
+}
+
+
 export async function mediaIVManipulationFaceKnight(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2647,6 +2621,14 @@ export async function mediaIVManipulationOverlayPersonsMirandaCosgrove1(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayPersonsMirandaCosgrove1(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayPersonsStephenHawking1(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayPersonsStephenHawking1(context, options);
 }
 
 

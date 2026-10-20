@@ -18,6 +18,8 @@ import {
 } from '../../api';
 import { RestResponsesRaw } from '../../api/types';
 import {
+  CommandCategories,
+  CommandCategoryNames,
   DateMomentLogFormat,
   GoogleLocales,
   GoogleLocalesText,
@@ -45,6 +47,8 @@ import {
   searchTimezones,
   toTitleCase,
 } from '../tools';
+import { GUILD_RULE_CATEGORIES } from '../guildrules';
+import { Languages, getTranslatorForLanguage, languageFromLocale } from '../i18n';
 
 
 
@@ -289,6 +293,44 @@ export async function prefix(context: Interaction.InteractionAutoCompleteContext
     }
   }
   return context.respond({choices: []});
+}
+
+
+
+// what a server rule covers: everything, a category or a command, values are what `parseGuildRuleCoverage` reads
+export async function guildRuleCoverage(context: Interaction.InteractionAutoCompleteContext) {
+  const { translate } = getTranslatorForLanguage(languageFromLocale(context.locale) || Languages.ENGLISH);
+  const value = (context.value || '').trim().toLowerCase();
+  const choices: Array<{name: string, value: string}> = [];
+
+  const everything = translate('rules.covers.everything_choice');
+  if (!value || everything.toLowerCase().includes(value) || 'everything'.startsWith(value)) {
+    choices.push({name: everything, value: 'everything'});
+  }
+  for (let category of GUILD_RULE_CATEGORIES) {
+    const name = CommandCategoryNames[category];
+    if (!value || name.toLowerCase().includes(value) || category.toLowerCase().startsWith(value)) {
+      choices.push({name: translate('rules.covers.category_choice', {category: name}), value: `category:${category}`});
+    }
+  }
+  if (context.commandClient) {
+    const seen = new BaseSet<string>();
+    for (let command of context.commandClient.commands) {
+      const metadata = command.metadata;
+      if (!metadata || !metadata.id || metadata.category === CommandCategories.OWNER || seen.has(metadata.id)) {
+        continue;
+      }
+      if (value && !command.names.some((name) => name.toLowerCase().startsWith(value)) && !metadata.id.startsWith(value)) {
+        continue;
+      }
+      seen.add(metadata.id);
+      choices.push({name: translate('rules.covers.command_choice', {command: command.name}).slice(0, 100), value: `command:${metadata.id}`});
+      if (25 <= choices.length) {
+        break;
+      }
+    }
+  }
+  return context.respond({choices: choices.slice(0, 25)});
 }
 
 

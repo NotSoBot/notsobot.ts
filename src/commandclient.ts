@@ -16,19 +16,18 @@ import UserStore from './stores/users';
 import UserSettingsStore from './stores/usersettings';
 
 import {
-  GuildAllowlistTypes,
-  GuildBlocklistTypes,
-  GuildCommandsAllowlistTypes,
-  GuildCommandsBlocklistTypes,
   GuildFeatures,
+  GuildRuleActions,
   UserFlags,
 } from './constants';
 import {
   Formatter,
   I18n,
   cancelCommandRun,
+  getCommandCategory,
   getCommandIdFromInvoker,
-  isGuildListCommandId,
+  isGuildRulesCommandId,
+  resolveGuildRule,
   trackCommandRun,
   untrackCommandRun,
 } from './utils';
@@ -73,7 +72,7 @@ export class NotSoCommandClient extends CommandClient {
       return false;
     }
 
-    // load their settings into cache before any early return (dms, admins, allowlists), the timezone and parser
+    // load their settings into cache before any early return (dms, admins, rules), the timezone and parser
     // error language are read from the cache only
     await UserSettingsStore.getOrFetch(context, context.userId);
 
@@ -90,9 +89,9 @@ export class NotSoCommandClient extends CommandClient {
 
     const { channel, member } = context;
     const commandId = getCommandIdFromInvoker(command);
-    // the owner and admins skip the lists unless the server turned that off (for a list or an entry)
+    // the owner and admins skip the rules unless the server turned that off (for every rule or one)
     const isAdmin = !!member && (member.isOwner || member.canAdministrator);
-    if (isAdmin && (!settings || isGuildListCommandId(commandId))) {
+    if (isAdmin && (!settings || isGuildRulesCommandId(commandId))) {
       return true;
     }
 
@@ -122,146 +121,24 @@ export class NotSoCommandClient extends CommandClient {
       }
     }
 
-    const parent = (channel) ? channel.parent : null;
     if (settings) {
-      const commandsAllowlist = settings.commandsAllowlist.filter((allowed) => {
-        return allowed.command === commandId;
+      const match = resolveGuildRule(settings, GuildRuleActions.ACCESS, {
+        category: getCommandCategory(this, commandId, (command.metadata as CommandMetadata | undefined)?.category),
+        channel: channel || null,
+        channelId: context.channelId,
+        commandId,
+        isAdmin,
+        member: member || null,
+        userId: context.userId,
       });
-      if (commandsAllowlist.length) {
-        if (isAdmin && commandsAllowlist.some((allowed) => settings.canAdminBypass(allowed))) {
-          return true;
-        }
-        const shouldAllow = commandsAllowlist.some((allow) => {
-          switch (allow.type) {
-            case GuildCommandsAllowlistTypes.CHANNEL: {
-              if (allow.id === context.channelId) {
-                return true;
-              }
-              if (channel && channel.parentId === allow.id) {
-                return true;
-              }
-              if (parent && parent.parentId === allow.id) {
-                return true;
-              }
-            }; break;
-            case GuildCommandsAllowlistTypes.GUILD: {
-              return true;
-            }; break;
-            case GuildCommandsAllowlistTypes.ROLE: {
-              if (member) {
-                return member.roles.has(allow.id);
-              }
-            }; break;
-            case GuildCommandsAllowlistTypes.USER: {
-              return allow.id === context.userId;
-            };
-          }
-          return false;
-        });
-        return shouldAllow;
-      } else {
-        const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => {
-          return blocked.command === commandId && !(isAdmin && settings.canAdminBypass(blocked));
-        });
-        if (commandsBlocklist.length) {
-          const shouldIgnore = commandsBlocklist.some((blocked) => {
-            switch (blocked.type) {
-              case GuildCommandsBlocklistTypes.CHANNEL: {
-                if (blocked.id === context.channelId) {
-                  return true;
-                }
-                if (channel && channel.parentId === blocked.id) {
-                  return true;
-                }
-                if (parent && parent.parentId === blocked.id) {
-                  return true;
-                }
-              }; break;
-              case GuildCommandsBlocklistTypes.GUILD: {
-                return true;
-              }; break;
-              case GuildCommandsBlocklistTypes.ROLE: {
-                if (member) {
-                  return member.roles.has(blocked.id);
-                }
-              }; break;
-              case GuildCommandsBlocklistTypes.USER: {
-                return blocked.id === context.userId;
-              };
-            }
-            return false;
-          });
-          if (shouldIgnore) {
-            return false;
-          }
-        }
+      if (match && !match.rule.allows) {
+        // only rules with a message tell the user anything, see `onCommandCancel`
+        contextMetadata.blockedMessage = match.rule.value.message;
+        return false;
       }
-      const { allowlist } = settings;
-      if (allowlist.length) {
-        if (isAdmin && allowlist.some((allowed) => settings.canAdminBypass(allowed))) {
-          return true;
-        }
-        const shouldAllow = allowlist.some((allow) => {
-          switch (allow.type) {
-            case GuildAllowlistTypes.CHANNEL: {
-              if (allow.id === context.channelId) {
-                return true;
-              }
-              if (channel && channel.parentId === allow.id) {
-                return true;
-              }
-              if (parent && parent.parentId === allow.id) {
-                return true;
-              }
-            }; break;
-            case GuildAllowlistTypes.ROLE: {
-              if (member) {
-                return member.roles.has(allow.id);
-              }
-            }; break;
-            case GuildAllowlistTypes.USER: {
-              return allow.id === context.userId;
-            };
-          }
-          return false;
-        });
-        return shouldAllow;
-      } else {
-        const blocklist = settings.blocklist.filter((blocked) => !(isAdmin && settings.canAdminBypass(blocked)));
-        if (blocklist.length) {
-          const shouldIgnore = blocklist.some((blocked) => {
-            switch (blocked.type) {
-              case GuildBlocklistTypes.CHANNEL: {
-                if (blocked.id === context.channelId) {
-                  return true;
-                }
-                if (channel && channel.parentId === blocked.id) {
-                  return true;
-                }
-                if (parent && parent.parentId === blocked.id) {
-                  return true;
-                }
-              }; break;
-              case GuildBlocklistTypes.ROLE: {
-                if (member) {
-                  return member.roles.has(blocked.id);
-                }
-              }; break;
-              case GuildBlocklistTypes.USER: {
-                return blocked.id === context.userId;
-              }; break;
-            }
-            return false;
-          });
-          if (shouldIgnore) {
-            return false;
-          }
-        }
-      }
-
       return true;
     }
-    // couldn't load the server's settings and there's no older copy of them, so its allow/blocklists can't be checked
+    // couldn't load the server's settings and there's no older copy of them, so its rules can't be checked
     contextMetadata.settingsFetchFailed = true;
     return false;
   }
@@ -403,12 +280,29 @@ export class NotSoCommandClient extends CommandClient {
     return super.handleDeleteBulk(deletePayload);
   }
 
-  // blocked commands don't tell the user anything (that's the point of the lists), except when we couldn't load the
-  // server's settings to check them. once per channel every so often, so an api outage doesn't spam every channel
+  // blocked commands don't tell the user anything, except when the rule that blocked it has a message (once per user in
+  // a channel every so often) or we couldn't load the server's settings to check them (once per channel every so
+  // often, so an api outage doesn't spam every channel)
   async onCommandCancel(context: Command.Context, command: Command.Command) {
     setCommandResult(context, CommandResults.BLOCKED);
     // the custom command fallback runs for every unmatched prefixed message, those aren't commands
-    if (!context.metadata || !context.metadata.settingsFetchFailed || !command.name) {
+    if (!context.metadata || !command.name) {
+      return;
+    }
+    if (context.metadata.blockedMessage) {
+      const key = `${context.channelId}.${context.userId}`;
+      if (blockedMessageReplies.has(key) || !context.canReply) {
+        return;
+      }
+      blockedMessageReplies.set(key, Date.now());
+      try {
+        await replyWarning(context, context.metadata.blockedMessage);
+      } catch(error) {
+
+      }
+      return;
+    }
+    if (!context.metadata.settingsFetchFailed) {
       return;
     }
     const now = Date.now();
@@ -460,6 +354,10 @@ export class NotSoCommandClient extends CommandClient {
 // channel id -> when we last said the server's settings couldn't be loaded
 const SETTINGS_FETCH_FAILED_REPLY_INTERVAL = 60 * 1000;
 const settingsFetchFailedReplies = new Collections.BaseCollection<string, number>({expire: SETTINGS_FETCH_FAILED_REPLY_INTERVAL});
+
+// `channel id.user id` -> when we last showed them a block rule's message
+const BLOCKED_MESSAGE_REPLY_INTERVAL = 30 * 1000;
+const blockedMessageReplies = new Collections.BaseCollection<string, number>({expire: BLOCKED_MESSAGE_REPLY_INTERVAL});
 
 // getAttributes and getCommand both check the same reply, only hit the api once per message
 const aiResponseChecks = new WeakMap<Structures.Message, Promise<boolean>>();

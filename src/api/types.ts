@@ -6,6 +6,8 @@ import {
   GoogleImageVideoTypes,
   GoogleLocales,
   GuildLoggerTypes,
+  GuildRuleActions,
+  GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
   MeasurementUnits,
   MediaAudioBitcrushModes,
@@ -34,10 +36,6 @@ import {
 import { GoogleSearchImageResult } from './structures/googlesearchimageresult';
 import {
   GuildSettings,
-  GuildSettingsAllowlist,
-  GuildSettingsBlocklist,
-  GuildSettingsCommandsAllowlist,
-  GuildSettingsCommandsBlocklist,
   GuildSettingsLogger,
   GuildSettingsPrefix,
 } from './structures/guildsettings';
@@ -126,42 +124,35 @@ export namespace RestOptions {
   }
 
 
-  // `admin_bypass` on an entry is only changed when given, null follows the server's setting for the list
+  // a rule that already exists for the same action, target and command/category gets the new value instead
+  export interface PutGuildRule {
+    action: GuildRuleActions,
+    // only changed on an existing rule when given, null follows the server's setting
+    adminBypass?: boolean | null,
+    category?: string | null,
+    command?: string | null,
+    targetId: string,
+    targetType: GuildRuleTargetTypes,
+    value: {allow: boolean, message?: string | null},
+  }
+
+  export interface EditGuildRule {
+    // null follows the server's setting
+    adminBypass?: boolean | null,
+    value?: {allow: boolean, message?: string | null},
+  }
+
   export interface EditGuildSettings {
-    allowlist?: Array<{
-      admin_bypass?: boolean | null,
-      id: string,
-      type: string,
-    }>,
-    allowlistAdminBypass?: boolean | null,
     blocked?: boolean,
     blockedReason?: null | string,
-    blocklist?: Array<{
-      admin_bypass?: boolean | null,
-      id: string,
-      type: string,
-    }>,
-    blocklistAdminBypass?: boolean | null,
-    commandsAllowlist?: Array<{
-      admin_bypass?: boolean | null,
-      command: string,
-      id: string,
-      type: string,
-    }>,
-    commandsAllowlistAdminBypass?: boolean | null,
-    commandsBlocklist?: Array<{
-      admin_bypass?: boolean | null,
-      command: string,
-      id: string,
-      type: string,
-    }>,
-    commandsBlocklistAdminBypass?: boolean | null,
     locale?: string | null,
     mlDiffusionModel?: string,
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
     prefixes?: Array<string>,
     responseDisplay?: GuildSettingsResponseDisplayTypes | null,
+    // null resets it to on
+    rulesAdminBypass?: boolean | null,
     timezone?: string | null,
   }
 
@@ -1526,23 +1517,17 @@ export namespace RestOptions {
 
 
 export namespace RestResponses {
-  export type CreateGuildAllowlist = null;
-  export type CreateGuildBlocklist = null;
-  export type CreateGuildCommandsAllowlist = null;
-  export type CreateGuildCommandsBlocklist = null;
   export type CreateGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type CreateGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
 
   export type DeleteChannel = null;
   export type DeleteCommandsResponses = RestResponsesRaw.DeleteCommandsResponses;
-  export type DeleteGuildAllowlist = null;
-  export type DeleteGuildBlocklist = null;
-  export type DeleteGuildCommandsAllowlist = null;
-  export type DeleteGuildCommandsBlocklist = null;
   export type DeleteGuildLogger = Collections.BaseCollection<string, GuildSettingsLogger>;
   export type DeleteGuildPrefix = Collections.BaseCollection<string, GuildSettingsPrefix>;
+  export type DeleteGuildRules = GuildSettings;
   export type DeleteVoice = null;
 
+  export type EditGuildRule = GuildSettings;
   export type EditGuildSettings = GuildSettings;
   export type EditServerSettings = ServerSettings;
   export type EditUser = UserFull;
@@ -1553,6 +1538,7 @@ export namespace RestResponses {
 
   export type SearchGoogleImages = Array<GoogleSearchImageResult>;
 
+  export type PutGuildRules = GuildSettings;
   export type PutGuildSettings = GuildSettings;
   export type PutInfoDiscord = null;
   export type PutInfoMetrics = null;
@@ -1719,10 +1705,6 @@ export namespace RestResponsesRaw {
     text: string,
   }
 
-  export type CreateGuildAllowlist = null;
-  export type CreateGuildBlocklist = null;
-  export type CreateGuildCommandsAllowlist = null;
-  export type CreateGuildCommandsBlocklist = null;
   export type CreateGuildLogger = Array<GuildLogger>;
   export type CreateGuildPrefix = Array<GuildPrefix>;
 
@@ -1746,12 +1728,9 @@ export namespace RestResponsesRaw {
   export interface DeleteCommandsResponses {
     deleted: number,
   }
-  export type DeleteGuildAllowlist = null;
-  export type DeleteGuildBlocklist = null;
-  export type DeleteGuildCommandsAllowlist = null;
-  export type DeleteGuildCommandsBlocklist = null;
   export type DeleteGuildLogger = Array<GuildLogger>;
   export type DeleteGuildPrefix = Array<GuildPrefix>;
+  export type DeleteGuildRules = Array<GuildRule>;
 
   export type DeleteReminder = null;
 
@@ -1761,6 +1740,7 @@ export namespace RestResponsesRaw {
   export type DeleteTagsDirectoryTagVerification = TagDirectory;
   export type DeleteTagVariable = null;
 
+  export type EditGuildRule = Array<GuildRule>;
   export type EditGuildSettings = GuildSettings;
   export type EditServerSettings = ServerSettings;
   export type EditTag = Tag;
@@ -1948,6 +1928,7 @@ export namespace RestResponsesRaw {
     voices: Array<Voice>,
   }
 
+  export type PutGuildRules = Array<GuildRule>;
   export type PutTag = Tag;
   export type PutTagsDirectoryTag = TagDirectory;
   export type PutTagBlobs = FetchTagBlobs;
@@ -2044,62 +2025,36 @@ export namespace RestResponsesRaw {
   }
 
   export interface GuildSettings {
-    allowlist: Array<GuildAllowlist>,
     blocked: boolean,
     blocked_reason: string | null,
-    blocklist: Array<GuildBlocklist>,
-    commands_allowlist: Array<GuildCommandsAllowlist>,
-    commands_blocklist: Array<GuildCommandsBlocklist>,
     icon: string | null,
     id: string,
     locale: string | null,
     name: string,
     prefixes: Array<GuildPrefix>,
+    rules: Array<GuildRule>,
     settings: {
-      allowlist_admin_bypass: boolean,
-      blocklist_admin_bypass: boolean,
-      commands_allowlist_admin_bypass: boolean,
-      commands_blocklist_admin_bypass: boolean,
       ml_diffusion_model: string | null,
       ml_llm_model: string | null,
       ml_llm_personality: string | null,
       response_display: number | null,
+      rules_admin_bypass: boolean,
     },
     timezone: string | null,
   }
 
-  export interface GuildAllowlist {
+  // matches GuildRule.to_dict() on the api
+  export interface GuildRule {
+    action: string,
     added: string,
     admin_bypass: boolean | null,
+    category: string | null,
+    command: string | null,
     id: string,
-    type: string,
-    user_id: string,
-  }
-
-  export interface GuildBlocklist {
-    added: string,
-    admin_bypass: boolean | null,
-    id: string,
-    type: string,
-    user_id: string,
-  }
-
-  export interface GuildCommandsAllowlist {
-    added: string,
-    admin_bypass: boolean | null,
-    command: string,
-    id: string,
-    type: string,
-    user_id: string,
-  }
-
-  export interface GuildCommandsBlocklist {
-    added: string,
-    admin_bypass: boolean | null,
-    command: string,
-    id: string,
-    type: string,
-    user_id: string,
+    target_id: string,
+    target_type: string,
+    user_id: string | null,
+    value: {allow: boolean, message: string | null},
   }
 
   // matches GuildLogger.to_dict() on the api

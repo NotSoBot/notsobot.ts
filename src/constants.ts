@@ -59,6 +59,7 @@ export enum ApiErrorCodes {
   UNKNOWN_LLM_MEMORY = 10023,
   UNKNOWN_TIMED_BAN = 10024,
   UNKNOWN_PREMIUM_SERVER = 10025,
+  UNKNOWN_GUILD_RULE = 10026,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -87,6 +88,7 @@ export enum ApiErrorCodes {
   MAX_TIMED_BANS = 30021,
   MAX_PREMIUM_SERVERS = 30022,
   PREMIUM_SERVER_COOLDOWN = 30023,
+  MAX_GUILD_RULES = 30024,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -1013,47 +1015,22 @@ export const GoogleLocaleFromDiscord = Object.freeze({
 
 
 
-export enum GuildAllowlistTypes {
-  CHANNEL = 'channel',
-  ROLE = 'role',
-  USER = 'user',
+export enum GuildRuleActions {
+  // value: `{allow: boolean, message: string | null}`
+  ACCESS = 'access',
 }
 
-export enum GuildBlocklistTypes {
+export enum GuildRuleTargetTypes {
   CHANNEL = 'channel',
-  ROLE = 'role',
-  USER = 'user',
-}
-
-export enum GuildCommandsAllowlistTypes {
-  CHANNEL = 'channel',
+  // the target id is the server's id
   GUILD = 'guild',
   ROLE = 'role',
   USER = 'user',
 }
 
-export enum GuildCommandsBlocklistTypes {
-  CHANNEL = 'channel',
-  GUILD = 'guild',
-  ROLE = 'role',
-  USER = 'user',
-}
-
-
-// the `admin-bypass` commands, default clears an entry's own setting (or turns the server's back on)
-export enum GuildAdminBypassValues {
-  DEFAULT = 'default',
-  DISABLED = 'disabled',
-  ENABLED = 'enabled',
-}
-
-// the lists the server owner and admins can be made to follow, same names as the api's settings
-export enum GuildAdminBypassLists {
-  ALLOWLIST = 'allowlist',
-  BLOCKLIST = 'blocklist',
-  COMMANDS_ALLOWLIST = 'commands_allowlist',
-  COMMANDS_BLOCKLIST = 'commands_blocklist',
-}
+export const MAX_GUILD_RULE_MESSAGE_LENGTH = 200;
+// rules one request can add or remove
+export const MAX_GUILD_RULES_PER_REQUEST = 100;
 
 
 export enum GuildFeatures {
@@ -1145,7 +1122,6 @@ export const MediaAudioVocoderSynthsToText: Record<MediaAudioVocoderSynths, stri
 
 
 export enum MediaBackgroundRemovalModels {
-  ALPHA_MATTING = 'ALPHA_MATTING',
   BIREFNET_COD = 'BIREFNET_COD',
   BIREFNET_DIS = 'BIREFNET_DIS',
   BIREFNET_GENERAL = 'BIREFNET_GENERAL',
@@ -1164,7 +1140,6 @@ export enum MediaBackgroundRemovalModels {
 }
 
 export const MediaBackgroundRemovalModelsToText: Record<MediaBackgroundRemovalModels, string> = Object.freeze({
-  [MediaBackgroundRemovalModels.ALPHA_MATTING]: 'Alpha Matting',
   [MediaBackgroundRemovalModels.BIREFNET_COD]: 'BiRefNet COD (Hidden Object Detection)',
   [MediaBackgroundRemovalModels.BIREFNET_DIS]: 'BiRefNet DIS (Foreground/Background Separation)',
   [MediaBackgroundRemovalModels.BIREFNET_GENERAL]: 'BiRefNet General',
@@ -1638,13 +1613,10 @@ export enum RedditTimeTypes {
 
 
 export enum RedisChannels {
-  GUILD_ALLOWLIST_UPDATE = 'GUILD_ALLOWLIST_UPDATE',
-  GUILD_BLOCKLIST_UPDATE = 'GUILD_BLOCKLIST_UPDATE',
-  GUILD_COMMANDS_ALLOWLIST_UPDATE = 'GUILD_COMMANDS_ALLOWLIST_UPDATE',
-  GUILD_COMMANDS_BLOCKLIST_UPDATE = 'GUILD_COMMANDS_BLOCKLIST_UPDATE',
   GUILD_FEATURES_UPDATE = 'GUILD_FEATURES_UPDATE',
   GUILD_LOGGER_UPDATE = 'GUILD_LOGGER_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
+  GUILD_RULES_UPDATE = 'GUILD_RULES_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
   INFO_DISCORD_REQUEST = 'INFO_DISCORD_REQUEST',
   PREMIUM_SERVERS_UPDATE = 'PREMIUM_SERVERS_UPDATE',
@@ -2425,23 +2397,17 @@ export const NotSoApiKeys = Object.freeze({
   ABOUT: 'about',
   ADDED: 'added',
   ADMIN_BYPASS: 'admin_bypass',
-  ALLOWLIST: 'allowlist',
-  ALLOWLIST_ADMIN_BYPASS: 'allowlist_admin_bypass',
+  ACTION: 'action',
   AVATAR: 'avatar',
   BLOCKED: 'blocked',
   BLOCKED_REASON: 'blocked_reason',
-  BLOCKLIST: 'blocklist',
-  BLOCKLIST_ADMIN_BYPASS: 'blocklist_admin_bypass',
   BOT: 'bot',
   BRAND: 'brand',
+  CATEGORY: 'category',
   CHANNEL: 'channel',
   CHANNEL_ID: 'channel_id',
   COLOR: 'color',
   COMMAND: 'command',
-  COMMANDS_ALLOWLIST: 'commands_allowlist',
-  COMMANDS_ALLOWLIST_ADMIN_BYPASS: 'commands_allowlist_admin_bypass',
-  COMMANDS_BLOCKLIST: 'commands_blocklist',
-  COMMANDS_BLOCKLIST_ADMIN_BYPASS: 'commands_blocklist_admin_bypass',
   CREATED: 'created',
   CURRENCY: 'currency',
   DESCRIPTION: 'description',
@@ -2485,10 +2451,14 @@ export const NotSoApiKeys = Object.freeze({
   PROXY_URL: 'proxy_url',
   RECIPE: 'recipe',
   RESPONSE_DISPLAY: 'response_display',
+  RULES: 'rules',
+  RULES_ADMIN_BYPASS: 'rules_admin_bypass',
   SERVINGS: 'servings',
   SETTINGS: 'settings',
   STARS: 'stars',
   STARS_AMOUNT: 'stars_amount',
+  TARGET_ID: 'target_id',
+  TARGET_TYPE: 'target_type',
   TEXT: 'text',
   TIMEZONE: 'timezone',
   THUMBNAIL: 'thumbnail',
@@ -2500,6 +2470,7 @@ export const NotSoApiKeys = Object.freeze({
   URL: 'url',
   USER_ID: 'user_id',
   USERNAME: 'username',
+  VALUE: 'value',
   VANITY: 'vanity',
   VIDEO: 'video',
   VIEWS: 'views',
@@ -2512,24 +2483,17 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ABOUT]: 'about',
   [NotSoApiKeys.ADDED]: 'added',
   [NotSoApiKeys.ADMIN_BYPASS]: 'adminBypass',
-  [NotSoApiKeys.ALLOWLIST]: 'allowlist',
-  [NotSoApiKeys.ALLOWLIST_ADMIN_BYPASS]: 'allowlistAdminBypass',
+  [NotSoApiKeys.ACTION]: 'action',
   [NotSoApiKeys.AVATAR]: 'avatar',
   [NotSoApiKeys.BLOCKED]: 'blocked',
   [NotSoApiKeys.BLOCKED_REASON]: 'blockedReason',
-  [NotSoApiKeys.BLOCKLIST]: 'blocklist',
-  [NotSoApiKeys.BLOCKLIST_ADMIN_BYPASS]: 'blocklistAdminBypass',
   [NotSoApiKeys.BOT]: 'bot',
   [NotSoApiKeys.BRAND]: 'brand',
+  [NotSoApiKeys.CATEGORY]: 'category',
   [NotSoApiKeys.CHANNEL]: 'channel',
   [NotSoApiKeys.CHANNEL_ID]: 'channelId',
   [NotSoApiKeys.COLOR]: 'color',
   [NotSoApiKeys.COMMAND]: 'command',
-  // must match the GuildSettings getters (commandsAllowlist/commandsBlocklist) for differences()/toJSON()
-  [NotSoApiKeys.COMMANDS_ALLOWLIST]: 'commandsAllowlist',
-  [NotSoApiKeys.COMMANDS_ALLOWLIST_ADMIN_BYPASS]: 'commandsAllowlistAdminBypass',
-  [NotSoApiKeys.COMMANDS_BLOCKLIST]: 'commandsBlocklist',
-  [NotSoApiKeys.COMMANDS_BLOCKLIST_ADMIN_BYPASS]: 'commandsBlocklistAdminBypass',
   [NotSoApiKeys.CREATED]: 'created',
   [NotSoApiKeys.CURRENCY]: 'currency',
   [NotSoApiKeys.DESCRIPTION]: 'description',
@@ -2573,10 +2537,15 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.PROXY_URL]: 'proxyUrl',
   [NotSoApiKeys.RECIPE]: 'recipe',
   [NotSoApiKeys.RESPONSE_DISPLAY]: 'responseDisplay',
+  // must match the GuildSettings `rules` getter for differences()/toJSON()
+  [NotSoApiKeys.RULES]: 'rules',
+  [NotSoApiKeys.RULES_ADMIN_BYPASS]: 'rulesAdminBypass',
   [NotSoApiKeys.SERVINGS]: 'servings',
   [NotSoApiKeys.SETTINGS]: 'settings',
   [NotSoApiKeys.STARS]: 'stars',
   [NotSoApiKeys.STARS_AMOUNT]: 'starsAmount',
+  [NotSoApiKeys.TARGET_ID]: 'targetId',
+  [NotSoApiKeys.TARGET_TYPE]: 'targetType',
   [NotSoApiKeys.TEXT]: 'text',
   [NotSoApiKeys.TIMEZONE]: 'timezone',
   [NotSoApiKeys.THUMBNAIL]: 'thumbnail',
@@ -2588,6 +2557,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.URL]: 'url',
   [NotSoApiKeys.USER_ID]: 'userId',
   [NotSoApiKeys.USERNAME]: 'username',
+  [NotSoApiKeys.VALUE]: 'value',
   [NotSoApiKeys.VANITY]: 'vanity',
   [NotSoApiKeys.VIDEO]: 'video',
   [NotSoApiKeys.VIEWS]: 'views',

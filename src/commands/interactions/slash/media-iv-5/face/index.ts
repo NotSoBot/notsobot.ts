@@ -7,6 +7,7 @@ import { MediaIVAnimeCommand } from './anime';
 import { MediaIVClownCommand } from './clown';
 import { MediaIVFatCommand } from './fat';
 import { MediaIVHalloweenHatCommand } from './halloween-hat';
+import { MediaIVJoyCommand } from './joy';
 import { MediaIVKirkCommand } from './kirk';
 import { MediaIVKnightCommand } from './knight';
 import { MediaIVLeninCommand } from './lenin';
@@ -29,6 +30,7 @@ export class MediaFace5GroupCommand extends BaseInteractionCommandOptionGroup {
         new MediaIVClownCommand(),
         new MediaIVFatCommand(),
         new MediaIVHalloweenHatCommand(),
+        new MediaIVJoyCommand(),
         new MediaIVKirkCommand(),
         new MediaIVKnightCommand(),
         new MediaIVLeninCommand(),

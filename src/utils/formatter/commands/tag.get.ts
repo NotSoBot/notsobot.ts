@@ -15,7 +15,7 @@ import { slashCommandMention } from '../../tools';
 
 
 // `tag get`: adds a tag from the tag directory or your DMs (as an alias) to this server/DM
-// keeps its old id from when it was `tag add`, so existing command blocklists/allowlists still apply
+// keeps its old id from when it was `tag add`, so existing rules for it still apply
 export const COMMAND_ID = 'tag.add';
 
 export const MAX_TIME_TO_RESPOND = 2 * 60 * 1000;

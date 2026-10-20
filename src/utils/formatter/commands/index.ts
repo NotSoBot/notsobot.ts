@@ -1,6 +1,8 @@
 import * as FunAsciiFromImage from './fun.ascii.from.image';
 import * as FunAsciiFromText from './fun.ascii.from.text';
 import * as FunAesthetics from './fun.aesthetics';
+import * as FunAgar from './fun.agar';
+import * as FunAgarify from './fun.agarify';
 import * as FunB1 from './fun.b1';
 import * as FunBadMeme from './fun.badmeme';
 import * as FunEmoji from './fun.emoji';
@@ -10,6 +12,8 @@ import * as FunRegional from './fun.regional';
 import * as FunReverseText from './fun.reversetext';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
+import * as FunXD from './fun.xd';
+import * as FunZalgo from './fun.zalgo';
 
 import * as InfoActivity from './info.activity';
 import * as InfoApplications from './info.applications';
@@ -145,6 +149,7 @@ import * as MediaIVManipulationFaceClown from './media.iv.manipulation.face.clow
 import * as MediaIVManipulationFaceFat from './media.iv.manipulation.face.fat';
 import * as MediaIVManipulationFaceFeaturesSwap from './media.iv.manipulation.face.features.swap';
 import * as MediaIVManipulationFaceHalloweenHat from './media.iv.manipulation.face.halloween.hat';
+import * as MediaIVManipulationFaceJoy from './media.iv.manipulation.face.joy';
 import * as MediaIVManipulationFaceKnight from './media.iv.manipulation.face.knight';
 import * as MediaIVManipulationFaceLenin from './media.iv.manipulation.face.lenin';
 import * as MediaIVManipulationFaceMonaLisa from './media.iv.manipulation.face.mona.lisa';
@@ -269,6 +274,7 @@ import * as MediaIVManipulationOverlayPersonsKeemstar1 from './media.iv.manipula
 import * as MediaIVManipulationOverlayPersonsKeemstar2 from './media.iv.manipulation.overlay.persons.keemstar.2';
 import * as MediaIVManipulationOverlayPersonsLTTLinus1 from './media.iv.manipulation.overlay.persons.ltt.linus.1';
 import * as MediaIVManipulationOverlayPersonsMirandaCosgrove1 from './media.iv.manipulation.overlay.persons.miranda.cosgrove.1';
+import * as MediaIVManipulationOverlayPersonsStephenHawking1 from './media.iv.manipulation.overlay.persons.stephen.hawking.1';
 import * as MediaIVManipulationOverlayPersonsTrump1 from './media.iv.manipulation.overlay.persons.trump.1';
 import * as MediaIVManipulationOverlayPersonsZuckerberg1 from './media.iv.manipulation.overlay.persons.zuckerberg.1';
 import * as MediaIVManipulationOverlayRespects from './media.iv.manipulation.overlay.respects';
@@ -342,40 +348,17 @@ import * as MediaIVManipulationWiggle from './media.iv.manipulation.wiggle';
 import * as MediaIVManipulationZoom from './media.iv.manipulation.zoom';
 import * as MediaIVManipulationZoomBlur from './media.iv.manipulation.zoom.blur';
 
-import * as ModerationAdminBypass from './moderation.adminbypass';
-import * as ModerationAllowlist from './moderation.allowlist';
-import * as ModerationAllowlistAdd from './moderation.allowlist.add';
-import * as ModerationAllowlistAddChannels from './moderation.allowlist.add.channels';
-import * as ModerationAllowlistAddRoles from './moderation.allowlist.add.roles';
-import * as ModerationAllowlistAddUsers from './moderation.allowlist.add.users';
-import * as ModerationAllowlistClear from './moderation.allowlist.clear';
-import * as ModerationAllowlistRemove from './moderation.allowlist.remove';
-import * as ModerationAllowlistRemoveChannels from './moderation.allowlist.remove.channels';
-import * as ModerationAllowlistRemoveRoles from './moderation.allowlist.remove.roles';
-import * as ModerationAllowlistRemoveUsers from './moderation.allowlist.remove.users';
 import * as ModerationBan from './moderation.ban';
-import * as ModerationBlocklist from './moderation.blocklist';
-import * as ModerationBlocklistAdd from './moderation.blocklist.add';
-import * as ModerationBlocklistAddChannels from './moderation.blocklist.add.channels';
-import * as ModerationBlocklistAddRoles from './moderation.blocklist.add.roles';
-import * as ModerationBlocklistAddUsers from './moderation.blocklist.add.users';
-import * as ModerationBlocklistClear from './moderation.blocklist.clear';
-import * as ModerationBlocklistRemove from './moderation.blocklist.remove';
-import * as ModerationBlocklistRemoveChannels from './moderation.blocklist.remove.channels';
-import * as ModerationBlocklistRemoveRoles from './moderation.blocklist.remove.roles';
-import * as ModerationBlocklistRemoveUsers from './moderation.blocklist.remove.users';
-import * as ModerationCommandsAllowlist from './moderation.commands.allowlist';
-import * as ModerationCommandsAllowlistAdd from './moderation.commands.allowlist.add';
-import * as ModerationCommandsAllowlistClear from './moderation.commands.allowlist.clear';
-import * as ModerationCommandsAllowlistRemove from './moderation.commands.allowlist.remove';
-import * as ModerationCommandsBlocklist from './moderation.commands.blocklist';
-import * as ModerationCommandsBlocklistAdd from './moderation.commands.blocklist.add';
-import * as ModerationCommandsBlocklistClear from './moderation.commands.blocklist.clear';
-import * as ModerationCommandsBlocklistRemove from './moderation.commands.blocklist.remove';
 import * as ModerationCommandsUsage from './moderation.commands.usage';
 import * as ModerationKick from './moderation.kick';
 import * as ModerationMute from './moderation.mute';
 import * as ModerationNick from './moderation.nick';
+import * as ModerationRules from './moderation.rules';
+import * as ModerationRulesAdd from './moderation.rules.add';
+import * as ModerationRulesAdminBypass from './moderation.rules.adminbypass';
+import * as ModerationRulesCheck from './moderation.rules.check';
+import * as ModerationRulesClear from './moderation.rules.clear';
+import * as ModerationRulesRemove from './moderation.rules.remove';
 import * as ModerationUnban from './moderation.unban';
 import * as ModerationUnmute from './moderation.unmute';
 
@@ -527,6 +510,8 @@ export {
   FunAsciiFromImage,
   FunAsciiFromText,
   FunAesthetics,
+  FunAgar,
+  FunAgarify,
   FunB1,
   FunBadMeme,
   FunEmoji,
@@ -536,6 +521,8 @@ export {
   FunReverseText,
   FunTextwall,
   FunTTS,
+  FunXD,
+  FunZalgo,
 
   InfoActivity,
   InfoApplications,
@@ -671,6 +658,7 @@ export {
   MediaIVManipulationFaceFat,
   MediaIVManipulationFaceFeaturesSwap,
   MediaIVManipulationFaceHalloweenHat,
+  MediaIVManipulationFaceJoy,
   MediaIVManipulationFaceKnight,
   MediaIVManipulationFaceLenin,
   MediaIVManipulationFaceMonaLisa,
@@ -795,6 +783,7 @@ export {
   MediaIVManipulationOverlayPersonsKeemstar2,
   MediaIVManipulationOverlayPersonsLTTLinus1,
   MediaIVManipulationOverlayPersonsMirandaCosgrove1,
+  MediaIVManipulationOverlayPersonsStephenHawking1,
   MediaIVManipulationOverlayPersonsTrump1,
   MediaIVManipulationOverlayPersonsZuckerberg1,
   MediaIVManipulationOverlayRespects,
@@ -868,40 +857,17 @@ export {
   MediaIVManipulationZoom,
   MediaIVManipulationZoomBlur,
 
-  ModerationAdminBypass,
-  ModerationAllowlist,
-  ModerationAllowlistAdd,
-  ModerationAllowlistAddChannels,
-  ModerationAllowlistAddRoles,
-  ModerationAllowlistAddUsers,
-  ModerationAllowlistClear,
-  ModerationAllowlistRemove,
-  ModerationAllowlistRemoveChannels,
-  ModerationAllowlistRemoveRoles,
-  ModerationAllowlistRemoveUsers,
   ModerationBan,
-  ModerationBlocklist,
-  ModerationBlocklistAdd,
-  ModerationBlocklistAddChannels,
-  ModerationBlocklistAddRoles,
-  ModerationBlocklistAddUsers,
-  ModerationBlocklistClear,
-  ModerationBlocklistRemove,
-  ModerationBlocklistRemoveChannels,
-  ModerationBlocklistRemoveRoles,
-  ModerationBlocklistRemoveUsers,
-  ModerationCommandsAllowlist,
-  ModerationCommandsAllowlistAdd,
-  ModerationCommandsAllowlistClear,
-  ModerationCommandsAllowlistRemove,
-  ModerationCommandsBlocklist,
-  ModerationCommandsBlocklistAdd,
-  ModerationCommandsBlocklistClear,
-  ModerationCommandsBlocklistRemove,
   ModerationCommandsUsage,
   ModerationKick,
   ModerationMute,
   ModerationNick,
+  ModerationRules,
+  ModerationRulesAdd,
+  ModerationRulesAdminBypass,
+  ModerationRulesCheck,
+  ModerationRulesClear,
+  ModerationRulesRemove,
   ModerationUnban,
   ModerationUnmute,
 

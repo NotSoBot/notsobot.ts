@@ -2,26 +2,6 @@ import { RestResponsesRaw } from './api/types';
 
 
 export namespace RedisPayloads {
-  export interface GuildAllowlistUpdate {
-    allowlist: Array<RestResponsesRaw.GuildAllowlist>,
-    id: string,
-  }
-
-  export interface GuildBlocklistUpdate {
-    blocklist: Array<RestResponsesRaw.GuildBlocklist>,
-    id: string,
-  }
-
-  export interface GuildCommandsAllowlistUpdate {
-    commands_allowlist: Array<RestResponsesRaw.GuildCommandsAllowlist>,
-    id: string,
-  }
-
-  export interface GuildCommandsBlocklistUpdate {
-    commands_blocklist: Array<RestResponsesRaw.GuildCommandsBlocklist>,
-    id: string,
-  }
-
   export interface GuildFeaturesUpdate {
     features: Array<string>,
     id: string,
@@ -35,6 +15,11 @@ export namespace RedisPayloads {
   export interface GuildPrefixUpdate {
     id: string,
     prefixes: Array<RestResponsesRaw.GuildPrefix>,
+  }
+
+  export interface GuildRulesUpdate {
+    id: string,
+    rules: Array<RestResponsesRaw.GuildRule>,
   }
 
   export type GuildSettingsUpdate = RestResponsesRaw.GuildSettings;

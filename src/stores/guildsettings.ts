@@ -130,24 +130,6 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
                 //await logger.delete(shard);
               }
             }
-            {
-              const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => blocked.id === channel.id);
-              for (let blocked of commandsBlocklist) {
-                //await disabledCommand.delete(shard);
-              }
-            }
-            {
-              const allowlist = settings.allowlist.filter((allowed) => allowed.id === channel.id);
-              for (let allowed of allowlist) {
-                //await allowed.delete(shard);
-              }
-            }
-            {
-              const blocklist = settings.blocklist.filter((blocked) => blocked.id === channel.id);
-              for (let blocked of blocklist) {
-                //await blocked.delete(shard);
-              }
-            }
           }
         }
       });
@@ -197,42 +179,6 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
       subscriptions.push(subscription);
     }
     {
-      const subscription = apiEvents.subscribe(RedisChannels.GUILD_ALLOWLIST_UPDATE, (payload: RedisPayloads.GuildAllowlistUpdate) => {
-        const settings = this.getForUpdate(payload.id);
-        if (settings) {
-          settings.merge(payload);
-        }
-      });
-      subscriptions.push(subscription);
-    }
-    {
-      const subscription = apiEvents.subscribe(RedisChannels.GUILD_BLOCKLIST_UPDATE, (payload: RedisPayloads.GuildBlocklistUpdate) => {
-        const settings = this.getForUpdate(payload.id);
-        if (settings) {
-          settings.merge(payload);
-        }
-      });
-      subscriptions.push(subscription);
-    }
-    {
-      const subscription = apiEvents.subscribe(RedisChannels.GUILD_COMMANDS_ALLOWLIST_UPDATE, (payload: RedisPayloads.GuildCommandsAllowlistUpdate) => {
-        const settings = this.getForUpdate(payload.id);
-        if (settings) {
-          settings.merge(payload);
-        }
-      });
-      subscriptions.push(subscription);
-    }
-    {
-      const subscription = apiEvents.subscribe(RedisChannels.GUILD_COMMANDS_BLOCKLIST_UPDATE, (payload: RedisPayloads.GuildCommandsBlocklistUpdate) => {
-        const settings = this.getForUpdate(payload.id);
-        if (settings) {
-          settings.merge(payload);
-        }
-      });
-      subscriptions.push(subscription);
-    }
-    {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_FEATURES_UPDATE, (payload: RedisPayloads.GuildFeaturesUpdate) => {
         const settings = this.getForUpdate(payload.id);
         if (settings) {
@@ -252,6 +198,15 @@ class GuildSettingsStore extends Store<string, GuildSettings> {
     }
     {
       const subscription = apiEvents.subscribe(RedisChannels.GUILD_PREFIX_UPDATE, (payload: RedisPayloads.GuildPrefixUpdate) => {
+        const settings = this.getForUpdate(payload.id);
+        if (settings) {
+          settings.merge(payload);
+        }
+      });
+      subscriptions.push(subscription);
+    }
+    {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_RULES_UPDATE, (payload: RedisPayloads.GuildRulesUpdate) => {
         const settings = this.getForUpdate(payload.id);
         if (settings) {
           settings.merge(payload);

@@ -12,13 +12,17 @@ import {
   BaseInteractionCommandOption,
   InteractionCommandMetadata,
 } from './commands/interactions/basecommand';
+import { GuildRuleActions } from './constants';
 import {
-  GuildAllowlistTypes,
-  GuildBlocklistTypes,
-  GuildCommandsAllowlistTypes,
-  GuildCommandsBlocklistTypes,
-} from './constants';
-import { Formatter, I18n, editOrReply, getCommandIdFromInvoker, isGuildListCommandId } from './utils';
+  Formatter,
+  I18n,
+  describeGuildRule,
+  editOrReply,
+  getCommandCategory,
+  getCommandIdFromInvoker,
+  isGuildRulesCommandId,
+  resolveGuildRule,
+} from './utils';
 import { CommandResults, setCommandResult } from './commandresults';
 import { runWithCommandContext } from './sentry';
 
@@ -136,205 +140,35 @@ export class NotSoInteractionClient extends InteractionCommandClient {
     const invoker = context.invoker as BaseInteractionCommand | BaseInteractionCommandOption;
     const commandId = getCommandIdFromInvoker(invoker);
 
-    // the owner and admins skip the lists unless the server turned that off (for a list or an entry)
+    // the owner and admins skip the rules unless the server turned that off (for every rule or one)
     const isAdmin = !!member && (member.isOwner || member.canAdministrator);
-    if (isAdmin && (!settings || isGuildListCommandId(commandId))) {
+    if (isAdmin && (!settings || isGuildRulesCommandId(commandId))) {
       return true;
     }
 
-    const channel = context.channel;
-    const parent = (channel) ? channel.parent : null;
     if (settings) {
-      const commandsAllowlist = settings.commandsAllowlist.filter((allowed) => {
-        return allowed.command === commandId;
+      const metadata = invoker.metadata as InteractionCommandMetadata | undefined;
+      const match = resolveGuildRule(settings, GuildRuleActions.ACCESS, {
+        category: getCommandCategory(context.commandClient, commandId, metadata && metadata.category),
+        channel: context.channel || null,
+        channelId: context.channelId || null,
+        commandId,
+        isAdmin,
+        member: member || null,
+        userId: context.userId,
       });
-      if (commandsAllowlist.length) {
-        if (isAdmin && commandsAllowlist.some((allowed) => settings.canAdminBypass(allowed))) {
+      if (match && !match.rule.allows) {
+        if (invoker.blockedCommandShouldStillExecute) {
+          // a modal has to be the first response, and it's private anyway
+          if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
+            await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
+              flags: MessageFlags.EPHEMERAL,
+            });
+          }
           return true;
         }
-        const shouldAllow = commandsAllowlist.some((allowed) => {
-          switch (allowed.type) {
-            case GuildCommandsAllowlistTypes.CHANNEL: {
-              if (allowed.id === context.channelId) {
-                return true;
-              }
-              if (channel && channel.parentId === allowed.id) {
-                return true;
-              }
-              if (parent && parent.parentId === allowed.id) {
-                return true;
-              }
-            }; break;
-            case GuildCommandsAllowlistTypes.GUILD: {
-              return true;
-            }; break;
-            case GuildCommandsAllowlistTypes.ROLE: {
-              if (member) {
-                return member.roles.has(allowed.id);
-              }
-            }; break;
-            case GuildCommandsAllowlistTypes.USER: {
-              return allowed.id === context.userId;
-            };
-          }
-          return false;
-        });
-        if (!shouldAllow) {
-          if (invoker.blockedCommandShouldStillExecute) {
-            // a modal has to be the first response, and it's private anyway
-            if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
-              await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-                flags: MessageFlags.EPHEMERAL,
-              });
-            }
-            return true;
-          }
-          contextMetadata.reason = translate('blocked.not_in_command_allowlist');
-        }
-        return shouldAllow;
-      } else {
-        const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => {
-          return blocked.command === commandId && !(isAdmin && settings.canAdminBypass(blocked));
-        });
-        if (commandsBlocklist.length) {
-          const shouldIgnore = commandsBlocklist.some((blocked) => {
-            switch (blocked.type) {
-              case GuildCommandsBlocklistTypes.CHANNEL: {
-                if (blocked.id === context.channelId) {
-                  contextMetadata.reason = translate('blocked.channel_in_command_blocklist');
-                  return true;
-                }
-                if (channel && channel.parentId === blocked.id) {
-                  contextMetadata.reason = translate('blocked.parent_in_command_blocklist');
-                  return true;
-                }
-                if (parent && parent.parentId === blocked.id) {
-                  contextMetadata.reason = translate('blocked.grandparent_in_command_blocklist');
-                  return true;
-                }
-              }; break;
-              case GuildCommandsBlocklistTypes.GUILD: {
-                contextMetadata.reason = translate('blocked.command_disabled');
-                return true;
-              }; break;
-              case GuildCommandsBlocklistTypes.ROLE: {
-                if (member && member.roles.has(blocked.id)) {
-                  contextMetadata.reason = translate('blocked.role_in_command_blocklist', {role: `<@&${blocked.id}>`});
-                  return true;
-                }
-              }; break;
-              case GuildCommandsBlocklistTypes.USER: {
-                if (blocked.id === context.userId) {
-                  contextMetadata.reason = translate('blocked.user_in_command_blocklist');
-                  return true;
-                }
-              };
-            }
-            return false;
-          });
-          if (shouldIgnore) {
-            if (invoker.blockedCommandShouldStillExecute) {
-              // a modal has to be the first response, and it's private anyway
-              if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
-                await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-                  flags: MessageFlags.EPHEMERAL,
-                });
-              }
-              return true;
-            }
-            return false;
-          }
-        }
-      }
-      const { allowlist } = settings;
-      if (allowlist.length) {
-        if (isAdmin && allowlist.some((allowed) => settings.canAdminBypass(allowed))) {
-          return true;
-        }
-        const shouldAllow = allowlist.some((allow) => {
-          switch (allow.type) {
-            case GuildAllowlistTypes.CHANNEL: {
-              if (allow.id === context.channelId) {
-                return true;
-              }
-              if (channel && channel.parentId === allow.id) {
-                return true;
-              }
-              if (parent && parent.parentId === allow.id) {
-                return true;
-              }
-            }; break;
-            case GuildAllowlistTypes.ROLE: {
-              if (member) {
-                return member.roles.has(allow.id);
-              }
-            }; break;
-            case GuildAllowlistTypes.USER: {
-              return allow.id === context.userId;
-            };
-          }
-          return false;
-        });
-        if (!shouldAllow) {
-          if (invoker.blockedCommandShouldStillExecute) {
-            // a modal has to be the first response, and it's private anyway
-            if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
-              await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-                flags: MessageFlags.EPHEMERAL,
-              });
-            }
-            return true;
-          }
-          contextMetadata.reason = translate('blocked.not_in_allowlist');
-        }
-        return shouldAllow;
-      } else {
-        const blocklist = settings.blocklist.filter((blocked) => !(isAdmin && settings.canAdminBypass(blocked)));
-        if (blocklist.length) {
-          const shouldIgnore = blocklist.some((blocked) => {
-            switch (blocked.type) {
-              case GuildBlocklistTypes.CHANNEL: {
-                if (blocked.id === context.channelId) {
-                  contextMetadata.reason = translate('blocked.channel_in_blocklist');
-                  return true;
-                }
-                if (channel && channel.parentId === blocked.id) {
-                  contextMetadata.reason = translate('blocked.parent_in_blocklist');
-                  return true;
-                }
-                if (parent && parent.parentId === blocked.id) {
-                  contextMetadata.reason = translate('blocked.grandparent_in_blocklist');
-                  return true;
-                }
-              }; break;
-              case GuildBlocklistTypes.ROLE: {
-                if (member && member.roles.has(blocked.id)) {
-                  contextMetadata.reason = translate('blocked.role_in_blocklist', {role: `<@&${blocked.id}>`});
-                  return true;
-                }
-              }; break;
-              case GuildBlocklistTypes.USER: {
-                if (blocked.id === context.userId) {
-                  contextMetadata.reason = translate('blocked.user_in_blocklist');
-                  return true;
-                }
-              }; break;
-            }
-            return false;
-          });
-          if (shouldIgnore) {
-            if (invoker.blockedCommandShouldStillExecute) {
-              // a modal has to be the first response, and it's private anyway
-              if (!(invoker as any).respondsWithModal && !(context.command as any).respondsWithModal) {
-                await context.respond(InteractionCallbackTypes.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE, {
-                  flags: MessageFlags.EPHEMERAL,
-                });
-              }
-              return true;
-            }
-            return false;
-          }
-        }
+        contextMetadata.reason = match.rule.value.message || translate('rules.blocked', {rule: describeGuildRule(translate, match.rule)});
+        return false;
       }
 
       await UserSettingsStore.getOrFetch(context, context.userId);

@@ -2,11 +2,19 @@ import { Command, Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
-import { GuildSettingsListItem } from '../../../api/structures/guildsettings';
 import GuildSettingsStore from '../../../stores/guildsettings';
 
-import { GuildCommandsAllowlistTypes, StatusEmojis } from '../../../constants';
-import { I18n, Parameters, displayReply, getCommandIdFromInvoker, isGuildListCommandId } from '../../../utils';
+import { GuildRuleActions, StatusEmojis } from '../../../constants';
+import {
+  I18n,
+  Parameters,
+  describeGuildRule,
+  displayReply,
+  getCommandCategory,
+  getCommandIdFromInvoker,
+  isGuildRulesCommandId,
+  resolveGuildRule,
+} from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
 
@@ -122,97 +130,39 @@ export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
         description.push('');
         description.push(`**${translate('permcheck.user_permissions')}**`);
         const isAdmin = !!member && (member.isOwner || member.canAdministrator);
-        const isListCommand = !!args.command && isGuildListCommandId(getCommandIdFromInvoker(args.command));
+        // without a command, only rules covering every command can decide
+        const commandId = (args.command) ? getCommandIdFromInvoker(args.command) : '';
         if (context.user.isClientOwner) {
           description.push(`-> ${translate('permcheck.bypass_owner')}`);
-        } else if (isAdmin && (isListCommand || settings.adminBypassesEverything)) {
+        } else if (isAdmin && ((commandId && isGuildRulesCommandId(commandId)) || settings.adminBypassesEverything)) {
           description.push(`-> ${translate('permcheck.bypass_admin')}`);
         } else {
           if (isAdmin) {
             description.push(`-> ${translate('permcheck.bypass_admin_partial')}`);
           }
-          // same order as `NotSoCommandClient.onCommandCheck`, the server and command lists all share these types
-          const parent = (channel) ? channel.parent : null;
-          const matches = (item: {id: string, type: string}): boolean => {
-            switch (item.type) {
-              case GuildCommandsAllowlistTypes.CHANNEL: {
-                if (item.id === context.channelId) {
-                  return true;
-                }
-                if (channel && channel.parentId === item.id) {
-                  return true;
-                }
-                if (parent && parent.parentId === item.id) {
-                  return true;
-                }
-              }; break;
-              case GuildCommandsAllowlistTypes.GUILD: {
-                return true;
-              };
-              case GuildCommandsAllowlistTypes.ROLE: {
-                if (member) {
-                  return member.roles.has(item.id);
-                }
-              }; break;
-              case GuildCommandsAllowlistTypes.USER: {
-                return item.id === context.userId;
-              };
+          // same check as `NotSoCommandClient.onCommandCheck`
+          const match = resolveGuildRule(settings, GuildRuleActions.ACCESS, {
+            category: (args.command) ? getCommandCategory(context.commandClient, commandId, args.command.metadata && args.command.metadata.category) : null,
+            channel: channel || null,
+            channelId: context.channelId || null,
+            commandId,
+            isAdmin,
+            member: member || null,
+            userId: context.userId,
+          });
+          if (match) {
+            const rule = describeGuildRule(translate, match.rule);
+            description.push(`-> ${translate((match.rule.allows) ? 'permcheck.rule_allows' : 'permcheck.rule_blocks', {rule})}: ${(match.rule.allows) ? '✅' : '❌'}`);
+            if (!match.rule.allows) {
+              willPrefixCommandsWork = false;
             }
-            return false;
-          };
-          // the owner and admins pass entries they bypass, on an allowlist that lets them in, on a blocklist it's skipped
-          const allows = (item: GuildSettingsListItem) => (isAdmin && settings.canAdminBypass(item)) || matches(item);
-          const blocks = (item: GuildSettingsListItem) => !(isAdmin && settings.canAdminBypass(item)) && matches(item);
-
-          let checkServerLists = true;
-          if (args.command) {
-            const commandId = getCommandIdFromInvoker(args.command);
-            const commandsAllowlist = settings.commandsAllowlist.filter((allowed) => allowed.command === commandId);
-            if (commandsAllowlist.length) {
-              // a command allowlist decides by itself, the server lists are never checked
-              const shouldAllow = commandsAllowlist.some(allows);
-              description.push(`-> ${translate('permcheck.command_allowlist_bypassed', {command: Markup.codestring(args.command.name)})}: ${(shouldAllow) ? '✅': '❌'}`);
-              description.push(`-> ${translate('permcheck.command_blocklist_bypassed_allowlist')}`);
-              description.push(`-> ${translate('permcheck.command_allowlist_overrides')}`);
-              if (!shouldAllow) {
-                willPrefixCommandsWork = false;
-              }
-              checkServerLists = false;
-            } else {
-              description.push(`-> ${translate('permcheck.command_allowlist_empty', {command: Markup.codestring(args.command.name)})}`);
-              const commandsBlocklist = settings.commandsBlocklist.filter((blocked) => blocked.command === commandId);
-              if (commandsBlocklist.length) {
-                const shouldIgnore = commandsBlocklist.some(blocks);
-                description.push(`-> ${translate('permcheck.command_blocklist_bypassed', {command: Markup.codestring(args.command.name)})}: ${(!shouldIgnore) ? '✅': '❌'}`);
-                if (shouldIgnore) {
-                  willPrefixCommandsWork = false;
-                }
-              } else {
-                description.push(`-> ${translate('permcheck.command_blocklist_empty', {command: Markup.codestring(args.command.name)})}`);
-              }
-            }
+          } else if (args.command) {
+            description.push(`-> ${translate('permcheck.no_rule', {command: Markup.codestring(args.command.name)})}: ✅`);
+          } else {
+            description.push(`-> ${translate('permcheck.no_rule_everything')}: ✅`);
           }
-
-          if (checkServerLists) {
-            const { allowlist, blocklist } = settings;
-            if (allowlist.length) {
-              const shouldAllow = allowlist.some(allows);
-              description.push(`-> ${translate('permcheck.allowlist_bypassed')}: ${(shouldAllow) ? '✅': '❌'}`);
-              description.push(`-> ${translate('permcheck.blocklist_bypassed_allowlist')}`);
-              if (!shouldAllow) {
-                willPrefixCommandsWork = false;
-              }
-            } else if (blocklist.length) {
-              const shouldIgnore = blocklist.some(blocks);
-              description.push(`-> ${translate('permcheck.allowlist_empty')}`);
-              description.push(`-> ${translate('permcheck.blocklist_bypassed')}: ${(!shouldIgnore) ? '✅': '❌'}`);
-              if (shouldIgnore) {
-                willPrefixCommandsWork = false;
-              }
-            } else {
-              description.push(`-> ${translate('permcheck.allowlist_empty')}`);
-              description.push(`-> ${translate('permcheck.blocklist_empty')}`);
-            }
+          if (!args.command && settings.rules.length) {
+            description.push(`-> ${translate('permcheck.rules_check_command')}`);
           }
         }
       }
