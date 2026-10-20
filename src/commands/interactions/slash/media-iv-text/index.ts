@@ -8,6 +8,7 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MediaIVAchievementCommand } from './achievement';
 import { MediaIVCaptionCommand } from './caption';
 import { MediaIVMemeCommand } from './meme';
 import { MediaIVRecaptionCommand } from './recaption';
@@ -34,6 +35,7 @@ export default class MediaIVTextGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new MediaIVAchievementCommand(),
         new MediaIVCaptionCommand(),
         new MediaIVMemeCommand(),
         new MediaIVRecaptionCommand(),

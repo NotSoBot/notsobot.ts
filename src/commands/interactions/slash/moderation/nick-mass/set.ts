@@ -25,7 +25,7 @@ export class ModerationNickMassSetCommand extends BaseNickMassCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'nickname', description: 'Nickname to set ({name}, {user}, {discrim}, and {guild} are replaced)', ...I18n.optionLocalizations('commands.moderation.nick_mass.set.nickname'), required: true},
+        {name: 'nickname', description: 'Nickname to set, supports tagscript like {nick}, {user}, {guild} and {choose:a|b}', ...I18n.optionLocalizations('commands.moderation.nick_mass.set.nickname'), required: true},
         ...nickMassFilterOptions('commands.moderation.nick_mass.set'),
       ],
     });

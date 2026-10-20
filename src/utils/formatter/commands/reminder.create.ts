@@ -33,9 +33,9 @@ export async function createMessage(
     timestampStart: result.start.getTime(),
   });
 
-  if (context.manager) {
-    await context.manager.broadcastEval(ReminderInterval.broadcastEvalInsert, reminder);
-  } else if (context.cluster) {
+  // cluster 0 schedules reminders, it gets this one from the api's REMINDER_CREATE event (insertReminder skips
+  // it on other clusters and when it's already scheduled), this just saves it the wait when we're cluster 0
+  if (context.cluster) {
     ReminderInterval.insertReminder(context.cluster, reminder);
   }
 

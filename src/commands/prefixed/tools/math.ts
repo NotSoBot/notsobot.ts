@@ -22,6 +22,8 @@ export default class MathCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} 5 + 5`,
           `${COMMAND_NAME} 5 miles to km`,
+          `${COMMAND_NAME} base(1295, 36)`,
+          `${COMMAND_NAME} frombase("zz", 36)`,
         ],
         id: Formatter.Commands.ToolsMath.COMMAND_ID,
         usage: '<equation>',

@@ -15,6 +15,7 @@ import { ToolsScreenshotCommand } from './screenshot';
 import { ToolsTranscribeCommand } from './transcribe';
 import { ToolsTranscribeTranslateCommand } from './transcribe-translate';
 import { ToolsTranslateCommand } from './translate';
+import { ToolsUnicodeCommand } from './unicode';
 import { ToolsWeatherCommand } from './weather';
 
 import { ToolsMLGroupCommand } from './ml';
@@ -53,6 +54,7 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
         new ToolsTranscribeCommand(),
         new ToolsTranscribeTranslateCommand(),
         new ToolsTranslateCommand(),
+        new ToolsUnicodeCommand(),
         new ToolsWeatherCommand(),
       ],
     });

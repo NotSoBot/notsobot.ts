@@ -10,6 +10,7 @@ import { Components, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../stores/guildsettings';
+import { getServerPremiumUsers } from '../../stores/premiumservers';
 import ServerSettingsStore from '../../stores/serversettings';
 import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
@@ -140,7 +141,9 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
   }
 
   onBefore(context: Interaction.InteractionContext): Promise<boolean> | boolean {
-    return new Promise(async (resolve) => {
+    // an async iife instead of `new Promise(async ...)`, anything thrown in there (like the defer failing on an expired
+    // interaction) never settled the promise and left the command hanging forever
+    return (async () => {
       const respondsWithModal = !!(context.invoker as any).respondsWithModal || !!(context.command as any).respondsWithModal;
       if (!context.responded && !respondsWithModal && UserSettingsStore.has(context.userId)) {
         const settings = UserSettingsStore.get(context.userId)!;
@@ -162,7 +165,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
           if (!isNSFWAllowed) {
             contextMetadata.reason = warning(translate('errors.not_nsfw_channel'));
-            return resolve(isNSFWAllowed);
+            return isNSFWAllowed;
           }
         }
         if (metadata.premium || metadata.premiumServer) {
@@ -173,32 +176,25 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           }
 
           if (!hasPremium && metadata.premiumServer) {
-            if (context.guildId) {
-              const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
-              if (settings && (typeof(metadata.premiumServer) === 'string' && settings.features.has(metadata.premiumServer))) {
-                hasPremium = true;
-              } else {
-                const guild = context.guild;
-                if (guild) {
-                  const owner = await UserStore.getOrFetch(context, guild.ownerId);
-                  if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
-                    hasPremium = true;
-                  }
+            if (typeof(metadata.premiumServer) === 'string') {
+              if (context.guildId) {
+                const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+                if (settings && settings.features.has(metadata.premiumServer)) {
+                  hasPremium = true;
                 }
-              }
-            } else if (context.inDm && context.channel && context.channel.ownerId) {
-              // most likely a group dm, check to see if is owner of it
-              const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
-              if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
-                hasPremium = true;
-              }
-              if (!hasPremium && typeof(metadata.premiumServer) === 'string') {
-                const serverId = context.channelId!;
-                const settings = await ServerSettingsStore.getOrFetch(context, serverId);
+              } else if (context.inDm && context.channel && context.channel.ownerId) {
+                // a group dm
+                const settings = await ServerSettingsStore.getOrFetch(context, context.channelId!);
                 if (settings && settings.features.has(metadata.premiumServer)) {
                   hasPremium = true;
                 }
               }
+            }
+
+            if (!hasPremium) {
+              // someone in here gave it one of their premium server slots (or owns it, for a group dm)
+              const users = await getServerPremiumUsers(context);
+              hasPremium = !!users.length;
             }
           }
 
@@ -210,12 +206,12 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
               context.metadata.reason = warning(translate('errors.premium_required', {command: Markup.codestring(context.name)}));
             }
             context.metadata.reasonIsPremiumRequired = true;
-            return resolve(hasPremium);
+            return hasPremium;
           }
         }
       }
-      return resolve(true);
-    });
+      return true;
+    })();
   }
 
   onCancel(context: Interaction.InteractionContext) {

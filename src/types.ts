@@ -66,6 +66,12 @@ export namespace RedisPayloads {
     user_id: string,
   }
 
+  export interface PremiumServersUpdate {
+    server_id: string,
+    // everyone that gave the server a slot, premium plus or not
+    user_ids: Array<string>,
+  }
+
   export interface ServerFeaturesUpdate {
     features: Array<string>,
     id: string,

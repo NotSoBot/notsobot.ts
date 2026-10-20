@@ -2865,6 +2865,18 @@ export function slashCommandMention(
 }
 
 
+// the context channel's cached messages, oldest first. `context.messages` is the whole shard's cache (6 hours of every
+// channel), the cache keeps an index per channel so this only goes through the ones in this channel
+export function getCachedChannelMessages(
+  context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
+): Collections.BaseCollection<string, Structures.Message> {
+  if (!context.channelId) {
+    return new Collections.BaseCollection<string, Structures.Message>();
+  }
+  return context.client.messages.getChannelMessages(context.channelId);
+}
+
+
 // only our own links when going through chat, not any site's /tags/directory/<id>
 const TAG_DIRECTORY_URLS_IN_TEXT = /notsobot\.com\/(?:directory\/tags|tags\/directory)\/(\d{15,21})(?=[/?#>)\s]|$)/g;
 
@@ -2875,11 +2887,7 @@ export function findCachedTagDirectoryIds(
   limit: number,
 ): Array<string> {
   const beforeId = (context instanceof Command.Context) ? BigInt(context.messageId) : null;
-  // we dont get DM channels anymore so we must manually find messages now
-  const messages = context.messages.filter((message) => {
-    if (message.channelId !== context.channelId) {
-      return false;
-    }
+  const messages = getCachedChannelMessages(context).filter((message) => {
     if (message.interaction && message.hasFlagEphemeral) {
       return message.interaction.user.id === context.userId;
     }

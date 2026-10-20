@@ -58,6 +58,7 @@ export enum ApiErrorCodes {
   UNKNOWN_GUILD_LIST_ITEM = 10022,
   UNKNOWN_LLM_MEMORY = 10023,
   UNKNOWN_TIMED_BAN = 10024,
+  UNKNOWN_PREMIUM_SERVER = 10025,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -84,6 +85,8 @@ export enum ApiErrorCodes {
   MAX_TAG_DIRECTORY_ASSETS = 30018,
   MAX_LLM_MEMORIES = 30020,
   MAX_TIMED_BANS = 30021,
+  MAX_PREMIUM_SERVERS = 30022,
+  PREMIUM_SERVER_COOLDOWN = 30023,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -1644,6 +1647,7 @@ export enum RedisChannels {
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
   INFO_DISCORD_REQUEST = 'INFO_DISCORD_REQUEST',
+  PREMIUM_SERVERS_UPDATE = 'PREMIUM_SERVERS_UPDATE',
   REMINDER_CREATE = 'REMINDER_CREATE',
   REMINDER_DELETE = 'REMINDER_DELETE',
   REMINDER_UPDATE = 'REMINDER_UPDATE',
@@ -1787,7 +1791,8 @@ export const TagGenerationModelsToText = Object.freeze({
 });
 
 
-// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM`, usable with the user's or the server owner's plus ai
+// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM`, usable with the user's or the server's plus ai (from a
+// member who gave it their premium)
 export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM = Object.freeze([
   TagGenerationModels.ANTHROPIC_CLAUDE_HAIKU_5_5,
   TagGenerationModels.DEEPSEEK_FLASH,
@@ -1806,7 +1811,7 @@ export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM = Object.freeze([
 ]);
 
 
-// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS`, needs the user's own plus ai (a server owner's doesn't count)
+// mirrors the api's `TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS`, needs the user's own plus ai (the server's doesn't count)
 export const TAG_GENERATION_MODELS_ALLOWED_FOR_PREMIUM_PLUS = Object.freeze([
   TagGenerationModels.ANTHROPIC_CLAUDE_SONNET_5_5,
   TagGenerationModels.DEEPSEEK_PRO,
@@ -2407,6 +2412,7 @@ export enum NotSoHeaders {
   MESSAGE_TRIGGER_ID = 'x-message-trigger-id',
   SERVER = 'x-server',
   SERVER_ID = 'x-server-id',
+  // only sent for group dms
   SERVER_OWNER_ID = 'x-server-owner-id',
   TAG_ID = 'x-tag-id',
   USER = 'x-user',

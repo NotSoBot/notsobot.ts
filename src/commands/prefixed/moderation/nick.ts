@@ -33,6 +33,7 @@ export default class NickCommand extends BaseCommand {
           `${COMMAND_NAME} <@300505364032389122> troy`,
           `${COMMAND_NAME} 300505364032389122 some nickname`,
           `${COMMAND_NAME} "cake dan" troy`,
+          `${COMMAND_NAME} <@300505364032389122> {choose:🎄|🎅|🦌} {nick}`,
           `${COMMAND_NAME} <@300505364032389122>`,
         ],
         id: Formatter.Commands.ModerationNick.COMMAND_ID,

@@ -6,6 +6,7 @@ import { EventSubscription, Timers } from 'detritus-utils';
 import { deleteCommandsResponses, fetchCommandsResponses } from '../api';
 import { COMMAND_EDIT_DURATION } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
+import CommandResponsesStore from '../stores/commandresponses';
 
 import { Listener } from './listener';
 
@@ -23,13 +24,18 @@ class MessageDeleteListener extends Listener {
         if (me && shard.commandClient) {
           const bulkToDelete: Array<string> = [];
 
+          // purges are mostly messages we know never triggered anything, only ask about the ones that might have
+          const triggerIds = Array.from(messages.keys()).filter((messageId) => {
+            return CommandResponsesStore.mightBeTrigger(shard, messageId);
+          });
+          if (!triggerIds.length) {
+            return;
+          }
+
           // this runs as a bare event handler, anything thrown here would be an unhandled rejection
           let results: Awaited<ReturnType<typeof fetchCommandsResponses>>['results'];
           try {
-            ({ results } = await fetchCommandsResponses({client: shard}, {
-              channelId,
-              triggerIds: Array.from(messages.keys()),
-            }));
+            ({ results } = await fetchCommandsResponses({client: shard}, {channelId, triggerIds}));
           } catch(error) {
             return;
           }
@@ -102,6 +108,10 @@ class MessageDeleteListener extends Listener {
         }
         // bots (us included) can't trigger commands
         if (message && message.author.bot) {
+          return;
+        }
+        // nearly every delete on the bot isn't a command, only ask the api when it could have a stored response
+        if (!CommandResponsesStore.mightBeTrigger(shard, messageId)) {
           return;
         }
 

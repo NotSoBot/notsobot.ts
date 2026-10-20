@@ -12,6 +12,7 @@ import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 import MiniSearch from 'minisearch';
 
+import { getServerPremiumUsers } from '../../stores/premiumservers';
 import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
 
@@ -66,16 +67,24 @@ import {
 import { RestOptions, RestResponses, RestResponsesRaw } from '../../api/types';
 import {
   CodeLanguages,
+  DownloadQualities,
   GoogleLocales,
   MeasurementUnits,
   Mimetypes,
   MLDiffusionModels,
+  MLDiffusionModelsToText,
   ProxyRequestMethods,
   TagBlobStorageTypes,
   TagGenerationModels,
+  TagGenerationModelsToText,
   TagVariableStorageTypes,
   Timezones,
   TimezonesToText,
+  UserSettingsApplicationCommandResponseTypes,
+  UserSettingsFallbacksMediaImageTypes,
+  UserSettingsResponseDisplayTypes,
+  UserSettingsUploadThresholdTypes,
+  UserSettingsUploadTypes,
   YoutubeResultTypes,
   CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
   MAX_MEMBERS_SAFE,
@@ -87,7 +96,7 @@ import { increaseUsage } from '../formatter/commands/tag.show';
 
 import * as DefaultParameters from '../defaultparameters';
 import { Translator, getCachedTranslator } from '../i18n';
-import { MathWorker, MATH_ERROR_TIMEOUT_MESSAGE } from '../math';
+import { MathSession, MATH_ERROR_TIMEOUT_MESSAGE } from '../math';
 import { PageObject } from '../paginator';
 import * as Parameters from '../parameters';
 import {
@@ -224,7 +233,8 @@ export const TagLimitDefaults: TagLimits = Object.freeze({
   MAX_TAG_EXECUTIONS: 2,
   // total output text, on top of the attachment size limit (which can be hundreds of mb)
   MAX_TEXT_LENGTH: 10 * 1024 * 1024,
-  // wall-clock ms a tag (and everything it calls) can run for, picked by the invoking user's or server owner's premium tier
+  // wall-clock ms a tag (and everything it calls) can run for, picked by the best premium tier of the invoking user and
+  // the server's (members who gave it their premium, and a group dm's owner)
   MAX_TIME: 45 * 1000,
   MAX_TIME_PREMIUM: 90 * 1000,
   MAX_TIME_PREMIUM_PLUS: 120 * 1000,
@@ -253,6 +263,37 @@ export function appendTagText(
     throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
   }
   tag.text += text;
+}
+
+
+// {replace} and {if:...|?|...} run user regexes in a sandbox for its timeout (a regex can't be interrupted otherwise).
+// a new context for every call cost a fresh v8 context each time, the calls are synchronous so one shared context
+// can't be used by two at once. only strings go in and out, a regex can't run code to touch anything in it
+const REGEX_SANDBOX = vm.createContext({regex: '', replaceWith: '', source: ''});
+const REGEX_REPLACE_SCRIPT = new vm.Script(`source.replace(new RegExp(regex, 'gi'), replaceWith);`);
+const REGEX_TEST_SCRIPT = new vm.Script(`new RegExp(regex, 'i').test(source);`);
+
+function runRegexScript<T>(script: vm.Script, values: {regex: string, replaceWith?: string, source: string}, timeout: number): T {
+  Object.assign(REGEX_SANDBOX, values);
+  try {
+    return script.runInContext(REGEX_SANDBOX, {timeout});
+  } finally {
+    // don't keep the last (possibly huge) strings around
+    Object.assign(REGEX_SANDBOX, {regex: '', replaceWith: '', source: ''});
+  }
+}
+
+const REGEX_SPECIAL_CHARACTERS = /[\\^$.*+?()[\]{}|]/;
+
+// a pattern without regex syntax or anything with a case is the same with or without `gi`, so it doesn't need a
+// regex at all. a `$` in the replacement means a regex replacement pattern (`$1`, `$&`), so those still use one
+function isLiteralReplace(regex: string, replaceWith: string): boolean {
+  return (
+    !!regex &&
+    !REGEX_SPECIAL_CHARACTERS.test(regex) &&
+    regex.toLowerCase() === regex.toUpperCase() &&
+    !replaceWith.includes('$')
+  );
 }
 
 
@@ -485,6 +526,7 @@ export enum TagFunctions {
   SEARCH_YOUTUBE = 'SEARCH_YOUTUBE',
   SETTINGS = 'SETTINGS',
   SETTINGS_SET_SERVER_AI_PERSONALITY = 'SETTINGS_SET_SERVER_AI_PERSONALITY',
+  SETTINGS_SET_USER = 'SETTINGS_SET_USER',
   SETTINGS_SET_USER_AI_PERSONALITY = 'SETTINGS_SET_USER_AI_PERSONALITY',
   SETTINGS_SET_USER_LOCALE = 'SETTINGS_SET_USER_LOCALE',
   SETTINGS_SET_USER_TIMEZONE = 'SETTINGS_SET_USER_TIMEZONE',
@@ -686,6 +728,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.SEARCH_YOUTUBE]: ['search.youtube', 'search.yt', 's.youtube', 's.yt'],
   [TagFunctions.SETTINGS]: ['settings'],
   [TagFunctions.SETTINGS_SET_SERVER_AI_PERSONALITY]: ['settings.set.server.ai.personality'],
+  [TagFunctions.SETTINGS_SET_USER]: ['settings.set.user'],
   [TagFunctions.SETTINGS_SET_USER_AI_PERSONALITY]: ['settings.set.user.ai.personality'],
   [TagFunctions.SETTINGS_SET_USER_LOCALE]: ['settings.set.user.locale'],
   [TagFunctions.SETTINGS_SET_USER_TIMEZONE]: ['settings.set.user.timezone'],
@@ -782,6 +825,121 @@ export enum TagSettings {
 }
 
 
+// the user settings {settings.set.user} can change, the locale/timezone/ai personality have their own functions
+export enum TagUserSettings {
+  AI_MEMORY = 'AI_MEMORY',
+  AI_MODEL = 'AI_MODEL',
+  APP_COMMAND_RESPONSE_TYPE = 'APP_COMMAND_RESPONSE_TYPE',
+  DOWNLOAD_QUALITY = 'DOWNLOAD_QUALITY',
+  FALLBACKS_MEDIA_IMAGE = 'FALLBACKS_MEDIA_IMAGE',
+  FILE_UPLOAD_THRESHOLD = 'FILE_UPLOAD_THRESHOLD',
+  FILE_UPLOAD_TYPE = 'FILE_UPLOAD_TYPE',
+  FILE_VANITY = 'FILE_VANITY',
+  IMAGINE_MODEL = 'IMAGINE_MODEL',
+  RESPONSE_DISPLAY = 'RESPONSE_DISPLAY',
+  UNITS = 'UNITS',
+}
+
+interface TagUserSetting {
+  // what `clear` saves
+  cleared: any,
+  field: keyof RestResponsesRaw.UserSettings,
+  option: keyof RestOptions.EditUserSettings,
+  parse: (value: string, context: Command.Context | Interaction.InteractionContext) => any,
+  text: (value: any) => string,
+}
+
+function createEnumUserSetting(
+  field: keyof RestResponsesRaw.UserSettings,
+  option: keyof RestOptions.EditUserSettings,
+  enumObject: Record<string, string | number>,
+  cleared: null | string | number,
+  descriptions?: Record<string, string>,
+): TagUserSetting {
+  // numeric enums also map their values back to their names, only keep the names
+  const choices = Object.fromEntries(Object.entries(enumObject).filter(([key]) => isNaN(Number(key))));
+  const search = Parameters.oneOf({choices, descriptions});
+  return {
+    cleared,
+    field,
+    option,
+    parse: (value, context) => {
+      // exact names/values first, the fuzzy search can rank a close one higher
+      const lower = value.toLowerCase();
+      const exact = Object.entries(choices).find(([key, x]) => key.toLowerCase() === lower || String(x).toLowerCase() === lower);
+      return (exact) ? exact[1] : search(value, context);
+    },
+    // numeric settings output their name, string ones their value
+    text: (value) => {
+      if (value === null || value === undefined) {
+        return '';
+      }
+      if (typeof(value) === 'number') {
+        const entry = Object.entries(choices).find(([key, x]) => x === value);
+        return (entry) ? entry[0] : String(value);
+      }
+      return String(value);
+    },
+  };
+}
+
+const AI_MEMORY_ON = ['on', 'true', 'yes', 'y', '+', 'enable', 'enabled'];
+const AI_MEMORY_OFF = ['off', 'false', 'no', 'n', '-', 'disable', 'disabled'];
+
+const TAG_USER_SETTINGS: Record<TagUserSettings, TagUserSetting> = {
+  [TagUserSettings.AI_MEMORY]: {
+    // saved as disabled, but read and written as ON/OFF
+    cleared: false,
+    field: 'ml_llm_memory_disabled',
+    option: 'mlLLMMemoryDisabled',
+    parse: (value) => {
+      const lower = value.toLowerCase();
+      if (AI_MEMORY_ON.includes(lower)) {
+        return false;
+      }
+      if (AI_MEMORY_OFF.includes(lower)) {
+        return true;
+      }
+      throw new Error('`AI_MEMORY` must be `on` or `off`');
+    },
+    text: (value) => (value) ? 'OFF' : 'ON',
+  },
+  [TagUserSettings.AI_MODEL]: createEnumUserSetting('ml_llm_model', 'mlLLMModel', TagGenerationModels, null, TagGenerationModelsToText),
+  [TagUserSettings.APP_COMMAND_RESPONSE_TYPE]: createEnumUserSetting(
+    'application_command_response_type',
+    'applicationCommandResponseType',
+    UserSettingsApplicationCommandResponseTypes,
+    UserSettingsApplicationCommandResponseTypes.AUTOMATIC,
+  ),
+  [TagUserSettings.DOWNLOAD_QUALITY]: createEnumUserSetting('download_quality', 'downloadQuality', DownloadQualities, null),
+  [TagUserSettings.FALLBACKS_MEDIA_IMAGE]: createEnumUserSetting(
+    'fallbacks_media_image',
+    'fallbacksMediaImage',
+    UserSettingsFallbacksMediaImageTypes,
+    UserSettingsFallbacksMediaImageTypes.SEARCH_GOOGLE_IMAGES,
+  ),
+  [TagUserSettings.FILE_UPLOAD_THRESHOLD]: createEnumUserSetting(
+    'file_upload_threshold',
+    'fileUploadThreshold',
+    UserSettingsUploadThresholdTypes,
+    UserSettingsUploadThresholdTypes.EXCEEDS_DISCORD_LIMIT,
+  ),
+  [TagUserSettings.FILE_UPLOAD_TYPE]: createEnumUserSetting('file_upload_type', 'fileUploadType', UserSettingsUploadTypes, UserSettingsUploadTypes.AUTOMATIC),
+  [TagUserSettings.FILE_VANITY]: {
+    // the api checks the format
+    cleared: null,
+    field: 'file_upload_vanity',
+    option: 'vanity',
+    parse: (value) => value.slice(0, 64),
+    text: (value) => value || '',
+  },
+  [TagUserSettings.IMAGINE_MODEL]: createEnumUserSetting('ml_diffusion_model', 'mlDiffusionModel', MLDiffusionModels, null, MLDiffusionModelsToText),
+  // cleared follows the server's setting
+  [TagUserSettings.RESPONSE_DISPLAY]: createEnumUserSetting('response_display', 'responseDisplay', UserSettingsResponseDisplayTypes, null),
+  [TagUserSettings.UNITS]: createEnumUserSetting('units', 'units', MeasurementUnits, null),
+};
+
+
 export interface TagVariables {
   [PrivateVariables.AI_EXECUTIONS]: number,
   [PrivateVariables.API_MANIPULATIONS]: number,
@@ -829,7 +987,13 @@ export interface TagVariables {
 }
 
 export interface TagContext {
-  mathWorker?: MathWorker,
+  // functions that error instead of running, for callers that run user scripts somewhere tags normally can't (like nick-mass)
+  blockedFunctions?: ReadonlySet<TagFunctions>,
+  // whether code blocks (`{js:...}`, `{py:...}`) error instead of running
+  blocksCode?: boolean,
+  mathWorker?: MathSession,
+  // who `{user}`, `{nick}`, `{id}` and the other user functions describe when given no argument, instead of whoever ran it
+  targetMember?: Structures.Member,
 }
 
 export interface TagResultComponents {
@@ -1113,6 +1277,7 @@ export async function parse(
           if (depth <= 0) {
             await increaseFunctionCalls(context, tag);
             let [scriptName, arg] = parseInnerScript(scriptBuffer, shouldTrim);
+            checkFunctionAllowed(tag, scriptName);
             if (TagFunctionsToString.EVAL_SILENT.includes(scriptName)) {
               const wasValid = await ScriptTags[TagFunctions.EVAL_SILENT](context, arg, tag);
               if (!wasValid) {
@@ -1829,33 +1994,60 @@ export async function increaseFunctionCalls(
 
 
 // the best premium tier between the invoking user and the server's owner (or the group dm's owner, like {ai} checks)
+// the name is the raw text before `:`, it's never parsed, so `{{choose:req|request}:...}` can't be used to get around this
+function checkFunctionAllowed(tag: TagResult, scriptName: string): void {
+  const { blockedFunctions, blocksCode } = tag.context;
+  if (!blockedFunctions && !blocksCode) {
+    return;
+  }
+  // code languages are checked first, same as when running it
+  if (blocksCode && getCodeLanguage(scriptName)) {
+    throw new Error(tag.translate('tagscript.function_not_allowed', {name: scriptName}));
+  }
+  const TAG_FUNCTION = getTagFunctionByName(scriptName);
+  if (blockedFunctions && TAG_FUNCTION && blockedFunctions.has(TAG_FUNCTION)) {
+    throw new Error(tag.translate('tagscript.function_not_allowed', {name: scriptName}));
+  }
+}
+
+
+// the member/user that no-argument user functions describe, see `TagContext.targetMember`
+function getTargetMember(context: Command.Context | Interaction.InteractionContext, tag: TagResult): Structures.Member | null {
+  return tag.context.targetMember || context.member || null;
+}
+
+function getTargetUser(context: Command.Context | Interaction.InteractionContext, tag: TagResult): Structures.User {
+  return (tag.context.targetMember) ? tag.context.targetMember.user : context.user;
+}
+
+
 // picks how long the tag can run, it's never lower than the base MAX_TIME
 async function getMaxTime(
   context: Command.Context | Interaction.InteractionContext,
   limits: TagLimits,
 ): Promise<number> {
-  const userIds = [context.userId];
-  if (context.guild) {
-    userIds.push(context.guild.ownerId);
-  } else if (context.inDm && context.channel && context.channel.ownerId) {
-    userIds.push(context.channel.ownerId);
+  let maxTime = limits.MAX_TIME;
+  let user: Awaited<ReturnType<typeof UserStore.getOrFetch>> = null;
+  try {
+    user = await UserStore.getOrFetch(context, context.userId);
+  } catch(error) {
+    // no user means no premium
+  }
+  if (user && user.isPremiumPlus) {
+    // nothing is higher, skip looking at the server
+    return Math.max(maxTime, limits.MAX_TIME_PREMIUM_PLUS);
+  }
+  if (user && user.isPremium) {
+    maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM);
   }
 
-  let maxTime = limits.MAX_TIME;
-  for (let userId of new Set(userIds)) {
-    let user: Awaited<ReturnType<typeof UserStore.getOrFetch>> = null;
-    try {
-      user = await UserStore.getOrFetch(context, userId);
-    } catch(error) {
-      // no user means no premium
-    }
-    if (user && user.isPremiumPlus) {
-      // nothing is higher, skip fetching the owner
-      return Math.max(maxTime, limits.MAX_TIME_PREMIUM_PLUS);
-    }
-    if (user && user.isPremium) {
-      maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM);
-    }
+  // members who gave the server their premium (and a group dm's owner)
+  const users = await getServerPremiumUsers(context);
+  if (users.some((x) => x.isPremiumPlus)) {
+    return Math.max(maxTime, limits.MAX_TIME_PREMIUM_PLUS);
+  }
+  if (users.length) {
+    maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM);
   }
   return maxTime;
 }
@@ -1946,10 +2138,13 @@ export function increaseNetworkRequestsSafety(tag: TagResult, amount: number = 1
 
 
 // {math} and {replace} each have their own timeout, but nothing stopped a tag from running hundreds of them
+// `measure` gives the time to charge from the result when the wall time isn't it ({math} waiting its turn for a shared
+// worker isn't processing). errors are charged the wall time, they end the tag anyways
 export async function withSyncTimeBudget<T>(
   context: Command.Context | Interaction.InteractionContext,
   tag: TagResult,
   func: () => Promise<T> | T,
+  measure?: (value: T) => number,
 ): Promise<T> {
   const max = tag.limits.MAX_SYNC_TIME;
   if (max <= (tag.variables as any)[PrivateVariables.SYNC_TIME]) {
@@ -1958,10 +2153,15 @@ export async function withSyncTimeBudget<T>(
     }));
   }
   const started = Date.now();
+  let took: number | null = null;
   try {
-    return await func();
+    const value = await func();
+    if (measure) {
+      took = measure(value);
+    }
+    return value;
   } finally {
-    (tag.variables as any)[PrivateVariables.SYNC_TIME] += Date.now() - started;
+    (tag.variables as any)[PrivateVariables.SYNC_TIME] += (took === null) ? Date.now() - started : took;
   }
 }
 
@@ -3359,9 +3559,9 @@ const ScriptTags = Object.freeze({
       timestampStart: result.start.getTime(),
     }));
 
-    if (context.manager) {
-      await context.manager.broadcastEval(ReminderInterval.broadcastEvalInsert, reminder);
-    } else if (context.cluster) {
+    // cluster 0 schedules reminders, it gets this one from the api's REMINDER_CREATE event (insertReminder skips
+    // it on other clusters and when it's already scheduled), this just saves it the wait when we're cluster 0
+    if (context.cluster) {
       ReminderInterval.insertReminder(context.cluster, reminder);
     }
 
@@ -4071,7 +4271,7 @@ const ScriptTags = Object.freeze({
         tag.text += memberOrUser.avatarUrlFormat({size: 1024});
       }
     } else {
-      const memberOrUser = context.member || context.user;
+      const memberOrUser = getTargetMember(context, tag) || context.user;
       tag.text += memberOrUser.avatarUrlFormat({size: 1024});
     }
     return true;
@@ -4563,7 +4763,7 @@ const ScriptTags = Object.freeze({
         tag.text += JSON.stringify(memberOrUser.toJSON(true));
       }
     } else {
-      const memberOrUser = context.member;
+      const memberOrUser = getTargetMember(context, tag);
       if (memberOrUser && memberOrUser instanceof Structures.Member) {
         tag.text += JSON.stringify(memberOrUser.toJSON(true));
       }
@@ -4588,7 +4788,7 @@ const ScriptTags = Object.freeze({
         }
       }
     } else {
-      const memberOrUser = context.member || context.user;
+      const memberOrUser = getTargetMember(context, tag) || context.user;
       if (memberOrUser instanceof Structures.Member) {
         tag.text += JSON.stringify(memberOrUser.toJSON(true));
       } else {
@@ -4696,7 +4896,7 @@ const ScriptTags = Object.freeze({
         }
       }
     } else {
-      tag.text += JSON.stringify(context.user);
+      tag.text += JSON.stringify(getTargetUser(context, tag));
     }
 
     return true;
@@ -5221,11 +5421,7 @@ const ScriptTags = Object.freeze({
         const [ source, regex ] = values;
         compared = await withSyncTimeBudget(context, tag, () => {
           try {
-            return vm.runInNewContext(
-              `new RegExp(regex, 'i').test(source);`,
-              {regex, source},
-              {timeout: tag.limits.MAX_TIME_REGEX},
-            );
+            return runRegexScript<boolean>(REGEX_TEST_SCRIPT, {regex, source}, tag.limits.MAX_TIME_REGEX);
           } catch {
             throw new Error(tag.translate('tagscript.regex_matching_errored_or_timed_out'));
           }
@@ -5600,9 +5796,10 @@ const ScriptTags = Object.freeze({
 
     const equation = arg.trim();
 
-    const mathWorker = tag.context.mathWorker = tag.context.mathWorker || new MathWorker();
+    const mathWorker = tag.context.mathWorker = tag.context.mathWorker || new MathSession();
     try {
-      tag.text += await withSyncTimeBudget(context, tag, () => mathWorker.evaluate(equation));
+      const { result } = await withSyncTimeBudget(context, tag, () => mathWorker.evaluateTimed(equation), (value) => value.took);
+      tag.text += result;
     } catch(error) {
       if (error.message.includes(MATH_ERROR_TIMEOUT_MESSAGE)) {
         throw new Error(tag.translate('tagscript.math_equation_timed_out'))
@@ -7225,6 +7422,59 @@ const ScriptTags = Object.freeze({
     return false;
   },
 
+  [TagFunctions.SETTINGS_SET_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {settings.set.user} {settings.set.user:SETTING} {settings.set.user:SETTING|value}
+    // only NotSoAI can use this, no setting outputs every setting as json, no value outputs the current value, `clear` resets it
+
+    if (!isFromAI(context, tag)) {
+      return false;
+    }
+
+    const [ settingText, valueText ] = split(arg, 2);
+    // `ai model` and `ai-model` work too
+    const name = (settingText || '').trim().toUpperCase().replace(/[\s.-]+/g, '_');
+    if (name && !(name in TagUserSettings)) {
+      throw new Error(`Unknown setting \`${settingText.trim().slice(0, 64)}\`, must be one of ${Object.values(TagUserSettings).join(', ')}`);
+    }
+
+    const oldSettings = await withDeadline(context, tag, () => UserSettingsStore.getOrFetch(context, context.userId));
+    if (!oldSettings) {
+      throw new Error('Error fetching your current settings');
+    }
+
+    if (!name) {
+      const settings: Record<string, string> = {};
+      for (const [key, setting] of Object.entries(TAG_USER_SETTINGS)) {
+        settings[key] = setting.text(oldSettings[setting.field]);
+      }
+      settings.AI_PERSONALITY = oldSettings.ml_llm_personality || '';
+      settings.LOCALE = oldSettings.locale || '';
+      settings.TIMEZONE = oldSettings.timezone || '';
+      tag.text += JSON.stringify(settings);
+      return true;
+    }
+
+    const setting = TAG_USER_SETTINGS[name as TagUserSettings];
+    const value = (valueText || '').trim();
+    if (!value) {
+      tag.text += setting.text(oldSettings[setting.field]);
+      return true;
+    }
+
+    const newValue = (value.toLowerCase() === 'clear') ? setting.cleared : setting.parse(value, context);
+    if (oldSettings[setting.field] === newValue) {
+      tag.text += String(false);
+    } else {
+      increaseNetworkRequests(tag);
+      const settings = await withDeadline(context, tag, () => editUserSettings(context, context.userId, {[setting.option]: newValue}));
+      UserSettingsStore.insert(context.userId, settings);
+
+      tag.text += String(true);
+    }
+
+    return true;
+  },
+
   [TagFunctions.SETTINGS_SET_USER_AI_PERSONALITY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {settings.set.user.ai.personality:prompt?}
     // only NotSoAI can use this
@@ -7633,19 +7883,24 @@ const ScriptTags = Object.freeze({
       source = source.slice(3);
     }
 
+    regex = regex.trim();
+    if (isLiteralReplace(regex, replaceWith)) {
+      // join builds the whole string right away (unlike the rope `replace` makes), so check the size before it does
+      const parts = source.split(regex);
+      const length = source.length + (parts.length - 1) * (replaceWith.length - regex.length);
+      const maxTextLength = getMaxTextLength(context, tag);
+      if (maxTextLength < tag.text.length + length) {
+        throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
+      }
+      tag.text += parts.join(replaceWith);
+      return true;
+    }
+
     // an empty regex matches between every character, so a 20k source and 20k replacement made a 400m character
     // string in a few ms. it's only a rope until something flattens it, so check the length before keeping it
     const replaced: string = await withSyncTimeBudget(context, tag, () => {
       try {
-        return vm.runInNewContext(
-          `source.replace(new RegExp(regex, 'gi'), replaceWith);`,
-          {
-            regex: regex.trim(),
-            source,
-            replaceWith,
-          },
-          {timeout: tag.limits.MAX_TIME_REGEX},
-        );
+        return runRegexScript<string>(REGEX_REPLACE_SCRIPT, {regex, replaceWith, source}, tag.limits.MAX_TIME_REGEX);
       } catch {
         throw new Error(tag.translate('tagscript.text_replacing_errored_or_timed_out'));
       }
@@ -8109,7 +8364,7 @@ const ScriptTags = Object.freeze({
         }
       }
     } else {
-      tag.text += context.user.avatarUrlFormat({size: 1024});
+      tag.text += getTargetUser(context, tag).avatarUrlFormat({size: 1024});
     }
   
     return true;
@@ -8126,7 +8381,7 @@ const ScriptTags = Object.freeze({
         tag.text += user.discriminator;
       }
     } else {
-      tag.text += context.user.discriminator;
+      tag.text += getTargetUser(context, tag).discriminator;
     }
 
     return true;
@@ -8143,7 +8398,7 @@ const ScriptTags = Object.freeze({
         tag.text += user.id;
       }
     } else {
-      tag.text += context.user.id;
+      tag.text += getTargetUser(context, tag).id;
     }
 
     return true;
@@ -8160,7 +8415,7 @@ const ScriptTags = Object.freeze({
         tag.text += user.mention;
       }
     } else {
-      tag.text += context.user.mention;
+      tag.text += getTargetUser(context, tag).mention;
     }
     return true;
   },
@@ -8176,7 +8431,7 @@ const ScriptTags = Object.freeze({
         tag.text += user.username;
       }
     } else {
-      tag.text += context.user.username;
+      tag.text += getTargetUser(context, tag).username;
     }
   
     return true;
@@ -8193,7 +8448,8 @@ const ScriptTags = Object.freeze({
         tag.text += user.name;
       }
     } else {
-      tag.text += (context.member) ? context.member.name : context.user.name;
+      const member = getTargetMember(context, tag);
+      tag.text += (member) ? member.name : context.user.name;
     }
   
     return true;
@@ -8331,7 +8587,7 @@ const ScriptTags = Object.freeze({
         tag.text += (presence) ? presence.status : 'offline';
       }
     } else {
-      const member = context.member;
+      const member = getTargetMember(context, tag);
       if (member) {
         const presence = member.presence;
         tag.text += (presence) ? presence.status : 'offline';
@@ -8352,7 +8608,7 @@ const ScriptTags = Object.freeze({
         tag.text += user.toString();
       }
     } else {
-      tag.text += context.user.toString();
+      tag.text += getTargetUser(context, tag).toString();
     }
     return true;
   },

@@ -35,7 +35,8 @@ const ReportStatusColors: Record<ReportStatuses, number> = {
 
 
 // DMs the reporter when staff reply to their report or change its status on the admin dashboard
-// laid out like the guild loggers: the report's status and type as the header ("Closed User Report") with its info
+// laid out like the guild loggers: the report's status and type as the header ("Closed User Report", or
+// "Your User Report Was Closed" for a status change) with its info
 // lines, the reply and the report as titled sections, then the event in the footer, with the status as the side color
 class ReportMessagesListener extends Listener {
   // every cluster gets the event, only one should send the dm
@@ -54,10 +55,11 @@ class ReportMessagesListener extends Listener {
     const buttonLabel = translate('report_message_dm.view_report');
     const color = ReportStatusColors[report.status as ReportStatuses] ?? EmbedColors.DEFAULT;
 
-    // like "Closed User Report", the side color is the status too
-    const title = this.createTitle(translator, report.status, report.type);
-    const information = this.createInformationLines(translator, report);
     // a status change has no content, the new status is in the title
+    const isStatusChange = !message.content;
+    // like "Closed User Report" for a reply or "Your User Report Was Closed" for a status change, the side color is the status too
+    const title = this.createTitle(translator, report.status, report.type, isStatusChange);
+    const information = this.createInformationLines(translator, report);
     const reply = (message.content) ? Markup.codeblock(truncate(message.content, MAX_REPLY_LENGTH)) : null;
     const reportContent = Markup.codeblock(truncate(report.content, MAX_REPORT_PREVIEW_LENGTH));
     const footer = (message.content)
@@ -143,7 +145,7 @@ class ReportMessagesListener extends Listener {
     return lines;
   }
 
-  createTitle(translator: Translator, status: ReportStatuses, type: ReportTypes): string {
+  createTitle(translator: Translator, status: ReportStatuses, type: ReportTypes, isStatusChange: boolean): string {
     const { translate } = translator;
     let typeText: string;
     switch (type) {
@@ -154,10 +156,19 @@ class ReportMessagesListener extends Listener {
       case ReportTypes.USER: typeText = translate('report_message_dm.type_user'); break;
       default: typeText = translate('report_message_dm.type_report');
     }
-    switch (status) {
-      case ReportStatuses.OPEN: return translate('report_message_dm.title_open', {type: typeText});
-      case ReportStatuses.RESOLVED: return translate('report_message_dm.title_resolved', {type: typeText});
-      case ReportStatuses.DISMISSED: return translate('report_message_dm.title_dismissed', {type: typeText});
+    // a status change says what happened to their report ("Your User Report Was Dismissed")
+    if (isStatusChange) {
+      switch (status) {
+        case ReportStatuses.OPEN: return translate('report_message_dm.title_status_open', {type: typeText});
+        case ReportStatuses.RESOLVED: return translate('report_message_dm.title_status_resolved', {type: typeText});
+        case ReportStatuses.DISMISSED: return translate('report_message_dm.title_status_dismissed', {type: typeText});
+      }
+    } else {
+      switch (status) {
+        case ReportStatuses.OPEN: return translate('report_message_dm.title_open', {type: typeText});
+        case ReportStatuses.RESOLVED: return translate('report_message_dm.title_resolved', {type: typeText});
+        case ReportStatuses.DISMISSED: return translate('report_message_dm.title_dismissed', {type: typeText});
+      }
     }
     return typeText;
   }

@@ -1,8 +1,8 @@
 import { ClusterClient, Collections, Command, Interaction } from 'detritus-client';
 import { EventSubscription, Timers } from 'detritus-utils';
 
-import GuildMetadataStore from './guildmetadata';
 import GuildSettingsStore from './guildsettings';
+import PremiumServersStore from './premiumservers';
 import { Store } from './store';
 import UserStore from './users';
 
@@ -14,11 +14,37 @@ import { RedisPayloads } from '../types';
 
 
 
-export type TagCustomCommandStored = Collections.BaseCollection<string, RestResponsesRaw.Tag>;
+// a server's (or user's) command tags. matching a message used to sort all of them by name length for every prefixed
+// message, the sorted list is kept until the collection changes
+export class TagCustomCommandCollection extends Collections.BaseCollection<string, RestResponsesRaw.Tag> {
+  private _sortedByNameLength: Array<RestResponsesRaw.Tag> | null = null;
 
+  // longest names first, so `.hello world` finds `hello world` before `hello`
+  get sortedByNameLength(): Array<RestResponsesRaw.Tag> {
+    if (!this._sortedByNameLength) {
+      this._sortedByNameLength = this.toArray().sort((x, y) => y.name.length - x.name.length);
+    }
+    return this._sortedByNameLength;
+  }
 
-const GUILD_OWNER_ID_CACHE_MAX = 5000;
-const GUILD_OWNER_ID_CACHE_TIME = 10 * 60 * 1000;
+  clear(): void {
+    this._sortedByNameLength = null;
+    super.clear();
+  }
+
+  delete(key: string): boolean {
+    this._sortedByNameLength = null;
+    return super.delete(key);
+  }
+
+  set(key: string, value: RestResponsesRaw.Tag): this {
+    this._sortedByNameLength = null;
+    return super.set(key, value);
+  }
+}
+
+export type TagCustomCommandStored = TagCustomCommandCollection;
+
 
 class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
   constructor() {
@@ -36,7 +62,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
       const collection = this.get(payloadId)!;
       collection.set(tag.id, tag);
     } else {
-      const collection = new Collections.BaseCollection<string, RestResponsesRaw.Tag>();
+      const collection = new TagCustomCommandCollection();
       collection.set(tag.id, tag);
       this.insert(payloadId, collection);
     }
@@ -82,7 +108,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
         try {
           const payload = await fetchGuildTagsCommands(context, guildId);
   
-          const collection = new Collections.BaseCollection<string, RestResponsesRaw.Tag>();
+          const collection = new TagCustomCommandCollection();
           for (let tag of payload.tags) {
             collection.set(tag.id, tag);
           }
@@ -140,7 +166,7 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
         try {
           const payload = await fetchUserTagsCommands(context, userId);
 
-          const collection = new Collections.BaseCollection<string, RestResponsesRaw.Tag>();
+          const collection = new TagCustomCommandCollection();
           for (let tag of payload.tags) {
             collection.set(tag.id, tag);
           }
@@ -173,52 +199,15 @@ class TagCustomCommandStore extends Store<string, TagCustomCommandStored> {
     if (settings && settings.features.has(GuildFeatures.FREE_CUSTOM_COMMANDS)) {
       shouldSearchGuild = true;
     } else {
-      // uncached guilds used to skip the owner check entirely, so premium servers lost their custom commands
-      const ownerId = await this.getGuildOwnerId(context, guildId);
-      if (ownerId) {
-        const owner = await UserStore.getOrFetch(context, ownerId);
-        if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
-          shouldSearchGuild = true;
-        }
-      }
+      // someone in it gave it one of their premium server slots, owning it doesn't give it premium
+      const users = await PremiumServersStore.getUsers(context, guildId);
+      shouldSearchGuild = !!users.length;
     }
 
     if (shouldSearchGuild) {
       return await this.getOrFetchGuildCommands(context, guildId);
     }
     return null;
-  }
-
-  // this runs for every message, so a fetched owner id (or a failed fetch) is remembered for a while instead of hitting
-  // the rest api each time
-  guildOwnerIds = new Map<string, {expiresAt: number, ownerId: null | string}>();
-
-  async getGuildOwnerId(
-    context: Command.Context | Interaction.InteractionContext | Interaction.InteractionAutoCompleteContext,
-    guildId: string,
-  ): Promise<null | string> {
-    const guild = context.guilds.get(guildId) || (GuildMetadataStore.get(guildId) || {}).guild;
-    if (guild) {
-      return guild.ownerId;
-    }
-
-    const cached = this.guildOwnerIds.get(guildId);
-    if (cached && Date.now() < cached.expiresAt) {
-      return cached.ownerId;
-    }
-
-    let ownerId: null | string = null;
-    try {
-      const fetched = await context.rest.fetchGuild(guildId);
-      ownerId = fetched.ownerId;
-    } catch(error) {
-
-    }
-    if (GUILD_OWNER_ID_CACHE_MAX <= this.guildOwnerIds.size) {
-      this.guildOwnerIds.clear();
-    }
-    this.guildOwnerIds.set(guildId, {expiresAt: Date.now() + GUILD_OWNER_ID_CACHE_TIME, ownerId});
-    return ownerId;
   }
 
   async maybeGetOrFetchUserCommands(

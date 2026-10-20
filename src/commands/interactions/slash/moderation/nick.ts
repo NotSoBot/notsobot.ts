@@ -31,9 +31,8 @@ export class ModerationNickCommand extends BaseInteractionCommandOption {
         {name: 'user', description: 'Member to change', ...I18n.optionLocalizations('commands.moderation.nick.user'), required: true, type: ApplicationCommandOptionTypes.USER},
         {
           name: 'nickname',
-          description: 'New nickname (Leave empty to reset it)',
+          description: 'New nickname, supports tagscript like {nick} and {choose:a|b} (Leave empty to reset it)',
           ...I18n.optionLocalizations('commands.moderation.nick.nickname'),
-          maxLength: Formatter.Commands.ModerationNick.MAX_NICKNAME_LENGTH,
         },
       ],
     });

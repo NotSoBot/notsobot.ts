@@ -5,18 +5,9 @@ import { Timers } from 'detritus-utils';
 
 import { CommandCategories, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import ServerExecutionsStore, { ServerExecutionsStored } from '../../../stores/serverexecutions';
-import { DisplayPayload, I18n, Parameters, createTimestampMomentFromGuild, displayReply, formatUserForAuditLog, renderDisplay } from '../../../utils';
+import { DisplayPayload, Formatter, I18n, Parameters, createTimestampMomentFromGuild, displayReply, formatUserForAuditLog, renderDisplay } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
-
-
-export const NameRegexes = {
-  DISCRIMINATOR: /{(?:discrim|discriminator)}/g,
-  GUILD: /{guild}/g,
-  NICKNAME: /{(?:name|nick)}/g,
-  USERNAME: /{(?:user|username)}/g,
-};
-export const NAME_REGEXES = Object.values(NameRegexes);
 
 
 export const ERROR_CODES_IGNORE = [400, 403];
@@ -60,6 +51,7 @@ export default class NickMassCommand extends BaseCommand {
           `${COMMAND_NAME} troy -role admin`,
           `${COMMAND_NAME} troy -nobots`,
           `${COMMAND_NAME} troy -nousers`,
+          `${COMMAND_NAME} {choose:🎄|🎅|🦌} {nick}`,
         ],
         category: CommandCategories.MODERATION,
         id: 'moderation.nick.mass',
@@ -117,7 +109,12 @@ export async function createNickMassMessage(
   const guild = context.guild!;
   const me = guild.me!;
 
-  const nick = args.text;
+  const script = Formatter.Commands.ModerationNick.createNicknameScript(context, args.text);
+  const { isScript } = script;
+  const nick = script.text;
+  const createNickname = async (member: Structures.Member): Promise<string> => {
+    return (await script.render(member)).slice(0, MAX_NICKNAME_LENGTH).trim();
+  };
 
   // the person running it has to outrank them too, not just the bot (this let someone with a low role rename admins)
   const invoker = context.member;
@@ -135,8 +132,18 @@ export async function createNickMassMessage(
     if (args.role && !member.roles.has(args.role.id)) {
       return false;
     }
-    return member.name !== nick && me.canEdit(member) && canInvokerEdit(member);
+    // a script can come out different for each member, those get skipped when they run instead
+    return (isScript || member.name !== nick) && me.canEdit(member) && canInvokerEdit(member);
   });
+
+  // run it once now so a blocked function or a broken script errors before anyone presses continue
+  if (isScript && members.length) {
+    try {
+      await createNickname(members[0]);
+    } catch(error) {
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('nickmass.invalid_nickname', {error: String((error as Error).message || error)})}`});
+    }
+  }
 
   const [ amount, time ] = RATELIMIT_TIME;
 
@@ -263,26 +270,17 @@ export async function createNickMassMessage(
             break;
           }
 
-          let nickname = nick;
-          for (let regex of NAME_REGEXES) {
-            switch (regex) {
-              case NameRegexes.DISCRIMINATOR: {
-                nickname = nickname.replace(regex, member.discriminator);
-              }; break;
-              case NameRegexes.GUILD: {
-                nickname = nickname.replace(regex, guild.name);
-              }; break;
-              case NameRegexes.NICKNAME: {
-                nickname = nickname.replace(regex, member.name);
-              }; break;
-              case NameRegexes.USERNAME: {
-                nickname = nickname.replace(regex, member.username);
-              }; break;
-            }
+          let nickname: string;
+          try {
+            nickname = await createNickname(member);
+          } catch(error) {
+            // a script can still error for some members (like `{exit}` or a timeout), that shouldn't stop the rest
+            errors.push(error);
+            continue;
           }
-          nickname = nickname.slice(0, MAX_NICKNAME_LENGTH).trim();
 
-          if (member.name === nickname) {
+          // an empty script result would clear their nickname, that's what `nick-mass reset` is for
+          if (member.name === nickname || (isScript && !nickname)) {
             amounts.skipped++;
             continue;
           }

@@ -282,6 +282,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/face/mount-rushmore',
   MEDIA_IV_MANIPULATION_FACE_SWAP:
     '/media/iv/manipulation/face/swap',
+  MEDIA_IV_MANIPULATION_FACE_SWAP_KIRK:
+    '/media/iv/manipulation/face/swap/kirk',
   MEDIA_IV_MANIPULATION_FACE_XMAS_CAP:
     '/media/iv/manipulation/face/xmas-cap',
   MEDIA_IV_MANIPULATION_FISHEYE:
@@ -388,6 +390,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/out-in',
   MEDIA_IV_MANIPULATION_OVERLAY_9GAG:
     '/media/iv/manipulation/overlay/9gag',
+  MEDIA_IV_MANIPULATION_OVERLAY_ACHIEVEMENT:
+    '/media/iv/manipulation/overlay/achievement',
   MEDIA_IV_MANIPULATION_OVERLAY_ADIDAS:
     '/media/iv/manipulation/overlay/adidas',
   MEDIA_IV_MANIPULATION_OVERLAY_BANDICAM:
@@ -404,20 +408,58 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/dork',
   MEDIA_IV_MANIPULATION_OVERLAY_FACE:
     '/media/iv/manipulation/overlay/face',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ASEXUAL:
+    '/media/iv/manipulation/overlay/flag-asexual',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_BISEXUAL:
+    '/media/iv/manipulation/overlay/flag-bisexual',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_BRAZIL:
+    '/media/iv/manipulation/overlay/flag-brazil',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_CANADA:
+    '/media/iv/manipulation/overlay/flag-canada',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_CHINA:
+    '/media/iv/manipulation/overlay/flag-china',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_EU:
+    '/media/iv/manipulation/overlay/flag-eu',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_FRANCE:
+    '/media/iv/manipulation/overlay/flag-france',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_GERMANY:
+    '/media/iv/manipulation/overlay/flag-germany',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_INDIA:
+    '/media/iv/manipulation/overlay/flag-india',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_IRAN:
+    '/media/iv/manipulation/overlay/flag-iran',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_IRELAND:
+    '/media/iv/manipulation/overlay/flag-ireland',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISIS:
     '/media/iv/manipulation/overlay/flag-isis',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ISRAEL:
     '/media/iv/manipulation/overlay/flag-israel',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_JAPAN:
+    '/media/iv/manipulation/overlay/flag-japan',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_LESBIAN:
+    '/media/iv/manipulation/overlay/flag-lesbian',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_LGBT:
     '/media/iv/manipulation/overlay/flag-lgbt',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_MEXICO:
+    '/media/iv/manipulation/overlay/flag-mexico',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NONBINARY:
+    '/media/iv/manipulation/overlay/flag-nonbinary',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_NORTH_KOREA:
     '/media/iv/manipulation/overlay/flag-north-korea',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PALESTINE:
+    '/media/iv/manipulation/overlay/flag-palestine',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_PANSEXUAL:
+    '/media/iv/manipulation/overlay/flag-pansexual',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_RUSSIA:
     '/media/iv/manipulation/overlay/flag-russia',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SYRIA:
+    '/media/iv/manipulation/overlay/flag-syria',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TRANS:
     '/media/iv/manipulation/overlay/flag-trans',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UK:
     '/media/iv/manipulation/overlay/flag-uk',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UKRAINE:
+    '/media/iv/manipulation/overlay/flag-ukraine',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_USA:
     '/media/iv/manipulation/overlay/flag-usa',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_USSR:
@@ -438,6 +480,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/hypercam',
   MEDIA_IV_MANIPULATION_OVERLAY_MISTAKE:
     '/media/iv/manipulation/overlay/mistake',
+  MEDIA_IV_MANIPULATION_OVERLAY_NOT_RESPONDING:
+    '/media/iv/manipulation/overlay/not-responding',
   MEDIA_IV_MANIPULATION_OVERLAY_OLD_GUY:
     '/media/iv/manipulation/overlay/old-guy',
   MEDIA_IV_MANIPULATION_OVERLAY_OWO:
@@ -482,6 +526,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/supreme',
   MEDIA_IV_MANIPULATION_OVERLAY_THINKING:
     '/media/iv/manipulation/overlay/thinking',
+  MEDIA_IV_MANIPULATION_OVERLAY_VHS:
+    '/media/iv/manipulation/overlay/vhs',
   MEDIA_IV_MANIPULATION_OVERLAY_WASTED:
     '/media/iv/manipulation/overlay/wasted',
   MEDIA_IV_MANIPULATION_OVERLAY_WATCHMOJO:
@@ -622,6 +668,12 @@ export const Api = Object.freeze({
   ME:
     '/users/@me',
 
+  PREMIUM_SERVERS:
+    '/premium/servers',
+
+  PREMIUM_USERS:
+    '/premium/users',
+
   REMINDERS:
     '/reminders',
   REMINDER:
@@ -735,6 +787,10 @@ export const Api = Object.freeze({
     '/users/:userId/llm/memories',
   USER_LLM_MEMORY:
     '/users/:userId/llm/memories/:position',
+  USER_PREMIUM_SERVERS:
+    '/users/:userId/premium/servers',
+  USER_PREMIUM_SERVER:
+    '/users/:userId/premium/servers/:serverId',
   USER_REMINDERS:
     '/users/:userId/reminders',
   USER_REMINDERS_EXPIRED:
@@ -788,6 +844,8 @@ export const Api = Object.freeze({
     '/utilities/qr/scan',
   UTILITIES_SCREENSHOT:
     '/utilities/screenshot',
+  UTILITIES_UNICODE:
+    '/utilities/unicode',
   UTILITIES_WEATHER:
     '/utilities/weather',
 

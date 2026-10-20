@@ -43,7 +43,7 @@ export async function createMessage(
 
 export function findTagFromText(text: string, tags: TagCustomCommandStored): RestResponsesRaw.Tag | null {
   const insensitive = text.trim().toLowerCase();
-  for (let tag of tags.sort((x, y) => y.name.length - x.name.length)) {
+  for (let tag of tags.sortedByNameLength) {
     if (
       (insensitive.length === tag.name.length && insensitive === tag.name) ||
       insensitive.startsWith(`${tag.name} `)

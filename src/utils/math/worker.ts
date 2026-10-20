@@ -9,6 +9,70 @@ export const MathJS = mathjs.create(mathjs.all, {
   number: 'BigNumber',  
 });
 
+// `base(1295, 36)` -> `zz`, `frombase("zz", 36)` -> `1295`. digits are 0-9 then a-z, so bases 2 to 36
+const BASE_DIGITS = '0123456789abcdefghijklmnopqrstuvwxyz';
+// keeps the output (and the BigInt work) small, the BigNumber precision is 64 digits anyways
+const BASE_MAX_LENGTH = 1024;
+
+function toBaseRadix(radix: any): bigint {
+  const value = MathJS.bignumber(radix);
+  if (!value.isInteger() || value.lt(2) || value.gt(BASE_DIGITS.length)) {
+    throw new Error('Base must be an integer from 2 to 36');
+  }
+  return BigInt(value.toFixed());
+}
+
+function toBaseInteger(value: any): bigint {
+  const bigNumber = MathJS.bignumber(value);
+  if (!bigNumber.isFinite() || !bigNumber.isInteger()) {
+    throw new Error('Only integers can be converted to another base');
+  }
+  const decimal = bigNumber.toFixed();
+  if (BASE_MAX_LENGTH < decimal.length) {
+    throw new Error('Number is too large to convert');
+  }
+  return BigInt(decimal);
+}
+
+MathJS.import({
+  base: (value: any, radix: any): string => {
+    const base = toBaseRadix(radix);
+    let integer = toBaseInteger(value);
+    const isNegative = integer < 0n;
+    if (isNegative) {
+      integer = -integer;
+    }
+    let digits = '';
+    do {
+      digits = BASE_DIGITS[Number(integer % base)] + digits;
+      integer /= base;
+    } while (integer);
+    return (isNegative) ? `-${digits}` : digits;
+  },
+  // also takes plain numbers so `frombase(1010, 2)` works without quotes
+  frombase: (value: any, radix: any): mathjs.BigNumber => {
+    const base = toBaseRadix(radix);
+    let text = (isString(value)) ? value.trim().toLowerCase() : toBaseInteger(value).toString();
+    const isNegative = text.startsWith('-');
+    if (isNegative || text.startsWith('+')) {
+      text = text.slice(1);
+    }
+    if (!text.length || BASE_MAX_LENGTH < text.length) {
+      throw new Error(`Invalid base ${base} number`);
+    }
+    let integer = 0n;
+    for (let character of text) {
+      const digit = BASE_DIGITS.indexOf(character);
+      if (digit === -1 || base <= digit) {
+        throw new Error(`Invalid digit "${character}" for base ${base}`);
+      }
+      integer = integer * base + BigInt(digit);
+    }
+    return MathJS.bignumber(((isNegative) ? -integer : integer).toString());
+  },
+});
+
+
 // grabbed before the functions below are disabled, so the parser itself still works
 const createParser = MathJS.parser;
 
@@ -44,26 +108,36 @@ export function executeEquation(equation: string, parser: mathjs.Parser | null =
 export function removeThousandsSeparators(equation: string): string {
   let result = '';
   let segment = '';
-  // true for each open bracket that holds a list (function call, matrix, object)
+  // true for each open bracket that holds a list (function call, matrix, object), with how many of them are open
+  // (checking the whole stack and copying everything before each bracket made this quadratic in the bracket count)
   const stack: Array<boolean> = [];
-  const isInList = () => stack.some((x) => x);
+  let listDepth = 0;
+  // the last character that isn't whitespace, decides if a `(` is a function call
+  let lastCharacter = '';
   const flush = () => {
-    result += (isInList()) ? segment : segment.replace(/\b(\d{1,3}(?:,\d{3})+(?:\.\d+)?)\b/g, (match) => match.replace(/,/g, ''));
+    result += (listDepth) ? segment : segment.replace(/\b(\d{1,3}(?:,\d{3})+(?:\.\d+)?)\b/g, (match) => match.replace(/,/g, ''));
     segment = '';
   };
   for (let character of equation) {
     if (character === '(' || character === '[' || character === '{') {
-      const before = (result + segment).trimEnd();
-      const isList = character !== '(' || /[A-Za-z0-9_]$/.test(before);
+      const isList = character !== '(' || /[A-Za-z0-9_]/.test(lastCharacter);
       flush();
       stack.push(isList);
+      if (isList) {
+        listDepth++;
+      }
       result += character;
     } else if ((character === ')' || character === ']' || character === '}') && stack.length) {
       flush();
-      stack.pop();
+      if (stack.pop()) {
+        listDepth--;
+      }
       result += character;
     } else {
       segment += character;
+    }
+    if (!/\s/.test(character)) {
+      lastCharacter = character;
     }
   }
   flush();
@@ -155,44 +229,99 @@ function isRepeatingDecimal(value: string, maxDigits: number = 20): boolean {
 }
 
 
-export interface WorkerMessage {
+export type WorkerMessage = {
+  type: 'evaluate',
   equation: string,
-}
+  id: number,
+  session: number,
+} | {
+  type: 'dispose',
+  session: number,
+};
 
-export interface WorkerResponse {
-  success: boolean,
-  result?: string,
+export type WorkerResponse = {
+  type: 'ready',
+} | {
+  type: 'result',
   error?: string,
-}
+  id: number,
+  result?: string,
+  success: boolean,
+};
+
+
+// a parser nobody used for this long is dropped (its tag finished without disposing it), tags run 2 minutes at most
+export const SESSION_IDLE_TIME = 5 * 60 * 1000;
+// only so a flood of sessions can't keep growing the map, the least recently used ones go first
+export const MAX_SESSIONS = 1000;
 
 
 if (parentPort) {
-  // each MathWorker (one per tag run) has its own thread, so variables only carry over between {math} calls in one run
-  const parser = createParser();
+  // the workers are shared by every tag run in the process, each run (session) gets its own parser so variables only
+  // carry over between {math} calls in that run
+  const sessions = new Map<number, {lastUsed: number, parser: mathjs.Parser}>();
+  const getParser = (session: number): mathjs.Parser => {
+    let item = sessions.get(session);
+    if (item) {
+      // keep the map in least recently used order
+      sessions.delete(session);
+    } else {
+      item = {lastUsed: 0, parser: createParser()};
+      while (MAX_SESSIONS <= sessions.size) {
+        sessions.delete(sessions.keys().next().value!);
+      }
+    }
+    item.lastUsed = Date.now();
+    sessions.set(session, item);
+    return item.parser;
+  };
+  setInterval(() => {
+    const now = Date.now();
+    for (let [session, item] of sessions) {
+      if (now - item.lastUsed < SESSION_IDLE_TIME) {
+        break;
+      }
+      sessions.delete(session);
+    }
+  }, 60 * 1000).unref();
+
+  let currentId: null | number = null;
   parentPort.on('message', (data: WorkerMessage) => {
+    if (data.type === 'dispose') {
+      sessions.delete(data.session);
+      return;
+    }
+    currentId = data.id;
     try {
-      const { equation } = data;
-      const result = executeEquation(equation, parser);
-      parentPort!.postMessage({ success: true, result } as WorkerResponse);
+      const result = executeEquation(data.equation, getParser(data.session));
+      parentPort!.postMessage({type: 'result', id: data.id, result, success: true} as WorkerResponse);
     } catch (error) {
       parentPort!.postMessage({
-        success: false,
+        type: 'result',
         error: error instanceof Error ? error.message : 'Unknown error occurred',
+        id: data.id,
+        success: false,
       } as WorkerResponse);
+    } finally {
+      currentId = null;
     }
   });
 
-  process.on('uncaughtException', (error: Error) => {
-    parentPort!.postMessage({
-      success: false,
-      error: error.message || 'Uncaught exception occurred',
-    } as WorkerResponse);
-  });
+  // anything thrown outside an evaluation still answers the one running, so it doesn't wait for its timeout
+  const onUnhandled = (error: any) => {
+    if (currentId !== null) {
+      parentPort!.postMessage({
+        type: 'result',
+        error: (error && error.message) || 'Uncaught exception occurred',
+        id: currentId,
+        success: false,
+      } as WorkerResponse);
+      currentId = null;
+    }
+  };
+  process.on('uncaughtException', onUnhandled);
+  process.on('unhandledRejection', onUnhandled);
 
-  process.on('unhandledRejection', (error: Error | null) => {
-    parentPort!.postMessage({
-      success: false,
-      error: error?.message || 'Unhandled rejection occurred',
-    } as WorkerResponse);
-  });
+  // mathjs is loaded by now, the pool only starts timing equations after this
+  parentPort.postMessage({type: 'ready'} as WorkerResponse);
 }

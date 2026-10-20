@@ -27,7 +27,7 @@ export default class OverlayTransCommand extends BaseImageOrVideoCommand {
     });
   }
 
-  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOverlayFlagRussia.CommandArgs) {
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOverlayFlagTrans.CommandArgs) {
     return Formatter.Commands.MediaIVManipulationOverlayFlagTrans.createMessage(context, args);
   }
 }

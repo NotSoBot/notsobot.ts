@@ -5,7 +5,7 @@ import ServerExecutionsStore from '../../../stores/serverexecutions';
 import { getTranslator } from '../../i18n';
 
 import { mediaICreateWordcloud } from '../../../api';
-import { displayReply, mediaReply } from '../../../utils';
+import { displayReply, jobReply } from '../../../utils';
 
 
 export const MAX_FETCHES = 10;
@@ -44,12 +44,10 @@ export async function createMessage(
   isExecuting.wordcloud = true;
   try {
     const words = await fetchMessages(context, args, user).then((x) => x.slice(0, 3000));
-    const response = await mediaICreateWordcloud(context, {words});
+    const job = await mediaICreateWordcloud(context, {words});
+    return await jobReply(context, job);
+  } finally {
     isExecuting.wordcloud = false;
-    return mediaReply(context, response);
-  } catch(error) {
-    isExecuting.wordcloud = false;
-    throw error;
   }
 }
 

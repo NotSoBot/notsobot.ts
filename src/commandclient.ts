@@ -1,13 +1,17 @@
-import { Command, CommandAttributes, CommandClient, GatewayClientEvents, Interaction, Structures } from 'detritus-client';
+import { Collections, Command, CommandAttributes, CommandClient, GatewayClientEvents, Interaction, Structures } from 'detritus-client';
 import { ClientEvents, LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
 import { fetchCommandsResponses } from './api';
 import { CommandResults, setCommandResult } from './commandresults';
 import { BaseInteractionCommand } from './commands/interactions/basecommand';
+import { replyWarning } from './commands/errors';
 import { CommandMetadata } from './commands/prefixed/basecommand';
 import { runWithCommandContext } from './sentry';
 
+import CommandResponsesStore from './stores/commandresponses';
 import GuildSettingsStore from './stores/guildsettings';
+import PremiumServersStore from './stores/premiumservers';
+import PremiumUsersStore from './stores/premiumusers';
 import UserStore from './stores/users';
 import UserSettingsStore from './stores/usersettings';
 
@@ -16,10 +20,12 @@ import {
   GuildBlocklistTypes,
   GuildCommandsAllowlistTypes,
   GuildCommandsBlocklistTypes,
+  GuildFeatures,
   UserFlags,
 } from './constants';
 import {
   Formatter,
+  I18n,
   cancelCommandRun,
   getCommandIdFromInvoker,
   isGuildListCommandId,
@@ -77,8 +83,8 @@ export class NotSoCommandClient extends CommandClient {
 
     const guildId = context.guildId!;
     const settings = await GuildSettingsStore.getOrFetch(context, guildId);
+    // without settings (the fetch failed and there's no older copy) only admins get through, see the end
     if (settings && settings.blocked) {
-      // if we aren't able to fetch the settings, it will surpass the blocked setting cuz it's rare to block a guild
       return false;
     }
 
@@ -254,9 +260,9 @@ export class NotSoCommandClient extends CommandClient {
       }
 
       return true;
-    } else {
-      // Failed to fetch, got null, just block it lol
     }
+    // couldn't load the server's settings and there's no older copy of them, so its allow/blocklists can't be checked
+    contextMetadata.settingsFetchFailed = true;
     return false;
   }
 
@@ -267,14 +273,8 @@ export class NotSoCommandClient extends CommandClient {
     }
     if (context.message.messageReference) {
       const replyMessage = context.message.messageReference.message;
-      if (replyMessage && await isAIResponse(context, replyMessage)) {
-        let command = this.commands.find((x) => x.name === 'ai') || null;
-        if (command && typeof(command.onBefore) === 'function') {
-          const hasPremium = await Promise.resolve(command.onBefore(context));
-          if (hasPremium) {
-            return {content: context.message.content.trim(), prefix: ''};
-          }
-        }
+      if (replyMessage && await isAIResponse(context, replyMessage) && await this.canPassToAICommand(context)) {
+        return {content: context.message.content.trim(), prefix: ''};
       }
     }
     return null;
@@ -289,23 +289,70 @@ export class NotSoCommandClient extends CommandClient {
         const replyMessage = (context.message.messageReference && context.message.messageReference.message);
         maybePassToAICommand = !!(replyMessage && await isAIResponse(context, replyMessage));
       }
-      if (maybePassToAICommand) {
-        command = this.commands.find((x) => x.name === 'ai') || null;
-        if (command && typeof(command.onBefore) === 'function') {
-          const hasPremium = await Promise.resolve(command.onBefore(context));
-          if (!hasPremium) {
-            command = null;
-          }
-        }
+      if (maybePassToAICommand && await this.canPassToAICommand(context)) {
+        command = this.getAICommand();
       }
     }
     if (!command) {
       command = await Promise.resolve(super.getCommand(attributes, context));
     }
-    if (!command && attributes.content) {
+    // the custom command fallback, only when there could be a custom command to find. every prefixed message that
+    // matched nothing (`...`, `.-.`) used to go through the whole command check (looking up the user, their settings)
+    if (!command && attributes.content && (!context || await this.mightHaveCustomCommand(context))) {
       command = this.commands.find((x) => !x.name) || null;
     }
     return command;
+  }
+
+  // the same rules as `TagCustomCommandStore.maybeGetOrFetch*Commands`, from what's already in memory: a server with
+  // free custom commands or a premium server slot given to it, or a user with premium. anything that can't be told
+  // (settings or the premium lists not loading) says yes and lets the real check decide
+  async mightHaveCustomCommand(context: Command.Context): Promise<boolean> {
+    if (context.guildId) {
+      // already loaded by the prefix check
+      const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+      if (!settings || settings.features.has(GuildFeatures.FREE_CUSTOM_COMMANDS)) {
+        return true;
+      }
+      // whether the users that gave it the slot still have premium plus is checked by the real check
+      if (!(await PremiumServersStore.load(context)) || PremiumServersStore.has(context.guildId)) {
+        return true;
+      }
+    }
+    if (context.user.isClientOwner) {
+      return true;
+    }
+    return (await PremiumUsersStore.isPremium(context, context.userId)) !== false;
+  }
+
+  getAICommand(): Command.Command | null {
+    return this.commands.find((x) => x.name === 'ai') || null;
+  }
+
+  // if a mention or a reply to an ai response should go to the ai command, which needs premium. getAttributes and
+  // getCommand both ask for the same message, so the check (the ai command's `onBefore`) only runs once
+  canPassToAICommand(context: Command.Context): Promise<boolean> {
+    let check = aiCommandChecks.get(context);
+    if (!check) {
+      check = (async () => {
+        const command = this.getAICommand();
+        if (!command) {
+          return false;
+        }
+        if (typeof(command.onBefore) !== 'function') {
+          return true;
+        }
+        const hasPremium = !!(await Promise.resolve(command.onBefore(context)));
+        if (!hasPremium && context.metadata) {
+          // it goes to the regular commands instead, the premium reason would be replied by any of them that cancels
+          delete context.metadata.reason;
+          delete context.metadata.reasonIsPremiumRequired;
+        }
+        return hasPremium;
+      })();
+      aiCommandChecks.set(context, check);
+    }
+    return check;
   }
 
   // an update to an uncached message (like pinning or starting a thread on one from years ago) has nothing to compare
@@ -356,9 +403,29 @@ export class NotSoCommandClient extends CommandClient {
     return super.handleDeleteBulk(deletePayload);
   }
 
-  // only so the attempt's usage says it was blocked, prefixed commands don't tell the user anything
+  // blocked commands don't tell the user anything (that's the point of the lists), except when we couldn't load the
+  // server's settings to check them. once per channel every so often, so an api outage doesn't spam every channel
   async onCommandCancel(context: Command.Context, command: Command.Command) {
     setCommandResult(context, CommandResults.BLOCKED);
+    // the custom command fallback runs for every unmatched prefixed message, those aren't commands
+    if (!context.metadata || !context.metadata.settingsFetchFailed || !command.name) {
+      return;
+    }
+    const now = Date.now();
+    const last = settingsFetchFailedReplies.get(context.channelId);
+    if (last !== undefined && now - last < SETTINGS_FETCH_FAILED_REPLY_INTERVAL) {
+      return;
+    }
+    settingsFetchFailedReplies.set(context.channelId, now);
+    if (!context.canReply) {
+      return;
+    }
+    try {
+      const { translate } = await I18n.getTranslator(context);
+      await replyWarning(context, translate('blocked.server_fetch_failed'));
+    } catch(error) {
+
+    }
   }
 
   async onMessageCheck(context: Command.Context) {
@@ -390,8 +457,14 @@ export class NotSoCommandClient extends CommandClient {
 
 
 
+// channel id -> when we last said the server's settings couldn't be loaded
+const SETTINGS_FETCH_FAILED_REPLY_INTERVAL = 60 * 1000;
+const settingsFetchFailedReplies = new Collections.BaseCollection<string, number>({expire: SETTINGS_FETCH_FAILED_REPLY_INTERVAL});
+
 // getAttributes and getCommand both check the same reply, only hit the api once per message
 const aiResponseChecks = new WeakMap<Structures.Message, Promise<boolean>>();
+// per context, an edit re-runs with a new one and could've added or removed the mention
+const aiCommandChecks = new WeakMap<Command.Context, Promise<boolean>>();
 
 function isAIResponse(context: Command.Context, message: Structures.Message): Promise<boolean> {
   let check = aiResponseChecks.get(context.message);
@@ -408,6 +481,11 @@ async function checkIsAIResponse(context: Command.Context, message: Structures.M
   }
   if (message.interaction) {
     return message.interaction.name === 'ai';
+  }
+  // what this process saw itself, only messages from before it started (or past what it remembers) ask the api
+  const commandId = CommandResponsesStore.getResponseCommandId(context.client, message.id);
+  if (commandId !== undefined) {
+    return commandId === Formatter.Commands.TagGenerate.COMMAND_ID;
   }
   // prefixed responses reply to the message that triggered them
   const { messageReference } = message;

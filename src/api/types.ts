@@ -664,6 +664,10 @@ export namespace RestOptions {
     maxFaces?: number,
   }
 
+  export interface MediaIVManipulationFaceSwapPreset extends MediaBaseOptions {
+    maxFaces?: number,
+  }
+
   export interface MediaIVManipulationAcid extends MediaBaseOptions {
     amount?: number,
     levels?: number,
@@ -703,6 +707,11 @@ export namespace RestOptions {
   export interface MediaIVManipulationOldTV extends MediaBaseOptions {
     animated?: boolean,
     grayscale?: boolean,
+  }
+
+  export interface MediaIVManipulationOverlayAchievement extends MediaBaseOptions {
+    gamerscore?: number,
+    text: string,
   }
 
   export interface MediaIVManipulationOverlayWatchMojo extends MediaBaseOptions {
@@ -1495,6 +1504,11 @@ export namespace RestOptions {
     width?: number,
   }
 
+  export interface UtilitiesUnicode {
+    limit?: number,
+    query: string,
+  }
+
   export interface UtilitiesWeather {
     query?: string,
     units?: string,
@@ -1828,6 +1842,39 @@ export namespace RestResponsesRaw {
 
   export type EditUserLLMMemory = FetchUserLLMMemories;
   export type DeleteUserLLMMemory = FetchUserLLMMemories;
+
+  export interface PremiumServer {
+    created: string,
+    // when it can be taken off, servers are locked for a while after getting someone's premium
+    removable_at: string,
+    server_id: string,
+    user_id: string,
+  }
+
+  // every call that changes a premium server returns the user's list afterwards
+  export interface FetchUserPremiumServers {
+    // the servers only get anything while the user has premium plus
+    active: boolean,
+    items: Array<PremiumServer>,
+    // null for owners, they can give as many as they want
+    limit: null | number,
+  }
+
+  export interface PutUserPremiumServer extends FetchUserPremiumServers {
+    // false when the server already had it
+    created: boolean,
+  }
+
+  export type DeleteUserPremiumServer = FetchUserPremiumServers;
+
+  export interface FetchPremiumServers {
+    items: Array<{server_id: string, user_id: string}>,
+  }
+
+  // everyone with any premium (owners included), the ones that can have personal custom commands
+  export interface FetchPremiumUsers {
+    user_ids: Array<string>,
+  }
 
   export interface DeleteUserLLMMemories {
     count: number,
@@ -3000,6 +3047,18 @@ export namespace RestResponsesRaw {
       type: string,
     }>,
     url?: string,
+  }
+
+  export interface UtilitiesUnicode {
+    characters: Array<{
+      category: string,
+      character: string,
+      code_point: number,
+      // characters without a name get a label like `<control-000A>`
+      name: string,
+    }>,
+    count: number,
+    version: string,
   }
 
   export interface UtilitiesWeather {

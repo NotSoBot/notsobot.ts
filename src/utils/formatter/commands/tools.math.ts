@@ -1,6 +1,6 @@
 import { Command, Interaction } from 'detritus-client';
 
-import { MATH_ERROR_TIMEOUT_MESSAGE, MathWorker, displayReply } from '../../../utils';
+import { MATH_ERROR_TIMEOUT_MESSAGE, MathSession, displayReply } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
 
@@ -16,7 +16,7 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   const { equation } = args;
-  const mathWorker = new MathWorker();
+  const mathWorker = new MathSession();
 
   let content = '';
   try {

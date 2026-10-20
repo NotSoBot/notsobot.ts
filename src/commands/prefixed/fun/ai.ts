@@ -1,6 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getServerPremiumUsers } from '../../../stores/premiumservers';
 import UserStore from '../../../stores/users';
 
 import {
@@ -71,21 +72,13 @@ export default class AiCommand extends BaseCommand {
         const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
         if (settings && settings.features.has(GuildFeatures.AI_ACCESS)) {
           hasPremium = true;
-        } else {
-          const guild = context.guild;
-          if (guild) {
-            const owner = await UserStore.getOrFetch(context, guild.ownerId);
-            if (owner && (owner.isPremiumPlusAI || owner.hasFlag(UserFlags.OWNER))) {
-              hasPremium = true;
-            }
-          }
         }
-      } else if (context.inDm && context.channel && context.channel.ownerId) {
-        // most likely a group dm, check to see if is owner of it
-        const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
-        if (owner && (owner.isPremiumPlusAI || owner.hasFlag(UserFlags.OWNER))) {
-          hasPremium = true;
-        }
+      }
+
+      if (!hasPremium) {
+        // someone in here gave it one of their premium server slots (or owns it, for a group dm) and has plus ai
+        const users = await getServerPremiumUsers(context);
+        hasPremium = users.some((x) => x.isPremiumPlusAI);
       }
     }
 

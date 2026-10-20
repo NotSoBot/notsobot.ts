@@ -16,6 +16,7 @@ import * as juration from 'juration';
 import MiniSearch from 'minisearch';
 import * as moment from 'moment';
 
+import { getServerPremiumUsers } from '../../stores/premiumservers';
 import TagCustomCommandStore from '../../stores/tagcustomcommands';
 import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
@@ -59,6 +60,7 @@ import {
   findMembersByChunkText,
   findUrlInMessages,
   findUrlsInMessages,
+  getCachedChannelMessages,
   getOrFetchRealUrl,
   getOrFetchRealUrls,
   getTimezoneAbbreviation,
@@ -1656,20 +1658,10 @@ export function mediaUrl(
           let shouldFallback = false;
           if (user.premiumType || user.hasFlag(UserFlags.OWNER)) {
             shouldFallback = true;
-          } else if (context.guildId) {
-            const guild = context.guild;
-            if (guild) {
-              const owner = await UserStore.getOrFetch(context, guild.ownerId);
-              if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
-                shouldFallback = true;
-              }
-            }
-          } else if (context.inDm && context.channel && context.channel.ownerId) {
-            // most likely a group dm, check to see if is owner of it
-            const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
-            if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
-              shouldFallback = true;
-            }
+          } else {
+            // someone in here gave it one of their premium server slots (or owns it, for a group dm)
+            const users = await getServerPremiumUsers(context);
+            shouldFallback = !!users.length;
           }
 
           if (shouldFallback) {
@@ -1931,20 +1923,10 @@ export function mediaUrls(
           let shouldFallback = false;
           if (user.premiumType || user.hasFlag(UserFlags.OWNER)) {
             shouldFallback = true;
-          } else if (context.guildId) {
-            const guild = context.guild;
-            if (guild) {
-              const owner = await UserStore.getOrFetch(context, guild.ownerId);
-              if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
-                shouldFallback = true;
-              }
-            }
-          } else if (context.inDm && context.channel && context.channel.ownerId) {
-            // most likely a group dm, check to see if is owner of it
-            const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
-            if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
-              shouldFallback = true;
-            }
+          } else {
+            // someone in here gave it one of their premium server slots (or owns it, for a group dm)
+            const users = await getServerPremiumUsers(context);
+            shouldFallback = !!users.length;
           }
 
           if (shouldFallback) {
@@ -2005,11 +1987,7 @@ export function mediaUrls(
       const before = (context instanceof Command.Context) ? context.messageId : undefined;
       {
         const beforeId = (before) ? BigInt(before) : null;
-        // we dont get DM channels anymore so we must manually find messages now
-        const messages = context.messages.filter((message) => {
-          if (message.channelId !== context.channelId) {
-            return false;
-          }
+        const messages = getCachedChannelMessages(context).filter((message) => {
           if (message.interaction && message.hasFlagEphemeral && message.interaction.user.id !== context.userId) {
             return false;
           }

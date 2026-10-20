@@ -6,6 +6,7 @@ import {
 } from 'detritus-client/lib/constants';
 
 import GuildSettingsStore from '../../../stores/guildsettings';
+import { getServerPremiumUsers } from '../../../stores/premiumservers';
 import ServerSettingsStore from '../../../stores/serversettings';
 import UserStore from '../../../stores/users';
 
@@ -107,28 +108,19 @@ export default class AICommand extends BaseSlashCommand {
         const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
         if (settings && settings.features.has(GuildFeatures.AI_ACCESS)) {
           hasPremium = true;
-        } else {
-          const guild = context.guild;
-          if (guild) {
-            const owner = await UserStore.getOrFetch(context, guild.ownerId);
-            if (owner && (owner.isPremiumPlusAI || owner.hasFlag(UserFlags.OWNER))) {
-              hasPremium = true;
-            }
-          }
         }
       } else if (context.inDm && context.channel && context.channel.ownerId) {
-        // most likely a group dm, check to see if is owner of it
-        const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
-        if (owner && (owner.isPremiumPlusAI || owner.hasFlag(UserFlags.OWNER))) {
+        // a group dm
+        const settings = await ServerSettingsStore.getOrFetch(context, context.channelId!);
+        if (settings && settings.features.has(GuildFeatures.AI_ACCESS)) {
           hasPremium = true;
         }
-        if (!hasPremium) {
-          const serverId = context.channelId!;
-          const settings = await ServerSettingsStore.getOrFetch(context, serverId);
-          if (settings && settings.features.has(GuildFeatures.AI_ACCESS)) {
-            hasPremium = true;
-          }
-        }
+      }
+
+      if (!hasPremium) {
+        // someone in here gave it one of their premium server slots (or owns it, for a group dm) and has plus ai
+        const users = await getServerPremiumUsers(context);
+        hasPremium = users.some((x) => x.isPremiumPlusAI);
       }
     }
 

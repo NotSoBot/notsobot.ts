@@ -274,6 +274,7 @@ export class ApiEventsSpewer extends EventSpewer {
   on(event: string | symbol, listener: (...args: any[]) => void): this;
   on(event: ApiEventsSpewerEvents.RESYNC, listener: () => any): this;
   on(event: RedisChannels.GUILD_SETTINGS_UPDATE, listener: (payload: RedisPayloads.GuildSettingsUpdate) => any): this;
+  on(event: RedisChannels.PREMIUM_SERVERS_UPDATE, listener: (payload: RedisPayloads.PremiumServersUpdate) => any): this;
   on(event: RedisChannels.REMINDER_CREATE, listener: (payload: RedisPayloads.ReminderCreate) => any): this;
   on(event: RedisChannels.REMINDER_DELETE, listener: (payload: RedisPayloads.ReminderDelete) => any): this;
   on(event: RedisChannels.REMINDER_UPDATE, listener: (payload: RedisPayloads.ReminderUpdate) => any): this;

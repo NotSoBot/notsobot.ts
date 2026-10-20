@@ -4,7 +4,9 @@ import { Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
+import CommandResponsesStore from '../../stores/commandresponses';
 import GuildSettingsStore from '../../stores/guildsettings';
+import { getServerPremiumUsers } from '../../stores/premiumservers';
 import UserStore from '../../stores/users';
 
 import { createUserCommand } from '../../api';
@@ -83,7 +85,9 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
   }
 
   onBefore(context: Command.Context): Promise<boolean> | boolean {
-    return new Promise(async (resolve) => {
+    // an async iife instead of `new Promise(async ...)`, anything thrown in there never settled the promise and left the
+    // command hanging forever, now it rejects and detritus emits it as a COMMAND_ERROR
+    return (async () => {
       const contextMetadata = context.metadata = context.metadata || {};
       const { translate } = await I18n.getTranslator(context);
   
@@ -93,7 +97,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           const isNSFWAllowed = !!(context.inDm || (context.channel && (context.channel.isDm || context.channel.nsfw)));
           if (!isNSFWAllowed) {
             contextMetadata.reason = warning(translate('errors.not_nsfw_channel'));
-            return resolve(isNSFWAllowed);
+            return isNSFWAllowed;
           }
         }
         if (metadata.premium || metadata.premiumPlus || metadata.premiumServer) {
@@ -109,25 +113,17 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
           }
   
           if (!hasPremium && metadata.premiumServer) {
-            if (context.guildId) {
+            if (context.guildId && typeof(metadata.premiumServer) === 'string') {
               const settings = await GuildSettingsStore.getOrFetch(context, context.guildId);
-              if (settings && (typeof(metadata.premiumServer) === 'string' && settings.features.has(metadata.premiumServer))) {
-                hasPremium = true;
-              } else {
-                const guild = context.guild;
-                if (guild) {
-                  const owner = await UserStore.getOrFetch(context, guild.ownerId);
-                  if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
-                    hasPremium = true;
-                  }
-                }
-              }
-            } else if (context.inDm && context.channel && context.channel.ownerId) {
-              // most likely a group dm, check to see if is owner of it
-              const owner = await UserStore.getOrFetch(context, context.channel.ownerId);
-              if (owner && (owner.premiumType || owner.hasFlag(UserFlags.OWNER))) {
+              if (settings && settings.features.has(metadata.premiumServer)) {
                 hasPremium = true;
               }
+            }
+
+            if (!hasPremium) {
+              // someone in here gave it one of their premium server slots (or owns it, for a group dm)
+              const users = await getServerPremiumUsers(context);
+              hasPremium = !!users.length;
             }
           }
   
@@ -141,12 +137,12 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
               context.metadata.reason = warning(translate('errors.premium_required', {command: Markup.codestring(this.fullName)}));
             }
             context.metadata.reasonIsPremiumRequired = true;
-            return resolve(hasPremium);
+            return hasPremium;
           }
         }
       }
-      return resolve(true);
-    });
+      return true;
+    })();
   }
 
   onCancel(context: Command.Context) {
@@ -290,6 +286,11 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     }
     const metadata = context.command.metadata;
     const commandId = metadata.id || context.command.fullName.split(' ').join('.');
+    // the api only stores it when there's a response, the message delete listener and the reply-to-ai check look here
+    // before asking it
+    if (context.response) {
+      CommandResponsesStore.insert(context.messageId, context.response.id, commandId);
+    }
     await createUserCommand(
       context,
       context.userId,

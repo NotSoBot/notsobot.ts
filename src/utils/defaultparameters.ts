@@ -10,6 +10,7 @@ import {
   findCachedTagDirectoryIds,
   findMediaUrlInMessages,
   findUrlInMessages,
+  getCachedChannelMessages,
   getOrFetchRealUrl,
   isFileAttachment,
   FindMediaUrlOptions,
@@ -125,11 +126,7 @@ export function lastMediaUrl(
     const before = (context instanceof Command.Context) ? context.messageId : undefined;
     {
       const beforeId = (before) ? BigInt(before) : null;
-      // we dont get DM channels anymore so we must manually find messages now
-      const messages = context.messages.filter((message) => {
-        if (message.channelId !== context.channelId) {
-          return false;
-        }
+      const messages = getCachedChannelMessages(context).filter((message) => {
         if (message.interaction && message.hasFlagEphemeral) {
           return message.interaction.user.id === context.userId;
         }
@@ -209,11 +206,7 @@ export async function lastUrl(context: Command.Context | Interaction.Interaction
   const before = (context instanceof Command.Context) ? context.messageId : undefined;
   {
     const beforeId = (before) ? BigInt(before) : null;
-    // we dont get DM channels anymore so we must manually find messages now
-    const messages = context.messages.filter((message) => {
-      if (message.channelId !== context.channelId) {
-        return false;
-      }
+    const messages = getCachedChannelMessages(context).filter((message) => {
       if (message.interaction && message.hasFlagEphemeral) {
         return message.interaction.user.id === context.userId;
       }

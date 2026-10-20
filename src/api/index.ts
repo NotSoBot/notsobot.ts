@@ -365,6 +365,46 @@ export async function fetchUserLLMMemories(
 }
 
 
+export async function fetchUserPremiumServers(
+  context: RequestContext,
+  userId: string,
+) {
+  return raw.fetchUserPremiumServers(context, userId);
+}
+
+
+export async function putUserPremiumServer(
+  context: RequestContext,
+  userId: string,
+  serverId: string,
+) {
+  return raw.putUserPremiumServer(context, userId, serverId);
+}
+
+
+export async function deleteUserPremiumServer(
+  context: RequestContext,
+  userId: string,
+  serverId: string,
+) {
+  return raw.deleteUserPremiumServer(context, userId, serverId);
+}
+
+
+export async function fetchPremiumServers(
+  context: RequestContext,
+) {
+  return raw.fetchPremiumServers(context);
+}
+
+
+export async function fetchPremiumUsers(
+  context: RequestContext,
+) {
+  return raw.fetchPremiumUsers(context);
+}
+
+
 export async function deleteTag(
   context: RequestContext,
   options: RestOptions.DeleteTagSearch,
@@ -1706,6 +1746,14 @@ export async function mediaIVManipulationFaceSwap(
 }
 
 
+export async function mediaIVManipulationFaceSwapKirk(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceSwapPreset,
+) {
+  return raw.mediaIVManipulationFaceSwapKirk(context, options);
+}
+
+
 export async function mediaIVManipulationFaceXmasCap(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationFaceXmasCap,
@@ -2130,6 +2178,14 @@ export async function mediaIVManipulationOverlay9Gag(
 }
 
 
+export async function mediaIVManipulationOverlayAchievement(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayAchievement,
+) {
+  return raw.mediaIVManipulationOverlayAchievement(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayAdidas(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2194,11 +2250,115 @@ export async function mediaIVManipulationOverlayFace(
 }
 
 
+export async function mediaIVManipulationOverlayFlagAsexual(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagAsexual(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagBisexual(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagBisexual(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagBrazil(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagBrazil(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagCanada(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagCanada(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagChina(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagChina(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagEU(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagEU(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagFrance(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagFrance(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagGermany(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagGermany(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagIndia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagIndia(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagIran(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagIran(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagIreland(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagIreland(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayFlagIsrael(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayFlagIsrael(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagJapan(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagJapan(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagLesbian(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagLesbian(context, options);
 }
 
 
@@ -2210,6 +2370,22 @@ export async function mediaIVManipulationOverlayFlagLGBT(
 }
 
 
+export async function mediaIVManipulationOverlayFlagMexico(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagMexico(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagNonBinary(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagNonBinary(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayFlagNorthKorea(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2218,11 +2394,35 @@ export async function mediaIVManipulationOverlayFlagNorthKorea(
 }
 
 
+export async function mediaIVManipulationOverlayFlagPalestine(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagPalestine(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagPansexual(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagPansexual(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayFlagRussia(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayFlagRussia(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagSyria(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagSyria(context, options);
 }
 
 
@@ -2239,6 +2439,14 @@ export async function mediaIVManipulationOverlayFlagUK(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayFlagUK(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagUkraine(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagUkraine(context, options);
 }
 
 
@@ -2319,6 +2527,14 @@ export async function mediaIVManipulationOverlayMistake(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayMistake(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayNotResponding(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayNotResponding(context, options);
 }
 
 
@@ -2495,6 +2711,14 @@ export async function mediaIVManipulationOverlayThinking(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayThinking(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayVHS(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayVHS(context, options);
 }
 
 
@@ -3451,6 +3675,14 @@ export async function utilitiesScreenshot(
   options: RestOptions.UtilitiesScreenshot,
 ) {
   return raw.utilitiesScreenshot(context, options);
+}
+
+
+export async function utilitiesUnicode(
+  context: RequestContext,
+  options: RestOptions.UtilitiesUnicode,
+) {
+  return raw.utilitiesUnicode(context, options);
 }
 
 

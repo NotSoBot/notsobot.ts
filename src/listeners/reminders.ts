@@ -33,16 +33,6 @@ class ReminderInterval extends Listener {
   deleteRetryMin = 15 * 1000;
   deleteRetryMax = 10 * 60 * 1000;
 
-  broadcastEvalInsert = ((moduleName: string, cluster: ClusterClient, reminder: RestResponsesRaw.Reminder) => {
-    const store = require(moduleName).default as ReminderInterval;
-    store.insertReminder(cluster, reminder);
-  }).bind(null, __filename);
-
-  broadcastEvalRemove = ((moduleName: string, cluster: ClusterClient, reminder: RestResponsesRaw.Reminder) => {
-    const store = require(moduleName).default as ReminderInterval;
-    store.removeReminder(reminder.id);
-  }).bind(null, __filename);
-
   shouldHandle(cluster: ClusterClient): boolean {
     return cluster.clusterId === 0;
   }

@@ -10,7 +10,6 @@ import { BaseCommand } from '../basecommand';
 import { createPruneMessage } from './prune';
 
 
-export const DEFAULT_AMOUNT = 10;
 export const MAX_AMOUNT = 100;
 
 export interface CommandArgs {
@@ -25,22 +24,25 @@ export default class CleanCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      default: DEFAULT_AMOUNT,
       label: 'amount',
       metadata: {
         category: CommandCategories.MODERATION,
-        description: `Delete my recent messages (including slash command responses) and the messages that used my commands, default ${DEFAULT_AMOUNT} messages`,
+        description: 'Delete my recent messages (including slash command responses) and the messages that used my commands',
         examples: [
-          COMMAND_NAME,
+          `${COMMAND_NAME} 10`,
           `${COMMAND_NAME} 50`,
         ],
         id: COMMAND_ID,
-        usage: '?<amount>',
+        usage: '<amount>',
       },
       // without Manage Messages on the bot's side, only our own messages get deleted (one by one)
       permissions: [Permissions.MANAGE_MESSAGES],
       type: Parameters.number({max: MAX_AMOUNT, min: 1}),
     });
+  }
+
+  onBeforeRun(context: Command.Context, args: CommandArgs) {
+    return !!args.amount;
   }
 
   async run(context: Command.Context, args: CommandArgs) {

@@ -1,0 +1,33 @@
+import { Command, CommandClient } from 'detritus-client';
+
+import { CommandCategories } from '../../../constants';
+import { Formatter } from '../../../utils';
+
+import { BaseImageOrVideoCommand } from '../basecommand';
+
+
+export const COMMAND_NAME = 'overlay france';
+
+export default class OverlayFranceCommand extends BaseImageOrVideoCommand {
+  constructor(client: CommandClient) {
+    super(client, {
+      name: COMMAND_NAME,
+
+      aliases: ['o france', 'france'],
+      metadata: {
+        category: CommandCategories.EFFECTS,
+        description: 'Overlay a French flag over an Image or Video',
+        examples: [
+          COMMAND_NAME,
+          `${COMMAND_NAME} notsobot`,
+        ],
+        id: Formatter.Commands.MediaIVManipulationOverlayFlagFrance.COMMAND_ID,
+        usage: '?<emoji,user:id|mention|name,url>',
+      },
+    });
+  }
+
+  async run(context: Command.Context, args: Formatter.Commands.MediaIVManipulationOverlayFlagFrance.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationOverlayFlagFrance.createMessage(context, args);
+  }
+}
