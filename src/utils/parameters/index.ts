@@ -707,8 +707,13 @@ export async function NotSoTag(
             return tag;
           }
         } catch(error) {
-          
+
         }
+      }
+
+      // the api rejects names over 64 characters with a 400 (after stripping newlines), so it can't be a tag (e.g. a pasted attachment url)
+      if (64 < value.replace(/[\r\n]/g, '').length) {
+        return false;
       }
 
       return await fetchTag(context, {
