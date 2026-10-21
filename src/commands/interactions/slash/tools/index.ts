@@ -23,7 +23,7 @@ import { ToolsQrGroupCommand } from './qr';
 
 
 export default class ToolsGroupCommand extends BaseSlashCommand {
-  description = 'Tool-like Commands';
+  description = 'Translate, OCR, math, QR codes, weather and more';
   descriptionLocalizations = I18n.localizations('commands.tools.description');
   name = 'tools';
   nameLocalizations = I18n.localizations('commands.tools.name');

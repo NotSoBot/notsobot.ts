@@ -21,7 +21,7 @@ import { InfoUsersCommand } from './users';
 
 
 export default class InfoGroupCommand extends BaseSlashCommand {
-  description = 'Information Commands';
+  description = 'Info about users, servers, channels, roles and more';
   descriptionLocalizations = I18n.localizations('commands.info.description');
   name = 'info';
   nameLocalizations = I18n.localizations('commands.info.name');

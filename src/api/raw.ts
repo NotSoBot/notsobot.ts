@@ -2560,6 +2560,28 @@ export async function mediaAVManipulationAudioMultiPitch(
 }
 
 
+export async function mediaAVManipulationAudioNormalize(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioNormalize,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    strength: options.strength,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_AUDIO_NORMALIZE,
+    },
+  });
+}
+
+
 export async function mediaAVManipulationAudioPaulstretch(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioPaulstretch,
@@ -3147,8 +3169,15 @@ export async function mediaICreateWordcloud(
 ): Promise<RestResponsesRaw.JobResponse> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    background: options.background,
+    exclude: options.exclude,
+    height: options.height,
     max_file_size: maxFileSize,
     safe: options.safe,
+    seed: options.seed,
+    shape: options.shape,
+    theme: options.theme,
+    width: options.width,
     words: options.words,
   };
   return request(context, {
@@ -3156,6 +3185,34 @@ export async function mediaICreateWordcloud(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_I_CREATE_WORDCLOUD,
+    },
+  });
+}
+
+
+export async function mediaICreateWordcloudBackground(
+  context: RequestContext,
+  options: RestOptions.MediaICreateWordcloudBackground,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    background: options.background,
+    exclude: options.exclude,
+    height: options.height,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    seed: options.seed,
+    shape: options.shape,
+    theme: options.theme,
+    url: options.url,
+    width: options.width,
+    words: options.words,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_WORDCLOUD_BACKGROUND,
     },
   });
 }

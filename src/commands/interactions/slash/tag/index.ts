@@ -23,7 +23,7 @@ import { TagStorageGroupCommand } from './storage';
 
 
 export default class TagGroupCommand extends BaseSlashCommand {
-  description = 'Custom Tags';
+  description = 'Create, use and manage tags';
   descriptionLocalizations = I18n.localizations('commands.tag.description');
   name = 'tag';
 

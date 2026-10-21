@@ -8,7 +8,8 @@ import { TagDirectoryVerifyCommand } from './verify';
 
 
 export class TagDirectoryGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'The public Tag Directory';
+  descriptionLocalizations = I18n.localizations('commands.tag.directory.description');
   name = 'directory';
   nameLocalizations = I18n.localizations('commands.tag.directory.name');
 

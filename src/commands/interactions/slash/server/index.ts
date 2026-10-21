@@ -14,7 +14,7 @@ import { ServerSetGroupCommand } from './set';
 
 
 export default class ServerGroupCommand extends BaseSlashCommand {
-  description = 'Set up NotSoBot for this server';
+  description = 'Set up NotSoBot for this server: rules, prefixes, loggers and more';
   descriptionLocalizations = I18n.localizations('commands.server.description');
   name = 'server';
   nameLocalizations = I18n.localizations('commands.server.name');

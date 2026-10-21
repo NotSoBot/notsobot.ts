@@ -1470,6 +1470,29 @@ export enum MediaWiggleDirections {
 }
 
 
+export enum MediaWordcloudShapes {
+  CIRCLE = 'CIRCLE',
+  CLOUD = 'CLOUD',
+  HEART = 'HEART',
+  RECTANGLE = 'RECTANGLE',
+  STAR = 'STAR',
+}
+
+
+// `IMAGE` colors each word like the image under it, only with an image
+export enum MediaWordcloudThemes {
+  FIRE = 'FIRE',
+  FOREST = 'FOREST',
+  IMAGE = 'IMAGE',
+  MONO = 'MONO',
+  NEON = 'NEON',
+  OCEAN = 'OCEAN',
+  PASTEL = 'PASTEL',
+  RAINBOW = 'RAINBOW',
+  SUNSET = 'SUNSET',
+}
+
+
 export enum MessageComponentCustomIds {
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
 }

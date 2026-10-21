@@ -10,7 +10,7 @@ import { SettingsSetGroupCommand } from './set';
 
 
 export default class SettingsGroupCommand extends BaseSlashCommand {
-  description = 'User Settings';
+  description = 'Your settings, AI memory and premium servers';
   descriptionLocalizations = I18n.localizations('commands.settings.description');
   name = 'settings';
   nameLocalizations = I18n.localizations('commands.settings.name');

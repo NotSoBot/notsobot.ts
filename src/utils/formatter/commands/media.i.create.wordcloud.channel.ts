@@ -1,22 +1,40 @@
 import { Command, Interaction, Structures } from 'detritus-client';
+import { Markup } from 'detritus-client/lib/utils';
 import { Permissions } from 'detritus-client/lib/constants';
 
 import ServerExecutionsStore from '../../../stores/serverexecutions';
-import { getTranslator } from '../../i18n';
+import { Translator, getTranslator } from '../../i18n';
 
-import { mediaICreateWordcloud } from '../../../api';
-import { displayReply, jobReply } from '../../../utils';
+import { mediaICreateWordcloud, mediaICreateWordcloudBackground } from '../../../api';
+import { RestResponsesRaw } from '../../../api/types';
+import { displayDetailsLine, displayReply, jobReply } from '../../../utils';
 
 
 export const MAX_FETCHES = 10;
+
+// per message, so one long message (or spam) can't fill the whole cloud
+export const MAX_WORDS_PER_MESSAGE = 50;
+export const MAX_WORD_LENGTH = 50;
+export const TOP_WORDS_SHOWN = 8;
 
 export const COMMAND_ID = 'media.i.create.wordcloud.channel';
 
 export interface CommandArgs {
   before?: string,
+  // include messages from bots (webhooks are always included, they're often people through a proxy bot)
+  bots?: boolean,
   channel?: Structures.Channel,
+  // words to leave out, split by commas or spaces
+  exclude?: string,
+  // the words fill this image's shape and take its colors
+  image?: string,
   max?: number,
+  shape?: string,
+  theme?: string,
 }
+
+// mentions, channels, custom emojis, slash command mentions, timestamps and links would end up as words
+const DISCORD_MARKUP_REGEX = /<(?:@[!&]?\d+|#\d+|a?:\w+:\d+|\/[^<>:]+:\d+|t:-?\d+(?::[a-zA-Z])?|id:\w+)>|https?:\/\/\S+/g;
 
 // `user` only uses that user's messages (used by `wordcloud user`)
 export async function createMessage(
@@ -41,14 +59,66 @@ export async function createMessage(
     return displayReply(context, {description: translate('media_i_create_wordcloud_channel.already_generating_a_wordcloud_in_this_server')});
   }
 
+  // only held while fetching, that's the part that hammers discord (up to 10 history requests), rendering is a job
   isExecuting.wordcloud = true;
+  let words: Array<string>;
   try {
-    const words = await fetchMessages(context, args, user).then((x) => x.slice(0, 3000));
-    const job = await mediaICreateWordcloud(context, {words});
-    return await jobReply(context, job);
+    words = await fetchMessages(context, args, user);
   } finally {
     isExecuting.wordcloud = false;
   }
+  if (!words.length) {
+    return displayReply(context, {description: translate('media_i_create_wordcloud_channel.no_messages_found')});
+  }
+
+  const options = {
+    exclude: (args.exclude) ? args.exclude.split(/[\s,]+/).filter(Boolean).slice(0, 200) : undefined,
+    shape: args.shape,
+    theme: args.theme,
+    words,
+  };
+  const job = (args.image) ?
+    await mediaICreateWordcloudBackground(context, {...options, url: args.image}) :
+    await mediaICreateWordcloud(context, options);
+  return await jobReply(context, job, {describe: (response) => describeTopWords(response, language, translate)});
+}
+
+
+// the most used words (`word 142 • other 97`) and how many there were, from the job's `arguments`
+export function describeTopWords(
+  response: RestResponsesRaw.FileResponse,
+  language: string,
+  translate: Translator['translate'],
+): string | undefined {
+  const details = response.arguments;
+  if (!details || !Array.isArray(details.top_words) || !details.top_words.length) {
+    return undefined;
+  }
+  const words = (details.top_words as Array<{count: number, word: string}>).slice(0, TOP_WORDS_SHOWN);
+  const top = displayDetailsLine(words.map((x) => `${Markup.escape.all(x.word)} **${x.count.toLocaleString(language)}**`));
+  const counts = displayDetailsLine([
+    (details.total_words) ? translate('media_i_create_wordcloud_channel.total_words', {count: Number(details.total_words).toLocaleString(language)}) : null,
+    (details.unique_words) ? translate('media_i_create_wordcloud_channel.unique_words', {count: Number(details.unique_words).toLocaleString(language)}) : null,
+  ], true);
+  return [top, counts].filter(Boolean).join('\n');
+}
+
+
+// one text per message, discord markup and links removed, each line kept on its own line
+export function cleanMessageContent(content: string): string {
+  let amount = 0;
+  const lines: Array<string> = [];
+  for (let line of content.replace(DISCORD_MARKUP_REGEX, ' ').split('\n')) {
+    const words = line.split(/\s+/).filter((x) => x && x.length <= MAX_WORD_LENGTH).slice(0, MAX_WORDS_PER_MESSAGE - amount);
+    amount += words.length;
+    if (words.length) {
+      lines.push(words.join(' '));
+    }
+    if (MAX_WORDS_PER_MESSAGE <= amount) {
+      break;
+    }
+  }
+  return lines.join('\n');
 }
 
 
@@ -84,10 +154,11 @@ export async function fetchMessages(
     }
   }
 
-  const messagesFound: Array<Structures.Message> = [];
+  // one per message that has words left after cleaning, those are what `max` counts
+  const texts: Array<string> = [];
   if (args.channel) {
     for (let message of args.channel.messages.toArray().reverse()) {
-      if (limit <= messagesFound.length) {
+      if (limit <= texts.length) {
         break;
       }
       if (startBefore !== null && startBefore <= BigInt(message.id)) {
@@ -98,17 +169,15 @@ export async function fetchMessages(
       if (context instanceof Command.Context && message.id === context.messageId) {
         continue;
       }
-      if (message.embeds.length === 1 && message.embeds.first()!.url === message.content) {
-        continue;
-      }
-      if (!user || message.author.id === user.id) {
-        messagesFound.push(message);
+      const text = getMessageText(message, args, user);
+      if (text) {
+        texts.push(text);
       }
     }
   }
 
   let tries = 0;
-  while (tries++ < MAX_FETCHES && messagesFound.length < limit) {
+  while (tries++ < MAX_FETCHES && texts.length < limit) {
     const messages = (await context.rest.fetchMessages(channelId, {before, limit: 100})).toArray();
     if (!messages.length) {
       // reached the start of the channel
@@ -117,14 +186,12 @@ export async function fetchMessages(
     // advance the cursor from the oldest fetched message regardless of whether it gets skipped
     before = messages.reduce((oldest, message) => (BigInt(message.id) < BigInt(oldest)) ? message.id : oldest, messages[0].id);
     for (let message of messages) {
-      if (limit <= messagesFound.length) {
+      if (limit <= texts.length) {
         break;
       }
-      if (message.embeds.length === 1 && message.embeds.first()!.url === message.content) {
-        continue;
-      }
-      if (!user || message.author.id === user.id) {
-        messagesFound.push(message);
+      const text = getMessageText(message, args, user);
+      if (text) {
+        texts.push(text);
       }
     }
     if (messages.length < 100) {
@@ -132,18 +199,17 @@ export async function fetchMessages(
     }
   }
 
-  if (!messagesFound.length) {
-    return ['no', 'messages', 'found', 'rip'];
-  }
+  return texts;
+}
 
-  const words: Array<string> = [];
-  for (let message of messagesFound) {
-    if (message.content) {
-      const text = message.content.split(' ').map((x) => x.trim()).filter((x) => x && x.length <= 50).slice(0, 30);
-      for (let word of text) {
-        words.push(word);
-      }
-    }
+
+// empty when the message is skipped (another user's, a bot's or only links/markup)
+function getMessageText(message: Structures.Message, args: CommandArgs, user?: Structures.User): string {
+  if (user && message.author.id !== user.id) {
+    return '';
   }
-  return words;
+  if (!args.bots && message.fromBot && !message.fromWebhook) {
+    return '';
+  }
+  return (message.content) ? cleanMessageContent(message.content) : '';
 }

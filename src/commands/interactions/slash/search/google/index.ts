@@ -9,7 +9,8 @@ import { SearchGoogleWebCommand } from './google.web';
 
 
 export class SearchGoogleGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Search Google';
+  descriptionLocalizations = I18n.localizations('commands.search.google.description');
   name = 'google';
 
   constructor() {

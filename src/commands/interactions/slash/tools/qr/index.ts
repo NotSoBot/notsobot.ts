@@ -7,7 +7,8 @@ import { ToolsQrScanCommand } from './scan';
 
 
 export class ToolsQrGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Create and scan QR codes';
+  descriptionLocalizations = I18n.localizations('commands.tools.qr.description');
   name = 'qr';
 
   constructor() {

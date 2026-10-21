@@ -8,7 +8,7 @@ import { BaseSlashCommand } from '../basecommand';
 
 
 export default class DownloadCommand extends BaseSlashCommand {
-  description = 'Download Media from a URL';
+  description = 'Download an image or video from a link';
   descriptionLocalizations = I18n.localizations('commands.download.description');
   metadata = {
     id: Formatter.Commands.ToolsDownload.COMMAND_ID,

@@ -60,6 +60,7 @@ import * as MediaAVManipulationAudioFlanger from './media.av.manipulation.audio.
 import * as MediaAVManipulationAudioMultiPitch from './media.av.manipulation.audio.multipitch';
 import * as MediaAVManipulationAudioVocoder from './media.av.manipulation.audio.vocoder';
 import * as MediaAVManipulationAudioVocoderChord from './media.av.manipulation.audio.vocoder.chord';
+import * as MediaAVManipulationAudioNormalize from './media.av.manipulation.audio.normalize';
 import * as MediaAVManipulationAudioPaulstretch from './media.av.manipulation.audio.paulstretch';
 import * as MediaAVManipulationAudioPitch from './media.av.manipulation.audio.pitch';
 import * as MediaAVManipulationAudioReverb from './media.av.manipulation.audio.reverb';
@@ -569,6 +570,7 @@ export {
   MediaAVManipulationAudioMultiPitch,
   MediaAVManipulationAudioVocoder,
   MediaAVManipulationAudioVocoderChord,
+  MediaAVManipulationAudioNormalize,
   MediaAVManipulationAudioPaulstretch,
   MediaAVManipulationAudioPitch,
   MediaAVManipulationAudioReverb,

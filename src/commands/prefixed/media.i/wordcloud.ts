@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 import { ChannelTypes } from 'detritus-client/lib/constants';
 
-import { CommandCategories } from '../../../constants';
+import { CommandCategories, MediaWordcloudShapes, MediaWordcloudThemes } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -18,6 +18,11 @@ export default class WordcloudCommand extends BaseCommand {
       aliases: ['wc'],
       args: [
         {name: 'before', type: Parameters.snowflake},
+        {name: 'bots', type: Boolean, metadata: {description: 'include messages from bots'}},
+        {name: 'exclude', metadata: {description: 'words to leave out, split by commas'}},
+        {name: 'image', type: Parameters.mediaUrl({audio: false, video: false, onlyContent: true}), metadata: {description: 'the words fill its shape and take its colors'}},
+        {name: 'shape', type: Parameters.oneOf({choices: MediaWordcloudShapes})},
+        {name: 'theme', type: Parameters.oneOf({choices: MediaWordcloudThemes})},
         {name: 'max', default: 500, type: Parameters.number({max: 1000, min: 0}), metadata: {description: '0 to 1000'}},
       ],
       default: DefaultParameters.channel,
@@ -28,9 +33,11 @@ export default class WordcloudCommand extends BaseCommand {
         examples: [
           `${COMMAND_NAME} lobby`,
           `${COMMAND_NAME} <#585639594574217232> -max 500`,
+          `${COMMAND_NAME} lobby -shape heart -theme sunset`,
+          `${COMMAND_NAME} -image https://notsobot.com/logo.png -exclude lol,lmao`,
         ],
         id: Formatter.Commands.MediaICreateWordcloudChannel.COMMAND_ID,
-        usage: '...<channel:id|mention|name> (-before <message_id>) (-max <number>)',
+        usage: '...<channel:id|mention|name> (-before <message_id>) (-bots) (-exclude <words>) (-image <emoji,user:id|mention|name,url>) (-max <number>) (-shape <MediaWordcloudShapes>) (-theme <MediaWordcloudThemes>)',
       },
       type: Parameters.channel({
         types: [

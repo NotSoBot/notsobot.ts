@@ -9,7 +9,8 @@ import { ServerSetTimezoneCommand } from './set.timezone';
 
 
 export class ServerSetGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Change this server\'s settings';
+  descriptionLocalizations = I18n.localizations('commands.settings_server.set.description');
   name = 'set';
   nameLocalizations = I18n.localizations('commands.settings_server.set.name');
 

@@ -10,7 +10,8 @@ import { TagCommandsShowCommand } from './show';
 
 
 export class TagCommandsGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Tags used as custom commands in this server';
+  descriptionLocalizations = I18n.localizations('commands.tag.commands.description');
   name = 'commands';
   nameLocalizations = I18n.localizations('commands.tag.commands.name');
 

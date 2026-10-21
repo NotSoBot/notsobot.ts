@@ -27,7 +27,7 @@ import { MediaAIVVegCommand } from './veg';
 
 
 export default class MediaAIVGroupCommand extends BaseSlashCommand {
-  description = 'Audio, Image, and Video Manipulation Commands';
+  description = 'Edit any media: speed, reverse, join, fade and more';
   descriptionLocalizations = I18n.localizations('commands.media_aiv.description');
   name = 'media-aiv';
 

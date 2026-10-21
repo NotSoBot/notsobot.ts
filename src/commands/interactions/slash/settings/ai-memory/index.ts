@@ -8,7 +8,8 @@ import { SettingsAIMemoryListCommand } from './list';
 
 
 export class SettingsAIMemoryGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'What NotSoAI remembers about you';
+  descriptionLocalizations = I18n.localizations('commands.settings.ai_memory.description');
   name = 'ai-memory';
   nameLocalizations = I18n.localizations('commands.settings.ai_memory.name');
 

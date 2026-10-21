@@ -17,7 +17,7 @@ import { MediaIVWatchMojoCommand } from './watchmojo';
 
 
 export default class MediaIVTextGroupCommand extends BaseSlashCommand {
-  description = 'Image and Video Text Commands';
+  description = 'Add text to an image or video: captions, memes and more';
   descriptionLocalizations = I18n.localizations('commands.media_iv_text.description');
   name = 'media-iv-text';
 

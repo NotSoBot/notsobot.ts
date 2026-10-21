@@ -128,6 +128,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/audio/flanger',
   MEDIA_AV_MANIPULATION_AUDIO_MULTIPITCH:
     '/media/av/manipulation/audio/multipitch',
+  MEDIA_AV_MANIPULATION_AUDIO_NORMALIZE:
+    '/media/av/manipulation/audio/normalize',
   MEDIA_AV_MANIPULATION_AUDIO_PAULSTRETCH:
     '/media/av/manipulation/audio/paulstretch',
   MEDIA_AV_MANIPULATION_AUDIO_PITCH:

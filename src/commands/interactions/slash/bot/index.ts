@@ -11,7 +11,7 @@ import { BotUsageCommand } from './usage';
 
 
 export default class BotGroupCommand extends BaseSlashCommand {
-  description = 'Commands about NotSoBot itself';
+  description = 'NotSoBot\'s invite link, shards, memory and usage stats';
   descriptionLocalizations = I18n.localizations('commands.utils.description');
   name = 'bot';
   nameLocalizations = I18n.localizations('commands.utils.name');

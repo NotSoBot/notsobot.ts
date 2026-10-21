@@ -1,0 +1,32 @@
+import { Interaction } from 'detritus-client';
+
+import { Formatter, I18n } from '../../../../utils';
+
+import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
+
+
+export const COMMAND_NAME = 'stretch';
+
+export class MediaIVStretchCommand extends BaseInteractionImageOrVideoCommandOption {
+  description = 'Stretch an Image or Video by its Width or Height';
+  descriptionLocalizations = I18n.localizations('commands.media_iv_3.fun.stretch.description');
+  metadata = {
+    id: Formatter.Commands.MediaIVManipulationStretch.COMMAND_ID,
+  };
+  name = COMMAND_NAME;
+  nameLocalizations = I18n.localizations('commands.media_iv_3.fun.stretch.name');
+
+  constructor() {
+    super({
+      options: [
+        {name: 'width', description: 'Width Amount', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.width'), type: 'float'},
+        {name: 'height', description: 'Height Amount', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.height'), type: 'float'},
+        {name: 'crop', description: 'Crop excess width/height', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.crop'), type: Boolean},
+      ],
+    });
+  }
+
+  async run(context: Interaction.InteractionContext, args: Formatter.Commands.MediaIVManipulationStretch.CommandArgs) {
+    return Formatter.Commands.MediaIVManipulationStretch.createMessage(context, args);
+  }
+}

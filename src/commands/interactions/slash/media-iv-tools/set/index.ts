@@ -7,7 +7,8 @@ import { MediaIVToolsSetFrameCountCommand } from './framecount';
 
 
 export class MediaIVToolsSetGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Change an image or video\'s FPS or frame count';
+  descriptionLocalizations = I18n.localizations('commands.media_iv_tools.set.description');
   name = 'set';
   nameLocalizations = I18n.localizations('commands.media_iv_tools.set.name');
 

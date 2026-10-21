@@ -26,7 +26,7 @@ export interface CommandArgs {
 }
 
 export default class HelpPermissionsCheckCommand extends BaseSlashCommand {
-  description = 'Help, the bot doesn\'t respond to prefix commands';
+  description = 'Check why NotSoBot isn\'t responding to prefix commands here';
   descriptionLocalizations = I18n.localizations('commands.help_permissions_check.description');
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.help_permissions_check.name');

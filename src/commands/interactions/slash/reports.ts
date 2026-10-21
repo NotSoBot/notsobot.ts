@@ -14,7 +14,7 @@ export interface CommandArgs {
 }
 
 export default class ReportsCommand extends BaseSlashCommand {
-  description = 'List the reports you\'ve sent to the NotSoBot developers and their status';
+  description = 'See your reports to the NotSoBot developers and their status';
   descriptionLocalizations = I18n.localizations('commands.reports.description');
   metadata = {
     id: Formatter.Commands.ReportList.COMMAND_ID,

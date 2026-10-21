@@ -8,14 +8,16 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { MediaAIVAudioGroupCommand } from './audio';
+import { MediaAIVAudioPutConcatCommand } from './audio-concat';
+import { MediaAIVAudioPutMixCommand } from './audio-mix';
+import { MediaAIVAudioPutReplaceCommand } from './audio-replace';
 
 
 export default class MediaAIVToolsGroupCommand extends BaseSlashCommand {
-  description = 'Audio, Image, and Video Tool Commands';
+  description = 'Change the audio of any media';
   descriptionLocalizations = I18n.localizations('commands.media_aiv_tools.description');
   name = 'media-aiv-tools';
-  
+
   contexts = [
     InteractionContextTypes.GUILD,
     InteractionContextTypes.BOT_DM,
@@ -30,7 +32,9 @@ export default class MediaAIVToolsGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
-        new MediaAIVAudioGroupCommand(),
+        new MediaAIVAudioPutConcatCommand(),
+        new MediaAIVAudioPutMixCommand(),
+        new MediaAIVAudioPutReplaceCommand(),
       ],
     });
   }

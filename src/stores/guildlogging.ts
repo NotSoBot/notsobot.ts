@@ -1110,7 +1110,7 @@ export function findEventsForMemberRoleUpdate(
         }
       }
       // check to see if the differences and member match up to the audit log
-      if (member.hasDifference('roles', old._roles)) {
+      if (member.hasDifference('roles', old._roles || [])) {
         return auditLog.changes.every((change) => {
           switch (change.key) {
             case AuditLogChangeKeys.ROLES_ADD: {

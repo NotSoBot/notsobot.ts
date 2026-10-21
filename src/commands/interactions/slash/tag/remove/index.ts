@@ -7,7 +7,8 @@ import { TagRemoveTagCommand } from './tag';
 
 
 export class TagRemoveGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Remove tags';
+  descriptionLocalizations = I18n.localizations('commands.tag.remove.description');
   name = 'remove';
   nameLocalizations = I18n.localizations('commands.tag.remove.name');
 

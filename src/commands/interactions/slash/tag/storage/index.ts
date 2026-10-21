@@ -6,7 +6,8 @@ import { TagStorageExportCommand } from './export';
 
 
 export class TagStorageGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'A tag\'s stored variables and files';
+  descriptionLocalizations = I18n.localizations('commands.tag.storage.description');
   name = 'storage';
   nameLocalizations = I18n.localizations('commands.tag.storage.name');
 

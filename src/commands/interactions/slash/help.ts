@@ -9,7 +9,7 @@ import { BaseSlashCommand } from '../basecommand';
 export const COMMAND_NAME = 'help';
 
 export default class HelpCommand extends BaseSlashCommand {
-  description = 'Help';
+  description = 'Get help with NotSoBot\'s commands';
   descriptionLocalizations = I18n.localizations('commands.help.description');
   name = COMMAND_NAME;
   nameLocalizations = I18n.localizations('commands.help.name');

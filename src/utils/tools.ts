@@ -1899,14 +1899,19 @@ function untrackJob(context: Command.Context | Interaction.InteractionContext, j
 export async function jobReply(
   context: Command.Context | Interaction.InteractionContext,
   job: RestResponsesRaw.JobResponse,
-  options: {spoiler?: boolean} = {},
+  // `describe` makes the text shown above the result, from its response (like the `arguments` the job sent back)
+  options: {describe?: (response: RestResponsesRaw.FileResponse) => string | undefined, spoiler?: boolean} = {},
   pollingTime: number = 500,
 ) {
+  const replyOptions = (response: RestResponsesRaw.FileResponse) => ({
+    description: (options.describe) ? options.describe(response) : undefined,
+    spoiler: options.spoiler,
+  });
   if (job.result.error) {
     throw new JobError(job);
   }
   if (job.result.response) {
-    return mediaReply(context, job.result.response, options);
+    return mediaReply(context, job.result.response, replyOptions(job.result.response));
   }
 
   if (!trackJob(context, job.id)) {
@@ -1946,7 +1951,7 @@ export async function jobReply(
         return await editOrReply(context, translate('media.job_failed', {error: String(refreshedJob.result.error)}));
       }
       if (refreshedJob.result.response) {
-        return await mediaReply(context, refreshedJob.result.response, options);
+        return await mediaReply(context, refreshedJob.result.response, replyOptions(refreshedJob.result.response));
       }
       if (refreshedJob.status !== 'started' && refreshedJob.status !== 'queued') {
         return await editOrReply(context, translate('media.job_unknown_status', {status: refreshedJob.status}));

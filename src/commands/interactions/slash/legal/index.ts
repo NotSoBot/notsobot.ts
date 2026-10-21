@@ -9,7 +9,7 @@ import { LegalTermsCommand } from './terms';
 
 
 export default class LegalGroupCommand extends BaseSlashCommand {
-  description = 'Legal Information';
+  description = 'NotSoBot\'s privacy policy and terms of service';
   descriptionLocalizations = I18n.localizations('commands.legal.description');
   name = 'legal';
   nameLocalizations = I18n.localizations('commands.legal.name');

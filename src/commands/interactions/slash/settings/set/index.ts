@@ -19,7 +19,8 @@ import { SettingsSetUnitsCommand } from './units';
 
 
 export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Change your settings';
+  descriptionLocalizations = I18n.localizations('commands.settings.set.description');
   name = 'set';
   nameLocalizations = I18n.localizations('commands.settings.set.name');
 

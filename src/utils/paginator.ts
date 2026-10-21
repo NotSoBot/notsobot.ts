@@ -10,7 +10,7 @@ import {
   MessageComponentTypes,
   MessageFlags,
 } from 'detritus-client/lib/constants';
-import { Components, ComponentContext } from 'detritus-client/lib/utils';
+import { Components, ComponentContainer, ComponentContext } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
@@ -92,6 +92,26 @@ function addLayoutComponent(root: Components, component: any): void {
       throw new Error(`Unsupported page component type ${component.type}`);
     };
   }
+}
+
+
+// puts the page buttons at the bottom of the page's last container (like the reupload button on media)
+// the container is copied since a page's own container structure gets reused on every render
+function moveButtonsIntoContainer(root: Components, rows: Array<any>): void {
+  const children = root.components as Array<any>;
+  const page = children.filter((component) => !rows.includes(component));
+  const last = page[page.length - 1];
+  if (!rows.length || !(last instanceof ComponentContainer)) {
+    return;
+  }
+  const container = new ComponentContainer({
+    accent_color: last.accentColor,
+    components: [...last.components, ...rows],
+    id: last.id,
+    spoiler: last.spoiler,
+  });
+  page.splice(page.length - 1, 1, container);
+  children.splice(0, children.length, ...page);
 }
 
 
@@ -427,6 +447,7 @@ export class Paginator {
   async getPageMessage(pageNumber: number, withButtons: boolean = true): Promise<PageMessage> {
     const page = await this.resolvePage(pageNumber);
     const buttons = (withButtons) ? this.components : undefined;
+    const buttonRows = (buttons) ? [...buttons.components] : [];
 
     if (typeof(page) === 'object' && !Array.isArray(page) && 'display' in page) {
       if (this.context instanceof Structures.Message) {
@@ -435,6 +456,7 @@ export class Paginator {
       const message = await renderDisplay(this.context, {...page.display, components: buttons});
       if (message.flags && (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2) {
         this.isComponentsV2 = true;
+        moveButtonsIntoContainer(message.components, buttonRows);
       } else if (message.embed) {
         message.embeds = [message.embed];
         delete message.embed;
@@ -489,6 +511,7 @@ export class Paginator {
         addLayoutComponent(pageRoot, component);
       }
       (root.components as Array<any>).unshift(...pageRoot.components);
+      moveButtonsIntoContainer(root, buttonRows);
       return {
         allowedMentions: {parse: []},
         components: root,

@@ -391,7 +391,7 @@ export function getGuildMemberUpdateChanges(event: GuildLoggingEventGuildMemberU
       }
     }
 
-    if (member.hasDifference('roles', old._roles)) {
+    if (member.hasDifference('roles', old._roles || [])) {
       const additions: Array<string> = [];
       const removals: Array<string> = [];
       for (let [roleId, role] of member.roles) {

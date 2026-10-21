@@ -9,7 +9,7 @@ import { BaseSlashCommand } from '../basecommand';
 export const COMMAND_NAME = 'ping';
 
 export default class PingCommand extends BaseSlashCommand {
-  description = 'Ping';
+  description = 'Check NotSoBot\'s response time';
   descriptionLocalizations = I18n.localizations('commands.ping.description');
   metadata = {
     id: Formatter.Commands.UtilsPing.COMMAND_ID,

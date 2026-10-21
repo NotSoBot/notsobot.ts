@@ -10,7 +10,7 @@ import { ReminderListGroupCommand } from './list';
 
 
 export default class ReminderCommand extends BaseSlashCommand {
-  description = 'Reminders';
+  description = 'Set, list and delete reminders';
   descriptionLocalizations = I18n.localizations('commands.reminder.description');
   name = 'reminder';
   nameLocalizations = I18n.localizations('commands.reminder.name');

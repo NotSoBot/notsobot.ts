@@ -7,7 +7,8 @@ import { ReminderDeleteServerCommand } from './server';
 
 
 export class ReminderDeleteGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Delete your reminders';
+  descriptionLocalizations = I18n.localizations('commands.reminder.delete.description');
   name = 'delete';
   nameLocalizations = I18n.localizations('commands.reminder.delete.name');
 

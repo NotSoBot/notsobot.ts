@@ -21,8 +21,8 @@ export enum ApiEventsSpewerEvents {
 // wait between reconnects, every attempt past the end uses the last one
 const RECONNECT_DELAYS = [1000, 2000, 5000, 10000, 30000];
 const RECONNECT_DELAY_MAX = RECONNECT_DELAYS[RECONNECT_DELAYS.length - 1];
-// every cluster drops at once when the api restarts, and the api's 50/s per ip limit applies before the token is checked,
-// so spread the reconnects out by up to this much (or the delay itself, if longer) instead of all hitting it together
+// every cluster drops at once when the api restarts, so spread the reconnects out by up to this much (or the delay
+// itself, if longer) instead of all hitting it together
 const RECONNECT_JITTER_MIN = 5000;
 // the server pings every ~20 seconds, nothing for this long means the connection is dead
 const HEARTBEAT_TIMEOUT = 60 * 1000;

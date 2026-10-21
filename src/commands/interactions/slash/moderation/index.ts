@@ -17,7 +17,7 @@ import { ModerationUnmuteCommand } from './unmute';
 
 
 export default class ModerationGroupCommand extends BaseSlashCommand {
-  description = 'Moderation Commands';
+  description = 'Moderate members: ban, kick, mute, clean and more';
   descriptionLocalizations = I18n.localizations('commands.moderation.description');
   name = 'moderation';
   nameLocalizations = I18n.localizations('commands.moderation.name');

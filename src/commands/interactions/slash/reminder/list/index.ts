@@ -7,7 +7,8 @@ import { ReminderListServerCommand } from './server';
 
 
 export class ReminderListGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'List your reminders';
+  descriptionLocalizations = I18n.localizations('commands.reminder.list.description');
   name = 'list';
   nameLocalizations = I18n.localizations('commands.reminder.list.name');
 

@@ -8,11 +8,19 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MediaAVExtractGroupCommand } from './extract';
 import { MediaAVToolsSetGroupCommand } from './set';
+
+import { MediaAVAudioChannelsCombineCommand } from './channels-combine';
+import { MediaAVAudioChannelsInvertCommand } from './channels-invert';
+import { MediaAVConvertCommand } from './convert';
+import { MediaAVAudioDelayCommand } from './delay';
+import { MediaAVToolsIdentifyCommand } from './identify';
+import { MediaAVAudioVolumeCommand } from './volume';
 
 
 export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
-  description = 'Audio and Video Tool Commands';
+  description = 'Volume, channels, convert, identify a song and other audio tools';
   descriptionLocalizations = I18n.localizations('commands.media_av_tools.description');
   name = 'media-av-tools';
 
@@ -30,7 +38,14 @@ export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new MediaAVExtractGroupCommand(),
         new MediaAVToolsSetGroupCommand(),
+        new MediaAVAudioChannelsCombineCommand(),
+        new MediaAVAudioChannelsInvertCommand(),
+        new MediaAVConvertCommand(),
+        new MediaAVAudioDelayCommand(),
+        new MediaAVToolsIdentifyCommand(),
+        new MediaAVAudioVolumeCommand(),
       ],
     });
   }

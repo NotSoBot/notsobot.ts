@@ -6,7 +6,8 @@ import { MediaAVToolsSetBitRateCommand } from './bitrate';
 
 
 export class MediaAVToolsSetGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Change an audio or video file\'s settings';
+  descriptionLocalizations = I18n.localizations('commands.media_av_tools.set.description');
   name = 'set';
   nameLocalizations = I18n.localizations('commands.media_av_tools.set.name');
 

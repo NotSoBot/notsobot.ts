@@ -8,7 +8,8 @@ import { SearchSteamProfileCommand } from './steam.profile';
 
 
 export class SearchSteamGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Search Steam';
+  descriptionLocalizations = I18n.localizations('commands.search.steam.description');
   name = 'steam';
 
   constructor() {

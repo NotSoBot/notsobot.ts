@@ -6,7 +6,8 @@ import { MediaIVToolsBackgroundRemoveCommand } from './remove';
 
 
 export class MediaIVToolsBackgroundGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'Edit an image or video\'s background';
+  descriptionLocalizations = I18n.localizations('commands.media_iv_tools.background.description');
   name = 'background';
   nameLocalizations = I18n.localizations('commands.media_iv_tools.background.name');
 

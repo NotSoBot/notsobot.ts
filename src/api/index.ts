@@ -1128,6 +1128,14 @@ export async function mediaAVManipulationAudioMultiPitch(
 }
 
 
+export async function mediaAVManipulationAudioNormalize(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationAudioNormalize,
+) {
+  return raw.mediaAVManipulationAudioNormalize(context, options);
+}
+
+
 export async function mediaAVManipulationAudioPaulstretch(
   context: RequestContext,
   options: RestOptions.MediaAVManipulationAudioPaulstretch,
@@ -1357,6 +1365,14 @@ export async function mediaICreateWordcloud(
   options: RestOptions.MediaICreateWordcloud,
 ) {
   return raw.mediaICreateWordcloud(context, options);
+}
+
+
+export async function mediaICreateWordcloudBackground(
+  context: RequestContext,
+  options: RestOptions.MediaICreateWordcloudBackground,
+) {
+  return raw.mediaICreateWordcloudBackground(context, options);
 }
 
 

@@ -25,7 +25,7 @@ import { ZalgoCommand } from './zalgo';
 
 
 export default class FunGroupCommand extends BaseSlashCommand {
-  description = 'Fun Commands';
+  description = 'Text and emoji fun: zalgo, text walls, TTS and more';
   descriptionLocalizations = I18n.localizations('commands.fun.description');
   name = 'fun';
   nameLocalizations = I18n.localizations('commands.fun.name');

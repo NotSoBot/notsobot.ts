@@ -10,7 +10,8 @@ import { ToolsMLReimagineCommand } from './reimagine';
 
 
 export class ToolsMLGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'AI image tools';
+  descriptionLocalizations = I18n.localizations('commands.tools.ml.description');
   name = 'ml';
 
   constructor() {

@@ -5,10 +5,7 @@ import * as MediaICreateWordcloudChannel from './media.i.create.wordcloud.channe
 
 export const COMMAND_ID = 'media.i.create.wordcloud.user';
 
-export interface CommandArgs {
-  before?: string,
-  channel?: Structures.Channel,
-  max?: number,
+export interface CommandArgs extends MediaICreateWordcloudChannel.CommandArgs {
   user: Structures.Member | Structures.User,
 }
 
@@ -18,9 +15,6 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const channel = args.channel || context.channel || undefined;
-  return MediaICreateWordcloudChannel.createMessage(context, {
-    before: args.before,
-    channel,
-    max: args.max,
-  }, args.user);
+  const { user, ...options } = args;
+  return MediaICreateWordcloudChannel.createMessage(context, {...options, channel}, user);
 }

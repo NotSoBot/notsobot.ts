@@ -7,7 +7,8 @@ import { TagListUserCommand } from './user';
 
 
 export class TagListGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'List tags';
+  descriptionLocalizations = I18n.localizations('commands.tag.list.description');
   name = 'list';
   nameLocalizations = I18n.localizations('commands.tag.list.name');
 

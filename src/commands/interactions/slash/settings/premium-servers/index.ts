@@ -8,7 +8,8 @@ import { SettingsPremiumServersRemoveCommand } from './remove';
 
 
 export class SettingsPremiumServersGroupCommand extends BaseInteractionCommandOptionGroup {
-  description = '.';
+  description = 'The servers you gave your premium to';
+  descriptionLocalizations = I18n.localizations('commands.settings.premium_servers.description');
   name = 'premium-servers';
   nameLocalizations = I18n.localizations('commands.settings.premium_servers.name');
 

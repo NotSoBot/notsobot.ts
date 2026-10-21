@@ -27,7 +27,7 @@ import { SearchYoutubeCommand } from './youtube';
 
 
 export default class SearchGroupCommand extends BaseSlashCommand {
-  description = 'Search Commands';
+  description = 'Search Google, YouTube, Reddit, Wolfram Alpha and more';
   descriptionLocalizations = I18n.localizations('commands.search.description');
   name = 'search';
   nameLocalizations = I18n.localizations('commands.search.name');

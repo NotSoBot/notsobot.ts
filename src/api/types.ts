@@ -528,6 +528,10 @@ export namespace RestOptions {
     semitones?: string,
   }
 
+  export interface MediaAVManipulationAudioNormalize extends MediaBaseOptions {
+    strength?: number,
+  }
+
   export interface MediaAVManipulationAudioPaulstretch extends MediaBaseOptions {
     resolution?: number,
     stretch?: number,
@@ -628,8 +632,23 @@ export namespace RestOptions {
   }
 
   export interface MediaICreateWordcloud {
+    // `transparent`, a hex code, `r,g,b(,a)` or a color name
+    background?: string,
+    exclude?: Array<string>,
+    height?: number,
     safe?: boolean,
+    seed?: number,
+    shape?: string,
+    theme?: string,
+    width?: number,
+    // texts (one per message), each line is split into words on its own
     words: Array<string>,
+  }
+
+  // the words fill the image's shape (its white/transparent parts stay empty) and take its colors
+  export interface MediaICreateWordcloudBackground extends MediaICreateWordcloud {
+    maxFileSize?: number,
+    url: string,
   }
 
   export interface MediaIVManipulationFaceAnime extends MediaBaseOptions {
