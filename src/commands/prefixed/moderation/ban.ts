@@ -38,12 +38,13 @@ export default class BanCommand extends BaseCommand {
       },
       permissionsClient: [Permissions.BAN_MEMBERS],
       permissions: [Permissions.BAN_MEMBERS],
-      type: Parameters.banPayload(),
+      type: Parameters.banPayload({limit: Formatter.Commands.ModerationBan.MAX_USERS}),
     });
   }
 
   onBeforeRun(context: Command.Context, args: Formatter.Commands.ModerationBan.CommandArgsBefore) {
-    return !!args.payload && !!args.payload.membersOrUsers.length;
+    // over the limit still runs, so it says why instead of that nobody was found
+    return !!args.payload && (!!args.payload.membersOrUsers.length || !!args.payload.overLimit);
   }
 
   async onCancelRun(context: Command.Context, args: Formatter.Commands.ModerationBan.CommandArgsBefore) {

@@ -43,7 +43,7 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
-import { getTranslator, randomThinkingText } from './i18n';
+import { getTranslator, randomThinkingText, Translator } from './i18n';
 
 import { Endpoints, deleteJob, fetchJob, moderationSafetyScan, moderationTextScan, utilitiesFetchMedia } from '../api';
 import { JobError } from '../api/errors';
@@ -1820,9 +1820,56 @@ export function htmlDecode(value: string): string {
 }
 
 
-// how long a job is polled for before giving up on it, the api kills them well before this so it's only a safety net
-export const MAX_JOB_WAIT_TIME = 2 * 60 * 1000;
+// how long a job is polled for before giving up on it (and cancelling it): the longest command budget (120s, plus ai,
+// the api's `command_budget.py`) plus up to 2 minutes waiting in the queue. a job queued longer than that is cancelled
+// instead of running with nobody waiting on it
+export const MAX_JOB_WAIT_TIME = 4 * 60 * 1000;
 const JOB_TIMED_OUT_MESSAGE = 'Timed out waiting for the job to finish';
+// the least time between edits showing a job's status, so a moving queue doesn't hit discord's ratelimits
+const JOB_STATUS_EDIT_INTERVAL = 3000;
+
+// a job that failed while it was being polled, shown like one that failed right away (`JobError` through the command's
+// error handler): translated from its code, with sizes and the like filled in. it used to be the api's message as is,
+// which mattered more once downloads moved into the jobs (no media, too large, blocked used to fail the request itself)
+async function replyJobError(
+  context: Command.Context | Interaction.InteractionContext,
+  job: RestResponsesRaw.JobResponse,
+) {
+  // required here, commands/errors imports utils (this file) back
+  const { createRunErrorPayload, replyError, warning }: typeof import('../commands/errors') = require('../commands/errors');
+  const translator = await getTranslator(context);
+  const title = warning(translator.translate('errors.prefix_run_title'));
+  return replyError(context, await createRunErrorPayload(context, title, new JobError(job), translator));
+}
+
+
+// giving up on a job, with where it still was in its queue when it never started (a backed up queue, not a slow job)
+function jobTimedOutText(translate: Translator['translate'], job: RestResponsesRaw.JobResponse): string {
+  if (job.status === 'queued' && job.queue && job.position !== undefined) {
+    return translate(`media.job_timed_out_queued.${job.queue}`, {position: (job.position + 1).toLocaleString()});
+  }
+  return translate('media.job_failed', {error: JOB_TIMED_OUT_MESSAGE});
+}
+
+
+// the line under the thinking text: its place while it waits in its queue, then what it's doing and the time it gets
+// (none when the api didn't say)
+function jobStatusText(translate: Translator['translate'], job: RestResponsesRaw.JobResponse): string | null {
+  if (job.status === 'queued') {
+    if (!job.queue || job.position === undefined) {
+      return null;
+    }
+    return translate(`media.job_queued.${job.queue}`, {position: (job.position + 1).toLocaleString()});
+  }
+  if (job.status === 'started' && job.stage) {
+    const stage = translate(`media.job_stage.${job.stage}`);
+    if (job.queue && job.time_limit) {
+      return translate(`media.job_running.${job.queue}`, {seconds: Math.round(job.time_limit).toLocaleString(), stage});
+    }
+    return translate('media.job_running', {stage});
+  }
+  return null;
+}
 
 
 // for when polling gives up on a job, so it doesn't keep running (or leave its file behind) with nobody waiting on it
@@ -1919,15 +1966,20 @@ export async function jobReply(
   }
 
   const { translate } = await getTranslator(context);
+  const thinkingText = randomThinkingText(translate);
+  // the api's first answer already says where it is (queued or running), so the first message does too
+  let statusText = jobStatusText(translate, job);
+  let statusTextShownAt = (statusText) ? Date.now() : 0;
   let message: Structures.Message | void;
   try {
-    message = await editOrReply(context, randomThinkingText(translate));
+    message = await editOrReply(context, (statusText) ? `${thinkingText}\n${statusText}` : thinkingText);
   } catch(error) {
     untrackJob(context, job.id);
     cancelJob(context, job.id);
     throw error;
   }
-  const messageEditedAtUnix = message && message.editedAtUnix;
+  // the reply's edit times we made ourselves (showing its status), any other edit means it was taken over
+  const ownEditedAtUnix = new Set([message && message.editedAtUnix]);
 
   const timer = new Timers.Timeout();
   const deadline = Date.now() + MAX_JOB_WAIT_TIME;
@@ -1941,14 +1993,14 @@ export async function jobReply(
     try {
       if (message) {
         // the reply was edited or can't be anymore, nothing's waiting on the job
-        if (messageEditedAtUnix !== message.editedAtUnix || !message.canEdit) {
+        if (!ownEditedAtUnix.has(message.editedAtUnix) || !message.canEdit) {
           return cancelJob(context, job.id);
         }
       }
       // todo: if message is null, it means the context is an interaction, check that
       const refreshedJob = await fetchJob(context, job.id);
       if (refreshedJob.result.error) {
-        return await editOrReply(context, translate('media.job_failed', {error: String(refreshedJob.result.error)}));
+        return await replyJobError(context, refreshedJob);
       }
       if (refreshedJob.result.response) {
         return await mediaReply(context, refreshedJob.result.response, replyOptions(refreshedJob.result.response));
@@ -1959,7 +2011,16 @@ export async function jobReply(
       // interactions have no message to check, so this is the only thing that stops a stuck job from polling forever
       if (deadline <= Date.now()) {
         cancelJob(context, job.id);
-        return await editOrReply(context, translate('media.job_failed', {error: JOB_TIMED_OUT_MESSAGE}));
+        return await editOrReply(context, jobTimedOutText(translate, refreshedJob));
+      }
+      const nextStatusText = jobStatusText(translate, refreshedJob);
+      if (nextStatusText !== statusText && JOB_STATUS_EDIT_INTERVAL <= Date.now() - statusTextShownAt) {
+        statusText = nextStatusText;
+        statusTextShownAt = Date.now();
+        const edited = await editOrReply(context, (statusText) ? `${thinkingText}\n${statusText}` : thinkingText);
+        if (edited) {
+          ownEditedAtUnix.add(edited.editedAtUnix);
+        }
       }
       keepPolling = true;
     } catch(error) {
@@ -2031,7 +2092,9 @@ export async function jobWaitForResult(
         }
         if (deadline <= Date.now()) {
           cancelJob(context, job.id);
-          return reject(new Error(JOB_TIMED_OUT_MESSAGE));
+          // through the command's error handler like the job's own errors, with where it was if it never started
+          const { translate } = await getTranslator(context);
+          return reject(new Error(jobTimedOutText(translate, refreshedJob)));
         }
       } catch(error) {
         cancelJob(context, job.id);

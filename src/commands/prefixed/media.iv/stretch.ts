@@ -18,13 +18,13 @@ export default class StretchCommand extends BaseImageOrVideoCommand {
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Stretch an Image or Video by its Width or Height',
+        description: 'Stretch an Image or Video by multiplying its Width or Height (0.01 to 3)',
         examples: [
           `${COMMAND_NAME} notsobot 1 3`,
           `${COMMAND_NAME} notsobot 2 3`,
         ],
         id: Formatter.Commands.MediaIVManipulationStretch.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> <width,number> <height,number> (-crop)',
+        usage: '?<emoji,user:id|mention|name,url> <width multiplier:float> <height multiplier:float> (-crop)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false})},

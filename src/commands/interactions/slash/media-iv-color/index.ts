@@ -12,6 +12,7 @@ import { MediaIVAcidCommand } from './acid';
 import { MediaIVBlurpleCommand } from './blurple';
 import { MediaIVDerainCommand } from './derain';
 import { MediaIVGoldCommand } from './gold';
+import { MediaIVGradientMapCommand } from './gradient-map';
 import { MediaIVGrayscaleCommand } from './grayscale';
 import { MediaIVHueCurveRGBACommand } from './hue-curve-rgba';
 import { MediaIVHueShiftHSVCommand } from './hue-shift-hsv';
@@ -53,6 +54,7 @@ export default class MediaIVColorGroupCommand extends BaseSlashCommand {
         new MediaIVBlurpleCommand(),
         new MediaIVDerainCommand(),
         new MediaIVGoldCommand(),
+        new MediaIVGradientMapCommand(),
         new MediaIVGrayscaleCommand(),
         new MediaIVHueCurveRGBACommand(),
         new MediaIVHueShiftHSVCommand(),

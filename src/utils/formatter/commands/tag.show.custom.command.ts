@@ -29,11 +29,11 @@ export async function createMessage(
 ) {
   // parse it
   const { tag } = args;
-  await increaseUsage(context, tag);
+  const directoryVerified = await increaseUsage(context, tag);
 
   context.metadata = Object.assign({}, context.metadata, {tag});
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
-  const parsedTag = await parseTag(context, tagContent, args.arguments);
+  const parsedTag = await parseTag(context, tagContent, args.arguments, {directoryVerified});
 
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
   await maybeReplaceContent(context, tag);

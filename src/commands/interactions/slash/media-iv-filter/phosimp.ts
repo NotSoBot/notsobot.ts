@@ -11,6 +11,7 @@ export class MediaIVPhoSimpCommand extends BaseInteractionImageOrVideoCommandOpt
   description = 'Apply PhoSimp Filters on an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv_3.fun.phosimp.description');
   metadata = {
+    credits: Formatter.Commands.MediaIVManipulationPhoSimp.CREDITS,
     id: Formatter.Commands.MediaIVManipulationPhoSimp.COMMAND_ID,
   };
   name = COMMAND_NAME;

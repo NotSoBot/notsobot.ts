@@ -160,6 +160,29 @@ function describeApiError(
 }
 
 
+// the api and discord both nest form errors by field, like `{width: {_errors: [{code, message}]}}` or `{files: {0: {_errors: [...]}}}`
+// show one line per field with just the messages instead of the raw json
+function formatFormErrors(errors: unknown, path: Array<string> = [], lines: Array<string> = []): Array<string> {
+  const label = (path.length) ? `**${path.join('.')}**: ` : '';
+  if (!errors || typeof(errors) !== 'object') {
+    lines.push(label + String(errors));
+    return lines;
+  }
+  for (let key in errors) {
+    const value = (errors as Record<string, unknown>)[key];
+    if (key === '_errors' && Array.isArray(value)) {
+      const messages = value.map((error) => {
+        return (error && typeof(error) === 'object' && error.message) ? String(error.message) : JSON.stringify(error);
+      });
+      lines.push(label + messages.join(' • '));
+    } else {
+      formatFormErrors(value, [...path, key], lines);
+    }
+  }
+  return lines;
+}
+
+
 async function describeResponseError(
   context: ErrorContext,
   error: any,
@@ -194,11 +217,7 @@ async function describeResponseError(
     description.push(error.message || error.stack);
   }
   if (information && typeof(information) === 'object' && 'errors' in information) {
-    for (let key in information.errors) {
-      const value = information.errors[key];
-      const message = (typeof(value) === 'object') ? JSON.stringify(value) : String(value);
-      description.push(`**${key}**: ${message}`);
-    }
+    description.push(...formatFormErrors(information.errors));
   }
 
   // discord ratelimits, include the headers so we can debug them

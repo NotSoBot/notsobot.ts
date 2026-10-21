@@ -19,6 +19,7 @@ export default class PhoSimpCommand extends BaseImageOrVideoCommand {
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
+        credits: Formatter.Commands.MediaIVManipulationPhoSimp.CREDITS,
         description: 'Apply PhoSimp Filters on an Image or Video',
         examples: [
           COMMAND_NAME,

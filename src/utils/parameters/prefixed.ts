@@ -21,18 +21,22 @@ export { ContextMenu, Slash };
 
 export interface BanPayloadOptions {
   allowBots?: boolean,
+  // stops looking users up past this many and sets `overLimit`, for the command to refuse
+  limit?: number,
   membersOnly?: boolean,
 }
 
 export interface BanPayload {
   membersOrUsers: Array<Structures.Member | Structures.User>,
   notFound: Array<string>,
+  overLimit?: boolean,
   text: string,
 }
 
 export interface BanPayloadMembersOnly {
   membersOrUsers: Array<Structures.Member>,
   notFound: Array<string>,
+  overLimit?: boolean,
   text: string,
 }
 
@@ -48,6 +52,7 @@ export function banPayload(
   return async (value: string, context: Command.Context): Promise<BanPayload> => {
     const membersOrUsers = new Collections.BaseCollection<string, Structures.Member | Structures.User>();
     const notFound: Array<string> = [];
+    let overLimit = false;
 
     {
       // check reply for a user to ban
@@ -96,6 +101,11 @@ export function banPayload(
           if (membersOrUsers.has(searchValue)) {
             continue;
           }
+          // keeps going through the ids so they don't end up in the text, just without looking them up
+          if (overLimit || (options.limit !== undefined && options.limit <= membersOrUsers.size + notFound.length)) {
+            overLimit = true;
+            continue;
+          }
 
           const member = await fetchMemberOrUserById(context, searchValue, options.membersOnly);
           if (member) {
@@ -118,6 +128,7 @@ export function banPayload(
     return {
       membersOrUsers: membersOrUsersArray,
       notFound,
+      overLimit,
       text: value,
     };
   }

@@ -19,6 +19,8 @@ export interface CommandArgs {
 export async function createResponse(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
+  // from pipe, aborting cancels the job once it runs out of time
+  signal?: AbortSignal,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   if (args.urls && args.urls.length === 2 && !args.model) {
@@ -30,14 +32,14 @@ export async function createResponse(
       const mashupUrl = EmojiKitchen.codepointsToUrl(codepoints[0], codepoints[1]);
       if (mashupUrl) {
         // download it
-        return utilitiesFetchMedia(context, {url: mashupUrl}).then((x) => jobWaitForResponse(context, x));
+        return utilitiesFetchMedia(context, {url: mashupUrl}).then((x) => jobWaitForResponse(context, x, signal));
       }
     }
   }
   const job = await utilitiesMLMashup(context, {
     ...args,
     safe: true,
-  }).then((x) => jobWaitForResult(context, x));
+  }).then((x) => jobWaitForResult(context, x, undefined, signal));
   if (job.result.error) {
     throw new Error(translate('tools_ml_mashup.mashup_error', {error: job.result.error}));
   }

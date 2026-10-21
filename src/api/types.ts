@@ -828,6 +828,10 @@ export namespace RestOptions {
     amount?: number,
   }
 
+  export interface MediaIVManipulationGradientMap extends MediaBaseOptions {
+    stops: string,
+  }
+
   export interface MediaIVManipulationGrain extends MediaBaseOptions {
     flags?: string,
     strength?: number,
@@ -970,6 +974,14 @@ export namespace RestOptions {
     gridy?: number,
   }
 
+  export interface MediaIVManipulationPinchPunch extends MediaBaseOptions {
+    intensity?: number,
+    x?: number,
+    xScale?: number,
+    y?: number,
+    yScale?: number,
+  }
+
   export interface MediaIVManipulationPix2Pix extends MediaBaseOptions {
     model: string,
   }
@@ -997,6 +1009,11 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationQuadart extends MediaBaseOptions {
     type?: MediaQuadartTypes,
+  }
+
+  // uncaption's `tolerance`, then caption's options
+  export interface MediaIVManipulationRecaption extends MediaIVManipulationCaption {
+    tolerance?: number,
   }
 
   export interface MediaIVManipulationResize extends MediaBaseOptions {
@@ -1137,6 +1154,17 @@ export namespace RestOptions {
     speed?: number,
   }
 
+  export interface MediaIVManipulationWaveVegas extends MediaBaseOptions {
+    xFrequency?: number,
+    xIntensity?: number,
+    xPhase?: number,
+    xSpeed?: number,
+    yFrequency?: number,
+    yIntensity?: number,
+    yPhase?: number,
+    ySpeed?: number,
+  }
+
   export interface MediaIVManipulationWiggle extends MediaBaseOptions {
     amount?: number,
     direction?: string,
@@ -1195,7 +1223,10 @@ export namespace RestOptions {
 
   export interface PostInfoDiscordGuildsChanges {
     added: Array<{guildId: string, memberCount?: number, shardId: number}>,
+    // guilds the bot left or was removed from
     removed: Array<string>,
+    // guilds discord listed in READY that the bot had already left, deleted right after (no join/leave history)
+    pruned: Array<string>,
     shardCount: number,
   }
 
@@ -1413,7 +1444,7 @@ export namespace RestOptions {
       aliases?: Array<string>,
       args?: Array<{aliases: Array<string>, description?: string, name: string, prefix: string}>,
       category: string,
-      credits?: Array<{id: string, name: string}>,
+      credits?: Array<{id: string, name: string, url?: string}>,
       description?: string,
       dmable?: boolean,
       examples?: Array<string>,
@@ -1429,6 +1460,8 @@ export namespace RestOptions {
   export interface UtilitiesCodeRun extends MediaBaseOptionsMultiple {
     code: string,
     language: string,
+    // a verified directory tag's code, it gets a premium user's time to run
+    premiumLimits?: boolean,
     safe?: boolean,
     stdin?: string,
     urls?: Array<string | {filename?: string, url: string}>,
@@ -1644,6 +1677,12 @@ export namespace RestResponsesRaw {
       error_metadata?: Record<string, unknown>,
       response: FileResponse | null,
     },
+    // while queued: how many jobs are ahead of it (0 is next), and which premium tier's queue it's in
+    position?: number,
+    queue?: 'free' | 'premium' | 'premium_server' | null,
+    // while running (and `time_limit` while queued too): what it's doing, and the seconds it gets
+    stage?: 'downloading' | 'processing' | null,
+    time_limit?: number | null,
     status: string,
     user_id: string,
   }
@@ -1732,6 +1771,8 @@ export namespace RestResponsesRaw {
   export type CreateReport = Report;
 
   export interface CreateTagUse {
+    // the content it runs (an alias' reference tag) is a verified directory listing, see `TagContext.directoryVerified`
+    directory_verified: boolean,
     last_used: string,
   }
 

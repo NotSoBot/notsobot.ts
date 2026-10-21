@@ -200,7 +200,9 @@ export interface TagLimits {
   MAX_TEXT_LENGTH: number,
   MAX_TIME: number,
   MAX_TIME_PREMIUM: number,
+  MAX_TIME_PREMIUM_FROM_SERVER: number,
   MAX_TIME_PREMIUM_PLUS: number,
+  MAX_TIME_PREMIUM_PLUS_AI: number,
   MAX_TIME_REGEX: number,
   MAX_VARIABLE_KEY_LENGTH: number,
   MAX_VARIABLE_LENGTH: number,
@@ -233,11 +235,13 @@ export const TagLimitDefaults: TagLimits = Object.freeze({
   MAX_TAG_EXECUTIONS: 2,
   // total output text, on top of the attachment size limit (which can be hundreds of mb)
   MAX_TEXT_LENGTH: 10 * 1024 * 1024,
-  // wall-clock ms a tag (and everything it calls) can run for, picked by the best premium tier of the invoking user and
-  // the server's (members who gave it their premium, and a group dm's owner)
-  MAX_TIME: 45 * 1000,
-  MAX_TIME_PREMIUM: 90 * 1000,
-  MAX_TIME_PREMIUM_PLUS: 120 * 1000,
+  // wall-clock ms a tag (and everything it calls) can run for, picked by the invoking user's premium tier, or the
+  // server's (a member who gave it a premium server slot, or a group dm's owner) when they have none
+  MAX_TIME: 40 * 1000,
+  MAX_TIME_PREMIUM: 70 * 1000,
+  MAX_TIME_PREMIUM_FROM_SERVER: 60 * 1000,
+  MAX_TIME_PREMIUM_PLUS: 100 * 1000,
+  MAX_TIME_PREMIUM_PLUS_AI: 130 * 1000,
   MAX_TIME_REGEX: 25,
   MAX_VARIABLE_KEY_LENGTH: 64,
   MAX_VARIABLE_LENGTH: 1 * 1024 * 1024,
@@ -991,6 +995,9 @@ export interface TagContext {
   blockedFunctions?: ReadonlySet<TagFunctions>,
   // whether code blocks (`{js:...}`, `{py:...}`) error instead of running
   blocksCode?: boolean,
+  // the tag being run is a verified directory listing (staff reviewed it), it gets premium limits like a premium user's
+  // run would. Tags it calls share the caller's context, so only the tag that was run decides
+  directoryVerified?: boolean,
   mathWorker?: MathSession,
   // who `{user}`, `{nick}`, `{id}` and the other user functions describe when given no argument, instead of whoever ran it
   targetMember?: Structures.Member,
@@ -1128,7 +1135,7 @@ export async function parse(
   // button/timeout scripts run long after the tag did, they get their own time instead of the tag's leftover time
   if (!(PrivateVariables.DEADLINE in variables) || parseOptions.isRoot) {
     // stored on the limits so the timeout error can say what the max was, called tags get passed the same limits
-    tagLimits.MAX_TIME = await getMaxTime(context, tagLimits);
+    tagLimits.MAX_TIME = await getMaxTime(context, tagLimits, tagContext);
     (variables as any)[PrivateVariables.DEADLINE] = Date.now() + tagLimits.MAX_TIME;
   }
 
@@ -2021,33 +2028,40 @@ function getTargetUser(context: Command.Context | Interaction.InteractionContext
 }
 
 
-// picks how long the tag can run, it's never lower than the base MAX_TIME
-async function getMaxTime(
+// picks how long the tag (or a pipe) can run, it's never lower than the base MAX_TIME
+export async function getMaxTime(
   context: Command.Context | Interaction.InteractionContext,
   limits: TagLimits,
+  tagContext?: TagContext,
 ): Promise<number> {
   let maxTime = limits.MAX_TIME;
+  if (tagContext && tagContext.directoryVerified) {
+    // a verified directory tag runs like it's premium, plus can still raise it below
+    maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM);
+  }
   let user: Awaited<ReturnType<typeof UserStore.getOrFetch>> = null;
   try {
     user = await UserStore.getOrFetch(context, context.userId);
   } catch(error) {
     // no user means no premium
   }
-  if (user && user.isPremiumPlus) {
+  if (user && user.isPremiumPlusAI) {
     // nothing is higher, skip looking at the server
+    return Math.max(maxTime, limits.MAX_TIME_PREMIUM_PLUS_AI);
+  }
+  if (user && user.isPremiumPlus) {
+    // a premium server gives less, skip looking at it
     return Math.max(maxTime, limits.MAX_TIME_PREMIUM_PLUS);
   }
   if (user && user.isPremium) {
-    maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM);
+    // a premium server gives less than premium, so it can't raise this either
+    return Math.max(maxTime, limits.MAX_TIME_PREMIUM);
   }
 
-  // members who gave the server their premium (and a group dm's owner)
+  // members who gave the server a premium server slot (and a group dm's owner)
   const users = await getServerPremiumUsers(context);
-  if (users.some((x) => x.isPremiumPlus)) {
-    return Math.max(maxTime, limits.MAX_TIME_PREMIUM_PLUS);
-  }
   if (users.length) {
-    maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM);
+    maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM_FROM_SERVER);
   }
   return maxTime;
 }
@@ -2731,6 +2745,7 @@ const ScriptTags = Object.freeze({
       code,
       files,
       language,
+      premiumLimits: !!tag.context.directoryVerified,
       safe: DefaultParameters.safe(context),
       stdin: generateCodeStdin(context, variables, storage, blobs),
       urls: Object.values(urls).filter((x) => x.url),

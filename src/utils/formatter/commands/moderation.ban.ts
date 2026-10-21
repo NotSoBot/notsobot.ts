@@ -1,4 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { deleteGuildTimedBans, putGuildTimedBans } from '../../../api';
@@ -26,12 +27,59 @@ export const COMMAND_ID = 'moderation.ban';
 export const TIMED_BAN_MIN_DURATION = 60;
 export const TIMED_BAN_MAX_DURATION = 365 * 24 * 60 * 60;
 
+// most users one command can ban, more refuses the whole command
+export const MAX_USERS = 10;
+
+// discord's bulk ban endpoint takes at most this many users per request
+export const BULK_BAN_MAX_USERS = 200;
+
+// bans through discord's bulk ban endpoint when the bot can (it also needs manage server), one request per 200 users
+// instead of one each, then bans anyone it didn't one by one (already banned users come back as failed there while a
+// single ban still goes through, and this gets the actual error for the rest), returns the ones that couldn't be banned
+export async function banUsers(
+  context: Command.Context | Interaction.InteractionContext,
+  guildId: string,
+  userIds: Array<string>,
+  options: {deleteMessageSeconds: number, reason: string},
+): Promise<Array<{error: any, userId: string}>> {
+  let remaining = userIds;
+  const me = context.me;
+  if (1 < userIds.length && me && me.can(Permissions.MANAGE_GUILD)) {
+    remaining = [];
+    for (let i = 0; i < userIds.length; i += BULK_BAN_MAX_USERS) {
+      const chunk = userIds.slice(i, i + BULK_BAN_MAX_USERS);
+      try {
+        const { bannedUsers } = await context.rest.bulkGuildBan(guildId, {...options, userIds: chunk});
+        const banned = new Set<string>(bannedUsers || []);
+        remaining.push(...chunk.filter((userId) => !banned.has(userId)));
+      } catch(error) {
+        // errors with 500000 when none of them could be banned
+        remaining.push(...chunk);
+      }
+    }
+  }
+
+  const failed: Array<{error: any, userId: string}> = [];
+  // one failure (rate limit, 5xx, missing permissions) shouldn't stop the rest or the summary
+  for (let userId of remaining) {
+    try {
+      await context.rest.createGuildBan(guildId, userId, options);
+    } catch(error) {
+      failed.push({error, userId});
+    }
+  }
+  return failed;
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
   const { language, translate } = await getTranslator(context);
   const { payload } = args;
+  if (payload.overLimit) {
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation_ban.too_many_users', {max: MAX_USERS.toLocaleString(language)})}`});
+  }
 
   const canEdit: Array<Structures.Member | Structures.User> = [];
   const cannotEdit: Array<Structures.Member | Structures.User> = [];
@@ -125,48 +173,51 @@ export async function createMessage(
     }
   }
 
-  const failed: Array<{error: any, memberOrUser: Structures.Member | Structures.User}> = [];
-  // ban through rest by guild id so an uncached guild still bans (and the summary reflects what actually happened)
-  for (let memberOrUser of canEdit) {
-    /*
-    let doesBanExist = false;
-    try {
-      await guild.fetchBan(memberOrUser.id);
-      doesBanExist = true;
-    } catch(error) {
-      // does not exist
-    }
-    if (!doesBanExist) {
-    */
-    if (!guildId) {
-      failed.push({error: new Error('Unknown Guild'), memberOrUser});
-      continue;
-    }
-
-    if (guild && memberOrUser instanceof Structures.Member) {
-      try {
-        // in their language (or the server's), not the moderator's
-        const dm = await getTranslatorForUser(context, memberOrUser.id);
-        const dmReason = (dm.language === auditTranslator.language) ? reason : createReason(dm);
-        await memberOrUser.createMessage([
-          dm.translate('moderation_ban.you_have_been_banned_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
-          '',
-          dm.translate('moderation_ban.details', {reason: Markup.codeblock(dmReason)}),
-        ].join('\n'));
-      } catch(error) {
-        // maybe log this?
+  // dm'd before any of the bans, they can't get it once they don't share a server with the bot anymore
+  const dms = new Map<string, Structures.Message>();
+  if (guild) {
+    for (let memberOrUser of canEdit) {
+      if (memberOrUser instanceof Structures.Member) {
+        try {
+          // in their language (or the server's), not the moderator's
+          const dm = await getTranslatorForUser(context, memberOrUser.id);
+          const dmReason = (dm.language === auditTranslator.language) ? reason : createReason(dm);
+          const message = await memberOrUser.createMessage([
+            dm.translate('moderation_ban.you_have_been_banned_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
+            '',
+            dm.translate('moderation_ban.details', {reason: Markup.codeblock(dmReason)}),
+          ].join('\n'));
+          dms.set(memberOrUser.id, message);
+        } catch(error) {
+          // maybe log this?
+        }
       }
     }
+  }
 
-    // one failure (rate limit, 5xx, missing permissions) shouldn't stop the rest or the summary
-    try {
-      await context.rest.createGuildBan(guildId, memberOrUser.id, {deleteMessageSeconds, reason});
-    } catch(error) {
-      failed.push({error, memberOrUser});
+  const failed: Array<{error: any, memberOrUser: Structures.Member | Structures.User}> = [];
+  // ban through rest by guild id so an uncached guild still bans (and the summary reflects what actually happened)
+  if (guildId) {
+    const errors = await banUsers(context, guildId, canEdit.map((memberOrUser) => memberOrUser.id), {deleteMessageSeconds, reason});
+    for (let { error, userId } of errors) {
+      failed.push({error, memberOrUser: canEdit.find((memberOrUser) => memberOrUser.id === userId)!});
+    }
+  } else {
+    for (let memberOrUser of canEdit) {
+      failed.push({error: new Error('Unknown Guild'), memberOrUser});
     }
   }
   for (let { memberOrUser } of failed) {
     canEdit.splice(canEdit.indexOf(memberOrUser), 1);
+    // they weren't banned, so the dm saying they were shouldn't stay around
+    const message = dms.get(memberOrUser.id);
+    if (message) {
+      try {
+        await message.delete();
+      } catch(error) {
+        // they still got it, nothing else to do
+      }
+    }
   }
   // the ones that didn't get banned shouldn't get unbanned later
   if (until && guildId && failed.length) {

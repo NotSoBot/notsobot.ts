@@ -43,6 +43,11 @@ export async function createMessage(
   user?: Structures.User,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
+  // user installs can be used in group dms, dms between users and servers the bot isn't in, it can't fetch messages there
+  if (context instanceof Interaction.InteractionContext && !context.isBotPresent) {
+    return displayReply(context, {description: translate('media_i_create_wordcloud_channel.cannot_read_messages_here')});
+  }
+
   const channel = args.channel;
   if (channel) {
     const member = context.member;
@@ -84,7 +89,7 @@ export async function createMessage(
 }
 
 
-// the most used words (`word 142 • other 97`) and how many there were, from the job's `arguments`
+// the most used words (**142** `word` • **97** `other`) and how many there were, from the job's `arguments`
 export function describeTopWords(
   response: RestResponsesRaw.FileResponse,
   language: string,
@@ -95,7 +100,7 @@ export function describeTopWords(
     return undefined;
   }
   const words = (details.top_words as Array<{count: number, word: string}>).slice(0, TOP_WORDS_SHOWN);
-  const top = displayDetailsLine(words.map((x) => `${Markup.escape.all(x.word)} **${x.count.toLocaleString(language)}**`));
+  const top = displayDetailsLine(words.map((x) => `**${x.count.toLocaleString(language)}** ${Markup.codestring(x.word)}`));
   const counts = displayDetailsLine([
     (details.total_words) ? translate('media_i_create_wordcloud_channel.total_words', {count: Number(details.total_words).toLocaleString(language)}) : null,
     (details.unique_words) ? translate('media_i_create_wordcloud_channel.unique_words', {count: Number(details.unique_words).toLocaleString(language)}) : null,

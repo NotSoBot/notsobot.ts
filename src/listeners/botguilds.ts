@@ -12,6 +12,11 @@ import { ApiEventsSpewer } from '../apievents';
 // membership with one database query instead of asking Discord about each guild.
 //   - full list per shard right after it connects (READY already holds every guild id), and every few hours
 //   - joins/leaves in between, batched
+// READY sometimes still lists guilds the bot was removed from, discord sends a GUILD_DELETE for each right after. Those
+// never got a GUILD_CREATE, so they're sent as `pruned`: dropped from the list but not counted as leaves (they were
+// counted again on every identify, ~1-2 per shard). `joined_at` only comes with GUILD_CREATE, so a guild without it
+// never loaded this session (needs the guilds cache, READY resets it). A guild that's in an outage when the shard
+// identifies and removes the bot before it loads is pruned too: it still leaves the list, only its leave isn't counted
 
 const CHANGES_FLUSH_INTERVAL = 5 * 1000;
 const FULL_SYNC_INTERVAL = 6 * 60 * 60 * 1000;
@@ -22,7 +27,7 @@ class BotGuildsListener extends Listener {
   changesInterval = new Timers.Interval();
   fullSyncInterval = new Timers.Interval();
   // guildId -> latest known state; the last event for a guild wins, so a batch never contradicts itself
-  pending = new Map<string, {memberCount?: number, present: boolean, shardId: number}>();
+  pending = new Map<string, {memberCount?: number, present: boolean, pruned?: boolean, shardId: number}>();
   flushing = false;
 
   async syncShard(cluster: ClusterClient, shard: ShardClient): Promise<void> {
@@ -64,16 +69,19 @@ class BotGuildsListener extends Listener {
 
     const added: Array<{guildId: string, memberCount?: number, shardId: number}> = [];
     const removed: Array<string> = [];
-    for (let [guildId, { memberCount, present, shardId }] of batch) {
+    const pruned: Array<string> = [];
+    for (let [guildId, { memberCount, present, pruned: isPruned, shardId }] of batch) {
       if (present) {
         added.push({guildId, memberCount, shardId});
+      } else if (isPruned) {
+        pruned.push(guildId);
       } else {
         removed.push(guildId);
       }
     }
 
     try {
-      await postInfoDiscordGuildsChanges({client: shard}, {added, removed, shardCount: cluster.shardCount});
+      await postInfoDiscordGuildsChanges({client: shard}, {added, pruned, removed, shardCount: cluster.shardCount});
     } catch(error) {
       // put them back for the next flush, without overwriting anything newer that came in meanwhile
       for (let [guildId, state] of batch) {
@@ -106,10 +114,12 @@ class BotGuildsListener extends Listener {
       subscriptions.push(subscription);
     }
     {
-      const subscription = cluster.subscribe(ClientEvents.GUILD_DELETE, ({ guildId, isUnavailable, shard }) => {
+      const subscription = cluster.subscribe(ClientEvents.GUILD_DELETE, ({ guild, guildId, isUnavailable, shard }) => {
         // `isUnavailable` is a Discord outage, not the bot leaving
         if (!isUnavailable) {
-          this.pending.set(guildId, {present: false, shardId: shard.shardId});
+          // a guild that never loaded is one READY listed after the bot had already left it
+          const pruned = !guild?.joinedAtUnix;
+          this.pending.set(guildId, {present: false, pruned, shardId: shard.shardId});
         }
       });
       subscriptions.push(subscription);

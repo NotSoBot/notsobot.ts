@@ -44,6 +44,8 @@ function commandNameForError(context: Command.Context, translator: I18n.Translat
 export interface CommandCredit {
   id: string,
   name: string,
+  // their page for the thing being credited (store page, repo, etc.)
+  url?: string,
 }
 
 // description and usage shouldnt be optional, temporary for now

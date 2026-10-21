@@ -8,7 +8,7 @@ import { BaseInteractionImageOrVideoCommandOption } from '../../basecommand';
 export const COMMAND_NAME = 'stretch';
 
 export class MediaIVStretchCommand extends BaseInteractionImageOrVideoCommandOption {
-  description = 'Stretch an Image or Video by its Width or Height';
+  description = 'Stretch an Image or Video by multiplying its Width or Height';
   descriptionLocalizations = I18n.localizations('commands.media_iv_3.fun.stretch.description');
   metadata = {
     id: Formatter.Commands.MediaIVManipulationStretch.COMMAND_ID,
@@ -19,8 +19,8 @@ export class MediaIVStretchCommand extends BaseInteractionImageOrVideoCommandOpt
   constructor() {
     super({
       options: [
-        {name: 'width', description: 'Width Amount', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.width'), type: 'float'},
-        {name: 'height', description: 'Height Amount', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.height'), type: 'float'},
+        {name: 'width', description: 'Width multiplier, 0.01 to 3 (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.width'), type: 'float'},
+        {name: 'height', description: 'Height multiplier, 0.01 to 3 (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.height'), type: 'float'},
         {name: 'crop', description: 'Crop excess width/height', ...I18n.optionLocalizations('commands.media_iv_3.fun.stretch.crop'), type: Boolean},
       ],
     });

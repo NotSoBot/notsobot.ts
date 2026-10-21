@@ -13,6 +13,7 @@ import {
   DefaultParameters,
   Formatter,
   Parameters,
+  TagFormatter,
   displayReply,
   jobWaitForResult,
   mediaReply,
@@ -35,7 +36,47 @@ export interface PipingCommandExecution extends Parameters.PipingCommand {
   createResponse?: (
     context: Command.Context | Interaction.InteractionContext,
     args: Record<string, any>,
+    signal?: AbortSignal,
   ) => Promise<RestResponsesRaw.FileResponse>,
+}
+
+
+// the message is made by the loop, it knows which step ran out of time
+class PipeTimeoutError extends Error {
+  constructor() {
+    super('Pipe took too long');
+    this.name = 'PipeTimeoutError';
+  }
+}
+
+
+// stops waiting once the pipe's deadline passes, `signal` is also handed to the job polling so it gets cancelled
+async function withDeadline<T>(
+  signal: AbortSignal,
+  promise: Promise<T>,
+): Promise<T> {
+  const createError = () => new PipeTimeoutError();
+  if (signal.aborted) {
+    promise.catch(() => {});
+    throw createError();
+  }
+  let onAbort!: () => void;
+  const aborted = new Promise<never>((resolve, reject) => {
+    onAbort = () => reject(createError());
+    signal.addEventListener('abort', onAbort, {once: true});
+  });
+  try {
+    return await Promise.race([promise, aborted]);
+  } catch(error) {
+    // the job polling's own abort error can win the race, report it as the timeout
+    if (signal.aborted) {
+      throw createError();
+    }
+    throw error;
+  } finally {
+    signal.removeEventListener('abort', onAbort);
+    aborted.catch(() => {});
+  }
 }
 
 export async function createMessage(
@@ -74,10 +115,15 @@ export async function createMessage(
     }
   }
 
+  // the whole pipe shares one deadline, same limits as tagscript (scaled by the user's and server's premium)
+  const maxTime = await TagFormatter.getMaxTime(context, TagFormatter.TagLimitDefaults);
+  const signal = AbortSignal.timeout(maxTime);
+
   let file: RequestFile | undefined;
   let fileResponse: RestResponsesRaw.FileResponse | undefined;
   // set an interval and set the current image, like every 3 seconds?
-  for (let {command, commandArgs, createJob, createResponse} of pipers) {
+  for (let step = 0; step < pipers.length; step++) {
+    const { command, commandArgs, createJob, createResponse } = pipers[step];
     if (file) {
       commandArgs.file = file;
       if (commandArgs.urls) {
@@ -92,30 +138,49 @@ export async function createMessage(
       }
     }
 
-    if (createJob) {
-      const job = await createJob(context, commandArgs).then((x) => jobWaitForResult(context, x));
-      if (job.result.response) {
-        if (fileResponse) {
-          job.result.response.file_old = fileResponse.file_old;
-          job.result.response.took += fileResponse.took;
+    try {
+      if (createJob) {
+        const job = await withDeadline(signal, createJob(context, commandArgs).then((x) => {
+          return jobWaitForResult(context, x, undefined, signal);
+        }));
+        if (job.result.response) {
+          if (fileResponse) {
+            job.result.response.file_old = fileResponse.file_old;
+            job.result.response.took += fileResponse.took;
+          }
+          fileResponse = job.result.response;
+        } else if (job.result.error) {
+          throw new Error(`Job Failed: ${job.result.error}`);
+        } else {
+          throw new Error('Job Failed for some reason');
         }
-        fileResponse = job.result.response;
-      } else if (job.result.error) {
-        throw new Error(`Job Failed: ${job.result.error}`);
+      } else if (createResponse) {
+        const response = await withDeadline(signal, createResponse(context, {
+          safe, ...commandArgs,
+        }, signal));
+        if (fileResponse) {
+          response.file_old = fileResponse.file_old;
+          response.took += fileResponse.took;
+        }
+        fileResponse = response;
       } else {
-        throw new Error('Job Failed for some reason');
+        throw new Error('Unknown Piping Error');
       }
-    } else if (createResponse) {
-      const response = await createResponse(context, {
-        safe, ...commandArgs,
+    } catch(error) {
+      if (!(error instanceof PipeTimeoutError)) {
+        throw error;
+      }
+      const message = translate('media.pipe.took_too_long', {
+        command: command.name,
+        max: (maxTime / 1000).toLocaleString(),
+        step: (step + 1).toLocaleString(),
       });
-      if (fileResponse) {
-        response.file_old = fileResponse.file_old;
-        response.took += fileResponse.took;
+      if (!fileResponse) {
+        throw new Error(message);
       }
-      fileResponse = response;
-    } else {
-      throw new Error('Unknown Piping Error');
+      // show what the steps before it made
+      const description = `piped: ${pipers.slice(0, step).map((x) => x.command.name).join(' -> ')}\n${message}`;
+      return mediaReply(context, fileResponse, {description});
     }
 
     if (fileResponse) {

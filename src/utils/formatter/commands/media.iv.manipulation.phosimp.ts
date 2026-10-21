@@ -6,6 +6,8 @@ import { DefaultParameters, jobReply } from '../../../utils';
 
 export const COMMAND_ID = 'media.iv.manipulation.phosimp';
 export const IS_PIPEABLE = true;
+// made PHOSIMP, the program this is based on
+export const CREDITS = [{id: '533042282903896085', name: 'KANJICODER', url: 'https://store.steampowered.com/app/3721650/PHOSIMP/'}];
 
 export interface CommandArgs {
   filters: Array<number>,

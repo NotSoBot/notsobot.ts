@@ -1,11 +1,9 @@
 import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
-import { mediaIVManipulationCaption, mediaIVManipulationUncaption } from '../../../api';
-import { getTranslator } from '../../i18n';
-import { RestResponsesRaw } from '../../../api/types';
+import { mediaIVManipulationRecaption } from '../../../api';
 import { MediaMemeFonts } from '../../../constants';
-import { DefaultParameters, jobReply, jobWaitForResult } from '../../../utils';
+import { DefaultParameters, jobReply } from '../../../utils';
 
 import { splitText } from './media.iv.manipulation.caption';
 
@@ -19,47 +17,27 @@ export interface CommandArgs {
   url: string,
 }
 
+// uncaption then caption in one job on the api (it used to be two jobs here, with the file sent back and forth)
+export async function createJob(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs & {file?: RequestFile, safe?: boolean},
+) {
+  const { bottom, top } = splitText(args.text);
+  return mediaIVManipulationRecaption(context, {
+    bottom,
+    file: args.file,
+    font: args.font,
+    safe: args.safe || DefaultParameters.safe(context),
+    tolerance: args.tolerance,
+    top,
+    url: args.url,
+  });
+}
+
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs & {file?: RequestFile, safe?: boolean},
 ) {
-  const { language, translate, translateMaybe } = await getTranslator(context);
-  const safe = args.safe || DefaultParameters.safe(context);
-
-  let fileResponse: RestResponsesRaw.FileResponse | undefined;
-  let job = await await mediaIVManipulationUncaption(context, {
-    file: args.file,
-    safe,
-    tolerance: args.tolerance,
-    url: args.url,
-  }).then((x) => jobWaitForResult(context, x));
-  if (job.result.response) {
-    if (fileResponse) {
-      job.result.response.file_old = fileResponse.file_old;
-      job.result.response.took += fileResponse.took;
-    }
-    fileResponse = job.result.response;
-  } else if (job.result.error) {
-    throw new Error(translate('media_iv_manipulation_recaption.uncaption_job_failed', {error: job.result.error}));
-  } else {
-    throw new Error(translate('media_iv_manipulation_recaption.uncaption_job_failed_for_some_reason'));
-  }
-
-  const { bottom, top } = splitText(args.text);
-  job = await mediaIVManipulationCaption(context, {
-    bottom,
-    file: {
-      contentType: fileResponse.file.metadata.mimetype,
-      filename: fileResponse.file.filename,
-      value: (fileResponse.file.value) ? Buffer.from(fileResponse.file.value, 'base64') : Buffer.alloc(0),
-    },
-    font: args.font,
-    safe,
-    top,
-  }).then((x) => jobWaitForResult(context, x));
-  if (job.result.response) {
-    job.result.response.file_old = fileResponse.file_old;
-    job.result.response.took += fileResponse.took;
-  }
+  const job = await createJob(context, args);
   return jobReply(context, job);
 }

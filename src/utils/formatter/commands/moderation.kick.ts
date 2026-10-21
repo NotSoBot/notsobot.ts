@@ -6,6 +6,8 @@ import { DateMomentLogFormat, EmbedColors, PermissionsText, StatusEmojis } from 
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
 import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
+import { banUsers } from './moderation.ban';
+
 
 export interface CommandArgsBefore {
   clean?: number,
@@ -90,42 +92,69 @@ export async function createMessage(
   const reason = createReason(auditTranslator);
 
   const guild = context.guild;
-  const failed: Array<{error: any, member: Structures.Member}> = [];
-  for (let member of canEdit) {
-    if (guild) {
+  // dm'd before any of the kicks, they can't get it once they don't share a server with the bot anymore
+  const dms = new Map<string, Structures.Message>();
+  if (guild) {
+    for (let member of canEdit) {
       try {
         // in their language (or the server's), not the moderator's
         const dm = await getTranslatorForUser(context, member.id);
         const dmReason = (dm.language === auditTranslator.language) ? reason : createReason(dm);
-        await member.createMessage([
+        const message = await member.createMessage([
           dm.translate('moderation_kick.you_have_been_kicked_from', {guild: guild.id, name: Markup.escape.all(guild.name)}),
           '',
           dm.translate('moderation_kick.details', {reason: Markup.codeblock(dmReason)}),
         ].join('\n'));
+        dms.set(member.id, message);
       } catch(error) {
         // maybe log this?
       }
     }
+  }
 
-    // one failure (rate limit, 5xx, missing permissions) shouldn't stop the rest or the summary
-    try {
-      if (deleteMessageSeconds) {
-        await member.ban({deleteMessageSeconds, reason});
+  const failed: Array<{error: any, member: Structures.Member}> = [];
+  if (deleteMessageSeconds) {
+    // there's no bulk kick, but the ban half of a cleaning kick can go through the bulk ban
+    const errors = await banUsers(context, context.guildId!, canEdit.map((member) => member.id), {deleteMessageSeconds, reason});
+    for (let { error, userId } of errors) {
+      failed.push({error, member: canEdit.find((member) => member.id === userId)!});
+    }
+    for (let member of canEdit) {
+      if (errors.some(({ userId }) => userId === member.id)) {
+        continue;
+      }
+      try {
         try {
           await member.removeBan({reason});
         } catch(error) {
           // retry once, otherwise a kick would leave them banned
           await member.removeBan({reason});
         }
-      } else {
-        await member.remove({reason});
+      } catch(error) {
+        failed.push({error, member});
       }
-    } catch(error) {
-      failed.push({error, member});
+    }
+  } else {
+    // one failure (rate limit, 5xx, missing permissions) shouldn't stop the rest or the summary
+    for (let member of canEdit) {
+      try {
+        await member.remove({reason});
+      } catch(error) {
+        failed.push({error, member});
+      }
     }
   }
   for (let { member } of failed) {
     canEdit.splice(canEdit.indexOf(member), 1);
+    // they weren't kicked, so the dm saying they were shouldn't stay around
+    const message = dms.get(member.id);
+    if (message) {
+      try {
+        await message.delete();
+      } catch(error) {
+        // they still got it, nothing else to do
+      }
+    }
   }
 
   const display: DisplayPayload = {fields: []};

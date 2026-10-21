@@ -12,8 +12,8 @@ import { DisplayPayload, displayReply } from '../../../utils';
 export const COMMAND_ID = 'settings.ai.memory.list';
 
 // same as the api's `MAX_LLM_MEMORY_AMOUNT_GLOBAL` and `MAX_LLM_MEMORY_AMOUNT_SERVER`: global ones, and more for each server
-export const MAX_MEMORIES_GLOBAL = 10;
-export const MAX_MEMORIES_SERVER = 10;
+export const MAX_MEMORIES_GLOBAL = 25;
+export const MAX_MEMORIES_SERVER = 15;
 
 export interface CommandArgs {
 

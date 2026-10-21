@@ -91,6 +91,7 @@ export async function createMessage(
     translate('tag_directory_verify.warning_rights'),
     translate('tag_directory_verify.warning_locks'),
     translate('tag_directory_verify.warning_staff'),
+    translate('tag_directory_verify.benefit_premium'),
     translate('tag_directory_verify.warning_cancel', {command: Markup.codestring('/tag directory verify cancel: True')}),
   ];
   return displayReply(context, {components, description: description.join('\n')});

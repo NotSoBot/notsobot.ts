@@ -21,9 +21,9 @@ export class SettingsSetDownloadQualityCommand extends BaseInteractionCommandOpt
       options: [
         {
           name: 'quality',
-          description: 'Download Quality (Default: 1080p)',
+          description: 'Download Quality (Default: 720p)',
           ...I18n.optionLocalizations('commands.settings.set.download_quality.quality'),
-          choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_1080, doNotSort: true}),
+          choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_720, doNotSort: true}),
         },
         {
           name: 'clear',

@@ -48,9 +48,10 @@ export async function parseTag(
   context: Command.Context | Interaction.InteractionContext,
   tagContent: string,
   args?: string,
+  tagContext?: TagFormatter.TagContext,
 ): Promise<TagFormatter.TagResult> {
   if (!(context instanceof Command.Context)) {
-    return TagFormatter.parse(context, tagContent, args);
+    return TagFormatter.parse(context, tagContent, args, undefined, tagContext);
   }
 
   let thinking: Promise<unknown> | null = null;
@@ -63,7 +64,7 @@ export async function parseTag(
     });
   }, THINKING_REPLY_AFTER);
   try {
-    return await TagFormatter.parse(context, tagContent, args);
+    return await TagFormatter.parse(context, tagContent, args, undefined, tagContext);
   } finally {
     clearTimeout(timeout);
     // the tag's reply (or error) has to edit the thinking reply, not race it into a second message
@@ -80,11 +81,11 @@ export async function createMessage(
 ) {
   // parse it
   const { tag } = args;
-  await increaseUsage(context, tag);
+  const directoryVerified = await increaseUsage(context, tag);
 
   context.metadata = Object.assign({}, context.metadata, {tag});
   const tagContent = (tag.reference_tag) ? tag.reference_tag.content : tag.content;
-  const parsedTag = await parseTag(context, tagContent, args.arguments);
+  const parsedTag = await parseTag(context, tagContent, args.arguments, {directoryVerified});
   // maybeReplaceContent reads the refreshed attachment urls from here, it used to only be set later in createTagMessage
   context.metadata = Object.assign({}, context.metadata, {parsedTag});
   await maybeReplaceContent(context, tag);
@@ -709,10 +710,12 @@ export function generatePages(
 }
 
 
+// resolves with whether the tag runs a verified directory listing (for `TagContext.directoryVerified`), false if the
+// use couldn't be recorded
 export async function increaseUsage(
   context: Command.Context | Interaction.InteractionContext,
   tag: RestResponsesRaw.Tag,
-) {
+): Promise<boolean> {
   let timestamp: number;
   if (context instanceof Interaction.InteractionContext) {
     timestamp = context.interaction.createdAtUnix;
@@ -728,9 +731,11 @@ export async function increaseUsage(
     });
     tag.last_used = response.last_used;
     // update TagCustomCommandStore using server_id or user.id, problem is that its only for this cluster
+    return !!response.directory_verified;
   } catch(e) {
 
   }
+  return false;
 }
 
 

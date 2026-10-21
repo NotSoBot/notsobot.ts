@@ -22,9 +22,11 @@ import { MediaIVMagikCommand } from './magik';
 import { MediaIVMagikGifCommand } from './magik-gif';
 import { MediaIVMandalaScopeCommand } from './mandalascope';
 import { MediaIVMultiplyCommand } from './multiply';
+import { MediaIVPinchPunchCommand } from './pinch-punch';
 import { MediaIVRippleCommand } from './ripple';
 import { MediaIVSwirlCommand } from './swirl';
 import { MediaIVTunnelCommand } from './tunnel';
+import { MediaIVVegasWaveCommand } from './vegas-wave';
 import { MediaIVWallCommand } from './wall';
 import { MediaIVWaveCommand } from './wave';
 import { MediaIVWavesCommand } from './waves';
@@ -65,9 +67,11 @@ export default class MediaIVDistortGroupCommand extends BaseSlashCommand {
         new MediaIVMagikGifCommand(),
         new MediaIVMandalaScopeCommand(),
         new MediaIVMultiplyCommand(),
+        new MediaIVPinchPunchCommand(),
         new MediaIVRippleCommand(),
         new MediaIVSwirlCommand(),
         new MediaIVTunnelCommand(),
+        new MediaIVVegasWaveCommand(),
         new MediaIVWallCommand(),
         new MediaIVWaveCommand(),
         new MediaIVWavesCommand(),

@@ -46,7 +46,7 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
           description: 'Users to ban (Mentions or User IDs, separated by spaces)',
           ...I18n.optionLocalizations('commands.moderation.ban.users'),
           required: true,
-          value: Parameters.Slash.banPayload(),
+          value: Parameters.Slash.banPayload({limit: Formatter.Commands.ModerationBan.MAX_USERS}),
         },
         {name: 'reason', description: 'Reason (shown in the Audit Log)', ...I18n.optionLocalizations('commands.moderation.ban.reason')},
         {
@@ -68,7 +68,8 @@ export class ModerationBanCommand extends BaseInteractionCommandOption {
   }
 
   onBeforeRun(context: Interaction.InteractionContext, args: CommandArgs) {
-    return !!args.users && !!args.users.membersOrUsers.length;
+    // over the limit still runs, so it says why instead of that nobody was found
+    return !!args.users && (!!args.users.membersOrUsers.length || !!args.users.overLimit);
   }
 
   async onCancelRun(context: Interaction.InteractionContext, args: CommandArgs) {

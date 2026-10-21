@@ -194,6 +194,9 @@ export function banPayload(
   return async (value: string, context: Interaction.InteractionContext): Promise<BanPayload> => {
     const membersOrUsers = new Collections.BaseCollection<string, Structures.Member | Structures.User>();
     const notFound: Array<string> = [];
+    // ids looked up (found or not), `notFound` also has the words that weren't ids
+    let lookups = 0;
+    let overLimit = false;
 
     for (let text of value.split(/\s+/).filter((x) => x)) {
       let searchValue = text;
@@ -211,7 +214,12 @@ export function banPayload(
       if (membersOrUsers.has(searchValue)) {
         continue;
       }
+      if (options.limit !== undefined && options.limit <= lookups) {
+        overLimit = true;
+        break;
+      }
 
+      lookups++;
       const member = await fetchMemberOrUserById(context, searchValue, options.membersOnly);
       if (member) {
         membersOrUsers.set(member.id, member);
@@ -227,6 +235,7 @@ export function banPayload(
     return {
       membersOrUsers: membersOrUsersArray,
       notFound,
+      overLimit,
       text: '',
     };
   };
