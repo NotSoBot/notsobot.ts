@@ -1852,21 +1852,33 @@ function jobTimedOutText(translate: Translator['translate'], job: RestResponsesR
 }
 
 
-// the line under the thinking text: its place while it waits in its queue, then what it's doing and the time it gets
-// (none when the api didn't say)
-function jobStatusText(translate: Translator['translate'], job: RestResponsesRaw.JobResponse): string | null {
+// the line under the thinking text: its place while it waits in its queue, then its tier and a live countdown to its
+// time limit (from `startedAt`, when we first saw it running), with "downloading" in front while it still is. the
+// countdown is a discord timestamp so it ticks without edits, and stays the same text so it doesn't cause any
+function jobStatusText(
+  translate: Translator['translate'],
+  job: RestResponsesRaw.JobResponse,
+  startedAt: number | null,
+): string | null {
   if (job.status === 'queued') {
     if (!job.queue || job.position === undefined) {
       return null;
     }
     return translate(`media.job_queued.${job.queue}`, {position: (job.position + 1).toLocaleString()});
   }
-  if (job.status === 'started' && job.stage) {
-    const stage = translate(`media.job_stage.${job.stage}`);
-    if (job.queue && job.time_limit) {
-      return translate(`media.job_running.${job.queue}`, {seconds: Math.round(job.time_limit).toLocaleString(), stage});
+  if (job.status === 'started') {
+    const parts: Array<string> = [];
+    if (job.stage === 'downloading') {
+      parts.push(translate('media.job_stage.downloading'));
     }
-    return translate('media.job_running', {stage});
+    if (job.queue) {
+      parts.push(translate(`media.job_tier.${job.queue}`));
+    }
+    if (job.time_limit && startedAt !== null) {
+      const deadline = Markup.timestamp(new Date(startedAt + job.time_limit * 1000), MarkupTimestampStyles.RELATIVE);
+      parts.push(translate('media.job_deadline', {deadline}));
+    }
+    return (parts.length) ? `-# ${parts.join(' · ')}` : null;
   }
   return null;
 }
@@ -1967,8 +1979,11 @@ export async function jobReply(
 
   const { translate } = await getTranslator(context);
   const thinkingText = randomThinkingText(translate);
-  // the api's first answer already says where it is (queued or running), so the first message does too
-  let statusText = jobStatusText(translate, job);
+  // the api's first answer already says where it is (queued or running), so the first message does too. the api
+  // doesn't say when it started, but we poll often enough that the first time we see it running is close (the first
+  // answer can be up to `JOB_RESPONSE_BRIEF_WAIT` late, so the countdown might give it a couple seconds too many)
+  let startedAt = (job.status === 'started') ? Date.now() : null;
+  let statusText = jobStatusText(translate, job, startedAt);
   let statusTextShownAt = (statusText) ? Date.now() : 0;
   let message: Structures.Message | void;
   try {
@@ -2013,7 +2028,10 @@ export async function jobReply(
         cancelJob(context, job.id);
         return await editOrReply(context, jobTimedOutText(translate, refreshedJob));
       }
-      const nextStatusText = jobStatusText(translate, refreshedJob);
+      if (refreshedJob.status === 'started' && startedAt === null) {
+        startedAt = Date.now();
+      }
+      const nextStatusText = jobStatusText(translate, refreshedJob, startedAt);
       if (nextStatusText !== statusText && JOB_STATUS_EDIT_INTERVAL <= Date.now() - statusTextShownAt) {
         statusText = nextStatusText;
         statusTextShownAt = Date.now();

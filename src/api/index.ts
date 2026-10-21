@@ -2264,6 +2264,14 @@ export async function mediaIVManipulationOverlayFlagAndorra(
 }
 
 
+export async function mediaIVManipulationOverlayFlagAntigua(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagAntigua(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayFlagArgentina(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2301,6 +2309,22 @@ export async function mediaIVManipulationOverlayFlagAzerbaijan(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayFlagAzerbaijan(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagBahamas(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagBahamas(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagBarbados(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagBarbados(context, options);
 }
 
 
@@ -2416,6 +2440,14 @@ export async function mediaIVManipulationOverlayFlagCroatia(
 }
 
 
+export async function mediaIVManipulationOverlayFlagCuba(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagCuba(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayFlagCyprus(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2437,6 +2469,22 @@ export async function mediaIVManipulationOverlayFlagDenmark(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayFlagDenmark(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagDominica(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagDominica(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagDominicanRepublic(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagDominicanRepublic(context, options);
 }
 
 
@@ -2512,6 +2560,14 @@ export async function mediaIVManipulationOverlayFlagGreece(
 }
 
 
+export async function mediaIVManipulationOverlayFlagGrenada(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagGrenada(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayFlagGuatemala(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2525,6 +2581,14 @@ export async function mediaIVManipulationOverlayFlagGuyana(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayFlagGuyana(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagHaiti(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagHaiti(context, options);
 }
 
 
@@ -2589,6 +2653,14 @@ export async function mediaIVManipulationOverlayFlagItaly(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayFlagItaly(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagJamaica(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagJamaica(context, options);
 }
 
 
@@ -2824,6 +2896,30 @@ export async function mediaIVManipulationOverlayFlagRussia(
 }
 
 
+export async function mediaIVManipulationOverlayFlagSaintKitts(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagSaintKitts(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagSaintLucia(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagSaintLucia(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagSaintVincent(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagSaintVincent(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayFlagSanMarino(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -2901,6 +2997,14 @@ export async function mediaIVManipulationOverlayFlagTrans(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayFlagTrans(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayFlagTrinidad(
+  context: RequestContext,
+  options: RestOptions.MediaBaseOptions,
+) {
+  return raw.mediaIVManipulationOverlayFlagTrinidad(context, options);
 }
 
 

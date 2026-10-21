@@ -29,7 +29,9 @@ export async function createMessage(
   args: CommandArgs,
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
-  const serverId = context.guildId || context.channelId!;
+  // `Parameters.NotSoTag` also resolves directory tags by id from any server, and PUT /tags upserts by name + server_id,
+  // so write to the tag's own server, using the current one would create a copy here instead of editing it
+  const serverId = args.tag.server_id || context.guildId || context.channelId!;
 
   const { reference_tag: referenceTag } = args.tag;
   if (!referenceTag) {

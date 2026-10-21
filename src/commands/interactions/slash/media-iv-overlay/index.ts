@@ -8,7 +8,6 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { MediaIVFlagGroupCommand } from './flag';
 import { MediaIVPrideGroupCommand } from './pride';
 import { MediaIVOverlayMiscGroupCommand } from './misc';
 
@@ -32,7 +31,6 @@ export default class MediaIVOverlayGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
-        new MediaIVFlagGroupCommand(),
         new MediaIVPrideGroupCommand(),
         new MediaIVOverlayMiscGroupCommand(),
       ],

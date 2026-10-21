@@ -416,6 +416,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-albania',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ANDORRA:
     '/media/iv/manipulation/overlay/flag-andorra',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ANTIGUA:
+    '/media/iv/manipulation/overlay/flag-antigua',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ARGENTINA:
     '/media/iv/manipulation/overlay/flag-argentina',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ARMENIA:
@@ -426,6 +428,10 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-austria',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_AZERBAIJAN:
     '/media/iv/manipulation/overlay/flag-azerbaijan',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_BAHAMAS:
+    '/media/iv/manipulation/overlay/flag-bahamas',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_BARBADOS:
+    '/media/iv/manipulation/overlay/flag-barbados',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_BELARUS:
     '/media/iv/manipulation/overlay/flag-belarus',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_BELGIUM:
@@ -454,12 +460,18 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-costa-rica',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_CROATIA:
     '/media/iv/manipulation/overlay/flag-croatia',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_CUBA:
+    '/media/iv/manipulation/overlay/flag-cuba',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_CYPRUS:
     '/media/iv/manipulation/overlay/flag-cyprus',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_CZECHIA:
     '/media/iv/manipulation/overlay/flag-czechia',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_DENMARK:
     '/media/iv/manipulation/overlay/flag-denmark',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_DOMINICA:
+    '/media/iv/manipulation/overlay/flag-dominica',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_DOMINICAN_REPUBLIC:
+    '/media/iv/manipulation/overlay/flag-dominican-republic',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ECUADOR:
     '/media/iv/manipulation/overlay/flag-ecuador',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_EL_SALVADOR:
@@ -478,10 +490,14 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-germany',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_GREECE:
     '/media/iv/manipulation/overlay/flag-greece',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_GRENADA:
+    '/media/iv/manipulation/overlay/flag-grenada',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_GUATEMALA:
     '/media/iv/manipulation/overlay/flag-guatemala',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_GUYANA:
     '/media/iv/manipulation/overlay/flag-guyana',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_HAITI:
+    '/media/iv/manipulation/overlay/flag-haiti',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_HONDURAS:
     '/media/iv/manipulation/overlay/flag-honduras',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_HUNGARY:
@@ -500,6 +516,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-israel',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_ITALY:
     '/media/iv/manipulation/overlay/flag-italy',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_JAMAICA:
+    '/media/iv/manipulation/overlay/flag-jamaica',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_JAPAN:
     '/media/iv/manipulation/overlay/flag-japan',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_KAZAKHSTAN:
@@ -558,6 +576,12 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-romania',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_RUSSIA:
     '/media/iv/manipulation/overlay/flag-russia',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAINT_KITTS:
+    '/media/iv/manipulation/overlay/flag-saint-kitts',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAINT_LUCIA:
+    '/media/iv/manipulation/overlay/flag-saint-lucia',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAINT_VINCENT:
+    '/media/iv/manipulation/overlay/flag-saint-vincent',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SAN_MARINO:
     '/media/iv/manipulation/overlay/flag-san-marino',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_SERBIA:
@@ -578,6 +602,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/flag-syria',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TRANS:
     '/media/iv/manipulation/overlay/flag-trans',
+  MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TRINIDAD:
+    '/media/iv/manipulation/overlay/flag-trinidad',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_TURKEY:
     '/media/iv/manipulation/overlay/flag-turkey',
   MEDIA_IV_MANIPULATION_OVERLAY_FLAG_UK:
