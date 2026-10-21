@@ -1703,6 +1703,7 @@ export async function generateTag(
 ): Promise<RestResponsesRaw.GenerateTag> {
   const maxFileSize = getDefaultMaxFileSize(context, options);
   const body = {
+    from_ai: options.fromAI,
     max_file_size: maxFileSize,
     memory: options.memory,
     model: options.model,

@@ -1,6 +1,7 @@
 import { URL } from 'url';
 
 import { Command, Interaction } from 'detritus-client';
+import { MarkupTimestampStyles } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 import { Response } from 'detritus-rest';
 
@@ -108,12 +109,24 @@ function translateApiError(
     const text = translator.translate(`${key}_max_size` as I18n.TranslationKey, {max_size: maxSize});
     return {specific: true, text};
   }
+  // how many messages a server gets from its premium, and when they come back
+  if (apiError.code === ApiErrorCodes.SERVER_AI_LIMIT && typeof(apiError.resets_at) === 'string') {
+    const resetsAt = new Date(apiError.resets_at);
+    if (!isNaN(resetsAt.getTime())) {
+      const text = translator.translate(key as I18n.TranslationKey, {
+        limit: String(apiError.limit),
+        time: Markup.timestamp(resetsAt, MarkupTimestampStyles.RELATIVE),
+      });
+      return {specific: true, text};
+    }
+  }
   return {specific: false, text: translator.translateMaybe(key, apiError.message)};
 }
 
 
 // the api's message for these only rewords the translation ('An outputted media was blocked...'), it never adds anything
 const API_ERRORS_WITHOUT_DETAILS: ReadonlyArray<ApiErrorCodes> = [
+  ApiErrorCodes.SERVER_AI_LIMIT,
   ApiErrorCodes.MEDIA_BLOCKED_GUIDELINES,
   ApiErrorCodes.MEDIA_BLOCKED_NSFW,
   ApiErrorCodes.MEDIA_NOT_HOSTED_GUIDELINES,

@@ -63,15 +63,18 @@ export async function createMessage(
     throw error;
   }
 
+  // a stacked server keeps the user's other slot
+  const left = response.items.find((x) => x.server_id === serverId);
+
   // the api event updates every cluster, this one shouldn't wait on it
   const userIds = PremiumServersStore.get(serverId);
-  if (userIds) {
+  if (userIds && !left) {
     PremiumServersStore.insert(serverId, Array.from(userIds).filter((userId) => userId !== context.userId));
   }
 
   const payload = await createPayload(context, response);
   payload.description = [
-    `${StatusEmojis.YES} ${translate('premium_servers.removed')}`,
+    `${StatusEmojis.YES} ${(left) ? translate('premium_servers.removed_one', {count: String(left.slots)}) : translate('premium_servers.removed')}`,
     '',
     payload.description,
   ].join('\n');

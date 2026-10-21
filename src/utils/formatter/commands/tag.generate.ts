@@ -8,11 +8,19 @@ import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError, utilitiesFetch
 import { RestResponsesRaw } from '../../../api/types';
 import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
 import { captureError } from '../../../sentry';
-import { Paginator, Parameters, TagFormatter, checkNSFW, editOrReply, findMediaUrlInMessage } from '../../../utils';
+import {
+  Paginator,
+  Parameters,
+  TagFormatter,
+  checkNSFW,
+  editOrReply,
+  findMediaUrlInMessage,
+  timeLimitParts,
+} from '../../../utils';
 
-import { getTranslator } from '../../i18n';
+import { Translator, getTranslator, randomAIThinkingText } from '../../i18n';
 
-import { createTagMessage } from './tag.show';
+import { THINKING_REPLY_AFTER, ThinkingReply, createTagMessage, tagTimeLimitText } from './tag.show';
 
 
 export const COMMAND_ID = 'tag.generate';
@@ -38,6 +46,31 @@ export interface CommandArgs {
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
+) {
+  // "premium plus ai · ai is ruminating" while NotSoAI writes, then the tag's countdown once its tagscript runs
+  const thinking = new ThinkingReply(context, (translate) => aiWritingText(context, translate));
+  try {
+    return await generateAndRunTag(context, args, thinking);
+  } finally {
+    await thinking.stop();
+  }
+}
+
+
+// the tier is the same one the tag will run with, there's no countdown yet since writing it isn't on the tag's clock
+async function aiWritingText(
+  context: Command.Context | Interaction.InteractionContext,
+  translate: Translator['translate'],
+): Promise<string> {
+  const { tier } = await TagFormatter.getMaxTimeTier(context, TagFormatter.TagLimitDefaults);
+  return `-# ${[...timeLimitParts(translate, tier, null), randomAIThinkingText(translate)].join(' · ')}`;
+}
+
+
+async function generateAndRunTag(
+  context: Command.Context | Interaction.InteractionContext,
+  args: CommandArgs,
+  thinking: ThinkingReply,
 ) {
   const urls: Array<string> = [];
   const promptExtra: Array<string> = [];
@@ -166,6 +199,9 @@ export async function createMessage(
     prompt: [args.prompt, ...promptExtra].join('\n'),
     urls,
   });
+  if (args.debug || args.debugFull) {
+    await thinking.stop();
+  }
   if (args.debugFull) {
     return editOrReply(context, {
       content: [
@@ -197,6 +233,9 @@ export async function createMessage(
     });
   }
 
+  const startedAt = Date.now();
+  // most generated tagscript is done right away, only switch to its countdown once it's actually taking a while
+  thinking.setStatus((translate) => tagTimeLimitText(context, translate, startedAt), THINKING_REPLY_AFTER);
   try {
     const parsedTag = await TagFormatter.parse(context, response.text, '', {
       defaultPersonality: TAG_GENERATION_PERSONALITY_DEFAULT,
@@ -217,8 +256,10 @@ export async function createMessage(
       const receipt = (memoryChanges.added && !memoryChanges.changed) ? translate('tag_generate.memory_saved') : translate('tag_generate.memory_updated');
       parsedTag.text = [parsedTag.text.trimEnd(), `-# 🧠 ${receipt}`].join('\n');
     }
+    await thinking.stop();
     return await createTagMessage(context, parsedTag);
   } catch(error) {
+    await thinking.stop();
     if (response.id) {
       try {
         await putGeneratedTagError(context, response.id, {error: error.message.slice(0, 6000)});

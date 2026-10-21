@@ -211,6 +211,14 @@ export function randomThinkingText(translate: Translator['translate']): string {
 }
 
 
+// every `tag_generate.thinking.N`, the status line while NotSoAI is still writing its tagscript
+const AI_THINKING_KEYS = (Object.keys(English) as Array<TranslationKey>).filter((key) => key.startsWith('tag_generate.thinking.'));
+
+export function randomAIThinkingText(translate: Translator['translate']): string {
+  return translate(AI_THINKING_KEYS[Math.floor(Math.random() * AI_THINKING_KEYS.length)]);
+}
+
+
 // Returns `t` with the language already bound, so formatters can call `translate('key')`
 export function createTranslator(language: Languages) {
   return (key: TranslationKey, variables?: TranslationVariables) => t(language, key, variables);

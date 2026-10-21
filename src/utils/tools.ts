@@ -1853,8 +1853,7 @@ function jobTimedOutText(translate: Translator['translate'], job: RestResponsesR
 
 
 // the line under the thinking text: its place while it waits in its queue, then its tier and a live countdown to its
-// time limit (from `startedAt`, when we first saw it running), with "downloading" in front while it still is. the
-// countdown is a discord timestamp so it ticks without edits, and stays the same text so it doesn't cause any
+// time limit (from `startedAt`, when we first saw it running), with "downloading" in front while it still is
 function jobStatusText(
   translate: Translator['translate'],
   job: RestResponsesRaw.JobResponse,
@@ -1867,20 +1866,35 @@ function jobStatusText(
     return translate(`media.job_queued.${job.queue}`, {position: (job.position + 1).toLocaleString()});
   }
   if (job.status === 'started') {
-    const parts: Array<string> = [];
+    const deadline = (job.time_limit && startedAt !== null) ? startedAt + job.time_limit * 1000 : null;
+    const parts = timeLimitParts(translate, job.queue || null, deadline);
     if (job.stage === 'downloading') {
-      parts.push(translate('media.job_stage.downloading'));
-    }
-    if (job.queue) {
-      parts.push(translate(`media.job_tier.${job.queue}`));
-    }
-    if (job.time_limit && startedAt !== null) {
-      const deadline = Markup.timestamp(new Date(startedAt + job.time_limit * 1000), MarkupTimestampStyles.RELATIVE);
-      parts.push(translate('media.job_deadline', {deadline}));
+      parts.unshift(translate('media.job_stage.downloading'));
     }
     return (parts.length) ? `-# ${parts.join(' · ')}` : null;
   }
   return null;
+}
+
+
+// what gave a media job or tag its time, the api's job queues only know the first three
+export type TimeLimitTier = 'free' | 'premium' | 'premium_server' | 'directory' | 'premium_plus' | 'premium_plus_ai';
+
+// the tier and a live countdown to its deadline (unix ms), for under the thinking text of media jobs and slow tags.
+// the countdown is a discord timestamp so it ticks without edits, and stays the same text so it doesn't cause any
+export function timeLimitParts(
+  translate: Translator['translate'],
+  tier: TimeLimitTier | null,
+  deadline: number | null,
+): Array<string> {
+  const parts: Array<string> = [];
+  if (tier) {
+    parts.push(translate(`time_limit.tier.${tier}`));
+  }
+  if (deadline !== null) {
+    parts.push(translate('time_limit.stops', {deadline: Markup.timestamp(new Date(deadline), MarkupTimestampStyles.RELATIVE)}));
+  }
+  return parts;
 }
 
 

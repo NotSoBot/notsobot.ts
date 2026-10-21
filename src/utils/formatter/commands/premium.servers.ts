@@ -12,6 +12,9 @@ import { DisplayPayload, displayDetailsLine, displayReply, displayTimestamp } fr
 
 export const COMMAND_ID = 'premium.servers';
 
+// the api's `MAX_SERVER_AI_MESSAGES`, NotSoAI messages every 12 hours each plus ai slot gives a server
+export const SERVER_AI_MESSAGES_PER_SLOT = 50;
+
 export interface CommandArgs {
 
 }
@@ -50,6 +53,7 @@ export async function createPayload(
       const removableAt = new Date(item.removable_at);
       description.push(displayDetailsLine([
         (name) ? item.server_id : null,
+        (1 < item.slots) ? translate('premium_servers.slots', {count: item.slots.toLocaleString(language)}) : null,
         translate('premium_servers.added', {time: displayTimestamp(item.created)}),
         (now < removableAt.getTime()) ? translate('premium_servers.removable', {time: displayTimestamp(removableAt)}) : null,
       ], true));
@@ -63,7 +67,7 @@ export async function createPayload(
     description: description.join('\n'),
     ephemeral: true,
     footer: translate('premium_servers.footer', {
-      count: response.items.length.toLocaleString(language),
+      count: response.used.toLocaleString(language),
       max: (response.limit === null) ? '\u221E' : response.limit.toLocaleString(language),
     }),
     title: translate('premium_servers.title'),

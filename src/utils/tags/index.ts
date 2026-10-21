@@ -116,6 +116,7 @@ import {
   randomFromArray,
   randomFromIterator,
   textToBoolean,
+  TimeLimitTier,
   traverseJSON,
 } from '../tools';
 
@@ -2034,10 +2035,28 @@ export async function getMaxTime(
   limits: TagLimits,
   tagContext?: TagContext,
 ): Promise<number> {
-  let maxTime = limits.MAX_TIME;
+  return (await getMaxTimeTier(context, limits, tagContext)).maxTime;
+}
+
+
+// `getMaxTime` plus which tier gave it, for the line under a slow tag's thinking text. a tier only takes over when it
+// gives at least as much time, so a tie (a premium user running a verified directory tag) shows the user's own
+export async function getMaxTimeTier(
+  context: Command.Context | Interaction.InteractionContext,
+  limits: TagLimits,
+  tagContext?: TagContext,
+): Promise<{maxTime: number, tier: TimeLimitTier}> {
+  let result: {maxTime: number, tier: TimeLimitTier} = {maxTime: limits.MAX_TIME, tier: 'free'};
+  const raise = (maxTime: number, tier: TimeLimitTier) => {
+    if (result.maxTime <= maxTime) {
+      result = {maxTime, tier};
+    }
+    return result;
+  };
+
   if (tagContext && tagContext.directoryVerified) {
     // a verified directory tag runs like it's premium, plus can still raise it below
-    maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM);
+    raise(limits.MAX_TIME_PREMIUM, 'directory');
   }
   let user: Awaited<ReturnType<typeof UserStore.getOrFetch>> = null;
   try {
@@ -2047,23 +2066,23 @@ export async function getMaxTime(
   }
   if (user && user.isPremiumPlusAI) {
     // nothing is higher, skip looking at the server
-    return Math.max(maxTime, limits.MAX_TIME_PREMIUM_PLUS_AI);
+    return raise(limits.MAX_TIME_PREMIUM_PLUS_AI, 'premium_plus_ai');
   }
   if (user && user.isPremiumPlus) {
     // a premium server gives less, skip looking at it
-    return Math.max(maxTime, limits.MAX_TIME_PREMIUM_PLUS);
+    return raise(limits.MAX_TIME_PREMIUM_PLUS, 'premium_plus');
   }
   if (user && user.isPremium) {
     // a premium server gives less than premium, so it can't raise this either
-    return Math.max(maxTime, limits.MAX_TIME_PREMIUM);
+    return raise(limits.MAX_TIME_PREMIUM, 'premium');
   }
 
   // members who gave the server a premium server slot (and a group dm's owner)
   const users = await getServerPremiumUsers(context);
   if (users.length) {
-    maxTime = Math.max(maxTime, limits.MAX_TIME_PREMIUM_FROM_SERVER);
+    raise(limits.MAX_TIME_PREMIUM_FROM_SERVER, 'premium_server');
   }
-  return maxTime;
+  return result;
 }
 
 
@@ -3414,6 +3433,8 @@ const ScriptTags = Object.freeze({
 
     const response = await withDeadline(context, tag, () => generateTag(context, {
       files,
+      // NotSoAI's own reply already counted as the server's message, its `{ai}` call doesn't count again
+      fromAI: !!tag.variables[PrivateVariables.IS_FROM_AI],
       // a user's tag running {ai} for someone else never gets their memories, it could send them anywhere
       memory: !(context.metadata && context.metadata.tag),
       model: tag.variables[PrivateVariables.SETTINGS][TagSettings.AI_MODEL],

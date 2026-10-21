@@ -9,7 +9,7 @@ import { getApiError } from '../../../api/errors';
 import { ApiErrorCodes, StatusEmojis } from '../../../constants';
 import { displayReply } from '../../../utils';
 
-import { createPayload } from './premium.servers';
+import { SERVER_AI_MESSAGES_PER_SLOT, createPayload } from './premium.servers';
 
 
 export const COMMAND_ID = 'premium.servers.add';
@@ -61,9 +61,19 @@ export async function createMessage(
     PremiumServersStore.insert(serverId, [...(userIds || []), context.userId]);
   }
 
+  const item = response.items.find((x) => x.server_id === serverId);
+  let result: string;
+  if (!response.created) {
+    result = translate('premium_servers.already_here');
+  } else if (item && 1 < item.slots) {
+    result = translate('premium_servers.stacked_here', {count: String(item.slots), messages: String(SERVER_AI_MESSAGES_PER_SLOT)});
+  } else {
+    result = translate('premium_servers.added_here');
+  }
+
   const payload = await createPayload(context, response);
   payload.description = [
-    `${StatusEmojis.YES} ${translate((response.created) ? 'premium_servers.added_here' : 'premium_servers.already_here')}`,
+    `${StatusEmojis.YES} ${result}`,
     '',
     payload.description,
   ].join('\n');

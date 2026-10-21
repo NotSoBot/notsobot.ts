@@ -220,8 +220,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
       if (contextMetadata.reasonIsPremiumRequired) {
         const storePageUrl = (
           Endpoints.Routes.URL +
-          Endpoints.Routes.APPLICATION_DIRECTORY(context.applicationId) +
-          `/${DiscordSkuIds.USER_NOTSOPREMIUM}`
+          Endpoints.Routes.APPLICATION_DIRECTORY_STORE(context.applicationId, DiscordSkuIds.USER_NOTSOPREMIUM)
         );
 
         contextMetadata.reason = [

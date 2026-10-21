@@ -379,6 +379,8 @@ export namespace RestOptions {
 
   
   export interface GenerateTag extends MediaBaseOptionsMultiple {
+    // an `{ai}` call inside of NotSoAI's own reply, it doesn't count toward a server's NotSoAI messages again
+    fromAI?: boolean,
     // send the user's memories along, never for `{ai}` inside of a user's tag
     memory?: boolean,
     model?: string,
@@ -1888,6 +1890,8 @@ export namespace RestResponsesRaw {
     // when it can be taken off, servers are locked for a while after getting someone's premium
     removable_at: string,
     server_id: string,
+    // how many of the user's slots are on it, plus ai subscribers can stack them to raise its NotSoAI limit
+    slots: number,
     user_id: string,
   }
 
@@ -1896,12 +1900,14 @@ export namespace RestResponsesRaw {
     // the servers only get anything while the user has premium plus
     active: boolean,
     items: Array<PremiumServer>,
-    // null for owners, they can give as many as they want
+    // slots, not servers. null for owners, they can give as many as they want
     limit: null | number,
+    // slots in use, stacked ones included
+    used: number,
   }
 
   export interface PutUserPremiumServer extends FetchUserPremiumServers {
-    // false when the server already had it
+    // false when the server already had it and another slot wouldn't give it more (no plus ai to stack)
     created: boolean,
   }
 

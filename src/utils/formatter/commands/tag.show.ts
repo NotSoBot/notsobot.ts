@@ -11,7 +11,7 @@ import {
 } from 'detritus-client/lib/utils';
 
 import TagCustomCommandStore from '../../../stores/tagcustomcommands';
-import { getCachedTranslator, getTranslator, randomThinkingText } from '../../i18n';
+import { Translator, getCachedTranslator, getTranslator, randomThinkingText } from '../../i18n';
 
 import { createTagUse, editTag, fetchFileVanity } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
@@ -25,6 +25,7 @@ import {
   checkNSFW,
   editOrReply,
   mediaReplyFromOptions,
+  timeLimitParts,
 } from '../../../utils';
 
 
@@ -44,33 +45,116 @@ export interface CommandArgs {
 // reply. interactions already defer into discord's own thinking state
 export const THINKING_REPLY_AFTER = 2000;
 
+// the line under the thinking text, worked out only once the reply is actually sent (so fast commands skip the lookups)
+export type ThinkingStatus = (translate: Translator['translate']) => Promise<string | null> | string | null;
+
+// a prefix command's thinking reply: sent once the command has taken `THINKING_REPLY_AFTER`, and edited whenever its
+// status changes after that. the same random thinking text stays on top. interactions get nothing, they already defer
+export class ThinkingReply {
+  context: Command.Context | Interaction.InteractionContext;
+  pending: Promise<void> = Promise.resolve();
+  sent: boolean = false;
+  status: ThinkingStatus | null;
+  statusTimeout: ReturnType<typeof setTimeout> | null = null;
+  stopped: boolean = false;
+  thinkingText: string | null = null;
+  timeout: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(context: Command.Context | Interaction.InteractionContext, status: ThinkingStatus | null = null) {
+    this.context = context;
+    this.status = status;
+    if (context instanceof Command.Context) {
+      this.timeout = setTimeout(() => {
+        this.timeout = null;
+        this.sent = true;
+        this.render();
+      }, THINKING_REPLY_AFTER);
+    }
+  }
+
+  // `after` holds off the edit when the reply is already out, so a status that's over right away (generated tagscript
+  // that runs instantly) doesn't cost an edit right before the command's own reply. not out yet, it's just swapped
+  setStatus(status: ThinkingStatus | null, after: number = 0): void {
+    if (this.statusTimeout) {
+      clearTimeout(this.statusTimeout);
+      this.statusTimeout = null;
+    }
+    if (!this.sent || !after) {
+      this.status = status;
+      if (this.sent) {
+        this.render();
+      }
+      return;
+    }
+    this.statusTimeout = setTimeout(() => {
+      this.statusTimeout = null;
+      this.status = status;
+      this.render();
+    }, after);
+  }
+
+  // the command's reply (or error) has to edit the thinking reply, not race it into a second message, so this has to
+  // be awaited before replying. edits that haven't started yet are dropped
+  async stop(): Promise<void> {
+    if (this.timeout) {
+      clearTimeout(this.timeout);
+      this.timeout = null;
+    }
+    if (this.statusTimeout) {
+      clearTimeout(this.statusTimeout);
+      this.statusTimeout = null;
+    }
+    this.stopped = true;
+    await this.pending;
+  }
+
+  // edits go one at a time, so a slow first reply can't land after the edit meant to replace it
+  private render(): void {
+    this.pending = this.pending.then(async () => {
+      if (this.stopped) {
+        return;
+      }
+      const { translate } = await getTranslator(this.context);
+      if (!this.thinkingText) {
+        this.thinkingText = randomThinkingText(translate);
+      }
+      const statusText = (this.status) ? await this.status(translate) : null;
+      if (this.stopped) {
+        return;
+      }
+      await editOrReply(this.context, (statusText) ? `${this.thinkingText}\n${statusText}` : this.thinkingText);
+    }).catch(() => {
+      // the trigger was edited/deleted or the channel can't be replied in, the command's own reply will deal with it
+    });
+  }
+}
+
+
+// "-# premium plus · stops in 47 seconds" for a tag that started running at `startedAt`. `parse` picks its deadline
+// right after that (the same `getMaxTime`, and these tags never pass their own limits), so it's at most a few ms early
+export async function tagTimeLimitText(
+  context: Command.Context | Interaction.InteractionContext,
+  translate: Translator['translate'],
+  startedAt: number,
+  tagContext?: TagFormatter.TagContext,
+): Promise<string> {
+  const { maxTime, tier } = await TagFormatter.getMaxTimeTier(context, TagFormatter.TagLimitDefaults, tagContext);
+  return `-# ${timeLimitParts(translate, tier, startedAt + maxTime).join(' · ')}`;
+}
+
+
 export async function parseTag(
   context: Command.Context | Interaction.InteractionContext,
   tagContent: string,
   args?: string,
   tagContext?: TagFormatter.TagContext,
 ): Promise<TagFormatter.TagResult> {
-  if (!(context instanceof Command.Context)) {
-    return TagFormatter.parse(context, tagContent, args, undefined, tagContext);
-  }
-
-  let thinking: Promise<unknown> | null = null;
-  const timeout = setTimeout(() => {
-    thinking = (async () => {
-      const { translate } = await getTranslator(context);
-      await editOrReply(context, randomThinkingText(translate));
-    })().catch(() => {
-      // the trigger was edited/deleted or the channel can't be replied in, the tag's own reply will deal with it
-    });
-  }, THINKING_REPLY_AFTER);
+  const startedAt = Date.now();
+  const thinking = new ThinkingReply(context, (translate) => tagTimeLimitText(context, translate, startedAt, tagContext));
   try {
     return await TagFormatter.parse(context, tagContent, args, undefined, tagContext);
   } finally {
-    clearTimeout(timeout);
-    // the tag's reply (or error) has to edit the thinking reply, not race it into a second message
-    if (thinking) {
-      await thinking;
-    }
+    await thinking.stop();
   }
 }
 

@@ -7,7 +7,7 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
 export class SettingsSetFileUploadTypeCommand extends BaseInteractionCommandOption {
-  description = 'Set whether files should be uploaded as temporary or permanent (for premium users) to https://nsb.gg';
+  description = 'Set whether files uploaded to https://nsb.gg are temporary or automatic';
   descriptionLocalizations = I18n.localizations('commands.settings.set.file_upload_type.description');
   metadata = {
     id: Formatter.Commands.SettingsSetFileUploadType.COMMAND_ID,
