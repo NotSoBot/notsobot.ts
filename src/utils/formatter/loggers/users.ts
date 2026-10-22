@@ -10,6 +10,7 @@ import {
   addContainerGallery,
   addContainerHeader,
   addImageFiles,
+  createFooterTimestamp,
   createUserHeaderLines,
 } from './tools';
 import { LogPayloadFiles, GuildLoggingEventUsersUpdate } from './types';
@@ -124,10 +125,7 @@ export function formatUsersUpdate(
   const { avatars, user } = event.cached;
   const { differences } = event.payload;
 
-  {
-    const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`${translate('logger.footer.user_updated')} • ${timestamp}`);
-  }
+  embed.setFooter(`${translate('logger.footer.user_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
   createUserEmbed(user, embed);
   embed.setColor(EmbedColors.LOG_UPDATE);
@@ -189,5 +187,5 @@ export function formatUsersUpdateComponents(
     addContainerGallery(container, images, (urls.current) ? translate('logger.user.avatar_old_new') : translate('logger.user.old_avatar'));
   }
 
-  addContainerFooter(container, `${translate('logger.footer.user_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.user_updated')} • ${createFooterTimestamp(happened)}`);
 }

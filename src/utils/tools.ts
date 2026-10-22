@@ -198,7 +198,7 @@ export function createTimestampStringFromGuild(timestamp: number | string, guild
 
 export function createUserEmbed(user: Structures.User, embed: Embed = new Embed()) {
   embed.setAuthor(
-    (user.bot) ? `${user} (BOT)` : user.toString(),
+    (user.bot) ? `${formatUserTag(user)} (BOT)` : formatUserTag(user),
     user.avatarUrlFormat(null, {size: 1024}),
     user.jumpLink,
   );

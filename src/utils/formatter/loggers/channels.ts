@@ -2,11 +2,11 @@ import { Structures } from 'detritus-client';
 import { ChannelTypes } from 'detritus-client/lib/constants';
 import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 
-import { ChannelTypesText, DateMomentLogFormat, EmbedColors, PermissionsText } from '../../../constants';
-import { createTimestampMomentFromGuild, createTimestampStringFromGuild, createUserString, permissionsToObject } from '../../../utils';
+import { ChannelTypesText, EmbedColors, PermissionsText } from '../../../constants';
+import { createTimestampStringFromGuild, createUserString, permissionsToObject } from '../../../utils';
 
 import type { Translator } from '../../i18n';
-import { ContainerSection, addContainerBody, addContainerFooter, addContainerHeader, hasContainerSections } from './tools';
+import { ContainerSection, addContainerBody, addContainerFooter, addContainerHeader, createFooterTimestamp, createRelativeTimestamp, hasContainerSections } from './tools';
 import {
   GuildLoggingEventItemAudits,
   LogPayloadFiles,
@@ -54,8 +54,7 @@ export function getChannelOverwriteTargetText(guildId: string, overwrite: Struct
 }
 
 
-// components use discord's relative timestamp, it stays accurate and shows the full date on hover
-export function getChannelInformationLines(channel: Structures.Channel, guildId: string, translator: Translator, relative: boolean = false): Array<string> {
+export function getChannelInformationLines(channel: Structures.Channel, translator: Translator): Array<string> {
   const { language, translate, translateMaybe } = translator;
   const description: Array<string> = [];
   description.push(`**${translate('common.type')}**: ${getChannelTypeText(channel.type, translator)}`);
@@ -81,13 +80,7 @@ export function getChannelInformationLines(channel: Structures.Channel, guildId:
   if (channel.permissionOverwrites.length) {
     description.push(`**${translate('logger.channel.permission_overwrites')}**: ${channel.permissionOverwrites.length.toLocaleString(language)}`);
   }
-  if (relative) {
-    description.push(`**${translate('common.created')}**: <t:${Math.floor(channel.createdAtUnix / 1000)}:R>`);
-  } else {
-    const timestamp = createTimestampMomentFromGuild(channel.createdAtUnix, guildId);
-    description.push(`**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`);
-    description.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
-  }
+  description.push(`**${translate('common.created')}**: ${createRelativeTimestamp(channel.createdAtUnix)}`);
   return description;
 }
 
@@ -252,7 +245,7 @@ export function formatChannelCreate(
     embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
   embed.addField(translate('logger.topic'), getChannelTopicLines(channel).join('\n'));
-  embed.addField(translate('common.information'), getChannelInformationLines(channel, guildId, translator).join('\n'));
+  embed.addField(translate('common.information'), getChannelInformationLines(channel, translator).join('\n'));
 }
 
 
@@ -274,9 +267,9 @@ export function formatChannelCreateComponents(
   ]);
   addContainerBody(container, [
     {title: translate('logger.topic'), lines: getChannelTopicLines(channel)},
-    {title: translate('common.information'), lines: getChannelInformationLines(channel, guildId, translator, true)},
+    {title: translate('common.information'), lines: getChannelInformationLines(channel, translator)},
   ]);
-  addContainerFooter(container, `${translate('logger.footer.channel_created')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.channel_created')} • ${createFooterTimestamp(happened)}`);
 }
 
 
@@ -301,7 +294,7 @@ export function formatChannelDelete(
     embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
   embed.addField(translate('logger.topic'), getChannelTopicLines(channel).join('\n'));
-  embed.addField(translate('common.information'), getChannelInformationLines(channel, guildId, translator).join('\n'));
+  embed.addField(translate('common.information'), getChannelInformationLines(channel, translator).join('\n'));
 }
 
 
@@ -323,9 +316,9 @@ export function formatChannelDeleteComponents(
   ]);
   addContainerBody(container, [
     {title: translate('logger.topic'), lines: getChannelTopicLines(channel)},
-    {title: translate('common.information'), lines: getChannelInformationLines(channel, guildId, translator, true)},
+    {title: translate('common.information'), lines: getChannelInformationLines(channel, translator)},
   ]);
-  addContainerFooter(container, `${translate('logger.footer.channel_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.channel_deleted')} • ${createFooterTimestamp(happened)}`);
 }
 
 
@@ -375,5 +368,5 @@ export function formatChannelUpdateComponents(
     {title: translate('logger.moderation_action'), lines: getChannelModerationLines(audits, translate('logger.updated_by'), translator)},
   ]);
   addContainerBody(container, sections);
-  addContainerFooter(container, `${translate('logger.footer.channel_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.channel_updated')} • ${createFooterTimestamp(happened)}`);
 }

@@ -1,12 +1,10 @@
-import * as moment from 'moment';
-
 import { Structures } from 'detritus-client';
 import { AuditLogActions } from 'detritus-client/lib/constants';
 import { ComponentContainer, Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
-import { DateMomentLogFormat, EmbedColors } from '../../../constants';
-import { createTimestampMomentFromGuild, createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
+import { EmbedColors } from '../../../constants';
+import { createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
 
 import type { Translator } from '../../i18n';
 import {
@@ -15,6 +13,8 @@ import {
   addContainerFiles,
   addContainerFooter,
   addContainerHeader,
+  createFooterTimestamp,
+  createRelativeTimestamp,
   createUserHeaderLines,
   getLoggedContent,
 } from './tools';
@@ -29,16 +29,10 @@ export function getMessageInformationLines(
   translator: Translator,
 ): Array<string> {
   const { language, translate, translateMaybe } = translator;
-  let timestamp: moment.Moment;
-  if (message) {
-    timestamp = createTimestampMomentFromGuild(message.timestampUnix, guildId);
-  } else {
-    timestamp = createTimestampMomentFromGuild(Snowflake.timestamp(messageId), guildId);
-  }
+  const created = (message) ? message.timestampUnix : Snowflake.timestamp(messageId);
   return [
     `**${translate('common.channel')}**: <#${channelId}>`,
-    `**${translate('common.created')}**: ${timestamp.locale(language).fromNow()}`,
-    `**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`,
+    `**${translate('common.created')}**: ${createRelativeTimestamp(created)}`,
     `**${translate('logger.message.link')}**: ${Markup.url(messageId, DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(guildId, channelId, messageId))}`,
   ];
 }
@@ -54,7 +48,6 @@ export function getMessageAuthorHeaderLines(message: Structures.Message | null |
 
 
 // the information goes next to the avatar thumbnail, otherwise the thumbnail leaves a big gap under the two name lines
-// discord's relative timestamp stays accurate and shows the full date on hover, so the spoilered date isn't needed
 export function getMessageHeaderLines(
   guildId: string,
   channelId: string,
@@ -63,11 +56,11 @@ export function getMessageHeaderLines(
   translator: Translator,
 ): Array<string> {
   const { language, translate, translateMaybe } = translator;
-  const timestamp = Math.floor(((message) ? message.timestampUnix : Snowflake.timestamp(messageId)) / 1000);
+  const created = (message) ? message.timestampUnix : Snowflake.timestamp(messageId);
   return [
     ...getMessageAuthorHeaderLines(message, translator),
     `**${translate('common.channel')}**: <#${channelId}>`,
-    `**${translate('common.created')}**: <t:${timestamp}:R>`,
+    `**${translate('common.created')}**: ${createRelativeTimestamp(created)}`,
     `**${translate('logger.message.link')}**: ${Markup.url(messageId, DiscordEndpoints.Routes.URL + DiscordEndpoints.Routes.MESSAGE(guildId, channelId, messageId))}`,
   ];
 }
@@ -161,10 +154,7 @@ export function formatMessageDelete(
 
   const { channelId, message, messageId } = event.payload;
 
-  {
-    const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`${translate('logger.footer.message_deleted')} • ${timestamp}`);
-  }
+  embed.setFooter(`${translate('logger.footer.message_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
   if (message) {
     createUserEmbed(message.author, embed);
@@ -224,7 +214,7 @@ export function formatMessageDeleteComponents(
     {title: translate('logger.message.role_mentions'), lines: sections.roleMentions},
   ]);
   // no gallery, the attachment cdn urls are dead once the message is deleted and a media gallery with a dead url fails to render
-  addContainerFooter(container, `${translate('logger.footer.message_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.message_deleted')} • ${createFooterTimestamp(happened)}`);
 }
 
 
@@ -280,10 +270,7 @@ export function formatMessageDeleteBulk(
 
   const { amount, channelId, guildId } = event.payload;
 
-  {
-    const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`${translate('logger.footer.message_bulk_deleted')} • ${timestamp}`);
-  }
+  embed.setFooter(`${translate('logger.footer.message_bulk_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
   embed.setAuthor(translate('logger.message.messages_deleted', {count: amount.toLocaleString(language)}));
   embed.setColor(EmbedColors.LOG_DELETION);
@@ -328,7 +315,7 @@ export function formatMessageDeleteBulkComponents(
   files.push(createMessageDeleteBulkFile(event));
   addContainerFiles(container, files);
 
-  addContainerFooter(container, `${translate('logger.footer.message_bulk_deleted')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.message_bulk_deleted')} • ${createFooterTimestamp(happened)}`);
 }
 
 
@@ -444,8 +431,7 @@ export function formatMessageUpdate(
 
   {
     const time = (message && message.isEdited && !event.payload.isEmbedUpdate) ? message.editedAtUnix : happened;
-    const timestamp = createTimestampStringFromGuild(time, guildId);
-    embed.setFooter(`${translate('logger.footer.message_updated')} • ${timestamp}`);
+    embed.setFooter(`${translate('logger.footer.message_updated')} • ${createTimestampStringFromGuild(time, guildId)}`);
   }
 
   if (message) {
@@ -547,5 +533,5 @@ export function formatMessageUpdateComponents(
   addContainerFiles(container, files);
 
   const time = (message && message.isEdited && !event.payload.isEmbedUpdate) ? message.editedAtUnix : happened;
-  addContainerFooter(container, `${translate('logger.footer.message_updated')} • ${createTimestampStringFromGuild(time, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.message_updated')} • ${createFooterTimestamp(time)}`);
 }

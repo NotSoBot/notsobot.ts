@@ -5,7 +5,7 @@ import { EmbedColors } from '../../../constants';
 import { createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
 
 import type { Translator } from '../../i18n';
-import { addContainerFooter, addContainerHeader, createContainerTitle, createUserHeaderLines } from './tools';
+import { addContainerFooter, addContainerHeader, createContainerTitle, createFooterTimestamp, createUserHeaderLines } from './tools';
 import { GuildLoggingEventItemAudits, LogPayloadFiles, GuildLoggingEventGuildBanAdd, GuildLoggingEventGuildBanRemove } from './types';
 
 
@@ -39,10 +39,7 @@ export function formatGuildBanAdd(
   embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
   embed.setDescription(user.mention);
 
-  {
-    const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`${translate('logger.footer.user_banned')} • ${timestamp}`);
-  }
+  embed.setFooter(`${translate('logger.footer.user_banned')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
   const description = getBanModerationLines(audits, translate('logger.banned_by'), translator);
   if (description.length) {
@@ -69,7 +66,7 @@ export function formatGuildBanAddComponents(
     ...createUserHeaderLines(user.id, user, translator),
     ...((moderation.length) ? [createContainerTitle(translate('logger.moderation_action')), ...moderation] : []),
   ], user.avatarUrlFormat(null, {size: 1024}), false);
-  addContainerFooter(container, `${translate('logger.footer.user_banned')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.user_banned')} • ${createFooterTimestamp(happened)}`);
 }
 
 
@@ -89,10 +86,7 @@ export function formatGuildBanRemove(
   embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
   embed.setDescription(user.mention);
 
-  {
-    const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`${translate('logger.footer.user_unbanned')} • ${timestamp}`);
-  }
+  embed.setFooter(`${translate('logger.footer.user_unbanned')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
   const description = getBanModerationLines(audits, translate('logger.unbanned_by'), translator);
   if (description.length) {
@@ -119,5 +113,5 @@ export function formatGuildBanRemoveComponents(
     ...createUserHeaderLines(user.id, user, translator),
     ...((moderation.length) ? [createContainerTitle(translate('logger.moderation_action')), ...moderation] : []),
   ], user.avatarUrlFormat(null, {size: 1024}), false);
-  addContainerFooter(container, `${translate('logger.footer.user_unbanned')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.user_unbanned')} • ${createFooterTimestamp(happened)}`);
 }

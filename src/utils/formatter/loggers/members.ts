@@ -2,8 +2,8 @@ import { Structures } from 'detritus-client';
 import { AuditLogActions, AuditLogChangeKeys, MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
 
-import { DateMomentLogFormat, EmbedColors } from '../../../constants';
-import { createTimestampMomentFromGuild, createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
+import { EmbedColors } from '../../../constants';
+import { createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
 
 import type { Translator } from '../../i18n';
 import {
@@ -13,6 +13,8 @@ import {
   addContainerGallery,
   addContainerHeader,
   addImageFiles,
+  createFooterTimestamp,
+  createRelativeTimestamp,
   createUserHeaderLines,
 } from './tools';
 import { LogPayloadFiles, GuildLoggingEventGuildMemberAdd, GuildLoggingEventGuildMemberRemove, GuildLoggingEventGuildMemberUpdate } from './types';
@@ -23,26 +25,14 @@ export interface JoinedTimestamp {
   unix: number,
 }
 
-// embeds get the date in the guild's timezone under a spoiler
-// components use discord's relative timestamp, it stays accurate and shows the full date on hover
-export function createJoinedLines(joined: Array<JoinedTimestamp>, guildId: string, translator: Translator, relative: boolean = false): Array<string> {
-  const { language, translate, translateMaybe } = translator;
-  const lines: Array<string> = [];
-  for (let { title, unix } of joined) {
-    if (relative) {
-      lines.push(`**${title}**: <t:${Math.floor(unix / 1000)}:R>`);
-    } else {
-      const timestamp = createTimestampMomentFromGuild(unix, guildId);
-      lines.push(`**${title}**: ${timestamp.locale(language).fromNow()}`);
-      lines.push(`**->** ${Markup.spoiler(timestamp.format(DateMomentLogFormat))}`);
-    }
-  }
-  return lines;
+export function createJoinedLines(joined: Array<JoinedTimestamp>): Array<string> {
+  return joined.map(({ title, unix }) => `**${title}**: ${createRelativeTimestamp(unix)}`);
 }
 
 
 export function getGuildMemberAddSections(event: GuildLoggingEventGuildMemberAdd, translator: Translator): {
   footer: string,
+  footerUnix: number,
   information: Array<string>,
   joined: Array<JoinedTimestamp>,
   moderation: Array<string>,
@@ -60,7 +50,7 @@ export function getGuildMemberAddSections(event: GuildLoggingEventGuildMemberAdd
     // rename this to something else so you can search for the messages
     footer = translate('logger.footer.member_joined');
   }
-  footer = `${footer} • ${createTimestampStringFromGuild(member.joinedAtUnix || happened, guildId)}`;
+  const footerUnix = member.joinedAtUnix || happened;
 
   const moderation: Array<string> = [];
   if (audits) {
@@ -79,7 +69,7 @@ export function getGuildMemberAddSections(event: GuildLoggingEventGuildMemberAdd
     {title: translate('user.joined_discord'), unix: member.createdAtUnix},
   ];
 
-  return {footer, information, joined, moderation};
+  return {footer, footerUnix, information, joined, moderation};
 }
 
 
@@ -98,13 +88,13 @@ export function formatGuildMemberAdd(
   embed.setThumbnail(member.avatarUrlFormat(null, {size: 1024}));
   embed.setDescription(member.mention);
 
-  const { footer, information, joined, moderation } = getGuildMemberAddSections(event, translator);
-  embed.setFooter(footer);
+  const { footer, footerUnix, information, joined, moderation } = getGuildMemberAddSections(event, translator);
+  embed.setFooter(`${footer} • ${createTimestampStringFromGuild(footerUnix, guildId)}`);
   if (moderation.length) {
     embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
   embed.addField(translate('common.information'), information.join('\n'), true);
-  embed.addField(translate('user.joined'), createJoinedLines(joined, guildId, translator).join('\n'), true);
+  embed.addField(translate('user.joined'), createJoinedLines(joined).join('\n'), true);
 }
 
 
@@ -118,21 +108,22 @@ export function formatGuildMemberAddComponents(
   const { guildId } = event;
   const { member } = event.payload;
 
-  const { footer, information, joined, moderation } = getGuildMemberAddSections(event, translator);
+  const { footer, footerUnix, information, joined, moderation } = getGuildMemberAddSections(event, translator);
 
   container.setAccentColor(EmbedColors.LOG_CREATION);
   // the information goes next to the avatar thumbnail, otherwise the thumbnail leaves a big gap under the two name lines
   addContainerHeader(container, [...createUserHeaderLines(member.id, member, translator), ...information], member.avatarUrlFormat(null, {size: 1024}));
   addContainerBody(container, [
     {title: translate('logger.moderation_action'), lines: moderation},
-    {title: translate('user.joined'), lines: createJoinedLines(joined, guildId, translator, true)},
+    {title: translate('user.joined'), lines: createJoinedLines(joined)},
   ]);
-  addContainerFooter(container, footer);
+  addContainerFooter(container, `${footer} • ${createFooterTimestamp(footerUnix)}`);
 }
 
 
 export function getGuildMemberRemoveSections(event: GuildLoggingEventGuildMemberRemove, translator: Translator): {
   footer: string,
+  footerUnix: number,
   information: Array<string>,
   joined: Array<JoinedTimestamp>,
   moderation: Array<string>,
@@ -153,7 +144,7 @@ export function getGuildMemberRemoveSections(event: GuildLoggingEventGuildMember
     }
   }
 
-  let text = translate('logger.footer.member_left');
+  let footer = translate('logger.footer.member_left');
   const moderation: Array<string> = [];
   if (audits) {
     const [ audit ] = audits;
@@ -162,23 +153,21 @@ export function getGuildMemberRemoveSections(event: GuildLoggingEventGuildMember
     switch (audit.actionType) {
       case AuditLogActions.MEMBER_BAN_ADD: {
         moderation.push(`**${translate('logger.banned_by')}**: ${userText}`);
-        text = translate('logger.footer.member_banned');
+        footer = translate('logger.footer.member_banned');
       }; break;
       case AuditLogActions.MEMBER_KICK: {
         moderation.push(`**${translate('logger.kicked_by')}**: ${userText}`);
-        text = translate('logger.footer.member_kicked');
+        footer = translate('logger.footer.member_kicked');
       }; break;
       default: {
         moderation.push(`**${translate('logger.unknown_reason')}**: ${userText}`);
-        text = translate('logger.footer.member_left_unknown', {action: audit.actionType});
+        footer = translate('logger.footer.member_left_unknown', {action: audit.actionType});
       };
     }
     if (audit.reason) {
       moderation.push(`**${translate('logger.reason')}**: ${Markup.codeblock(audit.reason)}`);
     }
   }
-  const footer = `${text} • ${createTimestampStringFromGuild(happened, guildId)}`;
-
   const information: Array<string> = [];
   information.push(`**${translate('common.id')}**: ${Markup.codestring(userId)}`);
   if (user) {
@@ -196,7 +185,7 @@ export function getGuildMemberRemoveSections(event: GuildLoggingEventGuildMember
     }
   }
 
-  return {footer, information, joined, moderation, user};
+  return {footer, footerUnix: happened, information, joined, moderation, user};
 }
 
 
@@ -210,7 +199,7 @@ export function formatGuildMemberRemove(
   const { guildId } = event;
   const { userId } = event.payload;
 
-  const { footer, information, joined, moderation, user } = getGuildMemberRemoveSections(event, translator);
+  const { footer, footerUnix, information, joined, moderation, user } = getGuildMemberRemoveSections(event, translator);
   if (user) {
     createUserEmbed(user, embed);
     embed.setThumbnail(user.avatarUrlFormat(null, {size: 1024}));
@@ -219,14 +208,14 @@ export function formatGuildMemberRemove(
   }
   embed.setColor(EmbedColors.LOG_DELETION);
   embed.setDescription(`<@!${userId}>`);
-  embed.setFooter(footer);
+  embed.setFooter(`${footer} • ${createTimestampStringFromGuild(footerUnix, guildId)}`);
 
   if (moderation.length) {
     embed.addField(translate('logger.moderation_action'), moderation.join('\n'));
   }
   embed.addField(translate('common.information'), information.join('\n'), true);
   if (joined.length) {
-    embed.addField(translate('user.joined'), createJoinedLines(joined, guildId, translator).join('\n'), true);
+    embed.addField(translate('user.joined'), createJoinedLines(joined).join('\n'), true);
   }
 }
 
@@ -241,16 +230,26 @@ export function formatGuildMemberRemoveComponents(
   const { guildId } = event;
   const { userId } = event.payload;
 
-  const { footer, information, joined, moderation, user } = getGuildMemberRemoveSections(event, translator);
+  const { footer, footerUnix, information, joined, moderation, user } = getGuildMemberRemoveSections(event, translator);
 
   container.setAccentColor(EmbedColors.LOG_DELETION);
   // the information goes next to the avatar thumbnail, otherwise the thumbnail leaves a big gap under the two name lines
   addContainerHeader(container, [...createUserHeaderLines(userId, user, translator), ...information], (user) ? user.avatarUrlFormat(null, {size: 1024}) : null);
   addContainerBody(container, [
     {title: translate('logger.moderation_action'), lines: moderation},
-    {title: translate('user.joined'), lines: createJoinedLines(joined, guildId, translator, true)},
+    {title: translate('user.joined'), lines: createJoinedLines(joined)},
   ]);
-  addContainerFooter(container, footer);
+  addContainerFooter(container, `${footer} • ${createFooterTimestamp(footerUnix)}`);
+}
+
+
+// audit changes give an iso string, cached members give unix ms
+export function createTimeoutUntilString(value: number | string): string {
+  const unix = (typeof(value) === 'number') ? value : Date.parse(value);
+  if (isNaN(unix)) {
+    return Markup.codestring(String(value));
+  }
+  return createRelativeTimestamp(unix);
 }
 
 
@@ -279,9 +278,9 @@ export function getGuildMemberUpdateAuditSection(event: GuildLoggingEventGuildMe
           if (change.newValue) {
             // must check if oldValue is newer than now to consider it a change
             if (change.oldValue && Date.now() < Date.parse(change.oldValue)) {
-              description.push(`-> ${translate('logger.member.timeout_changed', {old: change.oldValue, new: change.newValue})}`);
+              description.push(`-> ${translate('logger.member.timeout_changed', {old: createTimeoutUntilString(change.oldValue), new: createTimeoutUntilString(change.newValue)})}`);
             } else {
-              description.push(`-> ${translate('logger.member.timed_out_until', {until: change.newValue})}`);
+              description.push(`-> ${translate('logger.member.timed_out_until', {until: createTimeoutUntilString(change.newValue)})}`);
             }
           } else {
             description.push(`-> ${translate('logger.member.timeout_cleared')}`);
@@ -356,9 +355,9 @@ export function getGuildMemberUpdateChanges(event: GuildLoggingEventGuildMemberU
       description.push(`- ${translate('logger.member.timeout_change')}`);
       if (member.communicationDisabledUntilUnix) {
         if (old.communicationDisabledUntilUnix && Date.now() < old.communicationDisabledUntilUnix) {
-          description.push(`-> ${translate('logger.member.timeout_changed', {old: String(old.communicationDisabledUntil), new: String(member.communicationDisabledUntil)})}`);
+          description.push(`-> ${translate('logger.member.timeout_changed', {old: createTimeoutUntilString(old.communicationDisabledUntilUnix), new: createTimeoutUntilString(member.communicationDisabledUntilUnix)})}`);
         } else {
-          description.push(`-> ${translate('logger.member.timed_out_until', {until: String(member.communicationDisabledUntil)})}`);
+          description.push(`-> ${translate('logger.member.timed_out_until', {until: createTimeoutUntilString(member.communicationDisabledUntilUnix)})}`);
         }
       } else {
         description.push(`-> ${translate('logger.member.timeout_cleared')}`);
@@ -520,10 +519,7 @@ export function formatGuildMemberUpdate(
   embed.setColor(EmbedColors.LOG_UPDATE);
   embed.setDescription(member.mention);
 
-  {
-    const timestamp = createTimestampStringFromGuild(happened, guildId);
-    embed.setFooter(`${translate('logger.footer.member_updated')} • ${timestamp}`);
-  }
+  embed.setFooter(`${translate('logger.footer.member_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
   if (avatars) {
     const guild = shard.guilds.get(guildId);
@@ -587,5 +583,5 @@ export function formatGuildMemberUpdateComponents(
     addContainerGallery(container, images, (urls.current) ? translate('logger.member.server_avatar_old_new') : translate('logger.member.old_server_avatar'));
   }
 
-  addContainerFooter(container, `${translate('logger.footer.member_updated')} • ${createTimestampStringFromGuild(happened, guildId)}`);
+  addContainerFooter(container, `${translate('logger.footer.member_updated')} • ${createFooterTimestamp(happened)}`);
 }

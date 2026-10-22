@@ -6,7 +6,7 @@ import { EmbedColors } from '../../../constants';
 import { createTimestampStringFromGuild, createUserEmbed, createUserString } from '../../../utils';
 
 import type { Translator } from '../../i18n';
-import { ContainerSection, addContainerFooter, addContainerHeader, createUserHeaderLines } from './tools';
+import { ContainerSection, addContainerFooter, addContainerHeader, createFooterTimestamp, createUserHeaderLines } from './tools';
 import { LogPayloadFiles, GuildLoggingEventVoiceStateUpdate } from './types';
 
 
@@ -28,7 +28,7 @@ export function getVoiceStateUpdateSections(event: GuildLoggingEventVoiceStateUp
   footer: string,
 } {
   const { language, translate, translateMaybe } = translator;
-  const { audits, guildId, happened } = event;
+  const { audits } = event;
 
   const { voiceState } = event.cached;
   const { differences, leftChannel, shard } = event.payload;
@@ -36,26 +36,24 @@ export function getVoiceStateUpdateSections(event: GuildLoggingEventVoiceStateUp
   let color: number;
   let footer: string;
   {
-    let text: string;
     if (leftChannel) {
       color = EmbedColors.LOG_DELETION;
-      text = translate('logger.voice.footer.left');
+      footer = translate('logger.voice.footer.left');
     } else if (differences) {
       color = EmbedColors.LOG_UPDATE;
       if (differences.channelId && differences.sessionId) {
-        text = translate('logger.voice.footer.changed_channels_device');
+        footer = translate('logger.voice.footer.changed_channels_device');
       } else if (differences.channelId) {
-        text = translate('logger.voice.footer.changed_channels');
+        footer = translate('logger.voice.footer.changed_channels');
       } else if (differences.sessionId) {
-        text = translate('logger.voice.footer.rejoined_device');
+        footer = translate('logger.voice.footer.rejoined_device');
       } else {
-        text = translate('logger.voice.footer.updated');
+        footer = translate('logger.voice.footer.updated');
       }
     } else {
       color = EmbedColors.LOG_CREATION;
-      text = translate('logger.voice.footer.joined');
+      footer = translate('logger.voice.footer.joined');
     }
-    footer = `${text} • ${createTimestampStringFromGuild(happened, guildId)}`;
   }
 
   let shouldLogMuteDeaf: boolean = true;
@@ -194,6 +192,7 @@ export function formatVoiceStateUpdate(
   translator: Translator,
 ): void {
   const { language, translate, translateMaybe } = translator;
+  const { guildId, happened } = event;
   const { voiceState } = event.cached;
 
   if (voiceState.member) {
@@ -203,7 +202,7 @@ export function formatVoiceStateUpdate(
 
   const { actions, audit, changes, color, footer } = getVoiceStateUpdateSections(event, translator);
   embed.setColor(color);
-  embed.setFooter(footer);
+  embed.setFooter(`${footer} • ${createTimestampStringFromGuild(happened, guildId)}`);
 
   if (audit) {
     embed.addField(audit.title!, audit.lines.join('\n'));
@@ -227,6 +226,7 @@ export function formatVoiceStateUpdateComponents(
   translator: Translator,
 ): void {
   const { language, translate, translateMaybe } = translator;
+  const { happened } = event;
   const { voiceState } = event.cached;
   const { member } = voiceState;
 
@@ -247,5 +247,5 @@ export function formatVoiceStateUpdateComponents(
     false,
     sections,
   );
-  addContainerFooter(container, footer);
+  addContainerFooter(container, `${footer} • ${createFooterTimestamp(happened)}`);
 }

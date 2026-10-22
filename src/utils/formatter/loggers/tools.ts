@@ -1,6 +1,8 @@
 import { Structures } from 'detritus-client';
-import { MessageComponentTypes } from 'detritus-client/lib/constants';
+import { MarkupTimestampStyles, MessageComponentTypes } from 'detritus-client/lib/constants';
 import { ComponentContainer, Embed, Markup } from 'detritus-client/lib/utils';
+
+import { formatUserTag } from '../../../utils';
 
 import type { Translator } from '../../i18n';
 import { LogPayloadFiles } from './types';
@@ -109,7 +111,8 @@ export interface ContainerImage {
 export function createUserHeaderLines(userId: string, user: Structures.User | null | undefined, translator: Translator): Array<string> {
   const { language, translate, translateMaybe } = translator;
   if (user) {
-    let name = Markup.url(Markup.escape.all(user.toString()), user.jumpLink);
+    // discord shows the backslashes of escapes inside link text (formatting still renders there), inline code shows the name as is
+    let name = Markup.url(Markup.codestring(formatUserTag(user)), user.jumpLink);
     if (user.bot) {
       name += ` (${translate('logger.bot_tag')})`;
     }
@@ -250,6 +253,20 @@ export function addContainerFiles(container: ComponentContainer, files: LogPaylo
   for (let file of files) {
     container.createFile({file: {url: `attachment://${file.filename}`}});
   }
+}
+
+
+// discord renders timestamp markup in the viewer's own timezone and language, so loggers don't format dates themselves
+// relative ones keep counting and show the full date on hover, used for everything in the body
+export function createRelativeTimestamp(unix: number): string {
+  return Markup.timestamp(unix, MarkupTimestampStyles.RELATIVE);
+}
+
+
+// no single style has both the date and seconds, so it's the short date and the long time together
+// embed footers can't render the markup (and `embed.setTimestamp()` drops the seconds), they keep the guild's timezone text
+export function createFooterTimestamp(unix: number): string {
+  return `${Markup.timestamp(unix, MarkupTimestampStyles.DATE_SHORT)} ${Markup.timestamp(unix, MarkupTimestampStyles.TIME_LONG)}`;
 }
 
 
