@@ -4382,6 +4382,7 @@ export const Russian: Translations = Object.freeze({
   'voice_clone.confirm': 'Клонировать голос из этого аудио?',
   'voice_clone.warning_rights': '- Продолжая, ты подтверждаешь, что на аудио твой собственный голос или что его владелец дал тебе явное разрешение на клонирование.',
   'voice_clone.clone': 'Клонировать голос',
+  'voice_clone.uploading': 'Загрузка аудио',
   'voice_clone.ok_did_not_clone': 'Хорошо, голос не клонирован.',
   'voice_clone.canceled_due_to_timeout': 'Голос не клонирован, подтверждение не получено вовремя.',
   'voice_delete.you_have_no_cloned_voices': 'У вас нет клонированных голосов',

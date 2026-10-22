@@ -4382,6 +4382,7 @@ export const Dutch: Translations = Object.freeze({
   'voice_clone.confirm': 'Een stem klonen uit deze audio?',
   'voice_clone.warning_rights': '- Door verder te gaan bevestig je dat de audio je eigen stem is, of dat de eigenaar je uitdrukkelijk toestemming heeft gegeven om hem te klonen.',
   'voice_clone.clone': 'Stem klonen',
+  'voice_clone.uploading': 'Audio wordt geüpload',
   'voice_clone.ok_did_not_clone': 'Oké, de stem is niet gekloond.',
   'voice_clone.canceled_due_to_timeout': 'De stem is niet gekloond, het werd niet op tijd bevestigd.',
   'voice_delete.you_have_no_cloned_voices': 'Je hebt geen gekloonde stemmen',

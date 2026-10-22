@@ -4382,6 +4382,7 @@ export const Vietnamese: Translations = Object.freeze({
   'voice_clone.confirm': 'Nhân bản giọng từ âm thanh này?',
   'voice_clone.warning_rights': '- Khi tiếp tục, bạn xác nhận rằng âm thanh là giọng của chính bạn, hoặc chủ sở hữu giọng đã cho phép rõ ràng để bạn nhân bản.',
   'voice_clone.clone': 'Nhân bản giọng',
+  'voice_clone.uploading': 'Đang tải âm thanh lên',
   'voice_clone.ok_did_not_clone': 'Ok, đã không nhân bản giọng.',
   'voice_clone.canceled_due_to_timeout': 'Đã không nhân bản giọng, không được xác nhận kịp thời.',
   'voice_delete.you_have_no_cloned_voices': 'Bạn chưa có giọng nhân bản nào',

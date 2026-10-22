@@ -4382,6 +4382,7 @@ export const Hebrew: Translations = Object.freeze({
   'voice_clone.confirm': 'לשבט קול מהאודיו הזה?',
   'voice_clone.warning_rights': '- בהמשך, אתה מאשר שהאודיו הוא הקול שלך, או שבעליו נתן לך אישור מפורש לשבט אותו.',
   'voice_clone.clone': 'שבט קול',
+  'voice_clone.uploading': 'מעלה את השמע',
   'voice_clone.ok_did_not_clone': 'אוקיי, הקול לא שובט.',
   'voice_clone.canceled_due_to_timeout': 'הקול לא שובט, זה לא אושר בזמן.',
   'voice_delete.you_have_no_cloned_voices': 'אין לך קולות משובטים',

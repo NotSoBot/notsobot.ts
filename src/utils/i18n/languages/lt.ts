@@ -4382,6 +4382,7 @@ export const Lithuanian: Translations = Object.freeze({
   'voice_clone.confirm': 'Klonuoti balsą iš šio garso įrašo?',
   'voice_clone.warning_rights': '- Tęsdamas patvirtini, kad garso įraše yra tavo paties balsas arba kad jo savininkas davė tau aiškų leidimą jį klonuoti.',
   'voice_clone.clone': 'Klonuoti balsą',
+  'voice_clone.uploading': 'Įkeliamas garso įrašas',
   'voice_clone.ok_did_not_clone': 'Gerai, balsas neklonuotas.',
   'voice_clone.canceled_due_to_timeout': 'Balsas neklonuotas, nes nebuvo laiku patvirtinta.',
   'voice_delete.you_have_no_cloned_voices': 'Neturi jokių klonuotų balsų',

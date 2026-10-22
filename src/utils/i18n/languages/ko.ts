@@ -4382,6 +4382,7 @@ export const Korean: Translations = Object.freeze({
   'voice_clone.confirm': '이 오디오로 음성을 복제할까요?',
   'voice_clone.warning_rights': '- 계속하면 이 오디오가 본인의 목소리이거나, 목소리 주인에게 복제해도 된다는 명시적인 허락을 받았다는 것을 확인하는 거예요.',
   'voice_clone.clone': '음성 복제',
+  'voice_clone.uploading': '오디오 업로드 중',
   'voice_clone.ok_did_not_clone': '알겠어요, 음성을 복제하지 않았어요.',
   'voice_clone.canceled_due_to_timeout': '제시간에 확인되지 않아 음성을 복제하지 않았어요.',
   'voice_delete.you_have_no_cloned_voices': '복제한 음성이 없어요',

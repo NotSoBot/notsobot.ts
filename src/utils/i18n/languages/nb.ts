@@ -4382,6 +4382,7 @@ export const Norwegian: Translations = Object.freeze({
   'voice_clone.confirm': 'Klone en stemme fra denne lyden?',
   'voice_clone.warning_rights': '- Ved å fortsette bekrefter du at lyden er din egen stemme, eller at eieren har gitt deg uttrykkelig tillatelse til å klone den.',
   'voice_clone.clone': 'Klon stemme',
+  'voice_clone.uploading': 'Laster opp lyden',
   'voice_clone.ok_did_not_clone': 'Ok, klonet ikke stemmen.',
   'voice_clone.canceled_due_to_timeout': 'Klonet ikke stemmen, det ble ikke bekreftet i tide.',
   'voice_delete.you_have_no_cloned_voices': 'Du har ingen klonede stemmer',

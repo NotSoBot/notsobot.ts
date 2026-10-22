@@ -4382,6 +4382,7 @@ export const Bulgarian: Translations = Object.freeze({
   'voice_clone.confirm': 'Да се клонира ли глас от това аудио?',
   'voice_clone.warning_rights': '- Продължавайки, потвърждаваш, че аудиото е с твоя собствен глас или че собственикът му ти е дал изрично разрешение да го клонираш.',
   'voice_clone.clone': 'Клонирай глас',
+  'voice_clone.uploading': 'Качване на аудиото',
   'voice_clone.ok_did_not_clone': 'Добре, гласът не е клониран.',
   'voice_clone.canceled_due_to_timeout': 'Гласът не е клониран, не беше потвърдено навреме.',
   'voice_delete.you_have_no_cloned_voices': 'Нямаш клонирани гласове',

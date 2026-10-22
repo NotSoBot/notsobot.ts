@@ -4382,6 +4382,7 @@ export const Finnish: Translations = Object.freeze({
   'voice_clone.confirm': 'Kloonataanko ääni tästä tallenteesta?',
   'voice_clone.warning_rights': '- Jatkamalla vahvistat, että tallenne on omaa ääntäsi tai että sen omistaja on antanut sinulle nimenomaisen luvan kloonata sen.',
   'voice_clone.clone': 'Kloonaa ääni',
+  'voice_clone.uploading': 'Ladataan ääntä',
   'voice_clone.ok_did_not_clone': 'Ok, ääntä ei kloonattu.',
   'voice_clone.canceled_due_to_timeout': 'Ääntä ei kloonattu, sitä ei vahvistettu ajoissa.',
   'voice_delete.you_have_no_cloned_voices': 'Sinulla ei ole kloonattuja ääniä',

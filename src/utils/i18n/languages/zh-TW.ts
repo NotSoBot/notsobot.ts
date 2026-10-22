@@ -4382,6 +4382,7 @@ export const ChineseTraditional: Translations = Object.freeze({
   'voice_clone.confirm': '用此音訊複製語音？',
   'voice_clone.warning_rights': '- 繼續即表示你確認該音訊是你本人的聲音，或聲音的主人已明確允許你複製。',
   'voice_clone.clone': '複製語音',
+  'voice_clone.uploading': '正在上傳音訊',
   'voice_clone.ok_did_not_clone': '好，未複製語音。',
   'voice_clone.canceled_due_to_timeout': '未在時限內確認，未複製語音。',
   'voice_delete.you_have_no_cloned_voices': '你沒有任何複製的語音',

@@ -4382,6 +4382,7 @@ export const Indonesian: Translations = Object.freeze({
   'voice_clone.confirm': 'Kloning suara dari audio ini?',
   'voice_clone.warning_rights': '- Dengan melanjutkan, kamu menyatakan bahwa audio ini adalah suaramu sendiri, atau pemiliknya telah memberimu izin eksplisit untuk mengkloningnya.',
   'voice_clone.clone': 'Kloning Suara',
+  'voice_clone.uploading': 'Mengunggah audio',
   'voice_clone.ok_did_not_clone': 'Oke, suara tidak dikloning.',
   'voice_clone.canceled_due_to_timeout': 'Suara tidak dikloning, tidak dikonfirmasi tepat waktu.',
   'voice_delete.you_have_no_cloned_voices': 'Kamu tidak punya suara kloning',

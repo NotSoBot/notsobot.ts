@@ -5,7 +5,7 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 import { createVoiceClone } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
 import { getTranslator } from '../../i18n';
-import { StatusEmojis } from '../../../constants';
+import { DiscordEmojis, StatusEmojis } from '../../../constants';
 
 import { displayReply } from '../../../utils';
 
@@ -45,6 +45,9 @@ export async function createMessage(
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       }
+
+      // the upload takes longer than discord's 3 seconds to answer a click, answer it now and drop the buttons
+      await displayReply(context, {description: `${translate('voice_clone.uploading')} ${DiscordEmojis.TYPING}`}, {replyTo: ctx});
 
       let description: string;
       try {

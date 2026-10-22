@@ -4381,6 +4381,7 @@ export const Turkish: Translations = Object.freeze({
   'voice_clone.confirm': 'Bu kayıttan bir ses klonlansın mı?',
   'voice_clone.warning_rights': '- Devam ederek kayıttaki sesin sana ait olduğunu ya da sahibinin onu klonlaman için sana açıkça izin verdiğini onaylamış olursun.',
   'voice_clone.clone': 'Sesi Klonla',
+  'voice_clone.uploading': 'Ses yükleniyor',
   'voice_clone.ok_did_not_clone': 'Tamam, ses klonlanmadı.',
   'voice_clone.canceled_due_to_timeout': 'Ses klonlanmadı, zamanında onaylanmadı.',
   'voice_delete.you_have_no_cloned_voices': 'Hiç klonlanmış sesin yok',

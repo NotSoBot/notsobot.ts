@@ -4382,6 +4382,7 @@ export const Ukrainian: Translations = Object.freeze({
   'voice_clone.confirm': 'Клонувати голос із цього аудіо?',
   'voice_clone.warning_rights': '- Продовжуючи, ти підтверджуєш, що на аудіо твій власний голос або що його власник дав тобі явний дозвіл на клонування.',
   'voice_clone.clone': 'Клонувати голос',
+  'voice_clone.uploading': 'Завантаження аудіо',
   'voice_clone.ok_did_not_clone': 'Гаразд, голос не клоновано.',
   'voice_clone.canceled_due_to_timeout': 'Голос не клоновано, підтвердження не отримано вчасно.',
   'voice_delete.you_have_no_cloned_voices': 'У вас немає клонованих голосів',

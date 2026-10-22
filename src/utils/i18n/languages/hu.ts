@@ -4382,6 +4382,7 @@ export const Hungarian: Translations = Object.freeze({
   'voice_clone.confirm': 'Klónozol egy hangot ebből a hangfájlból?',
   'voice_clone.warning_rights': '- A folytatással megerősíted, hogy a hangfájlon a saját hangod szól, vagy a hang tulajdonosa kifejezett engedélyt adott a klónozására.',
   'voice_clone.clone': 'Hang klónozása',
+  'voice_clone.uploading': 'Hang feltöltése',
   'voice_clone.ok_did_not_clone': 'Oké, a hang nem lett klónozva.',
   'voice_clone.canceled_due_to_timeout': 'A hang nem lett klónozva, mert nem erősítetted meg időben.',
   'voice_delete.you_have_no_cloned_voices': 'Nincsenek klónozott hangjaid',

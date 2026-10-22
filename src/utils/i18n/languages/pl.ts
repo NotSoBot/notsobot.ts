@@ -4382,6 +4382,7 @@ export const Polish: Translations = Object.freeze({
   'voice_clone.confirm': 'Sklonować głos z tego audio?',
   'voice_clone.warning_rights': '- Kontynuując, potwierdzasz, że audio to twój własny głos lub że jego właściciel dał ci wyraźną zgodę na jego sklonowanie.',
   'voice_clone.clone': 'Sklonuj głos',
+  'voice_clone.uploading': 'Przesyłanie dźwięku',
   'voice_clone.ok_did_not_clone': 'Ok, nie sklonowano głosu.',
   'voice_clone.canceled_due_to_timeout': 'Nie sklonowano głosu, nie potwierdzono na czas.',
   'voice_delete.you_have_no_cloned_voices': 'Nie masz żadnych sklonowanych głosów',

@@ -4382,6 +4382,7 @@ export const Greek: Translations = Object.freeze({
   'voice_clone.confirm': 'Κλωνοποίηση φωνής από αυτόν τον ήχο;',
   'voice_clone.warning_rights': '- Συνεχίζοντας, επιβεβαιώνεις ότι ο ήχος είναι η δική σου φωνή ή ότι ο κάτοχός της σου έχει δώσει ρητή άδεια να την κλωνοποιήσεις.',
   'voice_clone.clone': 'Κλωνοποίηση φωνής',
+  'voice_clone.uploading': 'Μεταφόρτωση του ήχου',
   'voice_clone.ok_did_not_clone': 'Οκ, η φωνή δεν κλωνοποιήθηκε.',
   'voice_clone.canceled_due_to_timeout': 'Η φωνή δεν κλωνοποιήθηκε, δεν επιβεβαιώθηκε εγκαίρως.',
   'voice_delete.you_have_no_cloned_voices': 'Δεν έχεις κλωνοποιημένες φωνές',

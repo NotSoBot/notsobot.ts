@@ -4382,6 +4382,7 @@ export const Spanish: Translations = Object.freeze({
   'voice_clone.confirm': '¿Clonar una voz a partir de este audio?',
   'voice_clone.warning_rights': '- Al continuar, confirmas que el audio es tu propia voz o que su dueño te ha dado permiso explícito para clonarla.',
   'voice_clone.clone': 'Clonar voz',
+  'voice_clone.uploading': 'Subiendo el audio',
   'voice_clone.ok_did_not_clone': 'Vale, no se clonó la voz.',
   'voice_clone.canceled_due_to_timeout': 'No se clonó la voz, no se confirmó a tiempo.',
   'voice_delete.you_have_no_cloned_voices': 'No tienes voces clonadas',

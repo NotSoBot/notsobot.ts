@@ -4382,6 +4382,7 @@ export const Arabic: Translations = Object.freeze({
   'voice_clone.confirm': 'استنساخ صوت من هذا المقطع؟',
   'voice_clone.warning_rights': '- بالمتابعة، تؤكد أن هذا المقطع بصوتك أنت، أو أن صاحبه منحك إذنًا صريحًا لاستنساخه.',
   'voice_clone.clone': 'استنساخ الصوت',
+  'voice_clone.uploading': 'جارٍ رفع الصوت',
   'voice_clone.ok_did_not_clone': 'حسنًا، لم يتم استنساخ الصوت.',
   'voice_clone.canceled_due_to_timeout': 'لم يتم استنساخ الصوت، لم يتم التأكيد في الوقت المحدد.',
   'voice_delete.you_have_no_cloned_voices': 'ليس لديك أي أصوات مستنسخة',

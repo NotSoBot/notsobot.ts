@@ -4382,6 +4382,7 @@ export const ChineseSimplified: Translations = Object.freeze({
   'voice_clone.confirm': '用此音频克隆语音？',
   'voice_clone.warning_rights': '- 继续即表示你确认该音频是你本人的声音，或声音的主人已明确允许你克隆。',
   'voice_clone.clone': '克隆语音',
+  'voice_clone.uploading': '正在上传音频',
   'voice_clone.ok_did_not_clone': '好的，未克隆语音。',
   'voice_clone.canceled_due_to_timeout': '未在时限内确认，未克隆语音。',
   'voice_delete.you_have_no_cloned_voices': '你没有任何克隆语音',

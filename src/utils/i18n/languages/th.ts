@@ -4382,6 +4382,7 @@ export const Thai: Translations = Object.freeze({
   'voice_clone.confirm': 'โคลนเสียงจากไฟล์เสียงนี้ไหม?',
   'voice_clone.warning_rights': '- เมื่อดำเนินการต่อ คุณยืนยันว่าไฟล์เสียงนี้เป็นเสียงของคุณเอง หรือเจ้าของเสียงได้อนุญาตให้คุณโคลนอย่างชัดเจน',
   'voice_clone.clone': 'โคลนเสียง',
+  'voice_clone.uploading': 'กำลังอัปโหลดเสียง',
   'voice_clone.ok_did_not_clone': 'โอเค ไม่ได้โคลนเสียง',
   'voice_clone.canceled_due_to_timeout': 'ไม่ได้โคลนเสียง เพราะไม่ได้ยืนยันทันเวลา',
   'voice_delete.you_have_no_cloned_voices': 'คุณไม่มีเสียงโคลน',

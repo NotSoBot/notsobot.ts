@@ -4382,6 +4382,7 @@ export const Czech: Translations = Object.freeze({
   'voice_clone.confirm': 'Naklonovat hlas z tohoto zvuku?',
   'voice_clone.warning_rights': '- Pokračováním potvrzuješ, že zvuk obsahuje tvůj vlastní hlas, nebo že ti jeho vlastník dal výslovné svolení ho naklonovat.',
   'voice_clone.clone': 'Naklonovat hlas',
+  'voice_clone.uploading': 'Nahrávám zvuk',
   'voice_clone.ok_did_not_clone': 'Ok, hlas nebyl naklonován.',
   'voice_clone.canceled_due_to_timeout': 'Hlas nebyl naklonován, nebylo to potvrzeno včas.',
   'voice_delete.you_have_no_cloned_voices': 'Nemáš žádné naklonované hlasy',

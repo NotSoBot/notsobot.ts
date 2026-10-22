@@ -4382,6 +4382,7 @@ export const Swedish: Translations = Object.freeze({
   'voice_clone.confirm': 'Klona en röst från det här ljudet?',
   'voice_clone.warning_rights': '- Genom att fortsätta bekräftar du att ljudet är din egen röst, eller att ägaren har gett dig uttryckligt tillstånd att klona den.',
   'voice_clone.clone': 'Klona röst',
+  'voice_clone.uploading': 'Laddar upp ljudet',
   'voice_clone.ok_did_not_clone': 'Okej, klonade inte rösten.',
   'voice_clone.canceled_due_to_timeout': 'Klonade inte rösten, det bekräftades inte i tid.',
   'voice_delete.you_have_no_cloned_voices': 'Du har inga klonade röster',

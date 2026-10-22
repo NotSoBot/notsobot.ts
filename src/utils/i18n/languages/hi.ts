@@ -4382,6 +4382,7 @@ export const Hindi: Translations = Object.freeze({
   'voice_clone.confirm': 'इस ऑडियो से आवाज़ क्लोन करें?',
   'voice_clone.warning_rights': '- आगे बढ़कर, आप पुष्टि करते हैं कि ऑडियो में आपकी अपनी आवाज़ है, या उसके मालिक ने आपको इसे क्लोन करने की स्पष्ट अनुमति दी है।',
   'voice_clone.clone': 'आवाज़ क्लोन करें',
+  'voice_clone.uploading': 'ऑडियो अपलोड हो रहा है',
   'voice_clone.ok_did_not_clone': 'ठीक है, आवाज़ क्लोन नहीं की गई।',
   'voice_clone.canceled_due_to_timeout': 'आवाज़ क्लोन नहीं की गई, समय पर पुष्टि नहीं हुई।',
   'voice_delete.you_have_no_cloned_voices': 'आपके पास कोई क्लोन की हुई आवाज़ नहीं है',

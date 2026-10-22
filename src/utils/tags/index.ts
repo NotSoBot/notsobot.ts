@@ -35,7 +35,9 @@ import {
   generateTag,
   googleContentVisionOCR,
   googleTranslate,
+  mediaAIVToolsExif,
   mediaAVToolsExtractAudio,
+  mediaAVToolsIdentify,
   mediaAVToolsTranscribe,
   putTagBlobs,
   putTagVariable,
@@ -44,6 +46,7 @@ import {
   searchGoogleImages,
   searchImgur,
   searchReddit,
+  searchSteam,
   searchUrban,
   searchUrbanRandom,
   searchWikihow,
@@ -318,6 +321,9 @@ export const REGEX_BRACKET_OR_SPLITTER_ESCAPE_REPLACEMENT = /\\([{}|])/g;
 export const NEWLINE_SENTINEL = '\uFDD0';
 export const REGEX_NEWLINE_SENTINEL = /\uFDD0/g;
 
+// an invite code, or an invite link (discord.gg/x, discord.com/invite/x)
+const REGEX_INVITE_CODE = /^(?:(?:https?:\/\/)?(?:www\.)?discord(?:app)?\.(?:gg|com\/invite)\/)?([a-z0-9-]{2,64})\/?$/i;
+
 
 export enum PrivateVariables {
   AI_EXECUTIONS = '__aiExecutions',
@@ -406,16 +412,20 @@ export enum TagFunctions {
   AI_MEMORY_CLEAR = 'AI_MEMORY_CLEAR',
   AI_MEMORY_DELETE = 'AI_MEMORY_DELETE',
   AI_MEMORY_EDIT = 'AI_MEMORY_EDIT',
+  API_AUDIO_IDENTIFY = 'API_AUDIO_IDENTIFY',
   API_CREATE_REMINDER = 'API_CREATE_REMINDER',
   API_DELETE_REMINDER = 'API_DELETE_REMINDER',
   API_EDIT_REMINDER = 'API_EDIT_REMINDER',
   API_FETCH_REMINDERS = 'API_FETCH_REMINDERS',
+  API_INFO_INVITE = 'API_INFO_INVITE',
   API_SEARCH_DUCKDUCKGO_IMAGES = 'API_SEARCH_DUCKDUCKGO_IMAGES',
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
   API_SEARCH_REDDIT = 'API_SEARCH_REDDIT',
+  API_SEARCH_STEAM = 'API_SEARCH_STEAM',
   API_SEARCH_URBAN = 'API_SEARCH_URBAN',
   API_SEARCH_WIKIHOW = 'API_SEARCH_WIKIHOW',
   API_SEARCH_WOLFRAM_ALPHA = 'API_SEARCH_WOLFRAM_ALPHA',
+  API_UTILITIES_EXIF = 'API_UTILITIES_EXIF',
   API_UTILITIES_LOCATIONS = 'API_UTILITIES_LOCATIONS',
   API_UTILITIES_QR_CREATE = 'API_UTILITIES_QR_CREATE',
   API_UTILITIES_QR_SCAN = 'API_UTILITIES_QR_SCAN',
@@ -440,7 +450,6 @@ export enum TagFunctions {
   CHANNEL_RANDOM_MENTION = 'CHANNEL_RANDOM_MENTION',
   COMPONENT_JSON = 'COMPONENT_JSON',
   COMPONENTS_ON_TIMEOUT = 'COMPONENTS_ON_TIMEOUT',
-  DISCORD = 'DISCORD',
   EMBED_JSON = 'EMBED_JSON',
   EVAL = 'EVAL',
   EVAL_SILENT = 'EVAL_SILENT',
@@ -449,7 +458,6 @@ export enum TagFunctions {
   GUILD = 'GUILD',
   GUILD_COUNT = 'GUILD_COUNT',
   GUILD_ID = 'GUILD_ID',
-  HASTEBIN = 'HASTEBIN',
   IMAGE_INTERROGATE = 'IMAGE_INTERROGATE',
   IMAGE_OCR = 'IMAGE_OCR',
   INSERT_BRACKET_LEFT = 'INSERT_BRACKET_LEFT',
@@ -608,16 +616,20 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.AI_MEMORY_CLEAR]: ['ai.memory.clear'],
   [TagFunctions.AI_MEMORY_DELETE]: ['ai.memory.delete'],
   [TagFunctions.AI_MEMORY_EDIT]: ['ai.memory.edit'],
+  [TagFunctions.API_AUDIO_IDENTIFY]: ['api.audio.identify'],
   [TagFunctions.API_CREATE_REMINDER]: ['api.create.reminder'],
   [TagFunctions.API_DELETE_REMINDER]: ['api.delete.reminder'],
   [TagFunctions.API_EDIT_REMINDER]: ['api.edit.reminder'],
   [TagFunctions.API_FETCH_REMINDERS]: ['api.fetch.reminders'],
+  [TagFunctions.API_INFO_INVITE]: ['api.info.invite'],
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: ['api.search.duckduckgo.images'],
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
   [TagFunctions.API_SEARCH_REDDIT]: ['api.search.reddit'],
+  [TagFunctions.API_SEARCH_STEAM]: ['api.search.steam'],
   [TagFunctions.API_SEARCH_URBAN]: ['api.search.urban'],
   [TagFunctions.API_SEARCH_WIKIHOW]: ['api.search.wikihow'],
   [TagFunctions.API_SEARCH_WOLFRAM_ALPHA]: ['api.search.wolframalpha'],
+  [TagFunctions.API_UTILITIES_EXIF]: ['api.utilities.exif'],
   [TagFunctions.API_UTILITIES_LOCATIONS]: ['api.utilities.locations'],
   [TagFunctions.API_UTILITIES_QR_CREATE]: ['api.utilities.qr.create'],
   [TagFunctions.API_UTILITIES_QR_SCAN]: ['api.utilities.qr.scan'],
@@ -642,7 +654,6 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.CHANNEL_RANDOM_MENTION]: ['randchannelmention'],
   [TagFunctions.COMPONENT_JSON]: ['componentjson'],
   [TagFunctions.COMPONENTS_ON_TIMEOUT]: ['componentsontimeout'],
-  [TagFunctions.DISCORD]: ['discord'],
   [TagFunctions.EMBED_JSON]: ['embedjson'],
   [TagFunctions.EVAL]: ['eval'],
   [TagFunctions.EVAL_SILENT]: ['evalsilent'],
@@ -651,7 +662,6 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.GUILD]: ['guild', 'server'],
   [TagFunctions.GUILD_COUNT]: ['guildcount', 'membercount', 'servercount'],
   [TagFunctions.GUILD_ID]: ['guildid', 'serverid', 'sid', 'gid'],
-  [TagFunctions.HASTEBIN]: ['hastebin', 'haste'],
   [TagFunctions.IMAGE_INTERROGATE]: ['identify', 'interrogate'],
   [TagFunctions.IMAGE_OCR]: ['ocr'],
   [TagFunctions.INSERT_BRACKET_LEFT]: ['bracketleft'],
@@ -965,12 +975,16 @@ export interface TagVariables {
     [TagFunctions.AI]?: RestResponsesRaw.GenerateTag,
     // every change to the ai's memory this execution, for the limit and the receipt under NotSoAI's reply
     [TagFunctions.AI_MEMORY_ADD]?: AIMemoryChanges,
+    [TagFunctions.API_AUDIO_IDENTIFY]?: Record<string, Array<Record<string, any>>>,
+    [TagFunctions.API_INFO_INVITE]?: Record<string, Record<string, any>>,
     [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
     [TagFunctions.API_SEARCH_IMGUR]?: Record<string, RestResponsesRaw.SearchImgur>,
     [TagFunctions.API_SEARCH_REDDIT]?: Record<string, {results: Array<Record<string, any>>}>,
+    [TagFunctions.API_SEARCH_STEAM]?: Record<string, RestResponsesRaw.SearchSteam>,
     [TagFunctions.API_SEARCH_URBAN]?: Record<string, RestResponsesRaw.SearchUrbanDictionary>,
     [TagFunctions.API_SEARCH_WIKIHOW]?: Record<string, RestResponsesRaw.SearchWikihow>,
     [TagFunctions.API_SEARCH_WOLFRAM_ALPHA]?: Record<string, any>,
+    [TagFunctions.API_UTILITIES_EXIF]?: Record<string, Record<string, any>>,
     [TagFunctions.API_UTILITIES_LOCATIONS]?: Record<string, RestResponsesRaw.UtilitiesLocations>,
     [TagFunctions.API_UTILITIES_WEATHER]?: Record<string, RestResponsesRaw.UtilitiesWeather>,
     [TagFunctions.ATTACHMENT]?: Record<string, RestResponsesRaw.FileResponse>,
@@ -3560,6 +3574,55 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_AUDIO_IDENTIFY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.audio.identify} {api.audio.identify:url}
+
+    increaseNetworkRequests(tag);
+
+    const url = await lastAudioOrVideoUrl(arg.trim(), context);
+    if (!url) {
+      throw new Error('Cannot find any audio or video');
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_AUDIO_IDENTIFY] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_AUDIO_IDENTIFY] ||
+      {}
+    );
+
+    if (!(url in cachedResults)) {
+      increaseNetworkRequests(tag);
+      const songs = await withDeadline(context, tag, () => mediaAVToolsIdentify(context, {url}));
+      // each platform's raw response is huge, only keep the song's details and its links
+      cachedResults[url] = songs.map((song) => {
+        const { apple_music, deezer, musicbrainz, spotify, youtube } = song.platforms;
+        const platform = [apple_music, deezer, spotify].find((x) => x && x.album && x.album.cover_url);
+        return {
+          album: song.album.name,
+          artists: song.artists.map((artist) => artist.name),
+          cover_url: (platform) ? platform.album.cover_url : null,
+          duration: song.duration,
+          genres: song.genres,
+          label: song.label || null,
+          release_date: song.release_date || null,
+          score: song.score,
+          timestamp: song.timestamp || null,
+          title: song.title,
+          urls: {
+            apple_music: (apple_music) ? apple_music.url : null,
+            deezer: (deezer) ? deezer.url : null,
+            musicbrainz: (musicbrainz) ? musicbrainz.url : null,
+            spotify: (spotify) ? spotify.url : null,
+            youtube: (youtube) ? youtube.url : null,
+          },
+        };
+      });
+    }
+
+    tag.text += JSON.stringify(cachedResults[url]);
+
+    return true;
+  },
+
   [TagFunctions.API_CREATE_REMINDER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.create.reminder:time} {api.create.reminder:time|text}
     // only NotSoAI can use this
@@ -3714,6 +3777,61 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_INFO_INVITE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.info.invite:code} {api.info.invite:https://discord.gg/code}
+
+    const match = arg.trim().match(REGEX_INVITE_CODE);
+    if (!match) {
+      return true;
+    }
+    const code = match[1]!;
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_INFO_INVITE] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_INFO_INVITE] ||
+      {}
+    );
+
+    if (!(code in cachedResults)) {
+      increaseNetworkRequests(tag);
+      let invite: Structures.Invite;
+      try {
+        invite = await withDeadline(context, tag, () => context.rest.fetchInvite(code, {withCounts: true}));
+      } catch(error) {
+        if (error.response && error.response.statusCode === 404) {
+          throw new Error('Unknown invite');
+        }
+        throw error;
+      }
+
+      const { channel, guild } = invite;
+      cachedResults[code] = {
+        channel: (channel) ? {id: channel.id, name: channel.name, type: channel.type} : null,
+        code: invite.code,
+        expires_at: (invite.expiresAt) ? invite.expiresAt.toISOString() : null,
+        guild: (guild) ? {
+          banner_url: guild.bannerUrlFormat(null, {size: 1024}),
+          created_at: new Date(guild.createdAtUnix).toISOString(),
+          description: guild.description || null,
+          features: guild.features.toArray().sort(),
+          icon_url: guild.iconUrlFormat(null, {size: 1024}),
+          id: guild.id,
+          name: guild.name,
+          splash_url: guild.splashUrlFormat(null, {size: 1024}),
+          vanity_url_code: guild.vanityUrlCode || null,
+          verification_level: guild.verificationLevel,
+        } : null,
+        inviter: (invite.inviter) ? {id: invite.inviter.id, username: invite.inviter.username} : null,
+        member_count: invite.approximateMemberCount || 0,
+        online_count: invite.approximatePresenceCount || 0,
+        url: `https://discord.gg/${invite.code}`,
+      };
+    }
+
+    tag.text += JSON.stringify(cachedResults[code]);
+
+    return true;
+  },
+
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.search.duckduckgo.images:query}
 
@@ -3824,6 +3942,33 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_SEARCH_STEAM]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.search.steam:query} (steam community users)
+
+    arg = arg.trim().slice(0, 1024);
+    if (!arg) {
+      return true;
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_STEAM] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_SEARCH_STEAM] ||
+      {}
+    );
+
+    if (!(arg in cachedResults)) {
+      increaseNetworkRequests(tag);
+    }
+
+    const response = cachedResults[arg] || await withDeadline(context, tag, () => searchSteam(context, {query: arg}));
+    if (!(arg in cachedResults)) {
+      cachedResults[arg] = response;
+    }
+
+    tag.text += JSON.stringify(response);
+
+    return true;
+  },
+
   [TagFunctions.API_SEARCH_URBAN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.search.urban} (random definitions) {api.search.urban:term}
 
@@ -3908,6 +4053,41 @@ const ScriptTags = Object.freeze({
 
     // {fields: [{name, value}], images: [url], url}
     tag.text += JSON.stringify(response);
+
+    return true;
+  },
+
+  [TagFunctions.API_UTILITIES_EXIF]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.utilities.exif} {api.utilities.exif:url}
+
+    increaseNetworkRequests(tag);
+
+    const url = await lastMediaUrl(arg.trim(), context);
+    if (!url) {
+      throw new Error('Cannot find any media');
+    }
+
+    const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_EXIF] = (
+      tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_EXIF] ||
+      {}
+    );
+
+    if (!(url in cachedResults)) {
+      increaseNetworkRequests(tag);
+      const { channels, exif, metadata } = await withDeadline(context, tag, () => mediaAIVToolsExif(context, {url}));
+      // vips' internal `_data` is left out except for a gif's comment, exif fields keep their name and value
+      cachedResults[url] = {
+        channels: {
+          audio: channels.audio,
+          image: channels.image.map(({ _data, ...channel }) => ({...channel, comment: _data['gif-comment'] || null})),
+          video: channels.video,
+        },
+        exif: exif.map((field) => ({description: field.description, name: field.name, value: field.value})),
+        metadata,
+      };
+    }
+
+    tag.text += JSON.stringify(cachedResults[url]);
 
     return true;
   },
@@ -4468,14 +4648,6 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
-  [TagFunctions.DISCORD]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // split it up by `.`, use the first one as context[firstVariable]
-
-    // {discord:member.color}
-    // {discord:user.id}
-    return false;
-  },
-
   [TagFunctions.EMBED_JSON]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {embedjson:{"title": "asd"}}
 
@@ -4577,12 +4749,6 @@ const ScriptTags = Object.freeze({
 
     tag.text += (context.guildId) ? context.guildId : '0';
     return true;
-  },
-
-  [TagFunctions.HASTEBIN]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
-    // {hastebin:data}
-
-    return false;
   },
 
   [TagFunctions.IMAGE_INTERROGATE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {

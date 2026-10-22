@@ -4382,6 +4382,7 @@ export const Japanese: Translations = Object.freeze({
   'voice_clone.confirm': 'この音声からボイスをクローンしますか？',
   'voice_clone.warning_rights': '- 続行することで、この音声が自分自身の声であるか、声の持ち主からクローンする明示的な許可を得ていることを確認したものとみなされます。',
   'voice_clone.clone': 'ボイスをクローン',
+  'voice_clone.uploading': '音声をアップロード中',
   'voice_clone.ok_did_not_clone': 'OK、ボイスをクローンしませんでした。',
   'voice_clone.canceled_due_to_timeout': '時間内に確認されなかったため、ボイスをクローンしませんでした。',
   'voice_delete.you_have_no_cloned_voices': 'クローンしたボイスがありません',

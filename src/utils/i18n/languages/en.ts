@@ -4404,6 +4404,7 @@ export const English = Object.freeze({
   'voice_clone.confirm': 'Clone a voice from this audio?',
   'voice_clone.warning_rights': '- By continuing, you confirm the audio is your own voice, or that its owner has given you explicit permission to clone it.',
   'voice_clone.clone': 'Clone Voice',
+  'voice_clone.uploading': 'Uploading the audio',
   'voice_clone.ok_did_not_clone': 'Ok, didn\'t clone the voice.',
   'voice_clone.canceled_due_to_timeout': 'Didn\'t clone the voice, it wasn\'t confirmed in time.',
   'voice_delete.you_have_no_cloned_voices': 'You have no cloned voices',

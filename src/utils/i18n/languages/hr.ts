@@ -4382,6 +4382,7 @@ export const Croatian: Translations = Object.freeze({
   'voice_clone.confirm': 'Klonirati glas iz ovog zvuka?',
   'voice_clone.warning_rights': '- Nastavkom potvrđuješ da je zvuk tvoj vlastiti glas ili da ti je njegov vlasnik dao izričito dopuštenje da ga kloniraš.',
   'voice_clone.clone': 'Kloniraj glas',
+  'voice_clone.uploading': 'Prenosim zvuk',
   'voice_clone.ok_did_not_clone': 'Ok, glas nije kloniran.',
   'voice_clone.canceled_due_to_timeout': 'Glas nije kloniran, nije potvrđeno na vrijeme.',
   'voice_delete.you_have_no_cloned_voices': 'Nemaš kloniranih glasova',

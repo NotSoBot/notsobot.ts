@@ -4382,6 +4382,7 @@ export const Romanian: Translations = Object.freeze({
   'voice_clone.confirm': 'Clonezi o voce din acest audio?',
   'voice_clone.warning_rights': '- Continuând, confirmi că audio-ul este propria ta voce sau că proprietarul ei ți-a dat permisiunea explicită să o clonezi.',
   'voice_clone.clone': 'Clonează vocea',
+  'voice_clone.uploading': 'Se încarcă audio',
   'voice_clone.ok_did_not_clone': 'Ok, nu am clonat vocea.',
   'voice_clone.canceled_due_to_timeout': 'Nu am clonat vocea, nu a fost confirmat la timp.',
   'voice_delete.you_have_no_cloned_voices': 'N-ai nicio voce clonată',
