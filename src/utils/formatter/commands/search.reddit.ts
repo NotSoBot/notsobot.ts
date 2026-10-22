@@ -5,6 +5,7 @@ import { searchReddit } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, RedditKindTypes, RedditSortTypes, RedditTimeTypes } from '../../../constants';
 import {
+  DefaultParameters,
   DisplayPayload,
   Paginator,
   chunkArray,
@@ -26,7 +27,6 @@ export const RESULTS_PER_PAGE = 3;
 
 export interface CommandArgs {
   query: string,
-  safe?: boolean,
   sort?: RedditSortTypes,
   subreddit?: string,
   time?: RedditTimeTypes,
@@ -38,10 +38,11 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
 
-  const { results } = await searchReddit(context, args);
+  const safe = DefaultParameters.safe(context);
+  const { results } = await searchReddit(context, {...args, safe});
   if (results.length) {
     const pageLimit = results.length;
-    const fetchMedia = createPaginatorMediaCache(context, {safe: args.safe});
+    const fetchMedia = createPaginatorMediaCache(context, {safe});
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: async (page) => {

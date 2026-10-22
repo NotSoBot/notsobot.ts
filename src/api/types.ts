@@ -28,6 +28,7 @@ import {
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
+  UserSettingsSearchProviders,
   UserSettingsUploadThresholdTypes,
   UserSettingsUploadTypes,
   YoutubeResultTypes,
@@ -82,6 +83,8 @@ export namespace RestOptions {
     channelId: string,
     commandType?: number,
     guildId?: string,
+    // the NotSoAI response the reply holds, so replying to it continues the conversation
+    llmResponseId?: string,
     messageResponseId?: string,
     messageTriggerId?: string,
     result?: string,
@@ -146,13 +149,15 @@ export namespace RestOptions {
     blocked?: boolean,
     blockedReason?: null | string,
     locale?: string | null,
-    mlDiffusionModel?: string,
+    mlDiffusionModel?: string | null,
     mlLLMModel?: string | null,
     mlLLMPersonality?: string | null,
     prefixes?: Array<string>,
     responseDisplay?: GuildSettingsResponseDisplayTypes | null,
     // null resets it to on
     rulesAdminBypass?: boolean | null,
+    searchProviderImages?: UserSettingsSearchProviders | null,
+    searchProviderWeb?: UserSettingsSearchProviders | null,
     timezone?: string | null,
   }
 
@@ -217,6 +222,8 @@ export namespace RestOptions {
     mlLLMModel?: null | string,
     mlLLMPersonality?: null | string,
     responseDisplay?: null | UserSettingsResponseDisplayTypes,
+    searchProviderImages?: null | UserSettingsSearchProviders,
+    searchProviderWeb?: null | UserSettingsSearchProviders,
     timezone?: null | string,
     ttsVoice?: null | string,
     units?: null | string,
@@ -384,6 +391,8 @@ export namespace RestOptions {
     // send the user's memories along, never for `{ai}` inside of a user's tag
     memory?: boolean,
     model?: string,
+    // the NotSoAI response in the message being replied to, its conversation is sent along as earlier turns
+    parentId?: string,
     personality?: null | string,
     personalityPreference?: string,
     prompt: string,
@@ -723,6 +732,43 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationOverlayAchievement extends MediaBaseOptions {
     gamerscore?: number,
+    text: string,
+  }
+
+  export interface MediaIVManipulationDemotivate extends MediaBaseOptions {
+    text?: string,
+    title: string,
+  }
+
+  export interface MediaIVManipulationOverlayNews extends MediaBaseOptions {
+    label?: string,
+    text: string,
+    ticker?: string,
+  }
+
+  export interface MediaIVManipulationOverlayNotification extends MediaBaseOptions {
+    text: string,
+    title?: string,
+  }
+
+  export interface MediaIVManipulationOverlaySubtitle extends MediaBaseOptions {
+    text: string,
+    yellow?: boolean,
+  }
+
+  export interface MediaIVManipulationOverlayTikTok extends MediaBaseOptions {
+    dark?: boolean,
+    position?: number,
+    text: string,
+  }
+
+  export interface MediaIVManipulationOverlayYouTube extends MediaBaseOptions {
+    channel?: string,
+    text: string,
+  }
+
+  export interface MediaIVManipulationOverlaySnapchat extends MediaBaseOptions {
+    position?: number,
     text: string,
   }
 
@@ -1342,8 +1388,19 @@ export namespace RestOptions {
     nsfw: boolean,
   }
 
+  export interface SearchBing {
+    query: string,
+    safe?: boolean,
+  }
+
+  export interface SearchBingImages {
+    query: string,
+    safe?: boolean,
+  }
+
   export interface SearchDuckDuckGo {
     query: string,
+    safe?: boolean,
   }
 
   export interface SearchDuckDuckGoImages {
@@ -1382,6 +1439,12 @@ export namespace RestOptions {
 
   export interface SearchImgur {
     query: string,
+  }
+
+
+  export interface SearchOpenverse {
+    query: string,
+    safe?: boolean,
   }
 
   export interface SearchReddit {
@@ -1433,6 +1496,16 @@ export namespace RestOptions {
 
   export interface SearchWolframAlpha {
     query: string,
+  }
+
+  export interface SearchYandex {
+    query: string,
+    safe?: boolean,
+  }
+
+  export interface SearchYandexImages {
+    query: string,
+    safe?: boolean,
   }
 
   export interface SearchYoutube {
@@ -1816,6 +1889,7 @@ export namespace RestResponsesRaw {
       channel_id: string,
       command_id: string | null,
       last_touched: string,
+      llm_response_id: string | null,
       message_response_id: string,
       message_trigger_id: string,
       message_trigger_type: number,
@@ -2105,6 +2179,8 @@ export namespace RestResponsesRaw {
       ml_llm_personality: string | null,
       response_display: number | null,
       rules_admin_bypass: boolean,
+      search_provider_images: number | null,
+      search_provider_web: number | null,
     },
     timezone: string | null,
   }
@@ -2370,17 +2446,6 @@ export namespace RestResponsesRaw {
         width: number,
       },
       url: string,
-      _raw: Array<{
-        height: number,
-        image: string,
-        image_token: string,
-        source: string,
-        thumbnail: string,
-        thumbnail_token: string,
-        title: string,
-        url: string,
-        width: number,
-      }>,
     }>,
   }
 
@@ -2894,6 +2959,102 @@ export namespace RestResponsesRaw {
     },
   }
 
+  export interface SearchBing {
+    _error?: string,
+    amount: number,
+    results: Array<{
+      cite: string,
+      description: string,
+      site: string,
+      title: string,
+      url: string,
+    }>,
+  }
+
+  export interface SearchBingImages {
+    _error?: string,
+    amount: number,
+    results: Array<{
+      footer: string,
+      header: string,
+      image: {
+        extension: null | string,
+        height: number,
+        trusted: boolean,
+        url: string,
+        width: number,
+      },
+      proxy_url: string,
+      thumbnail: {
+        height: number,
+        trusted: boolean,
+        url: null | string,
+        width: number,
+      },
+      url: string,
+    }>,
+  }
+
+  export interface SearchOpenverse {
+    _error?: string,
+    amount: number,
+    results: Array<{
+      footer: string,
+      header: string,
+      image: {
+        extension: null | string,
+        height: number,
+        trusted: boolean,
+        url: string,
+        width: number,
+      },
+      proxy_url: string,
+      thumbnail: {
+        height: number,
+        trusted: boolean,
+        url: null | string,
+        width: number,
+      },
+      url: string,
+    }>,
+  }
+
+  export interface SearchYandex {
+    _error?: string,
+    amount: number,
+    results: Array<{
+      cite: string,
+      description: string,
+      site: string,
+      title: string,
+      url: string,
+    }>,
+  }
+
+  export interface SearchYandexImages {
+    _error?: string,
+    amount: number,
+    results: Array<{
+      footer: string,
+      header: string,
+      image: {
+        extension: null | string,
+        height: number,
+        trusted: boolean,
+        url: string,
+        width: number,
+      },
+      proxy_url: string,
+      thumbnail: {
+        height: number,
+        trusted: boolean,
+        url: null | string,
+        width: number,
+      },
+      url: string,
+    }>,
+  }
+
   export interface SearchYoutube {
     _body: any,
     results: Array<SearchYoutubeResult>,
@@ -3275,8 +3436,9 @@ export namespace RestResponsesRaw {
     ml_llm_memory_disabled: boolean,
     ml_llm_model: string | null,
     ml_llm_personality: string | null,
-    opted_out_content: string | null,
     response_display: number | null,
+    search_provider_images: number | null,
+    search_provider_web: number | null,
     timezone: string | null,
     tts_voice: string | null,
     units: string | null,

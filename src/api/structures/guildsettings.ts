@@ -13,6 +13,7 @@ import {
   GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
   NotSoApiKeys,
+  UserSettingsSearchProviders,
 } from '../../constants';
 
 import { BaseStructure } from './basestructure';
@@ -356,6 +357,8 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.ML_LLM_PERSONALITY,
   NotSoApiKeys.RESPONSE_DISPLAY,
   NotSoApiKeys.RULES_ADMIN_BYPASS,
+  NotSoApiKeys.SEARCH_PROVIDER_IMAGES,
+  NotSoApiKeys.SEARCH_PROVIDER_WEB,
 ]);
 
 export class GuildSettingsChild extends BaseStructure {
@@ -368,6 +371,9 @@ export class GuildSettingsChild extends BaseStructure {
   responseDisplay: GuildSettingsResponseDisplayTypes | null = null;
   // if the server owner and admins skip the rules, rules can override it with their own `adminBypass`
   rulesAdminBypass: boolean = true;
+  // null uses each user's preference, then our defaults
+  searchProviderImages: UserSettingsSearchProviders | null = null;
+  searchProviderWeb: UserSettingsSearchProviders | null = null;
 
   constructor(data: Structures.BaseStructureData) {
     super();

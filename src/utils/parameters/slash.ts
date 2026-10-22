@@ -6,11 +6,14 @@ import {
   GoogleLocales,
   GoogleLocalesText,
   MLDiffusionModels,
+  SEARCH_PROVIDER_IMAGES_DEFAULT,
+  SEARCH_PROVIDER_WEB_DEFAULT,
   TagDirectoryCategories,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
   GuildSettingsResponseDisplayTypes,
   UserSettingsResponseDisplayTypes,
+  UserSettingsSearchProviders,
   UserSettingsUploadThresholdTypes,
   UserSettingsUploadTypes,
 } from '../../constants';
@@ -153,6 +156,28 @@ export const USER_SETTINGS_RESPONSE_DISPLAY = [
   createChoice('Latest', UserSettingsResponseDisplayTypes.DEFAULT, {isDefault: true, localizationKey: 'choices.settings.response_display.default'}),
   createChoice('No Embeds (Text Only)', UserSettingsResponseDisplayTypes.NO_EMBED, {localizationKey: 'choices.settings.response_display.no_embed'}),
   createChoice('Legacy (Embeds)', UserSettingsResponseDisplayTypes.LEGACY, {localizationKey: 'choices.settings.response_display.legacy'}),
+];
+
+
+// brand names, nothing to translate
+function createSearchProviderChoices(defaultProvider?: UserSettingsSearchProviders) {
+  return [
+    createChoice('Bing', UserSettingsSearchProviders.BING, {isDefault: defaultProvider === UserSettingsSearchProviders.BING}),
+    createChoice('DuckDuckGo', UserSettingsSearchProviders.DUCK_DUCK_GO, {isDefault: defaultProvider === UserSettingsSearchProviders.DUCK_DUCK_GO}),
+    createChoice('Google', UserSettingsSearchProviders.GOOGLE, {isDefault: defaultProvider === UserSettingsSearchProviders.GOOGLE}),
+    createChoice('Yandex', UserSettingsSearchProviders.YANDEX, {isDefault: defaultProvider === UserSettingsSearchProviders.YANDEX}),
+  ];
+}
+
+// users default to the server's setting so there's no "(Default)" on theirs
+export const SEARCH_PROVIDERS = createSearchProviderChoices();
+export const SEARCH_PROVIDERS_IMAGES = createSearchProviderChoices(SEARCH_PROVIDER_IMAGES_DEFAULT);
+export const SEARCH_PROVIDERS_WEB = createSearchProviderChoices(SEARCH_PROVIDER_WEB_DEFAULT);
+
+export const SEARCH_PROVIDERS_CLEAR = [
+  createChoice('Web', 'web', {localizationKey: 'choices.settings.search_provider_clear.web'}),
+  createChoice('Images', 'images', {localizationKey: 'choices.settings.search_provider_clear.images'}),
+  createChoice('Both', 'all', {localizationKey: 'choices.settings.search_provider_clear.all'}),
 ];
 
 

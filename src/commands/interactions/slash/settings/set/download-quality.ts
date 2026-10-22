@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { DownloadQualities } from '../../../../../constants';
+import { DownloadQualities, DownloadQualitiesToTextWithTier } from '../../../../../constants';
 import { Formatter, I18n, Parameters } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -23,7 +23,7 @@ export class SettingsSetDownloadQualityCommand extends BaseInteractionCommandOpt
           name: 'quality',
           description: 'Download Quality (Default: 720p)',
           ...I18n.optionLocalizations('commands.settings.set.download_quality.quality'),
-          choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_720, doNotSort: true}),
+          choices: Parameters.Slash.oneOf({choices: DownloadQualities, descriptions: DownloadQualitiesToTextWithTier, defaultChoice: DownloadQualities.QUALITY_720, doNotSort: true}),
         },
         {
           name: 'clear',

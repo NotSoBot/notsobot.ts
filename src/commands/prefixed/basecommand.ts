@@ -289,8 +289,13 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
     const commandId = metadata.id || context.command.fullName.split(' ').join('.');
     // the api only stores it when there's a response, the message delete listener and the reply-to-ai check look here
     // before asking it
+    // set by NotSoAI's command, which response its reply holds
+    const llmResponseId: string | undefined = context.metadata && context.metadata.llmResponseId;
     if (context.response) {
       CommandResponsesStore.insert(context.messageId, context.response.id, commandId);
+      if (llmResponseId) {
+        CommandResponsesStore.insertLLMResponse(context.response.id, llmResponseId, context.userId);
+      }
     }
     await createUserCommand(
       context,
@@ -299,6 +304,7 @@ export class BaseCommand<ParsedArgsFinished = Command.ParsedArgs> extends Comman
       {
         channelId: context.channelId,
         guildId: context.guildId,
+        llmResponseId,
         messageResponseId: (context.response) ? context.response.id : undefined,
         messageTriggerId: context.messageId,
         result: getCommandResult(context),

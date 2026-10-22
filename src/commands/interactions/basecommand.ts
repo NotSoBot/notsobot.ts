@@ -10,6 +10,7 @@ import { Components, Markup } from 'detritus-client/lib/utils';
 import { Endpoints } from 'detritus-client-rest';
 
 import GuildSettingsStore from '../../stores/guildsettings';
+import CommandResponsesStore from '../../stores/commandresponses';
 import { getServerPremiumUsers } from '../../stores/premiumservers';
 import ServerSettingsStore from '../../stores/serversettings';
 import UserStore from '../../stores/users';
@@ -290,6 +291,11 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     if (commandType !== null) {
       const metadata = context.invoker.metadata;
       const commandId = metadata.id || context.name.split(' ').join('.');
+      // set by NotSoAI's command, which response its reply holds
+      const llmResponseId: string | undefined = context.metadata && context.metadata.llmResponseId;
+      if (llmResponseId && context.responseId) {
+        CommandResponsesStore.insertLLMResponse(context.responseId, llmResponseId, context.userId);
+      }
       await createUserCommand(
         context,
         context.userId,
@@ -298,6 +304,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
           commandType,
           channelId: context.channelId!,
           guildId: context.guildId,
+          llmResponseId,
           messageResponseId: context.responseId,
           messageTriggerId: context.interactionId,
           result: getCommandResult(context),

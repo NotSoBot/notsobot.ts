@@ -14,7 +14,7 @@ import {
   GoogleLocalesText,
 } from '../../../constants';
 
-import { DisplayPayload, Paginator, chunkArray, displayReply } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, chunkArray, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.google.web';
@@ -23,7 +23,7 @@ export const RESULTS_PER_PAGE = 3;
 
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
-  args: {locale?: GoogleLocales, query: string, safe?: boolean},
+  args: {locale?: GoogleLocales, query: string},
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
   const {
@@ -31,7 +31,7 @@ export async function createMessage(
     results,
     suggestion,
     total_result_count: totalResultCount,
-  } = await searchGoogle(context, args);
+  } = await searchGoogle(context, {...args, safe: DefaultParameters.safe(context)});
 
   const suggestionText = (
     (suggestion) ?
@@ -58,7 +58,10 @@ export async function createMessage(
           if (args.locale && args.locale in GoogleLocalesText) {
             footer = `${footer} (${GoogleLocalesText[args.locale]})`;
           }
-          footer = translate('search_google_web.total_results', {footer: footer, totalResultCount: totalResultCount.toLocaleString(language)});
+          // google stopped showing the result count, the api sends 0 when the page has none
+          if (totalResultCount) {
+            footer = translate('search_google_web.total_results', {footer: footer, totalResultCount: totalResultCount.toLocaleString(language)});
+          }
           payload.footer = footer;
           payload.footerIconUrl = EmbedBrands.GOOGLE_GO;
 

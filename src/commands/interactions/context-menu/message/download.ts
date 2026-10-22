@@ -5,7 +5,6 @@ import {
 } from 'detritus-client/lib/constants';
 
 import {
-  DefaultParameters,
   Formatter,
   I18n,
   displayReply,
@@ -58,7 +57,6 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
 
   async run(context: Interaction.InteractionContext, args: DownloadCommandArgs) {
     return Formatter.Commands.ToolsDownload.createMessage(context, {
-      safe: DefaultParameters.safe(context),
       url: args.url,
     });
   }

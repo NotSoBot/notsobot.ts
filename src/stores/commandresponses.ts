@@ -22,6 +22,8 @@ const CLOCK_LEEWAY = 30 * 1000;
 class CommandResponsesStore extends Store<string, string> {
   // response message id -> command id
   responses = new Collections.BaseCollection<string, string>({expire: TRACK_DURATION});
+  // response message id -> the NotSoAI response it holds and who asked, prefixed and slash commands both
+  llmResponses = new Collections.BaseCollection<string, {id: string, userId: string}>({expire: TRACK_DURATION});
   // shard id -> when we started seeing its messages
   trackingSince = new Map<number, number>();
 
@@ -32,6 +34,10 @@ class CommandResponsesStore extends Store<string, string> {
   insert(triggerId: string, responseId: string, commandId: string): void {
     this.set(triggerId, responseId);
     this.responses.set(responseId, commandId);
+  }
+
+  insertLLMResponse(responseId: string, llmResponseId: string, userId: string): void {
+    this.llmResponses.set(responseId, {id: llmResponseId, userId});
   }
 
   // if the message was sent while we were watching its shard, and recently enough to still be remembered

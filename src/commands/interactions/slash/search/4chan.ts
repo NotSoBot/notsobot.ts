@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../utils';
+import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -22,7 +22,6 @@ export class Search4ChanCommand extends BaseInteractionCommandOption {
         {name: 'board', description: 'Board to search (ex: g, v)', ...I18n.optionLocalizations('commands.search.4chan.board')},
         {name: 'closed', description: 'Include closed threads', ...I18n.optionLocalizations('commands.search.4chan.closed'), type: Boolean},
         {name: 'randomize', description: 'Randomize the results', ...I18n.optionLocalizations('commands.search.4chan.randomize'), type: Boolean},
-        {name: 'safe', description: 'Safe Search', ...I18n.optionLocalizations('commands.search.4chan.safe'), type: Boolean, default: DefaultParameters.safe, value: Parameters.Slash.safe},
       ],
     });
   }

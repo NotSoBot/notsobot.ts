@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { searchDuckDuckGo } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors } from '../../../constants';
-import { DisplayPayload, Paginator, chunkArray, displayReply, shuffleArray } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, chunkArray, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.duckduckgo';
@@ -23,7 +23,7 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
 
-  const { results } = await searchDuckDuckGo(context, args);
+  const { results } = await searchDuckDuckGo(context, {query: args.query, safe: DefaultParameters.safe(context)});
   if (args.randomize) {
     shuffleArray(results);
   }
@@ -42,7 +42,7 @@ export async function createMessage(
 
         const page = pages[pageNumber - 1];
         for (let result of page) {
-          const cite = result.cite.replace('https://', '').replace('http://', '');
+          const cite = (result.cite || result.url).replace('https://', '').replace('http://', '');
           const description: Array<string> = [
             Markup.url(`**${Markup.escape.all(cite)}**`, `<${result.url}>`),
             Markup.escape.all(result.description),

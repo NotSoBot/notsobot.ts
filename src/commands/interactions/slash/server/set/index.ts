@@ -5,6 +5,7 @@ import { BaseInteractionCommandOptionGroup } from '../../../basecommand';
 import { ServerSetAIPersonalityCommand } from './set.ai.personality';
 import { ServerSetLocaleCommand } from './set.locale';
 import { ServerSetResponseDisplayCommand } from './set.response-display';
+import { ServerSetSearchProviderCommand } from './set.search-provider';
 import { ServerSetTimezoneCommand } from './set.timezone';
 
 
@@ -20,6 +21,7 @@ export class ServerSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new ServerSetAIPersonalityCommand(),
         new ServerSetLocaleCommand(),
         new ServerSetResponseDisplayCommand(),
+        new ServerSetSearchProviderCommand(),
         new ServerSetTimezoneCommand(),
       ],
     });

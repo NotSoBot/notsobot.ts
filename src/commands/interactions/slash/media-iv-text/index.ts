@@ -10,10 +10,17 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaIVAchievementCommand } from './achievement';
 import { MediaIVCaptionCommand } from './caption';
+import { MediaIVDemotivateCommand } from './demotivate';
 import { MediaIVMemeCommand } from './meme';
+import { MediaIVNewsCommand } from './news';
+import { MediaIVNotificationCommand } from './notification';
 import { MediaIVRecaptionCommand } from './recaption';
+import { MediaIVSnapchatCommand } from './snapchat';
+import { MediaIVSubtitleCommand } from './subtitle';
+import { MediaIVTikTokCommand } from './tiktok';
 import { MediaIVVaporwaveCommand } from './vaporwave';
 import { MediaIVWatchMojoCommand } from './watchmojo';
+import { MediaIVYouTubeCommand } from './youtube';
 
 
 export default class MediaIVTextGroupCommand extends BaseSlashCommand {
@@ -37,10 +44,17 @@ export default class MediaIVTextGroupCommand extends BaseSlashCommand {
       options: [
         new MediaIVAchievementCommand(),
         new MediaIVCaptionCommand(),
+        new MediaIVDemotivateCommand(),
         new MediaIVMemeCommand(),
+        new MediaIVNewsCommand(),
+        new MediaIVNotificationCommand(),
         new MediaIVRecaptionCommand(),
+        new MediaIVSnapchatCommand(),
+        new MediaIVSubtitleCommand(),
+        new MediaIVTikTokCommand(),
         new MediaIVVaporwaveCommand(),
         new MediaIVWatchMojoCommand(),
+        new MediaIVYouTubeCommand(),
       ],
     });
   }

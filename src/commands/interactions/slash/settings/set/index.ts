@@ -14,6 +14,7 @@ import { SettingsSetFileVanityCommand } from './file-vanity';
 import { SettingsSetLocaleCommand } from './locale';
 import { SettingsSetMLImagineModelCommand } from './ml-imagine-model';
 import { SettingsSetResponseDisplayCommand } from './response-display';
+import { SettingsSetSearchProviderCommand } from './search-provider';
 import { SettingsSetTimezoneCommand } from './timezone';
 import { SettingsSetUnitsCommand } from './units';
 
@@ -39,6 +40,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new SettingsSetLocaleCommand(),
         new SettingsSetMLImagineModelCommand(),
         new SettingsSetResponseDisplayCommand(),
+        new SettingsSetSearchProviderCommand(),
         new SettingsSetTimezoneCommand(),
         new SettingsSetUnitsCommand(),
       ],

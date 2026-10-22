@@ -70,10 +70,13 @@ import {
   TimezonesToAliases,
   TimezonesToText,
   UserSettingsResponseDisplayTypes,
+  UserSettingsSearchProviders,
   MAX_MEMBERS_SAFE,
   MIMETYPES_IMAGE_EMBEDDABLE,
   MIMETYPES_SAFE_EMBED,
   MIMETYPES_VIDEO_EMBEDDABLE,
+  SEARCH_PROVIDER_IMAGES_DEFAULT,
+  SEARCH_PROVIDER_WEB_DEFAULT,
   SNOWFLAKE_EPOCH,
   TRUSTED_URLS,
   COMMAND_EDIT_DURATION,
@@ -2222,6 +2225,49 @@ export async function getResponseDisplay(
     }
   }
   return UserSettingsResponseDisplayTypes.DEFAULT;
+}
+
+
+export type SearchProviderKind = 'images' | 'web';
+
+export enum SearchProviderSources {
+  DEFAULT = 'default',
+  SERVER = 'server',
+  USER = 'user',
+}
+
+// the user's preference wins, then the server's, then DuckDuckGo for web and Google for images
+export async function getSearchProvider(
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
+  kind: SearchProviderKind,
+  options: {skipUser?: boolean} = {},
+): Promise<{provider: UserSettingsSearchProviders, source: SearchProviderSources}> {
+  if (!options.skipUser) {
+    try {
+      const userSettings = await UserSettingsStore.getOrFetch(context, context.userId);
+      const value = (userSettings) ? userSettings[`search_provider_${kind}`] : null;
+      if (typeof(value) === 'number') {
+        return {provider: value, source: SearchProviderSources.USER};
+      }
+    } catch(error) {
+      // the api might be down, still search with the defaults
+    }
+  }
+
+  if (context.guildId) {
+    try {
+      const guildSettings = await GuildSettingsStore.getOrFetch(context, context.guildId);
+      const value = (guildSettings && guildSettings.settings) ? guildSettings.settings[(kind === 'images') ? 'searchProviderImages' : 'searchProviderWeb'] : null;
+      if (typeof(value) === 'number') {
+        return {provider: value, source: SearchProviderSources.SERVER};
+      }
+    } catch(error) {
+      // the bot might not be in this server (user installed commands)
+    }
+  }
+
+  const provider = (kind === 'images') ? SEARCH_PROVIDER_IMAGES_DEFAULT : SEARCH_PROVIDER_WEB_DEFAULT;
+  return {provider, source: SearchProviderSources.DEFAULT};
 }
 
 

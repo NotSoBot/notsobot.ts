@@ -1,10 +1,17 @@
 import { Command, Interaction, Structures } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
+import CommandResponsesStore from '../../../stores/commandresponses';
 import GuildSettingsStore from '../../../stores/guildsettings';
 import UserSettingsStore from '../../../stores/usersettings';
 
-import { generateTag, mediaAIVToolsAnalyze, putGeneratedTagError, utilitiesFetchText } from '../../../api';
+import {
+  fetchCommandsResponses,
+  generateTag,
+  mediaAIVToolsAnalyze,
+  putGeneratedTagError,
+  utilitiesFetchText,
+} from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
 import { captureError } from '../../../sentry';
@@ -67,6 +74,36 @@ async function aiWritingText(
 }
 
 
+// the NotSoAI response a message of ours holds, only when it was this user's (the api only continues their own too)
+async function fetchAIParentId(context: Command.Context, message: Structures.Message): Promise<string | null> {
+  if (!message.author.isMe) {
+    return null;
+  }
+  const stored = CommandResponsesStore.llmResponses.get(message.id);
+  if (stored) {
+    return (stored.userId === context.userId) ? stored.id : null;
+  }
+  if (message.interaction) {
+    if (message.interaction.name !== 'ai' || message.interaction.user.id !== context.userId) {
+      return null;
+    }
+  } else if (CommandResponsesStore.getResponseCommandId(context.client, message.id) !== undefined) {
+    // sent while this process was watching, a NotSoAI reply from then would've been stored above
+    return null;
+  }
+  try {
+    const { results } = await fetchCommandsResponses(context, {
+      channelId: message.channelId,
+      responseIds: [message.id],
+    });
+    const result = results.find((x) => x.message_response_id === message.id && x.command_id === COMMAND_ID);
+    return (result && result.llm_response_id && result.user_id === context.userId) ? result.llm_response_id : null;
+  } catch(error) {
+    return null;
+  }
+}
+
+
 async function generateAndRunTag(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
@@ -74,6 +111,8 @@ async function generateAndRunTag(
 ) {
   const urls: Array<string> = [];
   const promptExtra: Array<string> = [];
+  // replying to NotSoAI continues that conversation, the api sends its earlier turns (with the code it wrote)
+  let parentId: null | string = null;
   if (context instanceof Command.Context) {
     // only the media from the command message itself and the first media found going up the reply chain
     const current = findMediaForAI(context.message);
@@ -106,6 +145,18 @@ async function generateAndRunTag(
           if (reply && reply.isText) {
             replyText = await fetchTextForAI(context, reply.url);
           }
+        }
+
+        // the rest of the chain is already in the conversation, only say where its media came from
+        parentId = await fetchAIParentId(context, message);
+        if (parentId) {
+          promptExtra.push([
+            `Message Reply Context ${chain}`,
+            '-> Your previous reply in this conversation',
+            (replyText) ? `-> Text File: ${replyText}` : null,
+            (mediaIsFromHere && !reply!.isText) ? '-> Media is from here' : null,
+          ].filter(Boolean).join('\n'));
+          break;
         }
 
         const content: Array<string> = [];
@@ -194,11 +245,16 @@ async function generateAndRunTag(
   const response = await generateTag(context, {
     memory: true,
     model: args.model,
+    parentId: parentId || undefined,
     personality,
     personalityPreference: args.personalityPreference,
     prompt: [args.prompt, ...promptExtra].join('\n'),
     urls,
   });
+  if (response.id) {
+    // saved with the command's response (`onFinally`), so a reply to it can continue this conversation
+    context.metadata = Object.assign({}, context.metadata, {llmResponseId: response.id});
+  }
   if (args.debug || args.debugFull) {
     await thinking.stop();
   }

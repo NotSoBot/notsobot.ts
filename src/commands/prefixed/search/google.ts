@@ -9,7 +9,6 @@ import { BaseSearchCommand } from '../basecommand';
 export interface CommandArgs {
   locale: GoogleLocales,
   query: string,
-  safe: boolean,
 }
 
 export const COMMAND_NAME = 'google';
@@ -22,7 +21,6 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
       aliases: ['g', 'google search', 'g search'],
       args: [
         {name: 'locale', aliases: ['language'], default: DefaultParameters.locale, type: Parameters.locale},
-        {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],
       metadata: {
         category: CommandCategories.SEARCH,
@@ -30,10 +28,9 @@ export default class GoogleCommand extends BaseSearchCommand<CommandArgs> {
         examples: [
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -locale russian`,
-          `${COMMAND_NAME} something nsfw -safe`,
         ],
         id: Formatter.Commands.SearchGoogleWeb.COMMAND_ID,
-        usage: '<query> (-locale <language>) (-safe)',
+        usage: '<query> (-locale <language>)',
       },
       priority: -1,
     });

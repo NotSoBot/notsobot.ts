@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories, } from '../../../constants';
-import { Formatter, DefaultParameters } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -16,19 +16,17 @@ export default class ImageCommand extends BaseSearchCommand {
       aliases: ['img', 'im'],
       args: [
         {name: 'randomize', aliases: ['r', 'random'], type: Boolean},
-        {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],
       metadata: {
       category: CommandCategories.SEARCH,
       description: 'Search Images from Bing, DuckDuckGo, or Google.',
       examples: [
         `${COMMAND_NAME} notsobot`,
-        `${COMMAND_NAME} something nsfw -safe`,
         `${COMMAND_NAME} notsobot -randomize`,
         `${COMMAND_NAME} notsobot -r`,
       ],
       id: Formatter.Commands.SearchImages.COMMAND_ID,
-      usage: '<query> (-randomize) (-safe)',
+      usage: '<query> (-randomize)',
       },
     });
   }

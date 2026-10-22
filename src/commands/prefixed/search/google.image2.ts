@@ -17,7 +17,6 @@ export default class Image2Command extends BaseSearchCommand {
       args: [
         {name: 'locale', aliases: ['language'], default: DefaultParameters.locale, type: Parameters.locale},
         {name: 'randomize', aliases: ['r', 'random'], type: Boolean},
-        {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],
       metadata: {
         category: CommandCategories.SEARCH,
@@ -25,12 +24,11 @@ export default class Image2Command extends BaseSearchCommand {
         examples: [
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -locale russian`,
-          `${COMMAND_NAME} something nsfw -safe`,
           `${COMMAND_NAME} notsobot -randomize`,
           `${COMMAND_NAME} notsobot -r`,
         ],
         id: Formatter.Commands.SearchGoogleImages.COMMAND_ID_SIMPLE,
-        usage: '<query> (-locale <language>) (-randomize) (-safe)',
+        usage: '<query> (-locale <language>) (-randomize)',
       },
     });
   }

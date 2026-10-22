@@ -234,6 +234,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/datamosh',
   MEDIA_IV_MANIPULATION_DEEPFRY:
     '/media/iv/manipulation/deepfry',
+  MEDIA_IV_MANIPULATION_DEMOTIVATE:
+    '/media/iv/manipulation/demotivate',
   MEDIA_IV_MANIPULATION_DERAIN:
     '/media/iv/manipulation/derain',
   MEDIA_IV_MANIPULATION_DETUNNEL:
@@ -636,6 +638,10 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/hypercam',
   MEDIA_IV_MANIPULATION_OVERLAY_MISTAKE:
     '/media/iv/manipulation/overlay/mistake',
+  MEDIA_IV_MANIPULATION_OVERLAY_NEWS:
+    '/media/iv/manipulation/overlay/news',
+  MEDIA_IV_MANIPULATION_OVERLAY_NOTIFICATION:
+    '/media/iv/manipulation/overlay/notification',
   MEDIA_IV_MANIPULATION_OVERLAY_NOT_RESPONDING:
     '/media/iv/manipulation/overlay/not-responding',
   MEDIA_IV_MANIPULATION_OVERLAY_OLD_GUY:
@@ -678,12 +684,18 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/rtx',
   MEDIA_IV_MANIPULATION_OVERLAY_SHUTTERSTOCK:
     '/media/iv/manipulation/overlay/shutterstock',
+  MEDIA_IV_MANIPULATION_OVERLAY_SNAPCHAT:
+    '/media/iv/manipulation/overlay/snapchat',
   MEDIA_IV_MANIPULATION_OVERLAY_STARMAN:
     '/media/iv/manipulation/overlay/starman',
+  MEDIA_IV_MANIPULATION_OVERLAY_SUBTITLE:
+    '/media/iv/manipulation/overlay/subtitle',
   MEDIA_IV_MANIPULATION_OVERLAY_SUPREME:
     '/media/iv/manipulation/overlay/supreme',
   MEDIA_IV_MANIPULATION_OVERLAY_THINKING:
     '/media/iv/manipulation/overlay/thinking',
+  MEDIA_IV_MANIPULATION_OVERLAY_TIKTOK:
+    '/media/iv/manipulation/overlay/tiktok',
   MEDIA_IV_MANIPULATION_OVERLAY_VHS:
     '/media/iv/manipulation/overlay/vhs',
   MEDIA_IV_MANIPULATION_OVERLAY_WASTED:
@@ -696,6 +708,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/overlay/wheeze',
   MEDIA_IV_MANIPULATION_OVERLAY_WHO_DID_THIS:
     '/media/iv/manipulation/overlay/who-did-this',
+  MEDIA_IV_MANIPULATION_OVERLAY_YOUTUBE:
+    '/media/iv/manipulation/overlay/youtube',
   MEDIA_IV_MANIPULATION_OVERLAY_YUSUKE:
     '/media/iv/manipulation/overlay/yusuke',
   MEDIA_IV_MANIPULATION_PAINT:
@@ -862,6 +876,10 @@ export const Api = Object.freeze({
     '/search/4chan',
   SEARCH_4CHAN_RANDOM:
     '/search/4chan/random',
+  SEARCH_BING:
+    '/search/bing',
+  SEARCH_BING_IMAGES:
+    '/search/bing/images',
   SEARCH_DUCKDUCKGO:
     '/search/duckduckgo',
   SEARCH_DUCKDUCKGO_IMAGES:
@@ -904,6 +922,12 @@ export const Api = Object.freeze({
     '/search/wikihow/random',
   SEARCH_WOLFRAM_ALPHA:
     '/search/wolfram-alpha',
+  SEARCH_OPENVERSE:
+    '/search/openverse',
+  SEARCH_YANDEX:
+    '/search/yandex',
+  SEARCH_YANDEX_IMAGES:
+    '/search/yandex/images',
   SEARCH_YOUTUBE:
     '/search/youtube',
 

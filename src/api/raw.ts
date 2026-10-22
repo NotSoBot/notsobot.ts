@@ -331,6 +331,7 @@ export async function createUserCommand(
     channel_id: options.channelId,
     command_type: options.commandType,
     guild_id: options.guildId,
+    llm_response_id: options.llmResponseId,
     message_response_id: options.messageResponseId,
     message_trigger_id: options.messageTriggerId,
     result: options.result,
@@ -702,6 +703,8 @@ export async function editGuildSettings(
     prefixes: options.prefixes,
     response_display: options.responseDisplay,
     rules_admin_bypass: options.rulesAdminBypass,
+    search_provider_images: options.searchProviderImages,
+    search_provider_web: options.searchProviderWeb,
     timezone: options.timezone,
   };
   const params = {guildId};
@@ -890,6 +893,8 @@ export async function editUserSettings(
     ml_llm_model: options.mlLLMModel,
     ml_llm_personality: options.mlLLMPersonality,
     response_display: options.responseDisplay,
+    search_provider_images: options.searchProviderImages,
+    search_provider_web: options.searchProviderWeb,
     timezone: options.timezone,
     tts_voice: options.ttsVoice,
     units: options.units,
@@ -1707,6 +1712,7 @@ export async function generateTag(
     max_file_size: maxFileSize,
     memory: options.memory,
     model: options.model,
+    parent_id: options.parentId,
     personality: options.personality,
     personality_preference: options.personalityPreference,
     prompt: options.prompt,
@@ -3662,6 +3668,29 @@ export async function mediaIVManipulationDeepfry(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_DEEPFRY,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationDemotivate(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDemotivate,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+    title: options.title,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DEMOTIVATE,
     },
   });
 }
@@ -7989,6 +8018,30 @@ export async function mediaIVManipulationOverlayMistake(
 }
 
 
+export async function mediaIVManipulationOverlayNews(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayNews,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    label: options.label,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+    ticker: options.ticker,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_NEWS,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayNotResponding(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -8005,6 +8058,29 @@ export async function mediaIVManipulationOverlayNotResponding(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_NOT_RESPONDING,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayNotification(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayNotification,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+    title: options.title,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_NOTIFICATION,
     },
   });
 }
@@ -8431,6 +8507,29 @@ export async function mediaIVManipulationOverlayShutterstock(
 }
 
 
+export async function mediaIVManipulationOverlaySnapchat(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlaySnapchat,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    position: options.position,
+    safe: options.safe,
+    text: options.text,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_SNAPCHAT,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationOverlayStarman(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -8447,6 +8546,29 @@ export async function mediaIVManipulationOverlayStarman(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_STARMAN,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlaySubtitle(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlaySubtitle,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+    url: options.url,
+    yellow: options.yellow,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_SUBTITLE,
     },
   });
 }
@@ -8489,6 +8611,30 @@ export async function mediaIVManipulationOverlayThinking(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_THINKING,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayTikTok(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayTikTok,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    dark: options.dark,
+    max_file_size: maxFileSize,
+    position: options.position,
+    safe: options.safe,
+    text: options.text,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_TIKTOK,
     },
   });
 }
@@ -8622,6 +8768,29 @@ export async function mediaIVManipulationOverlayWhoDidThis(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_OVERLAY_WHO_DID_THIS,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationOverlayYouTube(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayYouTube,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    channel: options.channel,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    text: options.text,
+    url: options.url,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_OVERLAY_YOUTUBE,
     },
   });
 }
@@ -10392,12 +10561,49 @@ export async function search4ChanRandom(
 }
 
 
+export async function searchBing(
+  context: RequestContext,
+  options: RestOptions.SearchBing,
+): Promise<RestResponsesRaw.SearchBing> {
+  const query = {
+    query: options.query,
+    safe: options.safe,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_BING,
+    },
+  });
+}
+
+
+export async function searchBingImages(
+  context: RequestContext,
+  options: RestOptions.SearchBingImages,
+): Promise<RestResponsesRaw.SearchBingImages> {
+  const query = {
+    query: options.query,
+    safe: options.safe,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_BING_IMAGES,
+    },
+  });
+}
+
+
 export async function searchDuckDuckGo(
   context: RequestContext,
   options: RestOptions.SearchDuckDuckGo,
 ): Promise<any> {
   const query = {
     query: options.query,
+    safe: options.safe,
   };
   return request(context, {
     query,
@@ -10733,6 +10939,60 @@ export async function searchWolframAlpha(
     route: {
       method: HTTPMethods.GET,
       path: Api.SEARCH_WOLFRAM_ALPHA,
+    },
+  });
+}
+
+
+export async function searchOpenverse(
+  context: RequestContext,
+  options: RestOptions.SearchOpenverse,
+): Promise<RestResponsesRaw.SearchOpenverse> {
+  const query = {
+    query: options.query,
+    safe: options.safe,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_OPENVERSE,
+    },
+  });
+}
+
+
+export async function searchYandex(
+  context: RequestContext,
+  options: RestOptions.SearchYandex,
+): Promise<RestResponsesRaw.SearchYandex> {
+  const query = {
+    query: options.query,
+    safe: options.safe,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_YANDEX,
+    },
+  });
+}
+
+
+export async function searchYandexImages(
+  context: RequestContext,
+  options: RestOptions.SearchYandexImages,
+): Promise<RestResponsesRaw.SearchYandexImages> {
+  const query = {
+    query: options.query,
+    safe: options.safe,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.SEARCH_YANDEX_IMAGES,
     },
   });
 }

@@ -37,14 +37,6 @@ export class SearchGoogleImagesSimpleCommand extends BaseInteractionCommandOptio
           ...I18n.optionLocalizations('commands.search.google.google_images_simple.randomize'),
           type: Boolean,
         },
-        {
-          name: 'safe',
-          description: 'Safe Search',
-          ...I18n.optionLocalizations('commands.search.google.google_images_simple.safe'),
-          type: Boolean,
-          default: DefaultParameters.safe,
-          value: Parameters.Slash.safe,
-        },
       ],
     });
   }

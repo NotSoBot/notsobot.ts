@@ -1536,6 +1536,14 @@ export async function mediaIVManipulationDeepfry(
 }
 
 
+export async function mediaIVManipulationDemotivate(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDemotivate,
+) {
+  return raw.mediaIVManipulationDemotivate(context, options);
+}
+
+
 export async function mediaIVManipulationDerain(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -3136,11 +3144,27 @@ export async function mediaIVManipulationOverlayMistake(
 }
 
 
+export async function mediaIVManipulationOverlayNews(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayNews,
+) {
+  return raw.mediaIVManipulationOverlayNews(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayNotResponding(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayNotResponding(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayNotification(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayNotification,
+) {
+  return raw.mediaIVManipulationOverlayNotification(context, options);
 }
 
 
@@ -3304,11 +3328,27 @@ export async function mediaIVManipulationOverlayShutterstock(
 }
 
 
+export async function mediaIVManipulationOverlaySnapchat(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlaySnapchat,
+) {
+  return raw.mediaIVManipulationOverlaySnapchat(context, options);
+}
+
+
 export async function mediaIVManipulationOverlayStarman(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayStarman(context, options);
+}
+
+
+export async function mediaIVManipulationOverlaySubtitle(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlaySubtitle,
+) {
+  return raw.mediaIVManipulationOverlaySubtitle(context, options);
 }
 
 
@@ -3325,6 +3365,14 @@ export async function mediaIVManipulationOverlayThinking(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayThinking(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayTikTok(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayTikTok,
+) {
+  return raw.mediaIVManipulationOverlayTikTok(context, options);
 }
 
 
@@ -3373,6 +3421,14 @@ export async function mediaIVManipulationOverlayWhoDidThis(
   options: RestOptions.MediaBaseOptions,
 ) {
   return raw.mediaIVManipulationOverlayWhoDidThis(context, options);
+}
+
+
+export async function mediaIVManipulationOverlayYouTube(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationOverlayYouTube,
+) {
+  return raw.mediaIVManipulationOverlayYouTube(context, options);
 }
 
 
@@ -4030,6 +4086,22 @@ export async function search4ChanRandom(
 }
 
 
+export async function searchBing(
+  context: RequestContext,
+  options: RestOptions.SearchBing,
+) {
+  return raw.searchBing(context, options);
+}
+
+
+export async function searchBingImages(
+  context: RequestContext,
+  options: RestOptions.SearchBingImages,
+) {
+  return raw.searchBingImages(context, options);
+}
+
+
 export async function searchDuckDuckGo(
   context: RequestContext,
   options: RestOptions.SearchDuckDuckGo,
@@ -4193,6 +4265,30 @@ export async function searchWolframAlpha(
   options: RestOptions.SearchWolframAlpha,
 ) {
   return raw.searchWolframAlpha(context, options);
+}
+
+
+export async function searchOpenverse(
+  context: RequestContext,
+  options: RestOptions.SearchOpenverse,
+) {
+  return raw.searchOpenverse(context, options);
+}
+
+
+export async function searchYandex(
+  context: RequestContext,
+  options: RestOptions.SearchYandex,
+) {
+  return raw.searchYandex(context, options);
+}
+
+
+export async function searchYandexImages(
+  context: RequestContext,
+  options: RestOptions.SearchYandexImages,
+) {
+  return raw.searchYandexImages(context, options);
 }
 
 

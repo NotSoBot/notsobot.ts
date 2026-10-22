@@ -15,7 +15,6 @@ export interface CommandArgs {
   closed?: boolean,
   board?: string,
   randomize?: boolean,
-  safe?: boolean,
 }
 
 export async function createMessage(
@@ -24,8 +23,7 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
 
-  // the `safe` option can only turn safe mode on, never off in a sfw channel
-  const safe = !!args.safe || DefaultParameters.safe(context);
+  const safe = DefaultParameters.safe(context);
   // nsfw boards (like /b/) used to be shown anywhere when picked by name, only random boards checked the channel
   const board = await ((args.board) ? search4Chan(context, {board: args.board, safe}) : search4ChanRandom(context, {nsfw: !safe}));
   if (safe && board.nsfw) {

@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
 import { CommandCategories } from '../../../constants';
-import { DefaultParameters, Formatter } from '../../../utils';
+import { Formatter } from '../../../utils';
 
 import { BaseSearchCommand } from '../basecommand';
 
@@ -17,7 +17,6 @@ export default class ChanCommand extends BaseSearchCommand<Formatter.Commands.Se
       args: [
         {name: 'closed', aliases: ['c'], type: Boolean},
         {name: 'randomize', aliases: ['r', 'random'], type: Boolean},
-        {name: 'safe', default: DefaultParameters.safe, type: () => true},
       ],
       label: 'board',
       metadata: {
@@ -28,7 +27,7 @@ export default class ChanCommand extends BaseSearchCommand<Formatter.Commands.Se
           `${COMMAND_NAME} fitness`,
         ],
         id: Formatter.Commands.Search4Chan.COMMAND_ID,
-        usage: '?<board> (-closed) (-randomize) (-safe)',
+        usage: '?<board> (-closed) (-randomize)',
       },
     });
   }

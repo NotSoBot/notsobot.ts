@@ -62,6 +62,7 @@ export enum ApiErrorCodes {
   UNKNOWN_GUILD_RULE = 10026,
   UNKNOWN_IDENTITY = 10027,
   UNKNOWN_VOICE_CLIP = 10028,
+  UNKNOWN_GUILD_LLM_KNOWLEDGE = 10029,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -93,6 +94,7 @@ export enum ApiErrorCodes {
   MAX_GUILD_RULES = 30024,
   SERVER_AI_LIMIT = 30025,
   MAX_VOICE_CLIPS = 30026,
+  MAX_GUILD_LLM_KNOWLEDGE = 30027,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -478,6 +480,22 @@ export enum DownloadQualities {
 }
 
 
+export const DOWNLOAD_QUALITIES_PREMIUM = Object.freeze([
+  DownloadQualities.QUALITY_1440,
+  DownloadQualities.QUALITY_1080,
+]);
+
+
+// the tier is in the name so people know what they need before picking it
+export const DownloadQualitiesToTextWithTier = Object.freeze(Object.fromEntries(Object.entries(DownloadQualities).map(([key, value]) => {
+  const name = key.replace('QUALITY_', 'Quality ');
+  if (DOWNLOAD_QUALITIES_PREMIUM.includes(value)) {
+    return [value, `${name} (Premium)`];
+  }
+  return [value, name];
+})) as Record<DownloadQualities, string>);
+
+
 export enum E621Rating {
   EXPLICIT = 'e',
   QUESTIONABLE = 'q',
@@ -486,6 +504,8 @@ export enum E621Rating {
 
 
 export enum EmbedBrands {
+  // no bing.png on the cdn yet, yandex's favicon service
+  BING = 'https://favicon.yandex.net/favicon/v2/bing.com?size=32',
   DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
   E621 = 'https://cdn.notsobot.com/brands/e621.png',
   GOOGLE_CONTENT_VISION_SAFETY = 'https://cdn.notsobot.com/brands/google-content-vision-safety.png',
@@ -493,11 +513,15 @@ export enum EmbedBrands {
   NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
   OPENAI_WHISPER = 'https://cdn.discordapp.com/attachments/178313653177548800/1200888138738966740/invert.png?ex=65c7d13b&is=65b55c3b&hm=64723ed2c995d73fd8517c411eb089e501c789e264bfca61c88675ea3796b89c&',
   OPEN_WEATHER_MAP = 'https://cdn.discordapp.com/attachments/560593330270896129/1313023240096055306/android-app-top-banner.png?ex=674e9faf&is=674d4e2f&hm=34dcea3c52bd67f79a337f49f38d2f89f8ea7017f22358093c8d7f163f429d17&',
+  // no openverse.png on the cdn yet, yandex's favicon service
+  OPENVERSE = 'https://favicon.yandex.net/favicon/v2/openverse.org?size=32',
   REDDIT = 'https://cdn.notsobot.com/brands/reddit.png',
   RULE34 = 'https://cdn.notsobot.com/brands/rule34.png',
   RULE34_PAHEAL = 'https://cdn.notsobot.com/brands/rule34-paheal.png',
   STEAM = 'https://cdn.notsobot.com/brands/steam.png',
   URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png',
+  // no yandex.png on the cdn yet, yandex's own favicon service
+  YANDEX = 'https://favicon.yandex.net/favicon/v2/yandex.com?size=32',
   WIKIHOW = 'https://cdn.notsobot.com/brands/wikihow.png',
   WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
   YOUTUBE = 'https://cdn.notsobot.com/brands/youtube.png',
@@ -2275,6 +2299,25 @@ export enum UserSettingsResponseDisplayTypes {
 }
 
 
+// shared by the user and server settings, null falls back to the server's, then DuckDuckGo for web and Google for images
+export enum UserSettingsSearchProviders {
+  GOOGLE = 0,
+  DUCK_DUCK_GO = 1,
+  BING = 2,
+  YANDEX = 3,
+}
+
+export const SearchProvidersText: Record<UserSettingsSearchProviders, string> = Object.freeze({
+  [UserSettingsSearchProviders.GOOGLE]: 'Google',
+  [UserSettingsSearchProviders.DUCK_DUCK_GO]: 'DuckDuckGo',
+  [UserSettingsSearchProviders.BING]: 'Bing',
+  [UserSettingsSearchProviders.YANDEX]: 'Yandex',
+});
+
+export const SEARCH_PROVIDER_IMAGES_DEFAULT = UserSettingsSearchProviders.GOOGLE;
+export const SEARCH_PROVIDER_WEB_DEFAULT = UserSettingsSearchProviders.DUCK_DUCK_GO;
+
+
 // same values as the user setting so the api can share validation
 export enum GuildSettingsResponseDisplayTypes {
   DEFAULT = 0,
@@ -2472,7 +2515,6 @@ export const NotSoApiKeys = Object.freeze({
   ML_LLM_MODEL: 'ml_llm_model',
   ML_LLM_PERSONALITY: 'ml_llm_personality',
   NAME: 'name',
-  OPTED_OUT: 'opted_out',
   PREFIX: 'prefix',
   PREFIXES: 'prefixes',
   PREMIUM_TYPE: 'premium_type',
@@ -2483,6 +2525,8 @@ export const NotSoApiKeys = Object.freeze({
   RESPONSE_DISPLAY: 'response_display',
   RULES: 'rules',
   RULES_ADMIN_BYPASS: 'rules_admin_bypass',
+  SEARCH_PROVIDER_IMAGES: 'search_provider_images',
+  SEARCH_PROVIDER_WEB: 'search_provider_web',
   SERVINGS: 'servings',
   SETTINGS: 'settings',
   STARS: 'stars',
@@ -2558,7 +2602,6 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ML_LLM_MODEL]: 'mlLLMModel',
   [NotSoApiKeys.ML_LLM_PERSONALITY]: 'mlLLMPersonality',
   [NotSoApiKeys.NAME]: 'name',
-  [NotSoApiKeys.OPTED_OUT]: 'optedOut',
   [NotSoApiKeys.PREFIX]: 'prefix',
   [NotSoApiKeys.PREFIXES]: 'prefixes',
   [NotSoApiKeys.PREMIUM_TYPE]: 'premiumType',
@@ -2570,6 +2613,8 @@ export const NotSoBotKeys = Object.freeze({
   // must match the GuildSettings `rules` getter for differences()/toJSON()
   [NotSoApiKeys.RULES]: 'rules',
   [NotSoApiKeys.RULES_ADMIN_BYPASS]: 'rulesAdminBypass',
+  [NotSoApiKeys.SEARCH_PROVIDER_IMAGES]: 'searchProviderImages',
+  [NotSoApiKeys.SEARCH_PROVIDER_WEB]: 'searchProviderWeb',
   [NotSoApiKeys.SERVINGS]: 'servings',
   [NotSoApiKeys.SETTINGS]: 'settings',
   [NotSoApiKeys.STARS]: 'stars',

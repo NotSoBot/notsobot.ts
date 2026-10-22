@@ -1,7 +1,7 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesScreenshot } from '../../../api';
-import { mediaReply } from '../../../utils';
+import { DefaultParameters, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.screenshot';
@@ -9,7 +9,6 @@ export const COMMAND_ID = 'tools.screenshot';
 export interface CommandArgs {
   height?: number,
   lightmode?: boolean,
-  safe?: boolean,
   timeout?: number,
   url: string,
   wait?: number,
@@ -23,7 +22,7 @@ export async function createMessage(
   const response = await utilitiesScreenshot(context, {
     darkmode: !args.lightmode,
     height: args.height,
-    safe: args.safe,
+    safe: DefaultParameters.safe(context),
     timeout: args.timeout,
     url: args.url,
     wait: args.wait,

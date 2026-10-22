@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 import { ApplicationIntegrationTypes, InteractionContextTypes, Permissions } from 'detritus-client/lib/constants';
 
-import { DownloadQualities, StatusEmojis } from '../../../constants';
+import { DownloadQualities, DownloadQualitiesToTextWithTier, StatusEmojis } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseSlashCommand } from '../basecommand';
@@ -55,15 +55,7 @@ export default class DownloadCommand extends BaseSlashCommand {
           name: 'quality',
           description: 'Choose Max Video Quality',
           ...I18n.optionLocalizations('commands.download.quality'),
-          choices: Parameters.Slash.oneOf({choices: DownloadQualities, defaultChoice: DownloadQualities.QUALITY_720, doNotSort: true}),
-        },
-        {
-          name: 'safe',
-          description: 'Enable NSFW Scanning',
-          ...I18n.optionLocalizations('commands.download.safe'),
-          type: Boolean,
-          default: DefaultParameters.safe,
-          value: Parameters.Slash.safe,
+          choices: Parameters.Slash.oneOf({choices: DownloadQualities, descriptions: DownloadQualitiesToTextWithTier, defaultChoice: DownloadQualities.QUALITY_720, doNotSort: true}),
         },
         {
           name: 'spoiler',

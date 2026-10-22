@@ -113,6 +113,7 @@ import * as MediaIVManipulationCropNFT from './media.iv.manipulation.crop.nft';
 import * as MediaIVManipulationCropTriangle from './media.iv.manipulation.crop.triangle';
 import * as MediaIVManipulationDatamosh from './media.iv.manipulation.datamosh';
 import * as MediaIVManipulationDeepfry from './media.iv.manipulation.deepfry';
+import * as MediaIVManipulationDemotivate from './media.iv.manipulation.demotivate';
 import * as MediaIVManipulationDerain from './media.iv.manipulation.derain';
 import * as MediaIVManipulationDetunnel from './media.iv.manipulation.detunnel';
 import * as MediaIVManipulationDice from './media.iv.manipulation.dice';
@@ -337,7 +338,9 @@ import * as MediaIVManipulationOverlayHalfLifeShotgun from './media.iv.manipulat
 import * as MediaIVManipulationOverlayHalfLifeSMG from './media.iv.manipulation.overlay.halflife.smg';
 import * as MediaIVManipulationOverlayHyperCam from './media.iv.manipulation.overlay.hypercam';
 import * as MediaIVManipulationOverlayMistake from './media.iv.manipulation.overlay.mistake';
+import * as MediaIVManipulationOverlayNews from './media.iv.manipulation.overlay.news';
 import * as MediaIVManipulationOverlayNotResponding from './media.iv.manipulation.overlay.not.responding';
+import * as MediaIVManipulationOverlayNotification from './media.iv.manipulation.overlay.notification';
 import * as MediaIVManipulationOverlayOldGuy from './media.iv.manipulation.overlay.old.guy';
 import * as MediaIVManipulationOverlayOwO from './media.iv.manipulation.overlay.owo';
 import * as MediaIVManipulationOverlayPersonsAjitPai1 from './media.iv.manipulation.overlay.persons.ajit.pai.1';
@@ -358,9 +361,12 @@ import * as MediaIVManipulationOverlayPersonsZuckerberg1 from './media.iv.manipu
 import * as MediaIVManipulationOverlayRespects from './media.iv.manipulation.overlay.respects';
 import * as MediaIVManipulationOverlayRTX from './media.iv.manipulation.overlay.rtx';
 import * as MediaIVManipulationOverlayShutterstock from './media.iv.manipulation.overlay.shutterstock';
+import * as MediaIVManipulationOverlaySnapchat from './media.iv.manipulation.overlay.snapchat';
 import * as MediaIVManipulationOverlayStarman from './media.iv.manipulation.overlay.starman';
+import * as MediaIVManipulationOverlaySubtitle from './media.iv.manipulation.overlay.subtitle';
 import * as MediaIVManipulationOverlaySupreme from './media.iv.manipulation.overlay.supreme';
 import * as MediaIVManipulationOverlayThinking from './media.iv.manipulation.overlay.thinking';
+import * as MediaIVManipulationOverlayTikTok from './media.iv.manipulation.overlay.tiktok';
 import * as MediaIVManipulationOverlayVHS from './media.iv.manipulation.overlay.vhs';
 import * as MediaIVManipulationOverlayWasted from './media.iv.manipulation.overlay.wasted';
 import * as MediaIVManipulationOverlayWatchMojo from './media.iv.manipulation.overlay.watchmojo';
@@ -368,6 +374,7 @@ import * as MediaIVManipulationOverlayWatermark from './media.iv.manipulation.ov
 import * as MediaIVManipulationJPEG from './media.iv.manipulation.jpeg';
 import * as MediaIVManipulationOverlayWheeze from './media.iv.manipulation.overlay.wheeze';
 import * as MediaIVManipulationOverlayWhoDidThis from './media.iv.manipulation.overlay.who.did.this';
+import * as MediaIVManipulationOverlayYouTube from './media.iv.manipulation.overlay.youtube';
 import * as MediaIVManipulationOverlayYusuke from './media.iv.manipulation.overlay.yusuke';
 import * as MediaIVManipulationPaint from './media.iv.manipulation.paint';
 import * as MediaIVManipulationPaintAnimated from './media.iv.manipulation.paint.animated';
@@ -477,23 +484,28 @@ import * as Report from './report';
 import * as ReportList from './report.list';
 
 import * as Search4Chan from './search.4chan';
+import * as SearchBing from './search.bing';
+import * as SearchBingImages from './search.bing.images';
 import * as SearchDiscordEmojis from './search.discord.emojis';
 import * as SearchDuckDuckGo from './search.duckduckgo';
 import * as SearchDuckDuckGoImages from './search.duckduckgo.images';
-import * as SearchGiphy from './search.giphy';
 import * as SearchGoogleImages from './search.google.images';
 import * as SearchGoogleReverse from './search.google.reverse';
 import * as SearchGoogleWeb from './search.google.web';
 import * as SearchImages from './search.images';
 import * as SearchImgur from './search.imgur';
+import * as SearchOpenverse from './search.openverse';
 import * as SearchReddit from './search.reddit';
 import * as SearchSteamCommunity from './search.steam.community';
 import * as SearchSteamEmojis from './search.steam.emojis';
 import * as SearchSteamProfile from './search.steam.profile';
 import * as SearchUrban from './search.urban';
+import * as SearchWeb from './search.web';
 import * as SearchWebMD from './search.webmd';
 import * as SearchWikihow from './search.wikihow';
 import * as SearchWolframAlpha from './search.wolframalpha';
+import * as SearchYandex from './search.yandex';
+import * as SearchYandexImages from './search.yandex.images';
 import * as SearchYoutube from './search.youtube';
 
 import * as SettingsAIMemoryClear from './settings.ai.memory.clear';
@@ -503,6 +515,7 @@ import * as SettingsAIMemoryList from './settings.ai.memory.list';
 import * as SettingsServerSetAIPersonality from './settings.server.set.ai.personality';
 import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetResponseDisplay from './settings.server.set.response.display';
+import * as SettingsServerSetSearchProvider from './settings.server.set.search.provider';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
 
 import * as SettingsSetAIModel from './settings.set.ai.model';
@@ -517,6 +530,7 @@ import * as SettingsSetFileVanity from './settings.set.file.vanity';
 import * as SettingsSetLocale from './settings.set.locale';
 import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
 import * as SettingsSetResponseDisplay from './settings.set.response.display';
+import * as SettingsSetSearchProvider from './settings.set.search.provider';
 import * as SettingsSetTimezone from './settings.set.timezone';
 import * as SettingsSetUnits from './settings.set.units';
 
@@ -702,6 +716,7 @@ export {
   MediaIVManipulationCropTriangle,
   MediaIVManipulationDatamosh,
   MediaIVManipulationDeepfry,
+  MediaIVManipulationDemotivate,
   MediaIVManipulationDerain,
   MediaIVManipulationDetunnel,
   MediaIVManipulationDice,
@@ -926,7 +941,9 @@ export {
   MediaIVManipulationOverlayHalfLifeSMG,
   MediaIVManipulationOverlayHyperCam,
   MediaIVManipulationOverlayMistake,
+  MediaIVManipulationOverlayNews,
   MediaIVManipulationOverlayNotResponding,
+  MediaIVManipulationOverlayNotification,
   MediaIVManipulationOverlayOldGuy,
   MediaIVManipulationOverlayOwO,
   MediaIVManipulationOverlayPersonsAjitPai1,
@@ -947,9 +964,12 @@ export {
   MediaIVManipulationOverlayRespects,
   MediaIVManipulationOverlayRTX,
   MediaIVManipulationOverlayShutterstock,
+  MediaIVManipulationOverlaySnapchat,
   MediaIVManipulationOverlayStarman,
+  MediaIVManipulationOverlaySubtitle,
   MediaIVManipulationOverlaySupreme,
   MediaIVManipulationOverlayThinking,
+  MediaIVManipulationOverlayTikTok,
   MediaIVManipulationOverlayVHS,
   MediaIVManipulationOverlayWasted,
   MediaIVManipulationOverlayWatchMojo,
@@ -957,6 +977,7 @@ export {
   MediaIVManipulationJPEG,
   MediaIVManipulationOverlayWheeze,
   MediaIVManipulationOverlayWhoDidThis,
+  MediaIVManipulationOverlayYouTube,
   MediaIVManipulationOverlayYusuke,
   MediaIVManipulationPaint,
   MediaIVManipulationPaintAnimated,
@@ -1066,23 +1087,28 @@ export {
   ReportList,
 
   Search4Chan,
+  SearchBing,
+  SearchBingImages,
   SearchDiscordEmojis,
   SearchDuckDuckGo,
   SearchDuckDuckGoImages,
-  SearchGiphy,
   SearchGoogleImages,
   SearchGoogleReverse,
   SearchGoogleWeb,
   SearchImages,
   SearchImgur,
+  SearchOpenverse,
   SearchReddit,
   SearchSteamCommunity,
   SearchSteamEmojis,
   SearchSteamProfile,
   SearchUrban,
+  SearchWeb,
   SearchWebMD,
   SearchWikihow,
   SearchWolframAlpha,
+  SearchYandex,
+  SearchYandexImages,
   SearchYoutube,
 
   SettingsAIMemoryClear,
@@ -1091,6 +1117,7 @@ export {
   SettingsServerSetAIPersonality,
   SettingsServerSetLocale,
   SettingsServerSetResponseDisplay,
+  SettingsServerSetSearchProvider,
   SettingsServerSetTimezone,
 
   SettingsSetAIModel,
@@ -1105,6 +1132,7 @@ export {
   SettingsSetLocale,
   SettingsSetMLImagineModel,
   SettingsSetResponseDisplay,
+  SettingsSetSearchProvider,
   SettingsSetTimezone,
   SettingsSetUnits,
 

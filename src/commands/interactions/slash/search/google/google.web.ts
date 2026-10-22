@@ -9,7 +9,6 @@ import { BaseInteractionCommandOption } from '../../../basecommand';
 export interface CommandArgs {
   locale?: GoogleLocales,
   query: string,
-  safe?: boolean,
 }
 
 export class SearchGoogleWebCommand extends BaseInteractionCommandOption {
@@ -35,14 +34,6 @@ export class SearchGoogleWebCommand extends BaseInteractionCommandOption {
           ...I18n.optionLocalizations('commands.search.google.google_web.locale'),
           default: DefaultParameters.locale,
           onAutoComplete: Parameters.AutoComplete.googleLocales,
-        },
-        {
-          name: 'safe',
-          description: 'Safe Search',
-          ...I18n.optionLocalizations('commands.search.google.google_web.safe'),
-          type: Boolean,
-          default: DefaultParameters.safe,
-          value: Parameters.Slash.safe,
         },
       ],
     });

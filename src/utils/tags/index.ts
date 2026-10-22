@@ -12,6 +12,7 @@ import { Embed, Markup, Snowflake } from 'detritus-client/lib/utils';
 import { RequestFile } from 'detritus-rest';
 import MiniSearch from 'minisearch';
 
+import GuildSettingsStore from '../../stores/guildsettings';
 import { getServerPremiumUsers } from '../../stores/premiumservers';
 import UserStore from '../../stores/users';
 import UserSettingsStore from '../../stores/usersettings';
@@ -21,16 +22,19 @@ import {
   createUserLLMMemory,
   deleteUserLLMMemories,
   deleteUserLLMMemory,
+  editGuildSettings,
   editUserLLMMemory,
   deleteReminderPositional,
   editReminder,
   editUserSettings,
+  fetchTag,
   fetchTagBlobs,
   fetchTagId,
   fetchTagVariable,
   fetchReminderPositional,
   fetchTagVariables,
   fetchUserReminders,
+  fetchUserVoices,
   deleteTagVariable,
   generateTag,
   googleContentVisionOCR,
@@ -39,10 +43,15 @@ import {
   mediaAVToolsExtractAudio,
   mediaAVToolsIdentify,
   mediaAVToolsTranscribe,
+  putTag,
   putTagBlobs,
   putTagVariable,
   putTagVariables,
+  searchBing,
+  searchBingImages,
+  searchDuckDuckGo,
   searchDuckDuckGoImages,
+  searchGoogle,
   searchGoogleImages,
   searchImgur,
   searchReddit,
@@ -52,6 +61,8 @@ import {
   searchWikihow,
   searchWikihowRandom,
   searchWolframAlpha,
+  searchYandex,
+  searchYandexImages,
   searchYoutube,
   utilitiesCodeRun,
   utilitiesFetchMedia,
@@ -67,25 +78,31 @@ import {
   utilitiesScreenshot,
   utilitiesWeather,
 } from '../../api';
+import { GuildSettings } from '../../api/structures/guildsettings';
 import { RestOptions, RestResponses, RestResponsesRaw } from '../../api/types';
 import {
   CodeLanguages,
   DownloadQualities,
   GoogleLocales,
+  GuildSettingsResponseDisplayTypes,
   MeasurementUnits,
   Mimetypes,
   MLDiffusionModels,
   MLDiffusionModelsToText,
   ProxyRequestMethods,
+  SearchProvidersText,
   TagBlobStorageTypes,
   TagGenerationModels,
   TagGenerationModelsToText,
   TagVariableStorageTypes,
   Timezones,
   TimezonesToText,
+  TTSVoices,
+  TTSVoicesToText,
   UserSettingsApplicationCommandResponseTypes,
   UserSettingsFallbacksMediaImageTypes,
   UserSettingsResponseDisplayTypes,
+  UserSettingsSearchProviders,
   UserSettingsUploadThresholdTypes,
   UserSettingsUploadTypes,
   YoutubeResultTypes,
@@ -109,6 +126,7 @@ import {
   generateCodeFromLanguage,
   generateCodeStdin,
   getCodeLanguage,
+  getSearchProvider,
   getGuildObjectForJSONSerialization,
   htmlDecode,
   isSnowflake,
@@ -419,10 +437,12 @@ export enum TagFunctions {
   API_FETCH_REMINDERS = 'API_FETCH_REMINDERS',
   API_INFO_INVITE = 'API_INFO_INVITE',
   API_SEARCH_DUCKDUCKGO_IMAGES = 'API_SEARCH_DUCKDUCKGO_IMAGES',
+  API_SEARCH_IMAGES = 'API_SEARCH_IMAGES',
   API_SEARCH_IMGUR = 'API_SEARCH_IMGUR',
   API_SEARCH_REDDIT = 'API_SEARCH_REDDIT',
   API_SEARCH_STEAM = 'API_SEARCH_STEAM',
   API_SEARCH_URBAN = 'API_SEARCH_URBAN',
+  API_SEARCH_WEB = 'API_SEARCH_WEB',
   API_SEARCH_WIKIHOW = 'API_SEARCH_WIKIHOW',
   API_SEARCH_WOLFRAM_ALPHA = 'API_SEARCH_WOLFRAM_ALPHA',
   API_UTILITIES_EXIF = 'API_UTILITIES_EXIF',
@@ -536,8 +556,11 @@ export enum TagFunctions {
   RNG_UUID = 'RNG_UUID',
   SEARCH_DUCKDUCKGO_IMAGES = 'SEARCH_DUCKDUCKGO_IMAGES',
   SEARCH_GOOGLE_IMAGES = 'SEARCH_GOOGLE_IMAGES',
+  SEARCH_IMAGES = 'SEARCH_IMAGES',
+  SEARCH_WEB = 'SEARCH_WEB',
   SEARCH_YOUTUBE = 'SEARCH_YOUTUBE',
   SETTINGS = 'SETTINGS',
+  SETTINGS_SET_SERVER = 'SETTINGS_SET_SERVER',
   SETTINGS_SET_SERVER_AI_PERSONALITY = 'SETTINGS_SET_SERVER_AI_PERSONALITY',
   SETTINGS_SET_USER = 'SETTINGS_SET_USER',
   SETTINGS_SET_USER_AI_PERSONALITY = 'SETTINGS_SET_USER_AI_PERSONALITY',
@@ -574,6 +597,7 @@ export enum TagFunctions {
   STRING_URL_ENCODE = 'STRING_URL_ENCODE',
   TAG = 'TAG',
   TAG_CONTENT = 'TAG_CONTENT',
+  TAG_CREATE = 'TAG_CREATE',
   TAG_ID = 'TAG_ID',
   TAG_NAME = 'TAG_NAME',
   TAG_OWNER_ID = 'TAG_OWNER_ID',
@@ -623,10 +647,12 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.API_FETCH_REMINDERS]: ['api.fetch.reminders'],
   [TagFunctions.API_INFO_INVITE]: ['api.info.invite'],
   [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]: ['api.search.duckduckgo.images'],
+  [TagFunctions.API_SEARCH_IMAGES]: ['api.search.images'],
   [TagFunctions.API_SEARCH_IMGUR]: ['api.search.imgur'],
   [TagFunctions.API_SEARCH_REDDIT]: ['api.search.reddit'],
   [TagFunctions.API_SEARCH_STEAM]: ['api.search.steam'],
   [TagFunctions.API_SEARCH_URBAN]: ['api.search.urban'],
+  [TagFunctions.API_SEARCH_WEB]: ['api.search.web'],
   [TagFunctions.API_SEARCH_WIKIHOW]: ['api.search.wikihow'],
   [TagFunctions.API_SEARCH_WOLFRAM_ALPHA]: ['api.search.wolframalpha'],
   [TagFunctions.API_UTILITIES_EXIF]: ['api.utilities.exif'],
@@ -740,8 +766,11 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.RNG_UUID]: ['uuid'],
   [TagFunctions.SEARCH_DUCKDUCKGO_IMAGES]: ['search.duckduckgo.images', 'search.ddg.images', 's.duckduckgo.images', 's.ddg.images'],
   [TagFunctions.SEARCH_GOOGLE_IMAGES]: ['search.google.images', 'search.g.images', 's.google.images', 's.g.images'],
+  [TagFunctions.SEARCH_IMAGES]: ['search.images', 's.images'],
+  [TagFunctions.SEARCH_WEB]: ['search.web', 's.web'],
   [TagFunctions.SEARCH_YOUTUBE]: ['search.youtube', 'search.yt', 's.youtube', 's.yt'],
   [TagFunctions.SETTINGS]: ['settings'],
+  [TagFunctions.SETTINGS_SET_SERVER]: ['settings.set.server'],
   [TagFunctions.SETTINGS_SET_SERVER_AI_PERSONALITY]: ['settings.set.server.ai.personality'],
   [TagFunctions.SETTINGS_SET_USER]: ['settings.set.user'],
   [TagFunctions.SETTINGS_SET_USER_AI_PERSONALITY]: ['settings.set.user.ai.personality'],
@@ -778,6 +807,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.STRING_URL_ENCODE]: ['url', 'urlencode'],
   [TagFunctions.TAG]: ['tag'],
   [TagFunctions.TAG_CONTENT]: ['tagcontent'],
+  [TagFunctions.TAG_CREATE]: ['tag.create'],
   [TagFunctions.TAG_ID]: ['tagid'],
   [TagFunctions.TAG_NAME]: ['tagname'],
   [TagFunctions.TAG_OWNER_ID]: ['tagownerid'],
@@ -852,16 +882,23 @@ export enum TagUserSettings {
   FILE_VANITY = 'FILE_VANITY',
   IMAGINE_MODEL = 'IMAGINE_MODEL',
   RESPONSE_DISPLAY = 'RESPONSE_DISPLAY',
+  SEARCH_PROVIDER_IMAGES = 'SEARCH_PROVIDER_IMAGES',
+  SEARCH_PROVIDER_WEB = 'SEARCH_PROVIDER_WEB',
+  TTS_VOICE = 'TTS_VOICE',
   UNITS = 'UNITS',
 }
 
-interface TagUserSetting {
+// how a setting's value is read from and written as text, shared by {settings.set.user} and {settings.set.server}
+interface TagSettingValue {
+  parse: (value: string, context: Command.Context | Interaction.InteractionContext) => any | Promise<any>,
+  text: (value: any, context: Command.Context | Interaction.InteractionContext) => string | Promise<string>,
+}
+
+interface TagUserSetting extends TagSettingValue {
   // what `clear` saves
   cleared: any,
   field: keyof RestResponsesRaw.UserSettings,
   option: keyof RestOptions.EditUserSettings,
-  parse: (value: string, context: Command.Context | Interaction.InteractionContext) => any,
-  text: (value: any) => string,
 }
 
 function createEnumUserSetting(
@@ -871,13 +908,14 @@ function createEnumUserSetting(
   cleared: null | string | number,
   descriptions?: Record<string, string>,
 ): TagUserSetting {
+  return {cleared, field, option, ...createEnumSetting(enumObject, descriptions)};
+}
+
+function createEnumSetting(enumObject: Record<string, string | number>, descriptions?: Record<string, string>): TagSettingValue {
   // numeric enums also map their values back to their names, only keep the names
   const choices = Object.fromEntries(Object.entries(enumObject).filter(([key]) => isNaN(Number(key))));
   const search = Parameters.oneOf({choices, descriptions});
   return {
-    cleared,
-    field,
-    option,
     parse: (value, context) => {
       // exact names/values first, the fuzzy search can rank a close one higher
       const lower = value.toLowerCase();
@@ -951,8 +989,313 @@ const TAG_USER_SETTINGS: Record<TagUserSettings, TagUserSetting> = {
   [TagUserSettings.IMAGINE_MODEL]: createEnumUserSetting('ml_diffusion_model', 'mlDiffusionModel', MLDiffusionModels, null, MLDiffusionModelsToText),
   // cleared follows the server's setting
   [TagUserSettings.RESPONSE_DISPLAY]: createEnumUserSetting('response_display', 'responseDisplay', UserSettingsResponseDisplayTypes, null),
+  // cleared follows the server's setting, then the default (Google for images, DuckDuckGo for web)
+  [TagUserSettings.SEARCH_PROVIDER_IMAGES]: createEnumUserSetting(
+    'search_provider_images',
+    'searchProviderImages',
+    UserSettingsSearchProviders,
+    null,
+    SearchProvidersText,
+  ),
+  [TagUserSettings.SEARCH_PROVIDER_WEB]: createEnumUserSetting(
+    'search_provider_web',
+    'searchProviderWeb',
+    UserSettingsSearchProviders,
+    null,
+    SearchProvidersText,
+  ),
+  [TagUserSettings.TTS_VOICE]: {
+    // the api saves cloned voices as `CLONED_<id>`, NotSoAI only knows them by name
+    cleared: null,
+    field: 'tts_voice',
+    option: 'ttsVoice',
+    parse: async (value, context) => {
+      const lower = value.toLowerCase();
+      const cloned = (await fetchTTSVoicesSafe(context)).find((voice) => voice.name.toLowerCase() === lower);
+      return (cloned) ? `${CLONED_TTS_VOICE_PREFIX}${cloned.id}` : TTS_VOICE_BUILT_IN.parse(value, context);
+    },
+    text: async (value, context) => {
+      if (typeof(value) === 'string' && value.startsWith(CLONED_TTS_VOICE_PREFIX)) {
+        const id = value.slice(CLONED_TTS_VOICE_PREFIX.length);
+        const cloned = (await fetchTTSVoicesSafe(context)).find((voice) => voice.id === id);
+        return (cloned) ? cloned.name : value;
+      }
+      return TTS_VOICE_BUILT_IN.text(value, context);
+    },
+  },
   [TagUserSettings.UNITS]: createEnumUserSetting('units', 'units', MeasurementUnits, null),
 };
+
+const CLONED_TTS_VOICE_PREFIX = `${TTSVoices.CLONED}_`;
+// `CLONED` alone isn't a voice you can save
+const TTS_VOICE_BUILT_IN = createEnumSetting(
+  Object.fromEntries(Object.entries(TTSVoices).filter(([key]) => key !== TTSVoices.CLONED)),
+  TTSVoicesToText,
+);
+
+// cloned voices are premium only, anyone else just has the built-in ones
+async function fetchTTSVoicesSafe(context: Command.Context | Interaction.InteractionContext): Promise<Array<{id: string, name: string}>> {
+  try {
+    return (await fetchUserVoices(context, context.userId)).voices;
+  } catch(error) {
+    return [];
+  }
+}
+
+
+// the server settings {settings.set.server} can change, `clear` always goes back to each user's setting/the default
+export enum TagServerSettings {
+  AI_MODEL = 'AI_MODEL',
+  AI_PERSONALITY = 'AI_PERSONALITY',
+  IMAGINE_MODEL = 'IMAGINE_MODEL',
+  LOCALE = 'LOCALE',
+  RESPONSE_DISPLAY = 'RESPONSE_DISPLAY',
+  SEARCH_PROVIDER_IMAGES = 'SEARCH_PROVIDER_IMAGES',
+  SEARCH_PROVIDER_WEB = 'SEARCH_PROVIDER_WEB',
+  TIMEZONE = 'TIMEZONE',
+}
+
+interface TagServerSetting extends TagSettingValue {
+  get: (settings: GuildSettings) => any,
+  option: keyof RestOptions.EditGuildSettings,
+}
+
+function createEnumServerSetting(
+  option: keyof RestOptions.EditGuildSettings,
+  get: (settings: GuildSettings) => any,
+  enumObject: Record<string, string | number>,
+  descriptions?: Record<string, string>,
+): TagServerSetting {
+  return {get, option, ...createEnumSetting(enumObject, descriptions)};
+}
+
+const TAG_SERVER_SETTINGS: Record<TagServerSettings, TagServerSetting> = {
+  [TagServerSettings.AI_MODEL]: createEnumServerSetting(
+    'mlLLMModel',
+    (settings) => settings.settings.mlLLMModel,
+    TagGenerationModels,
+    TagGenerationModelsToText,
+  ),
+  [TagServerSettings.AI_PERSONALITY]: {
+    // the api censors it
+    get: (settings) => settings.settings.mlLLMPersonality,
+    option: 'mlLLMPersonality',
+    parse: (value) => value.slice(0, 1024),
+    text: (value) => value || '',
+  },
+  [TagServerSettings.IMAGINE_MODEL]: createEnumServerSetting(
+    'mlDiffusionModel',
+    (settings) => settings.settings.mlDiffusionModel,
+    MLDiffusionModels,
+    MLDiffusionModelsToText,
+  ),
+  [TagServerSettings.LOCALE]: {
+    get: (settings) => settings.locale,
+    option: 'locale',
+    parse: (value, context) => Parameters.locale(value, context),
+    text: (value) => value || '',
+  },
+  [TagServerSettings.RESPONSE_DISPLAY]: createEnumServerSetting(
+    'responseDisplay',
+    (settings) => settings.settings.responseDisplay,
+    GuildSettingsResponseDisplayTypes,
+  ),
+  [TagServerSettings.SEARCH_PROVIDER_IMAGES]: createEnumServerSetting(
+    'searchProviderImages',
+    (settings) => settings.settings.searchProviderImages,
+    UserSettingsSearchProviders,
+    SearchProvidersText,
+  ),
+  [TagServerSettings.SEARCH_PROVIDER_WEB]: createEnumServerSetting(
+    'searchProviderWeb',
+    (settings) => settings.settings.searchProviderWeb,
+    UserSettingsSearchProviders,
+    SearchProvidersText,
+  ),
+  [TagServerSettings.TIMEZONE]: {
+    get: (settings) => settings.timezone,
+    option: 'timezone',
+    parse: (value) => {
+      const timezone = resolveTimezone(value);
+      if (!timezone) {
+        throw new Error(`Unknown timezone \`${value.slice(0, 64)}\`, use an IANA name like \`America/New_York\``);
+      }
+      return timezone;
+    },
+    text: (value) => value || '',
+  },
+};
+
+
+// {api.search.web}/{api.search.images}/{search.web}/{search.images} use the user's provider, then the server's, then
+// the default, like `/search web` and `/search images`. every provider is cut down to the same few fields
+export interface TagSearchResults<T> {
+  provider: string,
+  results: Array<T>,
+}
+
+export interface TagSearchWebResult {
+  description: string,
+  title: string,
+  url: string,
+}
+
+export interface TagSearchImageResult {
+  // the image itself
+  image: string,
+  title: string,
+  // the page it's on
+  url: string,
+}
+
+// what `{api.search.*}` outputs, `{search.*}` picks from every result
+const MAX_TAG_SEARCH_RESULTS = 10;
+
+async function searchWebWithProvider(
+  context: Command.Context | Interaction.InteractionContext,
+  query: string,
+): Promise<TagSearchResults<TagSearchWebResult>> {
+  const { provider } = await getSearchProvider(context, 'web');
+  const safe = DefaultParameters.safe(context);
+  let results: Array<TagSearchWebResult>;
+  switch (provider) {
+    case UserSettingsSearchProviders.BING: results = (await searchBing(context, {query, safe})).results; break;
+    case UserSettingsSearchProviders.GOOGLE: results = (await searchGoogle(context, {query, safe})).results; break;
+    case UserSettingsSearchProviders.YANDEX: results = (await searchYandex(context, {query, safe})).results; break;
+    default: results = (await searchDuckDuckGo(context, {query, safe})).results;
+  }
+  return {
+    provider: UserSettingsSearchProviders[provider],
+    results: results.map((x) => ({description: x.description, title: x.title, url: x.url})),
+  };
+}
+
+async function searchImagesWithProvider(
+  context: Command.Context | Interaction.InteractionContext,
+  query: string,
+): Promise<TagSearchResults<TagSearchImageResult>> {
+  const { provider } = await getSearchProvider(context, 'images');
+  const safe = DefaultParameters.safe(context);
+  let results: Array<TagSearchImageResult>;
+  switch (provider) {
+    case UserSettingsSearchProviders.BING: {
+      const response = await searchBingImages(context, {query, safe});
+      results = response.results.map((x) => ({image: x.image.url, title: x.header, url: x.url}));
+    }; break;
+    case UserSettingsSearchProviders.DUCK_DUCK_GO: {
+      const response = await searchDuckDuckGoImages(context, {query, safe});
+      results = response.results.map((x) => ({image: x.image.url, title: x.header, url: x.url}));
+    }; break;
+    case UserSettingsSearchProviders.YANDEX: {
+      const response = await searchYandexImages(context, {query, safe});
+      results = response.results.map((x) => ({image: x.image.url, title: x.header, url: x.url}));
+    }; break;
+    default: {
+      const response = await searchGoogleImages(context, {query, safe});
+      results = response.map((x) => ({image: x.imageUrl, title: x.header, url: x.url}));
+    };
+  }
+  return {provider: UserSettingsSearchProviders[provider], results};
+}
+
+// shared by the json and single result versions so `{api.search.web:cat}{search.web:cat}` is one request
+async function fetchTagSearchResults<T>(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  kind: TagFunctions.API_SEARCH_IMAGES | TagFunctions.API_SEARCH_WEB,
+  query: string,
+): Promise<TagSearchResults<T>> {
+  const cachedResults = tag.variables[PrivateVariables.RESULTS][kind] = (tag.variables[PrivateVariables.RESULTS][kind] || {}) as Record<string, TagSearchResults<any>>;
+  if (!(query in cachedResults)) {
+    increaseNetworkRequests(tag);
+    cachedResults[query] = await withDeadline<TagSearchResults<any>>(context, tag, () => {
+      return (kind === TagFunctions.API_SEARCH_WEB) ? searchWebWithProvider(context, query) : searchImagesWithProvider(context, query);
+    });
+  }
+  return cachedResults[query];
+}
+
+// `{search.web:2|cat}` -> `[2, 'cat']`, no number (or `random`) picks a random one
+function parseTagSearchPage(arg: string): [number, string] {
+  let page = -1;
+  if (arg.includes(TagSymbols.SPLITTER_ARGUMENT)) {
+    const firstSplitter = arg.indexOf(TagSymbols.SPLITTER_ARGUMENT);
+    const firstValue = arg.slice(0, firstSplitter).trim().toLowerCase() || '0';
+    if (firstValue === 'random' || !isNaN(firstValue as any)) {
+      page = (firstValue === 'random') ? -1 : (parseInt(firstValue) || 0);
+      arg = arg.slice(firstSplitter + 1);
+    }
+  }
+  return [page, arg];
+}
+
+function pickTagSearchResult<T>(results: Array<T>, page: number): T | undefined {
+  // past the end gives the last result
+  page = Math.min(page, results.length - 1);
+  if (page === -1) {
+    page = Math.floor(Math.random() * results.length);
+  }
+  return results[Math.max(page, 0)];
+}
+
+// the member who asked NotSoAI needs Manage Server, the same as `/server set`
+function canManageServer(context: Command.Context | Interaction.InteractionContext): boolean {
+  return !!context.member && context.member.can(Permissions.MANAGE_GUILD);
+}
+
+async function setServerSetting(
+  context: Command.Context | Interaction.InteractionContext,
+  tag: TagResult,
+  settingText: string,
+  valueText: string,
+): Promise<boolean> {
+  if (!context.guildId) {
+    throw new Error('Server settings can only be changed in a server');
+  }
+  // reading needs it too, the server's ai personality isn't for every member
+  if (!canManageServer(context)) {
+    throw new Error('You need the Manage Server permission to read or change this server\'s settings');
+  }
+
+  // `ai model` and `ai-model` work too
+  const name = settingText.trim().toUpperCase().replace(/[\s.-]+/g, '_');
+  if (name && !(name in TagServerSettings)) {
+    throw new Error(`Unknown server setting \`${settingText.trim().slice(0, 64)}\`, must be one of ${Object.values(TagServerSettings).join(', ')}`);
+  }
+
+  const oldSettings = await withDeadline(context, tag, () => GuildSettingsStore.getOrFetch(context, context.guildId!));
+  if (!oldSettings) {
+    throw new Error('Error fetching this server\'s settings');
+  }
+
+  if (!name) {
+    const settings: Record<string, string> = {};
+    for (const [key, setting] of Object.entries(TAG_SERVER_SETTINGS)) {
+      settings[key] = await setting.text(setting.get(oldSettings), context);
+    }
+    tag.text += JSON.stringify(settings);
+    return true;
+  }
+
+  const setting = TAG_SERVER_SETTINGS[name as TagServerSettings];
+  const value = valueText.trim();
+  if (!value) {
+    tag.text += await setting.text(setting.get(oldSettings), context);
+    return true;
+  }
+
+  // every server setting clears to null, which falls back to each user's own setting and then the default
+  const newValue = (value.toLowerCase() === 'clear') ? null : await setting.parse(value, context);
+  const oldValue = setting.get(oldSettings);
+  if ((oldValue ?? null) === newValue) {
+    tag.text += String(false);
+  } else {
+    increaseNetworkRequests(tag);
+    await withDeadline(context, tag, () => editGuildSettings(context, context.guildId!, {[setting.option]: newValue}));
+    tag.text += String(true);
+  }
+  return true;
+}
 
 
 export interface TagVariables {
@@ -978,10 +1321,12 @@ export interface TagVariables {
     [TagFunctions.API_AUDIO_IDENTIFY]?: Record<string, Array<Record<string, any>>>,
     [TagFunctions.API_INFO_INVITE]?: Record<string, Record<string, any>>,
     [TagFunctions.API_SEARCH_DUCKDUCKGO_IMAGES]?: Record<string, RestResponsesRaw.SearchDuckDuckGoImages>,
+    [TagFunctions.API_SEARCH_IMAGES]?: Record<string, TagSearchResults<TagSearchImageResult>>,
     [TagFunctions.API_SEARCH_IMGUR]?: Record<string, RestResponsesRaw.SearchImgur>,
     [TagFunctions.API_SEARCH_REDDIT]?: Record<string, {results: Array<Record<string, any>>}>,
     [TagFunctions.API_SEARCH_STEAM]?: Record<string, RestResponsesRaw.SearchSteam>,
     [TagFunctions.API_SEARCH_URBAN]?: Record<string, RestResponsesRaw.SearchUrbanDictionary>,
+    [TagFunctions.API_SEARCH_WEB]?: Record<string, TagSearchResults<TagSearchWebResult>>,
     [TagFunctions.API_SEARCH_WIKIHOW]?: Record<string, RestResponsesRaw.SearchWikihow>,
     [TagFunctions.API_SEARCH_WOLFRAM_ALPHA]?: Record<string, any>,
     [TagFunctions.API_UTILITIES_EXIF]?: Record<string, Record<string, any>>,
@@ -990,6 +1335,8 @@ export interface TagVariables {
     [TagFunctions.ATTACHMENT]?: Record<string, RestResponsesRaw.FileResponse>,
     [TagFunctions.SEARCH_GOOGLE_IMAGES]?: Record<string, RestResponses.SearchGoogleImages>,
     [TagFunctions.SEARCH_YOUTUBE]?: Record<string, RestResponsesRaw.SearchYoutube>,
+    // the tag NotSoAI created this execution, it can only make one
+    [TagFunctions.TAG_CREATE]?: string,
   },
   [PrivateVariables.SETTINGS]: {
     [TagSettings.AI_MODEL]?: string,
@@ -1677,6 +2024,9 @@ export interface AIMemoryChanges {
 }
 
 export const MAX_AI_MEMORY_CHANGES = 3;
+// same as the api's `PutTag`
+export const MAX_AI_TAG_NAME_LENGTH = 64;
+export const MAX_AI_TAG_CONTENT_LENGTH = 2000;
 // same as the api's `MAX_LLM_MEMORY_LENGTH`
 export const MAX_AI_MEMORY_LENGTH = 200;
 
@@ -3862,6 +4212,21 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.API_SEARCH_IMAGES]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.search.images:query}
+    // the user's image search provider, then the server's, then Google
+
+    arg = arg.trim().slice(0, 1024);
+    if (!arg) {
+      return true;
+    }
+
+    const response = await fetchTagSearchResults<TagSearchImageResult>(context, tag, TagFunctions.API_SEARCH_IMAGES, arg);
+    tag.text += JSON.stringify({provider: response.provider, results: response.results.slice(0, MAX_TAG_SEARCH_RESULTS)});
+
+    return true;
+  },
+
   [TagFunctions.API_SEARCH_IMGUR]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {api.search.imgur:query}
 
@@ -3995,6 +4360,21 @@ const ScriptTags = Object.freeze({
     }
 
     tag.text += JSON.stringify(response);
+
+    return true;
+  },
+
+  [TagFunctions.API_SEARCH_WEB]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {api.search.web:query}
+    // the user's web search provider, then the server's, then DuckDuckGo
+
+    arg = arg.trim().slice(0, 1024);
+    if (!arg) {
+      return true;
+    }
+
+    const response = await fetchTagSearchResults<TagSearchWebResult>(context, tag, TagFunctions.API_SEARCH_WEB, arg);
+    tag.text += JSON.stringify({provider: response.provider, results: response.results.slice(0, MAX_TAG_SEARCH_RESULTS)});
 
     return true;
   },
@@ -7485,6 +7865,46 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.SEARCH_IMAGES]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {search.images:cat}
+    // {search.images:1|cat}
+    // one image url from the user's image search provider, then the server's, then Google
+
+    let [ page, query ] = parseTagSearchPage(arg);
+    query = query.trim().slice(0, 1024);
+    if (!query) {
+      return true;
+    }
+
+    const { results } = await fetchTagSearchResults<TagSearchImageResult>(context, tag, TagFunctions.API_SEARCH_IMAGES, query);
+    const result = pickTagSearchResult(results, page);
+    if (result) {
+      tag.text += result.image;
+    }
+
+    return true;
+  },
+
+  [TagFunctions.SEARCH_WEB]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {search.web:cat}
+    // {search.web:0|cat}
+    // one result's url from the user's web search provider, then the server's, then DuckDuckGo
+
+    let [ page, query ] = parseTagSearchPage(arg);
+    query = query.trim().slice(0, 1024);
+    if (!query) {
+      return true;
+    }
+
+    const { results } = await fetchTagSearchResults<TagSearchWebResult>(context, tag, TagFunctions.API_SEARCH_WEB, query);
+    const result = pickTagSearchResult(results, page);
+    if (result) {
+      tag.text += result.url;
+    }
+
+    return true;
+  },
+
   [TagFunctions.SEARCH_YOUTUBE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {search.youtube:cat}
 
@@ -7618,10 +8038,28 @@ const ScriptTags = Object.freeze({
     return true;
   },
 
+  [TagFunctions.SETTINGS_SET_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {settings.set.server} {settings.set.server:SETTING} {settings.set.server:SETTING|value}
+    // only NotSoAI can use this, in its own reply (not a button it made), for a member with Manage Server
+    // no setting outputs every setting as json, no value outputs the current value, `clear` resets it
+
+    if (!canChangeAIMemory(context, tag)) {
+      return false;
+    }
+
+    const [ settingText, valueText ] = split(arg, 2);
+    return setServerSetting(context, tag, settingText || '', valueText || '');
+  },
+
   [TagFunctions.SETTINGS_SET_SERVER_AI_PERSONALITY]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     // {settings.set.server.ai.personality:prompt?}
+    // same as {settings.set.server:AI_PERSONALITY|prompt}, the personality can have `|` in it
 
-    return false;
+    if (!canChangeAIMemory(context, tag)) {
+      return false;
+    }
+
+    return setServerSetting(context, tag, TagServerSettings.AI_PERSONALITY, arg);
   },
 
   [TagFunctions.SETTINGS_SET_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
@@ -7647,7 +8085,7 @@ const ScriptTags = Object.freeze({
     if (!name) {
       const settings: Record<string, string> = {};
       for (const [key, setting] of Object.entries(TAG_USER_SETTINGS)) {
-        settings[key] = setting.text(oldSettings[setting.field]);
+        settings[key] = await setting.text(oldSettings[setting.field], context);
       }
       settings.AI_PERSONALITY = oldSettings.ml_llm_personality || '';
       settings.LOCALE = oldSettings.locale || '';
@@ -7659,11 +8097,11 @@ const ScriptTags = Object.freeze({
     const setting = TAG_USER_SETTINGS[name as TagUserSettings];
     const value = (valueText || '').trim();
     if (!value) {
-      tag.text += setting.text(oldSettings[setting.field]);
+      tag.text += await setting.text(oldSettings[setting.field], context);
       return true;
     }
 
-    const newValue = (value.toLowerCase() === 'clear') ? setting.cleared : setting.parse(value, context);
+    const newValue = (value.toLowerCase() === 'clear') ? setting.cleared : await setting.parse(value, context);
     if (oldSettings[setting.field] === newValue) {
       tag.text += String(false);
     } else {
@@ -8319,6 +8757,58 @@ const ScriptTags = Object.freeze({
       const currentTag = context.metadata.tag;
       tag.text += (currentTag.reference_tag) ? currentTag.reference_tag.content : currentTag.content;
     }
+
+    return true;
+  },
+
+  [TagFunctions.TAG_CREATE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // {tag.create:name|content}
+    // only NotSoAI can use this, in its own reply (not a button it made), saves a new tag for the command user here
+    // the content is parsed like any argument, so NotSoAI wraps code in {ignore:} to save it instead of running it
+
+    if (!canChangeAIMemory(context, tag)) {
+      return false;
+    }
+
+    const [ nameText, content ] = split(arg, 2);
+    const name = Parameters.tagName(nameText || '').trim().toLowerCase();
+    if (!name || !content || !content.trim()) {
+      throw new Error('A tag needs a name and content');
+    }
+    // the api's limits, checked here so the error says which one
+    if (MAX_AI_TAG_NAME_LENGTH < name.length) {
+      throw new Error(`Tag names can only be ${MAX_AI_TAG_NAME_LENGTH} characters long`);
+    }
+    if (MAX_AI_TAG_CONTENT_LENGTH < content.length) {
+      throw new Error(`Tag content can only be ${MAX_AI_TAG_CONTENT_LENGTH} characters long`);
+    }
+
+    const results = tag.variables[PrivateVariables.RESULTS];
+    if (results[TagFunctions.TAG_CREATE]) {
+      throw new Error('NotSoAI can only create one tag per message');
+    }
+
+    increaseAPIManipulations(tag);
+    increaseNetworkRequests(tag, 2);
+
+    const serverId = context.guildId || context.channelId!;
+    // only new tags, one that already exists here (even the user's own) is left alone so a reply can't overwrite it
+    let exists = false;
+    try {
+      const existing = await withDeadline(context, tag, () => fetchTag(context, {name, serverId}));
+      exists = !existing.global;
+    } catch(error) {
+      if (!error.response || error.response.statusCode !== 404) {
+        throw error;
+      }
+    }
+    if (exists) {
+      throw new Error(`A tag named \`${name}\` already exists in this server, pick another name`);
+    }
+
+    const created = await withDeadline(context, tag, () => putTag(context, {content, name, serverId}));
+    results[TagFunctions.TAG_CREATE] = created.id;
+    tag.text += created.name;
 
     return true;
   },

@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 import { searchGoogleImages } from '../../../api';
 import { getTranslator } from '../../i18n';
 import { EmbedBrands, EmbedColors, GoogleLocales, GoogleLocalesText } from '../../../constants';
-import { DisplayPayload, Paginator, createPaginatorMediaCache, displayReply, shuffleArray } from '../../../utils';
+import { DefaultParameters, DisplayPayload, Paginator, createPaginatorMediaCache, displayReply, shuffleArray } from '../../../utils';
 
 
 export const COMMAND_ID = 'search.google.images';
@@ -16,7 +16,6 @@ export interface CommandArgs {
   locale?: GoogleLocales,
   query: string,
   randomize?: boolean,
-  safe?: boolean,
   simple?: boolean,
 }
 
@@ -26,13 +25,14 @@ export async function createMessage(
 ) {
   const { language, translate, translateMaybe } = await getTranslator(context);
 
-  const results = await searchGoogleImages(context, args);
+  const safe = DefaultParameters.safe(context);
+  const results = await searchGoogleImages(context, {...args, safe});
   if (results.length) {
     if (args.randomize) {
       shuffleArray(results);
     }
     const pageLimit = results.length;
-    const fetchMedia = createPaginatorMediaCache(context, {safe: args.safe});
+    const fetchMedia = createPaginatorMediaCache(context, {safe});
     const paginator = new Paginator(context, {
       pageLimit,
       onPage: async (page) => {

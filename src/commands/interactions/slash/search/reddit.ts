@@ -1,7 +1,7 @@
 import { Interaction } from 'detritus-client';
 
 import { RedditSortTypes, RedditTimeTypes } from '../../../../constants';
-import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../utils';
+import { Formatter, I18n, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -24,7 +24,6 @@ export class SearchRedditCommand extends BaseInteractionCommandOption {
         {name: 'subreddit', description: 'Subreddit to search in', ...I18n.optionLocalizations('commands.search.reddit.subreddit')},
         {name: 'sort', description: 'Sort By', ...I18n.optionLocalizations('commands.search.reddit.sort'), choices: Parameters.Slash.oneOf({choices: RedditSortTypes, localizationKey: 'choices.reddit_sort_types'})},
         {name: 'time', description: 'Time Range', ...I18n.optionLocalizations('commands.search.reddit.time'), choices: Parameters.Slash.oneOf({choices: RedditTimeTypes, doNotSort: true, localizationKey: 'choices.reddit_time_types'})},
-        {name: 'safe', description: 'Safe Search', ...I18n.optionLocalizations('commands.search.reddit.safe'), type: Boolean, default: DefaultParameters.safe, value: Parameters.Slash.safe},
       ],
     });
   }

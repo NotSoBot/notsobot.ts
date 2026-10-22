@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { DefaultParameters, Formatter, I18n, Parameters } from '../../../../utils';
+import { Formatter, I18n } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
 
@@ -28,14 +28,6 @@ export class SearchImagesSimpleCommand extends BaseInteractionCommandOption {
           description: 'Randomize the Image Results',
           ...I18n.optionLocalizations('commands.search.images_simple.randomize'),
           type: Boolean,
-        },
-        {
-          name: 'safe',
-          description: 'Safe Search',
-          ...I18n.optionLocalizations('commands.search.images_simple.safe'),
-          type: Boolean,
-          default: DefaultParameters.safe,
-          value: Parameters.Slash.safe,
         },
       ],
     });

@@ -12,16 +12,20 @@ import { I18n } from '../../../../utils';
 import { BaseSlashCommand } from '../../basecommand';
 
 import { Search4ChanCommand } from './4chan';
+import { SearchBingGroupCommand } from './bing';
 import { SearchDuckDuckGoGroupCommand } from './duckduckgo';
 import { SearchGoogleGroupCommand } from './google';
 import { SearchImagesCommand } from './images';
 import { SearchImagesSimpleCommand } from './images-simple';
 import { SearchImgurCommand } from './imgur';
+import { SearchOpenverseCommand } from './openverse';
 import { SearchRedditCommand } from './reddit';
 import { SearchSteamGroupCommand } from './steam';
 import { SearchUrbanCommand } from './urban';
+import { SearchWebCommand } from './web';
 import { SearchWikihowCommand } from './wikihow';
 import { SearchWolframAlphaCommand } from './wolframalpha';
+import { SearchYandexGroupCommand } from './yandex';
 
 import { SearchYoutubeCommand } from './youtube';
 
@@ -47,16 +51,20 @@ export default class SearchGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new Search4ChanCommand(),
+        new SearchBingGroupCommand(),
         new SearchDuckDuckGoGroupCommand(),
         new SearchGoogleGroupCommand(),
         new SearchImagesCommand(),
         new SearchImagesSimpleCommand(),
         new SearchImgurCommand(),
+        new SearchOpenverseCommand(),
         new SearchRedditCommand(),
         new SearchSteamGroupCommand(),
         new SearchUrbanCommand(),
+        new SearchWebCommand(),
         new SearchWikihowCommand(),
         new SearchWolframAlphaCommand(),
+        new SearchYandexGroupCommand(),
         new SearchYoutubeCommand(),
       ],
     });
