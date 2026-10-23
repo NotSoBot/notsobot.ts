@@ -35,6 +35,7 @@ import { captureCommandError } from '../../sentry';
 import {
   GoogleLocales,
   GoogleLocalesText,
+  MEDIA_HISTORY_LIMIT,
   TimezoneSearchPreferences,
   TimezonesToText,
   TTSVoices,
@@ -542,7 +543,7 @@ export function secondsWithOptions(options: SecondsOptions = {}) {
     if (isNegative && 0 < duration) {
       duration = -duration;
     }
-    // `-5` parsed fine and went straight through for commands that don't take negatives (voice record, ban clean)
+    // `-5` parsed fine and went straight through for commands that don't take negatives (ban clean)
     if (!allowNegatives && duration < 0) {
       throw new Error(getCachedTranslator(context).translate('params.time_format', {text: Markup.codestring(valueString)}));
     }
@@ -2000,7 +2001,7 @@ export function mediaUrls(
             return BigInt(message.id) < beforeId;
           }
           return true;
-        }).reverse();
+        }).reverse().slice(0, MEDIA_HISTORY_LIMIT);
         for (let message of messages) {
           if ((minAmount && minAmount <= urls.length) || maxAmount <= urls.length) {
             break;
@@ -2015,7 +2016,7 @@ export function mediaUrls(
         (urls.length < minAmount && urls.length < maxAmount) &&
         ((context.inDm && context.isBotPresent) || (context.channel && context.channel.canReadHistory))
       ) {
-        const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
+        const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: MEDIA_HISTORY_LIMIT});
         for (let [messageId, message] of messages) {
           if ((minAmount && minAmount <= urls.length) || maxAmount <= urls.length) {
             break;

@@ -158,6 +158,69 @@ export default class PruneCommand extends BaseCommand {
 export interface PruneOptions {
   // extra check on top of `shouldDelete`, used by `clean` to only pick our messages and command invocations
   filter?: (message: Structures.Message) => boolean,
+  // makes `amount` count groups instead of messages, returns the id of the message/interaction that started the
+  // message's group (like a command message and its responses), which is also the oldest message the group can have
+  group?: (message: Structures.Message) => string,
+  // `prune.found_partial` but for when `amount` counts groups
+  partialKey?: I18n.TranslationKey,
+}
+
+
+// what `amount` limits: matched messages, or groups of them when `group` is given
+export class PruneCounter {
+  amount: number;
+  group?: (message: Structures.Message) => string;
+  groups = new Set<bigint>();
+  messages = 0;
+
+  constructor(amount: number, group?: (message: Structures.Message) => string) {
+    this.amount = amount;
+    this.group = group;
+  }
+
+  get found(): number {
+    return (this.group) ? this.groups.size : this.messages;
+  }
+
+  get isFull(): boolean {
+    return this.amount <= this.found;
+  }
+
+  // whether a matched message fits, once full only messages of groups we already have are taken
+  take(message: Structures.Message): boolean {
+    if (this.group) {
+      const groupId = BigInt(this.group(message));
+      if (!this.groups.has(groupId)) {
+        if (this.isFull) {
+          return false;
+        }
+        this.groups.add(groupId);
+      }
+      return true;
+    }
+    if (this.isFull) {
+      return false;
+    }
+    this.messages++;
+    return true;
+  }
+
+  // when walking backwards, whether anything older than `messageId` could still be taken
+  isDone(messageId: string): boolean {
+    if (!this.isFull) {
+      return false;
+    }
+    if (this.group) {
+      // a group's id is its oldest message, so it's complete once we've walked down to it
+      const id = BigInt(messageId);
+      for (let groupId of this.groups) {
+        if (groupId < id) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 }
 
 export async function createPruneMessage(
@@ -204,6 +267,7 @@ export async function createPruneMessage(
   const cachedChannel = context.channels.get(channelId);
   const canBulkDelete = !context.inDm && (!cachedChannel || cachedChannel.can(Permissions.MANAGE_MESSAGES));
   const isMatch = (message: Structures.Message) => shouldDelete(message, args) && (!options.filter || options.filter(message));
+  const counter = new PruneCounter(args.amount, options.group);
 
   const isExecuting = ServerExecutionsStore.getOrCreate((context.guildId || context.channelId)!);
   if (isExecuting.prune) {
@@ -214,6 +278,8 @@ export async function createPruneMessage(
   let reachedUntil = false;
   // set when walking forwards with `after` reaches the upper bound
   let reachedEnd = false;
+  // set once `amount` is reached and nothing older can be part of what we've taken
+  let reachedAmount = false;
 
   isExecuting.prune = true;
   try {
@@ -278,10 +344,7 @@ export async function createPruneMessage(
           reachedUntil = true;
           break;
         }
-        if (args.amount <= bulk.length + manual.length) {
-          break;
-        }
-        if (isMatch(message)) {
+        if (isMatch(message) && counter.take(message)) {
           if (canBulkDelete && shouldBulkDelete(message.createdAtUnix)) {
             bulk.set(message.id, message);
           } else {
@@ -289,11 +352,15 @@ export async function createPruneMessage(
           }
         }
         before = message.id;
+        if ((after) ? counter.isFull : counter.isDone(message.id)) {
+          reachedAmount = true;
+          break;
+        }
       }
     }
 
     let tries = 0;
-    while (!reachedUntil && !reachedEnd && tries++ < MAX_FETCHES && bulk.length + manual.length < args.amount) {
+    while (!reachedUntil && !reachedEnd && !reachedAmount && tries++ < MAX_FETCHES) {
       let messages: Array<Structures.Message>;
       if (after) {
         const cache = await context.rest.fetchMessages(channelId, {after, limit: 100});
@@ -323,10 +390,7 @@ export async function createPruneMessage(
           reachedUntil = true;
           break;
         }
-        if (args.amount <= bulk.length + manual.length) {
-          break;
-        }
-        if (isMatch(message)) {
+        if (isMatch(message) && counter.take(message)) {
           if (canBulkDelete && shouldBulkDelete(message.createdAtUnix)) {
             bulk.set(message.id, message);
           } else {
@@ -335,6 +399,11 @@ export async function createPruneMessage(
         }
         if (!after) {
           before = message.id;
+        }
+        // with groups, keep walking back for the older messages of the groups we have (like the command message)
+        if ((after) ? counter.isFull : counter.isDone(message.id)) {
+          reachedAmount = true;
+          break;
         }
       }
       if (!shouldBulkDelete(Snowflake.timestamp(before))) {
@@ -356,7 +425,7 @@ export async function createPruneMessage(
 
   const total = bulk.length + manual.length;
   // finding fewer than `amount` is expected once we've walked the whole range (hit `until`, or the upper bound with `after`)
-  const isComplete = total === args.amount || reachedUntil || reachedEnd;
+  const isComplete = counter.isFull || reachedUntil || reachedEnd;
   const timeout = new Timers.Timeout();
   if (total) {
     if (total <= MAX_MESSAGES_BEFORE_CONFIRMATION && isComplete) {
@@ -431,7 +500,11 @@ export async function createPruneMessage(
       if (isComplete) {
         content = translate('prune.found', {count: total.toLocaleString(language)});
       } else {
-        content = translate('prune.found_partial', {count: total.toLocaleString(language), requested: args.amount.toLocaleString(language)});
+        content = translate(options.partialKey || 'prune.found_partial', {
+          count: total.toLocaleString(language),
+          found: counter.found.toLocaleString(language),
+          requested: args.amount.toLocaleString(language),
+        });
       }
 
       const message = await displayReply(context, {components, description: content}).catch((error) => {

@@ -9,6 +9,22 @@ import { displayReply } from '../../../utils';
 
 export const COMMAND_ID = 'owner.upload.commands';
 
+type PremiumLevel = 'premium' | 'premium_plus' | 'premium_server';
+
+// who can use it, for the commands page: null for everyone, else what unlocks it (the same checks `onBefore` runs)
+function premiumLevel(metadata?: {premium?: boolean, premiumPlus?: boolean, premiumServer?: unknown} | null): null | PremiumLevel {
+  if (!metadata) {
+    return null;
+  }
+  if (metadata.premiumPlus) {
+    return 'premium_plus';
+  }
+  if (metadata.premiumServer) {
+    return 'premium_server';
+  }
+  return (metadata.premium) ? 'premium' : null;
+}
+
 // explicit category, else the prefixed command with the same id, else an id-prefix fallback
 function resolveInteractionCategory(
   id: string,
@@ -73,6 +89,7 @@ export async function createMessage(
         id: metadata.id || name.split(' ').join('.'),
         name,
         nsfw: !!metadata.nsfw,
+        premium: premiumLevel(metadata),
         ratelimits: command.ratelimits.map((ratelimit) => {
           return {
             duration: ratelimit.duration,
@@ -137,6 +154,8 @@ export async function createMessage(
         external_id: command.ids.get(LOCAL_GUILD_ID) || null,
         id,
         name: invoker.fullName,
+        // set on the subcommand, or for all of them on the command
+        premium: premiumLevel(invoker.metadata) || premiumLevel((command as any).metadata),
         ratelimits: invoker.ratelimits?.map((ratelimit) => {
           return {
             duration: ratelimit.duration,

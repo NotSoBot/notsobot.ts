@@ -150,6 +150,8 @@ export const Api = Object.freeze({
     '/media/av/manipulation/set/bitrate',
   MEDIA_AV_MANIPULATION_STAMMER:
     '/media/av/manipulation/stammer',
+  MEDIA_AV_MANIPULATION_WAVEFORM:
+    '/media/av/manipulation/waveform',
 
   MEDIA_AV_TOOLS_EXTRACT_AUDIO:
     '/media/av/tools/extract/audio',
@@ -862,6 +864,20 @@ export const Api = Object.freeze({
     '/guilds/:guildId/bans/timed/delete',
   GUILD_TIMED_BAN:
     '/guilds/:guildId/bans/timed/:userId',
+  MUSIC_NODES:
+    '/music/nodes',
+  MUSIC_SEARCH:
+    '/music/search',
+  MUSIC_QUEUE:
+    '/music/queue/:guildId',
+  MUSIC_QUEUE_POSITIONS:
+    '/music/queue/:guildId/position',
+  MUSIC_QUEUE_POSITION:
+    '/music/queue/:guildId/position/:itemId',
+  MUSIC_QUEUE_SESSION:
+    '/music/queue/:guildId/session',
+  MUSIC_SESSIONS:
+    '/music/sessions',
   TIMED_BANS:
     '/bans/timed',
   REMINDER_MOVE_TO_DMS:
@@ -871,6 +887,8 @@ export const Api = Object.freeze({
 
   REPORTS:
     '/reports',
+  REPORT_MESSAGES:
+    '/reports/:reportId/messages',
 
   SEARCH_4CHAN:
     '/search/4chan',

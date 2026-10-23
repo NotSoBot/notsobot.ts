@@ -1,14 +1,24 @@
-import { ClusterClient } from 'detritus-client';
-import { MarkupTimestampStyles, MessageFlags } from 'detritus-client/lib/constants';
+import { ClusterClient, ShardClient, Structures } from 'detritus-client';
+import { MarkupTimestampStyles, MessageFlags, MessageReferenceTypes } from 'detritus-client/lib/constants';
 import { Components, Embed, Markup } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 import { EventSubscription } from 'detritus-utils';
 
 import { Listener } from './listener';
 
+import { createReportMessage } from '../api';
 import { Domains } from '../api/endpoints';
+import { getApiError, getApiErrorTranslationKey } from '../api/errors';
 import { ApiEventsSpewer } from '../apievents';
-import { EmbedColors, RedisChannels, ReportStatuses, ReportTypes, UserSettingsResponseDisplayTypes } from '../constants';
+import {
+  ApiErrorCodes,
+  EmbedColors,
+  RedisChannels,
+  ReportStatuses,
+  ReportTypes,
+  StatusEmojis,
+  UserSettingsResponseDisplayTypes,
+} from '../constants';
 import UserSettingsStore from '../stores/usersettings';
 import { RedisPayloads } from '../types';
 import { Languages, Translator, getTranslatorForLanguage, languageFromLocale } from '../utils/i18n';
@@ -34,14 +44,50 @@ const ReportStatusColors: Record<ReportStatuses, number> = {
 };
 
 
+const REPORT_URL_PREFIX = `${Domains.STABLE}/dashboard/reports/`;
+const REPORT_URL_REGEX = /^(\d+)$/;
+
+// the report the dm is about, from its "View Report" button (an action row button, or the container header's accessory)
+function findReportId(components: Iterable<any> | undefined): null | string {
+  if (!components) {
+    return null;
+  }
+  for (let component of components) {
+    if (typeof(component.url) === 'string' && component.url.startsWith(REPORT_URL_PREFIX)) {
+      const match = component.url.slice(REPORT_URL_PREFIX.length).match(REPORT_URL_REGEX);
+      if (match) {
+        return match[1];
+      }
+    }
+    const reportId = findReportId((component.accessory) ? [component.accessory] : undefined) || findReportId(component.components);
+    if (reportId) {
+      return reportId;
+    }
+  }
+  return null;
+}
+
+
 // DMs the reporter when staff reply to their report or change its status on the admin dashboard
 // laid out like the guild loggers: the report's status and type as the header ("Closed User Report", or
 // "Your User Report Was Closed" for a status change) with its info
 // lines, the reply and the report as titled sections, then the event in the footer, with the status as the side color
+// replying to one of those dms (a discord reply) sends it to staff on the report, like replying on the dashboard. the
+// command client calls `handleReply` for messages that weren't a command, so a command in a reply only runs the command
 class ReportMessagesListener extends Listener {
   // every cluster gets the event, only one should send the dm
   shouldHandle(cluster: ClusterClient): boolean {
     return cluster.clusterId === 0;
+  }
+
+  // no command to take these from, so it's the reporter's own settings or the defaults
+  async fetchSettings(shard: ShardClient, userId: string): Promise<{display: UserSettingsResponseDisplayTypes, translator: Translator}> {
+    const settings = await UserSettingsStore.getOrFetch({client: shard}, userId);
+    const display = (settings && typeof(settings.response_display) === 'number')
+      ? settings.response_display as UserSettingsResponseDisplayTypes
+      : UserSettingsResponseDisplayTypes.DEFAULT;
+    const translator = getTranslatorForLanguage(languageFromLocale(settings && settings.locale) || Languages.ENGLISH);
+    return {display, translator};
   }
 
   createMessage(
@@ -179,13 +225,7 @@ class ReportMessagesListener extends Listener {
       return;
     }
 
-    // no command to take these from, so it's the reporter's own settings or the defaults
-    const settings = await UserSettingsStore.getOrFetch({client: shard}, payload.user_id);
-    const display = (settings && typeof(settings.response_display) === 'number')
-      ? settings.response_display as UserSettingsResponseDisplayTypes
-      : UserSettingsResponseDisplayTypes.DEFAULT;
-    const translator = getTranslatorForLanguage(languageFromLocale(settings && settings.locale) || Languages.ENGLISH);
-
+    const { display, translator } = await this.fetchSettings(shard, payload.user_id);
     const message = this.createMessage(translator, display, payload);
 
     let channelId = payload.channel_id;
@@ -194,6 +234,61 @@ class ReportMessagesListener extends Listener {
       channelId = channel.id;
     }
     await shard.rest.createMessage(channelId, message);
+  }
+
+  // only a reply in their own dm with us to one of our report dms counts. tags and other outputs can copy the dm (button
+  // and all), so the report id from it isn't trusted: the api only takes it if the report is theirs. anything else (not
+  // their report, a deleted one) is ignored without saying why, so nobody can use it to find out about other reports
+  async handleReply(shard: ShardClient, message: Structures.Message): Promise<void> {
+    if (message.guildId || message.author.bot || !message.content) {
+      return;
+    }
+    const reference = message.messageReference;
+    if (!reference || !reference.messageId || (reference.type !== undefined && reference.type !== MessageReferenceTypes.DEFAULT)) {
+      return;
+    }
+    // the report dms are plain messages: not interaction responses (a user app's output can be in any dm), webhooks or
+    // replies (prefixed command outputs reply to what triggered them)
+    const replied = reference.message;
+    if (
+      !replied ||
+      replied.id !== reference.messageId ||
+      !replied.author.isMe ||
+      replied.webhookId ||
+      replied.interaction ||
+      replied.interactionMetadata ||
+      replied.messageReference
+    ) {
+      return;
+    }
+    const reportId = findReportId(replied.components.values());
+    if (!reportId) {
+      return;
+    }
+    // their 1:1 dm with us, not a group dm
+    const channel = await shard.rest.createDm({recipientId: message.author.id});
+    if (channel.id !== message.channelId) {
+      return;
+    }
+
+    try {
+      await createReportMessage({client: shard, inDm: true, user: message.author}, reportId, {content: message.content});
+    } catch(error) {
+      const apiError = await getApiError(error);
+      if (!apiError || apiError.code === ApiErrorCodes.UNKNOWN_REPORT) {
+        if (!apiError) {
+          console.error(`Failed to send report reply ${message.id} from ${message.author.id}`, error);
+        }
+        return;
+      }
+      // over their hourly limit or too long, they should know it didn't go through
+      const { translator } = await this.fetchSettings(shard, message.author.id);
+      const key = getApiErrorTranslationKey(apiError.code);
+      const content = `${StatusEmojis.WARNING} ${(key) ? translator.translateMaybe(key, apiError.message) : apiError.message}`;
+      await message.reply({allowedMentions: {parse: [], repliedUser: false}, content});
+      return;
+    }
+    await message.react(StatusEmojis.YES);
   }
 
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {

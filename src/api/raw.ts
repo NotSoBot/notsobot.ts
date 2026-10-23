@@ -283,6 +283,26 @@ export async function createReport(
 }
 
 
+export async function createReportMessage(
+  context: RequestContext,
+  reportId: string,
+  options: RestOptions.CreateReportMessage,
+): Promise<RestResponsesRaw.CreateReportMessage> {
+  const body = {
+    content: options.content,
+  };
+  const params = {reportId};
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.REPORT_MESSAGES,
+      params,
+    },
+  });
+}
+
+
 export async function createTagUse(
   context: RequestContext,
   tagId: string,
@@ -1094,6 +1114,212 @@ export async function putGuildTimedBans(
 }
 
 
+export async function fetchMusicNodes(
+  context: RequestContext,
+): Promise<RestResponsesRaw.FetchMusicNodes> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MUSIC_NODES,
+    },
+  });
+}
+
+
+export async function searchMusic(
+  context: RequestContext,
+  query: string,
+): Promise<RestResponsesRaw.SearchMusic> {
+  return request(context, {
+    query: {query},
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MUSIC_SEARCH,
+    },
+  });
+}
+
+
+export async function fetchGuildMusic(
+  context: RequestContext,
+  guildId: string,
+): Promise<RestResponsesRaw.FetchGuildMusic> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MUSIC_QUEUE,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function deleteGuildMusic(
+  context: RequestContext,
+  guildId: string,
+): Promise<RestResponsesRaw.DeleteGuildMusic> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.MUSIC_QUEUE,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function fetchMusicSessions(
+  context: RequestContext,
+  options: RestOptions.FetchMusicSessions,
+): Promise<RestResponsesRaw.FetchMusicSessions> {
+  const query = {
+    shard_count: options.shardCount,
+    // a json list, the api reads lists in queries either way
+    shard_ids: JSON.stringify(options.shardIds),
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.MUSIC_SESSIONS,
+    },
+  });
+}
+
+
+export async function putGuildMusicSession(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildMusicSession,
+): Promise<RestResponsesRaw.MusicSession> {
+  const body = {
+    channel_id: options.channelId,
+    node_id: options.nodeId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.MUSIC_QUEUE_SESSION,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function editGuildMusicSession(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.EditGuildMusicSession,
+): Promise<RestResponsesRaw.MusicSession> {
+  const body = {
+    channel_id: options.channelId,
+    node_id: options.nodeId,
+    paused: options.paused,
+    position: (options.position === undefined) ? undefined : Math.max(0, Math.round(options.position)),
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.MUSIC_QUEUE_SESSION,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function deleteGuildMusicSession(
+  context: RequestContext,
+  guildId: string,
+): Promise<null> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.MUSIC_QUEUE_SESSION,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function putGuildMusicQueue(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildMusicQueue,
+): Promise<RestResponsesRaw.PutGuildMusicQueue> {
+  const body = {
+    position: options.position,
+    track: options.track,
+    url: options.url,
+    user_id: options.userId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.MUSIC_QUEUE,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function editGuildMusicQueueItem(
+  context: RequestContext,
+  guildId: string,
+  itemId: string,
+  options: RestOptions.EditGuildMusicQueueItem,
+): Promise<RestResponsesRaw.EditGuildMusicQueueItem> {
+  const body = {
+    position: options.position,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.MUSIC_QUEUE_POSITION,
+      params: {guildId, itemId},
+    },
+  });
+}
+
+
+export async function deleteGuildMusicQueueItem(
+  context: RequestContext,
+  guildId: string,
+  itemId: string,
+): Promise<RestResponsesRaw.DeleteGuildMusicQueueItem> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.MUSIC_QUEUE_POSITION,
+      params: {guildId, itemId},
+    },
+  });
+}
+
+
+export async function deleteGuildMusicQueue(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildMusicQueue = {},
+): Promise<RestResponsesRaw.DeleteGuildMusicQueue> {
+  const body = {
+    item_ids: options.itemIds,
+    user_id: options.userId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.MUSIC_QUEUE_POSITIONS,
+      params: {guildId},
+    },
+  });
+}
+
+
 export async function deleteGuildTimedBan(
   context: RequestContext,
   guildId: string,
@@ -1832,6 +2058,7 @@ export async function mediaAIVManipulationADHD(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -1856,6 +2083,7 @@ export async function mediaAIVManipulationAndroid(
     scale: options.scale,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -1951,6 +2179,7 @@ export async function mediaAIVManipulationConcat(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     urls: options.urls,
   };
   return request(context, {
@@ -1978,6 +2207,7 @@ export async function mediaAIVManipulationConvert(
     to: options.to,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2003,6 +2233,7 @@ export async function mediaAIVManipulationFadeIn(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2028,6 +2259,7 @@ export async function mediaAIVManipulationFadeOut(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2051,6 +2283,7 @@ export async function mediaAIVManipulationExtractMedia(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2076,6 +2309,7 @@ export async function mediaAIVManipulationJoin(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     urls: options.urls,
     vertical: options.vertical,
   };
@@ -2107,6 +2341,7 @@ export async function mediaAIVManipulationOverlay(
     similarity: options.similarity,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     urls: options.urls,
     x: options.x,
     y: options.y,
@@ -2134,6 +2369,7 @@ export async function mediaAIVManipulationReverse(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2157,6 +2393,7 @@ export async function mediaAIVManipulationSeeSaw(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2181,6 +2418,7 @@ export async function mediaAIVManipulationShuffle(
     segment: options.segment,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2207,6 +2445,7 @@ export async function mediaAIVManipulationSnip(
     start: options.start,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2231,6 +2470,7 @@ export async function mediaAIVManipulationSpeed(
     speed: options.speed,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -2255,6 +2495,7 @@ export async function mediaAIVManipulationVeg(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
     veg_url: options.vegUrl,
   };
@@ -2789,6 +3030,29 @@ export async function mediaAVManipulationStammer(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AV_MANIPULATION_STAMMER,
+    },
+  });
+}
+
+
+export async function mediaAVManipulationWaveform(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationWaveform,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    color: options.color,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    split: options.split,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AV_MANIPULATION_WAVEFORM,
     },
   });
 }
@@ -8717,6 +8981,7 @@ export async function mediaIVManipulationOverlayWatermark(
     size: options.size,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     urls: options.urls,
   };
   return request(context, {
@@ -11073,6 +11338,7 @@ export async function utilitiesFetchMedia(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
   };
   return request(context, {
@@ -11137,6 +11403,7 @@ export async function utilitiesMediascript(
     safe: options.safe,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
   };
   return request(context, {
     body,
@@ -11167,6 +11434,7 @@ export async function utilitiesMLEdit(
     strength: options.strength,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     urls: options.urls,
   };
   const response = await request(context, {
@@ -11197,6 +11465,7 @@ export async function utilitiesMLImagine(
     steps: options.steps,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
   };
   const response = await request(context, {
     query,
@@ -11242,6 +11511,7 @@ export async function utilitiesMLMashup(
     strength: options.strength,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     urls: options.urls,
   };
   const response = await request(context, {
@@ -11337,6 +11607,7 @@ export async function utilitiesScreenshot(
     timeout: options.timeout,
     upload: options.upload,
     upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     url: options.url,
     wait: options.wait,
     width: options.width,

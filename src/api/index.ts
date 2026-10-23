@@ -88,6 +88,15 @@ export async function createReport(
 }
 
 
+export async function createReportMessage(
+  context: RequestContext,
+  reportId: string,
+  options: RestOptions.CreateReportMessage,
+) {
+  return raw.createReportMessage(context, reportId, options);
+}
+
+
 export async function createTagUse(
   context: RequestContext,
   tagId: string,
@@ -579,6 +588,79 @@ export async function fetchReminders(
   options: RestOptions.FetchReminders,
 ) {
   return raw.fetchReminders(context, options);
+}
+
+
+export async function fetchMusicNodes(context: RequestContext) {
+  return raw.fetchMusicNodes(context);
+}
+
+
+export async function searchMusic(context: RequestContext, query: string) {
+  return raw.searchMusic(context, query);
+}
+
+
+export async function fetchGuildMusic(context: RequestContext, guildId: string) {
+  return raw.fetchGuildMusic(context, guildId);
+}
+
+
+export async function deleteGuildMusic(context: RequestContext, guildId: string) {
+  return raw.deleteGuildMusic(context, guildId);
+}
+
+
+export async function fetchMusicSessions(context: RequestContext, options: RestOptions.FetchMusicSessions) {
+  return raw.fetchMusicSessions(context, options);
+}
+
+
+export async function putGuildMusicSession(context: RequestContext, guildId: string, options: RestOptions.PutGuildMusicSession) {
+  return raw.putGuildMusicSession(context, guildId, options);
+}
+
+
+export async function editGuildMusicSession(context: RequestContext, guildId: string, options: RestOptions.EditGuildMusicSession) {
+  return raw.editGuildMusicSession(context, guildId, options);
+}
+
+
+export async function deleteGuildMusicSession(context: RequestContext, guildId: string) {
+  return raw.deleteGuildMusicSession(context, guildId);
+}
+
+
+export async function putGuildMusicQueue(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildMusicQueue,
+) {
+  return raw.putGuildMusicQueue(context, guildId, options);
+}
+
+
+export async function editGuildMusicQueueItem(
+  context: RequestContext,
+  guildId: string,
+  itemId: string,
+  options: RestOptions.EditGuildMusicQueueItem,
+) {
+  return raw.editGuildMusicQueueItem(context, guildId, itemId, options);
+}
+
+
+export async function deleteGuildMusicQueueItem(context: RequestContext, guildId: string, itemId: string) {
+  return raw.deleteGuildMusicQueueItem(context, guildId, itemId);
+}
+
+
+export async function deleteGuildMusicQueue(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildMusicQueue = {},
+) {
+  return raw.deleteGuildMusicQueue(context, guildId, options);
 }
 
 
@@ -1213,6 +1295,14 @@ export async function mediaAVManipulationStammer(
   options: RestOptions.MediaAVManipulationStammer,
 ) {
   return raw.mediaAVManipulationStammer(context, options);
+}
+
+
+export async function mediaAVManipulationWaveform(
+  context: RequestContext,
+  options: RestOptions.MediaAVManipulationWaveform,
+) {
+  return raw.mediaAVManipulationWaveform(context, options);
 }
 
 

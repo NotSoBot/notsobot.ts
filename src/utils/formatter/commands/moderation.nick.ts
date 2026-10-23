@@ -76,6 +76,7 @@ export function getBlockedTagFunctions(): ReadonlySet<TagFormatter.TagFunctions>
       TagFunctions.MEDIA_AUDIO_OR_VIDEO,
       TagFunctions.MEDIA_IMAGE,
       TagFunctions.MEDIA_IMAGE_OR_VIDEO,
+      TagFunctions.MEDIA_LIST,
       TagFunctions.MEDIA_VIDEO,
       TagFunctions.MEDIASCRIPT,
       TagFunctions.MEDIASCRIPT_MAYBE_URL,

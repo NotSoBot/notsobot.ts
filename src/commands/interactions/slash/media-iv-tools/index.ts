@@ -26,14 +26,13 @@ import { MediaIVToolsToGifCommand } from './to-gif';
 import { MediaIVToolsTrimCommand } from './trim';
 import { MediaIVToolsUncaptionCommand } from './uncaption';
 import { MediaIVToolsWatermarkCommand } from './watermark';
-import { MediaIVConvertCommand } from './convert';
 import { MediaIVFlipCommand } from './flip';
 import { MediaIVFlopCommand } from './flop';
 import { MediaIVStretchCommand } from './stretch';
 
 
 export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
-  description = 'Crop, resize, rotate, convert and other image and video tools';
+  description = 'Crop, resize, rotate and other image and video tools';
   descriptionLocalizations = I18n.localizations('commands.media_iv_tools.description');
   name = 'media-iv-tools';
 
@@ -67,7 +66,6 @@ export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
         new MediaIVToolsTrimCommand(),
         new MediaIVToolsUncaptionCommand(),
         new MediaIVToolsWatermarkCommand(),
-        new MediaIVConvertCommand(),
         new MediaIVFlipCommand(),
         new MediaIVFlopCommand(),
         new MediaIVStretchCommand(),

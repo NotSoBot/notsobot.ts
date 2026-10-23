@@ -13,14 +13,14 @@ import { MediaAVToolsSetGroupCommand } from './set';
 
 import { MediaAVAudioChannelsCombineCommand } from './channels-combine';
 import { MediaAVAudioChannelsInvertCommand } from './channels-invert';
-import { MediaAVConvertCommand } from './convert';
 import { MediaAVAudioDelayCommand } from './delay';
 import { MediaAVToolsIdentifyCommand } from './identify';
 import { MediaAVAudioVolumeCommand } from './volume';
+import { MediaAVWaveformCommand } from './waveform';
 
 
 export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
-  description = 'Volume, channels, convert, identify a song and other audio tools';
+  description = 'Volume, channels, waveform, identify a song and other audio tools';
   descriptionLocalizations = I18n.localizations('commands.media_av_tools.description');
   name = 'media-av-tools';
 
@@ -42,10 +42,10 @@ export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
         new MediaAVToolsSetGroupCommand(),
         new MediaAVAudioChannelsCombineCommand(),
         new MediaAVAudioChannelsInvertCommand(),
-        new MediaAVConvertCommand(),
         new MediaAVAudioDelayCommand(),
         new MediaAVToolsIdentifyCommand(),
         new MediaAVAudioVolumeCommand(),
+        new MediaAVWaveformCommand(),
       ],
     });
   }

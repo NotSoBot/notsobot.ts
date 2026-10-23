@@ -23,6 +23,9 @@ export const ONE_DAY = 24 * 60 * 60 * 1000;
 // how long an edited trigger reruns its command (and we remember its reply in memory)
 export const COMMAND_EDIT_DURATION = 15 * 60 * 1000;
 
+// how many of the channel's latest messages (cached, then fetched) are searched for media
+export const MEDIA_HISTORY_LIMIT = 25;
+
 
 export enum StatusEmojis {
   NO = '❌',
@@ -63,6 +66,8 @@ export enum ApiErrorCodes {
   UNKNOWN_IDENTITY = 10027,
   UNKNOWN_VOICE_CLIP = 10028,
   UNKNOWN_GUILD_LLM_KNOWLEDGE = 10029,
+  UNKNOWN_MUSIC_QUEUE_ITEM = 10030,
+  UNKNOWN_VOICE_NODE = 10031,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -86,6 +91,7 @@ export enum ApiErrorCodes {
   MAX_VOICE_CLONES = 30014,
   MAX_REPORTS = 30015,
   RATELIMITED = 30016,
+  MAX_REPORT_MESSAGES = 30019,
   MAX_TAG_DIRECTORY_ASSETS = 30018,
   MAX_LLM_MEMORIES = 30020,
   MAX_TIMED_BANS = 30021,
@@ -95,6 +101,7 @@ export enum ApiErrorCodes {
   SERVER_AI_LIMIT = 30025,
   MAX_VOICE_CLIPS = 30026,
   MAX_GUILD_LLM_KNOWLEDGE = 30027,
+  MAX_MUSIC_QUEUE_ITEMS = 30028,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -167,6 +174,9 @@ export enum ApiErrorCodes {
   TAG_DIRECTORY_EDIT_REQUEST_NO_CHANGES = 50038,
   TIMED_BAN_TIMESTAMP_IN_PAST = 50039,
   VOICE_CLIP_LAST = 50042,
+  VOICE_HAS_NO_CLIPS = 50043,
+  MUSIC_COLLECTION_NOT_SUPPORTED = 50044,
+  MUSIC_URL_NOT_SUPPORTED = 50045,
 
   DISCORD_OAUTH_ERROR = 60001,
   DISCORD_OAUTH_SCOPE_MISMATCH = 60002,
@@ -367,6 +377,7 @@ export enum CommandCategories {
   FUN = 'FUN',
   INFO = 'INFO',
   MODERATION = 'MODERATION',
+  MUSIC = 'MUSIC',
   OWNER = 'OWNER',
   PERSONAL = 'PERSONAL',
   SEARCH = 'SEARCH',
@@ -383,6 +394,7 @@ export const CommandCategoryNames: Record<CommandCategories, string> = Object.fr
   [CommandCategories.FUN]: 'Fun',
   [CommandCategories.INFO]: 'Info',
   [CommandCategories.MODERATION]: 'Moderation',
+  [CommandCategories.MUSIC]: 'Music',
   [CommandCategories.OWNER]: 'Bot Owner',
   [CommandCategories.PERSONAL]: 'Personal Settings',
   [CommandCategories.SEARCH]: 'Search',
@@ -408,6 +420,7 @@ export const SLASH_COMMAND_CATEGORY_FALLBACKS: ReadonlyArray<[string, CommandCat
   ['tag.', CommandCategories.TAGS],
   ['moderation.', CommandCategories.MODERATION],
   ['reminder.', CommandCategories.UTILITY],
+  ['music.', CommandCategories.MUSIC],
   ['owner.', CommandCategories.OWNER],
   ['help', CommandCategories.UTILITY],
 ] as Array<[string, CommandCategories]>);
@@ -1067,6 +1080,8 @@ export const MAX_GUILD_RULES_PER_REQUEST = 100;
 export enum GuildFeatures {
   AI_ACCESS = 'AI_ACCESS',
   FREE_CUSTOM_COMMANDS = 'FREE_CUSTOM_COMMANDS',
+  // the music commands work for everyone in the server, like a premium server
+  MUSIC_ACCESS = 'MUSIC_ACCESS',
 }
 
 

@@ -17,8 +17,9 @@ async function refreshCommands(
   const LISTENERS_PATH = '/listeners/';
   const STORE_PATH = '/stores/';
 
-  // the api events module holds this process' connection, reloading it would leave the old one running
-  const IGNORE = ['/apievents.', '/bot.'];
+  // the api events module holds this process' connection, reloading it would leave the old one running. same for the
+  // voice nodes', reloading it would drop the connections and the guilds playing on them (changes to it need a restart)
+  const IGNORE = ['/apievents.', '/bot.', '/voicenode.'];
 
   const errors: Array<string> = [];
   let dump: Record<string, any> | null = null;
@@ -77,12 +78,45 @@ async function refreshCommands(
           oldObject[name] = newObject.constructor.prototype[name].bind(oldObject);
         }
       }
+      // fields added since the old object was made (class fields live on the instance, not the prototype), the
+      // swapped methods would read them as undefined. existing ones keep their state
+      for (let name of Object.getOwnPropertyNames(newObject)) {
+        if (!(name in oldObject)) {
+          oldObject[name] = newObject[name];
+        }
+      }
     } catch(error) {
       errors.push(`${key.slice(key.indexOf(LIB_PATH) + LIB_PATH.length)}: ${(error as any).message}`);
     } finally {
       // set the cache back to the old module and reconnect it, even if the reload failed
       require.cache[key] = oldCache;
       oldObject.connect(cluster);
+    }
+  }
+
+  // listener files added since this process started were never loaded, so the hot-swap above skips them: load and
+  // connect them too (everything has to stay inline, this function is sent to the other clusters as source code)
+  if (refreshListeners) {
+    const fs = require('fs');
+    const path = require('path');
+    const loaded = Object.keys(require.cache).find((key) => key.includes(LIB_PATH) && key.includes(LISTENERS_PATH));
+    if (loaded) {
+      const directory = path.dirname(loaded);
+      for (let filename of fs.readdirSync(directory)) {
+        const key = path.join(directory, filename);
+        if (!filename.endsWith('.js') || key in require.cache) {
+          continue;
+        }
+        try {
+          const listener = require(key).default;
+          // `index.js` and `listener.js` don't export a listener
+          if (listener && typeof(listener.connect) === 'function' && typeof(listener.stop) === 'function') {
+            listener.connect(cluster);
+          }
+        } catch(error) {
+          errors.push(`${key.slice(key.indexOf(LIB_PATH) + LIB_PATH.length)}: ${(error as any).message}`);
+        }
+      }
     }
   }
 

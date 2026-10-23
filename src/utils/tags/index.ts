@@ -164,6 +164,17 @@ const lastImageOrVideoUrl = Parameters.lastMediaUrl({audio: false});
 const lastMediaUrl = Parameters.lastMediaUrl();
 const lastVideoUrl = Parameters.lastMediaUrl({audio: false, image: false});
 
+// `{medialist}`'s type argument, the same filters as {media}, {audio}, {av}, {image}, {iv} and {video}
+const MEDIA_LIST_TYPES: Record<string, Parameters.FindMediaUrlsOptions> = {
+  audio: {image: false, video: false},
+  av: {image: false},
+  image: {audio: false, video: false},
+  iv: {audio: false},
+  media: {},
+  video: {audio: false, image: false},
+};
+const MEDIA_LIST_MAX = 10;
+
 
 export const TagSymbols = Object.freeze({
   BRACKET_LEFT: '{',
@@ -536,6 +547,7 @@ export enum TagFunctions {
   MEDIA_IMAGE_IMAGINE = 'MEDIA_IMAGE_IMAGINE',
   MEDIA_IMAGE_IMAGINE_URL = 'MEDIA_IMAGE_IMAGINE_URL',
   MEDIA_IMAGE_OR_VIDEO = 'MEDIA_IMAGE_OR_VIDEO',
+  MEDIA_LIST = 'MEDIA_LIST',
   MEDIA_VIDEO = 'MEDIA_VIDEO',
   MEDIASCRIPT = 'MEDIASCRIPT',
   MEDIASCRIPT_MAYBE_URL = 'MEDIASCRIPT_MAYBE_URL',
@@ -746,6 +758,7 @@ export const TagFunctionsToString = Object.freeze({
   [TagFunctions.MEDIA_IMAGE_IMAGINE]: ['imagine'],
   [TagFunctions.MEDIA_IMAGE_IMAGINE_URL]: ['imagineurl'],
   [TagFunctions.MEDIA_IMAGE_OR_VIDEO]: ['iv'],
+  [TagFunctions.MEDIA_LIST]: ['medialist', 'media.list'],
   [TagFunctions.MEDIASCRIPT]: ['mediascript', 'mscript', 'imagescript', 'iscript'],
   [TagFunctions.MEDIASCRIPT_MAYBE_URL]: ['mediascriptmaybeurl', 'mscriptmaybeurl', 'imagescriptmaybeurl', 'iscriptmaybeurl'],
   [TagFunctions.MEDIASCRIPT_URL]: ['mediascripturl', 'mscripturl', 'imagescripturl', 'iscripturl'],
@@ -6804,6 +6817,38 @@ const ScriptTags = Object.freeze({
         return ScriptTags[fallbackFunction](context, arg, tag);
       }
     }
+
+    return true;
+  },
+
+  [TagFunctions.MEDIA_LIST]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
+    // json array of media urls from the slash attachments, the message, the reply and the text (no channel history,
+    // `^` in the text adds the last one)
+    // {medialist}
+    // {medialist:image|4}
+    // {medialist:iv|2|@cake @notsobot}
+
+    let [ typeString, maxString, text ] = split(arg, 3);
+    typeString = (typeString || '').trim().toLowerCase() || 'media';
+    if (!(typeString in MEDIA_LIST_TYPES)) {
+      return false;
+    }
+
+    let maxAmount = MEDIA_LIST_MAX;
+    if (maxString && maxString.trim()) {
+      maxAmount = parseInt(maxString);
+      if (isNaN(maxAmount)) {
+        return false;
+      }
+      maxAmount = Math.max(1, Math.min(maxAmount, MEDIA_LIST_MAX));
+    }
+
+    increaseNetworkRequests(tag);
+
+    // `minAmount` stays 0, at 1 it would run the user's image search fallback and look through the channel's history
+    const parse = Parameters.mediaUrls({...MEDIA_LIST_TYPES[typeString], maxAmount});
+    const urls = await parse((text || '').trim(), context) as Array<string>;
+    tag.text += JSON.stringify(Array.from(new Set(urls)));
 
     return true;
   },

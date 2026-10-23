@@ -20,7 +20,6 @@
     "moment-timezone": "^0.6.5",
     "opusscript": "^0.1.1",
     "typescript": "^7.0.2",
-    "wav": "^1.0.2",
     "ws": "^8.22.0"
   },
   "overrides": {
@@ -29,7 +28,6 @@
   "devDependencies": {
     "@types/moment-duration-format": "^2.2.7",
     "@types/node": "^26.6.5",
-    "@types/wav": "^1.0.4",
     "@types/ws": "^8.18.2"
   },
   "scripts": {

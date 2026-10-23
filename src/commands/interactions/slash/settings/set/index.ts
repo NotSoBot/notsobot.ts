@@ -16,6 +16,7 @@ import { SettingsSetMLImagineModelCommand } from './ml-imagine-model';
 import { SettingsSetResponseDisplayCommand } from './response-display';
 import { SettingsSetSearchProviderCommand } from './search-provider';
 import { SettingsSetTimezoneCommand } from './timezone';
+import { SettingsSetTTSVoiceCommand } from './tts-voice';
 import { SettingsSetUnitsCommand } from './units';
 
 
@@ -42,6 +43,7 @@ export class SettingsSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new SettingsSetResponseDisplayCommand(),
         new SettingsSetSearchProviderCommand(),
         new SettingsSetTimezoneCommand(),
+        new SettingsSetTTSVoiceCommand(),
         new SettingsSetUnitsCommand(),
       ],
     });

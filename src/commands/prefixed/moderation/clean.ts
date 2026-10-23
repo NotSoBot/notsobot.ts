@@ -27,7 +27,7 @@ export default class CleanCommand extends BaseCommand {
       label: 'amount',
       metadata: {
         category: CommandCategories.MODERATION,
-        description: 'Delete my recent messages (including slash command responses) and the messages that used my commands',
+        description: 'Delete my recent command uses: the messages that used my commands and my responses to them (including slash commands)',
         examples: [
           `${COMMAND_NAME} 10`,
           `${COMMAND_NAME} 50`,
@@ -100,6 +100,9 @@ export async function createCleanMessage(
   const applicationId = context.applicationId;
 
   return createPruneMessage(context, {amount: args.amount}, {
+    // `amount` is how many command uses to delete, each with all of its messages
+    group: (message: Structures.Message) => getExecutionId(context, message),
+    partialKey: 'prune.found_partial_commands',
     filter: (message: Structures.Message) => {
       // our replies, including slash command/context menu/component responses
       if (message.author.id === userId) {
@@ -116,4 +119,39 @@ export async function createCleanMessage(
       return false;
     },
   });
+}
+
+
+// the id of the command message or interaction this message is part of, which is always the oldest message of the use
+export function getExecutionId(
+  context: Command.Context | Interaction.InteractionContext,
+  message: Structures.Message,
+): string {
+  if (message.author.id === context.client.userId || (message.webhookId && message.webhookId === context.applicationId)) {
+    // slash command/context menu/component responses and their followups all point to the interaction
+    const metadata = message.interactionMetadata;
+    if (metadata) {
+      // a modal's response belongs to the interaction that opened the modal
+      const root = metadata.triggeringInteractionMetadata || metadata;
+      // a button/select's response belongs to the command use of the message it was on (when we still have it cached)
+      if (root.interactedMessageId && BigInt(root.interactedMessageId) < BigInt(message.id)) {
+        const interacted = context.messages.get(root.interactedMessageId);
+        if (interacted) {
+          return getExecutionId(context, interacted);
+        }
+      }
+      return root.id;
+    }
+    if (message.interaction) {
+      return message.interaction.id;
+    }
+    // prefixed command responses reply to the command message
+    const { messageReference } = message;
+    if (messageReference && messageReference.messageId && messageReference.channelId === message.channelId) {
+      if (BigInt(messageReference.messageId) < BigInt(message.id)) {
+        return messageReference.messageId;
+      }
+    }
+  }
+  return message.id;
 }

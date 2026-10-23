@@ -11,10 +11,11 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaAIVAudioPutConcatCommand } from './audio-concat';
 import { MediaAIVAudioPutMixCommand } from './audio-mix';
 import { MediaAIVAudioPutReplaceCommand } from './audio-replace';
+import { MediaAIVConvertCommand } from './convert';
 
 
 export default class MediaAIVToolsGroupCommand extends BaseSlashCommand {
-  description = 'Change the audio of any media';
+  description = 'Convert any media or change its audio';
   descriptionLocalizations = I18n.localizations('commands.media_aiv_tools.description');
   name = 'media-aiv-tools';
 
@@ -35,6 +36,7 @@ export default class MediaAIVToolsGroupCommand extends BaseSlashCommand {
         new MediaAIVAudioPutConcatCommand(),
         new MediaAIVAudioPutMixCommand(),
         new MediaAIVAudioPutReplaceCommand(),
+        new MediaAIVConvertCommand(),
       ],
     });
   }

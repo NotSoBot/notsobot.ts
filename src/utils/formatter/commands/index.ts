@@ -70,6 +70,7 @@ import * as MediaAVManipulationAudioVibrato from './media.av.manipulation.audio.
 import * as MediaAVManipulationAudioVolume from './media.av.manipulation.audio.volume';
 import * as MediaAVManipulationSetBitRate from './media.av.manipulation.set.bitrate';
 import * as MediaAVManipulationStammer from './media.av.manipulation.stammer';
+import * as MediaAVManipulationWaveform from './media.av.manipulation.waveform';
 
 import * as MediaAVToolsExtractAudio from './media.av.tools.extract.audio';
 import * as MediaAVToolsIdentify from './media.av.tools.identify';
@@ -452,6 +453,16 @@ import * as ModerationUnmute from './moderation.unmute';
 import * as ServerBans from './server.bans';
 import * as ServerInvites from './server.invites';
 
+import * as MusicInfo from './music.info';
+import * as MusicLeave from './music.leave';
+import * as MusicPause from './music.pause';
+import * as MusicPlay from './music.play';
+import * as MusicQueue from './music.queue';
+import * as MusicQueueRemove from './music.queue.remove';
+import * as MusicQueueRemoveAll from './music.queue.remove.all';
+import * as MusicResume from './music.resume';
+import * as MusicSeek from './music.seek';
+import * as MusicSkip from './music.skip';
 import * as OwnerBlockGuild from './owner.block.guild';
 import * as OwnerBlockUser from './owner.block.user';
 import * as OwnerEval from './owner.eval';
@@ -532,6 +543,7 @@ import * as SettingsSetMLImagineModel from './settings.set.ml.imagine.model';
 import * as SettingsSetResponseDisplay from './settings.set.response.display';
 import * as SettingsSetSearchProvider from './settings.set.search.provider';
 import * as SettingsSetTimezone from './settings.set.timezone';
+import * as SettingsSetTTSVoice from './settings.set.tts.voice';
 import * as SettingsSetUnits from './settings.set.units';
 
 import * as TagAlias from './tag.alias';
@@ -596,7 +608,6 @@ import * as VoiceClone from './voice.clone';
 import * as VoiceCloneAdd from './voice.clone.add';
 import * as VoiceDelete from './voice.delete';
 import * as VoiceList from './voice.list';
-import * as VoiceRecord from './voice.record';
 import * as VoiceRename from './voice.rename';
 
 
@@ -673,6 +684,7 @@ export {
   MediaAVManipulationAudioVolume,
   MediaAVManipulationSetBitRate,
   MediaAVManipulationStammer,
+  MediaAVManipulationWaveform,
 
   MediaAVToolsExtractAudio,
   MediaAVToolsIdentify,
@@ -1055,6 +1067,16 @@ export {
   ServerBans,
   ServerInvites,
 
+  MusicInfo,
+  MusicLeave,
+  MusicPause,
+  MusicPlay,
+  MusicQueue,
+  MusicQueueRemove,
+  MusicQueueRemoveAll,
+  MusicResume,
+  MusicSeek,
+  MusicSkip,
   OwnerBlockGuild,
   OwnerBlockUser,
   OwnerEval,
@@ -1134,6 +1156,7 @@ export {
   SettingsSetResponseDisplay,
   SettingsSetSearchProvider,
   SettingsSetTimezone,
+  SettingsSetTTSVoice,
   SettingsSetUnits,
 
   TagAlias,
@@ -1198,6 +1221,5 @@ export {
   VoiceCloneAdd,
   VoiceDelete,
   VoiceList,
-  VoiceRecord,
   VoiceRename,
 };

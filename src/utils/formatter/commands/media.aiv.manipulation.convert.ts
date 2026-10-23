@@ -17,25 +17,23 @@ export const COMMAND_ID = 'media.aiv.tools.convert';
 export const IS_PIPEABLE = true;
 
 export const SLASH_PARAMETERS: {
-  AV: {COMMAND_ID: string, SLASH_CHOICES: Array<{name: string, value: string}>},
-  IV: {COMMAND_ID: string, SLASH_CHOICES: Array<{name: string, value: string}>},
+  AIV: {SLASH_CHOICES: Array<{name: string, value: string}>},
   AUDIO: {COMMAND_ID: string, DEFAULT_MIMETYPE: Mimetypes, SLASH_CHOICES: Array<{name: string, value: string}>},
   IMAGE: {COMMAND_ID: string, DEFAULT_MIMETYPE: Mimetypes, SLASH_CHOICES: Array<{name: string, value: string}>},
   VIDEO: {COMMAND_ID: string, DEFAULT_MIMETYPE: Mimetypes, SLASH_CHOICES: Array<{name: string, value: string}>},
 } = {
-  AV: {COMMAND_ID: `${COMMAND_ID}.av`, SLASH_CHOICES: []},
-  IV: {COMMAND_ID: `${COMMAND_ID}.iv`, SLASH_CHOICES: []},
+  AIV: {SLASH_CHOICES: []},
   AUDIO: {COMMAND_ID: `${COMMAND_ID}.audio`, DEFAULT_MIMETYPE: Mimetypes.AUDIO_MP3, SLASH_CHOICES: []},
   IMAGE: {COMMAND_ID: `${COMMAND_ID}.image`, DEFAULT_MIMETYPE: Mimetypes.IMAGE_PNG, SLASH_CHOICES: []},
   VIDEO: {COMMAND_ID: `${COMMAND_ID}.video`, DEFAULT_MIMETYPE: Mimetypes.VIDEO_MP4, SLASH_CHOICES: []},
 };
 
-SLASH_PARAMETERS.AV.SLASH_CHOICES = [...MIMETYPES_AUDIO_EMBEDDABLE, ...MIMETYPES_VIDEO_EMBEDDABLE].map((mimetype) => {
-  let name = `.${MimetypesToExtension[mimetype]} (${mimetype})`;
-  return {name, value: mimetype};
-});
-
-SLASH_PARAMETERS.IV.SLASH_CHOICES = [...MIMETYPES_IMAGE_EMBEDDABLE, ...MIMETYPES_VIDEO_EMBEDDABLE].map((mimetype) => {
+// one list for audio, images and video (audio can become an image too, its cover art or waveform), 14 of discord's 25
+SLASH_PARAMETERS.AIV.SLASH_CHOICES = [
+  ...MIMETYPES_IMAGE_EMBEDDABLE,
+  ...MIMETYPES_VIDEO_EMBEDDABLE,
+  ...MIMETYPES_AUDIO_EMBEDDABLE,
+].map((mimetype) => {
   let name = `.${MimetypesToExtension[mimetype]} (${mimetype})`;
   return {name, value: mimetype};
 });

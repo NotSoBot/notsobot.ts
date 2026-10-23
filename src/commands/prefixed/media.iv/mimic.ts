@@ -20,7 +20,7 @@ export default class MimicCommand extends BaseMediasCommand {
       ],
       metadata: {
         category: CommandCategories.EFFECTS,
-        description: 'Make the first media\'s face copy the expression and head pose of the second media\'s face, follows along with a gif or video',
+        description: 'Make the first media\'s face copy the expression and head pose of the second media\'s face, gifs and videos use their first frame',
         examples: [
           `${COMMAND_NAME} @cakedan @notsobot`,
           `${COMMAND_NAME} @cakedan https://example.com/talking.mp4 -regions LIPS`,

@@ -28,7 +28,7 @@ export class ModerationCleanCommand extends BaseInteractionCommandOption {
       options: [
         {
           name: 'amount',
-          description: `Amount of messages to delete (1..${MAX_AMOUNT})`,
+          description: `Amount of command uses to delete, along with my responses (1..${MAX_AMOUNT})`,
           ...I18n.optionLocalizations('commands.moderation.clean.amount'),
           maxValue: MAX_AMOUNT,
           minValue: 1,

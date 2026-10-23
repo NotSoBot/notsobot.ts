@@ -24,6 +24,7 @@ import {
 import {
   Components,
   ComponentButton,
+  ComponentActionRow,
   ComponentContainer,
   ComponentContext,
   Embed,
@@ -2285,6 +2286,9 @@ export interface DisplayPayload {
   color?: number,
   // buttons/select menus shown under the response, their callbacks and timeout stay on this object
   components?: Components,
+  // components v2: show `components`' rows inside the response's container (after its content, above the invoker)
+  // instead of under it
+  componentsInside?: boolean,
   description?: null | string,
   // only for interactions
   ephemeral?: boolean,
@@ -2415,7 +2419,7 @@ export interface DisplayReplyOptions {
   uploadFilename?: string,
 }
 
-function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): DisplayRendered {
+function renderDisplayComponents(payload: DisplayPayload, invokedBy: string, rows: Array<ComponentActionRow> = []): DisplayRendered {
   const components = new Components();
   const container = components.createContainer();
   if (payload.color !== undefined) {
@@ -2464,6 +2468,10 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string): Di
     if (!images.includes(file)) {
       container.createFile({file: {url: `attachment://${file.filename}`}, spoiler: file.hasSpoiler});
     }
+  }
+  // the caller's buttons/select menus (`componentsInside`), the same objects so their callbacks keep working
+  for (let row of rows) {
+    container.addActionRow(row);
   }
 
   const note = (payload.note) ? `-# ${payload.note}` : '';
@@ -2611,12 +2619,24 @@ export async function renderDisplay(
   ]);
   const invokedBy = (context instanceof Interaction.InteractionContext) ? '' : `-# **${translate('media.invoked_by', {user: `<@${context.userId}>`})}**`;
 
+  // `componentsInside`: the caller's rows, wherever they are (under the response, or inside it from an earlier render)
+  let insideRows: Array<ComponentActionRow> = [];
+  if (payload.componentsInside && payload.components) {
+    for (let component of payload.components.components as Array<any>) {
+      if (component instanceof ComponentActionRow) {
+        insideRows.push(component);
+      } else if (component instanceof ComponentContainer) {
+        insideRows.push(...(component.components as Array<any>).filter((row) => row instanceof ComponentActionRow));
+      }
+    }
+  }
+
   const render = (payload: DisplayPayload): DisplayRendered => {
     switch (display) {
       case UserSettingsResponseDisplayTypes.LEGACY: return renderDisplayEmbed(context, payload);
       case UserSettingsResponseDisplayTypes.NO_EMBED: return renderDisplayText(payload, invokedBy, translate('media.image'));
     }
-    return renderDisplayComponents(payload, invokedBy);
+    return renderDisplayComponents(payload, invokedBy, insideRows);
   };
 
   const parts: Array<string> = [];
@@ -2652,7 +2672,8 @@ export async function renderDisplay(
     // put the container first in the caller's components, so the buttons' callbacks and timeout keep working
     // (replacing the container from an earlier render of the same components)
     const root = payload.components;
-    const rows = (root.components as Array<any>).filter((component) => !(component instanceof ComponentContainer));
+    // rows shown inside the container aren't under it too
+    const rows = (payload.componentsInside) ? [] : (root.components as Array<any>).filter((component) => !(component instanceof ComponentContainer));
     (root.components as Array<any>).splice(0, root.components.length, ...(message.components as Components).components, ...rows);
     message.components = root;
   }

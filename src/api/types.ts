@@ -73,6 +73,10 @@ export namespace RestOptions {
     type: ReportTypes,
   }
 
+  export interface CreateReportMessage {
+    content: string,
+  }
+
   export interface CreateTagUse {
     serverId?: string,
     timestamp: number,
@@ -278,6 +282,43 @@ export namespace RestOptions {
     userIds: Array<string>,
   }
 
+  export interface FetchMusicSessions {
+    shardCount: number,
+    shardIds: Array<number>,
+  }
+
+  export interface PutGuildMusicSession {
+    channelId: string,
+    nodeId?: null | string,
+  }
+
+  export interface EditGuildMusicSession {
+    channelId?: string,
+    nodeId?: null | string,
+    paused?: boolean,
+    // milliseconds, where the track is right now
+    position?: number,
+  }
+
+  export interface PutGuildMusicQueue {
+    // 1 is next, the end by default
+    position?: number,
+    // a `searchMusic` result as it came: an opus.rip `track` (and its service page as `url`), or only `url` for a link
+    track?: RestResponsesRaw.MusicTrack | null,
+    url?: null | string,
+    userId: string,
+  }
+
+  export interface EditGuildMusicQueueItem {
+    position: number,
+  }
+
+  export interface DeleteGuildMusicQueue {
+    // only these, or only what this user queued, everything queued by default (never what's playing)
+    itemIds?: Array<string>,
+    userId?: string,
+  }
+
   export interface FetchTimedBans {
     after?: string,
     before?: string,
@@ -414,6 +455,8 @@ export namespace RestOptions {
     safe?: boolean,
     upload?: boolean,
     uploadExpiresIn?: number,
+    // expires even for users whose uploads are permanent (the max time, or `uploadExpiresIn`)
+    uploadTemporary?: boolean,
   }
 
   export interface MediaBaseOptions extends MediaUploadBaseOptions {
@@ -586,6 +629,11 @@ export namespace RestOptions {
   export interface MediaAVManipulationStammer extends MediaBaseOptionsMultiple {
     colorMode?: string,
     matcherMode?: string,
+  }
+
+  export interface MediaAVManipulationWaveform extends MediaBaseOptions {
+    color?: string,
+    split?: boolean,
   }
 
   export interface MediaAVToolsExtractAudio extends MediaBaseOptions {
@@ -1845,6 +1893,8 @@ export namespace RestResponsesRaw {
 
   export type CreateReport = Report;
 
+  export type CreateReportMessage = ReportMessage;
+
   export interface CreateTagUse {
     // the content it runs (an alias' reference tag) is a verified directory listing, see `TagContext.directoryVerified`
     directory_verified: boolean,
@@ -1923,6 +1973,100 @@ export namespace RestResponsesRaw {
 
   export interface DeleteGuildTimedBans {
     timed_bans: Array<TimedBan>,
+  }
+
+  export interface GuildMusicQueueItem {
+    guild_id: string,
+    id: string,
+    // 1 is next, the playing item is 0
+    position: number,
+    source: 'opus' | 'url',
+    status: 'converting' | 'playing' | 'queued' | 'ready',
+    // an opus.rip track's from its search result, a link's once it's converted (when it's next). `url` is the converted
+    // file's cdn.nsb.gg link, opus.rip's cdn urls are never given out
+    track: null | {
+      album: null | string,
+      artist: null | string,
+      duration: number,
+      isrc: null | string,
+      thumbnail: null | string,
+      title: string,
+      url: null | string,
+    },
+    // the link it came from (an opus.rip track's service page, can be empty)
+    url: string,
+    user_id: string,
+  }
+
+  // a music node (notsobot.voice), owners manage them on the dashboard
+  export interface MusicNode {
+    created: string,
+    enabled: boolean,
+    id: string,
+    name: string,
+    // its `VOICE_PASSWORD`
+    password: string,
+    // `http://host:2333`
+    url: string,
+  }
+
+  export interface FetchMusicNodes {
+    nodes: Array<MusicNode>,
+  }
+
+  // a server the bot is playing music in, kept by the api so a restart (of the bot and its node) can carry on
+  export interface MusicSession {
+    channel_id: string,
+    // the playing track would have ended by now
+    finished: boolean,
+    guild_id: string,
+    node_id: null | string,
+    paused: boolean,
+    // milliseconds, where the track is about now
+    position: number,
+  }
+
+  export interface FetchMusicSessions {
+    sessions: Array<MusicSession>,
+  }
+
+  // an opus.rip track from a search, sent back as it is to queue it
+  export interface MusicTrack {
+    album: null | {id: string, image: null | string, name: string},
+    artist: string,
+    // milliseconds
+    duration: number,
+    id: string,
+    isrc: Array<string>,
+    thumbnail: null | string,
+    title: string,
+  }
+
+  export interface MusicSearchResult {
+    // null for a link (`url`), downloaded and converted when it's next
+    track: MusicTrack | null,
+    url: null | string,
+  }
+
+  export interface SearchMusic {
+    results: Array<MusicSearchResult>,
+    // `search` for text (results to pick from), `resolve` for a spotify/deezer/tidal/apple music/youtube music track link
+    // (albums/playlists error), `url` for any other link (youtube links error)
+    type: 'resolve' | 'search' | 'url',
+  }
+
+  export interface FetchGuildMusic {
+    current: GuildMusicQueueItem | null,
+    queue: Array<GuildMusicQueueItem>,
+  }
+
+  export type PutGuildMusicQueue = GuildMusicQueueItem;
+  export type EditGuildMusicQueueItem = GuildMusicQueueItem;
+  export type DeleteGuildMusicQueueItem = null;
+  export type DeleteGuildMusic = null;
+
+  export interface DeleteGuildMusicQueue {
+    deleted: number,
   }
 
   export interface FetchGuildTimedBans {
@@ -3355,6 +3499,15 @@ export namespace RestResponsesRaw {
     timestamp_end: string | null,
     timestamp_start: string,
     user: User,
+  }
+
+  // a reply or a status change on a report, the reporter's shape (staff are NotSoAdmin)
+  export interface ReportMessage {
+    author: 'reporter' | 'staff',
+    content: null | string,
+    created: string,
+    id: string,
+    status: null | number,
   }
 
   export interface Report {

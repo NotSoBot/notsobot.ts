@@ -3,7 +3,7 @@ import { Command, Interaction, Structures } from 'detritus-client';
 import GuildSettingsStore from '../stores/guildsettings';
 import UserSettingsStore from '../stores/usersettings';
 
-import { GoogleLocales, GoogleLocaleFromDiscord, MLDiffusionModels } from '../constants';
+import { GoogleLocales, GoogleLocaleFromDiscord, MEDIA_HISTORY_LIMIT, MLDiffusionModels } from '../constants';
 
 import {
   fetchMemberOrUserById,
@@ -134,7 +134,7 @@ export function lastMediaUrl(
           return BigInt(message.id) <= beforeId;
         }
         return true;
-      }).reverse();
+      }).reverse().slice(0, MEDIA_HISTORY_LIMIT);
       const url = findMediaUrlInMessages(messages, mediaSearchOptions);
       if (url) {
         return getOrFetchRealUrl(context, url);
@@ -145,7 +145,7 @@ export function lastMediaUrl(
       (context.inDm) ? context.isBotPresent : (context.channel && context.channel.canReadHistory)
     );
     if (shouldFetchMessages) {
-      const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: 50});
+      const messages = await context.rest.fetchMessages(context.channelId!, {before, limit: MEDIA_HISTORY_LIMIT});
       const url = findMediaUrlInMessages(messages, mediaSearchOptions);
       if (url) {
         return getOrFetchRealUrl(context, url);

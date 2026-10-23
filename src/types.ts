@@ -40,13 +40,7 @@ export namespace RedisPayloads {
   export interface ReportMessageCreate {
     // the reporter's saved DM channel with us, null if we never saw it
     channel_id: null | string,
-    message: {
-      author: 'reporter' | 'staff',
-      content: null | string,
-      created: string,
-      id: string,
-      status: null | number,
-    },
+    message: RestResponsesRaw.ReportMessage,
     report: Omit<RestResponsesRaw.Report, 'notes' | 'reviewed_by' | 'user'>,
     user_id: string,
   }
