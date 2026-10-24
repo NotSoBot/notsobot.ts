@@ -1461,6 +1461,14 @@ export async function mediaICreateThonkify(
 }
 
 
+export async function mediaICreateQuote(
+  context: RequestContext,
+  options: RestOptions.MediaICreateQuote,
+) {
+  return raw.mediaICreateQuote(context, options);
+}
+
+
 export async function mediaICreateTombstone(
   context: RequestContext,
   options: RestOptions.MediaICreateTombstone,

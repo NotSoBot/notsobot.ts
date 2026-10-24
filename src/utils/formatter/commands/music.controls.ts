@@ -388,7 +388,12 @@ export async function onMusicControl(
       done = !!await VoiceNode.seek(guildId, 0);
     }; break;
     case MusicControls.SKIP: {
+      // the message shows what comes next, so it waits for it to start (or for us to leave, the queue ran out)
+      const next = VoiceNode.waitForNextTrack(guildId);
       done = await VoiceNode.skip(guildId);
+      if (done) {
+        await next;
+      }
     }; break;
     case MusicControls.PAUSE: {
       // disconnected, it's held paused already (the page just shows it)
@@ -447,12 +452,9 @@ async function showMusicControlsMessage(
     const invokerId = await findCommandInvokerId(context, message);
     return displayReply(context, {...page.display, componentsInside: true}, {invokerId: invokerId || undefined});
   }
-  // nothing's playing anymore, the labels at least
-  const controls = createMusicControls(translator.translate, guildId, {itemId, paused});
-  const components = replaceComponentsRow(message, MessageComponentCustomIds.MUSIC_CONTROLS, controls);
-  if (components) {
-    return context.editOrRespond({allowedMentions: {parse: []}, components});
-  }
+  // nothing's playing or queued anymore (skipped the last one), the message says so
+  const invokerId = await findCommandInvokerId(context, message);
+  return displayReply(context, {description: translator.translate('music.nothing_playing')}, {invokerId: invokerId || undefined});
 }
 
 

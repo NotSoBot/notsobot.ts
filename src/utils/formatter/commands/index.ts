@@ -13,6 +13,7 @@ import * as FunReverseText from './fun.reversetext';
 import * as FunTextwall from './fun.textwall';
 import * as FunTTS from './fun.tts';
 import * as FunXD from './fun.xd';
+import * as FunQuote from './fun.quote';
 import * as FunZalgo from './fun.zalgo';
 
 import * as InfoActivity from './info.activity';
@@ -630,6 +631,7 @@ export {
   FunTextwall,
   FunTTS,
   FunXD,
+  FunQuote,
   FunZalgo,
 
   InfoActivity,

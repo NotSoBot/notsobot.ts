@@ -709,6 +709,77 @@ export namespace RestOptions {
     background?: number,
   }
 
+  // a discord message drawn like discord does, `content` is its markdown
+  export interface MediaICreateQuote {
+    // image attachments under the content (discord's cdn only)
+    attachments?: Array<string>,
+    author: MediaICreateQuoteAuthor,
+    compact?: boolean,
+    components?: Array<MediaICreateQuoteComponent>,
+    content?: string,
+    edited?: boolean,
+    embed?: null | {
+      author?: null | string,
+      color?: null | number,
+      description?: null | string,
+      fields?: Array<{inline?: boolean, name: string, value: string}>,
+      footer?: null | string,
+      imageUrl?: null | string,
+      thumbnailUrl?: null | string,
+      title?: null | string,
+    },
+    light?: boolean,
+    // what `<@id>`, `<@&id>`, `<#id>` and `<t:...>` in the content show as, by the token
+    mentions?: Record<string, string>,
+    // the line above a reply: who it replied to and the start of what they said
+    reply?: null | {
+      // only files, `content` is `Click to see attachment`
+      attachment?: boolean,
+      author?: null | MediaICreateQuoteAuthor,
+      content?: string,
+      // it's gone, `content` says so
+      deleted?: boolean,
+    },
+    safe?: boolean,
+    // already formatted, like `Today at 3:41 PM`
+    timestamp?: string,
+  }
+
+  // a message component, in discord's own shape (sent as is): buttons and selects in action rows, components v2
+  export interface MediaICreateQuoteComponent {
+    accent_color?: null | number,
+    accessory?: null | MediaICreateQuoteComponent,
+    components?: Array<MediaICreateQuoteComponent>,
+    content?: string,
+    disabled?: boolean,
+    divider?: boolean,
+    // a custom one as `<:name:id>`, a unicode one as is
+    emoji?: null | string,
+    filename?: string,
+    items?: Array<{spoiler?: boolean, url: string}>,
+    label?: string,
+    placeholder?: string,
+    spacing?: number,
+    spoiler?: boolean,
+    style?: number,
+    type: number,
+    url?: null | string,
+  }
+
+  export interface MediaICreateQuoteAuthor {
+    avatarUrl?: null | string,
+    bot?: boolean,
+    color?: null | string,
+    // the frame around their avatar
+    decorationUrl?: null | string,
+    name: string,
+    // joined the server this week (discord's sprout badge)
+    newMember?: boolean,
+    // their top role's icon, an image or a unicode emoji
+    roleIconEmoji?: null | string,
+    roleIconUrl?: null | string,
+  }
+
   export interface MediaICreateTombstone {
     line1?: string,
     line2?: string,

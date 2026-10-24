@@ -1904,7 +1904,7 @@ export function timeLimitParts(
 
 
 // for when polling gives up on a job, so it doesn't keep running (or leave its file behind) with nobody waiting on it
-function cancelJob(context: Command.Context | Interaction.InteractionContext, jobId: string): void {
+function cancelJob(context: Command.Context | Interaction.InteractionContext | ComponentContext, jobId: string): void {
   deleteJob(context, jobId).catch(() => {});
 }
 
@@ -1953,7 +1953,7 @@ export function isCommandRunCancelled(context: Command.Context | Interaction.Int
 }
 
 // returns false (after cancelling the job) if the run was already cancelled
-function trackJob(context: Command.Context | Interaction.InteractionContext, jobId: string): boolean {
+function trackJob(context: Command.Context | Interaction.InteractionContext | ComponentContext, jobId: string): boolean {
   if (!(context instanceof Command.Context)) {
     return true;
   }
@@ -1967,7 +1967,7 @@ function trackJob(context: Command.Context | Interaction.InteractionContext, job
   return true;
 }
 
-function untrackJob(context: Command.Context | Interaction.InteractionContext, jobId: string): void {
+function untrackJob(context: Command.Context | Interaction.InteractionContext | ComponentContext, jobId: string): void {
   if (context instanceof Command.Context && context.metadata && context.metadata.jobIds) {
     context.metadata.jobIds.delete(jobId);
   }
@@ -2082,7 +2082,7 @@ export async function jobReply(
 
 
 export async function jobWaitForResult(
-  context: Command.Context | Interaction.InteractionContext,
+  context: Command.Context | Interaction.InteractionContext | ComponentContext,
   job: RestResponsesRaw.JobResponse,
   pollingTime: number = 500,
   // aborting stops polling and cancels the job, like a tag running out of time
@@ -2155,7 +2155,7 @@ export async function jobWaitForResult(
 
 // for when the file itself is needed instead of a reply, throws the job's error
 export async function jobWaitForResponse(
-  context: Command.Context | Interaction.InteractionContext,
+  context: Command.Context | Interaction.InteractionContext | ComponentContext,
   job: RestResponsesRaw.JobResponse,
   signal?: AbortSignal,
 ): Promise<RestResponsesRaw.FileResponse> {
@@ -2639,7 +2639,15 @@ function renderDisplayEmbed(
   if (payload.url) {
     embed.setUrl(payload.url);
   }
-  const description = (payload.invokerKey) ? [payload.description, invokedBy].filter(Boolean).join('\n') : (payload.description || '');
+  // a note with markdown (bold, codestrings, links, timestamps) renders in the description, not the footer. The invoker
+  // line goes last in it when the header took the author's place (or the line is custom)
+  const noteInDescription = !!payload.note && /[`*_~<\[]/.test(payload.note);
+  const showInvoker = !!invokedBy && (!!payload.invokerKey || !!payload.header);
+  const description = [
+    payload.description,
+    (noteInDescription) ? `-# ${payload.note}` : null,
+    (showInvoker) ? invokedBy : null,
+  ].filter(Boolean).join('\n');
   if (description) {
     embed.setDescription(description);
   }
@@ -2653,7 +2661,8 @@ function renderDisplayEmbed(
   if (payload.image) {
     embed.setImage(payload.image);
   }
-  const footer = [payload.note, payload.footer].filter(Boolean).join(' • ');
+  // footers don't render markdown, codestring backticks would show
+  const footer = [(noteInDescription) ? null : payload.note, payload.footer].filter(Boolean).join(' • ').replace(/`/g, '');
   if (footer) {
     embed.setFooter(footer, payload.footerIconUrl || undefined);
   }
@@ -2700,14 +2709,16 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string, imageLabe
   if (payload.note) {
     lines.push(`-# ${payload.note}`);
   }
-  if (!payload.invokerLast) {
+  // last like components v2 has it with a footer button (the music pages)
+  const invokerLast = !!payload.invokerLast || !!payload.footerButton;
+  if (!invokerLast) {
     lines.push(invokedBy);
   }
   const footerText = displayFooterText(payload);
   if (footerText) {
     lines.push(displaySubtext(footerText));
   }
-  if (payload.invokerLast) {
+  if (invokerLast) {
     lines.push(invokedBy);
   }
 
@@ -2799,11 +2810,29 @@ export async function renderDisplay(
   if (display === UserSettingsResponseDisplayTypes.LEGACY || display === UserSettingsResponseDisplayTypes.NO_EMBED) {
     // always send it, so editing a response removes buttons it had before
     message.components = payload.components || [];
+    // a footer's/block's button joins the row of the caller's buttons from the same listener (like refresh beside the music
+    // controls) when it has room, a row of its own above the rest otherwise (above a paginator's page buttons)
     const buttons = [payload.footerButton, ...(payload.blocks || []).map((block) => block.button)].filter(Boolean);
     if (buttons.length) {
       const root = (message.components instanceof Components) ? message.components : new Components();
-      const row = root.createActionRow();
+      const rows = root.components as Array<any>;
+      let ownRow: ComponentActionRow | null = null;
       for (let button of buttons) {
+        const prefix = button!.customId.split('.')[0] + '.';
+        let row = rows.find((x) => {
+          return (
+            x instanceof ComponentActionRow &&
+            x.components.length < 5 &&
+            x.components.some((component: any) => typeof(component.customId) === 'string' && component.customId.startsWith(prefix))
+          );
+        });
+        if (!row) {
+          if (!ownRow) {
+            ownRow = new ComponentActionRow();
+            rows.unshift(ownRow);
+          }
+          row = ownRow;
+        }
         row.createButton({customId: button!.customId, label: button!.label, style: MessageComponentButtonStyles.SECONDARY});
       }
       message.components = root;
@@ -3084,11 +3113,17 @@ export async function mediaReplyFromOptions(
       }
     }
 
-    // `?embed=true` gets nsb.gg's regular embed instead of its components v2 one, since this response is meant to be text
+    // `?embed=true` gets nsb.gg's regular embed instead of its components v2 one, since this response is meant to be text.
+    // In the same order as components v2: what it's about, the link, who used it, when it expires, then its details
     const vanityUrl = `${options.storage.urls.vanity}?embed=true`;
-    const content: Array<string> = [
-      `> ${(options.spoiler) ? Markup.spoiler(vanityUrl) : vanityUrl}`,
-    ];
+    const content: Array<string> = [];
+    if (options.description) {
+      content.push(options.description);
+    }
+    content.push(`> ${(options.spoiler) ? Markup.spoiler(vanityUrl) : vanityUrl}`);
+    if (!isFromInteraction) {
+      content.push(`> -# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`);
+    }
     if (options.storage.expires_at) {
       const expiresAtText = Markup.timestamp(new Date(options.storage.expires_at), MarkupTimestampStyles.RELATIVE);
       const downloadText = Markup.url(translate('media.download_it'), `<${options.storage.urls.cdn}?download=true>`);
@@ -3100,14 +3135,8 @@ export async function mediaReplyFromOptions(
       }
       content.push(`> -# **${warning.join(' ')}**`);
     }
-    if (!isFromInteraction) {
-      content.push(`> -# **${translate('media.invoked_by', {user: `<@${userId}>`})}**`);
-    }
     if (footer) {
       content.push(`> ${footer}`);
-    }
-    if (options.description) {
-      content.push(options.description);
     }
     // text above the media information, cut down so the link itself always fits
     if (options.content) {

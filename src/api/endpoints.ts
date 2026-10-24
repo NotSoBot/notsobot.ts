@@ -168,6 +168,8 @@ export const Api = Object.freeze({
     '/media/i/create/neon',
   MEDIA_I_CREATE_PRESIDENTIAL:
     '/media/i/create/presidential',
+  MEDIA_I_CREATE_QUOTE:
+    '/media/i/create/quote',
   MEDIA_I_CREATE_REALFACT:
     '/media/i/create/realfact',
   MEDIA_I_CREATE_RETROWAVE:

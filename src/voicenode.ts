@@ -494,6 +494,8 @@ export class VoiceNodeClient extends EventSpewer {
   guilds = new Map<string, GuildVoice>();
   // by queue item id, told the node's error when it couldn't play that item (until the item ends or we leave)
   trackErrorListeners = new Map<string, {guildId: string, listener: (error: string) => void}>();
+  // by guild, told when its next track starts or we leave (a skip shows what comes after it)
+  nextTrackWaiters = new Map<string, Set<(result: 'left' | 'started') => void>>();
   nodes = new Map<string, NodeConnection>();
   nodesFetchedAt = 0;
   nodesFetching: null | Promise<void> = null;
@@ -883,6 +885,37 @@ export class VoiceNodeClient extends EventSpewer {
     return true;
   }
 
+  // resolves when the guild's next track starts, or we leave (the queue ran out), `timeout` otherwise (a link still
+  // converting, a node that didn't answer). Waited on before a skip, so a quick answer from the node isn't missed
+  waitForNextTrack(guildId: string, timeout: number = 5000): Promise<'left' | 'started' | 'timeout'> {
+    return new Promise((resolve) => {
+      const waiters = this.nextTrackWaiters.get(guildId) || new Set();
+      this.nextTrackWaiters.set(guildId, waiters);
+      const waiter = (result: 'left' | 'started') => {
+        clearTimeout(timer);
+        resolve(result);
+      };
+      const timer = setTimeout(() => {
+        waiters.delete(waiter);
+        if (!waiters.size && this.nextTrackWaiters.get(guildId) === waiters) {
+          this.nextTrackWaiters.delete(guildId);
+        }
+        resolve('timeout');
+      }, timeout);
+      waiters.add(waiter);
+    });
+  }
+
+  private resolveNextTrack(guildId: string, result: 'left' | 'started') {
+    const waiters = this.nextTrackWaiters.get(guildId);
+    if (waiters) {
+      this.nextTrackWaiters.delete(guildId);
+      for (const waiter of waiters) {
+        waiter(result);
+      }
+    }
+  }
+
   // the guild's player on its node, null when there's none
   async getPlayer(guildId: string): Promise<NodePlayer | null> {
     const guild = this.guilds.get(guildId);
@@ -932,6 +965,7 @@ export class VoiceNodeClient extends EventSpewer {
       return null;
     }
     this.guilds.delete(guildId);
+    this.resolveNextTrack(guildId, 'left');
     if (guild.joinTimeout) {
       clearTimeout(guild.joinTimeout);
     }
@@ -1084,6 +1118,7 @@ export class VoiceNodeClient extends EventSpewer {
         if (!guild.movedAt || PLAYER_UPDATE_INTERVAL * 2 < Date.now() - guild.movedAt) {
           guild.position = {at: Date.now(), value: 0};
         }
+        this.resolveNextTrack(guildId, 'started');
         this.refreshNodes(guild.shard).then(() => {
           if (!node.info.enabled) {
             return this.moveGuild(guildId, 'drain');

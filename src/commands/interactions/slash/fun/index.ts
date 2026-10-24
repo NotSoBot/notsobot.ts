@@ -20,6 +20,7 @@ import { RegionalCommand } from './regional';
 import { ReverseTextCommand } from './reverse-text';
 import { TextwallCommand } from './textwall';
 import { XDCommand } from './xd';
+import { QuoteCommand } from './quote';
 import { ZalgoCommand } from './zalgo';
 
 
@@ -55,6 +56,7 @@ export default class FunGroupCommand extends BaseSlashCommand {
         new ReverseTextCommand(),
         new TextwallCommand(),
         new XDCommand(),
+        new QuoteCommand(),
         new ZalgoCommand(),
       ],
     });

@@ -3478,6 +3478,62 @@ export async function mediaICreateThonkify(
 }
 
 
+export async function mediaICreateQuote(
+  context: RequestContext,
+  options: RestOptions.MediaICreateQuote,
+): Promise<RestResponsesRaw.FileResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const embed = options.embed;
+  const author = (value: RestOptions.MediaICreateQuoteAuthor) => ({
+    avatar_url: value.avatarUrl,
+    bot: value.bot,
+    color: value.color,
+    decoration_url: value.decorationUrl,
+    name: value.name,
+    new_member: value.newMember,
+    role_icon_emoji: value.roleIconEmoji,
+    role_icon_url: value.roleIconUrl,
+  });
+  const reply = options.reply;
+  const body = {
+    attachments: options.attachments,
+    author: author(options.author),
+    compact: options.compact,
+    components: options.components,
+    content: options.content,
+    edited: options.edited,
+    embed: (embed) ? {
+      author: embed.author,
+      color: embed.color,
+      description: embed.description,
+      fields: embed.fields,
+      footer: embed.footer,
+      image_url: embed.imageUrl,
+      thumbnail_url: embed.thumbnailUrl,
+      title: embed.title,
+    } : undefined,
+    light: options.light,
+    max_file_size: maxFileSize,
+    mentions: options.mentions,
+    reply: (reply) ? {
+      attachment: reply.attachment,
+      author: (reply.author) ? author(reply.author) : undefined,
+      content: reply.content,
+      deleted: reply.deleted,
+    } : undefined,
+    safe: options.safe,
+    timestamp: options.timestamp,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_I_CREATE_QUOTE,
+    },
+  });
+}
+
+
 export async function mediaICreateTombstone(
   context: RequestContext,
   options: RestOptions.MediaICreateTombstone,

@@ -1027,6 +1027,67 @@ export function timezone(
 }
 
 
+export interface QuoteTarget {
+  message: null | Structures.Message,
+  text: string,
+  user: null | Structures.Member | Structures.User,
+}
+
+// what `quote` quotes: a message link (or the id of one in this channel), the message replied to when there's no text,
+// or text said as whoever's mentioned first (their latest message without text), as the user otherwise
+export async function quote(
+  value: string,
+  context: Command.Context | Interaction.InteractionContext,
+): Promise<QuoteTarget> {
+  value = value.trim();
+  const target: QuoteTarget = {message: null, text: value, user: null};
+  if (!value) {
+    if (context instanceof Command.Context) {
+      target.message = await fetchReplyMessage(context);
+    }
+    return target;
+  }
+
+  const [ first ] = value.split(/\s+/, 1);
+  const rest = value.slice(first.length).trim();
+
+  // https://discord.com/channels/:guildId/:channelId/:messageId, only from channels the user can read
+  const messageLink = discordRegex(DiscordRegexNames.JUMP_CHANNEL_MESSAGE, first) as {matches: Array<{channelId: string, guildId: string, messageId: string}>};
+  if (messageLink.matches.length) {
+    const [ { channelId, guildId, messageId } ] = messageLink.matches;
+    try {
+      target.message = await fetchMessageFromJumpLink(context, guildId, channelId, messageId);
+    } catch(error) {}
+    if (target.message) {
+      target.text = '';
+      return target;
+    }
+  }
+
+  const mention = discordRegex(DiscordRegexNames.MENTION_USER, first) as {matches: Array<{id: string}>};
+  const userId = (mention.matches.length) ? mention.matches[0].id : (isSnowflake(first) ? first : null);
+  if (userId) {
+    // a bare id can be a message in this channel
+    if (!mention.matches.length && context.channelId) {
+      try {
+        target.message = await fetchMessageFromJumpLink(context, context.guildId, context.channelId, userId);
+      } catch(error) {}
+      if (target.message) {
+        target.text = '';
+        return target;
+      }
+    }
+    try {
+      target.user = await fetchMemberOrUserById(context, userId);
+    } catch(error) {}
+    if (target.user) {
+      target.text = rest;
+    }
+  }
+  return target;
+}
+
+
 export async function targetText(
   value: string,
   context: Command.Context | Interaction.InteractionContext,

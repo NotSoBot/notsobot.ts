@@ -17,6 +17,8 @@ import { musicItemDisplayTitle, musicItemTitle } from './music.shared';
 // a text search's results to pick from (a select menu fits 25), and how long they can be picked
 const MAX_CHOICES = 10;
 const PICK_TIMEOUT = 60 * 1000;
+// how long a reply that joined waits for the first track to start (a link converts first), then it's shown again
+const JOINED_START_TIMEOUT = 30 * 1000;
 
 export const COMMAND_ID = 'music.play';
 
@@ -25,6 +27,8 @@ interface Queued {
   item: RestResponsesRaw.GuildMusicQueueItem,
   // above its page the first time (a held track carrying on first, an album's/playlist's name and how many were added)
   note: null | string,
+  // we just joined to play it: the first track starting (or us leaving), the reply said `Connecting` until then
+  started: null | Promise<unknown>,
 }
 
 export interface CommandArgs {
@@ -66,8 +70,9 @@ export async function createMessage(
   // queues it. `failed` is the node's error if it can't play it later (a link that won't convert, a track opus.rip
   // doesn't have anymore)
   const queue = async (result: RestResponsesRaw.MusicSearchResult): Promise<Queued> => {
-    const { item, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, result, context.userId);
-    return {failed: trackFailed(item), item, note: resumedNote(resumed)};
+    const { item, joined, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, result, context.userId);
+    const started = (joined) ? VoiceNode.waitForNextTrack(guildId, JOINED_START_TIMEOUT) : null;
+    return {failed: trackFailed(item), item, note: resumedNote(resumed), started};
   };
 
   // right away, the node can fail it before we reply (it's shown once we have)
@@ -101,10 +106,20 @@ export async function createMessage(
       return displayReply(context, {...musicItemDisplayTitle(queued.item), note: queued.note});
     }
     const reply = await paginator.start();
+    let failed = false;
     queued.failed.then((payload) => {
+      failed = true;
       paginator.stop(false);
       return displayReply(context, payload);
     }).catch(() => {});
+    // we just joined: it said `Connecting`, shown again once it's playing (or we left, it couldn't)
+    if (queued.started) {
+      queued.started.then(() => {
+        if (!failed && !paginator.stopped) {
+          return paginator.renderPage();
+        }
+      }).catch(() => {});
+    }
     return reply;
   };
 
@@ -112,7 +127,8 @@ export async function createMessage(
   // the pages start at its first track
   if (search.type === 'collection') {
     const name = (search.collection) ? search.collection.name : null;
-    const { batch, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, search.results, context.userId, name);
+    const { batch, joined, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, search.results, context.userId, name);
+    const started = (joined) ? VoiceNode.waitForNextTrack(guildId, JOINED_START_TIMEOUT) : null;
     const added = batch!.items;
     const total = (search.collection) ? search.collection.total : search.results.length;
     const duration = added.reduce((total, x) => total + ((x.track) ? x.track.duration : 0), 0);
@@ -133,7 +149,7 @@ export async function createMessage(
       ]),
       resumedNote(resumed),
     ]);
-    return replyQueued({failed: trackFailed(added[0]), item: added[0], note}, batch!.batch_id);
+    return replyQueued({failed: trackFailed(added[0]), item: added[0], note, started}, batch!.batch_id);
   }
 
   const results = search.results.slice(0, MAX_CHOICES);
