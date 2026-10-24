@@ -905,3 +905,27 @@ export async function ttsVoices(context: Interaction.InteractionAutoCompleteCont
   }
   return context.respond({choices});
 }
+
+
+// only the user's cloned voices, the value is the voice id (`findVoice` takes names or ids)
+export async function clonedVoices(context: Interaction.InteractionAutoCompleteContext) {
+  let voices: Array<{id: string, name: string}> = [];
+  try {
+    const response = await fetchUserVoices(context, context.userId);
+    voices = response.voices;
+  } catch(error) {
+
+  }
+
+  if (context.value && voices.length) {
+    const search = new MiniSearch({
+      fields: ['name'],
+      storeFields: ['id', 'name'],
+      searchOptions: {fuzzy: true, prefix: true},
+    });
+    search.addAll(voices);
+    voices = search.search(context.value) as any;
+  }
+  const choices = voices.slice(0, 25).map((voice) => ({name: voice.name.slice(0, 100), value: voice.id}));
+  return context.respond({choices});
+}

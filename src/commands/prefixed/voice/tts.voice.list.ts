@@ -6,12 +6,13 @@ import { Formatter } from '../../../utils';
 import { BaseCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'voice list';
+export const COMMAND_NAME = 'tts voice list';
 
-export default class VoiceListCommand extends BaseCommand {
+export default class TTSVoiceListCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
+      aliases: ['voice list'],
 
       metadata: {
         category: CommandCategories.AUDIO,

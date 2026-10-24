@@ -6,12 +6,13 @@ import { Formatter } from '../../../utils';
 import { BaseCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'voice rename';
+export const COMMAND_NAME = 'tts voice rename';
 
-export default class VoiceRenameCommand extends BaseCommand {
+export default class TTSVoiceRenameCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
+      aliases: ['voice rename'],
 
       metadata: {
         category: CommandCategories.AUDIO,

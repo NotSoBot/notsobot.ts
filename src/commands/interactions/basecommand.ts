@@ -46,6 +46,7 @@ export interface InteractionCommandMetadata {
   id: string,
   nsfw?: boolean,
   premium?: boolean,
+  premiumPlus?: boolean,
   premiumServer?: boolean,
 };
 
@@ -169,11 +170,16 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
             return isNSFWAllowed;
           }
         }
-        if (metadata.premium || metadata.premiumServer) {
+        if (metadata.premium || metadata.premiumPlus || metadata.premiumServer) {
           let hasPremium: boolean = false;
           const user = await UserStore.getOrFetch(context, context.userId);
-          if (user && (user.premiumType || user.hasFlag(UserFlags.OWNER))) {
-            hasPremium = true;
+          if (user) {
+            if (metadata.premiumPlus) {
+              // same as the prefixed commands, PLUS_AI alone isn't plus
+              hasPremium = user.isPremiumPlus || user.hasFlag(UserFlags.OWNER);
+            } else {
+              hasPremium = !!user.premiumType || user.hasFlag(UserFlags.OWNER);
+            }
           }
 
           if (!hasPremium && metadata.premiumServer) {
@@ -203,6 +209,8 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
             context.metadata = context.metadata || {};
             if (metadata.premiumServer) {
               context.metadata.reason = warning(translate('errors.premium_server_required', {command: Markup.codestring(context.name)}));
+            } else if (metadata.premiumPlus) {
+              context.metadata.reason = warning(translate('errors.premium_plus_required', {command: Markup.codestring(context.name)}));
             } else {
               context.metadata.reason = warning(translate('errors.premium_required', {command: Markup.codestring(context.name)}));
             }

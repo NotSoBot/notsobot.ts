@@ -1,4 +1,5 @@
 import { Interaction } from 'detritus-client';
+import { Permissions } from 'detritus-client/lib/constants';
 
 import { TTSVoices } from '../../../../constants';
 import { Formatter, I18n, Parameters, toTitleCase } from '../../../../utils';
@@ -12,9 +13,9 @@ export interface CommandArgs {
   use?: string,
 }
 
-export const COMMAND_NAME = 'tts';
+export const COMMAND_NAME = 'speak';
 
-export class TTSCommand extends BaseInteractionCommandOption {
+export class TTSSpeakCommand extends BaseInteractionCommandOption {
   description = 'Generate Text to Speech';
   descriptionLocalizations = I18n.localizations('commands.fun.tts.description');
   metadata = {
@@ -24,6 +25,7 @@ export class TTSCommand extends BaseInteractionCommandOption {
 
   constructor() {
     super({
+      permissions: [Permissions.ATTACH_FILES],
       options: [
         {
           name: 'text',

@@ -6,19 +6,20 @@ import { Formatter } from '../../../utils';
 import { BaseCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'voice delete';
+export const COMMAND_NAME = 'tts voice delete';
 
-export default class VoiceDeleteCommand extends BaseCommand {
+export default class TTSVoiceDeleteCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
+      aliases: ['voice delete'],
 
       label: 'voice',
       metadata: {
         category: CommandCategories.AUDIO,
         description: 'Delete one of your stored cloned voices',
         examples: [
-          COMMAND_NAME,
+          `${COMMAND_NAME} cake`,
         ],
         id: Formatter.Commands.VoiceDelete.COMMAND_ID,
         premiumPlus: true,

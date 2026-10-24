@@ -21,6 +21,7 @@ export class OwnerRefreshCommand extends BaseOwnerCommandOption {
       options: [
         {name: 'listeners', description: 'Also reload listeners', ...I18n.optionLocalizations('commands.owner.refresh.listeners'), type: Boolean},
         {name: 'stores', description: 'Also reload stores', ...I18n.optionLocalizations('commands.owner.refresh.stores'), type: Boolean},
+        {name: 'voice', description: 'Also reload the voice node client (hands its sessions over)', ...I18n.optionLocalizations('commands.owner.refresh.voice'), type: Boolean},
       ],
     });
   }
@@ -29,6 +30,7 @@ export class OwnerRefreshCommand extends BaseOwnerCommandOption {
     return Formatter.Commands.OwnerRefresh.createMessage(context, {
       listeners: !!args.listeners,
       stores: !!args.stores,
+      voice: !!args.voice,
     });
   }
 }

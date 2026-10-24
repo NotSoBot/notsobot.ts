@@ -6,19 +6,19 @@ import { Formatter, Parameters } from '../../../utils';
 import { BaseAudioOrVideoCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'voice clone add';
+export const COMMAND_NAME = 'tts voice sample';
 
-export default class VoiceCloneAddCommand extends BaseAudioOrVideoCommand {
+export default class TTSVoiceSampleCommand extends BaseAudioOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
+      aliases: ['voice clone add'],
 
       metadata: {
         category: CommandCategories.AUDIO,
         description: 'Add another Audio or Video File to a cloned voice for Text-to-Speech',
         examples: [
-          COMMAND_NAME,
-          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
+          `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 cake`,
         ],
         id: Formatter.Commands.VoiceCloneAdd.COMMAND_ID,
         premiumPlus: true,

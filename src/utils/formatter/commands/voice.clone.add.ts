@@ -36,7 +36,7 @@ export async function createMessage(
 
   const voiceText = Markup.codestring(result.name);
 
-  // same confirmation as `voice clone`, the new audio is sent to elevenlabs too
+  // same confirmation as `tts voice create`, the new audio is sent to elevenlabs too
   const components = new Components({
     timeout: MAX_TIME_TO_RESPOND,
     onTimeout: async () => {

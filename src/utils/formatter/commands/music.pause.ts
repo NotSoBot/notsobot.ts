@@ -16,6 +16,6 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
   return displayReply(context, {
-    description: translate('music_pause.paused_at', {position: Markup.codestring(formatTime(player.state.position))}),
+    description: translate('music_pause.paused_at', {position: Markup.codestring(formatTime(player.position))}),
   });
 }

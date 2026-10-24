@@ -19,13 +19,12 @@ import { EmojiCommand } from './emoji';
 import { RegionalCommand } from './regional';
 import { ReverseTextCommand } from './reverse-text';
 import { TextwallCommand } from './textwall';
-import { TTSCommand } from './tts';
 import { XDCommand } from './xd';
 import { ZalgoCommand } from './zalgo';
 
 
 export default class FunGroupCommand extends BaseSlashCommand {
-  description = 'Text and emoji fun: zalgo, text walls, TTS and more';
+  description = 'Text and emoji fun: zalgo, text walls, ASCII and more';
   descriptionLocalizations = I18n.localizations('commands.fun.description');
   name = 'fun';
   nameLocalizations = I18n.localizations('commands.fun.name');
@@ -55,7 +54,6 @@ export default class FunGroupCommand extends BaseSlashCommand {
         new RegionalCommand(),
         new ReverseTextCommand(),
         new TextwallCommand(),
-        new TTSCommand(),
         new XDCommand(),
         new ZalgoCommand(),
       ],

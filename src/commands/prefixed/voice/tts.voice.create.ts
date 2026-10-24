@@ -6,12 +6,13 @@ import { Formatter } from '../../../utils';
 import { BaseAudioOrVideoCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'voice clone';
+export const COMMAND_NAME = 'tts voice create';
 
-export default class VoiceCloneCommand extends BaseAudioOrVideoCommand {
+export default class TTSVoiceCreateCommand extends BaseAudioOrVideoCommand {
   constructor(client: CommandClient) {
     super(client, {
       name: COMMAND_NAME,
+      aliases: ['voice clone'],
 
       args: [
         {name: 'name', metadata: {description: '1 to 128 characters'}},

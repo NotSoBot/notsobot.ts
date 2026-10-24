@@ -364,6 +364,10 @@ export interface NumberOptions {
 export function number(options: NumberOptions = {}) {
   return (valueStrOrNum: number | string, context?: Command.Context | Interaction.InteractionContext): number => {
     const translate = getCachedTranslator(context).translate;
+    // parseInt alone takes `5 -user @someone` as 5, so an unknown flag would silently turn into a looser command
+    if (typeof(valueStrOrNum) === 'string' && !/^[-+]?\d+$/.test(valueStrOrNum.trim())) {
+      throw new Error(translate('params.value_number'));
+    }
     const value = parseInt(valueStrOrNum as string);
     if (isNaN(value)) {
       throw new Error(translate('params.value_number'));

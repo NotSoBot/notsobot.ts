@@ -11,19 +11,44 @@ async function refreshCommands(
   cluster: ClusterClient,
   refreshListeners: boolean,
   refreshStores: boolean,
+  refreshVoice: boolean,
   LIB_PATH: string,
   extras: Record<string, any>,
 ): Promise<Array<number> | RefreshFailure> {
   const LISTENERS_PATH = '/listeners/';
   const STORE_PATH = '/stores/';
 
-  // the api events module holds this process' connection, reloading it would leave the old one running. same for the
-  // voice nodes', reloading it would drop the connections and the guilds playing on them (changes to it need a restart)
-  const IGNORE = ['/apievents.', '/bot.', '/voicenode.'];
+  // the api events module holds this process' connection, reloading it would leave the old one running. the voice
+  // nodes' client is added below unless it's reloaded (`-voice`)
+  const IGNORE = ['/apievents.', '/bot.'];
 
   const errors: Array<string> = [];
   let dump: Record<string, any> | null = null;
   const isListenerOrStore = (key: string) => key.includes(LISTENERS_PATH) || key.includes(STORE_PATH);
+
+  // the voice nodes' client is only reloaded with `-voice`, otherwise it's skipped like the api events module (it holds
+  // the node connections and the guilds playing on them). with it, it hands its node sessions and guilds to the reloaded
+  // one (`detach`, then `adopt` below), the players keep playing and we stay in their channels. its listener is swapped
+  // with it even without `-listeners`, it would keep calling the old one. a client from before handovers existed can't
+  // hand over, it stays skipped (one restart)
+  const VOICE_NODE_PATH = '/voicenode.';
+  const voiceNodeKey = Object.keys(require.cache).find((key) => {
+    return key.includes(LIB_PATH) && key.includes(VOICE_NODE_PATH) && !key.includes(LISTENERS_PATH);
+  });
+  const voiceNodeCache = (voiceNodeKey) ? require.cache[voiceNodeKey] : undefined;
+  const oldVoiceNode = voiceNodeCache && voiceNodeCache.exports && voiceNodeCache.exports.default;
+  let voiceNodeHandover: any = null;
+  if (refreshVoice && oldVoiceNode && typeof(oldVoiceNode.detach) === 'function') {
+    try {
+      voiceNodeHandover = oldVoiceNode.detach();
+    } catch(error) {
+      errors.push(`voice nodes: ${(error as any).message}`);
+    }
+  }
+  if (!voiceNodeHandover) {
+    IGNORE.push(VOICE_NODE_PATH);
+  }
+  let voiceNodeListenerFailed = false;
 
   // first pass: clear every non-listener/store module so the listeners/stores reloaded below pick up fresh dependencies
   for (let key of Object.keys(require.cache)) {
@@ -44,8 +69,9 @@ async function refreshCommands(
     if (!key.includes(LIB_PATH) || !isListenerOrStore(key)) {
       continue;
     }
+    const isVoiceNodeListener = !!voiceNodeHandover && key.includes(LISTENERS_PATH) && key.includes(VOICE_NODE_PATH);
     if (key.includes(LISTENERS_PATH)) {
-      if (!refreshListeners) {
+      if (!refreshListeners && !isVoiceNodeListener) {
         continue;
       }
     } else if (!refreshStores) {
@@ -86,6 +112,9 @@ async function refreshCommands(
         }
       }
     } catch(error) {
+      if (isVoiceNodeListener) {
+        voiceNodeListenerFailed = true;
+      }
       errors.push(`${key.slice(key.indexOf(LIB_PATH) + LIB_PATH.length)}: ${(error as any).message}`);
     } finally {
       // set the cache back to the old module and reconnect it, even if the reload failed
@@ -117,6 +146,28 @@ async function refreshCommands(
           errors.push(`${key.slice(key.indexOf(LIB_PATH) + LIB_PATH.length)}: ${(error as any).message}`);
         }
       }
+    }
+  }
+
+  // the reloaded voice nodes' client takes over before anything awaits (no voice event comes in between), or the old
+  // one again when the new file or its listener failed to load (the listener still calls the old one then). the
+  // commands reloaded below import whichever is in the cache
+  if (voiceNodeKey && voiceNodeHandover) {
+    let voiceNode = oldVoiceNode;
+    if (!voiceNodeListenerFailed) {
+      try {
+        voiceNode = require(voiceNodeKey).default;
+      } catch(error) {
+        errors.push(`${voiceNodeKey.slice(voiceNodeKey.indexOf(LIB_PATH) + LIB_PATH.length)}: ${(error as any).message}`);
+      }
+    }
+    if (voiceNode === oldVoiceNode) {
+      require.cache[voiceNodeKey] = voiceNodeCache;
+    }
+    try {
+      voiceNode.adopt(cluster, voiceNodeHandover);
+    } catch(error) {
+      errors.push(`voice nodes: ${(error as any).message}`);
     }
   }
 
@@ -241,6 +292,7 @@ export interface RefreshFailure {
 export interface CommandArgs {
   listeners: boolean,
   stores: boolean,
+  voice: boolean,
 }
 
 
@@ -254,7 +306,7 @@ export async function createMessage(
     return displayReply(context, {description: 'no cluster manager found'});
   }
   await displayReply(context, {description: 'ok, refreshing...'});
-  const shardIds = await context.manager.broadcastEval(refreshCommands, args.listeners, args.stores, DIRECTORY);
+  const shardIds = await context.manager.broadcastEval(refreshCommands, args.listeners, args.stores, !!args.voice, DIRECTORY);
     /*
   {
     redisChannels: Object.values(RedisChannels),

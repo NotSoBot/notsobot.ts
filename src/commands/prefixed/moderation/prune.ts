@@ -68,7 +68,7 @@ export default class PruneCommand extends BaseCommand {
         {name: 'before', type: Parameters.snowflake},
         {name: 'bots', type: Boolean},
         {name: 'embeds', type: Boolean},
-        {name: 'from', type: Parameters.membersOrUsers()},
+        {name: 'from', aliases: ['user'], type: Parameters.membersOrUsers()},
         {name: 'images', type: Boolean},
         {name: 'in', default: DefaultParameters.channel, type: Parameters.channel({
           types: [ChannelTypes.GUILD_TEXT, ChannelTypes.GUILD_NEWS],

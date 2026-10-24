@@ -33,6 +33,8 @@ export default class TTSCommand extends BaseCommand {
         id: Formatter.Commands.FunTTS.COMMAND_ID,
         usage: '<text> (-use <language/type>)',
       },
+      // after the `tts voice ...` commands, otherwise `tts voice list` would say "voice list"
+      priority: -1,
       type: Parameters.targetTextWithParsedMentions,
     });
   }

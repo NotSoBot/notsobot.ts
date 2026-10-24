@@ -17,6 +17,7 @@ export default class RefreshCommand extends BaseCommand {
       args: [
         {name: 'listeners', type: Boolean},
         {name: 'stores', type: Boolean},
+        {name: 'voice', type: Boolean},
       ],
       metadata: {
         description: 'Reload the bot\'s commands.',
@@ -24,10 +25,11 @@ export default class RefreshCommand extends BaseCommand {
           COMMAND_NAME,
           `${COMMAND_NAME} -stores`,
           `${COMMAND_NAME} -listeners`,
+          `${COMMAND_NAME} -voice`,
         ],
         category: CommandCategories.OWNER,
         id: Formatter.Commands.OwnerRefresh.COMMAND_ID,
-        usage: '(-listeners) (-stores)',
+        usage: '(-listeners) (-stores) (-voice)',
       },
       responseOptional: true,
     });
