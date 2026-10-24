@@ -20,20 +20,20 @@ export default class MusicEffectCommand extends BaseCommand {
       disableDm: true,
       label: 'effects',
       metadata: {
-        description: 'Put live effects on the music (nightcore, slowed + reverb, 8D and more), up to 3 stacked, on a premium server. Nothing given shows them',
+        description: 'Put live effects on the music (nightcore, slowed + reverb, 8D and more), up to 5 stacked (the same one again for more of it), on a premium server. Changing them needs you in the bot\'s channel with Manage Server or the DJ role, `music effect clear` takes them all off. Nothing given shows them',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} nightcore`,
           `${COMMAND_NAME} nightcore 8d bassboost`,
+          `${COMMAND_NAME} bassboost bassboost`,
           `${COMMAND_NAME} next room, echo`,
-          `${COMMAND_NAME} off`,
         ],
         category: CommandCategories.MUSIC,
         id: Formatter.Commands.MusicEffect.COMMAND_ID,
         usage: `?<...${Object.values(MusicEffects).join('|')}>`,
       },
-      // commas between them when one's more than a word (`next room, echo`), spaces otherwise. Words that aren't one
-      // are skipped, nothing found at all says which there are
+      // commas between them when one's more than a word (`next room, echo`), spaces otherwise, the same one again stacks
+      // it again. Words that aren't one are skipped, nothing found at all says which there are
       type: (value: string, context: Command.Context): Array<MusicEffects> => {
         const text = value.trim();
         if (!text) {
@@ -42,7 +42,7 @@ export default class MusicEffectCommand extends BaseCommand {
         const effects: Array<MusicEffects> = [];
         for (const part of (text.includes(',')) ? text.split(',') : text.split(/\s+/)) {
           const effect = (part.trim()) ? findEffect(part.trim(), context) : null;
-          if (effect && !effects.includes(effect)) {
+          if (effect) {
             effects.push(effect);
           }
         }

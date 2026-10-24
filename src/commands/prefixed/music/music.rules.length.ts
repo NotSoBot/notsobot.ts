@@ -21,7 +21,7 @@ export default class MusicRulesLengthCommand extends BaseCommand {
       disableDm: true,
       label: 'length',
       metadata: {
-        description: 'Set the longest track that can be queued, `off` for no limit. Needs Manage Server or a NotSoMusic role',
+        description: 'Set the longest track that can be queued, `off` for no limit. Needs Manage Server or the DJ role',
         examples: [
           `${COMMAND_NAME} 10:00`,
           `${COMMAND_NAME} off`,

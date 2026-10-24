@@ -19,7 +19,7 @@ export interface CommandArgs {
 
 // 24/7, a premium server perk that's on by default: the bot stays in voice when the queue runs out or it's paused, and
 // rejoins its channel after restarting. Off, it leaves like on a free server (now, if nothing's playing). Changing it
-// needs manage server or a notsomusic role
+// needs manage server or the dj role
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { translate } = await getTranslator(context);
 

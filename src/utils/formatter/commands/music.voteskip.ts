@@ -16,7 +16,7 @@ export interface CommandArgs {
 }
 
 // a server setting (on by default): skipping someone else's track is a vote, half of who's listening has to vote for it
-// (`musicSkipVote`). Off, anyone skips right away. Changing it needs manage server or a notsomusic role
+// (`musicSkipVote`). Off, anyone skips right away. Changing it needs manage server or the dj role
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { translate } = await getTranslator(context);
 

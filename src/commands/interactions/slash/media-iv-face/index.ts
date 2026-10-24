@@ -15,6 +15,7 @@ import { MediaIVClownCommand } from './clown';
 import { MediaIVDrawFacesCommand } from './draw-faces';
 import { MediaIVFaceSwapCommand } from './swap';
 import { MediaIVFatCommand } from './fat';
+import { MediaIVForeheadCommand } from './forehead';
 import { MediaIVGrumpyCommand } from './grumpy';
 import { MediaIVHalloweenHatCommand } from './halloween-hat';
 import { MediaIVJoyCommand } from './joy';
@@ -56,6 +57,7 @@ export default class MediaIVFaceGroupCommand extends BaseSlashCommand {
         new MediaIVClownCommand(),
         new MediaIVDrawFacesCommand(),
         new MediaIVFatCommand(),
+        new MediaIVForeheadCommand(),
         new MediaIVGrumpyCommand(),
         new MediaIVHalloweenHatCommand(),
         new MediaIVJoyCommand(),

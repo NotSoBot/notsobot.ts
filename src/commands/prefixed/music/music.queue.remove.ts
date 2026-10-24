@@ -16,7 +16,7 @@ export default class MusicQueueRemoveCommand extends BaseCommand {
       disableDm: true,
       label: 'positions',
       metadata: {
-        description: 'Remove tracks from the music queue by their positions (or ranges of them), other people\'s need Manage Server or a NotSoMusic role',
+        description: 'Remove tracks from the music queue by their positions (or ranges of them), other people\'s need Manage Server or the DJ role',
         examples: [
           `${COMMAND_NAME} 2`,
           `${COMMAND_NAME} 1 3 5`,

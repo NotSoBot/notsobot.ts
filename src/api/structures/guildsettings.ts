@@ -355,6 +355,7 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.ML_DIFFUSION_MODEL,
   NotSoApiKeys.ML_LLM_MODEL,
   NotSoApiKeys.ML_LLM_PERSONALITY,
+  NotSoApiKeys.MUSIC_DJ_ROLE_ID,
   NotSoApiKeys.RESPONSE_DISPLAY,
   NotSoApiKeys.RULES_ADMIN_BYPASS,
   NotSoApiKeys.SEARCH_PROVIDER_IMAGES,
@@ -367,6 +368,8 @@ export class GuildSettingsChild extends BaseStructure {
   mlDiffusionModel: null | string = null;
   mlLLMModel: null | string = null;
   mlLLMPersonality: null | string = null;
+  // the role that makes someone a music dj (with manage server), null falls back to roles named "notsomusic"
+  musicDjRoleId: null | string = null;
   // null uses each user's preference, then our latest format
   responseDisplay: GuildSettingsResponseDisplayTypes | null = null;
   // if the server owner and admins skip the rules, rules can override it with their own `adminBypass`

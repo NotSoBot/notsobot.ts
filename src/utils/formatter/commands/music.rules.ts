@@ -21,7 +21,7 @@ export interface CommandArgs {
   maxDuration?: number | null,
 }
 
-// the server's queue rules, the ones given are changed first (manage server or a notsomusic role): the longest track and
+// the server's queue rules, the ones given are changed first (manage server or the dj role): the longest track and
 // duplicates, with how many tracks the queue fits (more for premium servers)
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs = {}) {
   const { language, translate } = await getTranslator(context);

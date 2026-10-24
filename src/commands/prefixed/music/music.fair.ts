@@ -39,7 +39,7 @@ export default class MusicFairCommand extends BaseCommand {
       disableDm: true,
       label: 'value',
       metadata: {
-        description: 'Make the queue take turns between who queued: everyone\'s first track, then everyone\'s second... (off by default, leave empty to see it). Changing it needs Manage Server or a NotSoMusic role',
+        description: 'Make the queue take turns between who queued: everyone\'s first track, then everyone\'s second... (off by default, leave empty to see it). Changing it needs Manage Server or the DJ role',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} on`,

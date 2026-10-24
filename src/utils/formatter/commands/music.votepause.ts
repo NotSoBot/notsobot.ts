@@ -16,7 +16,7 @@ export interface CommandArgs {
 }
 
 // a server setting (on by default): pausing someone else's track is a vote, half of who's listening has to vote for it
-// (`musicVote`), resuming is its own vote. Off, anyone pauses right away. Changing it needs manage server or a notsomusic role
+// (`musicVote`), resuming is its own vote. Off, anyone pauses right away. Changing it needs manage server or the dj role
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { translate } = await getTranslator(context);
 

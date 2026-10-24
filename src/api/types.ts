@@ -298,6 +298,8 @@ export namespace RestOptions {
     paused?: boolean,
     // milliseconds, where the track is right now
     position?: number,
+    // the node's volume (percent), kept for a restart
+    volume?: number,
   }
 
   // what played ends (`finishedId`, the queue's loop decides if it goes) and the next item becomes the playing one
@@ -314,6 +316,8 @@ export namespace RestOptions {
     paused?: boolean,
     // milliseconds, where the track is right now
     position?: number,
+    // the node's volume (percent), kept for a restart
+    volume?: number,
   }
 
   export interface PutGuildMusicQueue {
@@ -334,6 +338,12 @@ export namespace RestOptions {
   }
 
   export interface EditGuildMusic {
+    // seconds a track fades into the next, 0 off (it only fades on a premium server)
+    crossfade?: number,
+    // dj mode, controlling the music needs manage server or the dj role (on by default)
+    djOnly?: boolean,
+    // the dj role, null clears it (roles named "notsomusic" count then)
+    djRoleId?: null | string,
     // taking turns between who queued (a server setting, it stays)
     fairQueue?: boolean,
     loop?: MusicLoopModes,
@@ -839,6 +849,10 @@ export namespace RestOptions {
 
   export interface MediaIVManipulationFaceFat extends MediaBaseOptions {
     size?: number,
+  }
+
+  export interface MediaIVManipulationFaceForehead extends MediaBaseOptions {
+    size?: string,
   }
 
   export interface MediaIVManipulationFaceFeaturesExpressionMood extends MediaBaseOptions {
@@ -2114,6 +2128,8 @@ export namespace RestResponsesRaw {
     // 1 is next, the playing item is 0
     position: number,
     source: 'opus' | 'url',
+    // an opus.rip track's id (`MusicTrack.id`), null for a link. Older api versions leave it out
+    source_id?: null | string,
     status: 'converting' | 'playing' | 'queued' | 'ready',
     // an opus.rip track's from its search result, a link's once it's converted (when it's next). `url` is the converted
     // file's cdn.nsb.gg link, opus.rip's cdn urls are never given out
@@ -2163,6 +2179,8 @@ export namespace RestResponsesRaw {
     position: number,
     // 24/7, rejoined even with nobody listening
     stay: boolean,
+    // the node's volume (percent), put back when a restart rejoins
+    volume: number,
   }
 
   export interface FetchMusicSessions {
@@ -2197,7 +2215,13 @@ export namespace RestResponsesRaw {
   }
 
   export interface FetchGuildMusic {
+    // seconds a track fades into the next (0 off), it only fades with `premium`
+    crossfade: number,
     current: GuildMusicQueueItem | null,
+    // dj mode (on by default): controlling the music needs manage server or the dj role, no votes
+    dj_only: boolean,
+    // the dj role the server picked, null when it hasn't (roles named "notsomusic" count then)
+    dj_role_id: null | string,
     // the queue takes turns between who queued (a server setting)
     fair_queue: boolean,
     // paused too long and we left, `current` carries on from here (milliseconds) once we join again

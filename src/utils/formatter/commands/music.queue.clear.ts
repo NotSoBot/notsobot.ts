@@ -17,7 +17,7 @@ export interface CommandArgs {
   playlist?: null | number,
 }
 
-// anyone can clear what they queued, other people's need manage server or a notsomusic role (a queue with only
+// anyone can clear what they queued, other people's need manage server or the dj role (a queue with only
 // theirs in it can be cleared too)
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { language, translate } = await getTranslator(context);

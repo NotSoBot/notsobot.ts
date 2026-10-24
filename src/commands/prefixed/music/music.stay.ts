@@ -19,7 +19,7 @@ export default class MusicStayCommand extends BaseCommand {
       disableDm: true,
       label: 'value',
       metadata: {
-        description: 'Keep the bot in voice when the queue runs out or it\'s paused, it comes back after restarts too (a premium server perk, on by default, leave empty to see it). Changing it needs Manage Server or a NotSoMusic role',
+        description: 'Keep the bot in voice when the queue runs out or it\'s paused, it comes back after restarts too (a premium server perk, on by default, leave empty to see it). Changing it needs Manage Server or the DJ role',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} off`,

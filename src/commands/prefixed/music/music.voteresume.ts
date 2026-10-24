@@ -19,7 +19,7 @@ export default class MusicVoteResumeCommand extends BaseCommand {
       disableDm: true,
       label: 'value',
       metadata: {
-        description: 'Make resuming someone else\'s paused track a vote, half of who\'s listening has to vote for it, so one person can\'t undo a pause everyone voted for (on by default, leave empty to see it). Changing it needs Manage Server or a NotSoMusic role',
+        description: 'Make resuming someone else\'s paused track a vote, half of who\'s listening has to vote for it, so one person can\'t undo a pause everyone voted for (on by default, leave empty to see it). Changing it needs Manage Server or the DJ role',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} on`,

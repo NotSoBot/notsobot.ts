@@ -1,9 +1,8 @@
 import { Structures } from 'detritus-client';
-import { InteractionCallbackTypes, MessageComponentButtonStyles, MessageComponentTypes, MessageFlags } from 'detritus-client/lib/constants';
+import { InteractionCallbackTypes, MessageComponentButtonStyles, MessageFlags } from 'detritus-client/lib/constants';
 import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 
 import {
-  deleteGuildMusicQueue,
   editGuildMusicQueueItem,
   fetchGuildMusic,
   postGuildMusicNext,
@@ -12,7 +11,7 @@ import { RequestContext } from '../../../api/raw';
 import { RestResponsesRaw } from '../../../api/types';
 import { DiscordEmojis, MessageComponentCustomIds } from '../../../constants';
 import PaginatorsStore from '../../../stores/paginators';
-import { DisplayPayload, displayDetails, displayDetailsLine, displayReply, formatTime } from '../../../utils';
+import { DisplayPayload, Paginator, displayDetails, displayDetailsLine, displayReply, formatTime } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { Translator, getCachedTranslator } from '../../i18n';
 
@@ -20,14 +19,17 @@ import {
   MusicVoteKinds,
   canManageMusic,
   clearMusicVotes,
+  musicDjRefusal,
+  musicEffectNames,
   musicItemBatchText,
   musicItemDisplayTitle,
   musicItemLinks,
   musicItemQueuedAt,
   musicItemTitle,
-  musicNowPlaying,
+  musicKnownEffects,
   musicLoopText,
   musicNothingPlayingText,
+  musicNowPlaying,
   musicPlayerPosition,
   musicVote,
 } from './music.shared';
@@ -35,7 +37,7 @@ import { replayMusic } from './music.replay';
 
 
 export enum MusicControls {
-  // a queued track goes next (theirs, or anyone's with manage server or a notsomusic role)
+  // a queued track goes next (theirs, or anyone's with manage server or the dj role)
   PLAY_NEXT = 'next',
   // the page again, fetched now (where it's at, paused or not), anyone can
   REFRESH = 'refresh',
@@ -115,8 +117,6 @@ export function createMusicControls(translate: Translator['translate'], guildId:
 export interface MusicPageOptions {
   // `music play`'s track says it was added (`Added to Queue #3`) until it plays
   addedItemId?: null | string,
-  // an album's/playlist's remove button (`music play`), while some of it's still queued
-  batchId?: null | string,
   // the track to show, wherever it is now. `page` when it's not queued anymore (or none's given)
   itemId?: null | string,
   page?: number,
@@ -184,6 +184,8 @@ export async function createMusicPage(
         // held or disconnected, it's only paused until someone resumes it in their channel
         (held) ? translate('music_info.not_in_voice') : null,
         (guild && guild.channelId && !guild.disconnected) ? translate('music_info.playing_in', {channel: `<#${guild.channelId}>`}) : null,
+        // the live effects it plays with (`music effect`), stacked in the order they were picked
+        musicEffectNames(musicKnownEffects(player && player.effects)) || null,
         (guild && !connected && !guild.disconnected) ? translate('music_info.connecting') : null,
         (player && connected && 0 <= player.ping) ? translate('music_info.ping', {ping: player.ping}) : null,
       ]),
@@ -202,9 +204,6 @@ export async function createMusicPage(
   }
 
   const components = createMusicControls(translate, guildId, {itemId: item.id, paused, playNext: 1 < index, queued: !playing, refresh: false});
-  if (options.batchId && music.queue.some((x) => x.batch_id === options.batchId)) {
-    addMusicBatchRemove(components, translate, options.batchId);
-  }
 
   let header: null | string = null;
   if (playing) {
@@ -246,52 +245,12 @@ export async function createMusicPage(
 }
 
 
-// `music-batch.{batchId}`, on an album's/playlist's `music play` reply: removes what's still queued of it, in its own
-// row (the controls' row is swapped on its own). Disabled with how many went once it's used
-export function addMusicBatchRemove(components: Components, translate: Translator['translate'], batchId: string, removed?: string) {
-  const row = components.createActionRow();
-  row.createButton({
-    customId: `${MessageComponentCustomIds.MUSIC_BATCH}.${batchId}`,
-    disabled: removed !== undefined,
-    label: (removed === undefined) ? translate('music_controls.remove_batch') : translate('music_queue_remove.removed', {count: removed}),
-    style: MessageComponentButtonStyles.DANGER,
-  });
-}
-
-
-// whoever queued them can remove them, other people need manage server or a notsomusic role
-export async function onMusicBatchRemove(context: ComponentContext, batchId: string) {
-  const { language, translate } = getCachedTranslator(context);
-  const guildId = context.guildId;
-  if (!guildId) {
-    return;
-  }
-  await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
-
-  const music = await fetchGuildMusic(context, guildId);
-  const items = music.queue.filter((item) => item.batch_id === batchId);
-  if (items.some((item) => item.user_id !== context.userId) && !canManageMusic(context.member)) {
-    return context.createMessage({content: translate('music_queue_remove.not_yours'), flags: MessageFlags.EPHEMERAL});
-  }
-  const { deleted } = (items.length) ? await deleteGuildMusicQueue(context, guildId, {batchId}) : {deleted: 0};
-
-  const message = context.interaction.message;
-  if (message) {
-    const done = new Components();
-    addMusicBatchRemove(done, translate, batchId, deleted.toLocaleString(language));
-    const components = replaceComponentsRow(message, MessageComponentCustomIds.MUSIC_BATCH, done);
-    if (components) {
-      await context.editOrRespond({allowedMentions: {parse: []}, components});
-    }
-  }
-}
-
 
 // pausing/resuming and skipping need you in the music's channel (anyone while we're disconnected, resuming joins their
 // channel). Held music (we left, paused too long) is like a stopped player: play joins (their channel), skip moves where
 // it's held. Restart is `music replay` (back to the start, playing or paused as it was). Skipping, pausing and resuming are
-// votes (`musicVote`), anyone can refresh, play next is for your own tracks (or anyone's with manage server or a
-// notsomusic role). `itemId` is the track the page was about, the page that shows it now is
+// votes (`musicVote`), anyone can refresh, play next is for your own tracks (or anyone's with manage server or the
+// dj role). `itemId` is the track the page was about, the page that shows it now is
 // shown again. `rerender` shows the message again in place of its own pages (a `music queue` reply)
 export async function onMusicControl(
   context: ComponentContext,
@@ -317,6 +276,15 @@ export async function onMusicControl(
   const member = context.member;
   const channel = member && member.voiceState && member.voiceState.channel;
   const playback = [MusicControls.PAUSE, MusicControls.RESUME, MusicControls.SKIP] as Array<string>;
+
+  // dj mode: only djs use the playback buttons (and play next), the setting's only fetched for everyone else
+  const djControls = [...playback, MusicControls.RESTART, MusicControls.PLAY_NEXT] as Array<string>;
+  if (djControls.includes(control) && !canManageMusic(member)) {
+    const refusal = musicDjRefusal(translate, member, await fetchGuildMusic(context, guildId).catch(() => null));
+    if (refusal) {
+      return reply(refusal);
+    }
+  }
 
   // back to the start, playing or paused as it was (`music replay` does the same)
   if (control === MusicControls.RESTART) {
@@ -481,9 +449,8 @@ async function showMusicControlsMessage(
   }
   // `music info`'s and `music play`'s pages: the track's page is rendered again (it moved, or the queue went on), so the
   // paginator keeps handling its own buttons
-  const stored = PaginatorsStore.get(message.channelId);
-  const paginator = (stored) ? [...stored.normal, ...stored.ephemeral].find((x) => x.messageId === message.id) : undefined;
-  if (paginator && !paginator.stopped) {
+  const paginator = findMessagePaginator(message);
+  if (paginator) {
     const page = (itemId) ? await createMusicPage(context, translator, guildId, {itemId, page: paginator.page}) : null;
     if (page) {
       paginator.page = page.page;
@@ -491,8 +458,8 @@ async function showMusicControlsMessage(
     return paginator.renderPage(context);
   }
   // the pages stopped (they expire, a single page never had any, or a reply from before them): the track's page goes
-  // in their place, an album's/playlist's remove button stays until it's used and a prefixed command's invoker stays
-  const page = await createMusicPage(context, translator, guildId, {batchId: findMusicBatchId(message), itemId, paused});
+  // in their place, a prefixed command's invoker stays
+  const page = await createMusicPage(context, translator, guildId, {itemId, paused});
   if (page) {
     const invokerId = await findCommandInvokerId(context, message);
     return displayReply(context, {...page.display, componentsInside: true}, {invokerId: invokerId || undefined});
@@ -500,6 +467,14 @@ async function showMusicControlsMessage(
   // nothing's playing or queued anymore (skipped the last one), the message says so
   const invokerId = await findCommandInvokerId(context, message);
   return displayReply(context, {description: musicNothingPlayingText(translator.translate, guildId)}, {invokerId: invokerId || undefined});
+}
+
+
+// the pages still going on `message` (`music info`'s and `music play`'s), they handle its buttons
+function findMessagePaginator(message: Structures.Message): Paginator | undefined {
+  const stored = PaginatorsStore.get(message.channelId);
+  const paginator = (stored) ? [...stored.normal, ...stored.ephemeral].find((x) => x.messageId === message.id) : undefined;
+  return (paginator && !paginator.stopped) ? paginator : undefined;
 }
 
 
@@ -523,66 +498,4 @@ export async function findCommandInvokerId(context: ComponentContext, message: S
     // deleted, the line's left out
     return null;
   }
-}
-
-
-// the batch id of an album's/playlist's remove button on the message that hasn't been used yet
-function findMusicBatchId(message: Structures.Message): null | string {
-  const prefix = MessageComponentCustomIds.MUSIC_BATCH + '.';
-  let batchId: null | string = null;
-  const find = (value: any) => {
-    if (Array.isArray(value)) {
-      return value.forEach(find);
-    }
-    if (!value || typeof(value) !== 'object') {
-      return;
-    }
-    if (typeof(value.custom_id) === 'string' && value.custom_id.startsWith(prefix) && !value.disabled) {
-      batchId = value.custom_id.slice(prefix.length);
-    }
-    find(value.components);
-  };
-  find(JSON.parse(JSON.stringify(message.components)));
-  return batchId;
-}
-
-
-// the message's components as raw json with the row of buttons whose custom ids start with `prefix` swapped for
-// `replacement`'s, null when it has none. The rest goes back as it was (`JSON.stringify` goes through every
-// structure's `toJSON`), without the extra fields discord sends on emojis and media. Wrapped in a `toJSON` so the
-// rest client sends it as is, a plain array gets each component read as camelCase (losing `custom_id` and the edit)
-function replaceComponentsRow(message: Structures.Message, prefix: string, replacement: Components): any {
-  const row = JSON.parse(JSON.stringify(replacement.components[0]));
-  let replaced = false;
-
-  const copy = (value: any): any => {
-    if (Array.isArray(value)) {
-      return value.map(copy);
-    }
-    if (!value || typeof(value) !== 'object') {
-      return value;
-    }
-    if (
-      value.type === MessageComponentTypes.ACTION_ROW &&
-      Array.isArray(value.components) &&
-      value.components.some((x: any) => typeof(x.custom_id) === 'string' && x.custom_id.startsWith(prefix + '.'))
-    ) {
-      replaced = true;
-      return row;
-    }
-    const raw: Record<string, any> = {};
-    for (let key in value) {
-      const x = value[key];
-      switch (key) {
-        case 'emoji': raw[key] = (x) ? {animated: x.animated, id: x.id, name: x.name} : x; break;
-        case 'file':
-        case 'media': raw[key] = (x) ? {url: x.url} : x; break;
-        default: raw[key] = copy(x);
-      }
-    }
-    return raw;
-  };
-
-  const components = copy(JSON.parse(JSON.stringify(message.components)));
-  return (replaced) ? {toJSON: () => components} : null;
 }

@@ -8,7 +8,7 @@ import { displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
-import { canManageMusic } from './music.shared';
+import { canManageMusic, musicDjRefusal } from './music.shared';
 
 
 export const COMMAND_ID = 'music.leave';
@@ -19,7 +19,7 @@ const CONFIRM_TIMEOUT = 60 * 1000;
 // stops the music and leaves. With anything playing or queued it asks first: clear the queue, or keep it (the playing
 // track's held, the next `music play` carries on from there). Unanswered, the buttons go after a minute and nothing
 // changes. Held music (paused too long, we left already) is cleared or kept as it is. Like clearing the queue, other
-// people's music (playing or queued) needs manage server or a notsomusic role, and so does 24/7 (it's in voice on purpose)
+// people's music (playing or queued) needs manage server or the dj role, and so does 24/7 (it's in voice on purpose)
 export async function createMessage(context: Command.Context | Interaction.InteractionContext) {
   const { language, translate } = await getTranslator(context);
 
@@ -37,6 +37,11 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   }
   const channel = `<#${channelId}>`;
 
+  // dj mode: only djs make it leave (not knowing the setting refuses too)
+  const refusal = musicDjRefusal(translate, context.member, music);
+  if (refusal) {
+    return displayReply(context, {description: refusal});
+  }
   // the api not answering isn't known to be only theirs
   if (!canManageMusic(context.member)) {
     const items = (music) ? [music.current, ...music.queue].filter((x) => !!x) : null;

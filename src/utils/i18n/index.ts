@@ -380,10 +380,10 @@ export const DiscordLocalesForLanguage: Record<Languages, Array<string>> = Objec
 
 // locales left out of slash command uploads (for when discord has issues with them), replies in these languages
 // still work. empty uploads every locale
-// temporarily the 10 least used languages (by user count, 2026-10-20): bulgarian, danish, lithuanian, czech, romanian,
-// hindi, croatian, norwegian, hungarian and greek
+// temporarily the 14 least used languages (by user count, 2026-10-20): bulgarian, danish, lithuanian, czech, romanian,
+// hindi, croatian, norwegian, hungarian, greek, finnish, swedish, thai and dutch
 export const DiscordLocalesUploadDisabled: ReadonlySet<string> = new Set([
-  'bg', 'cs', 'da', 'el', 'hi', 'hr', 'hu', 'lt', 'no', 'ro',
+  'bg', 'cs', 'da', 'el', 'fi', 'hi', 'hr', 'hu', 'lt', 'nl', 'no', 'ro', 'sv-SE', 'th',
 ]);
 
 export function uploadableDiscordLocales(language: Languages): Array<string> {

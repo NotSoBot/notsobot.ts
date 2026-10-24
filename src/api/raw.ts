@@ -1160,6 +1160,9 @@ export async function editGuildMusic(
   options: RestOptions.EditGuildMusic,
 ): Promise<RestResponsesRaw.EditGuildMusic> {
   const body = {
+    crossfade: options.crossfade,
+    dj_only: options.djOnly,
+    dj_role_id: options.djRoleId,
     fair_queue: options.fairQueue,
     loop: options.loop,
     max_duration: options.maxDuration,
@@ -1245,6 +1248,7 @@ export async function putGuildMusicSession(
     node_id: options.nodeId,
     paused: options.paused,
     position: (options.position === undefined) ? undefined : Math.max(0, Math.round(options.position)),
+    volume: options.volume,
   };
   return request(context, {
     body,
@@ -1268,6 +1272,7 @@ export async function editGuildMusicSession(
     node_id: options.nodeId,
     paused: options.paused,
     position: (options.position === undefined) ? undefined : Math.max(0, Math.round(options.position)),
+    volume: options.volume,
   };
   return request(context, {
     body,
@@ -4469,6 +4474,28 @@ export async function mediaIVManipulationFaceFat(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_FACE_FAT,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationFaceForehead(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceForehead,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FACE_FOREHEAD,
     },
   });
 }

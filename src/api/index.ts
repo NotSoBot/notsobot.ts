@@ -1798,6 +1798,14 @@ export async function mediaIVManipulationFaceFat(
 }
 
 
+export async function mediaIVManipulationFaceForehead(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceForehead,
+) {
+  return raw.mediaIVManipulationFaceForehead(context, options);
+}
+
+
 export async function mediaIVManipulationFaceFeaturesExpressionMood(
   context: RequestContext,
   options: RestOptions.MediaIVManipulationFaceFeaturesExpressionMood,

@@ -13,7 +13,7 @@ import { RestResponsesRaw } from '../api/types';
 import { MessageComponentCustomIds } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import { I18n, mediaReplyFromOptions } from '../utils';
-import { onMusicBatchRemove, onMusicControl } from '../utils/formatter/commands/music.controls';
+import { onMusicControl } from '../utils/formatter/commands/music.controls';
 import {
   MUSIC_QUEUE_CONTROL,
   findMusicQueueRefresh,
@@ -43,13 +43,6 @@ class ComponentsListener extends Listener {
                 return await this.makePermanentUsingNitro(context, fileId);
               } catch(error) {
                 
-              }
-            }
-            if (context.customId.startsWith(MessageComponentCustomIds.MUSIC_BATCH + '.')) {
-              try {
-                return await onMusicBatchRemove(context, context.customId.split('.').pop()!);
-              } catch(error) {
-                console.warn(`music batch remove ${context.customId} ${context.guildId}`, error);
               }
             }
             if (context.customId.startsWith(MessageComponentCustomIds.MUSIC_CONTROLS + '.')) {

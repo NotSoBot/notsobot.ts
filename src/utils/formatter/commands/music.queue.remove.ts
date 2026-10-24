@@ -17,7 +17,7 @@ export interface CommandArgs {
   positions: Array<number>,
 }
 
-// anyone can remove what they queued, other people's need manage server or a notsomusic role
+// anyone can remove what they queued, other people's need manage server or the dj role
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { language, translate } = await getTranslator(context);
 

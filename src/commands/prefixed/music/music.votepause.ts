@@ -19,7 +19,7 @@ export default class MusicVotePauseCommand extends BaseCommand {
       disableDm: true,
       label: 'value',
       metadata: {
-        description: 'Make pausing someone else\'s track a vote, half of who\'s listening has to vote for it (on by default, leave empty to see it). Changing it needs Manage Server or a NotSoMusic role',
+        description: 'Make pausing someone else\'s track a vote, half of who\'s listening has to vote for it (on by default, leave empty to see it). Changing it needs Manage Server or the DJ role',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} on`,

@@ -2,9 +2,12 @@ import { Structures } from 'detritus-client';
 import { Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
+import { fetchGuildMusic } from '../../../api';
+import { RequestContext } from '../../../api/raw';
 import { RestResponsesRaw } from '../../../api/types';
-import { MusicLoopModes } from '../../../constants';
+import { MusicEffects, MusicEffectsToText, MusicLoopModes, StatusEmojis } from '../../../constants';
 import { DisplayPayload, displayDetails, displayDetailsLine, displayLinks, formatTime } from '../../../utils';
+import GuildSettingsStore from '../../../stores/guildsettings';
 import VoiceNode from '../../../voicenode';
 import { Translator } from '../../i18n';
 
@@ -13,8 +16,8 @@ import { Translator } from '../../i18n';
 export const MUSIC_QUEUE_PREMIUM_LIMIT = 1000;
 const MAX_QUEUE_POSITION = MUSIC_QUEUE_PREMIUM_LIMIT;
 
-// removing other people's tracks and the queue's settings (taking turns): manage server, or a role with "notsomusic" in
-// its name (anyone can remove what they queued)
+// a music dj: the owner, manage server, or the dj role the server picked (`music dj role`, from the cached guild
+// settings). Without one picked, any role with "notsomusic" in its name counts
 export function canManageMusic(member?: null | Structures.Member): boolean {
   if (!member) {
     return false;
@@ -22,12 +25,41 @@ export function canManageMusic(member?: null | Structures.Member): boolean {
   if (member.isOwner || member.can(Permissions.MANAGE_GUILD)) {
     return true;
   }
+  return isMusicDj(member);
+}
+
+// has the server's dj role (manage server aside)
+export function isMusicDj(member: Structures.Member): boolean {
+  const settings = GuildSettingsStore.get(member.guildId);
+  const roleId = (settings && settings.settings) ? settings.settings.musicDjRoleId : null;
+  if (roleId) {
+    return member.roles.has(roleId);
+  }
   for (let [, role] of member.roles) {
     if (role && role.name.toLowerCase().includes('notsomusic')) {
       return true;
     }
   }
   return false;
+}
+
+// changing what everyone hears that stays on after whoever set it leaves (effects, the volume), turning it back off
+// too: you in our voice channel (when we're in one), and with dj mode on only djs (`fetchMusicDjRefusal`), no votes.
+// What to reply when they can't, null when they can. Only looking at what's on is open to everyone
+export async function musicSoundSettingRefusal(
+  context: RequestContext,
+  translate: Translator['translate'],
+  member: null | Structures.Member | undefined,
+  guildId: string,
+): Promise<null | string> {
+  const guild = VoiceNode.guilds.get(guildId);
+  if (guild && guild.channelId) {
+    const channel = member && member.voiceState && member.voiceState.channel;
+    if (!channel || channel.id !== guild.channelId) {
+      return translate('music_controls.join_my_channel', {channel: `<#${guild.channelId}>`});
+    }
+  }
+  return fetchMusicDjRefusal(context, translate, guildId, member);
 }
 
 export enum MusicVoteKinds {
@@ -57,7 +89,7 @@ export function clearMusicVotes(kind: MusicVoteKinds, guildId: string) {
 }
 
 // with the server's vote on (`vote`, its `vote_skip`, `vote_pause` or `vote_resume`), only whoever queued `item` (what's playing),
-// manage server or a notsomusic role do it right away, or anyone when half of who's listening is just them (two people
+// manage server or the dj role do it right away, or anyone when half of who's listening is just them (two people
 // at most). Off, anyone can
 export function canControlMusicItem(
   member: Structures.Member,
@@ -101,6 +133,33 @@ export function musicVote(
     return {done: true, needed, votes};
   }
   return {done: false, needed, votes};
+}
+
+// dj mode (the server's `dj_only`, on by default): controlling the music (skip, pause, resume, seek, loop, leave,
+// moving tracks) needs manage server or the dj role, no votes. The reply when they can't, null when they can. Not
+// knowing the setting (the api not answering) refuses, like `music leave`
+export function musicDjRefusal(
+  translate: Translator['translate'],
+  member: null | Structures.Member | undefined,
+  music: null | Pick<RestResponsesRaw.FetchGuildMusic, 'dj_only'>,
+): null | string {
+  if (canManageMusic(member) || (music && !music.dj_only)) {
+    return null;
+  }
+  return `${StatusEmojis.WARNING} ${translate('music_dj.locked')}`;
+}
+
+// `musicDjRefusal`, fetching the setting only when it matters (a dj doesn't wait on the api)
+export async function fetchMusicDjRefusal(
+  context: RequestContext,
+  translate: Translator['translate'],
+  guildId: string,
+  member: null | Structures.Member | undefined,
+): Promise<null | string> {
+  if (canManageMusic(member)) {
+    return null;
+  }
+  return musicDjRefusal(translate, member, await fetchGuildMusic(context, guildId).catch(() => null));
 }
 
 // 24/7 keeping us in voice: on (it is by default) on a premium server, like the api's `music_stays`
@@ -236,13 +295,32 @@ export function musicLoopText(translate: Translator['translate'], loop?: MusicLo
   return null;
 }
 
+// a live effect (`music effect`)
+export type MusicEffect = MusicEffects;
+
+// the live effects we know of from a node's player (or what we last told it), in the order they were picked
+export function musicKnownEffects(effects?: null | ReadonlyArray<string>): Array<MusicEffect> {
+  return (effects || []).filter((effect) => effect in MusicEffectsToText) as Array<MusicEffect>;
+}
+
+// `**Nightcore**`
+export function musicEffectName(effect: MusicEffect): string {
+  return `**${MusicEffectsToText[effect]}**`;
+}
+
+// `**Nightcore** + **Bassboost**`, stacked in the order they were picked
+export function musicEffectNames(effects: ReadonlyArray<MusicEffect>): string {
+  return effects.map(musicEffectName).join(' + ');
+}
+
 // where the player is now, from a `VoiceNode.getPlayer` fetched at `fetchedAt` (paginator pages get shown well after
 // it was fetched, so a playing track's position keeps moving from it), never past the track's end
 export function musicPlayerPosition(player: any, fetchedAt: number, duration: number): number {
   if (!player) {
     return 0;
   }
-  const elapsed = (player.paused) ? 0 : Date.now() - fetchedAt;
+  // the track's own time, an effect's speed (nightcore) moves it faster than the clock
+  const elapsed = (player.paused) ? 0 : (Date.now() - fetchedAt) * (player.speed || 1);
   return Math.max(Math.min(player.position + elapsed, duration), 0);
 }
 
@@ -268,4 +346,28 @@ export function musicNowPlaying(
     (duration) ? musicProgressBar(musicPlayerPosition(player, fetchedAt, duration), duration) : null,
     displayDetailsLine(details, true),
   ]);
+}
+
+// `music pause`/`resume`/`seek`: what it did and the track (`Paused at 1:23 • **artist - title**`), its progress bar
+// at `position` under it (links not converted yet have no length), then small details
+export function musicPlaybackText(
+  done: string,
+  item: null | RestResponsesRaw.GuildMusicQueueItem,
+  position: number,
+  details: Array<null | string> = [],
+): string {
+  const duration = (item && item.track) ? item.track.duration : 0;
+  return displayDetails([
+    displayDetailsLine([done, (item) ? `**${musicItemTitle(item)}**` : null]),
+    (duration) ? musicProgressBar(Math.max(Math.min(position, duration), 0), duration) : null,
+    displayDetailsLine(details, true),
+  ]);
+}
+
+// a track as a small line's details: its length and who requested it (`3:23 • @sam`)
+export function musicItemDetails(translate: Translator['translate'], item: RestResponsesRaw.GuildMusicQueueItem): Array<null | string> {
+  return [
+    (item.track && item.track.duration) ? formatTime(item.track.duration) : null,
+    translate('music_queue.requested_by', {user: `<@${item.user_id}>`}),
+  ];
 }

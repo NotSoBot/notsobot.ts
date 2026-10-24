@@ -14,12 +14,14 @@ import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 import { createMusicControls, findCommandInvokerId } from './music.controls';
 import {
   MUSIC_QUEUED_AT_AFTER,
-  musicNothingPlayingText,
+  musicEffectNames,
   musicItemBatchText,
   musicItemPosition,
   musicItemQueuedAt,
   musicItemTitle,
+  musicKnownEffects,
   musicLoopText,
+  musicNothingPlayingText,
   musicNowPlaying,
 } from './music.shared';
 
@@ -125,10 +127,11 @@ export async function createMusicQueuePage(
         `<@${first.user_id}>`,
         musicItemQueuedAt(first, MUSIC_QUEUED_AT_AFTER),
       ], true),
-      // each of its tracks, only their titles when they're all by the same artist (an album, a playlist mixes them)
+      // each of its tracks dashed under it, only their titles when they're all by the same artist (an album, a playlist
+      // mixes them). The dash is escaped so it isn't a list bullet
       ...entry.map((item) => {
         const title = (sameArtist && item.source !== 'url' && item.track) ? Markup.escape.all(item.track.title) : musicItemTitle(item);
-        return `-# \`${musicItemPosition(music, item)}.\` ${title}`;
+        return `-# \\- \`${musicItemPosition(music, item)}.\` ${title}`;
       }),
     ]);
   };
@@ -156,6 +159,8 @@ export async function createMusicQueuePage(
         // held or disconnected, it's only paused until someone resumes it in their channel
         (held) ? translate('music_info.not_in_voice') : null,
         (guild && guild.channelId && !guild.disconnected) ? translate('music_info.playing_in', {channel: `<#${guild.channelId}>`}) : null,
+        // the live effects it plays with (`music effect`), stacked in the order they were picked
+        musicEffectNames(musicKnownEffects(player && player.effects)) || null,
         (guild && !connected && !guild.disconnected) ? translate('music_info.connecting') : null,
         (player && connected && 0 <= player.ping) ? translate('music_info.ping', {ping: player.ping}) : null,
       ]),
@@ -169,6 +174,16 @@ export async function createMusicQueuePage(
     // restart, pause/resume and skip under it (above up next), its refresh is up next's
     payload.components = createMusicControls(translate, guildId, {itemId: current.id, paused, refresh: false});
     payload.componentsInside = true;
+  } else if (guild) {
+    // just joined, the node hasn't taken the first track yet
+    payload.description = translate('music_info.connecting');
+  } else {
+    // we left with it still queued (the join timed out, or the node failed before it took the first track), it waits
+    // for the next `music play`
+    payload.description = displayDetails([
+      translate('music.nothing_playing'),
+      `-# ${translate('music_leave.kept')}`,
+    ]);
   }
 
   // `Up next` and how much is queued (`4 queued • 14:51 total`) with its refresh button beside them, the list under it

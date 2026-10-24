@@ -2,11 +2,11 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { fetchGuildMusic } from '../../../api';
-import { displayReply, formatTime } from '../../../utils';
+import { displayDetails, displayReply, formatTime } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
-import { MusicVoteKinds, clearMusicVotes, musicItemTitle, musicVote } from './music.shared';
+import { MusicVoteKinds, clearMusicVotes, musicDjRefusal, musicItemTitle, musicPlaybackText, musicVote } from './music.shared';
 
 
 export const COMMAND_ID = 'music.pause';
@@ -21,17 +21,27 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   if (!guildId || !guild || !VoiceNode.isPlaying(guildId)) {
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
+
   const member = context.member;
   const channel = member && member.voiceState && member.voiceState.channel;
   if (!member || !channel || channel.id !== guild.channelId) {
     return displayReply(context, {description: translate('music_controls.join_my_channel', {channel: `<#${guild.channelId}>`})});
   }
+
   const music = await fetchGuildMusic(context, guildId);
+  // dj mode: only djs control it, no votes
+  const refusal = musicDjRefusal(translate, member, music);
+  if (refusal) {
+    return displayReply(context, {description: refusal});
+  }
   if (music.current) {
     const vote = musicVote(MusicVoteKinds.PAUSE, member, channel, music.current, music.vote_pause);
     if (!vote.done) {
       return displayReply(context, {
-        description: translate('music_pause.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}),
+        description: displayDetails([
+          translate('music_pause.voted', {title: `**${musicItemTitle(music.current)}**`, votes: `${vote.votes}/${vote.needed}`}),
+          `-# ${translate('music_vote_pause.explanation')}`,
+        ]),
       });
     }
   }
@@ -41,7 +51,12 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
   clearMusicVotes(MusicVoteKinds.RESUME, guildId);
+  // `Paused at 1:23 • artist - title`, where it stopped of how long it is under it
   return displayReply(context, {
-    description: translate('music_pause.paused_at', {position: Markup.codestring(formatTime(player.position))}),
+    description: musicPlaybackText(
+      translate('music_pause.paused_at', {position: Markup.codestring(formatTime(player.position))}),
+      music.current,
+      player.position,
+    ),
   });
 }

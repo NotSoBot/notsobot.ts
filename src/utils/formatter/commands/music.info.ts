@@ -9,7 +9,7 @@ import { musicNothingPlayingText } from './music.shared';
 
 export const COMMAND_ID = 'music.info';
 
-export interface MusicPaginatorOptions extends Pick<MusicPageOptions, 'addedItemId' | 'batchId'> {
+export interface MusicPaginatorOptions extends Pick<MusicPageOptions, 'addedItemId'> {
   invokerKey?: TranslationKey,
   // shown on the first render only (`music play`'s held track carrying on first)
   note?: null | string,
@@ -26,7 +26,7 @@ export async function createMusicPaginator(
   options: MusicPaginatorOptions = {},
 ): Promise<Paginator | null> {
   const translator = await getTranslator(context);
-  const pageOptions = {addedItemId: options.addedItemId, batchId: options.batchId};
+  const pageOptions = {addedItemId: options.addedItemId};
 
   let first = await createMusicPage(context, translator, guildId, {...pageOptions, itemId: options.itemId});
   if (!first) {

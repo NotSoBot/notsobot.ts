@@ -5,13 +5,20 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 import { fetchGuildMusic, searchMusic } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
-import { DiscordEmojis, StatusEmojis } from '../../../constants';
+import { DiscordEmojis, MusicLoopModes, StatusEmojis } from '../../../constants';
 import { DisplayPayload, displayDetails, displayDetailsLine, displayReply, formatTime } from '../../../utils';
 import VoiceNode from '../../../voicenode';
-import { getTranslator } from '../../i18n';
+import { Translator, getTranslator } from '../../i18n';
 
 import { createMusicPaginator } from './music.info';
-import { musicItemDisplayTitle, musicItemTitle, musicStayNote, musicStays } from './music.shared';
+import {
+  musicItemDisplayTitle,
+  musicItemTitle,
+  musicLoopText,
+  musicPlayerPosition,
+  musicStayNote,
+  musicStays,
+} from './music.shared';
 
 
 // a text search's results to pick from (a select menu fits 25), and how long they can be picked
@@ -47,6 +54,97 @@ export function findVoiceChannel(context: Command.Context | Interaction.Interact
     return {channel: null, error: 'music_play.cannot_join_ur_channel'} as const;
   }
   return {channel, error: null} as const;
+}
+
+// where `userId`'s next track goes in `queue` when it takes turns, like the api's `fair_queue_index`: their first queued
+// track is in turn 1, their second in turn 2..., it goes after everything in its turn or earlier
+function fairQueueIndex(queue: Array<RestResponsesRaw.GuildMusicQueueItem>, userId: string): number {
+  const turn = queue.filter((item) => item.user_id === userId).length + 1;
+  const counts = new Map<string, number>();
+  let index = 0;
+  for (let [ i, item ] of queue.entries()) {
+    const count = (counts.get(item.user_id) || 0) + 1;
+    counts.set(item.user_id, count);
+    if (count <= turn) {
+      index = i + 1;
+    }
+  }
+  return index;
+}
+
+// why the api would turn a search result down, the server's queue rules: too long, or already queued (opus.rip track ids)
+function musicResultRuledOut(
+  translate: Translator['translate'],
+  music: null | RestResponsesRaw.FetchGuildMusic,
+  track: RestResponsesRaw.MusicTrack,
+): null | string {
+  if (!music) {
+    return null;
+  }
+  if (music.max_duration && music.max_duration * 1000 < track.duration) {
+    return translate('music_play.rule_too_long', {duration: formatTime(music.max_duration * 1000)});
+  }
+  if (music.no_duplicates) {
+    const items = (music.current) ? [music.current, ...music.queue] : music.queue;
+    if (items.some((item) => item.source === 'opus' && item.source_id === track.id)) {
+      return translate('music_play.rule_queued');
+    }
+  }
+  return null;
+}
+
+// under the picker, where a pick would land: `Plays right away`, or `Plays as queue #4 • starts in 11:42 • 3 of 100 queued`
+// (the track loop never gets to it, a full queue can't take it)
+async function musicPickLanding(
+  translator: Pick<Translator, 'language' | 'translate'>,
+  music: null | RestResponsesRaw.FetchGuildMusic,
+  guildId: string,
+  userId: string,
+): Promise<null | string> {
+  const { language, translate } = translator;
+  if (!music) {
+    return null;
+  }
+  if (!music.current && !music.queue.length) {
+    return translate('music_play.plays_now');
+  }
+  const count = translate('music_play.queued_count', {
+    count: music.queue.length.toLocaleString(language),
+    limit: music.queue_limit.toLocaleString(language),
+  });
+  if (music.queue_limit <= music.queue.length) {
+    return displayDetailsLine([`${StatusEmojis.WARNING} ${translate('music_play.limit_server')}`, count]);
+  }
+
+  const index = (music.fair_queue) ? fairQueueIndex(music.queue, userId) : music.queue.length;
+  // as shown: what's playing is #1
+  const position = index + 1 + ((music.current) ? 1 : 0);
+
+  // what's left of the playing track (held, it carries on from where it stopped) and everything before it
+  const ahead = music.queue.slice(0, index);
+  let wait = ahead.reduce((total, item) => total + ((item.track) ? item.track.duration : 0), 0);
+  let unknown = ahead.some((item) => !item.track);
+  const current = music.current;
+  if (current) {
+    if (current.track) {
+      const duration = current.track.duration;
+      const player = (VoiceNode.guilds.get(guildId)) ? await VoiceNode.getPlayer(guildId).catch(() => null) : null;
+      const progress = player || {paused: true, position: music.held_position || 0};
+      wait += duration - musicPlayerPosition(progress, Date.now(), duration);
+    } else {
+      unknown = true;
+    }
+  }
+
+  const looping = !!current && music.loop === MusicLoopModes.TRACK;
+  return displayDetailsLine([
+    translate('music_play.plays_as', {position: position.toLocaleString(language)}),
+    (looping) ?
+      musicLoopText(translate, music.loop) :
+      translate('music_play.starts_in', {duration: Markup.codestring(formatTime(wait) + ((unknown) ? '+' : ''))}),
+    (music.fair_queue) ? translate('music_queue.fair_queue') : null,
+    count,
+  ]);
 }
 
 export async function createMessage(
@@ -97,10 +195,9 @@ export async function createMessage(
 
   // the queue's pages like `music info`, starting at the track's (`Added to Queue #3` until it plays). The reply becomes
   // the error if the node can't play it (it can be too old to edit by then, or the trigger's gone)
-  const replyQueued = async (queued: Queued, batchId?: string) => {
+  const replyQueued = async (queued: Queued) => {
     const paginator = await createMusicPaginator(context, guildId, {
       addedItemId: queued.item.id,
-      batchId,
       itemId: queued.item.id,
       note: queued.note,
     });
@@ -126,8 +223,8 @@ export async function createMessage(
     return reply;
   };
 
-  // an album's/playlist's tracks opus.rip has (the first 50), as many as fit in the queue (premium servers only). They can be removed together,
-  // the pages start at its first track
+  // an album's/playlist's tracks opus.rip has (the first 50), as many as fit in the queue (premium servers only). They can be removed together
+  // (`music queue clear` with its playlist option), the pages start at its first track
   if (search.type === 'collection') {
     // a premium server perk, said before we join for it (the api checks too)
     const music = await fetchGuildMusic(context, guildId);
@@ -162,13 +259,17 @@ export async function createMessage(
       // we just joined a 24/7 server: we'll stay
       (joined && musicStays(music)) ? musicStayNote(translate) : null,
     ]);
-    return replyQueued({failed: trackFailed(added[0]), item: added[0], note, started}, batch!.batch_id);
+    return replyQueued({failed: trackFailed(added[0]), item: added[0], note, started});
   }
 
   const results = search.results.slice(0, MAX_CHOICES);
   if (search.type !== 'search' || results.length === 1) {
     return replyQueued(await queue(results[0]));
   }
+
+  // the server's queue rules each result breaks, said in the list and the menu (discord can't disable an option)
+  const music = await fetchGuildMusic(context, guildId).catch(() => null);
+  const ruledOut = results.map((result) => musicResultRuledOut(translate, music, result.track!));
 
   // once picked the reply is the queue's pages, the timeout leaves it alone
   let picked = false;
@@ -189,10 +290,10 @@ export async function createMessage(
     options: results.map((result, index) => {
       const track = result.track!;
       return {
-        // select menu labels and descriptions are 100 characters at most
-        description: [track.artist, formatTime(track.duration), track.album && track.album.name]
+        // select menu labels and descriptions are 100 characters at most. A rule it breaks takes the album's place
+        description: [track.artist, formatTime(track.duration), ruledOut[index] || (track.album && track.album.name)]
           .filter(Boolean).join(' • ').slice(0, 100),
-        label: track.title.slice(0, 100),
+        label: `${index + 1}. ${track.title}`.slice(0, 100),
         value: String(index),
       };
     }),
@@ -231,5 +332,25 @@ export async function createMessage(
     },
   });
 
-  return displayReply(context, {components, componentsInside: true, description: translate('music_play.pick_a_song')});
+  // `1. Title • Artist • 3:20` per result (its service page linked), a rule it breaks after it. The top result's art
+  // beside them, where a pick would land under the menu
+  const description = results.map((result, index) => {
+    const track = result.track!;
+    const title = Markup.escape.all(track.title);
+    return displayDetailsLine([
+      `**${index + 1}.** ${(result.url && /^https?:\/\//.test(result.url)) ? Markup.url(title, `<${result.url}>`) : title}`,
+      (track.artist) ? Markup.escape.all(track.artist) : null,
+      Markup.codestring(formatTime(track.duration)),
+      (ruledOut[index]) ? `*${ruledOut[index]}*` : null,
+    ]);
+  }).join('\n');
+  const top = results[0].track!;
+  return displayReply(context, {
+    components,
+    componentsInside: true,
+    description,
+    footer: await musicPickLanding({language, translate}, music, guildId, context.userId),
+    thumbnail: top.thumbnail || (top.album && top.album.image) || null,
+    title: translate('music_play.results_for', {query: Markup.escape.all(args.query.slice(0, 100))}),
+  });
 }

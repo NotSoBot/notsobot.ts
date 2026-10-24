@@ -272,6 +272,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/face/clown',
   MEDIA_IV_MANIPULATION_FACE_FAT:
     '/media/iv/manipulation/face/fat',
+  MEDIA_IV_MANIPULATION_FACE_FOREHEAD:
+    '/media/iv/manipulation/face/forehead',
   MEDIA_IV_MANIPULATION_FACE_FEATURES_EXPRESSION_MOOD:
     '/media/iv/manipulation/face/features/expression/mood/:mood:',
   MEDIA_IV_MANIPULATION_FACE_FEATURES_SWAP:

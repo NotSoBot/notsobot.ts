@@ -18,7 +18,7 @@ export default class MusicRulesDuplicatesCommand extends BaseCommand {
       disableDm: true,
       label: 'value',
       metadata: {
-        description: 'Let the same track be queued more than once at a time (on by default), `off` only lets it in once. Needs Manage Server or a NotSoMusic role',
+        description: 'Let the same track be queued more than once at a time (on by default), `off` only lets it in once. Needs Manage Server or the DJ role',
         examples: [
           `${COMMAND_NAME} off`,
           `${COMMAND_NAME} on`,

@@ -1138,9 +1138,8 @@ export enum MusicLoopModes {
   QUEUE = 'queue',
 }
 
-// the voice node's live effects (notsobot.voice's `EFFECT_NAMES`), `off` is none
+// the voice node's live effects (notsobot.voice's `EFFECT_NAMES`), `music effect clear` takes them all off
 export enum MusicEffects {
-  OFF = 'off',
   BASSBOOST = 'bassboost',
   TREBLE_BOOST = 'trebleboost',
   NIGHTCORE = 'nightcore',
@@ -1161,11 +1160,19 @@ export enum MusicEffects {
   KARAOKE = 'karaoke',
   NORMALIZER = 'normalizer',
   MONO = 'mono',
+  CHIPMUNK = 'chipmunk',
+  DEEP = 'deep',
+  PHASER = 'phaser',
+  ROBOT = 'robot',
+  DISTORTION = 'distortion',
+  OLD_RECORD = 'oldrecord',
+  CROSSFEED = 'crossfeed',
+  FILTER_SWEEP = 'filtersweep',
+  EIGHT_D_VERTICAL = '8dvertical',
 }
 
 // their names, the same in every language (the descriptions are translated, `music_effect.<effect>`)
 export const MusicEffectsToText: Record<MusicEffects, string> = Object.freeze({
-  [MusicEffects.OFF]: 'Off',
   [MusicEffects.BASSBOOST]: 'Bassboost',
   [MusicEffects.TREBLE_BOOST]: 'Treble Boost',
   [MusicEffects.NIGHTCORE]: 'Nightcore',
@@ -1186,23 +1193,46 @@ export const MusicEffectsToText: Record<MusicEffects, string> = Object.freeze({
   [MusicEffects.KARAOKE]: 'Karaoke',
   [MusicEffects.NORMALIZER]: 'Normalizer',
   [MusicEffects.MONO]: 'Mono',
+  [MusicEffects.CHIPMUNK]: 'Chipmunk',
+  [MusicEffects.DEEP]: 'Deep',
+  [MusicEffects.PHASER]: 'Phaser',
+  [MusicEffects.ROBOT]: 'Robot',
+  [MusicEffects.DISTORTION]: 'Distortion',
+  [MusicEffects.OLD_RECORD]: 'Old Record',
+  [MusicEffects.CROSSFEED]: 'Crossfeed',
+  [MusicEffects.FILTER_SWEEP]: 'Filter Sweep',
+  [MusicEffects.EIGHT_D_VERTICAL]: '8D Vertical',
 });
 
-// how many can be stacked at once (notsobot.voice's `MAX_EFFECTS`)
-export const MAX_MUSIC_EFFECTS = 3;
+// how many can be stacked at once, the same one more than once too (notsobot.voice's `MAX_EFFECTS`)
+export const MAX_MUSIC_EFFECTS = 5;
+
+// the node's volume, percent (notsobot.voice's `MAX_VOLUME`), 100 sends the file as it is
+export const DEFAULT_MUSIC_VOLUME = 100;
+export const MAX_MUSIC_VOLUME = 200;
 
 // a faster one and a slower one don't stack (the first picked is kept), slower ones together multiply
 export const MUSIC_EFFECTS_FASTER: ReadonlyArray<MusicEffects> = Object.freeze([MusicEffects.NIGHTCORE]);
 export const MUSIC_EFFECTS_SLOWER: ReadonlyArray<MusicEffects> = Object.freeze([MusicEffects.DAYCORE, MusicEffects.SLOWED, MusicEffects.VAPORWAVE]);
 
-// ones that undo each other stacked (mono and radio fold the sides away, 8d folds to mono first), the first picked is kept
+// ones that undo each other stacked (mono, radio and old record fold the sides away, both 8ds fold to mono first, chipmunk
+// and deep move the pitch both ways, two orbits blur together), the first picked is kept
 export const MUSIC_EFFECTS_CONFLICTS: ReadonlyArray<[MusicEffects, MusicEffects]> = Object.freeze([
   [MusicEffects.MONO, MusicEffects.WIDE],
   [MusicEffects.MONO, MusicEffects.EIGHT_D],
+  [MusicEffects.MONO, MusicEffects.EIGHT_D_VERTICAL],
   [MusicEffects.MONO, MusicEffects.KARAOKE],
+  [MusicEffects.MONO, MusicEffects.CROSSFEED],
   [MusicEffects.RADIO, MusicEffects.WIDE],
   [MusicEffects.RADIO, MusicEffects.KARAOKE],
+  [MusicEffects.RADIO, MusicEffects.CROSSFEED],
+  [MusicEffects.OLD_RECORD, MusicEffects.WIDE],
+  [MusicEffects.OLD_RECORD, MusicEffects.KARAOKE],
+  [MusicEffects.OLD_RECORD, MusicEffects.CROSSFEED],
   [MusicEffects.EIGHT_D, MusicEffects.KARAOKE],
+  [MusicEffects.EIGHT_D_VERTICAL, MusicEffects.KARAOKE],
+  [MusicEffects.EIGHT_D, MusicEffects.EIGHT_D_VERTICAL],
+  [MusicEffects.CHIPMUNK, MusicEffects.DEEP],
 ] as Array<[MusicEffects, MusicEffects]>);
 
 
@@ -1430,6 +1460,13 @@ export enum MediaFaceFatSizes {
   XXXL = 'XXXL',
 }
 
+export enum MediaFaceForeheadSizes {
+  SMOOTHBRAIN = 'SMOOTHBRAIN',
+  FIVEHEAD = 'FIVEHEAD',
+  SIXHEAD = 'SIXHEAD',
+  SEVENHEAD = 'SEVENHEAD',
+}
+
 
 export enum MediaFaceFeaturesSwapModes {
   ABSOLUTE = 'ABSOLUTE',
@@ -1628,8 +1665,6 @@ export enum MediaWordcloudThemes {
 
 export enum MessageComponentCustomIds {
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
-  // `music-batch.{batchId}`, removing an album's/playlist's tracks from the queue (on its `music play` reply)
-  MUSIC_BATCH = 'music-batch',
   // `music-controls.{control}`, the pause/resume and skip buttons on `music play` and `music info`
   MUSIC_CONTROLS = 'music-controls',
 }
@@ -2621,6 +2656,7 @@ export const NotSoApiKeys = Object.freeze({
   ML_DIFFUSION_MODEL: 'ml_diffusion_model',
   ML_LLM_MODEL: 'ml_llm_model',
   ML_LLM_PERSONALITY: 'ml_llm_personality',
+  MUSIC_DJ_ROLE_ID: 'music_dj_role_id',
   NAME: 'name',
   PREFIX: 'prefix',
   PREFIXES: 'prefixes',
@@ -2708,6 +2744,7 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.ML_DIFFUSION_MODEL]: 'mlDiffusionModel',
   [NotSoApiKeys.ML_LLM_MODEL]: 'mlLLMModel',
   [NotSoApiKeys.ML_LLM_PERSONALITY]: 'mlLLMPersonality',
+  [NotSoApiKeys.MUSIC_DJ_ROLE_ID]: 'musicDjRoleId',
   [NotSoApiKeys.NAME]: 'name',
   [NotSoApiKeys.PREFIX]: 'prefix',
   [NotSoApiKeys.PREFIXES]: 'prefixes',

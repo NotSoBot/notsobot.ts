@@ -19,7 +19,7 @@ export default class MusicQueueClearCommand extends BaseCommand {
         {name: 'playlist', type: Number},
       ],
       metadata: {
-        description: 'Clear the music queue, only what a user queued, or only the playlist the track at a position is from (other people\'s need Manage Server or a NotSoMusic role)',
+        description: 'Clear the music queue, only what a user queued, or only the playlist the track at a position is from (other people\'s need Manage Server or the DJ role)',
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} -from cake#1`,

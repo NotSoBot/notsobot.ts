@@ -16,7 +16,7 @@ export interface CommandArgs {
 }
 
 // a server setting (off by default): the queue takes turns between who queued instead of going in the order it was
-// queued. Changing it needs manage server or a notsomusic role, like removing other people's tracks
+// queued. Changing it needs manage server or the dj role, like removing other people's tracks
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { translate } = await getTranslator(context);
 

@@ -151,6 +151,7 @@ import * as MediaIVManipulationFaceAlien from './media.iv.manipulation.face.alie
 import * as MediaIVManipulationFaceAnime from './media.iv.manipulation.face.anime';
 import * as MediaIVManipulationFaceClown from './media.iv.manipulation.face.clown';
 import * as MediaIVManipulationFaceFat from './media.iv.manipulation.face.fat';
+import * as MediaIVManipulationFaceForehead from './media.iv.manipulation.face.forehead';
 import * as MediaIVManipulationFaceFeaturesSwap from './media.iv.manipulation.face.features.swap';
 import * as MediaIVManipulationFaceHalloweenHat from './media.iv.manipulation.face.halloween.hat';
 import * as MediaIVManipulationFaceJoy from './media.iv.manipulation.face.joy';
@@ -495,6 +496,8 @@ import * as ServerBans from './server.bans';
 import * as ServerInvites from './server.invites';
 
 import * as MusicEffect from './music.effect';
+import * as MusicCrossfade from './music.crossfade';
+import * as MusicDj from './music.dj';
 import * as MusicFair from './music.fair';
 import * as MusicHistory from './music.history';
 import * as MusicInfo from './music.info';
@@ -515,6 +518,7 @@ import * as MusicTTS from './music.tts';
 import * as MusicVotePause from './music.votepause';
 import * as MusicVoteResume from './music.voteresume';
 import * as MusicVoteSkip from './music.voteskip';
+import * as MusicVolume from './music.volume';
 import * as OwnerBlockGuild from './owner.block.guild';
 import * as OwnerBlockUser from './owner.block.user';
 import * as OwnerEval from './owner.eval';
@@ -817,6 +821,7 @@ export {
   MediaIVManipulationFaceAnime,
   MediaIVManipulationFaceClown,
   MediaIVManipulationFaceFat,
+  MediaIVManipulationFaceForehead,
   MediaIVManipulationFaceFeaturesSwap,
   MediaIVManipulationFaceHalloweenHat,
   MediaIVManipulationFaceJoy,
@@ -1161,6 +1166,8 @@ export {
   ServerInvites,
 
   MusicEffect,
+  MusicCrossfade,
+  MusicDj,
   MusicFair,
   MusicHistory,
   MusicInfo,
@@ -1181,6 +1188,7 @@ export {
   MusicVotePause,
   MusicVoteResume,
   MusicVoteSkip,
+  MusicVolume,
   OwnerBlockGuild,
   OwnerBlockUser,
   OwnerEval,

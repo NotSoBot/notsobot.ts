@@ -2,11 +2,12 @@ import { Command, Interaction, Structures } from 'detritus-client';
 
 import { editGuildMusicSession, fetchGuildMusic } from '../../../api';
 import { RequestContext } from '../../../api/raw';
-import { displayReply } from '../../../utils';
+import { RestResponsesRaw } from '../../../api/types';
+import { displayDetails, displayDetailsLine, displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { Translator, getTranslator } from '../../i18n';
 
-import { musicItemTitle } from './music.shared';
+import { fetchMusicDjRefusal, musicItemDetails, musicItemTitle } from './music.shared';
 
 
 export const COMMAND_ID = 'music.replay';
@@ -33,8 +34,7 @@ export async function replayMusic(
       return {done: false, message: translate('music.nothing_playing')};
     }
     const music = await fetchGuildMusic(context, guildId).catch(() => null);
-    const title = (music && music.current) ? musicItemTitle(music.current) : null;
-    return {done: true, message: (title) ? translate('music_replay.replaying', {title}) : translate('music_replay.replaying', {title: '?'})};
+    return {done: true, message: replayingText(translate, (music) ? music.current : null)};
   }
 
   // held (we left): it stays held, at the start for the next resume or play
@@ -43,13 +43,29 @@ export async function replayMusic(
     return {done: false, message: translate('music.nothing_playing')};
   }
   await editGuildMusicSession(context, guildId, {position: 0});
-  return {done: true, message: translate('music_replay.replaying', {title: musicItemTitle(music.current)})};
+  return {done: true, message: replayingText(translate, music.current)};
+}
+
+// `Back to the start of artist - title`, then its length and who requested it
+function replayingText(translate: Translator['translate'], item: null | RestResponsesRaw.GuildMusicQueueItem): string {
+  if (!item) {
+    return translate('music_replay.replaying', {title: '?'});
+  }
+  return displayDetails([
+    translate('music_replay.replaying', {title: `**${musicItemTitle(item)}**`}),
+    displayDetailsLine(musicItemDetails(translate, item), true),
+  ]);
 }
 
 export async function createMessage(context: Command.Context | Interaction.InteractionContext) {
   const { translate } = await getTranslator(context);
   if (!context.guildId) {
     return displayReply(context, {description: translate('music.nothing_playing')});
+  }
+  // dj mode: only djs control it
+  const refusal = await fetchMusicDjRefusal(context, translate, context.guildId, context.member);
+  if (refusal) {
+    return displayReply(context, {description: refusal});
   }
   const { message } = await replayMusic(context, translate, context.guildId, context.member);
   return displayReply(context, {description: message});

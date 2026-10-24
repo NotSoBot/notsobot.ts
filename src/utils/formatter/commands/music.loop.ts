@@ -6,7 +6,7 @@ import { displayDetailsLine, displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
-import { musicItemTitle } from './music.shared';
+import { fetchMusicDjRefusal, musicItemTitle } from './music.shared';
 
 
 export const COMMAND_ID = 'music.loop';
@@ -29,6 +29,12 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   const guildId = context.guildId;
   if (!guildId || !VoiceNode.guilds.has(guildId)) {
     return displayReply(context, {description: translate('music.nothing_playing')});
+  }
+
+  // dj mode: only djs control it
+  const refusal = await fetchMusicDjRefusal(context, translate, guildId, context.member);
+  if (refusal) {
+    return displayReply(context, {description: refusal});
   }
 
   let loop = args.mode;
