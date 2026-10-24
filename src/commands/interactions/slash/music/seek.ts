@@ -1,6 +1,5 @@
 import { Interaction } from 'detritus-client';
 
-import { GuildFeatures } from '../../../../constants';
 import { Formatter, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -10,7 +9,6 @@ export class MusicSeekCommand extends BaseInteractionCommandOption {
   description = 'Jump to a timestamp in the song';
   metadata = {
     id: Formatter.Commands.MusicSeek.COMMAND_ID,
-    premiumServer: GuildFeatures.MUSIC_ACCESS,
   };
   name = 'seek';
 

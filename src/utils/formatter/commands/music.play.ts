@@ -2,7 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { InteractionCallbackTypes } from 'detritus-client/lib/constants';
 import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils';
 
-import { searchMusic } from '../../../api';
+import { fetchGuildMusic, searchMusic } from '../../../api';
 import { getApiError, getApiErrorTranslationKey } from '../../../api/errors';
 import { RestResponsesRaw } from '../../../api/types';
 import { DiscordEmojis, StatusEmojis } from '../../../constants';
@@ -11,7 +11,7 @@ import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
 import { createMusicPaginator } from './music.info';
-import { musicItemDisplayTitle, musicItemTitle } from './music.shared';
+import { musicItemDisplayTitle, musicItemTitle, musicStayNote, musicStays } from './music.shared';
 
 
 // a text search's results to pick from (a select menu fits 25), and how long they can be picked
@@ -72,7 +72,10 @@ export async function createMessage(
   const queue = async (result: RestResponsesRaw.MusicSearchResult): Promise<Queued> => {
     const { item, joined, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, result, context.userId);
     const started = (joined) ? VoiceNode.waitForNextTrack(guildId, JOINED_START_TIMEOUT) : null;
-    return {failed: trackFailed(item), item, note: resumedNote(resumed), started};
+    // we just joined a 24/7 server: we'll stay, said once a join
+    const stays = joined && musicStays(await fetchGuildMusic(context, guildId).catch(() => null));
+    const note = displayDetails([resumedNote(resumed), (stays) ? musicStayNote(translate) : null]) || null;
+    return {failed: trackFailed(item), item, note, started};
   };
 
   // right away, the node can fail it before we reply (it's shown once we have)
@@ -123,9 +126,14 @@ export async function createMessage(
     return reply;
   };
 
-  // an album's/playlist's tracks opus.rip has (the first 50), as many as fit in the queue. They can be removed together,
+  // an album's/playlist's tracks opus.rip has (the first 50), as many as fit in the queue (premium servers only). They can be removed together,
   // the pages start at its first track
   if (search.type === 'collection') {
+    // a premium server perk, said before we join for it (the api checks too)
+    const music = await fetchGuildMusic(context, guildId);
+    if (!music.premium) {
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_play.collection_premium')}`});
+    }
     const name = (search.collection) ? search.collection.name : null;
     const { batch, joined, resumed } = await VoiceNode.play(context, context.client, guildId, channel.id, search.results, context.userId, name);
     const started = (joined) ? VoiceNode.waitForNextTrack(guildId, JOINED_START_TIMEOUT) : null;
@@ -133,9 +141,12 @@ export async function createMessage(
     const total = (search.collection) ? search.collection.total : search.results.length;
     const duration = added.reduce((total, x) => total + ((x.track) ? x.track.duration : 0), 0);
 
+    // why some were left out: the queue's full, or the server's queue rules (too long, already queued)
     let limit: null | string = null;
-    if (batch!.skipped) {
-      limit = translate((batch!.limit === 'user') ? 'music_play.limit_user' : 'music_play.limit_server');
+    if (batch!.limit === 'server') {
+      limit = translate('music_play.limit_server');
+    } else if (batch!.ruled_out) {
+      limit = translate('music_play.limit_rules');
     }
     // `Album • Added 12 of 50 tracks • 45:00`
     const note = displayDetails([
@@ -148,6 +159,8 @@ export async function createMessage(
         limit,
       ]),
       resumedNote(resumed),
+      // we just joined a 24/7 server: we'll stay
+      (joined && musicStays(music)) ? musicStayNote(translate) : null,
     ]);
     return replyQueued({failed: trackFailed(added[0]), item: added[0], note, started}, batch!.batch_id);
   }

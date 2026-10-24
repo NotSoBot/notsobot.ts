@@ -184,6 +184,7 @@ import * as MediaIVManipulationHueShiftCCS from './media.iv.manipulation.hue.shi
 import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
 import * as MediaIVManipulationHueShiftHSVFFMPEG from './media.iv.manipulation.hue.shift.hsv.ffmpeg';
 import * as MediaIVManipulationHueShiftRGB from './media.iv.manipulation.hue.shift.rgb';
+import * as MediaIVManipulationHueShiftYIQ from './media.iv.manipulation.hue.shift.yiq';
 import * as MediaIVManipulationIdentity from './media.iv.manipulation.identity';
 import * as MediaIVManipulationImplode from './media.iv.manipulation.implode';
 import * as MediaIVManipulationImplodeAnimated from './media.iv.manipulation.implode.animated';
@@ -229,6 +230,7 @@ import * as MediaIVManipulationOverlayBlackPanther from './media.iv.manipulation
 import * as MediaIVManipulationOverlayCoolGuy from './media.iv.manipulation.overlay.cool.guy';
 import * as MediaIVManipulationOverlayDork from './media.iv.manipulation.overlay.dork';
 import * as MediaIVManipulationOverlayFace from './media.iv.manipulation.overlay.face';
+import * as MediaIVManipulationOverlayFlagAfghanistan from './media.iv.manipulation.overlay.flag.afghanistan';
 import * as MediaIVManipulationOverlayFlagAlbania from './media.iv.manipulation.overlay.flag.albania';
 import * as MediaIVManipulationOverlayFlagAndorra from './media.iv.manipulation.overlay.flag.andorra';
 import * as MediaIVManipulationOverlayFlagAntigua from './media.iv.manipulation.overlay.flag.antigua';
@@ -238,15 +240,20 @@ import * as MediaIVManipulationOverlayFlagAsexual from './media.iv.manipulation.
 import * as MediaIVManipulationOverlayFlagAustria from './media.iv.manipulation.overlay.flag.austria';
 import * as MediaIVManipulationOverlayFlagAzerbaijan from './media.iv.manipulation.overlay.flag.azerbaijan';
 import * as MediaIVManipulationOverlayFlagBahamas from './media.iv.manipulation.overlay.flag.bahamas';
+import * as MediaIVManipulationOverlayFlagBahrain from './media.iv.manipulation.overlay.flag.bahrain';
+import * as MediaIVManipulationOverlayFlagBangladesh from './media.iv.manipulation.overlay.flag.bangladesh';
 import * as MediaIVManipulationOverlayFlagBarbados from './media.iv.manipulation.overlay.flag.barbados';
 import * as MediaIVManipulationOverlayFlagBelarus from './media.iv.manipulation.overlay.flag.belarus';
 import * as MediaIVManipulationOverlayFlagBelgium from './media.iv.manipulation.overlay.flag.belgium';
 import * as MediaIVManipulationOverlayFlagBelize from './media.iv.manipulation.overlay.flag.belize';
+import * as MediaIVManipulationOverlayFlagBhutan from './media.iv.manipulation.overlay.flag.bhutan';
 import * as MediaIVManipulationOverlayFlagBisexual from './media.iv.manipulation.overlay.flag.bisexual';
 import * as MediaIVManipulationOverlayFlagBolivia from './media.iv.manipulation.overlay.flag.bolivia';
 import * as MediaIVManipulationOverlayFlagBosnia from './media.iv.manipulation.overlay.flag.bosnia';
 import * as MediaIVManipulationOverlayFlagBrazil from './media.iv.manipulation.overlay.flag.brazil';
+import * as MediaIVManipulationOverlayFlagBrunei from './media.iv.manipulation.overlay.flag.brunei';
 import * as MediaIVManipulationOverlayFlagBulgaria from './media.iv.manipulation.overlay.flag.bulgaria';
+import * as MediaIVManipulationOverlayFlagCambodia from './media.iv.manipulation.overlay.flag.cambodia';
 import * as MediaIVManipulationOverlayFlagCanada from './media.iv.manipulation.overlay.flag.canada';
 import * as MediaIVManipulationOverlayFlagChile from './media.iv.manipulation.overlay.flag.chile';
 import * as MediaIVManipulationOverlayFlagChina from './media.iv.manipulation.overlay.flag.china';
@@ -259,7 +266,9 @@ import * as MediaIVManipulationOverlayFlagCzechia from './media.iv.manipulation.
 import * as MediaIVManipulationOverlayFlagDenmark from './media.iv.manipulation.overlay.flag.denmark';
 import * as MediaIVManipulationOverlayFlagDominica from './media.iv.manipulation.overlay.flag.dominica';
 import * as MediaIVManipulationOverlayFlagDominicanRepublic from './media.iv.manipulation.overlay.flag.dominicanrepublic';
+import * as MediaIVManipulationOverlayFlagEastTimor from './media.iv.manipulation.overlay.flag.easttimor';
 import * as MediaIVManipulationOverlayFlagEcuador from './media.iv.manipulation.overlay.flag.ecuador';
+import * as MediaIVManipulationOverlayFlagEgypt from './media.iv.manipulation.overlay.flag.egypt';
 import * as MediaIVManipulationOverlayFlagElSalvador from './media.iv.manipulation.overlay.flag.elsalvador';
 import * as MediaIVManipulationOverlayFlagEstonia from './media.iv.manipulation.overlay.flag.estonia';
 import * as MediaIVManipulationOverlayFlagEU from './media.iv.manipulation.overlay.flag.eu';
@@ -273,65 +282,96 @@ import * as MediaIVManipulationOverlayFlagGuatemala from './media.iv.manipulatio
 import * as MediaIVManipulationOverlayFlagGuyana from './media.iv.manipulation.overlay.flag.guyana';
 import * as MediaIVManipulationOverlayFlagHaiti from './media.iv.manipulation.overlay.flag.haiti';
 import * as MediaIVManipulationOverlayFlagHonduras from './media.iv.manipulation.overlay.flag.honduras';
+import * as MediaIVManipulationOverlayFlagHongKong from './media.iv.manipulation.overlay.flag.hongkong';
 import * as MediaIVManipulationOverlayFlagHungary from './media.iv.manipulation.overlay.flag.hungary';
 import * as MediaIVManipulationOverlayFlagIceland from './media.iv.manipulation.overlay.flag.iceland';
 import * as MediaIVManipulationOverlayFlagIndia from './media.iv.manipulation.overlay.flag.india';
+import * as MediaIVManipulationOverlayFlagIndonesia from './media.iv.manipulation.overlay.flag.indonesia';
 import * as MediaIVManipulationOverlayFlagIran from './media.iv.manipulation.overlay.flag.iran';
+import * as MediaIVManipulationOverlayFlagIraq from './media.iv.manipulation.overlay.flag.iraq';
 import * as MediaIVManipulationOverlayFlagIreland from './media.iv.manipulation.overlay.flag.ireland';
 import * as MediaIVManipulationOverlayFlagIsrael from './media.iv.manipulation.overlay.flag.israel';
 import * as MediaIVManipulationOverlayFlagItaly from './media.iv.manipulation.overlay.flag.italy';
 import * as MediaIVManipulationOverlayFlagJamaica from './media.iv.manipulation.overlay.flag.jamaica';
 import * as MediaIVManipulationOverlayFlagJapan from './media.iv.manipulation.overlay.flag.japan';
+import * as MediaIVManipulationOverlayFlagJordan from './media.iv.manipulation.overlay.flag.jordan';
 import * as MediaIVManipulationOverlayFlagKazakhstan from './media.iv.manipulation.overlay.flag.kazakhstan';
 import * as MediaIVManipulationOverlayFlagKosovo from './media.iv.manipulation.overlay.flag.kosovo';
+import * as MediaIVManipulationOverlayFlagKuwait from './media.iv.manipulation.overlay.flag.kuwait';
+import * as MediaIVManipulationOverlayFlagKyrgyzstan from './media.iv.manipulation.overlay.flag.kyrgyzstan';
+import * as MediaIVManipulationOverlayFlagLaos from './media.iv.manipulation.overlay.flag.laos';
 import * as MediaIVManipulationOverlayFlagLatvia from './media.iv.manipulation.overlay.flag.latvia';
+import * as MediaIVManipulationOverlayFlagLebanon from './media.iv.manipulation.overlay.flag.lebanon';
 import * as MediaIVManipulationOverlayFlagLesbian from './media.iv.manipulation.overlay.flag.lesbian';
 import * as MediaIVManipulationOverlayFlagLGBT from './media.iv.manipulation.overlay.flag.lgbt';
 import * as MediaIVManipulationOverlayFlagLiechtenstein from './media.iv.manipulation.overlay.flag.liechtenstein';
 import * as MediaIVManipulationOverlayFlagLithuania from './media.iv.manipulation.overlay.flag.lithuania';
 import * as MediaIVManipulationOverlayFlagLuxembourg from './media.iv.manipulation.overlay.flag.luxembourg';
+import * as MediaIVManipulationOverlayFlagMacau from './media.iv.manipulation.overlay.flag.macau';
+import * as MediaIVManipulationOverlayFlagMalaysia from './media.iv.manipulation.overlay.flag.malaysia';
+import * as MediaIVManipulationOverlayFlagMaldives from './media.iv.manipulation.overlay.flag.maldives';
 import * as MediaIVManipulationOverlayFlagMalta from './media.iv.manipulation.overlay.flag.malta';
 import * as MediaIVManipulationOverlayFlagMexico from './media.iv.manipulation.overlay.flag.mexico';
 import * as MediaIVManipulationOverlayFlagMoldova from './media.iv.manipulation.overlay.flag.moldova';
 import * as MediaIVManipulationOverlayFlagMonaco from './media.iv.manipulation.overlay.flag.monaco';
+import * as MediaIVManipulationOverlayFlagMongolia from './media.iv.manipulation.overlay.flag.mongolia';
 import * as MediaIVManipulationOverlayFlagMontenegro from './media.iv.manipulation.overlay.flag.montenegro';
+import * as MediaIVManipulationOverlayFlagMyanmar from './media.iv.manipulation.overlay.flag.myanmar';
+import * as MediaIVManipulationOverlayFlagNepal from './media.iv.manipulation.overlay.flag.nepal';
 import * as MediaIVManipulationOverlayFlagNetherlands from './media.iv.manipulation.overlay.flag.netherlands';
 import * as MediaIVManipulationOverlayFlagNicaragua from './media.iv.manipulation.overlay.flag.nicaragua';
 import * as MediaIVManipulationOverlayFlagNonBinary from './media.iv.manipulation.overlay.flag.nonbinary';
 import * as MediaIVManipulationOverlayFlagNorthKorea from './media.iv.manipulation.overlay.flag.northkorea';
 import * as MediaIVManipulationOverlayFlagNorthMacedonia from './media.iv.manipulation.overlay.flag.northmacedonia';
 import * as MediaIVManipulationOverlayFlagNorway from './media.iv.manipulation.overlay.flag.norway';
+import * as MediaIVManipulationOverlayFlagOman from './media.iv.manipulation.overlay.flag.oman';
+import * as MediaIVManipulationOverlayFlagPakistan from './media.iv.manipulation.overlay.flag.pakistan';
 import * as MediaIVManipulationOverlayFlagPalestine from './media.iv.manipulation.overlay.flag.palestine';
 import * as MediaIVManipulationOverlayFlagPanama from './media.iv.manipulation.overlay.flag.panama';
 import * as MediaIVManipulationOverlayFlagPansexual from './media.iv.manipulation.overlay.flag.pansexual';
 import * as MediaIVManipulationOverlayFlagParaguay from './media.iv.manipulation.overlay.flag.paraguay';
 import * as MediaIVManipulationOverlayFlagPeru from './media.iv.manipulation.overlay.flag.peru';
+import * as MediaIVManipulationOverlayFlagPhilippines from './media.iv.manipulation.overlay.flag.philippines';
 import * as MediaIVManipulationOverlayFlagPoland from './media.iv.manipulation.overlay.flag.poland';
 import * as MediaIVManipulationOverlayFlagPortugal from './media.iv.manipulation.overlay.flag.portugal';
+import * as MediaIVManipulationOverlayFlagQatar from './media.iv.manipulation.overlay.flag.qatar';
 import * as MediaIVManipulationOverlayFlagRomania from './media.iv.manipulation.overlay.flag.romania';
 import * as MediaIVManipulationOverlayFlagRussia from './media.iv.manipulation.overlay.flag.russia';
 import * as MediaIVManipulationOverlayFlagSaintKitts from './media.iv.manipulation.overlay.flag.saintkitts';
 import * as MediaIVManipulationOverlayFlagSaintLucia from './media.iv.manipulation.overlay.flag.saintlucia';
 import * as MediaIVManipulationOverlayFlagSaintVincent from './media.iv.manipulation.overlay.flag.saintvincent';
 import * as MediaIVManipulationOverlayFlagSanMarino from './media.iv.manipulation.overlay.flag.sanmarino';
+import * as MediaIVManipulationOverlayFlagSaudiArabia from './media.iv.manipulation.overlay.flag.saudiarabia';
 import * as MediaIVManipulationOverlayFlagSerbia from './media.iv.manipulation.overlay.flag.serbia';
+import * as MediaIVManipulationOverlayFlagSingapore from './media.iv.manipulation.overlay.flag.singapore';
 import * as MediaIVManipulationOverlayFlagSlovakia from './media.iv.manipulation.overlay.flag.slovakia';
 import * as MediaIVManipulationOverlayFlagSlovenia from './media.iv.manipulation.overlay.flag.slovenia';
+import * as MediaIVManipulationOverlayFlagSouthKorea from './media.iv.manipulation.overlay.flag.southkorea';
 import * as MediaIVManipulationOverlayFlagSpain from './media.iv.manipulation.overlay.flag.spain';
+import * as MediaIVManipulationOverlayFlagSriLanka from './media.iv.manipulation.overlay.flag.srilanka';
 import * as MediaIVManipulationOverlayFlagSuriname from './media.iv.manipulation.overlay.flag.suriname';
 import * as MediaIVManipulationOverlayFlagSweden from './media.iv.manipulation.overlay.flag.sweden';
 import * as MediaIVManipulationOverlayFlagSwitzerland from './media.iv.manipulation.overlay.flag.switzerland';
 import * as MediaIVManipulationOverlayFlagSyria from './media.iv.manipulation.overlay.flag.syria';
+import * as MediaIVManipulationOverlayFlagTaiwan from './media.iv.manipulation.overlay.flag.taiwan';
+import * as MediaIVManipulationOverlayFlagTajikistan from './media.iv.manipulation.overlay.flag.tajikistan';
+import * as MediaIVManipulationOverlayFlagTaliban from './media.iv.manipulation.overlay.flag.taliban';
+import * as MediaIVManipulationOverlayFlagThailand from './media.iv.manipulation.overlay.flag.thailand';
 import * as MediaIVManipulationOverlayFlagTrans from './media.iv.manipulation.overlay.flag.trans';
 import * as MediaIVManipulationOverlayFlagTrinidad from './media.iv.manipulation.overlay.flag.trinidad';
 import * as MediaIVManipulationOverlayFlagTurkey from './media.iv.manipulation.overlay.flag.turkey';
+import * as MediaIVManipulationOverlayFlagTurkmenistan from './media.iv.manipulation.overlay.flag.turkmenistan';
+import * as MediaIVManipulationOverlayFlagUAE from './media.iv.manipulation.overlay.flag.uae';
 import * as MediaIVManipulationOverlayFlagUK from './media.iv.manipulation.overlay.flag.uk';
 import * as MediaIVManipulationOverlayFlagUkraine from './media.iv.manipulation.overlay.flag.ukraine';
 import * as MediaIVManipulationOverlayFlagUruguay from './media.iv.manipulation.overlay.flag.uruguay';
 import * as MediaIVManipulationOverlayFlagUSA from './media.iv.manipulation.overlay.flag.usa';
 import * as MediaIVManipulationOverlayFlagUSSR from './media.iv.manipulation.overlay.flag.ussr';
+import * as MediaIVManipulationOverlayFlagUzbekistan from './media.iv.manipulation.overlay.flag.uzbekistan';
 import * as MediaIVManipulationOverlayFlagVatican from './media.iv.manipulation.overlay.flag.vatican';
 import * as MediaIVManipulationOverlayFlagVenezuela from './media.iv.manipulation.overlay.flag.venezuela';
+import * as MediaIVManipulationOverlayFlagVietnam from './media.iv.manipulation.overlay.flag.vietnam';
+import * as MediaIVManipulationOverlayFlagYemen from './media.iv.manipulation.overlay.flag.yemen';
 import * as MediaIVManipulationOverlayFlies from './media.iv.manipulation.overlay.flies';
 import * as MediaIVManipulationOverlayGod from './media.iv.manipulation.overlay.god';
 import * as MediaIVManipulationOverlayGoldStar from './media.iv.manipulation.overlay.gold.star';
@@ -454,7 +494,9 @@ import * as ModerationUnmute from './moderation.unmute';
 import * as ServerBans from './server.bans';
 import * as ServerInvites from './server.invites';
 
+import * as MusicEffect from './music.effect';
 import * as MusicFair from './music.fair';
+import * as MusicHistory from './music.history';
 import * as MusicInfo from './music.info';
 import * as MusicLeave from './music.leave';
 import * as MusicLoop from './music.loop';
@@ -463,10 +505,16 @@ import * as MusicPlay from './music.play';
 import * as MusicQueue from './music.queue';
 import * as MusicQueueClear from './music.queue.clear';
 import * as MusicQueueRemove from './music.queue.remove';
+import * as MusicReplay from './music.replay';
 import * as MusicResume from './music.resume';
+import * as MusicRules from './music.rules';
 import * as MusicSeek from './music.seek';
 import * as MusicSkip from './music.skip';
+import * as MusicStay from './music.stay';
 import * as MusicTTS from './music.tts';
+import * as MusicVotePause from './music.votepause';
+import * as MusicVoteResume from './music.voteresume';
+import * as MusicVoteSkip from './music.voteskip';
 import * as OwnerBlockGuild from './owner.block.guild';
 import * as OwnerBlockUser from './owner.block.user';
 import * as OwnerEval from './owner.eval';
@@ -802,6 +850,7 @@ export {
   MediaIVManipulationHueShiftHSV,
   MediaIVManipulationHueShiftHSVFFMPEG,
   MediaIVManipulationHueShiftRGB,
+  MediaIVManipulationHueShiftYIQ,
   MediaIVManipulationIdentity,
   MediaIVManipulationImplode,
   MediaIVManipulationImplodeAnimated,
@@ -847,6 +896,7 @@ export {
   MediaIVManipulationOverlayCoolGuy,
   MediaIVManipulationOverlayDork,
   MediaIVManipulationOverlayFace,
+  MediaIVManipulationOverlayFlagAfghanistan,
   MediaIVManipulationOverlayFlagAlbania,
   MediaIVManipulationOverlayFlagAndorra,
   MediaIVManipulationOverlayFlagAntigua,
@@ -856,15 +906,20 @@ export {
   MediaIVManipulationOverlayFlagAustria,
   MediaIVManipulationOverlayFlagAzerbaijan,
   MediaIVManipulationOverlayFlagBahamas,
+  MediaIVManipulationOverlayFlagBahrain,
+  MediaIVManipulationOverlayFlagBangladesh,
   MediaIVManipulationOverlayFlagBarbados,
   MediaIVManipulationOverlayFlagBelarus,
   MediaIVManipulationOverlayFlagBelgium,
   MediaIVManipulationOverlayFlagBelize,
+  MediaIVManipulationOverlayFlagBhutan,
   MediaIVManipulationOverlayFlagBisexual,
   MediaIVManipulationOverlayFlagBolivia,
   MediaIVManipulationOverlayFlagBosnia,
   MediaIVManipulationOverlayFlagBrazil,
+  MediaIVManipulationOverlayFlagBrunei,
   MediaIVManipulationOverlayFlagBulgaria,
+  MediaIVManipulationOverlayFlagCambodia,
   MediaIVManipulationOverlayFlagCanada,
   MediaIVManipulationOverlayFlagChile,
   MediaIVManipulationOverlayFlagChina,
@@ -877,7 +932,9 @@ export {
   MediaIVManipulationOverlayFlagDenmark,
   MediaIVManipulationOverlayFlagDominica,
   MediaIVManipulationOverlayFlagDominicanRepublic,
+  MediaIVManipulationOverlayFlagEastTimor,
   MediaIVManipulationOverlayFlagEcuador,
+  MediaIVManipulationOverlayFlagEgypt,
   MediaIVManipulationOverlayFlagElSalvador,
   MediaIVManipulationOverlayFlagEstonia,
   MediaIVManipulationOverlayFlagEU,
@@ -891,65 +948,96 @@ export {
   MediaIVManipulationOverlayFlagGuyana,
   MediaIVManipulationOverlayFlagHaiti,
   MediaIVManipulationOverlayFlagHonduras,
+  MediaIVManipulationOverlayFlagHongKong,
   MediaIVManipulationOverlayFlagHungary,
   MediaIVManipulationOverlayFlagIceland,
   MediaIVManipulationOverlayFlagIndia,
+  MediaIVManipulationOverlayFlagIndonesia,
   MediaIVManipulationOverlayFlagIran,
+  MediaIVManipulationOverlayFlagIraq,
   MediaIVManipulationOverlayFlagIreland,
   MediaIVManipulationOverlayFlagIsrael,
   MediaIVManipulationOverlayFlagItaly,
   MediaIVManipulationOverlayFlagJamaica,
   MediaIVManipulationOverlayFlagJapan,
+  MediaIVManipulationOverlayFlagJordan,
   MediaIVManipulationOverlayFlagKazakhstan,
   MediaIVManipulationOverlayFlagKosovo,
+  MediaIVManipulationOverlayFlagKuwait,
+  MediaIVManipulationOverlayFlagKyrgyzstan,
+  MediaIVManipulationOverlayFlagLaos,
   MediaIVManipulationOverlayFlagLatvia,
+  MediaIVManipulationOverlayFlagLebanon,
   MediaIVManipulationOverlayFlagLesbian,
   MediaIVManipulationOverlayFlagLGBT,
   MediaIVManipulationOverlayFlagLiechtenstein,
   MediaIVManipulationOverlayFlagLithuania,
   MediaIVManipulationOverlayFlagLuxembourg,
+  MediaIVManipulationOverlayFlagMacau,
+  MediaIVManipulationOverlayFlagMalaysia,
+  MediaIVManipulationOverlayFlagMaldives,
   MediaIVManipulationOverlayFlagMalta,
   MediaIVManipulationOverlayFlagMexico,
   MediaIVManipulationOverlayFlagMoldova,
   MediaIVManipulationOverlayFlagMonaco,
+  MediaIVManipulationOverlayFlagMongolia,
   MediaIVManipulationOverlayFlagMontenegro,
+  MediaIVManipulationOverlayFlagMyanmar,
+  MediaIVManipulationOverlayFlagNepal,
   MediaIVManipulationOverlayFlagNetherlands,
   MediaIVManipulationOverlayFlagNicaragua,
   MediaIVManipulationOverlayFlagNonBinary,
   MediaIVManipulationOverlayFlagNorthKorea,
   MediaIVManipulationOverlayFlagNorthMacedonia,
   MediaIVManipulationOverlayFlagNorway,
+  MediaIVManipulationOverlayFlagOman,
+  MediaIVManipulationOverlayFlagPakistan,
   MediaIVManipulationOverlayFlagPalestine,
   MediaIVManipulationOverlayFlagPanama,
   MediaIVManipulationOverlayFlagPansexual,
   MediaIVManipulationOverlayFlagParaguay,
   MediaIVManipulationOverlayFlagPeru,
+  MediaIVManipulationOverlayFlagPhilippines,
   MediaIVManipulationOverlayFlagPoland,
   MediaIVManipulationOverlayFlagPortugal,
+  MediaIVManipulationOverlayFlagQatar,
   MediaIVManipulationOverlayFlagRomania,
   MediaIVManipulationOverlayFlagRussia,
   MediaIVManipulationOverlayFlagSaintKitts,
   MediaIVManipulationOverlayFlagSaintLucia,
   MediaIVManipulationOverlayFlagSaintVincent,
   MediaIVManipulationOverlayFlagSanMarino,
+  MediaIVManipulationOverlayFlagSaudiArabia,
   MediaIVManipulationOverlayFlagSerbia,
+  MediaIVManipulationOverlayFlagSingapore,
   MediaIVManipulationOverlayFlagSlovakia,
   MediaIVManipulationOverlayFlagSlovenia,
+  MediaIVManipulationOverlayFlagSouthKorea,
   MediaIVManipulationOverlayFlagSpain,
+  MediaIVManipulationOverlayFlagSriLanka,
   MediaIVManipulationOverlayFlagSuriname,
   MediaIVManipulationOverlayFlagSweden,
   MediaIVManipulationOverlayFlagSwitzerland,
   MediaIVManipulationOverlayFlagSyria,
+  MediaIVManipulationOverlayFlagTaiwan,
+  MediaIVManipulationOverlayFlagTajikistan,
+  MediaIVManipulationOverlayFlagTaliban,
+  MediaIVManipulationOverlayFlagThailand,
   MediaIVManipulationOverlayFlagTrans,
   MediaIVManipulationOverlayFlagTrinidad,
   MediaIVManipulationOverlayFlagTurkey,
+  MediaIVManipulationOverlayFlagTurkmenistan,
+  MediaIVManipulationOverlayFlagUAE,
   MediaIVManipulationOverlayFlagUK,
   MediaIVManipulationOverlayFlagUkraine,
   MediaIVManipulationOverlayFlagUruguay,
   MediaIVManipulationOverlayFlagUSA,
   MediaIVManipulationOverlayFlagUSSR,
+  MediaIVManipulationOverlayFlagUzbekistan,
   MediaIVManipulationOverlayFlagVatican,
   MediaIVManipulationOverlayFlagVenezuela,
+  MediaIVManipulationOverlayFlagVietnam,
+  MediaIVManipulationOverlayFlagYemen,
   MediaIVManipulationOverlayFlies,
   MediaIVManipulationOverlayGod,
   MediaIVManipulationOverlayGoldStar,
@@ -1072,7 +1160,9 @@ export {
   ServerBans,
   ServerInvites,
 
+  MusicEffect,
   MusicFair,
+  MusicHistory,
   MusicInfo,
   MusicLeave,
   MusicLoop,
@@ -1081,10 +1171,16 @@ export {
   MusicQueue,
   MusicQueueClear,
   MusicQueueRemove,
+  MusicReplay,
   MusicResume,
+  MusicRules,
   MusicSeek,
   MusicSkip,
+  MusicStay,
   MusicTTS,
+  MusicVotePause,
+  MusicVoteResume,
+  MusicVoteSkip,
   OwnerBlockGuild,
   OwnerBlockUser,
   OwnerEval,

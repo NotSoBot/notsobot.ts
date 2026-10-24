@@ -5,7 +5,6 @@ import { ComponentContext, Components, Markup } from 'detritus-client/lib/utils'
 import {
   deleteGuildMusicQueue,
   editGuildMusicQueueItem,
-  editGuildMusicSession,
   fetchGuildMusic,
   postGuildMusicNext,
 } from '../../../api';
@@ -18,15 +17,21 @@ import VoiceNode from '../../../voicenode';
 import { Translator, getCachedTranslator } from '../../i18n';
 
 import {
+  MusicVoteKinds,
   canManageMusic,
+  clearMusicVotes,
   musicItemBatchText,
   musicItemDisplayTitle,
   musicItemLinks,
   musicItemQueuedAt,
+  musicItemTitle,
   musicNowPlaying,
   musicLoopText,
+  musicNothingPlayingText,
   musicPlayerPosition,
+  musicVote,
 } from './music.shared';
+import { replayMusic } from './music.replay';
 
 
 export enum MusicControls {
@@ -282,10 +287,11 @@ export async function onMusicBatchRemove(context: ComponentContext, batchId: str
 }
 
 
-// restarting, pausing/resuming and skipping need you in the music's channel (anyone while we're disconnected, resuming
-// joins their channel). Held music (we left, paused too long) is like a stopped player: only play joins (their
-// channel), restart and skip move where it's held. Anyone can refresh, play next is for your own tracks (or anyone's
-// with manage server or a notsomusic role). `itemId` is the track the page was about, the page that shows it now is
+// pausing/resuming and skipping need you in the music's channel (anyone while we're disconnected, resuming joins their
+// channel). Held music (we left, paused too long) is like a stopped player: play joins (their channel), skip moves where
+// it's held. Restart is `music replay` (back to the start, playing or paused as it was). Skipping, pausing and resuming are
+// votes (`musicVote`), anyone can refresh, play next is for your own tracks (or anyone's with manage server or a
+// notsomusic role). `itemId` is the track the page was about, the page that shows it now is
 // shown again. `rerender` shows the message again in place of its own pages (a `music queue` reply)
 export async function onMusicControl(
   context: ComponentContext,
@@ -310,7 +316,17 @@ export async function onMusicControl(
   const guild = VoiceNode.guilds.get(guildId);
   const member = context.member;
   const channel = member && member.voiceState && member.voiceState.channel;
-  const playback = [MusicControls.PAUSE, MusicControls.RESTART, MusicControls.RESUME, MusicControls.SKIP] as Array<string>;
+  const playback = [MusicControls.PAUSE, MusicControls.RESUME, MusicControls.SKIP] as Array<string>;
+
+  // back to the start, playing or paused as it was (`music replay` does the same)
+  if (control === MusicControls.RESTART) {
+    await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+    const { done, message } = await replayMusic(context, translate, guildId, member);
+    if (!done) {
+      return followUp(message);
+    }
+    return showMusicControlsMessage(context, translator, guildId, itemId, undefined, rerender);
+  }
 
   if (!guild && playback.includes(control)) {
     if (control === MusicControls.RESUME) {
@@ -327,9 +343,6 @@ export async function onMusicControl(
       return followUp(translate('music.nothing_playing'));
     }
     switch (control) {
-      case MusicControls.RESTART: {
-        await editGuildMusicSession(context, guildId, {position: 0});
-      }; break;
       case MusicControls.RESUME: {
         // it carries on like `music play` would
         if (!await VoiceNode.resumeHeld(context, context.client, guildId, channel!.id)) {
@@ -384,10 +397,16 @@ export async function onMusicControl(
     case MusicControls.REFRESH: {
       done = true;
     }; break;
-    case MusicControls.RESTART: {
-      done = !!await VoiceNode.seek(guildId, 0);
-    }; break;
     case MusicControls.SKIP: {
+      // a vote like `music skip`, it only says how many voted until enough did
+      const music = await fetchGuildMusic(context, guildId).catch(() => null);
+      if (!music || !music.current) {
+        return followUp(translate('music.nothing_playing'));
+      }
+      const vote = musicVote(MusicVoteKinds.SKIP, member!, channel!, music.current, music.vote_skip);
+      if (!vote.done) {
+        return followUp(translate('music_skip.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}));
+      }
       // the message shows what comes next, so it waits for it to start (or for us to leave, the queue ran out)
       const next = VoiceNode.waitForNextTrack(guildId);
       done = await VoiceNode.skip(guildId);
@@ -397,7 +416,22 @@ export async function onMusicControl(
     }; break;
     case MusicControls.PAUSE: {
       // disconnected, it's held paused already (the page just shows it)
-      done = guild!.disconnected || !!await VoiceNode.setPaused(guildId, true);
+      if (guild!.disconnected) {
+        done = true;
+        break;
+      }
+      // a vote like `music pause`, it only says how many voted until enough did
+      const music = await fetchGuildMusic(context, guildId).catch(() => null);
+      if (music && music.current) {
+        const vote = musicVote(MusicVoteKinds.PAUSE, member!, channel!, music.current, music.vote_pause);
+        if (!vote.done) {
+          return followUp(translate('music_pause.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}));
+        }
+      }
+      done = !!await VoiceNode.setPaused(guildId, true);
+      if (done) {
+        clearMusicVotes(MusicVoteKinds.RESUME, guildId);
+      }
     }; break;
     case MusicControls.RESUME: {
       if (guild!.disconnected) {
@@ -406,7 +440,18 @@ export async function onMusicControl(
         done = !!player && !!player.track && VoiceNode.reconnect(guildId, channel!.id);
         paused = (done) ? false : undefined;
       } else {
+        // a vote like `music resume` while it's paused, it only says how many voted until enough did
+        const music = (guild!.paused) ? await fetchGuildMusic(context, guildId).catch(() => null) : null;
+        if (music && music.current) {
+          const vote = musicVote(MusicVoteKinds.RESUME, member!, channel!, music.current, music.vote_resume);
+          if (!vote.done) {
+            return followUp(translate('music_resume.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}));
+          }
+        }
         done = !!await VoiceNode.setPaused(guildId, false);
+        if (done) {
+          clearMusicVotes(MusicVoteKinds.PAUSE, guildId);
+        }
       }
     }; break;
   }
@@ -454,7 +499,7 @@ async function showMusicControlsMessage(
   }
   // nothing's playing or queued anymore (skipped the last one), the message says so
   const invokerId = await findCommandInvokerId(context, message);
-  return displayReply(context, {description: translator.translate('music.nothing_playing')}, {invokerId: invokerId || undefined});
+  return displayReply(context, {description: musicNothingPlayingText(translator.translate, guildId)}, {invokerId: invokerId || undefined});
 }
 
 

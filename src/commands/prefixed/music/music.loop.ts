@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GuildFeatures, MusicLoopModes } from '../../../constants';
+import { CommandCategories, MusicLoopModes } from '../../../constants';
 import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -24,8 +24,6 @@ export default class MusicLoopCommand extends BaseCommand {
           `${COMMAND_NAME} off`,
         ],
         category: CommandCategories.MUSIC,
-        // premium users, premium servers and servers given the feature (`owner guild features add`)
-        premiumServer: GuildFeatures.MUSIC_ACCESS,
         id: Formatter.Commands.MusicLoop.COMMAND_ID,
         usage: '?<off|track|queue>',
       },

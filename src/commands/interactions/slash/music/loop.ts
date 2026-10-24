@@ -1,6 +1,6 @@
 import { Interaction } from 'detritus-client';
 
-import { GuildFeatures, MusicLoopModes } from '../../../../constants';
+import { MusicLoopModes } from '../../../../constants';
 import { Formatter, Parameters } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -10,7 +10,6 @@ export class MusicLoopCommand extends BaseInteractionCommandOption {
   description = 'Loop the song or the whole queue';
   metadata = {
     id: Formatter.Commands.MusicLoop.COMMAND_ID,
-    premiumServer: GuildFeatures.MUSIC_ACCESS,
   };
   name = 'loop';
 

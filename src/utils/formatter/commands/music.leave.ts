@@ -3,9 +3,12 @@ import { InteractionCallbackTypes, MessageComponentButtonStyles } from 'detritus
 import { ComponentContext, Components } from 'detritus-client/lib/utils';
 
 import { deleteGuildMusic, fetchGuildMusic } from '../../../api';
+import { StatusEmojis } from '../../../constants';
 import { displayReply } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
+
+import { canManageMusic } from './music.shared';
 
 
 export const COMMAND_ID = 'music.leave';
@@ -15,7 +18,8 @@ const CONFIRM_TIMEOUT = 60 * 1000;
 
 // stops the music and leaves. With anything playing or queued it asks first: clear the queue, or keep it (the playing
 // track's held, the next `music play` carries on from there). Unanswered, the buttons go after a minute and nothing
-// changes. Held music (paused too long, we left already) is cleared or kept as it is
+// changes. Held music (paused too long, we left already) is cleared or kept as it is. Like clearing the queue, other
+// people's music (playing or queued) needs manage server or a notsomusic role, and so does 24/7 (it's in voice on purpose)
 export async function createMessage(context: Command.Context | Interaction.InteractionContext) {
   const { language, translate } = await getTranslator(context);
 
@@ -32,6 +36,16 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
   const channel = `<#${channelId}>`;
+
+  // the api not answering isn't known to be only theirs
+  if (!canManageMusic(context.member)) {
+    const items = (music) ? [music.current, ...music.queue].filter((x) => !!x) : null;
+    const others = !items || items.some((item) => item!.user_id !== context.userId);
+    const stays = !!music && music.premium && music.stay;
+    if (others || stays) {
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_leave.not_yours')}`});
+    }
+  }
 
   // leaves (if we're still in a channel) and empties the api's queue, its session goes with it
   const leaveAndClear = async () => {

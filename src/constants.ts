@@ -177,6 +177,9 @@ export enum ApiErrorCodes {
   VOICE_HAS_NO_CLIPS = 50043,
   MUSIC_COLLECTION_NOT_SUPPORTED = 50044,
   MUSIC_URL_NOT_SUPPORTED = 50045,
+  MUSIC_TRACK_TOO_LONG = 50046,
+  MUSIC_TRACK_ALREADY_QUEUED = 50047,
+  MUSIC_PREMIUM_REQUIRED = 50048,
 
   DISCORD_OAUTH_ERROR = 60001,
   DISCORD_OAUTH_SCOPE_MISMATCH = 60002,
@@ -1087,7 +1090,7 @@ export const MAX_GUILD_RULES_PER_REQUEST = 100;
 export enum GuildFeatures {
   AI_ACCESS = 'AI_ACCESS',
   FREE_CUSTOM_COMMANDS = 'FREE_CUSTOM_COMMANDS',
-  // the music commands work for everyone in the server, like a premium server
+  // music's premium perks (24/7, the bigger queue), like a premium server
   MUSIC_ACCESS = 'MUSIC_ACCESS',
 }
 
@@ -1134,6 +1137,73 @@ export enum MusicLoopModes {
   // a track that ends (or is skipped) goes back to the end of the queue
   QUEUE = 'queue',
 }
+
+// the voice node's live effects (notsobot.voice's `EFFECT_NAMES`), `off` is none
+export enum MusicEffects {
+  OFF = 'off',
+  BASSBOOST = 'bassboost',
+  TREBLE_BOOST = 'trebleboost',
+  NIGHTCORE = 'nightcore',
+  DAYCORE = 'daycore',
+  SLOWED = 'slowed',
+  VAPORWAVE = 'vaporwave',
+  LOFI = 'lofi',
+  DREAMY = 'dreamy',
+  UNDERWATER = 'underwater',
+  RADIO = 'radio',
+  NEXT_ROOM = 'nextroom',
+  ECHO = 'echo',
+  CONCERT_HALL = 'concerthall',
+  WIDE = 'wide',
+  EIGHT_D = '8d',
+  TREMOLO = 'tremolo',
+  VIBRATO = 'vibrato',
+  KARAOKE = 'karaoke',
+  NORMALIZER = 'normalizer',
+  MONO = 'mono',
+}
+
+// their names, the same in every language (the descriptions are translated, `music_effect.<effect>`)
+export const MusicEffectsToText: Record<MusicEffects, string> = Object.freeze({
+  [MusicEffects.OFF]: 'Off',
+  [MusicEffects.BASSBOOST]: 'Bassboost',
+  [MusicEffects.TREBLE_BOOST]: 'Treble Boost',
+  [MusicEffects.NIGHTCORE]: 'Nightcore',
+  [MusicEffects.DAYCORE]: 'Daycore',
+  [MusicEffects.SLOWED]: 'Slowed + reverb',
+  [MusicEffects.VAPORWAVE]: 'Vaporwave',
+  [MusicEffects.LOFI]: 'Lo-Fi',
+  [MusicEffects.DREAMY]: 'Dreamy',
+  [MusicEffects.UNDERWATER]: 'Underwater',
+  [MusicEffects.RADIO]: 'Radio',
+  [MusicEffects.NEXT_ROOM]: 'Next Room',
+  [MusicEffects.ECHO]: 'Echo',
+  [MusicEffects.CONCERT_HALL]: 'Concert Hall',
+  [MusicEffects.WIDE]: 'Wide',
+  [MusicEffects.EIGHT_D]: '8D',
+  [MusicEffects.TREMOLO]: 'Tremolo',
+  [MusicEffects.VIBRATO]: 'Vibrato',
+  [MusicEffects.KARAOKE]: 'Karaoke',
+  [MusicEffects.NORMALIZER]: 'Normalizer',
+  [MusicEffects.MONO]: 'Mono',
+});
+
+// how many can be stacked at once (notsobot.voice's `MAX_EFFECTS`)
+export const MAX_MUSIC_EFFECTS = 3;
+
+// a faster one and a slower one don't stack (the first picked is kept), slower ones together multiply
+export const MUSIC_EFFECTS_FASTER: ReadonlyArray<MusicEffects> = Object.freeze([MusicEffects.NIGHTCORE]);
+export const MUSIC_EFFECTS_SLOWER: ReadonlyArray<MusicEffects> = Object.freeze([MusicEffects.DAYCORE, MusicEffects.SLOWED, MusicEffects.VAPORWAVE]);
+
+// ones that undo each other stacked (mono and radio fold the sides away, 8d folds to mono first), the first picked is kept
+export const MUSIC_EFFECTS_CONFLICTS: ReadonlyArray<[MusicEffects, MusicEffects]> = Object.freeze([
+  [MusicEffects.MONO, MusicEffects.WIDE],
+  [MusicEffects.MONO, MusicEffects.EIGHT_D],
+  [MusicEffects.MONO, MusicEffects.KARAOKE],
+  [MusicEffects.RADIO, MusicEffects.WIDE],
+  [MusicEffects.RADIO, MusicEffects.KARAOKE],
+  [MusicEffects.EIGHT_D, MusicEffects.KARAOKE],
+] as Array<[MusicEffects, MusicEffects]>);
 
 
 export enum MeasurementUnits {

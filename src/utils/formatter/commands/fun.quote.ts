@@ -1,5 +1,5 @@
 import { Command, Interaction, Structures } from 'detritus-client';
-import { MessageTypes } from 'detritus-client/lib/constants';
+import { MessageEmbedTypes, MessageTypes } from 'detritus-client/lib/constants';
 import moment from 'moment';
 import 'moment-timezone';
 
@@ -29,6 +29,7 @@ const MAX_COMPONENT_DEPTH = 4;
 const MAX_COMPONENT_TEXT = 12000;
 // how far back `quote @user` looks for their latest message
 const RECENT_MESSAGES_LIMIT = 100;
+const ERROR_CODE_UNKNOWN_MESSAGE = 10008;
 
 const REGEX_TOKEN = /<(?:@!?|@&|#)\d{15,21}>|<t:-?\d{1,13}(?::[tTdDfFR])?>/g;
 
@@ -63,19 +64,23 @@ export async function createMessage(
   }
 
   const author = (message) ? (message.member || findMember(context, message.author.id) || message.author) : (args.user || context.member || context.user);
-  const content = ((message) ? message.content : text).slice(0, MAX_CONTENT_LENGTH);
+  // a posted image link is drawn like discord does, the image itself and no link when that's all the text is
+  const media = (message) ? mediaEmbeds(message) : [];
+  const linkOnly = !!message && media.some((embed) => embed.url === message!.content.trim());
+  const content = (linkOnly) ? '' : ((message) ? message.content : text).slice(0, MAX_CONTENT_LENGTH);
   const embed = (message) ? quoteEmbed(message) : null;
-  const attachments = (message) ? message.attachments
-    .filter((attachment) => attachment.isImage)
-    .slice(0, MAX_ATTACHMENTS)
-    .map((attachment) => resizedProxyUrl(attachment.proxyUrl, attachment.width, attachment.height))
-    .filter((url): url is string => !!url) : [];
+  const attachments = (message) ? [
+    ...message.attachments
+      .filter((attachment) => attachment.isImage)
+      .map((attachment) => resizedProxyUrl(attachment.proxyUrl, attachment.width, attachment.height)),
+    ...media.map((embed) => resizedProxyUrl(embed.thumbnail!.proxyUrl, embed.thumbnail!.width, embed.thumbnail!.height)),
+  ].filter((url): url is string => !!url).slice(0, MAX_ATTACHMENTS) : [];
   const components = (message) ? quoteComponents(message) : [];
   if (!content && !embed && !attachments.length && !components.length) {
     return displayReply(context, {description: translate('fun.quote.nothing_to_quote')});
   }
 
-  const reply = (message) ? quoteReply(context, translator, message) : null;
+  const reply = (message) ? await quoteReply(context, translator, message) : null;
   const time = createTimestampMomentFromContext((message) ? message.createdAtUnix : Date.now(), {guildId: context.guildId, userId: context.userId});
   const options: RestOptions.MediaICreateQuote = {
     attachments,
@@ -112,6 +117,7 @@ function quoteAuthor(author: Structures.Member | Structures.User, details: boole
     bot: author.bot,
     color: (member && member.color) ? `#${member.color.toString(16).padStart(6, '0')}` : null,
     name: author.name,
+    verified: author.bot && author.hasVerifiedBot,
   };
   if (!details) {
     return options;
@@ -143,25 +149,42 @@ function quoteAuthor(author: Structures.Member | Structures.User, details: boole
 
 // the line above a reply: who it replied to and the first line of what they said (`Click to see attachment` with only
 // files), or that it's gone
-function quoteReply(
+async function quoteReply(
   context: Command.Context | Interaction.InteractionContext,
   translator: Translator,
   message: Structures.Message,
-): RestOptions.MediaICreateQuote['reply'] {
+): Promise<RestOptions.MediaICreateQuote['reply']> {
   const reference = message.messageReference;
   if (message.type !== MessageTypes.REPLY || !reference || !reference.messageId) {
     return null;
   }
-  const replied = message.referencedMessage || reference.message || null;
+  let replied = message.referencedMessage || reference.message || null;
   if (!replied) {
-    return {content: translator.translate('fun.quote.reply_deleted'), deleted: true};
+    // discord only nests the replied to message one deep, a quoted reply's own one is fetched
+    try {
+      replied = await context.rest.fetchMessage(reference.channelId, reference.messageId);
+    } catch(error) {
+      if (isUnknownMessageError(error)) {
+        return {content: translator.translate('fun.quote.reply_deleted'), deleted: true};
+      }
+      // the bot can't read it (no permissions, a user install), no reply line then
+      return null;
+    }
   }
   const author = replied.member || findMember(context, replied.author.id) || replied.author;
-  const content = (replied.content || '').split('\n')[0].slice(0, MAX_REPLY_LENGTH);
+  // a posted image link is only its image to discord, `Click to see attachment` too
+  const repliedContent = replied.content || '';
+  const linkOnly = mediaEmbeds(replied).some((embed) => embed.url === repliedContent.trim());
+  const content = (linkOnly) ? '' : repliedContent.split('\n')[0].slice(0, MAX_REPLY_LENGTH);
   if (!content && (replied.attachments.length || replied.embeds.length)) {
     return {attachment: true, author: quoteAuthor(author, false), content: translator.translate('fun.quote.click_to_see_attachment')};
   }
   return {author: quoteAuthor(author, false), content};
+}
+
+
+function isUnknownMessageError(error: any): boolean {
+  return !!error && !!error.response && (error.response.statusCode === 404 || error.code === ERROR_CODE_UNKNOWN_MESSAGE);
 }
 
 
@@ -189,7 +212,7 @@ async function findLatestMessageFrom(
 
 // its first embed, what discord shows of it (the images through discord's media proxy, the api only takes those)
 function quoteEmbed(message: Structures.Message): RestOptions.MediaICreateQuote['embed'] {
-  const embed = message.embeds.first();
+  const embed = message.embeds.find((embed) => !isMediaEmbed(embed));
   if (!embed) {
     return null;
   }
@@ -205,6 +228,17 @@ function quoteEmbed(message: Structures.Message): RestOptions.MediaICreateQuote[
   };
   const empty = !payload.author && !payload.description && !payload.fields.length && !payload.footer && !payload.imageUrl && !payload.thumbnailUrl && !payload.title;
   return (empty) ? null : payload;
+}
+
+
+// a posted image/gif link's embed, discord draws its image like an attachment instead of an embed
+function isMediaEmbed(embed: Structures.MessageEmbed): boolean {
+  return (embed.type === MessageEmbedTypes.IMAGE || embed.type === MessageEmbedTypes.GIFV) && !!embed.thumbnail && !!embed.thumbnail.proxyUrl;
+}
+
+
+function mediaEmbeds(message: Structures.Message): Array<Structures.MessageEmbed> {
+  return message.embeds.filter(isMediaEmbed);
 }
 
 

@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GuildFeatures, StatusEmojis } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -25,8 +25,6 @@ export default class MusicQueueCommand extends BaseCommand {
           `${COMMAND_NAME} -user cake#1`,
         ],
         category: CommandCategories.MUSIC,
-        // premium users, premium servers and servers given the feature (`owner guild features add`)
-        premiumServer: GuildFeatures.MUSIC_ACCESS,
         id: Formatter.Commands.MusicQueue.COMMAND_ID,
         usage: '(-from <user:id|mention|name>)',
       },

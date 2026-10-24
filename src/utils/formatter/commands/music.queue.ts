@@ -14,6 +14,7 @@ import { Translator, getCachedTranslator, getTranslator } from '../../i18n';
 import { createMusicControls, findCommandInvokerId } from './music.controls';
 import {
   MUSIC_QUEUED_AT_AFTER,
+  musicNothingPlayingText,
   musicItemBatchText,
   musicItemPosition,
   musicItemQueuedAt,
@@ -250,7 +251,7 @@ export async function rerenderMusicQueue(context: ComponentContext, page?: strin
   // invoker stays
   const queuePage = await createMusicQueuePage(context, translator, guildId, parseInt(page || '1') || 1, fromId);
   const invokerId = await findCommandInvokerId(context, message);
-  const display = queuePage ? queuePage.display : {description: translator.translate('music.nothing_playing')};
+  const display = queuePage ? queuePage.display : {description: musicNothingPlayingText(translator.translate, guildId)};
   return displayReply(context, display, {invokerId: invokerId || undefined});
 }
 
@@ -262,7 +263,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   const fromId = (args.from) ? args.from.id : null;
   const first = (guildId) ? await createMusicQueuePage(context, translator, guildId, 1, fromId) : null;
   if (!guildId || !first) {
-    return displayReply(context, {description: translator.translate('music.nothing_playing')});
+    return displayReply(context, {description: musicNothingPlayingText(translator.translate, guildId)});
   }
 
   // each page is fetched when it's shown (the first one just was), a page turn or refresh shows the queue as it is now
@@ -273,7 +274,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
       const queuePage = (pending && pending.page === pageNumber) ? pending : await createMusicQueuePage(context, translator, guildId, pageNumber, fromId);
       pending = null;
       if (!queuePage) {
-        return {display: {description: translator.translate('music.nothing_playing')}};
+        return {display: {description: musicNothingPlayingText(translator.translate, guildId)}};
       }
       paginator.page = queuePage.page;
       paginator.pageLimit = queuePage.pageLimit;

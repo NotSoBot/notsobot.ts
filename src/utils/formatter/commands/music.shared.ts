@@ -5,11 +5,13 @@ import { Markup } from 'detritus-client/lib/utils';
 import { RestResponsesRaw } from '../../../api/types';
 import { MusicLoopModes } from '../../../constants';
 import { DisplayPayload, displayDetails, displayDetailsLine, displayLinks, formatTime } from '../../../utils';
+import VoiceNode from '../../../voicenode';
 import { Translator } from '../../i18n';
 
 
-// the api's queue limit, the most positions a range can name
-const MAX_QUEUE_POSITION = 500;
+// the api's queue limit for premium servers (100 otherwise), the most positions a range can name
+export const MUSIC_QUEUE_PREMIUM_LIMIT = 1000;
+const MAX_QUEUE_POSITION = MUSIC_QUEUE_PREMIUM_LIMIT;
 
 // removing other people's tracks and the queue's settings (taking turns): manage server, or a role with "notsomusic" in
 // its name (anyone can remove what they queued)
@@ -26,6 +28,102 @@ export function canManageMusic(member?: null | Structures.Member): boolean {
     }
   }
   return false;
+}
+
+export enum MusicVoteKinds {
+  PAUSE = 'pause',
+  RESUME = 'resume',
+  SKIP = 'skip',
+}
+
+// votes for what's playing in each guild (`{kind}.{guildId}`), a new track (another item) starts them over
+const musicVotes = new Map<string, {itemId: string, userIds: Set<string>}>();
+
+// who's listening in `channel` (ours, `member`'s in it): not bots, not deafened, `member` always
+function musicListeners(member: Structures.Member, channel: Structures.Channel): Set<string> {
+  const listeners = new Set<string>([member.id]);
+  for (let [, state] of channel.voiceStates) {
+    if (state.userId === member.client.userId || (state.member && state.member.bot) || state.deaf || state.selfDeaf) {
+      continue;
+    }
+    listeners.add(state.userId);
+  }
+  return listeners;
+}
+
+// a pause or resume that went through starts the other's votes over (they were for before it)
+export function clearMusicVotes(kind: MusicVoteKinds, guildId: string) {
+  musicVotes.delete(`${kind}.${guildId}`);
+}
+
+// with the server's vote on (`vote`, its `vote_skip`, `vote_pause` or `vote_resume`), only whoever queued `item` (what's playing),
+// manage server or a notsomusic role do it right away, or anyone when half of who's listening is just them (two people
+// at most). Off, anyone can
+export function canControlMusicItem(
+  member: Structures.Member,
+  channel: Structures.Channel,
+  item: RestResponsesRaw.GuildMusicQueueItem,
+  vote: boolean,
+): boolean {
+  if (!vote || item.user_id === member.id || canManageMusic(member)) {
+    return true;
+  }
+  return Math.ceil(musicListeners(member, channel).size / 2) <= 1;
+}
+
+// skipping, pausing or resuming `item` (what's playing) from `channel` (ours, they're in it): right away when they can control it
+// (`canControlMusicItem`), otherwise a vote until half of who's listening voted. Votes from people who left the channel
+// stop counting, `done` clears them
+export function musicVote(
+  kind: MusicVoteKinds,
+  member: Structures.Member,
+  channel: Structures.Channel,
+  item: RestResponsesRaw.GuildMusicQueueItem,
+  vote: boolean,
+): {done: boolean, needed: number, votes: number} {
+  const key = `${kind}.${member.guildId}`;
+  const listeners = musicListeners(member, channel);
+  const needed = Math.ceil(listeners.size / 2);
+  if (canControlMusicItem(member, channel, item, vote)) {
+    musicVotes.delete(key);
+    return {done: true, needed, votes: needed};
+  }
+
+  let entry = musicVotes.get(key);
+  if (!entry || entry.itemId !== item.id) {
+    entry = {itemId: item.id, userIds: new Set()};
+    musicVotes.set(key, entry);
+  }
+  entry.userIds.add(member.id);
+  const votes = Array.from(entry.userIds).filter((userId) => listeners.has(userId)).length;
+  if (needed <= votes) {
+    musicVotes.delete(key);
+    return {done: true, needed, votes};
+  }
+  return {done: false, needed, votes};
+}
+
+// 24/7 keeping us in voice: on (it is by default) on a premium server, like the api's `music_stays`
+export function musicStays(music: null | Pick<RestResponsesRaw.FetchGuildMusic, 'premium' | 'stay'>): boolean {
+  return !!music && music.premium && music.stay;
+}
+
+// under `music play`'s reply when we joined a 24/7 server: we'll stay, and how to let us leave
+export function musicStayNote(translate: Translator['translate']): string {
+  return `-# ${translate('music_stay.stays')} · ${translate('music_stay.off_hint')}`;
+}
+
+// `music queue`/`music info` (and the controls) with nothing on: 24/7 keeping us in voice says where we are and how to
+// let us leave, otherwise nothing's playing
+export function musicNothingPlayingText(translate: Translator['translate'], guildId: null | string | undefined): string {
+  const guild = (guildId) ? VoiceNode.guilds.get(guildId) : undefined;
+  if (guild && guild.idle && guild.channelId) {
+    return displayDetails([
+      translate('music_stay.idle', {channel: `<#${guild.channelId}>`}),
+      `-# ${translate('music_stay.off_hint')}`,
+    ]);
+  }
+  return translate('music.nothing_playing');
 }
 
 // `2`, `1 3 5`, `1,3,5` or ranges like `5-20`, anything that isn't a positive number (or a range of them) is left out
@@ -49,8 +147,11 @@ export function musicQueuePositions(value: string): Array<number> {
   return Array.from(positions);
 }
 
-// a link's file name, from its path (the converted file is always `music.ogg`), its host when the path has none
-export function musicItemFileName(item: RestResponsesRaw.GuildMusicQueueItem): string {
+// a link's file name, from its path (the converted file is always `music.weba`), its host when the path has none
+// queue items and history entries
+type MusicItemLike = Pick<RestResponsesRaw.GuildMusicQueueItem, 'source' | 'track' | 'url'>;
+
+export function musicItemFileName(item: MusicItemLike): string {
   try {
     const url = new URL(item.url);
     const segment = url.pathname.split('/').filter(Boolean).pop();
@@ -69,7 +170,7 @@ export function musicItemFileName(item: RestResponsesRaw.GuildMusicQueueItem): s
 }
 
 // `artist - title`, or a link's file name in a codestring (no markdown from it) linking to it
-export function musicItemTitle(item: RestResponsesRaw.GuildMusicQueueItem): string {
+export function musicItemTitle(item: MusicItemLike): string {
   if (item.source === 'url' || !item.track) {
     return Markup.url(Markup.codestring(musicItemFileName(item)), `<${item.url}>`);
   }
@@ -78,8 +179,8 @@ export function musicItemTitle(item: RestResponsesRaw.GuildMusicQueueItem): stri
 }
 
 // a response's title: `artist - title` linking to its service page, a link's file name (its converted title is always
-// `music.ogg`) linking to it
-export function musicItemDisplayTitle(item: RestResponsesRaw.GuildMusicQueueItem): Partial<DisplayPayload> {
+// `music.weba`) linking to it
+export function musicItemDisplayTitle(item: MusicItemLike): Partial<DisplayPayload> {
   const url = (/^https?:\/\//.test(item.url)) ? item.url : null;
   if (item.source === 'url' || !item.track) {
     return {title: Markup.codestring(musicItemFileName(item)), url};

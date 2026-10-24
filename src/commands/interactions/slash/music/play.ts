@@ -1,7 +1,7 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { GuildFeatures } from '../../../../constants';
+
 import { DefaultParameters, Formatter, I18n, displayReply } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -16,7 +16,6 @@ export class MusicPlayCommand extends BaseInteractionCommandOption {
   description = 'Search for a song to pick from, or play a track link or a file';
   metadata = {
     id: Formatter.Commands.MusicPlay.COMMAND_ID,
-    premiumServer: GuildFeatures.MUSIC_ACCESS,
   };
   name = 'play';
 

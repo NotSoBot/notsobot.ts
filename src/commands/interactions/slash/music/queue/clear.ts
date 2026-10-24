@@ -1,7 +1,7 @@
 import { Interaction, Structures } from 'detritus-client';
 import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
-import { GuildFeatures } from '../../../../../constants';
+
 import { Formatter } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -17,7 +17,6 @@ export class MusicQueueClearCommand extends BaseInteractionCommandOption {
   description = 'Clear the queue, only what a user queued, or only a playlist';
   metadata = {
     id: Formatter.Commands.MusicQueueClear.COMMAND_ID,
-    premiumServer: GuildFeatures.MUSIC_ACCESS,
   };
   name = 'clear';
 

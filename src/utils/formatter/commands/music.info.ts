@@ -4,6 +4,7 @@ import { Paginator, displayReply } from '../../../utils';
 import { TranslationKey, getTranslator } from '../../i18n';
 
 import { MusicPageOptions, createMusicPage } from './music.controls';
+import { musicNothingPlayingText } from './music.shared';
 
 
 export const COMMAND_ID = 'music.info';
@@ -41,7 +42,7 @@ export async function createMusicPaginator(
       let page = (first && first.page === pageNumber) ? first : await createMusicPage(context, translator, guildId, {...pageOptions, page: pageNumber});
       first = null;
       if (!page) {
-        return {display: {description: translator.translate('music.nothing_playing')}};
+        return {display: {description: musicNothingPlayingText(translator.translate, guildId)}};
       }
       paginator.page = page.page;
       paginator.pageLimit = page.pageLimit;
@@ -61,7 +62,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   const guildId = context.guildId;
   const paginator = (guildId) ? await createMusicPaginator(context, guildId) : null;
   if (!paginator) {
-    return displayReply(context, {description: translate('music.nothing_playing')});
+    return displayReply(context, {description: musicNothingPlayingText(translate, guildId)});
   }
   return await paginator.start();
 }

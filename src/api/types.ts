@@ -290,6 +290,8 @@ export namespace RestOptions {
 
   export interface PutGuildMusicSession {
     channelId: string,
+    // the node's stacked live effects, kept for a restart
+    effects?: Array<string>,
     // paused too long, we left (`paused` and `position` are where it stopped), joining again clears it
     held?: boolean,
     nodeId?: null | string,
@@ -306,6 +308,8 @@ export namespace RestOptions {
 
   export interface EditGuildMusicSession {
     channelId?: string,
+    // the node's stacked live effects, kept for a restart
+    effects?: Array<string>,
     nodeId?: null | string,
     paused?: boolean,
     // milliseconds, where the track is right now
@@ -333,6 +337,24 @@ export namespace RestOptions {
     // taking turns between who queued (a server setting, it stays)
     fairQueue?: boolean,
     loop?: MusicLoopModes,
+    // the longest track that can be queued (seconds), 0 for no limit
+    maxDuration?: number,
+    // no track queued twice at once
+    noDuplicates?: boolean,
+    // 24/7, staying in voice (on by default, it only does anything with premium)
+    stay?: boolean,
+    // pausing someone else's track is a vote
+    votePause?: boolean,
+    // resuming someone else's track is a vote
+    voteResume?: boolean,
+    // skipping someone else's track is a vote
+    voteSkip?: boolean,
+  }
+
+  export interface FetchGuildMusicHistory {
+    // older than this entry, for the next page
+    before?: string,
+    limit?: number,
   }
 
   export interface EditGuildMusicQueueItem {
@@ -778,6 +800,8 @@ export namespace RestOptions {
     // their top role's icon, an image or a unicode emoji
     roleIconEmoji?: null | string,
     roleIconUrl?: null | string,
+    // a verified app, the checkmark in its APP tag
+    verified?: boolean,
   }
 
   export interface MediaICreateTombstone {
@@ -1046,6 +1070,10 @@ export namespace RestOptions {
     hue?: number,
     offset?: number,
     saturation?: number,
+  }
+
+  export interface MediaIVManipulationHueShiftYIQ extends MediaBaseOptions {
+    hue?: number,
   }
 
   export interface MediaIVManipulationHueShiftHSV extends MediaBaseOptions {
@@ -2122,6 +2150,8 @@ export namespace RestResponsesRaw {
   // a server the bot is playing music in, kept by the api so a restart (of the bot and its node) can carry on
   export interface MusicSession {
     channel_id: string,
+    // the node's stacked live effects, put back on when a restart rejoins
+    effects: Array<string>,
     // the playing track would have ended by now
     finished: boolean,
     guild_id: string,
@@ -2131,6 +2161,8 @@ export namespace RestResponsesRaw {
     paused: boolean,
     // milliseconds, where the track is about now
     position: number,
+    // 24/7, rejoined even with nobody listening
+    stay: boolean,
   }
 
   export interface FetchMusicSessions {
@@ -2172,7 +2204,44 @@ export namespace RestResponsesRaw {
     held_position: null | number,
     // back to off when the bot leaves or the queue runs out
     loop: MusicLoopModes,
+    // queue rules: the longest track that can be queued (seconds, null for no limit), no track queued twice at once
+    max_duration: null | number,
+    no_duplicates: boolean,
+    // music's premium perks (24/7, the bigger `queue_limit`): a premium server, or `MUSIC_ACCESS`
+    premium: boolean,
     queue: Array<GuildMusicQueueItem>,
+    queue_limit: number,
+    // 24/7 (on by default), it only stays with `premium`
+    stay: boolean,
+    // pausing someone else's track is a vote
+    vote_pause: boolean,
+    // resuming someone else's track is a vote
+    vote_resume: boolean,
+    // skipping someone else's track is a vote
+    vote_skip: boolean,
+  }
+
+  // a track the server's music played, a copy of its queue item's (`track.url` is always null, it expired)
+  export interface GuildMusicHistoryItem {
+    guild_id: string,
+    id: string,
+    // when the last of its `plays` started (unix milliseconds), the same as `played` for one play
+    last_played: number,
+    // when it started playing (unix milliseconds)
+    played: number,
+    // how many times it played in a row (the track loop), it looped for about this many times its duration
+    plays: number,
+    queue_item_id: string,
+    source: 'opus' | 'url',
+    source_id: null | string,
+    track: GuildMusicQueueItem['track'],
+    url: string,
+    user_id: string,
+  }
+
+  export interface FetchGuildMusicHistory {
+    // newest first
+    items: Array<GuildMusicHistoryItem>,
   }
 
   export type EditGuildMusic = FetchGuildMusic;
@@ -2182,8 +2251,10 @@ export namespace RestResponsesRaw {
   export interface PutGuildMusicQueueBatch {
     batch_id: string,
     items: Array<GuildMusicQueueItem>,
-    // what left `skipped` out: the server's queue being full, or the user having queued as many as they can
-    limit: 'server' | 'user' | null,
+    // `server` when the queue being full left some of `skipped` out
+    limit: 'server' | null,
+    // left out by the server's queue rules (too long, already queued)
+    ruled_out: number,
     skipped: number,
   }
   export type EditGuildMusicQueueItem = GuildMusicQueueItem;

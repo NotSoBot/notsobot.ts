@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GuildFeatures, StatusEmojis } from '../../../constants';
+import { CommandCategories, StatusEmojis } from '../../../constants';
 import { Formatter, I18n, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -8,7 +8,8 @@ import { BaseCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'music fair';
 
-const VALUES: Record<string, boolean> = Object.freeze({
+// on/off for the music settings, `music vote skip` and `music rules duplicates` take them too
+export const ON_OFF_VALUES: Record<string, boolean> = Object.freeze({
   disable: false,
   disabled: false,
   false: false,
@@ -20,6 +21,15 @@ const VALUES: Record<string, boolean> = Object.freeze({
   true: true,
   yes: true,
 });
+
+// null when it's empty (show the setting), undefined when it's neither
+export function parseOnOff(value: string): boolean | null | undefined {
+  const text = value.trim().toLowerCase();
+  if (!text) {
+    return null;
+  }
+  return (text in ON_OFF_VALUES) ? ON_OFF_VALUES[text] : undefined;
+}
 
 export default class MusicFairCommand extends BaseCommand {
   constructor(client: CommandClient) {
@@ -36,18 +46,10 @@ export default class MusicFairCommand extends BaseCommand {
           `${COMMAND_NAME} off`,
         ],
         category: CommandCategories.MUSIC,
-        // premium users, premium servers and servers given the feature (`owner guild features add`)
-        premiumServer: GuildFeatures.MUSIC_ACCESS,
         id: Formatter.Commands.MusicFair.COMMAND_ID,
         usage: '(on|off)',
       },
-      type: (value: string) => {
-        const text = value.trim().toLowerCase();
-        if (!text) {
-          return null;
-        }
-        return (text in VALUES) ? VALUES[text] : undefined;
-      },
+      type: parseOnOff,
     });
   }
 

@@ -563,6 +563,18 @@ async function startRound(game: Game): Promise<void> {
     const { translate } = await getTranslator(game.context);
     return failGame(game, translate('fun.game_imagine.image_failed'), game.referenceError || new Error('No image'));
   }
+  // people left while it waited on the image, back to the lobby for what's left of its time (at least a minute), a
+  // whole new lobby could go past the 15 minutes a slash command's token can edit its response for
+  if (game.players.size < MIN_PLAYERS) {
+    game.startRequested = false;
+    game.deadline = Math.max(game.deadline, Date.now() + 60 * 1000);
+    game.timer.start(game.deadline - Date.now(), async () => {
+      const { translate } = await getTranslator(game.context);
+      await endGame(game, {description: translate('fun.game_imagine.lobby_expired')});
+    });
+    await refreshGame(game);
+    return;
+  }
   game.phase = GamePhases.ROUND;
   game.deadline = Date.now() + ROUND_TIME;
   game.timer.stop();
@@ -640,9 +652,14 @@ async function renderPlayerMessage(ctx: ComponentContext, payload: DisplayPayloa
 }
 
 
-async function respondEphemeral(ctx: ComponentContext, description: string) {
-  const message = await renderPlayerMessage(ctx, {description}, true);
-  return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, message);
+// plain text like the music controls' replies, detritus keys a click's response listener by the clicked message, so a
+// reply with components (a components v2 container) took over the game message's buttons and the next click did nothing
+function respondEphemeral(ctx: ComponentContext, content: string) {
+  return ctx.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {
+    allowedMentions: {parse: []},
+    content,
+    flags: MessageFlags.EPHEMERAL,
+  });
 }
 
 

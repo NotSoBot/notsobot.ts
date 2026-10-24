@@ -8,20 +8,11 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
-import { MediaIVFlagArmeniaCommand } from './armenia';
-import { MediaIVFlagAzerbaijanCommand } from './azerbaijan';
-import { MediaIVFlagChinaCommand } from './china';
-import { MediaIVFlagCyprusCommand } from './cyprus';
-import { MediaIVFlagGeorgiaCommand } from './georgia';
-import { MediaIVFlagIndiaCommand } from './india';
-import { MediaIVFlagIranCommand } from './iran';
-import { MediaIVOverlayIsraelCommand } from './israel';
-import { MediaIVFlagJapanCommand } from './japan';
-import { MediaIVFlagKazakhstanCommand } from './kazakhstan';
-import { MediaIVOverlayNorthKoreaCommand } from './northkorea';
-import { MediaIVFlagPalestineCommand } from './palestine';
-import { MediaIVFlagSyriaCommand } from './syria';
-import { MediaIVFlagTurkeyCommand } from './turkey';
+import { MediaIVFlagAsiaCentralGroupCommand } from './central';
+import { MediaIVFlagAsiaEastGroupCommand } from './east';
+import { MediaIVFlagAsiaMiddleEastGroupCommand } from './middleeast';
+import { MediaIVFlagAsiaSouthGroupCommand } from './south';
+import { MediaIVFlagAsiaSoutheastGroupCommand } from './southeast';
 
 
 export default class MediaIVFlagAsiaGroupCommand extends BaseSlashCommand {
@@ -43,20 +34,11 @@ export default class MediaIVFlagAsiaGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
-        new MediaIVFlagArmeniaCommand(),
-        new MediaIVFlagAzerbaijanCommand(),
-        new MediaIVFlagChinaCommand(),
-        new MediaIVFlagCyprusCommand(),
-        new MediaIVFlagGeorgiaCommand(),
-        new MediaIVFlagIndiaCommand(),
-        new MediaIVFlagIranCommand(),
-        new MediaIVOverlayIsraelCommand(),
-        new MediaIVFlagJapanCommand(),
-        new MediaIVFlagKazakhstanCommand(),
-        new MediaIVOverlayNorthKoreaCommand(),
-        new MediaIVFlagPalestineCommand(),
-        new MediaIVFlagSyriaCommand(),
-        new MediaIVFlagTurkeyCommand(),
+        new MediaIVFlagAsiaCentralGroupCommand(),
+        new MediaIVFlagAsiaEastGroupCommand(),
+        new MediaIVFlagAsiaMiddleEastGroupCommand(),
+        new MediaIVFlagAsiaSouthGroupCommand(),
+        new MediaIVFlagAsiaSoutheastGroupCommand(),
       ],
     });
   }

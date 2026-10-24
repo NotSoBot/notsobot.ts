@@ -14,6 +14,8 @@ export class FunGameImagineCommand extends BaseOwnerCommandOption {
   };
   name = 'imagine';
   nameLocalizations = I18n.localizations('commands.fun.game.imagine.name');
+  // everyone in the channel has to see the lobby to join it
+  ignoresEphemeralSetting = true;
 
   async run(context: Interaction.InteractionContext, args: Formatter.Commands.FunGameImagine.CommandArgs) {
     return Formatter.Commands.FunGameImagine.createMessage(context, args);

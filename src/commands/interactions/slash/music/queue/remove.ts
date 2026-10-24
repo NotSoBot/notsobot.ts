@@ -1,6 +1,5 @@
 import { Interaction } from 'detritus-client';
 
-import { GuildFeatures } from '../../../../../constants';
 import { Formatter } from '../../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../../basecommand';
@@ -10,7 +9,6 @@ export class MusicQueueRemoveCommand extends BaseInteractionCommandOption {
   description = 'Remove songs from the queue by their positions';
   metadata = {
     id: Formatter.Commands.MusicQueueRemove.COMMAND_ID,
-    premiumServer: GuildFeatures.MUSIC_ACCESS,
   };
   name = 'remove';
 

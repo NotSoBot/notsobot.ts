@@ -1,6 +1,5 @@
 import { Interaction } from 'detritus-client';
 
-import { GuildFeatures } from '../../../../constants';
 import { Formatter } from '../../../../utils';
 
 import { BaseInteractionCommandOption } from '../../basecommand';
@@ -10,7 +9,6 @@ export class MusicFairCommand extends BaseInteractionCommandOption {
   description = 'Make the queue take turns between who queued';
   metadata = {
     id: Formatter.Commands.MusicFair.COMMAND_ID,
-    premiumServer: GuildFeatures.MUSIC_ACCESS,
   };
   name = 'fair';
 

@@ -6,6 +6,8 @@ import { displayDetailsLine, displayReply, formatTime } from '../../../utils';
 import VoiceNode from '../../../voicenode';
 import { getTranslator } from '../../i18n';
 
+import { MusicVoteKinds, clearMusicVotes, musicItemTitle, musicVote } from './music.shared';
+
 
 export const COMMAND_ID = 'music.resume';
 
@@ -58,10 +60,30 @@ export async function createMessage(context: Command.Context | Interaction.Inter
     });
   }
 
+  // playing: from our channel, with the server's vote resume on someone else's paused track is a vote (`musicVote`)
+  // unless you manage the music (or it's only two of you listening), so one person can't undo a pause everyone voted for
+  const guild = (context.guildId) ? VoiceNode.guilds.get(context.guildId) : undefined;
+  if (guild && guild.channelId && VoiceNode.isPlaying(context.guildId!)) {
+    if (!member || !channel || channel.id !== guild.channelId) {
+      return displayReply(context, {description: translate('music_controls.join_my_channel', {channel: `<#${guild.channelId}>`})});
+    }
+    if (guild.paused) {
+      const music = await fetchGuildMusic(context, context.guildId!);
+      if (music.current) {
+        const vote = musicVote(MusicVoteKinds.RESUME, member, channel, music.current, music.vote_resume);
+        if (!vote.done) {
+          return displayReply(context, {
+            description: translate('music_resume.voted', {title: musicItemTitle(music.current), votes: `${vote.votes}/${vote.needed}`}),
+          });
+        }
+      }
+    }
+  }
   const player = (context.guildId) ? await VoiceNode.setPaused(context.guildId, false) : null;
   if (!player) {
     return displayReply(context, {description: translate('music.nothing_playing')});
   }
+  clearMusicVotes(MusicVoteKinds.PAUSE, context.guildId!);
   return displayReply(context, {
     description: translate('music_resume.resumed_at', {position: Markup.codestring(formatTime(player.position))}),
   });

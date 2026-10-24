@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GuildFeatures } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { Formatter } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -20,8 +20,6 @@ export default class MusicPauseCommand extends BaseCommand {
           COMMAND_NAME,
         ],
         category: CommandCategories.MUSIC,
-        // premium users, premium servers and servers given the feature (`owner guild features add`)
-        premiumServer: GuildFeatures.MUSIC_ACCESS,
         id: Formatter.Commands.MusicPause.COMMAND_ID,
         usage: '',
       },

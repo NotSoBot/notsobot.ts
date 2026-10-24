@@ -88,6 +88,8 @@ async function replyMediaUrlNotFound(
 export class BaseInteractionCommand extends Interaction.InteractionCommand {
   _commandIds?: Collections.BaseSet<string>;
   blockedCommandShouldStillExecute = true;
+  // the response is for everyone in the channel (like a game), so the user's ephemeral response setting doesn't apply
+  ignoresEphemeralSetting = false;
   // commands that answer with a modal can't be deferred first (a deferred interaction can't open a modal)
   respondsWithModal = false;
   error = 'Command';
@@ -119,7 +121,7 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
       });
     }
 
-    if (UserSettingsStore.has(context.userId)) {
+    if (!invoker.ignoresEphemeralSetting && UserSettingsStore.has(context.userId)) {
       const settings = UserSettingsStore.get(context.userId)!;
       switch (settings.application_command_response_type) {
         case UserSettingsApplicationCommandResponseTypes.EPHEMERAL: {
@@ -147,7 +149,8 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
     // interaction) never settled the promise and left the command hanging forever
     return (async () => {
       const respondsWithModal = !!(context.invoker as any).respondsWithModal || !!(context.command as any).respondsWithModal;
-      if (!context.responded && !respondsWithModal && UserSettingsStore.has(context.userId)) {
+      const ignoresEphemeralSetting = !!(context.invoker as any).ignoresEphemeralSetting;
+      if (!context.responded && !respondsWithModal && !ignoresEphemeralSetting && UserSettingsStore.has(context.userId)) {
         const settings = UserSettingsStore.get(context.userId)!;
         switch (settings.application_command_response_type) {
           case UserSettingsApplicationCommandResponseTypes.EPHEMERAL: {
@@ -333,6 +336,8 @@ export class BaseInteractionCommand extends Interaction.InteractionCommand {
 export class BaseInteractionCommandOption extends Interaction.InteractionCommandOption {
   blockedCommandShouldStillExecute = true;
   error = 'Slash';
+  // see `BaseInteractionCommand.ignoresEphemeralSetting`
+  ignoresEphemeralSetting = false;
   triggerLoadingAsEphemeral = false;
   type = ApplicationCommandOptionTypes.SUB_COMMAND;
 

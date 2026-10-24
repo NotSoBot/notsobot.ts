@@ -1,6 +1,6 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GuildFeatures } from '../../../constants';
+import { CommandCategories } from '../../../constants';
 import { DefaultParameters, Formatter, I18n, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
@@ -25,8 +25,6 @@ export default class MusicPlayCommand extends BaseCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3`,
         ],
         category: CommandCategories.MUSIC,
-        // premium users, premium servers and servers given the feature (`owner guild features add`)
-        premiumServer: GuildFeatures.MUSIC_ACCESS,
         id: Formatter.Commands.MusicPlay.COMMAND_ID,
         usage: '?<query or url>',
       },
