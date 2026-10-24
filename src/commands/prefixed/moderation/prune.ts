@@ -454,6 +454,7 @@ export async function createPruneMessage(
       });
       components.createButton({
         label: translate('common.continue'),
+        style: MessageComponentButtonStyles.DANGER,
         run: async (ctx: ComponentContext) => {
           if (responded || !timeout.hasStarted || ctx.userId !== context.userId) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -481,7 +482,7 @@ export async function createPruneMessage(
 
       components.createButton({
         label: translate('common.cancel'),
-        style: MessageComponentButtonStyles.DANGER,
+        style: MessageComponentButtonStyles.SECONDARY,
         run: async (ctx: ComponentContext) => {
           if (responded || !timeout.hasStarted || ctx.userId !== context.userId) {
             return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);

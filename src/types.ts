@@ -28,6 +28,15 @@ export namespace RedisPayloads {
     
   }
 
+  // the dashboard's music controls, for whichever cluster is playing in `guild_id`. `created` is unix ms, events are
+  // replayed after reconnecting so old ones are ignored
+  export interface MusicControl {
+    action: 'leave' | 'pause' | 'resume' | 'skip',
+    created: number,
+    guild_id: string,
+    user_id: string,
+  }
+
   export type ReminderCreate = RestResponsesRaw.Reminder;
   export type ReminderDelete = RestResponsesRaw.Reminder;
   export type ReminderUpdate = RestResponsesRaw.Reminder;

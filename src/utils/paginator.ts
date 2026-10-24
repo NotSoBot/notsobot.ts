@@ -10,14 +10,22 @@ import {
   MessageComponentTypes,
   MessageFlags,
 } from 'detritus-client/lib/constants';
-import { Components, ComponentContainer, ComponentContext } from 'detritus-client/lib/utils';
+import { Components, ComponentContainer, ComponentContext, ComponentSeparator } from 'detritus-client/lib/utils';
 import { RequestTypes } from 'detritus-client-rest';
 import { Timers } from 'detritus-utils';
 
 import PaginatorsStore from '../stores/paginators';
 
 import { getTranslator } from './i18n';
-import { DisplayPayload, createDisplayLayout, displayPayloadFromEmbed, editOrReply, renderDisplay } from './tools';
+import {
+  DISPLAY_BLOCKS_SEPARATOR_ID,
+  DISPLAY_FOOTER_SECTION_ID,
+  DisplayPayload,
+  createDisplayLayout,
+  displayPayloadFromEmbed,
+  editOrReply,
+  renderDisplay,
+} from './tools';
 
 
 export const MAX_PAGE = Number.MAX_SAFE_INTEGER;
@@ -39,14 +47,16 @@ export interface PageButton {
   label?: string,
 }
 
+// workspace `paginator-icons/` has their svgs. go to page is a `#`, a random page is a dice (not shuffle arrows, they read
+// as shuffling a music queue)
 export const PageButtons: Record<PageButtonNames, PageButton> = Object.freeze({
-  [PageButtonNames.CUSTOM]: {emoji: '<:b_custom_message:1561508445637709954>'},
-  [PageButtonNames.NEXT]: {emoji: '<:b_next:1561508439027486832>'},
-  [PageButtonNames.NEXT_DOUBLE]: {emoji: '<:b_next_double:1561508440306618458>'},
-  [PageButtonNames.PREVIOUS]: {emoji: '<:b_previous:1561508443859452067>'},
-  [PageButtonNames.PREVIOUS_DOUBLE]: {emoji: '<:b_previous_double:1561508441644736552>'},
-  [PageButtonNames.SHUFFLE]: {emoji: '<:b_shuffle:1561508438012338236>'},
-  [PageButtonNames.STOP]: {emoji: '<:b_stop_delete:1561508447776940062>'},//{emoji: '<:b_stop:1561508442928054383>'},
+  [PageButtonNames.CUSTOM]: {emoji: '<:b_page_number:1563425337239404554>'},
+  [PageButtonNames.NEXT]: {emoji: '<:b_next:1563425509369577492>'},
+  [PageButtonNames.NEXT_DOUBLE]: {emoji: '<:b_next_double:1563425507993854083>'},
+  [PageButtonNames.PREVIOUS]: {emoji: '<:b_previous:1563425512288686231>'},
+  [PageButtonNames.PREVIOUS_DOUBLE]: {emoji: '<:b_previous_double:1563425511211012106>'},
+  [PageButtonNames.SHUFFLE]: {emoji: '<:b_random:1563425340846776341>'},
+  [PageButtonNames.STOP]: {emoji: '<:b_stop_delete:1563425514176118855>'},//{emoji: '<:b_stop:1563425515279351890>'},
 });
 
 export type PageObject = {
@@ -96,17 +106,33 @@ function addLayoutComponent(root: Components, component: any): void {
 
 
 // puts the page buttons at the bottom of the page's last container (like the reupload button on media)
-// the container is copied since a page's own container structure gets reused on every render
-function moveButtonsIntoContainer(root: Components, rows: Array<any>): void {
+// the container is copied since a page's own container structure gets reused on every render. A display with a footer
+// block (`footerButton`) gets the page's own rows above it and the page buttons right under it (the invoker stays last)
+function moveButtonsIntoContainer(root: Components, rows: Array<any>, pageRows: Array<any> = []): void {
   const children = root.components as Array<any>;
   const page = children.filter((component) => !rows.includes(component));
   const last = page[page.length - 1];
   if (!rows.length || !(last instanceof ComponentContainer)) {
     return;
   }
+  const inner: Array<any> = [...last.components];
+  const buttons = rows.filter((row) => !pageRows.includes(row));
+  const findId = (id: number) => inner.findIndex((component) => component.id === id);
+  // the page's own rows go above its blocks (under its content), or above the footer block's separator
+  const blocks = findId(DISPLAY_BLOCKS_SEPARATOR_ID);
+  const footerBefore = findId(DISPLAY_FOOTER_SECTION_ID);
+  const rowsAt = (0 <= blocks) ? blocks : (0 < footerBefore) ? footerBefore - 1 : inner.length;
+  inner.splice(rowsAt, 0, ...pageRows);
+  // the page buttons right under the footer block, at the bottom otherwise
+  const footer = findId(DISPLAY_FOOTER_SECTION_ID);
+  if (0 < footer) {
+    inner.splice(footer + 1, 0, ...(buttons.length) ? [new ComponentSeparator(), ...buttons] : []);
+  } else {
+    inner.push(...buttons);
+  }
   const container = new ComponentContainer({
     accent_color: last.accentColor,
-    components: [...last.components, ...rows],
+    components: inner,
     id: last.id,
     spoiler: last.spoiler,
   });
@@ -168,6 +194,8 @@ export class Paginator {
   _message: null | Structures.Message = null;
   // set once a components v2 page is sent, the message can't go back to content/embeds after
   isComponentsV2: boolean = false;
+  // the last rendered display page's own rows (like the music controls), kept with the page buttons when only they change
+  pageRows: Array<any> = [];
 
   buttons: Record<PageButtonNames, PageButton> = Object.assign({}, PageButtons);
   expires: number = 1 * (60 * 1000);
@@ -448,15 +476,24 @@ export class Paginator {
     const page = await this.resolvePage(pageNumber);
     const buttons = (withButtons) ? this.components : undefined;
     const buttonRows = (buttons) ? [...buttons.components] : [];
+    this.pageRows = [];
 
     if (typeof(page) === 'object' && !Array.isArray(page) && 'display' in page) {
       if (this.context instanceof Structures.Message) {
         throw new Error(`Page ${pageNumber} needs a command context to be displayed`);
       }
-      const message = await renderDisplay(this.context, {...page.display, components: buttons});
+      // the page's own rows go above the page buttons, their clicks are handled elsewhere (they have no `run`)
+      this.pageRows = (page.display.components) ? [...page.display.components.components] : [];
+      let components = buttons;
+      if (this.pageRows.length) {
+        components = components || new Components();
+        (components.components as Array<any>).unshift(...this.pageRows);
+        buttonRows.unshift(...this.pageRows);
+      }
+      const message = await renderDisplay(this.context, {...page.display, components, componentsInside: false});
       if (message.flags && (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2) {
         this.isComponentsV2 = true;
-        moveButtonsIntoContainer(message.components, buttonRows);
+        moveButtonsIntoContainer(message.components, buttonRows, this.pageRows);
       } else if (message.embed) {
         message.embeds = [message.embed];
         delete message.embed;
@@ -543,7 +580,14 @@ export class Paginator {
     if (context) {
       await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
     }
+    await this.renderPage(context);
+  }
 
+  // sends the current page again, for a page turn or when what the page shows changed (a responded to `context`)
+  async renderPage(context?: ComponentContext): Promise<void> {
+    if (this.stopped) {
+      return;
+    }
     // `attachments: []` drops the old page's files, otherwise discord keeps them and adds the new ones on every page turn
     const message = await this.getPageMessage(this.page);
     if (context) {
@@ -566,6 +610,12 @@ export class Paginator {
       }
       return message;
     }
+    // a display page's own rows stay, only the page buttons come and go
+    if (this.pageRows.length) {
+      const components = (withButtons) ? this.components : new Components();
+      (components.components as Array<any>).unshift(...this.pageRows);
+      return {allowedMentions: {parse: []}, components};
+    }
     return {allowedMentions: {parse: []}, components: (withButtons) ? this.components : []};
   }
 
@@ -583,6 +633,10 @@ export class Paginator {
   }
 
   async onButtonPress(context: ComponentContext): Promise<void> {
+    // a page's own buttons (like the music controls) are answered by the components listener
+    if (!(Object.values(PageButtonNames) as Array<string>).includes(context.customId)) {
+      return;
+    }
     if (this.stopped) {
       await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
       return;

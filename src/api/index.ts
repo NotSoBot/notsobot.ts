@@ -606,6 +606,11 @@ export async function fetchGuildMusic(context: RequestContext, guildId: string) 
 }
 
 
+export async function editGuildMusic(context: RequestContext, guildId: string, options: RestOptions.EditGuildMusic) {
+  return raw.editGuildMusic(context, guildId, options);
+}
+
+
 export async function deleteGuildMusic(context: RequestContext, guildId: string) {
   return raw.deleteGuildMusic(context, guildId);
 }
@@ -626,6 +631,11 @@ export async function editGuildMusicSession(context: RequestContext, guildId: st
 }
 
 
+export async function postGuildMusicNext(context: RequestContext, guildId: string, options: RestOptions.PostGuildMusicNext) {
+  return raw.postGuildMusicNext(context, guildId, options);
+}
+
+
 export async function deleteGuildMusicSession(context: RequestContext, guildId: string) {
   return raw.deleteGuildMusicSession(context, guildId);
 }
@@ -637,6 +647,15 @@ export async function putGuildMusicQueue(
   options: RestOptions.PutGuildMusicQueue,
 ) {
   return raw.putGuildMusicQueue(context, guildId, options);
+}
+
+
+export async function putGuildMusicQueueBatch(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildMusicQueueBatch,
+) {
+  return raw.putGuildMusicQueueBatch(context, guildId, options);
 }
 
 

@@ -466,6 +466,13 @@ export const DiscordEmojis = Object.freeze({
   },
   DISCORD_TAG_BOT: '<:d_tag_bot_1:1561508421164081243><:d_tag_bot_2:1561508422266912849>',
   DISCORD_TAG_SYSTEM: '<:d_tag_system_1:1561508423638589450><:d_tag_system_2:1561508425517768714>',
+  // the music controls' buttons (`music-icons/` in the workspace has their svgs)
+  MUSIC: {
+    PAUSE: '<:music_pause:1563424004654633000>',
+    PLAY: '<:music_play:1563424005787230279>',
+    RESTART: '<:music_restart:1563424006944591953>',
+    SKIP: '<:music_skip:1563424008681164842>',
+  },
   TYPING: '<a:typingdown:1561506806667149412>',
 });
 
@@ -1119,6 +1126,16 @@ export enum GuildLoggerTypes {
 }
 
 
+// the music queue's loop, the api's `MusicLoopModes` by name
+export enum MusicLoopModes {
+  OFF = 'off',
+  // the playing track plays again when it ends, skipping it goes on to the next one
+  TRACK = 'track',
+  // a track that ends (or is skipped) goes back to the end of the queue
+  QUEUE = 'queue',
+}
+
+
 export enum MeasurementUnits {
   IMPERIAL = 'IMPERIAL',
   METRIC = 'METRIC',
@@ -1541,6 +1558,10 @@ export enum MediaWordcloudThemes {
 
 export enum MessageComponentCustomIds {
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
+  // `music-batch.{batchId}`, removing an album's/playlist's tracks from the queue (on its `music play` reply)
+  MUSIC_BATCH = 'music-batch',
+  // `music-controls.{control}`, the pause/resume and skip buttons on `music play` and `music info`
+  MUSIC_CONTROLS = 'music-controls',
 }
 
 
@@ -1688,6 +1709,7 @@ export enum RedisChannels {
   GUILD_RULES_UPDATE = 'GUILD_RULES_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
   INFO_DISCORD_REQUEST = 'INFO_DISCORD_REQUEST',
+  MUSIC_CONTROL = 'MUSIC_CONTROL',
   PREMIUM_SERVERS_UPDATE = 'PREMIUM_SERVERS_UPDATE',
   REMINDER_CREATE = 'REMINDER_CREATE',
   REMINDER_DELETE = 'REMINDER_DELETE',

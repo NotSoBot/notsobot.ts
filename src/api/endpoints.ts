@@ -870,6 +870,10 @@ export const Api = Object.freeze({
     '/music/search',
   MUSIC_QUEUE:
     '/music/queue/:guildId',
+  MUSIC_QUEUE_BATCH:
+    '/music/queue/:guildId/batch',
+  MUSIC_QUEUE_NEXT:
+    '/music/queue/:guildId/next',
   MUSIC_QUEUE_POSITIONS:
     '/music/queue/:guildId/position',
   MUSIC_QUEUE_POSITION:

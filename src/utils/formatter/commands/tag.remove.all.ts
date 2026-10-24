@@ -93,6 +93,7 @@ export async function createMessage(
 
     components.createButton({
       label: translate('tag_remove_all.continue'),
+      style: MessageComponentButtonStyles.DANGER,
       run: async (ctx: ComponentContext) => {
         if (ctx.userId !== context.userId) {
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -107,7 +108,7 @@ export async function createMessage(
 
     components.createButton({
       label: translate('tag_remove_all.cancel'),
-      style: MessageComponentButtonStyles.DANGER,
+      style: MessageComponentButtonStyles.SECONDARY,
       run: async (ctx: ComponentContext) => {
         if (ctx.userId !== context.userId) {
           return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);

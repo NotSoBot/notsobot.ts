@@ -13,6 +13,13 @@ import { RestResponsesRaw } from '../api/types';
 import { MessageComponentCustomIds } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
 import { I18n, mediaReplyFromOptions } from '../utils';
+import { onMusicBatchRemove, onMusicControl } from '../utils/formatter/commands/music.controls';
+import {
+  MUSIC_QUEUE_CONTROL,
+  findMusicQueueRefresh,
+  onMusicQueueRefresh,
+  rerenderMusicQueue,
+} from '../utils/formatter/commands/music.queue';
 
 import { Listener } from './listener';
 
@@ -36,6 +43,29 @@ class ComponentsListener extends Listener {
                 return await this.makePermanentUsingNitro(context, fileId);
               } catch(error) {
                 
+              }
+            }
+            if (context.customId.startsWith(MessageComponentCustomIds.MUSIC_BATCH + '.')) {
+              try {
+                return await onMusicBatchRemove(context, context.customId.split('.').pop()!);
+              } catch(error) {
+                console.warn(`music batch remove ${context.customId} ${context.guildId}`, error);
+              }
+            }
+            if (context.customId.startsWith(MessageComponentCustomIds.MUSIC_CONTROLS + '.')) {
+              try {
+                // `music-controls.{control}`, and the track its page was about after it (`music queue`'s refresh: its
+                // page and whose tracks it shows)
+                const [ , control, ...rest ] = context.customId.split('.');
+                if (control === MUSIC_QUEUE_CONTROL) {
+                  return await onMusicQueueRefresh(context, rest[0], rest[1]);
+                }
+                // on a `music queue` reply the queue shows again, not the track's page
+                const queue = (context.interaction.message) ? findMusicQueueRefresh(context.interaction.message) : null;
+                const rerender = (queue) ? (ctx: ComponentContext) => rerenderMusicQueue(ctx, queue.page, queue.fromId) : undefined;
+                return await onMusicControl(context, control, rest[0], rerender);
+              } catch(error) {
+                console.warn(`music control ${context.customId} ${context.guildId}`, error);
               }
             }
           }; break;

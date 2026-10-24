@@ -1,7 +1,7 @@
 import { Command, CommandClient } from 'detritus-client';
 
-import { CommandCategories, GuildFeatures } from '../../../constants';
-import { Formatter } from '../../../utils';
+import { CommandCategories, GuildFeatures, StatusEmojis } from '../../../constants';
+import { Formatter, I18n, Parameters, displayReply } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
@@ -14,21 +14,35 @@ export default class MusicQueueCommand extends BaseCommand {
       name: COMMAND_NAME,
 
       disableDm: true,
+      args: [
+        {name: 'from', aliases: ['user'], type: Parameters.memberOrUser()},
+      ],
       metadata: {
-        description: 'Show what the music is playing and what is queued after it',
+        description: 'Show what the music is playing and what is queued after it, or only what a user queued',
         examples: [
           COMMAND_NAME,
+          `${COMMAND_NAME} -from cake#1`,
+          `${COMMAND_NAME} -user cake#1`,
         ],
         category: CommandCategories.MUSIC,
         // premium users, premium servers and servers given the feature (`owner guild features add`)
         premiumServer: GuildFeatures.MUSIC_ACCESS,
         id: Formatter.Commands.MusicQueue.COMMAND_ID,
-        usage: '',
+        usage: '(-from <user:id|mention|name>)',
       },
     });
   }
 
-  async run(context: Command.Context) {
-    return Formatter.Commands.MusicQueue.createMessage(context);
+  onBeforeRun(context: Command.Context, args: Formatter.Commands.MusicQueue.CommandArgs) {
+    return args.from !== null;
+  }
+
+  async onCancelRun(context: Command.Context, args: Formatter.Commands.MusicQueue.CommandArgs) {
+    const { translate } = await I18n.getTranslator(context);
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('errors.user_not_found')}`});
+  }
+
+  async run(context: Command.Context, args: Formatter.Commands.MusicQueue.CommandArgs) {
+    return Formatter.Commands.MusicQueue.createMessage(context, args);
   }
 }

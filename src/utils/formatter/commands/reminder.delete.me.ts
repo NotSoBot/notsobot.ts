@@ -86,6 +86,7 @@ export async function confirmReminderDeletion(
   const components = new Components({timeout: 5 * (60 * 1000)});
   components.createButton({
     label: translate('reminder_delete_me.continue'),
+    style: MessageComponentButtonStyles.DANGER,
     run: async (ctx: ComponentContext) => {
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
@@ -105,7 +106,7 @@ export async function confirmReminderDeletion(
 
   components.createButton({
     label: translate('reminder_delete_me.cancel'),
-    style: MessageComponentButtonStyles.DANGER,
+    style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);

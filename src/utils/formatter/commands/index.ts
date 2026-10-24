@@ -453,16 +453,19 @@ import * as ModerationUnmute from './moderation.unmute';
 import * as ServerBans from './server.bans';
 import * as ServerInvites from './server.invites';
 
+import * as MusicFair from './music.fair';
 import * as MusicInfo from './music.info';
 import * as MusicLeave from './music.leave';
+import * as MusicLoop from './music.loop';
 import * as MusicPause from './music.pause';
 import * as MusicPlay from './music.play';
 import * as MusicQueue from './music.queue';
+import * as MusicQueueClear from './music.queue.clear';
 import * as MusicQueueRemove from './music.queue.remove';
-import * as MusicQueueRemoveAll from './music.queue.remove.all';
 import * as MusicResume from './music.resume';
 import * as MusicSeek from './music.seek';
 import * as MusicSkip from './music.skip';
+import * as MusicTTS from './music.tts';
 import * as OwnerBlockGuild from './owner.block.guild';
 import * as OwnerBlockUser from './owner.block.user';
 import * as OwnerEval from './owner.eval';
@@ -1067,16 +1070,19 @@ export {
   ServerBans,
   ServerInvites,
 
+  MusicFair,
   MusicInfo,
   MusicLeave,
+  MusicLoop,
   MusicPause,
   MusicPlay,
   MusicQueue,
+  MusicQueueClear,
   MusicQueueRemove,
-  MusicQueueRemoveAll,
   MusicResume,
   MusicSeek,
   MusicSkip,
+  MusicTTS,
   OwnerBlockGuild,
   OwnerBlockUser,
   OwnerEval,

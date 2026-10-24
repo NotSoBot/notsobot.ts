@@ -12,6 +12,7 @@ import {
   DiscordRegexNames,
   InteractionCallbackTypes,
   MarkupTimestampStyles,
+  MessageComponentButtonStyles,
   MessageEmbedTypes,
   MessageFlags,
   Permissions,
@@ -44,7 +45,7 @@ import GuildSettingsStore from '../stores/guildsettings';
 import UserStore from '../stores/users';
 import UserSettingsStore from '../stores/usersettings';
 
-import { getTranslator, randomThinkingText, Translator } from './i18n';
+import { getTranslator, randomThinkingText, TranslationKey, Translator } from './i18n';
 
 import { Endpoints, deleteJob, fetchJob, moderationSafetyScan, moderationTextScan, utilitiesFetchMedia } from '../api';
 import { JobError } from '../api/errors';
@@ -2281,8 +2282,21 @@ export interface DisplayField {
 }
 
 // text/url fields take null like the embed setters did, null is the same as not set
+// a block after a payload's content, lined off from what's above it in components v2: its heading with the button
+// beside it (or the content, without a heading), then the content. Embeds and text add it to the description, its
+// button as a row
+export interface DisplayBlock {
+  button?: {customId: string, label: string},
+  content?: null | string,
+  // a small line under the heading (beside the button too)
+  details?: null | string,
+  heading?: null | string,
+}
+
 export interface DisplayPayload {
   allowedMentions?: Command.EditOrReply['allowedMentions'],
+  // more sections after the content (like a list with its own refresh button)
+  blocks?: Array<DisplayBlock>,
   color?: number,
   // buttons/select menus shown under the response, their callbacks and timeout stay on this object
   components?: Components,
@@ -2295,9 +2309,20 @@ export interface DisplayPayload {
   fields?: Array<DisplayField>,
   files?: Array<RequestTypes.File>,
   footer?: null | string,
+  // components v2: the footer goes under the caller's rows in its own block with this button beside it (like refresh),
+  // the invoker line at the very bottom (a paginator's page buttons go between them). Embeds and text show it as a row
+  // under the rest. Its click goes to the components listener, by its custom id
+  footerButton?: {customId: string, label: string},
   // only embeds can show a footer icon
   footerIconUrl?: null | string,
+  // a heading above the title (like "Now playing"), lined off from it in components v2 (the title gets smaller under it)
+  header?: null | string,
   image?: null | string,
+  // components v2/text: the invoker line under the footer (the very last line) instead of above it
+  invokerLast?: boolean,
+  // the invoker line's text instead of `media.invoked_by` (`{user}` is their mention), for responses where who ran it is
+  // part of the response (who added a track). Shown for interactions too, not only prefixed commands
+  invokerKey?: TranslationKey,
   // a small line between the content and the invoker, in its own block in components v2 (embeds show it in the footer)
   note?: null | string,
   thumbnail?: null | string,
@@ -2310,7 +2335,7 @@ export interface DisplayPayload {
 // prefixed embeds need the embed links permission, components v2 and interactions don't
 // so fall back to components v2 instead of requiring the permission
 export async function getResponseDisplayForReply(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
 ): Promise<UserSettingsResponseDisplayTypes> {
   let display = UserSettingsResponseDisplayTypes.DEFAULT;
   try {
@@ -2336,6 +2361,11 @@ const DISPLAY_MAX_EMBED_LENGTH = 6000;
 const DISPLAY_MAX_TEXT_LENGTH = 2000;
 
 const DISPLAY_UPLOAD_FILENAME = 'response.txt';
+
+// the components v2 footer block of a payload with a `footerButton`, a paginator puts its page buttons under it
+export const DISPLAY_FOOTER_SECTION_ID = 9001;
+// the separator above a payload's first block, a paginator puts the page's own rows above it (under the content)
+export const DISPLAY_BLOCKS_SEPARATOR_ID = 9002;
 const DISPLAY_IMAGE_FILENAME_REGEX = /\.(gif|jpe?g|png|webp)$/i;
 
 // informational responses put a few details on each line instead of one per line under section headers
@@ -2374,6 +2404,11 @@ export function displayLinks(links: Array<[string, null | string | undefined]>):
   return displayDetailsLine(Array.from(text), true);
 }
 
+// every line small, `-# ` only applies to the line it starts
+function displaySubtext(text: string): string {
+  return text.split('\n').map((line) => `-# ${line}`).join('\n');
+}
+
 // the footer line for components/text, which have no timestamp of their own
 function displayFooterText(payload: DisplayPayload): string {
   const parts: Array<string> = [];
@@ -2410,6 +2445,9 @@ interface DisplayRendered {
 }
 
 export interface DisplayReplyOptions {
+  // whose invoker line it is when `context` is a button press re-rendering a prefixed command's reply (the press is
+  // whoever clicked, they don't get one otherwise)
+  invokerId?: string,
   // a button/select menu press to respond through, the display setting and invoker still come from the command's context
   replyTo?: ComponentContext,
   // upload the description and fields once they're longer than this, even if discord would still take them
@@ -2426,9 +2464,17 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string, row
     container.setAccentColor(payload.color);
   }
 
+  const header = (payload.header) ? `### ${payload.header}` : '';
+  if (header) {
+    container.addTextDisplay({content: header});
+    container.addSeparator();
+  }
+
   const lines: Array<string> = [];
   if (payload.title) {
-    lines.push((payload.url) ? `### ${Markup.url(payload.title, payload.url)}` : `### ${payload.title}`);
+    // under a header it's a bold line instead of another heading
+    const title = (payload.url) ? Markup.url(payload.title, payload.url) : payload.title;
+    lines.push((header) ? `**${title}**` : `### ${title}`);
   }
   if (payload.description) {
     lines.push(payload.description);
@@ -2473,6 +2519,30 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string, row
   for (let row of rows) {
     container.addActionRow(row);
   }
+  let blocksLength = 0;
+  for (let [ index, block ] of (payload.blocks || []).entries()) {
+    const heading = [
+      (block.heading) ? `**${block.heading}**` : '',
+      (block.details) ? displaySubtext(block.details) : '',
+    ].filter(Boolean).join('\n');
+    const content = block.content || '';
+    blocksLength += heading.length + content.length;
+    container.addSeparator((index === 0) ? {id: DISPLAY_BLOCKS_SEPARATOR_ID} : {});
+    if (block.button) {
+      const section = container.createSection();
+      section.addTextDisplay({content: heading || content || '\u200b'});
+      section.setAccessoryButton({
+        customId: block.button.customId,
+        label: block.button.label,
+        style: MessageComponentButtonStyles.SECONDARY,
+      });
+      if (heading && content) {
+        container.addTextDisplay({content});
+      }
+    } else if (heading || content) {
+      container.addTextDisplay({content: [heading, content].filter(Boolean).join('\n')});
+    }
+  }
 
   const note = (payload.note) ? `-# ${payload.note}` : '';
   if (note) {
@@ -2481,15 +2551,34 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string, row
   }
 
   const footerText = displayFooterText(payload);
-  const footer = [invokedBy, (footerText) ? `-# ${footerText}` : ''].filter(Boolean).join('\n');
-  if (footer) {
+  let footer: string;
+  if (payload.footerButton) {
+    // its own block with the button beside it, then the invoker as the last line
+    footer = [(footerText) ? displaySubtext(footerText) : '\u200b', invokedBy].join('\n');
     container.addSeparator();
-    container.addTextDisplay({content: footer});
+    const section = container.createSection({id: DISPLAY_FOOTER_SECTION_ID});
+    section.addTextDisplay({content: (footerText) ? displaySubtext(footerText) : '\u200b'});
+    section.setAccessoryButton({
+      customId: payload.footerButton.customId,
+      label: payload.footerButton.label,
+      style: MessageComponentButtonStyles.SECONDARY,
+    });
+    if (invokedBy) {
+      container.addSeparator();
+      container.addTextDisplay({content: invokedBy});
+    }
+  } else {
+    const footerLine = (footerText) ? displaySubtext(footerText) : '';
+    footer = ((payload.invokerLast) ? [footerLine, invokedBy] : [invokedBy, footerLine]).filter(Boolean).join('\n');
+    if (footer) {
+      container.addSeparator();
+      container.addTextDisplay({content: footer});
+    }
   }
 
   // the limit is for every text display in the message combined
   return {
-    fits: (content.length + note.length + footer.length) <= DISPLAY_MAX_COMPONENTS_TEXT_LENGTH,
+    fits: (header.length + content.length + blocksLength + note.length + footer.length) <= DISPLAY_MAX_COMPONENTS_TEXT_LENGTH,
     message: {components, files: payload.files, flags: MessageFlags.IS_COMPONENTS_V2},
   };
 }
@@ -2527,10 +2616,22 @@ export function displayPayloadFromEmbed(embed: Embed): DisplayPayload {
 }
 
 function renderDisplayEmbed(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   payload: DisplayPayload,
+  invokedBy: string,
 ): DisplayRendered {
-  const embed = (context instanceof Interaction.InteractionContext) ? new Embed() : createUserEmbed(context.user);
+  // the author is the invoker on prefixed commands, unless the header takes its place or the invoker line is custom
+  // (it goes under the description then, footers can't mention)
+  let embed: Embed;
+  if (payload.header) {
+    embed = new Embed();
+    // author names don't render markdown, so no codestring backticks
+    embed.setAuthor(payload.header.replace(/`/g, ''));
+  } else if (!(context instanceof Command.Context) || payload.invokerKey) {
+    embed = new Embed();
+  } else {
+    embed = createUserEmbed(context.user);
+  }
   embed.setColor((payload.color === undefined) ? EmbedColors.DEFAULT : payload.color);
   if (payload.title) {
     embed.setTitle(payload.title);
@@ -2538,8 +2639,9 @@ function renderDisplayEmbed(
   if (payload.url) {
     embed.setUrl(payload.url);
   }
-  if (payload.description) {
-    embed.setDescription(payload.description);
+  const description = (payload.invokerKey) ? [payload.description, invokedBy].filter(Boolean).join('\n') : (payload.description || '');
+  if (description) {
+    embed.setDescription(description);
   }
   const fields = payload.fields || [];
   for (let field of fields) {
@@ -2560,13 +2662,14 @@ function renderDisplayEmbed(
   }
 
   const length = (
+    (payload.header || '').length +
     (payload.title || '').length +
-    (payload.description || '').length +
+    description.length +
     footer.length +
     fields.reduce((x, field) => x + field.name.length + field.value.length, 0)
   );
   const fits = (
-    (payload.description || '').length <= DISPLAY_MAX_EMBED_DESCRIPTION_LENGTH &&
+    description.length <= DISPLAY_MAX_EMBED_DESCRIPTION_LENGTH &&
     fields.length <= DISPLAY_MAX_EMBED_FIELDS &&
     fields.every((field) => field.value.length <= DISPLAY_MAX_EMBED_FIELD_LENGTH) &&
     length <= DISPLAY_MAX_EMBED_LENGTH
@@ -2576,6 +2679,9 @@ function renderDisplayEmbed(
 
 function renderDisplayText(payload: DisplayPayload, invokedBy: string, imageLabel: string): DisplayRendered {
   const lines: Array<string> = [];
+  if (payload.header) {
+    lines.push(`### ${payload.header}`);
+  }
   if (payload.title) {
     lines.push((payload.url) ? `**${Markup.url(payload.title, `<${payload.url}>`)}**` : `**${payload.title}**`);
   }
@@ -2594,10 +2700,15 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string, imageLabe
   if (payload.note) {
     lines.push(`-# ${payload.note}`);
   }
-  lines.push(invokedBy);
+  if (!payload.invokerLast) {
+    lines.push(invokedBy);
+  }
   const footerText = displayFooterText(payload);
   if (footerText) {
-    lines.push(`-# ${footerText}`);
+    lines.push(displaySubtext(footerText));
+  }
+  if (payload.invokerLast) {
+    lines.push(invokedBy);
   }
 
   const content = lines.filter(Boolean).join('\n');
@@ -2608,8 +2719,9 @@ function renderDisplayText(payload: DisplayPayload, invokedBy: string, imageLabe
 }
 
 // builds the message options without sending them, for responses that need to go somewhere other than the command's reply
+// a button press (`ComponentContext`) re-renders a message someone else made, it shows no invoker either
 export async function renderDisplay(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   payload: DisplayPayload,
   options: DisplayReplyOptions = {},
 ): Promise<Record<string, any>> {
@@ -2617,7 +2729,10 @@ export async function renderDisplay(
     getResponseDisplayForReply(context),
     getTranslator(context),
   ]);
-  const invokedBy = (context instanceof Interaction.InteractionContext) ? '' : `-# **${translate('media.invoked_by', {user: `<@${context.userId}>`})}**`;
+  // interactions already show who used them above the response, so only a custom invoker line shows there
+  const invokedBy = (!(context instanceof Command.Context) && !payload.invokerKey && !options.invokerId) ?
+    '' :
+    `-# **${translate(payload.invokerKey || 'media.invoked_by', {user: `<@${options.invokerId || context.userId}>`})}**`;
 
   // `componentsInside`: the caller's rows, wherever they are (under the response, or inside it from an earlier render)
   let insideRows: Array<ComponentActionRow> = [];
@@ -2631,9 +2746,25 @@ export async function renderDisplay(
     }
   }
 
+  // embeds and text have no blocks, they go under the description (their buttons as rows, below)
+  const legacy = display === UserSettingsResponseDisplayTypes.LEGACY || display === UserSettingsResponseDisplayTypes.NO_EMBED;
+  if (legacy && payload.blocks && payload.blocks.length) {
+    payload = {
+      ...payload,
+      description: [
+        payload.description,
+        ...payload.blocks.map((block) => displayDetails([
+          (block.heading) ? `**${block.heading}**` : null,
+          (block.details) ? displaySubtext(block.details) : null,
+          block.content,
+        ])),
+      ].filter(Boolean).join('\n\n'),
+    };
+  }
+
   const render = (payload: DisplayPayload): DisplayRendered => {
     switch (display) {
-      case UserSettingsResponseDisplayTypes.LEGACY: return renderDisplayEmbed(context, payload);
+      case UserSettingsResponseDisplayTypes.LEGACY: return renderDisplayEmbed(context, payload, invokedBy);
       case UserSettingsResponseDisplayTypes.NO_EMBED: return renderDisplayText(payload, invokedBy, translate('media.image'));
     }
     return renderDisplayComponents(payload, invokedBy, insideRows);
@@ -2668,6 +2799,15 @@ export async function renderDisplay(
   if (display === UserSettingsResponseDisplayTypes.LEGACY || display === UserSettingsResponseDisplayTypes.NO_EMBED) {
     // always send it, so editing a response removes buttons it had before
     message.components = payload.components || [];
+    const buttons = [payload.footerButton, ...(payload.blocks || []).map((block) => block.button)].filter(Boolean);
+    if (buttons.length) {
+      const root = (message.components instanceof Components) ? message.components : new Components();
+      const row = root.createActionRow();
+      for (let button of buttons) {
+        row.createButton({customId: button!.customId, label: button!.label, style: MessageComponentButtonStyles.SECONDARY});
+      }
+      message.components = root;
+    }
   } else if (payload.components) {
     // put the container first in the caller's components, so the buttons' callbacks and timeout keep working
     // (replacing the container from an earlier render of the same components)
@@ -2684,7 +2824,7 @@ export async function renderDisplay(
 }
 
 export async function displayReply(
-  context: Command.Context | Interaction.InteractionContext,
+  context: ComponentContext | Command.Context | Interaction.InteractionContext,
   payload: DisplayPayload,
   options: DisplayReplyOptions = {},
 ) {

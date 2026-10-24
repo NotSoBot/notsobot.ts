@@ -50,6 +50,7 @@ export async function createMessage(
 
   components.createButton({
     label: translate('settings_ai_memory.cancel'),
+    style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);

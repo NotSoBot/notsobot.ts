@@ -17,6 +17,7 @@ import {
   MediaPixelSortFunctions,
   MediaPixelSortIntervals,
   MediaQuadartTypes,
+  MusicLoopModes,
   RedditSortTypes,
   RedditTimeTypes,
   ReportStatuses,
@@ -289,7 +290,18 @@ export namespace RestOptions {
 
   export interface PutGuildMusicSession {
     channelId: string,
+    // paused too long, we left (`paused` and `position` are where it stopped), joining again clears it
+    held?: boolean,
     nodeId?: null | string,
+    paused?: boolean,
+    // milliseconds, where the track is right now
+    position?: number,
+  }
+
+  // what played ends (`finishedId`, the queue's loop decides if it goes) and the next item becomes the playing one
+  export interface PostGuildMusicNext {
+    finishedId?: string,
+    finishedReason?: 'failed' | 'finished' | 'skipped',
   }
 
   export interface EditGuildMusicSession {
@@ -309,11 +321,27 @@ export namespace RestOptions {
     userId: string,
   }
 
+  export interface PutGuildMusicQueueBatch {
+    // the album's/playlist's (`collection.name`)
+    name?: null | string,
+    // an album's/playlist's `searchMusic` results as they came
+    tracks: Array<{track: RestResponsesRaw.MusicTrack, url: null | string}>,
+    userId: string,
+  }
+
+  export interface EditGuildMusic {
+    // taking turns between who queued (a server setting, it stays)
+    fairQueue?: boolean,
+    loop?: MusicLoopModes,
+  }
+
   export interface EditGuildMusicQueueItem {
     position: number,
   }
 
   export interface DeleteGuildMusicQueue {
+    // only what was queued together (an album/playlist)
+    batchId?: string,
     // only these, or only what this user queued, everything queued by default (never what's playing)
     itemIds?: Array<string>,
     userId?: string,
@@ -419,7 +447,7 @@ export namespace RestOptions {
     text: string,
   }
 
-  export interface FunTextToSpeech {
+  export interface FunTextToSpeech extends MediaUploadBaseOptions {
     text: string,
     voice?: string,
     voiceId?: string,
@@ -1976,6 +2004,12 @@ export namespace RestResponsesRaw {
   }
 
   export interface GuildMusicQueueItem {
+    // the album/playlist it was queued with, its tracks share it (each time it's queued). Its name is only shown, two can
+    // have the same one
+    batch_id: null | string,
+    batch_name: null | string,
+    // when it was queued (unix milliseconds)
+    created: number,
     guild_id: string,
     id: string,
     // 1 is next, the playing item is 0
@@ -2020,6 +2054,8 @@ export namespace RestResponsesRaw {
     // the playing track would have ended by now
     finished: boolean,
     guild_id: string,
+    // paused too long, we left. a restart doesn't rejoin it, the next `music play` carries on from `position`
+    held: boolean,
     node_id: null | string,
     paused: boolean,
     // milliseconds, where the track is about now
@@ -2049,19 +2085,44 @@ export namespace RestResponsesRaw {
   }
 
   export interface SearchMusic {
+    // an album/playlist: its name, how many tracks it has (`results` are the ones found, at most 50) and its link
+    collection?: {name: null | string, total: number, url: string},
     results: Array<MusicSearchResult>,
-    // `search` for text (results to pick from), `resolve` for a spotify/deezer/tidal/apple music/youtube music track link
-    // (albums/playlists error), `url` for any other link (youtube links error)
-    type: 'resolve' | 'search' | 'url',
+    // `search` for text (results to pick from), `resolve` for a spotify/deezer/tidal/apple music/youtube music track
+    // link, `collection` for an album/playlist link, `url` for any other link (youtube links error)
+    type: 'collection' | 'resolve' | 'search' | 'url',
   }
 
   export interface FetchGuildMusic {
     current: GuildMusicQueueItem | null,
+    // the queue takes turns between who queued (a server setting)
+    fair_queue: boolean,
+    // paused too long and we left, `current` carries on from here (milliseconds) once we join again
+    held_position: null | number,
+    // back to off when the bot leaves or the queue runs out
+    loop: MusicLoopModes,
     queue: Array<GuildMusicQueueItem>,
   }
 
+  export type EditGuildMusic = FetchGuildMusic;
+
   export type PutGuildMusicQueue = GuildMusicQueueItem;
+
+  export interface PutGuildMusicQueueBatch {
+    batch_id: string,
+    items: Array<GuildMusicQueueItem>,
+    // what left `skipped` out: the server's queue being full, or the user having queued as many as they can
+    limit: 'server' | 'user' | null,
+    skipped: number,
+  }
   export type EditGuildMusicQueueItem = GuildMusicQueueItem;
+
+  // the item playing now, `ready: false` while a link's still converting (it stays queued)
+  export interface PostGuildMusicNext {
+    error: null | {code: number, message: string},
+    item: GuildMusicQueueItem | null,
+    ready: boolean,
+  }
   export type DeleteGuildMusicQueueItem = null;
   export type DeleteGuildMusic = null;
 

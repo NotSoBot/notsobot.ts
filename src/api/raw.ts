@@ -1154,6 +1154,26 @@ export async function fetchGuildMusic(
 }
 
 
+export async function editGuildMusic(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.EditGuildMusic,
+): Promise<RestResponsesRaw.EditGuildMusic> {
+  const body = {
+    fair_queue: options.fairQueue,
+    loop: options.loop,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.MUSIC_QUEUE,
+      params: {guildId},
+    },
+  });
+}
+
+
 export async function deleteGuildMusic(
   context: RequestContext,
   guildId: string,
@@ -1194,7 +1214,10 @@ export async function putGuildMusicSession(
 ): Promise<RestResponsesRaw.MusicSession> {
   const body = {
     channel_id: options.channelId,
+    held: options.held,
     node_id: options.nodeId,
+    paused: options.paused,
+    position: (options.position === undefined) ? undefined : Math.max(0, Math.round(options.position)),
   };
   return request(context, {
     body,
@@ -1223,6 +1246,26 @@ export async function editGuildMusicSession(
     route: {
       method: HTTPMethods.PATCH,
       path: Api.MUSIC_QUEUE_SESSION,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function postGuildMusicNext(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PostGuildMusicNext,
+): Promise<RestResponsesRaw.PostGuildMusicNext> {
+  const body = {
+    finished_id: options.finishedId,
+    finished_reason: options.finishedReason,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MUSIC_QUEUE_NEXT,
       params: {guildId},
     },
   });
@@ -1259,6 +1302,27 @@ export async function putGuildMusicQueue(
     route: {
       method: HTTPMethods.PUT,
       path: Api.MUSIC_QUEUE,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function putGuildMusicQueueBatch(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildMusicQueueBatch,
+): Promise<RestResponsesRaw.PutGuildMusicQueueBatch> {
+  const body = {
+    name: options.name,
+    tracks: options.tracks,
+    user_id: options.userId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.MUSIC_QUEUE_BATCH,
       params: {guildId},
     },
   });
@@ -1306,6 +1370,7 @@ export async function deleteGuildMusicQueue(
   options: RestOptions.DeleteGuildMusicQueue = {},
 ): Promise<RestResponsesRaw.DeleteGuildMusicQueue> {
   const body = {
+    batch_id: options.batchId,
     item_ids: options.itemIds,
     user_id: options.userId,
   };
@@ -1915,6 +1980,9 @@ export async function funTextToSpeech(
   const query = {
     max_file_size: maxFileSize,
     text: options.text,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
     voice: options.voice,
     voice_id: options.voiceId,
   };

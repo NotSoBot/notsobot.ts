@@ -1,4 +1,5 @@
-import { Interaction } from 'detritus-client';
+import { Interaction, Structures } from 'detritus-client';
+import { ApplicationCommandOptionTypes } from 'detritus-client/lib/constants';
 
 import { GuildFeatures } from '../../../../../constants';
 import { Formatter } from '../../../../../utils';
@@ -14,7 +15,15 @@ export class MusicQueueListCommand extends BaseInteractionCommandOption {
   };
   name = 'list';
 
-  async run(context: Interaction.InteractionContext) {
-    return Formatter.Commands.MusicQueue.createMessage(context);
+  constructor() {
+    super({
+      options: [
+        {name: 'user', description: 'Only show what they queued', type: ApplicationCommandOptionTypes.USER},
+      ],
+    });
+  }
+
+  async run(context: Interaction.InteractionContext, args: {user?: Structures.Member | Structures.User}) {
+    return Formatter.Commands.MusicQueue.createMessage(context, {from: args.user || null});
   }
 }

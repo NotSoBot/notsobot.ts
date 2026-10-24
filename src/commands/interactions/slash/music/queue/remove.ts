@@ -6,12 +6,6 @@ import { Formatter } from '../../../../../utils';
 import { BaseInteractionCommandOption } from '../../../basecommand';
 
 
-// `1 3 5` or `1,3,5`, anything that isn't a positive number is left out (like the prefix command)
-function positions(value: string): Array<number> {
-  const numbers = value.split(/[\s,]+/).filter(Boolean).map((x) => parseInt(x));
-  return Array.from(new Set(numbers.filter((x) => Number.isSafeInteger(x) && 0 < x)));
-}
-
 export class MusicQueueRemoveCommand extends BaseInteractionCommandOption {
   description = 'Remove songs from the queue by their positions';
   metadata = {
@@ -23,7 +17,7 @@ export class MusicQueueRemoveCommand extends BaseInteractionCommandOption {
   constructor() {
     super({
       options: [
-        {name: 'positions', description: 'Their positions in the queue, like 2 or 1 3 5', required: true, value: positions},
+        {name: 'positions', description: 'Their positions in the queue, like 2, 1 3 5 or 5-20', required: true, value: Formatter.Commands.MusicQueueRemove.musicQueuePositions},
       ],
     });
   }

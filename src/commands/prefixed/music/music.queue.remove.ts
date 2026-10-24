@@ -8,12 +8,6 @@ import { BaseCommand } from '../basecommand';
 
 export const COMMAND_NAME = 'music queue remove';
 
-// `1 3 5` or `1,3,5`, anything that isn't a positive number is left out
-function positions(value: string): Array<number> {
-  const numbers = value.split(/[\s,]+/).filter(Boolean).map((x) => parseInt(x));
-  return Array.from(new Set(numbers.filter((x) => Number.isSafeInteger(x) && 0 < x)));
-}
-
 export default class MusicQueueRemoveCommand extends BaseCommand {
   constructor(client: CommandClient) {
     super(client, {
@@ -22,19 +16,20 @@ export default class MusicQueueRemoveCommand extends BaseCommand {
       disableDm: true,
       label: 'positions',
       metadata: {
-        description: 'Remove tracks from the music queue by their positions',
+        description: 'Remove tracks from the music queue by their positions (or ranges of them), other people\'s need Manage Server or a NotSoMusic role',
         examples: [
           `${COMMAND_NAME} 2`,
           `${COMMAND_NAME} 1 3 5`,
+          `${COMMAND_NAME} 5-20`,
         ],
         category: CommandCategories.MUSIC,
         // premium users, premium servers and servers given the feature (`owner guild features add`)
         premiumServer: GuildFeatures.MUSIC_ACCESS,
         id: Formatter.Commands.MusicQueueRemove.COMMAND_ID,
-        usage: '<...position:number>',
+        usage: '<...position:number|range>',
       },
       priority: 1,
-      type: positions,
+      type: Formatter.Commands.MusicQueueRemove.musicQueuePositions,
     });
   }
 

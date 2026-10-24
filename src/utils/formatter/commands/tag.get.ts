@@ -116,7 +116,7 @@ async function confirmAddTag(
 
   components.createButton({
     label: translate('tag_get.cancel'),
-    style: MessageComponentButtonStyles.DANGER,
+    style: MessageComponentButtonStyles.SECONDARY,
     run: async (ctx: ComponentContext) => {
       if (ctx.userId !== context.userId) {
         return ctx.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);

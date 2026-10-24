@@ -3,9 +3,14 @@ import { ClientEvents } from 'detritus-client/lib/constants';
 import { EventSubscription } from 'detritus-utils';
 
 import { ApiEventsSpewer } from '../apievents';
+import { RedisChannels } from '../constants';
 import VoiceNode from '../voicenode';
 
 import { Listener } from './listener';
+
+
+// a dashboard control older than this was replayed after we reconnected, it's not acted on anymore
+const MUSIC_CONTROL_MAX_AGE = 15 * 1000;
 
 
 // our own voice state and voice server go to the voice node, it only acts on guilds it's playing in
@@ -37,6 +42,26 @@ class VoiceNodeListener extends Listener {
         if (event.guildId) {
           VoiceNode.handleVoiceServer(event.guildId, event.endpoint || null, event.token);
         }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      // the dashboard's pause/resume/skip/leave, every cluster gets it and only the one playing in the server acts
+      const subscription = apiEvents.subscribe(RedisChannels.MUSIC_CONTROL, (payload) => {
+        if (!payload || !VoiceNode.guilds.has(payload.guild_id) || MUSIC_CONTROL_MAX_AGE < Date.now() - payload.created) {
+          return;
+        }
+        let promise: Promise<unknown>;
+        switch (payload.action) {
+          case 'leave': promise = Promise.resolve(VoiceNode.leave(payload.guild_id, true)); break;
+          case 'pause': promise = VoiceNode.setPaused(payload.guild_id, true); break;
+          // disconnected, it needs someone's channel to carry on in (`music resume` in discord)
+          case 'resume': promise = VoiceNode.setPaused(payload.guild_id, false); break;
+          case 'skip': promise = VoiceNode.skip(payload.guild_id); break;
+          default: return;
+        }
+        promise.catch((error) => console.warn(`voice node dashboard ${payload.action} ${payload.guild_id}`, error));
       });
       subscriptions.push(subscription);
     }

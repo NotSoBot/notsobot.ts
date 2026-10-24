@@ -56,6 +56,9 @@ export default class DownloadCommand extends BaseContextMenuMessageCommand {
   }
 
   async run(context: Interaction.InteractionContext, args: DownloadCommandArgs) {
+    // job/media replies have no ephemeral option, defer as ephemeral first so every edit after it (the thinking text,
+    // then the media) stays ephemeral like the other message context menus
+    await this.onLoadingTrigger(context);
     return Formatter.Commands.ToolsDownload.createMessage(context, {
       url: args.url,
     });

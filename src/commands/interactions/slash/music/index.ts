@@ -2,8 +2,10 @@ import { ApplicationIntegrationTypes, InteractionContextTypes } from 'detritus-c
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MusicFairCommand } from './fair';
 import { MusicInfoCommand } from './info';
 import { MusicLeaveCommand } from './leave';
+import { MusicLoopCommand } from './loop';
 import { MusicPauseCommand } from './pause';
 import { MusicPlayCommand } from './play';
 import { MusicQueueGroupCommand } from './queue';
@@ -28,8 +30,10 @@ export default class MusicCommand extends BaseSlashCommand {
   constructor() {
     super({
       options: [
+        new MusicFairCommand(),
         new MusicInfoCommand(),
         new MusicLeaveCommand(),
+        new MusicLoopCommand(),
         new MusicPauseCommand(),
         new MusicPlayCommand(),
         new MusicQueueGroupCommand(),
