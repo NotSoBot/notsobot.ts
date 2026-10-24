@@ -30,7 +30,7 @@ export default class DownloadCommand extends BaseCommand<Formatter.Commands.Tool
           `${COMMAND_NAME} https://discordapp.com`,
         ],
         id: Formatter.Commands.ToolsDownload.COMMAND_ID,
-        usage: '<url> (-format <Mimetypes>) (-locale <language>) (-position <number>) (-quality <DownloadQualities>) (-spoiler)',
+        usage: '<url> (-format <choice>) (-locale <language>) (-position <number>) (-quality <choice>) (-spoiler)',
       },
       type: Parameters.url,
     });

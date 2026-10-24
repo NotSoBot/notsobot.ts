@@ -25,7 +25,7 @@ export default class StammerCommand extends BaseAudioOrVideosCommand {
           `${COMMAND_NAME} https://notsobot.com/some/video_file.mp4 https://notsobot.com/some/audio_file.mp3`,
         ],
         id: Formatter.Commands.MediaAVManipulationStammer.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-color <MediaStammerColorModes>) (-matcher <MediaStammerMatcherModes>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-color <choice>) (-matcher <choice>)',
       },
       minAmount: 2,
     });

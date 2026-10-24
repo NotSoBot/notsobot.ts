@@ -224,6 +224,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/charcoal/animated',
   MEDIA_IV_MANIPULATION_CIRCLE:
     '/media/iv/manipulation/circle',
+  MEDIA_IV_MANIPULATION_COLOR_REMOVE:
+    '/media/iv/manipulation/color/remove',
   MEDIA_IV_MANIPULATION_CROP:
     '/media/iv/manipulation/crop',
   MEDIA_IV_MANIPULATION_CROP_AUTO:
@@ -948,6 +950,12 @@ export const Api = Object.freeze({
     '/guilds/:guildId/bans/timed/delete',
   GUILD_TIMED_BAN:
     '/guilds/:guildId/bans/timed/:userId',
+  GUILD_WARNINGS:
+    '/guilds/:guildId/warnings',
+  GUILD_WARNINGS_DELETE:
+    '/guilds/:guildId/warnings/delete',
+  GUILD_WARNING:
+    '/guilds/:guildId/warnings/:warningId',
   MUSIC_NODES:
     '/music/nodes',
   MUSIC_SEARCH:

@@ -31,7 +31,7 @@ export default class MashupCommand extends BaseImageOrVideosCommand {
           `${COMMAND_NAME} @NotSoBot :strawberry:`,
         ],
         id: Formatter.Commands.ToolsMLMashup.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-seed <number>) (-steps <number>) (-strength <float>) (-use <MLDiffusionModel>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-seed <number>) (-steps <number>) (-strength <float>) (-use <choice>)',
       },
       minAmount: 2,
       ratelimits: [

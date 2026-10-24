@@ -728,6 +728,42 @@ export async function fetchGuildTimedBans(
 }
 
 
+export async function putGuildWarnings(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildWarnings,
+) {
+  return raw.putGuildWarnings(context, guildId, options);
+}
+
+
+export async function fetchGuildWarnings(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchGuildWarnings = {},
+) {
+  return raw.fetchGuildWarnings(context, guildId, options);
+}
+
+
+export async function deleteGuildWarning(
+  context: RequestContext,
+  guildId: string,
+  warningId: string,
+) {
+  return raw.deleteGuildWarning(context, guildId, warningId);
+}
+
+
+export async function deleteGuildWarnings(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildWarnings,
+) {
+  return raw.deleteGuildWarnings(context, guildId, options);
+}
+
+
 export async function fetchTimedBans(
   context: RequestContext,
   options: RestOptions.FetchTimedBans,
@@ -1531,6 +1567,14 @@ export async function mediaIVManipulationBackgroundRemove(
   options: RestOptions.MediaIVManipulationBackgroundRemoveOptions,
 ) {
   return raw.mediaIVManipulationBackgroundRemove(context, options);
+}
+
+
+export async function mediaIVManipulationColorRemove(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationColorRemove,
+) {
+  return raw.mediaIVManipulationColorRemove(context, options);
 }
 
 

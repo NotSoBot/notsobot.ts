@@ -26,7 +26,7 @@ export default class RedditCommand extends BaseSearchCommand {
           `${COMMAND_NAME} notsobot -subreddit discordapp`,
         ],
         id: Formatter.Commands.SearchReddit.COMMAND_ID,
-        usage: '<query> (-sort <RedditSortType>) (-subreddit <string>) (-time <RedditTimeType>)',
+        usage: '<query> (-sort <choice>) (-subreddit <string>) (-time <choice>)',
       },
     });
   }

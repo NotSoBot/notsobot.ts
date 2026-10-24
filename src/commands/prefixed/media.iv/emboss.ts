@@ -30,7 +30,7 @@ export default class EmbossCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.MediaIVManipulationEmboss.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-azimuth <number>) (-compose <MediaEmbossComposeMethods>) (-elevation <number>) (-depth <number>) (-intensity <number>) (-gray <float>) (-method <MediaEmbossMethods>)',
+        usage: '?<emoji,user:id|mention|name,url> (-azimuth <number>) (-compose <choice>) (-elevation <number>) (-depth <number>) (-intensity <number>) (-gray <float>) (-method <choice>)',
       },
     });
   }

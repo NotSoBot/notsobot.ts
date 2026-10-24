@@ -27,7 +27,7 @@ export default class MimicCommand extends BaseMediasCommand {
           `${COMMAND_NAME} @cakedan @notsobot -regions EXPRESSION -multiplier 1.5`,
         ],
         id: Formatter.Commands.MediaIVManipulationFaceFeaturesSwap.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-mode <MediaFaceFeaturesSwapModes>) (-multiplier <float>) (-regions <MediaFaceFeaturesSwapRegions>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<emoji,user:id|mention|name,url> (-mode <choice>) (-multiplier <float>) (-regions <choice>)',
       },
       minAmount: 2,
     });

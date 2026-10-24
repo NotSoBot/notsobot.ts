@@ -27,7 +27,7 @@ export default class AudioVocoderChordCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/voice.mp3 C3,G3,C4 -synth robot -bands 16`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioVocoderChord.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<notes,comma-separated> (-synth <MediaAudioVocoderSynths>) (-bands <number>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<notes,comma-separated> (-synth <choice>) (-bands <number>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: true, image: false, video: true})},

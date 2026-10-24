@@ -25,7 +25,7 @@ export default class WeatherCommand extends BaseCommand {
           `${COMMAND_NAME} nyc`,
         ],
         id: Formatter.Commands.ToolsWeather.COMMAND_ID,
-        usage: '<location> (-units <MeasurementUnits>)',
+        usage: '<location> (-units <choice>)',
       },
     });
   }

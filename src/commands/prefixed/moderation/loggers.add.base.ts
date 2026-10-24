@@ -19,6 +19,7 @@ export const LOGGER_CHANNEL_NAMES: Record<GuildLoggerTypes, string> = {
   [GuildLoggerTypes.CHANNELS]: 'channel-logs',
   [GuildLoggerTypes.MEMBERS]: 'member-logs',
   [GuildLoggerTypes.MESSAGES]: 'message-logs',
+  [GuildLoggerTypes.MODERATION]: 'mod-logs',
   [GuildLoggerTypes.ROLES]: 'role-logs',
   [GuildLoggerTypes.USERS]: 'user-logs',
   [GuildLoggerTypes.VOICE]: 'voice-logs',
@@ -58,7 +59,8 @@ export async function getLoggerAddWarning(
     if (options.in) {
       const category = context.channels.get(options.in.id) || options.in;
       canManageChannels = category.canEdit;
-      canManageWebhooks = category.canManageWebhooks;
+      // `canManageWebhooks` is always false on categories (it requires a text channel), the new channel inherits these overwrites
+      canManageWebhooks = category.can([Permissions.VIEW_CHANNEL, Permissions.MANAGE_WEBHOOKS]);
       where = `${category}`;
     } else {
       canManageChannels = !!(guild.me && guild.me.canManageChannels);

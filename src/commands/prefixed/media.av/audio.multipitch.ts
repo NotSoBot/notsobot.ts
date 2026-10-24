@@ -29,7 +29,7 @@ export default class AudioMultiPitchCommand extends BaseMediaCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 0,7,12 -engine rubberband`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioMultiPitch.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<semitones,comma-separated> (-normalize) (-engine <MediaAudioMultiPitchEngines>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<semitones,comma-separated> (-normalize) (-engine <choice>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: true, image: false, video: true})},

@@ -9,6 +9,7 @@ import { I18n } from '../../../../utils';
 import { BaseSlashCommand } from '../../basecommand';
 
 import { MediaIVToolsBackgroundGroupCommand } from './background';
+import { MediaIVToolsColorGroupCommand } from './color';
 import { MediaIVMirrorGroupCommand } from './mirror';
 import { MediaIVToolsSetGroupCommand } from './set';
 
@@ -51,6 +52,7 @@ export default class MediaIVToolsGroupCommand extends BaseSlashCommand {
       permissions: [Permissions.ATTACH_FILES],
       options: [
         new MediaIVToolsBackgroundGroupCommand(),
+        new MediaIVToolsColorGroupCommand(),
         new MediaIVToolsCropCommand(),
         new MediaIVToolsCropAutoCommand(),
         new MediaIVToolsCropCircleCommand(),

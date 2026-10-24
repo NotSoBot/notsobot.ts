@@ -32,7 +32,7 @@ export default class ResizeCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} https://apng.onevcat.com/assets/elephant.png -ratio -size 320x320`,
         ],
         id: Formatter.Commands.MediaIVManipulationResize.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> ?<SizeOrScale:Size,float> (-kernel <MediaResizeKernels>) (-ratio) (-scale <float>) (-size <number|(width)x(height)>)',
+        usage: '?<emoji,user:id|mention|name,url> ?<SizeOrScale:Size,float> (-kernel <choice>) (-ratio) (-scale <float>) (-size <number|(width)x(height)>)',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional({audio: false, image: true, video: true})},

@@ -68,6 +68,7 @@ export enum ApiErrorCodes {
   UNKNOWN_GUILD_LLM_KNOWLEDGE = 10029,
   UNKNOWN_MUSIC_QUEUE_ITEM = 10030,
   UNKNOWN_VOICE_NODE = 10031,
+  UNKNOWN_GUILD_WARNING = 10033,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -102,6 +103,7 @@ export enum ApiErrorCodes {
   MAX_VOICE_CLIPS = 30026,
   MAX_GUILD_LLM_KNOWLEDGE = 30027,
   MAX_MUSIC_QUEUE_ITEMS = 30028,
+  MAX_GUILD_WARNINGS = 30029,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -1086,6 +1088,18 @@ export const MAX_GUILD_RULE_MESSAGE_LENGTH = 200;
 // rules one request can add or remove
 export const MAX_GUILD_RULES_PER_REQUEST = 100;
 
+// the api's warning limits: members one `warn` can take, the reason's length and a member's warnings in a server
+export const MAX_GUILD_WARNING_USERS = 10;
+export const MAX_GUILD_WARNING_REASON_LENGTH = 512;
+export const MAX_GUILD_WARNING_USER_AMOUNT = 100;
+// the server settings for warnings, in seconds: how long one counts as active, and how long until one gets deleted
+// (never by default)
+export const WARNINGS_WINDOW_DEFAULT = 30 * 24 * 60 * 60;
+export const WARNINGS_WINDOW_MIN = 60 * 60;
+export const WARNINGS_WINDOW_MAX = 365 * 24 * 60 * 60;
+export const WARNINGS_EXPIRE_MIN = 24 * 60 * 60;
+export const WARNINGS_EXPIRE_MAX = 5 * 365 * 24 * 60 * 60;
+
 
 export enum GuildFeatures {
   AI_ACCESS = 'AI_ACCESS',
@@ -1126,6 +1140,8 @@ export enum GuildLoggerTypes {
   CHANNELS = 4,
   BANS = 5,
   ROLES = 6,
+  // warnings, the bot posts these itself since they aren't discord actions
+  MODERATION = 7,
 }
 
 
@@ -1138,70 +1154,72 @@ export enum MusicLoopModes {
   QUEUE = 'queue',
 }
 
-// the voice node's live effects (notsobot.voice's `EFFECT_NAMES`), `music effect clear` takes them all off
+// the voice node's live effects (notsobot.voice's `EFFECT_NAMES`), `music effect clear` takes them all off. By name, so
+// the usage and the prefix command's error list them alphabetically
 export enum MusicEffects {
-  BASSBOOST = 'bassboost',
-  TREBLE_BOOST = 'trebleboost',
-  NIGHTCORE = 'nightcore',
-  DAYCORE = 'daycore',
-  SLOWED = 'slowed',
-  VAPORWAVE = 'vaporwave',
-  LOFI = 'lofi',
-  DREAMY = 'dreamy',
-  UNDERWATER = 'underwater',
-  RADIO = 'radio',
-  NEXT_ROOM = 'nextroom',
-  ECHO = 'echo',
-  CONCERT_HALL = 'concerthall',
-  WIDE = 'wide',
   EIGHT_D = '8d',
-  TREMOLO = 'tremolo',
-  VIBRATO = 'vibrato',
-  KARAOKE = 'karaoke',
-  NORMALIZER = 'normalizer',
-  MONO = 'mono',
-  CHIPMUNK = 'chipmunk',
-  DEEP = 'deep',
-  PHASER = 'phaser',
-  ROBOT = 'robot',
-  DISTORTION = 'distortion',
-  OLD_RECORD = 'oldrecord',
-  CROSSFEED = 'crossfeed',
-  FILTER_SWEEP = 'filtersweep',
   EIGHT_D_VERTICAL = '8dvertical',
+  BASSBOOST = 'bassboost',
+  CHIPMUNK = 'chipmunk',
+  CONCERT_HALL = 'concerthall',
+  CROSSFEED = 'crossfeed',
+  DAYCORE = 'daycore',
+  DEEP = 'deep',
+  DISTORTION = 'distortion',
+  DREAMY = 'dreamy',
+  ECHO = 'echo',
+  FILTER_SWEEP = 'filtersweep',
+  KARAOKE = 'karaoke',
+  LOFI = 'lofi',
+  MONO = 'mono',
+  NEXT_ROOM = 'nextroom',
+  NIGHTCORE = 'nightcore',
+  NORMALIZER = 'normalizer',
+  OLD_RECORD = 'oldrecord',
+  PHASER = 'phaser',
+  RADIO = 'radio',
+  ROBOT = 'robot',
+  SLOWED = 'slowed',
+  TREBLE_BOOST = 'trebleboost',
+  TREMOLO = 'tremolo',
+  UNDERWATER = 'underwater',
+  VAPORWAVE = 'vaporwave',
+  VIBRATO = 'vibrato',
+  WIDE = 'wide',
 }
 
-// their names, the same in every language (the descriptions are translated, `music_effect.<effect>`)
+// their names (the order the enum's in), the same in every language (the descriptions are translated,
+// `music_effect.<effect>`)
 export const MusicEffectsToText: Record<MusicEffects, string> = Object.freeze({
-  [MusicEffects.BASSBOOST]: 'Bassboost',
-  [MusicEffects.TREBLE_BOOST]: 'Treble Boost',
-  [MusicEffects.NIGHTCORE]: 'Nightcore',
-  [MusicEffects.DAYCORE]: 'Daycore',
-  [MusicEffects.SLOWED]: 'Slowed + reverb',
-  [MusicEffects.VAPORWAVE]: 'Vaporwave',
-  [MusicEffects.LOFI]: 'Lo-Fi',
-  [MusicEffects.DREAMY]: 'Dreamy',
-  [MusicEffects.UNDERWATER]: 'Underwater',
-  [MusicEffects.RADIO]: 'Radio',
-  [MusicEffects.NEXT_ROOM]: 'Next Room',
-  [MusicEffects.ECHO]: 'Echo',
-  [MusicEffects.CONCERT_HALL]: 'Concert Hall',
-  [MusicEffects.WIDE]: 'Wide',
   [MusicEffects.EIGHT_D]: '8D',
-  [MusicEffects.TREMOLO]: 'Tremolo',
-  [MusicEffects.VIBRATO]: 'Vibrato',
-  [MusicEffects.KARAOKE]: 'Karaoke',
-  [MusicEffects.NORMALIZER]: 'Normalizer',
-  [MusicEffects.MONO]: 'Mono',
-  [MusicEffects.CHIPMUNK]: 'Chipmunk',
-  [MusicEffects.DEEP]: 'Deep',
-  [MusicEffects.PHASER]: 'Phaser',
-  [MusicEffects.ROBOT]: 'Robot',
-  [MusicEffects.DISTORTION]: 'Distortion',
-  [MusicEffects.OLD_RECORD]: 'Old Record',
-  [MusicEffects.CROSSFEED]: 'Crossfeed',
-  [MusicEffects.FILTER_SWEEP]: 'Filter Sweep',
   [MusicEffects.EIGHT_D_VERTICAL]: '8D Vertical',
+  [MusicEffects.BASSBOOST]: 'Bassboost',
+  [MusicEffects.CHIPMUNK]: 'Chipmunk',
+  [MusicEffects.CONCERT_HALL]: 'Concert Hall',
+  [MusicEffects.CROSSFEED]: 'Crossfeed',
+  [MusicEffects.DAYCORE]: 'Daycore',
+  [MusicEffects.DEEP]: 'Deep',
+  [MusicEffects.DISTORTION]: 'Distortion',
+  [MusicEffects.DREAMY]: 'Dreamy',
+  [MusicEffects.ECHO]: 'Echo',
+  [MusicEffects.FILTER_SWEEP]: 'Filter Sweep',
+  [MusicEffects.KARAOKE]: 'Karaoke',
+  [MusicEffects.LOFI]: 'Lo-Fi',
+  [MusicEffects.MONO]: 'Mono',
+  [MusicEffects.NEXT_ROOM]: 'Next Room',
+  [MusicEffects.NIGHTCORE]: 'Nightcore',
+  [MusicEffects.NORMALIZER]: 'Normalizer',
+  [MusicEffects.OLD_RECORD]: 'Old Record',
+  [MusicEffects.PHASER]: 'Phaser',
+  [MusicEffects.RADIO]: 'Radio',
+  [MusicEffects.ROBOT]: 'Robot',
+  [MusicEffects.SLOWED]: 'Slowed + reverb',
+  [MusicEffects.TREBLE_BOOST]: 'Treble Boost',
+  [MusicEffects.TREMOLO]: 'Tremolo',
+  [MusicEffects.UNDERWATER]: 'Underwater',
+  [MusicEffects.VAPORWAVE]: 'Vaporwave',
+  [MusicEffects.VIBRATO]: 'Vibrato',
+  [MusicEffects.WIDE]: 'Wide',
 });
 
 // how many can be stacked at once, the same one more than once too (notsobot.voice's `MAX_EFFECTS`)
@@ -1813,6 +1831,8 @@ export enum RedisChannels {
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
   GUILD_RULES_UPDATE = 'GUILD_RULES_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
+  GUILD_WARNING_DELETE = 'GUILD_WARNING_DELETE',
+  GUILD_WARNING_DELETE_BULK = 'GUILD_WARNING_DELETE_BULK',
   INFO_DISCORD_REQUEST = 'INFO_DISCORD_REQUEST',
   MUSIC_CONTROL = 'MUSIC_CONTROL',
   PREMIUM_SERVERS_UPDATE = 'PREMIUM_SERVERS_UPDATE',
@@ -2691,6 +2711,8 @@ export const NotSoApiKeys = Object.freeze({
   VANITY: 'vanity',
   VIDEO: 'video',
   VIEWS: 'views',
+  WARNINGS_EXPIRE: 'warnings_expire',
+  WARNINGS_WINDOW: 'warnings_window',
   WEBHOOK_ID: 'webhook_id',
   WEBHOOK_TOKEN: 'webhook_token',
   WIDTH: 'width',
@@ -2780,6 +2802,8 @@ export const NotSoBotKeys = Object.freeze({
   [NotSoApiKeys.VANITY]: 'vanity',
   [NotSoApiKeys.VIDEO]: 'video',
   [NotSoApiKeys.VIEWS]: 'views',
+  [NotSoApiKeys.WARNINGS_EXPIRE]: 'warningsExpire',
+  [NotSoApiKeys.WARNINGS_WINDOW]: 'warningsWindow',
   [NotSoApiKeys.WEBHOOK_ID]: 'webhookId',
   [NotSoApiKeys.WEBHOOK_TOKEN]: 'webhookToken',
   [NotSoApiKeys.WIDTH]: 'width'

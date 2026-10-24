@@ -35,7 +35,7 @@ export default class PixelSortCommand extends BaseImageOrVideoCommand {
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationPixelSort.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-interval <MediaPixelSortIntervals>) (-sort <MediaPixelSortFunctions>) (-angle <number>) (-lower <float>) (-upper <float>) (-length <number>) (-randomness <number>) (-reverse) (-seed <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-interval <choice>) (-sort <choice>) (-angle <number>) (-lower <float>) (-upper <float>) (-length <number>) (-randomness <number>) (-reverse) (-seed <number>)',
       },
     });
   }

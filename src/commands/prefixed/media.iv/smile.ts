@@ -25,7 +25,7 @@ export default class SmileCommand extends BaseImageOrVideoCommand {
         ],
         id: Formatter.Commands.MediaIVManipulationSmile.COMMAND_ID,
         category: CommandCategories.EFFECTS,
-        usage: '?<emoji,user:id|mention|name,url> (-level <MediaFaceSmileLevels>)',
+        usage: '?<emoji,user:id|mention|name,url> (-level <choice>)',
       },
     });
   }

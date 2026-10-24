@@ -36,7 +36,7 @@ export default class CartoonCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -method SOBEL_EDGES -levels 4`,
         ],
         id: Formatter.Commands.MediaIVManipulationCartoon.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-amount <float>) (-brightness <number>) (-levels <number>) (-method <MediaCartoonMethods>) (-pattern <number>) (-saturation <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-amount <float>) (-brightness <number>) (-levels <number>) (-method <choice>) (-pattern <number>) (-saturation <number>)',
       },
     });
   }

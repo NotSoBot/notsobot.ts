@@ -26,7 +26,7 @@ export default class SlideCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -speed 0.5`,
         ],
         id: Formatter.Commands.MediaIVManipulationSlide.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-direction <MediaSlideDirections>) (-speed <float>)',
+        usage: '?<emoji,user:id|mention|name,url> (-direction <choice>) (-speed <float>)',
       },
     });
   }

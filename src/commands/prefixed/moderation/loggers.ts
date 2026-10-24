@@ -19,6 +19,7 @@ export function getLoggerTypeText(translate: I18n.Translator['translate'], type:
     case GuildLoggerTypes.CHANNELS: return translate('loggers.type.channel');
     case GuildLoggerTypes.MEMBERS: return translate('loggers.type.member');
     case GuildLoggerTypes.MESSAGES: return translate('loggers.type.message');
+    case GuildLoggerTypes.MODERATION: return translate('loggers.type.moderation');
     case GuildLoggerTypes.ROLES: return translate('loggers.type.role');
     case GuildLoggerTypes.USERS: return translate('loggers.type.user');
     case GuildLoggerTypes.VOICE: return translate('loggers.type.voice');
@@ -53,6 +54,7 @@ export async function createLoggersEmbed(
     case GuildLoggerTypes.CHANNELS: onlyText = translate('loggers.types.channel'); break;
     case GuildLoggerTypes.MEMBERS: onlyText = translate('loggers.types.member'); break;
     case GuildLoggerTypes.MESSAGES: onlyText = translate('loggers.types.message'); break;
+    case GuildLoggerTypes.MODERATION: onlyText = translate('loggers.types.moderation'); break;
     case GuildLoggerTypes.ROLES: onlyText = translate('loggers.types.role'); break;
     case GuildLoggerTypes.USERS: onlyText = translate('loggers.types.user'); break;
     case GuildLoggerTypes.VOICE: onlyText = translate('loggers.types.voice'); break;

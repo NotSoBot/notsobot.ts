@@ -14,6 +14,7 @@ import {
   GuildSettingsResponseDisplayTypes,
   NotSoApiKeys,
   UserSettingsSearchProviders,
+  WARNINGS_WINDOW_DEFAULT,
 } from '../../constants';
 
 import { BaseStructure } from './basestructure';
@@ -360,6 +361,8 @@ const keysGuildSettingsChild = new Collections.BaseSet<string>([
   NotSoApiKeys.RULES_ADMIN_BYPASS,
   NotSoApiKeys.SEARCH_PROVIDER_IMAGES,
   NotSoApiKeys.SEARCH_PROVIDER_WEB,
+  NotSoApiKeys.WARNINGS_EXPIRE,
+  NotSoApiKeys.WARNINGS_WINDOW,
 ]);
 
 export class GuildSettingsChild extends BaseStructure {
@@ -377,6 +380,10 @@ export class GuildSettingsChild extends BaseStructure {
   // null uses each user's preference, then our defaults
   searchProviderImages: UserSettingsSearchProviders | null = null;
   searchProviderWeb: UserSettingsSearchProviders | null = null;
+  // seconds until a warning gets deleted, null: never
+  warningsExpire: null | number = null;
+  // seconds a warning counts towards a member's active warnings
+  warningsWindow: number = WARNINGS_WINDOW_DEFAULT;
 
   constructor(data: Structures.BaseStructureData) {
     super();

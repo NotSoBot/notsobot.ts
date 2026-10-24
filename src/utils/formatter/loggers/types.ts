@@ -2,11 +2,19 @@ import { GatewayClientEvents, Structures } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
 import { ComponentContainer, Embed } from 'detritus-client/lib/utils';
 
+import type { RestResponsesRaw } from '../../../api/types';
 import type { UserAvatarDecorationStored } from '../../../stores/useravatardecorations';
 import type { Languages } from '../../i18n';
 
 
 export type ClientStatusType = 'desktop' | 'mobile' | 'web';
+
+// logs the bot posts itself from its commands, warnings aren't discord actions so there's no gateway event or audit log
+export enum GuildLoggingCustomEvents {
+  GUILD_WARNING_ADD = 'guildWarningAdd',
+  GUILD_WARNING_REMOVE = 'guildWarningRemove',
+  GUILD_WARNINGS_CLEAR = 'guildWarningsClear',
+}
 
 export type GuildLoggingEventItemAudits = [Structures.AuditLog, ...Array<Structures.AuditLog>];
 
@@ -172,6 +180,40 @@ export type GuildLoggingEventItem = {
   happened: number,
   name: ClientEvents.GUILD_ROLE_UPDATE,
   payload: GatewayClientEvents.ClusterEvent & GatewayClientEvents.GuildRoleUpdate,
+} | {
+  audits?: GuildLoggingEventItemAudits,
+  guildId: string,
+  happened: number,
+  name: GuildLoggingCustomEvents.GUILD_WARNING_ADD,
+  payload: {
+    // the member's warnings, counting this one
+    counts: RestResponsesRaw.GuildWarningCounts,
+    moderator: Structures.User,
+    user: Structures.User,
+    warning: RestResponsesRaw.GuildWarning,
+  },
+} | {
+  audits?: GuildLoggingEventItemAudits,
+  guildId: string,
+  happened: number,
+  name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE,
+  payload: {
+    moderator: Structures.User,
+    // only when cached, the warned user might have left
+    user: Structures.User | null,
+    warning: RestResponsesRaw.GuildWarning,
+  },
+} | {
+  audits?: GuildLoggingEventItemAudits,
+  guildId: string,
+  happened: number,
+  name: GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR,
+  payload: {
+    // how many got deleted
+    count: number,
+    moderator: Structures.User,
+    user: Structures.User,
+  },
 };
 
 export type GuildLoggingEventChannelCreate = Extract<GuildLoggingEventItem, {name: ClientEvents.CHANNEL_CREATE}>;
@@ -190,6 +232,10 @@ export type GuildLoggingEventGuildRoleDelete = Extract<GuildLoggingEventItem, {n
 export type GuildLoggingEventGuildRoleUpdate = Extract<GuildLoggingEventItem, {name: ClientEvents.GUILD_ROLE_UPDATE}>;
 export type GuildLoggingEventUsersUpdate = Extract<GuildLoggingEventItem, {name: ClientEvents.USERS_UPDATE}>;
 export type GuildLoggingEventVoiceStateUpdate = Extract<GuildLoggingEventItem, {name: ClientEvents.VOICE_STATE_UPDATE}>;
+export type GuildLoggingEventGuildWarningAdd = Extract<GuildLoggingEventItem, {name: GuildLoggingCustomEvents.GUILD_WARNING_ADD}>;
+export type GuildLoggingEventGuildWarningRemove = Extract<GuildLoggingEventItem, {name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE}>;
+export type GuildLoggingEventGuildWarningsClear = Extract<GuildLoggingEventItem, {name: GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR}>;
+export type GuildLoggingEventModeration = GuildLoggingEventGuildWarningAdd | GuildLoggingEventGuildWarningRemove | GuildLoggingEventGuildWarningsClear;
 
 export type LogPayloadFiles = Array<{filename: string, value: any}>;
 

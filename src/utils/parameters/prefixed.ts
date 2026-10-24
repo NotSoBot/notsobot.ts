@@ -395,7 +395,7 @@ export function oneOf<T>(options: OneOfOptions<T>) {
   }));
 
   const shouldError = (options.error === undefined) ? options.defaultChoice === undefined : !!options.error;
-  return (value: string, context?: Command.Context | Interaction.InteractionContext): null | T => {
+  const converter = (value: string, context?: Command.Context | Interaction.InteractionContext): null | T => {
     if (value) {
       const results = search.search(value);
       if (results.length) {
@@ -411,5 +411,34 @@ export function oneOf<T>(options: OneOfOptions<T>) {
       return null;
     }
     return options.defaultChoice ?? null;
+  };
+
+  // kept on the converter so `.help` and the commands page can list them (see `getArgChoices`)
+  const choices = new Map<string, ArgChoice>();
+  for (let value of Object.values(options.choices)) {
+    const key = String(value);
+    if (!choices.has(key)) {
+      const description: string = ((options.descriptions) ? (options.descriptions as any)[value] : '') || '';
+      choices.set(key, {description, value: key});
+    }
   }
+  return Object.assign(converter, {choices: Array.from(choices.values())});
+}
+
+
+export interface ArgChoice {
+  description: string,
+  value: string,
+}
+
+// from a `oneOf` converter, else detritus' own `choices` option
+export function getArgChoices(arg: Command.Argument): Array<ArgChoice> {
+  const tagged = (arg.type as {choices?: Array<ArgChoice>} | undefined)?.choices;
+  if (Array.isArray(tagged)) {
+    return tagged;
+  }
+  if (Array.isArray(arg.choices)) {
+    return arg.choices.map((value) => ({description: '', value: String(value)}));
+  }
+  return [];
 }

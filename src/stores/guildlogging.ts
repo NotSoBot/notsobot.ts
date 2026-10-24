@@ -15,12 +15,15 @@ import GuildSettingsStore from './guildsettings';
 import UserAvatarDecorationStore, { UserAvatarDecorationStored } from './useravatardecorations';
 import { Store } from './store';
 
-import { GuildLoggerFlags, GuildLoggerTypes, GuildSettingsResponseDisplayTypes } from '../constants';
+import { GuildLoggerFlags, GuildLoggerTypes, GuildSettingsResponseDisplayTypes, RedisChannels } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
+import { RedisPayloads } from '../types';
 import { Languages, languageFromLocale } from '../utils/i18n';
 import {
   ClientStatusType,
+  GuildLoggingCustomEvents,
   GuildLoggingEventItem,
+  GuildLoggingEventModeration,
   LogPayload,
   MAX_COMPONENTS,
   MAX_COMPONENTS_TEXT_LENGTH,
@@ -37,7 +40,8 @@ export interface GuildLogStorage {
 }
 
 
-export const AUDITLOG_EVENTS = [
+// the bot's own events (warnings) never have an audit log
+export const AUDITLOG_EVENTS: Array<ClientEvents | GuildLoggingCustomEvents> = [
   ClientEvents.CHANNEL_CREATE,
   ClientEvents.CHANNEL_DELETE,
   ClientEvents.CHANNEL_UPDATE,
@@ -300,6 +304,10 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
           }
         }
       }; break;
+      // warnings have no event flags to disable, a moderation logger logs all of them
+      case GuildLoggingCustomEvents.GUILD_WARNING_ADD:
+      case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE:
+      case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: shouldLog = true; break;
     }
     // add support for the logger disabled events
     if (shouldLog) {
@@ -336,10 +344,76 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
         case ClientEvents.VOICE_STATE_UPDATE: {
           loggerType = GuildLoggerTypes.VOICE;
         }; break;
+        case GuildLoggingCustomEvents.GUILD_WARNING_ADD:
+        case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE:
+        case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: {
+          loggerType = GuildLoggerTypes.MODERATION;
+        }; break;
       }
       if (loggerType !== null && settings.loggers.some((logger) => logger.type === loggerType)) {
         this.add(guildId, loggerType, shard, event);
       }
+    }
+  }
+
+  // the bot's own logs from its commands (warnings), a logging problem shouldn't fail the command so nothing waits on it
+  logModeration(shard: ShardClient, event: GuildLoggingEventModeration): void {
+    this.tryAdd(shard, event).catch((error) => {
+      console.error(`Guild Logging failed for ${event.guildId}`, error);
+    });
+  }
+
+  // the dashboard's warning removals come through the api events, every cluster gets them and only the one with the
+  // server's shard logs them
+  shardForGuild(cluster: ClusterClient, guildId: string): ShardClient | undefined {
+    const shardId = Number((BigInt(guildId) >> 22n) % BigInt(cluster.shardCount));
+    return cluster.shards.get(shardId);
+  }
+
+  async fetchUser(shard: ShardClient, userId: string): Promise<Structures.User> {
+    return shard.users.get(userId) || shard.rest.fetchUser(userId);
+  }
+
+  async logDashboardWarningDelete(cluster: ClusterClient, payload: RedisPayloads.GuildWarningDelete): Promise<void> {
+    const { warning } = payload;
+    const shard = this.shardForGuild(cluster, warning.guild_id);
+    if (!shard) {
+      return;
+    }
+    const moderator = await this.fetchUser(shard, payload.moderator_id);
+    this.logModeration(shard, {
+      guildId: warning.guild_id,
+      happened: payload.created,
+      name: GuildLoggingCustomEvents.GUILD_WARNING_REMOVE,
+      // same as `warnings remove`, the warned user only when cached
+      payload: {moderator, user: shard.users.get(warning.user_id) || null, warning},
+    });
+  }
+
+  async logDashboardWarningDeleteBulk(cluster: ClusterClient, payload: RedisPayloads.GuildWarningDeleteBulk): Promise<void> {
+    const shard = this.shardForGuild(cluster, payload.guild_id);
+    if (!shard) {
+      return;
+    }
+    const moderator = await this.fetchUser(shard, payload.moderator_id);
+    for (let userId in payload.deleted) {
+      const count = payload.deleted[userId];
+      if (!count) {
+        continue;
+      }
+      let user: Structures.User;
+      try {
+        user = await this.fetchUser(shard, userId);
+      } catch(error) {
+        console.error(`Guild Logging failed to fetch ${userId} for ${payload.guild_id}`, error);
+        continue;
+      }
+      this.logModeration(shard, {
+        guildId: payload.guild_id,
+        happened: payload.created,
+        name: GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR,
+        payload: {count, moderator, user},
+      });
     }
   }
 
@@ -744,6 +818,24 @@ class GuildLoggingStore extends Store<string, GuildLogStorage> {
             payload,
           });
         }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_WARNING_DELETE, (payload: RedisPayloads.GuildWarningDelete) => {
+        this.logDashboardWarningDelete(cluster, payload).catch((error) => {
+          console.error(`Guild Logging failed for ${payload.warning.guild_id}`, error);
+        });
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_WARNING_DELETE_BULK, (payload: RedisPayloads.GuildWarningDeleteBulk) => {
+        this.logDashboardWarningDeleteBulk(cluster, payload).catch((error) => {
+          console.error(`Guild Logging failed for ${payload.guild_id}`, error);
+        });
       });
       subscriptions.push(subscription);
     }

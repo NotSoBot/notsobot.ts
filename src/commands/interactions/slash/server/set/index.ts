@@ -7,6 +7,7 @@ import { ServerSetLocaleCommand } from './set.locale';
 import { ServerSetResponseDisplayCommand } from './set.response-display';
 import { ServerSetSearchProviderCommand } from './set.search-provider';
 import { ServerSetTimezoneCommand } from './set.timezone';
+import { ServerSetWarningsCommand } from './set.warnings';
 
 
 export class ServerSetGroupCommand extends BaseInteractionCommandOptionGroup {
@@ -23,6 +24,7 @@ export class ServerSetGroupCommand extends BaseInteractionCommandOptionGroup {
         new ServerSetResponseDisplayCommand(),
         new ServerSetSearchProviderCommand(),
         new ServerSetTimezoneCommand(),
+        new ServerSetWarningsCommand(),
       ],
     });
   }

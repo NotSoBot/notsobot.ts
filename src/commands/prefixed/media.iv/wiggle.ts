@@ -30,7 +30,7 @@ export default class WiggleCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -speed 2 -loop`,
         ],
         id: Formatter.Commands.MediaIVManipulationWiggle.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-direction <MediaWiggleDirections>) (-loop) (-speed <number>) (-wavelengths <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-amount <number>) (-direction <choice>) (-loop) (-speed <number>) (-wavelengths <number>)',
       },
     });
   }

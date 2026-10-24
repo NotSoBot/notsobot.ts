@@ -24,7 +24,7 @@ export default class FatCommand extends BaseImageOrVideoCommand {
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationFaceFat.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-size <MediaFaceFatSizes>)',
+        usage: '?<emoji,user:id|mention|name,url> (-size <choice>)',
       },
     });
   }

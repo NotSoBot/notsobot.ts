@@ -42,7 +42,7 @@ export default class EmojiCommand extends BaseCommand {
           `${COMMAND_NAME} 😩 -type google -size 1024`,
         ],
         id: Formatter.Commands.FunEmoji.COMMAND_ID,
-        usage: '<emojis> (-size <number>) (-type <EmojiTypes>)',
+        usage: '<emojis> (-size <number>) (-type <choice>)',
       },
     });
   }

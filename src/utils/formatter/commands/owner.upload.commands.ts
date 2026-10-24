@@ -4,7 +4,7 @@ import { ApplicationCommandTypes, LOCAL_GUILD_ID } from 'detritus-client/lib/con
 import { uploadCommands } from '../../../api';
 import type { CommandMetadata } from '../../../commands/prefixed/basecommand';
 import { CommandCategories, CommandTypes, SLASH_COMMAND_CATEGORY_FALLBACKS } from '../../../constants';
-import { displayReply } from '../../../utils';
+import { Parameters, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'owner.upload.commands';
@@ -75,6 +75,7 @@ export async function createMessage(
           const argMetadata = arg.metadata || {};
           return {
             aliases: arg.aliases,
+            choices: Parameters.getArgChoices(arg),
             description: argMetadata.description || '',
             name: arg.name,
             prefix: Array.from(arg.prefixes).shift() || '',

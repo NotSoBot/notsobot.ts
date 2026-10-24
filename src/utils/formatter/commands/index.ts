@@ -99,6 +99,7 @@ import * as MediaIVManipulationAcid from './media.iv.manipulation.acid';
 import * as MediaIVManipulationASCII from './media.iv.manipulation.ascii';
 import * as MediaIVManipulationArtistic from './media.iv.manipulation.artistic';
 import * as MediaIVManipulationBackgroundRemove from './media.iv.manipulation.background.remove';
+import * as MediaIVManipulationColorRemove from './media.iv.manipulation.color.remove';
 import * as MediaIVManipulationBill from './media.iv.manipulation.bill';
 import * as MediaIVManipulationBlur from './media.iv.manipulation.blur';
 import * as MediaIVManipulationBlurple from './media.iv.manipulation.blurple';
@@ -491,6 +492,10 @@ import * as ModerationRulesClear from './moderation.rules.clear';
 import * as ModerationRulesRemove from './moderation.rules.remove';
 import * as ModerationUnban from './moderation.unban';
 import * as ModerationUnmute from './moderation.unmute';
+import * as ModerationWarn from './moderation.warn';
+import * as ModerationWarnings from './moderation.warnings';
+import * as ModerationWarningsClear from './moderation.warnings.clear';
+import * as ModerationWarningsRemove from './moderation.warnings.remove';
 
 import * as ServerBans from './server.bans';
 import * as ServerInvites from './server.invites';
@@ -584,6 +589,7 @@ import * as SettingsServerSetLocale from './settings.server.set.locale';
 import * as SettingsServerSetResponseDisplay from './settings.server.set.response.display';
 import * as SettingsServerSetSearchProvider from './settings.server.set.search.provider';
 import * as SettingsServerSetTimezone from './settings.server.set.timezone';
+import * as SettingsServerSetWarnings from './settings.server.set.warnings';
 
 import * as SettingsSetAIModel from './settings.set.ai.model';
 import * as SettingsSetAIMemory from './settings.set.ai.memory';
@@ -628,6 +634,7 @@ import * as TagStorageExport from './tag.storage.export';
 import * as TagShowCustomCommand from './tag.show.custom.command';
 
 import * as ToolsCode from './tools.code';
+import * as ToolsColor from './tools.color';
 import * as ToolsDownload from './tools.download';
 import * as ToolsExif from './tools.exif';
 import * as ToolsHash from './tools.hash';
@@ -769,6 +776,7 @@ export {
   MediaIVManipulationASCII,
   MediaIVManipulationArtistic,
   MediaIVManipulationBackgroundRemove,
+  MediaIVManipulationColorRemove,
   MediaIVManipulationBill,
   MediaIVManipulationBlur,
   MediaIVManipulationBlurple,
@@ -1161,6 +1169,10 @@ export {
   ModerationRulesRemove,
   ModerationUnban,
   ModerationUnmute,
+  ModerationWarn,
+  ModerationWarnings,
+  ModerationWarningsClear,
+  ModerationWarningsRemove,
 
   ServerBans,
   ServerInvites,
@@ -1253,6 +1265,7 @@ export {
   SettingsServerSetResponseDisplay,
   SettingsServerSetSearchProvider,
   SettingsServerSetTimezone,
+  SettingsServerSetWarnings,
 
   SettingsSetAIModel,
   SettingsSetAIMemory,
@@ -1297,6 +1310,7 @@ export {
   TagShowCustomCommand,
 
   ToolsCode,
+  ToolsColor,
   ToolsDownload,
   ToolsExif,
   ToolsHash,

@@ -28,7 +28,7 @@ export default class AudioBitcrushCommand extends BaseAudioOrVideoCommand {
           `${COMMAND_NAME} https://notsobot.com/some/audio/file.mp3 -samples 12 -bits 4 -mode lin`,
         ],
         id: Formatter.Commands.MediaAVManipulationAudioBitcrush.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-samples <number>) (-bits <number>) (-mix <float>) (-mode <MediaAudioBitcrushModes>)',
+        usage: '?<emoji,user:id|mention|name,url> (-samples <number>) (-bits <number>) (-mix <float>) (-mode <choice>)',
       },
     });
   }

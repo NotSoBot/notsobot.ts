@@ -35,7 +35,7 @@ export default class WordcloudUserCommand extends BaseCommand {
           `${COMMAND_NAME} @cakedan -shape star -theme neon`,
         ],
         id: Formatter.Commands.MediaICreateWordcloudUser.COMMAND_ID,
-        usage: '?<user:id|mention|name> (-before <message_id>) (-bots) (-exclude <words>) (-image <emoji,user:id|mention|name,url>) (-max <number>) (-shape <MediaWordcloudShapes>) (-theme <MediaWordcloudThemes>)',
+        usage: '?<user:id|mention|name> (-before <message_id>) (-bots) (-exclude <words>) (-image <emoji,user:id|mention|name,url>) (-max <number>) (-shape <choice>) (-theme <choice>)',
       },
       // `wordcloud` would otherwise try to read "user ..." as a channel
       priority: 1,

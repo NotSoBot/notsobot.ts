@@ -334,17 +334,18 @@ export function musicProgressBar(position: number, duration: number): string {
   return `${Markup.codestring(formatTime(position))} ${bar} ${Markup.codestring(formatTime(duration))}`;
 }
 
-// what's playing in `music queue` and `music info`: its progress bar, then small details (paused, who requested it...)
+// what's playing in `music queue` and `music info`: its progress bar, then lines of small details (where it's playing,
+// its effects...), empty lines are skipped
 export function musicNowPlaying(
   item: RestResponsesRaw.GuildMusicQueueItem,
   player: any,
   fetchedAt: number,
-  details: Array<null | string>,
+  lines: Array<Array<null | string>>,
 ): string {
   const duration = (item.track) ? item.track.duration : 0;
   return displayDetails([
     (duration) ? musicProgressBar(musicPlayerPosition(player, fetchedAt, duration), duration) : null,
-    displayDetailsLine(details, true),
+    ...lines.map((details) => displayDetailsLine(details, true)),
   ]);
 }
 

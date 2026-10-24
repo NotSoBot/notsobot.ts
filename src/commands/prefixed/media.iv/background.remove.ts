@@ -39,7 +39,7 @@ export default class BackgroundRemoveCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -trim`,
         ],
         id: Formatter.Commands.MediaIVManipulationBackgroundRemove.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-model <MediaBackgroundRemovalModels>) (-trim)',
+        usage: '?<emoji,user:id|mention|name,url> (-model <choice>) (-trim)',
       },
     });
   }

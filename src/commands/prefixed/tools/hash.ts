@@ -42,7 +42,7 @@ export default class HashCommand extends BaseCommand<CommandArgs> {
           `${COMMAND_NAME} Discord Bots -use sha256`,
         ],
         id: Formatter.Commands.ToolsHash.COMMAND_ID,
-        usage: '<text> (-use <HashTypes>) (-secret <string>)',
+        usage: '<text> (-use <choice>) (-secret <string>)',
       },
       type: Parameters.targetText,
     });

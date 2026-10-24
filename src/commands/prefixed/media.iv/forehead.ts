@@ -24,7 +24,7 @@ export default class ForeheadCommand extends BaseImageOrVideoCommand {
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationFaceForehead.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-size <MediaFaceForeheadSizes>)',
+        usage: '?<emoji,user:id|mention|name,url> (-size <choice>)',
       },
     });
   }

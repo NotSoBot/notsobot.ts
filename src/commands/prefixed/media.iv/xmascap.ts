@@ -26,7 +26,7 @@ export default class XmascapCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -color blue`,
         ],
         id: Formatter.Commands.MediaIVManipulationFaceXmasCap.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-color <MediaFaceXmasCapColors>)',
+        usage: '?<emoji,user:id|mention|name,url> (-color <choice>)',
       },
     });
   }

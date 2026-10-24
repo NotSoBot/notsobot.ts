@@ -50,7 +50,7 @@ export default class AiCommand extends BaseCommand {
           `${COMMAND_NAME} what is cake\'s user id`,
         ],
         id: Formatter.Commands.TagGenerate.COMMAND_ID,
-        usage: '<text> (-debug) (-personalitypreference <TagGenerationPersonalityPreferences>) (-use <TagGenerationModels>)',
+        usage: '<text> (-debug) (-personalitypreference <choice>) (-use <choice>)',
       },
       priority: -1,
       type: Parameters.targetText,

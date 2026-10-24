@@ -25,7 +25,7 @@ export default class OrbCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -direction left`,
         ],
         id: Formatter.Commands.MediaIVManipulationOrb.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-direction <MediaSlideDirections>)',
+        usage: '?<emoji,user:id|mention|name,url> (-direction <choice>)',
       },
     });
   }

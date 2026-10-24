@@ -5,6 +5,7 @@ import { I18n } from '../../../../utils';
 import { BaseSlashCommand } from '../../basecommand';
 
 import { ToolsCodeCommand } from './code';
+import { ToolsColorCommand } from './color';
 import { ToolsExifCommand } from './exif';
 import { ToolsHashCommand } from './hash';
 import { ToolsLabelsCommand } from './labels';
@@ -42,6 +43,7 @@ export default class ToolsGroupCommand extends BaseSlashCommand {
     super({
       options: [
         new ToolsCodeCommand(),
+        new ToolsColorCommand(),
         new ToolsExifCommand(),
         new ToolsHashCommand(),
         new ToolsLabelsCommand(),

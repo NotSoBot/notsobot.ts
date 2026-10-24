@@ -37,7 +37,7 @@ export default class WordcloudCommand extends BaseCommand {
           `${COMMAND_NAME} -image https://notsobot.com/logo.png -exclude lol,lmao`,
         ],
         id: Formatter.Commands.MediaICreateWordcloudChannel.COMMAND_ID,
-        usage: '...<channel:id|mention|name> (-before <message_id>) (-bots) (-exclude <words>) (-image <emoji,user:id|mention|name,url>) (-max <number>) (-shape <MediaWordcloudShapes>) (-theme <MediaWordcloudThemes>)',
+        usage: '...<channel:id|mention|name> (-before <message_id>) (-bots) (-exclude <words>) (-image <emoji,user:id|mention|name,url>) (-max <number>) (-shape <choice>) (-theme <choice>)',
       },
       type: Parameters.channel({
         types: [

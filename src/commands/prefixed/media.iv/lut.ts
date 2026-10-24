@@ -36,7 +36,7 @@ export default class LUTCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} https://notsobot.com/some/grade.cube @cake#0001 -strength 0.5`,
         ],
         id: Formatter.Commands.MediaIVManipulationLUT.COMMAND_ID,
-        usage: '<.cube url or attachment> ?<emoji,user:id|mention|name,url> (-interpolation <MediaLUTInterpolations>) (-strength <float>)',
+        usage: '<.cube url or attachment> ?<emoji,user:id|mention|name,url> (-interpolation <choice>) (-strength <float>)',
       },
       type: Parameters.filePayload('.cube', {audio: false}),
     });

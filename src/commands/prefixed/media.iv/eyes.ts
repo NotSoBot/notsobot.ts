@@ -29,7 +29,7 @@ export default class EyesCommand extends BaseImageOrVideoCommand {
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationEyes.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-type <MediaEyeTypes>) (-flipped)',
+        usage: '?<emoji,user:id|mention|name,url> (-type <choice>) (-flipped)',
       },
       priority: -1,
     });

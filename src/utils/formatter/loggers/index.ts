@@ -7,16 +7,17 @@ import * as Bans from './bans';
 import * as Channels from './channels';
 import * as Members from './members';
 import * as Messages from './messages';
+import * as Moderation from './moderation';
 import * as Roles from './roles';
 import * as Users from './users';
 import * as Voice from './voice';
 
 import { sanitizeEmbed } from './tools';
-import { GuildLoggingEventItem, LogPayload, LogPayloadFiles, LogPayloadOptions } from './types';
+import { GuildLoggingCustomEvents, GuildLoggingEventItem, LogPayload, LogPayloadFiles, LogPayloadOptions } from './types';
 
 export * from './tools';
 export * from './types';
-export { Bans, Channels, Members, Messages, Roles, Users, Voice };
+export { Bans, Channels, Members, Messages, Moderation, Roles, Users, Voice };
 
 
 export function createLogPayload(event: GuildLoggingEventItem, options: LogPayloadOptions = {}): LogPayload {
@@ -48,6 +49,9 @@ export function createLogPayloadEmbed(event: GuildLoggingEventItem, translator: 
     case ClientEvents.MESSAGE_UPDATE: Messages.formatMessageUpdate(event, embed, files, translator); break;
     case ClientEvents.USERS_UPDATE: Users.formatUsersUpdate(event, embed, files, translator); break;
     case ClientEvents.VOICE_STATE_UPDATE: Voice.formatVoiceStateUpdate(event, embed, files, translator); break;
+    case GuildLoggingCustomEvents.GUILD_WARNING_ADD: Moderation.formatGuildWarningAdd(event, embed, files, translator); break;
+    case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE: Moderation.formatGuildWarningRemove(event, embed, files, translator); break;
+    case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: Moderation.formatGuildWarningsClear(event, embed, files, translator); break;
   }
   return {embed: sanitizeEmbed(embed), files};
 }
@@ -73,6 +77,9 @@ export function createLogPayloadComponents(event: GuildLoggingEventItem, transla
     case ClientEvents.MESSAGE_UPDATE: Messages.formatMessageUpdateComponents(event, container, files, translator); break;
     case ClientEvents.USERS_UPDATE: Users.formatUsersUpdateComponents(event, container, files, translator); break;
     case ClientEvents.VOICE_STATE_UPDATE: Voice.formatVoiceStateUpdateComponents(event, container, files, translator); break;
+    case GuildLoggingCustomEvents.GUILD_WARNING_ADD: Moderation.formatGuildWarningAddComponents(event, container, files, translator); break;
+    case GuildLoggingCustomEvents.GUILD_WARNING_REMOVE: Moderation.formatGuildWarningRemoveComponents(event, container, files, translator); break;
+    case GuildLoggingCustomEvents.GUILD_WARNINGS_CLEAR: Moderation.formatGuildWarningsClearComponents(event, container, files, translator); break;
   }
   return {container, files};
 }

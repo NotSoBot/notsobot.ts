@@ -14,6 +14,8 @@ import { ModerationPinCommand } from './pin';
 import { ModerationPruneCommand } from './prune';
 import { ModerationUnbanCommand } from './unban';
 import { ModerationUnmuteCommand } from './unmute';
+import { ModerationWarnCommand } from './warn';
+import { ModerationWarningsGroupCommand } from './warnings';
 
 
 export default class ModerationGroupCommand extends BaseSlashCommand {
@@ -42,6 +44,8 @@ export default class ModerationGroupCommand extends BaseSlashCommand {
         new ModerationPruneCommand(),
         new ModerationUnbanCommand(),
         new ModerationUnmuteCommand(),
+        new ModerationWarnCommand(),
+        new ModerationWarningsGroupCommand(),
       ],
     });
   }

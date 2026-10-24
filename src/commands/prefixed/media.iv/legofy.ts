@@ -29,7 +29,7 @@ export default class LegofyCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -dither`,
         ],
         id: Formatter.Commands.MediaIVManipulationLegofy.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-dither) (-palette <MediaLegofyPalettes>) (-size <number>)',
+        usage: '?<emoji,user:id|mention|name,url> (-dither) (-palette <choice>) (-size <number>)',
       },
     });
   }

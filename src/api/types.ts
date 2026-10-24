@@ -164,6 +164,10 @@ export namespace RestOptions {
     searchProviderImages?: UserSettingsSearchProviders | null,
     searchProviderWeb?: UserSettingsSearchProviders | null,
     timezone?: string | null,
+    // seconds, null: warnings never expire
+    warningsExpire?: number | null,
+    // seconds, null resets it to 30 days
+    warningsWindow?: number | null,
   }
 
   export interface EditServerSettings {
@@ -280,6 +284,23 @@ export namespace RestOptions {
   }
 
   export interface DeleteGuildTimedBans {
+    userIds: Array<string>,
+  }
+
+  export interface PutGuildWarnings {
+    moderatorId: string,
+    reason?: string | null,
+    userIds: Array<string>,
+  }
+
+  export interface FetchGuildWarnings {
+    // paging back from the newest
+    before?: string,
+    limit?: number,
+    userId?: string,
+  }
+
+  export interface DeleteGuildWarnings {
     userIds: Array<string>,
   }
 
@@ -892,6 +913,12 @@ export namespace RestOptions {
   export interface MediaIVManipulationBackgroundRemoveOptions extends MediaBaseOptions {
     model?: string,
     trim?: boolean,
+  }
+
+  export interface MediaIVManipulationColorRemove extends MediaBaseOptions {
+    blend?: number,
+    color?: string,
+    similarity?: number,
   }
 
   export interface MediaIVManipulationBlur extends MediaBaseOptions {
@@ -2314,6 +2341,43 @@ export namespace RestResponsesRaw {
     user_id: string,
   }
 
+  export interface GuildWarning {
+    created: string,
+    guild_id: string,
+    id: string,
+    moderator_id: string,
+    reason: string | null,
+    user_id: string,
+  }
+
+  // a member's warnings that haven't expired (`total`), and the ones within the server's window (`active`)
+  export interface GuildWarningCounts {
+    active: number,
+    total: number,
+  }
+
+  export interface PutGuildWarnings {
+    // by user id, counting the new ones
+    counts: Record<string, GuildWarningCounts>,
+    warnings: Array<GuildWarning>,
+    window: number,
+  }
+
+  // `count`/`active` are for every warning that matched, not only this page
+  export interface FetchGuildWarnings {
+    active: number,
+    count: number,
+    warnings: Array<GuildWarning>,
+    window: number,
+  }
+
+  export type DeleteGuildWarning = GuildWarning;
+
+  export interface DeleteGuildWarnings {
+    // how many each user had, by user id
+    deleted: Record<string, number>,
+  }
+
   export type FetchReminderPositional = Reminder;
 
   // every call that changes a memory returns the list the request's server sees afterwards
@@ -2552,6 +2616,8 @@ export namespace RestResponsesRaw {
       rules_admin_bypass: boolean,
       search_provider_images: number | null,
       search_provider_web: number | null,
+      warnings_expire: number | null,
+      warnings_window: number,
     },
     timezone: string | null,
   }

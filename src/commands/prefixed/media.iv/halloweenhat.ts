@@ -26,7 +26,7 @@ export default class HalloweenhatCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot -hat top hat`,
         ],
         id: Formatter.Commands.MediaIVManipulationFaceHalloweenHat.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-hat <MediaFaceHalloweenHats>)',
+        usage: '?<emoji,user:id|mention|name,url> (-hat <choice>)',
       },
     });
   }

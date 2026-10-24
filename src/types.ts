@@ -24,6 +24,22 @@ export namespace RedisPayloads {
 
   export type GuildSettingsUpdate = RestResponsesRaw.GuildSettings;
 
+  // warnings removed from the dashboard, for the server's moderation loggers. `created` is unix ms, `moderator_id` is
+  // the dashboard user
+  export interface GuildWarningDelete {
+    created: number,
+    moderator_id: string,
+    warning: RestResponsesRaw.GuildWarning,
+  }
+
+  export interface GuildWarningDeleteBulk {
+    created: number,
+    // how many each user had, only the ones that had any
+    deleted: Record<string, number>,
+    guild_id: string,
+    moderator_id: string,
+  }
+
   export interface InfoDiscordRequest {
     
   }

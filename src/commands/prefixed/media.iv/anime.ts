@@ -26,7 +26,7 @@ export default class AnimeCommand extends BaseImageOrVideoCommand {
         ],
         category: CommandCategories.EFFECTS,
         id: Formatter.Commands.MediaIVManipulationFaceAnime.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-eyes <MediaFaceAnimeEyes>)',
+        usage: '?<emoji,user:id|mention|name,url> (-eyes <choice>)',
       },
     });
   }

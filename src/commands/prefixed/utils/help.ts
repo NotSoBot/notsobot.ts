@@ -2,7 +2,7 @@ import { Command, CommandClient } from 'detritus-client';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { CommandCategories, CommandCategoryNames, EmbedBrands, EmbedColors, StatusEmojis } from '../../../constants';
-import { DisplayPayload, I18n, Paginator, displayReply, toTitleCase } from '../../../utils';
+import { DisplayPayload, I18n, Paginator, Parameters, displayReply, toTitleCase } from '../../../utils';
 
 import { BaseCommand, CommandMetadata } from '../basecommand';
 
@@ -148,11 +148,12 @@ export default class HelpCommand extends BaseCommand {
             payload.fields!.push({name: translate('help.usage'), value: text});
           }
           {
-            // only args with a description, so hidden flags stay out of help
+            // only args with a description or choices, so hidden flags stay out of help
             const lines: Array<string> = [];
             for (let arg of command.argParser.args) {
               const description = (arg.metadata && arg.metadata.description) || '';
-              if (!description) {
+              const choices = Parameters.getArgChoices(arg);
+              if (!description && !choices.length) {
                 continue;
               }
               const prefix = Array.from(arg.prefixes).shift() || '';
@@ -160,10 +161,24 @@ export default class HelpCommand extends BaseCommand {
               if (arg.aliases.length) {
                 line += ` (${arg.aliases.map((alias) => `${prefix}${alias}`).join(', ')})`;
               }
-              lines.push(`${line}: ${description}`);
+              if (description) {
+                line += `: ${description}`;
+              }
+              if (choices.length) {
+                // same labels as the `params.must_be_one_of` error, deduped since some enums share one (mp3)
+                const labels = new Set(choices.map((choice) => choice.description || choice.value));
+                line += '\n' + Array.from(labels).map((label) => Markup.codestring(label)).join(', ');
+              }
+              lines.push(line);
             }
             if (lines.length) {
-              payload.fields!.push({name: translate('help.arguments'), value: lines.join('\n')});
+              // embed field values cap at 1024, drop whole args from the end instead of cutting one in half
+              let value = lines.join('\n');
+              while (value.length > 1024 && lines.length > 1) {
+                lines.pop();
+                value = lines.join('\n') + '\n…';
+              }
+              payload.fields!.push({name: translate('help.arguments'), value: value.slice(0, 1024)});
             }
           }
         }

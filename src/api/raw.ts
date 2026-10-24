@@ -726,6 +726,8 @@ export async function editGuildSettings(
     search_provider_images: options.searchProviderImages,
     search_provider_web: options.searchProviderWeb,
     timezone: options.timezone,
+    warnings_expire: options.warningsExpire,
+    warnings_window: options.warningsWindow,
   };
   const params = {guildId};
   return request(context, {
@@ -1465,6 +1467,82 @@ export async function fetchGuildTimedBans(
     route: {
       method: HTTPMethods.GET,
       path: Api.GUILD_TIMED_BANS,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function putGuildWarnings(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.PutGuildWarnings,
+): Promise<RestResponsesRaw.PutGuildWarnings> {
+  const body = {
+    moderator_id: options.moderatorId,
+    reason: options.reason,
+    user_ids: options.userIds,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_WARNINGS,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function fetchGuildWarnings(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchGuildWarnings = {},
+): Promise<RestResponsesRaw.FetchGuildWarnings> {
+  const query = {
+    before: options.before,
+    limit: options.limit,
+    user_id: options.userId,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GUILD_WARNINGS,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function deleteGuildWarning(
+  context: RequestContext,
+  guildId: string,
+  warningId: string,
+): Promise<RestResponsesRaw.DeleteGuildWarning> {
+  return request(context, {
+    route: {
+      method: HTTPMethods.DELETE,
+      path: Api.GUILD_WARNING,
+      params: {guildId, warningId},
+    },
+  });
+}
+
+
+export async function deleteGuildWarnings(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.DeleteGuildWarnings,
+): Promise<RestResponsesRaw.DeleteGuildWarnings> {
+  const body = {
+    user_ids: options.userIds,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_WARNINGS_DELETE,
       params: {guildId},
     },
   });
@@ -3733,6 +3811,30 @@ export async function mediaIVManipulationBackgroundRemove(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_BACKGROUND_REMOVE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationColorRemove(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationColorRemove,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    blend: options.blend,
+    color: options.color,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    similarity: options.similarity,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_COLOR_REMOVE,
     },
   });
 }

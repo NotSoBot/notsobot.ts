@@ -162,6 +162,8 @@ export async function createMusicPage(
   const player = (guild && music.current) ? await VoiceNode.getPlayer(guildId).catch(() => null) : null;
   const fetchedAt = Date.now();
   const connected = !!player && player.connected;
+  // the live effects it plays with (`music effect`), in the order they were picked
+  const effects = musicKnownEffects(player && player.effects);
   const paused = (options.paused !== undefined) ? options.paused : held || (!!player && player.paused);
   // held, or joining (no player yet) to carry on from where it was held
   const progress = player || {paused: true, position: (held) ? music.held_position! : (guild && guild.resumeAt) ? guild.resumeAt.position : 0};
@@ -178,16 +180,19 @@ export async function createMusicPage(
   const requestedBy = translate('music_queue.requested_by', {user: `<@${item.user_id}>`});
   let description: string;
   if (playing) {
-    // the progress bar, where it's playing (`playing in #channel • 90ms ping`), then who requested it
+    // the progress bar, where it's playing (`playing in #channel • 90ms ping`) with its effects under it, then who
+    // requested it
     description = displayDetails([
       musicNowPlaying(item, progress, fetchedAt, [
-        // held or disconnected, it's only paused until someone resumes it in their channel
-        (held) ? translate('music_info.not_in_voice') : null,
-        (guild && guild.channelId && !guild.disconnected) ? translate('music_info.playing_in', {channel: `<#${guild.channelId}>`}) : null,
-        // the live effects it plays with (`music effect`), stacked in the order they were picked
-        musicEffectNames(musicKnownEffects(player && player.effects)) || null,
-        (guild && !connected && !guild.disconnected) ? translate('music_info.connecting') : null,
-        (player && connected && 0 <= player.ping) ? translate('music_info.ping', {ping: player.ping}) : null,
+        [
+          // held or disconnected, it's only paused until someone resumes it in their channel
+          (held) ? translate('music_info.not_in_voice') : null,
+          (guild && guild.channelId && !guild.disconnected) ? translate('music_info.playing_in', {channel: `<#${guild.channelId}>`}) : null,
+          (player && connected && 0 <= player.ping) ? translate('music_info.ping', {ping: player.ping}) : null,
+          (guild && !connected && !guild.disconnected) ? translate('music_info.connecting') : null,
+        ],
+        // its live effects on their own line (`fx Nightcore + Bass Boost`)
+        [(effects.length) ? translate('music_info.effects', {effects: musicEffectNames(effects)}) : null],
       ]),
       displayDetailsLine([requestedBy, musicItemBatchText(translate, item), musicItemQueuedAt(item)], true),
       musicItemLinks(item),

@@ -27,7 +27,7 @@ export default class EdgeDetectCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
         ],
         id: Formatter.Commands.MediaIVManipulationEdgeDetect.COMMAND_ID,
-        usage: '?<emoji,user:id|mention|name,url> (-invert) (-method <MediaEdgeDetectMethods>) (-mix <number>) (-strength <float>)',
+        usage: '?<emoji,user:id|mention|name,url> (-invert) (-method <choice>) (-mix <number>) (-strength <float>)',
       },
     });
   }
