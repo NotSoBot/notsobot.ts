@@ -5,7 +5,7 @@ import { StatusEmojis } from '../../../constants';
 import { displayReply } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
-import { canManageMusic, musicItemsAtPositions } from './music.shared';
+import { canManageMusic, canManageOthersMusic, musicItemsAtPositions } from './music.shared';
 
 
 export const COMMAND_ID = 'music.queue.clear';
@@ -17,8 +17,8 @@ export interface CommandArgs {
   playlist?: null | number,
 }
 
-// anyone can clear what they queued, other people's need manage server or the dj role (a queue with only
-// theirs in it can be cleared too)
+// anyone can clear what they queued, other people's need manage server or the dj role with dj mode on (a queue
+// with only theirs in it can be cleared too)
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { language, translate } = await getTranslator(context);
 
@@ -38,7 +38,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
       return displayReply(context, {description: translate('music_queue_clear.not_from_playlist', {position: args.playlist.toLocaleString(language)})});
     }
     const items = music.queue.filter((x) => x.batch_id === item.batch_id);
-    if (items.some((x) => x.user_id !== context.userId) && !canManageMusic(context.member)) {
+    if (items.some((x) => x.user_id !== context.userId) && !canManageOthersMusic(context.member, music)) {
       return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_queue_remove.not_yours')}`});
     }
     const { deleted } = await deleteGuildMusicQueue(context, context.guildId, {batchId: item.batch_id});
@@ -47,13 +47,16 @@ export async function createMessage(context: Command.Context | Interaction.Inter
 
   let userId = (args.from) ? args.from.id : undefined;
   if (userId !== context.userId && !canManageMusic(context.member)) {
+    // dj mode off, anyone clears anyone's
     const music = await fetchGuildMusic(context, context.guildId);
-    const others = music.queue.some((item) => item.user_id !== context.userId && (!userId || item.user_id === userId));
-    if (others) {
-      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_queue_remove.not_yours')}`});
+    if (!canManageOthersMusic(context.member, music)) {
+      const others = music.queue.some((item) => item.user_id !== context.userId && (!userId || item.user_id === userId));
+      if (others) {
+        return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_queue_remove.not_yours')}`});
+      }
+      // only theirs, even if someone queued something since
+      userId = userId || context.userId;
     }
-    // only theirs, even if someone queued something since
-    userId = userId || context.userId;
   }
   const { deleted } = await deleteGuildMusicQueue(context, context.guildId, {userId});
   return displayReply(context, {description: translate('music_queue_remove.removed', {count: deleted.toLocaleString(language)})});

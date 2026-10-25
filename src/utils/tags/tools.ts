@@ -3,6 +3,8 @@ import { MessageComponentButtonStyles, MessageComponentTypes } from 'detritus-cl
 import { ZERO_WIDTH_SPACE } from '../../constants';
 import { Languages, Translator, getTranslatorForLanguage } from '../i18n';
 
+import { TagError } from './exceptions';
+
 
 
 // server invites (discord.gg/x, discord.com/invite/x) and bot invites (discord.com/oauth2/authorize) render as cards
@@ -60,22 +62,22 @@ export function parseComponentFromData(
 ): Record<string, any> {
   // `typeof null` is 'object' too, `{"components":[null]}` crashed on `data.type`
   if (!data || typeof(data) !== 'object' || Array.isArray(data)) {
-    throw new Error(translate('tagscript.components.components_must_be_objects'));
+    throw new TagError(translate('tagscript.components.components_must_be_objects'));
   }
   switch (data.type) {
     case MessageComponentTypes.ACTION_ROW: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error(translate('tagscript.components.action_rows_must_be_a_parent_component_or'));
+        throw new TagError(translate('tagscript.components.action_rows_must_be_a_parent_component_or'));
       }
       const actionRow: Record<string, any> = {
         components: [],
         type: MessageComponentTypes.ACTION_ROW,
       };
       if (!data.components || !Array.isArray(data.components) || !data.components.length) {
-        throw new Error(translate('tagscript.components.action_rows_must_contain_at_least_1_component'));
+        throw new TagError(translate('tagscript.components.action_rows_must_contain_at_least_1_component'));
       }
       if (5 < data.components.length) {
-        throw new Error(translate('tagscript.components.action_rows_must_contain_at_most_5_component'));
+        throw new TagError(translate('tagscript.components.action_rows_must_contain_at_most_5_component'));
       }
       for (let x of data.components) {
         const component = parseComponentFromData(x, MessageComponentTypes.ACTION_ROW, undefined, translate);
@@ -93,7 +95,7 @@ export function parseComponentFromData(
           !(isChildFrom === MessageComponentTypes.SECTION && isChildFromParameter === 'accessory')
         )
       ) {
-        throw new Error(translate('tagscript.components.buttons_must_only_be_in_action_rows_or'));
+        throw new TagError(translate('tagscript.components.buttons_must_only_be_in_action_rows_or'));
       }
       const button: Record<string, any> = {
         style: MessageComponentButtonStyles.PRIMARY,
@@ -122,13 +124,13 @@ export function parseComponentFromData(
         button.run = data.run;
       }
       if (!button.url && !button.label) {
-        throw new Error(translate('tagscript.components.buttons_must_contain_a_url_or_a_label'));
+        throw new TagError(translate('tagscript.components.buttons_must_contain_a_url_or_a_label'));
       }
       return button;
     }; break;
     case MessageComponentTypes.CONTAINER: {
       if (isChildFrom !== undefined) {
-        throw new Error(translate('tagscript.components.containers_must_be_a_parent_component_not_inside'));
+        throw new TagError(translate('tagscript.components.containers_must_be_a_parent_component_not_inside'));
       }
       const container: Record<string, any> = {
         components: [],
@@ -160,10 +162,10 @@ export function parseComponentFromData(
       }
 
       if (!data.components || !Array.isArray(data.components) || !data.components.length) {
-        throw new Error(translate('tagscript.components.containers_must_contain_at_least_1_component'));
+        throw new TagError(translate('tagscript.components.containers_must_contain_at_least_1_component'));
       }
       if (40 < data.components.length) {
-        throw new Error(translate('tagscript.components.containers_must_contain_at_most_40_components'));
+        throw new TagError(translate('tagscript.components.containers_must_contain_at_most_40_components'));
       }
       for (let x of data.components) {
         const component = parseComponentFromData(x, MessageComponentTypes.CONTAINER, undefined, translate);
@@ -174,11 +176,11 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.FILE: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error(translate('tagscript.components.files_must_be_a_parent_component_or_inside'));
+        throw new TagError(translate('tagscript.components.files_must_be_a_parent_component_or_inside'));
       }
 
       if (!data.file || typeof(data.file) !== 'object' || typeof(data.file.url) !== 'string' || !data.file.url) {
-        throw new Error(translate('tagscript.components.file_must_contain_a_media_object'));
+        throw new TagError(translate('tagscript.components.file_must_contain_a_media_object'));
       }
 
       const file: Record<string, any> = {
@@ -194,24 +196,24 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.MEDIA_GALLERY: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error(translate('tagscript.components.media_gallery_must_be_a_parent_component_or'));
+        throw new TagError(translate('tagscript.components.media_gallery_must_be_a_parent_component_or'));
       }
       const gallery: Record<string, any> = {
         items: [],
         type: MessageComponentTypes.MEDIA_GALLERY,
       };
       if (!Array.isArray(data.items) || !data.items.length) {
-        throw new Error(translate('tagscript.components.media_galleries_must_contain_at_least_1_item'));
+        throw new TagError(translate('tagscript.components.media_galleries_must_contain_at_least_1_item'));
       }
       if (10 < data.items.length) {
-        throw new Error(translate('tagscript.components.media_galleries_must_contain_at_most_10_items'));
+        throw new TagError(translate('tagscript.components.media_galleries_must_contain_at_most_10_items'));
       }
       for (let x of data.items) {
         if (!x || typeof(x) !== 'object') {
-          throw new Error(translate('tagscript.components.media_gallery_items_must_be_objects'));
+          throw new TagError(translate('tagscript.components.media_gallery_items_must_be_objects'));
         }
         if (!x.media || typeof(x.media) !== 'object' || typeof(x.media.url) !== 'string' || !x.media.url) {
-          throw new Error(translate('tagscript.components.media_gallery_items_must_contain_a_media_object'));
+          throw new TagError(translate('tagscript.components.media_gallery_items_must_contain_a_media_object'));
         }
         const item: Record<string, any> = {
           media: {url: x.media.url},
@@ -228,7 +230,7 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.SECTION: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error(translate('tagscript.components.sections_must_be_a_parent_component_or_inside'));
+        throw new TagError(translate('tagscript.components.sections_must_be_a_parent_component_or_inside'));
       }
       const section: Record<string, any> = {
         components: [],
@@ -236,10 +238,10 @@ export function parseComponentFromData(
       };
 
       if (!data.components || !Array.isArray(data.components) || !data.components.length) {
-        throw new Error(translate('tagscript.components.sections_must_contain_at_least_1_component'));
+        throw new TagError(translate('tagscript.components.sections_must_contain_at_least_1_component'));
       }
       if (3 < data.components.length) {
-        throw new Error(translate('tagscript.components.sections_must_contain_at_most_3_components'));
+        throw new TagError(translate('tagscript.components.sections_must_contain_at_most_3_components'));
       }
       for (let x of data.components) {
         const component = parseComponentFromData(x, MessageComponentTypes.SECTION, 'components', translate);
@@ -247,7 +249,7 @@ export function parseComponentFromData(
       }
 
       if (!data.accessory || typeof(data.accessory) !== 'object') {
-        throw new Error(translate('tagscript.components.sections_must_contain_a_valid_accessory_component'));
+        throw new TagError(translate('tagscript.components.sections_must_contain_a_valid_accessory_component'));
       }
       section.accessory = parseComponentFromData(data.accessory, MessageComponentTypes.SECTION, 'accessory', translate);
 
@@ -255,7 +257,7 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.SELECT_MENU: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.ACTION_ROW) {
-        throw new Error(translate('tagscript.components.select_menus_must_only_be_in_action_rows'));
+        throw new TagError(translate('tagscript.components.select_menus_must_only_be_in_action_rows'));
       }
       const selectMenu: Record<string, any> = {
         options: [],
@@ -275,14 +277,14 @@ export function parseComponentFromData(
       }
 
       if (!data.options || !Array.isArray(data.options) || !data.options.length) {
-        throw new Error(translate('tagscript.components.select_menu_options_must_contain_at_least_1'));
+        throw new TagError(translate('tagscript.components.select_menu_options_must_contain_at_least_1'));
       }
       if (25 < data.options.length) {
-        throw new Error(translate('tagscript.components.select_menu_options_must_contain_at_most_25'));
+        throw new TagError(translate('tagscript.components.select_menu_options_must_contain_at_most_25'));
       }
       for (let x of data.options) {
         if (!x || typeof(x) !== 'object') {
-          throw new Error(translate('tagscript.components.select_menu_options_need_to_be_objects'));
+          throw new TagError(translate('tagscript.components.select_menu_options_need_to_be_objects'));
         }
         const options: Record<string, any> = {};
         if ('label' in x && x.label && typeof(x.label) === 'string') {
@@ -301,7 +303,7 @@ export function parseComponentFromData(
           options.default = !!x.default;
         }
         if (!options.label || !options.value) {
-          throw new Error(translate('tagscript.components.select_menu_options_must_contain_both_a_label'));
+          throw new TagError(translate('tagscript.components.select_menu_options_must_contain_both_a_label'));
         }
         selectMenu.options.push(options);
       }
@@ -310,7 +312,7 @@ export function parseComponentFromData(
     }; break;
     case MessageComponentTypes.SEPARATOR: {
       if (isChildFrom !== undefined && isChildFrom !== MessageComponentTypes.CONTAINER) {
-        throw new Error(translate('tagscript.components.separators_must_be_a_parent_component_or_inside'));
+        throw new TagError(translate('tagscript.components.separators_must_be_a_parent_component_or_inside'));
       }
       const separator: Record<string, any> = {
         type: MessageComponentTypes.SEPARATOR,
@@ -334,7 +336,7 @@ export function parseComponentFromData(
           !(isChildFrom === MessageComponentTypes.SECTION && isChildFromParameter === 'components')
         )
       ) {
-        throw new Error(translate('tagscript.components.text_displays_must_be_a_parent_component_or'));
+        throw new TagError(translate('tagscript.components.text_displays_must_be_a_parent_component_or'));
       }
       return {
         content: breakInviteLinks(String(data.content).slice(0, 4000)),
@@ -347,11 +349,11 @@ export function parseComponentFromData(
         isChildFrom !== MessageComponentTypes.SECTION ||
         isChildFromParameter !== 'accessory'
       ) {
-        throw new Error(translate('tagscript.components.thumbnails_must_only_be_in_section_accessories'));
+        throw new TagError(translate('tagscript.components.thumbnails_must_only_be_in_section_accessories'));
       }
 
       if (!data.media || typeof(data.media) !== 'object' || typeof(data.media.url) !== 'string' || !data.media.url) {
-        throw new Error(translate('tagscript.components.thumbnails_must_contain_a_media_object'));
+        throw new TagError(translate('tagscript.components.thumbnails_must_contain_a_media_object'));
       }
   
       const thumbnail: Record<string, any> = {
@@ -369,7 +371,7 @@ export function parseComponentFromData(
       return thumbnail;
     }; break;
     default: {
-      throw new Error(translate('tagscript.components.tagscript_does_not_support_this_kind_of_component'));
+      throw new TagError(translate('tagscript.components.tagscript_does_not_support_this_kind_of_component'));
     };
   }
 }

@@ -2,6 +2,8 @@ import { CommandClient, InteractionCommandClient } from 'detritus-client';
 import { ClientEvents } from 'detritus-client/lib/constants';
 import { EventSubscription } from 'detritus-utils';
 
+import { getRunErrorResult } from './commandresults';
+
 
 // what changed since this cluster's last metrics report, `listeners/metricsinterval.ts` sends it to the api every so
 // often and the api adds every cluster's up for prometheus
@@ -135,8 +137,8 @@ export function connectCommandMetrics(commandClient: CommandClient): Array<Event
     commandClient.subscribe(ClientEvents.COMMAND_RAN, ({context}) => {
       recordCommand(type, 'ran', context.metadata && context.metadata.started);
     }),
-    commandClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, ({context}) => {
-      recordCommand(type, 'run_error', context.metadata && context.metadata.started);
+    commandClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, ({context, error}) => {
+      recordCommand(type, getRunErrorResult(error), context.metadata && context.metadata.started);
     }),
     commandClient.subscribe(ClientEvents.COMMAND_FAIL, () => recordCommand(type, 'fail')),
     commandClient.subscribe(ClientEvents.COMMAND_RATELIMIT, () => recordCommand(type, 'ratelimited')),
@@ -149,8 +151,8 @@ export function connectInteractionCommandMetrics(interactionClient: InteractionC
     interactionClient.subscribe(ClientEvents.COMMAND_RAN, ({context}) => {
       recordCommand(type, 'ran', context.metadata && context.metadata.started);
     }),
-    interactionClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, ({context}) => {
-      recordCommand(type, 'run_error', context.metadata && context.metadata.started);
+    interactionClient.subscribe(ClientEvents.COMMAND_RUN_ERROR, ({context, error}) => {
+      recordCommand(type, getRunErrorResult(error), context.metadata && context.metadata.started);
     }),
     interactionClient.subscribe(ClientEvents.COMMAND_FAIL, () => recordCommand(type, 'fail')),
     interactionClient.subscribe(ClientEvents.COMMAND_RATELIMIT, () => recordCommand(type, 'ratelimited')),

@@ -133,7 +133,10 @@ export default class HelpCommand extends BaseCommand {
             description.push(`**NSFW**: ${translate((metadata.nsfw) ? 'common.yes' : 'common.no')}`);
             if (metadata.credits && metadata.credits.length) {
               // mentions in embeds don't ping
-              description.push(`**${translate('help.credits')}**: ${metadata.credits.map((credit) => (credit.url) ? `<@${credit.id}> ([${new URL(credit.url).hostname}](${credit.url}))` : `<@${credit.id}>`).join(', ')}`);
+              description.push(`**${translate('help.credits')}**: ${metadata.credits.map((credit) => {
+                const who = (credit.id) ? `<@${credit.id}>` : credit.name;
+                return (credit.url) ? `${who} ([${new URL(credit.url).hostname}](${credit.url}))` : who;
+              }).join(', ')}`);
             }
 
             payload.fields!.push({name: translate('common.information'), value: description.join('\n')});

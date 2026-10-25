@@ -15,7 +15,7 @@ export default class MusicLeaveCommand extends BaseCommand {
 
       disableDm: true,
       metadata: {
-        description: 'Stop the music and leave the voice channel, it asks before clearing the queue. With other people\'s tracks playing or queued (or 24/7 on) it needs Manage Server or the DJ role',
+        description: 'Stop the music and leave the voice channel, it asks before clearing the queue. With DJ mode on it needs Manage Server or the DJ role',
         examples: [
           COMMAND_NAME,
         ],

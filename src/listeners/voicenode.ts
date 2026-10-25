@@ -13,7 +13,8 @@ import { Listener } from './listener';
 const MUSIC_CONTROL_MAX_AGE = 15 * 1000;
 
 
-// our own voice state and voice server go to the voice node, it only acts on guilds it's playing in
+// our own voice state and voice server go to the voice node, it only acts on guilds it's playing in. Everyone else's
+// voice states are only counted for `pause_alone`
 class VoiceNodeListener extends Listener {
   create(cluster: ClusterClient, apiEvents: ApiEventsSpewer) {
     const subscriptions: Array<EventSubscription> = [];
@@ -30,9 +31,14 @@ class VoiceNodeListener extends Listener {
     {
       const subscription = cluster.subscribe(ClientEvents.VOICE_STATE_UPDATE, (event) => {
         const { shard, voiceState } = event;
-        if (voiceState.userId === shard.userId && voiceState.guildId) {
+        if (!voiceState.guildId) {
+          return;
+        }
+        if (voiceState.userId === shard.userId) {
           VoiceNode.handleVoiceState(voiceState.guildId, voiceState.channelId || null, voiceState.sessionId);
         }
+        // anyone joining or leaving (us being moved too), 24/7's `pause_alone` pauses with nobody left to hear it
+        VoiceNode.handleListeners(voiceState.guildId);
       });
       subscriptions.push(subscription);
     }

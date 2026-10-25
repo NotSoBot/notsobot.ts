@@ -3,7 +3,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
+import { DisplayPayload, DisplayReplyOptions, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
 
 // discord's limit for timeouts
@@ -56,13 +56,15 @@ export function formatError(error: any): string {
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
+  // like a modal from the buttons under a warning, to respond through instead of editing the command's reply
+  options: DisplayReplyOptions = {},
 ) {
   const { translate } = await getTranslator(context);
   const { payload } = args;
 
   const duration = (args.duration === undefined) ? DEFAULT_DURATION : args.duration;
   if (!duration || duration < 1 || MAX_DURATION < duration) {
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation_mute.invalid_duration')}`});
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation_mute.invalid_duration')}`}, options);
   }
 
   const until = new Date(Date.now() + duration * 1000);
@@ -138,5 +140,5 @@ export async function createMessage(
     color: EmbedColors.DEFAULT,
     description: description.join('\n').trim(),
   };
-  return displayReply(context, display);
+  return displayReply(context, display, options);
 }

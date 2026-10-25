@@ -149,6 +149,15 @@ export function musicDjRefusal(
   return `${StatusEmojis.WARNING} ${translate('music_dj.locked')}`;
 }
 
+// other people's music (leaving with it, removing or moving their tracks): djs, or anyone with dj mode off. Not knowing
+// the setting (the api not answering) counts as on
+export function canManageOthersMusic(
+  member: null | Structures.Member | undefined,
+  music: null | Pick<RestResponsesRaw.FetchGuildMusic, 'dj_only'>,
+): boolean {
+  return canManageMusic(member) || (!!music && !music.dj_only);
+}
+
 // `musicDjRefusal`, fetching the setting only when it matters (a dj doesn't wait on the api)
 export async function fetchMusicDjRefusal(
   context: RequestContext,

@@ -14,6 +14,7 @@ import {
 } from '../../../api';
 import { RestResponsesRaw } from '../../../api/types';
 import { TagGenerationPersonalityPreferences, TAG_GENERATION_PERSONALITY_DEFAULT } from '../../../constants';
+import { getRunErrorResult, setCommandResult } from '../../../commandresults';
 import { captureError } from '../../../sentry';
 import {
   Paginator,
@@ -324,17 +325,22 @@ async function generateAndRunTag(
       }
     }
 
-    captureError(error, {
-      context,
-      // the prompt and result stay in our db with the generated tag, look them up by its id instead of copying them to sentry
-      extra: {
-        generated_tag_id: response.id,
-        prompt_complexity_level: response.prompt_complexity_level,
-        took: Date.now() - now,
-        usage: response.usage,
-      },
-      tags: {model: response.model},
-    });
+    // caught here so it can reply with the debug info, but it still counts as the run erroring. NotSoAI writing broken
+    // tagscript is already kept with the generated tag above, only our own failures go to sentry
+    setCommandResult(context, getRunErrorResult(error));
+    if (!TagFormatter.isTagError(error)) {
+      captureError(error, {
+        context,
+        // the prompt and result stay in our db with the generated tag, look them up by its id instead of copying them to sentry
+        extra: {
+          generated_tag_id: response.id,
+          prompt_complexity_level: response.prompt_complexity_level,
+          took: Date.now() - now,
+          usage: response.usage,
+        },
+        tags: {model: response.model},
+      });
+    }
 
     return editOrReply(context, {
       content: [

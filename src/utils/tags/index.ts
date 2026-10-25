@@ -78,9 +78,11 @@ import {
   utilitiesScreenshot,
   utilitiesWeather,
 } from '../../api';
+import { getJobApiError } from '../../api/errors';
 import { GuildSettings } from '../../api/structures/guildsettings';
 import { RestOptions, RestResponses, RestResponsesRaw } from '../../api/types';
 import {
+  ApiErrorCodes,
   CodeLanguages,
   DownloadQualities,
   GoogleLocales,
@@ -141,10 +143,11 @@ import {
   traverseJSON,
 } from '../tools';
 
-import { TagExitError, TagRequestError, TagTimeoutError } from './exceptions';
+import { TagError, TagExitError, TagRequestError, TagTimeoutError } from './exceptions';
 import { isAllowedMediaUrl, isAttachmentUrl, isDiscordAssetUrl, parseComponentFromData } from './tools';
 
-export { TagExitError, TagRequestError, TagTimeoutError };
+export { TagError, TagExitError, TagRequestError, TagTimeoutError };
+export { isTagError } from './exceptions';
 export { breakInviteLinks } from './tools';
 
 
@@ -297,7 +300,7 @@ export function appendTagText(
 ): void {
   const maxTextLength = getMaxTextLength(context, tag);
   if (maxTextLength < tag.text.length + text.length) {
-    throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
+    throw new TagError(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
   }
   tag.text += text;
 }
@@ -966,7 +969,7 @@ const TAG_USER_SETTINGS: Record<TagUserSettings, TagUserSetting> = {
       if (AI_MEMORY_OFF.includes(lower)) {
         return true;
       }
-      throw new Error('`AI_MEMORY` must be `on` or `off`');
+      throw new TagError('`AI_MEMORY` must be `on` or `off`');
     },
     text: (value) => (value) ? 'OFF' : 'ON',
   },
@@ -1131,7 +1134,7 @@ const TAG_SERVER_SETTINGS: Record<TagServerSettings, TagServerSetting> = {
     parse: (value) => {
       const timezone = resolveTimezone(value);
       if (!timezone) {
-        throw new Error(`Unknown timezone \`${value.slice(0, 64)}\`, use an IANA name like \`America/New_York\``);
+        throw new TagError(`Unknown timezone \`${value.slice(0, 64)}\`, use an IANA name like \`America/New_York\``);
       }
       return timezone;
     },
@@ -1263,17 +1266,17 @@ async function setServerSetting(
   valueText: string,
 ): Promise<boolean> {
   if (!context.guildId) {
-    throw new Error('Server settings can only be changed in a server');
+    throw new TagError('Server settings can only be changed in a server');
   }
   // reading needs it too, the server's ai personality isn't for every member
   if (!canManageServer(context)) {
-    throw new Error('You need the Manage Server permission to read or change this server\'s settings');
+    throw new TagError('You need the Manage Server permission to read or change this server\'s settings');
   }
 
   // `ai model` and `ai-model` work too
   const name = settingText.trim().toUpperCase().replace(/[\s.-]+/g, '_');
   if (name && !(name in TagServerSettings)) {
-    throw new Error(`Unknown server setting \`${settingText.trim().slice(0, 64)}\`, must be one of ${Object.values(TagServerSettings).join(', ')}`);
+    throw new TagError(`Unknown server setting \`${settingText.trim().slice(0, 64)}\`, must be one of ${Object.values(TagServerSettings).join(', ')}`);
   }
 
   const oldSettings = await withDeadline(context, tag, () => GuildSettingsStore.getOrFetch(context, context.guildId!));
@@ -1592,7 +1595,7 @@ export async function parse(
   let position = 0;
   while (position < value.length) {
     if (maxTextLength < tag.text.length) {
-      throw new Error(getCachedTranslator(context).translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
+      throw new TagError(getCachedTranslator(context).translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
     }
     checkDeadline(context, tag);
 
@@ -1874,7 +1877,7 @@ export async function parse(
   tag.text = (tag.text + scriptBuffer);
   // the loop only checks before each step, so a function at the very end (like {replace}) could return a huge string
   if (maxTextLength < tag.text.length) {
-    throw new Error(getCachedTranslator(context).translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
+    throw new TagError(getCachedTranslator(context).translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
   }
   if (isFirstParse) {
     tag.text = tag.text.replace(REGEX_NEWLINE_SENTINEL, '\n');
@@ -1894,7 +1897,7 @@ function assertTotalFileSize(context: Command.Context | Interaction.InteractionC
     }
   }
   if (maxFileSize < total) {
-    throw new Error(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+    throw new TagError(tag.translate('tagscript.attachments_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
   }
 }
 
@@ -1909,11 +1912,11 @@ function setVariableRaw(tag: TagResult, key: string, value: any): void {
     return;
   }
   if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
-    throw new Error(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
+    throw new TagError(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
   }
   if (!(key in tag.variables)) {
     if (tag.limits.MAX_VARIABLES <= Object.keys(tag.variables).filter((x) => !x.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
-      throw new Error(tag.translate('tagscript.reached_max_variable_amount_max_variables', {max: tag.limits.MAX_VARIABLES.toLocaleString()}));
+      throw new TagError(tag.translate('tagscript.reached_max_variable_amount_max_variables', {max: tag.limits.MAX_VARIABLES.toLocaleString()}));
     }
   }
   tag.variables[key] = stringifyStorageValue(value).slice(0, tag.limits.MAX_VARIABLE_LENGTH).trim();
@@ -1933,7 +1936,7 @@ function collectCodeFiles(tag: TagResult, urls: Record<string, {filename?: strin
     const fileKey = parseInt(match[1]) - 1;
     const file = tag.files[fileKey];
     if (!file) {
-      throw new Error(tag.translate('tagscript.invalid_file_provied'));
+      throw new TagError(tag.translate('tagscript.invalid_file_provied'));
     }
     if (!file.buffer) {
       urlObj.url = file.url;
@@ -2055,7 +2058,7 @@ export function getAIMemoryChanges(tag: TagResult): AIMemoryChanges | null {
 function checkAIMemoryChanges(tag: TagResult): void {
   const changes = getAIMemoryChanges(tag);
   if (changes && MAX_AI_MEMORY_CHANGES <= changes.added + changes.changed) {
-    throw new Error(`NotSoAI can only change its memory ${MAX_AI_MEMORY_CHANGES} times per message`);
+    throw new TagError(`NotSoAI can only change its memory ${MAX_AI_MEMORY_CHANGES} times per message`);
   }
 }
 
@@ -2068,7 +2071,7 @@ function recordAIMemoryChange(tag: TagResult, kind: keyof AIMemoryChanges): void
 function parseAIMemoryPosition(value: string): number {
   const position = parseInt(value.trim());
   if (isNaN(position) || position < 1) {
-    throw new Error('Memory position must be a positive number');
+    throw new TagError('Memory position must be a positive number');
   }
   return position;
 }
@@ -2078,7 +2081,7 @@ async function withAIMemoryNotFound<T>(position: number, callback: () => Promise
     return await callback();
   } catch(error) {
     if (error.response && error.response.status === 404) {
-      throw new Error(`Unknown memory at position ${position}`);
+      throw new TagError(`Unknown memory at position ${position}`);
     }
     throw error;
   }
@@ -2123,12 +2126,12 @@ function addFileResponseToTag(
   response: RestResponsesRaw.FileResponse,
 ): void {
   if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
-    throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+    throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
   }
 
   const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
   if (context.maxAttachmentSize < data.length) {
-    throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: context.maxAttachmentSize}));
+    throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: context.maxAttachmentSize}));
   }
   assertTotalFileSize(context, tag, data.length);
   tag.variables[PrivateVariables.FILE_SIZE] += data.length;
@@ -2168,7 +2171,7 @@ async function attachFileFromUrl(
   options: {description?: string, filename?: string, spoiler?: boolean, uniqueFilename?: boolean} = {},
 ): Promise<TagResult['files'][number]> {
   if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
-    throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+    throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
   }
 
   const url = await Parameters.url(urlString.trim(), context);
@@ -2205,7 +2208,7 @@ async function attachFileFromUrl(
     }
 
     if (maxFileSize < data.length) {
-      throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+      throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
     }
 
     assertTotalFileSize(context, tag, data.length);
@@ -2332,7 +2335,7 @@ export function increaseAIExecutions(tag: TagResult, amount: number = 1) {
     tag.variables[PrivateVariables.AI_EXECUTIONS] += amount;
   }
   if (tag.limits.MAX_AI_EXECUTIONS < tag.variables[PrivateVariables.AI_EXECUTIONS]) {
-    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_ai', {max: tag.limits.MAX_AI_EXECUTIONS.toLocaleString()}));
+    throw new TagError(tag.translate('tagscript.tag_attempted_to_use_too_many_ai', {max: tag.limits.MAX_AI_EXECUTIONS.toLocaleString()}));
   }
 }
 
@@ -2342,7 +2345,7 @@ export function increaseAPIManipulations(tag: TagResult, amount: number = 1) {
     tag.variables[PrivateVariables.API_MANIPULATIONS] += amount;
   }
   if (tag.limits.MAX_API_MANIPULATIONS < tag.variables[PrivateVariables.API_MANIPULATIONS]) {
-    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_api', {max: tag.limits.MAX_API_MANIPULATIONS.toLocaleString()}));
+    throw new TagError(tag.translate('tagscript.tag_attempted_to_use_too_many_api', {max: tag.limits.MAX_API_MANIPULATIONS.toLocaleString()}));
   }
 }
 
@@ -2352,7 +2355,7 @@ export function increaseComponentExecutions(tag: TagResult, amount: number = 1) 
     tag.variables[PrivateVariables.COMPONENT_EXECUTIONS] += amount;
   }
   if (tag.limits.MAX_COMPONENT_EXECUTIONS < tag.variables[PrivateVariables.COMPONENT_EXECUTIONS]) {
-    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_component', {max: tag.limits.MAX_COMPONENT_EXECUTIONS.toLocaleString()}));
+    throw new TagError(tag.translate('tagscript.tag_attempted_to_use_too_many_component', {max: tag.limits.MAX_COMPONENT_EXECUTIONS.toLocaleString()}));
   }
 }
 
@@ -2368,7 +2371,7 @@ export async function increaseFunctionCalls(
   const calls = ++(tag.variables as any)[PrivateVariables.FUNCTION_CALLS];
   if (tag.limits.MAX_FUNCTION_CALLS < calls) {
     const max = tag.limits.MAX_FUNCTION_CALLS.toLocaleString();
-    throw new Error(getCachedTranslator(context).translate('tagscript.tag_attempted_to_use_too_many_function_calls', {max}));
+    throw new TagError(getCachedTranslator(context).translate('tagscript.tag_attempted_to_use_too_many_function_calls', {max}));
   }
   checkDeadline(context, tag);
   if (calls % FUNCTION_CALLS_PER_YIELD === 0) {
@@ -2387,11 +2390,11 @@ function checkFunctionAllowed(tag: TagResult, scriptName: string): void {
   }
   // code languages are checked first, same as when running it
   if (blocksCode && getCodeLanguage(scriptName)) {
-    throw new Error(tag.translate('tagscript.function_not_allowed', {name: scriptName}));
+    throw new TagError(tag.translate('tagscript.function_not_allowed', {name: scriptName}));
   }
   const TAG_FUNCTION = getTagFunctionByName(scriptName);
   if (blockedFunctions && TAG_FUNCTION && blockedFunctions.has(TAG_FUNCTION)) {
-    throw new Error(tag.translate('tagscript.function_not_allowed', {name: scriptName}));
+    throw new TagError(tag.translate('tagscript.function_not_allowed', {name: scriptName}));
   }
 }
 
@@ -2463,6 +2466,15 @@ export async function getMaxTimeTier(
 }
 
 
+// a failed job with a code is the api saying what was wrong with what the tag asked for (safety, too big, etc..), without
+// one it broke on the api's side, which already reported it
+function createJobError(tag: TagResult, job: RestResponsesRaw.JobResponse): Error {
+  const message = tag.translate('tagscript.job_error', {error: job.result.error});
+  const apiError = getJobApiError(job);
+  return (apiError && apiError.code !== ApiErrorCodes.UNKNOWN) ? new TagError(message) : new Error(message);
+}
+
+
 type TagDeadline = Pick<TagResult, 'limits' | 'variables'>;
 
 function createTimeoutError(
@@ -2522,7 +2534,7 @@ export function increaseNetworkRequests(tag: TagResult, amount: number = 1) {
     tag.variables[PrivateVariables.NETWORK_REQUESTS] += amount;
   }
   if (tag.limits.MAX_NETWORK_REQUESTS < tag.variables[PrivateVariables.NETWORK_REQUESTS]) {
-    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_network', {max: tag.limits.MAX_NETWORK_REQUESTS.toLocaleString()}));
+    throw new TagError(tag.translate('tagscript.tag_attempted_to_use_too_many_network', {max: tag.limits.MAX_NETWORK_REQUESTS.toLocaleString()}));
   }
 }
 
@@ -2532,7 +2544,7 @@ export function increaseNetworkRequestsML(tag: TagResult, amount: number = 1) {
     tag.variables[PrivateVariables.NETWORK_REQUESTS_ML] += amount;
   }
   if (tag.limits.MAX_NETWORK_REQUESTS_ML < tag.variables[PrivateVariables.NETWORK_REQUESTS_ML]) {
-    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_machine', {max: tag.limits.MAX_NETWORK_REQUESTS_ML.toLocaleString()}));
+    throw new TagError(tag.translate('tagscript.tag_attempted_to_use_too_many_machine', {max: tag.limits.MAX_NETWORK_REQUESTS_ML.toLocaleString()}));
   }
 }
 
@@ -2542,7 +2554,7 @@ export function increaseNetworkRequestsSafety(tag: TagResult, amount: number = 1
     tag.variables[PrivateVariables.NETWORK_REQUESTS_SAFETY] += amount;
   }
   if (tag.limits.MAX_NETWORK_REQUESTS_SAFETY < tag.variables[PrivateVariables.NETWORK_REQUESTS_SAFETY]) {
-    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_safety', {max: tag.limits.MAX_NETWORK_REQUESTS_SAFETY.toLocaleString()}));
+    throw new TagError(tag.translate('tagscript.tag_attempted_to_use_too_many_safety', {max: tag.limits.MAX_NETWORK_REQUESTS_SAFETY.toLocaleString()}));
   }
 }
 
@@ -2558,7 +2570,7 @@ export async function withSyncTimeBudget<T>(
 ): Promise<T> {
   const max = tag.limits.MAX_SYNC_TIME;
   if (max <= (tag.variables as any)[PrivateVariables.SYNC_TIME]) {
-    throw new Error(getCachedTranslator(context).translate('tagscript.tag_used_too_much_processing_time', {
+    throw new TagError(getCachedTranslator(context).translate('tagscript.tag_used_too_much_processing_time', {
       max: max.toLocaleString(),
     }));
   }
@@ -2581,7 +2593,7 @@ export function increaseTagExecutions(tag: TagResult, amount: number = 1) {
     tag.variables[PrivateVariables.TAG_EXECUTIONS] += amount;
   }
   if (tag.limits.MAX_TAG_EXECUTIONS < tag.variables[PrivateVariables.TAG_EXECUTIONS]) {
-    throw new Error(tag.translate('tagscript.tag_attempted_to_use_too_many_tag', {max: tag.limits.MAX_TAG_EXECUTIONS.toLocaleString()}));
+    throw new TagError(tag.translate('tagscript.tag_attempted_to_use_too_many_tag', {max: tag.limits.MAX_TAG_EXECUTIONS.toLocaleString()}));
   }
 }
 
@@ -2613,11 +2625,11 @@ export function parsePageComponents(data: unknown, tag: TagResult): Array<Record
     switch (component.type) {
       case MessageComponentTypes.BUTTON: {
         if (!component.url) {
-          throw new Error(tag.translate('tagscript.page_components_must_not_be_interactive'));
+          throw new TagError(tag.translate('tagscript.page_components_must_not_be_interactive'));
         }
       }; break;
       case MessageComponentTypes.SELECT_MENU: {
-        throw new Error(tag.translate('tagscript.page_components_must_not_be_interactive'));
+        throw new TagError(tag.translate('tagscript.page_components_must_not_be_interactive'));
       };
     }
     if (Array.isArray(component.components)) {
@@ -2633,20 +2645,20 @@ export function parsePageComponents(data: unknown, tag: TagResult): Array<Record
   const components: Array<Record<string, any>> = [];
   for (let x of data) {
     if (!x || typeof(x) !== 'object') {
-      throw new Error(tag.translate('tagscript.invalid_page_given'));
+      throw new TagError(tag.translate('tagscript.invalid_page_given'));
     }
     const component = parseComponentFromData(x, undefined, undefined, tag.translate);
     if (!PAGE_COMPONENT_TYPES_TOP_LEVEL.includes(component.type)) {
       if (component.type === MessageComponentTypes.BUTTON) {
-        throw new Error(tag.translate('tagscript.components.buttons_must_only_be_in_action_rows_or'));
+        throw new TagError(tag.translate('tagscript.components.buttons_must_only_be_in_action_rows_or'));
       }
-      throw new Error(tag.translate('tagscript.page_components_must_not_be_interactive'));
+      throw new TagError(tag.translate('tagscript.page_components_must_not_be_interactive'));
     }
     check(component);
     components.push(component);
   }
   if (MAX_PAGE_COMPONENTS < amount) {
-    throw new Error(tag.translate('tagscript.page_components_surpassed_max_of', {max: MAX_PAGE_COMPONENTS}));
+    throw new TagError(tag.translate('tagscript.page_components_surpassed_max_of', {max: MAX_PAGE_COMPONENTS}));
   }
   return components;
 }
@@ -2674,7 +2686,7 @@ export async function resolveMediaUrl(
   if (match) {
     const file = tag.files[parseInt(match[1]) - 1];
     if (!file || !file.buffer || file.deleted) {
-      throw new Error(tag.translate('tagscript.invalid_file_provided'));
+      throw new TagError(tag.translate('tagscript.invalid_file_provided'));
     }
     return getAttachmentUrlForFile(file);
   }
@@ -2712,7 +2724,7 @@ export async function resolveEmbedMediaUrls(
     if (object && typeof(object[urlKey]) === 'string' && object[urlKey]) {
       object[urlKey] = await resolveMediaUrl(context, tag, object[urlKey]);
       if (!isAllowedMediaUrl(object[urlKey])) {
-        throw new Error(tag.translate('tagscript.embed_media_urls_must_be_attachments'));
+        throw new TagError(tag.translate('tagscript.embed_media_urls_must_be_attachments'));
       }
     }
   }
@@ -2730,21 +2742,21 @@ export async function resolveComponentMediaUrls(
       case MessageComponentTypes.FILE: {
         component.file.url = await resolveMediaUrl(context, tag, component.file.url, true);
         if (!isAttachmentUrl(component.file.url)) {
-          throw new Error(tag.translate('tagscript.components.file_media_object_url_must_be_an_attachment'));
+          throw new TagError(tag.translate('tagscript.components.file_media_object_url_must_be_an_attachment'));
         }
       }; break;
       case MessageComponentTypes.MEDIA_GALLERY: {
         for (let item of component.items) {
           item.media.url = await resolveMediaUrl(context, tag, item.media.url);
           if (!isAllowedMediaUrl(item.media.url)) {
-            throw new Error(tag.translate('tagscript.components.media_gallery_item_url_must_be_an_attachment'));
+            throw new TagError(tag.translate('tagscript.components.media_gallery_item_url_must_be_an_attachment'));
           }
         }
       }; break;
       case MessageComponentTypes.THUMBNAIL: {
         component.media.url = await resolveMediaUrl(context, tag, component.media.url);
         if (!isAllowedMediaUrl(component.media.url)) {
-          throw new Error(tag.translate('tagscript.components.thumbnail_media_object_url_must_be_an_attachment'));
+          throw new TagError(tag.translate('tagscript.components.thumbnail_media_object_url_must_be_an_attachment'));
         }
       }; break;
     }
@@ -2783,12 +2795,12 @@ export function checkTagComponentsLimit(components: TagResultComponents | null, 
         case MessageComponentTypes.ACTION_ROW: {
           actionRows++;
           if (buttons) {
-            throw new Error(translate('tagscript.only_support_actionrows_or_buttons_not_both'));
+            throw new TagError(translate('tagscript.only_support_actionrows_or_buttons_not_both'));
           }
           /*
           for (let x of component.components) {
             if (25 <= buttons) {
-              throw new Error(translate('tagscript.tagscript_only_supports_up_to_25_buttons'));
+              throw new TagError(translate('tagscript.tagscript_only_supports_up_to_25_buttons'));
             }
             switch (x.type) {
               case MessageComponentTypes.BUTTON: buttons++; break;
@@ -2799,15 +2811,15 @@ export function checkTagComponentsLimit(components: TagResultComponents | null, 
         case MessageComponentTypes.BUTTON: {
           buttons++;
           if (actionRows) {
-            throw new Error(translate('tagscript.only_support_actionrows_or_buttons_not_both'));
+            throw new TagError(translate('tagscript.only_support_actionrows_or_buttons_not_both'));
           }
         }; break;
       }
       if (5 < actionRows) {
-        throw new Error(translate('tagscript.tagscript_only_supports_up_to_5_action'));
+        throw new TagError(translate('tagscript.tagscript_only_supports_up_to_5_action'));
       }
       if (25 < buttons) {
-        throw new Error(translate('tagscript.tagscript_only_supports_up_to_25_buttons'));
+        throw new TagError(translate('tagscript.tagscript_only_supports_up_to_25_buttons'));
       }
     }
   }
@@ -2978,7 +2990,7 @@ function normalizeTagResults(main: TagResult, other: TagResult, content: boolean
   if (content) {
     // the main tag's own parse loop also checks this, but a child result can be appended many times before that runs
     if (main.limits.MAX_TEXT_LENGTH < main.text.length + other.text.length) {
-      throw new Error(main.translate('tagscript.text_exceeded_bytes', {max: main.limits.MAX_TEXT_LENGTH}));
+      throw new TagError(main.translate('tagscript.text_exceeded_bytes', {max: main.limits.MAX_TEXT_LENGTH}));
     }
     main.text += other.text;
   }
@@ -2996,7 +3008,7 @@ function normalizeTagResults(main: TagResult, other: TagResult, content: boolean
   }
 
   if (main.limits.MAX_EMBEDS < main.embeds.length + other.embeds.length) {
-    throw new Error(main.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: main.limits.MAX_EMBEDS}));
+    throw new TagError(main.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: main.limits.MAX_EMBEDS}));
   }
   for (let embed of other.embeds) {
     main.embeds.push(embed);
@@ -3012,11 +3024,11 @@ function normalizeTagResults(main: TagResult, other: TagResult, content: boolean
   }
 
   if (main.limits.MAX_ATTACHMENTS < main.files.length) {
-    throw new Error(main.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: main.limits.MAX_ATTACHMENTS}));
+    throw new TagError(main.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: main.limits.MAX_ATTACHMENTS}));
   }
 
   if (main.limits.MAX_PAGES < main.pages.length + other.pages.length) {
-    throw new Error(main.translate('tagscript.pages_surpassed_max_page_length_of', {max: main.limits.MAX_PAGES}));
+    throw new TagError(main.translate('tagscript.pages_surpassed_max_page_length_of', {max: main.limits.MAX_PAGES}));
   }
   for (let page of other.pages) {
     main.pages.push(page);
@@ -3149,13 +3161,14 @@ const ScriptTags = Object.freeze({
     }));
 
     if (result.error) {
+      // stderr is the tag's own code failing (or a `console.error` on purpose), not ours
       // if it starts with ffmpeg error, check if its only 1 or less files to throw error
       if (result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) || result.error.includes('Input')) {
         if (result.files.every((x) => x.file.filename === '__internals__.json')) {
-          throw new Error(result.error);
+          throw new TagError(result.error);
         }
       } else {
-        throw new Error(result.error);
+        throw new TagError(result.error);
       }
     }
 
@@ -3186,12 +3199,12 @@ const ScriptTags = Object.freeze({
                 }
 
                 if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
-                  throw new Error(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
+                  throw new TagError(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
                 }
 
                 if (!(key in tag.variables)) {
                   if (tag.limits.MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
-                    throw new Error(tag.translate('tagscript.reached_max_variable_amount_max_variables', {max: tag.limits.MAX_VARIABLES.toLocaleString()}));
+                    throw new TagError(tag.translate('tagscript.reached_max_variable_amount_max_variables', {max: tag.limits.MAX_VARIABLES.toLocaleString()}));
                   }
                 }
 
@@ -3225,12 +3238,12 @@ const ScriptTags = Object.freeze({
                     try {
                       value = Buffer.from(variables.global, 'base64');
                     } catch(error) {
-                      throw new Error(tag.translate('tagscript.global_blob_value_must_be_base64_encoded'));
+                      throw new TagError(tag.translate('tagscript.global_blob_value_must_be_base64_encoded'));
                     }
                   }
                   if (value) {
                     if (tag.limits.MAX_BLOB_VALUE_LENGTH < value.length) {
-                      throw new Error(tag.translate('tagscript.global_blob_value_cannot_be_more_than', {max: tag.limits.MAX_BLOB_VALUE_LENGTH}));
+                      throw new TagError(tag.translate('tagscript.global_blob_value_cannot_be_more_than', {max: tag.limits.MAX_BLOB_VALUE_LENGTH}));
                     }
                     formattedBlobs.push({
                       storageId: '0',
@@ -3239,7 +3252,7 @@ const ScriptTags = Object.freeze({
                     });
                   }
                 } else {
-                  throw new Error(tag.translate('tagscript.global_blob_value_must_be_base64_encoded'));
+                  throw new TagError(tag.translate('tagscript.global_blob_value_must_be_base64_encoded'));
                 }
               }
 
@@ -3266,12 +3279,12 @@ const ScriptTags = Object.freeze({
                     try {
                       value = Buffer.from(variables.server, 'base64');
                     } catch(error) {
-                      throw new Error(tag.translate('tagscript.server_blob_value_must_be_base64_encoded'));
+                      throw new TagError(tag.translate('tagscript.server_blob_value_must_be_base64_encoded'));
                     }
                   }
                   if (value) {
                     if (tag.limits.MAX_BLOB_VALUE_LENGTH < value.length) {
-                      throw new Error(tag.translate('tagscript.server_blob_value_cannot_be_more_than', {max: tag.limits.MAX_BLOB_VALUE_LENGTH}));
+                      throw new TagError(tag.translate('tagscript.server_blob_value_cannot_be_more_than', {max: tag.limits.MAX_BLOB_VALUE_LENGTH}));
                     }
                     formattedBlobs.push({
                       storageId: context.guildId || context.channelId!,
@@ -3280,7 +3293,7 @@ const ScriptTags = Object.freeze({
                     });
                   }
                 } else {
-                  throw new Error(tag.translate('tagscript.server_blob_value_must_be_base64_encoded'));
+                  throw new TagError(tag.translate('tagscript.server_blob_value_must_be_base64_encoded'));
                 }
               }
 
@@ -3307,12 +3320,12 @@ const ScriptTags = Object.freeze({
                     try {
                       value = Buffer.from(variables.channel, 'base64');
                     } catch(error) {
-                      throw new Error(tag.translate('tagscript.channel_blob_value_must_be_base64_encoded'));
+                      throw new TagError(tag.translate('tagscript.channel_blob_value_must_be_base64_encoded'));
                     }
                   }
                   if (value) {
                     if (tag.limits.MAX_BLOB_VALUE_LENGTH < value.length) {
-                      throw new Error(tag.translate('tagscript.channel_blob_value_cannot_be_more_than', {max: tag.limits.MAX_BLOB_VALUE_LENGTH}));
+                      throw new TagError(tag.translate('tagscript.channel_blob_value_cannot_be_more_than', {max: tag.limits.MAX_BLOB_VALUE_LENGTH}));
                     }
                     formattedBlobs.push({
                       storageId: context.channelId!,
@@ -3321,7 +3334,7 @@ const ScriptTags = Object.freeze({
                     });
                   }
                 } else {
-                  throw new Error(tag.translate('tagscript.channel_blob_value_must_be_base64_encoded'));
+                  throw new TagError(tag.translate('tagscript.channel_blob_value_must_be_base64_encoded'));
                 }
               }
 
@@ -3348,12 +3361,12 @@ const ScriptTags = Object.freeze({
                     try {
                       value = Buffer.from(variables.user, 'base64');
                     } catch(error) {
-                      throw new Error(tag.translate('tagscript.user_blob_value_must_be_base64_encoded'));
+                      throw new TagError(tag.translate('tagscript.user_blob_value_must_be_base64_encoded'));
                     }
                   }
                   if (value) {
                     if (tag.limits.MAX_BLOB_VALUE_LENGTH < value.length) {
-                      throw new Error(tag.translate('tagscript.user_blob_value_cannot_be_more_than', {max: tag.limits.MAX_BLOB_VALUE_LENGTH}));
+                      throw new TagError(tag.translate('tagscript.user_blob_value_cannot_be_more_than', {max: tag.limits.MAX_BLOB_VALUE_LENGTH}));
                     }
                     formattedBlobs.push({
                       storageId: context.userId,
@@ -3362,7 +3375,7 @@ const ScriptTags = Object.freeze({
                     });
                   }
                 } else {
-                  throw new Error(tag.translate('tagscript.user_blob_value_must_be_base64_encoded'));
+                  throw new TagError(tag.translate('tagscript.user_blob_value_must_be_base64_encoded'));
                 }
               }
 
@@ -3410,15 +3423,15 @@ const ScriptTags = Object.freeze({
                 // clear the variables
               } else if (typeof(variables.global) === 'object') {
                 if (tag.limits.MAX_STORAGE_GLOBAL_AMOUNT < countStorageValues(variables.global)) {
-                  throw new Error(tag.translate('tagscript.global_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_GLOBAL_AMOUNT}));
+                  throw new TagError(tag.translate('tagscript.global_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_GLOBAL_AMOUNT}));
                 }
                 for (let key in variables.global) {
                   if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-                    throw new Error(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+                    throw new TagError(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
                   }
                   const value = stringifyStorageValue(variables.global[key]);
                   if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
-                    throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
+                    throw new TagError(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
                   }
                   formattedVariables.push({
                     name: String(key),
@@ -3428,7 +3441,7 @@ const ScriptTags = Object.freeze({
                   });
                 }
               } else {
-                throw new Error(tag.translate('tagscript.global_variables_must_be_an_object_or'));
+                throw new TagError(tag.translate('tagscript.global_variables_must_be_an_object_or'));
               }
 
               if (variables.server === undefined) {
@@ -3445,15 +3458,15 @@ const ScriptTags = Object.freeze({
                 // clear the variables
               } else if (typeof(variables.server) === 'object') {
                 if (tag.limits.MAX_STORAGE_GUILD_AMOUNT < countStorageValues(variables.server)) {
-                  throw new Error(tag.translate('tagscript.server_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_GUILD_AMOUNT}));
+                  throw new TagError(tag.translate('tagscript.server_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_GUILD_AMOUNT}));
                 }
                 for (let key in variables.server) {
                   if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-                    throw new Error(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+                    throw new TagError(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
                   }
                   const value = stringifyStorageValue(variables.server[key]);
                   if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
-                    throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
+                    throw new TagError(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
                   }
                   formattedVariables.push({
                     name: String(key),
@@ -3463,7 +3476,7 @@ const ScriptTags = Object.freeze({
                   });
                 }
               } else {
-                throw new Error(tag.translate('tagscript.server_variables_must_be_an_object_or'));
+                throw new TagError(tag.translate('tagscript.server_variables_must_be_an_object_or'));
               }
 
               if (variables.channel === undefined) {
@@ -3480,15 +3493,15 @@ const ScriptTags = Object.freeze({
                 // clear the variables
               } else if (typeof(variables.channel) === 'object') {
                 if (tag.limits.MAX_STORAGE_CHANNEL_AMOUNT < countStorageValues(variables.channel)) {
-                  throw new Error(tag.translate('tagscript.channel_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_CHANNEL_AMOUNT}));
+                  throw new TagError(tag.translate('tagscript.channel_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_CHANNEL_AMOUNT}));
                 }
                 for (let key in variables.channel) {
                   if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-                    throw new Error(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+                    throw new TagError(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
                   }
                   const value = stringifyStorageValue(variables.channel[key]);
                   if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
-                    throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
+                    throw new TagError(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
                   }
                   formattedVariables.push({
                     name: String(key),
@@ -3498,7 +3511,7 @@ const ScriptTags = Object.freeze({
                   });
                 }
               } else {
-                throw new Error(tag.translate('tagscript.channel_variables_must_be_an_object_or'));
+                throw new TagError(tag.translate('tagscript.channel_variables_must_be_an_object_or'));
               }
 
               if (variables.user === undefined) {
@@ -3515,15 +3528,15 @@ const ScriptTags = Object.freeze({
                 // clear the variables
               } else if (typeof(variables.user) === 'object') {
                 if (tag.limits.MAX_STORAGE_USER_AMOUNT < countStorageValues(variables.user)) {
-                  throw new Error(tag.translate('tagscript.user_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_USER_AMOUNT}));
+                  throw new TagError(tag.translate('tagscript.user_variables_exceeded_max_amount', {max: tag.limits.MAX_STORAGE_USER_AMOUNT}));
                 }
                 for (let key in variables.user) {
                   if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-                    throw new Error(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+                    throw new TagError(tag.translate('tagscript.storage_variable_key_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
                   }
                   const value = stringifyStorageValue(variables.user[key]);
                   if (tag.limits.MAX_STORAGE_VALUE_LENGTH < value.length) {
-                    throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
+                    throw new TagError(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
                   }
                   formattedVariables.push({
                     name: String(key),
@@ -3533,7 +3546,7 @@ const ScriptTags = Object.freeze({
                   });
                 }
               } else {
-                throw new Error(tag.translate('tagscript.user_variables_must_be_an_object_or'));
+                throw new TagError(tag.translate('tagscript.user_variables_must_be_an_object_or'));
               }
 
               let hasChange = false;
@@ -3613,7 +3626,7 @@ const ScriptTags = Object.freeze({
         }
 
         if (maxFileSize < size) {
-          throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+          throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
         }
 
         assertTotalFileSize(context, tag, size);
@@ -3627,7 +3640,7 @@ const ScriptTags = Object.freeze({
         });
 
         if (tag.limits.MAX_ATTACHMENTS < tag.files.length) {
-          throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+          throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
         }
       }
     }
@@ -3659,7 +3672,7 @@ const ScriptTags = Object.freeze({
             let embeds: Array<Embed> | undefined;
             let filenames: Array<string> | undefined;
             if (typeof(page) !== 'object') {
-              throw new Error(tag.translate('tagscript.invalid_page_given'));
+              throw new TagError(tag.translate('tagscript.invalid_page_given'));
             }
             if ('content' in page && typeof(page.content) === 'string') {
               content = page.content;
@@ -3668,11 +3681,11 @@ const ScriptTags = Object.freeze({
               try {
                 const embed = new Embed(page.embed);
                 if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
-                  throw new Error('this error doesn\'t matter');
+                  throw new TagError('this error doesn\'t matter');
                 }
                 embeds = [embed];
               } catch(error) {
-                throw new Error(tag.translate('tagscript.invalid_page_given'));
+                throw new TagError(tag.translate('tagscript.invalid_page_given'));
               }
             }
             if ('files' in page && Array.isArray(page.files)) {
@@ -3689,11 +3702,11 @@ const ScriptTags = Object.freeze({
               components = parsePageComponents(page.components, tag);
             }
             if (!content && !embeds && !filenames && !components) {
-              throw new Error(tag.translate('tagscript.invalid_page_given'));
+              throw new TagError(tag.translate('tagscript.invalid_page_given'));
             }
             tag.pages.push({components, content, embeds, filenames});
             if (tag.limits.MAX_PAGES < tag.pages.length) {
-              throw new Error(tag.translate('tagscript.pages_surpassed_max_pages_length_of', {max: tag.limits.MAX_PAGES}));
+              throw new TagError(tag.translate('tagscript.pages_surpassed_max_pages_length_of', {max: tag.limits.MAX_PAGES}));
             }
           }
         }
@@ -3730,7 +3743,7 @@ const ScriptTags = Object.freeze({
           }
 
           if (tag.limits.MAX_EMBEDS < embeds.length) {
-            throw new Error(tag.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: tag.limits.MAX_EMBEDS}));
+            throw new TagError(tag.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: tag.limits.MAX_EMBEDS}));
           }
 
           isEmbed = true;
@@ -3739,16 +3752,16 @@ const ScriptTags = Object.freeze({
             try {
               const embed = new Embed(raw);
               if (!embed.size && (!embed.image || !embed.image.url) && (!embed.thumbnail || !embed.thumbnail.url) && (!embed.video || !embed.video.url)) {
-                throw new Error('this error doesn\'t matter');
+                throw new TagError('this error doesn\'t matter');
               }
               tag.embeds.push(embed);
             } catch(error) {
-              throw new Error(tag.translate('tagscript.invalid_embed_given'));
+              throw new TagError(tag.translate('tagscript.invalid_embed_given'));
             }
           }
 
           if (tag.limits.MAX_EMBEDS < tag.embeds.length) {
-            throw new Error(tag.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: tag.limits.MAX_EMBEDS}));
+            throw new TagError(tag.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: tag.limits.MAX_EMBEDS}));
           }
         }
 
@@ -3944,7 +3957,7 @@ const ScriptTags = Object.freeze({
 
     const url = await lastAudioOrVideoUrl(arg.trim(), context);
     if (!url) {
-      throw new Error('Cannot find any audio or video');
+      throw new TagError('Cannot find any audio or video');
     }
 
     const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_AUDIO_IDENTIFY] = (
@@ -4047,7 +4060,7 @@ const ScriptTags = Object.freeze({
 
     const position = parseInt(arg);
     if (isNaN(position) || position < 1) {
-      throw new Error('Reminder position must be a positive number');
+      throw new TagError('Reminder position must be a positive number');
     }
 
     increaseAPIManipulations(tag);
@@ -4057,7 +4070,7 @@ const ScriptTags = Object.freeze({
       await withDeadline(context, tag, () => deleteReminderPositional(context, context.userId, position));
     } catch(error) {
       if (error.response && error.response.status === 404) {
-        throw new Error(`Unknown reminder at position ${position}`);
+        throw new TagError(`Unknown reminder at position ${position}`);
       }
       throw error;
     }
@@ -4082,7 +4095,7 @@ const ScriptTags = Object.freeze({
     const [ positionText, timeText, text ] = split(arg, 3);
     const position = parseInt((positionText || '').trim());
     if (isNaN(position) || position < 1) {
-      throw new Error('Reminder position must be a positive number');
+      throw new TagError('Reminder position must be a positive number');
     }
 
     const options: RestOptions.EditReminder = {};
@@ -4106,7 +4119,7 @@ const ScriptTags = Object.freeze({
       reminder = await withDeadline(context, tag, () => fetchReminderPositional(context, context.userId, position));
     } catch(error) {
       if (error.response && error.response.status === 404) {
-        throw new Error(`Unknown reminder at position ${position}`);
+        throw new TagError(`Unknown reminder at position ${position}`);
       }
       throw error;
     }
@@ -4161,7 +4174,7 @@ const ScriptTags = Object.freeze({
         invite = await withDeadline(context, tag, () => context.rest.fetchInvite(code, {withCounts: true}));
       } catch(error) {
         if (error.response && error.response.statusCode === 404) {
-          throw new Error('Unknown invite');
+          throw new TagError('Unknown invite');
         }
         throw error;
       }
@@ -4457,7 +4470,7 @@ const ScriptTags = Object.freeze({
 
     const url = await lastMediaUrl(arg.trim(), context);
     if (!url) {
-      throw new Error('Cannot find any media');
+      throw new TagError('Cannot find any media');
     }
 
     const cachedResults = tag.variables[PrivateVariables.RESULTS][TagFunctions.API_UTILITIES_EXIF] = (
@@ -4536,7 +4549,7 @@ const ScriptTags = Object.freeze({
 
     const url = await lastImageUrl(arg.trim(), context);
     if (!url) {
-      throw new Error('Cannot find any images');
+      throw new TagError('Cannot find any images');
     }
 
     increaseNetworkRequests(tag);
@@ -4779,7 +4792,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+      throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
     }
 
     let extension = 'txt';
@@ -4796,7 +4809,7 @@ const ScriptTags = Object.freeze({
     try {
       const maxFileSize = context.maxAttachmentSize;
       if (maxFileSize < data.length) {
-        throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+        throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
 
       assertTotalFileSize(context, tag, data.length);
@@ -4822,7 +4835,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+      throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
     }
 
     let [ urlString, filenameArg ] = split(arg, 2);
@@ -4843,7 +4856,7 @@ const ScriptTags = Object.freeze({
 
       const data: Buffer = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
       if (maxFileSize < data.length) {
-        throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+        throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
 
       assertTotalFileSize(context, tag, data.length);
@@ -4976,12 +4989,12 @@ const ScriptTags = Object.freeze({
         // {newline} inside of json strings becomes an actual newline
         data = JSON.parse(text.replace(REGEX_NEWLINE_SENTINEL, '\\n'));
       } catch(error) {
-        throw new Error(tag.translate('tagscript.invalid_component_given'));
+        throw new TagError(tag.translate('tagscript.invalid_component_given'));
       }
     }
 
     if (!data || typeof(data) !== 'object') {
-      throw new Error(tag.translate('tagscript.invalid_component_given'));
+      throw new TagError(tag.translate('tagscript.invalid_component_given'));
     }
 
     const components: TagResultComponents = tag.components || {components: []};
@@ -5048,7 +5061,7 @@ const ScriptTags = Object.freeze({
       // {newline} inside of json strings becomes an actual newline
       let object = JSON.parse(arg.replace(REGEX_NEWLINE_SENTINEL, '\\n'));
       if (typeof(object) !== 'object') {
-        throw new Error(tag.translate('tagscript.invalid_embed_given'));
+        throw new TagError(tag.translate('tagscript.invalid_embed_given'));
       }
 
       const embed = new Embed(object);
@@ -5058,7 +5071,7 @@ const ScriptTags = Object.freeze({
         (!embed.thumbnail || !embed.thumbnail.url) &&
         (!embed.video || !embed.video.url)
       ) {
-        throw new Error('this error doesn\'t matter');
+        throw new TagError('this error doesn\'t matter');
       }
       tag.embeds.push(embed);
     } catch(error) {
@@ -5066,7 +5079,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (tag.limits.MAX_EMBEDS < tag.embeds.length) {
-      throw new Error(tag.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: tag.limits.MAX_EMBEDS}));
+      throw new TagError(tag.translate('tagscript.embeds_surpassed_max_embeds_length_of', {max: tag.limits.MAX_EMBEDS}));
     }
     // outside of the try, a bad `$FILE_n` or a blocked download should error instead of printing the raw function
     await resolveEmbedMediaUrls(context, tag.embeds[tag.embeds.length - 1]!, tag);
@@ -5218,7 +5231,7 @@ const ScriptTags = Object.freeze({
         return false;
       }
       if (amount <= 0 || tag.limits.MAX_VARIABLE_LENGTH < amount) {
-        throw new Error(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
+        throw new TagError(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
       }
       tag.text += TagSymbols.BRACKET_LEFT.repeat(amount);
     } else {
@@ -5238,7 +5251,7 @@ const ScriptTags = Object.freeze({
         return false;
       }
       if (amount <= 0 || tag.limits.MAX_VARIABLE_LENGTH < amount) {
-        throw new Error(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
+        throw new TagError(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
       }
       tag.text += TagSymbols.BRACKET_RIGHT.repeat(amount);
     } else {
@@ -5258,7 +5271,7 @@ const ScriptTags = Object.freeze({
         return false;
       }
       if (amount <= 0 || tag.limits.MAX_VARIABLE_LENGTH < amount) {
-        throw new Error(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
+        throw new TagError(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
       }
       tag.text += NEWLINE_SENTINEL.repeat(amount);
     } else {
@@ -5278,7 +5291,7 @@ const ScriptTags = Object.freeze({
         return false;
       }
       if (amount <= 0 || tag.limits.MAX_VARIABLE_LENGTH < amount) {
-        throw new Error(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
+        throw new TagError(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
       }
       tag.text += TagSymbols.SPLITTER_ARGUMENT.repeat(amount);
     } else {
@@ -5298,7 +5311,7 @@ const ScriptTags = Object.freeze({
         return false;
       }
       if (amount <= 0 || tag.limits.MAX_VARIABLE_LENGTH < amount) {
-        throw new Error(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
+        throw new TagError(tag.translate('tagscript.cannot_repeat_character_less_than_0_or', {max: tag.limits.MAX_VARIABLE_LENGTH}));
       }
       tag.text += TagSymbols.SPLITTER_FUNCTION.repeat(amount);
     } else {
@@ -5403,13 +5416,13 @@ const ScriptTags = Object.freeze({
       if (channel) {
         const member = context.member;
         if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
-          throw new Error(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
+          throw new TagError(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
         }
         if (!channel.canReadHistory) {
-          throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+          throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
         }
       } else if (!context.inDm && !context.isBotPresent) {
-        throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+        throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
 
       const messageId = arg.trim();
@@ -5561,7 +5574,7 @@ const ScriptTags = Object.freeze({
     } else {
       const count = parseInt(text);
       if (200 < count) {
-        throw new Error(tag.translate('tagscript.cannot_have_a_for_loop_that_is'));
+        throw new TagError(tag.translate('tagscript.cannot_have_a_for_loop_that_is'));
       }
       values = Array.from({length: count}).map((x, i) => {
         return [String(i), i];
@@ -5573,7 +5586,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (200 < values.length) {
-      throw new Error(tag.translate('tagscript.cannot_have_a_for_loop_that_is'));
+      throw new TagError(tag.translate('tagscript.cannot_have_a_for_loop_that_is'));
     }
 
     const idx = tag.variables[PrivateVariables.ID_X];
@@ -5610,10 +5623,10 @@ const ScriptTags = Object.freeze({
   [TagFunctions.LOGICAL_DELETE]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     arg = arg.trim();
     if (arg.startsWith(PRIVATE_VARIABLE_PREFIX)) {
-      throw new Error(tag.translate('tagscript.tried_to_delete_a_private_variable_cannot', {prefix: PRIVATE_VARIABLE_PREFIX}));
+      throw new TagError(tag.translate('tagscript.tried_to_delete_a_private_variable_cannot', {prefix: PRIVATE_VARIABLE_PREFIX}));
     }
     if (tag.limits.MAX_VARIABLE_KEY_LENGTH < arg.length) {
-      throw new Error(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
     }
     delete tag.variables[arg];
 
@@ -5623,7 +5636,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.LOGICAL_DELETE_CHANNEL]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     arg = arg.trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < arg.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
   
     let tagId: string | null = null;
@@ -5650,7 +5663,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.LOGICAL_DELETE_SERVER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     arg = arg.trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < arg.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
   
     let tagId: string | null = null;
@@ -5677,7 +5690,7 @@ const ScriptTags = Object.freeze({
   [TagFunctions.LOGICAL_DELETE_USER]: async (context: Command.Context | Interaction.InteractionContext, arg: string, tag: TagResult): Promise<boolean> => {
     arg = arg.trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < arg.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
   
     let tagId: string | null = null;
@@ -5712,7 +5725,7 @@ const ScriptTags = Object.freeze({
 
     key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
     }
 
     if (key === PrivateVariables.FILES) {
@@ -5744,7 +5757,7 @@ const ScriptTags = Object.freeze({
 
     key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
 
     let tagId: string | null = null;
@@ -5789,7 +5802,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (!(fileId in tag.files)) {
-      throw new Error(tag.translate('tagscript.file_id_does_not_exist', {id: fileId + 1}));
+      throw new TagError(tag.translate('tagscript.file_id_does_not_exist', {id: fileId + 1}));
     }
 
     const file = tag.files[fileId]!;
@@ -5809,7 +5822,7 @@ const ScriptTags = Object.freeze({
 
     key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
 
     let tagId: string | null = null;
@@ -5851,7 +5864,7 @@ const ScriptTags = Object.freeze({
 
     key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
 
     let tagId: string | null = null;
@@ -5893,7 +5906,7 @@ const ScriptTags = Object.freeze({
 
     key = (await parseValue(context, tag, key)).trim();
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
 
     let tagId: string | null = null;
@@ -5976,17 +5989,17 @@ const ScriptTags = Object.freeze({
       }
       if (x.startsWith('then:')) {
         if (then) {
-          throw new Error(tag.translate('tagscript.if_statement_must_have_only_one_then'));
+          throw new TagError(tag.translate('tagscript.if_statement_must_have_only_one_then'));
         }
         then = x;
       } else if (x.startsWith('else:')) {
         if (elseValue) {
-          throw new Error(tag.translate('tagscript.if_statement_must_have_only_one_else'));
+          throw new TagError(tag.translate('tagscript.if_statement_must_have_only_one_else'));
         }
         elseValue = x;
       } else if (x.startsWith('finally:')) {
         if (finallyValue) {
-          throw new Error(tag.translate('tagscript.if_statement_must_have_only_one_finally'));
+          throw new TagError(tag.translate('tagscript.if_statement_must_have_only_one_finally'));
         }
         finallyValue = x;
       } else {
@@ -6018,7 +6031,7 @@ const ScriptTags = Object.freeze({
           try {
             return runRegexScript<boolean>(REGEX_TEST_SCRIPT, {regex, source}, tag.limits.MAX_TIME_REGEX);
           } catch {
-            throw new Error(tag.translate('tagscript.regex_matching_errored_or_timed_out'));
+            throw new TagError(tag.translate('tagscript.regex_matching_errored_or_timed_out'));
           }
         });
       }; break;
@@ -6163,16 +6176,16 @@ const ScriptTags = Object.freeze({
 
     key = await parseValue(context, tag, key);
     if (key.startsWith(PRIVATE_VARIABLE_PREFIX)) {
-      throw new Error(tag.translate('tagscript.tried_to_set_a_private_variable_cannot', {prefix: PRIVATE_VARIABLE_PREFIX}));
+      throw new TagError(tag.translate('tagscript.tried_to_set_a_private_variable_cannot', {prefix: PRIVATE_VARIABLE_PREFIX}));
     }
 
     if (tag.limits.MAX_VARIABLE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.variable_cannot_be_more_than_characters', {max: tag.limits.MAX_VARIABLE_KEY_LENGTH}));
     }
 
     if (!(key in tag.variables)) {
       if (tag.limits.MAX_VARIABLES <= Object.keys(tag.variables).filter((key) => !key.startsWith(PRIVATE_VARIABLE_PREFIX)).length) {
-        throw new Error(tag.translate('tagscript.reached_max_variable_amount_max_variables', {max: tag.limits.MAX_VARIABLES.toLocaleString()}));
+        throw new TagError(tag.translate('tagscript.reached_max_variable_amount_max_variables', {max: tag.limits.MAX_VARIABLES.toLocaleString()}));
       }
     }
 
@@ -6194,12 +6207,12 @@ const ScriptTags = Object.freeze({
 
     key = await parseValue(context, tag, key);
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
 
     const storageValue = await parseValue(context, tag, value);
     if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
     }
 
     let tagId: string | null = null;
@@ -6244,7 +6257,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (!(fileId in tag.files)) {
-      throw new Error(tag.translate('tagscript.file_id_does_not_exist', {id: fileId + 1}));
+      throw new TagError(tag.translate('tagscript.file_id_does_not_exist', {id: fileId + 1}));
     }
 
     const file = tag.files[fileId]!;
@@ -6284,12 +6297,12 @@ const ScriptTags = Object.freeze({
     key = await parseValue(context, tag, key);
 
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
 
     const storageValue = await parseValue(context, tag, value);
     if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
     }
 
     let tagId: string | null = null;
@@ -6322,12 +6335,12 @@ const ScriptTags = Object.freeze({
     key = await parseValue(context, tag, key);
 
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
 
     const storageValue = await parseValue(context, tag, value);
     if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
     }
 
     let tagId: string | null = null;
@@ -6360,12 +6373,12 @@ const ScriptTags = Object.freeze({
     key = await parseValue(context, tag, key);
 
     if (tag.limits.MAX_STORAGE_KEY_LENGTH < key.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_cannot_be_more_than_characters', {max: tag.limits.MAX_STORAGE_KEY_LENGTH}));
     }
 
     const storageValue = await parseValue(context, tag, value);
     if (tag.limits.MAX_STORAGE_VALUE_LENGTH < storageValue.length) {
-      throw new Error(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
+      throw new TagError(tag.translate('tagscript.storage_variable_value_cannot_be_more_than', {max: tag.limits.MAX_STORAGE_VALUE_LENGTH}));
     }
 
     let tagId: string | null = null;
@@ -6397,9 +6410,9 @@ const ScriptTags = Object.freeze({
       tag.text += result;
     } catch(error) {
       if (error.message.includes(MATH_ERROR_TIMEOUT_MESSAGE)) {
-        throw new Error(tag.translate('tagscript.math_equation_timed_out'))
+        throw new TagError(tag.translate('tagscript.math_equation_timed_out'))
       } else {
-        throw new Error(tag.translate('tagscript.math_equation_errored_out', {error: error.message}));
+        throw new TagError(tag.translate('tagscript.math_equation_errored_out', {error: error.message}));
       }
     }
 
@@ -6582,7 +6595,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+      throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
     }
 
     increaseNetworkRequests(tag);
@@ -6627,7 +6640,7 @@ const ScriptTags = Object.freeze({
     },
     ).then((x) => jobWaitForResult(context, x, undefined, signal)));
     if (job.result.error) {
-      throw new Error(tag.translate('tagscript.job_error', {error: job.result.error}));
+      throw createJobError(tag, job);
     }
     if (!job.result.response) {
       throw new Error(tag.translate('tagscript.edit_did_not_return_a_response_should'));
@@ -6638,7 +6651,7 @@ const ScriptTags = Object.freeze({
 
     const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
     if (maxFileSize < data.length) {
-      throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+      throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
     }
 
     assertTotalFileSize(context, tag, data.length);
@@ -6703,7 +6716,7 @@ const ScriptTags = Object.freeze({
       urls: [url],
     }).then((x) => jobWaitForResult(context, x, undefined, signal)));
     if (job.result.error) {
-      throw new Error(tag.translate('tagscript.job_error', {error: job.result.error}));
+      throw createJobError(tag, job);
     }
     if (!job.result.response) {
       throw new Error(tag.translate('tagscript.edit_did_not_return_a_response_should'));
@@ -6727,7 +6740,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+      throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
     }
 
     increaseNetworkRequests(tag);
@@ -6742,7 +6755,7 @@ const ScriptTags = Object.freeze({
       safe: true,
     }).then((x) => jobWaitForResult(context, x, undefined, signal)));
     if (job.result.error) {
-      throw new Error(tag.translate('tagscript.job_error', {error: job.result.error}));
+      throw createJobError(tag, job);
     }
     if (!job.result.response) {
       throw new Error(tag.translate('tagscript.imagine_did_not_return_a_response_should'));
@@ -6753,7 +6766,7 @@ const ScriptTags = Object.freeze({
 
     const data = (response.file.value) ? Buffer.from(response.file.value, 'base64') : Buffer.alloc(0);
     if (maxFileSize < data.length) {
-      throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+      throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
     }
 
     assertTotalFileSize(context, tag, data.length);
@@ -6787,7 +6800,7 @@ const ScriptTags = Object.freeze({
       uploadExpiresIn: (7 * 24 * 60 * 60),
     }).then((x) => jobWaitForResult(context, x, undefined, signal)));
     if (job.result.error) {
-      throw new Error(tag.translate('tagscript.job_error', {error: job.result.error}));
+      throw createJobError(tag, job);
     }
     if (!job.result.response) {
       throw new Error(tag.translate('tagscript.imagine_did_not_return_a_response_should'));
@@ -6895,13 +6908,13 @@ const ScriptTags = Object.freeze({
       if (channel) {
         const member = context.member;
         if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
-          throw new Error(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
+          throw new TagError(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
         }
         if (!channel.canReadHistory) {
-          throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+          throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
         }
       } else if (!context.inDm && !context.isBotPresent) {
-        throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+        throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
 
       let message: Structures.Message | undefined;
@@ -6947,7 +6960,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (100 <= index) {
-      throw new Error(tag.translate('tagscript.message_index_cannot_be_over_99'));
+      throw new TagError(tag.translate('tagscript.message_index_cannot_be_over_99'));
     }
 
     let channelId: string = '';
@@ -6967,13 +6980,13 @@ const ScriptTags = Object.freeze({
     if (channel) {
       const member = context.member;
       if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
-        throw new Error(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
+        throw new TagError(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
       }
       if (!channel.canReadHistory) {
-        throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+        throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
     } else if (!context.inDm && !context.isBotPresent) {
-      throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+      throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
     }
 
     // maybe dont show the bot's messages?
@@ -7060,13 +7073,13 @@ const ScriptTags = Object.freeze({
     if (channel) {
       const member = context.member;
       if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
-        throw new Error(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
+        throw new TagError(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
       }
       if (!channel.canReadHistory) {
-        throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+        throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
     } else if (!context.inDm && !context.isBotPresent) {
-      throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+      throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
     }
 
     // maybe dont show the bot's messages?
@@ -7150,13 +7163,13 @@ const ScriptTags = Object.freeze({
       if (channel) {
         const member = context.member;
         if (member && !channel.can([Permissions.VIEW_CHANNEL, Permissions.READ_MESSAGE_HISTORY], member)) {
-          throw new Error(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
+          throw new TagError(tag.translate('tagscript.you_cannot_view_the_history_of_this'));
         }
         if (!channel.canReadHistory) {
-          throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+          throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
         }
       } else if (!context.inDm && !context.isBotPresent) {
-        throw new Error(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
+        throw new TagError(tag.translate('tagscript.bot_cannot_view_the_history_of_this'));
       }
 
       let message: Structures.Message | undefined;
@@ -7192,7 +7205,7 @@ const ScriptTags = Object.freeze({
     }
 
     if (tag.limits.MAX_ATTACHMENTS <= tag.files.length) {
-      throw new Error(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
+      throw new TagError(tag.translate('tagscript.attachments_surpassed_max_attachments_length_of', {max: tag.limits.MAX_ATTACHMENTS}));
     }
 
     let code = arg.trim();
@@ -7206,7 +7219,7 @@ const ScriptTags = Object.freeze({
       if (!(group1 in keyCache)) {
         const file = tag.files[parseInt(group1) - 1];
         if (!file) {
-          throw new Error(tag.translate('tagscript.invalid_file_provided'));
+          throw new TagError(tag.translate('tagscript.invalid_file_provided'));
         }
         if (!file.buffer) {
           // every reference to a url-only file is its url (this cached a FILE_n that was never sent, so later
@@ -7243,7 +7256,7 @@ const ScriptTags = Object.freeze({
         safe: DefaultParameters.safe(context),
       }).then((x) => jobWaitForResult(context, x, undefined, signal)));
       if (job.result.error) {
-        throw new Error(tag.translate('tagscript.mediascript_error', {error: job.result.error}));
+        throw new TagError(tag.translate('tagscript.mediascript_error', {error: job.result.error}));
       }
       if (!job.result.response) {
         throw new Error(tag.translate('tagscript.mediascript_did_not_return_a_response_should'));
@@ -7266,7 +7279,7 @@ const ScriptTags = Object.freeze({
 
       const maxFileSize = context.maxAttachmentSize;
       if (maxFileSize < data.length) {
-        throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+        throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
       }
       assertTotalFileSize(context, tag, data.length);
       
@@ -7302,7 +7315,7 @@ const ScriptTags = Object.freeze({
       if (!(group1 in keyCache)) {
         const file = tag.files[parseInt(group1) - 1];
         if (!file) {
-          throw new Error(tag.translate('tagscript.invalid_file_provided'));
+          throw new TagError(tag.translate('tagscript.invalid_file_provided'));
         }
         if (!file.buffer) {
           // every reference to a url-only file is its url (this cached a FILE_n that was never sent, so later
@@ -7339,7 +7352,7 @@ const ScriptTags = Object.freeze({
         safe: DefaultParameters.safe(context),
       }).then((x) => jobWaitForResult(context, x, undefined, signal)));
       if (job.result.error) {
-        throw new Error(tag.translate('tagscript.mediascript_error', {error: job.result.error}));
+        throw new TagError(tag.translate('tagscript.mediascript_error', {error: job.result.error}));
       }
       if (!job.result.response) {
         throw new Error(tag.translate('tagscript.mediascript_did_not_return_a_response_should'));
@@ -7365,7 +7378,7 @@ const ScriptTags = Object.freeze({
         }
 
         if (maxFileSize < data.length) {
-          throw new Error(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
+          throw new TagError(tag.translate('tagscript.attachment_surpassed_max_file_size_of_bytes', {max: maxFileSize}));
         }
         assertTotalFileSize(context, tag, data.length);
 
@@ -7401,7 +7414,7 @@ const ScriptTags = Object.freeze({
       if (!(group1 in keyCache)) {
         const file = tag.files[parseInt(group1) - 1];
         if (!file) {
-          throw new Error(tag.translate('tagscript.invalid_file_provided'));
+          throw new TagError(tag.translate('tagscript.invalid_file_provided'));
         }
         if (!file.buffer) {
           // every reference to a url-only file is its url (this cached a FILE_n that was never sent, so later
@@ -7440,7 +7453,7 @@ const ScriptTags = Object.freeze({
         uploadExpiresIn: (7 * 24 * 60 * 60),
       }).then((x) => jobWaitForResult(context, x, undefined, signal)));
       if (job.result.error) {
-        throw new Error(tag.translate('tagscript.mediascript_error', {error: job.result.error}));
+        throw new TagError(tag.translate('tagscript.mediascript_error', {error: job.result.error}));
       }
       if (!job.result.response) {
         throw new Error(tag.translate('tagscript.mediascript_did_not_return_a_response_should'));
@@ -7470,7 +7483,7 @@ const ScriptTags = Object.freeze({
     // {nsfw}
 
     if (DefaultParameters.safe(context)) {
-      throw new Error(tag.translate('tagscript.cannot_use_a_nsfw_tag_here'));
+      throw new TagError(tag.translate('tagscript.cannot_use_a_nsfw_tag_here'));
     }
 
     return true;
@@ -7510,7 +7523,7 @@ const ScriptTags = Object.freeze({
         pages.push(data);
       }
     } catch(error) {
-      throw new Error(tag.translate('tagscript.invalid_page_given'));
+      throw new TagError(tag.translate('tagscript.invalid_page_given'));
     }
 
     const pagesStart = tag.pages.length;
@@ -7520,7 +7533,7 @@ const ScriptTags = Object.freeze({
       let embeds: Array<Embed> | undefined;
       let filenames: Array<string> | undefined;
       if (typeof(page) !== 'object') {
-        throw new Error(tag.translate('tagscript.invalid_page_given'));
+        throw new TagError(tag.translate('tagscript.invalid_page_given'));
       }
       if ('content' in page && typeof(page.content) === 'string') {
         content = page.content;
@@ -7534,11 +7547,11 @@ const ScriptTags = Object.freeze({
             (!embed.thumbnail || !embed.thumbnail.url) &&
             (!embed.video || !embed.video.url)
           ) {
-            throw new Error('this error doesn\'t matter');
+            throw new TagError('this error doesn\'t matter');
           }
           embeds = [embed];
         } catch(error) {
-          throw new Error(tag.translate('tagscript.invalid_page_given'));
+          throw new TagError(tag.translate('tagscript.invalid_page_given'));
         }
       }
       if ('files' in page && Array.isArray(page.files)) {
@@ -7557,13 +7570,13 @@ const ScriptTags = Object.freeze({
       }
 
       if (!content && !embeds && !filenames && !components) {
-        throw new Error(tag.translate('tagscript.invalid_page_given'));
+        throw new TagError(tag.translate('tagscript.invalid_page_given'));
       }
 
       tag.pages.push({components, content, embeds, filenames});
 
       if (tag.limits.MAX_PAGES < tag.pages.length) {
-        throw new Error(tag.translate('tagscript.pages_surpassed_max_pages_length_of', {max: tag.limits.MAX_PAGES}));
+        throw new TagError(tag.translate('tagscript.pages_surpassed_max_pages_length_of', {max: tag.limits.MAX_PAGES}));
       }
     }
 
@@ -7682,7 +7695,7 @@ const ScriptTags = Object.freeze({
       if (error instanceof TagRequestError) {
         throw error;
       }
-      throw new Error(tag.translate('tagscript.request_options_failed_to_parse'));
+      throw new TagError(tag.translate('tagscript.request_options_failed_to_parse'));
     }
 
     increaseNetworkRequests(tag);
@@ -7714,15 +7727,15 @@ const ScriptTags = Object.freeze({
               description.push(`**${key}**: ${message}`);
             }
             if (description.length) {
-              throw new Error(tag.translate('tagscript.requested_failed', {details: description.join('\n')}));
+              throw new TagError(tag.translate('tagscript.requested_failed', {details: description.join('\n')}));
             }
           }
           if ('message' in information && information.message) {
-            throw new Error(String(information.message));
+            throw new TagError(String(information.message));
           }
         }
       }
-      throw new Error(tag.translate('tagscript.request_failed'));
+      throw new TagError(tag.translate('tagscript.request_failed'));
     }
 
     return true;
@@ -8016,7 +8029,7 @@ const ScriptTags = Object.freeze({
           if (value in TagGenerationModels) {
             settings[setting] = value as TagGenerationModels;
           } else {
-            throw new Error(tag.translate('tagscript.ai_model_must_be_one_of', {choices: Object.values(TagGenerationModels).map((x) => Markup.codestring(x)).join(', ')}));
+            throw new TagError(tag.translate('tagscript.ai_model_must_be_one_of', {choices: Object.values(TagGenerationModels).map((x) => Markup.codestring(x)).join(', ')}));
           }
         } else {
           delete settings[setting];
@@ -8068,14 +8081,14 @@ const ScriptTags = Object.freeze({
             // removed model, old tags that still pick it fall back to the default instead of erroring
             delete settings[setting];
           } else {
-            throw new Error(tag.translate('tagscript.ml_imagine_model_must_be_one_of', {choices: Object.values(MLDiffusionModels).map((x) => Markup.codestring(x)).join(', ')}));
+            throw new TagError(tag.translate('tagscript.ml_imagine_model_must_be_one_of', {choices: Object.values(MLDiffusionModels).map((x) => Markup.codestring(x)).join(', ')}));
           }
         } else {
           delete settings[setting];
         }
       }; break;
       default: {
-        throw new Error(tag.translate('tagscript.settings_must_be_one_of', {choices: Object.values(TagSettings).join(', ')}));
+        throw new TagError(tag.translate('tagscript.settings_must_be_one_of', {choices: Object.values(TagSettings).join(', ')}));
         return false;
       };
     }
@@ -8119,7 +8132,7 @@ const ScriptTags = Object.freeze({
     // `ai model` and `ai-model` work too
     const name = (settingText || '').trim().toUpperCase().replace(/[\s.-]+/g, '_');
     if (name && !(name in TagUserSettings)) {
-      throw new Error(`Unknown setting \`${settingText.trim().slice(0, 64)}\`, must be one of ${Object.values(TagUserSettings).join(', ')}`);
+      throw new TagError(`Unknown setting \`${settingText.trim().slice(0, 64)}\`, must be one of ${Object.values(TagUserSettings).join(', ')}`);
     }
 
     const oldSettings = await withDeadline(context, tag, () => UserSettingsStore.getOrFetch(context, context.userId));
@@ -8249,7 +8262,7 @@ const ScriptTags = Object.freeze({
     if (arg.toLowerCase() !== 'clear') {
       timezone = resolveTimezone(arg);
       if (!timezone) {
-        throw new Error(`Unknown timezone \`${arg.slice(0, 64)}\`, use an IANA name like \`America/New_York\``);
+        throw new TagError(`Unknown timezone \`${arg.slice(0, 64)}\`, use an IANA name like \`America/New_York\``);
       }
     }
 
@@ -8527,7 +8540,7 @@ const ScriptTags = Object.freeze({
 
     const maxTextLength = getMaxTextLength(context, tag);
     if (maxTextLength < (text.length * amount) + tag.text.length) {
-      throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
+      throw new TagError(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
     }
     tag.text += text.repeat(amount);
 
@@ -8575,7 +8588,7 @@ const ScriptTags = Object.freeze({
       const length = source.length + (parts.length - 1) * (replaceWith.length - regex.length);
       const maxTextLength = getMaxTextLength(context, tag);
       if (maxTextLength < tag.text.length + length) {
-        throw new Error(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
+        throw new TagError(tag.translate('tagscript.text_exceeded_bytes', {max: maxTextLength}));
       }
       tag.text += parts.join(replaceWith);
       return true;
@@ -8587,7 +8600,7 @@ const ScriptTags = Object.freeze({
       try {
         return runRegexScript<string>(REGEX_REPLACE_SCRIPT, {regex, replaceWith, source}, tag.limits.MAX_TIME_REGEX);
       } catch {
-        throw new Error(tag.translate('tagscript.text_replacing_errored_or_timed_out'));
+        throw new TagError(tag.translate('tagscript.text_replacing_errored_or_timed_out'));
       }
     });
     appendTagText(context, tag, replaced);
@@ -8697,7 +8710,7 @@ const ScriptTags = Object.freeze({
     tagId = tagId.trim();
     tagArguments = tagArguments || '';
     if (!tagId || !isSnowflake(tagId)) {
-      throw new Error(tag.translate('tagscript.invalid_tag_id'));
+      throw new TagError(tag.translate('tagscript.invalid_tag_id'));
     }
 
     // ignore tag executions in code and componentjson
@@ -8721,7 +8734,7 @@ const ScriptTags = Object.freeze({
       }
 
       if (!isAllowed) {
-        throw new Error(tag.translate('tagscript.cannot_call_this_tag'));
+        throw new TagError(tag.translate('tagscript.cannot_call_this_tag'));
         return false;
       }
 
@@ -8818,19 +8831,19 @@ const ScriptTags = Object.freeze({
     const [ nameText, content ] = split(arg, 2);
     const name = Parameters.tagName(nameText || '').trim().toLowerCase();
     if (!name || !content || !content.trim()) {
-      throw new Error('A tag needs a name and content');
+      throw new TagError('A tag needs a name and content');
     }
     // the api's limits, checked here so the error says which one
     if (MAX_AI_TAG_NAME_LENGTH < name.length) {
-      throw new Error(`Tag names can only be ${MAX_AI_TAG_NAME_LENGTH} characters long`);
+      throw new TagError(`Tag names can only be ${MAX_AI_TAG_NAME_LENGTH} characters long`);
     }
     if (MAX_AI_TAG_CONTENT_LENGTH < content.length) {
-      throw new Error(`Tag content can only be ${MAX_AI_TAG_CONTENT_LENGTH} characters long`);
+      throw new TagError(`Tag content can only be ${MAX_AI_TAG_CONTENT_LENGTH} characters long`);
     }
 
     const results = tag.variables[PrivateVariables.RESULTS];
     if (results[TagFunctions.TAG_CREATE]) {
-      throw new Error('NotSoAI can only create one tag per message');
+      throw new TagError('NotSoAI can only create one tag per message');
     }
 
     increaseAPIManipulations(tag);
@@ -8848,7 +8861,7 @@ const ScriptTags = Object.freeze({
       }
     }
     if (exists) {
-      throw new Error(`A tag named \`${name}\` already exists in this server, pick another name`);
+      throw new TagError(`A tag named \`${name}\` already exists in this server, pick another name`);
     }
 
     const created = await withDeadline(context, tag, () => putTag(context, {content, name, serverId}));

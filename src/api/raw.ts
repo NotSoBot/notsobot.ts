@@ -726,6 +726,7 @@ export async function editGuildSettings(
     search_provider_images: options.searchProviderImages,
     search_provider_web: options.searchProviderWeb,
     timezone: options.timezone,
+    warnings_actions: options.warningsActions,
     warnings_expire: options.warningsExpire,
     warnings_window: options.warningsWindow,
   };
@@ -1169,6 +1170,7 @@ export async function editGuildMusic(
     loop: options.loop,
     max_duration: options.maxDuration,
     no_duplicates: options.noDuplicates,
+    pause_alone: options.pauseAlone,
     stay: options.stay,
     vote_pause: options.votePause,
     vote_resume: options.voteResume,
@@ -2471,6 +2473,33 @@ export async function mediaAIVManipulationExtractMedia(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_AIV_MANIPULATION_EXTRACT_MEDIA,
+    },
+  });
+}
+
+
+export async function mediaAIVManipulationInterpolate(
+  context: RequestContext,
+  options: RestOptions.MediaAIVManipulationInterpolate,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    loop: !options.noloop,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    segment: options.segment,
+    upload: options.upload,
+    upload_expires_in: options.uploadExpiresIn,
+    upload_temporary: options.uploadTemporary,
+    urls: options.urls,
+  };
+  return request(context, {
+    body,
+    file: options.file,
+    files: options.files,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_AIV_MANIPULATION_INTERPOLATE,
     },
   });
 }
@@ -3904,6 +3933,32 @@ export async function mediaIVManipulationBlurple(
 }
 
 
+export async function mediaIVManipulationBounce(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationBounce,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    axis: options.axis,
+    bounces: options.bounces,
+    duration: options.duration,
+    max_file_size: maxFileSize,
+    minimum: options.minimum,
+    safe: options.safe,
+    style: options.style,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_BOUNCE,
+    },
+  });
+}
+
+
 export async function mediaIVManipulationBurn(
   context: RequestContext,
   options: RestOptions.MediaBaseOptions,
@@ -4146,6 +4201,30 @@ export async function mediaIVManipulationCropTwitterHex(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_CROP_TWITTER_HEX,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationDance(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationDance,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    amount: options.amount,
+    bpm: options.bpm,
+    max_file_size: maxFileSize,
+    model: options.model,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_DANCE,
     },
   });
 }
@@ -5130,6 +5209,29 @@ export async function mediaIVManipulationGrayscale(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_GRAYSCALE,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationHidden(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationHidden,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    share: options.share,
+    size: options.size,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_HIDDEN,
     },
   });
 }

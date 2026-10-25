@@ -29,6 +29,7 @@ import {
   ComponentContainer,
   ComponentContext,
   Embed,
+  InteractionModalContext,
   Markup,
   PermissionTools,
   intToHex,
@@ -236,12 +237,12 @@ export function durationToMilliseconds(duration: string): number {
 }
 
 
-export function editOrReply(context: ComponentContext, options: Command.EditOrReply | string): Promise<void>
+export function editOrReply(context: ComponentContext | InteractionModalContext, options: Command.EditOrReply | string): Promise<void>
 export function editOrReply(context: Command.Context, options: Command.EditOrReply | string): Promise<Structures.Message>
 export function editOrReply(context: Interaction.InteractionContext, options: Structures.InteractionEditOrRespond | string): Promise<void>
-export function editOrReply(context: Command.Context | Interaction.InteractionContext | ComponentContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | void>
+export function editOrReply(context: Command.Context | Interaction.InteractionContext | ComponentContext | InteractionModalContext, options: Command.EditOrReply | Structures.InteractionEditOrRespond | string): Promise<Structures.Message | void>
 export async function editOrReply(
-  context: Command.Context | Interaction.InteractionContext | ComponentContext,
+  context: Command.Context | Interaction.InteractionContext | ComponentContext | InteractionModalContext,
   options: Command.EditOrReply | Structures.InteractionEditOrRespond | string = {},
 ): Promise<Structures.Message | void> {
   // the trigger was edited (re-running the command) or deleted, the reply belongs to the newer run now
@@ -267,7 +268,7 @@ export async function editOrReply(
     let channelId = '560594334408245248'; // the bot cannot use channels it cannot see, use a known channel id for now
     if (context instanceof Command.Context) {
       channelId = context.channelId;
-    } else {
+    } else if (!(context instanceof InteractionModalContext)) {
       // find a random channel from cache?
       if (context.isBotPresent) {
         if (context.inDm) {
@@ -305,7 +306,7 @@ export async function editOrReply(
     options.files = [];
   }
 
-  if (context instanceof ComponentContext) {
+  if (context instanceof ComponentContext || context instanceof InteractionModalContext) {
     await context.editOrRespond({
       ...options,
       allowedMentions: {parse: [], ...options.allowedMentions},
@@ -1948,7 +1949,7 @@ export function cancelCommandRun(messageId: string): void {
   }
 }
 
-export function isCommandRunCancelled(context: Command.Context | Interaction.InteractionContext | ComponentContext): boolean {
+export function isCommandRunCancelled(context: Command.Context | Interaction.InteractionContext | ComponentContext | InteractionModalContext): boolean {
   return context instanceof Command.Context && !!context.metadata && !!context.metadata.cancelled;
 }
 
@@ -2303,6 +2304,9 @@ export interface DisplayPayload {
   // components v2: show `components`' rows inside the response's container (after its content, above the invoker)
   // instead of under it
   componentsInside?: boolean,
+  // components v2: the rows inside (`componentsInside`, or a paginator's page rows) go after the blocks, right above the
+  // note, instead of between the content and the blocks
+  componentsAboveNote?: boolean,
   description?: null | string,
   // only for interactions
   ephemeral?: boolean,
@@ -2366,6 +2370,8 @@ const DISPLAY_UPLOAD_FILENAME = 'response.txt';
 export const DISPLAY_FOOTER_SECTION_ID = 9001;
 // the separator above a payload's first block, a paginator puts the page's own rows above it (under the content)
 export const DISPLAY_BLOCKS_SEPARATOR_ID = 9002;
+// the separator above a payload's note, a paginator puts the page's own rows above it with `componentsAboveNote`
+export const DISPLAY_NOTE_SEPARATOR_ID = 9003;
 const DISPLAY_IMAGE_FILENAME_REGEX = /\.(gif|jpe?g|png|webp)$/i;
 
 // informational responses put a few details on each line instead of one per line under section headers
@@ -2445,11 +2451,14 @@ interface DisplayRendered {
 }
 
 export interface DisplayReplyOptions {
+  // a new message after the command's reply instead of editing it (a reply to the trigger, or an interaction followup)
+  followUp?: boolean,
   // whose invoker line it is when `context` is a button press re-rendering a prefixed command's reply (the press is
   // whoever clicked, they don't get one otherwise)
   invokerId?: string,
-  // a button/select menu press to respond through, the display setting and invoker still come from the command's context
-  replyTo?: ComponentContext,
+  // a button/select menu press (or a modal submitted from one) to respond through, the display setting and invoker still
+  // come from the command's context. A modal's response is a new message instead of an edit
+  replyTo?: ComponentContext | InteractionModalContext,
   // upload the description and fields once they're longer than this, even if discord would still take them
   maxInlineLength?: number,
   // when the response is too long, what the uploaded file is called and the text shown instead
@@ -2516,8 +2525,10 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string, row
     }
   }
   // the caller's buttons/select menus (`componentsInside`), the same objects so their callbacks keep working
-  for (let row of rows) {
-    container.addActionRow(row);
+  if (!payload.componentsAboveNote) {
+    for (let row of rows) {
+      container.addActionRow(row);
+    }
   }
   let blocksLength = 0;
   for (let [ index, block ] of (payload.blocks || []).entries()) {
@@ -2544,9 +2555,15 @@ function renderDisplayComponents(payload: DisplayPayload, invokedBy: string, row
     }
   }
 
+  if (payload.componentsAboveNote) {
+    for (let row of rows) {
+      container.addActionRow(row);
+    }
+  }
+
   const note = (payload.note) ? `-# ${payload.note}` : '';
   if (note) {
-    container.addSeparator();
+    container.addSeparator({id: DISPLAY_NOTE_SEPARATOR_ID});
     container.addTextDisplay({content: note});
   }
 
@@ -2858,6 +2875,21 @@ export async function displayReply(
   options: DisplayReplyOptions = {},
 ) {
   const message = await renderDisplay(context, payload, options);
+  if (options.followUp && !options.replyTo) {
+    if (isCommandRunCancelled(context)) {
+      throw new CommandRunCancelledError();
+    }
+    if (context instanceof Command.Context) {
+      // replies to the trigger
+      return context.reply({
+        ...message,
+        allowedMentions: {parse: [], repliedUser: false, ...message.allowedMentions},
+      });
+    } else if (context instanceof Interaction.InteractionContext) {
+      await context.createMessage(message);
+      return;
+    }
+  }
   return editOrReply(options.replyTo || context, message);
 }
 
@@ -2891,6 +2923,7 @@ export async function mediaReply(
     spoiler: response.file.has_nsfw || options.spoiler,
     storage: response.storage,
     took: response.took,
+    variableFrameSizes: response.file.metadata.variable_frame_sizes,
     width: response.file.metadata.width,
   });
 }
@@ -2916,12 +2949,20 @@ export async function mediaReplyFromOptions(
     storage?: null | RestResponsesRaw.FileResponseStorage,
     storageUserId?: string,
     took?: number,
+    // a bouncing webm, discord's player keeps every frame at the first one's size and only a pasted link shows them
+    variableFrameSizes?: boolean,
     width?: number,
   },
 ) {
   const isFromInteraction = (context instanceof Interaction.InteractionContext);
   const isFromPrefix = (context instanceof Command.Context);
   const { language, translate } = await getTranslator(context);
+
+  if (options.variableFrameSizes) {
+    // every way of replying below shows the description
+    const notice = `-# ${translate('media.paste_link_for_frame_sizes')}`;
+    options = {...options, description: (options.description) ? `${options.description}\n${notice}` : notice};
+  }
 
   let filename: string = '';
   if (options.filename) {

@@ -38,6 +38,7 @@ import * as MediaAIVManipulationConvert from './media.aiv.manipulation.convert';
 import * as MediaAIVManipulationExtractMedia from './media.aiv.manipulation.extract.media';
 import * as MediaAIVManipulationFadeIn from './media.aiv.manipulation.fade.in';
 import * as MediaAIVManipulationFadeOut from './media.aiv.manipulation.fade.out';
+import * as MediaAIVManipulationInterpolate from './media.aiv.manipulation.interpolate';
 import * as MediaAIVManipulationJoin from './media.aiv.manipulation.join';
 import * as MediaAIVManipulationOverlay from './media.aiv.manipulation.overlay';
 import * as MediaAIVManipulationReverse from './media.aiv.manipulation.reverse';
@@ -103,6 +104,7 @@ import * as MediaIVManipulationColorRemove from './media.iv.manipulation.color.r
 import * as MediaIVManipulationBill from './media.iv.manipulation.bill';
 import * as MediaIVManipulationBlur from './media.iv.manipulation.blur';
 import * as MediaIVManipulationBlurple from './media.iv.manipulation.blurple';
+import * as MediaIVManipulationBounce from './media.iv.manipulation.bounce';
 import * as MediaIVManipulationBurn from './media.iv.manipulation.burn';
 import * as MediaIVManipulationCaption from './media.iv.manipulation.caption';
 import * as MediaIVManipulationCartoon from './media.iv.manipulation.cartoon';
@@ -114,6 +116,7 @@ import * as MediaIVManipulationCropAuto from './media.iv.manipulation.crop.auto'
 import * as MediaIVManipulationCropCircle from './media.iv.manipulation.crop.circle';
 import * as MediaIVManipulationCropNFT from './media.iv.manipulation.crop.nft';
 import * as MediaIVManipulationCropTriangle from './media.iv.manipulation.crop.triangle';
+import * as MediaIVManipulationDance from './media.iv.manipulation.dance';
 import * as MediaIVManipulationDatamosh from './media.iv.manipulation.datamosh';
 import * as MediaIVManipulationDeepfry from './media.iv.manipulation.deepfry';
 import * as MediaIVManipulationDemotivate from './media.iv.manipulation.demotivate';
@@ -181,6 +184,7 @@ import * as MediaIVManipulationGold from './media.iv.manipulation.gold';
 import * as MediaIVManipulationGradientMap from './media.iv.manipulation.gradient.map';
 import * as MediaIVManipulationGrain from './media.iv.manipulation.grain';
 import * as MediaIVManipulationGrayscale from './media.iv.manipulation.grayscale';
+import * as MediaIVManipulationHidden from './media.iv.manipulation.hidden';
 import * as MediaIVManipulationHueCurveRGBA from './media.iv.manipulation.hue.curve.rgba';
 import * as MediaIVManipulationHueShiftCCS from './media.iv.manipulation.hue.shift.ccs';
 import * as MediaIVManipulationHueShiftHSV from './media.iv.manipulation.hue.shift.hsv';
@@ -715,6 +719,7 @@ export {
   MediaAIVManipulationExtractMedia,
   MediaAIVManipulationFadeIn,
   MediaAIVManipulationFadeOut,
+  MediaAIVManipulationInterpolate,
   MediaAIVManipulationJoin,
   MediaAIVManipulationOverlay,
   MediaAIVManipulationReverse,
@@ -780,6 +785,7 @@ export {
   MediaIVManipulationBill,
   MediaIVManipulationBlur,
   MediaIVManipulationBlurple,
+  MediaIVManipulationBounce,
   MediaIVManipulationBurn,
   MediaIVManipulationCaption,
   MediaIVManipulationCartoon,
@@ -791,6 +797,7 @@ export {
   MediaIVManipulationCropCircle,
   MediaIVManipulationCropNFT,
   MediaIVManipulationCropTriangle,
+  MediaIVManipulationDance,
   MediaIVManipulationDatamosh,
   MediaIVManipulationDeepfry,
   MediaIVManipulationDemotivate,
@@ -858,6 +865,7 @@ export {
   MediaIVManipulationGradientMap,
   MediaIVManipulationGrain,
   MediaIVManipulationGrayscale,
+  MediaIVManipulationHidden,
   MediaIVManipulationHueCurveRGBA,
   MediaIVManipulationHueShiftCCS,
   MediaIVManipulationHueShiftHSV,

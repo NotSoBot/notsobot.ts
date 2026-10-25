@@ -164,6 +164,8 @@ export namespace RestOptions {
     searchProviderImages?: UserSettingsSearchProviders | null,
     searchProviderWeb?: UserSettingsSearchProviders | null,
     timezone?: string | null,
+    // replaces the whole ladder, empty or null turns it off
+    warningsActions?: Array<RestResponsesRaw.GuildWarningAction> | null,
     // seconds, null: warnings never expire
     warningsExpire?: number | null,
     // seconds, null resets it to 30 days
@@ -372,6 +374,8 @@ export namespace RestOptions {
     maxDuration?: number,
     // no track queued twice at once
     noDuplicates?: boolean,
+    // with 24/7, pausing when everyone else leaves the channel (off by default)
+    pauseAlone?: boolean,
     // 24/7, staying in voice (on by default, it only does anything with premium)
     stay?: boolean,
     // pausing someone else's track is a vote
@@ -578,6 +582,11 @@ export namespace RestOptions {
 
   export interface MediaAIVManipulationFadeOut extends MediaAIVManipulationFadeIn {
 
+  }
+
+  export interface MediaAIVManipulationInterpolate extends MediaBaseOptionsMultiple {
+    noloop?: boolean,
+    segment?: number,
   }
 
   export interface MediaAIVManipulationJoin extends MediaBaseOptionsMultiple {
@@ -925,6 +934,14 @@ export namespace RestOptions {
     scale?: number,
   }
 
+  export interface MediaIVManipulationBounce extends MediaBaseOptions {
+    axis?: string,
+    bounces?: number,
+    duration?: number,
+    minimum?: number,
+    style?: string,
+  }
+
   export interface MediaIVManipulationFaceHalloweenHat extends MediaBaseOptions {
     hat?: string,
   }
@@ -1018,6 +1035,12 @@ export namespace RestOptions {
     y?: string,
   }
 
+  export interface MediaIVManipulationDance extends MediaBaseOptions {
+    amount?: number,
+    bpm?: number,
+    model?: string,
+  }
+
   export interface MediaIVManipulationDatamosh extends MediaBaseOptions {
     chance?: number,
     repeat?: number,
@@ -1095,6 +1118,11 @@ export namespace RestOptions {
   export interface MediaIVManipulationGrain extends MediaBaseOptions {
     flags?: string,
     strength?: number,
+  }
+
+  export interface MediaIVManipulationHidden extends MediaBaseOptions {
+    share?: number,
+    size?: number,
   }
 
   export interface MediaIVManipulationHueCurveRGBA extends MediaBaseOptions {
@@ -1735,7 +1763,7 @@ export namespace RestOptions {
       aliases?: Array<string>,
       args?: Array<{aliases: Array<string>, description?: string, name: string, prefix: string}>,
       category: string,
-      credits?: Array<{id: string, name: string, url?: string}>,
+      credits?: Array<{id?: string, name: string, url?: string}>,
       description?: string,
       dmable?: boolean,
       examples?: Array<string>,
@@ -1912,6 +1940,8 @@ export namespace RestResponsesRaw {
         height: number,
         mimetype: string,
         size: number,
+        // its frames aren't all the same size (bouncing webms), width/height are the first one's
+        variable_frame_sizes?: boolean,
         width: number,
       },
       has_nsfw: boolean,
@@ -2258,6 +2288,8 @@ export namespace RestResponsesRaw {
     // queue rules: the longest track that can be queued (seconds, null for no limit), no track queued twice at once
     max_duration: null | number,
     no_duplicates: boolean,
+    // with 24/7: paused while nobody else is in the channel, carrying on when someone comes back (off by default)
+    pause_alone: boolean,
     // music's premium perks (24/7, the bigger `queue_limit`): a premium server, or `MUSIC_ACCESS`
     premium: boolean,
     queue: Array<GuildMusicQueueItem>,
@@ -2356,7 +2388,19 @@ export namespace RestResponsesRaw {
     total: number,
   }
 
+  // a step of a server's warning ladder, once a warning brings a member's active warnings to exactly `threshold`
+  export interface GuildWarningAction {
+    action: 'ban' | 'kick' | 'mute',
+    // seconds of their messages to delete (kick/ban), 0: none
+    clean: number,
+    // seconds, how long a mute is or until a ban is lifted (null: permanent), always null for kicks
+    duration: number | null,
+    threshold: number,
+  }
+
   export interface PutGuildWarnings {
+    // the ladder steps the new warnings reached, by user id (only the ones that reached one)
+    actions: Record<string, GuildWarningAction>,
     // by user id, counting the new ones
     counts: Record<string, GuildWarningCounts>,
     warnings: Array<GuildWarning>,
@@ -2616,6 +2660,7 @@ export namespace RestResponsesRaw {
       rules_admin_bypass: boolean,
       search_provider_images: number | null,
       search_provider_web: number | null,
+      warnings_actions: Array<GuildWarningAction>,
       warnings_expire: number | null,
       warnings_window: number,
     },

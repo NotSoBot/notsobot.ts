@@ -5,6 +5,7 @@ import { Command, CommandClient, Interaction, InteractionCommandClient } from 'd
 import { ClientEvents } from 'detritus-client/lib/constants';
 
 import { JobError } from './api/errors';
+import { isTagError } from './utils/tags/exceptions';
 
 
 // everything sentry goes through here, so events get the same context, grouping and filtering everywhere
@@ -145,9 +146,9 @@ export function captureUnhandledError(error: unknown, type: 'onuncaughtexception
 
 
 // a command's `onRunError`, http errors were already reported by `captureRestResponse` and the rest are user facing
-// (cancelled runs are skipped by the caller)
+// (cancelled runs are skipped by the caller). tag errors are the tag's own doing, like its code's `console.error`
 export function captureCommandError(context: SentryCommandContext, error: any, source: string = 'command_run'): void {
-  if (!error || error.response) {
+  if (!error || error.response || isTagError(error)) {
     return;
   }
   // a failed job with an error code is a translated error, like the media being too big

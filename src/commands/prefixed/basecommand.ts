@@ -41,8 +41,9 @@ function commandNameForError(context: Command.Context, translator: I18n.Translat
 
 
 // people who made a command (or the program behind it), shown in its help and on the site
+// `id` is their discord user, leave it out for people we only know from their `url`
 export interface CommandCredit {
-  id: string,
+  id?: string,
   name: string,
   // their page for the thing being credited (store page, repo, etc.)
   url?: string,

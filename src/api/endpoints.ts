@@ -86,6 +86,8 @@ export const Api = Object.freeze({
     '/media/aiv/manipulation/fade-in',
   MEDIA_AIV_MANIPULATION_FADE_OUT:
     '/media/aiv/manipulation/fade-out',
+  MEDIA_AIV_MANIPULATION_INTERPOLATE:
+    '/media/aiv/manipulation/interpolate',
   MEDIA_AIV_MANIPULATION_JOIN:
     '/media/aiv/manipulation/join',
   MEDIA_AIV_MANIPULATION_OVERLAY:
@@ -212,6 +214,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/blur',
   MEDIA_IV_MANIPULATION_BLURPLE:
     '/media/iv/manipulation/blurple',
+  MEDIA_IV_MANIPULATION_BOUNCE:
+    '/media/iv/manipulation/bounce',
   MEDIA_IV_MANIPULATION_BURN:
     '/media/iv/manipulation/burn',
   MEDIA_IV_MANIPULATION_CAPTION:
@@ -236,6 +240,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/crop/triangle',
   MEDIA_IV_MANIPULATION_CROP_TWITTER_HEX:
     '/media/iv/manipulation/crop/twitter-hex',
+  MEDIA_IV_MANIPULATION_DANCE:
+    '/media/iv/manipulation/dance',
   MEDIA_IV_MANIPULATION_DATAMOSH:
     '/media/iv/manipulation/datamosh',
   MEDIA_IV_MANIPULATION_DEEPFRY:
@@ -324,6 +330,8 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/grain',
   MEDIA_IV_MANIPULATION_GRAYSCALE:
     '/media/iv/manipulation/grayscale',
+  MEDIA_IV_MANIPULATION_HIDDEN:
+    '/media/iv/manipulation/hidden',
   MEDIA_IV_MANIPULATION_HUE_CURVE_RGBA:
     '/media/iv/manipulation/hue/curve/rgba',
   MEDIA_IV_MANIPULATION_HUE_SHIFT_CCS:

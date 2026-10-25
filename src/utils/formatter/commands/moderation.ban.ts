@@ -6,7 +6,7 @@ import { deleteGuildTimedBans, putGuildTimedBans } from '../../../api';
 import { getApiError } from '../../../api/errors';
 import { ApiErrorCodes, DateMomentLogFormat, EmbedColors, StatusEmojis } from '../../../constants';
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
+import { DisplayPayload, DisplayReplyOptions, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
 
 export interface CommandArgsBefore {
@@ -74,11 +74,13 @@ export async function banUsers(
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
+  // like a modal from the buttons under a warning, to respond through instead of editing the command's reply
+  options: DisplayReplyOptions = {},
 ) {
   const { language, translate } = await getTranslator(context);
   const { payload } = args;
   if (payload.overLimit) {
-    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation_ban.too_many_users', {max: MAX_USERS.toLocaleString(language)})}`});
+    return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation_ban.too_many_users', {max: MAX_USERS.toLocaleString(language)})}`}, options);
   }
 
   const canEdit: Array<Structures.Member | Structures.User> = [];
@@ -109,7 +111,7 @@ export async function createMessage(
   let until: Date | null = null;
   if (args.duration !== undefined && args.duration !== null) {
     if (args.duration < TIMED_BAN_MIN_DURATION || TIMED_BAN_MAX_DURATION < args.duration) {
-      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation_ban.timed_invalid_duration')}`});
+      return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('moderation_ban.timed_invalid_duration')}`}, options);
     }
     until = new Date(Date.now() + args.duration * 1000);
   }
@@ -159,7 +161,7 @@ export async function createMessage(
         const information = await getApiError(error);
         if (information && information.code === ApiErrorCodes.MAX_TIMED_BANS) {
           const key = (information.scope === 'timeframe_server') ? 'moderation_ban.timed_limit_timeframe' : 'moderation_ban.timed_limit_server';
-          return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate(key, {limit: String(information.limit)})}`});
+          return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate(key, {limit: String(information.limit)})}`}, options);
         }
         throw error;
       }
@@ -320,5 +322,5 @@ export async function createMessage(
     }
   }
 
-  return displayReply(context, display);
+  return displayReply(context, display, options);
 }

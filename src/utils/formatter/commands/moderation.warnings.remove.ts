@@ -66,9 +66,14 @@ export async function createMessage(
   const description: Array<string> = [];
   if (removed.length) {
     description.push(translate('moderation_warnings_remove.removed'));
+    // the whole reason, the lists only show its first line
     for (let warning of removed) {
-      const reason = (warning.reason) ? Markup.escape.all(warning.reason) : `*${translate('moderation.unspecified_reason')}*`;
-      description.push(`-> <@${warning.user_id}> • ${reason}`);
+      if (warning.reason) {
+        description.push(`-> <@${warning.user_id}>`);
+        description.push(Markup.codeblock(warning.reason));
+      } else {
+        description.push(`-> <@${warning.user_id}> • *${translate('moderation.unspecified_reason')}*`);
+      }
       // the window doesn't matter for a removed one
       description.push(formatWarningDetails(translate, warning, Infinity));
     }

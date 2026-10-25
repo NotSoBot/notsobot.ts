@@ -20,6 +20,7 @@ import { getTranslator } from './i18n';
 import {
   DISPLAY_BLOCKS_SEPARATOR_ID,
   DISPLAY_FOOTER_SECTION_ID,
+  DISPLAY_NOTE_SEPARATOR_ID,
   DisplayPayload,
   createDisplayLayout,
   displayPayloadFromEmbed,
@@ -108,7 +109,8 @@ function addLayoutComponent(root: Components, component: any): void {
 // puts the page buttons at the bottom of the page's last container (like the reupload button on media)
 // the container is copied since a page's own container structure gets reused on every render. A display with a footer
 // block (`footerButton`) gets the page's own rows above it and the page buttons right under it (the invoker stays last)
-function moveButtonsIntoContainer(root: Components, rows: Array<any>, pageRows: Array<any> = []): void {
+// `aboveNote` puts the page's own rows after its blocks instead, right above its note (`componentsAboveNote`)
+function moveButtonsIntoContainer(root: Components, rows: Array<any>, pageRows: Array<any> = [], aboveNote: boolean = false): void {
   const children = root.components as Array<any>;
   const page = children.filter((component) => !rows.includes(component));
   const last = page[page.length - 1];
@@ -120,8 +122,12 @@ function moveButtonsIntoContainer(root: Components, rows: Array<any>, pageRows: 
   const findId = (id: number) => inner.findIndex((component) => component.id === id);
   // the page's own rows go above its blocks (under its content), or above the footer block's separator
   const blocks = findId(DISPLAY_BLOCKS_SEPARATOR_ID);
+  const note = findId(DISPLAY_NOTE_SEPARATOR_ID);
   const footerBefore = findId(DISPLAY_FOOTER_SECTION_ID);
-  const rowsAt = (0 <= blocks) ? blocks : (0 < footerBefore) ? footerBefore - 1 : inner.length;
+  let rowsAt = (0 <= blocks) ? blocks : (0 < footerBefore) ? footerBefore - 1 : inner.length;
+  if (aboveNote && 0 <= note) {
+    rowsAt = note;
+  }
   inner.splice(rowsAt, 0, ...pageRows);
   // the page buttons right under the footer block, at the bottom otherwise
   const footer = findId(DISPLAY_FOOTER_SECTION_ID);
@@ -235,6 +241,9 @@ export class Paginator {
 
     if (options.page !== undefined) {
       this.page = Math.max(MIN_PAGE, Math.min(options.page, MAX_PAGE));
+    }
+    if (options.expire !== undefined) {
+      this.expires = options.expire;
     }
     this.pageSkipAmount = Math.max(2, options.pageSkipAmount || this.pageSkipAmount);
 
@@ -493,7 +502,7 @@ export class Paginator {
       const message = await renderDisplay(this.context, {...page.display, components, componentsInside: false});
       if (message.flags && (message.flags & MessageFlags.IS_COMPONENTS_V2) === MessageFlags.IS_COMPONENTS_V2) {
         this.isComponentsV2 = true;
-        moveButtonsIntoContainer(message.components, buttonRows, this.pageRows);
+        moveButtonsIntoContainer(message.components, buttonRows, this.pageRows, !!page.display.componentsAboveNote);
       } else if (message.embed) {
         message.embeds = [message.embed];
         delete message.embed;

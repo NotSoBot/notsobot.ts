@@ -18,6 +18,7 @@ import { Translator, getCachedTranslator } from '../../i18n';
 import {
   MusicVoteKinds,
   canManageMusic,
+  canManageOthersMusic,
   clearMusicVotes,
   musicDjRefusal,
   musicEffectNames,
@@ -361,7 +362,7 @@ export async function onMusicControl(
       if (!item) {
         return followUp(translate('music_controls.not_queued'));
       }
-      if (item.user_id !== context.userId && !canManageMusic(context.member)) {
+      if (item.user_id !== context.userId && !canManageOthersMusic(context.member, music)) {
         return followUp(translate('music_controls.not_yours'));
       }
       await editGuildMusicQueueItem(context, guildId, item.id, {position: 1});

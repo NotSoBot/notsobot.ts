@@ -18,6 +18,7 @@ import { MediaIVCircleCommand } from './circle';
 import { MediaIVEdgeDetectCommand } from './edge-detect';
 import { MediaIVEmbossCommand } from './emboss';
 import { MediaIVGlowCommand } from './glow';
+import { MediaIVHiddenCommand } from './hidden';
 import { MediaIVLegofyCommand } from './legofy';
 import { MediaIVMotionBlurCommand } from './motion-blur';
 import { MediaIVPaintCommand } from './paint';
@@ -60,6 +61,7 @@ export default class MediaIVFilterGroupCommand extends BaseSlashCommand {
         new MediaIVEdgeDetectCommand(),
         new MediaIVEmbossCommand(),
         new MediaIVGlowCommand(),
+        new MediaIVHiddenCommand(),
         new MediaIVLegofyCommand(),
         new MediaIVMotionBlurCommand(),
         new MediaIVPaintCommand(),

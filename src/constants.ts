@@ -1099,6 +1099,9 @@ export const WARNINGS_WINDOW_MIN = 60 * 60;
 export const WARNINGS_WINDOW_MAX = 365 * 24 * 60 * 60;
 export const WARNINGS_EXPIRE_MIN = 24 * 60 * 60;
 export const WARNINGS_EXPIRE_MAX = 5 * 365 * 24 * 60 * 60;
+// a server's warning ladder: its steps, and how far back a kick/ban step can delete messages (discord's limit)
+export const MAX_GUILD_WARNING_ACTIONS = 10;
+export const WARNING_ACTION_CLEAN_MAX = 7 * 24 * 60 * 60;
 
 
 export enum GuildFeatures {
@@ -1339,6 +1342,20 @@ export const MediaBackgroundRemovalModelsToText: Record<MediaBackgroundRemovalMo
 });
 
 
+export enum MediaBounceAxes {
+  BOTH = 'BOTH',
+  HEIGHT = 'HEIGHT',
+  WIDTH = 'WIDTH',
+}
+
+
+export enum MediaBounceStyles {
+  BOUNCE = 'BOUNCE',
+  RANDOM = 'RANDOM',
+  WAVE = 'WAVE',
+}
+
+
 export enum MediaCartoonMethods {
   COLOR_DODGE_BLUR = 'COLOR_DODGE_BLUR',
   HIGH_PASS_FILTER = 'HIGH_PASS_FILTER',
@@ -1568,6 +1585,7 @@ export enum MediaPix2PixModels {
 
 
 export enum MediaPixelSortFunctions {
+  COLOR = 'COLOR',
   HUE = 'HUE',
   INTENSITY = 'INTENSITY',
   LIGHTNESS = 'LIGHTNESS',
@@ -1579,6 +1597,7 @@ export enum MediaPixelSortFunctions {
 
 export enum MediaPixelSortIntervals {
   EDGES = 'EDGES',
+  IMAGE = 'IMAGE',
   NONE = 'NONE',
   RANDOM = 'RANDOM',
   THRESHOLD = 'THRESHOLD',
@@ -2711,6 +2730,7 @@ export const NotSoApiKeys = Object.freeze({
   VANITY: 'vanity',
   VIDEO: 'video',
   VIEWS: 'views',
+  WARNINGS_ACTIONS: 'warnings_actions',
   WARNINGS_EXPIRE: 'warnings_expire',
   WARNINGS_WINDOW: 'warnings_window',
   WEBHOOK_ID: 'webhook_id',

@@ -5,7 +5,7 @@ import { StatusEmojis } from '../../../constants';
 import { displayReply } from '../../../utils';
 import { getTranslator } from '../../i18n';
 
-import { canManageMusic, musicItemsAtPositions } from './music.shared';
+import { canManageOthersMusic, musicItemsAtPositions } from './music.shared';
 
 export { musicQueuePositions } from './music.shared';
 
@@ -17,7 +17,7 @@ export interface CommandArgs {
   positions: Array<number>,
 }
 
-// anyone can remove what they queued, other people's need manage server or the dj role
+// anyone can remove what they queued, other people's need manage server or the dj role with dj mode on
 export async function createMessage(context: Command.Context | Interaction.InteractionContext, args: CommandArgs) {
   const { language, translate } = await getTranslator(context);
 
@@ -31,7 +31,7 @@ export async function createMessage(context: Command.Context | Interaction.Inter
   if (!items.length) {
     return displayReply(context, {description: translate('music_queue_remove.no_tracks_at_positions')});
   }
-  if (items.some((item) => item.user_id !== context.userId) && !canManageMusic(context.member)) {
+  if (items.some((item) => item.user_id !== context.userId) && !canManageOthersMusic(context.member, music)) {
     return displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('music_queue_remove.not_yours')}`});
   }
   const { deleted } = await deleteGuildMusicQueue(context, context.guildId, {itemIds: items.map((item) => item.id)});

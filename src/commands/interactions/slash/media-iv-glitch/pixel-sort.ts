@@ -12,6 +12,7 @@ export class MediaIVPixelSortCommand extends BaseInteractionImageOrVideoCommandO
   description = 'Sort runs of pixels in an Image or Video';
   descriptionLocalizations = I18n.localizations('commands.media_iv_3.fun.pixel_sort.description');
   metadata = {
+    credits: Formatter.Commands.MediaIVManipulationPixelSort.CREDITS,
     id: Formatter.Commands.MediaIVManipulationPixelSort.COMMAND_ID,
   };
   name = COMMAND_NAME;

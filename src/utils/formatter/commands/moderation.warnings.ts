@@ -13,23 +13,33 @@ import { formatCounts } from './moderation.warn';
 export const COMMAND_ID = 'moderation.warnings';
 
 export const WARNINGS_PER_PAGE = 5;
-// shown from the reason in the list, `warnings remove` shows all of it
-export const REASON_PREVIEW_LENGTH = 200;
+// how much of a reason fits on its line in a list, `warnings remove` (and the warning itself) show all of it
+export const REASON_LINE_LENGTH = 60;
 
 export interface CommandArgs {
   // only theirs, the server's newest otherwise
   user?: Structures.Member | Structures.User | null,
 }
 
+// a reason as one code string line: its lines joined with spaces, cut off with an ellipsis once it's too long
+export function formatReasonLine(reason: string, length: number = REASON_LINE_LENGTH): string {
+  // by code point, so an emoji doesn't get cut in half
+  const characters = Array.from(reason.replace(/\s*\n\s*/g, ' ').trim());
+  const text = (length < characters.length) ? `${characters.slice(0, length - 1).join('').trimEnd()}…` : characters.join('');
+  return Markup.codestring(text);
+}
+
 // "`id` • by @moderator • 2 days ago", plus "inactive" for ones from before the server's window
+// the id is for `warnings remove`, a fresh warning's list leaves it out (it has its own undo)
 export function formatWarningDetails(
   translate: Translator['translate'],
   warning: RestResponsesRaw.GuildWarning,
   window: number,
+  showId: boolean = true,
 ): string {
   const created = Date.parse(warning.created);
   return displayDetailsLine([
-    Markup.codestring(warning.id),
+    showId && Markup.codestring(warning.id),
     translate('moderation_warnings.by', {user: `<@${warning.moderator_id}>`}),
     displayTimestamp(created),
     (created < Date.now() - window * 1000) && translate('moderation_warnings.inactive'),
@@ -64,7 +74,7 @@ export async function createMessage(
     onPage: (page) => {
       const description: Array<string> = [];
       for (let warning of pages[page - 1]) {
-        const reason = (warning.reason) ? Markup.escape.all(warning.reason.slice(0, REASON_PREVIEW_LENGTH)) : `*${translate('moderation.unspecified_reason')}*`;
+        const reason = (warning.reason) ? formatReasonLine(warning.reason) : `*${translate('moderation.unspecified_reason')}*`;
         description.push((user) ? reason : `<@${warning.user_id}> • ${reason}`);
         description.push(formatWarningDetails(translate, warning, window));
       }

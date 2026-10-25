@@ -8,6 +8,8 @@ import { I18n } from '../../../../utils';
 
 import { BaseSlashCommand } from '../../basecommand';
 
+import { MediaIVBounceCommand } from './bounce';
+import { MediaIVDanceCommand } from './dance';
 import { MediaIVFlashCommand } from './flash';
 import { MediaIVInOutCommand } from './in-out';
 import { MediaIVOrbCommand } from './orb';
@@ -40,6 +42,8 @@ export default class MediaIVAnimateGroupCommand extends BaseSlashCommand {
     super({
       permissions: [Permissions.ATTACH_FILES],
       options: [
+        new MediaIVBounceCommand(),
+        new MediaIVDanceCommand(),
         new MediaIVFlashCommand(),
         new MediaIVInOutCommand(),
         new MediaIVOutInCommand(),

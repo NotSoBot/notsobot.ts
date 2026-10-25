@@ -13,7 +13,7 @@ export default class PixelSortCommand extends BaseImageOrVideoCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['sort'],
+      aliases: ['sort', 'pxlsrt'],
       args: [
         {aliases: ['i'], name: 'interval', type: Parameters.oneOf({choices: MediaPixelSortIntervals})},
         {aliases: ['sb'], name: 'sort', type: Parameters.oneOf({choices: MediaPixelSortFunctions})},
@@ -32,8 +32,10 @@ export default class PixelSortCommand extends BaseImageOrVideoCommand {
           `${COMMAND_NAME} notsobot`,
           `${COMMAND_NAME} notsobot -interval RANDOM`,
           `${COMMAND_NAME} notsobot -sort HUE`,
+          `${COMMAND_NAME} notsobot -interval IMAGE -sort COLOR`,
         ],
         category: CommandCategories.EFFECTS,
+        credits: Formatter.Commands.MediaIVManipulationPixelSort.CREDITS,
         id: Formatter.Commands.MediaIVManipulationPixelSort.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url> (-interval <choice>) (-sort <choice>) (-angle <number>) (-lower <float>) (-upper <float>) (-length <number>) (-randomness <number>) (-reverse) (-seed <number>)',
       },

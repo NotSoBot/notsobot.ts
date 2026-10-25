@@ -41,6 +41,8 @@ const NODE_SILENT_TIMEOUT = 45 * 1000;
 const PLAYER_UPDATE_INTERVAL = 5 * 1000;
 // a guild whose voice session discord dropped (4006) leaves and rejoins for new credentials, at most this often
 const REJOIN_COOLDOWN = 30 * 1000;
+// with 24/7's `pause_alone`, how long nobody else has to be in the channel before it pauses (a connection blipping)
+const ALONE_PAUSE_DELAY = 5 * 1000;
 // after starting, how long a music session from the api waits for its server to load before it's given up on, and
 // how often the waiting ones are looked at
 const RECOVER_WAIT = 60 * 1000;
@@ -101,6 +103,11 @@ export enum VoiceNodeEvents {
 }
 
 interface GuildVoice {
+  // `pause_alone` paused it when everyone else left, someone coming back carries on (pausing or resuming by hand takes
+  // over from it)
+  alonePaused?: boolean,
+  // nobody else is in the channel, it pauses when this runs out
+  aloneTimeout?: ReturnType<typeof setTimeout> | null,
   // the channel it's playing in (the last one while disconnected)
   channelId?: string,
   // someone disconnected us (or deleted the channel): the node holds the track paused without voice, the queue stays.
@@ -666,10 +673,7 @@ export class VoiceNodeClient extends EventSpewer {
         continue;
       }
       this.recoveredSessions.delete(guildId);
-      const listening = (channel.isGuildVoice || channel.isGuildStageVoice) && channel.voiceStates.some((state) => {
-        return state.userId !== shard.userId && !(state.member && state.member.bot);
-      });
-      if (!listening && !session.stay) {
+      if (!this.hasListeners(shard, channel.id) && !session.stay) {
         deleteGuildMusicSession({client: shard}, guildId).catch(() => {});
         continue;
       }
@@ -919,12 +923,67 @@ export class VoiceNodeClient extends EventSpewer {
     return true;
   }
 
-  // pausing keeps the voice connection and the track's position, null when nothing's playing in the guild
-  async setPaused(guildId: string, paused: boolean): Promise<NodePlayer | null> {
+  // someone other than a bot in `channelId`, a channel that isn't cached counts as listened to
+  private hasListeners(shard: ShardClient, channelId: string): boolean {
+    const channel = shard.channels.get(channelId);
+    if (!channel || !(channel.isGuildVoice || channel.isGuildStageVoice)) {
+      return !channel;
+    }
+    return channel.voiceStates.some((state) => state.userId !== shard.userId && !(state.member && state.member.bot));
+  }
+
+  // someone joined or left a voice channel in a guild we're playing in (or we were moved): with 24/7's `pause_alone`
+  // the track pauses once nobody else is in our channel, and carries on when someone comes back to one it paused
+  handleListeners(guildId: string) {
+    const guild = this.guilds.get(guildId);
+    if (!guild || !guild.channelId || this.detached) {
+      return;
+    }
+    if (this.hasListeners(guild.shard, guild.channelId)) {
+      if (guild.aloneTimeout) {
+        clearTimeout(guild.aloneTimeout);
+        guild.aloneTimeout = null;
+      }
+      if (guild.alonePaused) {
+        this.setPaused(guildId, false).catch((error) => console.warn(`voice node resuming ${guildId} for a listener`, error));
+      }
+      return;
+    }
+    if (guild.aloneTimeout || guild.paused || !this.isPlaying(guildId)) {
+      return;
+    }
+    guild.aloneTimeout = setTimeout(() => {
+      guild.aloneTimeout = null;
+      this.pauseAlone(guildId, guild).catch((error) => console.warn(`voice node pausing ${guildId} alone`, error));
+    }, ALONE_PAUSE_DELAY);
+  }
+
+  // still nobody listening after `ALONE_PAUSE_DELAY`, it pauses if the server has `pause_alone` (and 24/7, otherwise
+  // the pause timeout would leave)
+  private async pauseAlone(guildId: string, guild: GuildVoice) {
+    const stillAlone = () => {
+      return this.guilds.get(guildId) === guild && !guild.paused && this.isPlaying(guildId) && !!guild.channelId &&
+        !this.hasListeners(guild.shard, guild.channelId);
+    };
+    if (!stillAlone()) {
+      return;
+    }
+    const music = await fetchGuildMusic({client: guild.shard}, guildId).catch(() => null);
+    if (!music || !music.premium || !music.stay || !music.pause_alone || !stillAlone()) {
+      return;
+    }
+    await this.setPaused(guildId, true, true);
+  }
+
+  // pausing keeps the voice connection and the track's position, null when nothing's playing in the guild. `alone` is
+  // `pause_alone`'s, a listener coming back undoes it (anyone else's pause or resume stays)
+  async setPaused(guildId: string, paused: boolean, alone: boolean = false): Promise<NodePlayer | null> {
     const guild = this.guilds.get(guildId);
     if (!guild || !this.isPlaying(guildId)) {
       return null;
     }
+    // before the node answers, a listener coming back in the meantime resumes it
+    guild.alonePaused = alone && paused;
     const player = await guild.node.updatePlayer(guildId, {paused});
     guild.paused = paused;
     if (player) {
@@ -1090,8 +1149,10 @@ export class VoiceNodeClient extends EventSpewer {
     }
     this.guilds.delete(guildId);
     this.resolveNextTrack(guildId, 'left');
-    if (guild.joinTimeout) {
-      clearTimeout(guild.joinTimeout);
+    for (const timeout of [guild.aloneTimeout, guild.joinTimeout]) {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
     }
     for (const [queueItemId, waiter] of this.trackErrorListeners) {
       if (waiter.guildId === guildId) {
@@ -1142,12 +1203,13 @@ export class VoiceNodeClient extends EventSpewer {
     if (guild.idle) {
       return this.leave(guildId);
     }
-    for (const timeout of [guild.joinTimeout, guild.rejoinTimeout]) {
+    for (const timeout of [guild.aloneTimeout, guild.joinTimeout, guild.rejoinTimeout]) {
       if (timeout) {
         clearTimeout(timeout);
       }
     }
-    guild.joinTimeout = guild.rejoinTimeout = null;
+    guild.aloneTimeout = guild.joinTimeout = guild.rejoinTimeout = null;
+    guild.alonePaused = false;
     // where it got to before it's paused, the node's answer is exact and replaces it
     const position = this.estimatePosition(guild, Date.now());
     guild.disconnected = true;
@@ -1443,7 +1505,11 @@ export class VoiceNodeClient extends EventSpewer {
       this.recoveryInterval = null;
     }
     const guilds = Array.from(this.guilds).map(([guildId, guild]) => {
-      const { joinTimeout, rejoinTimeout } = guild;
+      const { aloneTimeout, joinTimeout, rejoinTimeout } = guild;
+      // a pending pause is checked again by the new instance's next voice state, it isn't carried over
+      if (aloneTimeout) {
+        clearTimeout(aloneTimeout);
+      }
       if (joinTimeout) {
         clearTimeout(joinTimeout);
       }
@@ -1452,7 +1518,7 @@ export class VoiceNodeClient extends EventSpewer {
       }
       // a copy, whatever this instance still has running (a command, a move) changes its own
       return {
-        guild: {...guild, joinTimeout: null, moving: false, rejoinTimeout: null},
+        guild: {...guild, aloneTimeout: null, joinTimeout: null, moving: false, rejoinTimeout: null},
         guildId,
         joining: !!joinTimeout,
         nodeId: guild.node.id,
@@ -1519,7 +1585,7 @@ export class VoiceNodeClient extends EventSpewer {
       if (!node) {
         continue;
       }
-      const adopted: GuildVoice = {...guild, joinTimeout: null, moving: false, node, rejoinTimeout: null};
+      const adopted: GuildVoice = {...guild, aloneTimeout: null, joinTimeout: null, moving: false, node, rejoinTimeout: null};
       this.guilds.set(guildId, adopted);
       if (joining) {
         adopted.joinTimeout = setTimeout(() => this.leave(guildId), JOIN_TIMEOUT);

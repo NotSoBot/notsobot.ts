@@ -3,6 +3,7 @@ import { MAX_ATTACHMENT_SIZE } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
 
 import { utilitiesCodeRun } from '../../../api';
+import { CommandResults, setCommandResult } from '../../../commandresults';
 import { getTranslator } from '../../i18n';
 import {
   CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND,
@@ -73,6 +74,8 @@ export async function createMessage(
 
   const languageMarkupString = language.extension;
   if (result.error) {// && (!result.error.startsWith(CODE_EXECUTION_FFMPEG_DEFAULT_STDERR_PREPEND) && !result.error.includes('Input'))) {
+    // the command worked, the code didn't
+    setCommandResult(context, CommandResults.SCRIPT_ERROR);
     payload.color = EmbedColors.ERROR;
     if (1990 < result.error.length) {
       files.push({filename: 'error.txt', value: Buffer.from(result.error)});

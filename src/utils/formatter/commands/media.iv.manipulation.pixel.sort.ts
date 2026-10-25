@@ -8,6 +8,9 @@ import { DefaultParameters, jobReply } from '../../../utils';
 export const COMMAND_ID = 'media.iv.manipulation.pixel.sort';
 export const IS_PIPEABLE = true;
 
+// the IMAGE interval with COLOR sorting is their pxl-srt
+export const CREDITS = [{name: 'solst-ice', url: 'https://github.com/solst-ice/pxl-srt'}];
+
 export interface CommandArgs {
   angle?: number,
   interval?: MediaPixelSortIntervals,

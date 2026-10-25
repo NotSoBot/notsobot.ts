@@ -4,7 +4,7 @@ import { Markup } from 'detritus-client/lib/utils';
 
 import { DateMomentLogFormat, EmbedColors, PermissionsText, StatusEmojis } from '../../../constants';
 import { Translator, getGuildTranslator, getTranslator, getTranslatorForUser } from '../../i18n';
-import { DisplayPayload, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
+import { DisplayPayload, DisplayReplyOptions, Parameters, createTimestampMomentFromGuild, displayReply, formatDuration, formatUserTag } from '../../../utils';
 
 import { banUsers } from './moderation.ban';
 
@@ -24,6 +24,8 @@ export const COMMAND_ID = 'moderation.kick';
 export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
+  // like a modal from the buttons under a warning, to respond through instead of editing the command's reply
+  options: DisplayReplyOptions = {},
 ) {
   const { label, language, translate } = await getTranslator(context);
   const { payload } = args;
@@ -35,12 +37,12 @@ export async function createMessage(
     if (!context.member || !context.member.can(Permissions.BAN_MEMBERS)) {
       return displayReply(context, {
         description: `${StatusEmojis.WARNING} ${translate('errors.prefix_user_missing_permissions', {command, permissions})}`,
-      });
+      }, options);
     }
     if (!context.me || !context.me.can(Permissions.BAN_MEMBERS)) {
       return displayReply(context, {
         description: `${StatusEmojis.WARNING} ${translate('errors.prefix_bot_missing_permissions', {command, permissions})}`,
-      });
+      }, options);
     }
   }
 
@@ -244,5 +246,5 @@ export async function createMessage(
     }
   }
 
-  return displayReply(context, display);
+  return displayReply(context, display, options);
 }
