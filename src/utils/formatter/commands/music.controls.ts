@@ -20,6 +20,7 @@ import {
   canManageMusic,
   canManageOthersMusic,
   clearMusicVotes,
+  canControlMusicItem,
   musicDjRefusal,
   musicEffectNames,
   musicItemBatchText,
@@ -40,6 +41,9 @@ import { replayMusic } from './music.replay';
 export enum MusicControls {
   // a queued track goes next (theirs, or anyone's with manage server or the dj role)
   PLAY_NEXT = 'next',
+  // a queued track plays now: it goes next and what's playing is skipped (skipping it without a vote, see `PLAY_NOW`'s
+  // case in `onMusicControl`)
+  PLAY_NOW = 'now',
   // the page again, fetched now (where it's at, paused or not), anyone can
   REFRESH = 'refresh',
   // what's playing from the start, paused stays paused
@@ -56,6 +60,8 @@ export interface MusicControlsOptions {
   paused?: boolean,
   // a queued track that isn't next already
   playNext?: boolean,
+  // a queued track while something's playing (or held)
+  playNow?: boolean,
   // a queued track's page has no restart, pause/resume or skip, they're for what's playing
   queued?: boolean,
   // the pages have it beside their queue line instead (`musicControlId`)
@@ -94,6 +100,13 @@ export function createMusicControls(translate: Translator['translate'], guildId:
     components.createButton({
       customId: customId(MusicControls.SKIP),
       emoji: DiscordEmojis.MUSIC.SKIP,
+      style: MessageComponentButtonStyles.SECONDARY,
+    });
+  }
+  if (options.playNow && options.itemId) {
+    components.createButton({
+      customId: customId(MusicControls.PLAY_NOW),
+      label: translate('music_controls.play_now'),
       style: MessageComponentButtonStyles.SECONDARY,
     });
   }
@@ -209,7 +222,14 @@ export async function createMusicPage(
     ]);
   }
 
-  const components = createMusicControls(translate, guildId, {itemId: item.id, paused, playNext: 1 < index, queued: !playing, refresh: false});
+  const components = createMusicControls(translate, guildId, {
+    itemId: item.id,
+    paused,
+    playNext: 1 < index,
+    playNow: !playing && !!music.current,
+    queued: !playing,
+    refresh: false,
+  });
 
   let header: null | string = null;
   if (playing) {
@@ -284,7 +304,7 @@ export async function onMusicControl(
   const playback = [MusicControls.PAUSE, MusicControls.RESUME, MusicControls.SKIP] as Array<string>;
 
   // dj mode: only djs use the playback buttons (and play next), the setting's only fetched for everyone else
-  const djControls = [...playback, MusicControls.RESTART, MusicControls.PLAY_NEXT] as Array<string>;
+  const djControls = [...playback, MusicControls.RESTART, MusicControls.PLAY_NEXT, MusicControls.PLAY_NOW] as Array<string>;
   if (djControls.includes(control) && !canManageMusic(member)) {
     const refusal = musicDjRefusal(translate, member, await fetchGuildMusic(context, guildId).catch(() => null));
     if (refusal) {
@@ -300,6 +320,10 @@ export async function onMusicControl(
       return followUp(message);
     }
     return showMusicControlsMessage(context, translator, guildId, itemId, undefined, rerender);
+  }
+
+  if (control === MusicControls.PLAY_NOW) {
+    return playMusicNow(context, translator, guildId, itemId, rerender);
   }
 
   if (!guild && playback.includes(control)) {
@@ -433,6 +457,67 @@ export async function onMusicControl(
     return followUp(translate('music.nothing_playing'));
   }
   return showMusicControlsMessage(context, translator, guildId, itemId, paused, rerender);
+}
+
+
+// `PLAY_NOW`: the queued track goes next and what's playing is skipped, so it's yours to move (or you manage the music)
+// and what's playing has to be yours to skip right away (`canControlMusicItem`, no vote to start for it). Held music
+// skips where it's held, it starts from the start once someone resumes
+async function playMusicNow(
+  context: ComponentContext,
+  translator: Pick<Translator, 'language' | 'translate'>,
+  guildId: string,
+  itemId?: string,
+  rerender?: (context: ComponentContext) => Promise<any>,
+) {
+  const { translate } = translator;
+  const reply = (content: string) => {
+    return context.respond(InteractionCallbackTypes.CHANNEL_MESSAGE_WITH_SOURCE, {content, flags: MessageFlags.EPHEMERAL});
+  };
+  const guild = VoiceNode.guilds.get(guildId);
+  const member = context.member;
+  const channel = member && member.voiceState && member.voiceState.channel;
+  if (guild) {
+    // disconnected or joining, there's nothing to skip yet
+    if (!VoiceNode.isPlaying(guildId)) {
+      return reply(translate('music.nothing_playing'));
+    }
+    if (!member || !channel || channel.id !== guild.channelId) {
+      return reply(translate('music_controls.join_my_channel', {channel: `<#${guild.channelId}>`}));
+    }
+  }
+
+  const music = await fetchGuildMusic(context, guildId).catch(() => null);
+  const item = (music && itemId) ? music.queue.find((x) => x.id === itemId) : undefined;
+  if (!music || !item) {
+    return reply(translate('music_controls.not_queued'));
+  }
+  if (item.user_id !== context.userId && !canManageOthersMusic(member, music)) {
+    return reply(translate('music_controls.not_yours'));
+  }
+  const held = !guild && !!music.current && music.held_position !== null;
+  if (!music.current || (!guild && !held)) {
+    return reply(translate('music.nothing_playing'));
+  }
+  if (guild && !canControlMusicItem(member!, channel!, music.current, music.vote_skip)) {
+    return reply(translate('music_controls.play_now_vote', {title: `**${musicItemTitle(music.current)}**`}));
+  }
+
+  await context.respond(InteractionCallbackTypes.DEFERRED_UPDATE_MESSAGE);
+  if (item.position !== 1) {
+    await editGuildMusicQueueItem(context, guildId, item.id, {position: 1});
+  }
+  if (held) {
+    await postGuildMusicNext(context, guildId, {finishedId: music.current.id, finishedReason: 'skipped'});
+  } else {
+    // the page shows it playing, so it waits for it to start (a link still converting times out, it's next anyway)
+    const next = VoiceNode.waitForNextTrack(guildId);
+    if (await VoiceNode.skip(guildId)) {
+      clearMusicVotes(MusicVoteKinds.SKIP, guildId);
+      await next;
+    }
+  }
+  return showMusicControlsMessage(context, translator, guildId, item.id, undefined, rerender);
 }
 
 

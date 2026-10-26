@@ -15,7 +15,7 @@ export default class HiddenCommand extends BaseImageOrVideoCommand {
 
       args: [
         {name: 'share', aliases: ['sh'], type: Number, metadata: {description: '1 to 50, how much of the media shows through (Default: 10)'}},
-        {name: 'size', aliases: ['s'], type: Number, metadata: {description: '1 to 10, checker square size in pixels (Default: 1)'}},
+        {name: 'size', aliases: ['s'], type: Number, metadata: {description: '1 to 32, checker square size in pixels (Default: auto, 64 squares across)'}},
       ],
       metadata: {
         description: 'Hide an Image or Video in a checkerboard, it shows when you step back or squint',

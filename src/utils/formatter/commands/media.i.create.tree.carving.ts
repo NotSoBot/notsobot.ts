@@ -1,10 +1,21 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaICreateTreeCarving } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.i.create.tree.carving';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'treecarving line 1 | line 2',
+  inputs: [],
+  script: [
+    'treecarving img line 1 | line 2',
+    'render img image/webp',
+  ].join('\n'),
+};
 export const MAX_TEXT_LENGTH = 15;
 export const MAX_TEXT_2_LENGTH = 12;
 

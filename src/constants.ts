@@ -69,6 +69,7 @@ export enum ApiErrorCodes {
   UNKNOWN_MUSIC_QUEUE_ITEM = 10030,
   UNKNOWN_VOICE_NODE = 10031,
   UNKNOWN_GUILD_WARNING = 10033,
+  UNKNOWN_GUILD_REPORT = 10034,
 
   UNAUTHORIZED = 20001,
   BOTS_CANNOT_USE_ENDPOINT = 20002,
@@ -104,6 +105,7 @@ export enum ApiErrorCodes {
   MAX_GUILD_LLM_KNOWLEDGE = 30027,
   MAX_MUSIC_QUEUE_ITEMS = 30028,
   MAX_GUILD_WARNINGS = 30029,
+  MAX_GUILD_REPORTS = 30030,
 
   INVALID_FILE_TYPE = 40001,
   NOT_ENOUGH_FILES = 40002,
@@ -182,6 +184,7 @@ export enum ApiErrorCodes {
   MUSIC_TRACK_TOO_LONG = 50046,
   MUSIC_TRACK_ALREADY_QUEUED = 50047,
   MUSIC_PREMIUM_REQUIRED = 50048,
+  GUILD_REPORTS_DISABLED = 50049,
 
   DISCORD_OAUTH_ERROR = 60001,
   DISCORD_OAUTH_SCOPE_MISMATCH = 60002,
@@ -531,25 +534,22 @@ export enum E621Rating {
 export enum EmbedBrands {
   // no bing.png on the cdn yet, yandex's favicon service
   BING = 'https://favicon.yandex.net/favicon/v2/bing.com?size=32',
-  DUCK_DUCK_GO = 'https://cdn.notsobot.com/brands/duck-duck-go.png',
-  E621 = 'https://cdn.notsobot.com/brands/e621.png',
-  GOOGLE_CONTENT_VISION_SAFETY = 'https://cdn.notsobot.com/brands/google-content-vision-safety.png',
-  GOOGLE_GO = 'https://cdn.notsobot.com/brands/google-go.png',
-  NOTSOBOT = 'https://cdn.notsobot.com/brands/notsobot.png',
-  OPENAI_WHISPER = 'https://cdn.discordapp.com/attachments/178313653177548800/1200888138738966740/invert.png?ex=65c7d13b&is=65b55c3b&hm=64723ed2c995d73fd8517c411eb089e501c789e264bfca61c88675ea3796b89c&',
-  OPEN_WEATHER_MAP = 'https://cdn.discordapp.com/attachments/560593330270896129/1313023240096055306/android-app-top-banner.png?ex=674e9faf&is=674d4e2f&hm=34dcea3c52bd67f79a337f49f38d2f89f8ea7017f22358093c8d7f163f429d17&',
+  DUCK_DUCK_GO = 'https://cdn.nsb.gg/assets/brands/duck-duck-go.png',
+  GOOGLE_CONTENT_VISION_SAFETY = 'https://cdn.nsb.gg/assets/brands/google-content-vision-safety.png',
+  GOOGLE_GO = 'https://cdn.nsb.gg/assets/brands/google-go.png',
+  NOTSOBOT = 'https://cdn.nsb.gg/assets/brands/notsobot.png',
+  OPENAI_WHISPER = 'https://cdn.nsb.gg/assets/brands/openai-whisper.png',
+  OPEN_WEATHER_MAP = 'https://cdn.nsb.gg/assets/brands/open-weather-map.png',
   // no openverse.png on the cdn yet, yandex's favicon service
   OPENVERSE = 'https://favicon.yandex.net/favicon/v2/openverse.org?size=32',
-  REDDIT = 'https://cdn.notsobot.com/brands/reddit.png',
-  RULE34 = 'https://cdn.notsobot.com/brands/rule34.png',
-  RULE34_PAHEAL = 'https://cdn.notsobot.com/brands/rule34-paheal.png',
-  STEAM = 'https://cdn.notsobot.com/brands/steam.png',
-  URBAN = 'https://cdn.notsobot.com/brands/urban-dictionary.png',
+  REDDIT = 'https://cdn.nsb.gg/assets/brands/reddit.png',
+  STEAM = 'https://cdn.nsb.gg/assets/brands/steam.png',
+  URBAN = 'https://cdn.nsb.gg/assets/brands/urban-dictionary.png',
   // no yandex.png on the cdn yet, yandex's own favicon service
   YANDEX = 'https://favicon.yandex.net/favicon/v2/yandex.com?size=32',
-  WIKIHOW = 'https://cdn.notsobot.com/brands/wikihow.png',
-  WOLFRAM_ALPHA = 'https://cdn.notsobot.com/brands/wolfram-alpha.png',
-  YOUTUBE = 'https://cdn.notsobot.com/brands/youtube.png',
+  WIKIHOW = 'https://cdn.nsb.gg/assets/brands/wikihow.png',
+  WOLFRAM_ALPHA = 'https://cdn.nsb.gg/assets/brands/wolfram-alpha.png',
+  YOUTUBE = 'https://cdn.nsb.gg/assets/brands/youtube.png',
 }
 
 
@@ -1092,6 +1092,11 @@ export const MAX_GUILD_RULES_PER_REQUEST = 100;
 export const MAX_GUILD_WARNING_USERS = 10;
 export const MAX_GUILD_WARNING_REASON_LENGTH = 512;
 export const MAX_GUILD_WARNING_USER_AMOUNT = 100;
+
+// the api's limits for members' reports to their server's moderators: the reason, and how much of a reported message's
+// text is kept with it
+export const MAX_GUILD_REPORT_REASON_LENGTH = 1000;
+export const MAX_GUILD_REPORT_MESSAGE_CONTENT_LENGTH = 2000;
 // the server settings for warnings, in seconds: how long one counts as active, and how long until one gets deleted
 // (never by default)
 export const WARNINGS_WINDOW_DEFAULT = 30 * 24 * 60 * 60;
@@ -1145,6 +1150,8 @@ export enum GuildLoggerTypes {
   ROLES = 6,
   // warnings, the bot posts these itself since they aren't discord actions
   MODERATION = 7,
+  // members' `report`s to the server's moderators, the bot posts these itself (one message each, with buttons)
+  REPORTS = 8,
 }
 
 
@@ -1704,6 +1711,8 @@ export enum MessageComponentCustomIds {
   MAKE_PERMANENT_USING_NITRO = 'make-permanent-using-nitro',
   // `music-controls.{control}`, the pause/resume and skip buttons on `music play` and `music info`
   MUSIC_CONTROLS = 'music-controls',
+  // `guild-report.{action}.{reportId}`, the resolve/dismiss/reopen buttons on a reports logger's message
+  GUILD_REPORT = 'guild-report',
 }
 
 
@@ -1848,6 +1857,7 @@ export enum RedisChannels {
   GUILD_FEATURES_UPDATE = 'GUILD_FEATURES_UPDATE',
   GUILD_LOGGER_UPDATE = 'GUILD_LOGGER_UPDATE',
   GUILD_PREFIX_UPDATE = 'GUILD_PREFIX_UPDATE',
+  GUILD_REPORT_UPDATE = 'GUILD_REPORT_UPDATE',
   GUILD_RULES_UPDATE = 'GUILD_RULES_UPDATE',
   GUILD_SETTINGS_UPDATE = 'GUILD_SETTINGS_UPDATE',
   GUILD_WARNING_DELETE = 'GUILD_WARNING_DELETE',
@@ -1890,6 +1900,12 @@ export const ReminderMessages = [
   'water',
 ];
 
+
+// a member's `report` to their server's moderators (`ReportTypes` are the ones to the NotSoBot developers)
+export enum GuildReportTypes {
+  USER = 0,
+  MESSAGE = 1,
+}
 
 export enum ReportStatuses {
   OPEN = 0,

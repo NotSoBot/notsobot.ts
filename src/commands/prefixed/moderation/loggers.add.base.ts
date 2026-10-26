@@ -1,6 +1,7 @@
 import { Command, CommandClient, Interaction, Structures } from 'detritus-client';
-import { ChannelTypes, Permissions } from 'detritus-client/lib/constants';
+import { ChannelTypes, OverwriteTypes, Permissions } from 'detritus-client/lib/constants';
 import { Markup } from 'detritus-client/lib/utils';
+import { RequestTypes } from 'detritus-client-rest';
 
 import { createGuildLogger } from '../../../api';
 import { GuildLoggerTypes, StatusEmojis } from '../../../constants';
@@ -20,6 +21,7 @@ export const LOGGER_CHANNEL_NAMES: Record<GuildLoggerTypes, string> = {
   [GuildLoggerTypes.MEMBERS]: 'member-logs',
   [GuildLoggerTypes.MESSAGES]: 'message-logs',
   [GuildLoggerTypes.MODERATION]: 'mod-logs',
+  [GuildLoggerTypes.REPORTS]: 'reports',
   [GuildLoggerTypes.ROLES]: 'role-logs',
   [GuildLoggerTypes.USERS]: 'user-logs',
   [GuildLoggerTypes.VOICE]: 'voice-logs',
@@ -94,6 +96,29 @@ export async function getLoggerAddWarning(
   return null;
 }
 
+// a channel made for a reports logger says who reported who, so it's only for the moderators (roles that can time out
+// members, admins see it anyway) and whoever added it, instead of whatever the server or category lets everyone see
+function createReportsChannelOverwrites(
+  context: Command.Context | Interaction.InteractionContext,
+  guild: Structures.Guild,
+): Array<RequestTypes.CreateChannelOverwrite> {
+  const view = Permissions.VIEW_CHANNEL;
+  const overwrites: Array<RequestTypes.CreateChannelOverwrite> = [
+    {allow: '0', deny: String(view), id: guild.id, type: OverwriteTypes.ROLE},
+    {allow: String(view | Permissions.MANAGE_WEBHOOKS), deny: '0', id: context.client.userId, type: OverwriteTypes.MEMBER},
+  ];
+  if (context.userId !== context.client.userId) {
+    overwrites.push({allow: String(view), deny: '0', id: context.userId, type: OverwriteTypes.MEMBER});
+  }
+  for (let [roleId, role] of guild.roles) {
+    if (roleId !== guild.id && !role.managed && (role.permissions & Permissions.MODERATE_MEMBERS) === Permissions.MODERATE_MEMBERS) {
+      overwrites.push({allow: String(view), deny: '0', id: roleId, type: OverwriteTypes.ROLE});
+    }
+  }
+  // discord's limit per channel
+  return overwrites.slice(0, 100);
+}
+
 export async function createLogger(
   context: Command.Context | Interaction.InteractionContext,
   options: LoggerAddOptions,
@@ -109,6 +134,7 @@ export async function createLogger(
     channel = await guild.createChannel({
       name: LOGGER_CHANNEL_NAMES[options.type],
       parentId: (options.in) ? options.in.id : undefined,
+      permissionOverwrites: (options.type === GuildLoggerTypes.REPORTS) ? createReportsChannelOverwrites(context, guild) : undefined,
       type: ChannelTypes.GUILD_TEXT,
     });
     createdChannel = true;

@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationHueShiftYIQ } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.hue.shift.yiq';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'hueshiftyiq 180',
+  inputs: ['face'],
+  script: [
+    'load FILE_1 img',
+    'hueshiftyiq img 180',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   hue?: number,

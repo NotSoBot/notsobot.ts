@@ -6,6 +6,7 @@ import {
   GoogleImageVideoTypes,
   GoogleLocales,
   GuildLoggerTypes,
+  GuildReportTypes,
   GuildRuleActions,
   GuildRuleTargetTypes,
   GuildSettingsResponseDisplayTypes,
@@ -304,6 +305,34 @@ export namespace RestOptions {
 
   export interface DeleteGuildWarnings {
     userIds: Array<string>,
+  }
+
+  export interface CreateGuildReport {
+    reason: string,
+    targetId: string,
+    type: GuildReportTypes,
+    // the reporter
+    userId: string,
+    // message reports only, with the message's text in case it gets deleted
+    channelId?: string,
+    messageContent?: string | null,
+    messageId?: string,
+  }
+
+  export interface FetchGuildReports {
+    // paging back from the newest
+    before?: string,
+    limit?: number,
+    status?: ReportStatuses,
+  }
+
+  export interface EditGuildReport {
+    moderatorId: string,
+    status: ReportStatuses,
+  }
+
+  export interface EditGuildReportLogMessages {
+    messages: Array<RestResponsesRaw.GuildReportLogMessage>,
   }
 
   export interface FetchMusicSessions {
@@ -834,6 +863,9 @@ export namespace RestOptions {
     color?: null | string,
     // the frame around their avatar
     decorationUrl?: null | string,
+    // the server tag beside their name and its badge
+    guildTag?: null | string,
+    guildTagBadgeUrl?: null | string,
     name: string,
     // joined the server this week (discord's sprout badge)
     newMember?: boolean,
@@ -1758,6 +1790,17 @@ export namespace RestOptions {
   }
 
 
+  // the commands page's before/after preview, a formatter command's `PREVIEW` (see `owner.upload.commands`). `inputs` are
+  // the api's preview samples (`b1`, `face`, `voice`... see the api's `COMMAND_PREVIEW_SAMPLES`), the mediascript gets them as `FILE_1`, `FILE_2`... in order,
+  // none for commands that make their media from nothing
+  export interface CommandPreview {
+    // what it shows, as typed without the prefix
+    example: string,
+    inputs: Array<'b1' | 'bordered' | 'captioned' | 'face' | 'music' | 'photo' | 'voice'>,
+    script: string,
+  }
+
+
   export interface UploadCommands {
     commands: Array<{
       aliases?: Array<string>,
@@ -1773,6 +1816,7 @@ export namespace RestOptions {
       type: number,
       usage: string,
     }>,
+    previews?: Array<CommandPreview & {id: string}>,
   }
 
 
@@ -2420,6 +2464,40 @@ export namespace RestResponsesRaw {
   export interface DeleteGuildWarnings {
     // how many each user had, by user id
     deleted: Record<string, number>,
+  }
+
+  // a member's report to their server's moderators
+  export interface GuildReport {
+    // message reports only
+    channel_id: string | null,
+    created: string,
+    guild_id: string,
+    // who last resolved or dismissed it, cleared when it's reopened
+    handled_at: string | null,
+    handled_by: string | null,
+    id: string,
+    message_content: string | null,
+    message_id: string | null,
+    reason: string,
+    status: ReportStatuses,
+    // the reported member, a message report's is the message's author
+    target_id: string,
+    type: GuildReportTypes,
+    // the reporter
+    user_id: string,
+  }
+
+  // one of the bot's messages for a report in a reports logger
+  export interface GuildReportLogMessage {
+    channel_id: string,
+    message_id: string,
+    webhook_id: string,
+  }
+
+  // `count` is every report with that status, not only this page
+  export interface FetchGuildReports {
+    count: number,
+    reports: Array<GuildReport>,
   }
 
   export type FetchReminderPositional = Reminder;

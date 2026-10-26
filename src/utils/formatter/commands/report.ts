@@ -145,7 +145,7 @@ async function fetchCommandResponse(
 }
 
 
-// prefixed `report user <user> <reason>` and `report server ?<server-id> <reason>` take the target as the first word
+// prefixed `bot report user <user> <reason>` and `bot report server ?<server-id> <reason>` take the target as the first word
 export function splitTarget(value: string): {rest: string, target: string} {
   value = value.trim();
   const index = value.search(/\s/);

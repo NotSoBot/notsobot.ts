@@ -1551,6 +1551,93 @@ export async function deleteGuildWarnings(
 }
 
 
+export async function createGuildReport(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.CreateGuildReport,
+): Promise<RestResponsesRaw.GuildReport> {
+  const body = {
+    channel_id: options.channelId,
+    message_content: options.messageContent,
+    message_id: options.messageId,
+    reason: options.reason,
+    target_id: options.targetId,
+    type: options.type,
+    user_id: options.userId,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.GUILD_REPORTS,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function fetchGuildReports(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchGuildReports = {},
+): Promise<RestResponsesRaw.FetchGuildReports> {
+  const query = {
+    before: options.before,
+    limit: options.limit,
+    status: options.status,
+  };
+  return request(context, {
+    query,
+    route: {
+      method: HTTPMethods.GET,
+      path: Api.GUILD_REPORTS,
+      params: {guildId},
+    },
+  });
+}
+
+
+export async function editGuildReport(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.EditGuildReport,
+): Promise<RestResponsesRaw.GuildReport> {
+  const body = {
+    moderator_id: options.moderatorId,
+    status: options.status,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PATCH,
+      path: Api.GUILD_REPORT,
+      params: {guildId, reportId},
+    },
+  });
+}
+
+
+export async function editGuildReportLogMessages(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.EditGuildReportLogMessages,
+): Promise<null> {
+  const body = {
+    messages: options.messages,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.PUT,
+      path: Api.GUILD_REPORT_LOG_MESSAGES,
+      params: {guildId, reportId},
+    },
+  });
+}
+
+
 export async function fetchTimedBans(
   context: RequestContext,
   options: RestOptions.FetchTimedBans = {},
@@ -3629,6 +3716,8 @@ export async function mediaICreateQuote(
     bot: value.bot,
     color: value.color,
     decoration_url: value.decorationUrl,
+    guild_tag: value.guildTag,
+    guild_tag_badge_url: value.guildTagBadgeUrl,
     name: value.name,
     new_member: value.newMember,
     role_icon_emoji: value.roleIconEmoji,
@@ -4878,6 +4967,50 @@ export async function mediaIVManipulationFaceSwap(
     route: {
       method: HTTPMethods.POST,
       path: Api.MEDIA_IV_MANIPULATION_FACE_SWAP,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationFaceSwapBuscemi(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceSwapPreset,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_faces: options.maxFaces,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FACE_SWAP_BUSCEMI,
+    },
+  });
+}
+
+
+export async function mediaIVManipulationFaceSwapChad(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceSwapPreset,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const query = {
+    max_faces: options.maxFaces,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    url: options.url,
+  };
+  return request(context, {
+    file: options.file,
+    query,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_IV_MANIPULATION_FACE_SWAP_CHAD,
     },
   });
 }
@@ -12512,6 +12645,7 @@ export async function uploadCommands(
 ) {
   const body = {
     commands: options.commands,
+    previews: options.previews,
   };
   return request(context, {
     body,

@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationHueShiftHSV } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.hue.shift.hsv';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'huehsv',
+  inputs: ['face'],
+  script: [
+    'load FILE_1 img',
+    'hueshifthsv img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   brightness?: number,

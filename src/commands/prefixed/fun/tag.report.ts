@@ -6,7 +6,7 @@ import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { sendReport } from '../utils/report.bug';
+import { sendReport } from '../utils/bot.report.bug';
 
 
 export interface CommandArgs {
@@ -21,7 +21,7 @@ export default class TagReportCommand extends BaseCommand {
     super(client, {
       name: COMMAND_NAME,
 
-      aliases: ['t report', 'report tag'],
+      aliases: ['t report'],
       metadata: {
         category: CommandCategories.TAGS,
         description: 'Report a tag to the NotSoBot developers',

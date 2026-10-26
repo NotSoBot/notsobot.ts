@@ -33,7 +33,7 @@ export default class OCRTranslateCommand extends BaseImageCommand<CommandArgs> {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} cake`,
-          `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png`,
           `${COMMAND_NAME} https://google.com -to russian`,
         ],
         id: Formatter.Commands.ToolsOCRTranslate.COMMAND_ID,

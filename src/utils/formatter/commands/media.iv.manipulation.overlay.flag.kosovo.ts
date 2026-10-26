@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationOverlayFlagKosovo } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.flag.kosovo';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'overlay kosovo',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'overlaypreset img flagkosovo',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   url: string,

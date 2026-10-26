@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAVManipulationAudioVocoder } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { MediaAudioVocoderSynths } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.vocoder.chord';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'vocoderchord',
+  inputs: ['voice'],
+  script: [
+    'load FILE_1 audio',
+    'vocoderchord audio',
+    'render audio',
+  ].join('\n'),
+};
 
 export const DEFAULT_CHORD = 'C4,E4,G4';
 export const DEFAULT_SYNTH = MediaAudioVocoderSynths.CHOIR;

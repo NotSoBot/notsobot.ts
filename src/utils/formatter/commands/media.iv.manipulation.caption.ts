@@ -2,12 +2,24 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationCaption } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.caption';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'caption when the bot works',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'caption img when the bot works',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export const DEFAULT_FONT = MediaMemeFonts.FUTURA_CONDENSED_EXTRA_BOLD;
 

@@ -108,8 +108,8 @@ export async function createMessage(
 }
 
 
-// their name, top role color and avatar, with `details` the frame around their avatar, their top role's icon and the
-// new member sprout too (a reply line only shows the name and a small avatar)
+// their name, top role color and avatar, with `details` the frame around their avatar, their server tag, their top
+// role's icon and the new member sprout too (a reply line only shows the name and a small avatar)
 function quoteAuthor(author: Structures.Member | Structures.User, details: boolean): RestOptions.MediaICreateQuoteAuthor {
   const member = (author instanceof Structures.Member) ? author : null;
   const options: RestOptions.MediaICreateQuoteAuthor = {
@@ -128,6 +128,14 @@ function quoteAuthor(author: Structures.Member | Structures.User, details: boole
   const decoration = (member && member.avatarDecorationData) || user.avatarDecorationData;
   if (decoration && decoration.asset) {
     options.decorationUrl = `https://cdn.discordapp.com/avatar-decoration-presets/${decoration.asset}.png?size=96&passthrough=false`;
+  }
+  // the server tag they show beside their name, with its badge
+  const guildTag = user.primaryGuild || user.clan;
+  if (guildTag && guildTag.identityEnabled && guildTag.tag) {
+    options.guildTag = guildTag.tag;
+    if (guildTag.badge && guildTag.identityGuildId) {
+      options.guildTagBadgeUrl = `https://cdn.discordapp.com/guild-tag-badges/${guildTag.identityGuildId}/${guildTag.badge}.png?size=32`;
+    }
   }
   if (member) {
     // the highest role with an icon, like discord picks

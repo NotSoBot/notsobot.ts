@@ -5,10 +5,10 @@ import { ReportTypes } from '../../../../constants';
 import { Formatter, I18n } from '../../../../utils';
 
 import { BaseContextMenuUserCommand, ContextMenuUserArgs } from '../../basecommand';
-import { createReportReasonModal } from '../../slash/report';
+import { createReportReasonModal } from '../../slash/bot/report';
 
 
-export const COMMAND_NAME = 'Report';
+export const COMMAND_NAME = 'Report to NotSoBot';
 
 export default class ReportUserCommand extends BaseContextMenuUserCommand {
   metadata = {

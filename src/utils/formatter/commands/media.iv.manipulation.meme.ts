@@ -2,12 +2,24 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaIVManipulationMeme } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { MediaMemeFonts } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.meme';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'meme NotSo | Bot',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'meme img NotSo | Bot',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export const DEFAULT_FONT = MediaMemeFonts.IMPACT;
 

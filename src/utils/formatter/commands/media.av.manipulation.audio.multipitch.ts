@@ -1,12 +1,24 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAVManipulationAudioMultiPitch } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { MediaAudioMultiPitchEngines } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.multipitch';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'audio multipitch 0,7,12',
+  inputs: ['voice'],
+  script: [
+    'load FILE_1 audio',
+    'multipitch audio 0,7,12',
+    'render audio',
+  ].join('\n'),
+};
 // made the multipitch program this is based on
 export const CREDITS = [{id: '917183936940113931', name: 'beebo_robot64'}];
 

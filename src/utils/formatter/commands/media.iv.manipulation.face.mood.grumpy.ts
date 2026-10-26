@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationFaceFeaturesExpressionMood } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.face.mood.grumpy';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'grumpy',
+  inputs: ['face'],
+  script: [
+    'load FILE_1 img',
+    'facemood img grumpy',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   url: string,

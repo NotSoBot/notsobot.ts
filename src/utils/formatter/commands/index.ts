@@ -169,6 +169,8 @@ import * as MediaIVManipulationFaceMoodSmug from './media.iv.manipulation.face.m
 import * as MediaIVManipulationFaceMoodSurprised from './media.iv.manipulation.face.mood.surprised';
 import * as MediaIVManipulationFaceMountRushmore from './media.iv.manipulation.face.mount.rushmore';
 import * as MediaIVManipulationFaceSwap from './media.iv.manipulation.face.swap';
+import * as MediaIVManipulationFaceSwapBuscemi from './media.iv.manipulation.face.swap.buscemi';
+import * as MediaIVManipulationFaceSwapChad from './media.iv.manipulation.face.swap.chad';
 import * as MediaIVManipulationFaceSwapKirk from './media.iv.manipulation.face.swap.kirk';
 import * as MediaIVManipulationFaceXmasCap from './media.iv.manipulation.face.xmas.cap';
 import * as MediaIVManipulationFisheye from './media.iv.manipulation.fisheye';
@@ -488,6 +490,7 @@ import * as ModerationCommandsUsage from './moderation.commands.usage';
 import * as ModerationKick from './moderation.kick';
 import * as ModerationMute from './moderation.mute';
 import * as ModerationNick from './moderation.nick';
+import * as ModerationReports from './moderation.reports';
 import * as ModerationRules from './moderation.rules';
 import * as ModerationRulesAdd from './moderation.rules.add';
 import * as ModerationRulesAdminBypass from './moderation.rules.adminbypass';
@@ -556,6 +559,7 @@ import * as ReminderDeleteMe from './reminder.delete.me';
 import * as ReminderDeleteServer from './reminder.delete.server';
 import * as ReminderListMe from './reminder.list.me';
 import * as ReminderListServer from './reminder.list.server';
+import * as GuildReport from './guild.report';
 import * as Report from './report';
 import * as ReportList from './report.list';
 
@@ -850,6 +854,8 @@ export {
   MediaIVManipulationFaceMoodSurprised,
   MediaIVManipulationFaceMountRushmore,
   MediaIVManipulationFaceSwap,
+  MediaIVManipulationFaceSwapBuscemi,
+  MediaIVManipulationFaceSwapChad,
   MediaIVManipulationFaceSwapKirk,
   MediaIVManipulationFaceXmasCap,
   MediaIVManipulationFisheye,
@@ -1169,6 +1175,7 @@ export {
   ModerationKick,
   ModerationMute,
   ModerationNick,
+  ModerationReports,
   ModerationRules,
   ModerationRulesAdd,
   ModerationRulesAdminBypass,
@@ -1237,6 +1244,7 @@ export {
   ReminderDeleteServer,
   ReminderListMe,
   ReminderListServer,
+  GuildReport,
   Report,
   ReportList,
 

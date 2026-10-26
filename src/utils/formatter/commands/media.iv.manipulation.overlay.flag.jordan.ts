@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationOverlayFlagJordan } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.flag.jordan';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'overlay jordan',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'overlaypreset img flagjordan',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   url: string,

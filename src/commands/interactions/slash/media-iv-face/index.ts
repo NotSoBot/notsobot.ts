@@ -11,6 +11,8 @@ import { BaseSlashCommand } from '../../basecommand';
 import { MediaIVAlienCommand } from './alien';
 import { MediaIVAngryCommand } from './angry';
 import { MediaIVAnimeCommand } from './anime';
+import { MediaIVBuscemiCommand } from './buscemi';
+import { MediaIVChadCommand } from './chad';
 import { MediaIVClownCommand } from './clown';
 import { MediaIVDrawFacesCommand } from './draw-faces';
 import { MediaIVFaceSwapCommand } from './swap';
@@ -54,6 +56,8 @@ export default class MediaIVFaceGroupCommand extends BaseSlashCommand {
         new MediaIVAlienCommand(),
         new MediaIVAngryCommand(),
         new MediaIVAnimeCommand(),
+        new MediaIVBuscemiCommand(),
+        new MediaIVChadCommand(),
         new MediaIVClownCommand(),
         new MediaIVDrawFacesCommand(),
         new MediaIVFatCommand(),

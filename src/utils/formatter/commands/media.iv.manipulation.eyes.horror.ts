@@ -1,12 +1,24 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationEyes } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { MediaEyeTypes } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.eyes.horror';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'eyes horror',
+  inputs: ['face'],
+  script: [
+    'load FILE_1 img',
+    'eyes img RED',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   flipped?: boolean,

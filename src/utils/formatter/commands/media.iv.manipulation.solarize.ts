@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationSolarize } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.solarize';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'solarize',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'solarize img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   url: string,

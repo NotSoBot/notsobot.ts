@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationInvertRGBA } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.invert.rgba';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'invertrgba',
+  inputs: ['face'],
+  script: [
+    'load FILE_1 img',
+    'invertrgba img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   alpha?: number,

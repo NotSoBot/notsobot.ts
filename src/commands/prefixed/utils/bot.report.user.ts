@@ -5,10 +5,10 @@ import { Formatter, Parameters } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { sendReport } from './report.bug';
+import { sendReport } from './bot.report.bug';
 
 
-export const COMMAND_NAME = 'report user';
+export const COMMAND_NAME = 'bot report user';
 
 export interface CommandArgs {
   content: string,

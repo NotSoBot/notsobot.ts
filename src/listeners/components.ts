@@ -10,9 +10,11 @@ import { EventSubscription, Timers } from 'detritus-utils';
 
 import { deleteFile, fetchFile } from '../api';
 import { RestResponsesRaw } from '../api/types';
-import { MessageComponentCustomIds } from '../constants';
+import { MessageComponentCustomIds, RedisChannels } from '../constants';
 import { ApiEventsSpewer } from '../apievents';
+import { RedisPayloads } from '../types';
 import { I18n, mediaReplyFromOptions } from '../utils';
+import { onGuildReportComponent, queueGuildReportUpdate } from '../utils/formatter/commands/guild.report';
 import { onMusicControl } from '../utils/formatter/commands/music.controls';
 import {
   MUSIC_QUEUE_CONTROL,
@@ -61,8 +63,25 @@ class ComponentsListener extends Listener {
                 console.warn(`music control ${context.customId} ${context.guildId}`, error);
               }
             }
+            if (context.customId.startsWith(MessageComponentCustomIds.GUILD_REPORT + '.')) {
+              try {
+                // `guild-report.{action}.{reportId}`, on a reports logger's message
+                const [ , action, reportId ] = context.customId.split('.');
+                return await onGuildReportComponent(context, action, reportId);
+              } catch(error) {
+                console.warn(`guild report ${context.customId} ${context.guildId}`, error);
+              }
+            }
           }; break;
         }
+      });
+      subscriptions.push(subscription);
+    }
+
+    {
+      // the dashboard's version of the report buttons above
+      const subscription = apiEvents.subscribe(RedisChannels.GUILD_REPORT_UPDATE, (payload: RedisPayloads.GuildReportUpdate) => {
+        queueGuildReportUpdate(cluster, payload);
       });
       subscriptions.push(subscription);
     }

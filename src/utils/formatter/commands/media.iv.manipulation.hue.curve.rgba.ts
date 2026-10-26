@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationHueCurveRGBA } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';;
 
 
 export const COMMAND_ID = 'media.iv.manipulation.hue.curve.rgba';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'huecurvergba -red 0,1 1,1',
+  inputs: ['face'],
+  script: [
+    'load FILE_1 img',
+    'huecurvergba img red 0,1 1,1',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   all?: Array<[number, number]>,

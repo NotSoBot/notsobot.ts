@@ -1,10 +1,21 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaICreatePresidential } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { createTimestampMomentFromContext, DefaultParameters, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.i.create.presidential';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'presidential this is not a drill',
+  inputs: [],
+  script: [
+    'presidential img this is not a drill',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   text: string,

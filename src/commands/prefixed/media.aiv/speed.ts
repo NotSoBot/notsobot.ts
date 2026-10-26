@@ -19,9 +19,10 @@ export default class SpeedCommand extends BaseMediaCommand {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg`,
+          `${COMMAND_NAME} https://i.imgur.com/WwiO7Bx.jpg 0.5`,
         ],
         id: Formatter.Commands.MediaAIVManipulationSpeed.COMMAND_ID,
-        usage: '<emoji,user:id|mention,url> <...speed:milliseconds>',
+        usage: '?<emoji,user:id|mention,url> ?<speed multiplier:float>',
       },
       type: [
         {name: 'url', type: Parameters.mediaUrlPositional()},

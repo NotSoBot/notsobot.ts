@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { Markup, intToHex } from 'detritus-client/lib/utils';
 
 import { mediaIVManipulationColorRemove } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { getTranslator } from '../../i18n';
 import { DefaultParameters, jobReply } from '../../../utils';
 
@@ -10,6 +11,17 @@ import * as ToolsColor from './tools.color';
 
 export const COMMAND_ID = 'media.iv.tools.color.remove';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'color remove',
+  inputs: ['photo'],
+  script: [
+    'load FILE_1 img',
+    'colorremove img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 // percentages, ffmpeg's colorkey similarity is 0.01 to 1
 export const DEFAULT_THRESHOLD = 10;

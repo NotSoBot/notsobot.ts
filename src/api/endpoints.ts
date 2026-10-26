@@ -2,7 +2,7 @@ import { Tools } from 'detritus-utils';
 
 
 export enum Domains {
-  CDN = 'https://cdn.notsobot.com',
+  CDN = 'https://cdn.nsb.gg',
   BETA = 'https://beta.notsobot.com',
   LOCALHOST = 'http://localhost',
   STABLE = 'https://notsobot.com',
@@ -300,6 +300,10 @@ export const Api = Object.freeze({
     '/media/iv/manipulation/face/mount-rushmore',
   MEDIA_IV_MANIPULATION_FACE_SWAP:
     '/media/iv/manipulation/face/swap',
+  MEDIA_IV_MANIPULATION_FACE_SWAP_BUSCEMI:
+    '/media/iv/manipulation/face/swap/buscemi',
+  MEDIA_IV_MANIPULATION_FACE_SWAP_CHAD:
+    '/media/iv/manipulation/face/swap/chad',
   MEDIA_IV_MANIPULATION_FACE_SWAP_KIRK:
     '/media/iv/manipulation/face/swap/kirk',
   MEDIA_IV_MANIPULATION_FACE_XMAS_CAP:
@@ -964,6 +968,12 @@ export const Api = Object.freeze({
     '/guilds/:guildId/warnings/delete',
   GUILD_WARNING:
     '/guilds/:guildId/warnings/:warningId',
+  GUILD_REPORTS:
+    '/guilds/:guildId/reports',
+  GUILD_REPORT:
+    '/guilds/:guildId/reports/:reportId',
+  GUILD_REPORT_LOG_MESSAGES:
+    '/guilds/:guildId/reports/:reportId/log-messages',
   MUSIC_NODES:
     '/music/nodes',
   MUSIC_SEARCH:
@@ -1172,21 +1182,12 @@ export const Api = Object.freeze({
 });
 
 
+// the bot's own files on cdn.nsb.gg, uploaded from the api's `assets/cdn/` (`scripts/upload_cdn_assets.py`)
 export const CDN = Tools.URIEncodeWrap({
   URL: Domains.CDN,
 
-  COMMAND_ASSETS_B1:
-    '/command-assets/b1.png',
-
-  EMOJIS_APPLE: (codepoint: string) =>
-    `/emojis/apple/128x128/${codepoint}.png`,
-  EMOJIS_TWEMOJI: (codepoint: string) =>
-    `/emojis/twemoji/v13.0.1/${codepoint}.svg`,
-
-  TWEMOJI_512: (codepoint: string): string =>
-    `/twemoji/512x512/${codepoint}.png`,
-  TWEMOJI_SVG: (codepoint: string): string =>
-    `/twemoji/v13.0.1/${codepoint}.svg`,
+  ASSETS_BOT_B1:
+    '/assets/bot/b1.png',
 });
 
 

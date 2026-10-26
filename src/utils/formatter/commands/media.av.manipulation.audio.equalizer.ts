@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAVManipulationAudioEqualizer } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.av.manipulation.audio.equalizer';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'audio equalizer -subbass 8 -bass 6',
+  inputs: ['music'],
+  script: [
+    'load FILE_1 audio',
+    'audioequalizer audio 8 6',
+    'render audio',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   air?: number,

@@ -9,6 +9,16 @@ import { DefaultParameters, mediaReply } from '../../../utils';
 
 export const COMMAND_ID = 'media.i.create.tombstone';
 
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'rip NotSoBot',
+  inputs: [],
+  script: [
+    'tombstone img NotSoBot',
+    'render img image/webp',
+  ].join('\n'),
+};
+
 export interface CommandArgs {
   text: string,
   user?: Structures.Member | Structures.User,

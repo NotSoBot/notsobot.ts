@@ -12,6 +12,7 @@ import { ModerationNickCommand } from './nick';
 import { ModerationNickMassGroupCommand } from './nick-mass';
 import { ModerationPinCommand } from './pin';
 import { ModerationPruneCommand } from './prune';
+import { ModerationReportsCommand } from './reports';
 import { ModerationUnbanCommand } from './unban';
 import { ModerationUnmuteCommand } from './unmute';
 import { ModerationWarnCommand } from './warn';
@@ -42,6 +43,7 @@ export default class ModerationGroupCommand extends BaseSlashCommand {
         new ModerationNickMassGroupCommand(),
         new ModerationPinCommand(),
         new ModerationPruneCommand(),
+        new ModerationReportsCommand(),
         new ModerationUnbanCommand(),
         new ModerationUnmuteCommand(),
         new ModerationWarnCommand(),

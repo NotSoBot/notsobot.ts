@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationMandalaScope } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.mandalascope';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'mandalascope',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'mandalascope img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   amount?: number,

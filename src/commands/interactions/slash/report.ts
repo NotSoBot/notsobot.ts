@@ -7,97 +7,96 @@ import {
 } from 'detritus-client/lib/constants';
 import { InteractionModal, InteractionModalArgs, InteractionModalContext } from 'detritus-client/lib/utils';
 
-import { EmbedColors, ReportTypes } from '../../../constants';
-import { Formatter, I18n, Parameters, renderDisplay } from '../../../utils';
+import { MAX_GUILD_REPORT_REASON_LENGTH, StatusEmojis } from '../../../constants';
+import { Formatter, I18n, Parameters, displayReply, renderDisplay } from '../../../utils';
 
-import { createRunErrorPayload, warning } from '../../errors';
-import { BaseInteractionCommand, BaseSlashCommand, translateErrorLabel } from '../basecommand';
+import { BaseSlashCommand } from '../basecommand';
+
+import { onModalError } from './bot/report';
 
 
 export const COMMAND_NAME = 'report';
 
-const MAX_SERVER_ID_LENGTH = 20;
-
-async function onModalError(context: Interaction.InteractionContext, modalContext: InteractionModalContext, error: any) {
-  const translator = await I18n.getTranslator(context);
-  // the context menus use this too, so label it with whichever command the modal came from
-  const label = translateErrorLabel((context.command as BaseInteractionCommand).error || 'Slash', translator.translate);
-  const title = warning(translator.translate('errors.run_title', {label}));
-  const payload = await createRunErrorPayload(context, title, error, translator);
-  return modalContext.editOrRespond(await renderDisplay(context, {
-    color: EmbedColors.ERROR,
-    description: payload.description,
-    ephemeral: true,
-    fields: payload.fields,
-    title: payload.title,
-  }));
-}
-
-// the user/message context menus already know what's reported, so they only ask for the reason
-export async function createReportReasonModal(
-  context: Interaction.InteractionContext,
-  createArgs: (content: string) => Omit<Formatter.Commands.Report.CommandArgs, 'content'>,
-): Promise<InteractionModal> {
-  const { translate } = await I18n.getTranslator(context);
-
-  const modal = new InteractionModal({
-    title: translate('report.modal_title'),
-    run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
-      const payload = await Formatter.Commands.Report.createPayload(context, {...createArgs(args.content), content: args.content});
-      return modalContext.editOrRespond(await renderDisplay(context, payload));
-    },
-    onError: (modalContext: InteractionModalContext, args: InteractionModalArgs, error: any) => {
-      return onModalError(context, modalContext, error);
-    },
-  });
-
+function addReasonInput(modal: InteractionModal, translate: I18n.Translator['translate']): void {
   modal.createLabel({
     description: translate('report.modal_reason_description'),
     label: translate('report.modal_reason'),
   }).createInputText({
-    customId: 'content',
-    maxLength: Formatter.Commands.Report.MAX_CONTENT_LENGTH,
+    customId: 'reason',
+    maxLength: MAX_GUILD_REPORT_REASON_LENGTH,
     required: true,
     style: MessageComponentInputTextStyles.PARAGRAPH,
   });
+}
 
+// the "Report to Mods" context menus already know who or what's reported, so they only ask for the reason
+export async function createGuildReportReasonModal(
+  context: Interaction.InteractionContext,
+  args: Omit<Formatter.Commands.GuildReport.CommandArgs, 'reason'>,
+): Promise<InteractionModal> {
+  const { translate } = await I18n.getTranslator(context);
+  const modal = new InteractionModal({
+    title: translate('guild_report.modal_title'),
+    run: async (modalContext: InteractionModalContext, modalArgs: InteractionModalArgs) => {
+      const payload = await Formatter.Commands.GuildReport.createPayload(context, {...args, reason: modalArgs.reason});
+      return modalContext.editOrRespond(await renderDisplay(context, payload));
+    },
+    onError: (modalContext: InteractionModalContext, modalArgs: InteractionModalArgs, error: any) => {
+      return onModalError(context, modalContext, error);
+    },
+  });
+  addReasonInput(modal, translate);
   return modal;
 }
 
-export default class ReportCommand extends BaseSlashCommand {
-  description = 'Send a report to the NotSoBot developers';
-  descriptionLocalizations = I18n.localizations('commands.report.description');
+// a server without a reports logger can't take reports (and nobody can report themselves), said right away instead of
+// after they've written one
+export async function replyIfCannotReport(context: Interaction.InteractionContext, targetId?: string): Promise<boolean> {
+  if (targetId === context.userId) {
+    const { translate } = await I18n.getTranslator(context);
+    await displayReply(context, {description: `${StatusEmojis.WARNING} ${translate('report.cannot_report_yourself')}`, ephemeral: true});
+    return true;
+  }
+  const disabled = await Formatter.Commands.GuildReport.getDisabledPayload(context);
+  if (disabled) {
+    await displayReply(context, disabled);
+    return true;
+  }
+  return false;
+}
+
+export default class GuildReportCommand extends BaseSlashCommand {
+  description = 'Report a member to this server\'s moderators';
+  descriptionLocalizations = I18n.localizations('commands.guild_report.description');
   metadata = {
-    id: Formatter.Commands.Report.COMMAND_ID,
+    id: Formatter.Commands.GuildReport.COMMAND_ID,
   };
   name = COMMAND_NAME;
-  nameLocalizations = I18n.localizations('commands.report.name');
+  nameLocalizations = I18n.localizations('commands.guild_report.name');
   // a deferred interaction can't respond with a modal anymore
   respondsWithModal = true;
   triggerLoadingAfter = -1;
 
+  // the server's own moderators, `bot report` is for the NotSoBot developers
   contexts = [
     InteractionContextTypes.GUILD,
-    InteractionContextTypes.BOT_DM,
-    InteractionContextTypes.PRIVATE_CHANNEL,
   ];
   integrationTypes = [
     ApplicationIntegrationTypes.GUILD_INSTALL,
-    ApplicationIntegrationTypes.USER_INSTALL,
   ];
 
   async run(context: Interaction.InteractionContext) {
+    if (await replyIfCannotReport(context)) {
+      return;
+    }
     const { translate } = await I18n.getTranslator(context);
 
     const modal = new InteractionModal({
-      title: translate('report.modal_title'),
+      title: translate('guild_report.modal_title'),
       run: async (modalContext: InteractionModalContext, args: InteractionModalArgs) => {
-        const type = ReportTypes[(args.type || 'bug').toUpperCase() as keyof typeof ReportTypes];
         const userId = (Array.isArray(args.user) && args.user.length) ? args.user[0] : null;
-        const payload = await Formatter.Commands.Report.createPayload(context, {
-          content: args.content,
-          server: (args.server_id || '').trim() || undefined,
-          type,
+        const payload = await Formatter.Commands.GuildReport.createPayload(context, {
+          reason: args.reason,
           user: (userId) ? await Parameters.memberOrUser()(userId, context) : undefined,
         });
         return modalContext.editOrRespond(await renderDisplay(context, payload));
@@ -107,54 +106,17 @@ export default class ReportCommand extends BaseSlashCommand {
       },
     });
 
-    const type = modal.createRadioGroup({label: translate('report.modal_type')}, {customId: 'type', required: true});
-    type.createOption({
-      default: true,
-      description: translate('report.modal_type_bug_description'),
-      label: translate('report.modal_type_bug'),
-      value: 'bug',
-    });
-    type.createOption({
-      description: translate('report.modal_type_user_description'),
-      label: translate('report.modal_type_user'),
-      value: 'user',
-    });
-    type.createOption({
-      description: translate('report.modal_type_server_description'),
-      label: translate('report.modal_type_server'),
-      value: 'server',
-    });
-
     modal.createSelectMenu({
-      description: translate('report.modal_user_description'),
-      label: translate('report.modal_user'),
+      description: translate('guild_report.modal_user_description'),
+      label: translate('guild_report.modal_user'),
     }, {
       customId: 'user',
       maxValues: 1,
-      minValues: 0,
-      required: false,
+      minValues: 1,
+      required: true,
       type: MessageComponentTypes.USER_SELECT,
     });
-
-    modal.createLabel({
-      description: translate('report.modal_server_id_description'),
-      label: translate('report.modal_server_id'),
-    }).createInputText({
-      customId: 'server_id',
-      maxLength: MAX_SERVER_ID_LENGTH,
-      required: false,
-      style: MessageComponentInputTextStyles.SHORT,
-    });
-
-    modal.createLabel({
-      description: translate('report.modal_details_description'),
-      label: translate('report.modal_details'),
-    }).createInputText({
-      customId: 'content',
-      maxLength: Formatter.Commands.Report.MAX_CONTENT_LENGTH,
-      required: true,
-      style: MessageComponentInputTextStyles.PARAGRAPH,
-    });
+    addReasonInput(modal, translate);
 
     return context.respond(modal);
   }

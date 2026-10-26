@@ -32,7 +32,7 @@ export default class OCRCommand extends BaseImageCommand<CommandArgs> {
         examples: [
           COMMAND_NAME,
           `${COMMAND_NAME} cake`,
-          `${COMMAND_NAME} https://cdn.notsobot.com/brands/notsobot.png`,
+          `${COMMAND_NAME} https://cdn.nsb.gg/assets/brands/notsobot.png`,
         ],
         id: Formatter.Commands.ToolsOCR.COMMAND_ID,
         usage: '?<emoji,user:id|mention|name,url>',

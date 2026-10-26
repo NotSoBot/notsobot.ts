@@ -5,10 +5,10 @@ import { Formatter, Parameters, isSnowflake } from '../../../utils';
 
 import { BaseCommand } from '../basecommand';
 
-import { sendReport } from './report.bug';
+import { sendReport } from './bot.report.bug';
 
 
-export const COMMAND_NAME = 'report server';
+export const COMMAND_NAME = 'bot report server';
 
 export interface CommandArgs {
   content: string,

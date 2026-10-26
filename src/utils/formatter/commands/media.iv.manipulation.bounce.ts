@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationBounce } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.bounce';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'bounce',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'bounce img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   axis?: string,

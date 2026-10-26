@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAIVManipulationFadeIn } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.manipulation.fade.in';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'fadein',
+  inputs: ['music'],
+  script: [
+    'load FILE_1 audio',
+    'fadein audio',
+    'render audio',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   color?: string,

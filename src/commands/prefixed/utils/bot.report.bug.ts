@@ -6,13 +6,13 @@ import { Formatter, Parameters, isSnowflake } from '../../../utils';
 import { BaseCommand } from '../basecommand';
 
 
-export const COMMAND_NAME = 'report bug';
+export const COMMAND_NAME = 'bot report bug';
 
 export interface CommandArgs {
   content: string,
 }
 
-// shared 60s ratelimit between `report bug`, `report server`, `report user`, and `tag report`, checked by hand so it's only consumed once
+// shared 60s ratelimit between `bot report bug`, `bot report server`, `bot report user`, and `tag report`, checked by hand so it's only consumed once
 // a valid report is about to be sent (a typo used to lock the user out for a minute)
 export const REPORT_RATELIMIT = new CommandRatelimit.CommandRatelimit({
   duration: 60000,

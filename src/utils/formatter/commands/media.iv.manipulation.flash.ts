@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationFlash } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.flash';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'flash',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'flash img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   delay?: number,

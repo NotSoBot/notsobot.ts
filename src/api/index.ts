@@ -764,6 +764,44 @@ export async function deleteGuildWarnings(
 }
 
 
+export async function createGuildReport(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.CreateGuildReport,
+) {
+  return raw.createGuildReport(context, guildId, options);
+}
+
+
+export async function fetchGuildReports(
+  context: RequestContext,
+  guildId: string,
+  options: RestOptions.FetchGuildReports = {},
+) {
+  return raw.fetchGuildReports(context, guildId, options);
+}
+
+
+export async function editGuildReport(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.EditGuildReport,
+) {
+  return raw.editGuildReport(context, guildId, reportId, options);
+}
+
+
+export async function editGuildReportLogMessages(
+  context: RequestContext,
+  guildId: string,
+  reportId: string,
+  options: RestOptions.EditGuildReportLogMessages,
+) {
+  return raw.editGuildReportLogMessages(context, guildId, reportId, options);
+}
+
+
 export async function fetchTimedBans(
   context: RequestContext,
   options: RestOptions.FetchTimedBans,
@@ -1943,6 +1981,22 @@ export async function mediaIVManipulationFaceSwap(
   options: RestOptions.MediaIVManipulationFaceSwap,
 ) {
   return raw.mediaIVManipulationFaceSwap(context, options);
+}
+
+
+export async function mediaIVManipulationFaceSwapBuscemi(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceSwapPreset,
+) {
+  return raw.mediaIVManipulationFaceSwapBuscemi(context, options);
+}
+
+
+export async function mediaIVManipulationFaceSwapChad(
+  context: RequestContext,
+  options: RestOptions.MediaIVManipulationFaceSwapPreset,
+) {
+  return raw.mediaIVManipulationFaceSwapChad(context, options);
 }
 
 

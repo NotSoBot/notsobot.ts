@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationRotate3d } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.tools.rotate.3d';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'rotate3d 30 40 0',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'rotate3d img 30 40 0',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   cropMode?: string,

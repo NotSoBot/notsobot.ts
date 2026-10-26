@@ -20,7 +20,7 @@ export class MediaIVHiddenCommand extends BaseInteractionImageOrVideoCommandOpti
     super({
       options: [
         {name: 'share', description: 'How much of the media shows through (1..50) (Default: 10)', ...I18n.optionLocalizations('commands.media_iv_2.fun.hidden.share'), type: Number},
-        {name: 'size', description: 'Checker square size in pixels (1..10) (Default: 1)', ...I18n.optionLocalizations('commands.media_iv_2.fun.hidden.size'), type: Number},
+        {name: 'size', description: 'Checker square size in pixels (1..32) (Default: auto, 64 squares across)', ...I18n.optionLocalizations('commands.media_iv_2.fun.hidden.size'), type: Number},
       ],
     });
   }

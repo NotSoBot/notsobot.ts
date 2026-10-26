@@ -1,11 +1,24 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationOverlayWatermark } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.overlay.watermark';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'watermark',
+  inputs: ['face', 'b1'],
+  script: [
+    'load FILE_1 img',
+    'load FILE_2 mark',
+    'watermark img mark',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   margin?: number,

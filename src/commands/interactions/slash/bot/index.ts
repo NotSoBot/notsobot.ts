@@ -6,6 +6,8 @@ import { BaseSlashCommand } from '../../basecommand';
 
 import { BotInviteCommand } from './invite';
 import { BotMemoryUsageCommand } from './memory-usage';
+import { BotReportCommand } from './report';
+import { BotReportsCommand } from './reports';
 import { BotShardsCommand } from './shards';
 import { BotUsageCommand } from './usage';
 
@@ -31,6 +33,8 @@ export default class BotGroupCommand extends BaseSlashCommand {
       options: [
         new BotInviteCommand(),
         new BotMemoryUsageCommand(),
+        new BotReportCommand(),
+        new BotReportsCommand(),
         new BotShardsCommand(),
         new BotUsageCommand(),
       ],

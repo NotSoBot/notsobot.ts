@@ -2,9 +2,10 @@ import { Command, Interaction } from 'detritus-client';
 import { ApplicationCommandTypes, LOCAL_GUILD_ID } from 'detritus-client/lib/constants';
 
 import { uploadCommands } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import type { CommandMetadata } from '../../../commands/prefixed/basecommand';
 import { CommandCategories, CommandTypes, SLASH_COMMAND_CATEGORY_FALLBACKS } from '../../../constants';
-import { Parameters, displayReply } from '../../../utils';
+import { Formatter, Parameters, displayReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'owner.upload.commands';
@@ -170,7 +171,17 @@ export async function createMessage(
       });
     }
   }
-  await uploadCommands(context, {commands});
+
+  // every formatter command with a `PREVIEW`, the api makes the ones that changed after this returns
+  const previews: Array<RestOptions.CommandPreview & {id: string}> = [];
+  for (let key in Formatter.Commands) {
+    const formatter = (Formatter.Commands as any)[key];
+    if (formatter.COMMAND_ID && formatter.PREVIEW) {
+      previews.push({...formatter.PREVIEW, id: formatter.COMMAND_ID});
+    }
+  }
+
+  await uploadCommands(context, {commands, previews});
 
   return displayReply(context, {description: 'ok'});
 }

@@ -15,7 +15,7 @@ export async function createMessage(
   context: Command.Context | Interaction.InteractionContext,
   args: CommandArgs,
 ) {
-  const url = CDN.URL + CDN.COMMAND_ASSETS_B1;
+  const url = CDN.URL + CDN.ASSETS_BOT_B1;
   try {
     const value = await context.rest.get(url);
     return mediaReplyFromOptions(context, value, {

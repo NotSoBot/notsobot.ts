@@ -5,7 +5,7 @@ import { DiscordRegexNames } from 'detritus-client/lib/constants';
 import { regex as discordRegex } from 'detritus-client/lib/utils';
 import { Endpoints as DiscordEndpoints } from 'detritus-client-rest';
 
-import { CDN, CUSTOM } from '../../../api/endpoints';
+import { CUSTOM } from '../../../api/endpoints';
 import { EmojiTypes, EmojiTypesToText, Mimetypes, StatusEmojis } from '../../../constants';
 import { displayReply, jobReply, jobWaitForResult, toCodePoint, toCodePointForTwemoji } from '../../../utils';
 import { getTranslator } from '../../i18n';
@@ -70,7 +70,6 @@ export async function createMessage(
         const codepoints = getEmojiCodePoints(value, args.type);
         for (let codepoint of codepoints) {
           urls.push(CUSTOM.APPLE_EMOJI(codepoint));
-          //urls.push(CDN.URL + CDN.EMOJIS_APPLE(codepoint));
         }
       }; break;
       case EmojiTypes.EMOJI_ONE: {

@@ -1,12 +1,24 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationFaceHalloweenHat } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { MediaFaceHalloweenHats } from '../../../constants';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.face.halloween.hat';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'halloweenhat',
+  inputs: ['face'],
+  script: [
+    'load FILE_1 img',
+    'facehalloweenhat img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export const DEFAULT_HAT = MediaFaceHalloweenHats.WITCH;
 

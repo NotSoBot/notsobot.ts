@@ -1,11 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAIVManipulationSpeed } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.tools.speed';
 export const IS_PIPEABLE = true;
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'speed 2',
+  inputs: ['voice'],
+  script: [
+    'load FILE_1 img',
+    'speed img 2',
+    'render img',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   speed: number,

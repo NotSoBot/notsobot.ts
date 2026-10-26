@@ -1,10 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaAIVManipulationAudioPutMix } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.a.tools.put.mix';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'audio put mix',
+  inputs: ['voice', 'music'],
+  script: [
+    'load FILE_1 voice',
+    'load FILE_2 music',
+    'audioputmix voice music',
+    'render voice',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   longest?: boolean,
