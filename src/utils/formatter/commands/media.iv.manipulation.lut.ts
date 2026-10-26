@@ -1,10 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationLUT } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.manipulation.lut';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'lut',
+  inputs: ['video', 'grade'],
+  script: [
+    'load FILE_1 clip',
+    'loadcube FILE_2 grade',
+    'applylut clip grade',
+    'render clip',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   // the .cube's url

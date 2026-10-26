@@ -165,7 +165,9 @@ export async function createLogger(
     id: channel.id,
     type: getLoggerTypeText(translate, options.type),
   });
-  return createLoggersEmbed(context, loggers, {title});
+  // reported messages' text is only kept for 30 days, moderators should know before they rely on it
+  const note = (options.type === GuildLoggerTypes.REPORTS) ? translate('loggers.reports_text_notice') : undefined;
+  return createLoggersEmbed(context, loggers, {note, title});
 }
 
 

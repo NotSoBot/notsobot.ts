@@ -1072,6 +1072,14 @@ export async function googleTranslate(
 }
 
 
+export async function mediaACreateSong(
+  context: RequestContext,
+  options: RestOptions.MediaACreateSong,
+) {
+  return raw.mediaACreateSong(context, options);
+}
+
+
 export async function mediaAIVManipulationADHD(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationADHD,
@@ -4961,6 +4969,14 @@ export async function utilitiesMLMashup(
   options: RestOptions.UtilitiesMLMashup,
 ) {
   return raw.utilitiesMLMashup(context, options);
+}
+
+
+export async function utilitiesMLTone(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLTone,
+) {
+  return raw.utilitiesMLTone(context, options);
 }
 
 

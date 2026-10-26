@@ -1,10 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { mediaIVManipulationSetFrameCount } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.iv.tools.set.framecount';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'setframecount 300',
+  inputs: ['video'],
+  script: [
+    'load FILE_1 clip',
+    'setframecount clip 300',
+    'render clip',
+  ].join('\n'),
+};
+
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

@@ -1648,6 +1648,22 @@ export enum MediaSlideDirections {
 }
 
 
+// what `song` plays its chords on (the api's `MediaSongSounds`)
+export enum MediaSongSounds {
+  CHIPTUNE = 'CHIPTUNE',
+  PAD = 'PAD',
+  PIANO = 'PIANO',
+  PLUCK = 'PLUCK',
+}
+
+export const MediaSongSoundsToText: Record<MediaSongSounds, string> = Object.freeze({
+  [MediaSongSounds.CHIPTUNE]: 'Chiptune',
+  [MediaSongSounds.PAD]: 'Pad',
+  [MediaSongSounds.PIANO]: 'Piano',
+  [MediaSongSounds.PLUCK]: 'Pluck',
+});
+
+
 export enum MediaStammerColorModes {
   FAST_8 = 'FAST_8',
   FULL_8 = 'FULL_8',

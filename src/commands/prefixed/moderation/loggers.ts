@@ -31,7 +31,7 @@ export function getLoggerTypeText(translate: I18n.Translator['translate'], type:
 export async function createLoggersEmbed(
   context: Command.Context | Interaction.InteractionContext,
   loggers: Collections.BaseCollection<string, GuildSettingsLogger>,
-  options: {only?: GuildLoggerTypes | null, title?: string} = {},
+  options: {note?: string, only?: GuildLoggerTypes | null, title?: string} = {},
 ) {
   const { language, translate } = await I18n.getTranslator(context);
 
@@ -87,6 +87,9 @@ export async function createLoggersEmbed(
           });
 
           payload.description = description.join('\n');
+          if (options.note) {
+            payload.description += `\n\n${options.note}`;
+          }
         }
         return {display: payload};
       },

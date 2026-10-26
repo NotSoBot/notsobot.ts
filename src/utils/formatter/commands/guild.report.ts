@@ -357,8 +357,16 @@ function getMessageLines(translator: Translator, report: RestResponsesRaw.GuildR
   if (report.type !== GuildReportTypes.MESSAGE) {
     return [];
   }
+  // the api clears the text 30 days after the report, so moderators are told when and can save it before then
   if (report.message_content) {
-    return [Markup.codeblock(report.message_content)];
+    const lines = [Markup.codeblock(report.message_content)];
+    if (report.message_content_expires_at) {
+      lines.push(`-# ${translator.translate('guild_report_log.text_expires', {when: displayTimestamp(report.message_content_expires_at)})}`);
+    }
+    return lines;
+  }
+  if (report.message_content_deleted) {
+    return [`*${translator.translate('guild_report_log.text_deleted')}*`];
   }
   return [`*${translator.translate('guild_report_log.no_text')}*`];
 }

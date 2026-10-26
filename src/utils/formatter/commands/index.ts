@@ -28,6 +28,7 @@ import * as InfoRole from './info.role';
 import * as InfoUser from './info.user';
 import * as InfoUsers from './info.users';
 
+import * as MediaACreateSong from './media.a.create.song';
 import * as MediaAIVManipulationADHD from './media.aiv.manipulation.adhd';
 import * as MediaAIVManipulationAndroid from './media.aiv.manipulation.android';
 import * as MediaAIVManipulationAudioPutConcat from './media.aiv.manipulation.audio.put.concat';
@@ -713,6 +714,7 @@ export {
   InfoUser,
   InfoUsers,
 
+  MediaACreateSong,
   MediaAIVManipulationADHD,
   MediaAIVManipulationAndroid,
   MediaAIVManipulationAudioPutConcat,

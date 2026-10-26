@@ -1,10 +1,22 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesMLImagine, utilitiesMLInterrogate } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.ml.reimagine';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'reimagine',
+  inputs: ['b1'],
+  script: [
+    'load FILE_1 img',
+    'reimagine img',
+    'render img image/webp',
+  ].join('\n'),
+};
 
 export interface CommandArgs {
   add?: string,

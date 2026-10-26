@@ -1,10 +1,23 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesMLEdit } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.ml.edit';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'edit give him a cowboy hat',
+  inputs: ['photo'],
+  script: [
+    'load FILE_1 img',
+    'edit img give him a cowboy hat',
+    'render img image/webp',
+  ].join('\n'),
+};
+
 export const IS_PIPEABLE = true;
 // evan built the original ai imagine command on his mac mini, which this came from too
 export const CREDITS = [{id: '188836645670223872', name: 'evan'}];

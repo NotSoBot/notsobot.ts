@@ -11,12 +11,11 @@ export const IS_PIPEABLE = true;
 // the commands page's before/after preview (see `owner.upload.commands`)
 export const PREVIEW: RestOptions.CommandPreview = {
   example: 'adhd',
-  inputs: ['b1'],
+  inputs: ['video'],
   script: [
-    'load FILE_1 img',
-    'adhd img',
-    'snip img 0 6',
-    'render img',
+    'load FILE_1 clip',
+    'adhd clip',
+    'render clip',
   ].join('\n'),
 };
 

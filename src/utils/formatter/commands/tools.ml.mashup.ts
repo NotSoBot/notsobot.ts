@@ -1,11 +1,25 @@
 import { Command, Interaction } from 'detritus-client';
 
 import { utilitiesFetchMedia, utilitiesMLMashup } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import { getTranslator } from '../../i18n';
 import { EmojiKitchen, jobWaitForResponse, jobWaitForResult, mediaReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'tools.ml.mashup';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'mashup',
+  inputs: ['b1', 'photo'],
+  script: [
+    'load FILE_1 img',
+    'load FILE_2 other',
+    'mashup img other',
+    'render img image/webp',
+  ].join('\n'),
+};
+
 export const IS_PIPEABLE = true;
 
 export interface CommandArgs {

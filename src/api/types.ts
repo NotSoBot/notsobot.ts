@@ -18,6 +18,7 @@ import {
   MediaPixelSortFunctions,
   MediaPixelSortIntervals,
   MediaQuadartTypes,
+  MediaSongSounds,
   MusicLoopModes,
   RedditSortTypes,
   RedditTimeTypes,
@@ -583,6 +584,15 @@ export namespace RestOptions {
   export interface MediaBaseOptionsMultiple extends MediaBaseOptions {
     files?: Array<RequestFile>,
     urls?: Array<string | {filename?: string, url: string}>,
+  }
+
+  export interface MediaACreateSong extends MediaUploadBaseOptions {
+    bars?: number,
+    bpm?: number,
+    chords?: string,
+    drums?: boolean,
+    maxFileSize?: number,
+    sound?: MediaSongSounds,
   }
 
   export interface MediaAIVManipulationADHD extends MediaBaseOptions {
@@ -1796,7 +1806,7 @@ export namespace RestOptions {
   export interface CommandPreview {
     // what it shows, as typed without the prefix
     example: string,
-    inputs: Array<'b1' | 'bordered' | 'captioned' | 'face' | 'music' | 'photo' | 'voice'>,
+    inputs: Array<'b1' | 'bordered' | 'captioned' | 'face' | 'face2' | 'grade' | 'music' | 'photo' | 'preview1280' | 'quiet' | 'stereo' | 'video' | 'video2' | 'voice'>,
     script: string,
   }
 
@@ -1879,6 +1889,10 @@ export namespace RestOptions {
     seed?: number,
     steps?: number,
     strength?: number,
+  }
+
+  export interface UtilitiesMLTone {
+    text: string,
   }
 
   export interface UtilitiesProxyRequest {
@@ -2477,6 +2491,10 @@ export namespace RestResponsesRaw {
     handled_by: string | null,
     id: string,
     message_content: string | null,
+    // the text was cleared 30 days after the report (not a message that never had any)
+    message_content_deleted: boolean,
+    // when the text gets cleared, while there's still text
+    message_content_expires_at: string | null,
     message_id: string | null,
     reason: string,
     status: ReportStatuses,
@@ -3772,6 +3790,14 @@ export namespace RestResponsesRaw {
 
   export interface UtilitiesMLInterrogate {
     prompt: string,
+  }
+
+  export interface UtilitiesMLTone {
+    // 0-1 per attribute (toxicity, severe_toxicity, obscene, identity_attack, insult, threat, sexual_explicit)
+    scores: Record<string, number>,
+    tokens: number,
+    // only the first 512 tokens were scored
+    truncated: boolean,
   }
 
   export interface UtilitiesProxyRequest {

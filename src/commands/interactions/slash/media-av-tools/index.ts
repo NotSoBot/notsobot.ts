@@ -16,6 +16,7 @@ import { MediaAVAudioChannelsInvertCommand } from './channels-invert';
 import { MediaAVAudioDelayCommand } from './delay';
 import { MediaAVToolsIdentifyCommand } from './identify';
 import { MediaAVAudioVolumeCommand } from './volume';
+import { MediaAVSongCommand } from './song';
 import { MediaAVWaveformCommand } from './waveform';
 
 
@@ -44,6 +45,7 @@ export default class MediaAVToolsGroupCommand extends BaseSlashCommand {
         new MediaAVAudioChannelsInvertCommand(),
         new MediaAVAudioDelayCommand(),
         new MediaAVToolsIdentifyCommand(),
+        new MediaAVSongCommand(),
         new MediaAVAudioVolumeCommand(),
         new MediaAVWaveformCommand(),
       ],

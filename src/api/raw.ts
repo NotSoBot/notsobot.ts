@@ -2315,6 +2315,30 @@ export async function googleTranslate(
 }
 
 
+export async function mediaACreateSong(
+  context: RequestContext,
+  options: RestOptions.MediaACreateSong,
+): Promise<RestResponsesRaw.JobResponse> {
+  const maxFileSize = getDefaultMaxFileSize(context, options);
+  const body = {
+    bars: options.bars,
+    bpm: options.bpm,
+    chords: options.chords,
+    drums: options.drums,
+    max_file_size: maxFileSize,
+    safe: options.safe,
+    sound: options.sound,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.MEDIA_A_CREATE_SONG,
+    },
+  });
+}
+
+
 export async function mediaAIVManipulationADHD(
   context: RequestContext,
   options: RestOptions.MediaAIVManipulationADHD,
@@ -12883,6 +12907,23 @@ export async function utilitiesMLMashup(
     },
   });
   return response;
+}
+
+
+export async function utilitiesMLTone(
+  context: RequestContext,
+  options: RestOptions.UtilitiesMLTone,
+): Promise<RestResponsesRaw.UtilitiesMLTone> {
+  const body = {
+    text: options.text,
+  };
+  return request(context, {
+    body,
+    route: {
+      method: HTTPMethods.POST,
+      path: Api.UTILITIES_ML_TONE,
+    },
+  });
 }
 
 

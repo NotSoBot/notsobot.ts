@@ -66,6 +66,8 @@ export const Api = Object.freeze({
   JOB:
     '/jobs/:jobId',
 
+  MEDIA_A_CREATE_SONG:
+    '/media/a/create/song',
   MEDIA_AIV_MANIPULATION_ADHD:
     '/media/aiv/manipulation/adhd',
   MEDIA_AIV_MANIPULATION_ANDROID:
@@ -1158,6 +1160,8 @@ export const Api = Object.freeze({
     '/utilities/ml/interrogate',
   UTILITIES_ML_MASHUP:
     '/utilities/ml/mashup',
+  UTILITIES_ML_TONE:
+    '/utilities/ml/tone',
   UTILITIES_PROXY_REQUEST:
     '/utilities/proxy/request',
   UTILITIES_QR_CREATE:

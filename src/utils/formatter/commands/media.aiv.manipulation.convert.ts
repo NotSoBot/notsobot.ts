@@ -2,6 +2,7 @@ import { Command, Interaction } from 'detritus-client';
 import { RequestFile } from 'detritus-rest';
 
 import { mediaAIVManipulationConvert } from '../../../api';
+import type { RestOptions } from '../../../api/types';
 import {
   Mimetypes,
   MimetypesToExtension,
@@ -14,6 +15,20 @@ import { DefaultParameters, jobReply } from '../../../utils';
 
 
 export const COMMAND_ID = 'media.aiv.tools.convert';
+
+// the commands page's before/after preview (see `owner.upload.commands`)
+// half size like togif
+export const PREVIEW: RestOptions.CommandPreview = {
+  example: 'convert webp',
+  inputs: ['video'],
+  script: [
+    'load FILE_1 clip',
+    'resize clip 320 180',
+    'convert clip image/webp',
+    'render clip',
+  ].join('\n'),
+};
+
 export const IS_PIPEABLE = true;
 
 export const SLASH_PARAMETERS: {
